@@ -7,7 +7,7 @@ Created on Oct 3, 2010
 from __future__ import annotations
 from collections import defaultdict
 import os, sys, re, traceback, uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 import logging
 from decimal import Decimal
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
@@ -266,6 +266,7 @@ class ModelXbrl:
 
     """
 
+    ixdsHtmlElements: list
     uriDir: str
 
     def __init__(self, modelManager, errorCaptureLevel=None):
@@ -412,11 +413,11 @@ class ModelXbrl:
     def roleUriTitle(self, roleURI):
         return re.sub(r"([A-Z])",r" \1", os.path.basename(roleURI)).title()
 
-    def roleTypeDefinition(self, roleURI, lang=None):
+    def roleTypeDefinition(self, roleURI, lang=None) -> str:
         modelRoles = self.roleTypes.get(roleURI, ())
         if modelRoles:
             _roleType = modelRoles[0]
-            return _roleType.genLabel(lang=lang, strip=True)  or _roleType.definition or self.roleUriTitle(roleURI)
+            return cast(str, _roleType.genLabel(lang=lang, strip=True) or _roleType.definition or self.roleUriTitle(roleURI))
         return self.roleUriTitle(roleURI)
 
     def roleTypeName(self, roleURI, lang=None):
@@ -1287,7 +1288,7 @@ class ModelXbrl:
             if stat is None:
                 self._startedTimeStat = time.time()
 
-    def profileActivity(self, activityCompleted=None, minTimeToShow=0):
+    def profileActivity(self, activityCompleted=None, minTimeToShow=0) -> None:
         """Used to provide interactive GUI messages of long-running processes.
 
         When the time between last profileActivity and this profileActivity exceeds minTimeToShow, then

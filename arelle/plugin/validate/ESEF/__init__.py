@@ -1,13 +1,13 @@
 '''
 Created on June 6, 2018
 
-Filer Guidelines: 
+Filer Guidelines:
   RTS: https://eur-lex.europa.eu/legal-content/EN/TXT/?qid=1563538104990&uri=CELEX:32019R0815
   ESEF Filer Manual https://www.esma.europa.eu/sites/default/files/library/esma32-60-254_esef_reporting_manual.pdf
-  
-Taxonomy Architecture: 
 
-Taxonomy package expected to be installed: 
+Taxonomy Architecture:
+
+Taxonomy package expected to be installed:
 
 @author: Workiva
 (c) Copyright 2022 Workiva, All rights reserved.
@@ -15,7 +15,7 @@ Taxonomy package expected to be installed:
 GUI operation
 
    install plugin validate/ESEF and optionally applicable taxonomy packages
-   
+
    Under tools->formula add parameters eps_threshold and optionally authority
 
 Command line operation:
@@ -26,7 +26,7 @@ Command line operation:
      --parameters "eps_threshold=.01"
    Dimensional validations required by some auditors may require
     --import http://www.esma.europa.eu/taxonomy/2020-03-16/esef_all-for.xml
-    and likely --skipLoading *esef_all-cal.xml 
+    and likely --skipLoading *esef_all-cal.xml
     because the esef_all-cal.xml calculations are reported to be problematical for some filings
 
 Authority specific validations are enabled by formula parameter authority, e.g. for Denmark or UKSEF and eps_threshold specify:
@@ -36,21 +36,22 @@ Authority specific validations are enabled by formula parameter authority, e.g. 
 Using arelle as a web server:
 
    arelleCmdLine.exe --webserver localhost:8080:cheroot --plugins validate/ESEF --packages {my-package-directory}/esef_taxonomy_2019.zip
-   
+
 Client with curl:
 
    curl -X POST "-HContent-type: application/zip" -T TC1_valid.zip "http://localhost:8080/rest/xbrl/validation?disclosureSystem=esef&media=text"
 
 '''
+from __future__ import annotations
 import os, base64
 try:
     import regex as re
 except ImportError:
-    import re
+    import re  # type: ignore[no-redef]
 from collections import defaultdict
 from math import isnan
-from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, EntityBase
-from arelle import LeiUtil, ModelDocument, XbrlConst, XhtmlValidate, XmlUtil
+from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, EntityBase, _Element
+from arelle import LeiUtil, ModelDocument, XbrlConst, XhtmlValidate
 from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
@@ -62,16 +63,30 @@ from arelle.UrlUtil import isHttpUrl, scheme
 from arelle.XmlValidate import VALID, lexicalPatterns
 
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
-from arelle.XbrlConst import (ixbrl11, xhtml, link, parentChild, summationItem, standardLabel,
-                              all as hc_all, notAll as hc_notAll, hypercubeDimension, dimensionDomain, domainMember,
+from arelle.XbrlConst import (ixbrl11, xhtml, parentChild, summationItem, standardLabel,
+                              all as hc_all, notAll as hc_notAll, dimensionDomain, domainMember,
                               qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote, iso17442)
 from arelle.XmlValidate import VALID
 from arelle.ValidateUtr import ValidateUtr
-from .Const import (browserMaxBase64ImageLength, mandatory, untransformableTypes,
+from .Const import (mandatory, untransformableTypes,
                     esefPrimaryStatementPlaceholderNames, esefStatementsOfMonetaryDeclarationNames, esefMandatoryElementNames2020)
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
 from .Util import isExtension, checkImageContents, loadAuthorityValidations
+from .common import TypeGetText
+from arelle.ModelObject import ModelObject
+from arelle.DisclosureSystem import DisclosureSystem
+from arelle.ModelDtsObject import ModelConcept
+from arelle.ModelXbrl import ModelXbrl
+from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XPathContext import XPathContext
+from arelle.ModelRelationshipSet import ModelRelationshipSet
+from arelle.ModelInstanceObject import ModelInlineFootnote
+from arelle.ModelInstanceObject import ModelContext
+from typing import Any, cast
+from collections.abc import Generator
+
+_: TypeGetText  # Handle gettext
 
 styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*")
 styleCssHiddenPattern = re.compile(r"(.*[^\w]|^)display\s*:\s*none([^\w].*|$)")
@@ -82,55 +97,61 @@ ixErrorPattern = re.compile(r"ix11[.]|xmlSchema[:]|(?!xbrl.5.2.5.2|xbrl.5.2.6.2)
 docTypeXhtmlPattern = re.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-//W3C//DTD\s+(X?HTML)\s)?.*>$", re.IGNORECASE)
 
 FOOTNOTE_LINK_CHILDREN = {qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote}
-PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
+PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType") #  type: ignore[no-untyped-call]
 IXT_NAMESPACES = {ixtNamespaces["ixt v4"], # only tr4 or newer REC is currently recommended
                   ixtNamespaces["ixt v5"]}
 
-def etreeIterWithDepth(node, depth=0):
+def etreeIterWithDepth(node: ModelObject | _Element, depth: int=0) -> Generator[tuple[ModelObject | _Element, int], None, None]:
     yield (node, depth)
     for child in node.iterchildren():
         for n_d in etreeIterWithDepth(child, depth+1):
             yield n_d
-                
-def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
+
+def dislosureSystemTypes(disclosureSystem: DisclosureSystem, *args: Any, **kwargs: Any) -> tuple[tuple[str, str]]:
     # return ((disclosure system name, variable name), ...)
     return (("ESEF", "ESEFplugin"),)
 
-def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
+def disclosureSystemConfigURL(disclosureSystem: DisclosureSystem, *args: Any, **kwargs: Any) -> str:
     return os.path.join(os.path.dirname(__file__), "config.xml")
 
-def modelXbrlBeforeLoading(modelXbrl, normalizedUri, filepath, isEntry=False, **kwargs):
+def modelXbrlBeforeLoading(modelXbrl: ModelXbrl, normalizedUri: str, filepath: str, isEntry: bool=False, **kwargs: Any) -> ModelDocument.LoadingException | None:
     if getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
         if isEntry and not any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
             if modelXbrl.fileSource.isArchive:
                 if (not isinstance(modelXbrl.fileSource.selection, list) and
-                    modelXbrl.fileSource.selection.endswith(".xml") and 
-                    ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url) in (
+                    modelXbrl.fileSource.selection is not None and
+                    modelXbrl.fileSource.selection.endswith(".xml") and
+                    # Ignoring for now: Argument 1 to "identify" of "Type" has incompatible type "FileSource"; expected "Type".
+                    # It is not entirely clear why self isn't used in the identify-method.
+                    ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url) in ( # type: ignore[arg-type]
                         ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
                     return None # allow zipped test case to load normally
                 if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
                     modelXbrl.error("ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage",
                         _("Single reporting package with issuer's XBRL extension taxonomy files and Inline XBRL instance document must be compliant with the latest recommended version of the Taxonomy Packages specification (1.0)"),
-                        modelObject=modelXbrl) 
-                    return ModelDocument.LoadingException("Invalid taxonomy package") 
-    return None                       
+                        modelObject=modelXbrl)
+                    return ModelDocument.LoadingException("Invalid taxonomy package")
+    return None
 
-def modelXbrlLoadComplete(modelXbrl):
+def modelXbrlLoadComplete(modelXbrl: ModelXbrl) -> None:
     if (getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False) and
         (modelXbrl.modelDocument is None or modelXbrl.modelDocument.type not in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRY, ModelDocument.Type.RSSFEED))):
         if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
+
+            assert modelXbrl.modelDocument is not None
+
             htmlElement = modelXbrl.modelDocument.xmlRootElement
-            if htmlElement.namespaceURI == xhtml:  
+            if htmlElement.namespaceURI == xhtml:
                 # xhtml is validated by ModelDocument inine, plain xhtml still needs validating
                 XhtmlValidate.xhtmlValidate(modelXbrl, htmlElement)
             if modelXbrl.facts:
                 modelXbrl.warning("arelle-ESEF:unconsolidatedContainsInline",
-                                _("Inline XBRL not expected in unconsolidated xhtml document."), 
+                                _("Inline XBRL not expected in unconsolidated xhtml document."),
                                 modelObject=modelXbrl)
             return
         if modelXbrl.modelDocument is None:
             modelXbrl.error("ESEF.3.1.3.missingOrInvalidTaxonomyPackage",
-                            _("RTS Annex III Par 3 and ESEF 3.1.3 requires an XBRL Report Package but one could not be loaded."), 
+                            _("RTS Annex III Par 3 and ESEF 3.1.3 requires an XBRL Report Package but one could not be loaded."),
                             modelObject=modelXbrl)
         if (modelXbrl.modelDocument is None or
             not modelXbrl.facts and "ESEF.RTS.Art.6.a.noInlineXbrlTags" not in modelXbrl.errors):
@@ -138,7 +159,7 @@ def modelXbrlLoadComplete(modelXbrl):
                             _("RTS on ESEF requires inline XBRL, no facts were reported."),
                             modelObject=modelXbrl)
 
-def validateXbrlStart(val, parameters=None, *args, **kwargs):
+def validateXbrlStart(val: ValidateXbrl, parameters: dict[Any, Any] | None=None, *args: Any, **kwargs: Any) -> None:
     val.validateESEFplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "ESEFplugin", False)
     if not (val.validateESEFplugin):
         return
@@ -148,18 +169,22 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.consolidated = not val.unconsolidated
     val.authority = None
     if parameters:
-        p = parameters.get(qname("authority",noPrefixIsNoNamespace=True))
+        p = parameters.get(qname("authority",noPrefixIsNoNamespace=True)) #  type: ignore[no-untyped-call]
         if p and len(p) == 2 and p[1] not in ("null", "None", None):
             v = p[1] # formula dialog and cmd line formula parameters may need type conversion
             val.authority = v
-    
+
     authorityValidations = loadAuthorityValidations(val.modelXbrl)
+    # loadAuthorityValidations returns either a list or a dict but in this context, we expect a dict.
+    # By using cast, we let mypy know that a list is _not_ expected here.
+    authorityValidations = cast(dict[Any, Any], authorityValidations)
+
     val.authParam = authorityValidations["default"]
     val.authParam.update(authorityValidations.get(val.authority, {}))
     for convertListIntoSet in ("outdatedTaxonomyURLs", "effectiveTaxonomyURLs", "standardTaxonomyURIs", "additionalMandatoryTags"):
         if convertListIntoSet in val.authParam:
             val.authParam[convertListIntoSet] = set(val.authParam[convertListIntoSet])
-        
+
     # add in formula messages if not loaded
     formulaMsgsUrls = val.authParam.get("formulaMessagesAdditionalURLs", ())
     _reCacheRelationships = False
@@ -174,15 +199,15 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                     _reCacheRelationships = True
     if _reCacheRelationships:
         modelXbrl.relationshipSets.clear() # relationships have to be re-cached
-        
+
     formulaOptions = val.modelXbrl.modelManager.formulaOptions
     # skip formula IDs as needed per authority if no formula runIDs provided by environment
     val.priorFormulaOptionsRunIDs = formulaOptions.runIDs
     if not formulaOptions.runIDs and val.authParam["formulaRunIDs"]:
         formulaOptions.runIDs = val.authParam["formulaRunIDs"]
-        
-    
-def validateXbrlFinally(val, *args, **kwargs):
+
+
+def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     if not (val.validateESEFplugin):
         return
 
@@ -196,9 +221,9 @@ def validateXbrlFinally(val, *args, **kwargs):
     _statusMsg = _("validating {0} filing rules").format(val.disclosureSystem.name)
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
-    
+
     prefixedNamespaces = modelXbrl.prefixedNamespaces
-    
+
     reportPackageMaxMB = val.authParam["reportPackageMaxMB"]
     if reportPackageMaxMB is not None and modelXbrl.fileSource.fs: # must be a zip to be a report package
         maxMB = float(reportPackageMaxMB)
@@ -209,18 +234,18 @@ def validateXbrlFinally(val, *args, **kwargs):
             # not usable because zip may be posted or streamed: _size = os.path.getsize(modelXbrl.fileSource.basefile)
         if _size > maxMB * 1048576:
             modelXbrl.error("arelle.ESEF.maximumReportPackageSize",
-                            _("The authority %(authority)s requires a report package size under %(maxSize)s MB, size is %(size)s."), 
+                            _("The authority %(authority)s requires a report package size under %(maxSize)s MB, size is %(size)s."),
                             modelObject=modelXbrl, authority=val.authority, maxSize=reportPackageMaxMB, size=_size)
-                            
+
     if val.authority == "UKFRC":
         if modelXbrl.fileSource and modelXbrl.fileSource.taxonomyPackage and modelXbrl.fileSource.taxonomyPackage["publisherCountry"] != "GB":
             modelXbrl.error("UKFRC.1.2.publisherCountrySetting",
-                        _("The \"Publisher Country\" element of the report package metadata for a UKSEF report MUST be set to \"GB\" but was \"%(publisherCountry)s\"."), 
+                        _("The \"Publisher Country\" element of the report package metadata for a UKSEF report MUST be set to \"GB\" but was \"%(publisherCountry)s\"."),
                         modelObject=modelXbrl, publisherCountry=modelXbrl.fileSource.taxonomyPackage["publisherCountry"] )
-    
+
     reportXmlLang = None
     firstRootmostXmlLangDepth = 9999999
-    
+
     _ifrsNses = []
     _ifrsNs = None
     for targetNs in modelXbrl.namespaceDocs.keys():
@@ -229,30 +254,33 @@ def validateXbrlFinally(val, *args, **kwargs):
     if val.consolidated:
         if not _ifrsNses:
             modelXbrl.warning("ESEF.RTS.ifrsRequired",
-                            _("RTS on ESEF requires IFRS taxonomy."), 
+                            _("RTS on ESEF requires IFRS taxonomy."),
                             modelObject=modelXbrl)
             return
         if len(_ifrsNses) > 1:
             modelXbrl.error("Arelle.ESEF.multipleIfrsTaxonomies",
-                            _("Multuple IFRS taxonomies were imported %(ifrsNamespaces)s."), 
+                            _("Multuple IFRS taxonomies were imported %(ifrsNamespaces)s."),
                             modelObject=modelXbrl, ifrsNamespaces=", ".join(_ifrsNses))
         if _ifrsNses:
             _ifrsNs = _ifrsNses[0]
-    
-    esefPrimaryStatementPlaceholders = set(qname(_ifrsNs, n) for n in esefPrimaryStatementPlaceholderNames)
-    esefStatementsOfMonetaryDeclaration = set(qname(_ifrsNs, n) for n in esefStatementsOfMonetaryDeclarationNames)
-    esefMandatoryElements2020 = set(qname(_ifrsNs, n) for n in esefMandatoryElementNames2020)
-    
+
+    esefPrimaryStatementPlaceholders = set(qname(_ifrsNs, n) for n in esefPrimaryStatementPlaceholderNames) #  type: ignore[no-untyped-call]
+    esefStatementsOfMonetaryDeclaration = set(qname(_ifrsNs, n) for n in esefStatementsOfMonetaryDeclarationNames) #  type: ignore[no-untyped-call]
+    esefMandatoryElements2020 = set(qname(_ifrsNs, n) for n in esefMandatoryElementNames2020) #  type: ignore[no-untyped-call]
+
     if modelDocument.type == ModelDocument.Type.INSTANCE and not val.unconsolidated:
         modelXbrl.error("ESEF.I.1.instanceShallBeInlineXBRL",
-                        _("RTS on ESEF requires inline XBRL instances."), 
+                        _("RTS on ESEF requires inline XBRL instances."),
                         modelObject=modelXbrl)
-        
+
     checkFilingDimensions(val) # sets up val.primaryItems and val.domainMembers
     val.hasExtensionSchema = val.hasExtensionPre = val.hasExtensionCal = val.hasExtensionDef = val.hasExtensionLbl = False
+
+    # ModelDocument.load has None as a return type. For typing reasons, we need to guard against that here.
+    assert modelXbrl.modelDocument is not None
     checkFilingDTS(val, modelXbrl.modelDocument, [])
     modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
-    
+
     if val.consolidated and not (val.hasExtensionSchema and val.hasExtensionPre and val.hasExtensionCal and val.hasExtensionDef and val.hasExtensionLbl):
         missingFiles = []
         if not val.hasExtensionSchema: missingFiles.append("schema file")
@@ -264,19 +292,18 @@ def validateXbrlFinally(val, *args, **kwargs):
             _("Extension taxonomies MUST consist of at least a schema file and presentation, calculation, definition and label linkbases"
               ": missing %(missingFiles)s"),
             modelObject=modelXbrl, missingFiles=", ".join(missingFiles))
-        
+
     #if modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
     #    # reports only under reports, none elsewhere
     #    modelXbrl.fileSource.dir
-        
     if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.INSTANCE, ModelDocument.Type.UnknownXML):
         footnotesRelationshipSet = modelXbrl.relationshipSet("XBRL-footnotes")
         orphanedFootnotes = set()
         noLangFootnotes = set()
         factLangFootnotes = defaultdict(set)
         footnoteRoleErrors = set()
-        transformRegistryErrors = set()
-        def checkFootnote(elt, text):
+        transformRegistryErrors: set[ModelInlineFact] = set()
+        def checkFootnote(elt: ModelInlineFootnote | ModelResource, text: str) -> None:
             if text: # non-empty footnote must be linked to a fact if not empty
                 if not any(isinstance(rel.fromModelObject, ModelFact)
                            for rel in footnotesRelationshipSet.toModelObject(elt)):
@@ -292,9 +319,9 @@ def validateXbrlFinally(val, *args, **kwargs):
                 rel.arcrole == XbrlConst.factFootnote and rel.linkrole == XbrlConst.defaultLinkRole
                 for rel in footnotesRelationshipSet.toModelObject(elt)):
                 footnoteRoleErrors.add(elt)
-                
+
         # check file name of each inline document (which might be below a top-level IXDS)
-        ixdsDocDirs = set()
+        ixdsDocDirs: set[str] = set()
         for doc in modelXbrl.urlDocs.values():
             if doc.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.UnknownXML):
                 _baseName, _baseExt = os.path.splitext(doc.basename)
@@ -357,7 +384,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                             modelXbrl.error("ESEF.RTS.Art.3.htmlDoctype",
                                 _("Doctype SHALL NOT specify html validation: %(doctype)s"),
                                 modelObject=doc, doctype=docinfo.doctype)
-                        
+
 
         if len(ixdsDocDirs) > 1 and val.consolidated:
             modelXbrl.error("ESEF.2.6.2.reportSetIncorrectlyPlacedInPackage",
@@ -371,8 +398,11 @@ def validateXbrlFinally(val, *args, **kwargs):
             presentedHiddenEltIds = defaultdict(list)
             eligibleForTransformHiddenFacts = []
             requiredToDisplayFacts = []
-            requiredToDisplayFactIds = {}
+            requiredToDisplayFactIds: dict[Any, Any] = {}
             firstIxdsDoc = True
+
+            # ModelDocument.load has None as a return type. For typing reasons, we need to guard against that here.
+            assert modelXbrl.modelDocument is not None
             for ixdsHtmlRootElt in (modelXbrl.ixdsHtmlElements if val.consolidated else # ix root elements for all ix docs in IXDS
                                     (modelXbrl.modelDocument.xmlRootElement,)): # plain xhtml filing
                 ixNStag = getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11)
@@ -381,7 +411,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                 ixExcludeTag = ixNStag + "exclude"
                 ixTupleTag = ixNStag + "tuple"
                 ixFractionTag = ixNStag + "fraction"
-                for elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
+
+                for uncast_elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
+                    elt = cast(Any, uncast_elt)
+
                     eltTag = elt.tag
                     if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, EntityBase)):
                         continue # comment or other non-parsed element
@@ -410,7 +443,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 if _ancestorElt.tag in ixTextTags:
                                     hasParentIxTextTag = True
                                     break
-                                _ancestorElt = _ancestorElt.getparent()                     
+                                _ancestorElt = _ancestorElt.getparent()
                             if scheme(src) in ("http", "https", "ftp"):
                                 modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
                                                 else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
@@ -468,9 +501,9 @@ def validateXbrlFinally(val, *args, **kwargs):
                                         modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
                                             _("Base64 encoding error %(err)s in image source: %(src)s."),
                                             modelObject=elt, err=str(err), src=src[:128])
-                        # links to external documents are allowed as of 2021 per G.2.5.1 
-                        #    Since ESEF is a format requirement and is not expected to impact the 'human readable layer' of a report, 
-                        #    this guidance should not be seen as limiting the inclusion of links to external websites, to other documents 
+                        # links to external documents are allowed as of 2021 per G.2.5.1
+                        #    Since ESEF is a format requirement and is not expected to impact the 'human readable layer' of a report,
+                        #    this guidance should not be seen as limiting the inclusion of links to external websites, to other documents
                         #    or to other sections of the annual financial report.'''
                         #elif eltTag == "a":
                         #    href = elt.get("href","").strip()
@@ -490,11 +523,11 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     _("For XHTML stand-alone documents, the CSS SHOULD be embedded within the document."),
                                     modelObject=elt, element=eltTag)
                             elif len(modelXbrl.ixdsHtmlElements) > 1:
-                                f = elt.get("href")
-                                if not f or isHttpUrl(f) or os.path.isabs(f):
+                                _file = elt.get("href")
+                                if not _file or isHttpUrl(_file) or os.path.isabs(_file):
                                     modelXbrl.warning("ESEF.2.5.4.externalCssReportPackage",
                                         _("The CSS file should be physically stored within the report package: %{file}s."),
-                                        modelObject=elt, file=f)
+                                        modelObject=elt, file=_file)
                             else:
                                 modelXbrl.warning("ESEF.2.5.4.externalCssFileForSingleIXbrlDocument",
                                     _("Where an Inline XBRL document set contains a single document, the CSS SHOULD be embedded within the document."),
@@ -506,13 +539,13 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 modelXbrl.warning("ESEF.2.5.4.embeddedCssForMultiHtmlIXbrlDocumentSets",
                                     _("Where an Inline XBRL document set contains multiple documents, the CSS SHOULD be defined in a separate file."),
                                     modelObject=elt, element=eltTag)
-                                
-                            
+
+
                     if eltTag in ixTags and elt.get("target") and ixTargetUsage != "allowed":
                         modelXbrl.log(ixTargetUsage.upper(),
                             "ESEF.2.5.3.targetAttributeUsedForESEFContents",
                             _("Target attribute %(severityVerb)s not be used unless explicitly required by local jurisdictions: element %(localName)s, target attribute %(target)s."),
-                            modelObject=elt, localName=elt.elementQname, target=elt.get("target"), 
+                            modelObject=elt, localName=elt.elementQname, target=elt.get("target"),
                             severityVerb={"warning":"SHOULD","error":"MUST"}[ixTargetUsage])
                     if eltTag == ixTupleTag:
                         modelXbrl.error("ESEF.2.4.1.tupleElementUsed",
@@ -557,7 +590,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                         _("\"display:none\" style applies to a fact that is not in an ix:hidden section."),
                                         modelObject=ixElt)
                 del ixHiddenFacts
-                
+
                 firstIxdsDoc = False
 
             if val.unconsolidated:
@@ -567,7 +600,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 modelXbrl.error("ESEF.2.4.1.transformableElementIncludedInHiddenSection",
                     _("The ix:hidden section of Inline XBRL document MUST not include elements eligible for transformation. "
                       "%(countEligible)s fact(s) were eligible for transformation: %(elements)s"),
-                    modelObject=eligibleForTransformHiddenFacts, 
+                    modelObject=eligibleForTransformHiddenFacts,
                     countEligible=len(eligibleForTransformHiddenFacts),
                     elements=", ".join(sorted(set(str(f.qname) for f in eligibleForTransformHiddenFacts))))
             for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
@@ -589,29 +622,33 @@ def validateXbrlFinally(val, *args, **kwargs):
             if requiredToDisplayFacts:
                 modelXbrl.error("ESEF.2.4.1.factInHiddenSectionNotInReport",
                     _("The ix:hidden section contains %(countUnreferenced)s fact(s) whose @id is not applied on any \"-esef-ix- hidden\" style: %(elements)s"),
-                    modelObject=requiredToDisplayFacts, 
+                    modelObject=requiredToDisplayFacts,
                     countUnreferenced=len(requiredToDisplayFacts),
                     elements=", ".join(sorted(set(str(f.qname) for f in requiredToDisplayFacts))))
             del eligibleForTransformHiddenFacts, hiddenEltIds, presentedHiddenEltIds, requiredToDisplayFacts
         elif modelDocument.type == ModelDocument.Type.INSTANCE:
-            for elt in modelDocument.xmlRootElement.iter():
+            for uncast_elt in modelDocument.xmlRootElement.iter():
+                elt = cast(Any, uncast_elt)
+
                 if elt.qname == XbrlConst.qnLinkFootnote: # for now assume no private elements extend link:footnote
                     checkFootnote(elt, elt.stringValue)
-                        
+
         if val.unconsolidated:
             modelXbrl.modelManager.showStatus(None)
             return # no more checks apply
-               
+
         contextsWithDisallowedOCEs = []
         contextsWithDisallowedOCEcontent = []
-        contextsWithPeriodTime = []
-        contextsWithPeriodTimeZone = []
+        contextsWithPeriodTime: list[ModelContext] = []
+        contextsWithPeriodTimeZone: list[ModelContext] = []
         contextIdentifiers = defaultdict(list)
-        nonStandardTypedDimensions = defaultdict(set)
+        nonStandardTypedDimensions: dict[Any, Any] = defaultdict(set)
         for context in modelXbrl.contexts.values():
-            for elt in context.iterdescendants("{http://www.xbrl.org/2003/instance}startDate",
+            for uncast_elt in context.iterdescendants("{http://www.xbrl.org/2003/instance}startDate",
                                                "{http://www.xbrl.org/2003/instance}endDate",
                                                "{http://www.xbrl.org/2003/instance}instant"):
+                elt = cast(Any, uncast_elt)
+
                 m = datetimePattern.match(elt.stringValue)
                 if m:
                     if m.group(1):
@@ -624,13 +661,13 @@ def validateXbrlFinally(val, *args, **kwargs):
             for elt in context.iterdescendants("{http://www.xbrl.org/2003/instance}scenario"):
                 if isinstance(elt,ModelObject):
                     if any(True for child in elt.iterchildren()
-                                if isinstance(child,ModelObject) and 
+                                if isinstance(child,ModelObject) and
                                    child.tag not in ("{http://xbrl.org/2006/xbrldi}explicitMember",
                                                      "{http://xbrl.org/2006/xbrldi}typedMember")):
                         contextsWithDisallowedOCEcontent.append(context)
             # check periods here
             contextIdentifiers[context.entityIdentifier].append(context)
-                
+
         if contextsWithDisallowedOCEs:
             modelXbrl.error("ESEF.2.1.3.segmentUsed",
                 _("xbrli:segment container MUST NOT be used in contexts: %(contextIds)s"),
@@ -667,11 +704,11 @@ def validateXbrlFinally(val, *args, **kwargs):
             modelXbrl.error("ESEF.2.1.2.periodWithTimeZone",
                 _("The xbrli:startDate, xbrli:endDate and xbrli:instant elements MUST identify periods using whole days (i.e. specified without a time zone): %(contextIds)s"),
                 modelObject=contextsWithPeriodTimeZone, contextIds=", ".join(c.id for c in contextsWithPeriodTimeZone))
-        
+
         # identify unique contexts and units
         mapContext = {}
         mapUnit = {}
-        uniqueContextHashes = {}
+        uniqueContextHashes: dict[Any, Any] = {}
         for context in modelXbrl.contexts.values():
             h = context.contextDimAwareHash
             if h in uniqueContextHashes:
@@ -680,7 +717,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             else:
                 uniqueContextHashes[h] = context
         del uniqueContextHashes
-        uniqueUnitHashes = {}
+        uniqueUnitHashes: dict[Any, Any] = {}
         utrValidator = ValidateUtr(modelXbrl)
         utrUnitIds = set(u.unitId
                          for unitItemType in utrValidator.utrItemTypeEntries.values()
@@ -702,17 +739,17 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 _("Custom measure SHOULD NOT duplicate a UnitID of UTR: %(measure)s"),
                                 modelObject=unit, measure=measure)
         del uniqueUnitHashes
-        
+
         reportedMandatory = set()
         precisionFacts = set()
         numFactsByConceptContextUnit = defaultdict(list)
         textFactsByConceptContext = defaultdict(list)
         footnotesRelationshipSet = modelXbrl.relationshipSet(XbrlConst.factFootnote, XbrlConst.defaultLinkRole)
         noLangFacts = []
-        textFactsMissingReportLang = []
+        textFactsMissingReportLang: list[Any] = []
         conceptsUsed = set()
         langsUsedByTextFacts = set()
-                
+
         hasNoFacts = True
         for qn, facts in modelXbrl.factsByQname.items():
             hasNoFacts = False
@@ -744,16 +781,16 @@ def validateXbrlFinally(val, *args, **kwargs):
                         conceptsUsed.add(dim.dimension)
                         if dim.isExplicit:
                             conceptsUsed.add(dim.member)
-                        #don't consider typed member as a used concept which needs to be in pre LB 
+                        #don't consider typed member as a used concept which needs to be in pre LB
                         #elif dim.isTyped:
                         #    conceptsUsed.add(dim.typedMember)
                 '''
-            
+
         if noLangFacts:
             modelXbrl.error("ESEF.2.5.2.undefinedLanguageForTextFact",
                 _("Each tagged text fact MUST have the 'xml:lang' attribute assigned or inherited."),
                 modelObject=noLangFacts)
-            
+
         # missing report lang text facts
         if reportXmlLang:
             for fList in textFactsByConceptContext.values():
@@ -761,8 +798,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                     modelXbrl.error("ESEF.2.5.2.taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport",
                         _("Each tagged text fact MUST have the 'xml:lang' provided in at least the language of the report: %(element)s"),
                         modelObject=fList, element=fList[0].qname)
-        
-            
+
+
         # 2.2.4 test
         decVals = {}
         for fList in numFactsByConceptContextUnit.values():
@@ -799,21 +836,21 @@ def validateXbrlFinally(val, *args, **kwargs):
 
         if precisionFacts:
             modelXbrl.error("ESEF.2.2.1.precisionAttributeUsed",
-                            _("The accuracy of numeric facts MUST be defined with the 'decimals' attribute rather than the 'precision' attribute: %(elements)s."), 
+                            _("The accuracy of numeric facts MUST be defined with the 'decimals' attribute rather than the 'precision' attribute: %(elements)s."),
                             modelObject=precisionFacts, elements=", ".join(sorted(str(e.qname) for e in precisionFacts)))
-            
-        missingElements = (mandatory - reportedMandatory) 
+
+        missingElements = (mandatory - reportedMandatory)
         if missingElements:
             modelXbrl.error("ESEF.???.missingRequiredElements",
-                            _("Required elements missing from document: %(elements)s."), 
+                            _("Required elements missing from document: %(elements)s."),
                             modelObject=modelXbrl, elements=", ".join(sorted(str(qn) for qn in missingElements)))
-            
+
         if transformRegistryErrors:
             modelXbrl.error("ESEF.2.2.3.incorrectTransformationRuleApplied",
                               _("ESMA recommends applying the Transformation Rules Registry 4, as published by XBRL International or any more recent versions of the Transformation Rules Registry provided with a 'Recommendation' status, for these elements: %(elements)s."),
-                              modelObject=transformRegistryErrors, 
+                              modelObject=transformRegistryErrors,
                               elements=", ".join(sorted(str(fact.qname) for fact in transformRegistryErrors)))
-            
+
         if orphanedFootnotes:
             modelXbrl.warning("ESEF.2.3.1.unusedFootnote",
                 _("Every nonempty link:footnote element SHOULD be linked to at least one fact."),
@@ -845,10 +882,12 @@ def validateXbrlFinally(val, *args, **kwargs):
             modelXbrl.error("ESEF.2.3.1.nonStandardRoleForFootnote",
                 _("The xlink:role attribute of a link:footnote and link:footnoteLink element as well as xlink:arcrole attribute of a link:footnoteArc MUST be defined in the XBRL Specification 2.1."),
                 modelObject=footnoteRoleErrors)
-            
+
         nonStdFootnoteElts = list()
         for modelLink in modelXbrl.baseSets[("XBRL-footnotes",None,None,None)]:
-            for elt in modelLink.iterchildren():
+            for uncast_elt in modelLink.iterchildren():
+                elt = cast(Any, uncast_elt)
+
                 if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
                     continue # comment or other non-parsed element
                 if elt.qname not in FOOTNOTE_LINK_CHILDREN:
@@ -858,11 +897,11 @@ def validateXbrlFinally(val, *args, **kwargs):
             modelXbrl.error("ESEF.2.3.2.nonStandardElementInFootnote",
                 _("A link:footnoteLink element MUST have no children other than link:loc, link:footnote, and link:footnoteArc."),
                 modelObject=nonStdFootnoteElts)
-        
+
         conceptsUsedByFacts = conceptsUsed.copy()
         #for qn in modelXbrl.qnameDimensionDefaults.values():
         #    conceptsUsed.add(modelXbrl.qnameConcepts.get(qn))
-            
+
         # 3.1.1 test
         hasOutdatedUrl = False
         for e in val.authParam["outdatedTaxonomyURLs"]:
@@ -871,14 +910,14 @@ def validateXbrlFinally(val, *args, **kwargs):
                      _("The issuer's extension taxonomies MUST import the applicable version of the taxonomy files prepared by ESMA. Outdated entry point: %(url)s"),
                     modelObject=modelDocument, url=e)
                 hasOutdatedUrl = True
-                
+
         if ("authorityRequiredTaxonomyURLs" in val.authParam and
             not any(e in val.extensionImportedUrls for e in val.authParam["authorityRequiredTaxonomyURLs"])):
             val.modelXbrl.error(
                 "UKFRC22.3.requiredFrcEntryPointNotImported",
                  _("The issuer's extension taxonomies MUST import the FRC entry point of the taxonomy files prepared by %(authority)s."),
                 modelObject=modelDocument, authority=val.authParam["authorityName"])
-            
+
         if not hasOutdatedUrl and not any(e in val.extensionImportedUrls for e in val.authParam["effectiveTaxonomyURLs"]):
             val.modelXbrl.error(
                 "UKFRC22.1.requiredUksefEntryPointNotImported" if val.authority == "UKFRC" else
@@ -886,10 +925,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                  _("The issuer's extension taxonomies MUST import the entry point of the taxonomy files prepared by %(authority)s."),
                 modelObject=modelDocument, authority=val.authParam["authorityName"])
 
-            
+
         # unused elements in linkbases
         unreportedLbElts = set()
-        for arcroles, err, checkRoots, lbType in (
+        for arcroles, error, checkRoots, lbType in (
                     ((parentChild,), "elements{}UsedForTagging{}AppliedInPresentationLinkbase", True, "presentation"),
                     ((summationItem,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase", False, "calculation"),
                     ((hc_all, hc_notAll, dimensionDomain,domainMember), "elements{}UsedForTagging{}AppliedInDefinitionLinkbase", False, "definition")):
@@ -914,7 +953,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                             unreportedLbElts.add(to)
                     reportedEltsNotInLb.discard(fr)
                     reportedEltsNotInLb.discard(to)
-                    
+
             if reportedEltsNotInLb and lbType == "presentation":
                 # reported pri items excluded from having to be in pre LB
                 nsExcl = val.authParam.get("lineItemsMustBeInPreLbExclusionNsPattern")
@@ -929,15 +968,15 @@ def validateXbrlFinally(val, *args, **kwargs):
             modelXbrl.error("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
                 _("All usable concepts in extension taxonomy relationships MUST be applied by tagged facts: %(elements)s."),
                 modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))))
-                
+
         # 3.4.4 check for presentation preferred labels
         missingConceptLabels = defaultdict(set) # by role
         pfsConceptsRootInPreLB = set()
         # Annex II para 1 check of monetary declaration
         statementMonetaryUnitReportedConcepts = defaultdict(set) # index is unit, set is concepts
-        statementMonetaryUnitFactCounts = {}
-        
-        def checkLabels(parent, relSet, labelrole, visited):
+        statementMonetaryUnitFactCounts: dict[Any, Any] = {}
+
+        def checkLabels(parent: ModelConcept, relSet: ModelRelationshipSet, labelrole: str | None, visited: set[ModelConcept]) -> None:
             if not parent.label(labelrole,lang=reportXmlLang,fallbackToQname=False):
                 if (not labelrole or labelrole == standardLabel) and isExtension(val, parent):
                     missingConceptLabels[labelrole].add(parent)
@@ -957,8 +996,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                         _("Preferred label role SHOULD be used when concept is duplicated in same presentation tree location: %(qname)s."),
                         modelObject=rels+[concept], qname=concept.qname)
             visited.remove(parent)
-            
-        def checkMonetaryUnits(parent, relSet, visited):
+
+        def checkMonetaryUnits(parent: ModelConcept, relSet: ModelRelationshipSet, visited: set[ModelConcept]) -> None:
             if parent.isMonetary:
                 for f in modelXbrl.factsByQname.get(parent.qname,()):
                     u = f.unit
@@ -996,10 +1035,12 @@ def validateXbrlFinally(val, *args, **kwargs):
                 modelXbrl.warning("ESEF.3.4.7.singleExtendedLinkRoleUsedForAllPFSs",
                     _("Separate Extended Link Roles are required by %(elr)s for hierarchies: %(roots)s."),
                     modelObject=roots, elr=modelXbrl.roleTypeDefinition(ELR), roots=", ".join(sorted((str(c.qname) for c in roots))))
+
+        concepts: set[ModelConcept]
         for labelrole, concepts in missingConceptLabels.items():
             modelXbrl.warning("ESEF.3.4.5.missingLabelForRoleInReportLanguage",
                 _("Label for %(role)s role SHOULD be available in report language for concepts: %(qnames)s."),
-                modelObject=concepts, qnames=", ".join(str(c.qname) for c in concepts), 
+                modelObject=concepts, qnames=", ".join(str(c.qname) for c in concepts),
                 role=os.path.basename(labelrole) if labelrole else "standard")
         if not pfsConceptsRootInPreLB:
             # no PFS statements were recognized
@@ -1008,11 +1049,11 @@ def validateXbrlFinally(val, *args, **kwargs):
                 modelObject=modelXbrl)
         # dereference
         del missingConceptLabels, pfsConceptsRootInPreLB
-        
+
         # facts in declared units RTS Annex II para 1
         # assume declared currency is one with majority of concepts
         monetaryItemsNotInDeclaredCurrency = []
-        unitCounts = sorted(statementMonetaryUnitFactCounts.items(), key=lambda uc:uc[1], reverse=True)
+        unitCounts = sorted(statementMonetaryUnitFactCounts.items(), key=lambda uc:uc[1], reverse=True) # type: ignore[no-any-return]
         if unitCounts: # must have a monetary statement fact for this check
             _declaredCurrency = unitCounts[0][0]
             for facts in modelXbrl.factsByQname.values():
@@ -1033,49 +1074,50 @@ def validateXbrlFinally(val, *args, **kwargs):
                 _("Numbers SHALL be marked up in declared currency %(currency)s: %(qnames)s."),
                 modelObject=monetaryItemsNotInDeclaredCurrency, currency=_declaredCurrency,
                 qnames=", ".join(sorted(str(c.qname) for c in monetaryItemsNotInDeclaredCurrency)))
-        
+
         # mandatory facts RTS Annex II
         missingMandatoryElements = esefMandatoryElements2020 - modelXbrl.factsByQname.keys()
         if missingMandatoryElements:
             modelXbrl.warning("ESEF.RTS.Annex.II.Par.2.missingMandatoryMarkups",
                 _("Mandatory elements to be marked up are missing: %(qnames)s."),
                 modelObject=missingMandatoryElements, qnames=", ".join(sorted(str(qn) for qn in missingMandatoryElements)))
-            
+
         # supplemental authority required tags
-        additionalTagQnames = set(qname(n, prefixedNamespaces)
+        additionalTagQnames = set(qname(n, prefixedNamespaces) #  type: ignore[no-untyped-call]
                                   for n in val.authParam.get("additionalMandatoryTags", ())
-                                  if qname(n, prefixedNamespaces))
+                                  if qname(n, prefixedNamespaces)) #  type: ignore[no-untyped-call]
         missingAuthorityElements = additionalTagQnames - modelXbrl.factsByQname.keys()
         if missingAuthorityElements:
             modelXbrl.warning("arelle.ESEF.missingAuthorityMandatoryMarkups",
                 _("Mandatory authority elements to be marked up are missing: %(qnames)s."),
                 modelObject=missingAuthorityElements, qnames=", ".join(sorted(str(qn) for qn in missingAuthorityElements)))
-        
-        
-        # duplicated core taxonomy elements  
+
+        # duplicated core taxonomy elements
         for name, concepts in modelXbrl.nameConcepts.items():
             if len(concepts) > 1:
-                i = None # ifrs Concept
+                # Note 2022-08-12: i was being used as an int somewhere else, causing mypy some confusion.
+                # I renamed i to _i to handle that.
+                _i = None # ifrs Concept
                 for c in concepts:
                     if c.qname.namespaceURI == _ifrsNs:
-                        i = c
+                        _i = c
                         break
-                if i is not None:
+                if _i is not None:
                     for c in concepts:
-                        if (c.qname.namespaceURI not in _ifrsNses 
+                        if (c.qname.namespaceURI not in _ifrsNses
                             and isExtension(val, c.qname.namespaceURI) # may be a authority-specific duplication such as UK-FRC
-                            and c.balance == i.balance and c.periodType == i.periodType):
+                            and c.balance == _i.balance and c.periodType == _i.periodType):
                             modelXbrl.error("ESEF.RTS.Annex.IV.Par.4.1.extensionElementDuplicatesCoreElement",
-                        _("Extension elements must not duplicate the existing elements from the core taxonomy and be identifiable %(qname)s."), 
-                        modelObject=(c,i), qname=c.qname)
-            
+                        _("Extension elements must not duplicate the existing elements from the core taxonomy and be identifiable %(qname)s."),
+                        modelObject=(c,_i), qname=c.qname)
+
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
 
-def validateFinally(val, *args, **kwargs): # runs all inline checks
+def validateFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None: # runs all inline checks
     if not (val.validateESEFplugin):
         return
-    
+
     if val.unconsolidated:
         return
 
@@ -1090,18 +1132,18 @@ def validateFinally(val, *args, **kwargs): # runs all inline checks
     numXbrlErrors = sum(ixErrorPattern.match(e) is not None for e in modelXbrl.errors if isinstance(e,str))
     if numXbrlErrors:
         modelXbrl.error("ESEF.RTS.Annex.III.Par.1.invalidInlineXBRL",
-                        _("RTS on ESEF requires valid XBRL instances, %(numXbrlErrors)s errors were reported."), 
+                        _("RTS on ESEF requires valid XBRL instances, %(numXbrlErrors)s errors were reported."),
                         modelObject=modelXbrl, numXbrlErrors=numXbrlErrors)
-        
+
     # force reporting of unsatisfied assertions for which there are no messages
     traceUnmessagedUnsatisfiedAssertions = True
-    
-def validateFormulaCompiled(modelXbrl, xpathContext):
+
+def validateFormulaCompiled(modelXbrl: ModelXbrl, xpathContext: XPathContext) -> None:
     # request unsatisfied assertions without a message to print a trace
     # this is not conditional on validateESEFplugin so the flag is set even if DisclosureSystemChecks not requested upon compiling but set later in workflow
     xpathContext.formulaOptions.traceUnmessagedUnsatisfiedAssertions = True
-        
-def validateFormulaFinished(val, *args, **kwargs): # runs *after* formula (which is different for test suite from other operation
+
+def validateFormulaFinished(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None: # runs *after* formula (which is different for test suite from other operation
     if not (val.validateESEFplugin):
         return
 
@@ -1116,19 +1158,18 @@ def validateFormulaFinished(val, *args, **kwargs): # runs *after* formula (which
                 sumErrMsgs += numErrMsgs
     if sumErrMsgs:
         modelXbrl.error("ESEF.2.7.1.targetXBRLDocumentWithFormulaErrors",
-                        _("Target XBRL document MUST be valid against the assertions specified in ESEF taxonomy, %(numUnsatisfied)s with errors."), 
+                        _("Target XBRL document MUST be valid against the assertions specified in ESEF taxonomy, %(numUnsatisfied)s with errors."),
                         modelObject=modelXbrl, numUnsatisfied=sumErrMsgs)
     if sumWrnMsgs:
         modelXbrl.warning("ESEF.2.7.1.targetXBRLDocumentWithFormulaWarnings",
-                        _("Target XBRL document SHOULD be valid against the assertions specified in ESEF taxonomy, %(numUnsatisfied)s with warnings."), 
+                        _("Target XBRL document SHOULD be valid against the assertions specified in ESEF taxonomy, %(numUnsatisfied)s with warnings."),
                         modelObject=modelXbrl, numUnsatisfied=sumWrnMsgs)
 
-
-def testcaseVariationReportPackageIxdsOptions(validate, rptPkgIxdsOptions):
+def testcaseVariationReportPackageIxdsOptions(validate: ValidateXbrl, rptPkgIxdsOptions: dict[str, bool]) -> None:
     if getattr(validate.modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
         rptPkgIxdsOptions["lookOutsideReportsDirectory"] = True
         rptPkgIxdsOptions["combineIntoSingleIxds"] = True
-        
+
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate ESMA ESEF',

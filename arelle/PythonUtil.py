@@ -31,7 +31,7 @@ else:
     __builtins__['_STR_NUM_TYPES'] = (basestring,int,long,float,Decimal,Fraction)
     __builtins__['_RANGE'] = xrange
     __builtins__['_DICT_SET'] = set
-    
+
 import math
 if sys.version >= "3.2":
     __builtins__['_ISFINITE'] = math.isfinite
@@ -39,9 +39,9 @@ else:
     def simulatedIsFinite(num):
         return not math.isinf(num) and not math.isnan(num)
     __builtins__['_ISFINITE'] = simulatedIsFinite
-    
-   
-# python 3 unquote, because py2 unquote doesn't do utf-8 correctly   
+
+
+# python 3 unquote, because py2 unquote doesn't do utf-8 correctly
 def py3unquote(string, encoding='utf-8', errors='replace'):
     """Replace %xx escapes by their single-character equivalent. The optional
     encoding and errors parameters specify how to decode percent-encoded
@@ -106,7 +106,7 @@ def pyTypeName(object):
         return fullname
     except:
         return str(type(object))
-    
+
 def pyNamedObject(name, *args, **kwargs):
     try:
         if sys.version[0] >= '3':
@@ -118,13 +118,13 @@ def pyNamedObject(name, *args, **kwargs):
         return objectConstructor(*args, **kwargs)
     except:
         return None
-    
+
 def lcStr(value): # lower case first letter of string
     if len(value):
         return value[0].lower() + value[1:]
     return str
-    
-def strTruncate(value, length):
+
+def strTruncate(value, length) -> str:
     _s = str(value).strip()
     if len(_s) <= length:
         return _s
@@ -134,10 +134,10 @@ def normalizeSpace(s):
     if isinstance(s, str):
         return " ".join(s.split())
     return s
-    
+
 SEQUENCE_TYPES = (tuple,list,set,frozenset,MappingView)
 def flattenSequence(x, sequence=None):
-    if sequence is None: 
+    if sequence is None:
         if not isinstance(x, SEQUENCE_TYPES):
             if x is None:
                 return [] # none as atomic value is an empty sequence in xPath semantics
@@ -151,7 +151,7 @@ def flattenSequence(x, sequence=None):
     return sequence
 
 def flattenToSet(x, _set=None):
-    if _set is None: 
+    if _set is None:
         if not isinstance(x, SEQUENCE_TYPES):
             if x is None:
                 return set() # none as atomic value is an empty sequence in xPath semantics
@@ -174,7 +174,7 @@ class OrderedDefaultDict(OrderedDict):
     """ call with default factory and optional sorted initial entries
         e.g., OrderedDefaultDict(list, ((1,11),(2,22),...))
     """
-    def __init__(self, *args): 
+    def __init__(self, *args):
         self.default_factory = None
         if len(args) > 0:
             # arg0 is default_factory
@@ -184,7 +184,7 @@ class OrderedDefaultDict(OrderedDict):
             super(OrderedDefaultDict, self).__init__(args[1])
         else:
             super(OrderedDefaultDict, self).__init__()
-            
+
     def __missing__(self, key):
         if self.default_factory is None:
             raise KeyError(key)
@@ -195,7 +195,7 @@ class OrderedDefaultDict(OrderedDict):
 class OrderedSet(MutableSet):
 
     def __init__(self, iterable=None):
-        self.end = end = [] 
+        self.end = end = []
         end += [None, end, end]         # sentinel node for doubly linked list
         self.map = {}                   # key --> [key, prev, next]
         if iterable is not None:
@@ -212,13 +212,13 @@ class OrderedSet(MutableSet):
             end = self.end
             curr = end[1]
             curr[2] = end[1] = self.map[key] = [key, curr, end]
-            
+
     def update(self, other):
         for key in other:
             self.add(key)
 
     def discard(self, key):
-        if key in self.map:        
+        if key in self.map:
             key, prev, next = self.map.pop(key)
             prev[2] = next
             next[1] = prev
@@ -253,7 +253,7 @@ class OrderedSet(MutableSet):
         if isinstance(other, OrderedSet):
             return len(self) == len(other) and list(self) == list(other)
         return set(self) == set(other)
-    
+
 def Fraction(numerator,denominator=None):
     if denominator is None:
         if isinstance(numerator, (Fraction,_STR_UNICODE,Decimal)):

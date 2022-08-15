@@ -5,58 +5,59 @@
 .. module:: arelle.ModelDtsObject
    :copyright: Copyright 2010-2012 Mark V Systems Limited, All rights reserved.
    :license: Apache-2.
-   :synopsis: This module contains DTS-specialized ModelObject classes: ModelRoleType (role and arcrole types), ModelSchemaObject (parent class for top-level named schema element, attribute, attribute groups, etc), ModelConcept (xs:elements that may be concepts, typed dimension elements, or just plain XML definitions), ModelAttribute (xs:attribute), ModelAttributeGroup, ModelType (both top level named and anonymous simple and complex types), ModelEnumeration, ModelLink (xlink link elements), ModelResource (xlink resource elements), ModelLocator (subclass of ModelResource for xlink locators), and ModelRelationship (not an lxml proxy object, but a resolved relationship that reflects an effective arc between one source and one target). 
+   :synopsis: This module contains DTS-specialized ModelObject classes: ModelRoleType (role and arcrole types), ModelSchemaObject (parent class for top-level named schema element, attribute, attribute groups, etc), ModelConcept (xs:elements that may be concepts, typed dimension elements, or just plain XML definitions), ModelAttribute (xs:attribute), ModelAttributeGroup, ModelType (both top level named and anonymous simple and complex types), ModelEnumeration, ModelLink (xlink link elements), ModelResource (xlink resource elements), ModelLocator (subclass of ModelResource for xlink locators), and ModelRelationship (not an lxml proxy object, but a resolved relationship that reflects an effective arc between one source and one target).
 
-XBRL processing requires element-level access to schema elements.  Traditional XML processors, such as 
-lxml (based on libxml), and Xerces (not available in the Python environment), provide opaque schema 
-models that cannot be used by an XML processor.  Arelle implements its own elment, attribute, and 
-type processing, in order to provide PSVI-validated element and attribute contents, and in order to 
+XBRL processing requires element-level access to schema elements.  Traditional XML processors, such as
+lxml (based on libxml), and Xerces (not available in the Python environment), provide opaque schema
+models that cannot be used by an XML processor.  Arelle implements its own elment, attribute, and
+type processing, in order to provide PSVI-validated element and attribute contents, and in order to
 access XBRL features that would otherwise be inaccessible in the XML library opaque schema models.
 
-ModelConcept represents a schema element, regardless whether an XBRL item or tuple, or non-concept 
-schema element.  The common XBRL and schema element attributes are provided by Python properties, 
+ModelConcept represents a schema element, regardless whether an XBRL item or tuple, or non-concept
+schema element.  The common XBRL and schema element attributes are provided by Python properties,
 cached when needed for efficiency, somewhat isolating from the XML level implementation.
 
-There is thought that a future SQL-based implementation may be able to utilize ModelObject proxy 
+There is thought that a future SQL-based implementation may be able to utilize ModelObject proxy
 objects to interface to SQL-obtained data.
 
-ModelType represents an anonymous or explicit element type.  It includes methods that determine 
-the base XBRL type (such as monetaryItemType), the base XML type (such as decimal), substitution 
+ModelType represents an anonymous or explicit element type.  It includes methods that determine
+the base XBRL type (such as monetaryItemType), the base XML type (such as decimal), substitution
 group chains, facits, and attributes.
 
-ModelAttributeGroup and ModelAttribute provide sufficient mechanism to identify element attributes, 
+ModelAttributeGroup and ModelAttribute provide sufficient mechanism to identify element attributes,
 their types, and their default or fixed values.
 
-There is also an inherently different model, modelRelationshipSet, which represents an individual 
-base or dimensional-relationship set, or a collection of them (such as labels independent of 
+There is also an inherently different model, modelRelationshipSet, which represents an individual
+base or dimensional-relationship set, or a collection of them (such as labels independent of
 extended link role), based on the semantics of XLink arcs.
 
-PSVI-validated instance data are determined during loading for instance documents, and on demand 
-for any other objects (such as when formula operations may access linkbase contents and need 
-PSVI-validated contents of some linkbase elements).  These validated items are added to the 
+PSVI-validated instance data are determined during loading for instance documents, and on demand
+for any other objects (such as when formula operations may access linkbase contents and need
+PSVI-validated contents of some linkbase elements).  These validated items are added to the
 ModelObject lxml custom proxy objects.
 
-Linkbase objects include modelLink, representing extended link objects, modelResource, 
-representing resource objects, and modelRelationship, which is not a lxml proxy object, but 
+Linkbase objects include modelLink, representing extended link objects, modelResource,
+representing resource objects, and modelRelationship, which is not a lxml proxy object, but
 represents a resolved and effective arc in a relationship set.
 
-ModelRelationshipSets are populated on demand according to specific or general characteristics.  
-A relationship set can be a fully-specified base set, including arcrole, linkrole, link element 
-qname, and arc element qname.  However by not specifying linkrole, link, or arc, a composite 
-relationship set can be produced for an arcrole accumulating relationships across all extended 
-link linkroles that have contributing arcs, which may be needed in building indexing or graphical 
+ModelRelationshipSets are populated on demand according to specific or general characteristics.
+A relationship set can be a fully-specified base set, including arcrole, linkrole, link element
+qname, and arc element qname.  However by not specifying linkrole, link, or arc, a composite
+relationship set can be produced for an arcrole accumulating relationships across all extended
+link linkroles that have contributing arcs, which may be needed in building indexing or graphical
 topology top levels.
 
-Relationship sets for dimensional arcroles will honor and traverse targetrole attributes across 
-linkroles.  There is a pseudo-arcrole for dimensions that allows accumulating all dimensional 
-relationships regardless of arcrole, which is useful for constructing certain graphic tree views.  
+Relationship sets for dimensional arcroles will honor and traverse targetrole attributes across
+linkroles.  There is a pseudo-arcrole for dimensions that allows accumulating all dimensional
+relationships regardless of arcrole, which is useful for constructing certain graphic tree views.
 
-Relationship sets for table linkbases likewise have a pseudo-arcrole to accumulate all table 
+Relationship sets for table linkbases likewise have a pseudo-arcrole to accumulate all table
 relationships regardless of arcrole, for the same purpose.
 
-Relationship sets can identify ineffective arcroles, which is a requirement for SEC and GFM 
+Relationship sets can identify ineffective arcroles, which is a requirement for SEC and GFM
 validation.
 """
+from __future__ import annotations
 from collections import defaultdict
 import os, sys
 from lxml import etree
@@ -70,30 +71,30 @@ ModelFact = None
 class ModelRoleType(ModelObject):
     """
     .. class:: ModelRoleType(modelDocument)
-    
+
     ModelRoleType represents both role type and arcrole type definitions
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
     def init(self, modelDocument):
         super(ModelRoleType, self).init(modelDocument)
-        
+
     @property
     def isArcrole(self):
         """(bool) -- True if ModelRoleType declares an arcrole type"""
         return self.localName == "arcroleType"
-    
+
     @property
     def roleURI(self):
         """(str) -- Value of roleURI attribute"""
         return self.get("roleURI")
-    
+
     @property
     def arcroleURI(self):
         """(str) -- Value of arcroleURI attribute"""
         return self.get("arcroleURI")
-    
+
     @property
     def cyclesAllowed(self):
         """(str) -- Value of cyclesAllowed attribute"""
@@ -114,9 +115,9 @@ class ModelRoleType(ModelObject):
         """(str) -- Text of child definition element (not stripped)"""
         definition = XmlUtil.child(self, XbrlConst.link, "definition")
         return definition.textValue if definition is not None else None
-    
+
     @property
-    def usedOns(self): 
+    def usedOns(self):
         """( {QName} ) -- Set of PSVI QNames of descendant usedOn elements"""
         try:
             return self._usedOns
@@ -126,7 +127,7 @@ class ModelRoleType(ModelObject):
                                 for usedOn in self.iterdescendants("{http://www.xbrl.org/2003/linkbase}usedOn")
                                 if isinstance(usedOn,ModelObject))
             return self._usedOns
-        
+
     @property
     def tableCode(self):
         """ table code from structural model for presentable table by ELR"""
@@ -138,7 +139,7 @@ class ModelRoleType(ModelObject):
             from arelle import TableStructure
             TableStructure.evaluateRoleTypesTableCodes(self.modelXbrl)
             return self._tableCode
-    
+
     @property
     def propertyView(self):
         if self.isArcrole:
@@ -151,11 +152,11 @@ class ModelRoleType(ModelObject):
                     ("definition", self.definition),
                     ("used on", self.usedOns),
                     ("defined in", self.modelDocument.uri))
-        
+
     def __repr__(self):
         return ("{0}[{1}, uri: {2}, definition: {3}, {4} line {5}])"
-                .format('modelArcroleType' if self.isArcrole else 'modelRoleType', 
-                        self.objectIndex, 
+                .format('modelArcroleType' if self.isArcrole else 'modelRoleType',
+                        self.objectIndex,
                         self.arcroleURI if self.isArcrole else self.roleURI,
                         self.definition,
                         self.modelDocument.basename, self.sourceline))
@@ -167,19 +168,19 @@ class ModelRoleType(ModelObject):
 class ModelNamableTerm(ModelObject):
     """
     .. class:: ModelNamableTerm(modelDocument)
-    
+
     Particle Model namable term (can have @name attribute)
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
     def init(self, modelDocument):
         super(ModelNamableTerm, self).init(modelDocument)
-        
+
     @property
     def name(self):
         return self.getStripped("name")
-    
+
     @property
     def qname(self):
         try:
@@ -196,7 +197,7 @@ class ModelNamableTerm(ModelObject):
             else:
                 self._xsdQname = None
             return self._xsdQname
-    
+
     @property
     def isGlobalDeclaration(self):
         parent = self.getparent()
@@ -204,7 +205,7 @@ class ModelNamableTerm(ModelObject):
 
     def schemaNameQname(self, prefixedName, isQualifiedForm=True, prefixException=None):
         """Returns ModelValue.QName of prefixedName using this element and its ancestors' xmlns.
-        
+
         :param prefixedName: A prefixed name string
         :type prefixedName: str
         :returns: QName -- the resolved prefixed name, or None if no prefixed name was provided
@@ -261,19 +262,19 @@ class ModelParticle():
                     self._maxOccurs = sys.maxsize
                 else:
                     self._maxOccurs = _INT(m)
-                    if self._maxOccurs < 0: 
+                    if self._maxOccurs < 0:
                         raise ValueError(_("maxOccurs must be positive").format(m))
             else:
                 self._maxOccurs = 1
             return self._maxOccurs
-        
+
     @property
     def maxOccursStr(self):
         """(str) -- String value of maxOccurs attribute"""
         if self.maxOccurs == sys.maxsize:
             return "unbounded"
         return str(self.maxOccurs)
-        
+
     @property
     def minOccurs(self):
         """(int) -- Value of minOccurs attribute or 1 if absent"""
@@ -283,25 +284,25 @@ class ModelParticle():
             m = self.get("minOccurs")
             if m:
                 self._minOccurs = _INT(m)
-                if self._minOccurs < 0: 
+                if self._minOccurs < 0:
                     raise ValueError(_("minOccurs must be positive").format(m))
             else:
                 self._minOccurs = 1
             return self._minOccurs
-        
+
     @property
     def minOccursStr(self):
         """(str) -- String value of minOccurs attribute"""
-        return str(self.minOccurs)        
+        return str(self.minOccurs)
 
 anonymousTypeSuffix = "@anonymousType"
 
 class ModelConcept(ModelNamableTerm, ModelParticle):
     """
     .. class:: ModelConcept(modelDocument)
-    
+
     Particle Model element term
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
@@ -315,27 +316,27 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         if not self.isGlobalDeclaration:
             self.addToParticles()
         self._baseXsdAttrType = {}
-        
+
     @property
     def abstract(self):
         """(str) -- Value of abstract attribute or 'false' if absent"""
         return self.get("abstract", 'false')
-    
+
     @property
     def isAbstract(self):
         """(bool) -- True if abstract"""
         return self.abstract in ("true", "1")
-    
+
     @property
     def periodType(self):
         """(str) -- Value of periodType attribute"""
         return self.get("{http://www.xbrl.org/2003/instance}periodType")
-    
+
     @property
     def balance(self):
         """(str) -- Value of balance attribute"""
         return self.get("{http://www.xbrl.org/2003/instance}balance")
-    
+
     @property
     def typeQname(self):
         """(QName) -- Value of type attribute, if any, or if type contains an annonymously-named
@@ -364,11 +365,11 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
                     else:
                         self._typeQname =  XbrlConst.qnXsdDefaultType
             return self._typeQname
-        
+
     @property
     def niceType(self):
-        """Provides a type name suited for user interfaces: hypercubes as Table, dimensions as Axis, 
-        types ending in ItemType have ItemType removed and first letter capitalized (e.g., 
+        """Provides a type name suited for user interfaces: hypercubes as Table, dimensions as Axis,
+        types ending in ItemType have ItemType removed and first letter capitalized (e.g.,
         stringItemType as String).  Otherwise returns the type's localName portion.
         """
         if self.isHypercubeItem: return "Table"
@@ -378,7 +379,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
                 return self.typeQname.localName[0].upper() + self.typeQname.localName[1:-8]
             return self.typeQname.localName
         return None
-        
+
     @property
     def baseXsdType(self):
         """(str) -- Value of localname of type (e.g., monetary for monetaryItemType)"""
@@ -392,12 +393,12 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
                 type = self.type
                 self._baseXsdType = type.baseXsdType if type is not None else "anyType"
             return self._baseXsdType
-        
+
     @property
     def facets(self):
         """(dict) -- Facets declared for element type"""
         return self.type.facets if self.type is not None else None
-    
+
     ''' unused, remove???
     def baseXsdAttrType(self,attrName):
         try:
@@ -410,11 +411,11 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             self._baseXsdAttrType[attrName] = attrType
             return attrType
     '''
-    
+
     @property
     def baseXbrliType(self):
-        """(str) -- Attempts to return the base xsd type localName that this concept's type 
-        is derived from.  If not determinable anyType is returned.  E.g., for monetaryItemType, 
+        """(str) -- Attempts to return the base xsd type localName that this concept's type
+        is derived from.  If not determinable anyType is returned.  E.g., for monetaryItemType,
         decimal is returned."""
         try:
             return self._baseXbrliType
@@ -425,11 +426,11 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             else:
                 self._baseXbrliType = self.type.baseXbrliType if self.type is not None else None
             return self._baseXbrliType
-        
+
     @property
     def baseXbrliTypeQname(self):
-        """(qname) -- Attempts to return the base xsd type QName that this concept's type 
-        is derived from.  If not determinable anyType is returned.  E.g., for monetaryItemType, 
+        """(qname) -- Attempts to return the base xsd type QName that this concept's type
+        is derived from.  If not determinable anyType is returned.  E.g., for monetaryItemType,
         decimal is returned."""
         try:
             return self._baseXbrliTypeQname
@@ -440,7 +441,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             else:
                 self._baseXbrliTypeQname = self.type.baseXbrliTypeQname if self.type is not None else None
             return self._baseXbrliTypeQname
-        
+
     def instanceOfType(self, typeqname):
         """(bool) -- True if element is declared by, or derived from type of given qname or list of qnames"""
         if isinstance(typeqname, (tuple,list,set)): # union
@@ -453,10 +454,10 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         if type is not None and type.isDerivedFrom(typeqname): # allows list or single type name
             return True
         subs = self.substitutionGroup
-        if subs is not None: 
+        if subs is not None:
             return subs.instanceOfType(typeqname)
         return False
-    
+
     @property
     def isNumeric(self):
         """(bool) -- True for elements of, or derived from, numeric base type (not including fractionItemType)"""
@@ -465,7 +466,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._isNumeric = XbrlConst.isNumericXsdType(self.baseXsdType)
             return self._isNumeric
-    
+
     @property
     def isInteger(self):
         """(bool) -- True for elements of, or derived from, integer base type (not including fractionItemType)"""
@@ -474,7 +475,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._isInteger = XbrlConst.isIntegerXsdType(self.baseXsdType)
             return self._isInteger
-    
+
     @property
     def isFraction(self):
         """(bool) -- True if the baseXbrliType is fractionItemType"""
@@ -483,7 +484,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._isFraction = self.baseXbrliType == "fractionItemType"
             return self._isFraction
-    
+
     @property
     def isMonetary(self):
         """(bool) -- True if the baseXbrliType is monetaryItemType"""
@@ -492,7 +493,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._isMonetary = self.baseXbrliType == "monetaryItemType"
             return self._isMonetary
-    
+
     @property
     def isShares(self):
         """(bool) -- True if the baseXbrliType is sharesItemType"""
@@ -501,12 +502,12 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._isShares = self.baseXbrliType == "sharesItemType"
             return self._isShares
-    
+
     @property
     def isTextBlock(self):
         """(bool) -- Element's type.isTextBlock."""
         return self.type is not None and self.type.isTextBlock
-    
+
     @property
     def isLanguage(self):
         """(bool) -- True if the baseXbrliType is languageItemType"""
@@ -515,7 +516,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._isLanguage = self.baseXbrliType == "languageItemType"
             return self._isLanguage
-    
+
     @property
     def type(self):
         """Element's modelType object (if any)"""
@@ -524,7 +525,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._type = self.modelXbrl.qnameTypes.get(self.typeQname)
             return self._type
-    
+
     @property
     def substitutionGroup(self):
         """modelConcept object for substitution group (or None)"""
@@ -532,7 +533,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         if subsgroupqname is not None:
             return self.modelXbrl.qnameConcepts.get(subsgroupqname)
         return None
-        
+
     @property
     def substitutionGroupQname(self):
         """(QName) -- substitution group"""
@@ -543,7 +544,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             if self.get("substitutionGroup"):
                 self._substitutionGroupQname = self.schemaNameQname(self.get("substitutionGroup"))
             return self._substitutionGroupQname
-        
+
     @property
     def substitutionGroupQnames(self):   # ordered list of all substitution group qnames
         """([QName]) -- Ordered list of QNames of substitution groups (recursively)"""
@@ -555,55 +556,55 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             subs = subNext
             subNext = subs.substitutionGroup
         return qnames
-    
+
     @property
     def isQualifiedForm(self): # used only in determining qname, which itself is cached
         """(bool) -- True if element has form attribute qualified or its document default"""
         if self.get("form") is not None: # form is almost never used
             return self.get("form") == "qualified"
         return getattr(self.modelDocument, "isQualifiedElementFormDefault", False) # parent might not be a schema document
-        
+
     @property
     def nillable(self):
         """(str) --Value of the nillable attribute or its default"""
         return self.get("nillable", 'false')
-    
+
     @property
     def isNillable(self):
         """(bool) -- True if nillable"""
         return self.get("nillable") == 'true'
-        
+
     @property
     def block(self):
         """(str) -- block attribute"""
         return self.get("block")
-    
+
     @property
     def default(self):
         """(str) -- default attribute"""
         return self.get("default")
-    
+
     @property
     def fixed(self):
         """(str) -- fixed attribute"""
         return self.get("fixed")
-    
+
     @property
     def final(self):
         """(str) -- final attribute"""
         return self.get("final")
-    
+
     @property
     def isRoot(self):
         """(bool) -- True if parent of element definition is xsd schema element"""
         return self.getparent().localName == "schema"
-    
-    def label(self,preferredLabel=None,fallbackToQname=True,lang=None,strip=False,linkrole=None,linkroleHint=None):
-        """Returns effective label for concept, using preferredLabel role (or standard label if None), 
-        absent label falls back to element qname (prefixed name) if specified, lang falls back to 
-        tool-config language if none, leading/trailing whitespace stripped (trimmed) if specified.  
+
+    def label(self,preferredLabel=None,fallbackToQname=True,lang=None,strip=False,linkrole=None,linkroleHint=None) -> str | None:
+        """Returns effective label for concept, using preferredLabel role (or standard label if None),
+        absent label falls back to element qname (prefixed name) if specified, lang falls back to
+        tool-config language if none, leading/trailing whitespace stripped (trimmed) if specified.
         Does not look for generic labels (use superclass genLabel for generic label).
-        
+
         :param preferredLabel: label role (standard label if not specified)
         :type preferredLabel: str
         :param fallbackToQname: if True and no matching label, then element qname is returned
@@ -626,24 +627,24 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
                     if strip: return label.strip()
                     return Locale.rtlString(label, lang=_lang)
         return str(self.qname) if fallbackToQname else None
-    
-    def relationshipToResource(self, resourceObject, arcrole):    
-        """For specified object and resource (all link roles), returns first 
-        modelRelationshipObject that relates from this element to specified resourceObject. 
+
+    def relationshipToResource(self, resourceObject, arcrole):
+        """For specified object and resource (all link roles), returns first
+        modelRelationshipObject that relates from this element to specified resourceObject.
 
         :param resourceObject: resource to find relationship to
         :type resourceObject: ModelObject
         :param arcrole: specifies arcrole for search
         :type arcrole: str
         :returns: ModelRelationship
-        """ 
+        """
         relationshipSet = self.modelXbrl.relationshipSet(arcrole)
         if relationshipSet:
             for modelRel in relationshipSet.fromModelObject(self):
                 if modelRel.toModelObject == resourceObject:
                     return modelRel
         return None
-    
+
     @property
     def isItem(self):
         """(bool) -- True for a substitution for xbrli:item but not xbrli:item itself"""
@@ -654,14 +655,14 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             return self._isItem
 
     @property
-    def isTuple(self): 
+    def isTuple(self):
         """(bool) -- True for a substitution for xbrli:tuple but not xbrli:tuple itself"""
         try:
             return self._isTuple
         except AttributeError:
             self._isTuple = self.subGroupHeadQname == XbrlConst.qnXbrliTuple and self.namespaceURI != XbrlConst.xbrli
             return self._isTuple
-        
+
     @property
     def isLinkPart(self):
         """(bool) -- True for a substitution for link:part but not link:part itself"""
@@ -670,7 +671,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._isLinkPart = self.subGroupHeadQname == XbrlConst.qnLinkPart and self.namespaceURI != XbrlConst.link
             return self._isLinkPart
-        
+
     @property
     def isPrimaryItem(self):
         """(bool) -- True for a concept definition that is not a hypercube or dimension"""
@@ -685,7 +686,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     def isDomainMember(self):
         """(bool) -- Same as isPrimaryItem (same definition in XDT)"""
         return self.isPrimaryItem   # same definition in XDT
-        
+
     @property
     def isHypercubeItem(self):
         """(bool) -- True for a concept definition that is a hypercube"""
@@ -694,7 +695,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._isHypercubeItem = self.substitutesForQname(XbrlConst.qnXbrldtHypercubeItem)
             return self._isHypercubeItem
-        
+
     @property
     def isDimensionItem(self):
         """(bool) -- True for a concept definition that is a dimension"""
@@ -703,7 +704,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._isDimensionItem = self.substitutesForQname(XbrlConst.qnXbrldtDimensionItem)
             return self._isDimensionItem
-        
+
     @property
     def isTypedDimension(self):
         """(bool) -- True for a concept definition that is a typed dimension"""
@@ -712,12 +713,12 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._isTypedDimension = self.isDimensionItem and self.get("{http://xbrl.org/2005/xbrldt}typedDomainRef") is not None
             return self._isTypedDimension
-        
+
     @property
     def isExplicitDimension(self):
         """(bool) -- True for a concept definition that is an explicit dimension"""
         return self.isDimensionItem and not self.isTypedDimension
-    
+
     @property
     def typedDomainRef(self):
         """(str) -- typedDomainRef attribute"""
@@ -731,7 +732,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._typedDomainElement = self.resolveUri(uri=self.typedDomainRef)
             return self._typedDomainElement
-    
+
     @property
     def isEnumeration(self):
         """(bool) -- True if derived from enum:enumerationItemType or enum:enumerationsItemType or enum2:setValueDimensionType"""
@@ -740,7 +741,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._isEnum = self.instanceOfType(XbrlConst.qnEnumerationTypes)
             return self._isEnum
-        
+
     @property
     def isEnumeration2Item(self):
         """(bool) -- True if derived from enum2 item types"""
@@ -749,7 +750,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._isEnum = self.instanceOfType(XbrlConst.qnEnumeration2ItemTypes)
             return self._isEnum
-        
+
     @property
     def enumDomainQname(self):
         """(QName) -- enumeration domain qname """
@@ -763,12 +764,12 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._enumDomain = self.modelXbrl.qnameConcepts.get(self.enumDomainQname)
             return self._enumDomain
-        
+
     @property
     def enumLinkrole(self):
         """(anyURI) -- enumeration linkrole """
         return self.get(XbrlConst.attrEnumerationLinkrole2014) or self.get(XbrlConst.attrEnumerationLinkrole2020) or self.get(XbrlConst.attrEnumerationLinkroleYYYY) or self.get(XbrlConst.attrEnumerationLinkrole11YYYY) or self.get(XbrlConst.attrEnumerationLinkrole2016)
-    
+
     @property
     def enumDomainUsable(self):
         """(string) -- enumeration usable attribute """
@@ -793,7 +794,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             subs = subNext
             subNext = subs.substitutionGroup
         return False
-        
+
     @property
     def subGroupHeadQname(self):
         """(QName) -- Head of substitution lineage of element (e.g., xbrli:item)"""
@@ -835,10 +836,10 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
                                for _refPart in _refRel.toModelObject.iterchildren())
         _refProperty = ("references", _refsStrung, _refT) if _refT else ()
         _facets = ("facets", ", ".join(sorted(self.facets.keys())), tuple(
-                    (_name, sorted(_value.keys()), 
-                     tuple((eVal,eElt.genLabel()) 
+                    (_name, sorted(_value.keys()),
+                     tuple((eVal,eElt.genLabel())
                            for eVal, eElt in sorted(_value.items(), key=lambda i:i[0]))
-                     ) if isinstance(_value,dict) 
+                     ) if isinstance(_value,dict)
                     else (_name, _value)
                     for _name, _value in sorted(self.facets.items(), key=lambda i:i[0]))
                    ) if self.facets else ()
@@ -854,7 +855,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
                 ("balance", self.balance) if self.balance else (),
                 _facets,
                 _refProperty)
-        
+
     def __repr__(self):
         return ("modelConcept[{0}, qname: {1}, type: {2}, abstract: {3}, {4}, line {5}]"
                 .format(self.objectIndex, self.qname, self.typeQname, self.abstract,
@@ -863,13 +864,13 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def viewConcept(self):
         return self
-            
+
 class ModelAttribute(ModelNamableTerm):
     """
     .. class:: ModelAttribute(modelDocument)
-    
+
     Attribute term
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
@@ -879,7 +880,7 @@ class ModelAttribute(ModelNamableTerm):
             self.modelXbrl.qnameAttributes[self.qname] = self
             if not self.isQualifiedForm:
                 self.modelXbrl.qnameAttributes[ModelValue.QName(None, None, self.name)] = self
-        
+
     @property
     def typeQname(self):
         """(QName) -- QName of type of attribute"""
@@ -901,7 +902,7 @@ class ModelAttribute(ModelNamableTerm):
                 return subs.typeQname
             '''
         return None
-    
+
     @property
     def type(self):
         """(ModelType) -- Attribute's modelType object (if any)"""
@@ -910,10 +911,10 @@ class ModelAttribute(ModelNamableTerm):
         except AttributeError:
             self._type = self.modelXbrl.qnameTypes.get(self.typeQname)
             return self._type
-    
+
     @property
     def baseXsdType(self):
-        """(str) -- Attempts to return the base xsd type localName that this attribute's type 
+        """(str) -- Attempts to return the base xsd type localName that this attribute's type
         is derived from.  If not determinable *anyType* is returned"""
         try:
             return self._baseXsdType
@@ -926,7 +927,7 @@ class ModelAttribute(ModelNamableTerm):
             type = self.type
             self._baseXsdType = type.baseXsdType if type is not None else None
             return self._baseXsdType
-    
+
     @property
     def facets(self):
         """(dict) -- Returns self.type.facets or None (if type indeterminate)"""
@@ -936,7 +937,7 @@ class ModelAttribute(ModelNamableTerm):
             type = self.type
             self._facets = type.facets if type is not None else None
             return self._facets
-    
+
     @property
     def isNumeric(self):
         """(bool) -- True for a numeric xsd base type (not including xbrl fractions)"""
@@ -945,29 +946,29 @@ class ModelAttribute(ModelNamableTerm):
         except AttributeError:
             self._isNumeric = XbrlConst.isNumericXsdType(self.baseXsdType)
             return self._isNumeric
-    
+
     @property
     def isQualifiedForm(self): # used only in determining qname, which itself is cached
         """(bool) -- True if attribute has form attribute qualified or its document default"""
         if self.get("form") is not None: # form is almost never used
             return self.get("form") == "qualified"
         return self.modelDocument.isQualifiedAttributeFormDefault
-        
+
     @property
     def isRequired(self):
         """(bool) -- True if use is required"""
         return self.get("use") == "required"
-    
+
     @property
     def default(self):
         """(str) -- default attribute"""
         return self.get("default")
-    
+
     @property
     def fixed(self):
         """(str) -- fixed attribute or None"""
         return self.get("fixed")
-    
+
     def dereference(self):
         """(ModelAttribute) -- If element is a ref (instead of name), provides referenced modelAttribute object, else self"""
         ref = self.get("ref")
@@ -979,9 +980,9 @@ class ModelAttribute(ModelNamableTerm):
 class ModelAttributeGroup(ModelNamableTerm):
     """
     .. class:: ModelAttributeGroup(modelDocument)
-    
+
     Attribute Group term
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
@@ -989,12 +990,12 @@ class ModelAttributeGroup(ModelNamableTerm):
         super(ModelAttributeGroup, self).init(modelDocument)
         if self.isGlobalDeclaration:
             self.modelXbrl.qnameAttributeGroups[self.qname] = self
-        
+
     @property
-    def isQualifiedForm(self): 
+    def isQualifiedForm(self):
         """(bool) -- True, always qualified"""
         return True
-    
+
     @property
     def attributes(self):
         """(dict) -- Dict by attribute QName of ModelAttributes"""
@@ -1017,7 +1018,7 @@ class ModelAttributeGroup(ModelNamableTerm):
                 if attrDecl is not None:
                     self._attributes[attrDecl.qname] = attrDecl
             return self._attributes
-        
+
     @property
     def attributeWildcards(self):
         try:
@@ -1025,7 +1026,7 @@ class ModelAttributeGroup(ModelNamableTerm):
         except AttributeError:
             self.attributes # loads attrWildcards
             return self._attributeWildcards
-        
+
     def dereference(self):
         """(ModelAttributeGroup) -- If element is a ref (instead of name), provides referenced modelAttributeGroup object, else self"""
         ref = self.get("ref")
@@ -1033,13 +1034,13 @@ class ModelAttributeGroup(ModelNamableTerm):
             qn = self.schemaNameQname(ref)
             return self.modelXbrl.qnameAttributeGroups.get(ModelValue.qname(self, ref))
         return self
-        
+
 class ModelType(ModelNamableTerm):
     """
     .. class:: ModelType(modelDocument)
-    
+
     Type definition term
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
@@ -1047,7 +1048,7 @@ class ModelType(ModelNamableTerm):
         super(ModelType, self).init(modelDocument)
         self.modelXbrl.qnameTypes.setdefault(self.qname, self) # don't redefine types nested in anonymous types
         self.particlesList = ParticlesList()
-        
+
     @property
     def name(self):
         nameAttr = self.getStripped("name")
@@ -1061,12 +1062,12 @@ class ModelType(ModelNamableTerm):
                 return nameAttr + anonymousTypeSuffix
             element = element.getparent()
         return None
-    
+
     @property
     def isQualifiedForm(self):
         """(bool) -- True (for compatibility with other schema objects)"""
         return True
-    
+
     @property
     def qnameDerivedFrom(self):
         """(QName) -- the type that this type is derived from"""
@@ -1074,7 +1075,7 @@ class ModelType(ModelNamableTerm):
         if isinstance(typeOrUnion,list): # union
             return [self.schemaNameQname(t) for t in typeOrUnion]
         return self.schemaNameQname(typeOrUnion)
-    
+
     @property
     def typeDerivedFrom(self):
         """(ModelType) -- type that this type is derived from"""
@@ -1084,7 +1085,7 @@ class ModelType(ModelNamableTerm):
         elif isinstance(qnameDerivedFrom, ModelValue.QName):
             return self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return None
-    
+
     @property
     def particles(self):
         """([ModelParticles]) -- Particles of this type"""
@@ -1094,13 +1095,13 @@ class ModelType(ModelNamableTerm):
         if isinstance(typeDerivedFrom, ModelType):
             return typeDerivedFrom.particlesList
         return self.particlesList  # empty list
-    
+
     @property
     def baseXsdType(self):
-        """(str) -- The xsd type localName that this type is derived from or: 
-        *noContent* for an element that may not have text nodes, 
-        *anyType* for an element that may have text nodes but their type is not specified, 
-        or one of several union types for schema validation purposes: *XBRLI_DATEUNION*, 
+        """(str) -- The xsd type localName that this type is derived from or:
+        *noContent* for an element that may not have text nodes,
+        *anyType* for an element that may have text nodes but their type is not specified,
+        or one of several union types for schema validation purposes: *XBRLI_DATEUNION*,
         *XBRLI_DECIMALSUNION*, *XBRLI_PRECISIONUNION*, *XBRLI_NONZERODECIMAL*.
         """
         try:
@@ -1121,7 +1122,7 @@ class ModelType(ModelNamableTerm):
                     #self._baseXsdType =  "anyType"
                     self._baseXsdType =  "noContent"
                 elif isinstance(qnameDerivedFrom,list): # union
-                    if qnameDerivedFrom == XbrlConst.qnDateUnionXsdTypes: 
+                    if qnameDerivedFrom == XbrlConst.qnDateUnionXsdTypes:
                         self._baseXsdType = "XBRLI_DATEUNION"
                     elif len(qnameDerivedFrom) == 1:
                         qn0 = qnameDerivedFrom[0]
@@ -1132,7 +1133,7 @@ class ModelType(ModelNamableTerm):
                             self._baseXsdType = typeDerivedFrom.baseXsdType if typeDerivedFrom is not None else "anyType"
                     # TBD implement union types
                     else:
-                        self._baseXsdType = "anyType" 
+                        self._baseXsdType = "anyType"
                 elif qnameDerivedFrom.namespaceURI == XbrlConst.xsd:
                     self._baseXsdType = qnameDerivedFrom.localName
                 else:
@@ -1142,7 +1143,7 @@ class ModelType(ModelNamableTerm):
                 if self._baseXsdType == "anyType" and XmlUtil.emptyContentModel(self):
                     self._baseXsdType = "noContent"
             return self._baseXsdType
-    
+
     @property
     def baseXbrliTypeQname(self):
         """(qname) -- The qname of the parent type in the xbrli namespace, if any, otherwise the localName of the parent in the xsd namespace."""
@@ -1155,7 +1156,7 @@ class ModelType(ModelNamableTerm):
             else:
                 qnameDerivedFrom = self.qnameDerivedFrom
                 if isinstance(qnameDerivedFrom,list): # union
-                    if qnameDerivedFrom == XbrlConst.qnDateUnionXsdTypes: 
+                    if qnameDerivedFrom == XbrlConst.qnDateUnionXsdTypes:
                         self._baseXbrliTypeQname = qnameDerivedFrom
                     # TBD implement union types
                     elif len(qnameDerivedFrom) == 1:
@@ -1176,7 +1177,7 @@ class ModelType(ModelNamableTerm):
                 else:
                     self._baseXbrliType = None
             return self._baseXbrliTypeQname
-    
+
     @property
     def baseXbrliType(self):
         """(str) -- The localName of the parent type in the xbrli namespace, if any, otherwise the localName of the parent in the xsd namespace."""
@@ -1185,17 +1186,17 @@ class ModelType(ModelNamableTerm):
         except AttributeError:
             baseXbrliTypeQname = self.baseXbrliTypeQname
             if isinstance(baseXbrliTypeQname,list): # union
-                if baseXbrliTypeQname == XbrlConst.qnDateUnionXsdTypes: 
+                if baseXbrliTypeQname == XbrlConst.qnDateUnionXsdTypes:
                     self._baseXbrliType = "XBRLI_DATEUNION"
                 # TBD implement union types
                 else:
-                    self._baseXbrliType = "anyType" 
+                    self._baseXbrliType = "anyType"
             elif baseXbrliTypeQname is not None:
                 self._baseXbrliType = baseXbrliTypeQname.localName
             else:
                 self._baseXbrliType = None
             return self._baseXbrliType
-    
+
     @property
     def isTextBlock(self):
         """(str) -- True if type is, or is derived from, us-types:textBlockItemType or dtr-types:escapedItemType"""
@@ -1209,7 +1210,7 @@ class ModelType(ModelNamableTerm):
             return False
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return typeDerivedFrom.isTextBlock if typeDerivedFrom is not None else False
-    
+
     @property
     def isOimTextFactType(self):
         """(str) -- True if type meets OIM requirements to be a text fact"""
@@ -1247,12 +1248,12 @@ class ModelType(ModelNamableTerm):
             return False
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return typeDerivedFrom.isDomainItemType if typeDerivedFrom is not None else False
-    
+
     @property
     def isMultiLanguage(self):
         """(bool) -- True if type is, or is derived from, stringItemType or normalizedStringItemType."""
         return self.baseXbrliType in {"stringItemType", "normalizedStringItemType", "string", "normalizedString"}
-    
+
     def isDerivedFrom(self, typeqname):
         """(bool) -- True if type is derived from type specified by QName.  Type can be a single type QName or list of QNames"""
         qnamesDerivedFrom = self.qnameDerivedFrom # can be single qname or list of qnames if union
@@ -1278,8 +1279,8 @@ class ModelType(ModelNamableTerm):
             if typeDerivedFrom is not None and typeDerivedFrom.isDerivedFrom(typeqname):
                 return True
         return False
-        
-    
+
+
     @property
     def attributes(self):
         """(dict) -- Dict of ModelAttribute attribute declarations keyed by attribute QName"""
@@ -1307,7 +1308,7 @@ class ModelType(ModelNamableTerm):
                     self._attributes.update(t.attributes)
                     self._attributeWildcards.extend(t.attributeWildcards)
             return self._attributes
-                
+
     @property
     def attributeWildcards(self):
         """(dict) -- List of wildcard namespace strings (e.g., ##other)"""
@@ -1325,7 +1326,7 @@ class ModelType(ModelNamableTerm):
         except AttributeError:
             self._requiredAttributeQnames = set(a.qname for a in self.attributes.values() if a.isRequired)
             return self._requiredAttributeQnames
-            
+
     @property
     def defaultAttributeQnames(self):
         """(set) -- Set of attribute QNames which have a default specified"""
@@ -1334,7 +1335,7 @@ class ModelType(ModelNamableTerm):
         except AttributeError:
             self._defaultAttributeQnames = set(a.qname for a in self.attributes.values() if a.default is not None)
             return self._defaultAttributeQnames
-            
+
     @property
     def elements(self):
         """([QName]) -- List of element QNames that are descendants (content elements)"""
@@ -1343,7 +1344,7 @@ class ModelType(ModelNamableTerm):
         except AttributeError:
             self._elements = XmlUtil.schemaDescendantsNames(self, XbrlConst.xsd, "element")
             return self._elements
-    
+
     @property
     def facets(self):
         """(dict) -- Dict of facets by their facet name, all are strings except enumeration, which is a set of enumeration values."""
@@ -1353,16 +1354,16 @@ class ModelType(ModelNamableTerm):
             facets = self.constrainingFacets()
             self._facets = facets if facets else None
             return self._facets
-    
+
     def constrainingFacets(self, facetValues=None):
-        """helper function for facets discovery"""  
+        """helper function for facets discovery"""
         if facetValues is None: facetValues = {}
         for facetElt in XmlUtil.schemaFacets(self, (
-                    "{http://www.w3.org/2001/XMLSchema}length", "{http://www.w3.org/2001/XMLSchema}minLength", 
-                    "{http://www.w3.org/2001/XMLSchema}maxLength", 
-                    "{http://www.w3.org/2001/XMLSchema}pattern", "{http://www.w3.org/2001/XMLSchema}whiteSpace",  
-                    "{http://www.w3.org/2001/XMLSchema}maxInclusive", "{http://www.w3.org/2001/XMLSchema}minInclusive", 
-                    "{http://www.w3.org/2001/XMLSchema}maxExclusive", "{http://www.w3.org/2001/XMLSchema}minExclusive", 
+                    "{http://www.w3.org/2001/XMLSchema}length", "{http://www.w3.org/2001/XMLSchema}minLength",
+                    "{http://www.w3.org/2001/XMLSchema}maxLength",
+                    "{http://www.w3.org/2001/XMLSchema}pattern", "{http://www.w3.org/2001/XMLSchema}whiteSpace",
+                    "{http://www.w3.org/2001/XMLSchema}maxInclusive", "{http://www.w3.org/2001/XMLSchema}minInclusive",
+                    "{http://www.w3.org/2001/XMLSchema}maxExclusive", "{http://www.w3.org/2001/XMLSchema}minExclusive",
                     "{http://www.w3.org/2001/XMLSchema}totalDigits", "{http://www.w3.org/2001/XMLSchema}fractionDigits")):
             facetValue = XmlValidate.validateFacet(self, facetElt)
             facetName = facetElt.localName
@@ -1375,7 +1376,7 @@ class ModelType(ModelNamableTerm):
         if isinstance(typeDerivedFrom, ModelType):
             typeDerivedFrom.constrainingFacets(facetValues)
         return facetValues
-                
+
     def fixedOrDefaultAttrValue(self, attrName):
         """(str) -- Descendant attribute declaration value if fixed or default, argument is attribute name (string), e.g., 'precision'."""
         attr = XmlUtil.schemaDescendant(self, XbrlConst.xsd, "attribute", attrName)
@@ -1389,7 +1390,7 @@ class ModelType(ModelNamableTerm):
     def dereference(self):
         """(ModelType) -- If element is a ref (instead of name), provides referenced modelType object, else self"""
         return self
-    
+
     @property
     def propertyView(self):
         return (("namespace", self.qname.namespaceURI),
@@ -1398,18 +1399,18 @@ class ModelType(ModelNamableTerm):
                 ("xsd type", self.baseXsdType),
                 ("derived from", self.qnameDerivedFrom),
                 ("facits", self.facets))
-        
+
     def __repr__(self):
         return ("modelType[{0}, qname: {1}, derivedFrom: {2}, {3}, line {4}]"
                 .format(self.objectIndex, self.qname, self.qnameDerivedFrom,
                         self.modelDocument.basename, self.sourceline))
-    
+
 class ModelGroupDefinition(ModelNamableTerm, ModelParticle):
     """
     .. class:: ModelGroupDefinition(modelDocument)
-    
+
     Group definition particle term
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
@@ -1428,18 +1429,18 @@ class ModelGroupDefinition(ModelNamableTerm, ModelParticle):
             qn = self.schemaNameQname(ref)
             return self.modelXbrl.qnameGroupDefinitions.get(qn)
         return self
-        
+
     @property
     def isQualifiedForm(self):
         """(bool) -- True (for compatibility with other schema objects)"""
         return True
-    
+
 class ModelGroupCompositor(ModelObject, ModelParticle):
     """
     .. class:: ModelGroupCompositor(modelDocument)
-    
+
     Particle Model group compositor term (sequence, choice, or all)
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
@@ -1451,25 +1452,25 @@ class ModelGroupCompositor(ModelObject, ModelParticle):
     def dereference(self):
         """(ModelGroupCompositor) -- If element is a ref (instead of name), provides referenced ModelGroupCompositor object, else self"""
         return self
-        
+
 class ModelAll(ModelGroupCompositor):
     """
     .. class:: ModelAll(modelDocument)
-    
+
     Particle Model all term
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
     def init(self, modelDocument):
         super(ModelAll, self).init(modelDocument)
-        
+
 class ModelChoice(ModelGroupCompositor):
     """
     .. class:: ModelChoice(modelDocument)
-    
+
     Particle Model choice term
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
@@ -1479,9 +1480,9 @@ class ModelChoice(ModelGroupCompositor):
 class ModelSequence(ModelGroupCompositor):
     """
     .. class:: ModelSequence(modelDocument)
-    
+
     Particle Model sequence term
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
@@ -1491,9 +1492,9 @@ class ModelSequence(ModelGroupCompositor):
 class ModelAny(ModelObject, ModelParticle):
     """
     .. class:: ModelAny(modelDocument)
-    
+
     Particle Model any term
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
@@ -1503,7 +1504,7 @@ class ModelAny(ModelObject, ModelParticle):
 
     def dereference(self):
         return self
-        
+
     def allowsNamespace(self, namespaceURI):
         try:
             if self._isAny:
@@ -1518,7 +1519,7 @@ class ModelAny(ModelObject, ModelParticle):
             else: # not equal namespaces
                 if "##other" in self._namespaces:
                     return True
-            return False        
+            return False
         except AttributeError:
             self._namespaces = self.get("namespace", '').split()
             self._isAny = (not self._namespaces) or "##any" in self._namespaces
@@ -1527,15 +1528,15 @@ class ModelAny(ModelObject, ModelParticle):
 class ModelAnyAttribute(ModelObject):
     """
     .. class:: ModelAnyAttribute(modelDocument)
-    
+
     Any attribute definition term
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
     def init(self, modelDocument):
         super(ModelAnyAttribute, self).init(modelDocument)
-        
+
     def allowsNamespace(self, namespaceURI):
         try:
             if self._isAny:
@@ -1550,7 +1551,7 @@ class ModelAnyAttribute(ModelObject):
             else: # not equal namespaces
                 if "##other" in self._namespaces:
                     return True
-            return False        
+            return False
         except AttributeError:
             self._namespaces = self.get("namespace", '').split()
             self._isAny = (not self._namespaces) or "##any" in self._namespaces
@@ -1559,32 +1560,32 @@ class ModelAnyAttribute(ModelObject):
 class ModelEnumeration(ModelNamableTerm):
     """
     .. class:: ModelEnumeration(modelDocument)
-    
+
     Facet enumeration term
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
     def init(self, modelDocument):
         super(ModelEnumeration, self).init(modelDocument)
-        
+
     @property
     def value(self):
         return self.get("value")
-    
+
 class ModelLink(ModelObject):
     """
     .. class:: ModelLink(modelDocument)
-    
+
     XLink extended link element
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
     def init(self, modelDocument):
         super(ModelLink, self).init(modelDocument)
         self.labeledResources = defaultdict(list)
-        
+
     @property
     def role(self):
         return self.get("{http://www.w3.org/1999/xlink}role")
@@ -1592,9 +1593,9 @@ class ModelLink(ModelObject):
 class ModelResource(ModelObject):
     """
     .. class:: ModelResource(modelDocument)
-    
+
     XLink resource element
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
@@ -1604,12 +1605,12 @@ class ModelResource(ModelObject):
             self.modelXbrl.langs.add(self.xmlLang)
         if self.localName == "label":
             self.modelXbrl.labelroles.add(self.role)
-        
+
     @property
     def role(self):
         """(str) -- xlink:role attribute"""
         return self.get("{http://www.w3.org/1999/xlink}role")
-        
+
     @property
     def xlinkLabel(self):
         """(str) -- xlink:label attribute"""
@@ -1621,43 +1622,43 @@ class ModelResource(ModelObject):
         Note that xml.xsd specifies that an empty string xml:lang attribute is an un-declaration of the
         attribute, as if the attribute were not present.  When absent or un-declared, returns None."""
         return XmlUtil.ancestorOrSelfAttr(self, "{http://www.w3.org/XML/1998/namespace}lang") or None
-    
+
     def viewText(self, labelrole=None, lang=None):
-        """(str) -- Text of contained (inner) text nodes except for any whose localName 
+        """(str) -- Text of contained (inner) text nodes except for any whose localName
         starts with URI, for label and reference parts displaying purposes.
         (Footnotes, which return serialized html content of footnote.)"""
         if self.qname == XbrlConst.qnLinkFootnote:
             return XmlUtil.innerText(self, ixEscape="html", strip=True) # include HTML construct
         return " ".join([XmlUtil.text(resourceElt)
                            for resourceElt in self.iter()
-                              if isinstance(resourceElt,ModelObject) and 
+                              if isinstance(resourceElt,ModelObject) and
                                   not resourceElt.localName.startswith("URI")])
-        
+
     def roleRefPartSortKey(self):
         return "{} {}".format(self.role,
                               " ".join("{} {}".format(_refPart.localName, _refPart.stringValue.strip())
                                        for _refPart in self.iterchildren()))[:200] # limit length of sort
-        
+
     def dereference(self):
         return self
-        
+
 class ModelLocator(ModelResource):
     """
     .. class:: ModelLocator(modelDocument)
-    
+
     XLink locator element
-    
+
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
     def init(self, modelDocument):
         super(ModelLocator, self).init(modelDocument)
-    
+
     def dereference(self):
-        """(ModelObject) -- Resolve loc's href if resource is a loc with href document and id modelHref a tuple with 
+        """(ModelObject) -- Resolve loc's href if resource is a loc with href document and id modelHref a tuple with
         href's element, modelDocument, id"""
         return self.resolveUri(self.modelHref)
-    
+
     @property
     def propertyView(self):
         global ModelFact
@@ -1677,16 +1678,16 @@ class RelationStatus:
     OVERRIDDEN = 2
     PROHIBITED = 3
     INEFFECTIVE = 4
-    
+
 arcCustAttrsExclusions = {XbrlConst.xlink, "use","priority","order","weight","preferredLabel"}
-    
+
 class ModelRelationship(ModelObject):
     """
     .. class:: ModelRelationship(modelDocument, arcElement, fromModelObject, toModelObject)
-    
-    ModelRelationship is a ModelObject that does not proxy an lxml object (but instead references 
+
+    ModelRelationship is a ModelObject that does not proxy an lxml object (but instead references
     ModelObject arc elements, and the from and to ModelObject elements.
-    
+
     :param modelDocument: Owning modelDocument object
     :type modelDocument: ModelDocument
     :param arcElement: lxml arc element that was resolved into this relationship object
@@ -1695,16 +1696,16 @@ class ModelRelationship(ModelObject):
     :type fromModelObject: ModelObject
     :param toModelObject: the to lxml resource element of the target of the relationship
     :type toModelObject: ModelObject
-    
+
     Includes properties that proxy the referenced modelArc: localName, namespaceURI, prefixedName, sourceline, tag, elementQname, qname,
-    and methods that proxy methods of modelArc: get() and itersiblings()    
+    and methods that proxy methods of modelArc: get() and itersiblings()
 
         .. attribute:: arcElement
-        
+
         ModelObject arc element of the effective relationship
 
         .. attribute:: fromModelObject
-        
+
         ModelObject of the xlink:from (dereferenced if via xlink:locator)
 
         .. attribute:: toModelObject
@@ -1717,69 +1718,69 @@ class ModelRelationship(ModelObject):
         self.init(modelDocument)
         self.fromModelObject = fromModelObject
         self.toModelObject = toModelObject
-        
+
     def clear(self):
         self.__dict__.clear() # dereference here, not an lxml object, don't use superclass clear()
-        
+
     # simulate etree operations
     def get(self, attrname):
-        """Method proxy for the arc element of the effective relationship so that the non-proxy 
+        """Method proxy for the arc element of the effective relationship so that the non-proxy
         """
         return self.arcElement.get(attrname)
-    
+
     @property
     def localName(self):
         """(str) -- Property proxy for localName of arc element"""
         return self.arcElement.localName
-        
+
     @property
     def namespaceURI(self):
         """(str) -- Property proxy for namespaceURI of arc element"""
         return self.arcElement.namespaceURI
-        
+
     @property
     def prefixedName(self):
         """(str) -- Property proxy for prefixedName of arc element"""
         return self.arcElement.prefixedName
-        
+
     @property
     def sourceline(self):
         """(int) -- Property proxy for sourceline of arc element"""
         return self.arcElement.sourceline
-        
+
     @property
     def tag(self):
         """(str) -- Property proxy for tag of arc element (clark notation)"""
         return self.arcElement.tag
-    
+
     @property
     def elementQname(self):
         """(QName) -- Property proxy for elementQName of arc element"""
         return self.arcElement.elementQname
-        
+
     @property
     def qname(self):
         """(QName) -- Property proxy for qname of arc element"""
         return self.arcElement.qname
-    
+
     def itersiblings(self, **kwargs):
         """Method proxy for itersiblings() of lxml arc element"""
         return self.arcElement.itersiblings(**kwargs)
-        
+
     def getparent(self):
         """(_ElementBase) -- Method proxy for getparent() of lxml arc element"""
         return self.arcElement.getparent()
-        
+
     @property
     def fromLabel(self):
         """(str) -- Value of xlink:from attribute"""
         return self.arcElement.get("{http://www.w3.org/1999/xlink}from")
-        
+
     @property
     def toLabel(self):
         """(str) -- Value of xlink:to attribute"""
         return self.arcElement.get("{http://www.w3.org/1999/xlink}to")
-        
+
     @property
     def fromLocator(self):
         """(ModelLocator) -- Value of locator surrogate of relationship source, if any"""
@@ -1787,7 +1788,7 @@ class ModelRelationship(ModelObject):
             if isinstance(fromResource, ModelLocator) and self.fromModelObject is fromResource.dereference():
                 return fromResource
         return None
-        
+
     @property
     def toLocator(self):
         """(ModelLocator) -- Value of locator surrogate of relationship target, if any"""
@@ -1795,7 +1796,7 @@ class ModelRelationship(ModelObject):
             if isinstance(toResource, ModelLocator) and self.toModelObject is toResource.dereference():
                 return toResource
         return None
-    
+
     def locatorOf(self, dereferencedObject):
         """(ModelLocator) -- Value of locator surrogate of relationship target, if any"""
         fromLocator = self.fromLocator
@@ -1805,7 +1806,7 @@ class ModelRelationship(ModelObject):
         if toLocator is not None and toLocator.dereference() == dereferencedObject:
             return toLocator
         return None
-        
+
     @property
     def arcrole(self):
         """(str) -- Value of xlink:arcrole attribute"""
@@ -1894,17 +1895,17 @@ class ModelRelationship(ModelObject):
     def use(self):
         """(str) -- Value of use attribute"""
         return self.get("use")
-    
+
     @property
     def isProhibited(self):
         """(bool) -- True if use is prohibited"""
         return self.use == "prohibited"
-    
+
     @property
     def prohibitedUseSortKey(self):
         """(int) -- 2 if use is prohibited, else 1, for use in sorting effective arcs before prohibited arcs"""
         return 2 if self.isProhibited else 1
-    
+
     @property
     def preferredLabel(self):
         """(str) -- preferredLabel attribute or None if absent"""
@@ -1925,37 +1926,37 @@ class ModelRelationship(ModelObject):
     def linkrole(self):
         """(str) -- Value of xlink:role attribute of parent extended link element"""
         return self.arcElement.getparent().get("{http://www.w3.org/1999/xlink}role")
-    
+
     @property
     def linkQname(self):
         """(QName) -- qname of the parent extended link element"""
         return self.arcElement.getparent().elementQname
-    
+
     @property
     def contextElement(self):
         """(str) -- Value of xbrldt:contextElement attribute (on applicable XDT arcs)"""
         return self.get("{http://xbrl.org/2005/xbrldt}contextElement")
-    
+
     @property
     def targetRole(self):
         """(str) -- Value of xbrldt:targetRole attribute (on applicable XDT arcs)"""
         return self.get("{http://xbrl.org/2005/xbrldt}targetRole")
-    
+
     @property
     def consecutiveLinkrole(self):
         """(str) -- Value of xbrldt:targetRole attribute, if provided, else parent linkRole (on applicable XDT arcs)"""
         return self.targetRole or self.linkrole
-    
+
     @property
     def isUsable(self):
         """(bool) -- True if xbrldt:usable is true (on applicable XDT arcs, defaults to True if absent)"""
         return self.get("{http://xbrl.org/2005/xbrldt}usable") in ("true","1", None)
-    
+
     @property
     def closed(self):
         """(str) -- Value of xbrldt:closed (on applicable XDT arcs, defaults to 'false' if absent)"""
         return self.get("{http://xbrl.org/2005/xbrldt}closed") or "false"
-    
+
     @property
     def isClosed(self):
         """(bool) -- True if xbrldt:closed is true (on applicable XDT arcs, defaults to False if absent)"""
@@ -1985,7 +1986,7 @@ class ModelRelationship(ModelObject):
         except AttributeError:
             self._isComplemented = self.get("complement") in ("true","1")
             return self._isComplemented
-    
+
     @property
     def isCovered(self):
         """(bool) -- True if cover is true (on applicable formula/rendering arcs, defaults to False if absent)"""
@@ -1994,7 +1995,7 @@ class ModelRelationship(ModelObject):
         except AttributeError:
             self._isCovered = self.get("cover") in ("true","1")
             return self._isCovered
-        
+
     @property
     def axisDisposition(self):
         """(str) -- Value of axisDisposition (on applicable table linkbase arcs"""
@@ -2009,33 +2010,33 @@ class ModelRelationship(ModelObject):
             elif aType in ("zAxis","z"): self._axisDisposition = "z"
             else: self._axisDisposition = None
             return self._axisDisposition
-        
+
     @property
     def equivalenceHash(self): # not exact, use equivalenceKey if hashes are the same
-        return hash((self.qname, 
+        return hash((self.qname,
                      self.linkQname,
                      self.linkrole,  # needed when linkrole=None merges multiple links
-                     self.fromModelObject.objectIndex if isinstance(self.fromModelObject, ModelObject) else -1, 
-                     self.toModelObject.objectIndex if isinstance(self.toModelObject, ModelObject) else -1, 
-                     self.order, 
-                     self.weight, 
+                     self.fromModelObject.objectIndex if isinstance(self.fromModelObject, ModelObject) else -1,
+                     self.toModelObject.objectIndex if isinstance(self.toModelObject, ModelObject) else -1,
+                     self.order,
+                     self.weight,
                      self.preferredLabel))
-        
+
     @property
     def equivalenceKey(self):
         """(tuple) -- Key to determine relationship equivalence per 2.1 spec"""
         # cannot be cached because this is unique per relationship
-        return (self.qname, 
+        return (self.qname,
                 self.linkQname,
                 self.linkrole,  # needed when linkrole=None merges multiple links
-                self.fromModelObject.objectIndex if isinstance(self.fromModelObject, ModelObject) else -1, 
-                self.toModelObject.objectIndex if isinstance(self.toModelObject, ModelObject) else -1, 
-                self.order, 
-                self.weight, 
+                self.fromModelObject.objectIndex if isinstance(self.fromModelObject, ModelObject) else -1,
+                self.toModelObject.objectIndex if isinstance(self.toModelObject, ModelObject) else -1,
+                self.order,
+                self.weight,
                 self.preferredLabel) + \
-                XbrlUtil.attributes(self.modelXbrl, self.arcElement, 
+                XbrlUtil.attributes(self.modelXbrl, self.arcElement,
                     exclusions=arcCustAttrsExclusions, keyByTag=True) # use clark tag for key instead of qname
-                
+
     def isIdenticalTo(self, otherModelRelationship):
         """(bool) -- Determines if relationship is identical to another, based on arc and identical from and to objects"""
         return (otherModelRelationship is not None and
@@ -2058,7 +2059,7 @@ class ModelRelationship(ModelObject):
         if otherModelRelationship.isProhibited:
             return False
         return True
-    
+
     @property
     def propertyView(self):
         return self.toModelObject.propertyView + \
@@ -2066,10 +2067,10 @@ class ModelRelationship(ModelObject):
                 ("weight", self.weight) if self.arcrole == XbrlConst.summationItem else (),
                 ("preferredLabel", self.preferredLabel)  if self.arcrole == XbrlConst.parentChild and self.preferredLabel else (),
                 ("contextElement", self.contextElement)  if self.arcrole in (XbrlConst.all, XbrlConst.notAll)  else (),
-                ("typedDomain", self.toModelObject.typedDomainElement.qname)  
+                ("typedDomain", self.toModelObject.typedDomainElement.qname)
                   if self.arcrole == XbrlConst.hypercubeDimension and
                      isinstance(self.toModelObject,ModelConcept) and
-                     self.toModelObject.isTypedDimension and 
+                     self.toModelObject.isTypedDimension and
                      self.toModelObject.typedDomainElement is not None  else (),
                 ("closed", self.closed) if self.arcrole in (XbrlConst.all, XbrlConst.notAll)  else (),
                 ("usable", self.usable) if self.arcrole == XbrlConst.domainMember  else (),
@@ -2077,7 +2078,7 @@ class ModelRelationship(ModelObject):
                 ("order", self.order),
                 ("priority", self.priority)) + \
                (("from", self.fromModelObject.qname),) if isinstance(self.fromModelObject,ModelObject) else ()
-        
+
     def __repr__(self):
         return ("modelRelationship[{0}, linkrole: {1}, arcrole: {2}, from: {3}, to: {4}, {5}, line {6}]"
                 .format(self.objectIndex, os.path.basename(self.linkrole), os.path.basename(self.arcrole),
@@ -2092,7 +2093,7 @@ class ModelRelationship(ModelObject):
         elif isinstance(self.fromModelObject, ModelConcept):
             return self.fromModelObject
         return None
-           
+
 from arelle.ModelObjectFactory import elementSubstitutionModelClass
 elementSubstitutionModelClass.update((
      (XbrlConst.qnXlExtended, ModelLink),

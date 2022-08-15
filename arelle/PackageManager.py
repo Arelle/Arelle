@@ -20,8 +20,8 @@ ArchiveFileIOError = None
 try:
     from collections import OrderedDict
 except ImportError:
-    OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order 
-    
+    OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order
+
 TP_XSD = "http://www.xbrl.org/2016/taxonomy-package.xsd"
 CAT_XSD = "http://www.xbrl.org/2016/taxonomy-package-catalog.xsd"
 
@@ -40,7 +40,7 @@ def baseForElement(element):
                 base = baseAttr + base
         baseElt = baseElt.getparent()
     return base
-   
+
 def xmlLang(element):
     return (element.xpath('@xml:lang') + element.xpath('ancestor::*/@xml:lang') + [''])[0]
 
@@ -57,7 +57,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
         from arelle.FileSource import ArchiveFileIOError
 
     unNamedCounter = 1
-    
+
     txmyPkgNSes = ("http://www.corefiling.com/xbrl/taxonomypackage/v1",
                    "http://xbrl.org/PWD/2014-01-15/taxonomy-package",
                    "http://xbrl.org/PWD/2015-01-14/taxonomy-package",
@@ -65,7 +65,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                    "http://xbrl.org/2016/taxonomy-package",
                    "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package")
     catalogNSes = ("urn:oasis:names:tc:entity:xmlns:xml:catalog",)
-    
+
     pkg = {}
 
     currentLang = Locale.getLanguageCode()
@@ -84,11 +84,11 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                        level=logging.ERROR)
         errors.append("tpe:invalidMetaDataFile")
         return pkg
-    
+
     root = tree.getroot()
     ns = root.tag.partition("}")[0][1:]
     nsPrefix = "{{{}}}".format(ns)
-    
+
     if ns in  txmyPkgNSes:  # package file
         for eltName in ("identifier", "version", "license", "publisher", "publisherURL", "publisherCountry", "publicationDate"):
             pkg[eltName] = ''
@@ -148,14 +148,14 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
         del langElts # dereference
 
     else: # oasis catalog, use dirname as the package name
-        # metadataFile may be a File object (with name) or string filename 
-        fileName = getattr(metadataFile, 'fileName',      # for FileSource named objects 
+        # metadataFile may be a File object (with name) or string filename
+        fileName = getattr(metadataFile, 'fileName',      # for FileSource named objects
                            getattr(metadataFile, 'name',  # for io.file named objects
                                    metadataFile))         # for string
         pkg["name"] = os.path.basename(os.path.dirname(fileName))
         pkg["description"] = "oasis catalog"
         pkg["version"] = "(none)"
-        
+
     remappings = {}
     rewriteTree = tree
     catalogFile = metadataFile
@@ -217,7 +217,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
     for entryPointSpec in tree.iter(tag=nsPrefix + "entryPoint"):
         name = None
         closestLen = 0
-        
+
         # find closest match name node given xml:lang match to current language or no xml:lang
         for nameNode in entryPointSpec.iter(tag=nsPrefix + "name"):
             s = (nameNode.text or "").strip()
@@ -241,9 +241,9 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                 resolvedUrl = urljoin(base, epUrl)
             else:
                 resolvedUrl = epUrl
-                
+
             epDocCount += 1
-    
+
             #perform prefix remappings
             remappedUrl = resolvedUrl
             longestPrefix = 0
@@ -259,7 +259,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                         longestPrefix = prefixLength
             if longestPrefix:
                 remappedUrl = _remappedUrl.replace(os.sep, "/")  # always used as FileSource select
-                
+
             # find closest language description
             closest = ''
             closestLen = 0
@@ -304,14 +304,14 @@ def init(cntlr, loadPackagesConfig=True):
         packagesConfigChanged = False # don't save until something is added to pluginConfig
     pluginMethodsForClasses = {} # dict by class of list of ordered callable function objects
     _cntlr = cntlr
-    
+
 def reset():  # force reloading modules and plugin infos
     packagesConfig.clear()  # dict of loaded module pluginInfo objects by module names
     packagesMappings.clear() # dict by class of list of ordered callable function objects
-    
+
 def orderedPackagesConfig():
     return OrderedDict(
-        (('packages', [OrderedDict(sorted(_packageInfo.items(), 
+        (('packages', [OrderedDict(sorted(_packageInfo.items(),
                                           key=lambda k: {'name': '01',
                                                          'status': '02',
                                                          'version': '03',
@@ -319,17 +319,17 @@ def orderedPackagesConfig():
                                                          'license': '05',
                                                          'URL': '06',
                                                          'description': '07',
-                                                         "publisher": '08', 
+                                                         "publisher": '08',
                                                          "publisherURL": '09',
-                                                         "publisherCountry": '10', 
+                                                         "publisherCountry": '10',
                                                          "publicationDate": '11',
-                                                         "supersededTaxonomyPackages": '12', 
+                                                         "supersededTaxonomyPackages": '12',
                                                          "versioningReports": '13',
                                                          'remappings': '14',
                                                          }.get(k[0],k[0])))
                        for _packageInfo in packagesConfig['packages']]),
          ('remappings',OrderedDict(sorted(packagesConfig['remappings'].items())))))
-    
+
 def save(cntlr):
     global packagesConfigChanged
     if packagesConfigChanged and cntlr.hasFileSystem:
@@ -337,13 +337,13 @@ def save(cntlr):
             jsonStr = _STR_UNICODE(json.dumps(orderedPackagesConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
             f.write(jsonStr)
         packagesConfigChanged = False
-    
+
 def close():  # close all loaded methods
     packagesConfig.clear()
     packagesMappings.clear()
     global webCache
     webCache = None
-    
+
 ''' packagesConfig structure
 
 {
@@ -375,7 +375,7 @@ def packageNamesWithNewerFileDates():
             pass
     return names
 
-def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]):
+def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]) -> bool:
         numErrorsOnEntry = len(errors)
         _dir = filesource.dir
         if not _dir:
@@ -467,7 +467,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                     packageFiles = [pf for pf in packageFiles if pf.startswith(_metaInf)]
                 elif any(pf.startswith('META-INF/') for pf in packageFiles) and any(not pf.startswith('META-INF/') for pf in packageFiles):
                     packageFiles = [pf for pf in packageFiles if pf.startswith('META-INF/')]
-                    
+
                 for packageFile in packageFiles:
                     packageFileUrl = filesource.url + os.sep + packageFile
                     packageFilePrefix = os.sep.join(os.path.split(packageFile)[:-1])
@@ -482,7 +482,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                                level=logging.ERROR)
                 errors.append("tpe:invalidArchiveFormat")
                 if (os.path.basename(filesource.url) in TAXONOMY_PACKAGE_FILE_NAMES or # individual manifest file
-                      (os.path.basename(filesource.url) == "taxonomyPackage.xml" and 
+                      (os.path.basename(filesource.url) == "taxonomyPackage.xml" and
                        os.path.basename(os.path.dirname(filesource.url)) == "META-INF")):
                     packageFile = packageFileUrl = filesource.url
                     packageFilePrefix = os.path.dirname(packageFile)
@@ -522,11 +522,11 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                        'entryPoints': parsedPackage.get('entryPoints', {}),
                        'manifestName': packageManifestName,
                        'description': "; ".join(descriptions),
-                       'publisher': parsedPackage.get('publisher'), 
+                       'publisher': parsedPackage.get('publisher'),
                        'publisherURL': parsedPackage.get('publisherURL'),
-                       'publisherCountry': parsedPackage.get('publisherCountry'), 
+                       'publisherCountry': parsedPackage.get('publisherCountry'),
                        'publicationDate': parsedPackage.get('publicationDate'),
-                       'supersededTaxonomyPackages': parsedPackage.get('supersededTaxonomyPackages'), 
+                       'supersededTaxonomyPackages': parsedPackage.get('supersededTaxonomyPackages'),
                        'versioningReports': parsedPackage.get('versioningReports'),
                        'remappings': remappings,
                        }
@@ -553,7 +553,7 @@ def rebuildRemappings(cntlr):
         _prefix, _packageURL, _rewrite = _remap
         for j in range(i-1, -1, -1):
             _prefix2, _packageURL2, _rewrite2 = remapOverlapUrls[j]
-            if (_packageURL != _packageURL2 and _prefix and _prefix2 and 
+            if (_packageURL != _packageURL2 and _prefix and _prefix2 and
                 (_prefix.startswith(_prefix2) or _prefix2.startswith(_prefix))):
                 _url1 = os.path.basename(_packageURL)
                 _url2 = os.path.basename(_packageURL2)
@@ -567,7 +567,7 @@ def rebuildRemappings(cntlr):
                                messageCode="arelle.packageRewriteOverlap",
                                file=(_url1, _url2),
                                level=logging.WARNING)
-    
+
 
 def isMappedUrl(url):
     return (packagesConfig is not None and url is not None and

@@ -4,6 +4,7 @@ Created on Oct 3, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+from __future__ import annotations
 import os, io
 from collections import defaultdict
 from typing import Any
@@ -24,7 +25,7 @@ from arelle.XmlValidate import VALID, validate as xmlValidate, lxmlSchemaValidat
 
 creationSoftwareNames = None
 
-def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, isSupplemental=False, namespace=None, reloadCache=False, **kwargs):
+def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, isSupplemental=False, namespace=None, reloadCache=False, **kwargs) -> ModelDocument | None:
     """Returns a new modelDocument, performing DTS discovery for instance, inline XBRL, schema,
     linkbase, and versioning report entry urls.
 
@@ -339,7 +340,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                     modelXbrl.error("html:validationException",
                         _("%(element)s error %(error)s, unable to process html."),
                         modelObject=rootNode, element=rootNode.localName.title(), error=type(err).__name__)
-                return None # rootNode is not processed further to find any facts because there could be many recursion errors                
+                return None # rootNode is not processed further to find any facts because there could be many recursion errors
         elif _type == Type.VERSIONINGREPORT:
             modelDocument.versioningReportDiscover(rootNode)
         elif _type == Type.TESTCASESINDEX:
@@ -526,7 +527,7 @@ class Type:
                 "fact dimensions infoset",
                 "html non-XBRL")
 
-    def identify(filesource, filepath):
+    def identify(filesource, filepath) -> int:
         _type = Type.UnknownNonXML
         file, = filesource.file(filepath, stripDeclaration=True, binary=True)
         try:
