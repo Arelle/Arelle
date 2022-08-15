@@ -4,6 +4,7 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+from __future__ import annotations
 try:
     import regex as re
 except ImportError:
@@ -51,8 +52,9 @@ baseXbrliTypes = {
 
 class ValidateXbrl:
 
-    authority: str
+    authority: str | None
     authParam: dict[str, Any]
+    consolidated: bool
     domainMembers: set
     extensionImportedUrls: set
     hasExtensionCal: bool
@@ -60,6 +62,9 @@ class ValidateXbrl:
     hasExtensionLbl: bool
     hasExtensionPre: bool
     hasExtensionSchema: bool
+    unconsolidated: bool
+    validateESEFplugin: bool
+    priorFormulaOptionsRunIDs: str | None
     primaryItems: set
 
     def __init__(self, testModelXbrl):

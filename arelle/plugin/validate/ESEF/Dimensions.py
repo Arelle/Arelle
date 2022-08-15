@@ -20,11 +20,11 @@ try:
     import regex as re
 except ImportError:
     import re  # type: ignore[no-redef]
-from collections.abc import Callable
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.ModelDtsObject import ModelConcept
+from .common import TypeGetText
 
-_: Callable[[str], str]  # Handle gettext
+_: TypeGetText  # Handle gettext
 
 
 def checkFilingDimensions(val: ValidateXbrl) -> None:

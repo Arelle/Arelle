@@ -4,16 +4,17 @@ Created on Dec 30, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010-2017 Mark V Systems Limited, All rights reserved.
 '''
-import os, logging
 from lxml import etree
 from arelle import ModelDocument
 from collections import defaultdict
+
+from arelle.ModelXbrl import ModelXbrl
 
 DIVISOR = "*DIV*"
 
 class UtrEntry(): # use slotted class for execution efficiency
     __slots__ = ("id", "unitId", "nsUnit", "itemType", "nsItemType", "isSimple",
-                 "numeratorItemType", "nsNumeratorItemType", 
+                 "numeratorItemType", "nsNumeratorItemType",
                  "denominatorItemType", "nsDenominatorItemType", "symbol",
                  "status")
 
@@ -99,29 +100,29 @@ def loadUtr(modelXbrl, statusFilters=None): # Build a dictionary of item types t
         etree.clear_error_log()
     if file:
         file.close()
-  
+
 def validateFacts(modelXbrl):
     ValidateUtr(modelXbrl).validateFacts()
-    
+
 def utrEntries(modelType, modelUnit):
     return ValidateUtr(modelType.modelXbrl).utrEntries(modelType, modelUnit)
 
 def utrSymbol(modelType, unitMeasures):
     return ValidateUtr(modelType.modelXbrl).utrSymbol(unitMeasures[0], unitMeasures[1])
-    
+
 class ValidateUtr:
-    def __init__(self, modelXbrl, messageLevel="ERROR", messageCode="utre:error-NumericFactUtrInvalid"):
+    def __init__(self, modelXbrl: ModelXbrl, messageLevel: str="ERROR", messageCode: str="utre:error-NumericFactUtrInvalid") -> None:
         self.modelXbrl = modelXbrl
         self.messageLevel = messageLevel
         self.messageCode = messageCode
-        if getattr(modelXbrl.modelManager.disclosureSystem, "utrItemTypeEntries", None) is None: 
+        if getattr(modelXbrl.modelManager.disclosureSystem, "utrItemTypeEntries", None) is None:
             loadUtr(modelXbrl)
         self.utrItemTypeEntries = modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries
-        
+
     def validateFacts(self):
         modelXbrl = self.modelXbrl
         if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-            modelXbrl.modelManager.cntlr.showStatus(_("Validating for Unit Type Registry").format())     
+            modelXbrl.modelManager.cntlr.showStatus(_("Validating for Unit Type Registry").format())
             utrInvalidFacts = []
             for f in modelXbrl.facts:
                 concept = f.concept
@@ -168,11 +169,11 @@ class ValidateUtr:
                                 if self.measuresMatch(True, divMeas, mulMeas[:i] + mulMeas[i+1:], *divArgs)[0]:
                                     return True, True, u
                 else:
-                    if self.measuresMatch(True, mulMeas, divMeas, u.numeratorItemType, u.nsNumeratorItemType, 
+                    if self.measuresMatch(True, mulMeas, divMeas, u.numeratorItemType, u.nsNumeratorItemType,
                                           u.denominatorItemType, u.nsDenominatorItemType, None, DIVISOR, *divArgs)[0]:
                         return True, True, u
         return False, typeMatched, None
-                    
+
     def utrEntries(self, modelType, unit):
         utrSatisfyingEntries = set()
         modelXbrl = self.modelXbrl
@@ -209,8 +210,8 @@ class ValidateUtr:
             if len(measures) > 1 and wrapMult:
                 return "({})".format(measuresString)
             return measuresString
-            
-        if not multMeasures and divMeasures: 
+
+        if not multMeasures and divMeasures:
             return "per " + symbols(divMeasures)
         elif multMeasures:
             if divMeasures:

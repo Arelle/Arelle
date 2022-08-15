@@ -26,9 +26,9 @@ from .Const import (qnDomainItemTypes, esefDefinitionArcroles, DefaultDimensionL
                     linkbaseRefTypes, filenamePatterns, filenameRegexes)
 from .Util import isExtension
 from arelle.ValidateXbrl import ValidateXbrl
-from collections.abc import Callable
+from .common import TypeGetText
 
-_: Callable[[str], str]  # Handle gettext
+_: TypeGetText  # Handle gettext
 
 
 def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: list[ModelDocument], hrefXlinkRole: str | None =None) -> None:

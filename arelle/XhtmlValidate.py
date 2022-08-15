@@ -7,16 +7,17 @@ Created on Sept 1, 2013
 (originally part of XmlValidate, moved to separate module)
 '''
 from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateFilingText, UrlUtil
-from arelle.ModelValue import qname
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.PythonUtil import normalizeSpace
+from arelle.ModelXbrl import ModelXbrl
+from arelle.ModelObject import ModelObject
 from lxml import etree
 import os, re, posixpath
 
 EMPTYDICT = {}
 
 XHTML_DTD = { # modified to have ixNestedContent elements as placeholders for ix footnote and nonnumeric/continuation elements
-    XbrlConst.ixbrl: "xhtml1-strict-ix.dtd", 
+    XbrlConst.ixbrl: "xhtml1-strict-ix.dtd",
     XbrlConst.ixbrl11: "xhtml1_1-strict-ix.dtd"
     }
 
@@ -25,7 +26,7 @@ ixElements = {
         "denominator", "exclude", "footnote", "fraction", "header", "hidden",
         "nonFraction", "nonNumeric", "numerator", "references", "resources", "tuple"},
      XbrlConst.ixbrl11: {
-        "continuation", "denominator", "exclude", "footnote", "fraction", "header", "hidden", 
+        "continuation", "denominator", "exclude", "footnote", "fraction", "header", "hidden",
         "nonFraction", "nonNumeric","numerator", "references", "relationship","resources", "tuple"}
     }
 
@@ -125,13 +126,13 @@ ixAttrRequired = {
         "nonFraction": ("name", "contextRef", "unitRef"),
         "nonNumeric": ("name", "contextRef"),
         "tuple": ("name",)},
-    XbrlConst.ixbrl11: {  
+    XbrlConst.ixbrl11: {
         "continuation": ("id",),
         "footnote": ("id",),
         "fraction": ("name", "contextRef", "unitRef"),
         "nonFraction": ("name", "contextRef", "unitRef"),
         "nonNumeric": ("name", "contextRef"),
-        "tuple": ("name",)}                    
+        "tuple": ("name",)}
     }
 ixAttrDefined = {
     XbrlConst.ixbrl: {
@@ -146,7 +147,7 @@ ixAttrDefined = {
                        "footnoteRefs", "format", "escape"),
         "references": ("id", "target"),
         "tuple": ("id", "name", "target", "tupleID", "tupleRef", "order", "footnoteRefs")},
-    XbrlConst.ixbrl11: {  
+    XbrlConst.ixbrl11: {
         "continuation": ("id", "continuedAt"),
         "footnote": ("id", "continuedAt", "footnoteRole", "title"),
         "fraction": ("id", "name", "target", "contextRef", "unitRef", "tupleRef", "order"),
@@ -158,7 +159,7 @@ ixAttrDefined = {
                        "format", "escape", "continuedAt"),
         "references": ("id", "target"),
         "relationship": ("arcrole", "linkRole", "fromRefs", "toRefs", "order"),
-        "tuple": ("id", "name", "target", "tupleID", "tupleRef", "order")}                    
+        "tuple": ("id", "name", "target", "tupleID", "tupleRef", "order")}
     }
 allowedNonIxAttrNS = {
     "footnote": "http://www.w3.org/XML/1998/namespace",
@@ -195,14 +196,14 @@ ixHierarchyConstraints = {
                    ("&child-choice", ('{http://www.xbrl.org/2003/linkbase}schemaRef', '{http://www.xbrl.org/2003/linkbase}linkbaseRef'))),
     "relationship": (("+parent",("resources",)),),
     "resources": (("+parent",("header",)),
-                  ("&child-choice", ('relationship', 
-                                     '{http://www.xbrl.org/2003/linkbase}roleRef', '{http://www.xbrl.org/2003/linkbase}arcroleRef', 
+                  ("&child-choice", ('relationship',
+                                     '{http://www.xbrl.org/2003/linkbase}roleRef', '{http://www.xbrl.org/2003/linkbase}arcroleRef',
                                      '{http://www.xbrl.org/2003/instance}context', '{http://www.xbrl.org/2003/instance}unit'))),
     "tuple": (("-child-choice",("continuation", "exclude", "denominator", "footnote", "numerator", "header", "hidden",
                                 "references", "relationship", "resources")),)
     }
 
-ixSect = { 
+ixSect = {
     XbrlConst.ixbrl: {
         "footnote": {"constraint": "ix10.5.1.1", "validation": "ix10.5.1.2"},
         "fraction": {"constraint": "ix10.6.1.1", "validation": "ix10.6.1.2"},
@@ -216,7 +217,7 @@ ixSect = {
         "resources": {"constraint": "ix10.12.1.1", "validation": "ix10.12.1.2"},
         "tuple": {"constraint": "ix10.13.1.1", "validation": "ix10.13.1.2"},
         "other": {"constraint": "ix10", "validation": "ix10"}},
-    XbrlConst.ixbrl11: {  
+    XbrlConst.ixbrl11: {
         "continuation": {"constraint": "ix11.4.1.1", "validation": "ix11.4.1.2"},
         "exclude": {"constraint": "ix11.5.1.1", "validation": "ix11.5.1.2"},
         "footnote": {"constraint": "ix11.6.1.1", "validation": "ix11.6.1.2"},
@@ -232,7 +233,7 @@ ixSect = {
         "resources": {"constraint": "ix11.14.1.1", "validation": "ix11.14.1.2"},
         "tuple": {"constraint": "ix11.15.1.1", "validation": "ix11.15.1.2"},
         "other": {"constraint": "ix11", "validation": "ix11"}}
-    }                    
+    }
 def ixMsgCode(codeName, elt=None, sect="constraint", ns=None, name=None):
     if elt is None:
         if ns is None: ns = XbrlConst.ixbrl11
@@ -248,7 +249,7 @@ def ixMsgCode(codeName, elt=None, sect="constraint", ns=None, name=None):
                 name = "resources"
     return "{}:{}".format(ixSect[ns].get(name,"other")[sect], codeName)
 
-def xhtmlValidate(modelXbrl, elt):
+def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
     from lxml.etree import DTD, XMLSyntaxError
     from arelle import FunctionIxt
     ixNsStartTags = ["{" + ns + "}" for ns in XbrlConst.ixbrlAll]
@@ -260,7 +261,7 @@ def xhtmlValidate(modelXbrl, elt):
     _ixNStag = "{{{}}}".format(_ixNS)
     _xhtmlDTD = XHTML_DTD[_ixNS]
     _customTransforms = modelXbrl.modelManager.customTransforms or {}
-    
+
     def checkAttribute(elt, isIxElt, attrTag, attrValue):
         ixEltAttrDefs = ixAttrDefined.get(elt.namespaceURI, EMPTYDICT).get(elt.localName, ())
         if attrTag.startswith("{"):
@@ -278,7 +279,7 @@ def xhtmlValidate(modelXbrl, elt):
                         _("Inline XBRL element %(element)s has qualified attribute %(name)s"),
                         modelObject=elt, element=str(elt.elementQname), name=attrTag)
                 if ns == XbrlConst.xbrli and elt.localName in {
-                    "fraction", "nonFraction", "nonNumeric", "references", "relationship", "tuple"}:                
+                    "fraction", "nonFraction", "nonNumeric", "references", "relationship", "tuple"}:
                     modelXbrl.error(ixMsgCode("qualifiedAttributeDisallowed", elt),
                         _("Inline XBRL element %(element)s has disallowed attribute %(name)s"),
                         modelObject=elt, element=str(elt.elementQname), name=attrTag)
@@ -301,7 +302,7 @@ def xhtmlValidate(modelXbrl, elt):
                     baseXsdType = _xsdType
                     facets = None
                 XmlValidate.validateValue(modelXbrl, elt, attrTag, baseXsdType, attrValue, facets=facets)
-                
+
                 if not (attrTag in ixEltAttrDefs or
                         (localName in ixEltAttrDefs and (not ns or ns in XbrlConst.ixbrlAll))):
                     raise KeyError
@@ -328,7 +329,7 @@ def xhtmlValidate(modelXbrl, elt):
                     baseXsdType = _xsdType
                     facets = None
                 XmlValidate.validateValue(modelXbrl, elt, attrTag, baseXsdType, attrValue, facets=facets)
-                
+
     def checkHierarchyConstraints(elt):
         constraints = ixHierarchyConstraints.get(elt.localName)
         if constraints:
@@ -347,13 +348,13 @@ def xhtmlValidate(modelXbrl, elt):
                 else:
                     namespaceFilter = elt.namespaceURI
                     namespacePrefix = elt.prefix
-                relations = {"ancestor": XmlUtil.ancestor, 
-                             "parent": XmlUtil.parent, 
-                             "child-choice": XmlUtil.children, 
+                relations = {"ancestor": XmlUtil.ancestor,
+                             "parent": XmlUtil.parent,
+                             "child-choice": XmlUtil.children,
                              "child-sequence": XmlUtil.children,
                              "child-or-text": XmlUtil.children,
                              "descendant": XmlUtil.descendants}[rel](
-                            elt, 
+                            elt,
                             namespaceFilter,
                             nameFilter)
                 if rel in ("ancestor", "parent"):
@@ -389,8 +390,8 @@ def xhtmlValidate(modelXbrl, elt):
                     issue = " may only have 0 or 1 but {0} present ".format(len(relations))
                 if reqt == '+' and len(relations) == 0:
                     issue = " must have at least 1 but none present "
-                disallowedChildText = bool(reqt == '&' and 
-                                           rel in ("child-sequence", "child-choice") 
+                disallowedChildText = bool(reqt == '&' and
+                                           rel in ("child-sequence", "child-choice")
                                            and elt.textValue.strip(" \t\r\n"))
                 if ((reqt == '+' and not relations) or
                     (reqt == '-' and relations) or
@@ -423,7 +424,7 @@ def xhtmlValidate(modelXbrl, elt):
                                 ", ".join("{}:{}".format(namespacePrefix, n) for n in names),
                                 issue,
                                 " and no child text (\"{}\")".format(elt.textValue.strip(" \t\r\n")[:32]) if disallowedChildText else "")
-                    modelXbrl.error(code, msg, 
+                    modelXbrl.error(code, msg,
                                     modelObject=[elt] + relations, requirement=reqt,
                                     messageCodes=("ix{ver.sect}:ancestorNode{Required|Disallowed}",
                                                   "ix{ver.sect}:childNodesOrTextRequired",
@@ -486,7 +487,7 @@ def xhtmlValidate(modelXbrl, elt):
                         modelObject=elt, fact=elt.qname, transform=fmt, name=fmt.localName)
                     elt.setInvalid()
 
-                    
+
     def ixToXhtml(fromRoot):
         toRoot = etree.Element(fromRoot.localName, nsmap={"ix": _ixNS})
         copyNonIxChildren(fromRoot, toRoot)
@@ -595,7 +596,7 @@ def xhtmlValidate(modelXbrl, elt):
                 _("%(element)s error %(error)s"),
                 modelObject=dtdErrElts or elt, element=elt.localName.title(), error=', '.join(dtdErrMsgs))
         if validateEntryText:
-            ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", valHtmlContentMsgPrefix, isInline=True) 
+            ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", valHtmlContentMsgPrefix, isInline=True)
     except XMLSyntaxError as err:
         modelXbrl.error("html:syntaxError",
             _("%(element)s error %(error)s"),
@@ -614,7 +615,7 @@ def resolveHtmlUri(elt, name, value):
                 value = UrlUtil.authority(base) + value
             elif value.startswith("#"): # add anchor to base document
                 value = base + value
-            else: 
+            else:
                 value = os.path.dirname(base) + "/" + value
     # canonicalize ../ and ./
     scheme, sep, pathpart = value.rpartition("://")

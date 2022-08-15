@@ -4,9 +4,11 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+from __future__ import annotations
 from collections import defaultdict
-from math import (log10, isnan, isinf, fabs, trunc, fmod, floor, pow)
+from math import (log10, isnan, isinf, fabs, floor, pow)
 import decimal
+from typing import TYPE_CHECKING
 try:
     from regex import compile as re_compile
 except ImportError:
@@ -14,7 +16,9 @@ except ImportError:
 import hashlib
 from arelle import Locale, XbrlConst, XbrlUtil
 from arelle.ModelObject import ObjectPropertyViewWrapper
-from arelle.XmlValidate import UNVALIDATED, VALID
+
+if TYPE_CHECKING:
+    from arelle.ModelInstanceObject import ModelInlineFact
 
 numberPattern = re_compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
 ZERO = decimal.Decimal(0)
@@ -27,7 +31,7 @@ floatINF = float("INF")
 
 def validate(modelXbrl, inferDecimals=False, deDuplicate=False):
     ValidateXbrlCalcs(modelXbrl, inferDecimals, deDuplicate).validate()
-    
+
 class ValidateXbrlCalcs:
     def __init__(self, modelXbrl, inferDecimals=False, deDuplicate=False):
         self.modelXbrl = modelXbrl
@@ -47,14 +51,14 @@ class ValidateXbrlCalcs:
         self.conceptsInEssencesAlias = set()
         self.requiresElementFacts = defaultdict(list)
         self.conceptsInRequiresElement = set()
-        
+
     def validate(self):
         if not self.modelXbrl.contexts and not self.modelXbrl.facts:
             return # skip if no contexts or facts
-        
+
         if not self.inferDecimals: # infering precision is now contrary to XBRL REC section 5.2.5.2
             self.modelXbrl.info("xbrl.5.2.5.2:inferringPrecision","Validating calculations inferring precision.")
-            
+
         # identify equal contexts
         self.modelXbrl.profileActivity()
         uniqueContextHashes = {}
@@ -79,7 +83,7 @@ class ValidateXbrlCalcs:
                 uniqueUnitHashes[h] = unit
         del uniqueUnitHashes
         self.modelXbrl.profileActivity("... identify equal units", minTimeToShow=1.0)
-                    
+
         # identify concepts participating in essence-alias relationships
         # identify calcluation & essence-alias base sets (by key)
         for baseSetKey in self.modelXbrl.baseSets.keys():
@@ -96,7 +100,7 @@ class ValidateXbrlCalcs:
 
         self.bindFacts(self.modelXbrl.facts,[self.modelXbrl.modelDocument.xmlRootElement])
         self.modelXbrl.profileActivity("... bind facts", minTimeToShow=1.0)
-        
+
         # identify calcluation & essence-alias base sets (by key)
         for baseSetKey in self.modelXbrl.baseSets.keys():
             arcrole, ELR, linkqname, arcqname = baseSetKey
@@ -151,16 +155,16 @@ class ValidateXbrlCalcs:
                                                 unreportedContribingItemQnames = [] # list the missing/unreported contributors in relationship order
                                                 for modelRel in modelRels:
                                                     itemConcept = modelRel.toModelObject
-                                                    if (itemConcept is not None and 
+                                                    if (itemConcept is not None and
                                                         (itemConcept, ancestor, contextHash, unit) not in self.itemFacts):
                                                         unreportedContribingItemQnames.append(str(itemConcept.qname))
                                                 self.modelXbrl.log('INCONSISTENCY', "xbrl.5.2.5.2:calcInconsistency",
                                                     _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreportedContributingItems %(unreportedContributors)s"),
                                                     modelObject=wrappedSummationAndItems(fact, roundedSum, _boundSummationItems),
-                                                    concept=sumConcept.qname, linkrole=ELR, 
+                                                    concept=sumConcept.qname, linkrole=ELR,
                                                     linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR),
                                                     reportedSum=Locale.format_decimal(self.modelXbrl.locale, roundedSum, 1, max(d,0)),
-                                                    computedSum=Locale.format_decimal(self.modelXbrl.locale, roundedItemsSum, 1, max(d,0)), 
+                                                    computedSum=Locale.format_decimal(self.modelXbrl.locale, roundedItemsSum, 1, max(d,0)),
                                                     contextID=fact.context.id, unitID=fact.unit.id,
                                                     unreportedContributors=", ".join(unreportedContribingItemQnames) or "none")
                                                 del unreportedContribingItemQnames[:]
@@ -183,16 +187,16 @@ class ValidateXbrlCalcs:
                                             if essenceUnit != aliasUnit:
                                                 self.modelXbrl.log('INCONSISTENCY', "xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
                                                     _("Essence-Alias inconsistent units from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s"),
-                                                    modelObject=(modelRel, eF, aF), 
-                                                    essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname, 
-                                                    linkrole=ELR, 
+                                                    modelObject=(modelRel, eF, aF),
+                                                    essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname,
+                                                    linkrole=ELR,
                                                     linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR),
                                                     contextID=eF.context.id)
                                             if not XbrlUtil.vEqual(eF, aF):
                                                 self.modelXbrl.log('INCONSISTENCY', "xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
                                                     _("Essence-Alias inconsistent value from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s"),
-                                                    modelObject=(modelRel, eF, aF), 
-                                                    essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname, 
+                                                    modelObject=(modelRel, eF, aF),
+                                                    essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname,
                                                     linkrole=ELR,
                                                     linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR),
                                                     contextID=eF.context.id)
@@ -204,13 +208,13 @@ class ValidateXbrlCalcs:
                                not requiredConcept in self.requiresElementFacts:
                                     self.modelXbrl.log('INCONSISTENCY', "xbrl.5.2.6.2.4:requiresElementInconsistency",
                                         _("Requires-Element %(requiringConcept)s missing required fact for %(requiredConcept)s in link role %(linkrole)s"),
-                                        modelObject=sourceConcept, 
-                                        requiringConcept=sourceConcept.qname, requiredConcept=requiredConcept.qname, 
+                                        modelObject=sourceConcept,
+                                        requiringConcept=sourceConcept.qname, requiredConcept=requiredConcept.qname,
                                         linkrole=ELR,
                                         linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR))
         self.modelXbrl.profileActivity("... find inconsistencies", minTimeToShow=1.0)
         self.modelXbrl.profileActivity() # reset
-    
+
     def bindFacts(self, facts, ancestors):
         for f in facts:
             concept = f.concept
@@ -246,7 +250,7 @@ class ValidateXbrlCalcs:
                                 hasAccuracy = (p != 0)
                                 fIsMorePrecise = (p > pDup)
                             if (hasAccuracy and
-                                roundValue(f.value,precision=pMin,decimals=dMin) == 
+                                roundValue(f.value,precision=pMin,decimals=dMin) ==
                                 roundValue(fDup.value,precision=pMin,decimals=dMin)):
                                 # consistent duplicate, f more precise than fDup, replace fDup with f
                                 if fIsMorePrecise: # works for inf and integer mixtures
@@ -354,12 +358,12 @@ def roundFact(fact, inferDecimals=False, vDecimal=None):
         else: # no information available to do rounding (other errors xbrl.4.6.3 error)
             vRounded = vDecimal
     return vRounded
-    
+
 def decimalRound(x, d, rounding):
     if x.is_normal() and -28 <= d <= 28: # prevent exception with excessive quantization digits
         if d >= 0:
             return x.quantize(ONE.scaleb(-d),rounding)
-        else: # quantize only seems to work on fractional part, convert integer to fraction at scaled point    
+        else: # quantize only seems to work on fractional part, convert integer to fraction at scaled point
             return x.scaleb(d).quantize(ONE,rounding) * (TEN ** decimal.Decimal(-d)) # multiply by power of 10 to prevent scaleb scientific notatino
     return x # infinite, NaN, zero, or excessive decimal digits ( > 28 )
 
@@ -392,8 +396,8 @@ def inferredPrecision(fact):
         return 0
     else:
         return p
-    
-def inferredDecimals(fact):
+
+def inferredDecimals(fact: ModelInlineFact) -> float | int:
     vStr = fact.value
     dStr = fact.decimals
     pStr = fact.precision
@@ -415,7 +419,7 @@ def inferredDecimals(fact):
     except ValueError:
         pass
     return floatNaN
-    
+
 def roundValue(value, precision=None, decimals=None, scale=None):
     try:
         vDecimal = decimal.Decimal(value)
@@ -467,7 +471,7 @@ def roundValue(value, precision=None, decimals=None, scale=None):
         vRounded = vDecimal
     return vRounded
 
-def rangeValue(value, decimals=None):
+def rangeValue(value, decimals=None) -> tuple[decimal.Decimal, decimal.Decimal]:
     try:
         vDecimal = decimal.Decimal(value)
     except (decimal.InvalidOperation, ValueError): # would have been a schema error reported earlier
@@ -504,7 +508,7 @@ def insignificantDigits(value, precision=None, decimals=None, scale=None):
                     precision = int(precision)
                 except ValueError: # would be a schema error
                     return None
-        if isinf(precision) or precision == 0 or isnan(precision) or vFloat == 0: 
+        if isinf(precision) or precision == 0 or isnan(precision) or vFloat == 0:
             return None
         else:
             vAbs = fabs(vFloat)
@@ -566,4 +570,3 @@ def wrappedSummationAndItems(fact, roundedSum, boundSummationItems):
                                         ("itemValuesHash", itemValuesHash),
                                         ("roundedSum", roundedSum) ))] + \
             boundSummationItems
-                    

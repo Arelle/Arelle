@@ -18,10 +18,10 @@ from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
 from typing import Any, Union, cast
-from collections.abc import Callable
 from arelle.ModelDocument import ModelDocument
+from .common import TypeGetText
 
-_: Callable[[str], str]  # Handle gettext
+_: TypeGetText  # Handle gettext
 
 # check if a modelDocument URI is an extension URI (document URI)
 # also works on a uri passed in as well as modelObject
