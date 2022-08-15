@@ -76,7 +76,7 @@ def checkUpdateUrl(cntlr, attachmentFileName):
 
 def backgroundDownload(cntlr, url):
     filepathtmp = cntlr.webCache.getfilename(cntlr.updateURL, reload=True)
-    cntlr.modelManager.showStatus(_("Download ompleted"), 5000)
+    cntlr.modelManager.showStatus(_("Download completed"), 5000)
     filepath = os.path.join(os.path.dirname(filepathtmp), os.path.basename(url))
     os.rename(filepathtmp, filepath)
     cntlr.uiThreadQueue.put((install, [cntlr, filepath]))
