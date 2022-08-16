@@ -51,7 +51,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             continue # comment or other non-parsed element
         eltTag = elt.tag.lower()
         for attrTag, attrValue in elt.items():
-            if ((attrTag == "href" and eltTag == "a") or 
+            if ((attrTag == "href" and eltTag == "a") or
                 (attrTag == "src" and eltTag == "img")):
                 if "javascript:" in attrValue:
                     modelXbrl.error("EFM.5.02.02.10.activeContent",
@@ -107,12 +107,12 @@ def validateXbrlFinally(val, *args, **kwargs):
             modelXbrl.error("EFM.5.02.02.03.bodyTags",
                 _("Element is not in a body: <%(element)s>"),
                 modelObject=elt, element=eltTag)
-    
+
 def filingStart(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None, *args, **kwargs):
     modelManager = cntlr.modelManager
     if modelManager.validateDisclosureSystem and (getattr(modelManager.disclosureSystem, "EFMHTMplugin", False)):
         pass
-        
+
 def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args, **kwargs):
     # cntlr.addToLog("TRACE EFM xbrl loaded")
     modelManager = cntlr.modelManager
@@ -125,7 +125,7 @@ def xbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
 def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None, *args, **kwargs):
     # cntlr.addToLog("TRACE EFM xbrl validate")
     modelManager = cntlr.modelManager
-    
+
 def filingEnd(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None, *args, **kwargs):
     #cntlr.addToLog("TRACE EFM filing end")
     modelManager = cntlr.modelManager
@@ -154,7 +154,7 @@ def htmlLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     cntlr.showStatus(_("Loading HTML file: {0}").format(os.path.basename(filepath)))
     # parse html
     try:
-        if (modelXbrl.modelManager.validateDisclosureSystem and 
+        if (modelXbrl.modelManager.validateDisclosureSystem and
             modelXbrl.modelManager.disclosureSystem.validateFileText):
             file, _encoding = ValidateFilingText.checkfile(modelXbrl,filepath)
         else:
@@ -162,24 +162,24 @@ def htmlLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
         _parser = HTMLParser()
         htmlTree = parse(file, _parser, base_url=filepath)
         for error in _parser.error_log:
-            if not (error.type_name == "HTML_UNKNOWN_TAG" and 
-                    error.message.startswith("Tag ") and 
+            if not (error.type_name == "HTML_UNKNOWN_TAG" and
+                    error.message.startswith("Tag ") and
                     error.message.lower()[4:].partition(" ")[0] in edgarAdditionalTags):
                 modelXbrl.error("html:syntax",
                         _("%(error)s, %(fileName)s, line %(line)s, column %(column)s"),
-                        fileName=os.path.basename(mappedUri), 
+                        fileName=os.path.basename(mappedUri),
                         error=error.message, line=error.line, column=error.column)
         file.close()
     except Exception as err:
         modelXbrl.error(type(err).__name__,
                 _("Unrecoverable error: %(error)s, %(fileName)s"),
-                fileName=os.path.basename(mappedUri), 
+                fileName=os.path.basename(mappedUri),
                 error=str(err), exc_info=True)
         return None
     if modelXbrl: # pull loader implementation
         modelXbrl.blockDpmDBrecursion = True
         modelXbrl.modelDocument = doc = createModelDocument(
-              modelXbrl, 
+              modelXbrl,
               Type.HTML,
               filepath,
               isEntry=True,
@@ -187,20 +187,20 @@ def htmlLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
               base=filepath)
     else: # API implementation
         modelXbrl = ModelXbrl.create(
-            cntlr.modelManager, 
-            Type.HTML, 
-            filepath, 
-            isEntry=True, 
+            cntlr.modelManager,
+            Type.HTML,
+            filepath,
+            isEntry=True,
             base=filepath)
         doc = modelXbrl.modelDocument
     doc.xmlRootElement = htmlTree.getroot()
-    
+
     if doc is None:
         return None # not an HTML file
     modelXbrl.loadedFromHTML = True
     return doc
 
-        
+
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM non-XBRL HTM',

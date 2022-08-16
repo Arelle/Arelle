@@ -14,10 +14,10 @@ cpicModules = {
     "full_ifrs": "full-ifrs",
     "ifrs_for_smes": "ifrs-smes"
     }
-          
-''' these validations now done by CIPC formulas                  
+
+''' these validations now done by CIPC formulas
 mandatoryElements = {
-    "ca_fas": { 
+    "ca_fas": {
         "mandatory": {
             #ec_01: "ifrs-full:DateOfEndOfReportingPeriod2013",
             #ec_01: "cipc-ca:SubmissionDate",
@@ -35,7 +35,7 @@ mandatoryElements = {
         "footnoteIfNil": {
             },
         },
-    "full-ifrs": { 
+    "full-ifrs": {
         "mandatory": {
             #ea_01: "ifrs-full:DateOfEndOfReportingPeriod2013",
             #ec_01: "cipc-ca:SubmissionDate",
@@ -102,7 +102,7 @@ mandatoryElements = {
             "ifrs-full:Liabilities"
                     },
         },
-    "ifrs-smes": { 
+    "ifrs-smes": {
         "mandatory": {
             #ec_01: "ifrs-smes:DateOfEndOfReportingPeriod2013",
             #ec_01: "cipc-ca:SubmissionDate",
@@ -169,11 +169,11 @@ mandatoryElements = {
             "ifrs-smes:Liabilities"
             },
         },
-    None: {  # allow logic to work with unspecified or ambiguous reporting module 
+    None: {  # allow logic to work with unspecified or ambiguous reporting module
         "mandatory": {
             },
         "footnoteIfNil": {
             },
         }
      }
-'''            
+'''

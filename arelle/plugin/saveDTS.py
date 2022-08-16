@@ -9,7 +9,7 @@ def package(dts):
     if dts.fileSource.isArchive:
         return
     import os
-    from zipfile import ZipFile, ZIP_STORED, ZIP_DEFLATED 
+    from zipfile import ZipFile, ZIP_STORED, ZIP_DEFLATED
     from arelle.UrlUtil import isHttpUrl
     try:
         import zlib
@@ -35,8 +35,8 @@ def package(dts):
 
 def saveDtsMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Save DTS in a package", 
-                     underline=0, 
+    menu.add_command(label="Save DTS in a package",
+                     underline=0,
                      command=lambda: saveDtsMenuCommand(cntlr) )
 
 def saveDtsMenuCommand(cntlr):
@@ -48,9 +48,9 @@ def saveDtsMenuCommand(cntlr):
 
 def saveDtsCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
-    parser.add_option("--package-dts", 
-                      action="store_true", 
-                      dest="packageDTS", 
+    parser.add_option("--package-dts",
+                      action="store_true",
+                      dest="packageDTS",
                       help=_("Package the DTS into a zip file"))
 
 def saveDtsCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):

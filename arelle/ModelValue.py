@@ -83,7 +83,7 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
         if not namespaceURI and prefix == 'xml':
             namespaceURI = "http://www.w3.org/XML/1998/namespace"
     if not namespaceURI:
-        if prefix: 
+        if prefix:
             if prefixException: raise prefixException
             return None  # error, prefix not found
         namespaceURI = None # cancel namespace if it is a zero length string
@@ -159,7 +159,7 @@ class QName:
         return '{0}#{1}'.format(self.namespaceURI or "", self.localName)
 
     def __repr__(self):
-        return self.__str__() 
+        return self.__str__()
 
     def __str__(self):
         if self.prefix:
@@ -183,7 +183,7 @@ class QName:
 
 
 from arelle.ModelObject import ModelObject
-    
+
 def anyURI(value):
     return AnyURI(value)
 
@@ -207,7 +207,7 @@ def tzinfo(tz):
         return datetime.timezone(datetime.timedelta(0))
     else:
         return datetime.timezone(datetime.timedelta(hours=int(tz[0:3]), minutes=int(tz[0]+tz[4:6])))
-    
+
 def tzinfoStr(dt):
     tz = str(dt.tzinfo or "")
     if tz.startswith("UTC"):
@@ -224,14 +224,14 @@ def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
     elif isinstance(value, DateTime) and not addOneDay and (value.dateOnly == (type == DATE)):
         return value    # no change needed for cast or conversion
     elif isinstance(value, datetime.datetime):
-        if type == DATE: 
+        if type == DATE:
             dateOnly = True
-        elif type == DATETIME: 
+        elif type == DATETIME:
             dateOnly = False
-        else: 
+        else:
             dateOnly = isinstance(value, DateTime) and value.dateOnly
             if addOneDay and not dateOnly:
-                addOneDay = False 
+                addOneDay = False
         return DateTime(value.year, value.month, value.day, value.hour, value.minute, value.second, value.microsecond, tzinfo=value.tzinfo, dateOnly=dateOnly, addOneDay=addOneDay)
     elif isinstance(value, datetime.date):
         return DateTime(value.year, value.month, value.day,dateOnly=True,addOneDay=addOneDay)
@@ -245,7 +245,7 @@ def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
             raise castException("lexical pattern mismatch")
         return None
     if 6 <= match.lastindex <= 8:
-        if type == DATE: 
+        if type == DATE:
             if castException:
                 raise castException("date-only object has too many fields or contains time")
             return None
@@ -255,11 +255,11 @@ def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
             ms = int(fracSec[1:7].ljust(6,'0'))
         result = DateTime(int(match.group(1)),int(match.group(2)),int(match.group(3)),int(match.group(4)),int(match.group(5)),int(match.group(6)),ms,tzinfo(match.group(8)), dateOnly=False)
     else:
-        if type == DATE or type == DATEUNION: 
+        if type == DATE or type == DATEUNION:
             dateOnly = True
-        elif type == DATETIME: 
+        elif type == DATETIME:
             dateOnly = False
-        else: 
+        else:
             dateOnly = False
         result = DateTime(int(match.group(9)),int(match.group(10)),int(match.group(11)),tzinfo=tzinfo(match.group(12)),dateOnly=dateOnly,addOneDay=addOneDay)
     return result
@@ -283,7 +283,7 @@ class DateTime(datetime.datetime):
             if min != 0 or sec != 0 or microsec != 0: raise ValueError("hour 24 must have 0 mins and secs.")
             hr = 0
             d += 1
-        if addOneDay: 
+        if addOneDay:
             d += 1
         if d > lastDay: d -= lastDay; m += 1
         if m > 12: m = 1; y += 1
@@ -325,7 +325,7 @@ class DateTime(datetime.datetime):
             else:
                 if isinstance(other, Time): other = dayTimeDuration(other)
                 return DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo, self.dateOnly)
-    
+
 def dateUnionEqual(dateUnion1, dateUnion2, instantEndDate=False):
     if isinstance(dateUnion1,DateTime):
         if instantEndDate and dateUnion1.dateOnly:
@@ -338,7 +338,7 @@ def dateUnionEqual(dateUnion1, dateUnion2, instantEndDate=False):
     elif isinstance(dateUnion2,datetime.date):
         dateUnion2 = dateTime(dateUnion2, addOneDay=instantEndDate)
     return dateUnion1 == dateUnion2
-        
+
 def dateunionDate(datetimeValue, subtractOneDay=False):
     isDate = (hasattr(datetimeValue,'dateOnly') and datetimeValue.dateOnly) or not hasattr(datetimeValue, 'hour')
     d = datetimeValue
@@ -351,17 +351,17 @@ def yearMonthDuration(value):
     if hasDay or hasHr or hasMin or hasSec: raise ValueError
     sign = -1 if minus else 1
     return YearMonthDuration(sign * int(yrs if yrs else 0), sign * int(mos if mos else 0))
-    
+
 class YearMonthDuration():
     def __init__(self, years, months):
         self.years = years
         self.months = months
 
     def __repr__(self):
-        return self.__str__() 
+        return self.__str__()
     def __str__(self):
         return "P{0}Y{1}M".format(self.years, self.months)
-    
+
 def dayTimeDuration(value):
     if isinstance(value,Time):
         return DayTimeDuration(1 if value.hour24 else 0, value.hour, value.minute, value.second)
@@ -371,7 +371,7 @@ def dayTimeDuration(value):
     if hasYr or hasMo: raise ValueError
     sign = -1 if minus else 1
     return DayTimeDuration(sign * int(days if days else 0), sign * int(hrs if hrs else 0), sign * int(mins if mins else 0), sign * int(secs if secs else 0))
-    
+
 class DayTimeDuration(datetime.timedelta):
     def __new__(cls, days, hours, minutes, seconds):
         dyTm = datetime.timedelta.__new__(cls,days,hours,minutes,seconds)
@@ -401,11 +401,11 @@ class DayTimeDuration(datetime.timedelta):
         seconds -= minutes * 60
         return (days, hours, minutes, seconds)
     def __repr__(self):
-        return self.__str__() 
+        return self.__str__()
     def __str__(self):
         x = self.dayHrsMinsSecs()
         return "P{0}DT{1}H{2}M{3}S".format(x[0], x[1], x[2], x[3])
-        
+
 def yearMonthDayTimeDuration(value, value2=None):
     if isinstance(value, datetime.datetime) and isinstance(value, datetime.datetime):
         years = value2.year - value.year
@@ -435,7 +435,7 @@ def yearMonthDayTimeDuration(value, value2=None):
     sign = -1 if minus else 1
     # TBD implement
     return YearMonthDayTimeDuration(sign * int(yrs if yrs else 0), sign * int(mos if mos else 0))
-    
+
 class YearMonthDayTimeDuration():
     def __init__(self, years, months, days, hours, minutes, seconds):
         self.years = years
@@ -446,7 +446,7 @@ class YearMonthDayTimeDuration():
         self.seconds = seconds
 
     def __repr__(self):
-        return self.__str__() 
+        return self.__str__()
     def __str__(self):
         per = []
         if self.years: per.append("{}Y".format(self.years))
@@ -459,7 +459,7 @@ class YearMonthDayTimeDuration():
         if not per:
             return "PT0S"
         return "P" + ''.join(per)
-    
+
 def time(value, castException=None):
     if value == "MinTime":
         return Time(time.min)
@@ -491,13 +491,13 @@ class Time(datetime.time):
         time = datetime.time.__new__(cls, hour, minute, second, microsecond, tzinfo)
         time.hour24 = hour24
         return time
-    
+
 class gYearMonth():
     def __init__(self, year, month):
         self.year = int(year) # may be negative
         self.month = int(month)
     def __repr__(self):
-        return self.__str__() 
+        return self.__str__()
     def __str__(self):
         return "{0:0{2}}-{1:02}".format(self.year, self.month, 5 if self.year < 0 else 4) # may be negative
     def __eq__(self,other):
@@ -514,14 +514,14 @@ class gYearMonth():
         return type(other) == gYearMonth and ((self.year >= other.year) or (self.year == other.year and self.month >= other.month))
     def __bool__(self):
         return self.year != 0 or self.month != 0
-    
-    
+
+
 class gMonthDay():
     def __init__(self, month, day):
         self.month = int(month)
         self.day = int(day)
     def __repr__(self):
-        return self.__str__() 
+        return self.__str__()
     def __str__(self):
         return "--{0:02}-{1:02}".format(self.month, self.day)
     def __eq__(self,other):
@@ -538,12 +538,12 @@ class gMonthDay():
         return type(other) == gMonthDay and ((self.month >= other.month) or (self.month == other.month and self.day >= other.day))
     def __bool__(self):
         return self.month != 0 or self.day != 0
-    
+
 class gYear():
     def __init__(self, year):
         self.year = int(year) # may be negative
     def __repr__(self):
-        return self.__str__() 
+        return self.__str__()
     def __str__(self):
         return "{0:0{1}}".format(self.year, 5 if self.year < 0 else 4) # may be negative
     def __eq__(self,other):
@@ -560,12 +560,12 @@ class gYear():
         return type(other) == gYear and self.year >= other.year
     def __bool__(self):
         return self.year != 0 != 0
-    
+
 class gMonth():
     def __init__(self, month):
         self.month = int(month)
     def __repr__(self):
-        return self.__str__() 
+        return self.__str__()
     def __str__(self):
         return "--{0:02}".format(self.month)
     def __eq__(self,other):
@@ -582,12 +582,12 @@ class gMonth():
         return type(other) == gMonth and self.month >= other.month
     def __bool__(self):
         return self.month != 0
-    
+
 class gDay():
     def __init__(self, day):
         self.day = int(day)
     def __repr__(self):
-        return self.__str__() 
+        return self.__str__()
     def __str__(self):
         return "---{0:02}".format(self.day)
     def __eq__(self,other):
@@ -604,7 +604,7 @@ class gDay():
         return type(other) == gDay and self.day >= other.day
     def __bool__(self):
         return self.day != 0
-    
+
 isoDurationPattern = re.compile(
     r"^(?P<sign>[+-])?"
     r"P(?!\b)"
@@ -617,7 +617,7 @@ isoDurationPattern = re.compile(
     r"(?P<seconds>[0-9]+([,.][0-9]+)?S)?)?$")
 
 def isoDuration(value):
-    """(str) -- Text of contained (inner) text nodes except for any whose localName 
+    """(str) -- Text of contained (inner) text nodes except for any whose localName
         starts with URI, for label and reference parts displaying purposes.
         (Footnotes, which return serialized html content of footnote.)
     """
@@ -644,11 +644,11 @@ def isoDuration(value):
                        weeks=groups["weeks"],
                        negate=(groups["sign"]=='-'),
                        sourceValue=value) # preserve source lexical value for str() value
-    
+
 DAYSPERMONTH = Decimal("30.4375") # see: https://www.ibm.com/support/knowledgecenter/SSLVMB_20.0.0/com.ibm.spss.statistics.help/alg_adp_date-time_handling.htm
 
 """
-    XPath 2.0 does not define arithmetic operations on xs:duration 
+    XPath 2.0 does not define arithmetic operations on xs:duration
     for arithmetic one must use xs:yearMonthDuration or xs:dayTimeDuration instead
 
     Arelle provides value comparisons for xs:duration even though they are not "totally ordered" per XPath 1.0
@@ -657,10 +657,10 @@ DAYSPERMONTH = Decimal("30.4375") # see: https://www.ibm.com/support/knowledgece
 class IsoDuration(isodate.Duration):
     """
     .. class:: IsoDuration(modelDocument)
-    
+
     Implements custom class for xs:duration to work for typed dimensions
     Uses DAYSPERMONTH approximation of ordering days/months (only for typed dimensions, not XPath).
-    
+
     For formula purposes this object is not used because xpath 1.0 requires use of
     xs:yearMonthDuration or xs:dayTimeDuration which are totally ordered instead.
     """
@@ -713,11 +713,11 @@ class IsoDuration(isodate.Duration):
         return super(IsoDuration, self).__str__() # textual words form of duration
     def __str__(self):
         return self.sourceValue
-    
+
 class InvalidValue(str):
     def __new__(cls, value):
         return str.__new__(cls, value)
 
 INVALIDixVALUE = InvalidValue("(ixTransformValueError)")
 
-    
+

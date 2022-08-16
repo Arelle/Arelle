@@ -31,7 +31,7 @@ def validateXbrlFinally(val, *args, **kwargs):
     _statusMsg = _("validating {0} filing rules").format(val.disclosureSystem.name)
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
-    
+
     validateFiling(val, modelXbrl, isGFM=True)
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
@@ -42,8 +42,8 @@ def validateXbrlDtsDocument(val, modelDocument, isFilingDocument, *args, **kwarg
         return
 
     checkDTSdocument(val, modelDocument, isFilingDocument)
-                
-                
+
+
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate GFM',

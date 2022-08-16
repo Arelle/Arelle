@@ -25,16 +25,16 @@ def viewVersReport(modelXbrl, tabWin):
     view.menuAddClipboard()
     view.menuAddLangs()
     view.menuAddLabelRoles(includeConceptName=True,menulabel=_("Concept Label Role"))
-                
+
     # sort URIs by definition
     view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
     view.treeView.bind("<Enter>", view.treeviewEnter, '+')
     view.treeView.bind("<Leave>", view.treeviewLeave, '+')
-    
+
 class ViewVersReport(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin):
         super(ViewVersReport, self).__init__(modelXbrl, tabWin, "Versioning Report", True)
-        
+
     def view(self):
         self.blockSelectEvent = 1
         self.blockViewModelObject = 0
@@ -58,7 +58,7 @@ class ViewVersReport(ViewWinTree.ViewTree):
             self.treeView.insert(nsRenamingsNode, "end", nsRenaming.objectId('ns'),
                         text=nsRenaming.viewText(),
                         tags=("even" if i & 1 else "odd",))
-        
+
         roleChangesNode = self.treeView.insert("", "end", "node_{0}".format(self.id),
                     text=_("role changes"),
                     tags=("odd",))
@@ -70,7 +70,7 @@ class ViewVersReport(ViewWinTree.ViewTree):
             self.treeView.insert(roleChangesNode, "end", roleChange.objectId('role'),
                         text=roleChange.viewText(),
                         tags=("odd" if i & 1 else "even",))
-        
+
         assignmentsNode = self.treeView.insert("", "end", "node_{}".format(self.id),
                     text=_("assignments"),
                     tags=("even",))
@@ -79,15 +79,15 @@ class ViewVersReport(ViewWinTree.ViewTree):
         srtAssignmentIds.sort()
         for i, assignmentId in enumerate(srtAssignmentIds):
             assignment = versReport.assignments[assignmentId]
-            text = "{0}: {1} {2}".format(assignmentId, 
-                                         assignment.genLabel(lang=self.lang) or "", 
+            text = "{0}: {1} {2}".format(assignmentId,
+                                         assignment.genLabel(lang=self.lang) or "",
                                          assignment.categoryQName)
             label = assignment.genLabel(lang=self.lang)
             text = (assignmentId + ": " + label) if label else assignmentId
-            self.treeView.insert(assignmentsNode, "end", assignment.objectId(), 
+            self.treeView.insert(assignmentsNode, "end", assignment.objectId(),
                                  text=text,
                                  tags=("even" if i & 1 else "odd",))
-        
+
         actionsNode = self.treeView.insert("", "end", "node_{0}".format(self.id),
                     text=_("actions"),
                     tags=("odd",))
@@ -104,19 +104,19 @@ class ViewVersReport(ViewWinTree.ViewTree):
                 label = event.genLabel(lang=self.lang)
                 text = (event.localName + ": " + label) if label else event.localName
                 if isinstance(event, ModelRelationshipSetChange):
-                    eventNode = self.treeView.insert(actionNode, "end", event.objectId(), text=text, 
+                    eventNode = self.treeView.insert(actionNode, "end", event.objectId(), text=text,
                                                      tags=("even" if i+j & 1 else "odd",))
                     k = i + j
                     for relationshipSet, name in ((event.fromRelationshipSet, "fromRelationshipSet"),
                                                   (event.toRelationshipSet, "toRelationshipSet")):
                         if relationshipSet is not None:
-                            relSetNode = self.treeView.insert(eventNode, "end", relationshipSet.objectId(), 
-                                                              text=relationshipSet.localName, 
+                            relSetNode = self.treeView.insert(eventNode, "end", relationshipSet.objectId(),
+                                                              text=relationshipSet.localName,
                                                               tags=("odd" if k & 1 else "even",))
                             k += 1
                             l = k
                             for relationship in relationshipSet.relationships:
-                                self.treeView.insert(relSetNode, "end", relationship.objectId(), text=relationship.localName, 
+                                self.treeView.insert(relSetNode, "end", relationship.objectId(), text=relationship.localName,
                                                      tags=("odd" if l & 1 else "even",))
                                 l += 1
                 elif isinstance(event, ModelInstanceAspectsChange):
@@ -126,24 +126,24 @@ class ViewVersReport(ViewWinTree.ViewTree):
                                                   (event.toAspects, "toAspects")):
                         if aspects is not None:
                             k += 1
-                            aspectsNode = self.treeView.insert(eventNode, "end", aspects.objectId(), text=aspects.localName, 
+                            aspectsNode = self.treeView.insert(eventNode, "end", aspects.objectId(), text=aspects.localName,
                                                                tags=("even" if k & 1 else "odd",))
                             l = k
                             for aspect in aspects.aspects:
                                 l += 1
-                                aspectNode = self.treeView.insert(aspectsNode, "end", aspect.objectId(), 
-                                                                  text=aspect.localName + " " + aspect.elementAttributesStr, 
+                                aspectNode = self.treeView.insert(aspectsNode, "end", aspect.objectId(),
+                                                                  text=aspect.localName + " " + aspect.elementAttributesStr,
                                                                   tags=("even" if l & 1 else "odd",))
                                 m = l
                                 for member in getattr(aspect, "relatedConcepts", getattr(aspect, "relatedPeriods", getattr(aspect, "relatedMeasures", []))):
-                                    self.treeView.insert(aspectNode, "end", member.objectId(), 
-                                                         text=member.localName + " " + member.elementAttributesStr, 
+                                    self.treeView.insert(aspectNode, "end", member.objectId(),
+                                                         text=member.localName + " " + member.elementAttributesStr,
                                                          tags=("even" if m & 1 else "odd",))
                 else:
-                    self.treeView.insert(actionNode, "end", event.objectId(), 
-                                         text=text + " " + event.viewText(self.labelrole, self.lang), 
+                    self.treeView.insert(actionNode, "end", event.objectId(),
+                                         text=text + " " + event.viewText(self.labelrole, self.lang),
                                          tags=("even" if i+j & 1 else "odd",))
-            
+
     def treeviewEnter(self, *args):
         self.blockSelectEvent = 0
 
@@ -155,7 +155,7 @@ class ViewVersReport(ViewWinTree.ViewTree):
             self.blockViewModelObject += 1
             self.modelXbrl.viewModelObject(self.treeView.selection()[0])
             self.blockViewModelObject -= 1
-        
+
     def viewModelObject(self, modelObject):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1

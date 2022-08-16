@@ -46,7 +46,7 @@ class ViewGrid(ViewPane):
                     pass
             self.setToolTip(newValue, tvColId)
         '''
-                
+
     def setToolTip(self, text, colId="#0"):
         self.toolTip._hide()
         if isinstance(text,str) and len(text) > 0:

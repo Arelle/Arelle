@@ -10,12 +10,12 @@ def generateInstanceInfoset(dts, instanceInfosetFile):
         return
     import os, io
     from arelle import XmlUtil, XbrlConst
-    from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals            
-    
+    from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals
+
     XmlUtil.setXmlns(dts.modelDocument, "ptv", "http://www.xbrl.org/2003/ptv")
-    
+
     numFacts = 0
-    
+
     for fact in dts.facts:
         try:
             if fact.concept.periodType:
@@ -34,7 +34,7 @@ def generateInstanceInfoset(dts, instanceInfosetFile):
     fh = open(instanceInfosetFile, "w", encoding="utf-8")
     XmlUtil.writexml(fh, dts.modelDocument.xmlDocument, encoding="utf-8")
     fh.close()
-    
+
     dts.info("info:saveInstanceInfoset",
              _("Instance infoset of %(entryFile)s has %(numberOfFacts)s facts in infoset file %(infosetOutputFile)s."),
              modelObject=dts,
@@ -42,8 +42,8 @@ def generateInstanceInfoset(dts, instanceInfosetFile):
 
 def saveInstanceInfosetMenuEntender(cntlr, menu):
     # Extend menu with an item for the save infoset plugin
-    menu.add_command(label="Save infoset", 
-                     underline=0, 
+    menu.add_command(label="Save infoset",
+                     underline=0,
                      command=lambda: saveInstanceInfosetMenuCommand(cntlr) )
 
 def saveInstanceInfosetMenuCommand(cntlr):
@@ -65,7 +65,7 @@ def saveInstanceInfosetMenuCommand(cntlr):
     cntlr.config["infosetFileDir"] = os.path.dirname(instanceInfosetFile)
     cntlr.saveConfig()
 
-    try: 
+    try:
         generateInstanceInfoset(cntlr.modelManager.modelXbrl, instanceInfosetFile)
     except Exception as ex:
         dts = cntlr.modelManager.modelXbrl
@@ -76,9 +76,9 @@ def saveInstanceInfosetMenuCommand(cntlr):
 
 def saveInstanceInfosetCommandLineOptionExtender(parser):
     # extend command line options with a save DTS option
-    parser.add_option("--save-instance-infoset", 
-                      action="store", 
-                      dest="instanceInfosetFile", 
+    parser.add_option("--save-instance-infoset",
+                      action="store",
+                      dest="instanceInfosetFile",
                       help=_("Save instance infoset in specified file, or to send testcase infoset out files to out directory specify 'generateOutFiles'."))
 
 def saveInstanceInfosetCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
@@ -94,10 +94,10 @@ def saveInstanceInfosetCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kw
             cntlr.addToLog("No taxonomy loaded.")
             return
         generateInstanceInfoset(cntlr.modelManager.modelXbrl, options.instanceInfosetFile)
-        
+
 def validateInstanceInfoset(dts, instanceInfosetFile):
     if getattr(dts.modelManager, 'generateInfosetOutFiles', False):
-        generateInstanceInfoset(dts, 
+        generateInstanceInfoset(dts,
                         # normalize file to instance
                         dts.modelManager.cntlr.webCache.normalizeUrl(instanceInfosetFile, dts.uri))
 

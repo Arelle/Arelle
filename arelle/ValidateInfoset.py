@@ -8,7 +8,7 @@ from collections import defaultdict
 from arelle.ModelDocument import Type
 from arelle.ModelValue import qname
 from arelle import XmlUtil, XbrlConst
-from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals            
+from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals
 
 def validate(val, modelXbrl, infosetModelXbrl):
     infoset = infosetModelXbrl.modelDocument
@@ -20,7 +20,7 @@ def validate(val, modelXbrl, infosetModelXbrl):
         if len(modelXbrl.factsInInstance) != len(infosetModelXbrl.factsInInstance):
             modelXbrl.error("arelle:infosetTest",
                 _("Fact counts mismatch, testcase instance %(foundFactCount)s, infoset instance %(expectedFactCount)s"),
-                modelObject=(modelXbrl.modelDocument, infosetModelXbrl.modelDocument), 
+                modelObject=(modelXbrl.modelDocument, infosetModelXbrl.modelDocument),
                             foundFactCount=len(modelXbrl.factsInInstance),
                             expectedFactCount=len(infosetModelXbrl.factsInInstance))
         else:
@@ -39,7 +39,7 @@ def validate(val, modelXbrl, infosetModelXbrl):
                     modelXbrl.error("arelle:infosetTest",
                         _("Fact %(factNumber)s mismatch %(concept)s"),
                         modelObject=instFact,
-                                    factNumber=(i+1), 
+                                    factNumber=(i+1),
                                     concept=instFact.qname)
                 else:
                     ptvPeriodType = infosetFact.get("{http://www.xbrl.org/2003/ptv}periodType")
@@ -50,7 +50,7 @@ def validate(val, modelXbrl, infosetModelXbrl):
                         modelXbrl.error("arelle:infosetTest",
                             _("Fact %(factNumber)s periodType mismatch %(concept)s expected %(expectedPeriodType)s found %(foundPeriodType)s"),
                             modelObject=(instFact, infosetFact),
-                                        factNumber=(i+1), 
+                                        factNumber=(i+1),
                                         concept=instFact.qname,
                                         expectedPeriodType=ptvPeriodType,
                                         foundPeriodType=instFact.concept.periodType)
@@ -58,7 +58,7 @@ def validate(val, modelXbrl, infosetModelXbrl):
                         modelXbrl.error("arelle:infosetTest",
                             _("Fact %(factNumber)s balance mismatch %(concept)s expected %(expectedBalance)s found %(foundBalance)s"),
                             modelObject=(instFact, infosetFact),
-                                        factNumber=(i+1), 
+                                        factNumber=(i+1),
                                         concept=instFact.qname,
                                         expectedBalance=ptvBalance,
                                         foundBalance=instFact.concept.balance)
@@ -66,7 +66,7 @@ def validate(val, modelXbrl, infosetModelXbrl):
                         modelXbrl.error("arelle:infosetTest",
                             _("Fact %(factNumber)s inferred decimals mismatch %(concept)s expected %(expectedDecimals)s found %(inferredDecimals)s"),
                             modelObject=(instFact, infosetFact),
-                                        factNumber=(i+1), 
+                                        factNumber=(i+1),
                                         concept=instFact.qname,
                                         expectedDecimals=ptvDecimals,
                                         inferredDecimals=str(inferredDecimals(fact)))
@@ -74,11 +74,11 @@ def validate(val, modelXbrl, infosetModelXbrl):
                         modelXbrl.error("arelle:infosetTest",
                             _("Fact %(factNumber)s inferred precision mismatch %(concept)s expected %(expectedPrecision)s found %(inferredPrecision)s"),
                             modelObject=(instFact, infosetFact),
-                                        factNumber=(i+1), 
+                                        factNumber=(i+1),
                                         concept=instFact.qname,
                                         expectedPrecisions=ptvPrecision,
                                         inferredPrecision=str(inferredPrecision(fact)))
-            
+
     elif infoset.type == Type.ARCSINFOSET:
         # compare arcs
         for arcElt in XmlUtil.children(infoset.xmlRootElement, "http://www.xbrl.org/2003/ptv", "arc"):
@@ -136,8 +136,8 @@ def validate(val, modelXbrl, infosetModelXbrl):
                 preferredLabel = arcElt.get("preferredLabel")
                 found = False
                 for rel in modelXbrl.relationshipSet(arcRole, extRole).fromModelObject(fromObj):
-                    if (rel.toModelObject == toObj and 
-                        (weight is None or rel.weight == weight) and 
+                    if (rel.toModelObject == toObj and
+                        (weight is None or rel.weight == weight) and
                         (order is None or rel.order == order)):
                         found = True
                 if not found:
@@ -242,8 +242,8 @@ def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
                 if attrs1 != attrs2:
                     modelXbrl.error("arelle:tableModelAttributesMismatch",
                         _("Table model comparison element %(elt)s expecting attributes %(attrs1)s found %(attrs2)s source line %(elt1line)s comparison line %(elt2line)s"),
-                        modelObject=modelXbrl, elt=sourceElt.tag, 
-                        attrs1=', '.join('{0}="{1}"'.format(k,v) for k,v in sorted(attrs1.items())), 
+                        modelObject=modelXbrl, elt=sourceElt.tag,
+                        attrs1=', '.join('{0}="{1}"'.format(k,v) for k,v in sorted(attrs1.items())),
                         attrs2=', '.join('{0}="{1}"'.format(k,v) for k,v in sorted(attrs2.items())),
                         elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)
             sourceElt = next(sourceIter, None)

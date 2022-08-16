@@ -13,12 +13,12 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import (Trace, ModelFormulaResource, ModelFormulaRules, ModelConceptName,
                                        ModelParameter, Aspect, aspectStr, aspectRuleAspects)
 from arelle.ModelInstanceObject import ModelFact
-from arelle.FormulaEvaluator import (filterFacts as formulaEvaluatorFilterFacts, 
+from arelle.FormulaEvaluator import (filterFacts as formulaEvaluatorFilterFacts,
                                      aspectsMatch, factsPartitions, VariableBinding)
 from arelle.PrototypeInstanceObject import FactPrototype
 
 ROLLUP_NOT_ANALYZED = 0
-CHILD_ROLLUP_FIRST = 1  
+CHILD_ROLLUP_FIRST = 1
 CHILD_ROLLUP_LAST = 2
 CHILDREN_BUT_NO_ROLLUP = 3
 
@@ -57,11 +57,11 @@ class StructuralNode:
         self.breakdownNode = breakdownNode # CR definition node
         self.tagSelector = definitionNode.tagSelector
         self.isLabeled = True
-        
+
     @property
     def modelXbrl(self):
         return self.definitionNode.modelXbrl
-    
+
     @property
     def choiceStructuralNodes(self):
         if hasattr(self, "_choiceStructuralNodes"):
@@ -70,7 +70,7 @@ class StructuralNode:
             return self.parentStructuralNode.choiceStructuralNodes
         # choiceStrNodes are on the breakdown node (if any)
         return None
-    
+
     @property
     def isAbstract(self):
         if self.subtreeRollUp:
@@ -82,7 +82,7 @@ class StructuralNode:
                 return self.definitionNode.isAbstract
         except AttributeError: # axis may never be abstract
             return False
-        
+
     def isSummary(self):
         if self.childStructuralNodes is not None and not self.isAbstract:
             return True
@@ -92,17 +92,17 @@ class StructuralNode:
     @property
     def isRollUp(self):
         return self.definitionNode.isRollUp
-        
+
     @property
     def cardinalityAndDepth(self):
         return self.definitionNode.cardinalityAndDepth(self)
-    
+
     @property
     def structuralDepth(self):
         if self.parentStructuralNode is not None:
             return self.parentStructuralNode.structuralDepth + 1
         return 0
-    
+
     '''
     def breakdownNode(self, tableELR):
         definitionNode = self.definitionNode
@@ -117,7 +117,7 @@ class StructuralNode:
                 break # recurse to move to this node's parent breakdown node
         return definitionNode # give up here
     '''
-   
+
     def constraintSet(self, tagSelectors=None):
         definitionNode = self.definitionNode
         if tagSelectors:
@@ -125,20 +125,20 @@ class StructuralNode:
                 if tag in definitionNode.constraintSets:
                     return definitionNode.constraintSets[tag]
         return definitionNode.constraintSets.get(None) # returns None if no default constraint set
-    
+
     def aspectsCovered(self, inherit=False):
         aspectsCovered = _DICT_SET(self.aspects.keys()) | self.definitionNode.aspectsCovered()
         if inherit and self.parentStructuralNode is not None:
             aspectsCovered.update(self.parentStructuralNode.aspectsCovered(inherit=inherit))
         return aspectsCovered
-      
+
     def hasAspect(self, aspect, inherit=True):
-        return (aspect in self.aspects or 
-                self.definitionNode.hasAspect(self, aspect) or 
+        return (aspect in self.aspects or
+                self.definitionNode.hasAspect(self, aspect) or
                 (inherit and
-                 self.parentStructuralNode is not None and 
+                 self.parentStructuralNode is not None and
                  self.parentStructuralNode.hasAspect(aspect, inherit)))
-    
+
     def aspectValue(self, aspect, inherit=True, dims=None, depth=0, tagSelectors=None):
         xc = self._rendrCntx
         if False: # TEST: self.choiceStructuralNodes:  # use aspects from choice structural node
@@ -188,28 +188,28 @@ class StructuralNode:
         return None
 
     '''
-    @property   
+    @property
     def primaryItemQname(self):  # for compatibility with viewRelationsihps
         if Aspect.CONCEPT in self.aspects:
             return self.aspects[Aspect.CONCEPT]
         return self.definitionNode.primaryItemQname
-        
+
     @property
     def explicitDims(self):
         return self.definitionNode.explicitDims
     '''
-        
+
     def objectId(self, refId=""):
         return self.definitionNode.objectId(refId)
-        
+
     def header(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False, recurseParent=True, returnStdLabel=True):
         # if ord is a nested selectionAxis selection, use selection-message or text contents instead of axis headers
         isZSelection = isinstance(self.definitionNode, ModelSelectionDefinitionNode) and hasattr(self, "zSelection")
         if role is None:
             # check for message before checking for genLabel
             msgsRelationshipSet = self.definitionNode.modelXbrl.relationshipSet(
-                    (XbrlConst.tableDefinitionNodeSelectionMessage201301, XbrlConst.tableAxisSelectionMessage2011) 
-                    if isZSelection else 
+                    (XbrlConst.tableDefinitionNodeSelectionMessage201301, XbrlConst.tableAxisSelectionMessage2011)
+                    if isZSelection else
                     (XbrlConst.tableDefinitionNodeMessage201301, XbrlConst.tableAxisMessage2011))
             if msgsRelationshipSet:
                 msg = msgsRelationshipSet.label(self.definitionNode, XbrlConst.standardMessage, lang, returnText=False)
@@ -250,7 +250,7 @@ class StructuralNode:
                 elif isinstance(aspectValue, ModelObject):
                     text = XmlUtil.innerTextList(aspectValue)
                     if not text and XmlUtil.hasChild(aspectValue, aspectValue.namespaceURI, "forever"):
-                        text = "forever" 
+                        text = "forever"
                     return text
         if concept is not None:
             label = concept.label(lang=lang)
@@ -260,7 +260,7 @@ class StructuralNode:
         if role and recurseParent and self.parentStructuralNode is not None:
             return self.parentStructuralNode.header(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
         return None
-    
+
     def evaluate(self, evalObject, evalMethod, otherAxisStructuralNode=None, evalArgs=(), handleXPathException=True, **kwargs):
         xc = self._rendrCntx
         if self.contextItemBinding and not isinstance(xc.contextItem, ModelFact):
@@ -292,8 +292,8 @@ class StructuralNode:
                 if not handleXPathException:
                     raise
                 xc.modelXbrl.error(err.code,
-                         _("%(element)s set %(xlinkLabel)s \nException: %(error)s"), 
-                         modelObject=evalObject, element=evalObject.localName, 
+                         _("%(element)s set %(xlinkLabel)s \nException: %(error)s"),
+                         modelObject=evalObject, element=evalObject.localName,
                          xlinkLabel=evalObject.xlinkLabel, error=err.message)
                 result = ''
         for qn in removeVarQnames:
@@ -301,22 +301,22 @@ class StructuralNode:
         if previousContextItem is not None:
             xc.contextItem = previousContextItem # xbrli.xbrl
         return result
-    
+
     def hasValueExpression(self, otherAxisStructuralNode=None):
-        return (self.definitionNode.hasValueExpression or 
+        return (self.definitionNode.hasValueExpression or
                 (otherAxisStructuralNode is not None and otherAxisStructuralNode.definitionNode.hasValueExpression))
-    
+
     def evalValueExpression(self, fact, otherAxisStructuralNode=None):
         for structuralNode in (self, otherAxisStructuralNode):
             if structuralNode is not None and structuralNode.definitionNode.hasValueExpression:
                 return self.evaluate(self.definitionNode, structuralNode.definitionNode.evalValueExpression, otherAxisStructuralNode=otherAxisStructuralNode, evalArgs=(fact,))
         return None
-    
+
     @property
     def isEntryAspect(self):
         # true if open node and bound to a fact prototype
         return self.contextItemBinding is not None and isinstance(self.contextItemBinding.yieldedFact, FactPrototype)
-    
+
     def isEntryPrototype(self, default=False):
         # true if all axis open nodes before this one are entry prototypes (or not open axes)
         if self.contextItemBinding is not None:
@@ -325,14 +325,14 @@ class StructuralNode:
         if self.parentStructuralNode is not None:
             return self.parentStructuralNode.isEntryPrototype(default)
         return default # nothing open to be bound to a fact
-            
+
     @property
     def tableDefinitionNode(self):
         if self.parentStructuralNode is None:
             return self.tableNode
         else:
             return self.parentStructuralNode.tableDefinitionNode
-        
+
     @property
     def tagSelectors(self):
         try:
@@ -345,7 +345,7 @@ class StructuralNode:
             if self.tagSelector:
                 self._tagSelectors.add(self.tagSelector)
             return self._tagSelectors
-    
+
     @property
     def leafNodeCount(self):
         childLeafCount = 0
@@ -357,7 +357,7 @@ class StructuralNode:
         if not self.isAbstract and isinstance(self.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)):
             childLeafCount += 1 # has a roll up
         return childLeafCount
-    
+
     def setHasOpenNode(self):
         if self.parentStructuralNode is not None:
             self.parentStructuralNode.setHasOpenNode()
@@ -366,7 +366,7 @@ class StructuralNode:
 
     def inheritedPrimaryItemQname(self, view):
         return (self.primaryItemQname or self.inheritedPrimaryItemQname(self.parentStructuralNode, view))
-            
+
     def inheritedExplicitDims(self, view, dims=None, nested=False):
         if dims is None: dims = {}
         if self.parentOrdinateContext:
@@ -377,7 +377,7 @@ class StructuralNode:
             return {(dim,mem) for dim,mem in dims.items() if mem != 'omit'}
 
     def inheritedAspectValue(self, otherAxisStructuralNode,
-                             view, aspect, tagSelectors, 
+                             view, aspect, tagSelectors,
                              xAspectStructuralNodes, yAspectStructuralNodes, zAspectStructuralNodes):
         aspectStructuralNodes = xAspectStructuralNodes.get(aspect, EMPTY_SET) | yAspectStructuralNodes.get(aspect, EMPTY_SET) | zAspectStructuralNodes.get(aspect, EMPTY_SET)
         structuralNode = None
@@ -391,11 +391,11 @@ class StructuralNode:
                         if structuralNode:
                             hasClash = True
                         else:
-                            structuralNode = _aspectStructuralNode 
+                            structuralNode = _aspectStructuralNode
             else:
                 # take closest structural node
                 hasClash = True
-                
+
             ''' reported in static analysis by RenderingEvaluator.py
             if hasClash:
                 from arelle.ModelFormulaObject import aspectStr
@@ -406,23 +406,23 @@ class StructuralNode:
         if structuralNode:
             definitionNodeConstraintSet = structuralNode.constraintSet(tagSelectors)
             if definitionNodeConstraintSet is not None and definitionNodeConstraintSet.aspectValueDependsOnVars(aspect):
-                return self.evaluate(definitionNodeConstraintSet, 
+                return self.evaluate(definitionNodeConstraintSet,
                                      definitionNodeConstraintSet.aspectValue, # this passes a method
                                      otherAxisStructuralNode=otherAxisStructuralNode,
                                      evalArgs=(aspect,))
             return structuralNode.aspectValue(aspect, tagSelectors=tagSelectors)
-        return None 
+        return None
 
-                      
+
     def __repr__(self):
         return ("structuralNode[{0}]{1})".format(self.objectId(),self.definitionNode))
-        
+
 # Root class for rendering is formula, to allow linked and nested compiled expressions
 def definitionModelLabelsView(mdlObj):
     return tuple(sorted([("{} {} {} {}".format(label.localName,
                                             str(rel.order).rstrip("0").rstrip("."),
                                             os.path.basename(label.role or ""),
-                                            label.xmlLang), 
+                                            label.xmlLang),
                           label.stringValue)
                          for rel in mdlObj.modelXbrl.relationshipSet((XbrlConst.elementLabel,XbrlConst.elementReference)).fromModelObject(mdlObj)
                          for label in (rel.toModelObject,)] +
@@ -433,63 +433,63 @@ class ModelEuTable(ModelResource):
     def init(self, modelDocument):
         super(ModelEuTable, self).init(modelDocument)
         self.aspectsInTaggedConstraintSets = set()
-        
+
     @property
     def aspectModel(self):
         return "dimensional"
-        
+
     @property
     def propertyView(self):
         return ((("id", self.id),) +
                 self.definitionLabelsView)
-    
-    ''' now only accessed from structural node    
+
+    ''' now only accessed from structural node
     def header(self, role=None, lang=None, strip=False, evaluate=True):
         return self.genLabel(role=role, lang=lang, strip=strip)
     '''
-    
+
     @property
     def parameters(self):
         return {}
-  
+
     @property
     def definitionLabelsView(self):
         return definitionModelLabelsView(self)
-        
+
     def filteredFacts(self, xpCtx, facts):
         return facts
-    
+
     @property
     def xpathContext(self):
         return None
-    
+
     def __repr__(self):
         return ("table[{0}]{1})".format(self.objectId(),self.propertyView))
 
 class ModelEuAxisCoord(ModelResource):
     def init(self, modelDocument):
         super(ModelEuAxisCoord, self).init(modelDocument)
-        
+
     @property
     def abstract(self):
         return self.get("abstract") or 'false'
-    
+
     @property
     def isAbstract(self):
         return self.abstract == "true"
-    
+
     @property
     def isMerged(self):
         return False
-    
+
     @property
     def parentChildOrder(self):
         return self.get("parentChildOrder")
-    
+
     @property
     def isRollUp(self):
         return False
-    
+
     @property
     def parentDefinitionNode(self):
         try:
@@ -511,15 +511,15 @@ class ModelEuAxisCoord(ModelResource):
         for e in XmlUtil.children(self, XbrlConst.euRend, "explicitDimCoord"):
             aspectsCovered.add(self.prefixedNameQname(e.get("dimension")))
         return aspectsCovered
-    
+
     @property
     def constraintSets(self):
         return {None: self}
-                    
+
     @property
     def tagSelector(self):  # default constraint set for ruleNode has name None
         return None
-        
+
     def hasAspect(self, structuralNode, aspect):
         if aspect == Aspect.CONCEPT:
             return XmlUtil.hasChild(self, XbrlConst.euRend, "primaryItem")
@@ -532,10 +532,10 @@ class ModelEuAxisCoord(ModelResource):
                 if self.prefixedNameQname(e.get("dimension")) == aspect:
                     return True
         return False
-    
+
     def aspectValueDependsOnVars(self, aspect):
         return False
-    
+
     def aspectValue(self, xpCtx, aspect, inherit=False):
         if aspect == Aspect.DIMENSIONS:
             dims = set(self.prefixedNameQname(e.get("dimension"))
@@ -556,7 +556,7 @@ class ModelEuAxisCoord(ModelResource):
             if XmlUtil.hasChild(self, XbrlConst.euRend, "timeReference"):
                 return "instant"
         elif aspect == Aspect.INSTANT:
-            return XmlUtil.datetimeValue(XmlUtil.childAttr(self, XbrlConst.euRend, "timeReference", "instant"), 
+            return XmlUtil.datetimeValue(XmlUtil.childAttr(self, XbrlConst.euRend, "timeReference", "instant"),
                                          addOneDay=True)
         elif isinstance(aspect, QName):
             for e in XmlUtil.children(self, XbrlConst.euRend, "explicitDimCoord"):
@@ -571,47 +571,47 @@ class ModelEuAxisCoord(ModelResource):
         if priItem is not None:
             return self.prefixedNameQname(priItem)
         return None
-    
+
     @property
     def explicitDims(self):
         return {(self.prefixedNameQname(e.get("dimension")),
                  self.prefixedNameQname(e.get("value")))
                 for e in XmlUtil.children(self, XbrlConst.euRend, "explicitDimCoord")}
-    
+
     @property
     def instant(self):
-        return XmlUtil.datetimeValue(XmlUtil.childAttr(self, XbrlConst.euRend, "timeReference", "instant"), 
+        return XmlUtil.datetimeValue(XmlUtil.childAttr(self, XbrlConst.euRend, "timeReference", "instant"),
                                      addOneDay=True)
     '''
 
     def cardinalityAndDepth(self, structuralNode, **kwargs):
         return (1, 1)
-        
-    ''' now only accessed from structural node    
+
+    ''' now only accessed from structural node
     def header(self, role=None, lang=None, strip=False, evaluate=True):
         return self.genLabel(role=role, lang=lang, strip=strip)
     '''
-    
+
     @property
     def hasValueExpression(self):
         return False
-  
+
     @property
     def definitionLabelsView(self):
         return definitionModelLabelsView(self)
-    
+
     @property
     def propertyView(self):
         explicitDims = self.aspectValue(None, Aspect.DIMENSIONS, inherit=True)
         return ((("id", self.id),
                  ("primary item", self.aspectValue(None, Aspect.CONCEPT, inherit=True)),
                  ("dimensions", "({0})".format(len(explicitDims)),
-                   tuple((str(dim),str(self.aspectValue(None, dim, inherit=True))) 
+                   tuple((str(dim),str(self.aspectValue(None, dim, inherit=True)))
                          for dim in sorted(explicitDims)))
                    if explicitDims else (),
                  ("abstract", self.abstract)) +
                 self.definitionLabelsView)
-        
+
     def __repr__(self):
         return ("axisCoord[{0}]{1})".format(self.objectId(),self.propertyView))
 
@@ -622,22 +622,22 @@ class ModelTable(ModelFormulaResource):
         self.modelXbrl.modelRenderingTables.add(self)
         self.modelXbrl.hasRenderingTables = True
         self.aspectsInTaggedConstraintSets = set()
-        
+
     def clear(self):
         if getattr(self, "_rendrCntx"):
             self._rendrCntx.close()
         super(ModelTable, self).clear()  # delete children
-                   
+
     @property
     def aspectModel(self):
         return self.get("aspectModel", "dimensional") # attribute removed 2013-06, always dimensional
 
     @property
-    def descendantArcroles(self):        
-        return (XbrlConst.tableFilter, XbrlConst.tableFilterMMDD, XbrlConst.tableFilter201305, XbrlConst.tableFilter201301, XbrlConst.tableFilter2011, 
+    def descendantArcroles(self):
+        return (XbrlConst.tableFilter, XbrlConst.tableFilterMMDD, XbrlConst.tableFilter201305, XbrlConst.tableFilter201301, XbrlConst.tableFilter2011,
                 XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011,
                 XbrlConst.tableParameter, XbrlConst.tableParameterMMDD)
-                
+
     @property
     def filterRelationships(self):
         try:
@@ -651,20 +651,20 @@ class ModelTable(ModelFormulaResource):
                     rels.append(rel)
             self._filterRelationships = rels
             return rels
-        
-    ''' now only accessed from structural node    
+
+    ''' now only accessed from structural node
     def header(self, role=None, lang=None, strip=False, evaluate=True):
         return self.genLabel(role=role, lang=lang, strip=strip)
     '''
-  
+
     @property
     def definitionLabelsView(self):
         return definitionModelLabelsView(self)
-    
+
     def filteredFacts(self, xpCtx, facts):
-        return formulaEvaluatorFilterFacts(xpCtx, VariableBinding(xpCtx), 
+        return formulaEvaluatorFilterFacts(xpCtx, VariableBinding(xpCtx),
                                            facts, self.filterRelationships, None)
-        
+
     @property
     def renderingXPathContext(self):
         try:
@@ -681,35 +681,35 @@ class ModelTable(ModelFormulaResource):
             else:
                 self._rendrCntx = None
             return self._rendrCntx
-        
+
     @property
     def propertyView(self):
         return ((("id", self.id),) +
                 self.definitionLabelsView)
-        
+
     def __repr__(self):
         return ("modlTable[{0}]{1})".format(self.objectId(),self.propertyView))
 
 class ModelDefinitionNode(ModelFormulaResource):
     def init(self, modelDocument):
         super(ModelDefinitionNode, self).init(modelDocument)
-    
+
     @property
     def parentDefinitionNode(self):
         return None
-                
+
     @property
-    def descendantArcroles(self):        
+    def descendantArcroles(self):
         return (XbrlConst.tableDefinitionNodeMessage201301, XbrlConst.tableAxisMessage2011,
                 XbrlConst.tableDefinitionNodeSubtree201305,
                 XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD)
-        
+
     def hasAspect(self, structuralNode, aspect):
         return False
 
     def aspectValueDependsOnVars(self, aspect):
         return False
-    
+
     @property
     def variablename(self):
         """(str) -- name attribute"""
@@ -725,64 +725,64 @@ class ModelDefinitionNode(ModelFormulaResource):
         if aspect == Aspect.DIMENSIONS:
             return []
         return None
-    
+
     def aspectsCovered(self):
         return set()
 
     @property
     def constraintSets(self):
         return {None: self}
-                    
+
     @property
     def tagSelector(self):
         return self.get("tagSelector")
-            
+
     @property
     def valueExpression(self):
-        return self.get("value") 
+        return self.get("value")
 
     @property
     def hasValueExpression(self):
         return bool(self.valueProg)  # non empty program
-    
+
     def compile(self):
         if not hasattr(self, "valueProg"):
             value = self.valueExpression
             self.valueProg = XPathParser.parse(self, value, self, "value", Trace.VARIABLE)
         # duplicates formula resource for RuleAxis but not for other subclasses
         super(ModelDefinitionNode, self).compile()
-        
+
     def evalValueExpression(self, xpCtx, fact):
         # compiled by FormulaResource compile()
         return xpCtx.evaluateAtomicValue(self.valueProg, 'xs:string', fact)
-    
+
     '''
-    @property   
+    @property
     def primaryItemQname(self):  # for compatibility with viewRelationsihps
         return None
-        
+
     @property
     def explicitDims(self):
         return set()
     '''
-        
+
     @property
     def isAbstract(self):
         return False
-    
+
     @property
     def isMerged(self):
         return False
-    
+
     @property
     def isRollUp(self):
         return self.get("rollUp") == 'true'
-    
+
     def cardinalityAndDepth(self, structuralNode, **kwargs):
-        return (1, 
+        return (1,
                 1 if (structuralNode.header(evaluate=False) is not None) else 0)
-        
-    ''' now only accessed from structural node (mulst have table context for evaluate)           
+
+    ''' now only accessed from structural node (mulst have table context for evaluate)
     def header(self, role=None, lang=None, strip=False, evaluate=True):
         if role is None:
             # check for message before checking for genLabel
@@ -801,26 +801,26 @@ class ModelDefinitionNode(ModelFormulaResource):
     '''
 
     @property
-    def definitionNodeView(self):        
+    def definitionNodeView(self):
         return XmlUtil.xmlstring(self, stripXmlns=True, prettyPrint=True)
-  
+
 
     @property
     def definitionLabelsView(self):
         return definitionModelLabelsView(self)
-  
+
 class ModelBreakdown(ModelDefinitionNode):
     def init(self, modelDocument):
         super(ModelBreakdown, self).init(modelDocument)
-        
+
     @property
     def parentChildOrder(self):
         return self.get("parentChildOrder")
 
     @property
-    def descendantArcroles(self):        
+    def descendantArcroles(self):
         return (XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305)
-    
+
     @property
     def propertyView(self):
         return ((("id", self.id),
@@ -831,23 +831,23 @@ class ModelBreakdown(ModelDefinitionNode):
 class ModelClosedDefinitionNode(ModelDefinitionNode):
     def init(self, modelDocument):
         super(ModelClosedDefinitionNode, self).init(modelDocument)
-        
+
     @property
     def abstract(self):
         return self.get("abstract")
-    
+
     @property
     def isAbstract(self):
         return self.abstract == 'true'
-        
+
     @property
     def parentChildOrder(self):
         return self.get("parentChildOrder")
 
     @property
-    def descendantArcroles(self):        
+    def descendantArcroles(self):
         return (XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011, XbrlConst.tableDefinitionNodeMessage201301, XbrlConst.tableAxisMessage2011)
-    
+
     def filteredFacts(self, xpCtx, facts):
         aspects = self.aspectsCovered()
         axisAspectValues = dict((aspect, self.aspectValue(xpCtx, aspect))
@@ -856,7 +856,7 @@ class ModelClosedDefinitionNode(ModelDefinitionNode):
         return set(fact
                    for fact in facts
                    if aspectsMatch(xpCtx, fact, fp, aspects))
-        
+
 class ModelConstraintSet(ModelFormulaRules):
     def init(self, modelDocument):
         super(ModelConstraintSet, self).init(modelDocument)
@@ -865,17 +865,17 @@ class ModelConstraintSet(ModelFormulaRules):
         self.aspectValues = {} # only needed if error blocks compiling this node, replaced by compile()
         self.aspectProgs = {} # ditto
         if self._locationSourceVar: self._locationAspectCovered.add(Aspect.LOCATION) # location is parent (tuple), not sibling
-        
+
     def hasAspect(self, structuralNode, aspect, inherit=None):
         return self._hasAspect(structuralNode, aspect, inherit)
-    
+
     def _hasAspect(self, structuralNode, aspect, inherit=None): # opaque from ModelRuleDefinitionNode
         if aspect == Aspect.LOCATION and self._locationSourceVar:
             return True
         elif aspect in aspectRuleAspects:
             return any(self.hasRule(a) for a in aspectRuleAspects[aspect])
         return self.hasRule(aspect)
-    
+
     def aspectValue(self, xpCtx, aspect, inherit=None):
         try:
             # if xpCtx is None: xpCtx = self.modelXbrl.rendrCntx (must have xpCtx of callint table)
@@ -884,13 +884,13 @@ class ModelConstraintSet(ModelFormulaRules):
             return self.evaluateRule(xpCtx, aspect)
         except AttributeError:
             return '(unavailable)'  # table defective or not initialized
-    
+
     def aspectValueDependsOnVars(self, aspect):
         return aspect in _DICT_SET(self.aspectProgs.keys()) or aspect in self._locationAspectCovered
-    
+
     def aspectsCovered(self):
         return _DICT_SET(self.aspectValues.keys()) | _DICT_SET(self.aspectProgs.keys()) | self._locationAspectCovered
-    
+
     # provide model table's aspect model to compile() method of ModelFormulaRules
     @property
     def aspectModel(self):
@@ -899,9 +899,9 @@ class ModelConstraintSet(ModelFormulaRules):
             if isinstance(obj,ModelTable):
                 return obj.aspectModel
         return None
-    
+
     '''
-    @property   
+    @property
     def primaryItemQname(self):
         return self.evaluateRule(self.modelXbrl.rendrCntx, Aspect.CONCEPT)
 
@@ -915,17 +915,17 @@ class ModelConstraintSet(ModelFormulaRules):
                 if mem: # may be none if dimension was omitted
                     dimMemSet.add( (dim, mem) )
         return dimMemSet
-    
+
     @property
     def instant(self):
         periodType = self.evaluateRule(self.modelXbrl.rendrCntx, Aspect.PERIOD_TYPE)
         if periodType == "forever":
             return None
-        return self.evaluateRule(self.modelXbrl.rendrCntx, 
+        return self.evaluateRule(self.modelXbrl.rendrCntx,
                                  {"instant": Aspect.INSTANT,
                                   "duration": Aspect.END}[periodType])
     '''
-    
+
     def cardinalityAndDepth(self, structuralNode, **kwargs):
         if self.aspectValues or self.aspectProgs or structuralNode.header(evaluate=False) is not None:
             return (1, 1)
@@ -935,7 +935,7 @@ class ModelConstraintSet(ModelFormulaRules):
 class ModelRuleSet(ModelConstraintSet, ModelFormulaResource):
     def init(self, modelDocument):
         super(ModelRuleSet, self).init(modelDocument)
-        
+
     @property
     def tagName(self):  # can't call it tag because that would hide ElementBase.tag
         return self.get("tag")
@@ -943,15 +943,15 @@ class ModelRuleSet(ModelConstraintSet, ModelFormulaResource):
 class ModelRuleDefinitionNode(ModelConstraintSet, ModelClosedDefinitionNode):
     def init(self, modelDocument):
         super(ModelRuleDefinitionNode, self).init(modelDocument)
-        
+
     @property
     def merge(self):
         return self.get("merge")
-    
+
     @property
     def isMerged(self):
         return self.merge == "true"
-    
+
     @property
     def constraintSets(self):
         try:
@@ -960,13 +960,13 @@ class ModelRuleDefinitionNode(ModelConstraintSet, ModelClosedDefinitionNode):
             self._constraintSets = dict((ruleSet.tagName, ruleSet)
                                         for ruleSet in XmlUtil.children(self, self.namespaceURI, "ruleSet"))
             if self.aspectsCovered(): # any local rule?
-                self._constraintSets[None] = self                
+                self._constraintSets[None] = self
             return self._constraintSets
-            
+
     def hasAspect(self, structuralNode, aspect):
         return any(constraintSet._hasAspect(structuralNode, aspect)
                    for constraintSet in self.constraintSets.values())
-        
+
     @property
     def aspectsInTaggedConstraintSet(self):
         try:
@@ -979,13 +979,13 @@ class ModelRuleDefinitionNode(ModelConstraintSet, ModelClosedDefinitionNode):
                         if aspect != Aspect.DIMENSIONS:
                             self._aspectsInTaggedConstraintSet.add(aspect)
             return self._aspectsInTaggedConstraintSet
-                    
+
     def compile(self):
         super(ModelRuleDefinitionNode, self).compile()
         for constraintSet in self.constraintSets.values():
             if constraintSet != self: # compile nested constraint sets
                 constraintSet.compile()
-   
+
     @property
     def propertyView(self):
         return ((("id", self.id),
@@ -993,7 +993,7 @@ class ModelRuleDefinitionNode(ModelConstraintSet, ModelClosedDefinitionNode):
                  ("merge", self.merge),
                  ("definition", self.definitionNodeView)) +
                  self.definitionLabelsView)
-        
+
     def __repr__(self):
         return ("modelRuleDefinitionNode[{0}]{1})".format(self.objectId(),self.propertyView))
 
@@ -1001,27 +1001,27 @@ class ModelRuleDefinitionNode(ModelConstraintSet, ModelClosedDefinitionNode):
 class ModelTupleDefinitionNode(ModelRuleDefinitionNode):
     def init(self, modelDocument):
         super(ModelTupleDefinitionNode, self).init(modelDocument)
-        
+
     @property
-    def descendantArcroles(self):        
+    def descendantArcroles(self):
         return (XbrlConst.tableTupleContent201301, XbrlConst.tableTupleContent2011, XbrlConst.tableDefinitionNodeMessage201301, XbrlConst.tableAxisMessage2011)
-        
+
     @property
     def contentRelationships(self):
         return self.modelXbrl.relationshipSet((XbrlConst.tableTupleContent201301, XbrlConst.tableTupleContent2011)).fromModelObject(self)
-        
+
     def hasAspect(self, structuralNode, aspect, inherit=None):
         return aspect == Aspect.LOCATION # non-location aspects aren't leaked to ordinate for Tuple or self.hasRule(aspect)
-    
+
     def aspectValue(self, xpCtx, aspect, inherit=None):
         return self.evaluateRule(xpCtx, aspect)
-    
+
     def aspectsCovered(self):
         return {Aspect.LOCATION}  # tuple's aspects don't leak to ordinates
-    
+
     def tupleAspectsCovered(self):
         return _DICT_SET(self.aspectValues.keys()) | _DICT_SET(self.aspectProgs.keys()) | {Aspect.LOCATION}
-    
+
     def filteredFacts(self, xpCtx, facts):
         aspects = self.aspectsCovered()
         axisAspectValues = dict((aspect, self.tupleAspectsCovered(aspect))
@@ -1035,7 +1035,7 @@ class ModelTupleDefinitionNode(ModelRuleDefinitionNode):
 class ModelCompositionDefinitionNode(ModelClosedDefinitionNode):
     def init(self, modelDocument):
         super(ModelCompositionDefinitionNode, self).init(modelDocument)
-        
+
     @property
     def abstract(self):  # always abstract, no filters, no data
         return 'true'
@@ -1043,7 +1043,7 @@ class ModelCompositionDefinitionNode(ModelClosedDefinitionNode):
 class ModelRelationshipDefinitionNode(ModelClosedDefinitionNode):
     def init(self, modelDocument):
         super(ModelRelationshipDefinitionNode, self).init(modelDocument)
-        
+
     def aspectsCovered(self):
         return {Aspect.CONCEPT}
 
@@ -1051,14 +1051,14 @@ class ModelRelationshipDefinitionNode(ModelClosedDefinitionNode):
     def conceptQname(self):
         name = self.getStripped("conceptname")
         return qname(self, name, noPrefixIsNoNamespace=True) if name else None
-        
+
     @property
     def relationshipSourceQname(self):
         sourceQname = XmlUtil.child(self, (XbrlConst.table, XbrlConst.tableMMDD, XbrlConst.table201305, XbrlConst.table201301, XbrlConst.table2011), "relationshipSource")
         if sourceQname is not None:
             return qname( sourceQname, XmlUtil.text(sourceQname) )
         return None
-    
+
     @property
     def linkrole(self):
         return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD, XbrlConst.table201305, XbrlConst.table201301, XbrlConst.table2011), "linkrole")
@@ -1068,7 +1068,7 @@ class ModelRelationshipDefinitionNode(ModelClosedDefinitionNode):
         a = XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD, XbrlConst.table201305, XbrlConst.table201301, XbrlConst.table2011), ("axis", "formulaAxis"))
         if not a: a = 'descendant'  # would be an XML error
         return a
-    
+
     @property
     def isOrSelfAxis(self):
         return self.axis.endswith('-or-self')
@@ -1078,7 +1078,7 @@ class ModelRelationshipDefinitionNode(ModelClosedDefinitionNode):
         try:
             return _INT( XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD, XbrlConst.table201305, XbrlConst.table201301, XbrlConst.table2011), "generations") )
         except (TypeError, ValueError):
-            if self.axis in ('sibling', 'child', 'parent'): 
+            if self.axis in ('sibling', 'child', 'parent'):
                 return 1
             return 0
 
@@ -1105,7 +1105,7 @@ class ModelRelationshipDefinitionNode(ModelClosedDefinitionNode):
             self.axisExpressionProg = XPathParser.parse(self, self.axisExpression, self, "axisExpressionProg", Trace.VARIABLE)
             self.generationsExpressionProg = XPathParser.parse(self, self.generationsExpression, self, "generationsExpressionProg", Trace.VARIABLE)
             super(ModelRelationshipDefinitionNode, self).compile()
-        
+
     def variableRefs(self, progs=[], varRefSet=None):
         if self.relationshipSourceQname and self.relationshipSourceQname != XbrlConst.qnXfiRoot:
             if varRefSet is None: varRefSet = set()
@@ -1120,26 +1120,26 @@ class ModelRelationshipDefinitionNode(ModelClosedDefinitionNode):
         if self.relationshipSourceQname:
             return self.relationshipSourceQname
         return xpCtx.evaluateAtomicValue(self.relationshipSourceQnameExpressionProg, 'xs:QName', fact)
-    
+
     def evalLinkrole(self, xpCtx, fact=None):
         if self.linkrole:
             return self.linkrole
         return xpCtx.evaluateAtomicValue(self.linkroleExpressionProg, 'xs:anyURI', fact)
-    
+
     def evalAxis(self, xpCtx, fact=None):
         if self.axis:
             return self.axis
         return xpCtx.evaluateAtomicValue(self.axisExpressionProg, 'xs:token', fact)
-    
+
     def evalGenerations(self, xpCtx, fact=None):
         if self.generations:
             return self.generations
         return xpCtx.evaluateAtomicValue(self.generationsExpressionProg, 'xs:integer', fact)
 
     def cardinalityAndDepth(self, structuralNode, **kwargs):
-        return self.lenDepth(self.relationships(structuralNode, **kwargs), 
+        return self.lenDepth(self.relationships(structuralNode, **kwargs),
                              self.axis.endswith('-or-self'))
-    
+
     def lenDepth(self, nestedRelationships, includeSelf):
         l = 0
         d = 1
@@ -1157,21 +1157,21 @@ class ModelRelationshipDefinitionNode(ModelClosedDefinitionNode):
         if includeSelf:
             d += 1
         return (l, d)
-    
+
     @property
     def propertyView(self):
         return ((("id", self.id),
                  ("abstract", self.abstract),
                  ("definition", self.definitionNodeView)) +
                 self.definitionLabelsView)
-        
+
     def __repr__(self):
         return ("modelRelationshipDefinitionNode[{0}]{1})".format(self.objectId(),self.propertyView))
-    
+
 class ModelConceptRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
     def init(self, modelDocument):
         super(ModelConceptRelationshipDefinitionNode, self).init(modelDocument)
-    
+
     def hasAspect(self, structuralNode, aspect):
         return aspect == Aspect.CONCEPT
 
@@ -1192,7 +1192,7 @@ class ModelConceptRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
         if linknameElt is not None:
             return qname( linknameElt, XmlUtil.text(linknameElt) )
         return None
-    
+
 
     def compile(self):
         if not hasattr(self, "arcroleExpressionProg"):
@@ -1200,7 +1200,7 @@ class ModelConceptRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
             self.linkQnameExpressionProg = XPathParser.parse(self, self.linkQnameExpression, self, "linkQnameExpressionProg", Trace.VARIABLE)
             self.arcQnameExpressionProg = XPathParser.parse(self, self.arcQnameExpression, self, "arcQnameExpressionProg", Trace.VARIABLE)
             super(ModelConceptRelationshipDefinitionNode, self).compile()
-        
+
     def variableRefs(self, progs=[], varRefSet=None):
         return super(ModelConceptRelationshipDefinitionNode, self).variableRefs(
                                                 [p for p in (self.arcroleExpressionProg,
@@ -1211,12 +1211,12 @@ class ModelConceptRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
         if self.arcrole:
             return self.arcrole
         return xpCtx.evaluateAtomicValue(self.arcroleExpressionProg, 'xs:anyURI', fact)
-    
+
     def evalLinkQname(self, xpCtx, fact=None):
         if self.linkQname:
             return self.linkQname
         return xpCtx.evaluateAtomicValue(self.linkQnameExpressionProg, 'xs:QName', fact)
-    
+
     def evalArcQname(self, xpCtx, fact=None):
         if self.arcQname:
             return self.arcQname
@@ -1233,7 +1233,7 @@ class ModelConceptRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
     @property
     def arcQnameExpression(self):
         return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD, XbrlConst.table201305, XbrlConst.table201301, XbrlConst.table2011), "arcnameExpression")
-    
+
     def coveredAspect(self, ordCntx=None):
         return Aspect.CONCEPT
 
@@ -1247,8 +1247,8 @@ class ModelConceptRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
         arcQname = (structuralNode.evaluate(self, self.evalArcQname) or () )
         self._axis = (structuralNode.evaluate(self, self.evalAxis) or () )
         self._generations = (structuralNode.evaluate(self, self.evalGenerations) or () )
-        return concept_relationships(self.modelXbrl.rendrCntx, 
-                                     None, 
+        return concept_relationships(self.modelXbrl.rendrCntx,
+                                     None,
                                      (self._sourceQname,
                                       linkrole,
                                       arcrole,
@@ -1257,19 +1257,19 @@ class ModelConceptRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
                                       linkQname,
                                       arcQname),
                                      True) # return nested lists representing concept tree nesting
-    
+
 class ModelDimensionRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
     def init(self, modelDocument):
         super(ModelDimensionRelationshipDefinitionNode, self).init(modelDocument)
-    
+
     def hasAspect(self, structuralNode, aspect):
         return aspect == self.coveredAspect(structuralNode) or aspect == Aspect.DIMENSIONS
-    
+
     def aspectValue(self, xpCtx, aspect, inherit=None):
         if aspect == Aspect.DIMENSIONS:
             return (self.coveredAspect(xpCtx), )
         return None
-    
+
     def aspectsCovered(self):
         return {self.dimensionQname}
 
@@ -1288,7 +1288,7 @@ class ModelDimensionRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
         if not hasattr(self, "dimensionQnameExpressionProg"):
             self.dimensionQnameExpressionProg = XPathParser.parse(self, self.dimensionQnameExpression, self, "dimensionQnameExpressionProg", Trace.VARIABLE)
             super(ModelDimensionRelationshipDefinitionNode, self).compile()
-        
+
     def variableRefs(self, progs=[], varRefSet=None):
         return super(ModelDimensionRelationshipDefinitionNode, self).variableRefs(self.dimensionQnameExpressionProg, varRefSet)
 
@@ -1296,17 +1296,17 @@ class ModelDimensionRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
         if self.dimensionQname:
             return self.dimensionQname
         return xpCtx.evaluateAtomicValue(self.dimensionQnameExpressionProg, 'xs:QName', fact)
-    
+
     def coveredAspect(self, structuralNode=None):
         try:
             return self._coveredAspect
         except AttributeError:
             self._coveredAspect = self.dimRelationships(structuralNode, getDimQname=True)
             return self._coveredAspect
-        
+
     def relationships(self, structuralNode, **kwargs):
         return self.dimRelationships(structuralNode, getMembers=True)
-    
+
     def dimRelationships(self, structuralNode, getMembers=False, getDimQname=False):
         self._dimensionQname = structuralNode.evaluate(self, self.evalDimensionQname)
         self._sourceQname = structuralNode.evaluate(self, self.evalRrelationshipSourceQname) or XbrlConst.qnXfiRoot
@@ -1327,8 +1327,8 @@ class ModelDimensionRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
             if sourceConcept is None:
                 sourceConcept = dimConcept
         if getMembers:
-            return concept_relationships(self.modelXbrl.rendrCntx, 
-                                         None, 
+            return concept_relationships(self.modelXbrl.rendrCntx,
+                                         None,
                                          (self._sourceQname,
                                           linkrole,
                                           "XBRL-dimensions",  # all dimensions arcroles
@@ -1340,7 +1340,7 @@ class ModelDimensionRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
                 # look back from member to a dimension
                 return self.stepDimRel(sourceConcept, linkrole)
             return None
-        
+
     def stepDimRel(self, stepConcept, linkrole):
         if stepConcept.isDimensionItem:
             return stepConcept.qname
@@ -1350,11 +1350,11 @@ class ModelDimensionRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
                 if dim:
                     return dim
         return None
-        
-coveredAspectToken = {"concept": Aspect.CONCEPT, 
-                      "entity-identifier": Aspect.VALUE, 
-                      "period-start": Aspect.START, "period-end": Aspect.END, 
-                      "period-instant": Aspect.INSTANT, "period-instant-end": Aspect.INSTANT_END, 
+
+coveredAspectToken = {"concept": Aspect.CONCEPT,
+                      "entity-identifier": Aspect.VALUE,
+                      "period-start": Aspect.START, "period-end": Aspect.END,
+                      "period-instant": Aspect.INSTANT, "period-instant-end": Aspect.INSTANT_END,
                       "unit": Aspect.UNIT}
 
 class ModelOpenDefinitionNode(ModelDefinitionNode):
@@ -1365,15 +1365,15 @@ class ModelOpenDefinitionNode(ModelDefinitionNode):
 class ModelSelectionDefinitionNode(ModelOpenDefinitionNode):
     def init(self, modelDocument):
         super(ModelSelectionDefinitionNode, self).init(modelDocument)
-        
+
     @property
-    def descendantArcroles(self):        
+    def descendantArcroles(self):
         return (XbrlConst.tableDefinitionNodeMessage201301, XbrlConst.tableAxisMessage2011, XbrlConst.tableDefinitionNodeSelectionMessage201301, XbrlConst.tableAxisSelectionMessage2011)
-        
+
     def clear(self):
         XPathParser.clearNamedProg(self, "selectProg")
         super(ModelSelectionDefinitionNode, self).clear()
-    
+
     def coveredAspect(self, structuralNode=None):
         try:
             return self._coveredAspect
@@ -1384,31 +1384,31 @@ class ModelSelectionDefinitionNode(ModelOpenDefinitionNode):
             else:  # must be a qname
                 self._coveredAspect = qname(self, coveredAspect)
             return self._coveredAspect
-        
+
     def aspectsCovered(self):
         return {self.coveredAspect}
 
     def hasAspect(self, structuralNode, aspect):
         return aspect == self.coveredAspect() or (isinstance(self._coveredAspect,QName) and aspect == Aspect.DIMENSIONS)
-    
+
     @property
     def select(self):
         return self.get("select")
-    
+
     def compile(self):
         if not hasattr(self, "selectProg"):
             self.selectProg = XPathParser.parse(self, self.select, self, "select", Trace.PARAMETER)
             super(ModelSelectionDefinitionNode, self).compile()
-        
+
     def variableRefs(self, progs=[], varRefSet=None):
         return super(ModelSelectionDefinitionNode, self).variableRefs(self.selectProg, varRefSet)
-        
+
     def evaluate(self, xpCtx, typeQname=None):
         if typeQname:
             return xpCtx.evaluateAtomicValue(self.selectProg, typeQname)
         else:
             return xpCtx.flattenSequence(xpCtx.evaluate(self.selectProg, None))
-            
+
 aspectNodeAspectCovered = {"conceptAspect": Aspect.CONCEPT,
                            "unitAspect": Aspect.UNIT,
                            "entityIdentifierAspect": Aspect.ENTITY_IDENTIFIER,
@@ -1417,13 +1417,13 @@ aspectNodeAspectCovered = {"conceptAspect": Aspect.CONCEPT,
 class ModelFilterDefinitionNode(ModelOpenDefinitionNode):
     def init(self, modelDocument):
         super(ModelFilterDefinitionNode, self).init(modelDocument)
-    
+
     @property
-    def descendantArcroles(self):        
+    def descendantArcroles(self):
         return (XbrlConst.tableAspectNodeFilter, XbrlConst.tableAspectNodeFilterMMDD, XbrlConst.tableAspectNodeFilter201305, XbrlConst.tableFilterNodeFilter2011, XbrlConst.tableAxisFilter2011,XbrlConst.tableAxisFilter201205, XbrlConst.tableDefinitionNodeMessage201301, XbrlConst.tableAxisMessage2011,
                 XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011, XbrlConst.tableDefinitionNodeMessage201301, XbrlConst.tableAxisMessage2011)
-    
-        
+
+
     @property
     def filterRelationships(self):
         try:
@@ -1437,10 +1437,10 @@ class ModelFilterDefinitionNode(ModelOpenDefinitionNode):
                     rels.append(rel)
             self._filterRelationships = rels
             return rels
-    
+
     def hasAspect(self, structuralNode, aspect):
         return aspect in self.aspectsCovered()
-    
+
     def aspectsCovered(self, varBinding=None):
         try:
             return self._aspectsCovered
@@ -1458,7 +1458,7 @@ class ModelFilterDefinitionNode(ModelOpenDefinitionNode):
                         self._dimensionsCovered.add(dimQname)
                         self.includeUnreportedValue = aspectElt.get("includeUnreportedValue") in ("true", "1")
                     else:
-                        self._aspectsCovered.add(aspectNodeAspectCovered[aspectElt.localName])                                                  
+                        self._aspectsCovered.add(aspectNodeAspectCovered[aspectElt.localName])
             else:
                 # filter node (prior to 2013-05-17)
                 for rel in self.filterRelationships:
@@ -1475,9 +1475,9 @@ class ModelFilterDefinitionNode(ModelOpenDefinitionNode):
             return self._dimensionsCovered
         # does not apply to filter, value can only come from a bound fact
         return None
-    
+
     def filteredFactsPartitions(self, xpCtx, facts):
-        filteredFacts = formulaEvaluatorFilterFacts(xpCtx, VariableBinding(xpCtx), 
+        filteredFacts = formulaEvaluatorFilterFacts(xpCtx, VariableBinding(xpCtx),
                                                     facts, self.filterRelationships, None)
         if not self.includeUnreportedValue:
             # remove unreported falue
@@ -1490,7 +1490,7 @@ class ModelFilterDefinitionNode(ModelOpenDefinitionNode):
         else:
             reportedAspectFacts = filteredFacts
         return factsPartitions(xpCtx, reportedAspectFacts, self.aspectsCovered())
-        
+
     @property
     def propertyView(self):
         return ((("id", self.id),
@@ -1499,8 +1499,8 @@ class ModelFilterDefinitionNode(ModelOpenDefinitionNode):
                                       if aspect != Aspect.DIMENSIONS)),
                  ("definition", self.definitionNodeView)) +
                 self.definitionLabelsView)
-        
-        
+
+
 
 from arelle.ModelObjectFactory import elementSubstitutionModelClass
 elementSubstitutionModelClass.update((

@@ -12,7 +12,7 @@ def viewFacts(modelXbrl, outfile, lang=None, labelrole=None, cols=None):
     view = ViewFacts(modelXbrl, outfile, labelrole, lang, cols)
     view.view(modelXbrl.modelDocument)
     view.close()
-    
+
 COL_WIDTHS = {
     "Concept": 80, # same as label
     "Label": 80,
@@ -32,7 +32,7 @@ COL_WIDTHS = {
     # concept properties
     "ID": 40,
     "Type": 32,
-    "PeriodType": 16, 
+    "PeriodType": 16,
     "Balance": 16,
     "Documentation": 100
     }
@@ -73,7 +73,7 @@ class ViewFacts(ViewFile.View):
         self.addRow(self.cols, asHeader=True, lastColSpan=lastColSpan)
         self.setColWidths([COL_WIDTHS.get(col, 8) for col in self.cols])
         self.viewFacts(self.modelXbrl.facts, 0)
-        
+
     def tupleDepth(self, modelFacts, indentedCol):
         if indentedCol > self.treeCols: self.treeCols = indentedCol
         for modelFact in modelFacts:
@@ -81,7 +81,7 @@ class ViewFacts(ViewFile.View):
                 numDims = len(modelFact.context.qnameDims) * 2
                 if numDims > self.maxNumDims: self.maxNumDims = numDims
             self.tupleDepth(modelFact.modelTupleFacts, indentedCol + 1)
-        
+
     def viewFacts(self, modelFacts, indent):
         for modelFact in modelFacts:
             concept = modelFact.concept

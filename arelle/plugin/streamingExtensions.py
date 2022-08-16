@@ -30,7 +30,7 @@ from arelle.HashUtil import md5hash, Md5Sum
 _streamingExtensionsCheck = True  # check streaming if enabled except for CmdLine, then only when requested
 _streamingExtensionsValidate = False
 _streamingValidatePlugin = False
-    
+
 class NotInstanceDocumentException(Exception):
     def __init__(self):
         pass
@@ -65,15 +65,15 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     # check if big instance and has header with an initial incomplete tree walk (just 2 elements
     if not _streamingExtensionsCheck:
         return None
-    
+
     # track whether modelXbrl has been validated by this streaming extension
     modelXbrl._streamingExtensionValidated = False
-        
+
     def logSyntaxErrors(parsercontext):
         for error in parsercontext.error_log:
             modelXbrl.error("xmlSchema:syntax",
                     _("%(error)s, %(fileName)s, line %(line)s, column %(column)s, %(sourceAction)s source element"),
-                    modelObject=modelXbrl, fileName=os.path.basename(filepath), 
+                    modelObject=modelXbrl, fileName=os.path.basename(filepath),
                     error=error.message, line=error.line, column=error.column, sourceAction="streaming")
     #### note: written for iterparse of lxml prior to version 3.3, otherwise rewrite to use XmlPullParser ###
     #### note: iterparse wants a binary file, but file is text mode
@@ -94,7 +94,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                 if tag == "{http://www.xbrl.org/2003/instance}xbrl":
                     self.foundInstance = True
                     self.newTree = False
-                else: # break 
+                else: # break
                     raise NotInstanceDocumentException()
             elif not tag.startswith("{http://www.xbrl.org/"):
                 self.numRootFacts += 1
@@ -155,7 +155,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                             instInfoNumRootFacts += 1
                             if instInfoNumRootFacts % 1000 == 0:
                                 modelXbrl.profileActivity("... streaming tree check", minTimeToShow=20.0)
-                    elif not foundInstance:       
+                    elif not foundInstance:
                         break
                 elif elt.tag == "{http://www.xbrl.org/2003/instance}xbrl":
                     creationSoftwareComment = precedingComment(elt)
@@ -175,7 +175,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                 error=err)
         _file.close()
         return err
-        
+
     _file.seek(0,io.SEEK_SET) # allow reparsing
     if not foundInstance or streamingAspects is None:
         del elt
@@ -240,7 +240,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                     _("Streaming instance not supported by plugin %(blockingPlugin)s"),
                     modelObject=modelXbrl, blockingPlugin=_blockingPluginName)
             foundErrors = True
-    
+
     if foundErrors:
         _file.close()
         return None
@@ -258,9 +258,9 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     unitsToDrop = []
     footnoteBuffer = []
     footnoteLinksToDrop = []
-    
+
     _streamingFactsPlugin = any(True for pluginMethod in pluginClassMethods("Streaming.Facts"))
-    _streamingValidateFactsPlugin = (_streamingExtensionsValidate and 
+    _streamingValidateFactsPlugin = (_streamingExtensionsValidate and
                                      any(True for pluginMethod in pluginClassMethods("Streaming.ValidateFacts")))
 
     ''' this is very much slower than iterparse
@@ -285,7 +285,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                 modelDocument = ModelDocument(modelXbrl, Type.INSTANCE, mappedUri, filepath, mdlObj.getroottree())
                 modelXbrl.modelDocument = modelDocument # needed for incremental validation
                 mdlObj.init(modelDocument)
-                modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement 
+                modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement
                 modelDocument.parserLookupName = _parserLookupName
                 modelDocument.parserLookupClass = _parserLookupClass
                 modelDocument.xmlRootElement = mdlObj
@@ -357,7 +357,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                         else:
                             dropUnit(modelXbrl, unit)
                             del parentMdlObj[parentMdlObj.index(unit)]
-                        unit = None 
+                        unit = None
                     #>>XmlValidate.validate(modelXbrl, mdlObj)
                     #>>modelDocument.unitDiscover(mdlObj)
                     if unitBufferLimit.is_finite():
@@ -470,8 +470,8 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                         del parentMdlObj[parentMdlObj.index(mdlObj)]
                 if self.numRootFacts % 1000 == 0:
                     pass
-                    #modelXbrl.profileActivity("... streaming fact {0} of {1} {2:.2f}%".format(self.numRootFacts, instInfoNumRootFacts, 
-                    #                                                                          100.0 * self.numRootFacts / instInfoNumRootFacts), 
+                    #modelXbrl.profileActivity("... streaming fact {0} of {1} {2:.2f}%".format(self.numRootFacts, instInfoNumRootFacts,
+                    #                                                                          100.0 * self.numRootFacts / instInfoNumRootFacts),
                     #                          minTimeToShow=20.0)
                     gc.collect()
                     sys.stdout.write ("\rAt fact {} of {} mem {}".format(self.numRootFacts, instInfoNumRootFacts, modelXbrl.modelManager.cntlr.memoryUsed))
@@ -506,12 +506,12 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
         def close(self):
             del modelXbrl.makeelementParentModelObject
             return None
-        
+
         def factCheckFact(self, fact):
             self.factsCheckMd5s += fact.md5sum
             for _tupleFact in fact.modelTupleFacts:
                 self.factCheckFact(_tupleFact)
-        
+
     _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl, filepath, target=modelLoaderTarget())
     etree.parse(_file, parser=_parser, base_url=filepath)
     logSyntaxErrors(_parser)
@@ -535,7 +535,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                 modelDocument = ModelDocument(modelXbrl, Type.INSTANCE, mappedUri, filepath, mdlObj.getroottree())
                 modelXbrl.modelDocument = modelDocument # needed for incremental validation
                 mdlObj.init(modelDocument)
-                modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement 
+                modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement
                 modelDocument.parserLookupName = _parserLookupName
                 modelDocument.parserLookupClass = _parserLookupClass
                 modelDocument.xmlRootElement = mdlObj
@@ -554,7 +554,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                         pi = precedingProcessingInstruction(mdlObj, "xbrl-facts-check")
                         if pi is not None:
                             factsCheckVersion = pi.attrib.get("version", None)
-                elif not foundInstance:       
+                elif not foundInstance:
                     break
                 ns = mdlObj.qname.namespaceURI
                 ln = mdlObj.qname.localName
@@ -610,7 +610,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                         else:
                             dropUnit(modelXbrl, unit)
                             #>>del parentMdlObj[parentMdlObj.index(unit)]
-                        unit = None 
+                        unit = None
                     XmlValidate.validate(modelXbrl, mdlObj)
                     modelDocument.unitDiscover(mdlObj)
                     if unitBufferLimit.is_finite():
@@ -749,22 +749,22 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                         #>>del parentMdlObj[parentMdlObj.index(mdlObj)]
                 if numRootFacts % 1000 == 0:
                     pass
-                    #modelXbrl.profileActivity("... streaming fact {0} of {1} {2:.2f}%".format(self.numRootFacts, instInfoNumRootFacts, 
-                    #                                                                          100.0 * self.numRootFacts / instInfoNumRootFacts), 
+                    #modelXbrl.profileActivity("... streaming fact {0} of {1} {2:.2f}%".format(self.numRootFacts, instInfoNumRootFacts,
+                    #                                                                          100.0 * self.numRootFacts / instInfoNumRootFacts),
                     #                          minTimeToShow=20.0)
                     #gc.collect()
                     #sys.stdout.write ("\rAt fact {} of {} mem {}".format(numRootFacts, instInfoNumRootFacts, modelXbrl.modelManager.cntlr.memoryUsed))
     if mdlObj is not None:
         mdlObj.clear()
-    del _parser, _parserLookupName, _parserLookupClass                
-                
+    del _parser, _parserLookupName, _parserLookupClass
+
     if _streamingExtensionsValidate and validator is not None:
         _file.close()
         del instValidator
         validator.close()
         # track that modelXbrl has been validated by this streaming extension
         modelXbrl._streamingExtensionValidated = True
-        
+
     modelXbrl.profileStat(_("streaming complete"), time.time() - startedAt)
     return modelXbrl.modelDocument
 
@@ -779,17 +779,17 @@ def checkFootnoteHrefs(modelXbrl, footnoteLink):
 def dropContext(modelXbrl, cntx):
     del modelXbrl.contexts[cntx.id]
     dropObject(modelXbrl, cntx)
-    
+
 def dropUnit(modelXbrl, unit):
     del modelXbrl.units[unit.id]
     dropObject(modelXbrl, unit)
-    
+
 def dropFootnoteLink(modelXbrl, footnoteLink):
     for baseSet in modelXbrl.baseSets.values():
         if footnoteLink in baseSet:
             baseSet.remove(footnoteLink)
     dropObject(modelXbrl, footnoteLink)
-    
+
 def dropFact(modelXbrl, fact, facts):
     while fact.modelTupleFacts:
         dropFact(modelXbrl, fact.modelTupleFacts[0], fact.modelTupleFacts)
@@ -799,7 +799,7 @@ def dropFact(modelXbrl, fact, facts):
     if fact.id:
         fact.modelDocument.idObjects.pop(fact.id, None)
     fact.clear()
-    
+
 def dropObject(modelXbrl, mdlObj):
     for childObj in mdlObj.iterchildren():
         dropObject(modelXbrl, childObj)
@@ -815,9 +815,9 @@ def dropObject(modelXbrl, mdlObj):
 
 '''
 def streamingOptionsExtender(parser):
-    parser.add_option("--check-streaming", 
-                      action="store_true", 
-                      dest="check_streaming", 
+    parser.add_option("--check-streaming",
+                      action="store_true",
+                      dest="check_streaming",
                       help=_('Check streamability of instance document."'))
 '''
 

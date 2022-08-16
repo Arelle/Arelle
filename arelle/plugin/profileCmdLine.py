@@ -6,9 +6,9 @@ CmdLine Profiler is an example of a plug-in to command line processing that will
 import os
 
 def profilerOptionExtender(parser, *args, **kwargs):
-    parser.add_option("--saveProfilerReport", 
-                      action="store", 
-                      dest="profilerReportFile", 
+    parser.add_option("--saveProfilerReport",
+                      action="store",
+                      dest="profilerReportFile",
                       help=_("Run command line options under profiler and save report file.  Expect about 3x execution time to collect profiling statistics."))
 
 def profilerCommandLineRun(cntlr, options, sourceZipStream=None, *args, **kwargs):
@@ -21,13 +21,13 @@ def profilerCommandLineRun(cntlr, options, sourceZipStream=None, *args, **kwargs
         statsFile = profileReportFile + ".bin"
         cntlr.blockNestedProfiling = True
         cProfile.runctx("cntlr.run(options, sourceZipStream)", globals(), locals(), statsFile)
-        cntlr.addToLog(Locale.format_string(cntlr.modelManager.locale, 
-                                            _("profiled command processing completed in %.2f secs"), 
+        cntlr.addToLog(Locale.format_string(cntlr.modelManager.locale,
+                                            _("profiled command processing completed in %.2f secs"),
                                             time.time() - startedAt))
         # specify a file for log
         priorStdOut = sys.stdout
         sys.stdout = open(profileReportFile, "w")
-    
+
         statObj = pstats.Stats(statsFile)
         statObj.strip_dirs()
         statObj.sort_stats("time")

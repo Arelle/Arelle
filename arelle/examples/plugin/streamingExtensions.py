@@ -23,7 +23,7 @@ from arelle.Validate import Validate
 
 _streamingExtensionsValidate = False
 _streamingExtensionsCheck = False
-    
+
 def precedingProcessingInstruction(elt, target):
     pi = elt.getprevious()
     while pi is not None:
@@ -38,7 +38,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath):
         for error in parsercontext.error_log:
             modelXbrl.error("xmlSchema:syntax",
                     _("%(error)s, %(fileName)s, line %(line)s, column %(column)s, %(sourceAction)s source element"),
-                    modelObject=modelDocument, fileName=os.path.basename(filepath), 
+                    modelObject=modelDocument, fileName=os.path.basename(filepath),
                     error=error.message, line=error.line, column=error.column, sourceAction="streaming")
     #### note: written for iterparse of lxml prior to version 3.3, otherwise rewrite to use XmlPullParser ###
     #### note: iterparse wants a binary file, but file is text mode
@@ -67,7 +67,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath):
                         numRootFacts1 += 1
                         if numRootFacts1 % 1000 == 0:
                             modelXbrl.profileActivity("... streaming tree check", minTimeToShow=20.0)
-                elif not foundInstance:       
+                elif not foundInstance:
                     break
             elif elt.tag == "{http://www.xbrl.org/2003/instance}xbrl" and precedingProcessingInstruction(elt, "xbrl-streamable-instance") is not None:
                 modelXbrl.error("streamingExtensions:headerMisplaced",
@@ -119,7 +119,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath):
     if parsercontext.error_log:
         foundErrors = True
     logSyntaxErrors(parsercontext)
-    
+
     if foundErrors:
         _file.close()
         return None
@@ -145,7 +145,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath):
                 mdlObj.init(modelDocument)
                 modelXbrl.info("streamingExtensions:streaming",
                                _("Stream processing this instance."),
-                               modelObject = modelDocument)    
+                               modelObject = modelDocument)
             else:
                 eltMdlObjs[elt.getparent()].append(mdlObj)
                 mdlObj._init()
@@ -162,7 +162,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath):
                     else: # need default dimensions
                         ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
             mdlObj = None # deref
-                        
+
         elif event == "end":
             mdlObj = eltMdlObjs.pop(elt)
             if elt.text: # text available after child nodes processed
@@ -197,7 +197,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath):
                         unit = unitBuffer.pop(0)
                         dropUnit(modelXbrl, unit)
                         del parentMdlObj[parentMdlObj.index(unit)]
-                        unit = None 
+                        unit = None
                     modelDocument.unitDiscover(mdlObj)
                     if unitBufferLimit.is_finite():
                         unitBuffer.append(mdlObj)
@@ -243,7 +243,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath):
                     dropFact(modelXbrl, mdlObj, modelXbrl.facts)
                     del parentMdlObj[parentMdlObj.index(mdlObj)]
                 if numRootFacts2 % 1000 == 0:
-                    modelXbrl.profileActivity("... streaming fact {0} of {1} {2:.2f}%".format(numRootFacts2, numRootFacts1, 100.0 * numRootFacts2 / numRootFacts1), 
+                    modelXbrl.profileActivity("... streaming fact {0} of {1} {2:.2f}%".format(numRootFacts2, numRootFacts1, 100.0 * numRootFacts2 / numRootFacts1),
                                               minTimeToShow=20.0)
                 # get rid of root element from iterparse's tree
                 elt.clear()
@@ -269,17 +269,17 @@ def checkFootnoteHrefs(modelXbrl, footnoteLink):
 def dropContext(modelXbrl, cntx):
     del modelXbrl.contexts[cntx.id]
     dropObject(modelXbrl, cntx)
-    
+
 def dropUnit(modelXbrl, unit):
     del modelXbrl.units[unit.id]
     dropObject(modelXbrl, unit)
-    
+
 def dropFootnoteLink(modelXbrl, footnoteLink):
     for baseSet in modelXbrl.baseSets.values():
         if footnoteLink in baseSet:
             baseSet.remove(footnoteLink)
     dropObject(modelXbrl, footnoteLink)
-    
+
 def dropFact(modelXbrl, fact, facts):
     while fact.modelTupleFacts:
         dropFact(modelXbrl, fact.modelTupleFacts[0], fact.modelTupleFacts)
@@ -288,7 +288,7 @@ def dropFact(modelXbrl, fact, facts):
     modelXbrl.modelObjects[fact.objectIndex] = None # objects found by index, can't remove position from list
     fact.modelDocument.modelObjects.remove(fact)
     fact.clear()
-    
+
 def dropObject(modelXbrl, mdlObj):
     for childObj in mdlObj.iterchildren():
         dropObject(modelXbrl, childObj)
@@ -303,9 +303,9 @@ def dropObject(modelXbrl, mdlObj):
     mdlObj.clear()
 
 def streamingOptionsExtender(parser):
-    parser.add_option("--check-streaming", 
-                      action="store_true", 
-                      dest="check_streaming", 
+    parser.add_option("--check-streaming",
+                      action="store_true",
+                      dest="check_streaming",
                       help=_('Check streamability of instance document."'))
 
 def streamingExtensionsSetup(self, options, **kwargs):

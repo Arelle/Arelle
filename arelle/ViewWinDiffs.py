@@ -37,34 +37,34 @@ class ViewWinDiffs:
         self.tabWinBtmRt = Notebook(self.paneWin, width=width)
         self.tabWinBtmRt.grid(row=0, column=0, sticky=(N, S, E, W))
         self.paneWin.add(self.tabWinBtmRt)
-        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf, 
-                            XbrlConst.parentChild, lang=lang, 
+        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf,
+                            XbrlConst.parentChild, lang=lang,
                             treeColHdr=_("From DTS Presentation"))
-        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf, 
-                            XbrlConst.summationItem, lang=lang, 
+        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf,
+                            XbrlConst.summationItem, lang=lang,
                             treeColHdr=_("From DTS Calculation"))
-        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf, 
-                            "XBRL-dimensions", lang=lang, 
+        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf,
+                            "XBRL-dimensions", lang=lang,
                             treeColHdr=_("From DTS Dimension"))
         viewConcepts(self.fromDTS, self.tabWinBtmLf, "From Concepts", lang=lang)
-        viewRelationshipSet(self.toDTS, self.tabWinBtmRt, 
-                            XbrlConst.parentChild, lang=lang, 
+        viewRelationshipSet(self.toDTS, self.tabWinBtmRt,
+                            XbrlConst.parentChild, lang=lang,
                             treeColHdr=_("To DTS Presentation"))
-        viewRelationshipSet(self.toDTS, self.tabWinBtmRt, 
-                            XbrlConst.summationItem, lang=lang, 
+        viewRelationshipSet(self.toDTS, self.tabWinBtmRt,
+                            XbrlConst.summationItem, lang=lang,
                             treeColHdr=_("To DTS Calculation"))
-        viewRelationshipSet(self.toDTS, self.tabWinBtmRt, 
-                            "XBRL-dimensions", lang=lang, 
+        viewRelationshipSet(self.toDTS, self.tabWinBtmRt,
+                            "XBRL-dimensions", lang=lang,
                             treeColHdr=_("To DTS Dimension"))
         viewConcepts(self.toDTS, self.tabWinBtmRt, "To Concepts", lang=lang)
-        
+
         modelVersReport.views.append(self)
         self.fromDTS.views.append(self)
         self.toDTS.views.append(self)
-            
+
         self.blockViewModelObject = 0
 
-        
+
     def close(self):
         if self in self.fromDTS.views:
             self.fromDTS.views.remove(self)
@@ -75,7 +75,7 @@ class ViewWinDiffs:
         self.tabWin.forget(self.paneWin)
         self.modelVersReport.views.remove(self)
         self.modelVersReport = None
-        
+
     def viewModelObject(self, modelObject):
         if self.blockViewModelObject == 0:
             try:

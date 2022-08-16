@@ -23,7 +23,7 @@ def relateConceptMdlObjs(modelDocument, fromConceptMdlObjs, toConceptMdlObjs):
 class ModelVersObject(ModelObject):
     def init(self, modelDocument):
         super(ModelVersObject, self).init(modelDocument)
-        
+
     @property
     def name(self):
         return self.localName
@@ -35,7 +35,7 @@ class ModelAssignment(ModelVersObject):
     def init(self, modelDocument):
         super(ModelAssignment, self).init(modelDocument)
         self.modelDocument.assignments[self.id] = self
-        
+
     @property
     def categoryqname(self):
         for child in self.iterchildren():
@@ -61,11 +61,11 @@ class ModelAction(ModelVersObject):
         actionKey = self.id if self.id else "action{0:05}".format(len(self.modelDocument.actions) + 1)
         self.modelDocument.actions[actionKey] = self
         self.events = []
-        
+
     @property
     def assignmentRefs(self):
         return XmlUtil.childrenAttrs(self, XbrlConst.ver, "assignmentRef", "ref")
-        
+
     @property
     def propertyView(self):
         return (("id", self.id),
@@ -75,11 +75,11 @@ class ModelAction(ModelVersObject):
 class ModelUriMapped(ModelVersObject):
     def init(self, modelDocument):
         super(ModelUriMapped, self).init(modelDocument)
-        
+
     @property
     def fromURI(self):
         return XmlUtil.childAttr(self, XbrlConst.ver, "fromURI", "value")
-        
+
     @property
     def toURI(self):
         return XmlUtil.childAttr(self, XbrlConst.ver, "toURI", "value")
@@ -88,10 +88,10 @@ class ModelUriMapped(ModelVersObject):
     def propertyView(self):
         return (("fromURI", self.fromURI),
                 ("toURI", self.toURI))
-        
+
     def viewText(self, labelrole=None, lang=None):
         return "{0} -> {1}".format(self.fromURI, self.toURI)
-    
+
 class ModelNamespaceRename(ModelUriMapped):
     def init(self, modelDocument):
         super(ModelNamespaceRename, self).init(modelDocument)
@@ -99,7 +99,7 @@ class ModelNamespaceRename(ModelUriMapped):
         self.modelDocument.namespaceRenameFromURI[self.fromURI] = self.toURI
         self.modelDocument.namespaceRenameTo[self.toURI] = self
         self.modelDocument.namespaceRenameToURI[self.toURI] = self.fromURI
-        
+
 class ModelRoleChange(ModelUriMapped):
     def init(self, modelDocument):
         super(ModelRoleChange, self).init(modelDocument)
@@ -108,19 +108,19 @@ class ModelRoleChange(ModelUriMapped):
 class ModelConceptChange(ModelVersObject):
     def init(self, modelDocument):
         super(ModelConceptChange, self).init(modelDocument)
-        
+
     @property
     def actionId(self):
         return XmlUtil.parentId(self, XbrlConst.ver, "action")
-    
+
     @property
     def physical(self):
         return self.get("physical") or "true" # default="true"
-    
+
     @property
     def isPhysical(self):
         return self.physical == "true"
-    
+
     @property
     def fromConceptQname(self):
         fromConcept = XmlUtil.child(self, None, "fromConcept") # can be vercu or vercb, schema validation will assure right elements
@@ -128,7 +128,7 @@ class ModelConceptChange(ModelVersObject):
             return qname(fromConcept, fromConcept.get("name"))
         else:
             return None
-        
+
     @property
     def toConceptQname(self):
         toConcept = XmlUtil.child(self, None, "toConcept")
@@ -136,17 +136,17 @@ class ModelConceptChange(ModelVersObject):
             return qname(toConcept, toConcept.get("name"))
         else:
             return None
-        
+
     @property
     def fromConcept(self):
         # for href: return self.resolveUri(uri=self.fromConceptValue, dtsModelXbrl=self.modelDocument.fromDTS)
         return self.modelDocument.fromDTS.qnameConcepts.get(self.fromConceptQname)
-    
+
     @property
     def toConcept(self):
         # return self.resolveUri(uri=self.toConceptValue, dtsModelXbrl=self.modelDocument.toDTS)
         return self.modelDocument.toDTS.qnameConcepts.get(self.toConceptQname)
-        
+
     def setConceptEquivalence(self):
         if self.fromConcept is not None and self.toConcept is not None:
             self.modelDocument.equivalentConcepts[self.fromConcept.qname] = self.toConcept.qname
@@ -190,49 +190,49 @@ class ModelConceptChange(ModelVersObject):
                 return str(toConceptQname)
             else:
                 return "(invalidConceptReference)"
-            
+
 
 class ModelConceptUseChange(ModelConceptChange):
     def init(self, modelDocument):
         super(ModelConceptUseChange, self).init(modelDocument)
         self.modelDocument.conceptUseChanges.append(self)
-            
-        
+
+
 class ModelConceptDetailsChange(ModelConceptChange):
     def init(self, modelDocument):
         super(ModelConceptDetailsChange, self).init(modelDocument)
         self.modelDocument.conceptDetailsChanges.append(self)
-        
+
     def customAttributeQname(self, eventName):
         custAttrElt = XmlUtil.child(self, None, eventName) # will be vercd or verce
         if custAttrElt is not None and custAttrElt.get("name"):
             return qname(custAttrElt, custAttrElt.get("name"))
         return None
-        
+
     @property
     def fromCustomAttributeQname(self):
         return self.customAttributeQname("fromCustomAttribute")
-        
+
     @property
     def toCustomAttributeQname(self):
         return self.customAttributeQname("toCustomAttribute")
-        
+
     @property
     def fromResourceValue(self):
         return XmlUtil.childAttr(self, None, "fromResource", "value")
-        
+
     @property
     def toResourceValue(self):
         return XmlUtil.childAttr(self, None, "toResource", "value")
-        
+
     @property
     def fromResource(self):
         return self.resolveUri(uri=self.fromResourceValue, dtsModelXbrl=self.modelDocument.fromDTS)
-        
+
     @property
     def toResource(self):
         return self.resolveUri(uri=self.toResourceValue, dtsModelXbrl=self.modelDocument.toDTS)
-        
+
     @property
     def propertyView(self):
         fromConcept = self.fromConcept
@@ -254,7 +254,7 @@ class ModelRelationshipSetChange(ModelVersObject):
         self.modelDocument.relationshipSetChanges.append(self)
         self.fromRelationshipSet = None
         self.toRelationshipSet = None
-        
+
     @property
     def propertyView(self):
         return (("event", self.localName),
@@ -264,15 +264,15 @@ class ModelRelationshipSet(ModelVersObject):
     def init(self, modelDocument):
         super(ModelRelationshipSet, self).init(modelDocument)
         self.relationships = []
-        
+
     @property
     def isFromDTS(self):
         return self.localName == "fromRelationshipSet"
-        
+
     @property
     def dts(self):
         return self.modelDocument.fromDTS if self.isFromDTS else self.modelDocument.toDTS
-        
+
     @property
     def relationshipSetElement(self):
         return XmlUtil.child(self, XbrlConst.verrels, "relationshipSet")
@@ -283,28 +283,28 @@ class ModelRelationshipSet(ModelVersObject):
             return self.prefixedNameQname(self.relationshipSetElement.get("link"))
         else:
             return None
-        
+
     @property
     def linkrole(self):
         if self.relationshipSetElement.get("linkrole"):
             return self.relationshipSetElement.get("linkrole")
         else:
             return None
-        
+
     @property
     def arc(self):
         if self.relationshipSetElement.get("arc"):
             return self.prefixedNameQname(self.relationshipSetElement.get("arc"))
         else:
             return None
-        
+
     @property
     def arcrole(self):
         if self.relationshipSetElement.get("arcrole"):
             return self.relationshipSetElement.get("arcrole")
         else:
             return None
-        
+
     @property
     def propertyView(self):
         return self.modelRelationshipSetEvent.propertyView + \
@@ -318,39 +318,39 @@ class ModelRelationshipSet(ModelVersObject):
 class ModelRelationships(ModelVersObject):
     def init(self, modelDocument):
         super(ModelRelationships, self).init(modelDocument)
-        
+
     @property
     def fromName(self):
         if self.get("fromName"):
             return self.prefixedNameQname(self.get("fromName"))
         else:
             return None
-        
+
     @property
     def toName(self):
         return self.prefixedNameQname(self.get("toName")) if self.get("toName") else None
-        
+
     @property
     def fromConcept(self):
         # for href: return self.resolveUri(uri=self.fromConceptValue, dtsModelXbrl=self.modelDocument.fromDTS)
         return self.modelRelationshipSet.dts.qnameConcepts.get(self.fromName) if self.fromName else None
-    
+
     @property
     def toConcept(self):
         # return self.resolveUri(uri=self.toConceptValue, dtsModelXbrl=self.modelDocument.toDTS)
         return self.modelRelationshipSet.dts.qnameConcepts.get(self.toName) if self.toName else None
-        
+
     @property
     def axis(self):
         if self.get("axis"):
             return self.get("axis")
         else:
             return None
-        
+
     @property
     def isFromDTS(self):
         return self.modelRelationshipSet.isFromDTS
-        
+
     @property
     def fromRelationships(self):
         mdlRel = self.modelRelationshipSet
@@ -358,7 +358,7 @@ class ModelRelationships(ModelVersObject):
         if relSet:
             return relSet.fromModelObject(self.fromConcept)
         return None
-        
+
     @property
     def fromRelationship(self):
         fromRelationships = self.fromRelationships
@@ -372,7 +372,7 @@ class ModelRelationships(ModelVersObject):
             return None
         else:   # return first (any) relationship
             return fromRelationships[0]
-        
+
     @property
     def propertyView(self):
         return self.modelRelationshipSet.propertyView + \
@@ -387,7 +387,7 @@ class ModelInstanceAspectsChange(ModelVersObject):
         self.modelDocument.instanceAspectChanges.append(self)
         self.fromAspects = None
         self.toAspects = None
-        
+
     @property
     def propertyView(self):
         return (("event", self.localName),
@@ -397,19 +397,19 @@ class ModelInstanceAspects(ModelVersObject):
     def init(self, modelDocument):
         super(ModelInstanceAspects, self).init(modelDocument)
         self.aspects = []
-        
+
     @property
     def isFromDTS(self):
         return self.localName == "fromAspects"
-        
+
     @property
     def dts(self):
         return self.modelDocument.fromDTS if self.isFromDTS else self.modelDocument.toDTS
-        
+
     @property
     def excluded(self):
         return self.get("excluded") if self.get("excluded") else None
-        
+
     @property
     def propertyView(self):
         return self.aspectModelEvent.propertyView + \
@@ -424,13 +424,13 @@ class ModelInstanceAspect(ModelVersObject):
     @property
     def isFromDTS(self):
         return self.modelAspects.isFromDTS
-    
+
     @property
     def propertyView(self):
         return self.modelAspects.propertyView + \
                (("aspect", self.localName),
                 ) + self.elementAttributesTuple
-                
+
 class ModelConceptsDimsAspect(ModelInstanceAspect):
     def init(self, modelDocument):
         super(ModelConceptsDimsAspect, self).init(modelDocument)
@@ -439,12 +439,12 @@ class ModelConceptsDimsAspect(ModelInstanceAspect):
     @property
     def conceptName(self):
         return self.prefixedNameQname(self.get("name")) if self.get("name") else None
-        
+
     @property
     def concept(self):
         # for href: return self.resolveUri(uri=self.fromConceptValue, dtsModelXbrl=self.modelDocument.fromDTS)
         return self.modelAspects.dts.qnameConcepts.get(self.conceptName) if self.conceptName else None
-    
+
     @property
     def sourceDtsObject(self):
         if self.localName == "explicitDimension":
@@ -467,16 +467,16 @@ class ModelMeasureAspect(ModelInstanceAspect):
 class ModelRelatedConcept(ModelVersObject):
     def init(self, modelDocument):
         super(ModelRelatedConcept, self).init(modelDocument)
-        
+
     @property
     def conceptName(self):
         return self.prefixedNameQname(self.get("name")) if self.get("name") else None
-        
+
     @property
     def concept(self):
         # for href: return self.resolveUri(uri=self.fromConceptValue, dtsModelXbrl=self.modelDocument.fromDTS)
         return self.modelAspect.modelAspects.dts.qnameConcepts.get(self.conceptName) if self.conceptName else None
-    
+
     @property
     def sourceDtsObject(self):
         return self.concept
@@ -484,33 +484,33 @@ class ModelRelatedConcept(ModelVersObject):
     @property
     def isFromDTS(self):
         return self.modelAspect.modelAspects.isFromDTS
-    
+
     @property
     def hasNetwork(self):
         return XmlUtil.hasChild(self, XbrlConst.verdim, "network")
-    
+
     @property
     def hasDrsNetwork(self):
         return XmlUtil.hasChild(self, XbrlConst.verdim, "drsNetwork")
-    
+
     @property
     def arcrole(self):
         return XmlUtil.childAttr(self, XbrlConst.verdim, ("network","drsNetwork"), "arcrole")
-    
+
     @property
     def linkrole(self):
         return XmlUtil.childAttr(self, XbrlConst.verdim, ("network","drsNetwork"), "linkrole")
-    
+
     @property
     def arc(self):
         arc = XmlUtil.childAttr(self, XbrlConst.verdim, ("network","drsNetwork"), "arc")
         return self.prefixedNameQname(arc) if arc else None
-    
+
     @property
     def link(self):
         link = XmlUtil.childAttr(self, XbrlConst.verdim, ("network","drsNetwork"), "link")
         return self.prefixedNameQname(link) if link else None
-    
+
     @property
     def propertyView(self):
         return self.modelAspect.propertyView + \
@@ -521,7 +521,7 @@ class ModelRelatedConcept(ModelVersObject):
 class ModelAspectProperty(ModelVersObject):
     def init(self, modelDocument):
         super(ModelRelatedConcept, self).init(modelDocument)
-        
+
     @property
     def propertyView(self):
         return self.modelAspect.propertyView + \

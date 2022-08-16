@@ -1,11 +1,11 @@
 '''
 DialogRssWatchExtender extends DialogRssWatch for XBRL databases.
 
-It is separate from the xbrlDB __init__.py module so that it can be removed when 
+It is separate from the xbrlDB __init__.py module so that it can be removed when
 compiling server versions where Python has no GUI facilities.  The imports of GUI
 facilities would cause compilation of the server-related modules to fail, otherwise.
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
+(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 and does not apply to the XBRL US Database schema and description.
 
@@ -20,14 +20,14 @@ def dialogRssWatchDBextender(dialog, frame, row, options, cntlr, openFileImage, 
         from tkinter.ttk import Button
     except ImportError:
         from ttk import Button
-        
+
     def enterConnectionString():
         from arelle.DialogUserPassword import askDatabase
         # (user, password, host, port, database)
         db = askDatabase(cntlr.parent, dialog.cellDBconnection.value.split(',') if dialog.cellDBconnection.value else None)
         if db:
             dbConnectionString = ','.join(db)
-            dialog.options["xbrlDBconnection"] = dbConnectionString 
+            dialog.options["xbrlDBconnection"] = dbConnectionString
             dialog.cellDBconnection.setValue(dbConnectionString)
         else:  # deleted
             dialog.options.pop("xbrlDBconnection", "")  # remove entry

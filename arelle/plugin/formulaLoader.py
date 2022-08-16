@@ -1,7 +1,7 @@
 '''
 formula loader for XBRL Formula files.
 
-(c) Copyright 2016 Mark V Systems Limited, California US, All rights reserved.  
+(c) Copyright 2016 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 Loads xbrl formula file syntax into formula linkbase.
@@ -9,12 +9,12 @@ Loads xbrl formula file syntax into formula linkbase.
 To run as a main program and save xbrl formula files (.xf) into xbrl formula linkbase:
 
    python3.5  formulaLoader.py [--debug] [--omit-sourceline-attributes] {files}
-   where {files} are formula files 
+   where {files} are formula files
    loads from {name}.xf file
    saves formula linkbase to {name}-formula.xml file
    if --debug is specified then pyparsing debug trace is printed (helpful to see where parsing got stuck if parse errors)
    if --omit-sourceline-attributes is specified, then resulting linkbase omits "xfs:sourceline" attributes
-   
+
 As a plugin this enables Arelle to load formula files (*.xf) into Arelle's object model for formula linkbases and execute them.
 When run from GUI first load the instance/DTS and then import the xf file(s).
 
@@ -22,7 +22,7 @@ When run from GUI first load the instance/DTS and then import the xf file(s).
 
 import time, sys, traceback, os, io, os.path, re, zipfile
 from lxml import etree
-                                       
+
 # Debugging flag can be set to either "debug_flag=True" or "debug_flag=False"
 debug_flag=True
 
@@ -46,7 +46,7 @@ class PrefixError(Exception):
         self.args = ( self.__repr__(), )
     def __repr__(self):
         return _("QName prefix undeclared: {0}").format(self.qname)
-    
+
 def cleanedName(name):
     return re.sub(r"\W", "_", name)
 
@@ -55,7 +55,7 @@ def dequotedString(s):
     if q != '"' and q != "'":
         return s # note quoted
     return s[1:-1].replace(q+q,q)
-                
+
 def camelCase(name):
     s = []
     wasDash = False
@@ -81,7 +81,7 @@ def compileAspectCoverFilter( sourceStr, loc, toks ):
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
                "complement": "false",
-               "cover": "true"}   
+               "cover": "true"}
 
     if not omitSourceLineAttributes:
         arcAttrib["xfs:sourceline"] = "{}".format(loc)
@@ -116,7 +116,7 @@ def compileAspectCoverFilter( sourceStr, loc, toks ):
                 lbGen.subElement(filterElt, dimElt, text=tok)
             else: # it's a local name, requires general & aspect cover filter
                 lbGen.checkXmlns("xfi")
-                lbGen.subElement(filterElt, dimElt, 
+                lbGen.subElement(filterElt, dimElt,
                                  text="xfi:concepts-from-local-name('{}')".format(tok))
             dimElt = None
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
@@ -135,7 +135,7 @@ def compileAspectRules( sourceStr, loc, toks ):
         if isinstance(tok, FormulaAspectElt):
             elt.append(tok.elt)
     return [FormulaAspectElt(elt)]
-    
+
 def compileAspectRuleConcept( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     elt = lbGen.element("formula:concept")
@@ -144,7 +144,7 @@ def compileAspectRuleConcept( sourceStr, loc, toks ):
     else:
         lbGen.subElement(elt, "formula:qname", text=lbGen.checkedQName(toks[0]))
     return [FormulaAspectElt(elt)]
-    
+
 def compileAspectRuleEntityIdentifier( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     attrib = {}
@@ -157,7 +157,7 @@ def compileAspectRuleEntityIdentifier( sourceStr, loc, toks ):
         prevTok = tok
     elt = lbGen.element("formula:entityIdentifier", attrib=attrib)
     return [FormulaAspectElt(elt)]
-    
+
 def compileAspectRulePeriod( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     elt = lbGen.element("formula:period")
@@ -173,7 +173,7 @@ def compileAspectRulePeriod( sourceStr, loc, toks ):
             perElt.set("end", str(tok))
         prevTok = tok
     return [FormulaAspectElt(elt)]
-    
+
 def compileAspectRuleUnit( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     elt = lbGen.element("formula:unit")
@@ -193,11 +193,11 @@ def compileAspectRuleUnitTerm( sourceStr, loc, toks ):
     for tok in toks:
         if prevTok == "source":
             elt.set("source", tok)
-        elif prevTok == "measure": 
+        elif prevTok == "measure":
             elt.set("measure", str(tok))
         prevTok = tok
     return [FormulaAspectElt(elt)]
-    
+
 def compileAspectRuleExplicitDimension( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     elt = lbGen.element("formula:explicitDimension", attrib={"dimension": tok[0]})
@@ -216,7 +216,7 @@ def compileAspectRuleExplicitDimensionTerm( sourceStr, loc, toks ):
                 lbGen.subElement(elt, "formula:qnameExpression", text=str(tok))
             else:
                 lbGen.subElement(elt, "formula:qname", text=lbGen.checkedQName(tok))
-        elif prevTok == "omit": 
+        elif prevTok == "omit":
             elt = lbGen.element("formula:omit")
         prevTok = tok
     return [FormulaAspectElt(elt)]
@@ -238,7 +238,7 @@ def compileAspectRuleTypedDimensionTerm( sourceStr, loc, toks ):
         elif prevTok == "value":
             elt = lbGen.element("formula:value")
             elt.append(etree.fromstring(dequotedString(tok)))
-        elif prevTok == "omit": 
+        elif prevTok == "omit":
             elt = lbGen.element("formula:omit")
         prevTok = tok
     return [FormulaAspectElt(elt)]
@@ -334,7 +334,7 @@ def compileBooleanFilter( sourceStr, loc, toks ):
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
                "complement": "false",
-               "cover": "true"}   
+               "cover": "true"}
 
     if not omitSourceLineAttributes:
        arcAttrib["xfs:sourceline"] = "{}".format(loc)
@@ -380,7 +380,7 @@ def compileConceptFilter( sourceStr, loc, toks ):
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
                "complement": "false",
-               "cover": "true"}   
+               "cover": "true"}
     if not omitSourceLineAttributes:
         arcAttrib["xfs:sourceline"] = "{}".format(loc)
     filterAttrib = {"xlink:type": "resource",
@@ -446,7 +446,7 @@ def compileConceptFilter( sourceStr, loc, toks ):
                     lbGen.subElement(subEltParent, "cf:qname", text=lbGen.checkedQName(tok))
                 else: # it's a local name, requires general & aspect cover filter
                     lbGen.checkXmlns("xfi")
-                    lbGen.subElement(subEltParent, "cf:qnameExpression", 
+                    lbGen.subElement(subEltParent, "cf:qnameExpression",
                                      text="xfi:concepts-from-local-name('{}')".format(tok))
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
             FormulaResourceElt(filterElt)]
@@ -458,7 +458,7 @@ def compileConceptRelationFilter( sourceStr, loc, toks ):
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
                "complement": "false",
-               "cover": "true"}   
+               "cover": "true"}
 
     if not omitSourceLineAttributes:
         arcAttrib["xfs:sourceline"] =  "{}".format(loc)
@@ -505,7 +505,7 @@ def compileConceptRelationFilter( sourceStr, loc, toks ):
                 lbGen.subElement(filterElt, "crf:qname", text=lbGen.checkedQName(tok))
             else: # it's a local name, requires general & aspect cover filter
                 lbGen.checkXmlns("xfi")
-                lbGen.subElement(filterElt, "crf:qnameExpression", 
+                lbGen.subElement(filterElt, "crf:qnameExpression",
                                  text="xfi:concepts-from-local-name('{}')".format(tok))
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
             FormulaResourceElt(filterElt)]
@@ -550,7 +550,7 @@ def compileConsistencyAssertion( sourceStr, loc, toks ):
     return [FormulaArc("generic:arc",
                        attrib= arcAttrib),
             FormulaResourceElt(elt)]
-    
+
 def compileDefaults( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     prevTok = None
@@ -569,7 +569,7 @@ def compileDimensionFilter( sourceStr, loc, toks ):
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
                "complement": "false",
-               "cover": "true"}   
+               "cover": "true"}
 
     if not omitSourceLineAttributes:
         arcAttrib["xfs:sourceline"] = "{}".format(loc)
@@ -621,14 +621,14 @@ def compileDimensionFilter( sourceStr, loc, toks ):
                 lbGen.subElement(memElt, "df:qname", text=lbGen.checkedQName(tok))
             else: # it's a local name
                 lbGen.checkXmlns("xfi")
-                lbGen.subElement(memElt, "df:qnameExpression", 
+                lbGen.subElement(memElt, "df:qnameExpression",
                                  text="xfi:concepts-from-local-name('{}')".format(tok))
         elif prevTok in ("linkrole", "arcrole", "axis"):
             lbGen.subElement(memElt, "df:" + prevTok, text=dequotedString(tok))
         elif tok == "default-member":
             memElt = lbGen.subElement(filterElt, "df:member")
             lbGen.checkXmlns("xfi")
-            lbGen.subElement(memElt, "df:qnameExpression", 
+            lbGen.subElement(memElt, "df:qnameExpression",
                              text="xfi:dimension-default('{}')".format(dimQNameExpr))
         prevTok = tok
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
@@ -640,7 +640,7 @@ def compileEntityFilter( sourceStr, loc, toks ):
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
                "complement": "false",
-               "cover": "true"}   
+               "cover": "true"}
 
     if not omitSourceLineAttributes:
         arcAttrib["xfs:sourceline"] = "{}".format(loc)
@@ -715,12 +715,12 @@ def compileFactVariable( sourceStr, loc, toks ):
                "xlink:arcrole": "variable-set",
                "xlink:to": varLabel,
                "name": lbGen.checkedQName(name)}
-    
+
     if not omitSourceLineAttributes:
         arcAttrib["xfs:sourceline"] = "{}".format(loc)
 
     return [FormulaArc("variable:variableArc", attrib=arcAttrib), fvFormulaResource]
-    
+
 def compileFilterDeclaration( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     return []
@@ -861,7 +861,7 @@ def compileGeneralFilter( sourceStr, loc, toks ):
     filterElt = lbGen.subElement(lbGen.genLinkElement, "gf:general", attrib=filterAttrib)
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
             FormulaResourceElt(filterElt)]
-    
+
 def compileGeneralVariable( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     varLabel = "variable{}".format(lbGen.labelNbr("variable"))
@@ -895,7 +895,7 @@ def compileGeneralVariable( sourceStr, loc, toks ):
 
     if not omitSourceLineAttributes:
         arcAttrib["xfs:sourceline"] =  "{}".format(loc)
-    
+
     return [FormulaArc("variable:variableArc", attrib=arcAttrib), gvFormulaResource]
 
 def compileLabel( sourceStr, loc, toks ):
@@ -950,7 +950,7 @@ def compileMatchFilter( sourceStr, loc, toks ):
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
                "complement": "false",
-               "cover": "true"}   
+               "cover": "true"}
 
     if not omitSourceLineAttributes:
         arcAttrib["xfs:sourceline"] =  "{}".format(loc)
@@ -990,7 +990,7 @@ def compileMatchFilter( sourceStr, loc, toks ):
     filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
             FormulaResourceElt(filterElt)]
-    
+
 def compileNamespaceDeclaration( sourceStr, loc, toks ):
     lbGen.checkXmlns(dequotedString(toks[0]), dequotedString(toks[1]))
     return []
@@ -1027,12 +1027,12 @@ def compileParameterReference( sourceStr, loc, toks ):
             "xlink:arcrole": "variable-set",
             "xlink:to": lbGen.params[toks[1]],
             "name": lbGen.checkedQName(toks[0])}
-    
+
     if not omitSourceLineAttributes:
         arcAttrib["xfs:sourceline"] =  "{}".format(loc)
 
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib)]
-    
+
 dateTimePattern = re.compile("([0-9]{4})-([0-9]{2})-([0-9]{2})[T ]([0-9]{2}):([0-9]{2}):([0-9]{2})")
 dateOnlyPattern = re.compile("([0-9]{4})-([0-9]{2})-([0-9]{2})")
 
@@ -1043,7 +1043,7 @@ def compilePeriodFilter( sourceStr, loc, toks ):
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
                "complement": "false",
-               "cover": "true"}   
+               "cover": "true"}
 
     if not omitSourceLineAttributes:
         arcAttrib["xfs:sourceline"] =  "{}".format(loc)
@@ -1059,7 +1059,7 @@ def compilePeriodFilter( sourceStr, loc, toks ):
             arcAttrib["cover"] = "true"
         elif tok == "non-covering":
             arcAttrib["cover"] = "false"
-        elif filterEltQname is None:    
+        elif filterEltQname is None:
             if tok == "period":
                 isPeriod = True
                 filterEltQname = "pf:period"
@@ -1123,7 +1123,7 @@ def compileRelativeFilter( sourceStr, loc, toks ):
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
                "complement": "false",
-               "cover": "true"}   
+               "cover": "true"}
 
     if not omitSourceLineAttributes:
         arcAttrib["xfs:sourceline"] =  "{}".format(loc)
@@ -1144,7 +1144,7 @@ def compileRelativeFilter( sourceStr, loc, toks ):
     filterElt = lbGen.subElement(lbGen.genLinkElement, "rf:relativeFilter", attrib=filterAttrib)
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
             FormulaResourceElt(filterElt)]
-    
+
 def compileSeverity( sourceStr, loc, toks ):
     return []
 
@@ -1155,7 +1155,7 @@ def compileTupleFilter( sourceStr, loc, toks ):
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
                "complement": "false",
-               "cover": "true"}   
+               "cover": "true"}
     if not omitSourceLineAttributes:
         arcAttrib["xfs:sourceline"] =  "{}".format(loc)
     filterAttrib = {"xlink:type": "resource",
@@ -1195,7 +1195,7 @@ def compileUnitFilter( sourceStr, loc, toks ):
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
                "complement": "false",
-               "cover": "true"}   
+               "cover": "true"}
 
     if not omitSourceLineAttributes:
         arcAttrib["xfs:sourceline"] =  "{}".format(loc)
@@ -1239,7 +1239,7 @@ def compileValueFilter( sourceStr, loc, toks ):
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
                "complement": "false",
-               "cover": "true"}   
+               "cover": "true"}
 
     if not omitSourceLineAttributes:
         arcAttrib["xfs:sourceline"] =  "{}".format(loc)
@@ -1260,7 +1260,7 @@ def compileValueFilter( sourceStr, loc, toks ):
     filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
             FormulaResourceElt(filterElt)]
-    
+
 def compileVariableAssignment( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     return []
@@ -1278,53 +1278,53 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
     if isGrammarCompiled:
         return xfsProg
-    
+
     cntlr.showStatus(_("Compiling Formula Grammar"))
-    from pyparsing import (Word, Keyword, alphas, 
-                 Literal, CaselessLiteral, 
+    from pyparsing import (Word, Keyword, alphas,
+                 Literal, CaselessLiteral,
                  Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, OneOrMore, StringEnd, alphanums,
                  ParserElement, quotedString, dblQuotedString, sglQuotedString, QuotedString,
                  delimitedList, Suppress, Regex, FollowedBy,
                  lineno, line, col)
-    
+
     ParserElement.enablePackrat()
-    
+
     """
     the pyparsing parser constructs are defined in this method to prevent the need to compile
     the grammar when the plug in is loaded (which is likely to be when setting up GUI
     menus or command line parser).
-    
+
     instead the grammar is compiled the first time that any formula grammar needs to be parsed
     """
-    
+
     # define grammar
     xfsComment = Regex(r"[(](?:[:](?:[^:]*[:]+)+?[)])").setParseAction(compileComment)
-    
+
     nonNegativeInteger = Regex("[0-9]+")
-    
+
     messageSeverity = (Literal("ERROR") | Literal("WARNING") | Literal("INFO"))
-    
+
     qName = Regex("([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
                   "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*:)?"
-                  # localname or wildcard-localname part  
+                  # localname or wildcard-localname part
                   "([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
                   "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*|[*])"
                   )
-    
+
     variableRef = Combine( Literal("$") + qName )
 
     ncName = Regex("([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
                   "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*)"
                   ).setName("ncName").setDebug(debugParsing)
-                  
+
     dateTime = Regex("([0-9]{4})-([0-9]{2})-([0-9]{2})[T ]([0-9]{2}):([0-9]{2}):([0-9]{2})|"
                      "([0-9]{4})-([0-9]{2})-([0-9]{2})")
-    
+
 
     decimalPoint = Literal('.')
     exponentLiteral = CaselessLiteral('e')
     plusorminusLiteral = Literal('+') | Literal('-')
-    digits = Word(nums) 
+    digits = Word(nums)
     integerLiteral = Combine( Optional(plusorminusLiteral) + digits )
     decimalFractionLiteral = Combine( Optional(plusorminusLiteral) + decimalPoint + digits )
     infLiteral = Combine( Optional(plusorminusLiteral) + Keyword("INF") )
@@ -1332,7 +1332,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
     floatLiteral = ( Combine( integerLiteral +
                          ( ( decimalPoint + Optional(digits) + exponentLiteral + integerLiteral ) |
                            ( exponentLiteral + integerLiteral ) )
-                         ) | 
+                         ) |
                      Combine( decimalFractionLiteral + exponentLiteral + integerLiteral ) |
                      infLiteral | nanLiteral )
     decimalLiteral =  ( Combine( integerLiteral + decimalPoint + Optional(digits) ) |
@@ -1340,104 +1340,104 @@ def compileXfsGrammar( cntlr, debugParsing ):
     numberLiteral = (decimalLiteral | floatLiteral | integerLiteral)
 
     xPathFunctionCall = Combine(qName + Literal("("))
-    
+
     xPathOp = (Literal("(") | Literal( ")" ) | Literal( "[" ) | Literal( "]" ) |
                Literal( "^" ) | Literal(",") | Literal("<<") | Literal(">>") | Literal("!=") |
                Literal("<=") | Literal("<") | Literal(">=") | Literal(">") | Literal("=") |
                Literal("+") | Literal("-") | Literal("*") | Literal("|") | Literal("?") |
                Literal("@") | Literal("//") | Literal("/") | Literal("::") | Literal("."))
-    
-    xpathExpression = (Suppress(Literal("{")) + 
-                       ZeroOrMore( (dblQuotedString | sglQuotedString | numberLiteral | 
+
+    xpathExpression = (Suppress(Literal("{")) +
+                       ZeroOrMore( (dblQuotedString | sglQuotedString | numberLiteral |
                                     xPathFunctionCall | variableRef | qName | xPathOp ) ) +
                        Suppress(Literal("}"))).setParseAction(compileXPathExpression)
     separator = Suppress( Literal(";") )
-    
+
     namespaceDeclaration = (Suppress(Keyword("namespace")) + ncName + Suppress(Literal("=")) + quotedString + separator
                             ).setParseAction(compileNamespaceDeclaration).ignore(xfsComment)
     defaultDeclaration = (Suppress(Keyword("unsatisfied-severity") | Keyword("default-language")) + ncName + separator
                          ).setParseAction(compileDefaults).ignore(xfsComment)
 
-    parameterDeclaration = (Suppress(Keyword("parameter")) + qName  +  
+    parameterDeclaration = (Suppress(Keyword("parameter")) + qName  +
                             Suppress(Literal("{")) +
                             Optional(Keyword("required")) +
                             Optional(Keyword("select") + xpathExpression) +
-                            Optional(Keyword("as") + qName) + 
+                            Optional(Keyword("as") + qName) +
                             Suppress(Literal("}")) + separator
                            ).setParseAction(compileParameterDeclaration).ignore(xfsComment)
-                           
+
     occurenceIndicator = Literal("?") | Literal("*") | Literal("+")
-                           
+
     functionParameter = (qName + Suppress(Keyword("as")) + Combine(qName + Optional(occurenceIndicator))
                          ).setParseAction(compileFunctionParameter).ignore(xfsComment)
-                         
-    functionStep = (Suppress(Keyword("step")) + variableRef + xpathExpression + 
+
+    functionStep = (Suppress(Keyword("step")) + variableRef + xpathExpression +
                     separator).setParseAction(compileFunctionStep).ignore(xfsComment)
-                         
-    functionImplementation = (Suppress(Literal("{")) + 
-                              ZeroOrMore(functionStep) + 
+
+    functionImplementation = (Suppress(Literal("{")) +
+                              ZeroOrMore(functionStep) +
                               Keyword("return") + xpathExpression + separator +
                               Suppress(Literal("}"))).ignore(xfsComment)
-    
-    functionDeclaration = (Suppress(Keyword("function")) + qName  + 
+
+    functionDeclaration = (Suppress(Keyword("function")) + qName  +
                            Suppress(Literal("(")) + Optional(delimitedList(functionParameter)) + Suppress(Literal(")")) +
                               Keyword("as") + Combine(qName + Optional(occurenceIndicator)) +
                            Optional(functionImplementation) + separator
                            ).setParseAction(compileFunctionDeclaration).ignore(xfsComment)
-    
+
     packageDeclaration = (Suppress(Keyword("package")) + ncName + separator ).setParseAction(compilePackageDeclaration).ignore(xfsComment)
-    
-    severity = ( Suppress(Keyword("unsatisfied-severity")) + ( ncName ) + separator ).setParseAction(compileSeverity).ignore(xfsComment) 
-    
+
+    severity = ( Suppress(Keyword("unsatisfied-severity")) + ( ncName ) + separator ).setParseAction(compileSeverity).ignore(xfsComment)
+
     label = ( (Keyword("label") | Keyword("unsatisfied-message") | Keyword("satisfied-message")) +
-              Optional( Combine(Literal("(") + Regex("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*") + Literal(")")) ) + 
+              Optional( Combine(Literal("(") + Regex("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*") + Literal(")")) ) +
               (QuotedString('"',multiline=True,escQuote='""') | QuotedString("'",multiline=True,escQuote="''")) +
               separator).setParseAction(compileLabel).ignore(xfsComment)
-              
+
     aspectRuleConcept = ( Suppress(Keyword("concept")) + (qName | xpathExpression) + separator
                         ).setParseAction(compileAspectRuleConcept).ignore(xfsComment)
-                        
-    aspectRuleEntityIdentifier = (Suppress(Keyword("entity-identifier")) + 
-                                  Optional( Keyword("scheme") + xpathExpression) + 
+
+    aspectRuleEntityIdentifier = (Suppress(Keyword("entity-identifier")) +
+                                  Optional( Keyword("scheme") + xpathExpression) +
                                   Optional( Keyword("identifier") + xpathExpression) + separator
                         ).setParseAction(compileAspectRuleEntityIdentifier).ignore(xfsComment)
-                        
-    aspectRulePeriod = (Suppress(Keyword("period")) + 
+
+    aspectRulePeriod = (Suppress(Keyword("period")) +
                         ( Keyword("forever") |
                           Keyword("instant") +  xpathExpression |
-                          Keyword("duration") +  
-                                  Optional( Keyword("start") + xpathExpression) + 
+                          Keyword("duration") +
+                                  Optional( Keyword("start") + xpathExpression) +
                                   Optional( Keyword("end") + xpathExpression) ) + separator
                         ).setParseAction(compileAspectRulePeriod).ignore(xfsComment)
-                        
-    aspectRuleUnitTerm = ((Keyword("multiply-by") | Keyword("divide-by")) + 
+
+    aspectRuleUnitTerm = ((Keyword("multiply-by") | Keyword("divide-by")) +
                           Optional( Keyword("source") + qName ) +
                           Optional( Keyword("measure") + xpathExpression ) + separator
                         ).setParseAction(compileAspectRuleUnitTerm).ignore(xfsComment)
-                        
+
     aspectRuleUnit = (Suppress(Keyword("unit")) + Optional(Keyword("augment")) + Suppress(Literal("{")) +
                       ZeroOrMore( aspectRuleUnitTerm ) + Suppress(Literal("}")) + separator
                         ).setParseAction(compileAspectRuleUnit).ignore(xfsComment)
-              
+
     aspectRuleExplicitDimensionTerm = (
                          (Keyword("member") + (qName | xpathExpression) |
                           Keyword("omit")) + separator
                         ).setParseAction(compileAspectRuleExplicitDimensionTerm).ignore(xfsComment)
-                        
+
     aspectRuleExplicitDimension = (Suppress(Keyword("explicit-dimension")) + qName + Suppress(Literal("{")) +
                       ZeroOrMore( aspectRuleExplicitDimensionTerm ) + Suppress(Literal("}")) + separator
                         ).setParseAction(compileAspectRuleExplicitDimension).ignore(xfsComment)
-              
+
     aspectRuleTypedDimensionTerm = (
                          (Keyword("xpath") + xpathExpression |
                           Keyword("value") + dblQuotedString |
                           Keyword("omit")) + separator
                         ).setParseAction(compileAspectRuleTypedDimensionTerm).ignore(xfsComment)
-                        
+
     aspectRuleTypedDimension = (Suppress(Keyword("tyoed-dimension")) + qName + Suppress(Literal("{")) +
                       ZeroOrMore( aspectRuleTypedDimensionTerm ) + Suppress(Literal("}")) + separator
                         ).setParseAction(compileAspectRuleTypedDimension).ignore(xfsComment)
-              
+
     aspectRules = ( Suppress(Keyword("aspect-rules")) +
                     Optional( Keyword("source") + qName ) +
                     Suppress(Literal("{")) +
@@ -1446,14 +1446,14 @@ def compileXfsGrammar( cntlr, debugParsing ):
                                 aspectRulePeriod |
                                 aspectRuleUnit |
                                 aspectRuleExplicitDimension |
-                                aspectRuleTypedDimension ) + 
+                                aspectRuleTypedDimension ) +
                    Suppress(Literal("}")) + separator
         ).setParseAction(compileAspectRules).ignore(xfsComment).setName("aspect-rules").setDebug(debugParsing)
-    
+
     filter = Forward()
-                     
-    conceptFilter = ( 
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+
+    conceptFilter = (
+        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) +
         (Keyword("concept-name") + OneOrMore(qName | xpathExpression) + separator) |
          Keyword("concept-period-type") + (Keyword("instant") | Keyword("duration")) + separator |
          Keyword("concept-balance") + (Keyword("credit") | Keyword("debit") | Keyword("none")) + separator |
@@ -1462,54 +1462,54 @@ def compileXfsGrammar( cntlr, debugParsing ):
         ).setParseAction(compileConceptFilter).ignore(xfsComment).setName("concept-filter").setDebug(debugParsing)
 
 
-    generalFilter = ( 
-        Optional( Keyword("complemented") ) + 
+    generalFilter = (
+        Optional( Keyword("complemented") ) +
         Keyword("general") + xpathExpression + separator
         ).setParseAction(compileGeneralFilter).ignore(xfsComment).setName("general-filter").setDebug(debugParsing)
 
 
-    periodFilter = ( 
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+    periodFilter = (
+        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) +
         (Keyword("period") + xpathExpression |
-         (Keyword("period-start") | Keyword("period-end") | Keyword("period-instant")) + 
+         (Keyword("period-start") | Keyword("period-end") | Keyword("period-instant")) +
            (dateTime | Keyword("date") + xpathExpression + Optional(Keyword("time") + xpathExpression)) |
          Keyword("instant-duration") + (Keyword("start") | Keyword("end")) + variableRef
          ) + separator
         ).setParseAction(compilePeriodFilter).ignore(xfsComment).setName("period-filter").setDebug(debugParsing)
 
     dimensionAxis = (Keyword("child-or-self") | Keyword("child") | Keyword("descendant") | Keyword("descendant-or-self"))
-    
-    dimensionFilter = ( 
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+
+    dimensionFilter = (
+        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) +
             (
-                (Keyword("explicit-dimension") + (qName | xpathExpression) + 
-                    ZeroOrMore( Keyword("default-member") | 
+                (Keyword("explicit-dimension") + (qName | xpathExpression) +
+                    ZeroOrMore( Keyword("default-member") |
                        (Keyword("member") + (variableRef | qName | xpathExpression) +
-                        Optional(Keyword("linkrole") + quotedString) + 
+                        Optional(Keyword("linkrole") + quotedString) +
                         Optional(Keyword("arcrole") + quotedString) +
                         Optional(Keyword("axis") + dimensionAxis))) + separator) |
-                (Keyword("typed-dimension") + (variableRef | qName | xpathExpression) + 
+                (Keyword("typed-dimension") + (variableRef | qName | xpathExpression) +
                     Optional( Keyword("test") + xpathExpression )  + separator)
             )
         ).setParseAction(compileDimensionFilter).ignore(xfsComment).setName("dimension-filter").setDebug(debugParsing)
 
-    unitFilter = ( 
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+    unitFilter = (
+        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) +
         (Keyword("unit-single-measure") + (qName | xpathExpression) |
          Keyword("unit-general-measures") + xpathExpression) + separator
         ).setParseAction(compileUnitFilter).ignore(xfsComment).setName("unit-filter").setDebug(debugParsing)
 
 
-    entityFilter = ( 
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+    entityFilter = (
+        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) +
         (Keyword("entity") + Keyword("scheme") + xpathExpression + Keyword("value") + xpathExpression |
          Keyword("entity-scheme") + xpathExpression |
          Keyword("entity-scheme-pattern") + quotedString |
          Keyword("entity-identifier-pattern") + quotedString) + separator
         ).setParseAction(compileEntityFilter).ignore(xfsComment).setName("entity-filter").setDebug(debugParsing)
 
-    matchFilter = ( 
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+    matchFilter = (
+        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) +
         (Keyword("match-concept") + variableRef |
          Keyword("match-location") + variableRef |
          Keyword("match-entity-identifier") + variableRef |
@@ -1519,29 +1519,29 @@ def compileXfsGrammar( cntlr, debugParsing ):
         ) + Optional( Keyword("match-any") ) + separator
         ).setParseAction(compileMatchFilter).ignore(xfsComment).setName("match-filter").setDebug(debugParsing)
 
-    relativeFilter = ( 
-        Optional( Keyword("complemented") ) + 
+    relativeFilter = (
+        Optional( Keyword("complemented") ) +
         Keyword("relative") + variableRef + separator
         ).setParseAction(compileRelativeFilter).ignore(xfsComment).setName("relative-filter").setDebug(debugParsing)
 
 
-    tupleFilter = ( 
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+    tupleFilter = (
+        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) +
         (Keyword("parent") + (qName | xpathExpression) |
          Keyword("ancestor") + (qName | xpathExpression) |
          Keyword("sibling") + variableRef) + separator
         ).setParseAction(compileTupleFilter).ignore(xfsComment).setName("tuple-filter").setDebug(debugParsing)
 
 
-    valueFilter = ( 
-        Optional( Keyword("complemented") ) + 
+    valueFilter = (
+        Optional( Keyword("complemented") ) +
         Keyword("nilled")
         ).setParseAction(compileValueFilter).ignore(xfsComment).setName("value-filter").setDebug(debugParsing)
 
-    aspectCoverFilter = ( 
-        Optional( Keyword("complemented") ) + 
-        Keyword("aspect-cover") + 
-        OneOrMore( Keyword("all") | Keyword("concept") | Keyword("entity-identifier") | Keyword("location") | 
+    aspectCoverFilter = (
+        Optional( Keyword("complemented") ) +
+        Keyword("aspect-cover") +
+        OneOrMore( Keyword("all") | Keyword("concept") | Keyword("entity-identifier") | Keyword("location") |
                    Keyword("period") | Keyword("unit") | Keyword("dimensions") |
                    Keyword("dimension") + (qName | xpathExpression) |
                    Keyword("exclude-dimension")+ (qName | xpathExpression) ) +
@@ -1553,8 +1553,8 @@ def compileXfsGrammar( cntlr, debugParsing ):
                     Keyword("parent-or-self") | Keyword("parent") | Keyword("ancestor-or-self") | Keyword("ancestor") |
                     Keyword("sibling-or-self") | Keyword("sibling-or-descendant") | Keyword("sibling") )
 
-    conceptRelationFilter = ( 
-        Optional( Keyword("complemented") ) + 
+    conceptRelationFilter = (
+        Optional( Keyword("complemented") ) +
         Keyword("concept-relation") + (
             (variableRef | qName | xpathExpression) +
             Optional(Keyword("linkrole") + (quotedString | xpathExpression)) +
@@ -1565,8 +1565,8 @@ def compileXfsGrammar( cntlr, debugParsing ):
         ) + separator
         ).setParseAction(compileConceptRelationFilter).ignore(xfsComment).setName("concept-relation-filter").setDebug(debugParsing)
 
-    booleanFilter = ( 
-        Optional( Keyword("complemented") ) + 
+    booleanFilter = (
+        Optional( Keyword("complemented") ) +
         (Keyword("and") | Keyword("or")) + Suppress(Literal("{")) +
          OneOrMore(filter) +
         Suppress(Literal("}")) +
@@ -1574,7 +1574,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
         ).setParseAction(compileBooleanFilter).ignore(xfsComment).setName("boolean-filter").setDebug(debugParsing)
 
     declaredFilterReference = ( Keyword("filter") + variableRef ).setParseAction(compileFilterReference).ignore(xfsComment).setName("filter-reference").setDebug(debugParsing)
-    
+
     filters = ( conceptFilter |
                 generalFilter |
                 periodFilter |
@@ -1589,14 +1589,14 @@ def compileXfsGrammar( cntlr, debugParsing ):
                 aspectCoverFilter |
                 conceptRelationFilter |
                 declaredFilterReference )
-    
+
     filter << filters
     filter.setName("filter").setDebug(debugParsing)
-    
+
     filterDeclaration = (Suppress(Keyword("filter")) + qName + Suppress(Literal("{")) +
                          OneOrMore(filter) +
                          Suppress(Literal("}"))).setParseAction(compileFilterDeclaration).ignore(xfsComment).setName("fact-variable").setDebug(debugParsing)
-    
+
     factVariable = (Suppress(Keyword("variable")) + variableRef + Suppress(Literal("{")) +
                     ZeroOrMore( Keyword("bind-as-sequence") | Keyword("nils") | Keyword("matches") |
                                 ( Keyword("fallback") + xpathExpression ) ) +
@@ -1608,16 +1608,16 @@ def compileXfsGrammar( cntlr, debugParsing ):
                        Optional( Keyword("bind-as-sequence") ) +
                        Keyword("select") + xpathExpression + separator +
                        Suppress(Literal("}")) + separator).setParseAction(compileGeneralVariable).ignore(xfsComment).setName("general-variable").setDebug(debugParsing)
-    
+
     referencedParameter = (Suppress(Keyword("parameter")) + variableRef + Suppress(Keyword("references")) + qName
                         + separator).setParseAction(compileParameterReference).ignore(xfsComment).setName("renamed-parameter").setDebug(debugParsing)
-    
+
     precondition = ( Suppress(Keyword("precondition")) + xpathExpression + separator
                    ).setParseAction(compilePrecondition).ignore(xfsComment).setName("precondition").setDebug(debugParsing)
-    
+
     formula = ( Suppress(Keyword("formula")) + ncName + Suppress(Literal("{")) +
-                  ZeroOrMore( label | severity | 
-                              Keyword("aspect-model-non-dimensional") +separator | 
+                  ZeroOrMore( label | severity |
+                              Keyword("aspect-model-non-dimensional") +separator |
                               Keyword("no-implicit-filtering") + separator |
                               Keyword("decimals") + xpathExpression + separator |
                               Keyword("precision") + xpathExpression + separator |
@@ -1629,21 +1629,21 @@ def compileXfsGrammar( cntlr, debugParsing ):
                   ZeroOrMore( precondition ) +
                   Suppress(Literal("}") + separator)
                ).setParseAction(compileFormula).ignore(xfsComment).setName("formula").setDebug(debugParsing)
-                  
+
     assertion = ( Suppress(Keyword("assertion")) + ncName + Suppress(Literal("{")) +
-                  ZeroOrMore( label | severity | 
-                              Keyword("aspect-model-non-dimensional") +separator | 
+                  ZeroOrMore( label | severity |
+                              Keyword("aspect-model-non-dimensional") +separator |
                               Keyword("no-implicit-filtering") + separator ) +
                   ZeroOrMore( filter ) +
                   ZeroOrMore( generalVariable | factVariable | referencedParameter) +
                   ZeroOrMore( precondition ) +
-                  Optional( ( Keyword("test") | Keyword("evaluation-count") ) + xpathExpression + separator) + 
+                  Optional( ( Keyword("test") | Keyword("evaluation-count") ) + xpathExpression + separator) +
                   Suppress(Literal("}") + separator)).setParseAction(compileAssertion).ignore(xfsComment).setName("assertion").setDebug(debugParsing)
-                  
+
     consistencyAssertion = ( Suppress(Keyword("consistency-assertion")) + ncName + Suppress(Literal("{")) +
-                  ZeroOrMore( label | severity | 
-                              Keyword("strict") + separator | 
-                              (Keyword("absolute-acceptance-radius") | Keyword("proportional-acceptance-radius")) + 
+                  ZeroOrMore( label | severity |
+                              Keyword("strict") + separator |
+                              (Keyword("absolute-acceptance-radius") | Keyword("proportional-acceptance-radius")) +
                                   xpathExpression + separator ) +
                   ZeroOrMore( formula ) +
                   Suppress(Literal("}") + separator)).setParseAction(compileConsistencyAssertion).ignore(xfsComment).setName("assertion").setDebug(debugParsing)
@@ -1652,20 +1652,20 @@ def compileXfsGrammar( cntlr, debugParsing ):
                    ZeroOrMore( label ) +
                    (ZeroOrMore( consistencyAssertion | assertion ) ) +
                    Suppress(Literal("}") + separator)).setParseAction( compileAssertionSet ).ignore(xfsComment).setName("assertionSet").setDebug(debugParsing)
-    
-    xfsProg = ( ZeroOrMore( namespaceDeclaration | xfsComment ) + 
-                ZeroOrMore( defaultDeclaration | xfsComment ) + 
-                ZeroOrMore( parameterDeclaration | filterDeclaration | generalVariable | factVariable | functionDeclaration | xfsComment ) + 
+
+    xfsProg = ( ZeroOrMore( namespaceDeclaration | xfsComment ) +
+                ZeroOrMore( defaultDeclaration | xfsComment ) +
+                ZeroOrMore( parameterDeclaration | filterDeclaration | generalVariable | factVariable | functionDeclaration | xfsComment ) +
                 ZeroOrMore( assertionSet | consistencyAssertion | assertion | formula | xfsComment )
               ) + StringEnd()
     xfsProg.ignore(xfsComment)
-    
+
     startedAt = time.time()
     cntlr.showStatus(_("initializing Formula Grammar"))
     xfsProg.parseString( "(: force initialization :)\n", parseAll=True )
     initializing_time = "%.2f" % (time.time() - startedAt)
     logMessage("INFO", "info",
-               _("Formula syntax grammar initialized in %(secs)s secs"), 
+               _("Formula syntax grammar initialized in %(secs)s secs"),
                secs=initializing_time)
     cntlr.showStatus(_("initialized Formula Grammar in {0} seconds").format(initializing_time))
 
@@ -1675,12 +1675,12 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
 def parse(cntlr, _logMessage, xfFiles, modelXbrl=None, debugParsing=False):
     from pyparsing import ParseException, ParseSyntaxException
-    
+
     global xc, logMessage
     logMessage = _logMessage
-    
+
     xfsGrammar = compileXfsGrammar(cntlr, debugParsing)
-    
+
     successful = True
 
 
@@ -1688,7 +1688,7 @@ def parse(cntlr, _logMessage, xfFiles, modelXbrl=None, debugParsing=False):
         global lastLoc, currentPackage
         successful = True
         cntlr.showStatus("Compiling formula syntax file {0}".format(os.path.basename(xfsFile)))
-        
+
         try:
             lastLoc = 0
             currentPackage = None
@@ -1722,33 +1722,33 @@ def parse(cntlr, _logMessage, xfFiles, modelXbrl=None, debugParsing=False):
                 _("Parse error after line %(lineno)s col %(col)s:\n%(lines)s"),
                 xfsFile=xfsFile,
                 sourceFileLines=((file, lineno(err.loc,err.pstr)),),
-                lineno=lineno(lastLoc,sourceString), 
+                lineno=lineno(lastLoc,sourceString),
                 col=col(lastLoc,sourceString),
                 lines="\n".join(codeLines))
             successful = False
         except (ValueError) as err:
             file = os.path.basename(xfsFile)
             logMessage("ERROR", "formulaSyntax:valueError",
-                _("Parsing terminated due to error: \n%(error)s"), 
+                _("Parsing terminated due to error: \n%(error)s"),
                 xfsFile=xfsFile,
-                sourceFileLines=((file,lineno(lastLoc,sourceString)),), 
+                sourceFileLines=((file,lineno(lastLoc,sourceString)),),
                 error=str(err))
             successful = False
         except Exception as err:
             file = os.path.basename(xfsFile)
             logMessage("ERROR", "formulaSyntax:parserException",
-                _("Parsing of terminated due to error: \n%(error)s"), 
+                _("Parsing of terminated due to error: \n%(error)s"),
                 xfsFile=xfsFile,
                 sourceFileLines=((file,lineno(lastLoc,sourceString)),),
                 error=str(err), exc_info=True)
             print(traceback.format_tb(sys.exc_info()[2]))
             successful = False
 
-        cntlr.showStatus("Compiled formula files {0}".format({True:"successful", 
+        cntlr.showStatus("Compiled formula files {0}".format({True:"successful",
                                                               False:"with errors"}[successful]),
                          clearAfter=5000)
         return successful
-        
+
     def parseFile(filename):
         successful = True
         # parse the xrb zip or individual xsr files
@@ -1777,17 +1777,17 @@ def parse(cntlr, _logMessage, xfFiles, modelXbrl=None, debugParsing=False):
                 else:
                     lbGen.saveLb()
         return successful
-          
-    successful = True          
+
+    successful = True
     for filename in xfFiles:
         if not parseFile(filename):
             successful = False
-                
+
     logMessage = None # dereference
-              
+
     if modelXbrl is not None:
         # plugin operation, return modelDocument
-        return lbGen.modelDocument   
+        return lbGen.modelDocument
     return None
 
 formulaPrefixes = {
@@ -1848,18 +1848,18 @@ fnNamespaceFunctions = {
     'substring', 'string-length', 'normalize-space', 'normalize-unicode', 'upper-case', 'lower-case', 'translate',
     'encode-for-uri', 'iri-to-uri', 'escape-html-uri',
     'contains', 'starts-with', 'ends-with', 'substring-before', 'substring-after', 'matches', 'replace', 'tokenize',
-    'resolve-uri', 'true', 'false', 'not', 'years-from-duration', 'months-from-duration', 'days-from-duration', 
-    'hours-from-duration', 'minutes-from-duration', 'seconds-from-duration', 'year-from-dateTime', 
-    'month-from-dateTime', 'day-from-dateTime', 'hours-from-dateTime', 'minutes-from-dateTime', 
-    'seconds-from-dateTime', 'timezone-from-dateTime', 'year-from-date', 'month-from-date', 'day-from-date', 
-    'timezone-from-date', 'hours-from-time', 'minutes-from-time', 'seconds-from-time', 'timezone-from-time', 
-    'adjust-dateTime-to-timezone', 'adjust-date-to-timezone', 'adjust-time-to-timezone', 
-    'resolve-QName', 'QName', 'prefix-from-QName', 'local-name-from-QName', 'namespace-uri-from-QName', 
-    'namespace-uri-for-prefix', 'in-scope-prefixes', 'name', 'local-name', 'namespace-uri', 
-    'number', 'lang', 'root', 'boolean', 'index-of', 'empty', 'exists', 'distinct-values', 
-    'insert-before', 'remove', 'reverse', 'subsequence', 'unordered', 'zero-or-one', 'one-or-more', 'exactly-one', 
-    'deep-equal', 'count', 'avg', 'max', 'min', 'sum', 'id', 'idref', 'doc', 'doc-available', 'collection', 
-    'position', 'last', 'current-dateTime', 'current-date', 'current-time', 'implicit-timezone', 
+    'resolve-uri', 'true', 'false', 'not', 'years-from-duration', 'months-from-duration', 'days-from-duration',
+    'hours-from-duration', 'minutes-from-duration', 'seconds-from-duration', 'year-from-dateTime',
+    'month-from-dateTime', 'day-from-dateTime', 'hours-from-dateTime', 'minutes-from-dateTime',
+    'seconds-from-dateTime', 'timezone-from-dateTime', 'year-from-date', 'month-from-date', 'day-from-date',
+    'timezone-from-date', 'hours-from-time', 'minutes-from-time', 'seconds-from-time', 'timezone-from-time',
+    'adjust-dateTime-to-timezone', 'adjust-date-to-timezone', 'adjust-time-to-timezone',
+    'resolve-QName', 'QName', 'prefix-from-QName', 'local-name-from-QName', 'namespace-uri-from-QName',
+    'namespace-uri-for-prefix', 'in-scope-prefixes', 'name', 'local-name', 'namespace-uri',
+    'number', 'lang', 'root', 'boolean', 'index-of', 'empty', 'exists', 'distinct-values',
+    'insert-before', 'remove', 'reverse', 'subsequence', 'unordered', 'zero-or-one', 'one-or-more', 'exactly-one',
+    'deep-equal', 'count', 'avg', 'max', 'min', 'sum', 'id', 'idref', 'doc', 'doc-available', 'collection',
+    'position', 'last', 'current-dateTime', 'current-date', 'current-time', 'implicit-timezone',
     'default-collation', 'static-base-uri', 'format-number'
     }
 
@@ -1868,7 +1868,7 @@ class XPathExpression:
         self.xpathTokens = xpathTokens
     def __repr__(self):
         return " ".join(self.xpathTokens)
-    
+
 class FormulaArc:
     def __init__(self, tag, attrib):
         self.tag = tag
@@ -1877,21 +1877,21 @@ class FormulaArc:
 class FormulaResourceElt:
     def __init__(self, elt):
         self.elt = elt
-        
+
 class FormulaAspectElt:
     def __init__(self, elt):
         self.elt = elt
-        
+
 class FunctionParameter:
     def __init__(self, qname, ptype):
         self.qname = qname[1:] if qname.startswith("$") else qname
         self.ptype = ptype
-        
+
 class FunctionStep:
     def __init__(self, qname, xpathExpression):
         self.qname = qname[1:] if qname.startswith("$") else qname
         self.xpathExpression = xpathExpression
-        
+
 class FormulaLbGenerator:
     def __init__(self, xfsFile, modelXbrl):
         self.xfsFile = xfsFile
@@ -1904,10 +1904,10 @@ class FormulaLbGenerator:
         self.definedArcroles = {"variable-set"}
         self.definedRoles = set()
         self.defaultLanguage = None
-        
+
     def newLb(self):
         initialXml = '''
-<!--  Generated by Arelle(r) http://arelle.org --> 
+<!--  Generated by Arelle(r) http://arelle.org -->
 <link:linkbase
 {0}
 xsi:schemaLocation=""
@@ -1925,13 +1925,13 @@ xsi:schemaLocation=""
 <generic:link xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link"/>
 </link:linkbase>
 '''.format('\n'.join("xmlns{0}='{1}'".format((":" + prefix) if prefix else "",
-                                             namespace)           
+                                             namespace)
                      for prefix in ("xlink", "link", "xbrli", "xsi", "xs", "generic", "xfi")
                      for namespace in (formulaPrefixes[prefix][0],))
            )
         if self.modelXbrl is None:
             _xbrlLBfile = io.StringIO(initialXml)
-            self.xmlParser = etree.XMLParser(remove_blank_text=True, recover=True, huge_tree=True)                       
+            self.xmlParser = etree.XMLParser(remove_blank_text=True, recover=True, huge_tree=True)
             self.lbDocument = etree.parse(_xbrlLBfile,base_url=self.lbFile,parser=self.xmlParser)
             _xbrlLBfile.close()
         else:
@@ -1940,7 +1940,7 @@ xsi:schemaLocation=""
             self.arelleSetXmlns = setXmlns
             self.modelXbrl.blockDpmDBrecursion = True
             self.modelDocument = createModelDocument(
-                  self.modelXbrl, 
+                  self.modelXbrl,
                   Type.LINKBASE,
                   self.lbFile,
                   initialXml=initialXml,
@@ -1951,7 +1951,7 @@ xsi:schemaLocation=""
         self.lbElement = next(self.lbDocument.iter(tag=self.clarkName("link:linkbase")))
         self.roleRef = next(self.lbDocument.iter(tag=self.clarkName("link:arcroleRef")))
         self.genLinkElement = next(self.lbDocument.iter(tag=self.clarkName("generic:link")))
-        
+
     def saveLb(self):
         if self.modelXbrl is None:
             # main program stand-alone mode
@@ -1961,7 +1961,7 @@ xsi:schemaLocation=""
         elif hasattr(self, "modelDocument"):
             # arelle plugin mode
             self.modelDocument.linkbaseDiscover(self.lbElement)
-                
+
     def checkXmlns(self, prefix, ns=None):
         root = self.lbDocument.getroot()
         if prefix not in root.nsmap:
@@ -1988,7 +1988,7 @@ xsi:schemaLocation=""
             newroot = etree.Element(root.tag, attrib=attr, nsmap=newmap)
             newroot.extend(root)
             self.lbDocument._setroot(newroot)
-            
+
     def clarkName(self, prefixedName):
         if prefixedName.startswith("{") or ":" not in prefixedName:
             return prefixedName
@@ -1998,14 +1998,14 @@ xsi:schemaLocation=""
         if prefix not in self.lbDocument.getroot().nsmap:
             if prefix not in formulaPrefixes:
                 logMessage("ERROR", "formulaSyntax:prefixUndefined",
-                    _("Prefix undefined: \n%(qname)s"), 
+                    _("Prefix undefined: \n%(qname)s"),
                     xfsFile=self.xfsFile,
                     qname=prefixedName)
                 return prefixedName
             else:
                 self.checkXmlns(prefix)
         return "{{{}}}{}".format(self.lbDocument.getroot().nsmap[prefix], localName)
-            
+
     def clarkAttrib(self, attrib):
         if attrib:
             _attrib = {}
@@ -2018,14 +2018,14 @@ xsi:schemaLocation=""
             return _attrib
         else:
             return None
-    
+
     def checkedQName(self, prefixedName):
         # convert prefix to nsmap prefix if needed
         if ":" not in prefixedName:
             return prefixedName
         if prefixedName.startswith("{"):
             logMessage("ERROR", "formulaSyntax:qnameFormat",
-                _("Expecting prefxed QName but appears to be Clark Name: \n%(qname)s"), 
+                _("Expecting prefxed QName but appears to be Clark Name: \n%(qname)s"),
                 xfsFile=self.xfsFile,
                 qname=prefixedName)
             return prefixedName
@@ -2035,14 +2035,14 @@ xsi:schemaLocation=""
         if prefix not in self.lbDocument.getroot().nsmap:
             if prefix not in formulaPrefixes:
                 logMessage("ERROR", "formulaSyntax:prefixUndefined",
-                    _("Prefix undefined: \n%(qname)s"), 
+                    _("Prefix undefined: \n%(qname)s"),
                     xfsFile=self.xfsFile,
                     qname=prefixedName)
                 return prefixedName
             else:
                 self.checkXmlns(prefix)
         return prefixedName
-            
+
     def element(self, tag, attrib=None, text=None):
         elt = self.xmlParser.makeelement(self.clarkName(tag), attrib=self.clarkAttrib(attrib), nsmap=self.lbDocument.getroot().nsmap)
         if self.modelXbrl is not None:
@@ -2050,14 +2050,14 @@ xsi:schemaLocation=""
         if text:
             elt.text = text
         return elt
-    
+
     def subElement(self, parentElt, tag, attrib=None, text=None):
         elt = self.element(tag, attrib, text)
         parentElt.append(elt)
         if self.modelXbrl is not None:
             elt.setNamespaceLocalName() # correct prefixed name after adding to parent
         return elt
-    
+
     def arcrole(self, arcrole):
         if arcrole in formulaArcroleRefs:
             if arcrole not in self.definedArcroles:
@@ -2086,8 +2086,8 @@ xsi:schemaLocation=""
 
     def labelNbr(self, prefix):
         _labelNbr = self.labels[prefix] = self.labels.get(prefix,0) + 1
-        return _labelNbr   
-    
+        return _labelNbr
+
 # interfaces for Arelle plugin operation
 def isXfLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
     return os.path.splitext(mappedUri)[1] == ".xf"
@@ -2139,14 +2139,14 @@ def cmdLineFilingStart(cntlr, options, *args, **kwargs):
     omitSourceLineAttributes = options.omitSourceLineAttributes
 
 def cmdLineOptionExtender(parser, *args, **kwargs):
-    parser.add_option("--save-formula-linkbase", 
-                      action="store", 
-                      dest="saveFormulaLinkbase", 
+    parser.add_option("--save-formula-linkbase",
+                      action="store",
+                      dest="saveFormulaLinkbase",
                       help=_("Save a linkbase loaded from formula syntax into this file name."))
 
-    parser.add_option("--omit-sourceline-attributes", 
-                      action="store_true", 
-                      dest="omitSourceLineAttributes", 
+    parser.add_option("--omit-sourceline-attributes",
+                      action="store_true",
+                      dest="omitSourceLineAttributes",
                       help=_("Do not include attributes identifying the source lines in the .xf files."))
 
 
@@ -2165,22 +2165,22 @@ __pluginInfo__ = {
     'CntlrCmdLine.Xbrl.Loaded': cmdLineXbrlLoaded,
     'CntlrCmdLine.Filing.Start': cmdLineFilingStart,
 }
-    
+
 if __name__ == "__main__":
     global _
     import gettext
     _ = gettext.gettext
-    
+
     class _cntlr:
         def showStatus(self, msg, clearAfter=0):
             print(msg)
-    
+
     def _logMessage(severity, code, message, **kwargs):
         print("[{}] {}".format(code, message % kwargs))
-        
+
     debugParsing = False
     xfFiles = []
-    
+
     for arg in sys.argv[1:]:
         if arg in ("-a", "--about"):
             print("\narelle(r) xf formula loader"
@@ -2208,9 +2208,9 @@ if __name__ == "__main__":
                 xfFiles.append(arg)
             else:
                 print("file named {} not found".format(arg))
-            
+
     # load xf formula files
     if xfFiles:
         xfsProgs = parse(_cntlr(), _logMessage, xfFiles, debugParsing=debugParsing)
-                
+
 

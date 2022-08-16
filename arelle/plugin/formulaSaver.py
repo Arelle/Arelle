@@ -1,16 +1,16 @@
 '''
 Save formula linkbase into XBRL Formula (syntax) files.
 
-(c) Copyright 2016 Mark V Systems Limited, California US, All rights reserved.  
+(c) Copyright 2016 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 Loads xbrl formula file syntax into formula linkbase.
 
 To run from command line, loading formula linkbase and saving formula syntax files:
 
-  python3.5 arelleCmdLine.py 
-     -f {DTS, instance, entry file, or formula linkbase file} 
-    --plugins formulaSaver.py 
+  python3.5 arelleCmdLine.py
+     -f {DTS, instance, entry file, or formula linkbase file}
+    --plugins formulaSaver.py
     --save-xbrl-formula {formula syntax output file.xf}
 
 '''
@@ -35,13 +35,13 @@ import os, datetime
 class NotExportable(Exception):
     def __init__(self, message):
         self.message = message
-        
+
 def kebabCase(name):
     return "".join("-" + c.lower() if c.isupper() else c for c in name)
 
 def strQuote(s):
     return '"' + s.replace('"', '""') + '"'
-        
+
 class GenerateXbrlFormula:
     def __init__(self, cntlr, xfFile):
         self.modelXbrl = cntlr.modelManager.modelXbrl
@@ -54,43 +54,43 @@ class GenerateXbrlFormula:
         cntlr.showStatus(_("Initializing Formula Grammar"))
         XPathParser.initializeParser(cntlr.modelManager)
         cntlr.showStatus(None)
-        
+
         for cfQnameArity in sorted(qnameArity
                                    for qnameArity in self.modelXbrl.modelCustomFunctionSignatures.keys()
                                    if isinstance(qnameArity, (tuple,list))):
             cfObject = self.modelXbrl.modelCustomFunctionSignatures[cfQnameArity]
             self.doObject(cfObject, None, "", set())
-            
+
         rootObjects = rootFormulaObjects(self) # sets var sets up
-        
+
         # put parameters at root regardless of whether linked to
         for qn, param in sorted(self.modelXbrl.qnameParameters.items(), key=lambda i:i[0]):
             self.doObject(param, None, "", set())
-            
+
         for rootObject in sorted(rootObjects, key=formulaObjSortKey):
             self.doObject(rootObject, None, "", set())
-            
+
         if self.xmlns:
             self.xfLines.insert(0, "")
             for prefix, ns in sorted(self.xmlns.items(), reverse=True):
                 self.xfLines.insert(0, "namespace {} = \"{}\";".format(prefix, ns))
-            
+
         self.xfLines.insert(0, "")
         self.xfLines.insert(0, "(: Generated from {} by Arelle on {} :)".format(self.modelXbrl.modelDocument.basename, XmlUtil.dateunionValue(datetime.datetime.now())))
-        
+
         with open(xfFile, "w", encoding="utf-8") as fh:
             fh.write("\n".join(self.xfLines))
-            
+
         self.modelXbrl.info("info", "saved formula file %(file)s", file=xfFile)
-        
+
     @property
     def xf(self):
         return xfLines[-1]
-    
+
     @xf.setter
     def xf(self, line):
         self.xfLines.append(line)
-        
+
     def objectId(self, fObj, elementType):
         eltNbr = self.eltTypeCount[elementType] = self.eltTypeCount.get(elementType, 0) + 1
         _id = fObj.id
@@ -101,7 +101,7 @@ class GenerateXbrlFormula:
         else:
             _id = "{}{}".format(elementType, eltNbr)
         return _id
-        
+
     def doObject(self, fObj, fromRel, pIndent, visited):
         if fObj is None:
             return
@@ -132,13 +132,13 @@ class GenerateXbrlFormula:
                 if fObj.get("source"):
                     self.xf = "{}source {};".format(cIndent, fObj.get("source"))
                 for aspectsElt in XmlUtil.children(fObj, XbrlConst.formula, "aspects"):
-                    self.xf = "{}aspect-rules{} {{".format(cIndent, 
+                    self.xf = "{}aspect-rules{} {{".format(cIndent,
                                                            "source {}".format(aspectsElt.get("source")) if aspectsElt.get("source") else "")
                     for ruleElt in XmlUtil.children(aspectsElt, XbrlConst.formula, "*"):
                         self.doObject(ruleElt, None, cIndent + "   ", visited)
                     self.xf = "{}}};".format(cIndent)
-            for arcrole in (XbrlConst.variableSetFilter, 
-                            XbrlConst.variableSet, 
+            for arcrole in (XbrlConst.variableSetFilter,
+                            XbrlConst.variableSet,
                             XbrlConst.variableSetPrecondition):
                 for modelRel in self.modelXbrl.relationshipSet(arcrole).fromModelObject(fObj):
                     self.doObject(modelRel.toModelObject, modelRel, cIndent, visited)
@@ -257,18 +257,18 @@ class GenerateXbrlFormula:
                     if axis:
                         members.append("axis")
                         members.append(axis)
-                self.xf = "{}explicit-dimension {} {};".format(pIndent, 
+                self.xf = "{}explicit-dimension {} {};".format(pIndent,
                                                               fObj.dimQname or ("{{{}}}".format(fObj.dimQnameExpression) if fObj.dimQnameExpression else ""),
                                                               " ".join(members))
             elif isinstance(fObj, ModelTypedDimension): # this is a ModelTestFilter not same as genera/unit/period
-                self.xf = "{}typed-dimension {} {};".format(pIndent, 
+                self.xf = "{}typed-dimension {} {};".format(pIndent,
                                                            fObj.dimQname or ("{{{}}}".format(fObj.dimQnameExpression) if fObj.dimQnameExpression else ""),
                                                            " {{{}}}".format(fObj.test) if fObj.test else "")
             elif isinstance(fObj, ModelTestFilter):
-                self.xf = "{}{} {{{}}};".format(pIndent, 
+                self.xf = "{}{} {{{}}};".format(pIndent,
                                                 "general" if isinstance(fObj, ModelGeneral) else
                                                 "unit-general-measures" if isinstance(fObj, ModelGeneralMeasures) else
-                                                "period" if isinstance(fObj, ModelPeriod) else 
+                                                "period" if isinstance(fObj, ModelPeriod) else
                                                 "entity-identifier" if isinstance(fObj, ModelIdentifier) else None,
                                                 fObj.test)
             elif isinstance(fObj, ModelDateTimeFilter):
@@ -277,7 +277,7 @@ class GenerateXbrlFormula:
             elif isinstance(fObj, ModelInstantDuration):
                 self.xf = "{}instant-duration {} {};".format(pIndent, fObj.boundary, fObj.variable)
             elif isinstance(fObj, ModelSingleMeasure):
-                self.xf = "{}unit-single-measure {};".format(pIndent, 
+                self.xf = "{}unit-single-measure {};".format(pIndent,
                                                              fObj.measureQname or ("{{{}}}".format(fObj.qnameExpression) if fObj.qnameExpression else ""))
             elif isinstance(fObj, ModelEntitySpecificIdentifier):
                 self.xf = "{}entity scheme {{{}}} value {{{}}};".format(pIndent, fObj.scheme, fObj.value)
@@ -294,10 +294,10 @@ class GenerateXbrlFormula:
             elif isinstance(fObj, ModelRelativeFilter):
                 self.xf = "{}relative ${};".format(pIndent, fObj.variable)
             elif isinstance(fObj, ModelAncestorFilter):
-                self.xf = "{}ancestor {};".format(pIndent, 
+                self.xf = "{}ancestor {};".format(pIndent,
                                                   fObj.ancestorQname or ("{{{}}}".format(fObj.qnameExpression) if fObj.qnameExpression else ""))
             elif isinstance(fObj, ModelParentFilter):
-                self.xf = "{}parent {};".format(pIndent, 
+                self.xf = "{}parent {};".format(pIndent,
                                                   fObj.parentQname or ("{{{}}}".format(fObj.qnameExpression) if fObj.qnameExpression else ""))
             elif isinstance(fObj, ModelSiblingFilter):
                 self.xf = "{}sibling ${};".format(pIndent, fObj.variable)
@@ -354,13 +354,13 @@ class GenerateXbrlFormula:
                 self.xf = "{}}};".format(pIndent)
         elif isinstance(fObj, ModelMessage):
             self.xf = "{}{}{} \"{}\";".format(
-                pIndent, 
+                pIndent,
                 "satisfied-message" if fromRel.arcrole == XbrlConst.assertionSatisfiedMessage else "unsatisfied-message",
                 " ({})".format(fObj.xmlLang) if fObj.xmlLang else "",
                 fObj.text.replace('"', '""'))
         elif isinstance(fObj, ModelAssertionSeverity):
             self.xf = "{}{} {};".format(
-                pIndent, 
+                pIndent,
                 "unsatisfied-severity",
                 fObj.level)
         elif isinstance(fObj, ModelCustomFunctionSignature):
@@ -373,14 +373,14 @@ class GenerateXbrlFormula:
                 visited.remove(fObj)
             if not hasImplementation:
                 self.xmlns[fObj.functionQname.prefix] = fObj.functionQname.namespaceURI
-                self.xf = "{}abstract-function {}({}) as {};".format(pIndent, fObj.name, 
-                                                                      ", ".join(str(t) for t in fObj.inputTypes), 
+                self.xf = "{}abstract-function {}({}) as {};".format(pIndent, fObj.name,
+                                                                      ", ".join(str(t) for t in fObj.inputTypes),
                                                                       fObj.outputType)
         elif isinstance(fObj, ModelCustomFunctionImplementation):
             sigObj = fromRel.fromModelObject
             self.xmlns[sigObj.functionQname.prefix] = sigObj.functionQname.namespaceURI
-            self.xf = "{}function {}({}) as {} {{".format(pIndent, 
-                                                          sigObj.name, 
+            self.xf = "{}function {}({}) as {} {{".format(pIndent,
+                                                          sigObj.name,
                                                           ", ".join("{} as {}".format(inputName, sigObj.inputTypes[i])
                                                                     for i, inputName in enumerate(fObj.inputNames)),
                                                           sigObj.outputType)
@@ -462,8 +462,8 @@ class GenerateXbrlFormula:
 
 def saveXfMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Save Xbrl Formula file", 
-                     underline=0, 
+    menu.add_command(label="Save Xbrl Formula file",
+                     underline=0,
                      command=lambda: saveXfMenuCommand(cntlr) )
 
 def saveXfMenuCommand(cntlr):
@@ -484,7 +484,7 @@ def saveXfMenuCommand(cntlr):
     cntlr.config["xbrlFormulaFileDir"] = os.path.dirname(xbrlFormulaFile)
     cntlr.saveConfig()
 
-    try: 
+    try:
         GenerateXbrlFormula(cntlr, xbrlFormulaFile)
     except Exception as ex:
         dts = cntlr.modelManager.modelXbrl
@@ -495,9 +495,9 @@ def saveXfMenuCommand(cntlr):
 
 def saveXfCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
-    parser.add_option("--save-xbrl-formula", 
-                      action="store", 
-                      dest="xbrlFormulaFile", 
+    parser.add_option("--save-xbrl-formula",
+                      action="store",
+                      dest="xbrlFormulaFile",
                       help=_("Save Formula File from formula linkbase."))
 
 def saveXfCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):

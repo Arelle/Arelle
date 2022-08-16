@@ -35,11 +35,11 @@ def checkFilingDTS(val, modelDocument, visited):
         roleTypePattern = re.compile(r"^.*/role/[^/\s]+$")
         arcroleTypePattern = re.compile(r"^.*/arcrole/[^/\s]+$")
         arcroleDefinitionPattern = re.compile(r"^.*[^\\s]+.*$")  # at least one non-whitespace character
-        namePattern = re.compile("[][()*+?\\\\/^{}|@#%^=~`\"';:,<>&$\u00a3\u20ac]") # u20ac=Euro, u00a3=pound sterling 
+        namePattern = re.compile("[][()*+?\\\\/^{}|@#%^=~`\"';:,<>&$\u00a3\u20ac]") # u20ac=Euro, u00a3=pound sterling
         linkroleDefinitionBalanceIncomeSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*(income|balance|financial\W+position)",
                                                           re.IGNORECASE)
         namespacesConflictPattern = re.compile(r"http://(xbrl\.us|fasb\.org|xbrl\.sec\.gov)/(dei|us-types|us-roles|rr)/([0-9]{4}-[0-9]{2}-[0-9]{2})$")
-        
+
     visited.append(modelDocument)
     for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
         #6.07.01 no includes
@@ -47,18 +47,18 @@ def checkFilingDTS(val, modelDocument, visited):
             val.modelXbrl.error("SBR.NL.2.2.0.18",
                 _("Taxonomy schema %(schema)s includes %(include)s, only import is allowed"),
                 modelObject=modelDocumentReference.referringModelObject,
-                    schema=os.path.basename(modelDocument.uri), 
+                    schema=os.path.basename(modelDocument.uri),
                     include=os.path.basename(referencedDocument.uri))
         if referencedDocument not in visited:
             checkFilingDTS(val, referencedDocument, visited)
-            
+
     if val.disclosureSystem.standardTaxonomiesDict is None:
         pass
 
-    if (modelDocument.type == ModelDocument.Type.SCHEMA and 
+    if (modelDocument.type == ModelDocument.Type.SCHEMA and
         modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
         modelDocument.uri.startswith(val.modelXbrl.uriDir)):
-        
+
         # check schema contents types
         definesLinkroles = False
         definesArcroles = False
@@ -74,13 +74,13 @@ def checkFilingDTS(val, modelDocument, visited):
         definesDimensions = False
         definesDomains = False
         definesHypercubes = False
-                
+
         genrlSpeclRelSet = val.modelXbrl.relationshipSet(XbrlConst.generalSpecial)
         for modelConcept in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}element"):
             if isinstance(modelConcept,ModelConcept):
                 # 6.7.16 name not duplicated in standard taxonomies
                 name = modelConcept.get("name")
-                if name is None: 
+                if name is None:
                     name = ""
                     if modelConcept.get("ref") is not None:
                         continue    # don't validate ref's here
@@ -202,7 +202,7 @@ def checkFilingDTS(val, modelDocument, visited):
                 val.modelXbrl.error("SBR.NL.2.2.4.01",
                     _("Arcrole type definition is not allowed: %(arcroleURI)s"),
                     modelObject=e, arcroleURI=arcroleURI)
-                    
+
         for appinfoElt in modelDocument.xmlRootElement.iter(tag="{http://www.w3.org/2001/XMLSchema}appinfo"):
             for nonLinkElt in appinfoElt.iterdescendants():
                 if isinstance(nonLinkElt, ModelObject) and nonLinkElt.namespaceURI != XbrlConst.link:
@@ -216,7 +216,7 @@ def checkFilingDTS(val, modelDocument, visited):
                 val.modelXbrl.error("SBR.NL.2.2.11.09",
                     _("ComplexType contains disallowed xs:choice element"),
                     modelObject=choiceElt)
-                
+
         for cplxContentElt in modelDocument.xmlRootElement.iter(tag="{http://www.w3.org/2001/XMLSchema}complexContent"):
             if XmlUtil.descendantAttr(cplxContentElt, "http://www.w3.org/2001/XMLSchema", ("extension","restriction"), "base") != "sbr:placeholder":
                 val.modelXbrl.error("SBR.NL.2.2.11.10",
@@ -233,7 +233,7 @@ def checkFilingDTS(val, modelDocument, visited):
                         val.modelXbrl.error("SBR.NL.3.2.8.09",
                             _("Type name attribute must be lower camelcase: %(name)s."),
                             modelObject=typeElt, name=name)
-        
+
         for enumElt in modelDocument.xmlRootElement.iter(tag="{http://www.w3.org/2001/XMLSchema}enumeration"):
             definesEnumerations = True
             if any(not valueElt.genLabel(lang="nl")
@@ -243,9 +243,9 @@ def checkFilingDTS(val, modelDocument, visited):
                     modelObject=enumElt)
 
         if (definesLinkroles + definesArcroles + definesLinkParts +
-            definesAbstractItems + definesNonabstractItems + 
+            definesAbstractItems + definesNonabstractItems +
             definesTuples + definesPresentationTuples + definesSpecificationTuples + definesTypes +
-            definesEnumerations + definesDimensions + definesDomains + 
+            definesEnumerations + definesDimensions + definesDomains +
             definesHypercubes) != 1:
             schemaContents = []
             if definesLinkroles: schemaContents.append(_("linkroles"))
@@ -292,7 +292,7 @@ def checkFilingDTS(val, modelDocument, visited):
     elif modelDocument.type == ModelDocument.Type.LINKBASE:
         pass
     visited.remove(modelDocument)
-    
+
 def tupleCycle(val, concept, ancestorTuples=None):
     if ancestorTuples is None: ancestorTuples = set()
     if concept in ancestorTuples:

@@ -10,13 +10,13 @@ from arelle import XPathContext, XbrlUtil
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.PythonUtil import flattenSequence
 from decimal import Decimal
-    
+
 class fnFunctionNotAvailable(Exception):
     def __init__(self):
         self.args =  ("custom function not available",)
     def __repr__(self):
         return self.args[0]
-    
+
 def call(xc, p, qname, contextItem, args):
     try:
         cfSig = xc.modelXbrl.modelCustomFunctionSignatures[qname, len(args)]
@@ -29,7 +29,7 @@ def call(xc, p, qname, contextItem, args):
         raise XPathContext.FunctionNotAvailable("custom function:{0}".format(str(qname)))
 
 def callCfi(xc, p, qname, cfSig, contextItem, args):
-    if len(args) != len(cfSig.inputTypes): 
+    if len(args) != len(cfSig.inputTypes):
         raise XPathContext.FunctionNumArgs()
 
     cfi = cfSig.customFunctionImplementation
@@ -41,12 +41,12 @@ def callCfi(xc, p, qname, cfSig, contextItem, args):
         if argName in xc.inScopeVars:
             overriddenInScopeVars[argName] = xc.inScopeVars[argName]
         xc.inScopeVars[argName] = args[i]
-        
+
     if traceEvaluation:
         xc.modelXbrl.info("formula:trace",
                             _("%(cfi)s(%(arguments)s)"),
                             modelObject=cfi,
-                            cfi=qname, 
+                            cfi=qname,
                             arguments=', '.join("{}={}".format(argName, args[i])
                                                 for i, argName in enumerate(inputNames)))
 
@@ -95,7 +95,7 @@ def callCfi(xc, p, qname, cfSig, contextItem, args):
         raise XPathContext.FunctionArgType("output",cfSig.outputType,result)
     return result
 
-# for test case 22015 v01        
+# for test case 22015 v01
 def  my_fn_PDxEV(xc, p, contextItem, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     PDseq = flattenSequence(args[0])

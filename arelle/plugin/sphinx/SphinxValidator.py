@@ -1,18 +1,18 @@
 '''
 sphinxValidator validates Sphinx language expressions in the context of an XBRL DTS and instance.
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
+(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
-Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer 
-(c) Copyright 2012 CoreFiling, Oxford UK. 
+Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer
+(c) Copyright 2012 CoreFiling, Oxford UK.
 Sphinx copyright applies to the Sphinx language, not to this software.
-Mark V Systems conveys neither rights nor license for the Sphinx language. 
+Mark V Systems conveys neither rights nor license for the Sphinx language.
 '''
 
 from arelle.ModelValue import QName
 from .SphinxParser import (astBinaryOperation, astSourceFile, astNamespaceDeclaration, astRuleBasePrecondition,
-                           astConstant, astNamespaceDeclaration, astStringLiteral, 
+                           astConstant, astNamespaceDeclaration, astStringLiteral,
                            astHyperspaceExpression, astHyperspaceAxis,
                            astFunctionDeclaration, astFunctionReference, astNode,
                            astPreconditionDeclaration, astPreconditionReference,
@@ -23,30 +23,30 @@ from .SphinxParser import (astBinaryOperation, astSourceFile, astNamespaceDeclar
 def validate(logMessage, sphinxContext):
     modelXbrl = sphinxContext.modelXbrl
     hasDTS = modelXbrl is not None
-    
-    
+
+
     if hasDTS:
         # if no formulas loaded, set
         if not hasattr(modelXbrl, "modelFormulaEqualityDefinitions"):
             modelXbrl.modelFormulaEqualityDefinitions = {}
-    
+
         import logging
         initialErrorCount = modelXbrl.logCount.get(logging._checkLevel('ERROR'), 0)
 
         # must also have default dimensions loaded
         from arelle import ValidateXbrlDimensions
         ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
-        
+
     sphinxContext.ruleBasePreconditionNodes = []
     sphinxContext.preconditionNodes = {}
-    
+
     # accumulate definitions
     for prog in sphinxContext.sphinxProgs:
         for node in prog:
             if isinstance(node, astRuleBasePrecondition):
                 sphinxContext.ruleBasePreconditionNodes.append(node)
             elif isinstance(node, astPreconditionDeclaration):
-                sphinxContext.preconditionNodes[node.name] = node    
+                sphinxContext.preconditionNodes[node.name] = node
             elif isinstance(node, astFunctionDeclaration):
                 sphinxContext.functions[node.name] = node
             elif isinstance(node, astConstant):
@@ -55,7 +55,7 @@ def validate(logMessage, sphinxContext):
                 if node.tagName:
                     sphinxContext.taggedConstants[node.tagName] = node
 
-    # check references            
+    # check references
     def checkNodes(nodes, inMacro=False):
         if not nodes: return
         for node in nodes:
@@ -71,8 +71,8 @@ def validate(logMessage, sphinxContext):
                             sourceFileLine=node.sourceFileLine,
                             name=name)
             elif isinstance(node, (astFormulaRule, astReportRule, astValidationRule)):
-                checkNodes((node.precondition, node.severity, 
-                            node.variableAssignments, 
+                checkNodes((node.precondition, node.severity,
+                            node.variableAssignments,
                             node.expr, node.message), inMacro)
                 sphinxContext.rules.append(node)
                 if node.severity:
@@ -112,7 +112,7 @@ def validate(logMessage, sphinxContext):
                     elif (axis.aspect not in {"unit", "segment", "scenario"} and
                         isinstance(axis.restriction, (list, tuple))):
                         for restrictionValue in axis.restriction:
-                            if isinstance(restrictionValue, QName) and not restrictionValue in modelXbrl.qnameConcepts: 
+                            if isinstance(restrictionValue, QName) and not restrictionValue in modelXbrl.qnameConcepts:
                                 logMessage("ERROR", "sphinxCompiler:axisNotDimension",
                                     _("Hypercube value not in the DTS %(qname)s"),
                                     sourceFileLine=node.sourceFileLine,
@@ -131,29 +131,29 @@ def validate(logMessage, sphinxContext):
                 checkWithAxes(node.restrictionExpr)
                 checkNodes((node.variableAssignments, node.bodyExpr,), inMacro)
             elif isinstance(node, astNode):
-                nestedMacro = inMacro or (isinstance(node, astFunctionDeclaration) and 
+                nestedMacro = inMacro or (isinstance(node, astFunctionDeclaration) and
                                           node.functionType == "macro")
                 checkNodes([expr
-                            for expr in node.__dict__.values() 
+                            for expr in node.__dict__.values()
                             if isinstance(expr, (astNode, list, set))],
                            nestedMacro)
-                
+
     for prog in sphinxContext.sphinxProgs:
         checkNodes(prog)
-                    
+
     if len(sphinxContext.ruleBasePreconditionNodes) > 1:
         logMessage("ERROR", "sphinxCompiler:multipleRuleBaseDeclarations",
             _("Multiple rule-base declarations %(preconditions)s"),
             sourceFileLines=[node.sourceFileLine for node in sphinxContext.ruleBasePreconditionNodes],
-            preconditions=", ".join(str(r) for r in sphinxContext.ruleBasePreconditionNodes)) 
-        
-               
+            preconditions=", ".join(str(r) for r in sphinxContext.ruleBasePreconditionNodes))
+
+
     if hasDTS:
         # if no errors in checking sphinx
         if initialErrorCount == modelXbrl.logCount.get(logging._checkLevel('ERROR'), 0):
             from .SphinxEvaluator import evaluateRuleBase
             evaluateRuleBase(sphinxContext)
-        
+
 def hasFormulaOp(node):
     if isinstance(node, astBinaryOperation) and node.op == ":=":
         return True

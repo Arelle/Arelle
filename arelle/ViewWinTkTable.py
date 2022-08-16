@@ -23,7 +23,7 @@ class ViewTkTable(ViewPane):
         super(ViewTkTable, self).contextMenu()
         self.bindContextMenu(self.table)
         return self.menu
-    
+
     def setHeightAndWidth(self):
         frameWidth = self.tabWin.winfo_width()
         frameHeight = self.tabWin.winfo_height()

@@ -1,18 +1,18 @@
 '''
 EDGAR.py implements an OpenSql database extension for Seatig's XDC
 
-(c) Copyright 2017 Mark V Systems Limited, California US, All rights reserved.  
+(c) Copyright 2017 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 
 to use from command line:
    --plugins xbrlDB/ext/XDC.py # note this plugin imports xbrlDB plugin
-   
+
 file name argument includes metadata:
   -f "[{\"file\":\"abc.xbrl\", ... and optional fields for extXdcMetadata ...}]"
-  
+
 note that reference parts are needed at least on first "loading" of the DTS
-  
+
   -f '[{
         "submitterUserId": "herm0001",
         "submitterUserName": "Herm Fischer",
@@ -36,7 +36,7 @@ note that reference parts are needed at least on first "loading" of the DTS
         "file":
         "/Users/hermf/Documents/mvsl/projects/China/Changhong/XDC Data Model/XDC_XBRL_v0.1.48/XDC_sampInst_v0.1.48_2004_FapiaoGeneralWritten.xbrl",
         "supplementalUrls":["f3","f4"]}
-        ]' 
+        ]'
     -v '/Users/hermf/Documents/mvsl/projects/China/Changhong/XDC Data Model/XDC_XBRL_v0.1.48/XDC_elements_v0.1.48_2017-11-09_ref_externalDefinitionReference.xml'
     -v --plugin xbrlDB/ext/xdc --store-to-XBRL-DB "server.abc.com,8084,userid,password,databasename,90,pgOpenDB"
 
@@ -45,8 +45,8 @@ import os
 from arelle.UrlUtil import ensureUrl
 
 EXT_XDC_TABLES = {
-                "xdc_user", 
-                "submission_xdc", 
+                "xdc_user",
+                "submission_xdc",
                 "filing_xdc"
                 }
 
@@ -58,7 +58,7 @@ def extXdcTableDdlFiles(xbrlOpenDb):
                                                 "sqlite": "xdc*SQLiteDB.ddl",
                                                 "orcl": "xdc*OracleDB.sql",
                                                 "postgres": "xdc*PostgresDB.ddl"}[xbrlOpenDb.product])])
-    
+
 def extXdcMetadata(xbrlOpenDb, entrypoint, rssItem):
     md = xbrlOpenDb.metadata
     # needed for core tables
@@ -85,11 +85,11 @@ def extXdcExistingFilingPk(xbrlOpenDb):
 
 def extXdcSubmission(xbrlOpenDb, now):
     md = xbrlOpenDb.metadata
-    table = xbrlOpenDb.getTable('xdc_user', 'user_pk', 
+    table = xbrlOpenDb.getTable('xdc_user', 'user_pk',
                           ('user_id',
                            'name'
-                           ), 
-                          ('user_id',), 
+                           ),
+                          ('user_id',),
                           ((md["submitterUserId"],
                             md["submitterUserName"]
                             ),),
@@ -97,13 +97,13 @@ def extXdcSubmission(xbrlOpenDb, now):
     for userId, _userNumber in table:
         xbrlOpenDb.userId = userId
         break
-    
-    table = xbrlOpenDb.getTable('submission_xdc', None, 
+
+    table = xbrlOpenDb.getTable('submission_xdc', None,
                           ('submission_pk',
                            'submitter_fk',
                            'source_portal'
-                           ), 
-                          ('submission_pk',), 
+                           ),
+                          ('submission_pk',),
                           ((xbrlOpenDb.submissionId,
                             xbrlOpenDb.userId,
                             md["sourcePortal"]
@@ -112,31 +112,31 @@ def extXdcSubmission(xbrlOpenDb, now):
 
 def extXdcFiling(xbrlOpenDb, now):
     md = xbrlOpenDb.metadata
-    table = xbrlOpenDb.getTable('filing_xdc', None, 
+    table = xbrlOpenDb.getTable('filing_xdc', None,
                           ('filing_pk',
                            'filing_id'
-                           ), 
+                           ),
                           ('filing_pk',
-                           ), 
+                           ),
                           ((xbrlOpenDb.filingPk,
                             md["filingId"]
                             ),),
                           checkIfExisting=True)
-    
+
     # add supplemental document references
     supplementalDocumentsTable = xbrlOpenDb.getTable(
-                         'document', 'document_pk', 
-                          ('url', 'type'), 
-                          ('url',), 
+                         'document', 'document_pk',
+                          ('url', 'type'),
+                          ('url',),
                           set((ensureUrl(docUrl),
-                               "attachment") 
+                               "attachment")
                               for docUrl in md["supplementalUrls"]),
                           checkIfExisting=True)
 
-    table = xbrlOpenDb.getTable('referenced_documents', 
-                          None, # no id column in this table 
-                          ('object_fk','document_fk'), 
-                          ('object_fk','document_fk'), 
+    table = xbrlOpenDb.getTable('referenced_documents',
+                          None, # no id column in this table
+                          ('object_fk','document_fk'),
+                          ('object_fk','document_fk'),
                           tuple((xbrlOpenDb.filingPk, supplementalDocumentId)
                                 for supplementalDocumentId, _url in supplementalDocumentsTable),
                           checkIfExisting=True)
@@ -161,10 +161,10 @@ def extXdcReport(xbrlOpenDb, now):
                            ("report_pk", "is_most_current"),
                            ((xbrlOpenDb.reportPk, True),)
                            )
-    
+
 __pluginInfo__ = {
     'name': 'xbrlDB Extension for Seatig XDC',
-    'version': '1.0', 
+    'version': '1.0',
     'description': "This plug-in implements additional database fields for Changhong XDC.  ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',

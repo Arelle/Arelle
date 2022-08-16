@@ -1,7 +1,7 @@
 '''
 This module provides database interfaces to postgres SQL
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
+(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 '''
 import sys, os, io, glob, time, re, datetime, socket, string, random
@@ -14,7 +14,7 @@ TRACESQLFILE = None
 #TRACESQLFILE = r"z:\temp\sqltraceWin.log"  # uncomment to trace SQL on connection (very big file!!!)
 #TRACESQLFILE = "/Users/hermf/temp/sqltraceUnx.log"  # uncomment to trace SQL on connection (very big file!!!)
 
-def noop(*args, **kwargs): return 
+def noop(*args, **kwargs): return
 class NoopException(Exception):
     pass
 try:
@@ -28,7 +28,7 @@ except ImportError:
     hasPostgres = False
     pgConnect = noop
     pgOperationalError = pgProgrammingError = pgInterfaceError = NoopException
-    
+
 try:
     import pymysql  # MIT License but not installed at GAE
     hasMySql = True
@@ -66,7 +66,7 @@ except ImportError:
     oracleDatabaseError = oracleInterfaceError = NoopException
     oracleCLOB = None
 
-try: 
+try:
     import pyodbc
     hasMSSql = True
     mssqlConnect = pyodbc.connect
@@ -82,7 +82,7 @@ except ImportError:
     mssqlOperationalError = mssqlProgrammingError = mssqlInterfaceError = mssqlInternalError = \
         mssqlDataError = mssqlIntegrityError = NoopException
 
-try: 
+try:
     import sqlite3
     hasSQLite = True
     sqliteConnect = sqlite3.connect
@@ -114,7 +114,7 @@ def isSqlConnection(host, port, timeout=10, product=None):
                 mysqlConnect(user='', host=host, port=int(port or 5432), socket_timeout=t)
             elif product == "orcl" and hasOracle:
                 orclConnect = oracleConnect('{}/{}@{}:{}'
-                                            .format("", "", host, 
+                                            .format("", "", host,
                                                     ":{}".format(port) if port else ""))
             elif product == "mssql" and hasMSSql:
                 mssqlConnect(user='', host=host, socket_timeout=t)
@@ -122,13 +122,13 @@ def isSqlConnection(host, port, timeout=10, product=None):
                 sqliteConnect("", t) # needs a database specified for this test
         except (pgProgrammingError, mysqlProgrammingError, oracleDatabaseError, sqliteProgrammingError):
             return True # success, this is really a postgres socket, wants user name
-        except (pgInterfaceError, mysqlInterfaceError, oracleInterfaceError, 
+        except (pgInterfaceError, mysqlInterfaceError, oracleInterfaceError,
                 mssqlOperationalError, mssqlInterfaceError, sqliteOperationalError, sqliteInterfaceError):
             return False # something is there but not postgres
         except socket.timeout:
             t = t + 2  # relax - try again with longer timeout
     return False
-    
+
 class XPDBException(Exception):
     def __init__(self, code, message, **kwargs ):
         self.code = code
@@ -137,7 +137,7 @@ class XPDBException(Exception):
         self.args = ( self.__repr__(), )
     def __repr__(self):
         return _('[{0}] exception: {1}').format(self.code, self.message % self.kwargs)
-            
+
 class SqlDbConnection():
     def __init__(self, modelXbrl, user, password, host, port, database, timeout, product, **kwargs):
         self.modelXbrl = modelXbrl
@@ -145,45 +145,45 @@ class SqlDbConnection():
         if product == "postgres":
             if not hasPostgres:
                 raise XPDBException("xpgDB:MissingPostgresInterface",
-                                    _("Postgres interface is not installed")) 
-            self.conn = pgConnect(user=user, password=password, host=host, 
-                                  port=int(port or 5432), 
-                                  database=database, 
+                                    _("Postgres interface is not installed"))
+            self.conn = pgConnect(user=user, password=password, host=host,
+                                  port=int(port or 5432),
+                                  database=database,
                                   timeout=timeout or 60)
             self.product = product
         elif product == "mysql":
             if not hasMySql:
                 raise XPDBException("xpgDB:MissingMySQLInterface",
-                                    _("MySQL interface is not installed")) 
-            self.conn = mysqlConnect(user=user, passwd=password, host=host, 
-                                     port=int(port or 5432), 
-                                     db=database,  # pymysql takes database or db but MySQLdb only takes db 
+                                    _("MySQL interface is not installed"))
+            self.conn = mysqlConnect(user=user, passwd=password, host=host,
+                                     port=int(port or 5432),
+                                     db=database,  # pymysql takes database or db but MySQLdb only takes db
                                      connect_timeout=timeout or 60,
                                      charset='utf8')
             self.product = product
         elif product == "orcl":
             if not hasOracle:
                 raise XPDBException("xpgDB:MissingOracleInterface",
-                                    _("Oracle interface is not installed")) 
+                                    _("Oracle interface is not installed"))
             self.conn = oracleConnect('{}/{}@{}{}'
-                                            .format(user, password, host, 
+                                            .format(user, password, host,
                                                     ":{}".format(port) if port else ""))
             # self.conn.paramstyle = 'named'
             self.product = product
         elif product == "mssql":
             if not hasMSSql:
                 raise XPDBException("xpgDB:MissingMSSQLInterface",
-                                    _("MSSQL server interface is not installed")) 
+                                    _("MSSQL server interface is not installed"))
             self.conn = mssqlConnect('DRIVER={{SQL Server Native Client 11.0}};SERVER={2};DATABASE={3};UID={0};PWD={1};CHARSET=UTF8'
                                       .format(user,
-                                              password, 
+                                              password,
                                               host, # e.g., localhost\\SQLEXPRESS
                                               database))
             self.product = product
         elif product == "sqlite":
             if not hasSQLite:
                 raise XPDBException("xpgDB:MissingSQLiteInterface",
-                                    _("SQLite interface is not installed")) 
+                                    _("SQLite interface is not installed"))
             self.conn = sqliteConnect(database, (timeout or 60), detect_types=sqliteParseDecltypes)
             self.product = product
             self.syncSequences = False # for object_id coordination of autoincrement values
@@ -193,7 +193,7 @@ class SqlDbConnection():
         self.tableColDeclaration = {}
         self.accessionId = "(None)"
         self.tempInputTableName = "input{}".format(os.getpid())
-                
+
     def close(self, rollback=False):
         if not self.isClosed:
             try:
@@ -208,33 +208,33 @@ class SqlDbConnection():
                     raise ex.with_traceback(ex.__traceback__)
                 else:
                     raise ex
-        
+
     @property
     def isClosed(self):
         return not bool(self.__dict__)  # closed when dict is empty
-    
+
     def showStatus(self, msg, clearAfter=None):
         if self.modelXbrl is not None:
             self.modelXbrl.modelManager.showStatus(msg, clearAfter)
-        
+
     def pyStrFromDbStr(self, str):
         if self.product == "postgres":
             return str.replace("%%", "%")
         return str
-        
+
     def pyBoolFromDbBool(self, str):
         return str in ("TRUE", "t", True)  # may be DB string or Python boolean (preconverted)
-    
+
     def pyNoneFromDbNULL(self, str):
         return None
-    
+
     def dbNum(self, num):
         if isinstance(num, (int,float)):
             if isinf(num) or isnan(num):
                 return None  # not legal in SQL
             return num
-        return None 
-    
+        return None
+
     def dbStr(self, s):
         if self.product == "orcl":
             return "'" + str(s).replace("'","''") + "'"
@@ -249,14 +249,14 @@ class SqlDbConnection():
                 if i > 100:
                     raise XPDBException("xpgDB:StringHandlingError",
                                 _("Trying to generate random dollar quoted string tag, but cannot find one that is not in the string. Tried 100 times."),
-                                table=table) 
+                                table=table)
                 dollarString = '$' + ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(8)) + '$'
             return dollarString + cleanString + dollarString
         elif self.product == "sqlite":
             return "'" + str(s).replace("'","''") + "'"
         else:
             return "'" + str(s).replace("'","''").replace('%', '%%') + "'"
-        
+
     def dbTableName(self, tableName):
         if self.product == "orcl":
             return '"' + tableName + '"'
@@ -270,42 +270,42 @@ class SqlDbConnection():
         except AttributeError:
             self._cursor = self.conn.cursor()
             return self._cursor
-        
+
     def closeCursor(self):
         try:
             self._cursor.close()
             del self._cursor
-        except (AttributeError, 
-                pgOperationalError, 
+        except (AttributeError,
+                pgOperationalError,
                 mysqlProgrammingError,
                 oracleDatabaseError):
             if hasattr(self, '_cursor'):
                 del self._cursor
-        
+
     def commit(self):
         self.conn.commit()
-        
+
     def rollback(self):
         try:
             self.conn.rollback()
         except (pg8000.ConnectionClosedError):
             pass
-        
+
     def dropTemporaryTable(self):
         if self.product == "orcl":
             self.execute("""
                 BEGIN
-                    EXECUTE IMMEDIATE 'drop table {}'; 
+                    EXECUTE IMMEDIATE 'drop table {}';
                     EXCEPTION WHEN OTHERS THEN NULL;
                 END;
-                """.format(self.tempInputTableName), 
+                """.format(self.tempInputTableName),
                 close=True, commit=False, fetch=False, action="dropping temporary table")
         elif self.product == "mssql":
             self.execute("""
                 IF OBJECT_ID('tempdb..#{0}', 'U') IS NOT NULL DROP TABLE "#{0}";
-                """.format(self.tempInputTableName), 
+                """.format(self.tempInputTableName),
                 close=True, commit=False, fetch=False, action="dropping temporary table")
-            
+
     def lockTables(self, tableNames, isSessionTransaction=False):
         ''' lock for an entire transaction has isSessionTransaction=True, locks until commit
             some databases require locks per operation (such as MySQL), when isSessionTransaction=False
@@ -321,8 +321,8 @@ class SqlDbConnection():
             result = self.execute('BEGIN TRANSACTION',
                                   close=False, commit=False, fetch=False, action="locking table")
         # note, there is no lock for MS SQL (as far as I could find)
-        
-        
+
+
     def unlockAllTables(self):
         if self.product in ("mysql",):
             result = self.execute('UNLOCK TABLES',
@@ -330,7 +330,7 @@ class SqlDbConnection():
         elif self.product in ("sqlite",):
             result = self.execute('COMMIT TRANSACTION',
                                   close=False, commit=False, fetch=False, action="locking table")
-        
+
     def execute(self, sql, commit=False, close=True, fetch=True, params=None, action="execute"):
         cursor = self.cursor
         try:
@@ -365,7 +365,7 @@ class SqlDbConnection():
         if close:
             self.closeCursor()
         return result
-    
+
     def create(self, ddlFiles, dropPriorTables=True): # ddl Files may be a sequence (or not) of file names, glob wildcards ok, relative ok
         if dropPriorTables:
             # drop tables
@@ -379,7 +379,7 @@ class SqlDbConnection():
                 result = self.execute('DROP SEQUENCE %s' % sequence,
                                       close=False, commit=False, fetch=False, action="dropping sequence")
             self.modelXbrl.profileStat(_("XbrlPublicDB: drop prior tables"), time.time() - startedAt)
-                    
+
         startedAt = time.time()
         # process ddlFiles to make absolute and de-globbed
         _ddlFiles = []
@@ -431,7 +431,7 @@ class SqlDbConnection():
             for i, sql in enumerate(sqlstatements):
                 if any(cmd in sql
                        for cmd in ('CREATE TABLE', 'CREATE SEQUENCE', 'INSERT INTO', 'CREATE TYPE',
-                                   'CREATE FUNCTION', 
+                                   'CREATE FUNCTION',
                                    'DROP'
                                    'SET',
                                    'CREATE INDEX', 'CREATE UNIQUE INDEX', # 'ALTER TABLE ONLY'
@@ -449,7 +449,7 @@ class SqlDbConnection():
         self.conn.commit()
         self.modelXbrl.profileStat(_("XbrlPublicDB: create tables"), time.time() - startedAt)
         self.closeCursor()
-        
+
     def databasesInDB(self):
         return self.execute({"postgres":"SELECT datname FROM pg_database;",
                              "mysql": "SHOW databases;",
@@ -457,7 +457,7 @@ class SqlDbConnection():
                              "orcl": "SELECT DISTINCT OWNER FROM ALL_OBJECTS"
                              }[self.product],
                             action="listing tables in database")
-    
+
     def dropAllTablesInDB(self):
         # drop all tables (clean out database)
         if self.product == "postgres":
@@ -467,17 +467,17 @@ class SqlDbConnection():
             for tableName in self.tablesInDB():
                 self.execute("DROP TABLE {}".format( self.dbTableName(tableName) ),
                              action="dropping tables")
-        
+
     def tablesInDB(self):
         return set(tableRow[0]
-                   for tableRow in 
+                   for tableRow in
                    self.execute({"postgres":"SELECT tablename FROM pg_tables WHERE schemaname = 'public';",
                                  "mysql": "SHOW tables;",
                                  "mssql": "SELECT name FROM sys.TABLES;",
                                  "orcl": "SELECT table_name FROM user_tables",
                                  "sqlite": "SELECT name FROM sqlite_master WHERE type='table';"
                                  }[self.product]))
-    
+
     def sequencesInDB(self):
         try:
             return set(sequenceRow[0]
@@ -489,7 +489,7 @@ class SqlDbConnection():
                                      }[self.product]))
         except KeyError:
             return set()
-        
+
     def columnTypeFunctions(self, table):
         if table not in self.tableColTypes:
             if self.product == "orcl":
@@ -518,7 +518,7 @@ class SqlDbConnection():
                 for name, fulltype, characterMaxLength in colTypesResult:
                     name = name.lower()
                     if fulltype in ("char", "varchar", "nvarchar"):
-                        if characterMaxLength == -1: 
+                        if characterMaxLength == -1:
                             characterMaxLength = "max"
                         colDecl = "{}({})".format(fulltype, characterMaxLength)
                     else:
@@ -541,14 +541,14 @@ class SqlDbConnection():
                                             "ORDER BY c.ordinal_position;"
                                             .format('c.column_type' if self.product == 'mysql' else 'c.data_type',
                                                     self.dbTableName(table)))
-            self.tableColTypes[table] = dict((name, 
+            self.tableColTypes[table] = dict((name,
                                               # (type cast, conversion function)
                                               ('::' + typename if typename in # takes first word of full type
                                                     {"integer", "smallint", "int", "bigint",
                                                      "real", "numeric",
                                                      "int2", "int4", "int8", "float4", "float8",
                                                      "boolean", "date", "timestamp", "bytea", "json", "jsonb"}
-                                               else "::double precision" if fulltype.startswith("double precision") 
+                                               else "::double precision" if fulltype.startswith("double precision")
                                                else '',
                                               int if typename in ("integer", "smallint", "int", "bigint", "number") else
                                               float if typename in ("double precision", "real", "numeric") else
@@ -560,11 +560,11 @@ class SqlDbConnection():
             if self.product in ('mysql', 'mssql', 'orcl', 'sqlite'):
                 self.tableColDeclaration[table] = dict((name, colDecl)
                                                        for name, fulltype, colDecl in colTypes)
-                                                       
+
         return self.tableColTypes[table]
-    
-    def getTable(self, table, idCol, newCols=None, matchCols=None, data=None, commit=False, 
-                 comparisonOperator='=', checkIfExisting=False, insertIfNotMatched=True, 
+
+    def getTable(self, table, idCol, newCols=None, matchCols=None, data=None, commit=False,
+                 comparisonOperator='=', checkIfExisting=False, insertIfNotMatched=True,
                  returnMatches=True, returnExistenceStatus=False):
         # generate SQL
         # note: comparison by = will never match NULL fields
@@ -594,7 +594,7 @@ class SqlDbConnection():
         except KeyError as err:
             raise XPDBException("xpgDB:MissingColumnDefinition",
                                 _("Table %(table)s column definition missing: %(missingColumnName)s"),
-                                table=table, missingColumnName=str(err)) 
+                                table=table, missingColumnName=str(err))
         rowValues = []
         rowLongValues = []  # contains None if no parameters, else {} parameter dict
         if isOracle:
@@ -665,7 +665,7 @@ class SqlDbConnection():
             else:
                 rowLongValues.append(None)
         values = ", \n".join(rowValues)
-        
+
         _table = self.dbTableName(table)
         _inputTableName = self.tempInputTableName
         if self.product == "postgres":
@@ -678,8 +678,8 @@ WITH row_values (%(newCols)s) AS (
   INSERT INTO %(table)s (%(newCols)s)
   SELECT %(newCols)s
   FROM row_values v''' + ('''
-  WHERE NOT EXISTS (SELECT 1 
-                    FROM %(table)s x 
+  WHERE NOT EXISTS (SELECT 1
+                    FROM %(table)s x
                     WHERE %(match)s)''' if checkIfExisting else '') + '''
   RETURNING %(returningCols)s
 ) ''' if insertIfNotMatched else '') + '''
@@ -694,7 +694,7 @@ WITH row_values (%(newCols)s) AS (
                  "newCols": ', '.join(newCols),
                  "returningCols": ', '.join(returningCols),
                  "x_returningCols": ', '.join('x.{0}'.format(c) for c in returningCols),
-                 "match": ' AND '.join('x.{0} {1} v.{0}'.format(col, comparisonOperator) 
+                 "match": ' AND '.join('x.{0} {1} v.{0}'.format(col, comparisonOperator)
                                     for col in matchCols),
                  "values": values,
                  "statusIfInserted": ", FALSE" if returnExistenceStatus else "",
@@ -705,7 +705,7 @@ WITH row_values (%(newCols)s) AS (
                         {"inputTable": _inputTableName,
                          "inputCols": ', '.join('{0} {1}'.format(newCol, colDeclarations[newCol])
                                                 for newCol in newCols)}, None, False),
-                   ("INSERT INTO %(inputTable)s ( %(newCols)s ) VALUES %(values)s;" %     
+                   ("INSERT INTO %(inputTable)s ( %(newCols)s ) VALUES %(values)s;" %
                         {"inputTable": _inputTableName,
                          "newCols": ', '.join(newCols),
                          "values": values}, None, False)]
@@ -713,7 +713,7 @@ WITH row_values (%(newCols)s) AS (
                 if checkIfExisting:
                     _where = ('WHERE NOT EXISTS (SELECT 1 FROM %(table)s x WHERE %(match)s)' %
                               {"table": _table,
-                               "match": ' AND '.join('x.{0} {1} i.{0}'.format(col, comparisonOperator) 
+                               "match": ' AND '.join('x.{0} {1} i.{0}'.format(col, comparisonOperator)
                                                      for col in matchCols)})
                     _whereLock = (", %(table)s AS x READ" % {"table": _table})
                 else:
@@ -722,7 +722,7 @@ WITH row_values (%(newCols)s) AS (
                 sql.append( ("LOCK TABLES %(table)s WRITE %(whereLock)s" %
                              {"table": _table,
                               "whereLock": _whereLock}, None, False) )
-                sql.append( ("INSERT INTO %(table)s ( %(newCols)s ) SELECT %(newCols)s FROM %(inputTable)s i %(where)s;" %     
+                sql.append( ("INSERT INTO %(table)s ( %(newCols)s ) SELECT %(newCols)s FROM %(inputTable)s i %(where)s;" %
                                 {"inputTable": _inputTableName,
                                  "table": _table,
                                  "newCols": ', '.join(newCols),
@@ -736,7 +736,7 @@ WITH row_values (%(newCols)s) AS (
                                 {"inputTable": _inputTableName,
                                  "table": _table,
                                  "newCols": ', '.join(newCols),
-                                 "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col) 
+                                 "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col)
                                             for col in matchCols),
                                  "statusIfExisting": ", FALSE" if returnExistenceStatus else "",
                                  "returningCols": ', '.join('{0}.{1}'.format(_table,col)
@@ -750,7 +750,7 @@ WITH row_values (%(newCols)s) AS (
                                                 for newCol in newCols)}, None, False)]
             # break values insertion into 1000's each
             def insertMSSqlRows(i, j, params):
-                sql.append(("INSERT INTO #%(inputTable)s ( %(newCols)s ) VALUES %(values)s;" %     
+                sql.append(("INSERT INTO #%(inputTable)s ( %(newCols)s ) VALUES %(values)s;" %
                         {"inputTable": _inputTableName,
                          "newCols": ', '.join(newCols),
                          "values": ", ".join(rowValues[i:j])}, params, False))
@@ -773,7 +773,7 @@ WITH row_values (%(newCols)s) AS (
                             {"inputTable": _inputTableName,
                              "table": _table,
                              "newCols": ', '.join(newCols),
-                             "match": ' AND '.join('{0}.{2} = #{1}.{2}'.format(_table,_inputTableName,col) 
+                             "match": ' AND '.join('{0}.{2} = #{1}.{2}'.format(_table,_inputTableName,col)
                                         for col in matchCols),
                              "values": ', '.join("#{0}.{1}".format(_inputTableName,newCol)
                                                  for newCol in newCols)}, None, False))
@@ -783,7 +783,7 @@ WITH row_values (%(newCols)s) AS (
                             {"inputTable": _inputTableName,
                              "table": _table,
                              "newCols": ', '.join(newCols),
-                             "match": ' AND '.join('{0}.{2} = #{1}.{2}'.format(_table,_inputTableName,col) 
+                             "match": ' AND '.join('{0}.{2} = #{1}.{2}'.format(_table,_inputTableName,col)
                                         for col in matchCols),
                              "statusIfExisting": ", 0" if returnExistenceStatus else "",
                              "returningCols": ', '.join('{0}.{1}'.format(_table,col)
@@ -797,7 +797,7 @@ WITH row_values (%(newCols)s) AS (
                                                 for newCol in newCols)}, None, False)]
             # break values insertion into 1000's each
             def insertOrclRows(i, j, params):
-                sql.append(("INSERT INTO %(inputTable)s ( %(newCols)s ) %(values)s" %     
+                sql.append(("INSERT INTO %(inputTable)s ( %(newCols)s ) %(values)s" %
                         {"inputTable": _inputTableName,
                          "newCols": ', '.join(newCols),
                          "values": "\nUNION ALL".join(" SELECT {} FROM dual ".format(r)
@@ -821,7 +821,7 @@ WITH row_values (%(newCols)s) AS (
                             {"inputTable": _inputTableName,
                              "table": _table,
                              "newCols": ', '.join(newCols),
-                             "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col) 
+                             "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col)
                                         for col in matchCols),
                              "values": ', '.join("{0}.{1}".format(_inputTableName,newCol)
                                                  for newCol in newCols)}, None, False))
@@ -831,7 +831,7 @@ WITH row_values (%(newCols)s) AS (
                             {"inputTable": _inputTableName,
                              "table": _table,
                              "newCols": ', '.join(newCols),
-                             "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col) 
+                             "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col)
                                         for col in matchCols),
                              "statusIfExisting": ", 0" if returnExistenceStatus else "",
                              "returningCols": ', '.join('{0}.{1}'.format(_table,col)
@@ -845,7 +845,7 @@ WITH row_values (%(newCols)s) AS (
                                                 for newCol in newCols)}, None, False)]
             # break values insertion into 1000's each
             def insertSQLiteRows(i, j, params):
-                sql.append(("INSERT INTO %(inputTable)s ( %(newCols)s ) VALUES %(values)s;" %     
+                sql.append(("INSERT INTO %(inputTable)s ( %(newCols)s ) VALUES %(values)s;" %
                         {"inputTable": _inputTableName,
                          "newCols": ', '.join(newCols),
                          "values": ", ".join(rowValues[i:j])}, params, False))
@@ -866,11 +866,11 @@ WITH row_values (%(newCols)s) AS (
                 if checkIfExisting:
                     _where = ('WHERE NOT EXISTS (SELECT 1 FROM %(table)s x WHERE %(match)s)' %
                               {"table": _table,
-                               "match": ' AND '.join('x.{0} {1} i.{0}'.format(col, comparisonOperator) 
+                               "match": ' AND '.join('x.{0} {1} i.{0}'.format(col, comparisonOperator)
                                                      for col in matchCols)})
                 else:
                     _where = "";
-                sql.append( ("INSERT INTO %(table)s ( %(newCols)s ) SELECT %(newCols)s FROM %(inputTable)s i %(where)s;" %     
+                sql.append( ("INSERT INTO %(table)s ( %(newCols)s ) SELECT %(newCols)s FROM %(inputTable)s i %(where)s;" %
                                 {"inputTable": _inputTableName,
                                  "table": _table,
                                  "newCols": ', '.join(newCols),
@@ -881,7 +881,7 @@ WITH row_values (%(newCols)s) AS (
                             {"inputTable": _inputTableName,
                              "table": _table,
                              "newCols": ', '.join(newCols),
-                             "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col) 
+                             "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col)
                                         for col in matchCols),
                              "statusIfExisting": ", 0" if returnExistenceStatus else "",
                              "returningCols": ', '.join('{0}.{1}'.format(_table,col)
@@ -890,8 +890,8 @@ WITH row_values (%(newCols)s) AS (
                          {"inputTable": _inputTableName}, None, False))
             if insertIfNotMatched and self.syncSequences:
                 sql.append( ("update sqlite_sequence "
-                             "set seq = (select seq from sqlite_sequence where name = '%(table)s') " 
-                             "where name != '%(table)s';" % 
+                             "set seq = (select seq from sqlite_sequence where name = '%(table)s') "
+                             "where name != '%(table)s';" %
                               {"table": _table}, None, False) )
         if TRACESQLFILE:
             with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
@@ -903,20 +903,20 @@ WITH row_values (%(newCols)s) AS (
         for sqlStmt, params, fetch in sql:
             if params and isOracle:
                 self.cursor.setinputsizes(**dict((name,oracleNCLOB) for name in params))
-            
+
             #startTime = datetime.datetime.today()
             result = self.execute(sqlStmt,commit=commit, close=False, fetch=fetch, params=params)
             #endTime = datetime.datetime.today()
-            
+
             if fetch and result:
                 tableRows.extend(result)
-                
+
             #hours, remainder = divmod((endTime - startTime).total_seconds(), 3600)
             #minutes, seconds = divmod(remainder, 60)
             #self.modelXbrl.info("info",_("%(now)s - Table %(tableName)s loaded in %(timeTook)s"),
             #                             now=str(datetime.datetime.today()),
             #                             tableName=table,
-            #                             timeTook='%02.0f:%02.0f:%02.4f' % (hours, minutes, seconds))          
+            #                             timeTook='%02.0f:%02.0f:%02.4f' % (hours, minutes, seconds))
 
 
         if TRACESQLFILE:
@@ -927,7 +927,7 @@ WITH row_values (%(newCols)s) AS (
                            colTypeFunction[i](colValue)  # convert to int, datetime, etc
                            for i, colValue in enumerate(row))
                      for row in tableRows)
-        
+
     def updateTable(self, table, cols=None, data=None, commit=False):
         # generate SQL
         # note: comparison by = will never match NULL fields
@@ -945,7 +945,7 @@ WITH row_values (%(newCols)s) AS (
         except KeyError as err:
             raise XPDBException("xpgDB:MissingColumnDefinition",
                                 _("Table %(table)s column definition missing: %(missingColumnName)s"),
-                                table=table, missingColumnName=str(err)) 
+                                table=table, missingColumnName=str(err))
         rowValues = []
         for row in data:
             colValues = []
@@ -971,15 +971,15 @@ WITH row_values (%(newCols)s) AS (
                 rowValues.append("(" + rowColValues + ")")
         if not isOracle and not isSQLite:
             values = ", \n".join(rowValues)
-        
+
         _table = self.dbTableName(table)
         _inputTableName = self.tempInputTableName
         if self.product == "postgres":
             # insert new rows, return id and cols of new and existing rows
             # use IS NOT DISTINCT FROM instead of = to compare NULL usefully
             sql = [('''
-WITH input (%(valCols)s) AS ( VALUES %(values)s ) 
-   UPDATE %(table)s t SET %(settings)s 
+WITH input (%(valCols)s) AS ( VALUES %(values)s )
+   UPDATE %(table)s t SET %(settings)s
    FROM input i WHERE i.%(idCol)s = t.%(idCol)s
 ;''') %         {"table": _table,
                  "idCol": idCol,
@@ -988,20 +988,20 @@ WITH input (%(valCols)s) AS ( VALUES %(values)s )
                                        for i, col in enumerate(cols)
                                        if i > 0),
                  "values": values}]
-                 
+
         elif self.product == "mysql":
             sql = ["CREATE TEMPORARY TABLE %(inputTable)s ( %(valCols)s );" %
                         {"inputTable": _inputTableName,
                          "valCols": ', '.join('{0} {1}'.format(col, colDeclarations[col])
                                               for col in cols)},
-                   "INSERT INTO %(inputTable)s ( %(newCols)s ) VALUES %(values)s;" %     
+                   "INSERT INTO %(inputTable)s ( %(newCols)s ) VALUES %(values)s;" %
                         {"inputTable": _inputTableName,
                          "newCols": ', '.join(cols),
                          "values": values},
-                   "LOCK TABLES %(inputTable)s AS i READ, %(table)s AS t WRITE;" %     
+                   "LOCK TABLES %(inputTable)s AS i READ, %(table)s AS t WRITE;" %
                         {"inputTable": _inputTableName,
                          "table": _table},
-                   "UPDATE %(inputTable)s i, %(table)s t SET %(settings)s WHERE i.%(idCol)s = t.%(idCol)s;" %     
+                   "UPDATE %(inputTable)s i, %(table)s t SET %(settings)s WHERE i.%(idCol)s = t.%(idCol)s;" %
                         {"inputTable": _inputTableName,
                          "table": _table,
                          "idCol": idCol,
@@ -1017,7 +1017,7 @@ WITH input (%(valCols)s) AS ( VALUES %(values)s )
             # must break values insertion into 1000's each
             for i in range(0, len(rowValues), 950):
                 values = ", \n".join(rowValues[i: i+950])
-                sql.append("INSERT INTO #%(inputTable)s ( %(cols)s ) VALUES %(values)s;" %     
+                sql.append("INSERT INTO #%(inputTable)s ( %(cols)s ) VALUES %(values)s;" %
                         {"inputTable": _inputTableName,
                          "cols": ', '.join(cols),
                          "values": values})
@@ -1037,7 +1037,7 @@ WITH input (%(valCols)s) AS ( VALUES %(values)s )
                                               for col in cols)}]
             for i in range(0, len(rowValues), 500):
                 sql.append(
-                   "INSERT INTO %(inputTable)s ( %(cols)s ) %(values)s" %     
+                   "INSERT INTO %(inputTable)s ( %(cols)s ) %(values)s" %
                         {"inputTable": _inputTableName,
                          "cols": ', '.join(cols),
                          "values": "\nUNION ALL".join(" SELECT {} FROM dual ".format(r)
@@ -1052,7 +1052,7 @@ WITH input (%(valCols)s) AS ( VALUES %(values)s )
                                                if i > 0)})
             sql.append("DROP TABLE %(inputTable)s" % {"inputTable": _inputTableName})
         elif self.product == "sqlite":
-            sql = ["UPDATE %(table)s SET %(settings)s WHERE %(idCol)s = %(idVal)s;" %     
+            sql = ["UPDATE %(table)s SET %(settings)s WHERE %(idCol)s = %(idVal)s;" %
                             {"table": _table,
                              "idCol": idCol,
                              "idVal": rowValue[0],

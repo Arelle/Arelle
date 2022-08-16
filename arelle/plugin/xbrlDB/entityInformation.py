@@ -51,7 +51,7 @@ def loadEntityInformation(dts, entrypoint, rssItem):
                 if filePath:
                     with open(filePath) as fh:
                         hdrSgml = fh.read()
-                    
+
             except  (IOError, EnvironmentError) as err:
                 dts.info("xpDB:headerSgmlDocumentLoadingError",
                                     _("Loading XBRL DB: header SGML document %(file)s loading error: %(error)s"),
@@ -129,9 +129,9 @@ def loadEntityInformation(dts, entrypoint, rssItem):
                             break
                 del txtSgml # dereference big string
         # instance information
-        for factName, entityField in (("EntityFilerCategory", "filer-category"), 
-                                      ("EntityPublicFloat", "public-float"), 
-                                      ("TradingSymbol", "trading-symbol"), 
+        for factName, entityField in (("EntityFilerCategory", "filer-category"),
+                                      ("EntityPublicFloat", "public-float"),
+                                      ("TradingSymbol", "trading-symbol"),
                                       ("DocumentFisalYearFocus", "fiscal-year-focus"),
                                       ("DocumentFisalPeriodFocus", "fiscal-period-focus"),
                                       ("DocumentType", "document-type")):

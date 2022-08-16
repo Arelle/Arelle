@@ -4,7 +4,7 @@
 This is a collective work.
 Original work (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 Subsequent validations and enhancements created by staff of the U.S. Securities and Exchange Commission.
-Data and content created by government employees within the scope of their employment are not subject 
+Data and content created by government employees within the scope of their employment are not subject
 to domestic copyright protection. 17 U.S.C. 105.
 Implementation of DQC rules invokes https://xbrl.us/dqc-license and https://xbrl.us/dqc-patent.
 
@@ -16,7 +16,7 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
    "cik": "1234567890",
    "cikNameList": { "cik1": "name1", "cik2":"name2", "cik3":"name3"...},
    "submissionType" : "SDR-A",
-   "exhibitType": "EX-99.K", 
+   "exhibitType": "EX-99.K",
    "itemsList": [] # array of items, e.g. ["5.03"] (either array of strings blank-separated items in string)
    "accessionNumber":"0001125840-15-000159" ,
    # new fields
@@ -41,7 +41,7 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
    "pursuantGeneralInstructionFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "filerNewRegistrantFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    # Test/debug fields
-   datetimeForTesting: xml-syntax datetime to override clock time for test/debug purposes 
+   datetimeForTesting: xml-syntax datetime to override clock time for test/debug purposes
    },
  {"file": "file 2"...
 ]
@@ -63,24 +63,24 @@ For test case operation, the above fields accepted from testcase variation:
      <instance readMeFirst="true">e9999999ng-20081231.xml</instance>
    <data>
 
-(Accession number is only needed for those EdgarRenderer output transformations of 
-FilingSummary.xml which require it as a parameter (such as EDGAR's internal workstations, 
-which have a database that requires accession number as part of the query string to retrieve 
+(Accession number is only needed for those EdgarRenderer output transformations of
+FilingSummary.xml which require it as a parameter (such as EDGAR's internal workstations,
+which have a database that requires accession number as part of the query string to retrieve
 a file of a submission.)
 
 On Windows, the input file argument must be specially quoted if passed in via Java
 due to a Java bug on Windows shell interface (without the newlines for pretty printing below):
 
-"[{\"file\":\"z:\\Documents\\dir\\gpc_gd1-20130930.htm\", 
-    \"cik\": \"0000350001\", 
+"[{\"file\":\"z:\\Documents\\dir\\gpc_gd1-20130930.htm\",
+    \"cik\": \"0000350001\",
     \"cikNameList\": {\"0000350001\":\"BIG FUND TRUST CO\"},
-    \"submissionType\":\"SDR-A\", \"exhibitType\":\"EX-99.K SDR.INS\"}]" 
+    \"submissionType\":\"SDR-A\", \"exhibitType\":\"EX-99.K SDR.INS\"}]"
 
 To build cached deprecated concepts files (requires internet access):
    First delete any resources/*deprecated-concept.json which you want to rebuild
-   arelleCmdLine --plugin validate/EFM --build-deprecated-concepts-file 
-   
-In GUI mode please use formula parameters dialog to emulate the above.  The parameters are named as above (with no prefix), and 
+   arelleCmdLine --plugin validate/EFM --build-deprecated-concepts-file
+
+In GUI mode please use formula parameters dialog to emulate the above.  The parameters are named as above (with no prefix), and
 an additional EdgarRenderer parameters:
    noLogsInSummary or includeLogsInSummary (default) (this parameter does not need a value, just presence)
 The parameters with array values are entered to the GUI as blank-separated strings (no quotes):
@@ -88,7 +88,7 @@ The parameters with array values are entered to the GUI as blank-separated strin
    rptSeriesClassInfo.seriesIds could be S0000990666 S0000990777 S0000990888
 
 For GUI mode there are two ways to set rendering output, (1) by formula parameter and (2) by GUI view menu.
-  If both formula parameters summaryXslt and reportXslt are provided they override use of the GUI menu setting 
+  If both formula parameters summaryXslt and reportXslt are provided they override use of the GUI menu setting
   ("view/Workstation Redline Mode"):
      summaryXslt (use EdgarWorkstationSummarize.xslt to emulate EDGAR workstation)
      reportXslt (use EdgarWorkstationInstanceReport.xslt to emulate EDGAR workstation)
@@ -131,7 +131,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.params = {}
     parameterNames = ("CIK", "cik", "cikList", "cikNameList", "submissionType", "exhibitType", # CIK or cik both allowed
                       "itemsList", "accessionNumber", "entity.repFileNum",
-                      "periodOfReport", "entityRegistration.fyEnd", "submissionHeader.fyEnd", "voluntaryFilerFlag", 
+                      "periodOfReport", "entityRegistration.fyEnd", "submissionHeader.fyEnd", "voluntaryFilerFlag",
                       "wellKnownSeasonedIssuerFlag", "shellCompanyFlag", "acceleratedFilerStatus", "smallBusinessFlag",
                       "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "invCompanyType",
                       "rptIncludeAllSeriesFlag", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds",
@@ -142,17 +142,17 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         "submissionType": "submissionType",
         "itemsList": "item",
         "periodOfReport": "periodOfReport",
-        #"headerFyEnd": ?, 
-        #"voluntaryFilerFlag": ?, 
-        "wellKnownSeasonedIssuerFlag": "wellKnownSeasonedIssuerFlag", 
-        #"shellCompanyFlag": ?, 
-        "acceleratedFilerStatus": "acceleratedFilerStatus", 
+        #"headerFyEnd": ?,
+        #"voluntaryFilerFlag": ?,
+        "wellKnownSeasonedIssuerFlag": "wellKnownSeasonedIssuerFlag",
+        #"shellCompanyFlag": ?,
+        "acceleratedFilerStatus": "acceleratedFilerStatus",
         "smallBusinessFlag": "smallBusinessFlag",
-        "emergingGrowthCompanyFlag": "emergingGrowthCompanyFlag", 
+        "emergingGrowthCompanyFlag": "emergingGrowthCompanyFlag",
         "exTransitionPeriodFlag": "exTransitionPeriodFlag",
         "invCompanyType": "invCompany",
-        #"rptIncludeAllSeriesFlag": ?, 
-        #"rptSeriesClassInfo.seriesIds": ?, 
+        #"rptIncludeAllSeriesFlag": ?,
+        #"rptSeriesClassInfo.seriesIds": ?,
         #"newClass2.seriesIds": ?,
         "filerNewRegistrantFlag": "filerNewRegistrantFlag",
         "pursuantGeneralInstructionFlag": "pursuantGeneralInstructionFlag",
@@ -206,7 +206,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     # exhibitType may be an attachmentType, if so remove ".INS"
     if val.params.get("exhibitType", "").endswith(".INS"):
         val.params["exhibitType"] = val.params["exhibitType"][:-4]
-    
+
     if isinstance(val.params.get("cikNameList", None), str):
         # cik1, cik2, cik3 in cikList and name1|Edgar|name2|Edgar|name3 in cikNameList strings
         _filerIdentifiers = val.params["cikList"].split(",") if "cikList" in val.params else []
@@ -232,11 +232,11 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         val.EFM60303 = "EFM.6.23.01"
     else:
         val.EFM60303 = "EFM.6.03.03"
-                
-    if any((concept.qname.namespaceURI in val.disclosureSystem.standardTaxonomiesDict and concept.modelDocument.inDTS) 
+
+    if any((concept.qname.namespaceURI in val.disclosureSystem.standardTaxonomiesDict and concept.modelDocument.inDTS)
            for concept in val.modelXbrl.nameConcepts.get("UTR",())):
         val.validateUTR = True
-        
+
     modelManager = val.modelXbrl.modelManager
     if hasattr(modelManager, "efmFiling"):
         efmFiling = modelManager.efmFiling
@@ -252,18 +252,18 @@ def validateXbrlFinally(val, *args, **kwargs):
     _statusMsg = _("validating {0} filing rules").format(val.disclosureSystem.name)
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
-    
+
     validateFiling(val, modelXbrl, isEFM=True)
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
-    
+
 def validateXbrlDtsDocument(val, modelDocument, isFilingDocument, *args, **kwargs):
     if not (val.validateEFMplugin):
         return
 
     checkDTSdocument(val, modelDocument, isFilingDocument)
-    
+
 def filingStart(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None, *args, **kwargs):
     modelManager = cntlr.modelManager
     # cntlr.addToLog("TRACE EFM filing start val={} plugin={}".format(modelManager.validateDisclosureSystem, getattr(modelManager.disclosureSystem, "EFMplugin", False)))
@@ -278,8 +278,8 @@ def filingStart(cntlr, options, filesource, entrypointFiles, sourceZipStream=Non
         if isinstance(entrypointFiles, list):
             for pluginXbrlMethod in pluginClassMethods("Security.Crypt.Filing.Start"):
                 pluginXbrlMethod(modelManager.efmFiling, options, filesource, entrypointFiles, sourceZipStream)
-        
-            
+
+
 def guiTestcasesStart(cntlr, modelXbrl, *args, **kwargs):
     modelManager = cntlr.modelManager
     if (cntlr.hasGui and modelXbrl.modelDocument and modelXbrl.modelDocument.type in Type.TESTCASETYPES and
@@ -288,14 +288,14 @@ def guiTestcasesStart(cntlr, modelXbrl, *args, **kwargs):
 def testcasesStart(cntlr, options, modelXbrl, *args, **kwargs):
     # a test or RSS cases run is starting, in which case testcaseVariation... events have unique efmFilings
     modelManager = cntlr.modelManager
-    if (hasattr(modelManager, "efmFiling") and 
+    if (hasattr(modelManager, "efmFiling") and
         modelXbrl.modelDocument and modelXbrl.modelDocument.type in Type.TESTCASETYPES):
         efmFiling = modelManager.efmFiling
         efmFiling.close() # not needed, dereference
         del modelManager.efmFiling
         if not hasattr(modelXbrl, "efmOptions") and options: # may have already been set by EdgarRenderer in gui startup
             modelXbrl.efmOptions = options  # save options in testcase's modelXbrl
-               
+
 def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args, **kwargs):
     # cntlr.addToLog("TRACE EFM xbrl loaded")
     modelManager = cntlr.modelManager
@@ -332,7 +332,7 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
         reports = efmFiling.reports
         # check for dup inline and regular instances
         # SDR checks
-        if any(report.documentType and report.documentType.endswith(" SDR") 
+        if any(report.documentType and report.documentType.endswith(" SDR")
                for report in reports):
             _kSdrs = [r for r in reports if r.documentType == "K SDR"]
             if not _kSdrs and efmFiling.submissionType in ("SDR", "SDR-A"):
@@ -342,12 +342,12 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
                 efmFiling.error("EFM.6.03.08.sdrHasMultipleKreports",
                                 _("SDR filing has multiple K SDR reports for %(entities)s"),
                                 {"entities": ", ".join(r.entityRegistrantName for r in _kSdrs),
-                                 "edgarCode": "cp-0308-Sdr-Has-Multiple-K-Reports"}, 
+                                 "edgarCode": "cp-0308-Sdr-Has-Multiple-K-Reports"},
                                 (r.url for r in _kSdrs))
             _lSdrEntityReports = defaultdict(list)
             for r in reports:
                 if r.documentType == "L SDR":
-                    _lSdrEntityReports[r.entityCentralIndexKey if r.entityCentralIndexKey != "0000000000" 
+                    _lSdrEntityReports[r.entityCentralIndexKey if r.entityCentralIndexKey != "0000000000"
                                        else r.entityRegistrantName].append(r)
             for lSdrEntity, lSdrEntityReports in _lSdrEntityReports.items():
                 if len(lSdrEntityReports) > 1:
@@ -400,7 +400,7 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
                                 _("A filing contains more than one instance for exhibit type %(exhibitType)s."),
                                 {"exhibitType": _exhibitType},
                                 [r.url for r in _exhibitReports])
-        
+
 def roleTypeName(modelXbrl, roleURI, *args, **kwargs):
     modelManager = modelXbrl.modelManager
     if hasattr(modelManager, "efmFiling"):
@@ -409,7 +409,7 @@ def roleTypeName(modelXbrl, roleURI, *args, **kwargs):
             return re.sub(r"\{\s*(transposed|unlabeled|elements)\s*\}","", modelRoles[0].definition.rpartition('-')[2], flags=re.I).strip()
         return roleURI
     return None
-    
+
 def filingEnd(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None, *args, **kwargs):
     #cntlr.addToLog("TRACE EFM filing end")
     modelManager = cntlr.modelManager
@@ -424,22 +424,22 @@ def filingEnd(cntlr, options, filesource, entrypointFiles, sourceZipStream=None,
         modelManager.efmFiling.close()
         del modelManager.efmFiling
         #cntlr.addToLog("TRACE EFN filing end complete")
-        
+
 def rssItemXbrlLoaded(modelXbrl, rssWatchOptions, rssItem, *args, **kwargs):
     # Validate of RSS feed item (simulates filing & cmd line load events
     if hasattr(rssItem.modelXbrl, "efmOptions"):
         testcaseVariationXbrlLoaded(rssItem.modelXbrl, modelXbrl)
-    
+
 def rssItemValidated(val, modelXbrl, rssItem, *args, **kwargs):
     # After validate of RSS feed item (simulates report and end of filing events)
     if hasattr(rssItem.modelXbrl, "efmOptions"):
         testcaseVariationValidated(rssItem.modelXbrl, modelXbrl)
-        
+
 def testcaseVariationXbrlLoaded(testcaseModelXbrl, instanceModelXbrl, modelTestcaseVariation, *args, **kwargs):
     # Validate of RSS feed item or testcase variation (simulates filing & cmd line load events
     modelManager = instanceModelXbrl.modelManager
-    if (hasattr(testcaseModelXbrl, "efmOptions") and 
-        modelManager.validateDisclosureSystem and getattr(modelManager.disclosureSystem, "EFMplugin", False) and 
+    if (hasattr(testcaseModelXbrl, "efmOptions") and
+        modelManager.validateDisclosureSystem and getattr(modelManager.disclosureSystem, "EFMplugin", False) and
         instanceModelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET)):
         cntlr = modelManager.cntlr
         options = testcaseModelXbrl.efmOptions
@@ -459,19 +459,19 @@ def testcaseVariationXbrlLoaded(testcaseModelXbrl, instanceModelXbrl, modelTestc
                 if _instanceElt.get("exhibitType"):
                     _report.entryPoint["exhibitType"] = _report.exhibitType = _instanceElt.get("exhibitType")
                 break
-    
-def testcaseVariationXbrlValidated(testcaseModelXbrl, instanceModelXbrl, *args, **kwargs): 
+
+def testcaseVariationXbrlValidated(testcaseModelXbrl, instanceModelXbrl, *args, **kwargs):
     modelManager = instanceModelXbrl.modelManager
-    if (hasattr(modelManager, "efmFiling") and 
+    if (hasattr(modelManager, "efmFiling") and
         instanceModelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET)):
         efmFiling = modelManager.efmFiling
         _report = modelManager.efmFiling.reports[-1]
         for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Xbrl.Run"):
             pluginXbrlMethod(modelManager.cntlr, efmFiling.options, instanceModelXbrl, efmFiling, _report)
 
-def testcaseVariationValidated(testcaseModelXbrl, instanceModelXbrl, errors=None, *args, **kwargs): 
+def testcaseVariationValidated(testcaseModelXbrl, instanceModelXbrl, errors=None, *args, **kwargs):
     modelManager = instanceModelXbrl.modelManager
-    if (hasattr(modelManager, "efmFiling") and 
+    if (hasattr(modelManager, "efmFiling") and
         instanceModelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET)):
         efmFiling = modelManager.efmFiling
         if isinstance(errors, list):
@@ -484,7 +484,7 @@ def testcaseVariationValidated(testcaseModelXbrl, instanceModelXbrl, errors=None
         filingEnd(modelManager.cntlr, efmFiling.options, modelManager.filesource, [])
         # flush logfile (assumed to be buffered, empty the buffer for next filing)
         testcaseModelXbrl.modelManager.cntlr.logHandler.flush()
-        
+
 def fileSourceFile(cntlr, filepath, binary, stripDeclaration):
     modelManager = cntlr.modelManager
     if hasattr(modelManager, "efmFiling"):
@@ -493,7 +493,7 @@ def fileSourceFile(cntlr, filepath, binary, stripDeclaration):
             if _file is not None:
                 return _file
     return None
-        
+
 def fileSourceExists(cntlr, filepath):
     modelManager = cntlr.modelManager
     if hasattr(modelManager, "efmFiling"):
@@ -505,16 +505,16 @@ def fileSourceExists(cntlr, filepath):
 
 def commandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options to store to database
-    parser.add_option("--build-deprecated-concepts-file", 
-                      action="store_true", 
-                      dest="buildDeprecatedConceptsFile", 
+    parser.add_option("--build-deprecated-concepts-file",
+                      action="store_true",
+                      dest="buildDeprecatedConceptsFile",
                       help=_("Build EFM Validation deprecated concepts file (pre-cache before use)"))
 
 def utilityRun(self, options, *args, **kwargs):
     if options.buildDeprecatedConceptsFile:
         from .Util import buildDeprecatedConceptDatesFiles
         buildDeprecatedConceptDatesFiles(self)
-    
+
 class Filing:
     def __init__(self, cntlr, options=None, filesource=None, entrypointfiles=None, sourceZipStream=None, responseZipStream=None, errorCaptureLevel=None):
         self.cntlr = cntlr
@@ -545,7 +545,7 @@ class Filing:
         self.arelleUnitTests = {} # copied from each instance loaded
         for pluginXbrlMethod in pluginClassMethods("Security.Crypt.Init"):
             pluginXbrlMethod(self, options, filesource, entrypointfiles, sourceZipStream)
-                
+
     def setReportZipStreamMode(self, mode): # mode is 'w', 'r', 'a'
         # required to switch in-memory zip stream between write, read, and append modes
         if self.responseZipStream:
@@ -553,7 +553,7 @@ class Filing:
                 self.reportZip.close()
                 self.responseZipStream.seek(0)
             self.reportZip = zipfile.ZipFile(self.responseZipStream, mode, zipfile.ZIP_DEFLATED, True)
-        
+
     def close(self):
         ''' MetaFiling.json (not needed?) list of all files written out
         _reports = dict((report.basename, report.json) for report in self.reports)
@@ -587,12 +587,12 @@ class Filing:
         if self.reportZip:  # ok to close if already closed
             self.reportZip.close()
         self.__dict__.clear() # dereference all contents
-        
+
     def addReport(self, modelXbrl):
         if modelXbrl.modelDocument:
             _report = Report(modelXbrl)
             self.reports.append(_report)
-        
+
     def error(self, messageCode, message, messageArgs=None, file=None):
         if file and len(self.entrypointfiles) > 0:
             # relativize file(s)
@@ -607,11 +607,11 @@ class Filing:
             relFiles = None
         self.cntlr.addToLog(message, messageCode=messageCode, messageArgs=messageArgs, file=relFiles, level=logging.ERROR)
         self.errors.append(messageCode)
-        
+
     @property
     def hasInlineReport(self):
         return any(getattr(report, "isInline", False) for report in self.reports)
-    
+
     def writeFile(self, filepath, data):
         # write the data (string or binary)
         for pluginXbrlMethod in pluginClassMethods("Security.Crypt.Write"):
@@ -619,13 +619,13 @@ class Filing:
                 return
         with io.open(filepath, "wt" if isinstance(data, str) else "wb") as fh:
             fh.write(data)
-        
+
 class Report:
     REPORT_ATTRS = {"DocumentType", "DocumentPeriodEndDate", "EntityRegistrantName",
                     "EntityCentralIndexKey", "CurrentFiscalYearEndDate", "DocumentFiscalYearFocus"}
     def lc(self, name):
         return name[0].lower() + name[1:]
-    
+
     def __init__(self, modelXbrl):
         self.isInline = modelXbrl.modelDocument.type in (Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET)
         self.url = modelXbrl.modelDocument.uri
@@ -676,15 +676,15 @@ class Report:
                         if nsAuthority in ("fasb.org", "xbrl.us") and nsPath[-2] == "us-gaap":
                             self.hasUsGaapTaxonomy = True
         addRefDocs(modelXbrl.modelDocument)
-            
+
     def close(self):
         self.__dict__.clear() # dereference all contents
-        
+
     @property
     def json(self): # stringify un-jsonable attributes
         return dict((name, value if isinstance(value,(str,int,float,Decimal,list,dict))
                            else sorted(value) if isinstance(value, set)
-                           else str(value)) 
+                           else str(value))
                     for name, value in self.__dict__.items())
 
 __pluginInfo__ = {

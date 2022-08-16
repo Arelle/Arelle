@@ -24,7 +24,7 @@ schemaAttributeEventAttributes = {
         "conceptBlockChange": "block",
         "conceptDefaultChange": "default",
         "conceptFixedChange": "fixed",
-        "conceptFinalChange": "final"  
+        "conceptFinalChange": "final"
         }
 
 class ValidateVersReport():
@@ -33,7 +33,7 @@ class ValidateVersReport():
 
     def close(self):
         self.__dict__.clear()   # dereference everything
-        
+
     def validate(self, modelVersReport):
         self.modelVersReport = modelVersReport
         versReport = modelVersReport.modelDocument
@@ -64,7 +64,7 @@ class ValidateVersReport():
                     self.modelVersReport.error("vere:invalidAssignmentRef",
                         _("AssignmentRef %(assignmentRef)s does not reference an assignment"),
                         modelObject=assignmentRef, assignmentRef=ref)
-                    
+
         # check namespace renames
         for NSrename in versReport.namespaceRenameFrom.values():
             if NSrename.fromURI not in versReport.fromDTS.namespaceDocs:
@@ -75,7 +75,7 @@ class ValidateVersReport():
                 self.modelVersReport.error("vere:invalidNamespaceMapping",
                     _("NamespaceRename toURI %(uri)s does not reference a schema in toDTS"),
                     modelObject=self, uri=NSrename.toURI)
-                
+
         # check role changes
         for roleChange in versReport.roleChanges.values():
             if roleChange.fromURI not in versReport.fromDTS.roleTypes:
@@ -86,44 +86,44 @@ class ValidateVersReport():
                 self.modelVersReport.error("vere:invalidRoleChange",
                     _("RoleChange toURI %(uri)s does not reference a roleType in toDTS"),
                     modelObject=self, uri=roleChange.toURI)
-                
+
         # check reportRefs
         # check actions
         for reportRef in versReportElt.iterdescendants(tag="{http://xbrl.org/2010/versioning-base}reportRef"):
             # if existing it must be valid
             href = reportRef.get("{http://www.w3.org/1999/xlink}href")
             # TBD
-            
+
         if versReport.fromDTS and versReport.toDTS:
             # check concept changes of concept basic
             for conceptChange in versReport.conceptUseChanges:
                 fromConceptQn = conceptChange.fromConceptQname
                 toConceptQn = conceptChange.toConceptQname
-                if (conceptChange.name != "conceptAdd" and 
+                if (conceptChange.name != "conceptAdd" and
                     (fromConceptQn is None or fromConceptQn not in versReport.fromDTS.qnameConcepts)):
                     self.modelVersReport.error("vercue:invalidConceptReference",
                         _("%(event)s fromConcept %(concept)s does not reference a concept in fromDTS"),
-                        modelObject=conceptChange, event=conceptChange.name, concept=conceptChange.fromConceptQname) 
+                        modelObject=conceptChange, event=conceptChange.name, concept=conceptChange.fromConceptQname)
                 if (conceptChange.name != "conceptDelete" and
                     (toConceptQn is None or toConceptQn not in versReport.toDTS.qnameConcepts)):
                     self.modelVersReport.error("vercue:invalidConceptReference",
                         _("%(event)s toConcept %(concept)s does not reference a concept in toDTS"),
-                        modelObject=conceptChange, event=conceptChange.name, concept=conceptChange.toConceptQname) 
+                        modelObject=conceptChange, event=conceptChange.name, concept=conceptChange.toConceptQname)
                 if (conceptChange.name == "conceptAdd" and toConceptQn is not None and
                     conceptChange.isPhysical ^
                     (qname(versReport.namespaceRenameTo.get(toConceptQn.namespaceURI, toConceptQn.namespaceURI),
                            toConceptQn.localName) not in versReport.fromDTS.qnameConcepts)):
                     self.modelVersReport.error("vercue:inconsistentPhysicalAttribute",
                         _("%(event)s toConcept %(concept)s physical attribute conflicts with presence in fromDTS"),
-                        modelObject=conceptChange, event=conceptChange.name, concept=conceptChange.toConceptQname) 
+                        modelObject=conceptChange, event=conceptChange.name, concept=conceptChange.toConceptQname)
                 if (conceptChange.name == "conceptDelete" and toConceptQn is not None and
                     conceptChange.isPhysical ^
                     (qname(versReport.namespaceRenameFrom.get(fromConceptQn.namespaceURI, fromConceptQn.namespaceURI),
                            fromConceptQn.localName) in versReport.toDTS.qnameConcepts)):
                     self.modelVersReport.error("vercue:inconsistentPhysicalAttribute",
                         _("%(event)s toConcept %(concept)s physical attribute conflicts with presence in toDTS"),
-                        modelObject=conceptChange, event=conceptChange.name, concept=conceptChange.toConceptQname) 
-                    
+                        modelObject=conceptChange, event=conceptChange.name, concept=conceptChange.toConceptQname)
+
             # check concept changes of concept extended
             equivalentAttributes = {}
             for conceptChange in versReport.conceptDetailsChanges:
@@ -137,7 +137,7 @@ class ValidateVersReport():
                         self.modelVersReport.error("vercue:invalidConceptReference",
                             _("%(action)s %(event)s fromConcept %(concept)s does not reference a concept in fromDTS"),
                             modelObject=conceptChange, action=conceptChange.actionId,
-                            event=conceptChange.name, concept=conceptChange.fromConceptQname) 
+                            event=conceptChange.name, concept=conceptChange.fromConceptQname)
                     # tuple check
                     elif _("Child") in conceptChange.name and \
                         not versReport.fromDTS.qnameConcepts[fromConcept.qname] \
@@ -145,19 +145,19 @@ class ValidateVersReport():
                         self.modelVersReport.error("vercue:invalidConceptReference",
                             _("%(action)s %(event)s fromConcept %(concept)s must be defined as a tuple"),
                             modelObject=conceptChange, action=conceptChange.actionId,
-                            event=conceptChange.name, concept=conceptChange.fromConceptQname) 
+                            event=conceptChange.name, concept=conceptChange.fromConceptQname)
                     # resource check
                     elif "Label" in conceptChange.name:
                         if fromResource is None:
                             self.modelVersReport.error("vercde:invalidResourceIdentifier",
                                 _("%(action)s %(event)s fromResource %(resource)s does not reference a resource in fromDTS"),
                                 modelObject=conceptChange, action=conceptChange.actionId,
-                                event=conceptChange.name, resource=conceptChange.fromResourceValue) 
+                                event=conceptChange.name, resource=conceptChange.fromResourceValue)
                         else:
                             relationship = fromConcept.relationshipToResource(fromResource, XbrlConst.conceptLabel)
                             if relationship is not None:
-                                if (relationship.qname != XbrlConst.qnLinkLabelArc or 
-                                    relationship.parentQname != XbrlConst.qnLinkLabelLink or 
+                                if (relationship.qname != XbrlConst.qnLinkLabelArc or
+                                    relationship.parentQname != XbrlConst.qnLinkLabelLink or
                                     fromResource.qname != XbrlConst.qnLinkLabel):
                                     self.modelVersReport.error("vercde:invalidConceptLabelIdentifier",
                                         _("%(action)s %(event)s fromResource %(resource)s for %(concept)s in fromDTS does not have expected link, arc, or label elements"),
@@ -207,7 +207,7 @@ class ValidateVersReport():
                                         _("%(action)s %(event)s fromResource %(resource)s does not have a reference relationship to %(concept)s in fromDTS"),
                                         modelObject=conceptChange, action=conceptChange.actionId,
                                         event=conceptChange.name, resource=conceptChange.fromResourceValue, concept=conceptChange.fromConceptQname)
-                             
+
                 # toConcept checks
                 if not conceptChange.name.endswith("Delete"):
                     if not toConcept is not None:
@@ -294,17 +294,17 @@ class ValidateVersReport():
                                         _("%(action)s %(event)s toResource %(resource)s does not have a reference relationship to %(concept)s in toDTS"),
                                         modelObject=conceptChange, action=conceptChange.actionId,
                                         event=conceptChange.name, resource=conceptChange.toResourceValue, concept=conceptChange.toConceptQname)
-                        
+
                 # check concept correspondence
                 if fromConcept is not None and toConcept is not None:
-                    if (versReport.toDTSqname(fromConcept.qname) != toConcept.qname and 
-                        versReport.equivalentConcepts.get(fromConcept.qname) != toConcept.qname and 
+                    if (versReport.toDTSqname(fromConcept.qname) != toConcept.qname and
+                        versReport.equivalentConcepts.get(fromConcept.qname) != toConcept.qname and
                         toConcept.qname not in versReport.relatedConcepts.get(fromConcept.qname,[])):
                         self.modelVersReport.error("vercde:invalidConceptCorrespondence",
                             _("%(action)s %(event)s fromConcept %(conceptFrom)s and toConcept %(conceptTo)s must be equivalent or related"),
                             modelObject=conceptChange, action=conceptChange.actionId,
                             event=conceptChange.name, conceptFrom=conceptChange.fromConceptQname, conceptTo=conceptChange.toConceptQname)
-    
+
                 # custom attribute events
                 if conceptChange.name.startswith("conceptAttribute") or conceptChange.name == "attributeDefinitionChange":
                     try:
@@ -330,7 +330,7 @@ class ValidateVersReport():
                     toAttr = conceptChange.customAttributeQname("toCustomAttribute")
                     equivalentAttributes[fromAttr] = toAttr
                     equivalentAttributes[toAttr] = fromAttr
-                    
+
                 # check item concept identifiers
                 if conceptChange.name in ("conceptPeriodTypeChange", "conceptPeriodTypeChange"):
                     for concept in (fromConcept, toConcept):
@@ -338,8 +338,8 @@ class ValidateVersReport():
                             self.modelVersReport.error("vercde:invalidItemConceptIdentifier",
                                 _("%(action)s %(event)s concept %(concept)s does not reference an item concept."),
                                 modelObject=conceptChange, action=conceptChange.actionId,
-                                event=conceptChange.name, concept=concept.qname) 
-                        
+                                event=conceptChange.name, concept=concept.qname)
+
                 # check tuple concept identifiers
                 if conceptChange.name in ("tupleContentModelChange", ):
                     for concept in (fromConcept, toConcept):
@@ -347,23 +347,23 @@ class ValidateVersReport():
                             self.modelVersReport.error("vercde:invalidTupleConceptIdentifier",
                                 _("%(action)s %(event)s concept %(concept)s does not reference a tuple concept."),
                                 modelObject=conceptChange, action=conceptChange.actionId,
-                                event=conceptChange.name, concept=concept.qname) 
-                            
+                                event=conceptChange.name, concept=concept.qname)
+
                 if conceptChange.name in schemaAttributeEventAttributes:
                     attr = schemaAttributeEventAttributes[conceptChange.name]
-                    if (fromConcept is not None and not fromConcept.get(attr) and 
+                    if (fromConcept is not None and not fromConcept.get(attr) and
                         toConcept is not None and not toConcept.get(attr)):
                             self.modelVersReport.error("vercde:illegalSchemaAttributeChangeEvent",
                                 _("%(action)s %(event)s neither concepts have a %(attribute)s attribute: %(fromConcept)s, %(toConcept)s."),
                                 modelObject=conceptChange, action=conceptChange.actionId, attribute=attr,
-                                event=conceptChange.name, fromConcept=fromConcept.qname, toConcept=toConcept.qname) 
+                                event=conceptChange.name, fromConcept=fromConcept.qname, toConcept=toConcept.qname)
 
             # check concept changes for equivalent attributes
             for conceptChange in versReport.conceptDetailsChanges:
                 if conceptChange.name == "conceptAttributeChange":
                     fromAttr = conceptChange.customAttributeQname("fromCustomAttribute")
                     toAttr = conceptChange.customAttributeQname("toCustomAttribute")
-                    if (equivalentAttributes.get(fromAttr) != toAttr and 
+                    if (equivalentAttributes.get(fromAttr) != toAttr and
                         (fromAttr.localName != toAttr.localName or
                          (fromAttr.namespaceURI != toAttr.namespaceURI and
                           versReport.namespaceRenameFrom.get(fromAttr.namespaceURI, fromAttr.namespaceURI) != toAttr.namespaceURI))):
@@ -372,7 +372,7 @@ class ValidateVersReport():
                             modelObject=conceptChange, action=conceptChange.actionId, event=conceptChange.name,
                             fromQname=fromAttr, toQname=toAttr)
             del equivalentAttributes # dereference
-    
+
             # check relationship set changes
             for relSetChange in versReport.relationshipSetChanges:
                 for relationshipSet, name in ((relSetChange.fromRelationshipSet, "fromRelationshipSet"),
@@ -454,10 +454,10 @@ class ValidateVersReport():
                                             _("%(event)s %(relSet)s no relationship found fromConcept %(conceptFrom)s in its DTS"),
                                             modelObject=relSetChange, event=relSetChange.name, relSet=name,
                                             conceptFrom=relationship.fromName)
-                                    
 
-                        
-            
+
+
+
             # check instance aspect changes
             for iaChange in versReport.instanceAspectChanges:
                 for instAspects in (iaChange.fromAspects, iaChange.toAspects):
@@ -522,7 +522,7 @@ class ValidateVersReport():
                                             self.modelVersReport.error("verdime:invalidURI",
                                                 _("%(event)s linkrole %(linkrole)s is not used in its DTS"),
                                                 modelObject=aspect, event=iaChange.name, linkrole=relatedConcept.linkrole)
-                                    if (relatedConcept.arc is not None and 
+                                    if (relatedConcept.arc is not None and
                                         (relatedConcept.arc not in dts.qnameConcepts or
                                          (dts.qnameConcepts[relatedConcept.arc].type is not None and
                                           not dts.qnameConcepts[relatedConcept.arc].type.isDerivedFrom(XbrlConst.qnXlArcType)))):
@@ -536,5 +536,5 @@ class ValidateVersReport():
                                         self.modelVersReport.error("verdime:invalidLinkElement",
                                             _("%(event)s link %(link)s is not defined in its DTS"),
                                             modelObject=aspect, event=iaChange.name, link=relatedConcept.link)
-            
+
         self.close()

@@ -1,12 +1,12 @@
 '''
 Created on Jul 5, 2021
 
-Filer Guidelines: 
-    Basically EFM 5.2.2.1, 5.2.2.6,  5.2.2.10,  5.2.5.4, 5.2.5.5(Inline XBRL), 5.2.5.6(Inline XBRL), 
-                  5.2.5.7, 5.2.5.8, 5.2.5.9, 5.2.5.10, 
+Filer Guidelines:
+    Basically EFM 5.2.2.1, 5.2.2.6,  5.2.2.10,  5.2.5.4, 5.2.5.5(Inline XBRL), 5.2.5.6(Inline XBRL),
+                  5.2.5.7, 5.2.5.8, 5.2.5.9, 5.2.5.10,
                   6.5.3, 6.5.4, 6.5.7, 6.5.8, 6.5.14, 6.5.15, 6.5.16, 6.5.17
     Filers can only submit an instance so EFM DTS checks are not needed.
-                  
+
 @author: Mark V Systems Limited
 (c) Copyright 2021 Mark V Systems Limited, All rights reserved.
 '''
@@ -29,10 +29,10 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateFERCplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "FERCplugin", False)
     if not (val.validateFERCplugin):
         return
-    
+
     # use UTR validation if list of URLs was provided
     val.validateUTR = bool(val.disclosureSystem.utrUrl)
-    
+
 def validateXbrlFinally(val, *args, **kwargs):
     if not (val.validateFERCplugin):
         return
@@ -61,10 +61,10 @@ def validateXbrlFinally(val, *args, **kwargs):
     else: # single instance document to check is the entry point document
         instanceNames = [modelXbrl.modelDocument.basename]
         xbrlInstRoots = [modelXbrl.modelDocument.xmlDocument.getroot()]
-            
+
     #6.5.15 facts with xml in text blocks
     ValidateFilingText.validateTextBlockFacts(modelXbrl)
-    
+
     # check footnotes text
     if isInlineXbrl:
         _linkEltIter = (linkPrototype
@@ -73,7 +73,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                         if linkPrototype.modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)
                         and linkKey[1] and linkKey[2] and linkKey[3]  # fully specified roles
                         and linkKey[0] != "XBRL-footnotes")
-    else: 
+    else:
         _linkEltIter = xbrlInstRoots[0].iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}footnoteLink")
     for footnoteLinkElt in _linkEltIter:
         if isinstance(footnoteLinkElt, (ModelObject,LinkPrototype)):
@@ -112,8 +112,8 @@ def validateXbrlFinally(val, *args, **kwargs):
     formEntrySchema = None
     factsForLang = {}
     keysNotDefaultLang = {}
-    allFormEntryXsd = () 
-       
+    allFormEntryXsd = ()
+
     for c in modelXbrl.contexts.values():
         if XmlUtil.hasChild(c, xbrli, "segment"):
             segContexts.add(c)
@@ -166,7 +166,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 confFormEntryXsdDev = confFormEntryXsd.replace("eCollection","dev.eforms")
 
                 allFormEntryXsd = [formEntryXsd, formEntryXsdUAT, formEntryXsdTest, formEntryXsdDev, confFormEntryXsd, confFormEntryXsdUAT, confFormEntryXsdTest, confFormEntryXsdDev]
-                
+
     unexpectedXsds = set(doc.modelDocument.uri
                          for doc, referencingDoc in modelXbrl.modelDocument.referencesDocument.items()
                          if "href" in referencingDoc.referenceTypes
@@ -175,7 +175,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         modelXbrl.error("FERC.22.00",
                         _("The instance document contained unexpected schema references %(schemaReferences)s."),
                         modelXbrl=modelXbrl, schemaReferences=", ".join(sorted(unexpectedXsds)))
-                
+
     if contextIDs: # check if contextID is on any undefined facts
         for undefinedFact in modelXbrl.undefinedFacts:
             contextIDs.discard(undefinedFact.get("contextRef"))
@@ -198,12 +198,12 @@ def validateXbrlFinally(val, *args, **kwargs):
         if not anyDefaultLangFact:
             val.modelXbrl.error("FERC.6.05.14",
                 _("Element %(fact)s in context %(contextID)s has text with xml:lang other than '%(lang2)s' (%(lang)s) without matching English text.  "),
-                modelObject=factNotDefaultLang, fact=factNotDefaultLang.qname, contextID=factNotDefaultLang.contextID, 
+                modelObject=factNotDefaultLang, fact=factNotDefaultLang.qname, contextID=factNotDefaultLang.contextID,
                 lang=factNotDefaultLang.xmlLang, lang2=disclosureSystem.defaultXmlLang) # report lexical format default lang
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
-    
+
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading

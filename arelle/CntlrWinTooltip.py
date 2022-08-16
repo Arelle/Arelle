@@ -56,7 +56,7 @@ class ToolTip:
         if self._opts['follow_mouse']:
             self._id4 = self.master.bind("<Motion>", self.motion, '+')
             self._follow_mouse = 1
-    
+
     def configure(self, **opts):
         for key in opts:
             if key in self._opts:
@@ -64,24 +64,24 @@ class ToolTip:
             else:
                 KeyError = 'KeyError: Unknown option: "%s"' %key
                 raise KeyError
-    
+
     ##----these methods handle the callbacks on "<Enter>", "<Leave>" and "<Motion>"---------------##
     ##----events on the parent widget; override them if you want to change the widget's behavior--##
-    
+
     def enter(self, event=None):
         self._schedule()
-        
+
     def leave(self, event=None):
         self._unschedule()
         self._hide()
-    
+
     def motion(self, event=None):
         if self._tipwindow and self._follow_mouse:
             x, y = self.coords()
             self._tipwindow.wm_geometry("+%d+%d" % (x, y))
-    
+
     ##------the methods that do the work:---------------------------------------------------------##
-    
+
     def _schedule(self):
         self._unschedule()
         if self._opts['state'] == 'disabled':
@@ -112,15 +112,15 @@ class ToolTip:
             x, y = self.coords()
             tw.wm_geometry("+%d+%d" % (x, y))
             tw.deiconify()
-    
+
     def _hide(self):
         tw = self._tipwindow
         self._tipwindow = None
         if tw:
             tw.destroy()
-                
+
     ##----these methods might be overridden in derived classes:----------------------------------##
-    
+
     def coords(self):
         # The tip window must be completely outside the master widget;
         # otherwise when the mouse enters the tip window we get
@@ -170,4 +170,4 @@ def demo():
     root.mainloop()
 
 if __name__ == '__main__':
-    demo()    
+    demo()

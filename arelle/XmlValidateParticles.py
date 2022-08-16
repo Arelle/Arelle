@@ -5,8 +5,8 @@ Created on Jan 20, 2012
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
 from lxml import etree
-from arelle.ModelDtsObject import (ModelConcept, ModelType, ModelGroupDefinition, 
-                                   ModelAll, ModelChoice, ModelSequence, 
+from arelle.ModelDtsObject import (ModelConcept, ModelType, ModelGroupDefinition,
+                                   ModelAll, ModelChoice, ModelSequence,
                                    ModelAny, anonymousTypeSuffix)
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.XbrlConst import xsd
@@ -16,7 +16,7 @@ from arelle.XmlValidate import validate
 def validateElementSequence(modelXbrl, compositor, children, ixFacts, iNextChild=0):
     if compositor.modelDocument.targetNamespace == xsd:
         return (iNextChild, True, None, None)
-    particles = compositor.dereference().particles        
+    particles = compositor.dereference().particles
     iStartingChild = iNextChild
     errDesc = None
     if isinstance(compositor, ModelAll):
@@ -36,12 +36,12 @@ def validateElementSequence(modelXbrl, compositor, children, ixFacts, iNextChild
                     # children now only contains ModelObjects, no comments or other lxml elements
                     vQname = elt.vQname(modelXbrl) # takes care of elements inside inline or other instances
                     # for any, check namespace overlap
-                    if ((isinstance(particle, ModelAny) and 
-                         particle.allowsNamespace(vQname.namespaceURI)) or 
+                    if ((isinstance(particle, ModelAny) and
+                         particle.allowsNamespace(vQname.namespaceURI)) or
                         (isinstance(particle, ModelConcept) and
-                         elementDeclaration is not None and 
+                         elementDeclaration is not None and
                          (vQname == elementDeclaration.qname or
-                          (vQname in modelXbrl.qnameConcepts and  
+                          (vQname in modelXbrl.qnameConcepts and
                            modelXbrl.qnameConcepts[vQname].substitutesForQname(elementDeclaration.qname))))):
                         occurrences += 1
                         validate(modelXbrl, elt, ixFacts=ixFacts)
@@ -79,7 +79,7 @@ def validateElementSequence(modelXbrl, compositor, children, ixFacts, iNextChild
                 return (iNextChild, False, errDesc, errArgs)
             elif not particle.minOccurs <= occurrences <= particle.maxOccurs:
                 return (iNextChild, False,
-                        ("xmlSchema:elementOccurrencesError", 
+                        ("xmlSchema:elementOccurrencesError",
                          _("%(compositor)s(%(particles)s) %(element)s occurred %(occurrences)s times, minOccurs=%(minOccurs)s, maxOccurs=%(maxOccurs)s, within %(parentElement)s")
                         if occurrences > 0 else
                          _("%(compositor)s(%(particles)s) content occurred %(occurrences)s times, minOccurs=%(minOccurs)s, maxOccurs=%(maxOccurs)s, within %(parentElement)s")

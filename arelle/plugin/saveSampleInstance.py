@@ -8,11 +8,11 @@ uses exrex for regular expressions (pip install exrex), note exrex is GPL 3 lice
 if exrex not installed, pattern facets don't generate valid pattern
 
 sample cmd line args:
-  --plugins saveSampleInstance.py 
-  -f /Users/hermf/Documents/mvsl/projects/DataAct/daims-20160331.xsd 
-  --save-sample-instance /Users/hermf/Documents/mvsl/projects/DataAct/sample.xbrl 
+  --plugins saveSampleInstance.py
+  -f /Users/hermf/Documents/mvsl/projects/DataAct/daims-20160331.xsd
+  --save-sample-instance /Users/hermf/Documents/mvsl/projects/DataAct/sample.xbrl
   --separate-linkrole-files
-  
+
 If sample values of concepts are in the taxonomy, then
   --concept-sample-value
   --concept-sample-unit
@@ -22,7 +22,7 @@ specifies a search order for reference parts and/or labels as follows:
   (only the last path segment of the label role)
   a reference option is reference:part
   (only the local name of the part)
-  
+
 To specify entity identifier scheme:
 
   --sample-entity-scheme http://foo.com/scheme
@@ -40,12 +40,12 @@ try:
     import exrex
 except ImportError:
     exrex = None
-    
+
 resourceParsePattern = re.compile(r"(label|reference):([\w][\w\s#+-:/]+[\w#+-/])(\s*[(]([^)]+)[)])?$")
 
-def generateSampleInstance(dts, instanceFilename, 
-                           separateLinkroleFiles=None, 
-                           conceptSampleValue=None, 
+def generateSampleInstance(dts, instanceFilename,
+                           separateLinkroleFiles=None,
+                           conceptSampleValue=None,
                            conceptSampleUnit=None,
                            conceptSampleScheme=None):
     if dts.fileSource.isArchive:
@@ -71,21 +71,21 @@ def generateSampleInstance(dts, instanceFilename,
         for linkroleUri in relationshipSet.linkRoleUris:
             modelRoleTypes = dts.roleTypes.get(linkroleUri)
             if modelRoleTypes:
-                roledefinition = (modelRoleTypes[0].genLabel(strip=True) or modelRoleTypes[0].definition or linkroleUri)                    
+                roledefinition = (modelRoleTypes[0].genLabel(strip=True) or modelRoleTypes[0].definition or linkroleUri)
             else:
                 roledefinition = linkroleUri
             linkroleUris.append((roledefinition, linkroleUri))
         linkroleUris.sort()
-    
+
         # for each URI in definition order
         for roledefinition, linkroleUri in linkroleUris:
             if separateLinkroleFiles:
-                sampleFile = "{0[0]}_{1}{0[1]}".format(os.path.splitext(instanceFilename), 
+                sampleFile = "{0[0]}_{1}{0[1]}".format(os.path.splitext(instanceFilename),
                                                        os.path.basename(linkroleUri))
                 dts.createInstance(sampleFile)
             linkRelationshipSet = dts.relationshipSet(arcrole, linkroleUri)
             for rootConcept in linkRelationshipSet.rootConcepts:
-                genFact(dts, rootConcept, None, arcrole, linkRelationshipSet, 1, set(), 
+                genFact(dts, rootConcept, None, arcrole, linkRelationshipSet, 1, set(),
                         {"inCube": False,
                          "dims":{}, "contexts":{},
                          "lineItems":False})
@@ -108,9 +108,9 @@ def generateSampleInstance(dts, instanceFilename,
                  _("Instance file not written (no presentation line items) for %(entryFile)s in file %(instanceFile)s."),
                  modelObject=dts,
                  entryFile=dts.uri, instanceFile=instanceFilename)
-        
+
     del dts.conceptSampleValue, conceptSampleUnit, conceptSampleScheme
-    
+
 sampleDomainValues = {
     "number": {1:"1", 2:"2", 3:"3"},
     "str": {1:"a1", 2:"b2", 3:"c3"}
@@ -236,7 +236,7 @@ def genSampleUtrUnitId(concept):
                                     value = value[0:4] + "-" + value[4:6] + "-" + value[6:]
                                 # allow dates to be missing the "-"
                                 return value
-                            
+
 def factConceptTypedDims(factConcept, relationshipSet):
     # find cube
     def tables(concept):
@@ -249,10 +249,10 @@ def factConceptTypedDims(factConcept, relationshipSet):
                 return parentTable
         return []
     return [(rel.toModelObject, rel.toModelObject.typedDomainElement)
-            for _table in tables(factConcept) 
-            for rel in relationshipSet.fromModelObject(_table) 
+            for _table in tables(factConcept)
+            for rel in relationshipSet.fromModelObject(_table)
             if rel.toModelObject.isTypedDimension]
-                                             
+
 def genFact(dts, concept, preferredLabel, arcrole, relationshipSet, level, visited, elrInfo):
     try:
         if concept is not None:
@@ -298,26 +298,26 @@ def genFact(dts, concept, preferredLabel, arcrole, relationshipSet, level, visit
                                     _memEltVal = genSampleValue(sampVals, _domConcept)
                                 else:
                                     _memEltVal = sampleDomainValues[elrInfo["domainType"]][elrInfo["domainIter"]]
-                                _memVal = XmlUtil.addChild(dts.modelDocument.xmlRootElement, 
-                                                         _domConcept.qname, 
-                                                         text=_memEltVal, 
+                                _memVal = XmlUtil.addChild(dts.modelDocument.xmlRootElement,
+                                                         _domConcept.qname,
+                                                         text=_memEltVal,
                                                          appendChild=False)
                             _dimObj = DimValuePrototype(dts, None, _dimConcept.qname, _memVal, "segment")
                             qnameDims[_dimConcept.qname] = _dimObj
                         for _dimConcept, _domConcept in nilTypedDims:
-                            _memVal = XmlUtil.addChild(dts.modelDocument.xmlRootElement, 
+                            _memVal = XmlUtil.addChild(dts.modelDocument.xmlRootElement,
                                                      _domConcept.qname, attributes=((qnXsiNil,"true"),),
                                                      appendChild=False)
                             _dimObj = DimValuePrototype(dts, None, _dimConcept.qname, _memVal, "segment")
                             qnameDims[_dimConcept.qname] = _dimObj
                         elrInfo["contexts"][contextKey] = dts.createContext(
-                                    dts.conceptSampleScheme or "http://www.treasury.gov", 
-                                    "entityId", 
-                                    concept.periodType, 
+                                    dts.conceptSampleScheme or "http://www.treasury.gov",
+                                    "entityId",
+                                    concept.periodType,
                                     sampVals["periodStart"] if concept.periodType == "duration"
-                                    else None, 
-                                    sampVals["periodEnd"], 
-                                    concept.qname, qnameDims, [], []) 
+                                    else None,
+                                    sampVals["periodEnd"],
+                                    concept.qname, qnameDims, [], [])
                     cntx = elrInfo["contexts"][contextKey]
                     cntxId = cntx.id
                     if concept.isNumeric:
@@ -368,7 +368,7 @@ def genFact(dts, concept, preferredLabel, arcrole, relationshipSet, level, visit
                         modelRel = rels[iRel]
                         toConcept = modelRel.toModelObject
                         reIterateCube = (toConcept.isHypercubeItem and # finished prior line items and hitting next table
-                                         iFirstLineItem is not None and 
+                                         iFirstLineItem is not None and
                                          elrInfo["lineItems"] and 1 <= elrInfo.get("domainIter",0) < 2)
                     if reIterateCube: # repeat typed dim container
                         iRel = iFirstLineItem
@@ -382,12 +382,12 @@ def genFact(dts, concept, preferredLabel, arcrole, relationshipSet, level, visit
                 visited.remove(concept)
     except AttributeError as ex: #  bad relationship
         print ("[exception] {}".format(ex))
-        return 
+        return
 
 def saveSampleInstanceMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Save Sample Instance", 
-                     underline=0, 
+    menu.add_command(label="Save Sample Instance",
+                     underline=0,
                      command=lambda: saveSampleInstanceMenuCommand(cntlr) )
 
 def saveSampleInstanceMenuCommand(cntlr):
@@ -408,7 +408,7 @@ def saveSampleInstanceMenuCommand(cntlr):
     cntlr.config["sampleInstanceFileDir"] = os.path.dirname(instanceFile)
     cntlr.saveConfig()
 
-    try: 
+    try:
         generateSampleInstance(cntlr.modelManager.modelXbrl, instanceFile)
     except Exception as ex:
         dts = cntlr.modelManager.modelXbrl
@@ -419,25 +419,25 @@ def saveSampleInstanceMenuCommand(cntlr):
 
 def saveSampleInstanceCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
-    parser.add_option("--save-sample-instance", 
-                      action="store", 
-                      dest="sampleInstanceFile", 
+    parser.add_option("--save-sample-instance",
+                      action="store",
+                      dest="sampleInstanceFile",
                       help=_("Save sample instance."))
-    parser.add_option("--separate-linkrole-files", 
-                      action="store_true", 
-                      dest="separateLinkroleFiles", 
+    parser.add_option("--separate-linkrole-files",
+                      action="store_true",
+                      dest="separateLinkroleFiles",
                       help=_("Separate each linkrole into its own file."))
-    parser.add_option("--concept-sample-value", 
-                      action="store", 
-                      dest="conceptSampleValue", 
+    parser.add_option("--concept-sample-value",
+                      action="store",
+                      dest="conceptSampleValue",
                       help=_("Sample values relationships per concept."))
-    parser.add_option("--concept-sample-unit", 
-                      action="store", 
-                      dest="conceptSampleUnit", 
+    parser.add_option("--concept-sample-unit",
+                      action="store",
+                      dest="conceptSampleUnit",
                       help=_("Sample value's unit (UTR unitId)."))
-    parser.add_option("--sample-entity-scheme", 
-                      action="store", 
-                      dest="conceptSampleScheme", 
+    parser.add_option("--sample-entity-scheme",
+                      action="store",
+                      dest="conceptSampleScheme",
                       help=_("Sample entity identifier scheme."))
 
 def saveSampleInstanceCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
@@ -446,7 +446,7 @@ def saveSampleInstanceCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwa
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
             cntlr.addToLog("No taxonomy loaded.")
             return
-        generateSampleInstance(cntlr.modelManager.modelXbrl, 
+        generateSampleInstance(cntlr.modelManager.modelXbrl,
                                options.sampleInstanceFile,
                                separateLinkroleFiles=getattr(options, "separateLinkroleFiles", None),
                                conceptSampleValue=getattr(options, "conceptSampleValue", None),

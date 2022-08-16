@@ -26,9 +26,9 @@ class ViewPane:
         self.toolTipText = StringVar()
         if hasToolTip:
             self.toolTipText = StringVar()
-            self.toolTip = ToolTip(self.gridBody, 
-                                   textvariable=self.toolTipText, 
-                                   wraplength=480, 
+            self.toolTip = ToolTip(self.gridBody,
+                                   textvariable=self.toolTipText,
+                                   wraplength=480,
                                    follow_mouse=True,
                                    state="disabled")
             self.toolTipColId = None
@@ -39,30 +39,30 @@ class ViewPane:
         self.lang = lang
         if modelXbrl:
             modelXbrl.views.append(self)
-            if not lang: 
+            if not lang:
                 self.lang = modelXbrl.modelManager.defaultLang
-        
+
     def close(self):
         del self.viewFrame.view
         self.tabWin.forget(self.viewFrame)
         if self in self.modelXbrl.views:
             self.modelXbrl.views.remove(self)
         self.modelXbrl = None
-        
+
     def select(self):
         self.tabWin.select(self.viewFrame)
 
     def onClick(self, *args):
         if self.modelXbrl:
             self.modelXbrl.modelManager.cntlr.currentView = self
-        
+
     def leave(self, *args):
         self.toolTipColId = None
         self.toolTipRowId = None
 
     def motion(self, *args):
         pass
-                
+
 
     def contextMenu(self):
         try:
@@ -72,7 +72,7 @@ class ViewPane:
             return self.menu
 
     def bindContextMenu(self, widget):
-        if not widget.bind(self.contextMenuClick): 
+        if not widget.bind(self.contextMenuClick):
             widget.bind( self.contextMenuClick, self.popUpMenu )
 
     def popUpMenu(self, event):

@@ -26,9 +26,9 @@ def evaluate(xpCtx, varSet, derivedFact):
                          _("Consistency assertion %(id)s formula %(xlinkLabel)s fact %(derivedFact)s has zero precision and no radius is defined, skipping consistency assertion"),
                          modelObject=consisAsser, id=consisAsser.id, xlinkLabel=varSet.xlinkLabel, derivedFact=derivedFact)
                 continue
-    
+
         # check xbrl validity of new fact
-        
+
         # find source facts which match derived fact
         aspectMatchedInputFacts = []
         isStrict = consisAsser.isStrict
@@ -39,7 +39,7 @@ def evaluate(xpCtx, varSet, derivedFact):
                                             dimensionalAspectModel=(varSet.aspectModel == "dimensional")) and
                 (not isNumeric or inputFact.unit.isEqualTo(derivedFact.unit))):
                 aspectMatchedInputFacts.append( inputFact )
-        
+
         if len(aspectMatchedInputFacts) == 0:
             if isStrict:
                 if derivedFact.isNil:
@@ -56,7 +56,7 @@ def evaluate(xpCtx, varSet, derivedFact):
             isSatisfied = False
         else:
             isSatisfied = True
-                
+
         paramQnamesAdded = []
         for paramRel in consisAsser.orderedVariableRelationships:
             paramQname = paramRel.variableQname
@@ -68,7 +68,7 @@ def evaluate(xpCtx, varSet, derivedFact):
                 xpCtx.inScopeVars[paramQname] = paramValue
         acceptance = None
         for fact in aspectMatchedInputFacts:
-            if isSatisfied != True: 
+            if isSatisfied != True:
                 break
             if fact.isNil:
                 if not derivedFact.isNil:

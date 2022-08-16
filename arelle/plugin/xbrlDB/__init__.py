@@ -7,7 +7,7 @@ Two implementations are provided:
 
 (2) an graph database, based on the XBRL Abstract Model PWD 2.
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
+(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 and does not apply to the XBRL US Database schema and description.
 
@@ -56,7 +56,7 @@ _storeIntoDBoptions = None
 _schemaRefSubstitutions = None # for DPM database
 
 def xbrlDBmenuEntender(cntlr, menu, *args, **kwargs):
-    
+
     def storeIntoDBMenuCommand():
         # save DTS menu item has been invoked
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
@@ -70,7 +70,7 @@ def xbrlDBmenuEntender(cntlr, menu, *args, **kwargs):
             return
 
         def backgroundStoreIntoDB():
-            try: 
+            try:
                 host, port, user, password, db, timeout, dbType = dbConnection
                 product = None
                 if timeout and timeout.isdigit():
@@ -108,16 +108,16 @@ def xbrlDBmenuEntender(cntlr, menu, *args, **kwargs):
                 cntlr.config["xbrlDBconnection"] = (host, port, user, password, db, timeout, dbType)
                 cntlr.saveConfig()
                 startedAt = time.time()
-                insertIntoDB(cntlr.modelManager.modelXbrl, 
+                insertIntoDB(cntlr.modelManager.modelXbrl,
                              host=host, port=port, user=user, password=password, database=db, timeout=timeout,
                              product=product)
-                cntlr.addToLog(format_string(cntlr.modelManager.locale, 
-                                            _("stored to database in %.2f secs"), 
+                cntlr.addToLog(format_string(cntlr.modelManager.locale,
+                                            _("stored to database in %.2f secs"),
                                             time.time() - startedAt))
             except Exception as ex:
                 import traceback
                 cntlr.addToLog(
-                    _("[xpDB:exception] Loading XBRL DB: %(exception)s: %(error)s \n%(traceback)s") % 
+                    _("[xpDB:exception] Loading XBRL DB: %(exception)s: %(error)s \n%(traceback)s") %
                     {"exception": ex.__class__.__name__,
                      "error": str(ex),
                      "exc_info": True,
@@ -128,15 +128,15 @@ def xbrlDBmenuEntender(cntlr, menu, *args, **kwargs):
         thread = threading.Thread(target=backgroundStoreIntoDB)
         thread.daemon = True
         thread.start()
-            
+
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Store to XBRL DB", 
-                     underline=0, 
+    menu.add_command(label="Store to XBRL DB",
+                     underline=0,
                      command=storeIntoDBMenuCommand)
-    
+
     # add log handler
-    logging.getLogger("arelle").addHandler(LogToDbHandler())    
-    
+    logging.getLogger("arelle").addHandler(LogToDbHandler())
+
 def storeIntoDB(dbConnection, modelXbrl, rssItem=None, **kwargs):
     host = port = user = password = db = timeout = dbType = None
     if isinstance(dbConnection, (list, tuple)): # variable length list
@@ -145,7 +145,7 @@ def storeIntoDB(dbConnection, modelXbrl, rssItem=None, **kwargs):
         if len(dbConnection) > 2: user = dbConnection[2]
         if len(dbConnection) > 3: password = dbConnection[3]
         if len(dbConnection) > 4: db = dbConnection[4]
-        if len(dbConnection) > 5 and dbConnection[5] and dbConnection[5].isdigit(): 
+        if len(dbConnection) > 5 and dbConnection[5] and dbConnection[5].isdigit():
             timeout = int(dbConnection[5])
         if len(dbConnection) > 6: dbType = dbConnection[6]
 
@@ -169,27 +169,27 @@ def storeIntoDB(dbConnection, modelXbrl, rssItem=None, **kwargs):
         return
     result = insertIntoDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, product=product, rssItem=rssItem, **kwargs)
     if kwargs.get("logStoredMsg", result): # if false/None result and no logStoredMsg parameter then skip the message
-        modelXbrl.modelManager.addToLog(format_string(modelXbrl.modelManager.locale, 
-                              _("stored to database in %.2f secs"), 
+        modelXbrl.modelManager.addToLog(format_string(modelXbrl.modelManager.locale,
+                              _("stored to database in %.2f secs"),
                               time.time() - startedAt), messageCode="info", file=modelXbrl.uri)
     return result
 
 def xbrlDBcommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options to store to database
-    parser.add_option("--store-to-XBRL-DB", 
-                      action="store", 
-                      dest="storeIntoXbrlDb", 
+    parser.add_option("--store-to-XBRL-DB",
+                      action="store",
+                      dest="storeIntoXbrlDb",
                       help=_("Store into XBRL DB.  "
                              "Provides connection string: host,port,user,password,database[,timeout[,{postgres|rexster|rdfDB}]]. "
                              "Autodetects database type unless 7th parameter is provided.  "))
-    parser.add_option("--load-from-XBRL-DB", 
-                      action="store", 
-                      dest="loadFromXbrlDb", 
+    parser.add_option("--load-from-XBRL-DB",
+                      action="store",
+                      dest="loadFromXbrlDb",
                       help=_("Load from XBRL DB.  "
                              "Provides connection string: host,port,user,password,database[,timeout[,{postgres|rexster|rdfDB}]]. "
                              "Specifies DB parameters to load and optional file to save XBRL into.  "))
-    
-    logging.getLogger("arelle").addHandler(LogToDbHandler())    
+
+    logging.getLogger("arelle").addHandler(LogToDbHandler())
 
 def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl, entrypoint, *args, **kwargs):
     from arelle.ModelDocument import Type
@@ -203,47 +203,47 @@ def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl, entrypoint, *args, **
             # specify reloading of cached source documents (may have been corrupted originally or refiled)
             modelXbrl.reloadCache = True
             storeIntoDB(modelXbrl.xbrlDBconnection, modelXbrl, entrypoint=entrypoint, rssObject=modelXbrl.modelDocument)
-    
+
 def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl, entrypoint, *args, **kwargs):
     from arelle.ModelDocument import Type
-    if (modelXbrl.modelDocument.type not in (Type.RSSFEED, Type.TESTCASE, Type.REGISTRYTESTCASE) and 
-        getattr(options, "storeIntoXbrlDb", False) and 
+    if (modelXbrl.modelDocument.type not in (Type.RSSFEED, Type.TESTCASE, Type.REGISTRYTESTCASE) and
+        getattr(options, "storeIntoXbrlDb", False) and
         not getattr(modelXbrl, "xbrlDBprocessedByStreaming", False)):
         dbConnection = options.storeIntoXbrlDb.split(",")
         storeIntoDB(dbConnection, modelXbrl, entrypoint=entrypoint)
-        
+
 def xbrlDBvalidateRssItem(val, modelXbrl, rssItem, *args, **kwargs):
     if hasattr(val.modelXbrl, 'xbrlDBconnection'):
         storeIntoDB(val.modelXbrl.xbrlDBconnection, modelXbrl, rssItem)
-    
+
 def xbrlDBtestcaseVariationXbrlLoaded(val, modelXbrl, *args, **kwargs):
     if _storeIntoDBoptions:
         return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl)
-    
+
 def xbrlDBdialogRssWatchDBconnection(*args, **kwargs):
     try:
         from .DialogRssWatchExtender import dialogRssWatchDBextender
         dialogRssWatchDBextender(*args, **kwargs)
     except ImportError:
         pass
-    
+
 def xbrlDBdialogRssWatchValidateChoices(dialog, frame, row, *args, **kwargs):
     from arelle.UiUtil import checkbox
     dialog.checkboxes += (
-       checkbox(frame, 2, row, 
-                "Store into XBRL Database", 
+       checkbox(frame, 2, row,
+                "Store into XBRL Database",
                 "storeIntoXbrlDb"),
     )
-    
+
 def xbrlDBrssWatchHasWatchAction(rssWatchOptions, *args, **kwargs):
     return rssWatchOptions.get("xbrlDBconnection") and rssWatchOptions.get("storeIntoXbrlDB")
-    
+
 def xbrlDBrssDoWatchAction(modelXbrl, rssWatchOptions, rssItem, *args, **kwargs):
     dbConnectionString = rssWatchOptions.get("xbrlDBconnection")
     if dbConnectionString:
         dbConnection = dbConnectionString.split(',')
         storeIntoDB(dbConnection, modelXbrl)
-        
+
 def xbrlDBLoaderSetup(cntlr, options, *args, **kwargs):
     global _loadFromDBoptions, _storeIntoDBoptions, _schemaRefSubstitutions
     # set options to load from DB (instead of load from XBRL and store in DB)
@@ -262,7 +262,7 @@ def xbrlDBLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     # check if big instance and has header with an initial incomplete tree walk (just 2 elements
     if not _loadFromDBoptions:
         return None
-    
+
     # load from DB and save XBRL in filepath, returning modelDocument
     extraArgs = {"loadDBsaveToFile": filepath, "logStoredMsg": False}
     dbConnection = _loadFromDBoptions.split(',')
@@ -298,10 +298,10 @@ class LogToDbHandler(logging.Handler):
     def __init__(self):
         super(LogToDbHandler, self).__init__()
         self.logRecordBuffer = []
-        
+
     def flush(self):
         del self.logRecordBuffer[:]
-    
+
     def dbHandlerLogEntries(self, clear=True):
         entries = []
         for logRec in self.logRecordBuffer:
@@ -317,11 +317,11 @@ class LogToDbHandler(logging.Handler):
         if clear:
             del self.logRecordBuffer[:]
         return entries
-    
+
     def emit(self, logRecord):
         self.logRecordBuffer.append(logRecord)
-        
- 
+
+
 __pluginInfo__ = {
     'name': 'XBRL Database',
     'version': '0.9',
@@ -333,7 +333,7 @@ __pluginInfo__ = {
                 '           (and)Copyright (c) 2001-2007, Computronix (Canada) Ltd., Edmonton, Alberta, Canada. All rights reserved, \n'
                 '      pg8000, Copyright (c) 2007-2009, Mathieu Fenniak (Postgres DB), \n'
                 '      pyodbc, no copyright, Michael Kleehammer (MS SQL), \n'
-                '      PyMySQL, Copyright (c) 2010, 2013 PyMySQL contributors (MySQL DB), and\n' 
+                '      PyMySQL, Copyright (c) 2010, 2013 PyMySQL contributors (MySQL DB), and\n'
                 '      rdflib, Copyright (c) 2002-2012, RDFLib Team (RDF DB)',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': xbrlDBmenuEntender,

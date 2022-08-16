@@ -11,13 +11,13 @@ import os
 emptySet = set()
 
 def checkFilingDimensions(val, drsELRs):
-    
+
     fromConceptELRs = defaultdict(set)
     hypercubes = set()
     hypercubesInLinkrole = defaultdict(set)
     for ELR in drsELRs:
         domainMemberRelationshipSet = val.modelXbrl.relationshipSet( XbrlConst.domainMember, ELR)
-                            
+
         # check Hypercubes in ELR, accumulate list of primary items
         positiveAxisTableSources = defaultdict(set)
         positiveHypercubes = set()
@@ -61,7 +61,7 @@ def checkFilingDimensions(val, drsELRs):
                               "%(linkroleDefinition)s has no consecutive relationships.  "
                               "Remove the targetRole attribute, or provide a consecutive relationship."),
                             edgarCode="fs-1609-Target-Role-With-No-Consecutive-Relationships",
-                            modelObject=hasHcRel, hypercube=hc.qname, fromConcept=sourceConcept.qname, toConcept=hc.qname, 
+                            modelObject=hasHcRel, hypercube=hc.qname, fromConcept=sourceConcept.qname, toConcept=hc.qname,
                             linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR),
                             arcroleURI=hasHcRel.arcrole, arcrole=os.path.basename(hasHcRel.arcrole))
                     for hcDimRel in hcDimRels:
@@ -85,7 +85,7 @@ def checkFilingDimensions(val, drsELRs):
                                     edgarCode="fs-1607-Axis-Excluded-Not-In-Table",
                                     modelObject=hcDimRel, dimension=dim.qname, linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR), primaryItem=sourceConcept.qname)
                             dimDomRels = val.modelXbrl.relationshipSet(
-                                 XbrlConst.dimensionDomain, domELR).fromModelObject(dim)   
+                                 XbrlConst.dimensionDomain, domELR).fromModelObject(dim)
                             if domTargetRequired and len(dimDomRels) == 0:
                                 val.modelXbrl.error(("EFM.6.16.09", "GFM.1.08.09"),
                                     _("A table is malformed because the %(arcroleURI)s from %(fromConcept)s to %(toConcept)s "
@@ -108,8 +108,8 @@ def checkFilingDimensions(val, drsELRs):
                                       "Set in role %(linkroleDefinition)s, axis %(dimension)s, path %(path)s.  "
                                       "Remove it as a target of one of its domain-member relationships. Please recheck submission."),
                                     edgarCode="fs-1604-Domain-Is-Tangled",
-                                    modelObject=[hc, dim] + [rel for rel in cycleCausingConcept if not isinstance(rel, bool)], 
-                                    linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR), 
+                                    modelObject=[hc, dim] + [rel for rel in cycleCausingConcept if not isinstance(rel, bool)],
+                                    linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR),
                                     hypercube=hc.qname, dimension=dim.qname, conceptFrom=dim.qname,
                                     path=cyclePath(hc,cycleCausingConcept))
                             fromConceptELRs.clear()
@@ -119,11 +119,11 @@ def checkFilingDimensions(val, drsELRs):
                           "to tables %(hypercubes)s. Please modify the 'all' relationships that have the element as a source so that "
                           "it has only one primary axis."),
                         edgarCode="fs-1605-Primary-Element-Has-Redundant-Tables",
-                        modelObject=[sourceConcept] + hasHcRels, 
+                        modelObject=[sourceConcept] + hasHcRels,
                         hypercubeCount=len(hasHcRels), linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR),
                         concept=sourceConcept.qname,
                         hypercubes=', '.join(str(r.toModelObject.qname) for r in hasHcRels if isinstance(r.toModelObject, ModelConcept)))
-                    
+
         # check for primary item dimension-member graph undirected cycles
         fromRelationships = domainMemberRelationshipSet.fromModelObjects()
         for relFrom, rels in fromRelationships.items():
@@ -139,7 +139,7 @@ def checkFilingDimensions(val, drsELRs):
                           "role %(linkroleDefinition)s, from %(conceptFrom)s, path %(path)s.  "
                           "Remove it as a target of one of its domain-member relationships. Please recheck submission."),
                         edgarCode="fs-1604-Domain-Is-Tangled",
-                        modelObject=[relFrom] + [rel for rel in cycleCausingConcept if not isinstance(rel, bool)], 
+                        modelObject=[relFrom] + [rel for rel in cycleCausingConcept if not isinstance(rel, bool)],
                         linkrole=ELR, conceptFrom=relFrom.qname, path=cyclePath(relFrom, cycleCausingConcept),
                         linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR))
                 fromConceptELRs.clear()
@@ -156,7 +156,7 @@ def checkFilingDimensions(val, drsELRs):
                           "Remove the targetRole attribute, or provide a consecutive relationship."),
                         edgarCode="fs-1609-Target-Role-With-No-Consecutive-Relationships",
                         modelObject=rel, concept=fromMbr.qname, fromConcept=toMbr.qname, toConcept=fromMbr.qname, linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR), arcroleURI=hasHcRel.arcrole, arcrole=os.path.basename(rel.arcrole))
-                    
+
 
 def getDrsRels(val, fromELR, rels, drsELR, drsRelsFrom, drsRelsTo, fromConcepts=None):
     if not fromConcepts: fromConcepts = set()
@@ -167,14 +167,14 @@ def getDrsRels(val, fromELR, rels, drsELR, drsRelsFrom, drsRelsTo, fromConcepts=
             drsRelsTo[relTo].append(rel)
             toELR = rel.targetRole
             if not toELR: toELR = fromELR
-            if relTo not in fromConcepts: 
+            if relTo not in fromConcepts:
                 fromConcepts.add(relTo)
                 domMbrRels = val.modelXbrl.relationshipSet(
                          XbrlConst.domainMember, toELR).fromModelObject(relTo)
                 getDrsRels(val, toELR, domMbrRels, drsELR, drsRelsFrom, drsRelsTo, fromConcepts)
                 fromConcepts.discard(relTo)
-    return False        
-    
+    return False
+
 def undirectedFwdCycle(val, fromELR, rels, drsELR, drsRelsFrom, drsRelsTo, fromConceptELRs, ELRsVisited=None):
     if not ELRsVisited: ELRsVisited = set()
     ELRsVisited.add(fromELR)
@@ -244,12 +244,12 @@ def cyclePath(source, cycles):
         if isinstance(rel,bool):
             isForward = rel
         else:
-            path.append("{0}:{1} {2}".format(rel.modelDocument.basename, 
-                                             rel.sourceline, 
+            path.append("{0}:{1} {2}".format(rel.modelDocument.basename,
+                                             rel.sourceline,
                                              rel.toModelObject.qname if isForward else rel.fromModelObject.qname))
-    return str(source.qname) + " " + " - ".join(path)            
-                
-def commonAncestor(domainMemberRelationshipSet, 
+    return str(source.qname) + " " + " - ".join(path)
+
+def commonAncestor(domainMemberRelationshipSet,
                    negSourceConcept, posSourceConcepts):
     negAncestors = ancestorOrSelf(domainMemberRelationshipSet,negSourceConcept)
     for posSourceConcept in posSourceConcepts:
@@ -265,5 +265,5 @@ def ancestorOrSelf(domainMemberRelationshipSet,sourceConcept,result=None):
         for rels in domainMemberRelationshipSet.toModelObject(sourceConcept):
             ancestorOrSelf(domainMemberRelationshipSet, rels.fromModelObject, result)
     return result
-        
+
 

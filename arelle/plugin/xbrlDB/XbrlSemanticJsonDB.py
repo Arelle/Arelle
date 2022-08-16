@@ -1,11 +1,11 @@
 '''
 XbrlSemanticJsonDB.py implements an JSON database interface for Arelle, based
-on a concrete realization of the Abstract Model PWD 2.0 layer.  This is a semantic 
-representation of XBRL information. 
+on a concrete realization of the Abstract Model PWD 2.0 layer.  This is a semantic
+representation of XBRL information.
 
 This module may save directly to a JSON Server (TBD) or to append to a file of JSON.
 
-This module provides the execution context for saving a dts and instances in 
+This module provides the execution context for saving a dts and instances in
 XBRL JSON graph.  It may be loaded by Arelle's RSS feed, or by individual
 DTS and instances opened by interactive or command line/web service mode.
 
@@ -15,10 +15,10 @@ Example dialog or command line parameters for operation:
     port:  the host port (80 is default) if a JSON Server
     user, password:  if needed for server
     database:  the top level path segment for the JSON Server or disk file path if jsonFile
-    timeout: 
-    
+    timeout:
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
+
+(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 to do:
@@ -51,7 +51,7 @@ TRACEJSONFILE = None
 
 JSONFILE_HOSTNAME = "jsonFile"
 
-def insertIntoDB(modelXbrl, 
+def insertIntoDB(modelXbrl,
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
                  product=None, rssItem=None, **kwargs):
     jsondb = None
@@ -65,8 +65,8 @@ def insertIntoDB(modelXbrl,
                 jsondb.close(rollback=True)
             except Exception as ex2:
                 pass
-        raise # reraise original exception with original traceback    
-    
+        raise # reraise original exception with original traceback
+
 def isDBPort(host, port, db, timeout=10):
     if host == JSONFILE_HOSTNAME:
         return True
@@ -87,17 +87,17 @@ def isDBPort(host, port, db, timeout=10):
 # top level JSON Graph object keynames
 FILINGS = "filings"
 DOCUMENTS = "documents"
- 
+
 def modelObjectDocumentUri(modelObject):
     return UrlUtil.ensureUrl(modelObject.modelDocument.uri)
- 
+
 def modelObjectUri(modelObject):
-    return '#'.join((modelObjectDocumentUri(modelObject), 
+    return '#'.join((modelObjectDocumentUri(modelObject),
                      XmlUtil.elementFragmentIdentifier(modelObject)))
- 
+
 def qnameUri(qname, sep='#'):
     return sep.join((qname.namespaceURI, qname.localName))
- 
+
 def qnamePrefix_Name(qname, sep=':'):
     # substitutte standard prefixes for commonly-defaulted xmlns namespaces
     prefix = {XbrlConst.xsd: 'xsd',
@@ -108,12 +108,12 @@ def qnamePrefix_Name(qname, sep=':'):
               XbrlConst.xlink: 'xlink'
               }.get(qname.namespaceURI, qname.prefix)
     return sep.join((prefix, qname.localName))
- 
+
 def modelObjectQnameUri(modelObject, sep='#'):
     return qnameUri(modelObject.qname, sep)
 
 def modelObjectNameUri(modelObject, sep='#'):
-    return '#'.join((modelObjectDocumentUri(modelObject), 
+    return '#'.join((modelObjectDocumentUri(modelObject),
                      modelObject.name)) # for schema definitions with name attribute
 
 class XJDBException(Exception):
@@ -124,7 +124,7 @@ class XJDBException(Exception):
         self.args = ( self.__repr__(), )
     def __repr__(self):
         return _('[{0}] exception: {1}').format(self.code, self.message % self.kwargs)
-            
+
 def jsonDefaultEncoder(obj):
     if isinstance(obj, Decimal):
         return float(obj)
@@ -154,7 +154,7 @@ class XbrlSemanticJsonDatabaseConnection():
             self.conn = urllib.request.build_opener(auth_handler)
             self.timeout = timeout or 60
         self.verticePropTypes = {}
-        
+
     def close(self, rollback=False):
         try:
             if not self.isJsonFile:
@@ -163,23 +163,23 @@ class XbrlSemanticJsonDatabaseConnection():
         except Exception as ex:
             self.__dict__.clear() # dereference everything
             raise
-        
+
     @property
     def isClosed(self):
         return not bool(self.__dict__)  # closed when dict is empty
-    
+
     def showStatus(self, msg, clearAfter=None):
         self.modelXbrl.modelManager.showStatus(msg, clearAfter)
-        
+
     def execute(self, activity, graph=None, query=None):
         if graph is not None:
             headers = {'User-agent':   'Arelle/1.0',
                        'Accept':       'application/json',
                        'Content-Type': "text/json; charset='UTF-8'"}
-            data = _STR_UNICODE(json.dumps(graph, 
+            data = _STR_UNICODE(json.dumps(graph,
                                            sort_keys=True,  # allow comparability of json files
-                                           ensure_ascii=False, 
-                                           indent=2, 
+                                           ensure_ascii=False,
+                                           indent=2,
                                            default=jsonDefaultEncoder)) # might not be unicode in 2.7
         elif query is not None:
             headers = {'User-agent':   'Arelle/1.0',
@@ -223,16 +223,16 @@ class XbrlSemanticJsonDatabaseConnection():
                 error = results
             raise XJDBException("jsonDB:DatabaseError",
                                 _("%(activity)s not successful: %(error)s"),
-                                activity=activity, error=error) 
+                                activity=activity, error=error)
         return results
-    
+
     def commit(self, graph):
         self.execute("Saving RDF Graph", graph=graph)
-    
+
     def loadGraphRootVertices(self):
         self.showStatus("Load/Create graph root vertices")
         pass
-        
+
     def getDBsize(self):
         self.showStatus("Get database size")
         return 0
@@ -242,17 +242,17 @@ class XbrlSemanticJsonDatabaseConnection():
             # must also have default dimensions loaded
             from arelle import ValidateXbrlDimensions
             ValidateXbrlDimensions.loadDimensionDefaults(self.modelXbrl)
-            
+
             #initialVcount, initialEcount = self.getDBsize() # don't include in timing, very slow
             startedAt = time.time()
-            
+
             # find pre-existing documents in server database
             self.identifyPreexistingDocuments()
-            
+
             g = {FILINGS:{},
                  DOCUMENTS:{}}
             self.insertSchema(g)
-            
+
             # self.load()  this done in the verify step
             self.insertFiling(rssItem,g)
             self.insertDocuments(g)
@@ -282,18 +282,18 @@ class XbrlSemanticJsonDatabaseConnection():
         except Exception as ex:
             self.showStatus("DB insertion failed due to exception", clearAfter=5000)
             raise
-        
+
     def insertSchema(self, g):
         if True:  # if schema not defined
             self.showStatus("insert schema")
             # Filings schema
 
             # Aspect schema
-            
+
             # Relationships schema
-            
+
             # DataPoints schema
-        
+
     def insertFiling(self, rssItem, g):
         self.showStatus("insert filing")
         # accession graph -> document vertices
@@ -312,8 +312,8 @@ class XbrlSemanticJsonDatabaseConnection():
             new_filing['filingDate'] = XmlUtil.dateunionValue(rssItem.filingDate)
             new_filing['entityId'] = rssItem.cikNumber
             new_filing['entityName'] = rssItem.companyName
-            new_filing['SICCode'] = rssItem.assignedSic 
-            new_filing['SECHtmlUrl'] = rssItem.htmlUrl 
+            new_filing['SICCode'] = rssItem.assignedSic
+            new_filing['SECHtmlUrl'] = rssItem.htmlUrl
             new_filing['entryUrl'] = rssItem.url
             self.filingURI = rssItem.htmlUrl
         else:
@@ -326,10 +326,10 @@ class XbrlSemanticJsonDatabaseConnection():
             new_filing['filingDate'] = datetimeNowStr
             new_filing['entryUrl'] = UrlUtil.ensureUrl(self.modelXbrl.fileSource.url)
             self.filingURI = filingNumber
-            
+
         g[FILINGS][self.filingURI] = new_filing
         self.filing = new_filing
-            
+
         # for now only one report per filing (but SEC may have multiple in future, such as form SD)
         self.reportURI = modelObjectDocumentUri(self.modelXbrl)
         self.report = {'filing': self.filingURI,
@@ -338,12 +338,12 @@ class XbrlSemanticJsonDatabaseConnection():
                        'dataPoints': {},
                        'messages': {}}
         new_filing['reports'] = {self.reportURI: self.report}
-            
+
         # relationshipSets are a dts property
         self.relationshipSets = [(arcrole, ELR, linkqname, arcqname)
                                  for arcrole, ELR, linkqname, arcqname in self.modelXbrl.baseSets.keys()
                                  if ELR and (arcrole.startswith("XBRL-") or (linkqname and arcqname))]
-        
+
     def identifyPreexistingDocuments(self):
         self.existingDocumentUris = set()
         if not self.isJsonFile:
@@ -353,23 +353,23 @@ class XbrlSemanticJsonDatabaseConnection():
                     docFilters.append('STR(?doc) = "{}"'.format(UrlUtil.ensureUrl(modelDocument.uri)))
             results = self.execute(
                 # TBD: fix up for Mongo DB query
-                "select", 
+                "select",
                 query="""
                     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                     PREFIX DTS: <http://xbrl.org/2013/rdf/DTS/>
-                    SELECT distinct ?doc WHERE { ?doc rdf:type DTS:Document 
+                    SELECT distinct ?doc WHERE { ?doc rdf:type DTS:Document
                     FILTER( """ + '\n|| '.join(docFilters) + ") .}")
             try:
                 for result in results['results']['bindings']:
                     doc = result['doc']
                     if doc.get('type') == 'uri':
-                        self.existingDocumentUris.add(doc['value'])                    
+                        self.existingDocumentUris.add(doc['value'])
             except KeyError:
                 pass # no existingDocumentUris
-        
+
     def insertDocuments(self,g):
         # accession->documents
-        # 
+        #
         self.showStatus("insert documents")
         documents = self.documents = g[DOCUMENTS]
         for modelDocument in self.modelXbrl.urlDocs.values():
@@ -386,10 +386,10 @@ class XbrlSemanticJsonDatabaseConnection():
             self.filing['documents'].append(docUri)
             if modelDocument.uri == self.modelXbrl.modelDocument.uri: # entry document
                 self.report['entryPoint'] = docUri
-                
+
     def conceptsUsed(self):
         conceptsUsed = set(f.qname for f in self.modelXbrl.factsInInstance)
-        
+
         for cntx in self.modelXbrl.contexts.values():
             for dim in cntx.qnameDims.values():
                 conceptsUsed.add(dim.dimensionQname)
@@ -414,7 +414,7 @@ class XbrlSemanticJsonDatabaseConnection():
                     conceptsUsed.add(rel.toModelObject)
         for qn in (XbrlConst.qnXbrliIdentifier, XbrlConst.qnXbrliPeriod, XbrlConst.qnXbrliUnit):
             conceptsUsed.add(qn)
-        
+
         conceptsUsed -= {None}  # remove None if in conceptsUsed
         return conceptsUsed
 
@@ -422,22 +422,22 @@ class XbrlSemanticJsonDatabaseConnection():
         # separate graph
         # document-> dataTypeSet -> dataType
         # do all schema dataTypeSet vertices
-            
+
         self.type_id = {}
         self.aspect_id = {}
         self.aspect_proxy = {}
         self.aspect_proxy_uri = {}
         self.roleType_id = {}
         self.arcroleType_id = {}
-        
-            
+
+
         '''
         if any((not self.document_isNew[modelDocument.uri])
                for modelDocument in self.modelXbrl.urlDocs.values()):
             conceptsUsed = self.conceptsUsed()
         '''
         conceptsUsed = self.conceptsUsed()
-            
+
         for modelDocument in self.modelXbrl.urlDocs.values():
             self.showStatus("insert DataDictionary " + modelDocument.basename)
             docUri = modelObjectDocumentUri(modelDocument)
@@ -469,14 +469,14 @@ class XbrlSemanticJsonDatabaseConnection():
                                     dataType['baseType'] = qnameUri(baseType)
                                     if baseType.namespaceURI == "http://www.w3.org/2001/XMLSchema":
                                         dataType['baseXsdType'] = qnameUri(baseType)
-                     
+
                             typeDerivedFrom = modelType.typeDerivedFrom
                             if not isinstance(typeDerivedFrom, (tuple,list)): # list if a union
                                 typeDerivedFrom = (typeDerivedFrom,)
                             for dt in typeDerivedFrom:
                                 if dt is not None:
                                     dataType['derivedFrom'] = modelObjectNameUri(dt)
-                     
+
                             for prop in ('isTextBlock', 'isDomainItemType'):
                                 propertyValue = getattr(modelType, prop, None)
                                 if propertyValue:
@@ -494,20 +494,20 @@ class XbrlSemanticJsonDatabaseConnection():
                             aspect['periodType'] = modelConcept.periodType
                         if modelConcept.balance:
                             aspect['balance'] = modelConcept.balance
-                 
-                        for prop in ('isItem', 'isTuple', 'isLinkPart', 
-                                     'isNumeric', 'isMonetary', 'isExplicitDimension', 
+
+                        for prop in ('isItem', 'isTuple', 'isLinkPart',
+                                     'isNumeric', 'isMonetary', 'isExplicitDimension',
                                      'isDimensionItem', 'isPrimaryItem',
                                      'isTypedDimension', 'isDomainMember', 'isHypercubeItem',
                                      'isShares', 'isTextBlock', 'isNillable'):
                             propertyValue = getattr(modelConcept, prop, None)
                             if propertyValue:
                                 aspect[prop] = propertyValue
-                 
+
                         conceptType = modelConcept.type
                         if conceptType is not None:
                             aspect['dataType'] = modelObjectNameUri(conceptType)
-                        
+
                         substitutionGroup = modelConcept.substitutionGroup
                         if substitutionGroup is not None:
                             aspect['substitutionGroup'] = modelObjectNameUri(substitutionGroup)
@@ -519,7 +519,7 @@ class XbrlSemanticJsonDatabaseConnection():
                                 'url': modelObjectUri(modelRoleType),
                                 'roleURI': modelRoleType.roleURI,
                                 'definition': modelRoleType.definition,
-                                'usedOn': [modelObjectUri(self.modelXbrl.qnameConcepts[qn]) 
+                                'usedOn': [modelObjectUri(self.modelXbrl.qnameConcepts[qn])
                                            for qn in modelRoleType.usedOns]
                                 }
                     document['arcroleTypes'] = arcroleTypes = {}
@@ -530,43 +530,43 @@ class XbrlSemanticJsonDatabaseConnection():
                                 'url': modelObjectUri(modelArcroleType),
                                 'arcroleURI': modelArcroleType.roleURI,
                                 'definition': modelArcroleType.definition,
-                                'usedOn': [modelObjectUri(self.modelXbrl.qnameConcepts[qn]) 
+                                'usedOn': [modelObjectUri(self.modelXbrl.qnameConcepts[qn])
                                            for qn in modelArcroleType.usedOns],
                                 'cyclesAllowed': modelArcroleType.cyclesAllowed
                                 }
 
                     activity = "Insert data dictionary types, aspects, roles, and arcroles for " + modelDocument.uri
 
-        
+
     '''
     def insertValidCombinations(self):
         # document-> validCombinationsSet-> cubes
         self.showStatus("insert ValidCombinations")
-        
+
         drsELRs = set(ELR
                       for arcrole, ELR, linkqname, arcqname in self.modelXbrl.baseSets.values()
                       if arcrole == XbrlConst.all)
         hasHcRels = self.modelXbrl.relationshipSet(XbrlConst.all).modelRelationships
         hcConcepts = set(hasHcRel.toModelObject for hasHcRel in hasHcRels)
-        
+
         # one cube region per head pri item with multiple cube regions
         for hcConcept in hcConcepts:
             # include any other concepts in this pri item with clean inheritance
             for drsELR in drsELRs:
                 # each ELR is another cube region
-         
+
         for allRel in val.modelXbrl.relationshipSet(XbrlConst.all, ELR)
         drsPriItems(val, fromELR, fromPriItem
-        
+
         ... this becomes an unweildly large model, don't see a use case for compiling it out
 '''
     def insertAspectProxies(self, qnames):
-        aspectQnames = [qname 
-                        for qname in qnames 
+        aspectQnames = [qname
+                        for qname in qnames
                         if qname not in self.aspect_proxy_uri and qname in self.modelXbrl.qnameConcepts]
         for qname in aspectQnames:
             self.insertAspectProxy(qname, qnamePrefix_Name(qname))
-            
+
     def insertAspectProxy(self, aspectQName, aspectProxyUri):
         concept = self.modelXbrl.qnameConcepts[aspectQName]
         self.report['aspectProxies'][aspectProxyUri] = aspectProxy = {
@@ -577,7 +577,7 @@ class XbrlSemanticJsonDatabaseConnection():
         self.aspect_proxy[aspectQName] = aspectProxy
         self.aspect_proxy_uri[aspectQName] = aspectProxyUri
         return aspectProxy
-    
+
     def aspectQnameProxy(self, qname):
         if hasattr(qname, "modelDocument"):
             return self.aspect_proxy.get(qname.qname)
@@ -596,7 +596,7 @@ class XbrlSemanticJsonDatabaseConnection():
         # separate graph
         # document-> dataTypeSet -> dataType
         self.showStatus("insert DataPoints")
-        
+
         # note these initial aspects Qnames used also must be in conceptsUsed above
         dimensions = [] # index by hash of dimension
         dimensionIds = {}  # index for dimension
@@ -616,7 +616,7 @@ class XbrlSemanticJsonDatabaseConnection():
                     'dataPointUrl': modelObjectUri(fact),
                     'baseItem': self.aspectQnameProxyId(fact.qname)
                     }
-                
+
                 context = fact.context
                 concept = fact.concept
                 if context is not None:
@@ -640,7 +640,7 @@ class XbrlSemanticJsonDatabaseConnection():
                         period = "instant/{}".format(endDate)
                     else:
                         startDate = XmlUtil.dateunionValue(context.startDatetime).replace(':','_')
-                        endDate = XmlUtil.dateunionValue(context.endDatetime, subtractOneDay=True).replace(':','_')                        
+                        endDate = XmlUtil.dateunionValue(context.endDatetime, subtractOneDay=True).replace(':','_')
                         period = "duration/{}/{}".format(startDate, endDate)
                     if period not in periodProxies:
                         periodProxy = "{}/{}".format(
@@ -663,12 +663,12 @@ class XbrlSemanticJsonDatabaseConnection():
                     else:
                         periodProxy = periodProxies[period]
                     dataPoint['period'] = periodProxy
-                    
+
                     dataPoint['contextUrl'] = modelObjectUri(context)
                     dataPoint['contextId'] = context.id
                     if context.id not in contextAspectValueSelections:
                         contextAspectValueSelections[context.id] = contextAspectValueSelection = []
-                        
+
                         for dimVal in context.qnameDims.values():
                             dim = qnamePrefix_Name(dimVal.dimensionQname)
                             if dimVal.isExplicit:
@@ -706,7 +706,7 @@ class XbrlSemanticJsonDatabaseConnection():
                                 unitIDs.add(unit.id)
                                 u = self.insertAspectProxy(XbrlConst.qnXbrliUnit, unitProxy)
                                 u['unitId'] = unit.id
-             
+
                                 mults, divs = unit.measures
                                 u['multiplyMeasures'] = [qnameUri(qn) for qn in mults]
                                 if divs:
@@ -721,16 +721,16 @@ class XbrlSemanticJsonDatabaseConnection():
                     else:
                         # Otherwise insert as plain liternal with no language or datatype
                         dataPoint['value'] = fact.value
-                        
+
                     if fact.modelTupleFacts:
                         dataPoint['tuple'] = [XmlUtil.elementFragmentIdentifier(tupleFact)
                                               for tupleFact in fact.modelTupleFacts]
 
-        
+
     def resourceId(self,i):
         return "<{accessionPrefix}resource/{i}>".format(accessionPrefix=self.thisAccessionPrefix,
                                                         i=i)
-    
+
     def insertRelationshipSets(self):
         self.showStatus("insert relationship sets")
         aspectQnamesUsed = set()
@@ -741,7 +741,7 @@ class XbrlSemanticJsonDatabaseConnection():
             if arcqname:
                 aspectQnamesUsed.add(arcqname)
         self.insertAspectProxies(aspectQnamesUsed)
-        
+
         relationshipSets = self.report['relationshipSets']
         relSetIds = {}
         for i, relationshipSetKey in enumerate(self.relationshipSets):
@@ -761,18 +761,18 @@ class XbrlSemanticJsonDatabaseConnection():
                     'roots': [],
                     'relationships': []
                     }
-        
+
         # do tree walk to build relationships with depth annotated, no targetRole navigation
         relE = [] # fromV, toV, label
         resources = set()
         aspectQnamesUsed = set()
         resourceIDs = {} # index by object
-        
+
         def walkTree(rels, parentRelId, seq, depth, relationshipSetKey, relationshipSet, visited, relSetId, doVertices):
             for rel in rels:
                 if rel not in visited:
                     visited.add(rel)
-                    
+
                     if not doVertices:
                         _relProp = {'seq': seq,
                                     'depth': depth,
@@ -856,15 +856,15 @@ class XbrlSemanticJsonDatabaseConnection():
                         seq = walkTree(targetRelSet.fromModelObject(toModelObject), relId, seq, depth+1, targetRelSetKey, targetRelSet, visited, targetRelSetId, doVertices)
                     visited.remove(rel)
             return seq
-        
+
 
         for doVertices in range(1,-1,-1):  # pass 0 = vertices, pass 1 = edges
             for i, relationshipSetKey in enumerate(self.relationshipSets):
                 arcrole, linkrole, linkqname, arcqname = relationshipSetKey
-                if arcrole not in ("XBRL-formulae", "Table-rendering", "XBRL-footnotes") and linkrole and linkqname and arcqname:                
+                if arcrole not in ("XBRL-formulae", "Table-rendering", "XBRL-footnotes") and linkrole and linkqname and arcqname:
                     relSetId = relSetIds[relationshipSetKey]
                     relationshipSet = self.modelXbrl.relationshipSet(*relationshipSetKey)
-                    seq = 1               
+                    seq = 1
                     for rootConcept in relationshipSet.rootConcepts:
                         seq = walkTree(relationshipSet.fromModelObject(rootConcept), None, seq, 1, relationshipSetKey, relationshipSet, set(), relSetId, doVertices)
             if doVertices:
@@ -880,7 +880,7 @@ class XbrlSemanticJsonDatabaseConnection():
                             r['role'] = resource.role
                         self.documents[modelObjectDocumentUri(resource)]['resources'][
                                         XmlUtil.elementFragmentIdentifier(resource)] = r
-                    
+
                 self.insertAspectProxies(aspectQnamesUsed)
             else:
                 for j, rel in enumerate(relE):
@@ -899,19 +899,19 @@ class XbrlSemanticJsonDatabaseConnection():
                             .setdefault('relationships', {}) \
                             .setdefault(rel['relSetId'], []) \
                             .append(rel['to'])
-                
+
                 # TBD: do we want to link resources to the dts (by role, class, or otherwise?)
-                    
+
         resourceIDs.clear() # dereferemce objects
         resources = None
-        
+
     def insertValidationResults(self):
         logEntries = []
         for handler in logging.getLogger("arelle").handlers:
             if hasattr(handler, "dbHandlerLogEntries"):
                 logEntries = handler.dbHandlerLogEntries()
                 break
-        
+
         messages = []
         messageRefs = [] # direct link to objects
         for i, logEntry in enumerate(logEntries):
@@ -947,7 +947,7 @@ class XbrlSemanticJsonDatabaseConnection():
                     else:
                         continue
                     objUri = URIRef("{}/Relationship/{}/{}/{}/{}".format(
-                                    self.reportURI, 
+                                    self.reportURI,
                                     os.path.basename(modelObject.arcrole),
                                     os.path.basename(modelObject.linkrole),
                                     sourceId,
@@ -955,6 +955,6 @@ class XbrlSemanticJsonDatabaseConnection():
                     '''
                 else:
                     continue
-                        
+
         if messages:
             self.showStatus("insert validation messages")

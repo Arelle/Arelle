@@ -4,11 +4,11 @@ Created on Dec 20, 2017
 @author: Mark V Systems Limited
 (c) Copyright 2017 Mark V Systems Limited, All rights reserved.
 
-  
+
 '''
 import os
 from arelle import ModelDocument, XbrlConst
-        
+
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("XDC", "XDCplugin"),)
@@ -20,7 +20,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateXDCplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "XDCplugin", False)
     if not (val.validateXDCplugin):
         return
-    
+
 
 def validateXbrlFinally(val, *args, **kwargs):
     if not (val.validateXDCplugin):
@@ -32,20 +32,20 @@ def validateXbrlFinally(val, *args, **kwargs):
     _statusMsg = _("validating {0} filing rules").format(val.disclosureSystem.name)
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
-    
+
     if modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
 
-        
+
         parentChildRels = modelXbrl.relationshipSet(XbrlConst.parentChild)
         referenceRels = modelXbrl.relationshipSet(XbrlConst.conceptReference)
-        
+
         for qn, facts in modelXbrl.factsByQname.items():
             concept = modelXbrl.qnameConcepts[qn]
             if not parentChildRels.toModelObject(concept):
                 modelXbrl.error("XDC:factElementNotPresented",
-                                _("Element %(concept)s is used in a fact in the instance, but is not in any presentation relationships."), 
+                                _("Element %(concept)s is used in a fact in the instance, but is not in any presentation relationships."),
                                 modelObject=facts, concept=qn)
-            
+
         requiredConcepts = set(preRel.toModelObject.qname
                                for preRel in parentChildRels.modelRelationships
                                for refRel in referenceRels.fromModelObject(preRel.toModelObject)
@@ -53,16 +53,16 @@ def validateXbrlFinally(val, *args, **kwargs):
                                for refPart in refRel.toModelObject.iterchildren()
                                if refPart.localName == "RequiredInDocument"
                                if refPart.textValue.strip().lower() == "true")
-                            
+
         missingConcepts = requiredConcepts - _DICT_SET(modelXbrl.factsByQname.keys())
         if missingConcepts:
             modelXbrl.error("XDC:missingRequiredFacts",
-                            _("Required facts missing from document: %(concepts)s."), 
+                            _("Required facts missing from document: %(concepts)s."),
                             modelObject=modelXbrl, concepts=", ".join(sorted(str(qn) for qn in missingConcepts)))
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
-    
+
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading

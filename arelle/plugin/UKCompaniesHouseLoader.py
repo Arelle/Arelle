@@ -38,7 +38,7 @@ class CompaniesHouseItem:
         self.assertions = None
         self.objectIndex = len(modelXbrl.modelObjects)
         modelXbrl.modelObjects.append(self)
-        
+
     def setResults(self, modelXbrl):
         self.results = []
         self.assertionUnsuccessful = False
@@ -55,9 +55,9 @@ class CompaniesHouseItem:
                 self.results.append(error)
                 self.status = "fail" # error code
         self.results.sort()
-    
+
     def objectId(self,refId=""):
-        """Returns a string surrogate representing the object index of the model document, 
+        """Returns a string surrogate representing the object index of the model document,
         prepended by the refId string.
         :param refId: A string to prefix the refId for uniqueless (such as to use in tags for tkinter)
         :type refId: str
@@ -67,10 +67,10 @@ class CompaniesHouseItem:
 def companiesHouseInstanceLoaded(modelXbrl, rssWatchOptions, rssItem, *args, **kwargs):
     for fact in modelXbrl.factsInInstance:
         name = fact.qname.localName if fact.qname is not None else None
-        if name in ("CompaniesHouseRegisteredNumber", 
-                    "UKCompaniesHouseRegisteredNumber", 
-                    "EntityCurrentLegalName", 
-                    "EntityCurrentLegalOrRegisteredName", 
+        if name in ("CompaniesHouseRegisteredNumber",
+                    "UKCompaniesHouseRegisteredNumber",
+                    "EntityCurrentLegalName",
+                    "EntityCurrentLegalOrRegisteredName",
                     "EndDateForPeriodCoveredByReport"):
             if name in ("CompaniesHouseRegisteredNumber","UKCompaniesHouseRegisteredNumber"):
                 rssItem.cikNumber = fact.value.strip()
@@ -79,24 +79,24 @@ def companiesHouseInstanceLoaded(modelXbrl, rssWatchOptions, rssItem, *args, **k
             elif name == "EndDateForPeriodCoveredByReport" and getattr(fact, "xValid", UNVALIDATED) == VALID:
                 rssItem.period = fact.xValue
                 rssItem.fiscalYearEnd = "{:04}-{:02}".format(fact.xValue.year, fact.xValue.month)
-            
+
 
 def companiesHouseLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
-    if not (mappedUri.startswith("http://download.companieshouse.gov.uk/") and 
+    if not (mappedUri.startswith("http://download.companieshouse.gov.uk/") and
             mappedUri.endswith(".zip")):
         return None # not a companies houst zip file
-    
+
     rssObject = ModelRssObject(modelXbrl, uri=mappedUri, filepath=filepath)
-        
+
     # find <table> with <a>Download in it
     for instanceFile in modelXbrl.fileSource.dir:
         rssObject.rssItems.append(
             CompaniesHouseItem(modelXbrl, instanceFile, mappedUri + '/' + instanceFile))
     return rssObject
 
-            
 
-__pluginInfo__ = {  
+
+__pluginInfo__ = {
     'name': 'UK Companies House Loader',
     'version': '0.9',
     'description': "This plug-in loads UK Companies House XBRL documents.  ",

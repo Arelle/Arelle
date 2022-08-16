@@ -1,5 +1,5 @@
 '''
-Unpack SEC EIS File is an example of a plug-in to the GUI menu 
+Unpack SEC EIS File is an example of a plug-in to the GUI menu
 that will save the unpacked contents of an SEC EIS File in a directory.
 
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
@@ -12,16 +12,16 @@ def unpackEIS(cntlr, eisFile, unpackToDir):
         cntlr.addToLog("[info:unpackEIS] Not recognized as an EIS file: " + eisFile)
         return
     import os, io
-    
+
     unpackedFiles = []
-    
+
     for file in filesource.dir:
         fIn, encoding = filesource.file(os.path.join(eisFile,file))
         with open(os.path.join(unpackToDir, file), "w", encoding=encoding) as fOut:
             fOut.write(fIn.read())
             unpackedFiles.append(file)
         fIn.close()
-                
+
     cntlr.addToLog("[info:unpackEIS] Unpacked files " + ', '.join(unpackedFiles))
 
 def unpackSecEisMenuEntender(cntlr, menu, *args, **kwargs):
@@ -41,12 +41,12 @@ def unpackSecEisMenuEntender(cntlr, menu, *args, **kwargs):
         cntlr.config["openSecEisFileDir"] = os.path.dirname(eisFile)
         cntlr.config["unpackSecEisFileDir"] = unpackToDir
         cntlr.saveConfig()
-        try: 
+        try:
             unpackEIS(cntlr, eisFile, unpackToDir)
         except Exception as ex:
             cntlr.addToLog("[arelle:exception] Unpack EIS exception: " + str(ex));
-    menu.add_command(label="Unpack SEC EIS File", 
-                     underline=0, 
+    menu.add_command(label="Unpack SEC EIS File",
+                     underline=0,
                      command=lambda: askUnpackDirectory() )
 
 __pluginInfo__ = {

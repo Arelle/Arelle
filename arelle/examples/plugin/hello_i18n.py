@@ -4,7 +4,7 @@ are written for Arelle
 
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
-        
+
 def menuEntender(cntlr, menu):
     menu.add_command(label="Hello i18n", underline=0, command=lambda: menuCommand(cntlr) )
 
@@ -12,7 +12,7 @@ def menuCommand(cntlr):
     i10L_world = _("Hello World");
     cntlr.addToLog(i10L_world)
     import tkinter
-    tkinter.messagebox.showinfo(_("Prints 'Hello World'"), i10L_world, parent=cntlr.parent)            
+    tkinter.messagebox.showinfo(_("Prints 'Hello World'"), i10L_world, parent=cntlr.parent)
 
 '''
    Do not use _( ) in pluginInfo itself (it is applied later, after loading

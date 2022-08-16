@@ -79,7 +79,7 @@ def getLanguageCode():
     try:
         return locale.getdefaultlocale()[0].replace("_","-")
     except (AttributeError, ValueError): #language code and encoding may be None if their values cannot be determined.
-        return "en"    
+        return "en"
 
 def getLanguageCodes(lang=None):
     if lang is None:
@@ -144,7 +144,7 @@ def languageCodes():  # dynamically initialize after gettext is loaded
     global _languageCodes
     if _languageCodes is not None:
         return _languageCodes
-    else:        
+    else:
         _languageCodes = { # language name (in English), code, and setlocale string which works in windows
             _("Afrikaans (South Africa)"): "af-ZA afrikaans",
             _("Albanian (Albania)"): "sq-AL albanian",
@@ -260,7 +260,7 @@ _disableRtl = False # disable for implementations where tkinter supports rtl
 def setDisableRTL(disableRTL):
     global _disableRTL
     _disableRTL = disableRTL
-    
+
 def rtlString(source, lang):
     if lang and source and lang[0:2] in {"ar","he"} and not _disableRTL:
         line = []
@@ -521,25 +521,25 @@ def format_picture(conv, value, picture):
         value = Decimal(value)
     elif not isinstance(value, Decimal):
         raise ValueError(_('Picture requires a number convertable to decimal or float').format(picture))
-        
+
     if value.is_nan():
         return 'NaN'
-    
+
     isNegative = value.is_signed()
-    
+
     pic, sep, negPic = picture.partition(';')
     if negPic and ';' in negPic:
         raise ValueError(_('Picture contains multiple picture sepearators {0}').format(picture))
     if isNegative and negPic:
         pic = negPic
-    
+
     if len([c for c in pic if c in (percent, per_mille) ]) > 1:
         raise ValueError(_('Picture contains multiple percent or per_mille charcters {0}').format(picture))
     if percent in pic:
         value *= 100
     elif per_mille in pic:
         value *= 1000
-        
+
     intPart, sep, fractPart = pic.partition(decimal_point)
     prefix = ''
     numPlaces = 0
@@ -550,7 +550,7 @@ def format_picture(conv, value, picture):
     if fractPart:
         if decimal_point in fractPart:
             raise ValueError(_('Sub-picture contains decimal point sepearators {0}').format(pic))
-    
+
         for c in fractPart:
             if c.isdecimal():
                 numPlaces += 1
@@ -560,7 +560,7 @@ def format_picture(conv, value, picture):
             else:
                 suffix += c
 
-    intPosition = 0                
+    intPosition = 0
     for c in reversed(intPart):
         if c.isdecimal() or c == '#' or c == thousands_sep:
             if prefix:
@@ -583,8 +583,8 @@ def format_picture(conv, value, picture):
             raise ValueError(_('Sub-picture must contain at least one digit position or sign character {0}').format(pic))
     if intPlaces == 0 and fractPlaces == 0:
         intPlaces = 1
-    
-    return format_decimal(None, value, intPlaces=intPlaces, fractPlaces=fractPlaces, 
+
+    return format_decimal(None, value, intPlaces=intPlaces, fractPlaces=fractPlaces,
                           sep=thousands_sep, dp=decimal_point, grouping=grouping,
                           pos=prefix,
                           neg=prefix if negPic else prefix + minus_sign,

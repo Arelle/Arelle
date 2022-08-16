@@ -7,11 +7,11 @@ Preconfigured here to use SEC Edgar Rendering R files as input
 '''
 import os, sys, re
 from lxml import etree, html
-from openpyxl.workbook import Workbook 
+from openpyxl.workbook import Workbook
 from openpyxl.worksheet import ColumnDimension
 from openpyxl.cell import get_column_letter
 from openpyxl.style import Alignment
-    
+
 class Report():
     def __init__(self, longName, shortName, htmlFileName):
         self.longName = longName
@@ -20,7 +20,7 @@ class Report():
     def __repr__(self):
         return ("report(longName='{}', shortName='{}', htmlFileName='{}')"
                 .format(self.longName, self.shortName, self.htmlFileName))
-        
+
 def intCol(elt, attrName, default=None):
     try:
         return int(elt.get(attrName, default))
@@ -31,7 +31,7 @@ numberPattern = re.compile(r"\s*([$]\s*)?[(]?\s*[+-]?[0-9,]+([.][0-9]*)?[)-]?\s*
 displayNonePattern = re.compile(r"\s*display:\s*none;")
 
 def saveTableToExelle(rFilesDir):
-    
+
     # get reports from FilingSummary
     reports = []
     try:
@@ -43,16 +43,16 @@ def saveTableToExelle(rFilesDir):
     except (EnvironmentError,
             etree.LxmlError) as err:
         print("FilingSummary.xml: directory {0} error: {1}".format(rFilesDir, err))
-        
+
     wb = Workbook(encoding='utf-8')
     # remove predefined sheets
     for sheetName in wb.get_sheet_names():
         ws = wb.get_sheet_by_name(sheetName)
         if ws is not None:
             wb.remove_sheet(ws)
-            
+
     sheetNames = set() # prevent duplicates
-    
+
     for reportNum, report in enumerate(reports):
         sheetName = report.shortName[:31]  # max length 31 for excel title
         if sheetName in sheetNames:
@@ -128,13 +128,13 @@ def saveTableToExelle(rFilesDir):
                             col += colspan
                 for col, width in colWidths.items():
                     ws.column_dimensions[get_column_letter(col+1)].width = width
-        except (EnvironmentError, 
+        except (EnvironmentError,
                 etree.LxmlError) as err:
             print("{0}: directory {1} error: {2}".format(report.htmlFileName, rFilesDir, err))
-    
+
     wb.save(os.path.join(rFilesDir, "exelleOut.xlsx"))
-    
+
 if __name__ == "__main__":
-    
+
     # test directory
     saveTableToExelle(r"C:\Users\Herm Fischer\Documents\mvsl\projects\SEC\14.1\R-files\wpoRfiles")

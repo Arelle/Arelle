@@ -1,15 +1,15 @@
 '''
 china.py implements an OpenSql database extension for CAS (MOF) and SASAC extensions
 
-(c) Copyright 2017 Mark V Systems Limited, California US, All rights reserved.  
+(c) Copyright 2017 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 
 to use from command line:
    --plugins xbrlDB/ext/china.py # note this plugin imports xbrlDB plugin
-   
+
    if there are more than one plugin they are enclosed in quotes and separated by "|" (pipe) characters
-   
+
 '''
 import os
 from arelle.UrlUtil import ensureUrl
@@ -25,14 +25,14 @@ def extChinaTableDdlFiles(xbrlOpenDb):
                                                  "sqlite": "china*SQLiteDB.ddl",
                                                  "orcl": "china*OracleDB.sql",
                                                  "postgres": "china*PostgresDB.ddl"}[xbrlOpenDb.product])])
-    
+
 def extChinaMetadata(xbrlOpenDb, entrypoint, rssItem):
     md = xbrlOpenDb.metadata
     modelXbrl = xbrlOpenDb.modelXbrl
     # instance facts  containint metadata
-    for factName, entityField in (("NameOfReportingEntityOrOtherMeansOfIdentification", "entityName"), 
-                                  ("ApprovingProvince", "entityProvince"), 
-                                  ("ApprovalDate", "entityApprovalDate"), 
+    for factName, entityField in (("NameOfReportingEntityOrOtherMeansOfIdentification", "entityName"),
+                                  ("ApprovingProvince", "entityProvince"),
+                                  ("ApprovalDate", "entityApprovalDate"),
                                   ("ApprovalNo", "entityApprovalNumber"),
                                   ("Sponsor", "entitySponsor"),
                                   ("BusinessLicenseNumber", "entityLicenseNumber"),
@@ -56,7 +56,7 @@ def extChinaExistingFilingPk(xbrlOpenDb):
 
 def extChinaFiling(xbrlOpenDb, now):
     md = xbrlOpenDb.metadata
-    table = xbrlOpenDb.getTable('filing_china', None, 
+    table = xbrlOpenDb.getTable('filing_china', None,
                           ('filing_pk',
                            'entity_name',
                            'entity_province',
@@ -68,7 +68,7 @@ def extChinaFiling(xbrlOpenDb, now):
                            'entity_ticker_symbol'
                            ),
                           ('filing_pk',
-                           ), 
+                           ),
                           ((xbrlOpenDb.filingPk,
                             md["filingId"],
                             md.get("entityName"),
@@ -81,10 +81,10 @@ def extChinaFiling(xbrlOpenDb, now):
                             md.get("entityTickerSymbol"),
                             ),),
                           checkIfExisting=True)
-    
+
 __pluginInfo__ = {
     'name': 'xbrlDB Extension for China CAS and SASAC',
-    'version': '1.0', 
+    'version': '1.0',
     'description': "This plug-in implements additional database fields for China CAS and SASAC.  ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',

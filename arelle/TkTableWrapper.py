@@ -631,7 +631,7 @@ def sample_test():
 
     numrows, numcols = 6250,40
 
-    #Using ArrayVar consumes double as much memory as NumPy+command 
+    #Using ArrayVar consumes double as much memory as NumPy+command
     #var = ArrayVar(root)
     #for y in range(0, numrows):
     #    for x in range(0, numcols):
@@ -695,7 +695,7 @@ def sample_test():
         test.tag_cell('border-left-right', index)
         index = "%i,%i" % (y, 1)
         test.tag_cell('border', index)
-    
+
     for y in range(2, numrows):
         cities = ('Brussels', 'Luxembourg', 'Strasbourg', 'Trier', 'Rome')
         combobox = ttk.Combobox(test, values=cities, state='readonly')

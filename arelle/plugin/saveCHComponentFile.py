@@ -26,7 +26,7 @@ def generateCHComponent(dts, componentFile):
     file.close()
     for componentElt in  xmlDocument.iter(tag="Component"):
         break
-    
+
     # use presentation relationships for broader and narrower concepts
     arcrole = XbrlConst.parentChild
     # sort URIs by definition
@@ -36,12 +36,12 @@ def generateCHComponent(dts, componentFile):
         for linkroleUri in relationshipSet.linkRoleUris:
             modelRoleTypes = dts.roleTypes.get(linkroleUri)
             if modelRoleTypes:
-                roledefinition = (modelRoleTypes[0].genLabel(strip=True) or modelRoleTypes[0].definition or linkroleUri)                    
+                roledefinition = (modelRoleTypes[0].genLabel(strip=True) or modelRoleTypes[0].definition or linkroleUri)
             else:
                 roledefinition = linkroleUri
             linkroleUris.append((roledefinition, linkroleUri))
         linkroleUris.sort()
-    
+
         # for each URI in definition order
         for roledefinition, linkroleUri in linkroleUris:
             elt = etree.SubElement(componentElt, "Network", attrib={
@@ -54,7 +54,7 @@ def generateCHComponent(dts, componentFile):
     fh = open(componentFile, "w", encoding="utf-8")
     XmlUtil.writexml(fh, xmlDocument, encoding="utf-8")
     fh.close()
-    
+
     dts.info("info:saveCHComponentFile",
              _("Component file for %(entryFile)s in file %(componentOutputFile)s."),
              modelObject=dts,
@@ -66,14 +66,14 @@ def xbrliType(type):
             return type.qname
         qnameDerivedFrom = type.qnameDerivedFrom
         if isinstance(qnameDerivedFrom,list): # union
-            if qnameDerivedFrom == XbrlConst.qnDateUnionXsdTypes: 
+            if qnameDerivedFrom == XbrlConst.qnDateUnionXsdTypes:
                 return "xbrli:dateTimeItemType"
         elif qnameDerivedFrom is not None:
             if qnameDerivedFrom.namespaceURI == XbrlConst.xbrli:  # xbrli type
                 return qnameDerivedFrom
             return xbrliType(type.modelXbrl.qnameTypes.get(qnameDerivedFrom))
     return ""
-    
+
 def genConcept(dts, parentElt, concept, preferredLabel, arcrole, relationshipSet, visited):
     try:
         if concept is not None:
@@ -97,7 +97,7 @@ def genConcept(dts, parentElt, concept, preferredLabel, arcrole, relationshipSet
                 attrs["baseDataType"] = str(xbrliType(concept.type))
                 attrs["abstract"] = str(concept.isAbstract).lower()
                 attrs["periodType"] = concept.periodType
-                
+
             elt = etree.SubElement(parentElt, tag, attrib=attrs)
             if concept not in visited:
                 visited.add(concept)
@@ -105,12 +105,12 @@ def genConcept(dts, parentElt, concept, preferredLabel, arcrole, relationshipSet
                     genConcept(dts, elt, modelRel.toModelObject, modelRel.preferredLabel, arcrole, relationshipSet, visited)
                 visited.remove(concept)
     except AttributeError: #  bad relationship
-        return    
+        return
 
 def saveCHComponentMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Save CH Component file", 
-                     underline=0, 
+    menu.add_command(label="Save CH Component file",
+                     underline=0,
                      command=lambda: saveCHComponentMenuCommand(cntlr) )
 
 def saveCHComponentMenuCommand(cntlr):
@@ -131,7 +131,7 @@ def saveCHComponentMenuCommand(cntlr):
     cntlr.config["chComponentFileDir"] = os.path.dirname(componentFile)
     cntlr.saveConfig()
 
-    try: 
+    try:
         generateCHComponent(cntlr.modelManager.modelXbrl, componentFile)
     except Exception as ex:
         dts = cntlr.modelManager.modelXbrl
@@ -142,9 +142,9 @@ def saveCHComponentMenuCommand(cntlr):
 
 def saveCHComponentCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
-    parser.add_option("--save-CH-component", 
-                      action="store", 
-                      dest="chComponentFile", 
+    parser.add_option("--save-CH-component",
+                      action="store",
+                      dest="chComponentFile",
                       help=_("Save Charlie Hoffman Component semantic definition in specified xml file."))
 
 def saveCHComponentCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):

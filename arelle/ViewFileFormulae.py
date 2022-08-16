@@ -15,11 +15,11 @@ def viewFormulae(modelXbrl, outfile, header, lang=None):
     view = ViewFormulae(modelXbrl, outfile, header, lang)
     view.view()
     view.close()
-    
+
 class ViewFormulae(ViewFile.View):
     def __init__(self, modelXbrl, outfile, header, lang):
         super(ViewFormulae, self).__init__(modelXbrl, outfile, header, lang)
-        
+
     def view(self):
         # determine relationships indent depth
         rootObjects = rootFormulaObjects(self)
@@ -50,7 +50,7 @@ class ViewFormulae(ViewFile.View):
                         toObject = modelRel.toModelObject
                         self.treeDepth(toObject, indent + 1, visited)
             visited.remove(fromObject)
-            
+
     def viewFormulaObjects(self, fromObject, fromRel, indent, visited):
         if fromObject is None:
             return
@@ -76,7 +76,7 @@ class ViewFormulae(ViewFile.View):
             cols.append(None) # bind as sequence
         if hasattr(fromObject, "viewExpression"):
             cols.append(fromObject.viewExpression) # expression
-        else:            
+        else:
             cols.append(None) # expression
         self.addRow(cols, treeIndent=indent, xmlRowElementName = "formulaObject", xmlRowEltAttr=xmlRowEltAttr, xmlCol0skipElt=True)
         if fromObject not in visited:

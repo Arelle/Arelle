@@ -15,13 +15,13 @@ LYRICS =  ["I said hello, dolly,......well, hello, dolly", \
             "I feel that room swayin'......while the band's playin' ", \
             "One of your old favourite songs from way back when ", \
             "So..... take her wrap, fellas.......find her an empty lap, fellas ", \
-            "Dolly'll never go away again" 
+            "Dolly'll never go away again"
             ]
 
 def randomLyric():
     ''' A random lyrics.'''
     return LYRICS[randint(0, len(LYRICS) - 1)]
-        
+
 def helloMenuEntender(cntlr, menu):
     menu.add_command(label="Hello Dolly", underline=0, command=lambda: helloMenuCommand(cntlr, "Hello Dolly") )
 
@@ -29,12 +29,12 @@ def helloMenuCommand(cntlr, label):
     hello_dolly = randomLyric();
     cntlr.addToLog(hello_dolly)
     import tkinter
-    tkinter.messagebox.showinfo(label, hello_dolly, parent=cntlr.parent)            
+    tkinter.messagebox.showinfo(label, hello_dolly, parent=cntlr.parent)
 
 def helloCommandLineOptionExtender(parser):
-    parser.add_option("--hello_dolly", 
-                      action="store_true", 
-                      dest="hello_dolly", 
+    parser.add_option("--hello_dolly",
+                      action="store_true",
+                      dest="hello_dolly",
                       help=_('Print a random lyric from "Hello, Dolly"'))
 
 def helloCommandLineUtilityRun(cntlr, options, **kwargs):

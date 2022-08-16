@@ -24,14 +24,14 @@ def viewXml(modelXbrl, tabWin, tabTitle, xmlDoc):
 class ViewXml(ViewWinList.ViewList):
     def __init__(self, modelXbrl, tabWin, tabTitle):
         super(ViewXml, self).__init__(modelXbrl, tabWin, tabTitle, True)
-    
+
     def view(self, xmlDoc):
         fh = io.StringIO()
         XmlUtil.writexml(fh, xmlDoc, encoding="utf-8")
         for line in fh.getvalue().split("\n"):
             self.listBox.insert(END, line)
         fh.close()
-        
+
     def validate(self):
         try:
             from arelle import Validate

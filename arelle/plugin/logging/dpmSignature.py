@@ -28,12 +28,12 @@ def loggingRefAttributes(arg, refAttributes, codedArgs, *args, **kwargs):
         refAttributes["dpmSignature"] = "MET({})".format(arg.qname)
     elif "dpmSignature" in codedArgs: # signature may be passed in as arg for non-fact error
         refAttributes["dpmSignature"] = codedArgs["dpmSignature"]
-                
+
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Logging - DPM Signature',
     'version': '1.0',
-    'description': '''DPM Signature, for data points (facts), concepts, dimensions, and members.  
+    'description': '''DPM Signature, for data points (facts), concepts, dimensions, and members.
 For a data point (fact): MET(conceptQName)|dimQName(mem)... (does not include period, unit, or entity identifier)
 For a concept, MET(conceptQName).''',
     'license': 'Apache-2',

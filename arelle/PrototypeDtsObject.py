@@ -10,22 +10,22 @@ class PrototypeObject():
         self.modelDocument = modelDocument
         self.sourceElement = sourceElement
         self.attributes = {}
-    
+
     @property
     def sourceline(self):
         return self.sourceElement.sourceline if self.sourceElement is not None else None
 
     def get(self, key, default=None):
         return self.attributes.get(key, default)
-    
+
     def itersiblings(self, **kwargs):
         """Method proxy for itersiblings() of lxml arc element"""
         return self.sourceElement.itersiblings(**kwargs) if self.sourceElement is not None else ()
-        
+
     def getparent(self):
         """(_ElementBase) -- Method proxy for getparent() of lxml arc element"""
         return self.sourceElement.getparent() if self.sourceElement is not None else None
-    
+
     def iterchildren(self):
         yield from () # no children
 
@@ -34,7 +34,7 @@ class PrototypeObject():
             yield elt
             for e in elt.iterdescendants():
                 yield e
-                
+
 class LinkPrototype(PrototypeObject):      # behaves like a ModelLink for relationship prototyping
     def __init__(self, modelDocument, parent, qname, role, sourceElement=None):
         super(LinkPrototype, self).__init__(modelDocument, sourceElement)
@@ -49,24 +49,24 @@ class LinkPrototype(PrototypeObject):      # behaves like a ModelLink for relati
         self.text = self.textValue = None
         self.attributes = {"{http://www.w3.org/1999/xlink}type":"extended"}
         if role:
-            self.attributes["{http://www.w3.org/1999/xlink}role"] = role 
+            self.attributes["{http://www.w3.org/1999/xlink}role"] = role
         self.labeledResources = defaultdict(list)
-        
+
     def clear(self):
         self.__dict__.clear() # dereference here, not an lxml object, don't use superclass clear()
-        
+
     def __iter__(self):
         return iter(self.childElements)
-    
+
     def getparent(self):
         return self._parent
-    
+
     def iterchildren(self):
         return iter(self.childElements)
-            
+
     def __getitem(self, key):
         return self.attributes[key]
-    
+
 class LocPrototype(PrototypeObject):
     def __init__(self, modelDocument, parent, label, locObject, role=None, sourceElement=None):
         super(LocPrototype, self).__init__(modelDocument, sourceElement)
@@ -83,12 +83,12 @@ class LocPrototype(PrototypeObject):
         if isinstance(locObject,_STR_BASE): # it is an id
             self.attributes["{http://www.w3.org/1999/xlink}href"] = "#" + locObject
         if role:
-            self.attributes["{http://www.w3.org/1999/xlink}role"] = role 
+            self.attributes["{http://www.w3.org/1999/xlink}role"] = role
         self.locObject = locObject
-        
+
     def clear(self):
         self.__dict__.clear() # dereference here, not an lxml object, don't use superclass clear()
-        
+
     @property
     def xlinkLabel(self):
         return self.attributes.get("{http://www.w3.org/1999/xlink}label")
@@ -98,16 +98,16 @@ class LocPrototype(PrototypeObject):
             return self.modelDocument.idObjects.get(self.locObject,None) # id may not exist
         else: # it's an object pointer
             return self.locObject
-    
+
     def getparent(self):
         return self._parent
-        
+
     def get(self, key, default=None):
         return self.attributes.get(key, default)
-        
+
     def __getitem(self, key):
         return self.attributes[key]
-    
+
 class ArcPrototype(PrototypeObject):
     def __init__(self, modelDocument, parent, qname, fromLabel, toLabel, linkrole, arcrole, order="1", sourceElement=None):
         super(ArcPrototype, self).__init__(modelDocument, sourceElement)
@@ -129,7 +129,7 @@ class ArcPrototype(PrototypeObject):
         self.xValid = VALID
         self.xValue = self.sValue = None
         self.xAttributes = {}
-        
+
     @property
     def orderDecimal(self):
         return decimal.Decimal(self.order)
@@ -140,13 +140,13 @@ class ArcPrototype(PrototypeObject):
     @property
     def arcElement(self):
         return self.sourceElement if self.sourceElement is not None else None
-        
+
     def getparent(self):
         return self._parent
-        
+
     def get(self, key, default=None):
         return self.attributes.get(key, default)
-    
+
     def items(self):
         return self.attributes.items()
 
@@ -181,23 +181,23 @@ class DocumentPrototype():
         self.referencedNamespaces = set()
         self.inDTS = False
         self.xmlRootElement = None
-  
-        
+
+
     def clear(self):
         self.__dict__.clear() # dereference here, not an lxml object, don't use superclass clear()
-        
+
 class PrototypeElementTree(): # equivalent to _ElementTree for parenting root element in non-lxml situations
     def __init__(self, rootElement):
         self.rootElement = rootElement
-        
+
     def getroot(self):
         return self.rootElement
-    
+
     def iter(self):
         yield self.rootElement
         for e in self.rootElement.iterdescendants():
             yield e
-    
+
     def ixIter(self, childOnly=False):
         yield self.rootElement
         if not childOnly:

@@ -16,17 +16,17 @@ def parentMenuCommand(cntl):
     for i in range(1,100):
         for pluginMethod in pluginClassMethods("Import.Unpackaged.Entry{}".format(i)):
             pluginMethod()
-	
+
 def parentCommandLineOptionExtender(parser):
-    parser.add_option("--unpackageParentImportExample", 
-                      action="store_true", 
-                      dest="unpackageParentImportExample", 
+    parser.add_option("--unpackageParentImportExample",
+                      action="store_true",
+                      dest="unpackageParentImportExample",
                       help=_('Test that unpackaged imported plug-ins were actually loaded and activated"'))
 
 def parentCommandLineUtilityRun(cntlr, options, **kwargs):
 	if options.unpackageParentImportExample:
 	    parentMenuCommand(cntlr)
-    
+
 def foo():
 	print ("parent of imported unpackaged plug-ins")
 

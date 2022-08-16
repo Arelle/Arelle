@@ -13,7 +13,7 @@ from arelle import FileSource
 from arelle.ModelRssObject import ModelRssObject
 
 class TDnetItem:
-    def __init__(self, modelXbrl, date, dateTime, filingCode, companyName, 
+    def __init__(self, modelXbrl, date, dateTime, filingCode, companyName,
                  title, htmlUrl, entryUrl, stockExchange):
         self.cikNumber = None
         self.accessionNumber = filingCode
@@ -35,7 +35,7 @@ class TDnetItem:
         self.assertions = None
         self.objectIndex = len(modelXbrl.modelObjects)
         modelXbrl.modelObjects.append(self)
-        
+
     def setResults(self, modelXbrl):
         self.results = []
         self.assertionUnsuccessful = False
@@ -52,9 +52,9 @@ class TDnetItem:
                 self.results.append(error)
                 self.status = "fail" # error code
         self.results.sort()
-    
+
     def objectId(self,refId=""):
-        """Returns a string surrogate representing the object index of the model document, 
+        """Returns a string surrogate representing the object index of the model document,
         prepended by the refId string.
         :param refId: A string to prefix the refId for uniqueless (such as to use in tags for tkinter)
         :type refId: str
@@ -70,7 +70,7 @@ def intCol(elt, attrName, default=None):
         return int(elt.get(attrName, default))
     except (TypeError, ValueError):
         return default
-    
+
 def descendantAttr(elt, descendantName, attrName, default=None):
     for descendant in elt.iterdescendants(tag=descendantName):
         if descendant.get(attrName):
@@ -78,12 +78,12 @@ def descendantAttr(elt, descendantName, attrName, default=None):
     return default
 
 def tdNetLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
-    if not (mappedUri.startswith("https://www.release.tdnet.info/inbs/I_") and 
+    if not (mappedUri.startswith("https://www.release.tdnet.info/inbs/I_") and
             mappedUri.endswith(".html")):
         return None # not a td net info file
-    
+
     rssObject = ModelRssObject(modelXbrl, uri=mappedUri, filepath=filepath)
-    
+
     hasMoreSections = True
     while hasMoreSections:
         # treat tdnet as an RSS feed object
@@ -91,7 +91,7 @@ def tdNetLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
             tdInfoDoc = html.parse(filepath)
         except (IOError, EnvironmentError):
             return None # give up, use ordinary loader
-        
+
         # find date
         date = None
         for elt in tdInfoDoc.iter():
@@ -103,9 +103,9 @@ def tdNetLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                 break
         if not date:
             return None # give up, not a TDnet index document
-        
+
         urlDir = os.path.dirname(mappedUri)
-            
+
         # find <table> with <a>Download in it
         for tableElt in tdInfoDoc.iter(tag="table"):
             useThisTableElt = False
@@ -176,7 +176,7 @@ def tdNetLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                                 continue # forget this filing
                         for instanceUrl in instanceUrls:
                             rssObject.rssItems.append(
-                                TDnetItem(modelXbrl, date, dateTime, filingCode, companyName, 
+                                TDnetItem(modelXbrl, date, dateTime, filingCode, companyName,
                                           title, pdfUrl, instanceUrl, stockExchange))
         # next screen if continuation
         hasMoreSections = False
@@ -190,9 +190,9 @@ def tdNetLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                     filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(mappedUri)
     return rssObject
 
-            
 
-__pluginInfo__ = {  
+
+__pluginInfo__ = {
     'name': 'TDnet Loader',
     'version': '0.9',
     'description': "This plug-in loads Tokyo Stock Exchange Timely Disclosure Network XBRL documents.  ",

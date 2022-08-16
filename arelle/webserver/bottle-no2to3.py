@@ -299,13 +299,13 @@ class Router(object):
 
     def path_filter(self, conf):
         return r'.*?', None, None
-    
+
     def add_filter(self, name, func):
         ''' Add a filter. The provided function is called with the configuration
         string as parameter and must return a (regexp, to_python, to_url) tuple.
         The first element is a string, the last two are callables or None. '''
         self.filters[name] = func
-    
+
     def parse_rule(self, rule):
         ''' Parses a rule into a (name, filter, conf) token stream. If mode is
             None, name contains a static rule part. '''
@@ -510,7 +510,7 @@ class Route(object):
             if not callback is self.callback:
                 update_wrapper(callback, self.callback)
         return callback
-    
+
     def __repr__(self):
         return '<%s %r %r>' % (self.method, self.rule, self.callback)
 
@@ -2435,10 +2435,10 @@ class FileCheckerThread(threading.Thread):
                     thread.interrupt_main()
                     break
             time.sleep(self.interval)
-    
+
     def __enter__(self):
         self.start()
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         if not self.status: self.status = 'exit' # silent exit
         self.join()

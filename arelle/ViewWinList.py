@@ -38,35 +38,35 @@ class ViewList():
         self.modelXbrl = modelXbrl
         if modelXbrl:
             modelXbrl.views.append(self)
-    
+
     def close(self):
         del self.viewFrame.view
         self.tabWin.forget(self.viewFrame)
         self.modelXbrl.views.remove(self)
         self.modelXbrl = None
-        
+
     def select(self):
         self.tabWin.select(self.viewFrame)
-        
+
     def append(self, line):
         self.listBox.insert(END, line)
 
     def clear(self):
         self.listBox.delete(0,END)
-        
+
     def listBoxClick(self, *args):
         if self.modelXbrl:
             self.modelXbrl.modelManager.cntlr.currentView = self
-        
+
     def listBoxLeave(self, *args):
         self.listBoxRow = -9999999
-        
+
     def lines(self):
         return self.listBox.get(0,END)
 
     def lineText(self, lineNumber):
         return self.listBox.get(lineNumber)
-    
+
     def selectLine(self, lineNumber):
         self.listBox.selection_clear(0,END)
         self.listBox.selection_set(lineNumber)
@@ -74,11 +74,11 @@ class ViewList():
     def saveToFile(self, filename):
         with open(filename, "w") as fh:
             fh.writelines([logEntry + '\n' for logEntry in self.listBox.get(0,END)])
-            
+
     def copyToClipboard(self, cntlr=None, *ignore):
         if cntlr is None: cntlr = self.modelXbrl.modelManager.cntlr
         cntlr.clipboardData(text='\n'.join(self.listBox.get(0,END)))
-            
+
     def listBoxMotion(self, *args):
         lbRow = self.listBox.nearest(args[0].y)
         if lbRow != self.listBoxRow:
@@ -96,7 +96,7 @@ class ViewList():
             else:
                 self.listBoxToolTipText.set("")
                 self.listBoxToolTip.configure(state="disabled")
-    
+
     def contextMenu(self,contextMenuClick=None):
         try:
             return self.menu
@@ -105,7 +105,7 @@ class ViewList():
             self.menu = Menu( self.viewFrame, tearoff = 0 )
             self.listBox.bind( contextMenuClick, self.popUpMenu )
             return self.menu
-    
+
     def popUpMenu(self, event):
         self.menu.post( event.x_root, event.y_root )
 
@@ -113,4 +113,4 @@ class ViewList():
         self.menu.add_command(label=_("Save to file"), underline=0, command=self.modelXbrl.modelManager.cntlr.fileSave)
         if self.modelXbrl.modelManager.cntlr.hasClipboard:
             self.menu.add_command(label=_("Copy to clipboard"), underline=0, command=self.copyToClipboard)
-        
+

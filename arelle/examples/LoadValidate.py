@@ -13,24 +13,24 @@ class CntlrValidateExample(Cntlr.Cntlr):
     def __init__(self):
         # initialize superclass with default file logger
         super().__init__(logFileName="c:\\temp\\test-log.txt", logFileMode="w")
-        
+
     def run(self):
         # create the modelXbrl by load instance and discover DTS
         modelXbrl = self.modelManager.load("c:\\temp\\test.xbrl")
 
-        # select validation of calculation linkbase using infer decimals option            
+        # select validation of calculation linkbase using infer decimals option
         self.modelManager.validateInferDecimals = True
         self.modelManager.validateCalcLB = True
 
         # perfrom XBRL 2.1, dimensions, calculation
         self.modelManager.validate()
-         
+
         # close the loaded instance
         self.modelManager.close()
-        
+
         # close controller and application
         self.close()
-            
+
 # if python is initiated as a main program, start the controller
 if __name__ == "__main__":
     # create the controller and start it running

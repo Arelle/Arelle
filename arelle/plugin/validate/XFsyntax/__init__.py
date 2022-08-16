@@ -24,7 +24,7 @@ def xfLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
 
     cntlr = modelXbrl.modelManager.cntlr
     cntlr.showStatus(_("Loading XBRL Formula file: {0}").format(os.path.basename(filepath)))
-    
+
     try:
         import tatsu.exceptions
     except ImportError:
@@ -44,8 +44,8 @@ def xfLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     # create dummy modelDocument for successful plugin execution by ModelDopcument
     from arelle.ModelDocument import Type, create as createModelDocument
     doc = createModelDocument(modelXbrl, Type.LINKBASE, filepath, documentEncoding="utf-8", initialXml='''
-<!--  Dummy linkbase --> 
-<link:linkbase 
+<!--  Dummy linkbase -->
+<link:linkbase
    xmlns:link="http://www.xbrl.org/2003/linkbase"
    xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"
 />

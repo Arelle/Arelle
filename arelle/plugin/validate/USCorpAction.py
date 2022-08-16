@@ -7,7 +7,7 @@ caNamespace2011 = "http://xbrl.us/corporateActions/2011-05-31"
 caNamespace2012 = "http://xbrl.us/corporateActions/2012-03-31"
 
 
-eventTypeMap = { 
+eventTypeMap = {
 "CashDividendMember": {"Cash Dividend", "Sale Of Rights"},
 "StockDividendMember": {"Stock Dividend"},
 "SpecialDividendMember": {"Special Dividend"},
@@ -130,7 +130,7 @@ def checkCorporateActions(val, *args, **kwargs):
     qnStatusAxis = qname(caNamespace, "ca:StatusAxis")
     qnUnderlyingInstrumentIdentifierSchemeAxis = qname(caNamespace, "ca:UnderlyingInstrumentIdentifierSchemeAxis")
     qnUnderlyingSecuritiesImpactedTypedAxis = qname(caNamespace, "ca:UnderlyingSecuritiesImpactedTypedAxis")
-    
+
     #Members
     qnCancelMember = qname(caNamespace, "ca:CancelMember")
     qnCashDividendMember = qname(caNamespace, "ca:CashDividendMember")
@@ -153,21 +153,21 @@ def checkCorporateActions(val, *args, **kwargs):
                 caFacts[f.qname.localName].append(f)
                 qnEventTypeMember = context.dimMemberQname(qnEventTypeAxis)
                 qnIssueTypeMember = context.dimMemberQname(qnIssueTypeAxis)
-                qnMandatoryVoluntaryMember = context.dimMemberQname(qnMandatoryVoluntaryAxis) 
+                qnMandatoryVoluntaryMember = context.dimMemberQname(qnMandatoryVoluntaryAxis)
                 qnMarketTypeMember = context.dimMemberQname(qnMarketTypeAxis)
-                if (not hasUsEquityCashDiv and 
+                if (not hasUsEquityCashDiv and
                     qnEventTypeMember == qnCashDividendMember and
                     qnIssueTypeMember == qnEquityMember and
                     qnMandatoryVoluntaryMember == qnMandatoryMember and
                     qnMarketTypeMember == qnUnitedStatesMember):
                     hasUsEquityCashDiv = True
-                if (not hasUsEquityStockDiv and 
+                if (not hasUsEquityStockDiv and
                     qnEventTypeMember == qnStockDividendMember and
                     qnIssueTypeMember == qnEquityMember and
                     qnMandatoryVoluntaryMember == qnMandatoryMember and
                     qnMarketTypeMember == qnUnitedStatesMember):
                     hasUsEquityStockDiv = True
-                if (not hasCancel and 
+                if (not hasCancel and
                     qnEventTypeMember == qnCancelMember and
                     qnIssueTypeMember == qnCancelMember and
                     qnMandatoryVoluntaryMember == qnCancelMember and
@@ -181,27 +181,27 @@ def checkCorporateActions(val, *args, **kwargs):
             eventCompleteContextHash = f.context.contextDimAwareHash
             hasEventComplete = True
             break
-    
+
     if hasEventComplete:
-        facts = [f for f in modelXbrl.facts 
+        facts = [f for f in modelXbrl.facts
                  if f.context is not None and f.context.dimMemberQname(qnStatusAxis) == qnPreliminaryMember]
         if facts:
             modelXbrl.error("US-CA.PreliminaryAndComplete.100",
                 _("Facts have a preliminary status, but the event is indicated to be complete: %(facts)s"),
                 modelObject=facts, facts=", ".join(f.localName for f in facts))
 
-        facts = [f for f in modelXbrl.facts 
+        facts = [f for f in modelXbrl.facts
                  if f.context is not None and f.context.dimMemberQname(qnStatusAxis) == qnUnconfirmedMember]
         if facts:
             modelXbrl.error("US-CA.UnconfirmedAndComplete.101",
                 _("Facts have an unconfirmed status, but the event is indicated to be complete: %(facts)s"),
                 modelObject=facts, facts=", ".join(f.localName for f in facts))
 
-    for i, localName in ((1, "AnnouncementDate"), 
-                         (2, "EventCompleteness"), 
+    for i, localName in ((1, "AnnouncementDate"),
+                         (2, "EventCompleteness"),
                          (3, "UniqueUniversalEventIdentifier"),
-                         (4, "AnnouncementIdentifier"), 
-                         (5, "AnnouncementType"), 
+                         (4, "AnnouncementIdentifier"),
+                         (5, "AnnouncementType"),
                          (6, "EventType"),
                          # 7, 8 below under hasUsEquityCashDiv
                          (9, "MandatoryVoluntaryChoiceIndicator")):
@@ -215,9 +215,9 @@ def checkCorporateActions(val, *args, **kwargs):
                 _("An EventConfirmationStatus must exist in the document if the document is Complete."),
                 modelObject=modelXbrl, fact="EventConfirmationStatus")
         if hasUsEquityCashDiv:
-            for i, localName in ((12, "CountryOfIssuer"), 
+            for i, localName in ((12, "CountryOfIssuer"),
                                  (14, "PaymentDate")):
-                if not any(f.context.contextDimAwareHash == eventCompleteContextHash 
+                if not any(f.context.contextDimAwareHash == eventCompleteContextHash
                            for f in caFacts[localName]):
                     modelXbrl.error("US-CA.Exists.{0}".format(i),
                         _("A %(fact)s must exist in the document if the document is Complete."),
@@ -227,7 +227,7 @@ def checkCorporateActions(val, *args, **kwargs):
                 modelXbrl.error("US-CA.Exists.15",
                     _("A OptionType must exist in the document for the security impacted by the corporate action."),
                     modelObject=modelXbrl, fact="InstrumentIdentifier")
-    
+
     dupFacts = defaultdict(list)
     for localName, facts in caFacts.items():
         for f in facts:
@@ -242,17 +242,17 @@ def checkCorporateActions(val, *args, **kwargs):
 
     if hasUsEquityCashDiv:
         if not any(f.context.hasDimension(qnUnderlyingSecuritiesImpactedTypedAxis) and
-                   f.context.hasDimension(qnUnderlyingInstrumentIdentifierSchemeAxis) 
+                   f.context.hasDimension(qnUnderlyingInstrumentIdentifierSchemeAxis)
                    for f in caFacts["InstrumentIdentifier"]):
             modelXbrl.error("US-CA.Exists.7",
                 _("A InstrumentIdentifier must exist in the document for the security impacted by the corporate action."),
                 modelObject=modelXbrl, fact="InstrumentIdentifier")
-            
+
         if "RecordDate" not in caFacts:
             modelXbrl.error("US-CA.Exists.8",
                 _("A RecordDate must exist in the document."),
                 modelObject=modelXbrl)
-        
+
         countOptions = len(caFacts["OptionType"])
         if not countOptions:
             modelXbrl.error("US-CA.atLeastOneOptionIsRequired.16",
@@ -264,7 +264,7 @@ def checkCorporateActions(val, *args, **kwargs):
             countWithholdingRates != countOptions):
             modelXbrl.error("US-CA.noMoreThanOnOption.16a",
                 _("More than one option has been defined for a cash dividend only one Option can be defined for a mandatory cash dividend unless there is multiple tax rates defined. In the file there are %(countOfWithholdingRates)s unique withholding rates defined but %(countOfOptions)s options defined."),
-                modelObject=modelXbrl, fact="OptionType", 
+                modelObject=modelXbrl, fact="OptionType",
                 countOfWithholdingRates=countWithholdingRates, countOfOptions=countOptions)
         for f in caFacts["OptionType"]:
             if f.xValue != "Cash":
@@ -276,21 +276,21 @@ def checkCorporateActions(val, *args, **kwargs):
                 modelXbrl.error("US-CA.paymentOptions.17",
                     _("The Payout Type for a cash dividend, %(value)s must be defined as \"Dividend\"."),
                     modelObject=f, fact="PayoutType", value=f.value)
-    
+
     for f1 in caFacts["PayoutAmount"]:
         for f2 in caFacts["PayoutAmountNetOfTax"]:
             if f1.xValue < f2.xValue:
                 modelXbrl.error("US-CA.gte.18",
                     _("The PayoutType %(value1)s must be greater than PayoutAmountNetOfTax %(value2)s."),
                     modelObject=(f1,f2), fact="PayoutAmount", value1=f1.value, value2=f2.value)
-    
+
     for i, localName in ((19, "PayoutAmount"), (21, "PayoutAmountNetOfTax")):
         for f in caFacts[localName]:
             if f.xValue < 0:
                 modelXbrl.error("US-CA.nonNeg.{0}".format(i),
                     _("The %(fact)s, %(value)s must be positive."),
                     modelObject=f, fact=localName, value=f.value)
-    
+
     for i, localName1, localName2 in ((22, "PaymentDate", "RecordDate"),
                                       (23, "OrdPaymentDate", "OrdRecordDate"),
                                       (103, "PaymentDate", "OrdPaymentDate"),
@@ -303,7 +303,7 @@ def checkCorporateActions(val, *args, **kwargs):
                     modelXbrl.error("US-CA.date.{0}".format(i),
                         _("The %(fact1)s %(value1)s must be later than the %(fact2)s %(value2)s."),
                         modelObject=(f1,f2), fact1=localName1, fact2=localName2, value1=f1.value, value2=f2.value)
-            
+
 
     if hasUsEquityCashDiv:
         for f in caFacts["EventType"]:
@@ -324,7 +324,7 @@ def checkCorporateActions(val, *args, **kwargs):
                         modelXbrl.error("US-CA.us-equity-cashDiv-mand.dupValues.24",
                             _("The PaymentDate %(detailValue)s at the detail level must equal the PaymentDate %(eventValue)s at the event level."),
                             modelObject=(fDetail,fEvent), fact="PaymentDate", detailValue=fDetail.value, eventValue=fEvent.value)
-                        
+
         for i, f1 in enumerate(paymentDateFacts):
             if (not f.context.hasDimension(qnEventOptionsSequenceTypedAxis) and
                 not f.context.hasDimension(qnPayoutSequenceTypedAxis)):
@@ -335,13 +335,13 @@ def checkCorporateActions(val, *args, **kwargs):
                         modelXbrl.error("US-CA.us-equity-cashDiv-mand.multPayouts.25",
                             _("The PaymentDate %(detailValue)s at the detail level must equal the PaymentDate %(eventValue)s at the detail level."),
                             modelObject=(f1, f2), fact="PaymentDate", detailValue=f1.value, eventValue=f2.value)
-                        
+
         if (hasEventComplete and
             len(caFacts["OptionType"]) > len(caFacts["PayoutType"])):
                 modelXbrl.error("US-CA.us-equity-cashDiv-mand.missingPayouts.25a",
                     _("The number of payouts associated with a cash dividend must match the number of options on a complete corporate action event.  Each option must have at least one payout associated with it."),
                     modelObject=(caFacts["OptionType"] + caFacts["PayoutType"]))
-            
+
         if len(caFacts["OptionType"]) > 1:
             fmax = None
             maxValue = max((f.xValue for f in caFacts["WithholdingTaxPercentage"]))
@@ -359,7 +359,7 @@ def checkCorporateActions(val, *args, **kwargs):
                       "In this case the withholding tax rate for option 1 is %(seq1Value)s. This is not the maximium withholding rate assoicated with the "
                       "action which is %(maxValue)s. Make the payout with the highest withholding rate the first option."),
                     modelObject=(fmax,f1),maxValue=fmax.value, seq1Value=f1.value)
-            
+
 
     for fPayoutAmt in caFacts["PayoutAmount"]:
         for fPayoutAmtNetOfTax in caFacts["PayoutAmountNetOfTax"]:
@@ -370,7 +370,7 @@ def checkCorporateActions(val, *args, **kwargs):
                         modelXbrl.error("US-CA.ne.26c",
                             _("The PayoutAmount of %(payoutAmt)s must always be greater than or equal to the sum of PayoutAmountNetOfTax with a value of "
                               "%(payoutNetOfTax)s and TaxAmountWithheldFromPayout with a value of %(taxAmt)s."),
-                            modelObject=(fPayoutAmt, fPayoutAmtNetOfTax, fTax), 
+                            modelObject=(fPayoutAmt, fPayoutAmtNetOfTax, fTax),
                             payoutAmt=fPayoutAmt.xValue,
                             payoutNetOfTax=fPayoutAmtNetOfTax.xValue,
                             taxAmt=fTax.xValue)
@@ -380,7 +380,7 @@ def checkCorporateActions(val, *args, **kwargs):
         if len(caFacts["OptionType"]) != 1:
             modelXbrl.error("US-CA.stockDiv.onlyOneOptionAllowed.41",
                 _("Only one Option Type can be defined for a mandatory stock dividend."),
-                modelObject=caFacts["OptionType"],) 
+                modelObject=caFacts["OptionType"],)
 
         if (len(caFacts["OptionType"]) != len(caFacts["TaxRateDescription"]) and
             len(caFacts["OptionType"]) > 1 and
@@ -388,37 +388,37 @@ def checkCorporateActions(val, *args, **kwargs):
                     for f in caFacts["WithholdingTaxPercentage"])) != len(caFacts["OptionType"])):
             modelXbrl.error("US-CA.noMoreThanOnOption.41a",
                 _("More than one option has been defined for a stock dividend. Only one Option can be defined for a mandatory stock dividend unless there is multiple tax rates defined.\n(id:41a)\n$"),
-                modelObject=caFacts["OptionType"]) 
-    
+                modelObject=caFacts["OptionType"])
+
         if hasEventComplete and not caFacts["CountryOfIssuer"]:
             modelXbrl.error("US-CA.completedExists.50",
                 _("The Country Of Issuer must be populated in the document for a stock Dividend if the document is complete."),
-                modelObject=val.modeXbrl, fact="CountryOfIssuer") 
-                        
-        if (hasEventComplete and 
-            not any(f.context.hasDimension(qnEventOptionsSequenceTypedAxis) 
+                modelObject=val.modeXbrl, fact="CountryOfIssuer")
+
+        if (hasEventComplete and
+            not any(f.context.hasDimension(qnEventOptionsSequenceTypedAxis)
                     for f in caFacts["OptionType"])):
             modelXbrl.error("US-CA.completedExists.48",
                 _("The Option Type must be populated in the document if the document is complete."),
-                modelObject=val.modeXbrl, fact="OptionType") 
-            
+                modelObject=val.modeXbrl, fact="OptionType")
+
         if not any(f.context.hasDimension(qnUnderlyingSecuritiesImpactedTypedAxis) and
-                   f.context.hasDimension(qnUnderlyingInstrumentIdentifierSchemeAxis) 
+                   f.context.hasDimension(qnUnderlyingInstrumentIdentifierSchemeAxis)
                    for f in caFacts["InstrumentIdentifier"]):
             modelXbrl.error("US-CA.exists.40",
                 _("An InstrumentIdentifier fact must exist in the document for the security impacted by the corporate action."),
-                modelObject=val.modeXbrl, fact="InstrumentIdentifier") 
-            
+                modelObject=val.modeXbrl, fact="InstrumentIdentifier")
+
         if not caFacts["RecordDate"]:
             modelXbrl.error("US-CA.exists.42",
                 _("A RecordDate fact must exist in the document."),
-                modelObject=val.modeXbrl, fact="RecordDate") 
-                        
+                modelObject=val.modeXbrl, fact="RecordDate")
+
         if hasEventComplete and not caFacts["PaymentDate"]:
             modelXbrl.error("US-CA.completedExists.43",
                 _("The PaymentDate must be populated in the document if the document is complete."),
                 modelObject=val.modeXbrl, fact="PaymentDate")
-             
+
         for f in caFacts["PayoutType"]:
             if f.xValue != "Dividend":
                 modelXbrl.error("US-CA.stockDiv.paymentOptions.44",
@@ -450,7 +450,7 @@ def checkCorporateActions(val, *args, **kwargs):
                         modelXbrl.error("US-CA.stockDiv-mand.dupValues.47",
                             _("The PaymentDate %(detailValue)s at the detail level must equal the PaymentDate %(eventValue)s at the detail level."),
                             modelObject=(f1, f2), fact="PaymentDate", detailValue=f1.value, eventValue=f2.value)
-          
+
         if (hasEventComplete and
             not any(f.context.hasDimension(qnPayoutSequenceTypedAxis) and
                     f.context.hasDimension(qnPayoutSecurityIdentifierSchemeAxis)
@@ -458,13 +458,13 @@ def checkCorporateActions(val, *args, **kwargs):
             modelXbrl.error("US-CA.completedExists.49",
                 _("An InstrumentIdentifier fact must exist in the document for the security paid out as part of the corporate action if the event is complete"),
                 modelObject=modelXbrl, fact="InstrumentIdentifier")
-                        
+
         if (hasEventComplete and
             len(caFacts["OptionType"]) > len(caFacts["PayoutType"])):
                 modelXbrl.error("US-CA.stockDiv-mand.missingPayouts.49a",
                     _("The number of payouts associated with a stock dividend must match the number of options on a complete corporate action event.  Each option must have at least one payout associated with it."),
                     modelObject=(caFacts["OptionType"] + caFacts["PayoutType"]))
-                
+
         if (hasEventComplete and
             not any(f.context.hasDimension(qnPayoutSequenceTypedAxis)
                     for f in caFacts["DisbursedQuantity"])):
@@ -478,34 +478,34 @@ def checkCorporateActions(val, *args, **kwargs):
             modelXbrl.error("US-CA.stockDiv-mand.missingPayouts.49c",
                 _("An BaseQuantity fact must exist in the document for the security paid out as part of the corporate action if the event is complete."),
                 modelObject=modelXbrl, fact="BaseQuantity")
-            
+
     if hasCancel:
         if not hasEventComplete:
             modelXbrl.error("US-CA.cancelComplete.30",
                 _("The Details Completness Status (EventCompletenes) must have a value of Complete for a cancel event."),
                 modelObject=modelXbrl, fact="EventCompleteness")
-            
+
         if not caFacts["EventCompleteness"]:
             modelXbrl.error("US-CA.exists.31",
                 _("The Details Completness Status must must be tagged in the cancel document with a value of Complete."),
                 modelObject=modelXbrl, fact="EventCompleteness")
-            
+
         if not (caFacts["EventConfirmationStatus"] and
-                all(f.xValue == "Confirmed" 
+                all(f.xValue == "Confirmed"
                     for f in caFacts["EventConfirmationStatus"])):
             modelXbrl.error("US-CA.cancelComplete.32",
                 _("The Event Confirmation Status must be tagged with a value of Confirmed for a cancel event."),
                 modelObject=modelXbrl, fact="EventConfirmationStatus")
 
-        facts = [f for f in modelXbrl.facts 
+        facts = [f for f in modelXbrl.facts
                  if f.context is not None and f.context.dimValue(qnStatusAxis) == qnUnconfirmedMember]
         if facts:
             modelXbrl.error("US-CA.cancel.invalid_member.33",
                 _("Facts have been reported with the UnconfirmedMember on the StatusAxis for a cancel event: %(facts)s."),
                 modelObject=facts, facts=", ".join(f.localName for f in facts))
-            
+
         facts = [f for f in modelXbrl.facts
-                 if f.context is not None and 
+                 if f.context is not None and
                     f.context.dimValue(qnStatusAxis) == qnPreliminaryMember and
                     f.context.dimValue(qnEventTypeAxis) == qnCancelMember]
         if facts:
@@ -513,9 +513,9 @@ def checkCorporateActions(val, *args, **kwargs):
                 _("Facts have been reported with the PreliminaryMember on the StatusAxis for a cancel event: %(facts)s. "
                   "A cancel event must use the ConfirmedMember on the StatusAxis."),
                 modelObject=facts, facts=", ".join(f.localName for f in facts))
-            
+
         facts = [f for f in modelXbrl.facts
-                 if f.context is not None and 
+                 if f.context is not None and
                     f.context.dimValue(qnStatusAxis) == qnUnconfirmedMember and
                     f.context.dimValue(qnEventTypeAxis) == qnCancelMember]
         if facts:
@@ -523,8 +523,8 @@ def checkCorporateActions(val, *args, **kwargs):
                 _("Facts have been reported with the UnconfirmedMember on the StatusAxis for a cancel event: %(facts)s. "
                   "A cancel event must use the ConfirmedMember on the StatusAxis."),
                 modelObject=facts, facts=", ".join(f.localName for f in facts))
-            
-      
+
+
         for f in caFacts["EventType"]:
             eventTypeMember = f.context.dimMemberQname(qnEventTypeAxis)
             if eventTypeMember:
@@ -536,9 +536,9 @@ def checkCorporateActions(val, *args, **kwargs):
     if 'facts' in locals():
         del facts
     del caFacts  # dereference explicitly
-                        
-    modelXbrl.profileStat(_("validate US Corporate Actions"), time.time() - startedAt)     
-            
+
+    modelXbrl.profileStat(_("validate US Corporate Actions"), time.time() - startedAt)
+
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate XBRL-US Corporate Actions',

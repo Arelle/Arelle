@@ -30,11 +30,11 @@ link_loc_spec_sections = {"labelLink":"5.2.2.1",
                           "footnoteLink":"4.11.1.1"}
 standard_roles_for_ext_links = ("xbrl.3.5.3", (XbrlConst.defaultLinkRole,))
 standard_roles_definitions = {
-    XbrlConst.qnLinkDefinitionLink: standard_roles_for_ext_links, 
-    XbrlConst.qnLinkCalculationLink: standard_roles_for_ext_links, 
+    XbrlConst.qnLinkDefinitionLink: standard_roles_for_ext_links,
+    XbrlConst.qnLinkCalculationLink: standard_roles_for_ext_links,
     XbrlConst.qnLinkPresentationLink: standard_roles_for_ext_links,
-    XbrlConst.qnLinkLabelLink: standard_roles_for_ext_links, 
-    XbrlConst.qnLinkReferenceLink: standard_roles_for_ext_links, 
+    XbrlConst.qnLinkLabelLink: standard_roles_for_ext_links,
+    XbrlConst.qnLinkReferenceLink: standard_roles_for_ext_links,
     XbrlConst.qnLinkFootnoteLink: standard_roles_for_ext_links,
     XbrlConst.qnIXbrl11Relationship: standard_roles_for_ext_links, # has xlinkRole of footnoteLinks
     XbrlConst.qnLinkLabel: ("xbrl.5.2.2.2.2", XbrlConst.standardLabelRoles),
@@ -66,15 +66,15 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
     for referencedDocument in modelDocument.referencesDocument.keys():
         if referencedDocument not in checkedModelDocuments:
             checkDTS(val, referencedDocument, checkedModelDocuments)
-            
+
     # skip processing versioning report here
     if modelDocument.type == ModelDocument.Type.VERSIONINGREPORT:
         return
-    
+
     # skip processing if skipDTS requested
     if modelDocument.skipDTS:
         return
-    
+
     # skip system schemas
     if modelDocument.type == ModelDocument.Type.SCHEMA:
         if XbrlConst.isStandardNamespace(modelDocument.targetNamespace):
@@ -83,7 +83,7 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
             val.hasTuple = val.hasNonAbstractElement = val.hasType = val.hasEnumeration = \
             val.hasDimension = val.hasDomain = val.hasHypercube = False
 
-    
+
     # check for linked up hrefs
     isInstance = (modelDocument.type == ModelDocument.Type.INSTANCE or
                   modelDocument.type == ModelDocument.Type.INLINEXBRL)
@@ -104,13 +104,13 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
         val.roleRefURIs = val.ixdsRoleRefURIs
         val.arcroleRefURIs = val.ixdsArcroleRefURIs
         val.ixdsDocs.append(modelDocument)
-        
+
     for hrefElt, hrefedDoc, hrefId in modelDocument.hrefObjects:
         hrefedElt = None
         if hrefedDoc is None:
             val.modelXbrl.error("xbrl:hrefFileNotFound",
                 _("Href %(elementHref)s file not found"),
-                modelObject=hrefElt, 
+                modelObject=hrefElt,
                 elementHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
         else:
             if hrefedDoc.type != ModelDocument.Type.UnknownNonXML:
@@ -122,25 +122,25 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
                         if hrefedElt is None:
                             val.modelXbrl.error("xbrl.3.5.4:hrefIdNotFound",
                                 _("Href %(elementHref)s not located"),
-                                modelObject=hrefElt, 
+                                modelObject=hrefElt,
                                 elementHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
                 else:
                     hrefedElt = hrefedDoc.xmlRootElement
-                
-            if hrefId:  #check scheme regardless of whether document loaded 
+
+            if hrefId:  #check scheme regardless of whether document loaded
                 # check all xpointer schemes
                 for scheme, path in XmlUtil.xpointerSchemes(hrefId):
                     if scheme != "element":
                         val.modelXbrl.error("xbrl.3.5.4:hrefScheme",
                             _("Href %(elementHref)s unsupported scheme: %(scheme)s"),
-                            modelObject=hrefElt, 
+                            modelObject=hrefElt,
                             elementHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"),
                             scheme=scheme)
                         break
                     elif val.validateEFMorGFM:
                         val.modelXbrl.error(("EFM.6.03.06", "GFM.1.01.03"),
                             _("Href %(elementHref)s may only have shorthand xpointers"),
-                            modelObject=hrefElt, 
+                            modelObject=hrefElt,
                             elementHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
             # check href'ed target if a linkbaseRef
             if hrefElt.namespaceURI == XbrlConst.link:
@@ -152,7 +152,7 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
                         hrefedElt.namespaceURI != XbrlConst.link or hrefedElt.localName != "linkbase"):
                         val.modelXbrl.error("xbrl.4.3.2:linkbaseRefHref",
                             _("LinkbaseRef %(linkbaseHref)s does not identify an link:linkbase element"),
-                            modelObject=(hrefElt, hrefedDoc), 
+                            modelObject=(hrefElt, hrefedDoc),
                             linkbaseHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
                     elif hrefElt.get("{http://www.w3.org/1999/xlink}role") is not None:
                         role = hrefElt.get("{http://www.w3.org/1999/xlink}role")
@@ -173,7 +173,7 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
                                     (ns != XbrlConst.link or ln != "referenceLink")):
                                     val.modelXbrl.error("xbrl.4.3.4:linkbaseRefLinks",
                                         "LinkbaseRef %(linkbaseHref)s role %(role)s has wrong extended link %(link)s",
-                                        modelObject=hrefElt, 
+                                        modelObject=hrefElt,
                                         linkbaseHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"),
                                         role=role, link=linkNode.prefixedName)
                 elif hrefElt.localName == "schemaRef":
@@ -183,7 +183,7 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
                         val.modelXbrl.error("xbrl.4.2.2:schemaRefHref",
                             _("SchemaRef %(schemaRef)s does not identify an xsd:schema element"),
                             modelObject=hrefElt, schemaRef=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
-                # check loc target 
+                # check loc target
                 elif hrefElt.localName == "loc":
                     linkElt = hrefElt.getparent()
                     if linkElt.namespaceURI ==  XbrlConst.link:
@@ -233,7 +233,7 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
                                  modelObject=hrefElt, locHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
                     ''' is this ever needed???
                     else: # generic link or other non-2.1 link element
-                        if (hrefElt.modelDocument.inDTS and 
+                        if (hrefElt.modelDocument.inDTS and
                             ModelDocument.Type.firstXBRLtype <= hrefElt.modelDocument.type <= ModelDocument.Type.lastXBRLtype and # is a discovered linkbase
                             not ModelDocument.Type.firstXBRLtype <= hrefedDoc.type <= ModelDocument.Type.lastXBRLtype): # must discover schema or linkbase
                             val.modelXbrl.error("xbrl.3.2.3:linkLocTarget",
@@ -241,7 +241,7 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
                                 modelObject=(hrefedElt, hrefedDoc),
                                 xlinkLabel=hrefElt.get("{http://www.w3.org/1999/xlink}label"))
                     '''
-                    # non-standard link holds standard loc, href must be discovered document 
+                    # non-standard link holds standard loc, href must be discovered document
                     if (hrefedDoc.type < ModelDocument.Type.firstXBRLtype or  # range of doc types that can have linkbase
                         hrefedDoc.type > ModelDocument.Type.lastXBRLtype or
                         not hrefedDoc.inDTS):
@@ -249,20 +249,20 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
                             _("Loc's href %(locHref)s does not identify an element in an XBRL document discovered as part of the DTS"),
                             modelObject=hrefElt, locHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
 
-    # used in linkbase children navigation but may be errant linkbase elements                            
+    # used in linkbase children navigation but may be errant linkbase elements
     val.roleRefURIs = {}
     val.arcroleRefURIs = {}
     val.elementIDs = {}
     val.conceptNames = {}
-    val.annotationsCount = 0  
-            
+    val.annotationsCount = 0
+
     # XML validation checks (remove if using validating XML)
     val.extendedElementName = None
     isFilingDocument = False
     # validate contents of entry point document or its sibling/descendant documents or in report package of entry point
     if ((modelDocument.uri.startswith(val.modelXbrl.uriDir) or # document uri in same subtree as entry doocument
          (val.modelXbrl.fileSource.isOpen and modelDocument.filepath.startswith(val.modelXbrl.fileSource.baseurl))) and # document in entry submission's package
-        modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and 
+        modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
         modelDocument.xmlDocument):
         isFilingDocument = True
         val.valUsedPrefixes = set()
@@ -271,15 +271,15 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
         val.referencedNamespaces = set()
 
         val.containsRelationship = False
-        
+
         checkElements(val, modelDocument, modelDocument.xmlDocument)
-        
-        if (modelDocument.type == ModelDocument.Type.INLINEXBRL and 
+
+        if (modelDocument.type == ModelDocument.Type.INLINEXBRL and
             val.validateGFM and
             (val.documentTypeEncoding.lower() != 'utf-8' or val.metaContentTypeEncoding.lower() != 'utf-8')):
             val.modelXbrl.error("GFM.1.10.4",
                     _("XML declaration encoding %(encoding)s and meta content type encoding %(metaContentTypeEncoding)s must both be utf-8"),
-                    modelXbrl=modelDocument, encoding=val.documentTypeEncoding, 
+                    modelXbrl=modelDocument, encoding=val.documentTypeEncoding,
                     metaContentTypeEncoding=val.metaContentTypeEncoding)
         if val.validateSBRNL:
             for pluginXbrlMethod in pluginClassMethods("Validate.SBRNL.DTS.document"):
@@ -309,7 +309,7 @@ def checkElements(val, modelDocument, parent):
                 for refPass in (True, False): # do roleType and arcroleType before extended links and any other children
                     for child in parent.iterchildren():
                         if refPass == (isinstance(child,ModelObject)
-                                       and child.localName in ("roleRef","arcroleRef") 
+                                       and child.localName in ("roleRef","arcroleRef")
                                        and child.namespaceURI == XbrlConst.link):
                             yield child
             childrenIter = linkbaseTopElts()
@@ -330,7 +330,7 @@ def checkElements(val, modelDocument, parent):
     parentIsAppinfo = False
     if modelDocument.type == ModelDocument.Type.INLINEXBRL:
         if isinstance(parent,ModelObject): # element
-            if (parent.localName == "meta" and parent.namespaceURI == XbrlConst.xhtml and 
+            if (parent.localName == "meta" and parent.namespaceURI == XbrlConst.xhtml and
                 (parent.get("http-equiv") or "").lower() == "content-type"):
                 val.metaContentTypeEncoding = HtmlUtil.attrValue(parent.get("content"), "charset")
         elif isinstance(parent,etree._ElementTree): # documentNode
@@ -339,7 +339,7 @@ def checkElements(val, modelDocument, parent):
 
     instanceOrder = 0
     if modelDocument.type == ModelDocument.Type.SCHEMA:
-        ncnameTests = (("id","xml.3.3.1:idMustBeUnique", val.elementIDs), 
+        ncnameTests = (("id","xml.3.3.1:idMustBeUnique", val.elementIDs),
                        ("name","xbrl.5.1.1:conceptName", val.conceptNames))
     else:
         ncnameTests = (("id","xml.3.3.1:idMustBeUnique", val.elementIDs),)
@@ -358,13 +358,13 @@ def checkElements(val, modelDocument, parent):
                         if attrValue in _valueItems:
                             # 2.1 spec @id validation refers to http://www.w3.org/TR/REC-xml#NT-TokenizedType
                             # TODO: this check should not test inline elements, those should be in ModelDocument inlineIxdsDiscover using ixdsEltById
-                            val.modelXbrl.error(errCode, 
+                            val.modelXbrl.error(errCode,
                                 _("Element %(element)s %(attribute)s %(value)s is duplicated"),
                                 modelObject=(elt,_valueItems[attrValue]), element=elt.prefixedName, attribute=name, value=attrValue,
                                 messageCodes=("xml.3.3.1:idMustBeUnique", "xbrl.5.1.1:conceptName"))
                         else:
                             _valueItems[attrValue] = elt
-                    
+
             # checks for elements in schemas only
             if isSchema:
                 if elt.namespaceURI == XbrlConst.xsd:
@@ -404,7 +404,7 @@ def checkElements(val, modelDocument, parent):
                             val.modelXbrl.error("SBR.NL.2.2.0.01",
                                 _('Schema contains XSD 1.1 content "%(element)s"'),
                                 modelObject=elt, element=elt.qname)
-                                                    
+
                         if localName == "element":
                             for attr, presence, errCode in (("block", False, "2.2.2.09"),
                                                             ("final", False, "2.2.2.10"),
@@ -413,7 +413,7 @@ def checkElements(val, modelDocument, parent):
                                 if (elt.get(attr) is not None) != presence:
                                     val.modelXbrl.error("SBR.NL.{0}".format(errCode),
                                         _('Schema element %(concept)s %(requirement)s contain attribute %(attribute)s'),
-                                        modelObject=elt, concept=elt.get("name"), 
+                                        modelObject=elt, concept=elt.get("name"),
                                         requirement=(_("MUST NOT"),_("MUST"))[presence], attribute=attr,
                                         messageCodes=("SBR.NL.2.2.2.09", "SBR.NL.2.2.2.10", "SBR.NL.2.2.2.11", "SBR.NL.2.2.2.12"))
                             eltName = elt.get("name")
@@ -437,7 +437,7 @@ def checkElements(val, modelDocument, parent):
                                         if (elt.get(attr) is not None) != presence:
                                             val.modelXbrl.error("SBR.NL.{0}".format(errCode),
                                                 _('Schema root element %(concept)s %(requirement)s contain attribute %(attribute)s'),
-                                                modelObject=elt, concept=elt.get("name"), 
+                                                modelObject=elt, concept=elt.get("name"),
                                                 requirement=(_("MUST NOT"),_("MUST"))[presence], attribute=attr,
                                                 messageCodes=("SBR.NL.2.2.2.08", "SBR.NL.2.2.2.13", "SBR.NL.2.2.2.15", "SBR.NL.2.2.2.18"))
                                 # semantic checks
@@ -508,8 +508,8 @@ def checkElements(val, modelDocument, parent):
                     if localName in {"attribute", "element", "attributeGroup"}:
                         ref = elt.get("ref")
                         if ref is not None:
-                            if qname(elt, ref) not in {"attribute":val.modelXbrl.qnameAttributes, 
-                                                       "element":val.modelXbrl.qnameConcepts, 
+                            if qname(elt, ref) not in {"attribute":val.modelXbrl.qnameAttributes,
+                                                       "element":val.modelXbrl.qnameConcepts,
                                                        "attributeGroup":val.modelXbrl.qnameAttributeGroups}[localName]:
                                 val.modelXbrl.error("xmlSchema:refNotFound",
                                     _("%(element)s ref %(ref)s not found"),
@@ -517,7 +517,7 @@ def checkElements(val, modelDocument, parent):
                         if val.validateSBRNL and localName == "attribute":
                             val.modelXbrl.error("SBR.NL.2.2.11.06",
                                 _('xs:attribute must not be used'), modelObject=elt)
-                        
+
                     if localName == "appinfo":
                         if val.validateSBRNL:
                             if (parent.localName != "annotation" or parent.namespaceURI != XbrlConst.xsd or
@@ -536,7 +536,7 @@ def checkElements(val, modelDocument, parent):
                             val.modelXbrl.error("SBR.NL.2.2.0.12",
                                 _('Schema file annotation missing appinfo element must be be behind schema and before import'),
                                 modelObject=elt)
-                        
+
                     if val.validateEFM and localName in {"element", "complexType", "simpleType"}:
                         name = elt.get("name")
                         if name and len(name) > 64:
@@ -546,9 +546,9 @@ def checkElements(val, modelDocument, parent):
                                     _("Schema %(element)s has a name length (%(length)s) over 200 bytes long in utf-8, %(name)s."),
                                     edgarCode="du-0729-Name-Length-Limit",
                                     modelObject=elt, element=localName, name=name, length=l)
-    
+
                     if val.validateSBRNL and localName in {"all", "documentation", "any", "anyAttribute", "attributeGroup",
-                                                                # comment out per R.H. 2011-11-16 "complexContent", "complexType", "extension", 
+                                                                # comment out per R.H. 2011-11-16 "complexContent", "complexType", "extension",
                                                                 "field", "group", "key", "keyref",
                                                                 "list", "notation", "redefine", "selector", "unique"}:
                         val.modelXbrl.error("SBR.NL.2.2.11.{0:02}".format({"all":1, "documentation":2, "any":3, "anyAttribute":4, "attributeGroup":7,
@@ -556,7 +556,7 @@ def checkElements(val, modelDocument, parent):
                                                                   "list":17, "notation":18, "redefine":20, "selector":22, "unique":23}[localName]),
                             _('Schema file element must not be used "%(element)s"'),
                             modelObject=elt, element=elt.qname,
-                            messageCodes=("SBR.NL.2.2.11.1", "SBR.NL.2.2.11.2", "SBR.NL.2.2.11.3", "SBR.NL.2.2.11.4", "SBR.NL.2.2.11.7", "SBR.NL.2.2.11.10", "SBR.NL.2.2.11.11", "SBR.NL.2.2.11.12", 
+                            messageCodes=("SBR.NL.2.2.11.1", "SBR.NL.2.2.11.2", "SBR.NL.2.2.11.3", "SBR.NL.2.2.11.4", "SBR.NL.2.2.11.7", "SBR.NL.2.2.11.10", "SBR.NL.2.2.11.11", "SBR.NL.2.2.11.12",
                                           "SBR.NL.2.2.11.13", "SBR.NL.2.2.11.14", "SBR.NL.2.2.11.15", "SBR.NL.2.2.11.16", "SBR.NL.2.2.11.17", "SBR.NL.2.2.11.18", "SBR.NL.2.2.11.20", "SBR.NL.2.2.11.22", "SBR.NL.2.2.11.23"))
                     if val.inSchemaTop:
                         if localName in schemaBottom:
@@ -565,11 +565,11 @@ def checkElements(val, modelDocument, parent):
                         val.modelXbrl.error("xmlschema.3.4.2:contentModel",
                             _("Element %(element)s is mis-located in schema file"),
                             modelObject=elt, element=elt.prefixedName)
-                        
-                # check schema roleTypes        
+
+                # check schema roleTypes
                 if elt.localName in ("roleType","arcroleType") and elt.namespaceURI == XbrlConst.link:
                     uriAttr, xbrlSection, roleTypes, localRoleTypes = {
-                           "roleType":("roleURI","5.1.3",val.modelXbrl.roleTypes, val.schemaRoleTypes), 
+                           "roleType":("roleURI","5.1.3",val.modelXbrl.roleTypes, val.schemaRoleTypes),
                            "arcroleType":("arcroleURI","5.1.4",val.modelXbrl.arcroleTypes, val.schemaArcroleTypes)
                            }[elt.localName]
                     if not parent.localName == "appinfo" and parent.namespaceURI == XbrlConst.xsd:
@@ -642,7 +642,7 @@ def checkElements(val, modelDocument, parent):
                                         _("%(element)s usedOn must not be link:calculationLink"),
                                         modelObject=elt, element=parent.qname, value=qName)
                                 if elt.localName == "roleType" and qName in XbrlConst.standardExtLinkQnames:
-                                    if not any((key[1] == roleURI  and key[2] == qName) 
+                                    if not any((key[1] == roleURI  and key[2] == qName)
                                                for key in val.modelXbrl.baseSets.keys()):
                                         val.modelXbrl.error("SBR.NL.2.2.3.02",
                                             _("%(element)s usedOn %(usedOn)s not addressed for role %(role)s"),
@@ -672,7 +672,7 @@ def checkElements(val, modelDocument, parent):
                             modelObject=elt)
                 elif elt.localName in ("roleRef","arcroleRef"):
                     uriAttr, xbrlSection, roleTypeDefs, refs, ixdsTgtRefs = {
-                           "roleRef":("roleURI","3.5.2.4",val.modelXbrl.roleTypes,val.roleRefURIs, val.ixdsRoleRefURIs), 
+                           "roleRef":("roleURI","3.5.2.4",val.modelXbrl.roleTypes,val.roleRefURIs, val.ixdsRoleRefURIs),
                            "arcroleRef":("arcroleURI","3.5.2.5",val.modelXbrl.arcroleTypes,val.arcroleRefURIs, val.ixdsArcroleRefURIs)
                            }[elt.localName]
                     if parentIsAppinfo:
@@ -683,7 +683,7 @@ def checkElements(val, modelDocument, parent):
                             modelObject=elt, elementName=elt.localName,
                             messageCodes=("info:roleRefLocation", "info:arcroleRefLocation"))
                     else: # parent is linkbase or instance, element IS in the right location
-        
+
                         # check for duplicate roleRefs when parent is linkbase or instance element
                         refUri = elt.get(uriAttr)
                         hrefAttr = elt.get("{http://www.w3.org/1999/xlink}href")
@@ -713,8 +713,8 @@ def checkElements(val, modelDocument, parent):
                                     _("%(element)s %(refURI)s defined with different URI"),
                                     modelObject=(elt,roleTypeElt), element=elt.qname, refURI=refUri,
                                 messageCodes=("xbrl.3.5.2.4.5:roleRefMismatch", "xbrl.3.5.2.5.5:arcroleRefMismatch"))
-                            
-                        
+
+
                         if val.validateEFMorGFMorSBRNL:
                             if elt.localName == "arcroleRef":
                                 if hrefUri not in val.disclosureSystem.standardTaxonomiesDict:
@@ -816,7 +816,7 @@ def checkElements(val, modelDocument, parent):
                     modelObject=elt, element=elt.elementQname)
             if elt.get("{http://www.w3.org/1999/xlink}arcrole") is not None:
                 checkArcrole(val, elt, elt.qname, elt.get("{http://www.w3.org/1999/xlink}arcrole"), val.arcroleRefURIs)
-    
+
             #check resources
             if parentXlinkType == "extended":
                 if elt.localName not in ("documentation", "title") and \
@@ -824,13 +824,13 @@ def checkElements(val, modelDocument, parent):
                     val.modelXbrl.error("xbrl.3.5.3.8.1:resourceType",
                         _("Element %(element)s appears to be a resource missing xlink:type=\"resource\""),
                         modelObject=elt, element=elt.qname)
-                elif (xlinkType == "locator" and elt.namespaceURI != XbrlConst.link and 
-                      parent.namespaceURI == XbrlConst.link and parent.localName in link_loc_spec_sections): 
+                elif (xlinkType == "locator" and elt.namespaceURI != XbrlConst.link and
+                      parent.namespaceURI == XbrlConst.link and parent.localName in link_loc_spec_sections):
                     val.modelXbrl.error("xbrl.{0}:customLocator".format(link_loc_spec_sections[parent.localName]),
                         _("Element %(element)s is a custom locator in a standard %(link)s"),
                         modelObject=(elt,parent), element=elt.qname, link=parent.qname,
                         messageCodes=("xbrl.5.2.2.1:customLocator", "xbrl.5.2.3.1:customLocator", "xbrl.5.2.5.1:customLocator", "xbrl.5.2.6.1:customLocator", "xbrl.5.2.4.1:customLocator", "xbrl.4.11.1.1:customLocator"))
-                
+
             if xlinkType == "resource":
                 if not elt.get("{http://www.w3.org/1999/xlink}label"):
                     val.modelXbrl.error("xbrl.3.5.3.8.2:resourceLabel",
@@ -862,7 +862,7 @@ def checkElements(val, modelDocument, parent):
                         xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"),
                         lang=elt.get("{http://www.w3.org/XML/1998/namespace}lang"),
                         messageCodes=("SBR.NL.2.3.8.01", "SBR.NL.2.3.8.02", "arelle:langError"))
-                 
+
             if isInstance:
                 if elt.namespaceURI == XbrlConst.xbrli:
                     expectedSequence = instanceSequence.get(elt.localName,9)
@@ -888,8 +888,8 @@ def checkElements(val, modelDocument, parent):
                             "Schema must be a root element, and may not be nested in %(parent)s",
                             parent=elt.parentQname,
                             modelObject=elt)
-                    
-            if modelDocument.type == ModelDocument.Type.INLINEXBRL and elt.namespaceURI in XbrlConst.ixbrlAll: 
+
+            if modelDocument.type == ModelDocument.Type.INLINEXBRL and elt.namespaceURI in XbrlConst.ixbrlAll:
                 if elt.localName == "footnote":
                     if val.validateGFM:
                         if elt.get("{http://www.w3.org/1999/xlink}arcrole") != XbrlConst.factFootnote:
@@ -899,9 +899,9 @@ def checkElements(val, modelDocument, parent):
                                        for e in XmlUtil.ancestors(elt, ns, "div")):
                                 val.modelXbrl.error(("EFM.N/A", "GFM:1.10.16"),
                                     _("Inline XBRL footnote %(footnoteID)s must be in non-displayable div due to arcrole %(arcrole)s"),
-                                    modelObject=elt, footnoteID=elt.get("footnoteID"), 
+                                    modelObject=elt, footnoteID=elt.get("footnoteID"),
                                     arcrole=elt.get("{http://www.w3.org/1999/xlink}arcrole"))
-                            
+
                         if not elt.get("{http://www.w3.org/XML/1998/namespace}lang"):
                             val.modelXbrl.error(("EFM.N/A", "GFM:1.10.13"),
                                 _("Inline XBRL footnote %(footnoteID)s is missing an xml:lang attribute"),
@@ -909,7 +909,7 @@ def checkElements(val, modelDocument, parent):
                     if elt.namespaceURI == XbrlConst.ixbrl:
                         val.ixdsFootnotes[elt.footnoteID] = elt
                     else:
-                        checkIxContinuationChain(elt)  
+                        checkIxContinuationChain(elt)
                     if not elt.xmlLang:
                         val.modelXbrl.error(ixMsgCode("footnoteLang", elt, sect="validation"),
                             _("Inline XBRL footnotes require an in-scope xml:lang"),
@@ -1020,7 +1020,7 @@ def checkElements(val, modelDocument, parent):
                             modelObject=elt, element=elt.qname)
                     elif not XbrlConst.isStandardRole(xlinkRole):
                         modelsRole = val.modelXbrl.roleTypes.get(xlinkRole)
-                        if (modelsRole is None or len(modelsRole) == 0 or 
+                        if (modelsRole is None or len(modelsRole) == 0 or
                             modelsRole[0].modelDocument.targetNamespace not in val.disclosureSystem.standardTaxonomiesDict):
                             val.modelXbrl.error(("EFM.6.09.05", "GFM.1.04.05", "SBR.NL.2.3.10.14"),
                                 _("Resource %(xlinkLabel)s role %(role)s is not a standard taxonomy role"),
@@ -1032,7 +1032,7 @@ def checkElements(val, modelDocument, parent):
                                 if isinstance(child,ModelObject) and child.namespaceURI.startswith("http://www.xbrl.org") and child.namespaceURI != "http://www.xbrl.org/2006/ref":
                                     val.modelXbrl.error("SBR.NL.2.3.3.01",
                                         _("Reference %(xlinkLabel)s has unauthorized part element %(element)s"),
-                                        modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"), 
+                                        modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"),
                                         element=qname(child))
                             id = elt.get("id")
                             if not id:
@@ -1065,7 +1065,7 @@ def checkElements(val, modelDocument, parent):
                             if int(priority) >= 10:
                                 val.modelXbrl.error(("EFM.6.09.09", "GFM.1.04.08"),
                                     _("Arc from %(xlinkFrom)s to %(xlinkTo)s priority %(priority)s must be less than 10"),
-                                    modelObject=elt, 
+                                    modelObject=elt,
                                     arcElement=elt.qname,
                                     xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                     xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
@@ -1073,7 +1073,7 @@ def checkElements(val, modelDocument, parent):
                         except (ValueError) :
                             val.modelXbrl.error(("EFM.6.09.09", "GFM.1.04.08"),
                                 _("Arc from %(xlinkFrom)s to %(xlinkTo)s priority %(priority)s is not an integer"),
-                                modelObject=elt, 
+                                modelObject=elt,
                                 arcElement=elt.qname,
                                 xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                 xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
@@ -1082,7 +1082,7 @@ def checkElements(val, modelDocument, parent):
                         if elt.localName == "presentationArc" and not elt.get("order"):
                             val.modelXbrl.error(("EFM.6.12.01", "GFM.1.06.01", "SBR.NL.2.3.4.04"),
                                 _("PresentationArc from %(xlinkFrom)s to %(xlinkTo)s must have an order"),
-                                modelObject=elt, 
+                                modelObject=elt,
                                 xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                 xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
                                 conceptFrom=arcFromConceptQname(elt),
@@ -1091,7 +1091,7 @@ def checkElements(val, modelDocument, parent):
                             if not elt.get("order"):
                                 val.modelXbrl.error(("EFM.6.14.01", "GFM.1.07.01"),
                                     _("CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an order"),
-                                    modelObject=elt, 
+                                    modelObject=elt,
                                     xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                     xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
                                     conceptFrom=arcFromConceptQname(elt),
@@ -1102,7 +1102,7 @@ def checkElements(val, modelDocument, parent):
                                 if not weight in (1, -1):
                                     val.modelXbrl.error(("EFM.6.14.02", "GFM.1.07.02"),
                                         _("CalculationArc from %(xlinkFrom)s to %(xlinkTo)s weight %(weight)s must be 1 or -1"),
-                                        modelObject=elt, 
+                                        modelObject=elt,
                                         xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                         xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
                                         conceptFrom=arcFromConceptQname(elt),
@@ -1111,7 +1111,7 @@ def checkElements(val, modelDocument, parent):
                             except ValueError:
                                 val.modelXbrl.error(("EFM.6.14.02", "GFM.1.07.02"),
                                     _("CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an weight (value error in \"%(weight)s\")"),
-                                    modelObject=elt, 
+                                    modelObject=elt,
                                     xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                     xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
                                     conceptFrom=arcFromConceptQname(elt),
@@ -1121,32 +1121,32 @@ def checkElements(val, modelDocument, parent):
                             if not elt.get("order"):
                                 val.modelXbrl.error(("EFM.6.16.01", "GFM.1.08.01"),
                                     _("DefinitionArc from %(xlinkFrom)s to %(xlinkTo)s must have an order"),
-                                    modelObject=elt, 
+                                    modelObject=elt,
                                     xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                     xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
                                     conceptFrom=arcFromConceptQname(elt),
                                     conceptTo=arcToConceptQname(elt))
                             if val.validateSBRNL and arcrole in (XbrlConst.essenceAlias, XbrlConst.similarTuples, XbrlConst.requiresElement):
                                 val.modelXbrl.error({XbrlConst.essenceAlias: "SBR.NL.2.3.2.02",
-                                                  XbrlConst.similarTuples: "SBR.NL.2.3.2.03", 
+                                                  XbrlConst.similarTuples: "SBR.NL.2.3.2.03",
                                                   XbrlConst.requiresElement: "SBR.NL.2.3.2.04"}[arcrole],
                                     _("DefinitionArc from %(xlinkFrom)s to %(xlinkTo)s has unauthorized arcrole %(arcrole)s"),
-                                    modelObject=elt, 
+                                    modelObject=elt,
                                     xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
-                                    xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"), 
+                                    xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
                                     arcrole=arcrole,
-                                    messageCodes=("SBR.NL.2.3.2.02", "SBR.NL.2.3.2.03", "SBR.NL.2.3.2.04")), 
+                                    messageCodes=("SBR.NL.2.3.2.02", "SBR.NL.2.3.2.03", "SBR.NL.2.3.2.04")),
                         elif elt.localName == "referenceArc" and val.validateSBRNL:
                             if elt.get("order"):
                                 val.modelXbrl.error("SBR.NL.2.3.3.05",
                                     _("ReferenceArc from %(xlinkFrom)s to %(xlinkTo)s has an order"),
-                                    modelObject=elt, 
+                                    modelObject=elt,
                                     xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                     xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"))
                         if val.validateSBRNL and elt.get("use") == "prohibited" and elt.getparent().tag in (
-                                "{http://www.xbrl.org/2003/linkbase}presentationLink", 
-                                "{http://www.xbrl.org/2003/linkbase}labelLink", 
-                                "{http://xbrl.org/2008/generic}link", 
+                                "{http://www.xbrl.org/2003/linkbase}presentationLink",
+                                "{http://www.xbrl.org/2003/linkbase}labelLink",
+                                "{http://xbrl.org/2008/generic}link",
                                 "{http://www.xbrl.org/2003/linkbase}referenceLink"):
                             val.modelXbrl.error("SBR.NL.2.3.0.10",
                                 _("%(arc)s must not contain use='prohibited'"),
@@ -1173,7 +1173,7 @@ def checkElements(val, modelDocument, parent):
                     if elt.namespaceURI not in val.disclosureSystem.baseTaxonomyNamespaces:
                         val.modelXbrl.error("SBR.NL.2.2.0.20",
                             _("%(fileType)s element %(element)s must not have custom namespace %(namespace)s"),
-                            modelObject=elt, element=elt.qname, 
+                            modelObject=elt, element=elt.qname,
                             fileType="schema" if isSchema else "linkbase" ,
                             namespace=elt.namespaceURI)
                     for attrTag, attrValue in elt.items():
@@ -1183,7 +1183,7 @@ def checkElements(val, modelDocument, parent):
                         if ns and ns not in val.disclosureSystem.baseTaxonomyNamespaces:
                             val.modelXbrl.error("SBR.NL.2.2.0.20",
                                 _("%(fileType)s element %(element)s must not have %(prefix)s:%(localName)s"),
-                                modelObject=elt, element=elt.qname, 
+                                modelObject=elt, element=elt.qname,
                                 fileType="schema" if isSchema else "linkbase" ,
                                 prefix=prefix, localName=localName)
                         if isSchema and localName in ("base", "ref", "substitutionGroup", "type"):
@@ -1197,20 +1197,20 @@ def checkElements(val, modelDocument, parent):
                             if prefix not in parentElt.nsmap or parentElt.nsmap[prefix] != ns:
                                 val.modelXbrl.error(("SBR.NL.2.2.0.19" if isSchema else "SBR.NL.2.3.1.01"),
                                     _("%(fileType)s element %(element)s must not have xmlns:%(prefix)s"),
-                                    modelObject=elt, element=elt.qname, 
+                                    modelObject=elt, element=elt.qname,
                                     fileType="schema" if isSchema else "linkbase" ,
                                     prefix=prefix,
                                     messageCodes=("SBR.NL.2.2.0.19", "SBR.NL.2.3.1.01"))
-                            
-                    if elt.localName == "roleType" and not elt.get("id"): 
+
+                    if elt.localName == "roleType" and not elt.get("id"):
                         val.modelXbrl.error("SBR.NL.2.3.10.11",
                             _("RoleType %(roleURI)s missing id attribute"),
                             modelObject=elt, roleURI=elt.get("roleURI"))
-                    elif elt.localName == "loc" and elt.get("{http://www.w3.org/1999/xlink}role"): 
+                    elif elt.localName == "loc" and elt.get("{http://www.w3.org/1999/xlink}role"):
                         val.modelXbrl.error("SBR.NL.2.3.10.08",
                             _("Loc %(xlinkLabel)s has unauthorized role attribute"),
                             modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"))
-                    elif elt.localName == "documentation": 
+                    elif elt.localName == "documentation":
                         val.modelXbrl.error("SBR.NL.2.3.10.12" if elt.namespaceURI == XbrlConst.link else "SBR.NL.2.2.11.02",
                             _("Documentation element must not be used: %(value)s"),
                             modelObject=elt, value=XmlUtil.text(elt),
@@ -1228,7 +1228,7 @@ def checkElements(val, modelDocument, parent):
                                                   ("{http://www.w3.org/2001/XMLSchema-instance}nil", "SBR.NL.2.3.10.05"),
                                                   ("{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation", "SBR.NL.2.3.10.06"),
                                                   ("{http://www.w3.org/2001/XMLSchema-instance}type", "SBR.NL.2.3.10.07")):
-                            if elt.get(attrName) is not None: 
+                            if elt.get(attrName) is not None:
                                 val.modelXbrl.error(errCode,
                                     _("Linkbase element %(element)s must not have attribute %(attribute)s"),
                                     modelObject=elt, element=elt.qname, attribute=attrName,
@@ -1236,12 +1236,12 @@ def checkElements(val, modelDocument, parent):
                     for attrName, errCode in (("{http://www.w3.org/1999/xlink}actuate", "SBR.NL.2.3.10.01"),
                                               ("{http://www.w3.org/1999/xlink}show", "SBR.NL.2.3.10.02"),
                                               ("{http://www.w3.org/1999/xlink}title", "SBR.NL.2.3.10.03")):
-                        if elt.get(attrName) is not None: 
+                        if elt.get(attrName) is not None:
                             val.modelXbrl.error(errCode,
                                 _("Linkbase element %(element)s must not have attribute xlink:%(attribute)s"),
                                 modelObject=elt, element=elt.qname, attribute=attrName,
                                 messageCodes=("SBR.NL.2.3.10.01", "SBR.NL.2.3.10.02", "SBR.NL.2.3.10.03"))
-    
+
             checkElements(val, modelDocument, elt)
         elif isinstance(elt,ModelComment): # comment node
             if val.validateSBRNL:
@@ -1250,7 +1250,7 @@ def checkElements(val, modelDocument, parent):
                             _('%(fileType)s must have only one comment node before schema element: "%(value)s"'),
                             modelObject=elt, fileType=modelDocument.gettype().title(), value=elt.text,
                             messageCodes=("SBR.NL.2.2.0.05", "SBR.NL.2.3.0.05"))
-                    
+
 def checkLinkRole(val, elt, linkEltQname, xlinkRole, xlinkType, roleRefURIs):
     if xlinkRole == "" and xlinkType == "simple":
         val.modelXbrl.error("xbrl.3.5.1.3:emptySimpleLinkRole",
@@ -1314,7 +1314,7 @@ def checkLinkRole(val, elt, linkEltQname, xlinkRole, xlinkType, roleRefURIs):
         val.modelXbrl.warning("lrr:unApprovedRole",
             _("LRR resource role %(xlinkRole)s on %(element)s has status %(status)s"),
             modelObject=elt, xlinkRole=xlinkRole, element=linkEltQname, status=XbrlConst.lrrUnapprovedRoles[xlinkRole])
-                
+
 def checkArcrole(val, elt, arcEltQname, arcrole, arcroleRefURIs):
     if arcrole == "" and \
         elt.get("{http://www.w3.org/1999/xlink}type") == "simple":

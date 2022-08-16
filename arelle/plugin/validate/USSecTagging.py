@@ -16,16 +16,16 @@ def compile(list, traceRows):
         # compile single expression for fast execution
         return re.compile("(^|\s)" +  # always be sure first word starts at start or after space
                           "($|\W+)|(^|\s)".join(pattern for rowNbr, pattern in list)
-                          .replace(r" ",r"\W+") + "($|\W+)", 
+                          .replace(r" ",r"\W+") + "($|\W+)",
                           re.IGNORECASE)
-    
+
 def setup(val, traceRows=False, *args, **kwargs):
     if not val.validateLoggingSemantic:  # all checks herein are SEMANTIC
         return
     # determiniation of two way concept label based on pattern
     # definitions (from documentation label) are used if present, otherwise standard label for these tests
     val.twoWayPriItemDefLabelPattern = compile([
-            # from http://www.sec.gov/spotlight/xbrl/staff-review-observations-061511.shtml 
+            # from http://www.sec.gov/spotlight/xbrl/staff-review-observations-061511.shtml
             # Cash Flow
             (4, r"increase (\w+ )?decrease"),
             (5, r"provided by (\w+ )?used in"),
@@ -143,7 +143,7 @@ def schedules(val, concept):
             scheduleStr += ", {0} {1}{2}".format(num, elrType[1:], "s" if num > 1 else "")
         val.schedules[concept.qname] = scheduleStr
         return scheduleStr
-    
+
 
 def factCheck(val, fact, *args, **kwargs):
     if not val.validateLoggingSemantic:  # all checks herein are SEMANTIC
@@ -152,7 +152,7 @@ def factCheck(val, fact, *args, **kwargs):
     context = fact.context
     stdLabel = concept.label(lang="en-US", fallbackToQname=False)
     defLabel = concept.label(preferredLabel=XbrlConst.documentationLabel, lang="en-US", fallbackToQname=False)
-    
+
     try:
         if fact.isNumeric and not fact.isNil and fact.xValue is not None and fact.xValue < 0:
             # is fact an explicit non neg
@@ -216,10 +216,10 @@ def final(val, conceptsUsed, *args, **kwargs):
     del val.oneWayPriItemStdLabelPattern
     del val.twoWayMemberStdLabelPattern
     del val.schedules
-    
+
 def saveDtsMatches(dts, secDtsTagMatchesFile):
     setup(dts, True)
-    
+
     import sys, csv
     if sys.version[0] >= '3':
         csvOpenMode = 'w'
@@ -231,11 +231,11 @@ def saveDtsMatches(dts, secDtsTagMatchesFile):
     csvFile = open(secDtsTagMatchesFile, csvOpenMode, newline=csvOpenNewline)
     csvWriter = csv.writer(csvFile, dialect="excel")
     csvWriter.writerow(("Concept", "Rule", "Row", "Pattern", "Label", "Documentation"))
-    
+
     num1wayConcepts = 0
     num2wayConcepts = 0
     num2wayMembers = 0
-    
+
     for qname, concept in sorted(dts.qnameConcepts.items(), key=lambda item: item[0]):
         if concept.isItem and concept.isPrimaryItem: # both pri item and domain members
             stdLabel = concept.label(lang="en-US", fallbackToQname=False)
@@ -265,13 +265,13 @@ def saveDtsMatches(dts, secDtsTagMatchesFile):
                         if pattern.search(stdLabel):
                             csvWriter.writerow((str(qname), "concept-1-way-lbl", rowNbr, pattern.pattern[6:-7], stdLabel, defLabel))
                             num1wayConcepts += 1
-    
+
     csvFile.close()
 
     dts.log('INFO-SEMANTIC', "info:saveSecDtsTagMatches",
              _("SecDtsTagMatches entry %(entryFile)s has %(numberOfTwoWayPriItems)s two way primary items, %(numberOfOneWayPriItems)s one way primary items, %(numberOfTwoWayMembers)s two way members in output file %(secDtsTagMatchesFile)s."),
              modelObject=dts,
-             entryFile=dts.uri, 
+             entryFile=dts.uri,
              numberOfTwoWayPriItems=num2wayConcepts,
              numberOfOneWayPriItems=num1wayConcepts,
              numberOfTwoWayMembers=num2wayMembers,
@@ -281,8 +281,8 @@ def saveDtsMatches(dts, secDtsTagMatchesFile):
 
 def saveDtsMatchesMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Save SEC tag matches", 
-                     underline=0, 
+    menu.add_command(label="Save SEC tag matches",
+                     underline=0,
                      command=lambda: saveDtsMatchesMenuCommand(cntlr) )
 
 def saveDtsMatchesMenuCommand(cntlr):
@@ -299,7 +299,7 @@ def saveDtsMatchesMenuCommand(cntlr):
     if not secDtsTagMatchesFile:
         return False
 
-    try: 
+    try:
         saveDtsMatches(cntlr.modelManager.modelXbrl, secDtsTagMatchesFile)
     except Exception as ex:
         dts = cntlr.modelManager.modelXbrl
@@ -310,9 +310,9 @@ def saveDtsMatchesMenuCommand(cntlr):
 
 def saveDtsMatchesCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
-    parser.add_option("--save-sec-tag-dts-matches", 
-                      action="store", 
-                      dest="secDtsTagMatchesFile", 
+    parser.add_option("--save-sec-tag-dts-matches",
+                      action="store",
+                      dest="secDtsTagMatchesFile",
                       help=_("Save SEC DTS tag matches CSV file."))
 
 def saveDtsMatchesCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):

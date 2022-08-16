@@ -1,7 +1,7 @@
 '''
 Save formula linkbase into XBRL Formula (syntax) files.
 
-(c) Copyright 2020 Mark V Systems Limited, California US, All rights reserved.  
+(c) Copyright 2020 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 Checks for restricted XPath in compiled formula XPath expressions.
@@ -9,7 +9,7 @@ Checks for restricted XPath in compiled formula XPath expressions.
 When running in GUI mode, if this plugin is loaded, it always checks formulas for restricted XPath.
 You can block formula execution by tools->formula->parameters under IDs put "nothing" (anything not matching a formula id)
 
-When running in Command Line mode, specify --plugin formulaXPathChecker --check-formula-restricted-XPath to activate 
+When running in Command Line mode, specify --plugin formulaXPathChecker --check-formula-restricted-XPath to activate
 these checks (even if plugin is loaded without --check-formula-restricted-XPath the checks don't occur in command line mode).
 In command line mode, one can block formula execution by --formula validate (e.g., they are compiled/validated and checked but
 not executed).
@@ -37,7 +37,7 @@ from arelle.ModelFormulaObject import (aspectStr, ModelValueAssertion, ModelExis
                                        ModelAndFilter, ModelOrFilter, ModelMessage, ModelAssertionSeverity)
 from arelle.XPathParser import (VariableRef, QNameDef, OperationDef, RangeDecl, Expr, ProgHeader,
                                 exceptionErrorIndication)
-from arelle.XPathContext import (XPathException, VALUE_OPS, GENERALCOMPARISON_OPS, NODECOMPARISON_OPS, 
+from arelle.XPathContext import (XPathException, VALUE_OPS, GENERALCOMPARISON_OPS, NODECOMPARISON_OPS,
                                  COMBINING_OPS, LOGICAL_OPS, UNARY_OPS, FORSOMEEVERY_OPS, PATH_OPS,
                                  SEQUENCE_TYPES, GREGORIAN_TYPES)
 from arelle import FileSource, PackageManager, XbrlConst, XmlUtil, XPathParser, ValidateXbrlDimensions, ValidateFormula
@@ -48,32 +48,32 @@ FNs_BLOCKED = ("doc", "doc-available", "collection", "element-with-id")
 class NotExportable(Exception):
     def __init__(self, message):
         self.message = message
-        
+
 def kebabCase(name):
     return "".join("-" + c.lower() if c.isupper() else c for c in name)
 
 def strQuote(s):
     return '"' + s.replace('"', '""') + '"'
-        
+
 class FormulaXPathChecker:
     def __init__(self, modelXbrl):
         self.modelXbrl = modelXbrl
-        
+
         for cfQnameArity in sorted(qnameArity
                                    for qnameArity in self.modelXbrl.modelCustomFunctionSignatures.keys()
                                    if isinstance(qnameArity, (tuple,list))):
             cfObject = self.modelXbrl.modelCustomFunctionSignatures[cfQnameArity]
             self.doObject(cfObject, None, set())
-            
+
         rootObjects = rootFormulaObjects(self) # sets var sets up
-        
+
         # put parameters at root regardless of whether linked to
         for qn, param in sorted(self.modelXbrl.qnameParameters.items(), key=lambda i:i[0]):
             self.doObject(param, None, set())
-            
+
         for rootObject in sorted(rootObjects, key=formulaObjSortKey):
             self.doObject(rootObject, None, set())
-            
+
     def checkProg(self, fObj, sourceAttr, progAttr):
         try:
             if isinstance(progAttr, str):
@@ -84,9 +84,9 @@ class FormulaXPathChecker:
                 self.evalProg(prog)
         except XPathException as err:
             self.modelXbrl.warning("arelle:formulaRestrictedXPath",
-                _("%(object)s id %(id)s label %(label)s %(attrName)s \nWarning: %(error)s \nExpression: %(expression)s"), 
+                _("%(object)s id %(id)s label %(label)s %(attrName)s \nWarning: %(error)s \nExpression: %(expression)s"),
                 modelObject=fObj, object=fObj.qname, id=fObj.id, label=fObj.xlinkLabel, attrName=sourceAttr, error=err.message, expression=err.line)
-    
+
     def stepAxis(self, op, p):
             if isinstance(p,QNameDef):
                 axis = p.axis
@@ -99,7 +99,7 @@ class FormulaXPathChecker:
                 raise XPathException(p, 'navigate', 'Operation {} Axis step {} to {}'.format(op, p, p.name.localName))
             else:
                 raise XPathException(p, 'navigate', 'Operation {} Axis step to {}'.format(op, p))
-            
+
     def evaluateRangeVars(self, op, p, args):
         if isinstance(p, RangeDecl):
             self.evalProg(p.bindingSeq)
@@ -110,8 +110,8 @@ class FormulaXPathChecker:
                 self.evalProg(p.expr)
             elif p.name == 'satisfies':
                 self.evalProg(p.expr)
-            
-    
+
+
     def evalProg(self, exprStack, parentOp=None):
         setProgHeader = False
         for p in exprStack:
@@ -123,7 +123,7 @@ class FormulaXPathChecker:
                 if isinstance(op, QNameDef): # function call
                     args = self.evalProg(p.args)
                     ns = op.namespaceURI; localname = op.localName
-                    if op.unprefixed and localname in {'attribute', 'comment', 'document-node', 'element', 
+                    if op.unprefixed and localname in {'attribute', 'comment', 'document-node', 'element',
                        'item', 'node', 'processing-instruction', 'schema-attribute', 'schema-element', 'text'}:
                         # step axis operation
                         self.stepAxis(parentOp, p)
@@ -160,7 +160,7 @@ class FormulaXPathChecker:
                 self.progHeader = p
                 setProgHeader = True
         if setProgHeader:
-            self.progHeader = None                  
+            self.progHeader = None
 
     def doObject(self, fObj, fromRel, visited):
         if fObj is None:
@@ -181,8 +181,8 @@ class FormulaXPathChecker:
                 aspectProgs = getattr(fObj, "aspectProgs", {})
                 for aspect, prog in aspectProgs.items():
                     self.checkProg(fObj, aspectStr(aspect), prog)
-            for arcrole in (XbrlConst.variableSetFilter, 
-                            XbrlConst.variableSet, 
+            for arcrole in (XbrlConst.variableSetFilter,
+                            XbrlConst.variableSet,
                             XbrlConst.variableSetPrecondition):
                 for modelRel in self.modelXbrl.relationshipSet(arcrole).fromModelObject(fObj):
                     self.doObject(modelRel.toModelObject, modelRel, visited)
@@ -251,13 +251,13 @@ class FormulaXPathChecker:
 
 def checkFormulaXPathCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
-    parser.add_option("--check-formula-restricted-XPath", 
-                      action="store_true", 
-                      dest="checkFormulaRestrictedXPath", 
+    parser.add_option("--check-formula-restricted-XPath",
+                      action="store_true",
+                      dest="checkFormulaRestrictedXPath",
                       help=_("Check formula for restricted XPath features."))
-    parser.add_option("--check-package-entries", 
-                      action="store_true", 
-                      dest="checkPackageEntries", 
+    parser.add_option("--check-package-entries",
+                      action="store_true",
+                      dest="checkPackageEntries",
                       help=_("Check all package entries."))
 
 def checkFormulaXPathCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
@@ -267,25 +267,25 @@ def checkFormulaXPathCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwar
             cntlr.addToLog("No taxonomy loaded.")
             return
         cntlr.modelManager.modelXbrl.checkFormulaRestrictedXPath = True
-        
 
-        
+
+
 def validateFormulaCompiled(modelXbrl, xpathContext):
     if getattr(modelXbrl, "checkFormulaRestrictedXPath", True): # true allows it to always work for GUI
-        try: 
+        try:
             FormulaXPathChecker(modelXbrl)
         except Exception as ex:
             modelXbrl.error("exception",
                 _("Xbrl Formula file generation exception: %(error)s"), error=ex,
                 modelXbrl=modelXbrl,
                 exc_info=True)
-            
+
 def validateUtilityRun(cntlr, options, *args, **kwargs):
     if getattr(options, "checkPackageEntries", False) and not options.entrypointFile:
         setattr(options, 'entrypointFile', '[]') # set empty entrypoints list so CntlrCmdLine continues to CntlrCmdLine.Filing.Start pugin
         setattr(options, 'formulaAction', 'validate')
         setattr(options, 'validate', True)
-    
+
 def setupPackageEntrypoints(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     # check package entries formula code
     if getattr(options, "checkPackageEntries", False) and not entrypointFiles:
@@ -295,7 +295,7 @@ def setupPackageEntrypoints(cntlr, options, filesource, entrypointFiles, *args, 
                            messageArgs={"package": packageInfo["name"], "version": packageInfo["version"]},
                            messageCode="info",
                            level=logging.INFO)
-            filesource = FileSource.openFileSource(packageInfo["URL"], cntlr)    
+            filesource = FileSource.openFileSource(packageInfo["URL"], cntlr)
             if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
                 filesource.loadTaxonomyPackageMappings()
             for name, urls in packageInfo.get("entryPoints",{}).items():

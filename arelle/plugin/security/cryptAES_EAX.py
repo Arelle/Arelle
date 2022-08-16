@@ -23,10 +23,10 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
 On Windows, the input file argument must be specially quoted if passed in via Java
 due to a Java bug on Windows shell interface (without the newlines for pretty printing below):
 
-"[{\"file\":\"z:\\Documents\\dir\\gpc_gd1-20130930.htm\", 
+"[{\"file\":\"z:\\Documents\\dir\\gpc_gd1-20130930.htm\",
     \"key\": \"base 64 encoded key\",
     ... (any other custom entrypoint parameters)
-    }]" 
+    }]"
 
 The ownerObject may be a validation object related to the instance or to a collection of instances.
 
@@ -42,7 +42,7 @@ ENCRYPTED_FILE_SUFFIX = "~" # appended to any file which has been encrypted
 def securityInit(ownerObject, options, filesource, entrypointfiles, sourceZipStream):
     ownerObject.hasEncryption = False
     ownerObject.cipherKey = None
-    
+
 def securityFilingStart(ownerObject, options, filesource, entrypointfiles, sourceZipStream):
     # check if any files have an encryption key specified, if so activate security
     if isinstance(entrypointfiles, list) and any("key" in entrypointfile for entrypointfile in entrypointfiles):
@@ -56,12 +56,12 @@ def securityFileSourceExists(ownerObject, filepath):
     if ownerObject.hasEncryption and os.path.exists(filepath + ENCRYPTED_FILE_SUFFIX):
         return True
     return None
-        
+
 def securityFileSourceFile(cntlr, ownerObject, filepath, binary, stripDeclaration):
     # handle FileSource file requests which can return encrypted contents
     if ownerObject.hasEncryption:
         for entrypointfile in ownerObject.entrypointfiles:
-            if (filepath == entrypointfile.get("file") or 
+            if (filepath == entrypointfile.get("file") or
                 any(filepath == ixfile.get("file") for ixfile in entrypointfile.get("ixds",()))
                 ) and "key" in entrypointfile:
                 ownerObject.cipherKey = base64.decodebytes(entrypointfile["key"].encode())
@@ -78,7 +78,7 @@ def securityFileSourceFile(cntlr, ownerObject, filepath, binary, stripDeclaratio
             if binary: # return bytes
                 return (FileSource.FileNamedBytesIO(filepath, bytesdata[0:-bytesdata[-1]]), ) # trim AES CBC padding
             # detect encoding if there is an XML header
-            encoding = XmlUtil.encoding(bytesdata[0:512], 
+            encoding = XmlUtil.encoding(bytesdata[0:512],
                                         default=cntlr.modelManager.disclosureSystem.defaultXmlEncoding
                                                 if cntlr else 'utf-8')
             # return decoded string
@@ -113,7 +113,7 @@ def securityWrite(ownerObject, filepath, data):
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Security Crypt AES_EAX',
-    'version': '1.0', 
+    'version': '1.0',
     'description': '''AES_EAX security encryption''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',

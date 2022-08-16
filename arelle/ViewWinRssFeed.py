@@ -38,7 +38,7 @@ def viewRssFeed(modelXbrl, tabWin):
     view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
     view.treeView.bind("<Enter>", view.treeviewEnter, '+')
     view.treeView.bind("<Leave>", view.treeviewLeave, '+')
-    
+
     # menu
     # intercept menu click before pops up to set the viewable RSS item htm URLs
     view.treeView.bind( view.modelXbrl.modelManager.cntlr.contextMenuClick, view.setMenuHtmURLs, '+' )
@@ -50,16 +50,16 @@ def viewRssFeed(modelXbrl, tabWin):
     rssWatchMenu.add_command(label=_("Stop"), underline=0, command=lambda: modelXbrl.modelManager.cntlr.rssWatchControl(stop=True))
     cntxMenu.add_cascade(label=_("RSS Watch"), menu=rssWatchMenu, underline=0)
     view.menuAddClipboard()
-    
+
 class ViewRssFeed(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin):
         super(ViewRssFeed, self).__init__(modelXbrl, tabWin, "RSS Feed", True)
-        
+
     def view(self): # reload view
         self.setColumnsSortable(startUnsorted=True)
         self.clearTreeView()
         self.viewRssFeed(self.modelXbrl.modelDocument, "")
-        
+
     def viewRssFeed(self, modelDocument, parentNode):
         self.id = 1
         for rssItem in modelDocument.rssItems:
@@ -88,15 +88,15 @@ class ViewRssFeed(ViewWinTree.ViewTree):
             modelRssItem = self.modelXbrl.modelObject(menuRow)
             if modelRssItem is not None:
                 for description, url in modelRssItem.htmURLs:
-                    filingMenu.add_command(label=description, underline=0, 
+                    filingMenu.add_command(label=description, underline=0,
                                            command=lambda u=url: webbrowser.open(u))
         self.menu.insert_cascade(0, label=_("Filing"), menu=filingMenu, underline=0)
-                
+
     def openInstance(self):
         rssItemObj = self.modelXbrl.modelObject(self.menuRow)
         if rssItemObj is not None:
             self.modelXbrl.modelManager.cntlr.fileOpenFile(rssItemObj.zippedUrl, selectTopView=True)
-        
+
     def treeviewEnter(self, *args):
         self.blockSelectEvent = 0
 

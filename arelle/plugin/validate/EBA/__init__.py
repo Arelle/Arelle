@@ -36,8 +36,8 @@ schemaRefDatePattern = re.compile(r".*/([0-9]{4}-[01][0-9]-[0-3][0-9])/.*")
 
 s_2_18_c_a_met = {
     """
-        in templates S.06.02, SE.06.02, S.08.01, S.08.02,S.11.01 and E.01.01, 
-        data points with the data type 'monetary' shall be expressed in units 
+        in templates S.06.02, SE.06.02, S.08.01, S.08.02,S.11.01 and E.01.01,
+        data points with the data type 'monetary' shall be expressed in units
         with at least two decimals:
             select distinct mem.MemberXBRLCode from mOrdinateCategorisation oc
             inner join mAxisOrdinate ao on ao.OrdinateID = oc.OrdinateID
@@ -72,9 +72,9 @@ def validateSetup(val, parameters=None, *args, **kwargs):
     val.validateEIOPA = val.validateDisclosureSystem and getattr(val.disclosureSystem, "EIOPA", False)
     if not (val.validateEBA or val.validateEIOPA):
         return
-    
+
     val.validateUTR = False # do not use default UTR validation, it's at error level and not streamable
-    val.utrValidator = ValidateUtr(val.modelXbrl, 
+    val.utrValidator = ValidateUtr(val.modelXbrl,
                                    "WARNING",  # EBA specifies SHOULD on UTR validation
                                    "EBA.2.23") # override utre error-severity message code
 
@@ -93,10 +93,10 @@ def validateSetup(val, parameters=None, *args, **kwargs):
                         val.modelXbrl.error( ("EBA.S.1.5.a/EBA.S.1.5.b", "EIOPA.S.1.5.a/EIOPA.S.1.5.b"),
                                         _('The link:schemaRef element in submitted instances MUST resolve to the full published entry point URL, this schemaRef is missing date portion: %(schemaRef)s.'),
                                         modelObject=modelDocument, schemaRef=doc.uri)
-                        
+
     val.qnDimAF = val.qnDimOC = val.qnCAx1 = None
     _nsmap = val.modelXbrl.modelDocument.xmlRootElement.nsmap
-                        
+
     if val.isEIOPA_2_0_1:
         _hasPiInstanceGenerator = False
         for pi in modelDocument.processingInstructions:
@@ -110,7 +110,7 @@ def validateSetup(val, parameters=None, *args, **kwargs):
             val.modelXbrl.warning("EIOPA.S.2.23",
                                   _('The instance SHOULD include a processing instruction "instance-generator".'),
                                   modelObject=modelDocument)
-            
+
         val.qnDimAF = qname("s2c_dim:AF", _nsmap)
         val.qnDimOC = qname("s2c_dim:OC", _nsmap)
         val.qnCAx1 = qname("s2c_CA:x1", _nsmap)
@@ -118,12 +118,12 @@ def validateSetup(val, parameters=None, *args, **kwargs):
         val.eba_qnDimCUS = qname("eba_dim:CUS", _nsmap)
         val.eba_qnDimCCA = qname("eba_dim:CCA", _nsmap)
         val.eba_qnCAx1 = qname("eba_CA:x1", _nsmap)
-        
+
 
     val.prefixNamespace = {}
     val.namespacePrefix = {}
     val.idObjects = {}
-    
+
     val.typedDomainQnames = set()
     val.typedDomainElements = set()
     for modelConcept in val.modelXbrl.qnameConcepts.values():
@@ -132,10 +132,10 @@ def validateSetup(val, parameters=None, *args, **kwargs):
             if isinstance(typedDomainElement, ModelConcept):
                 val.typedDomainQnames.add(typedDomainElement.qname)
                 val.typedDomainElements.add(typedDomainElement)
-                
+
     val.filingIndicators = {}
     val.numFilingIndicatorTuples = 0
-                
+
     val.cntxEntities = set()
     val.cntxDates = defaultdict(set)
     val.unusedCntxIDs = set()
@@ -158,7 +158,7 @@ def validateSetup(val, parameters=None, *args, **kwargs):
     for unit in val.modelXbrl.units.values():
         if hasattr(unit, "_batchChecked"):
             unit._batchChecked = False
-    
+
 def prefixUsed(val, ns, prefix):
     val.namespacePrefixesUsed[ns].add(prefix)
     for _prefix in val.namespacePrefixesUsed[ns]:
@@ -168,15 +168,15 @@ def validateStreamingFacts(val, factsToCheck, *args, **kwargs):
     if not (val.validateEBA or val.validateEIOPA):
         return True
     validateFacts(val, factsToCheck)
-    
+
 def validateFacts(val, factsToCheck):
     # may be called in streaming batches or all at end (final) if not streaming
-    
+
     modelXbrl = val.modelXbrl
     modelDocument = modelXbrl.modelDocument
-    
+
     # note EBA 2.1 is in ModelDocument.py
-    
+
     timelessDatePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*$")
     for cntx in modelXbrl.contexts.values():
         if getattr(cntx, "_batchChecked", False):
@@ -207,7 +207,7 @@ def validateFacts(val, factsToCheck):
         if cntx.nonDimValues("scenario"):
             modelXbrl.error(("EBA.2.15","EIOPA.S.2.15" if val.isEIOPAfullVersion else "EIOPA.N.2.15"),
                 _("Contexts MUST NOT contain non-dimensional xbrli:scenario values: %(cntx)s.'"),
-                modelObject=cntx, cntx=cntx.id, 
+                modelObject=cntx, cntx=cntx.id,
                 messageCodes=("EBA.2.15","EIOPA.N.2.15","EIOPA.S.2.15"))
         val.unusedCntxIDs.add(cntx.id)
         if val.isEIOPA_2_0_1 and len(cntx.id) > 128:
@@ -220,21 +220,21 @@ def validateFacts(val, factsToCheck):
             continue # prior streaming batch already checked
         unit._batchChecked = True
         val.unusedUnitIDs.add(unit.id)
-        
+
     factsByQname = defaultdict(set) # top level for this
-    for f in factsToCheck: 
+    for f in factsToCheck:
         factsByQname[f.qname].add(f)
         val.unusedCntxIDs.discard(f.contextID)
         val.unusedUnitIDs.discard(f.unitID)
         if f.objectIndex < val.firstFactObjectIndex:
             val.firstFactObjectIndex = f.objectIndex
             val.firstFact = f
-        
+
 
     for fIndicators in factsByQname[qnFIndicators]:
         val.numFilingIndicatorTuples += 1
         for fIndicator in fIndicators.modelTupleFacts:
-            _value = (getattr(fIndicator, "xValue", None) or fIndicator.value) # use validated xValue if DTS else value for skipDTS 
+            _value = (getattr(fIndicator, "xValue", None) or fIndicator.value) # use validated xValue if DTS else value for skipDTS
             _filed = fIndicator.get("{http://www.eurofiling.info/xbrl/ext/filing-indicators}filed", "true") in ("true", "1")
             if _value in val.filingIndicators:
                 modelXbrl.error(("EBA.1.6.1", "EIOPA.1.6.1"),
@@ -259,17 +259,17 @@ def validateFacts(val, factsToCheck):
                               modelObject=(fIndicators, val.firstFact), firstFact=val.firstFact.qname)
                 break
             prevObj = prevObj.getprevious()
-    
+
     if val.isEIOPAfullVersion:
         for fIndicator in factsByQname[qnFilingIndicator]:
             if fIndicator.getparent().qname == XbrlConst.qnXbrliXbrl:
                 _isPos = fIndicator.get("{http://www.eurofiling.info/xbrl/ext/filing-indicators}filed", "true") in ("true", "1")
-                _value = (getattr(fIndicator, "xValue", None) or fIndicator.value) # use validated xValue if DTS else value for skipDTS 
+                _value = (getattr(fIndicator, "xValue", None) or fIndicator.value) # use validated xValue if DTS else value for skipDTS
                 modelXbrl.error("EIOPA.1.6.a" if _isPos else "EIOPA.1.6.b",
                         _('Filing indicators must be in a tuple %(filingIndicator)s.'),
                         modelObject=fIndicator, filingIndicator=_value,
                         messageCodes=("EIOPA.1.6.a", "EIOPA.1.6.b"))
-                
+
     otherFacts = {} # (contextHash, unitHash, xmlLangHash) : fact
     nilFacts = []
     stringFactsWithXmlLang = []
@@ -400,7 +400,7 @@ def validateFacts(val, factsToCheck):
                                 if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
                                     modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
                                         _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
-                                        modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, 
+                                        modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals,
                                         value=f1.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
                             except (ValueError,TypeError):
                                 modelXbrl.error(("EBA.2.18"),
@@ -440,18 +440,18 @@ def validateFacts(val, factsToCheck):
                     prefixUsed(val, _eQn.namespaceURI, _eQn.prefix)
                     if val.isEIOPA_2_0_1 and f.qname.localName == "ei1930":
                         val.reportingCurrency = _eQn.localName
-            elif isString: 
+            elif isString:
                 if f.xmlLang: # requires disclosureSystem to NOT specify default language
                     stringFactsWithXmlLang.append(f)
-                        
+
             if f.isNil:
                 nilFacts.append(f)
-                
+
             if val.footnotesRelationshipSet.fromModelObject(f):
                 modelXbrl.warning("EIOPA.S.19",
                     _("Fact %(fact)s of context %(contextID)s has footnotes.'"),
                     modelObject=f, fact=f.qname, contextID=f.contextID)
-                
+
     if nilFacts:
         modelXbrl.error(("EBA.2.19", "EIOPA.S.2.19"),
                 _('Nil facts MUST NOT be present in the instance: %(nilFacts)s.'),
@@ -466,7 +466,7 @@ def validateFacts(val, factsToCheck):
                         modelObject=nonMonetaryNonPureFacts, langLessFacts=", ".join(set(str(f.qname) for f in nonMonetaryNonPureFacts)))
 
     val.utrValidator.validateFacts() # validate facts for UTR at logLevel WARNING
-    
+
     unitHashes = {}
     for unit in modelXbrl.units.values():
         h = unit.hash
@@ -483,9 +483,9 @@ def validateFacts(val, factsToCheck):
         for _measures in unit.measures:
             for _measure in _measures:
                 prefixUsed(val, _measure.namespaceURI, _measure.prefix)
-                
+
     del unitHashes
-    
+
     cntxHashes = {}
     for cntx in modelXbrl.contexts.values():
         h = cntx.contextDimAwareHash
@@ -524,26 +524,26 @@ def validateFacts(val, factsToCheck):
                 modelXbrl.error("EIOPA.2.5",
                     _("XML comment found, all relevant business data MUST only be contained in contexts, units, schemaRef and facts: %(comment)s"),
                     modelObject=modelDocument, comment=elt.text)
-                   
+
 def validateNonStreamingFinish(val, *args, **kwargs):
     # non-streaming EBA checks, ignore when streaming (first all from ValidateXbrl.py)
     if not getattr(val.modelXbrl, "isStreamingMode", False):
         final(val)
-        
+
 def validateStreamingFinish(val, *args, **kwargs):
     final(val)  # always finish validation when streaming
-    
+
 def final(val):
     if not (val.validateEBA or val.validateEIOPA):
         return
-    
+
     modelXbrl = val.modelXbrl
     modelDocument = modelXbrl.modelDocument
 
     _statusMsg = _("validating {0} filing rules").format(val.disclosureSystem.name)
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
-    
+
     if modelDocument.type == ModelDocument.Type.INSTANCE and (val.validateEBA or val.validateEIOPA):
 
         if not modelDocument.uri.endswith(".xbrl"):
@@ -582,7 +582,7 @@ def final(val):
                     _('XBRL instance documents MUST reference only one entry point schema but %(numEntryPoints)s were found: %(entryPointNames)s'),
                     modelObject=modelDocument, numEntryPoints=_numSchemaRefs, entryPointNames=', '.join(sorted(schemaRefFileNames)))
         ### check entry point names appropriate for filing indicator (DPM DB?)
-        
+
         if len(schemaRefElts) != 1:
             modelXbrl.error("EBA.2.3",
                     _('Any reported XBRL instance document MUST contain only one xbrli:xbrl/link:schemaRef node, but %(entryPointCount)s.'),
@@ -595,7 +595,7 @@ def final(val):
                     # multi-currency fact
                     val.qnReportedCurrency = _multiCurrencyFact.xValue
                     break
-                
+
             validateFacts(val, modelXbrl.facts)
 
             # check sum of fact md5s (otherwise checked in streaming process)
@@ -628,8 +628,8 @@ def final(val):
                     modelXbrl.info("info",
                             _("Successful XBRL facts sum of md5s."),
                             modelObject=modelXbrl)
-            
-        if any(badError in modelXbrl.errors 
+
+        if any(badError in modelXbrl.errors
                for badError in ("EBA.2.1", "EIOPA.2.1", "EIOPA.S.1.5.a/EIOPA.S.1.5.b")):
             pass # skip checking filingIndicators if bad errors
         elif not val.filingIndicators:
@@ -640,9 +640,9 @@ def final(val):
             modelXbrl.error(("EBA.1.6", "EIOPA.1.6.a"),
                     _('All filing indicators are filed="false".  Reported XBRL instances MUST include appropriate (positive) filing indicator elements'),
                     modelObject=modelDocument)
-    
+
         if val.numFilingIndicatorTuples > 1:
-            modelXbrl.warning(("EBA.1.6.2", "EIOPA.1.6.2"),                            
+            modelXbrl.warning(("EBA.1.6.2", "EIOPA.1.6.2"),
                     _('Multiple filing indicators tuples when not in streaming mode (info).'),
                     modelObject=modelXbrl.factsByQname[qnFIndicators])
 
@@ -650,7 +650,7 @@ def final(val):
             modelXbrl.error(("EBA.2.13","EIOPA.2.13"),
                     _('Contexts must have the same date: %(dates)s.'),
                     # when streaming values are no longer available, but without streaming they can be logged
-                    modelObject=set(_cntx for _cntxs in val.cntxDates.values() for _cntx in _cntxs), 
+                    modelObject=set(_cntx for _cntxs in val.cntxDates.values() for _cntx in _cntxs),
                     dates=', '.join(XmlUtil.dateunionValue(_dt, subtractOneDay=True)
                                                            for _dt in val.cntxDates.keys()))
 
@@ -658,20 +658,20 @@ def final(val):
             if val.isEIOPA_2_0_1:
                 modelXbrl.error("EIOPA.2.7",
                         _('Unused xbrli:context nodes MUST NOT be present in the instance: %(unusedContextIDs)s.'),
-                        modelObject=[modelXbrl.contexts[unusedCntxID] for unusedCntxID in val.unusedCntxIDs if unusedCntxID in modelXbrl.contexts], 
+                        modelObject=[modelXbrl.contexts[unusedCntxID] for unusedCntxID in val.unusedCntxIDs if unusedCntxID in modelXbrl.contexts],
                         unusedContextIDs=", ".join(sorted(val.unusedCntxIDs)))
             else:
                 modelXbrl.warning(("EBA.2.7", "EIOPA.2.7"),
                         _('Unused xbrli:context nodes SHOULD NOT be present in the instance: %(unusedContextIDs)s.'),
-                        modelObject=[modelXbrl.contexts[unusedCntxID] for unusedCntxID in val.unusedCntxIDs if unusedCntxID in modelXbrl.contexts], 
+                        modelObject=[modelXbrl.contexts[unusedCntxID] for unusedCntxID in val.unusedCntxIDs if unusedCntxID in modelXbrl.contexts],
                         unusedContextIDs=", ".join(sorted(val.unusedCntxIDs)))
-    
+
         if len(val.cntxEntities) > 1:
             modelXbrl.error(("EBA.2.9", "EIOPA.2.9"),
                     _('All entity identifiers and schemes MUST be the same, %(count)s found: %(entities)s.'),
-                    modelObject=modelDocument, count=len(val.cntxEntities), 
+                    modelObject=modelDocument, count=len(val.cntxEntities),
                     entities=", ".join(sorted(str(cntxEntity) for cntxEntity in val.cntxEntities)))
-            
+
         for _scheme, _LEI in val.cntxEntities:
             if (_scheme in ("http://standards.iso.org/iso/17442", "http://standard.iso.org/iso/17442", "LEI") or
                 (not val.isEIOPAfullVersion and _scheme == "PRE-LEI")):
@@ -694,29 +694,29 @@ def final(val):
                 modelXbrl.error("EIOPA.S.2.8.c",
                     _("Context has unrecognized entity scheme %(scheme)s."),
                     modelObject=modelDocument, scheme=_scheme)
-        
+
         if val.unusedUnitIDs:
             if val.isEIOPA_2_0_1:
                 modelXbrl.error("EIOPA.2.22",
                         _('Unused xbrli:unit nodes MUST NOT be present in the instance: %(unusedUnitIDs)s.'),
-                        modelObject=[modelXbrl.units[unusedUnitID] for unusedUnitID in val.unusedUnitIDs if unusedUnitID in modelXbrl.units], 
+                        modelObject=[modelXbrl.units[unusedUnitID] for unusedUnitID in val.unusedUnitIDs if unusedUnitID in modelXbrl.units],
                         unusedUnitIDs=", ".join(sorted(val.unusedUnitIDs)))
             else:
                 modelXbrl.warning(("EBA.2.22", "EIOPA.2.22"),
                         _('Unused xbrli:unit nodes SHOULD NOT be present in the instance: %(unusedUnitIDs)s.'),
-                        modelObject=[modelXbrl.units[unusedUnitID] for unusedUnitID in val.unusedUnitIDs if unusedUnitID in modelXbrl.units], 
+                        modelObject=[modelXbrl.units[unusedUnitID] for unusedUnitID in val.unusedUnitIDs if unusedUnitID in modelXbrl.units],
                         unusedUnitIDs=", ".join(sorted(val.unusedUnitIDs)))
-                    
+
         if len(val.currenciesUsed) > 1:
             modelXbrl.error(("EBA.3.1","EIOPA.3.1"),
                 _("There MUST be only one currency but %(numCurrencies)s were found: %(currencies)s.'"),
                 modelObject=val.currenciesUsed.values(), numCurrencies=len(val.currenciesUsed), currencies=", ".join(str(c) for c in val.currenciesUsed.keys()))
-            
+
         elif val.isEIOPA_2_0_1 and any(_measure.localName != val.reportingCurrency for _measure in val.currenciesUsed.keys()):
             modelXbrl.error("EIOPA.3.1",
                 _("There MUST be only one currency but reporting currency %(reportingCurrency)s differs from unit currencies: %(currencies)s.'"),
                 modelObject=val.currenciesUsed.values(), reportingCurrency=val.reportingCurrency, currencies=", ".join(str(c) for c in val.currenciesUsed.keys()))
-            
+
         if val.prefixesUnused:
             modelXbrl.warning(("EBA.3.4", "EIOPA.3.4"),
                 _("There SHOULD be no unused prefixes but these were declared: %(unusedPrefixes)s.'"),
@@ -734,13 +734,13 @@ def final(val):
                 modelXbrl.warning(("EBA.3.5", "EIOPA.3.5"),
                     _("Prefix for namespace %(namespace)s is %(declaredPrefix)s but these were found %(foundPrefixes)s"),
                     modelObject=modelDocument, namespace=ns, declaredPrefix=CANONICAL_PREFIXES[ns], foundPrefixes=', '.join(sorted(prefixes - {None})))
-   
+
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
 
     del val.prefixNamespace, val.namespacePrefix, val.idObjects, val.typedDomainElements
     del val.utrValidator, val.firstFact, val.footnotesRelationshipSet
-                
+
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EBA, EIOPA',

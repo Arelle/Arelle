@@ -17,5 +17,5 @@ __pluginInfo__ = {
     'copyright': '(c) Copyright 2015 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
     # imported plugins
-    'import': ("module_subtree",) 
+    'import': ("module_subtree",)
 }

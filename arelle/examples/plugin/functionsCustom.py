@@ -8,7 +8,7 @@ from arelle.ModelValue import qname
 from arelle.ModelInstanceObject import ModelDimensionValue
 from decimal import Decimal
 
-# custom function for test case 22015 v01, same as in FunctionCustom.py        
+# custom function for test case 22015 v01, same as in FunctionCustom.py
 def  test_22015v01_my_fn_PDxEV(xc, p, contextItem, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     PDseq = args[0] if isinstance(args[0],(list,tuple)) else (args[0],)
@@ -37,7 +37,7 @@ def  test_22015v01_my_fn_PDxEV(xc, p, contextItem, args):
                         PDxEV.append(pdX * evX)
                         break
     return PDxEV
-    
+
 # returns dict of function QName and method executing the function
 def customFunctions():
     return {

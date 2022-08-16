@@ -1,13 +1,13 @@
 '''
 XbrlSemanticGraphDB.py implements a graph database interface for Arelle, based
-on a concrete realization of the Abstract Model PWD 2.0 layer.  This is a semantic 
-representation of XBRL information. 
+on a concrete realization of the Abstract Model PWD 2.0 layer.  This is a semantic
+representation of XBRL information.
 
-This module provides the execution context for saving a dts and instances in 
+This module provides the execution context for saving a dts and instances in
 XBRL Rexter-interfaced graph.  It may be loaded by Arelle's RSS feed, or by individual
 DTS and instances opened by interactive or command line/web service mode.
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
+(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 to do:
@@ -37,7 +37,7 @@ from urllib.error import HTTPError, URLError
 TRACEGREMLINFILE = None
 #TRACEGREMLINFILE = r"c:\temp\rexstertrace.log"  # uncomment to trace SQL on connection (very big file!!!)
 
-def insertIntoDB(modelXbrl, 
+def insertIntoDB(modelXbrl,
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
                  product=None, rssItem=None, **kwargs):
     db = None
@@ -52,8 +52,8 @@ def insertIntoDB(modelXbrl,
                 xsgdb.close(rollback=True)
             except Exception as ex2:
                 pass
-        raise # reraise original exception with original traceback    
-    
+        raise # reraise original exception with original traceback
+
 def isDBPort(host, port, timeout=10):
     # determine if postgres port
     t = 2
@@ -68,7 +68,7 @@ def isDBPort(host, port, timeout=10):
         except socket.timeout:
             t = t + 2  # relax - try again with longer timeout
     return False
-    
+
 XBRLDBGRAPHS = {
                 "filings",       # filings (graph of reports)
                 "documents"      # graph of namespace->names->types/elts, datapoints
@@ -90,7 +90,7 @@ def dbNum(num):
         if isinf(num) or isnan(num):
             return None  # not legal in SQL
         return num
-    return None 
+    return None
 
 def dbString(s): # compress long strings
     if isinstance(s, str) and len(s) > 512:
@@ -105,7 +105,7 @@ class XPDBException(Exception):
         self.args = ( self.__repr__(), )
     def __repr__(self):
         return _('[{0}] exception: {1}').format(self.code, self.message % self.kwargs)
-            
+
 
 
 class XbrlSemanticGraphDatabaseConnection():
@@ -126,7 +126,7 @@ class XbrlSemanticGraphDatabaseConnection():
         self.conn = urllib.request.build_opener(auth_handler)
         self.timeout = timeout or 60
         self.verticePropTypes = {}
-        
+
     def close(self, rollback=False):
         try:
             self.conn.close()
@@ -134,22 +134,22 @@ class XbrlSemanticGraphDatabaseConnection():
         except Exception as ex:
             self.__dict__.clear() # dereference everything
             raise
-        
+
     @property
     def isClosed(self):
         return not bool(self.__dict__)  # closed when dict is empty
-    
+
     def showStatus(self, msg, clearAfter=None):
         self.modelXbrl.modelManager.showStatus(msg, clearAfter)
-        
+
     def verifyGraphs(self):
         # if no tables, initialize database
         missingRoots = XBRLDBGRAPHS - self.loadGraphRootVertices()
         if missingRoots:  # some are missing
             raise XPDBException("xsgDB:MissingGraphs",
                                 _("The following graph roots are missing: %(missingRootNames)s"),
-                                missingRootNames=', '.join(t for t in sorted(missingRoots))) 
-            
+                                missingRootNames=', '.join(t for t in sorted(missingRoots)))
+
     def execute(self, activity, script, params=None, commit=False, close=True, fetch=True):
         gremlin = {"script": script}
         if params:
@@ -174,15 +174,15 @@ class XbrlSemanticGraphDatabaseConnection():
         if results.get('success', False) == False:
             raise XPDBException("xsgDB:DatabaseError",
                                 _("%(activity)s not successful: %(error)s"),
-                                activity=activity, error=results.get('error')) 
+                                activity=activity, error=results.get('error'))
         return results
-    
+
     def commit(self):
         self.execute("Commit transaction", "g.commit()")
-    
+
     def rollback(self):
         self.execute("Rollback transaction", "g.rollback()")
-    
+
     def loadGraphRootVertices(self):
         self.showStatus("Load/Create graph root vertices")
         # try to create root index
@@ -220,12 +220,12 @@ class XbrlSemanticGraphDatabaseConnection():
                 root_vertices << v
             }
             root_vertices
-            """, 
+            """,
             params={"root_classes":list(XBRLDBGRAPHS)})["results"]
         for v in results:
             setattr(self, "root_" + v['_class'] + "_id", int(v['_id']))
         return set(v['_class'] for v in results)
-        
+
     def getDBsize(self):
         self.showStatus("Get database size (slow operation for now)")
         results = self.execute("Get database size", """
@@ -238,7 +238,7 @@ class XbrlSemanticGraphDatabaseConnection():
             # must also have default dimensions loaded
             from arelle import ValidateXbrlDimensions
             ValidateXbrlDimensions.loadDimensionDefaults(self.modelXbrl)
-            
+
             #initialVcount, initialEcount = self.getDBsize() # don't include in timing, very slow
             startedAt = time.time()
             # self.load()  this done in the verify step
@@ -271,7 +271,7 @@ class XbrlSemanticGraphDatabaseConnection():
             self.showStatus("DB insertion failed due to exception", clearAfter=5000)
             self.rollback()
             raise
-        
+
     def insertFiling(self, rssItem):
         self.showStatus("insert filing")
         # filing graph -> document vertices
@@ -289,8 +289,8 @@ class XbrlSemanticGraphDatabaseConnection():
             new_filing['filing_date'] = XmlUtil.dateunionValue(rssItem.filingDate)
             new_filing['entity_id'] = rssItem.cikNumber
             new_filing['entity_name'] = rssItem.companyName
-            new_filing['standard_industrial_classification'] = rssItem.assignedSic 
-            new_filing['sec_html_url'] = rssItem.htmlUrl 
+            new_filing['standard_industrial_classification'] = rssItem.assignedSic
+            new_filing['sec_html_url'] = rssItem.htmlUrl
             new_filing['entry_url'] = rssItem.url
             new_filing['filing_number'] = filing_number = rssItem.accessionNumber
         else:
@@ -313,22 +313,22 @@ class XbrlSemanticGraphDatabaseConnection():
             // if no edge, add one
             vIn.hasNext() && vIn.next() == r ?: g.addEdge(r, filing, new_filing.filing_number)
             filing.id
-            """, 
+            """,
             params={'root_filings_id': self.root_filings_id,
                     'new_filing': new_filing,
                     'filing_type': filingType,
                     'datetime_now': datetimeNowStr,
                    })["results"]:
             self.filing_id = int(id)
-            
+
         # relationshipSets are a dts property
         self.relationshipSets = [(arcrole, ELR, linkqname, arcqname)
                                  for arcrole, ELR, linkqname, arcqname in self.modelXbrl.baseSets.keys()
                                  if ELR and (arcrole.startswith("XBRL-") or (linkqname and arcqname))]
-        
+
     def insertDocuments(self):
         # filing->documents
-        # 
+        #
         self.showStatus("insert documents")
         documents = []
         for modelDocument in self.modelXbrl.urlDocs.values():
@@ -358,7 +358,7 @@ class XbrlSemanticGraphDatabaseConnection():
                 vDocIn.hasNext() && vDocIn.next() == rDoc ?: g.addEdge(rDoc, vDoc, it.url)
                 urlV[it.url] = vDoc
                 urlV_id[it.url] = vDoc.id
-            } 
+            }
 
             // entry document edge to doc root and report
             documents.findAll{it.url == entry_url}.each{
@@ -378,7 +378,7 @@ class XbrlSemanticGraphDatabaseConnection():
                 vDocIn.hasNext() && vDocIn.next() == vEntryDoc ?: g.addEdge(vEntryDoc, vRefDoc, 'referenced_document')
             }
             [vReport.id, urlV_id, isNew]
-            """, 
+            """,
             params={'root_documents_id': self.root_documents_id,
                     'filing_id': self.filing_id,
                     'entry_url': self.modelXbrl.modelDocument.uri,
@@ -390,10 +390,10 @@ class XbrlSemanticGraphDatabaseConnection():
         self.report_id = int(report_id)
         self.document_ids = dict( (url, int(id)) for url, id in doc_id_list.items() )
         self.document_isNew = dict( (url, isNew) for url,isNew in doc_isNew_list.items() )
-                
+
     def conceptsUsed(self):
         conceptsUsed = set(f.qname for f in self.modelXbrl.factsInInstance)
-        
+
         for cntx in self.modelXbrl.contexts.values():
             for dim in cntx.qnameDims.values():
                 conceptsUsed.add(dim.dimensionQname)
@@ -419,20 +419,20 @@ class XbrlSemanticGraphDatabaseConnection():
         # separate graph
         # document-> dataTypeSet -> dataType
         # do all schema dataTypeSet vertices
-            
+
         self.type_id = {}
         self.aspect_id = {}
         self.aspect_proxy_id = {}
         self.roleType_id = {}
         self.arcroleType_id = {}
-            
+
         if any((not self.document_isNew[modelDocument.uri])
                for modelDocument in self.modelXbrl.urlDocs.values()):
             conceptsUsed = self.conceptsUsed()
-            
+
         for modelDocument in self.modelXbrl.urlDocs.values():
             self.showStatus("insert DataDictionary " + modelDocument.basename)
-        
+
             # don't re-output existing documents
             if modelDocument.type == Type.SCHEMA:
                 isNewDocument = self.document_isNew[modelDocument.uri]
@@ -455,7 +455,7 @@ class XbrlSemanticGraphDatabaseConnection():
                             conceptAspect['periodType'] = modelConcept.periodType
                         if modelConcept.balance:
                             conceptAspect['balance'] = modelConcept.balance
-                        for propertyName in ('isItem', 'isTuple', 'isLinkPart', 'isNumeric', 'isMonetary', 
+                        for propertyName in ('isItem', 'isTuple', 'isLinkPart', 'isNumeric', 'isMonetary',
                                              'isExplicitDimension', 'isTypedDimension', 'isDomainMember', 'isHypercubeItem',
                                              'isShares', 'isTextBlock'):
                             propertyValue = getattr(modelConcept, propertyName, None)
@@ -509,7 +509,7 @@ class XbrlSemanticGraphDatabaseConnection():
                             g.addEdge(docV, arcroleTypeV, 'arcrole_type')
                         }
                         [dictV.id, type_ids, aspect_ids, role_type_ids, arcrole_type_ids]
-                        """, 
+                        """,
                         params={
                         'report_id': self.report_id,
                         'document_id': self.document_ids[modelDocument.uri],
@@ -544,7 +544,7 @@ class XbrlSemanticGraphDatabaseConnection():
                     for iAT, arcroleType_id in enumerate(arcrole_type_ids):
                         self.arcroleType_id[arcroleTypes[iAT].arcroleURI] = int(arcroleType_id)
                     '''
-                    results = self.execute("Insert data dictionary types, and arcroles for " + 
+                    results = self.execute("Insert data dictionary types, and arcroles for " +
                                            modelDocument.uri, """
                         reportV = g.v(report_id)
                         docV = g.v(document_id)
@@ -570,7 +570,7 @@ class XbrlSemanticGraphDatabaseConnection():
                             g.addEdge(docV, arcroleTypeV, 'arcrole_type')
                         }
                         [dictV.id, type_ids, arcrole_type_ids]
-                        """, 
+                        """,
                         params={
                         'report_id': self.report_id,
                         'document_id': self.document_ids[modelDocument.uri],
@@ -594,8 +594,8 @@ class XbrlSemanticGraphDatabaseConnection():
                         self.type_id[modelTypes[iT].qname] = int(type_id)
                     for iAT, arcroleType_id in enumerate(arcrole_type_ids):
                         self.arcroleType_id[arcroleTypes[iAT].arcroleURI] = int(arcroleType_id)
-                        
-                    results = self.execute("Insert data dictionary roles for " + 
+
+                    results = self.execute("Insert data dictionary roles for " +
                                            modelDocument.uri, """
                         reportV = g.v(report_id)
                         docV = g.v(document_id)
@@ -615,7 +615,7 @@ class XbrlSemanticGraphDatabaseConnection():
                             g.addEdge(docV, roleTypeV, 'role_type')
                         }
                         role_type_ids
-                        """, 
+                        """,
                         params={
                         'report_id': self.report_id,
                         'document_id': self.document_ids[modelDocument.uri],
@@ -631,9 +631,9 @@ class XbrlSemanticGraphDatabaseConnection():
                     role_type_ids = results
                     for iRT, roleType_id in enumerate(role_type_ids):
                         self.roleType_id[roleTypes[iRT].roleURI] = int(roleType_id)
-                        
-                        
-                    results = self.execute("Insert data dictionary aspects for " + 
+
+
+                    results = self.execute("Insert data dictionary aspects for " +
                                            modelDocument.uri, """
                         reportV = g.v(report_id)
                         docV = g.v(document_id)
@@ -656,7 +656,7 @@ class XbrlSemanticGraphDatabaseConnection():
                             g.addEdge(aspectsV, aspectV, it.name.hashCode().toString() )
                         }
                         aspect_ids
-                        """, 
+                        """,
                         params={
                         'report_id': self.report_id,
                         'document_id': self.document_ids[modelDocument.uri],
@@ -669,8 +669,8 @@ class XbrlSemanticGraphDatabaseConnection():
                     for iC, aspect_id in enumerate(aspect_ids):
                         self.aspect_id[modelConcepts[iC].qname] = int(aspect_id)
                     '''
-                else: # not new, just get aspect (concept) id's 
-                    results = self.execute("Access existing data dictionary types, aspects, roles, and arcroles for " + 
+                else: # not new, just get aspect (concept) id's
+                    results = self.execute("Access existing data dictionary types, aspects, roles, and arcroles for " +
                                            modelDocument.uri, """//Access existing data dictionary aspects
                         aspect_ids = []
                         g.v(document_id).out('doc_data_dictionary').out('aspects').each {
@@ -684,13 +684,13 @@ class XbrlSemanticGraphDatabaseConnection():
                             }
                         }
                         aspect_ids
-                        """, 
+                        """,
                         params={'document_id': self.document_ids[modelDocument.uri],
                             'aspect_names': [modelConcept.name for modelConcept in modelConcepts],
                         })["results"]
                     for iC, aspect_id in enumerate(results):
                         self.aspect_id[modelConcepts[iC].qname] = int(aspect_id) if aspect_id is not None else None
-                
+
         typeDerivationEdges = []
         for modelType in self.modelXbrl.qnameTypes.values():
             if self.document_isNew[modelType.modelDocument.uri]:
@@ -711,7 +711,7 @@ class XbrlSemanticGraphDatabaseConnection():
                 vOutIt = fromV.out(it.rel).has('id',toV.id)
                 vOutIt.hasNext() ?: g.addEdge(fromV, toV, it.rel)
             }
-            """, 
+            """,
             params={'e': typeDerivationEdges})
         aspectEdges = []
         for modelConcept in self.modelXbrl.qnameConcepts.values():
@@ -740,34 +740,34 @@ class XbrlSemanticGraphDatabaseConnection():
                 vOutIt = fromV.out(it.rel).has('id',toV.id)
                 vOutIt.hasNext() ?: g.addEdge(fromV, toV, it.rel)
             }
-        """, 
+        """,
         params={'e': aspectEdges})
-        
+
     '''
     def insertValidCombinations(self):
         # document-> validCombinationsSet-> cubes
         self.showStatus("insert ValidCombinations")
-        
+
         drsELRs = set(ELR
                       for arcrole, ELR, linkqname, arcqname in self.modelXbrl.baseSets.values()
                       if arcrole == XbrlConst.all)
         hasHcRels = self.modelXbrl.relationshipSet(XbrlConst.all).modelRelationships
         hcConcepts = set(hasHcRel.toModelObject for hasHcRel in hasHcRels)
-        
+
         # one cube region per head pri item with multiple cube regions
         for hcConcept in hcConcepts:
             # include any other concepts in this pri item with clean inheritance
             for drsELR in drsELRs:
                 # each ELR is another cube region
-         
+
         for allRel in val.modelXbrl.relationshipSet(XbrlConst.all, ELR)
         drsPriItems(val, fromELR, fromPriItem
-        
+
         ... this becomes an unweildly large model, don't see a use case for compiling it out
 '''
     def insertAspectProxies(self, qnames):
-        aspectQnames = [qname 
-                        for qname in qnames 
+        aspectQnames = [qname
+                        for qname in qnames
                         if qname not in self.aspect_proxy_id and qname in self.aspect_id]
         #print ("missing qnames: " + ", ".join(str(q) for q in aspectQnames if q not in self.aspect_id))
         results = self.execute("Insert aspect proxies", """
@@ -781,13 +781,13 @@ class XbrlSemanticGraphDatabaseConnection():
                 g.addEdge(reportV, aspectProxyV, 'report_aspect_proxy')
             }
             aspectProxyV_ids
-            """, 
+            """,
             params={'report_id': self.report_id,
                     'aspect_ids': [self.aspect_id[qname] for qname in aspectQnames]}
             )["results"]
         for i, proxy_id in enumerate(results):
             self.aspect_proxy_id[aspectQnames[i]] = proxy_id
-        
+
     def periodAspectValue(self, context):
         if context.isForeverPeriod:
             return 'forever'
@@ -799,7 +799,7 @@ class XbrlSemanticGraphDatabaseConnection():
         # separate graph
         # document-> dataTypeSet -> dataType
         self.showStatus("insert DataPoints")
-        
+
         # do all schema element vertices
         dataPointObjectIndices = []
         # note these initial aspects Qnames used also must be in conceptsUsed above
@@ -810,7 +810,7 @@ class XbrlSemanticGraphDatabaseConnection():
             dataPoints = []
             entityIdentifiers = [] # index by (scheme, identifier)
             periods = []  # index by (instant,) or (start,end) dates
-            units = []  # index by measures (qnames set) 
+            units = []  # index by measures (qnames set)
             for fact in self.modelXbrl.factsInInstance:
                 aspectQnamesUsed.add(fact.concept.qname)
                 dataPointObjectIndices.append(fact.objectIndex)
@@ -862,7 +862,7 @@ class XbrlSemanticGraphDatabaseConnection():
                     g.addEdge(datapointsV, dpV, 'data_point')
                 }
                 [datapointsV.id, datapointV_ids]
-                """, 
+                """,
                 params={'document_id': self.document_ids[instanceDocument.uri],
                         'datapoints_set': {
                             '_class': 'datapoints_set'},
@@ -871,7 +871,7 @@ class XbrlSemanticGraphDatabaseConnection():
             datapointsV_id, datapointVids_list = results
             dataPointVertexIds = dict((dataPointObjectIndices[i], int(id))
                                       for i, id in enumerate(datapointVids_list))
-                    
+
             results = self.execute("Insert entity identifiers", """
                 entIdentV_ids = []
                 entityIdentifiers.each{
@@ -879,14 +879,14 @@ class XbrlSemanticGraphDatabaseConnection():
                     entIdentV_ids << entIdentV.id
                 }
                 entIdentV_ids
-                """, 
+                """,
                 params={'entityIdentifiers': [{'_class':'entity_identifier',
-                                               'scheme': e[0], 
-                                               'identifier': e[1]} 
+                                               'scheme': e[0],
+                                               'identifier': e[1]}
                                               for e in entityIdentifiers]}
                 )["results"]
             entityIdentifierVertexIds = [int(entIdent_id) for entIdent_id in results]
-                    
+
             p = []
             for period in periods:
                 if period == 'forever':
@@ -897,7 +897,7 @@ class XbrlSemanticGraphDatabaseConnection():
                               'instant': period[0]})
                 else:
                     p.append({'_class': 'period',
-                              'start_date': period[0], 
+                              'start_date': period[0],
                               'end_date': period[1]})
             results = self.execute("Insert periods", """
                 periodV_ids = []
@@ -906,11 +906,11 @@ class XbrlSemanticGraphDatabaseConnection():
                     periodV_ids << periodV.id
                 }
                 periodV_ids
-                """, 
+                """,
                 params={'periods': p}
                 )["results"]
             periodVertexIds = [int(period_id) for period_id in results]
-                    
+
             results = self.execute("Insert units", """
                 unitV_ids = []
                 units.each{
@@ -918,13 +918,13 @@ class XbrlSemanticGraphDatabaseConnection():
                     unitV_ids << unitV.id
                 }
                 unitV_ids
-                """, 
-                params={'units': [{'_class':'unit', 
-                                   'measures': u} 
+                """,
+                params={'units': [{'_class':'unit',
+                                   'measures': u}
                                   for u in units]}
                 )["results"]
             unitVertexIds = [int(unit_id) for unit_id in results]
-                    
+
             if dimensions:
                 self.showStatus("insert aspect value selection groups")
                 aspValSels = []
@@ -936,7 +936,7 @@ class XbrlSemanticGraphDatabaseConnection():
                         aspValSels.append({'_class': 'aspect_value_selection',
                                            'name': dimQn.localName + '-' + str(len(aspValSels)+1),
                              '             typed_value': value})
-                
+
                 results = self.execute("Insert aspect value selection groups", """
                     aspectValSelGroupV = g.addVertex(aspect_val_sel_group)
                     aspectValSelV_ids = []
@@ -946,7 +946,7 @@ class XbrlSemanticGraphDatabaseConnection():
                         g.addEdge(aspectValSelGroupV, aspectValSelV, 'aspect_value_selection_group')
                     }
                     [aspectValSelGroupV.id, aspectValSelV_ids]
-                    """, 
+                    """,
                     params={'aspect_val_sel_group': {'_class': 'aspect_value_selection_group'},
                             'aspect_val_sels': aspValSels}
                     )["results"]
@@ -957,13 +957,13 @@ class XbrlSemanticGraphDatabaseConnection():
                 aspValSelVertexIds = []
             dimValAspValSelVertexIds = dict((dimensions[i], aspValSel_id)
                                             for i, aspValSel_id in enumerate(aspValSelVertexIds))
-              
+
         self.showStatus("insert aspect proxies")
         self.insertAspectProxies(aspectQnamesUsed)
 
-        if dimensions:                    
+        if dimensions:
             self.showStatus("insert dimension member edges")
-            # connect aspectValueSelection to concept dimension and member concepts   
+            # connect aspectValueSelection to concept dimension and member concepts
             self.execute("Insert dimension member edges", """
                 aspects.each{
                     g.addEdge(g.v(it.aspValSel_id), g.v(it.dimension_id), 'aspect')
@@ -972,20 +972,20 @@ class XbrlSemanticGraphDatabaseConnection():
                     g.addEdge(g.v(it.aspValSel_id), g.v(it.member_id), 'aspect_value')
                 }
                 []
-                """, 
+                """,
                 params={'aspects': [{
                             'aspValSel_id': aspValSel_id,
                             'dimension_id': self.aspect_proxy_id[dimQn]}
-                            for i, aspValSel_id in enumerate(aspValSelVertexIds) 
+                            for i, aspValSel_id in enumerate(aspValSelVertexIds)
                             for dimQn,isExplicit,memQn in dimensions[i:i+1]],
                         'aspect_values': [{
                             'aspValSel_id': aspValSel_id,
                             'member_id': self.aspect_proxy_id[memQn]}
-                            for i, aspValSel_id in enumerate(aspValSelVertexIds) 
+                            for i, aspValSel_id in enumerate(aspValSelVertexIds)
                             for dimQn,isExplicit,memQn in dimensions[i:i+1]
                             if isExplicit]}
-                )["results"]    
-        
+                )["results"]
+
         # add aspect proxy relationships
         edges = []
         if self.modelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL):
@@ -1045,9 +1045,9 @@ class XbrlSemanticGraphDatabaseConnection():
         results = self.execute("Insert aspect relationship edges", """
             e.each{g.addEdge(g.v(it.from_id), g.v(it.to_id), it.rel)}
             []
-            """, 
+            """,
             params={'e': edges})["results"]
-        
+
     def insertRelationshipSets(self):
         self.showStatus("insert relationship sets")
         results = self.execute("Insert relationship sets", """
@@ -1060,7 +1060,7 @@ class XbrlSemanticGraphDatabaseConnection():
                 relSetV_ids << relSetV.id
                 g.addEdge(relSetsV, relSetV, 'relationship_set')}
             [relSetsV.id, relSetV_ids]
-            """, 
+            """,
             params={
                 'report_id': self.report_id,
                 'relSets': {
@@ -1076,18 +1076,18 @@ class XbrlSemanticGraphDatabaseConnection():
             })["results"]
         relSetsV_id, relSetV_ids_list = results
         relationshipSetIDs = [int(relSet_id) for relSet_id in relSetV_ids_list]
-        
+
         # do tree walk to build relationships with depth annotated, no targetRole navigation
         relE = [] # fromV, toV, label
         resources = set()
         aspectQnamesUsed = set()
         resourceIDs = {} # index by object
-        
+
         def walkTree(rels, seq, depth, relationshipSet, visited, relationshipSetId, doVertices):
             for rel in rels:
                 if rel not in visited:
                     visited.add(rel)
-                    
+
                     if not doVertices:
                         _relProp = {'seq':seq,
                                     'depth':depth,
@@ -1151,13 +1151,13 @@ class XbrlSemanticGraphDatabaseConnection():
                         seq = walkTree(targetRelSet.fromModelObject(toModelObject), seq, depth+1, relationshipSet, visited, targetRelationshipSetId, doVertices)
                     visited.remove(rel)
             return seq
-        
+
         for doVertices in range(1,-1,-1):  # pass 0 = vertices, pass 1 = edges
             for i, relationshipSetKey in enumerate(self.relationshipSets):
                 arcrole, ELR, linkqname, arcqname = relationshipSetKey
                 relationshipSetId = relationshipSetIDs[i]
                 relationshipSet = self.modelXbrl.relationshipSet(arcrole, ELR, linkqname, arcqname)
-                seq = 1               
+                seq = 1
                 for rootConcept in relationshipSet.rootConcepts:
                     if not doVertices:
                         aspectId = self.aspect_proxy_id[rootConcept.qname]
@@ -1178,11 +1178,11 @@ class XbrlSemanticGraphDatabaseConnection():
                         resourceV_ids = []
                         resourceV.each{resourceV_ids << g.addVertex(it).id}
                         resourceV_ids
-                        """, 
+                        """,
                         params={'resourceV': resourceV}
                         )["results"]):
                         resourceIDs[resourceObjs[i]] = int(v_id)
-                    
+
                 self.insertAspectProxies(aspectQnamesUsed)
             else:
                 self.execute("Insert relationship edges", """
@@ -1194,22 +1194,22 @@ class XbrlSemanticGraphDatabaseConnection():
                         }
                     }
                     []
-                    """, 
+                    """,
                     params={'relE': relE}
                     )["results"]
-                
+
                 # TBD: do we want to link resources to the report (by role, class, or otherwise?)
-                    
+
         resourceIDs.clear() # dereferemce objects
         resources = None
-        
+
     def insertValidationResults(self):
         logEntries = []
         for handler in logging.getLogger("arelle").handlers:
             if hasattr(handler, "dbHandlerLogEntries"):
                 logEntries = handler.dbHandlerLogEntries()
                 break
-        
+
         messages = []
         messageRefs = [] # direct link to objects
         for i, logEntry in enumerate(logEntries):
@@ -1228,8 +1228,8 @@ class XbrlSemanticGraphDatabaseConnection():
                         aspectQname = modelObject.fromModelObject.qname
                 if aspectQname is not None and aspectQname in self.aspect_proxy_id:
                     msgRefIds.append(self.aspect_proxy_id[aspectQname])
-                        
-                    
+
+
             messages.append({'_class': 'message',
                              'seq': i + 1,
                              'code': logEntry['code'],
@@ -1251,7 +1251,7 @@ class XbrlSemanticGraphDatabaseConnection():
                         g.addEdge(msgV, g.v(it), 'message_ref')
                     }}
                 msgV_ids
-                """, 
+                """,
                 params={
                     'filing_id': self.filing_id,
                     'messages': messages
