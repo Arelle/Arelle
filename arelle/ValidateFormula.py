@@ -1134,10 +1134,10 @@ def checkDefinitionNodeRules(val, table, parent, arcrole, xpathContext):
     for rel in val.modelXbrl.relationshipSet(arcrole).fromModelObject(parent):
         axis = rel.toModelObject
         if axis is not None:
-            if isinstance(axis, ModelAspectDefinitionNode):
+            if isinstance(axis, DefnMdlAspectNode):
                 checkFilterAspectModel(val, table, axis.filterRelationships, xpathContext)
             else:
-                if isinstance(axis, ModelRuleDefinitionNode):
+                if isinstance(axis, DefnMdlRuleDefinitionNode):
                     # check rules for completeness
                     rulesByAspect = defaultdict(set)
                     for elt in XmlUtil.descendants(axis, XbrlConst.formula, "*"):
@@ -1150,6 +1150,10 @@ def checkDefinitionNodeRules(val, table, parent, arcrole, xpathContext):
                                 rulesByAspect[elt.localName].add(elt)
                             elif elt.localName in ("explicitDimension", "typedDimension"):
                                 rulesByAspect[elt.localName, elt.xAttributes["dimension"].xValue].add(elt)
+                            elif elt.localName == "xpath" and elt.parentQname.localName == "typedDimension":
+                                val.modelXbrl.error("arelle:typedDimensionContextItemUndefined",
+                                    _("RuleAxis %(xlinkLabel)s includes an typedDimension xpath aspect for which the specification does not define an xpath context: %(incompleteAspect)s"),
+                                    modelObject=axis, xlinkLabel=axis.xlinkLabel, incompleteAspect=elt.qname)
                             elif elt.localName == "occFragments":
                                 rulesByAspect[elt.localName, elt.xAttributes["occ"].xValue].add(elt)
                             if ((elt.localName == ("concept","member") and not any(c.localName in ("qname", "qnameExpression") 
@@ -1203,7 +1207,7 @@ def checkDefinitionNodeRules(val, table, parent, arcrole, xpathContext):
                                 _("RuleAxis %(xlinkLabel)s aspect model includes an unrecognized rule aspect: %(unrecognizedAspect)s"),
                                 modelObject=axis, xlinkLabel=axis.xlinkLabel, unrecognizedAspect=childElt.qname)
                             
-                elif isinstance(axis, ModelRelationshipDefinitionNode):
+                elif isinstance(axis, DefnMdlRelationshipNode):
                     for qnameAttr in ("relationshipSourceQname", "arcQname", "linkQname", "dimensionQname"):
                         eltQname = axis.get(qnameAttr)
                         if eltQname and eltQname not in val.modelXbrl.qnameConcepts:  

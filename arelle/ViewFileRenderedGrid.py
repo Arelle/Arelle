@@ -110,12 +110,12 @@ class ViewRenderedGrid(ViewFile.View):
                         zCellTable = etree.SubElement(zRowCell, "{http://www.w3.org/1999/xhtml}table",
                                                       attrib={"border":"1", "cellspacing":"0", "cellpadding":"4", "style":"font-size:8pt;"})
                         self.rowElts = [etree.SubElement(zCellTable, "{http://www.w3.org/1999/xhtml}tr")
-                                        for r in range(self.dataFirstRow + self.dataRows - 1)]
+                                        for r in range(self.dataFirstRow + self.dataRows)]
                         etree.SubElement(self.rowElts[0], "{http://www.w3.org/1999/xhtml}th",
                                          attrib={"class":"tableHdr",
                                                  "style":"max-width:100em;",
-                                                 "colspan": str(self.dataFirstCol - 1),
-                                                 "rowspan": str(self.dataFirstRow - 1)}
+                                                 "colspan": str(self.dataFirstCol),
+                                                 "rowspan": str(self.dataFirstRow)}
                                          ).text = tableLabel
                     elif self.type == XML:
                         self.StrctNodeModelElements = []
@@ -163,10 +163,10 @@ class ViewRenderedGrid(ViewFile.View):
                         self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1, 
                                    xTopStrctNode, xStrctNodes, True, True)
                     if self.type == HTML: # table/tr goes by row
-                        self.yAxisByRow(1, self.dataFirstRow, yTopStrctNode, True, True)
+                        self.yAxisByRow(0, self.dataFirstRow, yTopStrctNode, True, True)
                     elif self.type == XML and discriminator == 1: # infoset goes by col of row header
                         if yTopStrctNode and yTopStrctNode.strctMdlChildNodes: # no row header element if no rows
-                            self.yAxisByCol(1, self.dataFirstRow, yTopStrctNode, True, True)
+                            self.yAxisByCol(0, self.dataFirstRow, yTopStrctNode, True, True)
                         # add header cells to header elements cycling through nested repeats
                         moreHeaderCells = True
                         while moreHeaderCells:

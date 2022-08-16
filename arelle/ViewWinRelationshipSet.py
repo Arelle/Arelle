@@ -10,6 +10,7 @@ from arelle import ViewWinTree, ModelDtsObject, ModelInstanceObject, ModelRender
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelFormulaObject import ModelFilter
+from arelle.ModelObject import ModelObject
 from arelle.ViewUtil import viewReferences, groupRelationshipSet, groupRelationshipLabel
 from arelle.XbrlConst import conceptNameLabelRole, documentationLabel, widerNarrower
 
@@ -285,8 +286,13 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     self.treeView.set(childnode, "axis", modelObject.axis)
                     if isinstance(concept, DefnMdlRuleDefinitionNode):
                         self.treeView.set(childnode, "priItem", concept.aspectValue(None, Aspect.CONCEPT))
-                        self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim, concept.aspectValue(None, dim) or concept.variableRefs()) 
-                                                                       for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or []))))
+                        self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim, 
+                                                                                        dimAspectVal.stringValue if isinstance(dimAspectVal,ModelObject) else
+                                                                                        (dimAspectVal or concept.variableRefs())) 
+                                                                       for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or [])
+                                                                       for dimAspectVal in (concept.aspectValue(None, dim),)
+                                                                       if dimAspectVal is not None))
+                )
             elif self.arcrole == widerNarrower:
                 if isRelation:
                     otherWider = [modelRel.fromModelObject

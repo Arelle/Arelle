@@ -167,7 +167,12 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
                 o["structuralDepth"] = obj.structuralDepth
                 _aspectsCovered = obj.aspectsCovered()
                 if _aspectsCovered:
-                    o["aspectsCovered"] = OrderedDict((aspectStr(a),str(obj.aspectValue(a)).replace(OPEN_ASPECT_ENTRY_SURROGATE, "OPEN_ASPECT_ENTRY_")) for a in _aspectsCovered)
+                    o["aspectsCovered"] = OrderedDict((aspectStr(a),
+                                                       str(v.stringValue if isinstance(v,ModelObject) else v
+                                                           ).replace(OPEN_ASPECT_ENTRY_SURROGATE, "OPEN_ASPECT_ENTRY_"))
+                                                      for a in _aspectsCovered
+                                                      if a != Aspect.DIMENSIONS
+                                                      for v in (obj.aspectValue(a),))
             if obj.defnMdlNode is not None:
                 o["defnMdlNode"] = str(obj.defnMdlNode)
             if obj.strctMdlChildNodes:
