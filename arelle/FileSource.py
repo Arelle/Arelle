@@ -320,6 +320,7 @@ class FileSource:
         if self.isEis and self.isOpen:
             self.eisDocument.getroot().clear() # unlink nodes
             self.eisDocument = None
+            self.isOpen = False
             self.isEis = False
         if self.isXfd and self.isOpen:
             self.xfdDocument.getroot().clear() # unlink nodes
