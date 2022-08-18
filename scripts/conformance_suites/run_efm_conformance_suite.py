@@ -6,6 +6,8 @@ from arelle.CntlrCmdLine import parseAndRun
 CONFORMANCE_SUITE = 'tests/resources/conformance_suites/efm_conformance_suite_2022.zip/conf'
 EFM_PLUGIN = 'validate/EFM'
 IXDS_PLUGIN = 'inlineXbrlDocumentSet'
+EDGARRENDERER_PLUGIN = 'EdgarRenderer'
+PLUGINS = [EFM_PLUGIN, IXDS_PLUGIN, EDGARRENDERER_PLUGIN]
 
 BASE_ARGS = [
     '--csvTestReport', './EFM-conf-report.xlsx',
@@ -13,7 +15,7 @@ BASE_ARGS = [
     '--file', os.path.abspath(os.path.join(CONFORMANCE_SUITE, 'testcases.xml')),
     '--formula', 'run',
     '--logFile', './EFM-conf-log.txt',
-    '--plugins', '{}|{}'.format(EFM_PLUGIN, IXDS_PLUGIN),
+    '--plugins', '|'.join(PLUGINS),
     '--testcaseResultsCaptureWarnings',
     '--validate'
 ]

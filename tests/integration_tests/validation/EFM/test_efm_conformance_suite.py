@@ -8,12 +8,14 @@ from tests.integration_tests.validation.validation_util import get_test_data
 CONFORMANCE_SUITE = 'tests/resources/conformance_suites/efm_conformance_suite_2022.zip/conf'
 EFM_PLUGIN = 'validate/EFM'
 IXDS_PLUGIN = 'inlineXbrlDocumentSet'
+EDGARRENDERER_PLUGIN = 'EdgarRenderer'
+PLUGINS = [EFM_PLUGIN, IXDS_PLUGIN, EDGARRENDERER_PLUGIN]
 ARGS = [
     '--disclosureSystem', 'efm-pragmatic',
     '--file', os.path.abspath(os.path.join(CONFORMANCE_SUITE, 'testcases.xml')),
     '--formula', 'run',
     '--keepOpen',
-    '--plugins', '{}|{}'.format(EFM_PLUGIN, IXDS_PLUGIN),
+    '--plugins', '|'.join(PLUGINS),
     '--testcaseResultsCaptureWarnings',
     '--validate'
 ]
