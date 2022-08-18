@@ -4,7 +4,7 @@ import pytest
 
 from tests.integration_tests.validation.validation_util import get_test_data
 
-
+# from https://www.sec.gov/structureddata/osdinteractivedatatestsuite
 CONFORMANCE_SUITE = 'tests/resources/conformance_suites/efm_conformance_suite_2022.zip/conf'
 EFM_PLUGIN = 'validate/EFM'
 IXDS_PLUGIN = 'inlineXbrlDocumentSet'

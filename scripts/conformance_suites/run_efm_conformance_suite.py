@@ -2,7 +2,7 @@ import os
 
 from arelle.CntlrCmdLine import parseAndRun
 
-
+# from https://www.sec.gov/structureddata/osdinteractivedatatestsuite
 CONFORMANCE_SUITE = 'tests/resources/conformance_suites/efm_conformance_suite_2022.zip/conf'
 EFM_PLUGIN = 'validate/EFM'
 IXDS_PLUGIN = 'inlineXbrlDocumentSet'
