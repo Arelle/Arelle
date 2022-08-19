@@ -23,7 +23,16 @@ ARGS = [
 if os.getenv('CONFORMANCE_SUITES_TEST_MODE') == 'OFFLINE':
     ARGS.extend(['--internetConnectivity','offline'])
 
-TEST_DATA = get_test_data(ARGS)
+EXPECTED_EMPTY_TESTCASES = frozenset([
+    'conf/605-instance-syntax/605-45-cover-page-facts-general-case/605-45-cover-page-facts-general-case-testcase.xml',
+    'conf/609-linkbase-syntax/609-10-general-namespace-specific-custom-arc-restrictions/609-10-general-namespace-specific-custom-arc-restrictions-testcase.xml',
+    'conf/624-rendering/09-start-end-labels/gd/09-start-end-labels-gd-testcase.xml',
+    'conf/624-rendering/14-cash-flows/gd/14-cash-flows-gd-testcase.xml',
+    'conf/624-rendering/18-numeric/gd/18-numeric-gd-testcase.xml',
+    'conf/624-rendering/15-equity-changes/gw/15-equity-changes-gw-testcase.xml',
+])
+
+TEST_DATA = get_test_data(ARGS, expected_empty_testcases=EXPECTED_EMPTY_TESTCASES)
 
 
 @pytest.mark.parametrize("result", TEST_DATA)
