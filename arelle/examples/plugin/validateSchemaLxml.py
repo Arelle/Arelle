@@ -10,12 +10,12 @@ from lxml import etree
 
 def validateSchemaWithLxml(modelXbrl, cntlr=None):
     class schemaResolver(etree.Resolver):
-        def resolve(self, url, id, context): 
+        def resolve(self, url, id, context):
             if url.startswith("file:///__"):
                 url = importedFilepaths[int(url[10:])]
             filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(url)
             return self.resolve_filename(filepath, context)
-          
+
     entryDocument = modelXbrl.modelDocument
     # test of schema validation using lxml (trial experiment, commented out for production use)
     from arelle import ModelDocument
@@ -23,20 +23,20 @@ def validateSchemaWithLxml(modelXbrl, cntlr=None):
     importedNamespaces = set()
     importedFilepaths = []
 
-    '''    
+    '''
     for mdlSchemaDoc in entryDocument.referencesDocument.keys():
-        if (mdlSchemaDoc.type == ModelDocument.Type.SCHEMA and 
+        if (mdlSchemaDoc.type == ModelDocument.Type.SCHEMA and
             mdlSchemaDoc.targetNamespace not in importedNamespaces):
             # actual file won't pass through properly, fake with table reference
             imports.append('<xsd:import namespace="{0}" schemaLocation="file:///__{1}"/>'.format(
                 mdlSchemaDoc.targetNamespace, len(importedFilepaths)))
             importedNamespaces.add(mdlSchemaDoc.targetNamespace)
             importedFilepaths.append(mdlSchemaDoc.filepath)
-    '''    
+    '''
 
     def importReferences(referencingDocument):
         for mdlSchemaDoc in referencingDocument.referencesDocument.keys():
-            if (mdlSchemaDoc.type == ModelDocument.Type.SCHEMA and 
+            if (mdlSchemaDoc.type == ModelDocument.Type.SCHEMA and
                 mdlSchemaDoc.targetNamespace not in importedNamespaces):
                 importedNamespaces.add(mdlSchemaDoc.targetNamespace)
                 importReferences(mdlSchemaDoc)  # do dependencies first
@@ -75,8 +75,8 @@ def validateSchemaWithLxml(modelXbrl, cntlr=None):
     schemaDoc = etree.fromstring(schemaXml, parser=parser, base_url=entryDocument.filepath+"-dummy-import.xsd")
     schema = etree.XMLSchema(schemaDoc)
     from arelle.Locale import format_string
-    modelXbrl.info("info:lxmlSchemaValidator", format_string(modelXbrl.modelManager.locale, 
-                                 _("schema loaded in %.2f secs"), 
+    modelXbrl.info("info:lxmlSchemaValidator", format_string(modelXbrl.modelManager.locale,
+                                 _("schema loaded in %.2f secs"),
                                         time.time() - startedAt))
     modelXbrl.modelManager.showStatus(_("lxml schema validating"))
     # check instance documents and linkbases (sort for inst doc before linkbases, and in file name order)
@@ -84,8 +84,8 @@ def validateSchemaWithLxml(modelXbrl, cntlr=None):
         if mdlDoc.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.LINKBASE):
             startedAt = time.time()
             docXmlTree = etree.parse(mdlDoc.filepath)
-            modelXbrl.info("info:lxmlSchemaValidator", format_string(modelXbrl.modelManager.locale, 
-                                                _("schema validated in %.3f secs"), 
+            modelXbrl.info("info:lxmlSchemaValidator", format_string(modelXbrl.modelManager.locale,
+                                                _("schema validated in %.3f secs"),
                                                 time.time() - startedAt),
                                                 modelDocument=mdlDoc)
             if not schema.validate(docXmlTree):
@@ -95,15 +95,15 @@ def validateSchemaWithLxml(modelXbrl, cntlr=None):
                             modelDocument=mdlDoc,
                             sourceLine=error.line)
     modelXbrl.modelManager.showStatus(_("lxml validation done"), clearAfter=3000)
-    
-    if cntlr is not None:   
+
+    if cntlr is not None:
         # if using GUI controller, not cmd line or web service, select the errors window when done
         cntlr.uiThreadQueue.put((cntlr.logSelect, []))
 
 def validateSchemaWithLxmlMenuEntender(cntlr, validationmenu):
     # Insert as 2nd menu item for the lxml schema validation
-    validationmenu.insert_command(1, label="Validate schema with lxml", 
-                                  underline=0, 
+    validationmenu.insert_command(1, label="Validate schema with lxml",
+                                  underline=0,
                                   command=lambda: validateSchemaWithLxmlMenuCommand(cntlr) )
 
 def validateSchemaWithLxmlMenuCommand(cntlr):
@@ -118,9 +118,9 @@ def validateSchemaWithLxmlMenuCommand(cntlr):
 
 def validateSchemaWithLxmlCommandLineOptionExtender(parser):
     # extend command line options with a save DTS option
-    parser.add_option("--validateSchemaWithLxml", 
-                      action="store_true", 
-                      dest="validateSchemaLxml", 
+    parser.add_option("--validateSchemaWithLxml",
+                      action="store_true",
+                      dest="validateSchemaLxml",
                       help=_("Validate the schema with lxml (experimental)"))
 
 def validateSchemaWithLxmlCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):

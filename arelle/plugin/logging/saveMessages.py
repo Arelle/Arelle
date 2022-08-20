@@ -3,7 +3,7 @@ Save RSS Messages: custom log RSS messages
 
 Intended to provide csv (or other) file for post-processing and database loading.
 
-(c) Copyright 2015 Mark V Systems Limited, California US, All rights reserved.  
+(c) Copyright 2015 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 and does not apply to the XBRL US Database schema and description.
 
@@ -15,7 +15,7 @@ from arelle.ModelDtsObject import ModelConcept, ModelRelationship, ModelLocator
 from arelle.ModelInstanceObject import ModelFact
 
 _saveMessagesFile = None
-    
+
 def saveMessages(saveMessagesFile, modelXbrl, rssItem=None, **kwargs):
     # get logging entries (needed to find which aspects to identify)
     if rssItem is not None:
@@ -94,40 +94,40 @@ def saveMessages(saveMessagesFile, modelXbrl, rssItem=None, **kwargs):
 
 def saveMsgsCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options to store to database
-    parser.add_option("--saveMessagesFile", 
-                      action="store", 
-                      dest="saveMessagesFile", 
+    parser.add_option("--saveMessagesFile",
+                      action="store",
+                      dest="saveMessagesFile",
                       help=_("File name into which to save messages.  "))
-    
-    logging.getLogger("arelle").addHandler(LogHandler())    
+
+    logging.getLogger("arelle").addHandler(LogHandler())
 
 def saveMsgsCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
     from arelle.ModelDocument import Type
     if modelXbrl.modelDocument.type == Type.RSSFEED and getattr(options, "saveMessagesFile", False):
         modelXbrl.saveMessagesFile = options.saveMessagesFile
-    
+
 def saveMsgsCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     from arelle.ModelDocument import Type
-    if (modelXbrl.modelDocument.type not in (Type.RSSFEED, Type.TESTCASE, Type.REGISTRYTESTCASE) and 
+    if (modelXbrl.modelDocument.type not in (Type.RSSFEED, Type.TESTCASE, Type.REGISTRYTESTCASE) and
         getattr(options, "saveMessagesFile", False)):
         saveMessages(options.saveMessagesFile, modelXbrl)
-        
+
 def saveMsgsValidateRssItem(val, modelXbrl, rssItem, *args, **kwargs):
     if hasattr(val.modelXbrl, 'saveMessagesFile'):
         saveMessages(val.modelXbrl.saveMessagesFile, modelXbrl, rssItem)
-    
+
 def saveMsgsTestcaseVariationXbrlLoaded(val, modelXbrl, *args, **kwargs):
     if _saveMessagesFile:
         return saveMessages(_saveMessagesFile, modelXbrl)
-    
+
 def saveMsgsrssWatchHasWatchAction(rssWatchOptions, *args, **kwargs):
     return rssWatchOptions.get("saveMessagesFile")
-    
+
 def saveMsgsrssDoWatchAction(modelXbrl, rssWatchOptions, rssItem, *args, **kwargs):
     saveMessagesFile = rssWatchOptions.get("saveMessagesFile")
     if saveMessagesFile:
         saveMessages(saveMessagesFile, modelXbrl)
-        
+
 def saveMsgsLoaderSetup(cntlr, options, *args, **kwargs):
     global _saveMessagesFile
     # set options to load from DB (instead of load from XBRL and store in DB)
@@ -137,10 +137,10 @@ class LogHandler(logging.Handler):
     def __init__(self):
         super(LogHandler, self).__init__()
         self.logRecordBuffer = []
-        
+
     def flush(self):
         del self.logRecordBuffer[:]
-    
+
     def logEntries(self, clear=True):
         entries = []
         for logRec in self.logRecordBuffer:
@@ -156,11 +156,11 @@ class LogHandler(logging.Handler):
         if clear:
             del self.logRecordBuffer[:]
         return entries
-    
+
     def emit(self, logRecord):
         self.logRecordBuffer.append(logRecord)
-        
- 
+
+
 __pluginInfo__ = {
     'name': 'XBRL Database',
     'version': '1.2',

@@ -12,12 +12,12 @@ def viewRssFeed(modelXbrl, outfile, cols):
     view = ViewRssFeed(modelXbrl, outfile, cols)
     view.viewRssFeed(modelXbrl.modelDocument)
     view.close()
-    
+
 class ViewRssFeed(ViewFile.View):
     def __init__(self, modelXbrl, outfile, cols):
         super(ViewRssFeed, self).__init__(modelXbrl, outfile, "RSS Feed")
         self.cols = cols
-        
+
     def viewRssFeed(self, modelDocument):
         if self.cols:
             if isinstance(self.cols,str): self.cols = self.cols.replace(',').split()

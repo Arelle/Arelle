@@ -25,7 +25,7 @@ cipcBlockedInlineHtmlElements = {
 
 namePattern = re.compile(r"^(.*) - ((18|19|20)\d{2}-[0-9]+-(06|07|08|09|10|12|20|21|22|23|24|25|26|30|31)) - (20[1-9]\d)$")
 reportingModulePattern = re.compile(r"http://xbrl.cipc.co.za/taxonomy/.*/\w*(ca_fas|full_ifrs|ifrs_for_smes)\w*[_-]20[12][0-9]-[0-9]{2}-[0-9]{2}.xsd")
-                
+
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("CIPC", "CIPCplugin"),)
@@ -37,7 +37,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateCIPCplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "CIPCplugin", False)
     if not (val.validateCIPCplugin):
         return
-    
+
 
 def validateXbrlFinally(val, *args, **kwargs):
     if not (val.validateCIPCplugin):
@@ -53,11 +53,11 @@ def validateXbrlFinally(val, *args, **kwargs):
     _statusMsg = _("validating {0} filing rules").format(val.disclosureSystem.name)
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
-    
-    
+
+
     if modelDocument.type == ModelDocument.Type.INSTANCE:
         modelXbrl.error("cipc:instanceMustBeInlineXBRL",
-                        _("CIPC expects inline XBRL instances."), 
+                        _("CIPC expects inline XBRL instances."),
                         modelObject=modelXbrl)
     if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE):
         footnotesRelationshipSet = modelXbrl.relationshipSet("XBRL-footnotes")
@@ -76,7 +76,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 rel.arcrole == XbrlConst.factFootnote and rel.linkrole == XbrlConst.defaultLinkRole
                 for rel in footnotesRelationshipSet.toModelObject(elt)):
                 footnoteRoleErrors.add(elt)
-                
+
         if modelDocument.type == ModelDocument.Type.INLINEXBRL:
             _baseName, _baseExt = os.path.splitext(modelDocument.basename)
             if _baseExt not in (".xhtml",) or not namePattern.match(_baseName):
@@ -107,7 +107,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                             _("Title element required to have the pattern \"Co. name - regYr-regNbr-coCode - finYr\": %(title)s"),
                             modelObject=elt, title=elt.text)
                     for attrTag, attrValue in elt.items():
-                        if ((attrTag == "href" and eltTag == "a") or 
+                        if ((attrTag == "href" and eltTag == "a") or
                             (attrTag == "src" and eltTag == "img")):
                             if "javascript:" in attrValue:
                                 modelXbrl.error("cipc:disallowedScript",
@@ -124,14 +124,14 @@ def validateXbrlFinally(val, *args, **kwargs):
             for elt in modelDocument.xmlRootElement.iter():
                 if elt.qname == XbrlConst.qnLinkFootnote: # for now assume no private elements extend link:footnote
                     checkFootnote(elt, elt.stringValue)
-                        
-               
+
+
         # identify type of filer (FAS, Full IFES, IFRS for SMES)
         reportingModules = [reportingModulePattern.match(referencedDoc.uri).group(1)
                             for referencedDoc in modelDocument.referencesDocument.keys()
                             if referencedDoc.type == ModelDocument.Type.SCHEMA
                             if reportingModulePattern.match(referencedDoc.uri)]
-        
+
         if len(reportingModules) != 1 or reportingModules[0] not in cpicModules:
             modelXbrl.error("cipc:reportingModuleAmbiguous",
                 _("Reporting module must specify namespace for FAS, IFRS-FULL or IFRS-SMES"),
@@ -139,7 +139,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             reportingModule = None
         else:
             reportingModule = cpicModules[reportingModules[0]]
-        
+
         # build namespace maps
         nsMap = {}
         for ns in modelXbrl.namespaceDocs.keys():
@@ -151,56 +151,56 @@ def validateXbrlFinally(val, *args, **kwargs):
                 nsMap["ifrs-full"] = ns
             elif ns.endswith("/ifrs-smes"):
                 nsMap["ifrs-smes"] = ns
-                
+
         ''' checked by CIPC formula
         # build mandatory and footnoteIfNil tables by ns qname in use
         mandatory = set()
         for prefixedName in mandatoryElements[reportingModule]["mandatory"]:
             prefix, _sep, name = prefixedName.rpartition(":")
             mandatory.add(qname(nsMap.get(prefix),name))
-            
+
         footnoteIfNil = set()
         for prefixedName in mandatoryElements[reportingModule]["footnoteIfNil"]:
             prefix, _sep, name = prefixedName.rpartition(":")
             footnoteIfNil.add(qname(nsMap.get(prefix),name))
-        
+
         reportedMandatory = set()
         reportedFootnoteIfNil = set()
         factsMandatoryNilWithoutFootnote = set()
         footnotesRelationshipSet = modelXbrl.relationshipSet(XbrlConst.factFootnote, XbrlConst.defaultLinkRole)
-                
+
         for qn, facts in modelXbrl.factsByQname.items():
             if qn in mandatory:
                 reportedMandatory.add(qn)
             elif qn in footnoteIfNil:
                 for fact in facts:
-                    reportedFootnoteIfNil.add(qn)  
-                    if fact.isNil and not any(footnote.role == XbrlConst.footnote and 
-                                              footnote.xmlLang.startswith("en") and 
+                    reportedFootnoteIfNil.add(qn)
+                    if fact.isNil and not any(footnote.role == XbrlConst.footnote and
+                                              footnote.xmlLang.startswith("en") and
                                               footnote.stringValue.strip()
                                               for footnoteRel in footnotesRelationshipSet.fromModelObject(fact)
                                               for footnote in (footnoteRel.toModelObject,)):
-                        factsMandatoryNilWithoutFootnote.add(fact)    
-            
+                        factsMandatoryNilWithoutFootnote.add(fact)
+
         missingElements = (mandatory - reportedMandatory) # | (reportedFootnoteIfNil - reportedFootnoteIfNil)
         if missingElements:
             modelXbrl.error("cpic:missingRequiredElements",
-                            _("Required elements missing from document: %(elements)s."), 
+                            _("Required elements missing from document: %(elements)s."),
                             modelObject=modelXbrl, elements=", ".join(sorted(str(qn) for qn in missingElements)))
-            
+
         if factsMandatoryNilWithoutFootnote:
             modelXbrl.error("cpic:missingExplanatoryFootnote",
-                            _("Required nil facts missing explanatory footnote: %(elements)s."), 
-                            modelObject=factsMandatoryNilWithoutFootnote, 
+                            _("Required nil facts missing explanatory footnote: %(elements)s."),
+                            modelObject=factsMandatoryNilWithoutFootnote,
                             elements=", ".join(sorted(str(fact.qname) for fact in factsMandatoryNilWithoutFootnote)))
         '''
-            
+
         if transformRegistryErrors:
             modelXbrl.warning("cpic:transformRegistry",
-                              _("Transformation Registry 3 should be for facts: %(elements)s."), 
-                              modelObject=transformRegistryErrors, 
+                              _("Transformation Registry 3 should be for facts: %(elements)s."),
+                              modelObject=transformRegistryErrors,
                               elements=", ".join(sorted(str(fact.qname) for fact in transformRegistryErrors)))
-            
+
         if orphanedFootnotes:
             modelXbrl.error("cipc:orphanedFootnote",
                 _("Non-empty footnotes must be connected to fact(s)."),
@@ -210,7 +210,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             modelXbrl.error("cipc:nonEnglishFootnote",
                 _("Footnotes must use English language."),
                 modelObject=nonEnglishFootnotes)
-            
+
         if foonoteRoleErrors:
             modelXbrl.error("cipc:footnoteRoleErrors",
                 _("Footnotes must the default link, resource and arc roles."),
@@ -218,7 +218,7 @@ def validateXbrlFinally(val, *args, **kwargs):
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
-    
+
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading

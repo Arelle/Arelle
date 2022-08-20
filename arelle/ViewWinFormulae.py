@@ -7,7 +7,7 @@ Created on Dec 6, 2010
 from collections import defaultdict
 import os
 from arelle import ViewWinTree, ModelObject, XbrlConst
-from arelle.ModelFormulaObject import (ModelParameter, ModelVariable, ModelVariableSet, 
+from arelle.ModelFormulaObject import (ModelParameter, ModelVariable, ModelVariableSet,
                                        ModelVariableSetAssertion, ModelConsistencyAssertion)
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ViewUtilFormulae import rootFormulaObjects, formulaObjSortKey
@@ -16,16 +16,16 @@ def viewFormulae(modelXbrl, tabWin):
     modelXbrl.modelManager.showStatus(_("viewing formulas"))
     view = ViewFormulae(modelXbrl, tabWin)
     view.view()
-    
+
 class ViewFormulae(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin):
         super(ViewFormulae, self).__init__(modelXbrl, tabWin, "Formulae", True)
-        
+
     def view(self):
         self.blockSelectEvent = 1
         self.blockViewModelObject = 0
         self.tag_has = defaultdict(list) # temporary until Tk 8.6
-        
+
         self.treeView["columns"] = ("label", "cover", "complement", "bindAsSequence", "expression", "value")
         self.treeView.column("#0", width=200, anchor="w")
         self.treeView.heading("#0", text="Formula object")
@@ -40,7 +40,7 @@ class ViewFormulae(ViewWinTree.ViewTree):
         self.treeView.column("expression", width=350, anchor="w")
         self.treeView.heading("expression", text="Expression")
 
-                
+
         # root node for tree view
         self.id = 1
         self.clearTreeView()
@@ -95,7 +95,7 @@ class ViewFormulae(ViewWinTree.ViewTree):
                         if i == 0:
                             relationshipArcsShown.add(modelRel.arcElement)
             visited.remove(fromObject)
-                   
+
     def getToolTip(self, tvRowId, tvColId):
         # override tool tip when appropriate
         if tvColId == "#0":
@@ -105,9 +105,9 @@ class ViewFormulae(ViewWinTree.ViewTree):
                     modelObject = modelObject.toModelObject
                 return modelObject.xmlElementView
             except (AttributeError, KeyError):
-                pass 
+                pass
         return None
-    
+
     def treeviewEnter(self, *args):
         self.blockSelectEvent = 0
 
@@ -119,7 +119,7 @@ class ViewFormulae(ViewWinTree.ViewTree):
             self.blockViewModelObject += 1
             self.modelXbrl.viewModelObject(self.treeView.selection()[0])
             self.blockViewModelObject -= 1
-        
+
     def viewModelObject(self, modelObject):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1

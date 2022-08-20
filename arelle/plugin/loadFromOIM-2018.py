@@ -9,7 +9,7 @@ Example to run from web server:
 1) POSTing excel in a zip, getting instance and log back in zip:
 
    curl -k -v -X POST "-HContent-type: application/zip" -T /Users/hermf/Documents/blahblah.xlsx.zip "localhost:8080/rest/xbrl/open?media=zip&file=WIP_DETAILED_3.xlsx&plugins=loadFromOIM&saveOIMinstance=myinstance.xbrl" -o out.zip
-   
+
 2) POSTing json within an archive of XII test cases and log and instance back in zip
 
    curl -k -v -X POST "-HContent-type: application/zip" -T test.zip  "localhost:8080/rest/xbrl/open?media=zip&file=100-json/helloWorld.json&plugins=loadFromOIM&saveOIMinstance=myinstance.xbrl" -o out.zip
@@ -38,7 +38,7 @@ nsOims = (nsOim,
           "http://www.xbrl.org/PWD/2016-01-13/oim",
           "http://www.xbrl.org/WGWD/YYYY-MM-DD/oim"
          )
-         
+
 
 
 XLINKTYPE = "{http://www.w3.org/1999/xlink}type"
@@ -84,10 +84,10 @@ EMPTYDICT = {}
 
 PrefixedQName = re.compile(
                  "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-                  r"[_\-\." 
+                  r"[_\-\."
                   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*:"
                  "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-                  r"[_\-\." 
+                  r"[_\-\."
                   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*")
 UnitPrefixedQNameSubstitutionChar = "\x07" # replaces PrefixedQName in unit pattern
 UnitPattern = re.compile(
@@ -102,7 +102,7 @@ xlUnicodePattern = re.compile("_x([0-9A-F]{4})_")
 
 def xlUnicodeChar(match):
     return chr(int(match.group(1), 16))
-    
+
 def xlValue(cell): # excel values may have encoded unicode, such as _0000D_
     v = cell.value
     if isinstance(v, str):
@@ -140,21 +140,21 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
     from arelle import ModelDocument, ModelXbrl, XmlUtil
     from arelle.ModelDocument import ModelDocumentReference
     from arelle.ModelValue import qname
-    
+
     _return = None # modelDocument or an exception
-    
+
     try:
         currentAction = "initializing"
         startingErrorCount = len(modelXbrl.errors) if modelXbrl else 0
         startedAt = time.time()
-        
+
         if not modelXbrl.fileSource.isArchive and os.path.isabs(oimFile):
             # allow relative filenames to loading directory
             priorCWD = os.getcwd()
             os.chdir(os.path.dirname(oimFile))
         else:
             priorCWD = None
-            
+
         currentAction = "determining file type"
         isXL = oimFile.endswith(".xlsx") or oimFile.endswith(".xls")
         isJSON = False
@@ -162,8 +162,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
         isCSVorXL = isCSV or isXL
         instanceFileName = os.path.splitext(oimFile)[0] + ".xbrl"
         _csvwContext = None
-        anonymousFactId = 0 
-        
+        anonymousFactId = 0
+
         if not isXL: # try as JSON
             errPrefix = "xbrlje"
             currentAction = "loading and parsing JSON OIM file"
@@ -230,12 +230,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 missing = [t for t in ("documentInfo", "facts") if t not in oimObject]
                 missing += [t for t in ("documentType", "taxonomy", "prefixes", "features") if t not in oimObject.get("documentInfo", {})]
                 if missing:
-                    raise OIMException("xbrlje:missingJSONElements", 
+                    raise OIMException("xbrlje:missingJSONElements",
                                        _("Required element(s) are missing from JSON input: %(missing)s"),
                                        missing = ", ".join(missing))
                 oimDocumentInfo = oimObject["documentInfo"]
                 if oimDocumentInfo["documentType"] != JSONdocumentType:
-                    raise OIMException("xbrlje:unrecognizedJSONDocumentType", 
+                    raise OIMException("xbrlje:unrecognizedJSONDocumentType",
                                        _("Required documentType is missing from JSON input"))
                 currentAction = "identifying JSON objects"
                 dtsReferences = oimDocumentInfo["taxonomy"]
@@ -270,25 +270,25 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             else:
                 csvOpenMode = 'wb' # for 2.7
                 csvOpenNewline = None
-                
+
             # process CSV metadata
             # mandatory sections of metadata file
             oimMetadata = oimObject.get(CSVmetadata)
             missing = [t for t in ("@context", CSVmetadata, "tables") if t not in oimObject]
             missing += [t for t in ("documentType", "taxonomy", "prefixes") if t not in (oimMetadata or ())]
             if missing:
-                raise OIMException("xbrlce:missingOIMMetadataProperties", 
+                raise OIMException("xbrlce:missingOIMMetadataProperties",
                                    _("Required properties(s) are missing from CSV metadata: %(missing)s"),
                                    missing = ", ".join(missing))
             if oimMetadata.get("documentType") != CSVdocumentType:
-                raise OIMException("xbrlce:unrecognizedDocumentType", 
+                raise OIMException("xbrlce:unrecognizedDocumentType",
                                    _("Document type %(documentType)s not recognized, expecting %(expectedDocumentType)s"),
                                    documentType=oimMetadata.get("documentType"), expectedDocumentType=CSVdocumentType)
-            
+
             dtsReferences = oimMetadata.get("taxonomy", {})
             prefixesList = oimMetadata.get("prefixes", {}).items()
             topLevelProperties = oimObject.get(CSVproperties, {})
-            
+
             currentAction = "loading CSV facts tables"
             facts = OrderedDict()
             footnotes = []
@@ -326,7 +326,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                             tableProperties.pop(prop, None)
                 for propertyName, propertyValue in tableLevelProperties.items():
                     if propertyName in ("footnoteRefs",):
-                        tableProperties[propertyName].extend(propertyValue) 
+                        tableProperties[propertyName].extend(propertyValue)
                     elif propertyName != "deleteInheritedProperties":
                         tableProperties[propertyName] = propertyValue
                 filepath = os.path.join(_dir, tableUrl)
@@ -358,10 +358,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                     continue
                                 colDef = tableColumns[iCol]
                                 colType = colDef.get(CSVcolumnType)
-                                cellProperties = (colProperties, 
+                                cellProperties = (colProperties,
                                                   specificColProperties.get("*", EMPTYDICT),
                                                   specificColProperties.get(colDef.get("name"), EMPTYDICT),
-                                                  colDef.get(CSVproperties, EMPTYDICT))                                
+                                                  colDef.get(CSVproperties, EMPTYDICT))
                                 footnote = {}
                                 if colType == "textFootnote":
                                     footnote["footnote"] = cellValue
@@ -388,7 +388,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 if isinstance(colProperty, dict) and "footnoteFor" in colProperty and isinstance(colProperty["footnoteFor"], list):
                                     for footnoteForCol in colProperty["footnoteFor"]:
                                         refs = specificColProperties[footnoteForCol].setdefault("footnoteRefs", [])
-                                        refs.append(footnote["footnoteId"])                                        
+                                        refs.append(footnote["footnoteId"])
                                 footnotes.append(footnote)
                             for iCol in factCols:
                                 if iCol >= len(row):
@@ -398,7 +398,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                     continue
                                 colDef = tableColumns[iCol]
                                 colType = colDef.get(CSVcolumnType)
-                                cellProperties = (colProperties, 
+                                cellProperties = (colProperties,
                                                   specificColProperties.get("*", EMPTYDICT),
                                                   specificColProperties.get(colDef.get("name"), EMPTYDICT),
                                                   tableColumns[iCol].get(CSVproperties, EMPTYDICT))
@@ -412,19 +412,19 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                         tupleIds.add(cellValue) # prevent tuple duplication
                                 elif colType in ("simpleFact", "numericSimpleFact", "textSimpleFact"):
                                     fact["value"] = csvCellValue(cellValue)
-                                        
+
                                 if colType == "tupleFact":
                                     inapplicableProperties.update(oimSimpleFactProperties)
                                     for _properties in cellProperties:
                                         for propertyName, propertyValue in _properties.items():
                                             if not propertyName.startswith(oimPrefix):
                                                 inapplicableProperties.add(propertyName)
-                                        
+
                                 # block any row property produced by this column from this column's fact
                                 _colProperty = colDef.get(CSVcolumnProperty)
                                 if isinstance(_colProperty, str): # applies to all cols
                                     inapplicableProperties.add(_colProperty)
-                                        
+
                                 footnoteRefs = set()
                                 for _properties in cellProperties:
                                     if _properties:
@@ -456,7 +456,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                         footnoteRefFactIds[footnoteRef].add(factId)
                                 facts[fact["id"]] = fact
                 del tupleIds
-                
+
         elif isXL:
             errPrefix = "xbrlce" # use same prefix as CSV since workbook is a use of xBRL-CSV specification
             currentAction = "identifying workbook input worksheets"
@@ -467,7 +467,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             if (not any(sheetName == "prefixes" for sheetName in sheetNames) or
                 not any(sheetName == "dtsReferences" for sheetName in sheetNames) or
                 not any("metadata" in sheetName for sheetName in sheetNames)):
-                raise OIMException("xbrlwe:missingWorkbookWorksheets", 
+                raise OIMException("xbrlwe:missingWorkbookWorksheets",
                                    _("Unable to identify worksheet tabs for dtsReferences, prefixes or metadata"))
             currentAction = "loading worksheet: dtsReferences"
             dtsReferences = []
@@ -495,7 +495,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         metaHdr = dict((title,i) for i,title in enumerate(metaTitles))
                         missingCols = {"table", "column name", "column type"} - set(metaHdr.keys())
                         if missingCols:
-                            raise OIMException("xbrlwe:missingMetadataColumns", 
+                            raise OIMException("xbrlwe:missingMetadataColumns",
                                                _("Required columns missing: %(missing)s"),
                                                missing=", ".join(sorted(missingCols)))
                         metaColPropCols = [] # pairs of property name and applies to metadata column indices
@@ -520,22 +520,22 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                     if namedRange in oimWb.defined_names:
                                         defn = oimWb.defined_names[namedRange]
                                         if defn.type != "RANGE":
-                                            raise OIMException("xbrlwe:unusableRange", 
+                                            raise OIMException("xbrlwe:unusableRange",
                                                                _("Referenced range does not refer to a range: %(tableRange)s"),
                                                                tableRange=tableRangeName)
                                         elif any(_table != table for _table, cellsRange in defn.destinations):
-                                            raise OIMException("xbrlwe:unusableRange", 
+                                            raise OIMException("xbrlwe:unusableRange",
                                                                _("Referenced range refers to a different table: %(tableRange)s"),
                                                                tableRange=tableRangeName)
                                     else:
                                         missingRanges.add(tableRangeName)
                             tableMetadata.setdefault(tableRangeName, []).append(row)
                 if missingTables:
-                    raise OIMException("xbrlwe:missingTables", 
+                    raise OIMException("xbrlwe:missingTables",
                                        _("Referenced table tab(s): %(missing)s"),
                                        missing=", ".join(sorted(missingTables)))
                 if missingRanges:
-                    raise OIMException("xbrlwe:missingTableNamedRanges", 
+                    raise OIMException("xbrlwe:missingTableNamedRanges",
                                        _("Referenced named ranges tab(s): %(missing)s"),
                                        missing=", ".join(sorted(missingRanges)))
                 facts = OrderedDict()
@@ -589,7 +589,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 tableProperties.pop(prop, None)
                     for propertyName, propertyValue in tableLevelProperties.items():
                         if propertyName in ("footnoteRefs",):
-                            tableProperties[propertyName].extend(propertyValue) 
+                            tableProperties[propertyName].extend(propertyValue)
                         elif propertyName != "deleteInheritedProperties":
                             tableProperties[propertyName] = propertyValue
                     tupleIds = set()
@@ -626,10 +626,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 if cellValue is None or cellValue == "": # no fact produced for this cell
                                     continue
                                 colDef = colDefs[iCol]
-                                cellProperties = (colProperties, 
+                                cellProperties = (colProperties,
                                                   specificColProperties.get("*", EMPTYDICT),
                                                   specificColProperties[colDef.colName],
-                                                  colDef.colProperty)              
+                                                  colDef.colProperty)
                                 footnote = {}
                                 if colDef.colType == "textFootnote":
                                     footnote["footnote"] = cellValue
@@ -654,7 +654,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                     refs.append(footnote["factRef"])
                                 for footnoteForCol in (colDef.colProperty.get("footnoteFor") or "").split():
                                     refs = specificColProperties[footnoteForCol].setdefault("footnoteRefs", [])
-                                    refs.append(footnote["footnoteId"])                                        
+                                    refs.append(footnote["footnoteId"])
                                 footnotes.append(footnote)
                             for iCol in factCols:
                                 if iCol >= len(row):
@@ -663,7 +663,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 if cellValue is None or cellValue == "": # no fact produced for this cell
                                     continue
                                 colDef = colDefs[iCol]
-                                cellProperties = (colProperties, 
+                                cellProperties = (colProperties,
                                                   specificColProperties.get("*", EMPTYDICT),
                                                   specificColProperties.get(colDef.colName, EMPTYDICT),
                                                   colDef.colProperty)
@@ -677,17 +677,17 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                         tupleIds.add(cellValue) # prevent tuple duplication
                                 elif colDef.colType in ("simpleFact", "numericSimpleFact", "textSimpleFact"):
                                     fact["value"] = csvCellValue(cellValue)
-                                        
+
                                 if colDef.colType == "tupleFact":
                                     inapplicableProperties.update(oimSimpleFactProperties)
                                     for _properties in cellProperties:
                                         for propertyName, propertyValue in _properties.items():
                                             if not propertyName.startswith(oimPrefix) and propertyName != "deleteInheritedProperties":
                                                 inapplicableProperties.add(propertyName)
-                                        
+
                                 # block any row property produced by this column from this column's fact
                                 inapplicableProperties.update(colDef.producedProperties)
-                                        
+
                                 footnoteRefs = set()
                                 for _properties in cellProperties:
                                     if _properties:
@@ -719,12 +719,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                         footnoteRefFactIds[footnoteRef].add(factId)
                                 facts[fact["id"]] = fact
                 del tupleIds
-                            
-    
+
+
         currentAction = "identifying default dimensions"
         if modelXbrl is not None:
-            ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl) # needs dimension defaults 
-        
+            ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl) # needs dimension defaults
+
         currentAction = "validating OIM"
         prefixes = {}
         prefixedUris = {}
@@ -748,15 +748,15 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             else:
                 prefixes[_prefix] = _uri
                 prefixedUris[_uri] = _prefix
-                
+
         if "xbrl" not in prefixes:
             raise OIMException("oime:noXbrlPrefix",
                                _("The xbrl namespace must have a declared prefix"))
-            
+
         # create the instance document
         currentAction = "creating instance document"
-        _schemaRefs = [dtsRef["href"] 
-                       for dtsRef in dtsReferences 
+        _schemaRefs = [dtsRef["href"]
+                       for dtsRef in dtsReferences
                        if isinstance(dtsRef, dict) and dtsRef.get("type") == "schema" and dtsRef.get("href")
                       ] + [
                       href for href in dtsReferences if isinstance(href, str)
@@ -764,7 +764,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
         if modelXbrl: # pull loader implementation
             modelXbrl.blockDpmDBrecursion = True
             modelXbrl.modelDocument = _return = createModelDocument(
-                  modelXbrl, 
+                  modelXbrl,
                   Type.INSTANCE,
                   instanceFileName,
                   schemaRefs=_schemaRefs,
@@ -774,21 +774,21 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             modelXbrl.modelDocument.inDTS = True
         else: # API implementation
             modelXbrl = ModelXbrl.create(
-                cntlr.modelManager, 
-                Type.INSTANCE, 
-                instanceFileName, 
-                schemaRefs=_schemaRefs, 
-                isEntry=True, 
+                cntlr.modelManager,
+                Type.INSTANCE,
+                instanceFileName,
+                schemaRefs=_schemaRefs,
+                isEntry=True,
                 initialComment="extracted from OIM {}".format(mappedUri))
             _return = modelXbrl.modelDocument
-        
+
         # add linkbase, role and arcrole refs
         ''' deprecated
         for refType in ("linkbase", "role", "arcrole"):
             for dtsRef in dtsReferences:
                 if dtsRef.get("type") == refType and dtsRef.get("href"):
-                    elt = addChild(modelXbrl.modelDocument.xmlRootElement, 
-                                   qname(link, refType+"Ref"), 
+                    elt = addChild(modelXbrl.modelDocument.xmlRootElement,
+                                   qname(link, refType+"Ref"),
                                    attributes=(("{http://www.w3.org/1999/xlink}href", dtsRef["href"]),
                                                ("{http://www.w3.org/1999/xlink}type", "simple")))
                     href = modelXbrl.modelDocument.discoverHref(elt)
@@ -802,17 +802,17 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 elt.set(_uriAttrName, _uriAttrValue)
         '''
         firstCntxUnitFactElt = None
-            
+
         cntxTbl = {}
         unitTbl = {}
         xbrlNoteTbl = {} # fact ID: note fact
-            
+
         currentAction = "creating facts"
         factNum = 0 # for synthetic fact number
-        syntheticFactFormat = "_f{{:0{}}}".format(int(math.log10(len(facts)))) #want 
-        
+        syntheticFactFormat = "_f{{:0{}}}".format(int(math.log10(len(facts)))) #want
+
         for id, fact in facts.items():
-            
+
             dimensions = fact.get("dimensions")
             if dimensions is None:
                 dimensions = fact.get("dimensions", EMPTYDICT)
@@ -841,7 +841,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             attrs = {}
             if concept.isItem:
                 missingDimensions = []
-                if oimEntity not in dimensions: 
+                if oimEntity not in dimensions:
                     missingDimensions.append(oimEntity)
                 if "xbrl:start" in dimensions and "xbrl:end" in dimensions:
                     pass
@@ -873,7 +873,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                     ("periodType", concept.periodType),
                     ("entity", entityAsQn),
                     ("period", period)) + tuple(sorted(
-                        (dimName, dimVal["value"] if isinstance(dimVal,dict) else dimVal) 
+                        (dimName, dimVal["value"] if isinstance(dimVal,dict) else dimVal)
                         for dimName, dimVal in dimensions.items()
                         if ":" in dimName and not dimName.startswith(oimPrefix)))
                 if cntxKey in cntxTbl:
@@ -911,7 +911,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                             entityAsQn.namespaceURI,
                                             entityAsQn.localName,
                                             "forever" if period == "forever" else concept.periodType,
-                                            None if concept.periodType == "instant" or period == "forever" 
+                                            None if concept.periodType == "instant" or period == "forever"
                                                 else dateTime(period.rpartition('/')[0], type=DATETIME),
                                             None if period == "forever"
                                                 else dateTime(period.rpartition('/')[2], type=DATETIME),
@@ -948,7 +948,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                             try:
                                 mulQns = [qname(u, prefixes, prefixException=OIMException("oime:unitPrefix",
                                                                                           _("Unit prefix is not declared: %(unit)s"),
-                                                                                          unit=u)) 
+                                                                                          unit=u))
                                           for u in _muls]
                                 divQns = [qname(u, prefixes, prefixException=OIMException("oime:unitPrefix",
                                                                                           _("Unit prefix is not declared: %(unit)s"),
@@ -966,15 +966,15 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         unitTbl[unitKey] = _unit
                 else:
                     _unit = None
-            
+
                 attrs["contextRef"] = _cntx.id
-        
+
                 if fact.get("value") is None:
                     attrs[XbrlConst.qnXsiNil] = "true"
                     text = None
                 else:
                     text = fact["value"]
-                    
+
                 if concept.isNumeric:
                     if _unit is None:
                         return # skip creating fact because unit was invalid
@@ -985,24 +985,24 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         attrs["decimals"] = fact.get("accuracy", "INF")
             else:
                 text = None #tuple
-                    
+
             if not id:
                 id = syntheticFactFormat.format(factNum)
                 factNum += 1
             attrs["id"] = id
             if "id" not in fact: # needed for footnote generation
                 fact["id"] = id
-                    
+
             # is value a QName?
             if concept.baseXbrliType == "QNameItemType": # renormalize prefix of instance fact
                 text = addQnameValue(modelXbrl.modelDocument, qname(text.strip(), prefixes))
-    
+
             f = modelXbrl.createFact(conceptQn, attributes=attrs, text=text, validate=False)
             if firstCntxUnitFactElt is None:
                 firstCntxUnitFactElt = f
-            
+
             xmlValidate(modelXbrl, f)
-                    
+
         currentAction = "creating footnotes"
         footnoteLinks = OrderedDict() # ELR elements
         factLocs = {} # index by (linkrole, factId)
@@ -1067,8 +1067,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         definedInstanceRoles.add(refValue)
                         hrefElt = roleTypes[refValue][0]
                         href = hrefElt.modelDocument.uri + "#" + hrefElt.id
-                        elt = addChild(modelXbrl.modelDocument.xmlRootElement, 
-                                       qname(link, refType+"Ref"), 
+                        elt = addChild(modelXbrl.modelDocument.xmlRootElement,
+                                       qname(link, refType+"Ref"),
                                        attributes=(("{http://www.w3.org/1999/xlink}href", href),
                                                    ("{http://www.w3.org/1999/xlink}type", "simple")),
                                        beforeSibling=firstCntxUnitFactElt)
@@ -1082,8 +1082,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 if _uriAttrValue:
                                     elt.set(_uriAttrName, _uriAttrValue)
                 if linkrole not in footnoteLinks:
-                    footnoteLinks[linkrole] = addChild(modelXbrl.modelDocument.xmlRootElement, 
-                                                       XbrlConst.qnLinkFootnoteLink, 
+                    footnoteLinks[linkrole] = addChild(modelXbrl.modelDocument.xmlRootElement,
+                                                       XbrlConst.qnLinkFootnoteLink,
                                                        attributes={"{http://www.w3.org/1999/xlink}type": "extended",
                                                                    "{http://www.w3.org/1999/xlink}role": linkrole})
                 footnoteLink = footnoteLinks[linkrole]
@@ -1092,7 +1092,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                     locLabel = "l_{:02}".format(locNbr)
                     factLocs[(linkrole, factIDs)] = locLabel
                     for factId in factIDs:
-                        addChild(footnoteLink, XbrlConst.qnLinkLoc, 
+                        addChild(footnoteLink, XbrlConst.qnLinkLoc,
                                  attributes={XLINKTYPE: "locator",
                                              XLINKHREF: "#" + factId,
                                              XLINKLABEL: locLabel})
@@ -1133,13 +1133,13 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         locLabel = "l_{:02}".format(locNbr)
                         factLocs[(linkrole, fact2IDs)] = locLabel
                         for factId in fact2IDs:
-                            addChild(footnoteLink, XbrlConst.qnLinkLoc, 
+                            addChild(footnoteLink, XbrlConst.qnLinkLoc,
                                      attributes={XLINKTYPE: "locator",
                                                  XLINKHREF: "#" + factId,
                                                  XLINKLABEL: locLabel})
                     footnoteToLabel = factLocs[(linkrole, fact2IDs)]
-                footnoteArc = addChild(footnoteLink, 
-                                       XbrlConst.qnLinkFootnoteArc, 
+                footnoteArc = addChild(footnoteLink,
+                                       XbrlConst.qnLinkFootnoteArc,
                                        attributes={XLINKTYPE: "arc",
                                                    XLINKARCROLE: arcrole,
                                                    XLINKFROM: locFromLabel,
@@ -1159,9 +1159,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             error("xbrlje:unknownPrefix",
                   _("These footnote groups are not defined in prefixes: %(ftGroups)s."),
                   modelObject=modelXbrl, ftGroups=", ".join(sorted(undefinedFootnoteGroups)))
-                    
+
         currentAction = "done loading facts and footnotes"
-        
+
         #cntlr.addToLog("Completed in {0:.2} secs".format(time.time() - startedAt),
         #               messageCode="loadFromExcel:info")
     except NotOIMException as ex:
@@ -1175,10 +1175,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                     "Error while %(action)s, error %(error)s\ntraceback %(traceback)s",
                     modelObject=modelXbrl, action=currentAction, error=ex,
                     traceback=traceback.format_tb(sys.exc_info()[2]))
-    
+
     if priorCWD:
         os.chdir(priorCWD) # restore prior current working directory            startingErrorCount = len(modelXbrl.errors)
-        
+
     #if startingErrorCount < len(modelXbrl.errors):
     #    # had errors, don't allow ModelDocument.load to continue
     #    return OIMException("arelleOIMloader:unableToLoad", "Unable to load due to reported errors")
@@ -1250,22 +1250,22 @@ def cmdLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
             responseZipStream.seek(0)
 
 def excelLoaderOptionExtender(parser, *args, **kwargs):
-    parser.add_option("--saveOIMinstance", 
-                      action="store", 
-                      dest="saveOIMinstance", 
+    parser.add_option("--saveOIMinstance",
+                      action="store",
+                      dest="saveOIMinstance",
                       help=_("Save a instance loaded from OIM into this file name."))
-    
+
 def oimJsonSaveXml(cntlr, oimJsonObject, jsonFileName, xbrlFileName):
     def _error(code, message, **kwargs):
         cntlr.addToLog(message, code, kwargs, level=logging.ERROR)
     def _warning(code, message, **kwargs):
         cntlr.addToLog(message, code, kwargs, level=logging.WARNING)
-        
+
     doc = loadFromOIM(cntlr, _error, _warning, None, jsonFileName, "OIM", oimJsonObject)
     if xbrlFileName:
         doc.save(xbrlFileName)
     doc.modelXbrl.close()
-    
+
 __pluginInfo__ = {
     'name': 'Load From OIM 2018',
     'version': '0.9',

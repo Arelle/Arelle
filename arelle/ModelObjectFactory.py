@@ -12,7 +12,7 @@ elementSubstitutionModelClass = {}
 from lxml import etree
 from arelle import XbrlConst, XmlUtil
 from arelle.ModelValue import qnameNsLocalName
-from arelle.ModelDtsObject import (ModelConcept, ModelAttribute, ModelAttributeGroup, ModelType, 
+from arelle.ModelDtsObject import (ModelConcept, ModelAttribute, ModelAttributeGroup, ModelType,
                                    ModelGroupDefinition, ModelAll, ModelChoice, ModelSequence,
                                    ModelAny, ModelAnyAttribute, ModelEnumeration,
                                    ModelRoleType, ModelLocator, ModelLink, ModelResource)
@@ -107,7 +107,7 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
                     return ModelRssItem
                 else:
                     return ModelObject
-                
+
             # match specific element types or substitution groups for types
             return self.modelXbrl.matchSubstitutionGroup(
                                         qnameNsLocalName(ns, ln),
@@ -132,7 +132,7 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
             from arelle import ModelDocument
         if self.streamingOrSkipDTS and ModelFact is None:
             from arelle.ModelInstanceObject import ModelFact
-        
+
     def lookup(self, document, proxyElement):
         # check if proxyElement's namespace is not known
         ns, sep, ln = proxyElement.tag.partition("}")
@@ -141,8 +141,8 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
         else:
             ln = ns
             ns = None
-        if (ns and 
-            ns not in self.discoveryAttempts and 
+        if (ns and
+            ns not in self.discoveryAttempts and
             ns not in self.modelXbrl.namespaceDocs):
             # is schema loadable?  requires a schemaLocation
             relativeUrl = XmlUtil.schemaLocation(proxyElement, ns)
@@ -153,10 +153,10 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
         modelObjectClass = self.modelXbrl.matchSubstitutionGroup(
             qnameNsLocalName(ns, ln),
             elementSubstitutionModelClass)
-        
+
         if modelObjectClass is not None:
             return modelObjectClass
-        elif (self.streamingOrSkipDTS and 
+        elif (self.streamingOrSkipDTS and
               ns not in (XbrlConst.xbrli, XbrlConst.link)):
             # self.makeelementParentModelObject is set in streamingExtensions.py and ModelXbrl.createFact
             ancestor = proxyElement.getparent() or getattr(self.modelXbrl, "makeelementParentModelObject", None)
@@ -168,10 +168,10 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
                     else:
                         break # cannot be a fact
                 ancestor = ancestor.getparent()
-                
+
         xlinkType = proxyElement.get("{http://www.w3.org/1999/xlink}type")
         if xlinkType == "extended": return ModelLink
         elif xlinkType == "locator": return ModelLocator
         elif xlinkType == "resource": return ModelResource
-        
+
         return ModelObject

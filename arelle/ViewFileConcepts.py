@@ -12,7 +12,7 @@ def viewConcepts(modelXbrl, outFile, labelrole=None, lang=None):
     view = ViewConcepts(modelXbrl, outFile, labelrole, lang)
     view.view(modelXbrl.modelDocument)
     view.close()
-    
+
 COL_WIDTHS = {
     "Label": 60,
     "Name": 60,
@@ -21,19 +21,19 @@ COL_WIDTHS = {
     "Abstract": 8,
     "Substitution Group": 12,
     "Type": 32,
-    "Period Type": 16, 
+    "Period Type": 16,
     "Balance": 16,
     "Nillable": 5,
     "Typed Domain Ref": 20,
     "Facets": 60,
     "Documentation": 100
     }
-    
+
 class ViewConcepts(ViewFile.View):
     def __init__(self, modelXbrl, outFile, labelrole, lang):
         super(ViewConcepts, self).__init__(modelXbrl, outFile, "concepts", lang)
         self.labelrole = labelrole
-        
+
     def view(self, modelDocument):
         # check for optional attributes nillable and typedDomainRef usage
         hasTypedDomainRef = False

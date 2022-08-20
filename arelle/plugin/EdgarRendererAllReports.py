@@ -9,11 +9,11 @@ To assure that this plugin runs after EdgarRenderer's event, please specify it a
 EdgarRenderer in the list of plugins to load:
 
 e.g., --plugins 'validate/EFM|EdgarRenderer|EdgarRendererAllReports.py|transforms/SEC.py'
-if running from command line, or 
+if running from command line, or
       &plugins=validate/EFM|EdgarRenderer|EdgarRendererAllReports.py|transforms/SEC.py
 if running by web service REST API
 
-This plugin changes the default reportFormat to Xml only, avoiding generation of R1.htm, 
+This plugin changes the default reportFormat to Xml only, avoiding generation of R1.htm,
 if that's not wanted, please comment that out below.  It does require the xml files (so if
 you also want individual Html R files, reportXslt should be chanted below to HtmlAndXml).
 
@@ -34,19 +34,19 @@ def edgarRendererFilingStartSupplement(cntlr, options, entrypointFiles, filing, 
 
 def edgarRendererFilingEndSupplement(cntlr, options, filesource, filing, *args, **kwargs):
     edgarRenderer = filing.edgarRenderer
-    
-    # obtain R files from 
+
+    # obtain R files from
     url = "FilingSummary.xml"
     # note that reportZip operations are on filing.reportZip as EdgarRenderer has finished
     # if needing to re-use EdgarRenderer.reportZip, set it again to filing.reportZip
-    if filing.reportZip and url in filing.reportZip.namelist(): 
+    if filing.reportZip and url in filing.reportZip.namelist():
         filing.setReportZipStreamMode('r') # switch stream to read mode
         fileLikeObj = filing.reportZip.open(url)
     elif edgarRenderer.reportsFolder and os.path.exists(os.path.join(edgarRenderer.reportsFolder, url)):
         fileLikeObj = os.path.join(edgarRenderer.reportsFolder, url)
     else:
         return
-    edgarRenderer.logDebug("Generate all-reports htm file")    
+    edgarRenderer.logDebug("Generate all-reports htm file")
     rAll = [b'''
         <html>
           <head>
@@ -66,7 +66,7 @@ def edgarRendererFilingEndSupplement(cntlr, options, filesource, filing, *args, 
     for htmlFileName in filingSummaryTree.iter(tag="HtmlFileName"):
         rFile = htmlFileName.text.strip()
         edgarRenderer.logDebug("Appending report file {}".format(rFile))
-        if filing.reportZip and rFile in filing.reportZip.namelist(): 
+        if filing.reportZip and rFile in filing.reportZip.namelist():
             with filing.reportZip.open(rFile) as f:
                 rAll.append(f.read())
         elif edgarRenderer.reportsFolder and os.path.exists(os.path.join(edgarRenderer.reportsFolder, rFile)):

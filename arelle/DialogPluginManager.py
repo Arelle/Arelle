@@ -38,18 +38,18 @@ def backgroundCheckForUpdates(cntlr):
                               .format(', '.join(modulesWithNewerFileDates)), clearAfter=5000)
     else:
         cntlr.showStatus(_("No updates found for plug-ins."), clearAfter=5000)
-    time.sleep(0.1) # Mac locks up without this, may be needed for empty ui queue? 
+    time.sleep(0.1) # Mac locks up without this, may be needed for empty ui queue?
     cntlr.uiThreadQueue.put((DialogPluginManager, [cntlr, modulesWithNewerFileDates]))
 
 class DialogPluginManager(Toplevel):
     def __init__(self, mainWin, modulesWithNewerFileDates):
         super(DialogPluginManager, self).__init__(mainWin.parent)
-        
+
         self.ENABLE = _("Enable")
         self.DISABLE = _("Disable")
         self.parent = mainWin.parent
         self.cntlr = mainWin
-        
+
         # copy plugins for temporary display
         self.pluginConfig = PluginManager.pluginConfig
         self.pluginConfigChanged = False
@@ -59,14 +59,14 @@ class DialogPluginManager(Toplevel):
         self.disclosureSystemTypesChanged = False
         self.hostSystemFeaturesChanged = False
         self.modulesWithNewerFileDates = modulesWithNewerFileDates
-        
+
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", self.parent.geometry())
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
 
         self.title(_("Plug-in Manager"))
         frame = Frame(self)
-        
+
         # left button frame
         buttonFrame = Frame(frame, width=40)
         buttonFrame.columnconfigure(0, weight=1)
@@ -82,7 +82,7 @@ class DialogPluginManager(Toplevel):
         addBrowseLocalButton.grid(row=2, column=0, pady=4)
         addWebButton.grid(row=3, column=0, pady=4)
         buttonFrame.grid(row=0, column=0, rowspan=3, sticky=(N, S, W), padx=3, pady=3)
-        
+
         # right tree frame (plugins already known to arelle)
         modulesFrame = Frame(frame, width=720)
         vScrollbar = Scrollbar(modulesFrame, orient=VERTICAL)
@@ -130,18 +130,18 @@ class DialogPluginManager(Toplevel):
         classesFrame.rowconfigure(0, weight=1)
         classesFrame.grid(row=1, column=1, columnspan=4, sticky=(N, S, E, W), padx=3, pady=3)
         self.classesView.focus_set()
-        
+
         self.classesView.column("#0", width=200, anchor="w")
         self.classesView.heading("#0", text=_("Class"))
         self.classesView["columns"] = ("modules",)
         self.classesView.column("modules", width=500, anchor="w", stretch=False)
         self.classesView.heading("modules", text=_("Modules"))
-        
+
         # bottom frame module info details
         moduleInfoFrame = Frame(frame, width=700)
         moduleInfoFrame.columnconfigure(1, weight=1)
-        
-        self.moduleNameLabel = Label(moduleInfoFrame, wraplength=600, justify="left", 
+
+        self.moduleNameLabel = Label(moduleInfoFrame, wraplength=600, justify="left",
                                      font=font.Font(family='Helvetica', size=12, weight='bold'))
         self.moduleNameLabel.grid(row=0, column=0, columnspan=4, sticky=W)
         self.moduleAuthorHdr = Label(moduleInfoFrame, text=_("author:"), state=DISABLED)
@@ -191,14 +191,14 @@ class DialogPluginManager(Toplevel):
         self.moduleRemoveButton.grid(row=9, column=3, sticky=E)
         moduleInfoFrame.grid(row=2, column=0, columnspan=5, sticky=(N, S, E, W), padx=3, pady=3)
         moduleInfoFrame.config(borderwidth=4, relief="groove")
-        
+
         okButton = Button(frame, text=_("Close"), command=self.ok)
         ToolTip(okButton, text=_("Accept and changes (if any) and close dialog."), wraplength=240)
         cancelButton = Button(frame, text=_("Cancel"), command=self.close)
         ToolTip(cancelButton, text=_("Cancel changes (if any) and close dialog."), wraplength=240)
         okButton.grid(row=3, column=3, sticky=(S,E), pady=3)
         cancelButton.grid(row=3, column=4, sticky=(S,E), pady=3, padx=3)
-        
+
         enableDisableFrame = Frame(frame)
         enableDisableFrame.grid(row=3, column=1, sticky=(S,W), pady=3)
         enableAllButton = Button(enableDisableFrame, text=_("Enable All"), command=self.enableAll)
@@ -207,7 +207,7 @@ class DialogPluginManager(Toplevel):
         ToolTip(disableAllButton, text=_("Disable all plug ins."), wraplength=240)
         enableAllButton.grid(row=1, column=1)
         disableAllButton.grid(row=1, column=2)
-        
+
         self.loadTreeViews()
 
         self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
@@ -218,21 +218,21 @@ class DialogPluginManager(Toplevel):
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
         window.rowconfigure(0, weight=1)
-        
+
         self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.close)
-        
+
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.grab_set()
         self.wait_window(self)
-        
+
     def loadTreeViews(self):
         self.selectedModule = None
 
         # clear previous treeview entries
-        for previousNode in self.modulesView.get_children(""): 
+        for previousNode in self.modulesView.get_children(""):
             self.modulesView.delete(previousNode)
-            
+
         def loadSubtree(parentNode, moduleItems):
             for moduleItem in sorted(moduleItems, key=lambda item: item[0]):
                 moduleInfo = moduleItem[1]
@@ -253,18 +253,18 @@ class DialogPluginManager(Toplevel):
                     if moduleInfo.get("imports"):
                         loadSubtree(node, [(importModuleInfo["name"],importModuleInfo)
                                            for importModuleInfo in moduleInfo["imports"]])
-            
+
         loadSubtree("", self.pluginConfig.get("modules", {}).items())
-        
+
         # clear previous treeview entries
-        for previousNode in self.classesView.get_children(""): 
+        for previousNode in self.classesView.get_children(""):
             self.classesView.delete(previousNode)
 
         for i, classItem in enumerate(sorted(self.pluginConfig.get("classes", {}).items())):
             className, moduleList = classItem
             node = self.classesView.insert("", "end", className, text=className)
             self.classesView.set(node, "modules", ', '.join(moduleList))
-            
+
         self.moduleSelect()  # clear out prior selection
 
     def ok(self, event=None):
@@ -281,7 +281,7 @@ class DialogPluginManager(Toplevel):
                 self.pluginConfigChanged = True
         for _orphanedClassName in _orphanedClassNames:
             del self.pluginConfig["classes"][_orphanedClassName]
-        
+
         if self.pluginConfigChanged:
             PluginManager.pluginConfig = self.pluginConfig
             PluginManager.pluginConfigChanged = True
@@ -307,7 +307,7 @@ class DialogPluginManager(Toplevel):
                     affectedItems += _(" and ")
                 affectedItems += _("host system features")
             if messagebox.askyesno(_("User interface plug-in change"),
-                                   _("A change in plug-in class methods may have affected {0}.  " 
+                                   _("A change in plug-in class methods may have affected {0}.  "
                                      "Please restart Arelle to due to these changes.  \n\n"
                                      "Should Arelle restart itself now "
                                      "(if there are any unsaved changes they would be lost!)?"
@@ -315,11 +315,11 @@ class DialogPluginManager(Toplevel):
                                    parent=self):
                 self.cntlr.uiThreadQueue.put((self.cntlr.quit, [None, True]))
         self.close()
-        
+
     def close(self, event=None):
         self.parent.focus_set()
         self.destroy()
-                
+
     def moduleSelect(self, *args):
         node = (self.modulesView.selection() or (None,))[0]
         if node:
@@ -397,12 +397,12 @@ class DialogPluginManager(Toplevel):
                         ((os.path.isfile(fPath) and f.endswith(".py")))):
                         moduleInfo = PluginManager.moduleModuleInfo(fPath)
                         if moduleInfo:
-                            choices.append((indent + f, 
+                            choices.append((indent + f,
                                             "name: {}\ndescription: {}\nversion: {}\nlicense: {}".format(
                                                         moduleInfo["name"],
                                                         moduleInfo.get("description"),
                                                         moduleInfo.get("version"),
-                                                        moduleInfo.get("license")), 
+                                                        moduleInfo.get("license")),
                                             fPath, moduleInfo["name"], moduleInfo.get("version"), moduleInfo.get("description"), moduleInfo.get("license")))
                             dirHasEntries = True
                     if os.path.isdir(fPath) and f not in ("DQC_US_Rules",) and not f.startswith("ixviewer"):
@@ -414,7 +414,7 @@ class DialogPluginManager(Toplevel):
         if selectedPath:
             moduleInfo = PluginManager.moduleModuleInfo(selectedPath[len(self.cntlr.pluginDir)+1:])
             self.loadFoundModuleInfo(moduleInfo, selectedPath)
-        
+
     def browseLocally(self):
         initialdir = self.cntlr.pluginDir # default plugin directory
         if not self.cntlr.isMac: # can't navigate within app easily, always start in default directory
@@ -433,7 +433,7 @@ class DialogPluginManager(Toplevel):
             self.cntlr.config["pluginOpenDir"] = os.path.dirname(filename)
             moduleInfo = PluginManager.moduleModuleInfo(filename)
             self.loadFoundModuleInfo(moduleInfo, filename)
-                
+
 
     def findOnWeb(self):
         url = DialogURL.askURL(self)
@@ -441,7 +441,7 @@ class DialogPluginManager(Toplevel):
             moduleInfo = PluginManager.moduleModuleInfo(url)
             self.cntlr.showStatus("") # clear web loading status
             self.loadFoundModuleInfo(moduleInfo, url)
-                
+
     def loadFoundModuleInfo(self, moduleInfo, url):
         if moduleInfo and moduleInfo.get("name"):
             self.addPluginConfigModuleInfo(moduleInfo)
@@ -451,7 +451,7 @@ class DialogPluginManager(Toplevel):
                                    _("File does not itself contain a python program with an appropriate __pluginInfo__ declaration: \n\n{0}")
                                    .format(url),
                                    parent=self)
-        
+
     def checkIfImported(self, moduleInfo):
         if moduleInfo.get("isImported"):
             messagebox.showwarning(_("Plug-in is imported by a parent plug-in.  "),
@@ -460,7 +460,7 @@ class DialogPluginManager(Toplevel):
                                    parent=self)
             return True
         return False
-    
+
     def checkClassMethodsChanged(self, moduleInfo):
         for classMethod in moduleInfo["classMethods"]:
             if classMethod.startswith("CntlrWinMain.Menu"):
@@ -473,7 +473,7 @@ class DialogPluginManager(Toplevel):
                 self.disclosureSystemTypesChanged = True # disclosure system types changed
             elif classMethod.startswith("Proxy."):
                 self.hostSystemFeaturesChanged = True # system features (e.g., proxy) changed
-    
+
     def removePluginConfigModuleInfo(self, name):
         moduleInfo = self.pluginConfig["modules"].get(name)
         if moduleInfo:
@@ -540,7 +540,7 @@ class DialogPluginManager(Toplevel):
                 self.moduleEnableButton['text'] = self.ENABLE
             self.pluginConfigChanged = True
             self.loadTreeViews()
-            
+
     def moduleReload(self):
         if self.selectedModule in self.pluginConfig["modules"]:
             url = self.pluginConfig["modules"][self.selectedModule].get("moduleURL")
@@ -563,13 +563,13 @@ class DialogPluginManager(Toplevel):
             self.removePluginConfigModuleInfo(self.selectedModule)
             self.pluginConfigChanged = True
             self.loadTreeViews()
-                    
+
     def enableAll(self):
         self.enableDisableAll(True)
-                    
+
     def disableAll(self):
         self.enableDisableAll(False)
-                    
+
     def enableDisableAll(self, doEnable):
         for module in self.pluginConfig["modules"]:
             moduleInfo = self.pluginConfig["modules"][module]
@@ -588,4 +588,4 @@ class DialogPluginManager(Toplevel):
                     self.moduleEnableButton['text'] = self.ENABLE
         self.pluginConfigChanged = True
         self.loadTreeViews()
-            
+

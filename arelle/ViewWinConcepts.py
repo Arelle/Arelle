@@ -38,7 +38,7 @@ def viewConcepts(modelXbrl, tabWin, header, lang=None, altTabWin=None):
     view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
     view.treeView.bind("<Enter>", view.treeviewEnter, '+')
     view.treeView.bind("<Leave>", view.treeviewLeave, '+')
-            
+
     # languages menu
     menu = view.contextMenu()
     view.menuAddClipboard()
@@ -46,11 +46,11 @@ def viewConcepts(modelXbrl, tabWin, header, lang=None, altTabWin=None):
     view.menuAddLabelRoles()
     view.menuAddNameStyle()
     view.menuAddViews(addClose=False, tabWin=altTabWin)
-    
+
 class ViewConcepts(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin, header, lang):
         super(ViewConcepts, self).__init__(modelXbrl, tabWin, header, True, lang)
-        
+
     def view(self):
         # sort by labels
         self.setColumnsSortable()
@@ -86,8 +86,8 @@ class ViewConcepts(ViewWinTree.ViewTree):
                     else:
                         node = self.treeView.insert("", "end", node, text=label)
                     '''
-                    node = self.treeView.insert("", "end", 
-                                                concept.objectId(), 
+                    node = self.treeView.insert("", "end",
+                                                concept.objectId(),
                                                 text=concept.label(role,lang=lang,linkroleHint=XbrlConst.defaultLinkRole),
                                                 tags=("odd" if nodeNum & 1 else "even",))
                     nodeNum += 1
@@ -121,7 +121,7 @@ class ViewConcepts(ViewWinTree.ViewTree):
             #self.modelXbrl.viewModelObject(self.nodeToObjectId[self.treeView.selection()[0]])
             self.modelXbrl.viewModelObject(self.treeView.selection()[0])
             self.blockViewModelObject -= 1
-        
+
     def viewModelObject(self, modelObject):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1

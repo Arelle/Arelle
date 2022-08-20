@@ -23,7 +23,7 @@ from arelle.CntlrWinTooltip import ToolTip
 caller checks accepted, if True, caller retrieves url
 '''
 def getNewFactItemOptions(mainWin, newInstanceOptions=None):
-    if newInstanceOptions is None: newInstanceOptions = NewFactItemOptions() 
+    if newInstanceOptions is None: newInstanceOptions = NewFactItemOptions()
     # use prior prevOptionValues for those keys not in existing newInstanceOptions
     for prevOptionKey, prevOptionValue in mainWin.config.get("newFactItemOptions",{}).items():
         if not getattr(newInstanceOptions, prevOptionKey, None):
@@ -35,26 +35,26 @@ def getNewFactItemOptions(mainWin, newInstanceOptions=None):
         mainWin.saveConfig()
         return True
     return False
-        
-monetaryUnits = ("AED", "AFN", "ALL", "AMD", "ANG", "AON", "ARP", "ATS", "AUD", "AWF", "AZM", 
-                 "AZN", "BAK", "BBD", "BDT", "BEF", "BGL", "BHD", "BIF", "BMD", "BND", "BOB", 
-                 "BRR", "BSD", "BTR", "BWP", "BYR", "BZD", "CAD", "CHF", "CLP", "CNY", "COP", 
-                 "CRC", "CSK", "CUP", "CVE", "CYP", "DEM", "DJF", "DKK", "DOP", "DZD", "ECS", 
-                 "EEK", "EGP", "ERN", "ESP", "ETB", "EUR", "FIM", "FJD", "FKP", "FRF", "GBP", 
-                 "GEL", "GHC", "GIP", "GMD", "GNF", "GRD", "GTQ", "GYD", "HKD", "HNL", "HRK", 
-                 "HTG", "HUF", "IDR", "IEP", "IEP", "ILS", "INR", "IQD", "IRR", "ISK", "ITL", 
-                 "JMD", "JOD", "JPY", "KES", "KGS", "KHR", "KMF", "KPW", "KRW", "KWD", "KYD", 
-                 "KZT", "LAK", "LBP", "LKR", "LRD", "LSL", "LTL", "LUF", "LVL", "LYD", "MAD", 
-                 "MDL", "MGF", "MKD", "MMK", "MNT", "MOP", "MRO", "MTL", "MUR", "MVR", "MWK", 
-                 "MXP", "MYR", "MZM", "NAD", "NGN", "NIO", "NLG", "NOK", "NPR", "NZD", "OMR", 
-                 "PAB", "PEN", "PGK", "PHP", "PKR", "PLN", "PTE", "PYG", "QAR", "ROL", "RSD", 
-                 "RUR", "RWF", "SAR", "SBD", "SBL", "SCR", "SDD", "SEK", "SGD", "SHP", "SIT", 
-                 "SKK", "SLL", "SOS", "SRG", "STD", "SVC", "SYP", "SZL", "THB", "TJR", "TMM", 
-                 "TND", "TOP", "TRL", "TTD", "TWD", "TZS", "UAH", "UGX", "USD", "UYU", "UZS", 
-                 "VEB", "VND", "VUV", "WST", "XAF", "XAG", "XAU", "XCD", "XDR", "XOF", "XPD", 
+
+monetaryUnits = ("AED", "AFN", "ALL", "AMD", "ANG", "AON", "ARP", "ATS", "AUD", "AWF", "AZM",
+                 "AZN", "BAK", "BBD", "BDT", "BEF", "BGL", "BHD", "BIF", "BMD", "BND", "BOB",
+                 "BRR", "BSD", "BTR", "BWP", "BYR", "BZD", "CAD", "CHF", "CLP", "CNY", "COP",
+                 "CRC", "CSK", "CUP", "CVE", "CYP", "DEM", "DJF", "DKK", "DOP", "DZD", "ECS",
+                 "EEK", "EGP", "ERN", "ESP", "ETB", "EUR", "FIM", "FJD", "FKP", "FRF", "GBP",
+                 "GEL", "GHC", "GIP", "GMD", "GNF", "GRD", "GTQ", "GYD", "HKD", "HNL", "HRK",
+                 "HTG", "HUF", "IDR", "IEP", "IEP", "ILS", "INR", "IQD", "IRR", "ISK", "ITL",
+                 "JMD", "JOD", "JPY", "KES", "KGS", "KHR", "KMF", "KPW", "KRW", "KWD", "KYD",
+                 "KZT", "LAK", "LBP", "LKR", "LRD", "LSL", "LTL", "LUF", "LVL", "LYD", "MAD",
+                 "MDL", "MGF", "MKD", "MMK", "MNT", "MOP", "MRO", "MTL", "MUR", "MVR", "MWK",
+                 "MXP", "MYR", "MZM", "NAD", "NGN", "NIO", "NLG", "NOK", "NPR", "NZD", "OMR",
+                 "PAB", "PEN", "PGK", "PHP", "PKR", "PLN", "PTE", "PYG", "QAR", "ROL", "RSD",
+                 "RUR", "RWF", "SAR", "SBD", "SBL", "SCR", "SDD", "SEK", "SGD", "SHP", "SIT",
+                 "SKK", "SLL", "SOS", "SRG", "STD", "SVC", "SYP", "SZL", "THB", "TJR", "TMM",
+                 "TND", "TOP", "TRL", "TTD", "TWD", "TZS", "UAH", "UGX", "USD", "UYU", "UZS",
+                 "VEB", "VND", "VUV", "WST", "XAF", "XAG", "XAU", "XCD", "XDR", "XOF", "XPD",
                  "XPF", "XPT", "YER", "YUN", "ZAR", "ZMK", "ZRN", "ZWD",)
 
-decimalsPattern = re.compile(r"^(INF|-?[0-9]+)$")    
+decimalsPattern = re.compile(r"^(INF|-?[0-9]+)$")
 
 class DialogNewFactItemOptions(Toplevel):
     def __init__(self, mainWin, options):
@@ -70,7 +70,7 @@ class DialogNewFactItemOptions(Toplevel):
 
         self.transient(self.parent)
         self.title(_("New Fact Item Options"))
-        
+
         frame = Frame(self)
 
         label(frame, 1, 1, "Entity scheme:")
@@ -101,20 +101,20 @@ class DialogNewFactItemOptions(Toplevel):
         ToolTip(okButton, text=_("Accept the options as entered above"))
         cancelButton.grid(row=8, column=1, columnspan=3, sticky=E, pady=3, padx=3)
         okButton.grid(row=8, column=1, columnspan=3, sticky=E, pady=3, padx=86)
-        
+
         frame.grid(row=0, column=0, sticky=(N,S,E,W))
         frame.columnconfigure(2, weight=1)
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
         self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
-        
+
         #self.bind("<Return>", self.ok)
         #self.bind("<Escape>", self.close)
-        
+
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.grab_set()
         self.wait_window(self)
-        
+
     def checkEntries(self):
         errors = []
         if not self.cellEntityIdentScheme.value:
@@ -136,7 +136,7 @@ class DialogNewFactItemOptions(Toplevel):
                                 "\n ".join(errors), parent=self)
             return False
         return True
-        
+
     def setOptions(self):
         # set formula options
         self.options.entityIdentScheme = self.cellEntityIdentScheme.value
@@ -147,15 +147,15 @@ class DialogNewFactItemOptions(Toplevel):
         self.options.monetaryUnit = self.cellMonetaryUnit.value
         self.options.monetaryDecimals = self.cellMonetaryDecimals.value
         self.options.nonMonetaryDecimals = self.cellNonMonetaryDecimals.value
-        
+
     def ok(self, event=None):
         if not self.checkEntries():
             return
         self.setOptions()
         self.accepted = True
         self.close()
-        
+
     def close(self, event=None):
         self.parent.focus_set()
         self.destroy()
-        
+

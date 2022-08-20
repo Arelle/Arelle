@@ -28,8 +28,8 @@ diagramNetworks = {
 
 networkEdgeTypes = {
     "uml": {
-        "inheritance": {"dir": "back", "arrowtail": "empty"}, 
-        "aggregation": {"dir": "back", "arrowtail": "odiamond"}, 
+        "inheritance": {"dir": "back", "arrowtail": "empty"},
+        "aggregation": {"dir": "back", "arrowtail": "odiamond"},
         "composition": {"dir": "back", "arrowtail": "diamond"}
         },
     "dts": {
@@ -64,7 +64,7 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
                         "Diagram network %(diagramNetwork)s not recognized, please specify one of %(recognizedDiagramNetworks)s",
                         modelXbrl=modelXbrl, diagramNetwork=diagramNetwork, recognizedDiagramNetworks=", ".join(diagramNetworks))
         return
-        
+
     try:
         from graphviz import Digraph, backend
     except ImportError:
@@ -72,7 +72,7 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
                         "Missing library, please install graphviz for python importing",
                         modelXbrl=modelXbrl)
         return
-    
+
     isUML = diagramNetwork == "uml"
     isBaseSpec = diagramNetwork in ("pre", "cal", "def", "anch")
     graphName = os.path.splitext(modelXbrl.modelDocument.basename)[0]
@@ -82,7 +82,7 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
     mdl.attr('node', shape="record")
     mdl.attr('node', fontname="Bitstream Vera Sans")
     mdl.attr('node', fontsize="8")
-    
+
     if isUML:
         arcroleName = "http://xbrl.us/arcrole/Property"
         propertiesRelationshipSet = modelXbrl.relationshipSet(arcroleName)
@@ -118,7 +118,7 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
                 mdl.node(id, "{{{}}}".format(modelObject))
             else:
                 mdl.node(id, "{{{}}}".format(modelObject.qname.localName))
-    
+
     nodes = set()
     edges = set()
     arcroles = diagramNetworks[diagramNetwork]
@@ -133,7 +133,7 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
             for linkroleUri in graphRelationshipSet.linkRoleUris:
                 modelRoleTypes = modelXbrl.roleTypes.get(linkroleUri)
                 if modelRoleTypes:
-                    roledefinition = (modelRoleTypes[0].genLabel(lang=lang, strip=True) or modelRoleTypes[0].definition or linkroleUri)                    
+                    roledefinition = (modelRoleTypes[0].genLabel(lang=lang, strip=True) or modelRoleTypes[0].definition or linkroleUri)
                 else:
                     roledefinition = linkroleUri
                 linkroleUris.add((roledefinition, linkroleUri))
@@ -149,7 +149,7 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
                                   "Arcrole missing from networkEdgeTypes: %(arcrole)s:",
                                   modelXbrl=modelXbrl, arcrole=arcrole)
                 continue
-            graphRelationshipSet = modelXbrl.relationshipSet(arcrole, linkroleUri)    
+            graphRelationshipSet = modelXbrl.relationshipSet(arcrole, linkroleUri)
             roleprefix = (linkroleUri.replace("/","_").replace(":","_") + "_") if linkroleUri else ""
             if not graphRelationshipSet:
                 continue
@@ -159,7 +159,7 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
                     childName = roleprefix + rootConcept.qname.localName
                     node(mdl, childName, rootConcept)
                     nodes.add(childName)
-                    mdl.edge(roleprefix, childName, 
+                    mdl.edge(roleprefix, childName,
                              dir=edgeType.get("dir"), arrowhead=edgeType.get("arrowhead"), arrowtail=edgeType.get("arrowtail"))
             for rel in graphRelationshipSet.modelRelationships:
                 parent = rel.fromModelObject
@@ -177,9 +177,9 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
                 edgeKey = (relationshipType, parentName, childName)
                 if edgeKey not in edges:
                     edges.add(edgeKey)
-                    mdl.edge(parentName, childName, 
+                    mdl.edge(parentName, childName,
                              dir=edgeType.get("dir"), arrowhead=edgeType.get("arrowhead"), arrowtail=edgeType.get("arrowtail"))
-    
+
     if diagramNetwork == "dts":
         def viewDtsDoc(modelDoc, parentDocName, grandparentDocName):
             docName = modelDoc.basename
@@ -192,14 +192,14 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
                     return
                 edges.add(edgeKey)
                 edgeType = networkEdgeTypes[diagramNetwork]["all-types"]
-                mdl.edge(parentDocName, docName, 
+                mdl.edge(parentDocName, docName,
                          dir=edgeType.get("dir"), arrowhead=edgeType.get("arrowhead"), arrowtail=edgeType.get("arrowtail"))
             for referencedDoc in modelDoc.referencesDocument.keys():
                 if referencedDoc.basename != parentDocName: # skip reverse linkbase ref
                     viewDtsDoc(referencedDoc, docName, parentDocName)
-            
+
         viewDtsDoc(modelXbrl.modelDocument, None, None)
-            
+
     mdl.format = "pdf"
     try:
         mdl.render(diagramFile.replace(".pdf", ".gv"), view=viewDiagram)
@@ -207,7 +207,7 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
         modelXbrl.warning("objectmaker:graphvizExecutable",
                         "Diagram saving requires installation of graphviz, error: %(error)s:",
                         modelXbrl=modelXbrl, error=ex)
-         
+
 
 def objectmakerMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
@@ -237,26 +237,26 @@ def objectmakerMenuCommand(cntlr, diagramNetwork):
     cntlr.saveConfig()
 
     import threading
-    thread = threading.Thread(target=lambda 
+    thread = threading.Thread(target=lambda
                                   _modelXbrl=cntlr.modelManager.modelXbrl,
-                                  _diagramFile=diagramFile: 
+                                  _diagramFile=diagramFile:
                                         drawDiagram(_modelXbrl, _diagramFile, diagramNetwork, True))
     thread.daemon = True
     thread.start()
-    
+
 def objectmakerCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
-    parser.add_option("--save-diagram", 
-                      action="store", 
-                      dest="saveDiagram", 
+    parser.add_option("--save-diagram",
+                      action="store",
+                      dest="saveDiagram",
                       help=_("Save Diagram file"))
-    parser.add_option("--diagram-network", 
-                      action="store", 
-                      dest="diagramNetwork", 
+    parser.add_option("--diagram-network",
+                      action="store",
+                      dest="diagramNetwork",
                       help=_("Network to diagram: dts, pre, cal, def, uml"))
-    parser.add_option("--view-diagram", 
-                      action="store_true", 
-                      dest="viewDiagram", 
+    parser.add_option("--view-diagram",
+                      action="store_true",
+                      dest="viewDiagram",
                       help=_("Show diagram in GUI viewer"))
 
 def objectmakerCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):

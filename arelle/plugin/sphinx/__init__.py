@@ -7,13 +7,13 @@ This plug-in is a python package, and can be loaded by referencing the containin
 directory (usually, "sphinx"), and selecting this "__init__.py" file within the sphinx
 directory (such as in a file chooser).
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
+(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
-Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer 
-(c) Copyright 2012 CoreFiling, Oxford UK. 
+Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer
+(c) Copyright 2012 CoreFiling, Oxford UK.
 Sphinx copyright applies to the Sphinx language, not to this software.
-Mark V Systems conveys neither rights nor license for the Sphinx language. 
+Mark V Systems conveys neither rights nor license for the Sphinx language.
 '''
 
 import time, os, io, sys
@@ -46,7 +46,7 @@ def generatedFormulasDirDialog(cntlr):
     return generatedFormulasDir
 
 def sphinxFilesOpenMenuEntender(cntlr, menu, *args, **kwargs):
-    
+
     def sphinxFileMenuCommand():
         from arelle import ModelDocument
         import os, sys, traceback
@@ -61,7 +61,7 @@ def sphinxFilesOpenMenuEntender(cntlr, menu, *args, **kwargs):
         if not sphinxFiles:
             return False
         def backgroundParseSphinxFiles():
-            try: 
+            try:
                 from .SphinxParser import parse
                 sphinxProgs = parse(cntlr, modelXbrl.log, sphinxFiles)
                 try:
@@ -71,7 +71,7 @@ def sphinxFilesOpenMenuEntender(cntlr, menu, *args, **kwargs):
                     modelXbrl.sphinxContext = SphinxContext(sphinxProgs, modelXbrl)  # first sphinxProgs for DTS
             except Exception as ex:
                 cntlr.addToLog(
-                    _("[exception] Sphinx Compiling Exception: %(error)s \n%(traceback)s") % 
+                    _("[exception] Sphinx Compiling Exception: %(error)s \n%(traceback)s") %
                     {"error": ex,
                      "exc_info": True,
                      "traceback": traceback.format_tb(sys.exc_info()[2])})
@@ -79,31 +79,31 @@ def sphinxFilesOpenMenuEntender(cntlr, menu, *args, **kwargs):
         thread = threading.Thread(target=backgroundParseSphinxFiles)
         thread.daemon = True
         thread.start()
-            
+
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Import Sphinx files...", 
-                     underline=0, 
+    menu.add_command(label="Import Sphinx files...",
+                     underline=0,
                      command=sphinxFileMenuCommand)
 
 def sphinxToLBMenuEntender(cntlr, menu, *args, **kwargs):
-    
+
     def sphinxToLBMenuCommand():
         import os, sys, traceback
         from .FormulaGenerator import generateFormulaLB
-        
+
         sphinxFiles = sphinxFilesDialog(cntlr)
         if not sphinxFiles:
-            return False    
+            return False
         generatedFormulasDir = generatedFormulasDirDialog(cntlr)
         if not generatedFormulasDir:
-            return False    
-        
+            return False
+
         def backgroundSphinxGenerateFormula():
-            try: 
+            try:
                 generateFormulaLB(cntlr, sphinxFiles, generatedFormulasDir)
             except Exception as ex:
                 cntlr.addToLog(
-                    _("[exception] Sphinx Compiling Exception: %(error)s \n%(traceback)s") % 
+                    _("[exception] Sphinx Compiling Exception: %(error)s \n%(traceback)s") %
                     {"error": ex,
                      "exc_info": True,
                      "traceback": traceback.format_tb(sys.exc_info()[2])})
@@ -111,30 +111,30 @@ def sphinxToLBMenuEntender(cntlr, menu, *args, **kwargs):
         thread = threading.Thread(target=backgroundSphinxGenerateFormula)
         thread.daemon = True
         thread.start()
-            
+
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Compile Sphinx to Formula", 
-                     underline=0, 
+    menu.add_command(label="Compile Sphinx to Formula",
+                     underline=0,
                      command=sphinxToLBMenuCommand)
 
 def sphinxToLBCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options to import sphinx files into DTS for validation
-    parser.add_option("--import-sphinx", 
-                      action="store", 
-                      dest="sphinxFilesForValidation", 
+    parser.add_option("--import-sphinx",
+                      action="store",
+                      dest="sphinxFilesForValidation",
                       help=_("Import sphinx files to the DTS for validation.  "
                              "Multiple file names are separated by a '|' character. "))
 
     # extend command line options with a generate sphinx into formula linkbase option
-    parser.add_option("--generate-sphinx-formula-linkbase", 
-                      action="store", 
-                      dest="sphinxFilesForFormulaLinkbase", 
+    parser.add_option("--generate-sphinx-formula-linkbase",
+                      action="store",
+                      dest="sphinxFilesForFormulaLinkbase",
                       help=_("Generate an XBRL formula linkbase from sphinx files.  "
                              "Multiple file names are separated by a '|' character. "
                              "Files may be xrb archives, xsr source files, or directories of same.  "))
-    parser.add_option("--generated-sphinx-formulas-directory", 
-                      action="store", 
-                      dest="generatedSphinxFormulasDirectory", 
+    parser.add_option("--generated-sphinx-formulas-directory",
+                      action="store",
+                      dest="generatedSphinxFormulasDirectory",
                       help=_("Generated XBRL formula linkbases directory.  "
                              "(If absent, formula linkbases save in sphinx files directory.) "))
 
@@ -142,7 +142,7 @@ def sphinxToLBCommandLineUtilityRun(cntlr, options, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "sphinxFilesForFormulaLinkbase", None):
         from .FormulaGenerator import generateFormulaLB
-        generateFormulaLB(cntlr, 
+        generateFormulaLB(cntlr,
                           options.sphinxFilesForFormulaLinkbase.split("|"),
                           options.generatedSphinxFormulasDirectory)
 
@@ -153,26 +153,26 @@ def sphinxCommandLineLoader(cntlr, options, modelXbrl, *args, **kwargs):
         from .SphinxContext import SphinxContext
         sphinxProgs = parse(cntlr, modelXbrl.log, options.sphinxFilesForValidation.split('|'))
         modelXbrl.sphinxContext = SphinxContext(sphinxProgs, modelXbrl)
-        
+
 def sphinxValidater(val, *args, **kwargs):
     if hasattr(val.modelXbrl, "sphinxContext"):
         # sphinx is loaded, last step in validation
         from .SphinxValidator import validate
         validate(val.modelXbrl.log, val.modelXbrl.sphinxContext)
-        
+
 def sphinxTestcaseVariationReadMeFirstUris(modelTestcaseVariation, *args, **kwargs):
     xbrlElement = XmlUtil.descendant(modelTestcaseVariation, 'http://www.corefiling.com/sphinx-conformance-harness/2.0', "xbrl")
     if xbrlElement is not None:
         modelTestcaseVariation._readMeFirstUris.append(xbrlElement.textValue)
         return True # found it
     return False  # not a sphinx test case variation
-    
+
 def sphinxTestcaseVariationExpectedResult(modelTestcaseVariation, *args, **kwargs):
     issueElement = XmlUtil.descendant(modelTestcaseVariation, 'http://www.corefiling.com/sphinx-conformance-harness/2.0', "issue")
     if issueElement is not None:
         return issueElement.get("errorCode")
     return None # no issue or not a sphinx test case variation
-    
+
 def sphinxTestcasesStart(cntlr, options, testcasesModelXbrl, *args, **kwargs):
     if options and getattr(options, "sphinxFilesForValidation", None): # command line mode
         testcasesModelXbrl.sphinxFilesList = options.sphinxFilesForValidation.split('|')
@@ -192,14 +192,14 @@ def sphinxTestcaseVariationXbrlLoaded(testcasesModelXbrl, instanceModelXbrl, *ar
         instanceModelXbrl.sphinxContext = SphinxContext(sphinxProgs, instanceModelXbrl)  # first sphinxProgs for DTS
     except AttributeError:
         pass # no sphinx
-                
-    
+
+
 def sphinxTestcaseVariationExpectedSeverity(modelTestcaseVariation, *args, **kwargs):
     issueElement = XmlUtil.descendant(modelTestcaseVariation, 'http://www.corefiling.com/sphinx-conformance-harness/2.0', "issue")
     if issueElement is not None:
         return issueElement.get("severity")
     return None # no issue or not a sphinx test case variation
-    
+
 def sphinxDialogRssWatchFileChoices(dialog, frame, row, options, cntlr, openFileImage, openDatabaseImage, *args, **kwargs):
     from tkinter import PhotoImage, N, S, E, W
     try:
@@ -229,18 +229,18 @@ def sphinxDialogRssWatchFileChoices(dialog, frame, row, options, cntlr, openFile
                                            "The results are recorded in the log file.  "), wraplength=240)
     chooseFormulaFileButton = Button(frame, image=openFileImage, width=12, command=chooseSphinxFiles)
     chooseFormulaFileButton.grid(row=row, column=3, sticky=W)
-    
+
 def sphinxDialogRssWatchValidateChoices(dialog, frame, row, *args, **kwargs):
     from arelle.UiUtil import checkbox
     dialog.checkboxes += (
-       checkbox(frame, 2, row, 
-                "Sphinx rules", 
+       checkbox(frame, 2, row,
+                "Sphinx rules",
                 "validateSphinxRules"),
     )
-    
+
 def sphinxRssWatchHasWatchAction(rssWatchOptions, *args, **kwargs):
     return rssWatchOptions.get("sphinxRulesFiles") and rssWatchOptions.get("validateSphinxRules")
-    
+
 def sphinxRssDoWatchAction(modelXbrl, rssWatchOptions, rssItem, *args, **kwargs):
     sphinxFiles = rssWatchOptions.get("sphinxRulesFiles")
     if sphinxFiles:
@@ -251,7 +251,7 @@ def sphinxRssDoWatchAction(modelXbrl, rssWatchOptions, rssItem, *args, **kwargs)
         # sphinx is loaded, last step in validation
         from .SphinxValidator import validate
         validate(modelXbrl.log, modelXbrl.sphinxContext)
-    
+
 # plugin changes to model object factor classes
 from arelle.ModelTestcaseObject import ModelTestcaseVariation
 sphinxModelObjectElementSubstitutionClasses = (
@@ -266,7 +266,7 @@ __pluginInfo__ = {
     'author': 'Mark V Systems Limited',
     'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
-    'ModelObjectFactory.ElementSubstitutionClasses': sphinxModelObjectElementSubstitutionClasses, 
+    'ModelObjectFactory.ElementSubstitutionClasses': sphinxModelObjectElementSubstitutionClasses,
     'CntlrWinMain.Menu.File.Open': sphinxFilesOpenMenuEntender,
     'CntlrWinMain.Menu.Tools': sphinxToLBMenuEntender,
     'CntlrCmdLine.Options': sphinxToLBCommandLineOptionExtender,

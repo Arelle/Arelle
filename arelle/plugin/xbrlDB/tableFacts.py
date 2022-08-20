@@ -1,7 +1,7 @@
 '''
 This module provides database interfaces to postgres SQL
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
+(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 '''
 from arelle import XbrlConst
@@ -13,7 +13,7 @@ def EFMlinkRoleURIstructure(dts, roleURI):
     for rootConcept in relSet.rootConcepts:
         EFMlinkRoleDescendants(relSet, rootConcept, dimMems, priItems)
     return dimMems, priItems
-        
+
 def EFMlinkRoleDescendants(relSet, concept, dimMems, priItems):
     if concept is not None:
         if concept.isDimensionItem:
@@ -37,7 +37,7 @@ def tableFacts(dts):
     disclosureSystem = dts.modelManager.disclosureSystem
     if disclosureSystem.validationType in ("EFM", "HMRC"):
         roleURIcodeFacts = []  # list of (roleURI, code, fact)
-        
+
         # resolve structural model
         roleTypes = [roleType
                      for roleURI in dts.relationshipSet(XbrlConst.parentChild).linkRoleUris
@@ -60,7 +60,7 @@ def tableFacts(dts):
                             for dimQn, mdlDim in cntx.qnameDims.items()
                             if dimQn in roleURIdims)):
                         roleURIcodeFacts.append((roleType, code, fact))
-                     
+
         return roleURIcodeFacts
     return None
-    
+

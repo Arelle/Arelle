@@ -98,14 +98,14 @@ def saveLoadableExcel(dts, excelFile):
     from openpyxl.styles import Font, PatternFill, Border, Alignment, Color, fills, Side
     from openpyxl.worksheet.dimensions import ColumnDimension
     from openpyxl.utils import get_column_letter
-    
+
     workbook = Workbook()
     # remove pre-existing worksheets
     while len(workbook.worksheets)>0:
         workbook.remove_sheet(workbook.worksheets[0])
     conceptsWs = workbook.create_sheet(title="Concepts")
     dtsWs = workbook.create_sheet(title="DTS")
-    
+
     # identify type of taxonomy
     conceptsWsHeaders = None
     cellFontArgs = None
@@ -122,8 +122,8 @@ def saveLoadableExcel(dts, excelFile):
          modelObject=dts)
         cellFontArgs = headersStyles[-1][1] # use as arguments to Font()
         conceptsWsHeaders = headersStyles[-1][2]
-        
-        
+
+
     hdrCellFont = Font(**cellFontArgs)
     hdrCellFill = PatternFill(patternType=fills.FILL_SOLID,
                               fgColor=Color("00FFBF5F")) # Excel's light orange fill color = 00FF990
@@ -147,20 +147,20 @@ def saveLoadableExcel(dts, excelFile):
                                  right=Side(border_style="thin"),
                                  bottom=Side(border_style="thin"))
         cell.alignment = Alignment(horizontal=hAlign, vertical=vAlign, wrap_text=True, indent=indent)
-            
+
     # sheet 1 col widths
     for i, hdr in enumerate(conceptsWsHeaders):
         colLetter = get_column_letter(i+1)
         conceptsWs.column_dimensions[colLetter] = ColumnDimension(conceptsWs, customWidth=True)
-        conceptsWs.column_dimensions[colLetter].width = headerWidths.get(hdr[1], 40)                                   
-        
+        conceptsWs.column_dimensions[colLetter].width = headerWidths.get(hdr[1], 40)
+
     # sheet 2 headers
     for i, hdr in enumerate(dtsWsHeaders):
         colLetter = get_column_letter(i+1)
         dtsWs.column_dimensions[colLetter] = ColumnDimension(conceptsWs, customWidth=True)
         dtsWs.column_dimensions[colLetter].width = hdr[1]
         writeCell(dtsWs, 1, i+1, hdr[0], hdr=True)
-        
+
     # referenced taxonomies
     conceptsRow = 1
     dtsRow = 3
@@ -178,24 +178,24 @@ def saveLoadableExcel(dts, excelFile):
          _("Unable to identify extension taxonomy."),
          modelObject=dts)
         return
-            
+
     for doc, docReference in extensionSchemaDoc.referencesDocument.items():
         if "import" in docReference.referenceTypes and doc.targetNamespace != XbrlConst.xbrli:
-            writeCell(dtsWs, dtsRow, 1, "import") 
-            writeCell(dtsWs, dtsRow, 2, "schema") 
-            writeCell(dtsWs, dtsRow, 3, XmlUtil.xmlnsprefix(doc.xmlRootElement, doc.targetNamespace)) 
-            writeCell(dtsWs, dtsRow, 4, doc.uri) 
-            writeCell(dtsWs, dtsRow, 5, doc.targetNamespace) 
+            writeCell(dtsWs, dtsRow, 1, "import")
+            writeCell(dtsWs, dtsRow, 2, "schema")
+            writeCell(dtsWs, dtsRow, 3, XmlUtil.xmlnsprefix(doc.xmlRootElement, doc.targetNamespace))
+            writeCell(dtsWs, dtsRow, 4, doc.uri)
+            writeCell(dtsWs, dtsRow, 5, doc.targetNamespace)
             dtsRow += 1
-                
+
     dtsRow += 1
-    
+
     doc = extensionSchemaDoc
-    writeCell(dtsWs, dtsRow, 1, "extension") 
-    writeCell(dtsWs, dtsRow, 2, "schema") 
-    writeCell(dtsWs, dtsRow, 3, XmlUtil.xmlnsprefix(doc.xmlRootElement, doc.targetNamespace)) 
-    writeCell(dtsWs, dtsRow, 4, os.path.basename(doc.uri)) 
-    writeCell(dtsWs, dtsRow, 5, doc.targetNamespace) 
+    writeCell(dtsWs, dtsRow, 1, "extension")
+    writeCell(dtsWs, dtsRow, 2, "schema")
+    writeCell(dtsWs, dtsRow, 3, XmlUtil.xmlnsprefix(doc.xmlRootElement, doc.targetNamespace))
+    writeCell(dtsWs, dtsRow, 4, os.path.basename(doc.uri))
+    writeCell(dtsWs, dtsRow, 5, doc.targetNamespace)
     dtsRow += 1
 
     for doc, docReference in extensionSchemaDoc.referencesDocument.items():
@@ -204,28 +204,28 @@ def saveLoadableExcel(dts, excelFile):
             role = docReference.referringModelObject.get("{http://www.w3.org/1999/xlink}role") or ""
             if role.startswith("http://www.xbrl.org/2003/role/") and role.endswith("LinkbaseRef"):
                 linkbaseType = os.path.basename(role)[0:-11]
-            writeCell(dtsWs, dtsRow, 1, "extension") 
-            writeCell(dtsWs, dtsRow, 2, "linkbase") 
-            writeCell(dtsWs, dtsRow, 3, linkbaseType) 
-            writeCell(dtsWs, dtsRow, 4, os.path.basename(doc.uri)) 
-            writeCell(dtsWs, dtsRow, 5, "") 
+            writeCell(dtsWs, dtsRow, 1, "extension")
+            writeCell(dtsWs, dtsRow, 2, "linkbase")
+            writeCell(dtsWs, dtsRow, 3, linkbaseType)
+            writeCell(dtsWs, dtsRow, 4, os.path.basename(doc.uri))
+            writeCell(dtsWs, dtsRow, 5, "")
             dtsRow += 1
-            
+
     dtsRow += 1
 
     # extended link roles defined in this document
-    for roleURI, roleTypes in sorted(dts.roleTypes.items(), 
+    for roleURI, roleTypes in sorted(dts.roleTypes.items(),
             # sort on definition if any else URI
             key=lambda item: (item[1][0].definition if len(item[1]) and item[1][0].definition else item[0])):
         for roleType in roleTypes:
             if roleType.modelDocument == extensionSchemaDoc:
-                writeCell(dtsWs, dtsRow, 1, "extension") 
-                writeCell(dtsWs, dtsRow, 2, "role") 
-                writeCell(dtsWs, dtsRow, 3, "") 
-                writeCell(dtsWs, dtsRow, 4, roleType.definition) 
-                writeCell(dtsWs, dtsRow, 5, roleURI) 
+                writeCell(dtsWs, dtsRow, 1, "extension")
+                writeCell(dtsWs, dtsRow, 2, "role")
+                writeCell(dtsWs, dtsRow, 3, "")
+                writeCell(dtsWs, dtsRow, 4, roleType.definition)
+                writeCell(dtsWs, dtsRow, 5, roleURI)
                 dtsRow += 1
-                
+
     # tree walk recursive function
     def treeWalk(row, depth, concept, preferredLabel, arcrole, preRelSet, visited):
         if concept is not None:
@@ -301,7 +301,7 @@ def saveLoadableExcel(dts, excelFile):
                         row = treeWalk(row, depth + 1, modelRel.toModelObject, modelRel.preferredLabel, arcrole, preRelSet, visited)
                 visited.remove(concept)
         return row
-    
+
     # use presentation relationships for conceptsWs
     arcrole = XbrlConst.parentChild
     # sort URIs by definition
@@ -311,12 +311,12 @@ def saveLoadableExcel(dts, excelFile):
         for linkroleUri in relationshipSet.linkRoleUris:
             modelRoleTypes = dts.roleTypes.get(linkroleUri)
             if modelRoleTypes:
-                roledefinition = (modelRoleTypes[0].genLabel(strip=True) or modelRoleTypes[0].definition or linkroleUri)                    
+                roledefinition = (modelRoleTypes[0].genLabel(strip=True) or modelRoleTypes[0].definition or linkroleUri)
             else:
                 roledefinition = linkroleUri
             linkroleUris.append((roledefinition, linkroleUri))
         linkroleUris.sort()
-    
+
         # for each URI in definition order
         for roledefinition, linkroleUri in linkroleUris:
             # write linkrole
@@ -345,7 +345,7 @@ def saveLoadableExcel(dts, excelFile):
                 if colType == "label":
                     role = hdr[2]
                     lang = hdr[3]
-        lbls = defaultdict(list)        
+        lbls = defaultdict(list)
         for concept in set(dts.qnameConcepts.values()): # may be twice if unqualified, with and without namespace
             lbls[concept.label(role,lang=lang)].append(concept.objectId())
         srtLbls = sorted(lbls.keys())
@@ -384,13 +384,13 @@ def saveLoadableExcel(dts, excelFile):
                             indent = min(0, MAXINDENT)
                         else:
                             indent = 0
-                        writeCell(conceptsWs, conceptsRow, i, value, indent=indent) 
+                        writeCell(conceptsWs, conceptsRow, i, value, indent=indent)
                     conceptsRow += 1
-    
-    try: 
+
+    try:
         workbook.save(excelFile)
         dts.info("info:saveLoadableExcel",
-            _("Saved Excel file: %(excelFile)s"), 
+            _("Saved Excel file: %(excelFile)s"),
             excelFile=os.path.basename(excelFile),
             modelXbrl=dts)
     except Exception as ex:
@@ -400,8 +400,8 @@ def saveLoadableExcel(dts, excelFile):
 
 def saveLoadableExcelMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Save Loadable Excel", 
-                     underline=0, 
+    menu.add_command(label="Save Loadable Excel",
+                     underline=0,
                      command=lambda: saveLoadableExcelMenuCommand(cntlr) )
 
 def saveLoadableExcelMenuCommand(cntlr):
@@ -422,18 +422,18 @@ def saveLoadableExcelMenuCommand(cntlr):
     cntlr.saveConfig()
 
     import threading
-    thread = threading.Thread(target=lambda 
+    thread = threading.Thread(target=lambda
                                   _dts=cntlr.modelManager.modelXbrl,
-                                  _excelFile=excelFile: 
+                                  _excelFile=excelFile:
                                         saveLoadableExcel(_dts, _excelFile))
     thread.daemon = True
     thread.start()
-    
+
 def saveLoadableExcelCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
-    parser.add_option("--save-loadable-excel", 
-                      action="store_true", 
-                      dest="saveLoadableExcel", 
+    parser.add_option("--save-loadable-excel",
+                      action="store_true",
+                      dest="saveLoadableExcel",
                       help=_("Save Loadable Excel file"))
 
 def saveLoadableExcelCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):

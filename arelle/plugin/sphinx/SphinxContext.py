@@ -1,13 +1,13 @@
 '''
 sphinxContext provides the validation and execution context for Sphinx language expressions.
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
+(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
-Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer 
-(c) Copyright 2012 CoreFiling, Oxford UK. 
+Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer
+(c) Copyright 2012 CoreFiling, Oxford UK.
 Sphinx copyright applies to the Sphinx language, not to this software.
-Mark V Systems conveys neither rights nor license for the Sphinx language. 
+Mark V Systems conveys neither rights nor license for the Sphinx language.
 '''
 
 from collections import OrderedDict
@@ -18,7 +18,7 @@ from arelle.FormulaEvaluator import implicitFilter, aspectsMatch
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import DEFAULT, NONDEFAULT
 from arelle import XmlUtil
-                                       
+
 class SphinxContext:
     def __init__(self, sphinxProgs, modelXbrl=None):
         self.modelXbrl = modelXbrl  # the DTS and input instance (if any)
@@ -39,7 +39,7 @@ class SphinxContext:
         if modelXbrl is not None:
             self.formulaOptions = modelXbrl.modelManager.formulaOptions
             self.defaultDimensionAspects = set(modelXbrl.qnameDimensionDefaults.keys())
-        
+
     def close(self):
         # dereference grammar
         for prog in self.sphinxProgs:
@@ -49,7 +49,7 @@ class SphinxContext:
             prog.clear
         del self.sphinxProgs[:]
         self.__dict__.clear()  # delete local attributes
-        
+
 class HyperspaceBindings:
     def __init__(self, sphinxContext):
         self.sCtx = sphinxContext
@@ -61,14 +61,14 @@ class HyperspaceBindings:
         self.aspectBoundFacts = {}
         self.aggregationNode = None
         self.isValuesIteration = False
-        
+
     def close(self):
         if self.sCtx.hyperspaceBindings is self:
             self.sCtx.hyperspaceBindings = self.parentHyperspaceBindings
         for hsBinding in self.hyperspaceBindings:
             hsBinding.close()
         self.__dict__.clear() # dereference
-        
+
     def nodeBinding(self, node, isWithRestrictionNode=False):
         if node in self.nodeBindings:
             return self.nodeBindings[node]
@@ -79,7 +79,7 @@ class HyperspaceBindings:
         self.nodeBindings[node] = nodeBinding
         self.hyperspaceBindings.append(nodeBinding)
         return nodeBinding
-        
+
     def forBinding(self, node):
         if node in self.nodeBindings:
             return self.nodeBindings[node]
@@ -87,13 +87,13 @@ class HyperspaceBindings:
         self.nodeBindings[node] = nodeBinding
         self.hyperspaceBindings.append(nodeBinding)
         return nodeBinding
-        
-    def next(self, iterateAbove=-1, bindingsLen=-1):        
+
+    def next(self, iterateAbove=-1, bindingsLen=-1):
         # iterate hyperspace bindings
         if not self.hyperspaceBindings:
             raise StopIteration
         hsBsToReset = []
-        if bindingsLen == -1: 
+        if bindingsLen == -1:
             bindingsLen = len(self.hyperspaceBindings)
         for iHsB in range(bindingsLen - 1, iterateAbove, -1):
             hsB = self.hyperspaceBindings[iHsB]
@@ -105,14 +105,14 @@ class HyperspaceBindings:
             except StopIteration:
                 hsBsToReset.insert(0, hsB)  # reset after outer iterator advanced
         raise StopIteration # no more outermost loop of iteration
-    
+
     @property
     def boundFacts(self):
         return [binding.yieldedFact
                 for binding in self.hyperspaceBindings
                 if isinstance(binding, HyperspaceBinding) and
                 not binding.fallenBack and binding.yieldedFact is not None]
-        
+
 class HyperspaceBinding:
     def __init__(self, hyperspaceBindings, node, fallback=False, isWithRestrictionNode=False, isBalancingBinding=False):
         self.hyperspaceBindings = hyperspaceBindings
@@ -135,7 +135,7 @@ class HyperspaceBinding:
             if hsAxis.aspect: # no aspect if just a where clause
                 aspect = evaluate(hsAxis.aspect, self.sCtx, value=True)
                 if aspect not in self.aspectsDefined and not isinstance(aspect, QName):
-                    raise SphinxException(node, "sphinx:aspectValue", 
+                    raise SphinxException(node, "sphinx:aspectValue",
                           _("Hyperspace aspect indeterminate %(aspect)s"),
                           aspect=aspect)
                 if isinstance(aspect, QName):
@@ -145,15 +145,15 @@ class HyperspaceBinding:
                             raise SphinxException(node, "sphinxDynamicHyperspace:axisNotDimension",
                                 _("Axis aspect is not a dimension in the DTS %(aspect)s"),
                                 aspect=aspect)
-                        self.sCtx.dimensionIsExplicit[aspect] = concept.isExplicitDimension                        
+                        self.sCtx.dimensionIsExplicit[aspect] = concept.isExplicitDimension
                 self.axesAspects.add(aspect) # resolved aspect value
                 self.aspectAxisTuples.append( (aspect, hsAxis) )
         self.aspectsQualified = self.axesAspects | withAspectsQualified
         self.reset()  # will raise StopIteration if no facts or fallback
-        
+
     def close(self):
         self.__dict__.clear() # dereference
-        
+
     @property
     def value(self):
         if self.fallenBack:
@@ -161,11 +161,11 @@ class HyperspaceBinding:
         if self.yieldedFact is not None:
             return self.yieldedFact.xValue
         return None
-    
+
     @property
     def var(self): # used in implicitFilter winnowing trace
         return []
-    
+
     @property
     def qname(self): # used in implicitFilter winnowing trace
         return ''
@@ -176,7 +176,7 @@ class HyperspaceBinding:
         if self.yieldedFact is not None:
             return self.yieldedFact.__repr__()
         return "none"
-        
+
     def reset(self):
         # start with all facts
         if self.hyperspaceBindings.withRestrictionBindings:
@@ -185,7 +185,7 @@ class HyperspaceBinding:
             facts = self.sCtx.modelXbrl.nonNilFactsInInstance
         if self.sCtx.formulaOptions.traceVariableFilterWinnowing:
             self.sCtx.modelXbrl.info("sphinx:trace",
-                 _("Hyperspace %(variable)s binding: start with %(factCount)s facts"), 
+                 _("Hyperspace %(variable)s binding: start with %(factCount)s facts"),
                  sourceFileLine=self.node.sourceFileLine, variable=str(self.node), factCount=len(facts))
         # filter by hyperspace aspects
         facts = self.filterFacts(facts)
@@ -198,7 +198,7 @@ class HyperspaceBinding:
             facts = implicitFilter(self.sCtx, self, facts, self.unQualifiedAspects, self.hyperspaceBindings.aspectBoundFacts)
         if self.sCtx.formulaOptions.traceVariableFiltersResult:
             self.sCtx.modelXbrl.info("sphinx:trace",
-                 _("Hyperspace %(variable)s binding: filters result %(factCount)s facts"), 
+                 _("Hyperspace %(variable)s binding: filters result %(factCount)s facts"),
                  sourceFileLine=self.node.sourceFileLine, variable=str(self.node), factCount=len(facts))
         if self.isWithRestrictionNode: # if withNode, combine facts into partitions by qualified aspects
             factsPartitions = []
@@ -219,7 +219,7 @@ class HyperspaceBinding:
         self.fallenBack = False
         self.next()
 
-        
+
     def next(self): # will raise StopIteration if no (more) facts or fallback
         uncoveredAspectFacts = self.hyperspaceBindings.aspectBoundFacts
         if self.yieldedFact is not None and self.hyperspaceBindings.aggregationNode is None:
@@ -244,7 +244,7 @@ class HyperspaceBinding:
                         uncoveredAspectFacts[aspect] = None if aspect in self.axesAspects else self.yieldedFact
             if self.sCtx.formulaOptions.traceVariableFiltersResult:
                 self.sCtx.modelXbrl.info("sphinx:trace",
-                     _("Hyperspace %(variable)s: bound value %(result)s"), 
+                     _("Hyperspace %(variable)s: bound value %(result)s"),
                      sourceFileLine=self.node.sourceFileLine, variable=str(self.node), result=str(self.yieldedFact))
         except StopIteration:
             self.yieldedFact = None
@@ -254,7 +254,7 @@ class HyperspaceBinding:
                 self.fallenBack = True
                 if self.sCtx.formulaOptions.traceVariableExpressionResult:
                     self.sCtx.modelXbrl.info("sphinx:trace",
-                         _("Hyperspace %(variable)s: fallbackValue result %(result)s"), 
+                         _("Hyperspace %(variable)s: fallbackValue result %(result)s"),
                          sourceFileLine=self.node.sourceFileLine, variable=str(self.node), result=0)
             else:
                 raise StopIteration
@@ -293,7 +293,7 @@ class HyperspaceBinding:
                             aspectQualifiedFacts.append(modelXbrl.factsByDimMemQname(aspect, qn))
                         facts = facts & set.union(*aspectQualifiedFacts) if aspectQualifiedFacts else set()
                     else:
-                        facts = facts & set(fact 
+                        facts = facts & set(fact
                                             for fact in facts
                                             for typedDimValue in hsAxis.restriction
                                             if typedDimTest(aspect, typedDimValue, fact))
@@ -315,7 +315,7 @@ class HyperspaceBinding:
                 facts = whereMatchedFacts
             if self.sCtx.formulaOptions.traceVariableFilterWinnowing:
                 self.sCtx.modelXbrl.info("sphinx:trace",
-                     _("Hyperspace %(variable)s: %(filter)s filter passes %(factCount)s facts"), 
+                     _("Hyperspace %(variable)s: %(filter)s filter passes %(factCount)s facts"),
                      sourceFileLine=self.node.sourceFileLine, variable=str(self.node), filter=aspectStr(aspect), factCount=len(facts))
         if self.node.isClosed: # winnow out non-qualified dimension breakdowns
             facts = facts - set(fact
@@ -323,7 +323,7 @@ class HyperspaceBinding:
                                 if fact.dimAspects - self.aspectsQualified )
             if self.sCtx.formulaOptions.traceVariableFilterWinnowing:
                 self.sCtx.modelXbrl.info("sphinx:trace",
-                     _("Hyperspace %(variable)s: closed selection filter passes %(factCount)s facts"), 
+                     _("Hyperspace %(variable)s: closed selection filter passes %(factCount)s facts"),
                      sourceFileLine=self.node.sourceFileLine, variable=str(self.node), factCount=len(facts))
         return facts
 
@@ -336,7 +336,7 @@ def isPeriodEqualTo(fact, periodRestriction):
                 (context.isForeverPeriod and period == (None, None))):
                 return True
     return False
-    
+
 def isEntityIdentifierEqualTo(fact, entityIdentifierRestriction):
     context = fact.context
     if context is not None:
@@ -344,7 +344,7 @@ def isEntityIdentifierEqualTo(fact, entityIdentifierRestriction):
             if context.entityIdentifier == entityIdentifier:
                 return True
     return False
-    
+
 def typedDimTest(aspect, value, fact):
     if fact.context is None:
         return False
@@ -358,7 +358,7 @@ def typedDimTest(aspect, value, fact):
         return memElt.textValue == value
     else:
         return value is NONE or value is DEFAULT
-    
+
 class ForBinding:
     def __init__(self, hyperspaceBindings, node):
         self.hyperspaceBindings = hyperspaceBindings
@@ -366,10 +366,10 @@ class ForBinding:
         self.node = node
         self.collection = evaluate(node.collectionExpr, self.sCtx)
         self.reset()  # will raise StopIteration if no for items
-        
+
     def close(self):
         self.__dict__.clear() # dereference
-        
+
     @property
     def value(self):
         if self.yieldedValue is not None:
@@ -380,13 +380,13 @@ class ForBinding:
         if self.yieldedValue is not None:
             return self.yieldedValue.__repr__()
         return "none"
-        
+
     def reset(self):
         self.forIter = iter(self.collection)
         self.yieldedValue = None
         self.next()
 
-        
+
     def next(self): # will raise StopIteration if no (more) facts or fallback
         try:
             self.yieldedValue = next(self.forIter)
@@ -394,12 +394,12 @@ class ForBinding:
             self.sCtx.localVariables[self.node.name] = self.yieldedValue
             if self.sCtx.formulaOptions.traceVariableFiltersResult:
                 self.sCtx.modelXbrl.info("sphinx:trace",
-                     _("For loop %(variable)s: bound value %(result)s"), 
+                     _("For loop %(variable)s: bound value %(result)s"),
                      sourceFileLine=self.node.sourceFileLine, variable=str(self.node.name), result=str(self.yieldedValue))
         except StopIteration:
             if self.yieldedValue is not None:
                 del self.sCtx.localVariables[self.node.name]
             self.yieldedValue = None
             raise StopIteration
-        
+
 from .SphinxEvaluator import evaluate, factAspectValue, SphinxException, NONE

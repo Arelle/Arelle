@@ -43,13 +43,13 @@ class Coordinate(object):
 
 
     def __lt__(self, other):
-        return self._ne_(other) and (self.y < other.y 
+        return self._ne_(other) and (self.y < other.y
                                       or (self.y == other.y
                                           and self.x < other.x))
 
 
     def __gt__(self, other):
-        return self._ne_(other) and (self.y > other.y 
+        return self._ne_(other) and (self.y > other.y
                                       or (self.y == other.y
                                           and self.x > other.x))
 
@@ -119,7 +119,7 @@ class XbrlTable(TkTableWrapper.Table):
                }
 
     TG_DISABLED = 'disabled-cells'
-    
+
     TG_NO_BORDER = 'no-border'
     TG_BORDER_ALL = 'border-all'
     TG_BORDER_LEFT = 'border-left'
@@ -136,7 +136,7 @@ class XbrlTable(TkTableWrapper.Table):
     TG_BORDER_RIGHT_BOTTOM_LEFT = 'border-right-bottom-left'
     TG_BORDER_BOTTOM_LEFT_TOP = 'border-bottom-left-top'
     TG_BORDER_LEFT_TOP_RIGHT = 'border-left-top-right'
-    
+
     # (left, right, top, bottom)
     BORDERWIDTHS = {
                         TG_NO_BORDER : (0, 0, 0, 0),
@@ -550,14 +550,14 @@ class XbrlTable(TkTableWrapper.Table):
 
 
     def isHeaderCell(self, coordinate):
-        return (coordinate.y < self.titleRows 
+        return (coordinate.y < self.titleRows
                 or coordinate.x < self.titleColumns)
 
 
     def getCoordinatesOfModifiedCells(self):
         return self.modifiedCells.keys()
-    
-    
+
+
     def getCurrentCellCoordinates(self):
         return self.currentCellCoordinates
 
@@ -570,7 +570,7 @@ class XbrlTable(TkTableWrapper.Table):
         cellIndex = '%i,%i'% (y, x)
         if justification in XbrlTable.ANCHOR_POSITIONS:
             self.format_cell(justification, cellIndex)
-        if ((backgroundColourTag is not None) 
+        if ((backgroundColourTag is not None)
             and backgroundColourTag in XbrlTable.COLOURS):
             self.format_cell(backgroundColourTag, cellIndex)
         self.format_cell(XbrlTable.TG_BORDER_ALL, cellIndex)
@@ -588,7 +588,7 @@ class XbrlTable(TkTableWrapper.Table):
 
 
     def initCellCombobox(self, value, values, x, y, isOpen=False,
-                         objectId=None, selectindex=None, 
+                         objectId=None, selectindex=None,
                          comboboxselected=None, codes=dict()):
         '''
         Initialise the content of a cell as a combobox.

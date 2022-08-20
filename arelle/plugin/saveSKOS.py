@@ -6,7 +6,7 @@ that will save the concepts a DTS into an RDF file.
 '''
 
 def generateSkos(dts, skosFile):
-    try: 
+    try:
         import os, io
         from arelle import XmlUtil, XbrlConst
         from arelle.ViewUtil import viewReferences, referenceURI
@@ -14,51 +14,51 @@ def generateSkos(dts, skosFile):
         rdfNs = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         dts.modelManager.showStatus("initializing SKOS document")
         file = io.StringIO('''
-  <!DOCTYPE rdf:RDF> 
+  <!DOCTYPE rdf:RDF>
   <nsmap>
   <rdf:RDF xmlns="urn:cgi:classifier:CGI:XBRL:201204#" xml:base="urn:cgi:classifierScheme:CGI:XBRL:201204" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#" xmlns:p1="#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:xsd="http://www.w3.org/2001/XMLSchema#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xbrl-201204="urn:cgi:classifier:CGI:XBRL:201204#" xmlns:skos="http://www.w3.org/2004/02/skos/core#">
-  <owl:Ontology rdf:about="" /> 
-  <!-- Annotation properties --> 
-  <owl:AnnotationProperty rdf:about="http://purl.org/dc/elements/1.1/date" /> 
-  <owl:AnnotationProperty rdf:about="http://purl.org/dc/elements/1.1/source" /> 
-  <owl:AnnotationProperty rdf:about="http://purl.org/dc/elements/1.1/title" /> 
-  <owl:AnnotationProperty rdf:about="http://purl.org/dc/elements/1.1/description" /> 
-  <owl:AnnotationProperty rdf:about="http://purl.org/dc/elements/1.1/contributor" /> 
-  <owl:AnnotationProperty rdf:about="http://purl.org/dc/elements/1.1/creator" /> 
-  <owl:AnnotationProperty rdf:about="http://purl.org/dc/elements/1.1/format" /> 
-  <owl:AnnotationProperty rdf:about="http://www.w3.org/2002/07/owl#versionInfo" /> 
-  <!-- Object Properties --> 
-  <!--  http://www.w3.org/2004/02/skos/core#broader --> 
-  <owl:ObjectProperty rdf:about="http://www.w3.org/2004/02/skos/core#broader" /> 
-  <!--  http://www.w3.org/2004/02/skos/core#changeNote --> 
-  <owl:ObjectProperty rdf:about="http://www.w3.org/2004/02/skos/core#changeNote" /> 
-  <!--  http://www.w3.org/2004/02/skos/core#hasTopConcept --> 
-  <owl:ObjectProperty rdf:about="http://www.w3.org/2004/02/skos/core#hasTopConcept" /> 
-  <!--  http://www.w3.org/2004/02/skos/core#inScheme  --> 
-  <owl:ObjectProperty rdf:about="http://www.w3.org/2004/02/skos/core#inScheme" /> 
-  <!--  http://www.w3.org/2004/02/skos/core#topConceptOf  --> 
-  <owl:ObjectProperty rdf:about="http://www.w3.org/2004/02/skos/core#topConceptOf" /> 
-  <!-- Data properties --> 
-  <!--  http://www.w3.org/2004/02/skos/core#definition --> 
-  <owl:DatatypeProperty rdf:about="http://www.w3.org/2004/02/skos/core#definition" /> 
-  <!--  http://www.w3.org/2004/02/skos/core#editorialNote --> 
-  <owl:DatatypeProperty rdf:about="http://www.w3.org/2004/02/skos/core#editorialNote" /> 
-  <!--  http://www.w3.org/2004/02/skos/core#historyNote --> 
-  <owl:DatatypeProperty rdf:about="http://www.w3.org/2004/02/skos/core#historyNote" /> 
-  <!--  http://www.w3.org/2004/02/skos/core#notation --> 
-  <owl:DatatypeProperty rdf:about="http://www.w3.org/2004/02/skos/core#notation" /> 
-  <!--  http://www.w3.org/2004/02/skos/core#prefLabel --> 
-  <owl:DatatypeProperty rdf:about="http://www.w3.org/2004/02/skos/core#prefLabel" /> 
-  <!-- Classes --> 
-  <!--  http://www.w3.org/2002/07/owl#Thing --> 
-  <owl:Class rdf:about="http://www.w3.org/2002/07/owl#Thing" /> 
-  <!--  http://www.w3.org/2004/02/skos/core#Concept --> 
-  <owl:Class rdf:about="http://www.w3.org/2004/02/skos/core#Concept" /> 
-  <!--  http://www.w3.org/2004/02/skos/core#ConceptScheme --> 
-  <owl:Class rdf:about="http://www.w3.org/2004/02/skos/core#ConceptScheme" /> 
-  <!-- Individuals --> 
+  <owl:Ontology rdf:about="" />
+  <!-- Annotation properties -->
+  <owl:AnnotationProperty rdf:about="http://purl.org/dc/elements/1.1/date" />
+  <owl:AnnotationProperty rdf:about="http://purl.org/dc/elements/1.1/source" />
+  <owl:AnnotationProperty rdf:about="http://purl.org/dc/elements/1.1/title" />
+  <owl:AnnotationProperty rdf:about="http://purl.org/dc/elements/1.1/description" />
+  <owl:AnnotationProperty rdf:about="http://purl.org/dc/elements/1.1/contributor" />
+  <owl:AnnotationProperty rdf:about="http://purl.org/dc/elements/1.1/creator" />
+  <owl:AnnotationProperty rdf:about="http://purl.org/dc/elements/1.1/format" />
+  <owl:AnnotationProperty rdf:about="http://www.w3.org/2002/07/owl#versionInfo" />
+  <!-- Object Properties -->
+  <!--  http://www.w3.org/2004/02/skos/core#broader -->
+  <owl:ObjectProperty rdf:about="http://www.w3.org/2004/02/skos/core#broader" />
+  <!--  http://www.w3.org/2004/02/skos/core#changeNote -->
+  <owl:ObjectProperty rdf:about="http://www.w3.org/2004/02/skos/core#changeNote" />
+  <!--  http://www.w3.org/2004/02/skos/core#hasTopConcept -->
+  <owl:ObjectProperty rdf:about="http://www.w3.org/2004/02/skos/core#hasTopConcept" />
+  <!--  http://www.w3.org/2004/02/skos/core#inScheme  -->
+  <owl:ObjectProperty rdf:about="http://www.w3.org/2004/02/skos/core#inScheme" />
+  <!--  http://www.w3.org/2004/02/skos/core#topConceptOf  -->
+  <owl:ObjectProperty rdf:about="http://www.w3.org/2004/02/skos/core#topConceptOf" />
+  <!-- Data properties -->
+  <!--  http://www.w3.org/2004/02/skos/core#definition -->
+  <owl:DatatypeProperty rdf:about="http://www.w3.org/2004/02/skos/core#definition" />
+  <!--  http://www.w3.org/2004/02/skos/core#editorialNote -->
+  <owl:DatatypeProperty rdf:about="http://www.w3.org/2004/02/skos/core#editorialNote" />
+  <!--  http://www.w3.org/2004/02/skos/core#historyNote -->
+  <owl:DatatypeProperty rdf:about="http://www.w3.org/2004/02/skos/core#historyNote" />
+  <!--  http://www.w3.org/2004/02/skos/core#notation -->
+  <owl:DatatypeProperty rdf:about="http://www.w3.org/2004/02/skos/core#notation" />
+  <!--  http://www.w3.org/2004/02/skos/core#prefLabel -->
+  <owl:DatatypeProperty rdf:about="http://www.w3.org/2004/02/skos/core#prefLabel" />
+  <!-- Classes -->
+  <!--  http://www.w3.org/2002/07/owl#Thing -->
+  <owl:Class rdf:about="http://www.w3.org/2002/07/owl#Thing" />
+  <!--  http://www.w3.org/2004/02/skos/core#Concept -->
+  <owl:Class rdf:about="http://www.w3.org/2004/02/skos/core#Concept" />
+  <!--  http://www.w3.org/2004/02/skos/core#ConceptScheme -->
+  <owl:Class rdf:about="http://www.w3.org/2004/02/skos/core#ConceptScheme" />
+  <!-- Individuals -->
 </rdf:RDF></nsmap>
- <!--  Generated by the Arelle(r) http://arelle.org --> 
+ <!--  Generated by the Arelle(r) http://arelle.org -->
 '''
          )
         from arelle.ModelObjectFactory import parser
@@ -72,19 +72,19 @@ def generateSkos(dts, skosFile):
             break
         numSchemes = 0
         numConcepts = 0
-        
+
         # use presentation relationships for broader and narrower concepts
         relationshipSet = dts.relationshipSet(XbrlConst.parentChild)
-        
+
         def conceptUri(concept):
             return concept.qname.namespaceURI + "#" + concept.qname.localName
-        
+
         def namespaceUri(qname):
             return qname.namespaceURI + "#" + qname.prefix
-        
+
         priorSchemeSibling = None
         schemeNamespaces = set()
-        
+
         dts.modelManager.showStatus("setting SKOS concepts from XBRL concepts")
         for qn, concept in sorted(dts.qnameConcepts.items(), key=lambda item:str(item[0])):
             if concept.modelDocument.targetNamespace not in (
@@ -96,7 +96,7 @@ def generateSkos(dts, skosFile):
                     skosElt = etree.Element("{http://www.w3.org/2004/02/skos/core#}ConceptScheme")
                     skosElt.set("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}about", namespaceUri(qn))
                     elt = etree.SubElement(skosElt, "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}type")
-                    elt.set("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource", 
+                    elt.set("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource",
                             "http://www.w3.org/2002/07/owl#Thing")
                     elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}notation")
                     elt.text = str(qn.prefix)
@@ -106,12 +106,12 @@ def generateSkos(dts, skosFile):
                     else:
                         rdfElement.append(skosElt)
                     priorSchemeSibling = skosElt
-                
+
                 numConcepts += 1
                 skosElt = etree.SubElement(rdfElement, "{http://www.w3.org/2004/02/skos/core#}Concept")
                 skosElt.set("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}about", conceptUri(concept))
                 elt = etree.SubElement(skosElt, "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}type")
-                elt.set("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource", 
+                elt.set("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource",
                         "http://www.w3.org/2002/07/owl#Thing")
                 elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}notation")
                 elt.text = str(concept.qname)
@@ -142,16 +142,16 @@ def generateSkos(dts, skosFile):
                 for rel in relationshipSet.toModelObject(concept): # broader
                     elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}broader")
                     elt.set("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource", conceptUri(rel.fromModelObject))
-                    
+
                 elt = etree.SubElement(skosElt, "{http://www.w3.org/2004/02/skos/core#}inScheme")
-                elt.set("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource", 
+                elt.set("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource",
                         namespaceUri(qn))
-                
+
         dts.modelManager.showStatus("saving SKOS file")
         fh = open(skosFile, "w", encoding="utf-8")
         XmlUtil.writexml(fh, xmlDocument, encoding="utf-8")
         fh.close()
-        
+
         dts.info("info:saveSKOS",
                  _("SKOS of %(entryFile)s has %(numberOfConcepts)s concepts in SKOS RDF file %(skosOutputFile)s."),
                  modelObject=dts,
@@ -165,8 +165,8 @@ def generateSkos(dts, skosFile):
 
 def saveSkosMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Save SKOS RDF", 
-                     underline=0, 
+    menu.add_command(label="Save SKOS RDF",
+                     underline=0,
                      command=lambda: saveSkosMenuCommand(cntlr) )
 
 def saveSkosMenuCommand(cntlr):
@@ -188,18 +188,18 @@ def saveSkosMenuCommand(cntlr):
     cntlr.saveConfig()
 
     import threading
-    thread = threading.Thread(target=lambda 
+    thread = threading.Thread(target=lambda
                                   _dts=cntlr.modelManager.modelXbrl,
-                                  _skosFile=skosFile: 
+                                  _skosFile=skosFile:
                                         generateSkos(_dts, _skosFile))
     thread.daemon = True
     thread.start()
 
 def saveSkosCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
-    parser.add_option("--save-skos", 
-                      action="store", 
-                      dest="skosFile", 
+    parser.add_option("--save-skos",
+                      action="store",
+                      dest="skosFile",
                       help=_("Save SKOS semantic definition in specified RDF file."))
 
 def saveSkosCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):

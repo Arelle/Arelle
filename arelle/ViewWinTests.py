@@ -54,7 +54,7 @@ def viewTests(modelXbrl, tabWin):
         view.treeView["displaycolumns"] = (("name", "readMeFirst") +
                                            ( ("infoset",) if hasInfoset else () ) +
                                            ( "status", "expected", "actual"))
-        
+
     menu = view.contextMenu()
     view.menuAddExpandCollapse()
     view.menuAddClipboard()
@@ -65,11 +65,11 @@ def viewTests(modelXbrl, tabWin):
     view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
     view.treeView.bind("<Enter>", view.treeviewEnter, '+')
     view.treeView.bind("<Leave>", view.treeviewLeave, '+')
-    
+
 class ViewTests(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin):
         super(ViewTests, self).__init__(modelXbrl, tabWin, "Tests", True)
-        
+
     def viewTestcaseIndexElement(self, modelDocument, parentNode, parentNodeText=None):
         self.id += 1
         if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
@@ -97,19 +97,19 @@ class ViewTests(ViewWinTree.ViewTree):
                 self.viewTestGroup(elt, parentNode, i)
         else:
             pass
-                
+
     def viewTestcase(self, modelDocument, parentNode, n):
         node = self.treeView.insert(parentNode, "end", modelDocument.objectId(),
-                                    text=os.path.basename(modelDocument.uri), 
+                                    text=os.path.basename(modelDocument.uri),
                                     tags=("odd" if n & 1 else "even",))
         self.id += 1;
         if hasattr(modelDocument, "testcaseVariations"):
             for i, modelTestcaseVariation in enumerate(modelDocument.testcaseVariations):
                 self.viewTestcaseVariation(modelTestcaseVariation, node, n + i + 1)
-                
+
     def viewTestGroup(self, group, parentNode, n):
         node = self.treeView.insert(parentNode, "end", group.objectId(),
-                                    text=group.get("name"), 
+                                    text=group.get("name"),
                                     tags=("odd" if n & 1 else "even",))
         titleElt = XmlUtil.child(group, None, "title")
         if titleElt is not None:
@@ -123,7 +123,7 @@ class ViewTests(ViewWinTree.ViewTree):
             if elt.get("is-XPath2") == "true":
                 i = i + 1
                 self.viewTestcaseVariation(elt, node, n + i + 1)
-                
+
     def viewTestcaseVariation(self, modelTestcaseVariation, parentNode, n):
         if self.isTransformRegistry or modelTestcaseVariation.localName in ("testGroup", "test-case"):
             id = modelTestcaseVariation.name
@@ -131,8 +131,8 @@ class ViewTests(ViewWinTree.ViewTree):
             id = modelTestcaseVariation.id
             if id is None:
                 id = ""
-        node = self.treeView.insert(parentNode, "end", modelTestcaseVariation.objectId(), 
-                                    text=id, 
+        node = self.treeView.insert(parentNode, "end", modelTestcaseVariation.objectId(),
+                                    text=id,
                                     tags=("odd" if n & 1 else "even",))
         self.treeView.set(node, "name", (modelTestcaseVariation.description or modelTestcaseVariation.name))
         self.treeView.set(node, "readMeFirst", ",".join(str(uri) for uri in modelTestcaseVariation.readMeFirstUris))
@@ -140,16 +140,16 @@ class ViewTests(ViewWinTree.ViewTree):
         call = modelTestcaseVariation.cfcnCall
         if call: self.treeView.set(node, "call", call[0])
         test = modelTestcaseVariation.cfcnTest
-        if test: 
+        if test:
             self.treeView.set(node, "test", test[0])
         if getattr(self.modelXbrl.modelDocument, "outpath", None) and modelTestcaseVariation.resultIsInfoset:
             self.treeView.set(node, "infoset", modelTestcaseVariation.resultInfosetUri)
         _exp = sortCountExpected(modelTestcaseVariation.expected)
-        self.treeView.set(node, "expected", 
+        self.treeView.set(node, "expected",
                           ", ".join(str(e) for e in _exp) if isinstance(_exp, list) else _exp)
         self.treeView.set(node, "actual", ", ".join(modelTestcaseVariation.actual))
         self.id += 1;
-                
+
     def treeviewEnter(self, *args):
         self.blockSelectEvent = 0
 

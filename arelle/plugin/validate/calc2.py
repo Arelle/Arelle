@@ -55,7 +55,7 @@ def addInterval(boundValues, key, intervalValue, weight=None):
         else:
             result = (r[0] + a, r[1] + b)
     boundValues[key] = result
-        
+
 
 class ValidateXbrlCalc2:
     def __init__(self, val):
@@ -63,7 +63,7 @@ class ValidateXbrlCalc2:
         self.cntlr = val.modelXbrl.modelManager.cntlr
         self.modelXbrl = val.modelXbrl
         self.standardTaxonomiesDict = val.disclosureSystem.standardTaxonomiesDict
-        self.eqCntx = {} # contexts which are OIM-aspect equivalent 
+        self.eqCntx = {} # contexts which are OIM-aspect equivalent
         self.eqUnit = {} # units which are equivalent
         self.sumInitArcrole = self.perBindArcrole = self.aggBindArcrole = None
         self.sumConceptBindKeys = defaultdict(set)
@@ -75,18 +75,18 @@ class ValidateXbrlCalc2:
         self.aggBoundFacts = defaultdict(list)
         self.aggBoundConceptFacts = defaultdict(list)
         self.aggDimInit = set()
-    
+
     def validate(self):
         modelXbrl = self.modelXbrl
         if not modelXbrl.contexts or not modelXbrl.facts:
             return # skip if no contexts or facts
-        
+
         if not self.val.validateInferDecimals: # infering precision is now contrary to XBRL REC section 5.2.5.2
             modelXbrl.error("calc2e:inferringPrecision","Calc2 requires inferring decimals.")
             return
 
         startedAt = time.time()
-    
+
         # check balance attributes and weights, same as XBRL 2.1
         for rel in modelXbrl.relationshipSet(calc2Arcroles).modelRelationships:
             weight = rel.weight
@@ -115,7 +115,7 @@ class ValidateXbrlCalc2:
                     modelXbrl.error("calc2e:invalidWeight",
                         _("Calculation relationship has invalid weight from %(source)s to %(target)s in link role %(linkrole)s"),
                         modelObject=rel,
-                        source=fromConcept.qname, target=toConcept.qname, linkrole=ELR) 
+                        source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
                 fromBalance = fromConcept.balance
                 toBalance = toConcept.balance
                 if fromBalance and toBalance:
@@ -125,17 +125,17 @@ class ValidateXbrlCalc2:
                                         ("Negative" if weight < 0 else "Positive"),
                             _("Calculation relationship has illegal weight %(weight)s from %(source)s, %(sourceBalance)s, to %(target)s, %(targetBalance)s, in link role %(linkrole)s (per 5.1.1.2 Table 6)"),
                             modelObject=rel, weight=weight,
-                            source=fromConcept.qname, target=toConcept.qname, linkrole=rel.linkrole, 
+                            source=fromConcept.qname, target=toConcept.qname, linkrole=rel.linkrole,
                             sourceBalance=fromBalance, targetBalance=toBalance,
                             messageCodes=("calc2e:balanceCalcWeightIllegalNegative", "calc2:balanceCalcWeightIllegalPositive"))
                 if not fromConcept.isNumeric or not toConcept.isNumeric:
                     modelXbrl.error("calc2e:nonNumericCalc",
                         _("Calculation relationship has illegal concept from %(source)s%(sourceNumericDecorator)s to %(target)s%(targetNumericDecorator)s in link role %(linkrole)s"),
                         modelObject=rel,
-                        source=fromConcept.qname, target=toConcept.qname, linkrole=rel.linkrole, 
-                        sourceNumericDecorator="" if fromConcept.isNumeric else _(" (non-numeric)"), 
-                        targetNumericDecorator="" if toConcept.isNumeric else _(" (non-numeric)"))    
-                            
+                        source=fromConcept.qname, target=toConcept.qname, linkrole=rel.linkrole,
+                        sourceNumericDecorator="" if fromConcept.isNumeric else _(" (non-numeric)"),
+                        targetNumericDecorator="" if toConcept.isNumeric else _(" (non-numeric)"))
+
         # identify equal contexts
         uniqueCntxHashes = {}
         self.modelXbrl.profileActivity()
@@ -148,7 +148,7 @@ class ValidateXbrlCalc2:
                 uniqueCntxHashes[h] = cntx
         del uniqueCntxHashes
         self.modelXbrl.profileActivity("... identify aspect equal contexts", minTimeToShow=1.0)
-    
+
         # identify equal units
         uniqueUnitHashes = {}
         for unit in self.modelXbrl.units.values():
@@ -160,8 +160,8 @@ class ValidateXbrlCalc2:
                 uniqueUnitHashes[h] = unit
         del uniqueUnitHashes
         self.modelXbrl.profileActivity("... identify equal units", minTimeToShow=1.0)
-                    
-                    
+
+
         sectObjs = sorted(set(rel.fromModelObject # only have numerics with context and unit
                               for rel in modelXbrl.relationshipSet(sectionFact).modelRelationships
                               if rel.fromModelObject is not None and rel.fromModelObject.concept is not None),
@@ -170,12 +170,12 @@ class ValidateXbrlCalc2:
             self.modelXbrl.error("calc2e:noSections",
                             "Instance contains no sections, nothing to validate.",
                             modelObject=modelXbrl)
-    
+
         # check by section
         factByConceptCntxUnit = OrderedDefaultDict(list)  # sort into document order for consistent error messages
         self.sectionFacts = []
         for sectObj in sectObjs:
-            #print ("section {}".format(sectObj.concept.label())) 
+            #print ("section {}".format(sectObj.concept.label()))
             self.section = sectObj.concept.label()
             sectLinkRoles = tuple(sectObj.concept.get(calc2linkroles,"").split())
             factByConceptCntxUnit.clear()
@@ -222,10 +222,10 @@ class ValidateXbrlCalc2:
                     self.sectionFacts.append(f0)
             # sectionFacts now in document order and deduplicated
             #print("section {} facts {}".format(sectObj.concept.label(), ", ".join(str(f.qname)+"="+f.value for f in self.sectionFacts)))
-            
+
             # depth-first calc tree
             sectCalc2RelSet = modelXbrl.relationshipSet(calc2Arcroles, sectLinkRoles)
-            
+
             # indexers for section based on calc2 arcrole
             self.sumInit = False
             self.sumConceptBindKeys.clear()
@@ -251,13 +251,13 @@ class ValidateXbrlCalc2:
         if childRels:
             visited.add(parentConcept)
             inferredChildValues = {}
-            
+
             # setup summation bind keys for child objects
             sumParentBindKeys = self.sumConceptBindKeys[parentConcept]
             boundSumKeys = set() # these are contributing fact keys, parent may be inferred
             boundSums = defaultdict(intervalZero)
             boundSummationItems = defaultdict(list)
-            boundPerKeys = set() 
+            boundPerKeys = set()
             boundPers = defaultdict(intervalZero)
             boundDurationItems = defaultdict(list)
             boundAggKeys = set()
@@ -267,11 +267,11 @@ class ValidateXbrlCalc2:
             for rel in childRels:
                 childConcept = rel.toModelObject
                 if childConcept not in visited:
-                    if rel.arcrole == summationItem: 
+                    if rel.arcrole == summationItem:
                         if not self.sumInit:
                             self.sumBindFacts()
                         boundSumKeys |= self.sumConceptBindKeys[childConcept]
-                    elif rel.arcrole == balanceChanges: 
+                    elif rel.arcrole == balanceChanges:
                         if not self.perInit:
                             self.perBindFacts()
                         boundPerKeys |= self.perConceptBindKeys[childConcept] # these are only duration items
@@ -282,15 +282,15 @@ class ValidateXbrlCalc2:
                     dimQN = rel.arcElement.prefixedNameQname(rel.get("dimension"))
                     if dimQN not in self.aggDimInit:
                         self.aggBindFacts(dimQN) # bind each referenced dimension's contexts
-                    
-            # depth-first descent calc tree and process item after descent        
+
+            # depth-first descent calc tree and process item after descent
             for rel in childRels:
                 childConcept = rel.toModelObject
                 if childConcept not in visited:
                     # depth-first descent
                     self.sectTreeRel(childConcept, n+1, sectCalc2RelSet, inferredChildValues,  visited, dimQN)
                     # post-descent summation (allows use of inferred value)
-                    if rel.arcrole == summationItem: 
+                    if rel.arcrole == summationItem:
                         weight = rel.weightDecimal
                         for sumKey in boundSumKeys:
                             cntx, unit = sumKey
@@ -303,7 +303,7 @@ class ValidateXbrlCalc2:
                                 addInterval(boundSums, sumKey, inferredChildValues[factKey], weight)
                             elif factKey in inferredParentValues:
                                 addInterval(boundSums, sumKey, inferredParentValues[factKey], weight)
-                    elif rel.arcrole == balanceChanges: 
+                    elif rel.arcrole == balanceChanges:
                         weight = rel.weightDecimal
                         for perKey in boundPerKeys:
                             hCntx, unit, start, end = perKey
@@ -331,7 +331,7 @@ class ValidateXbrlCalc2:
                 elif rel.arcrole == aggregationDomain: # this is in visited
                     childRelSet = self.modelXbrl.relationshipSet(domainMember,rel.get("targetRole"))
                     self.sectTreeRel(childConcept, n+1, childRelSet, inferredParentValues, {None}, dimQN) # infer global to section
-                        
+
             # process child items bound to this calc subtree
             for sumKey in boundSumKeys:
                 cntx, unit = sumKey
@@ -345,9 +345,9 @@ class ValidateXbrlCalc2:
                             self.modelXbrl.log('INCONSISTENCY', "calc2e:summationInconsistency",
                                 _("Summation inconsistent from %(concept)s in section %(section)s reported sum %(reportedSum)s, computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreported contributing items %(unreportedContributors)s"),
                                 modelObject=boundSummationItems[sumKey],
-                                concept=parentConcept.qname, section=self.section, 
+                                concept=parentConcept.qname, section=self.section,
                                 reportedSum=self.formatInterval(sa, sb, d),
-                                computedSum=self.formatInterval(ia, ib, d), 
+                                computedSum=self.formatInterval(ia, ib, d),
                                 contextID=f.context.id, unitID=f.unit.id,
                                 unreportedContributors=", ".join(str(c.qname) # list the missing/unreported contributors in relationship order
                                                                  for r in childRels
@@ -408,9 +408,9 @@ class ValidateXbrlCalc2:
                         self.modelXbrl.log('INCONSISTENCY', "calc2e:balanceInconsistency",
                             _("Balance inconsistent from %(concept)s in section %(section)s reported sum %(reportedSum)s, computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreported contributing items %(unreportedContributors)s"),
                             modelObject=boundDurationItems[perKey],
-                            concept=parentConcept.qname, section=self.section, 
+                            concept=parentConcept.qname, section=self.section,
                             reportedSum=self.formatInterval(endBalA, endBalB, d),
-                            computedSum=self.formatInterval(ia, ib, d), 
+                            computedSum=self.formatInterval(ia, ib, d),
                             contextID=f.context.id, unitID=f.unit.id,
                             unreportedContributors=", ".join(str(c.qname) # list the missing/unreported contributors in relationship order
                                                              for r in childRels
@@ -432,9 +432,9 @@ class ValidateXbrlCalc2:
                                     _("Aggregation inconsistent for %(concept)s, domain %(domain)s in section %(section)s reported sum %(reportedSum)s, computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreported contributing members %(unreportedContributors)s"),
                                     modelObject=boundAggItems[factDomKey],
                                     concept=concept.qname,
-                                    domain=parentConcept.qname, section=self.section, 
+                                    domain=parentConcept.qname, section=self.section,
                                     reportedSum=self.formatInterval(sa, sb, d),
-                                    computedSum=self.formatInterval(ia, ib, d), 
+                                    computedSum=self.formatInterval(ia, ib, d),
                                     contextID=f.context.id, unitID=f.unit.id,
                                     unreportedContributors=", ".join(str(c.qname) # list the missing/unreported contributors in relationship order
                                                                      for r in childRels
@@ -457,7 +457,7 @@ class ValidateXbrlCalc2:
                                 self.eqCntx[(hCntx, dimQN, domQN)] = cntx
                                 inferredParentValues[(concept, cntx, unit)] = (ia, ib)
             visited.remove(parentConcept)
-            
+
     def sumBindFacts(self):
         # bind facts in section for summation-item
         for f in self.sectionFacts:
@@ -468,7 +468,7 @@ class ValidateXbrlCalc2:
                 self.sumConceptBindKeys[concept].add( (cntx,unit) )
                 self.sumBoundFacts[concept, cntx, unit].append(f)
         self.sumInit = True
-                
+
     def perBindFacts(self):
         # bind facts in section for domain aggreggation
         for f in self.sectionFacts:
@@ -483,14 +483,14 @@ class ValidateXbrlCalc2:
                     if cntx.isStartEndPeriod:
                         self.durationPeriodStarts[nominalPeriod(cntx.endDatetime - cntx.startDatetime)].add(cntx.startDatetime)
         self.perInit = True
-    
+
     def aggBindFacts(self, dimQN):
         # bind facts in section for domain aggreggation
         for f in self.sectionFacts:
             concept = f.concept
             if concept.isNumeric:
                 cntx = self.eqCntx.get(f.context,f.context)
-                hCntx = hash( (cntx.periodHash, cntx.entityIdentifierHash, 
+                hCntx = hash( (cntx.periodHash, cntx.entityIdentifierHash,
                                hash(frozenset(dimObj
                                               for _dimQN, dimObj in cntx.qnameDims.items()
                                             if _dimQN != dimQN))) )
@@ -501,11 +501,11 @@ class ValidateXbrlCalc2:
                     self.aggBoundFacts[hCntx, unit, dimQN, memQN].append(f)
                     self.aggBoundConceptFacts[f.concept, hCntx, unit, dimQN, memQN].append(f)
         self.aggDimInit.add(dimQN)
-        
+
     def aggTotalContext(self, hCntx, dimQN, domQN):
         # find a context for aggregation total usable in line item and balance roll ups
         for cntx in self.modelXbrl.contexts.values():
-            hCntx2 = hash( (cntx.periodHash, cntx.entityIdentifierHash, 
+            hCntx2 = hash( (cntx.periodHash, cntx.entityIdentifierHash,
                             hash(frozenset(dimObj
                                            for _dimQN, dimObj in cntx.qnameDims.items()
                                            if _dimQN != dimQN))) )
@@ -522,13 +522,13 @@ class ValidateXbrlCalc2:
         return "[{}, {}]".format( # show as an interval
             Locale.format_decimal(self.modelXbrl.locale, a, 1, max(dec,0)),
             Locale.format_decimal(self.modelXbrl.locale, b, 1, max(dec,0)))
-        
-            
+
+
 def checkCalc2(val, *args, **kwargs):
     ValidateXbrlCalc2(val).validate()
 
 
-   
+
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Calc2',

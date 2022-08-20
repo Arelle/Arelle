@@ -14,7 +14,7 @@ if sys.version[0] >= '3':
 else:
     csvOpenMode = 'wb' # for 2.7
     csvOpenNewline = None
-    
+
 NoneType = type(None) # for isinstance testing
 
 # deferred opening of openpyxl so it's not needed in site-packages unless it is used
@@ -73,7 +73,7 @@ class View:
         self.numHdrCols = 0
         self.treeCols = 0  # set to number of tree columns for auto-tree-columns
         if modelXbrl:
-            if not lang: 
+            if not lang:
                 self.lang = modelXbrl.modelManager.defaultLang
         if self.type == NOOUT:
             self.xmlDoc = None
@@ -82,7 +82,7 @@ class View:
             if isinstance(self.outfile, FileNamedStringIO):
                 self.csvFile = self.outfile
             else:
-                # note: BOM signature required for Excel to open properly with characters > 0x7f 
+                # note: BOM signature required for Excel to open properly with characters > 0x7f
                 self.csvFile = open(outfile, csvOpenMode, newline=csvOpenNewline, encoding='utf-8-sig')
             self.csvWriter = csv.writer(self.csvFile, dialect="excel")
         elif self.type == XLSX:
@@ -100,15 +100,15 @@ class View:
 <html xmlns="http://www.w3.org/1999/xhtml" dir="''' + self.langDir + '''">
     <head>
         <meta http-equiv="content-type" content="text/html;charset=utf-8" />
-        <STYLE type="text/css"> 
+        <STYLE type="text/css">
             table {font-family:Arial,sans-serif;vertical-align:middle;white-space:normal;}
             th {background:#eee;}
-            td {} 
+            td {}
             .tableHdr{border-top:.5pt solid windowtext;border-right:none;border-bottom:none;border-left:.5pt solid windowtext;}
             .zAxisHdr{border-top:.5pt solid windowtext;border-right:.5pt solid windowtext;border-bottom:none;border-left:.5pt solid windowtext;}
             .xAxisSpanLeg,.yAxisSpanLeg,.yAxisSpanArm{border-top:none;border-right:none;border-bottom:none;border-left:.5pt solid windowtext;}
             .xAxisHdrValue{border-top:.5pt solid windowtext;border-right:none;border-bottom:none;border-left:1.0pt solid windowtext;}
-            .xAxisHdr{border-top:.5pt solid windowtext;border-right:none;border-bottom:none;border-left:.5pt solid windowtext;} 
+            .xAxisHdr{border-top:.5pt solid windowtext;border-right:none;border-bottom:none;border-left:.5pt solid windowtext;}
             .yAxisHdrWithLeg{vertical-align:middle;border-top:.5pt solid windowtext;border-right:none;border-bottom:none;border-left:.5pt solid windowtext;}
             .yAxisHdrWithChildrenFirst{border-top:none;border-right:none;border-bottom:.5pt solid windowtext;border-left:.5pt solid windowtext;}
             .yAxisHdrAbstract{border-top:.5pt solid windowtext;border-right:none;border-bottom:none;border-left:.5pt solid windowtext;}
@@ -134,11 +134,11 @@ class View:
 <html xmlns="http://www.w3.org/1999/xhtml" dir="''' + self.langDir + '''">
     <head>
         <meta http-equiv="content-type" content="text/html;charset=utf-8" />
-        <STYLE type="text/css"> 
+        <STYLE type="text/css">
             table {font-family:Arial,sans-serif;vertical-align:middle;white-space:normal;
                     border-top:.5pt solid windowtext;border-right:1.5pt solid windowtext;border-bottom:1.5pt solid windowtext;border-left:.5pt solid windowtext;}
             th {background:#eee;}
-            td {} 
+            td {}
             .tableHdr{border-top:.5pt solid windowtext;border-right:none;border-bottom:.5pt solid windowtext;border-left:.5pt solid windowtext;}
             .rowSpanLeg{width:1.0em;border-top:none;border-right:none;border-bottom:none;border-left:.5pt solid windowtext;}
             .tableCell{border-top:.5pt solid windowtext;border-right:none;border-bottom:none;border-left:.5pt solid windowtext;}
@@ -167,26 +167,26 @@ class View:
             self.entries = []
             self.entryLevels = [self.entries]
             self.jsonObject = {self.rootElementName: self.entries}
-            
+
     def setColWidths(self, colWidths):
         # widths in monospace character counts (as with xlsx files)
         if self.type == XLSX:
             for iCol, colWidth in enumerate(colWidths):
                 colLetter = utils.get_column_letter(iCol+1)
-                self.xlsxWs.column_dimensions[colLetter].width = colWidth  
-        
+                self.xlsxWs.column_dimensions[colLetter].width = colWidth
+
     def setColWrapText(self, colColWrapText):
         # list with True for columns to be word wrapped in every row including heading
         if self.type == XLSX:
             self.xlsxColWrapText = colColWrapText
-        
+
     def addRow(self, cols, asHeader=False, treeIndent=0, colSpan=1, xmlRowElementName=None, xmlRowEltAttr=None, xmlRowText=None, xmlCol0skipElt=False, xmlColElementNames=None, lastColSpan=None, arcRole=None):
         if asHeader and len(cols) > self.numHdrCols:
             self.numHdrCols = len(cols)
         if self.type == CSV:
             self.csvWriter.writerow(cols if not self.treeCols else
                                     ([None for i in range(treeIndent)] +
-                                     cols[0:1] + 
+                                     cols[0:1] +
                                      [None for i in range(treeIndent, self.treeCols - 1)] +
                                      cols[1:]))
         elif self.type == XLSX:
@@ -247,7 +247,7 @@ class View:
                     parentElt = self.docEltLevels[treeIndent]
                 else:
                     # problem, error message? unexpected indent
-                    parentElt = self.docEltLevels[0] 
+                    parentElt = self.docEltLevels[0]
                 # escape attributes content
                 escapedRowEltAttr = dict(((k, v.replace("&","&amp;").replace("<","&lt;"))
                                           for k,v in xmlRowEltAttr.items())
@@ -292,7 +292,7 @@ class View:
                     entries = self.entryLevels[treeIndent]
                 else:
                     # problem, error message? unexpected indent
-                    entries = self.entryLevels[0] 
+                    entries = self.entryLevels[0]
                 entry = []
                 if xmlRowElementName:
                     entry.append(xmlRowElementName)
@@ -321,9 +321,9 @@ class View:
                                 else:
                                     value = str(col)
                                 content[elementName] = value
-        if asHeader and lastColSpan: 
+        if asHeader and lastColSpan:
             self.numHdrCols += lastColSpan - 1
-                                
+
     def close(self, noWrite=False):
         if self.type == CSV:
             if not isinstance(self.outfile, FileNamedStringIO):

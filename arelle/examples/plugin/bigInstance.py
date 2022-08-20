@@ -18,7 +18,7 @@ from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
 class NotInstanceDocumentException(Exception):
     def __init__(self):
         pass
-    
+
 sharedEmptyDict = {}
 sharedEmptyList = []
 
@@ -38,25 +38,25 @@ def initModelObject(obj, saxhandler, qname, attrs):
     obj._attrs = dict((('{{{0}}}{1}'.format(*name) if name[0] else name[1]), value)
                       for name, value in attrs.items())
     obj._elementText = ''
-    
+
 class BigInstModelObject(ModelObject):
     def __init__(self, saxhandler, qname, attrs):
         initModelObject(self, saxhandler, qname, attrs)
         super(BigInstModelObject, self).init(saxhandler.modelDocument)
-        
+
     def getparent(self):
         return self._parent
-    
+
     def items(self):
         return self._attrs.items()
-    
+
     def get(self, clarkName):
         return self._attrs.get(clarkName)
-    
+
     @property
     def sourceline(self):
         return self._sourceline
-    
+
     @property
     def elementText(self):
         return self._elementText
@@ -66,52 +66,52 @@ class BigInstContext(ModelContext):
         initModelObject(self, saxhandler, qname, attrs)
         super(BigInstContext, self).init(saxhandler.modelDocument)
         self._isStartEndPeriod = self._isInstantPeriod = self._isForeverPeriod = False
-        
+
     def getparent(self):
         return self._parent
-    
+
     def items(self):
         return self._attrs.items()
-    
+
     def get(self, clarkName):
         return self._attrs.get(clarkName)
-    
+
     @property
     def sourceline(self):
         return self._sourceline
-    
+
     @property
     def elementText(self):
         return self._elementText
-    
+
 class BigInstUnit(ModelUnit):
     def __init__(self, saxhandler, qname, attrs):
         initModelObject(self, saxhandler, qname, attrs)
         super(BigInstUnit, self).init(saxhandler.modelDocument)
         self._measures = [[],[]]
-        
+
     def getparent(self):
         return self._parent
-    
+
     def items(self):
         return self._attrs.items()
-    
+
     def get(self, clarkName):
         return self._attrs.get(clarkName)
-    
+
     @property
     def sourceline(self):
         return self._sourceline
-    
+
     @property
     def elementText(self):
         return self._elementText
-    
+
 class BigInstFact(ModelFact):
     __slots__ = ("_parent", "_concept", "_attrs", "_sourceline", "_elementText",
-                 "_context", "_conceptContextUnitLangHash", 
-                 "_isItem", "_isTuple", "_isNumeric", "_isFraction", 
-                 "_id", "_decimals", "_precision", 
+                 "_context", "_conceptContextUnitLangHash",
+                 "_isItem", "_isTuple", "_isNumeric", "_isFraction",
+                 "_id", "_decimals", "_precision",
                  "modelDocument", "objectIndex", "modelTupleFacts",
                  "_parentBigInstObj", "_prevObj", "_nextObj",
                  "xValid", "xValue", "sValue", "xAttributes")
@@ -153,16 +153,16 @@ class BigInstFact(ModelFact):
         self._elementText = ''
         self.modelTupleFacts = sharedEmptyList
         super(ModelFact, self).init(saxhandler.modelDocument)
-        
+
     def getparent(self):
         return self._parent
-    
+
     def items(self):
         return self._attrs.items()
-    
+
     def get(self, clarkName):
         return self._attrs.get(clarkName)
-    
+
     @property
     def sourceline(self):
         return self._sourceline
@@ -178,25 +178,25 @@ class BigInstFact(ModelFact):
     @property
     def elementQname(self):
         return self._concept.qname
-    
+
     @property
     def namespaceURI(self):
         return self._concept.qname.namespaceURI
-    
+
     @property
     def localName(self):
         return self._concept.qname.localName
-    
+
     @property
     def elementText(self):
         return self._elementText
-    
+
     @property
     def contextID(self):
         if self._context is not None:
             return self._context.id
         return None
-    
+
     @property
     def slottedAttributesNames(self):
         names = set()
@@ -206,7 +206,7 @@ class BigInstFact(ModelFact):
         if self._decimals is not None: names.add(qnDecimalsAttr)
         if self._precision is not None: names.add(qnPrecisionAttr)
         return names
-    
+
     @property
     def unitID(self):
         if self._unit is not None:
@@ -226,20 +226,20 @@ class saxHandler(xml.sax.ContentHandler):
         self.modelDocument = None
         self.contextRefedFacts = defaultdict(list)
         self.unitRefedFacts = defaultdict(list)
-        
+
     def qname(self, prefixedName):
         prefix, sep, localName = prefixedName.rpartition(":")
         return QName(prefix, self.nsmap.get(prefix,None), localName)
-        
+
     def startPrefixMapping(self, prefix, uri):
         self.nsmap[prefix] = uri
         self.prefixmap[uri] = prefix
-        
+
     def endPrefixMapping(self, prefix):
         if prefix in self.nsmap:
             self.prefixmap.pop(self.nsmap[prefix], None)
         self.nsmap.pop(prefix, None)
-        
+
     def startElementNS(self, name, qname, attrs):
         namespaceURI, localName = name
         prefix = self.prefixmap.get(namespaceURI, None)
@@ -291,7 +291,7 @@ class saxHandler(xml.sax.ContentHandler):
                 self.qnameStack.insert(0, thisModelObject)  # build content
         self.currentNamespaceURI = namespaceURI
         self.currentLocalName = localName
- 
+
     def endElementNS(self, name, qname):
         thisQname = QName(None, *name)
         if self.qnameStack and self.qnameStack[0].elementQname == thisQname:
@@ -312,7 +312,7 @@ class saxHandler(xml.sax.ContentHandler):
             self.currentLocalName = None
             XmlValidate.validate(self.modelXbrl, elt, recurse=False)
             pass
-            
+
     def characters(self, content):
         if self.currentNamespaceURI:
             elt = self.qnameStack[0]
@@ -349,20 +349,20 @@ class saxHandler(xml.sax.ContentHandler):
                         memConcept = self.modelXbrl.qnameConcepts.get(memQname)
             elif elt is not None:
                 elt._elementText += content
-        
+
     def skippedEntity(self, name):
         print ("skipped entity={0}".format(name))
-        
+
 class BigInstDocument:
     def __init__(self, file, xbrlParser, saxParser, saxHandler):
         self.file = file
         self.xbrlParser = xbrlParser
         self.saxParser = saxParser
         self.saxHandler = saxHandler
-    
+
     def getroot(self):
         return self.saxHandler.qnameStack[-1]
-    
+
 def bigInstLoader(modelXbrl, file, mappedUri, filepath):
     saxParser = xml.sax.make_parser()
     saxParser.setFeature("http://xml.org/sax/features/namespaces", True)

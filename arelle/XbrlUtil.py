@@ -51,7 +51,7 @@ def equalityHash(elt, equalMode=S_EQUAL, excludeIDs=NO_IDs_EXCLUDED):
             if not hasattr(elt,"xValid"):
                 xmlValidate(dts, elt)
             hashableValue = elt.sValue if equalMode == S_EQUAL else elt.xValue
-            if isinstance(hashableValue,float) and math.isnan(hashableValue): 
+            if isinstance(hashableValue,float) and math.isnan(hashableValue):
                 hashableValue = (hashableValue,elt)    # ensure this NaN only compares to itself and no other NaN
             _hash = hash((elt.elementQname,
                           hashableValue,
@@ -87,12 +87,12 @@ def sEqual(dts1, elt1, elt2, equalMode=S_EQUAL, excludeIDs=NO_IDs_EXCLUDED, dts2
     if len(children1) != len(children2):
         return False
     if (not xEqual(elt1, elt2,
-                   # must use stringValue for nested contents of mixed content 
+                   # must use stringValue for nested contents of mixed content
                    # ... this is now in xValue for mixed content
                    # VALIDATE_BY_STRING_VALUE if len(children1) and elt1.xValid == VALID else
                    equalMode
-                   ) or 
-        attributeDict(dts1, elt1, (), equalMode, excludeIDs) != 
+                   ) or
+        attributeDict(dts1, elt1, (), equalMode, excludeIDs) !=
         attributeDict(dts2, elt2, (), equalMode, excludeIDs, ns2ns1Tbl)):
         return False
     excludeChildIDs = excludeIDs if excludeIDs != TOP_IDs_EXCLUDED else NO_IDs_EXCLUDED
@@ -112,7 +112,7 @@ def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeID
         attrNsURI = ns[1:] if sep else None
         if ns2ns1Tbl and attrNsURI in ns2ns1Tbl:
             attrNsURI = ns2ns1Tbl[attrNsURI]
-        if (attrTag not in exclusions and 
+        if (attrTag not in exclusions and
             (attrNsURI is None or attrNsURI not in exclusions)):
             if keyByTag:
                 qname = attrTag
@@ -136,7 +136,7 @@ def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeID
 
 def attributes(modelXbrl, elt, exclusions=set(), ns2ns1Tbl=None, keyByTag=False):
     a = attributeDict(modelXbrl, elt, exclusions, ns2ns1Tbl=ns2ns1Tbl, keyByTag=keyByTag)
-    return tuple( (k,a[k]) for k in sorted(a.keys()) )    
+    return tuple( (k,a[k]) for k in sorted(a.keys()) )
 
 def childElements(elt):
     return [child for child in elt if isinstance(child,ModelObject)]
@@ -154,7 +154,7 @@ def xEqual(elt1, elt2, equalMode=S_EQUAL):
         if isinstance(elt1.xValue, DateTime) and isinstance(elt2.xValue, DateTime) and elt1.xValue.dateOnly != elt2.xValue.dateOnly:
             return False
         return elt1.xValue == elt2.xValue
-    
+
 def vEqual(elt1, elt2):
     if not hasattr(elt1,"xValid"):
         xmlValidate(elt1.modelXbrl, elt1)

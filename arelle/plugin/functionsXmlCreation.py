@@ -25,7 +25,7 @@ xfxc:element(
     value, if any, otherwise () or ''
     optional nested elements (e.g., xfc:element( ) ... of child nodes)
     )
-    
+
 Attributes may be pairs of string name, value, or pairs of QName, value when attribute
 name is qualified.
 
@@ -51,15 +51,15 @@ def  xfxc_element(xc, p, contextItem, args):
                          for i in range(0, len(attrArg),2)]
     else:
         attrParam = None
-         
-    value = atomicArg(xc, p, args, 2, "xs:anyAtomicType", emptyFallback='') 
+
+    value = atomicArg(xc, p, args, 2, "xs:anyAtomicType", emptyFallback='')
     if not value: # be sure '' is None so no text node is created
-        value = None  
+        value = None
     if len(args) < 4:
         childElements = None
     else:
         childElements = xc.flattenSequence(args[3])
-    
+
     # scratchpad instance document emulates fn:doc( ) to hold XML nodes
     scratchpadXmlDocUrl = "http://www.xbrl.org/2012/function/creation/xml_scratchpad.xml"
     if scratchpadXmlDocUrl in xc.modelXbrl.urlDocs:
@@ -68,11 +68,11 @@ def  xfxc_element(xc, p, contextItem, args):
         # create scratchpad xml document
         # this will get the fake instance document in the list of modelXbrl docs so that it is garbage collected
         from arelle import ModelDocument
-        modelDocument = ModelDocument.create(xc.modelXbrl, 
-                                             ModelDocument.Type.UnknownXML, 
+        modelDocument = ModelDocument.create(xc.modelXbrl,
+                                             ModelDocument.Type.UnknownXML,
                                              scratchpadXmlDocUrl,
                                              initialXml="<xfc:dummy xmlns:xfc='http://www.xbrl.org/2012/function/creation'/>")
-        
+
     newElement = XmlUtil.addChild(modelDocument.xmlRootElement,
                                   qn,
                                   attributes=attrParam,
@@ -81,10 +81,10 @@ def  xfxc_element(xc, p, contextItem, args):
         for element in childElements:
             if isinstance(element, etree.ElementBase):
                 newElement.append(element)
-                
+
     # node myst be validated for use in instance creation (typed dimension references)
     XmlValidate.validate(xc.modelXbrl, newElement)
-                
+
     return newElement
 
 def xfxcFunctions():

@@ -38,7 +38,7 @@ class SECCorrespondenceItem:
         self.assertions = None
         self.objectIndex = len(modelXbrl.modelObjects)
         modelXbrl.modelObjects.append(self)
-        
+
     def setResults(self, modelXbrl):
         self.results = []
         self.assertionUnsuccessful = False
@@ -55,9 +55,9 @@ class SECCorrespondenceItem:
                 self.results.append(error)
                 self.status = "fail" # error code
         self.results.sort()
-    
+
     def objectId(self,refId=""):
-        """Returns a string surrogate representing the object index of the model document, 
+        """Returns a string surrogate representing the object index of the model document,
         prepended by the refId string.
         :param refId: A string to prefix the refId for uniqueless (such as to use in tags for tkinter)
         :type refId: str
@@ -66,15 +66,15 @@ class SECCorrespondenceItem:
 
 
 def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
-    if (mappedUri.startswith("http://www.sec.gov/Archives/edgar/Feed/") and 
+    if (mappedUri.startswith("http://www.sec.gov/Archives/edgar/Feed/") and
         mappedUri.endswith(".nc.tar.gz")):
-        
+
         # daily feed loader (the rss object)
         rssObject = ModelRssObject(modelXbrl, uri=mappedUri, filepath=filepath)
-        
+
         # location for expanded feed files
         tempdir = os.path.join(modelXbrl.modelManager.cntlr.userAppDir, "tmp", "edgarFeed")
-        
+
         # remove prior files
         if os.path.exists(tempdir):
             os.system("rm -fr {}".format(tempdir)) # rmtree does not work with this many files!
@@ -83,9 +83,9 @@ def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
         startedAt = time.time()
         modelXbrl.fileSource.open()
         modelXbrl.fileSource.fs.extractall(tempdir)
-        modelXbrl.info("info", "untar edgarFeed temp files in %.2f sec" % (time.time() - startedAt), 
+        modelXbrl.info("info", "untar edgarFeed temp files in %.2f sec" % (time.time() - startedAt),
                        modelObject=modelXbrl)
-            
+
         # find <table> with <a>Download in it
         for instanceFile in sorted(os.listdir(tempdir)): # modelXbrl.fileSource.dir:
             if instanceFile != ".":
@@ -99,7 +99,7 @@ def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
         try:
             startedAt = time.time()
             file, encoding = modelXbrl.fileSource.file(
-               os.path.join(modelXbrl.modelManager.cntlr.userAppDir, "tmp", "edgarFeed", 
+               os.path.join(modelXbrl.modelManager.cntlr.userAppDir, "tmp", "edgarFeed",
                             os.path.basename(rssItem.url)))
             s = file.read()
             file.close()
@@ -124,10 +124,10 @@ def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                 elif tag == "assigned-sic":
                     rssItem.assignedSic = v
                 elif tag == "fiscal-year-end":
-                    try: 
+                    try:
                         rssItem.fiscalYearEnd = v[0:2] + '-' + v[2:4]
                     except (IndexError, TypeError):
-                        pass 
+                        pass
             match = re.search("<PDF>(.*)</PDF>", s, re.DOTALL)
             if match:
                 import uu, io
@@ -156,22 +156,22 @@ def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
         # daily rss item loader, provide unpopulated instance document to be filled in by RssItem.Xbrl.Loaded
         if not text:
             rssItem.doNotProcessRSSitem = True # skip this RSS item in validate loop, don't load DB
-            instDoc = ModelDocument.create(modelXbrl, 
+            instDoc = ModelDocument.create(modelXbrl,
                                            ModelDocument.Type.UnknownXML,
                                            rssItem.url,
                                            isEntry=True,
                                            base='', # block pathname from becomming absolute
                                            initialXml='<DummyXml/>')
         else:
-            instDoc = ModelDocument.create(modelXbrl, 
+            instDoc = ModelDocument.create(modelXbrl,
                                            ModelDocument.Type.INSTANCE,
                                            rssItem.url,
                                            isEntry=True,
                                            base='', # block pathname from becomming absolute
                                            initialXml='''
-<xbrli:xbrl xmlns:doc="http://arelle.org/doc/2014-01-31" 
-    xmlns:link="http://www.xbrl.org/2003/linkbase" 
-    xmlns:xlink="http://www.w3.org/1999/xlink" 
+<xbrli:xbrl xmlns:doc="http://arelle.org/doc/2014-01-31"
+    xmlns:link="http://www.xbrl.org/2003/linkbase"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns:xbrli="http://www.xbrl.org/2003/instance">
     <link:schemaRef xlink:type="simple" xlink:href="http://arelle.org/2014/doc-2014-01-31.xsd"/>
    <xbrli:context id="pubDate">
@@ -194,15 +194,15 @@ def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     return None
 
 def secCorrespondenceCloser(modelDocument, *args, **kwargs):
-    if (modelDocument.uri.startswith("http://www.sec.gov/Archives/edgar/Feed/") and 
+    if (modelDocument.uri.startswith("http://www.sec.gov/Archives/edgar/Feed/") and
         modelDocument.uri.endswith(".nc.tar.gz")):
         # remove prior files
         if os.path.exists("/tmp/arelle/edgarFeed"):
             os.system("rm -fr /tmp/arelle/edgarFeed")
-        
 
 
-__pluginInfo__ = {  
+
+__pluginInfo__ = {
     'name': 'SEC Correspondence Loader',
     'version': '0.9',
     'description': "This plug-in loads SEC Correspondence.  ",

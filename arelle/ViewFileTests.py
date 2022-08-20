@@ -13,19 +13,19 @@ def viewTests(modelXbrl, outfile, cols=None):
     view = ViewTests(modelXbrl, outfile, cols)
     view.viewTestcaseIndexElement(modelXbrl.modelDocument)
     view.close()
-    
+
 COL_WIDTHS = {
-    "Index": 12, 
-    "Index.1": 12, 
-    "Index.2": 12, 
-    "Index.3": 12, 
-    "Index.4": 12, 
-    "Testcase": 20, 
-    "Id": 10, 
-    "Name": 50, 
-    "Reference": 20, 
-    "ReadMeFirst": 20, 
-    "Status": 8, 
+    "Index": 12,
+    "Index.1": 12,
+    "Index.2": 12,
+    "Index.3": 12,
+    "Index.4": 12,
+    "Testcase": 20,
+    "Id": 10,
+    "Name": 50,
+    "Reference": 20,
+    "ReadMeFirst": 20,
+    "Status": 8,
     "Expected": 20,
     "Actual": 100}
 
@@ -33,7 +33,7 @@ class ViewTests(ViewFile.View):
     def __init__(self, modelXbrl, outfile, cols):
         super(ViewTests, self).__init__(modelXbrl, outfile, "Tests")
         self.cols = cols
-        
+
     def viewTestcaseIndexElement(self, modelDocument, parentDocument=None, nestedDepth=0):
         if parentDocument is None: # not a nested testacases index
             self.nestedIndexDepth = 0
@@ -68,7 +68,7 @@ class ViewTests(ViewFile.View):
                     self.cols.append("Name")
                     self.xlsxDocNames.append("")
                 self.cols += ["ReadMeFirst", "Status", "Expected", "Actual"]
-            
+
             self.setColWidths([COL_WIDTHS.get(col, 8) for col in self.cols])
             self.addRow(self.cols, asHeader=True)
 
@@ -107,7 +107,7 @@ class ViewTests(ViewFile.View):
             self.viewTestcase(modelDocument, 0)
         else:
             pass
-                
+
     def viewTestcase(self, modelDocument, indent):
         cols = []
         attr = {}
@@ -129,7 +129,7 @@ class ViewTests(ViewFile.View):
             self.addRow(cols, treeIndent=indent, xmlRowElementName="testcase", xmlRowEltAttr=attr, xmlCol0skipElt=True)
         for modelTestcaseVariation in getattr(modelDocument, "testcaseVariations", ()):
             self.viewTestcaseVariation(modelTestcaseVariation, indent+1)
-                
+
     def viewTestcaseVariation(self, modelTestcaseVariation, indent):
         id = modelTestcaseVariation.id
         if id is None:

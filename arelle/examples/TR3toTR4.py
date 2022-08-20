@@ -58,7 +58,7 @@ TR23to4 = {
     "numunitdecimalin": "num-unit-decimal",
     "zerodash": "fixed-zero"
     }
-    
+
 print("Parsing TR3 file {}".format(INFILE))
 startedAt = time.time()
 parser = etree.XMLParser(recover=True, huge_tree=True)
@@ -77,7 +77,7 @@ for elt in doc.iter(*ixEltsWithFormat):
                 nsToChange.add(ns)
             else:
                 print("{} line {}: nable to convert transform {}".format(elt.tag, elt.sourceline, elt.get("format")))
-                
+
 # replace TR2 and TR3 namespaces in any xmlns'ed element
 outXhtml = etree.tostring(doc, encoding=doc.docinfo.encoding, xml_declaration=True)
 for ns in nsToChange:

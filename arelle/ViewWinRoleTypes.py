@@ -11,14 +11,14 @@ def viewRoleTypes(modelXbrl, tabWin, isArcrole=False, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing arcrole types") if isArcrole else _("viewing role types"))
     view = ViewRoleTypes(modelXbrl,
                          tabWin,
-                         "Arcrole Types" if isArcrole else "Role Types", 
-                         isArcrole, 
+                         "Arcrole Types" if isArcrole else "Role Types",
+                         isArcrole,
                          lang)
     view.view(firstTime=True)
     view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
     view.treeView.bind("<Enter>", view.treeviewEnter, '+')
     view.treeView.bind("<Leave>", view.treeviewLeave, '+')
-    
+
     # pop up menu
     menu = view.contextMenu()
     view.menuAddClipboard()
@@ -26,12 +26,12 @@ def viewRoleTypes(modelXbrl, tabWin, isArcrole=False, lang=None):
     view.menuAddLabelRoles(includeConceptName=True)
     view.menuAddViews()
 
-    
+
 class ViewRoleTypes(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin, header, isArcrole, lang=None):
         super(ViewRoleTypes, self).__init__(modelXbrl, tabWin, header, True, lang)
         self.isArcrole = isArcrole
-        
+
     def view(self, firstTime=False):
         self.blockSelectEvent = 1
         self.blockViewModelObject = 0
@@ -73,7 +73,7 @@ class ViewRoleTypes(ViewWinTree.ViewTree):
                         self.treeView.set(node, "cyclesAllowed", modelRoleType.cyclesAllowed)
                     self.treeView.set(node, "usedOn", ', '.join(str(usedOn)
                                                                for usedOn in modelRoleType.usedOns))
-            
+
     def getToolTip(self, tvRowId, tvColId):
         # override tool tip when appropriate
         return None
@@ -89,7 +89,7 @@ class ViewRoleTypes(ViewWinTree.ViewTree):
             self.blockViewModelObject += 1
             self.modelXbrl.viewModelObject(self.treeView.selection()[0])
             self.blockViewModelObject -= 1
-        
+
     def viewModelObject(self, modelObject):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1

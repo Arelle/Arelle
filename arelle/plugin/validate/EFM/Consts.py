@@ -46,7 +46,7 @@ docTypesCoverTagged = docTypes8K | docTypes1012B | docTypes1012G | docTypes10all
 docTypesSDR = {"K SDR", "L SDR"}
 docTypesRR = {"497", "485APOS", "485BPOS", "485BXT", "N-1A", "N-1A/A"}
 
-submissionTypesNotRequiringPeriodEndDate = docTypes8K | { 
+submissionTypesNotRequiringPeriodEndDate = docTypes8K | {
                                             "F-1", "F-1/A", "F-3", "F-3/A", "F-4", "F-4/A", "F-10", "F-10/A",
                                             "S-1", "S-1/A", "S-3", "S-3/A", "S-4", "S-4/A", "S-11", "S-11/A",
                                             "20-F"}
@@ -64,10 +64,10 @@ submissionTypesAllowingSeriesClasses = docTypesRR | {
     "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A", 'N-Q', 'N-Q/A'}
 invCompanyTypesAllowingSeriesClasses = {"N-1A", "N-3"}
 
-docTypesRequiringPeriodOfReport = {"10", "10-K", "10-Q", "20-F", "40-F", "6-K", "8-K", 
-    "F-1", "F-10", "F-3", "F-4", "F-9", "S-1", "S-11", "S-3", "S-4", "POS AM", "10-KT", "10-QT", "POS EX", 
-    "10/A", "10-K/A", "10-Q/A", "20-F/A", "40-F/A", "6-K/A", "8-K/A", "F-1/A", "F-10/A", "F-3/A", "F-4/A", 
-    "F-9/A", "S-1/A", "S-11/A", "S-3/A", "S-4/A", "10-KT/A", "10-QT/A", "485APOS", "485BPOS", "485BXT", "497", 
+docTypesRequiringPeriodOfReport = {"10", "10-K", "10-Q", "20-F", "40-F", "6-K", "8-K",
+    "F-1", "F-10", "F-3", "F-4", "F-9", "S-1", "S-11", "S-3", "S-4", "POS AM", "10-KT", "10-QT", "POS EX",
+    "10/A", "10-K/A", "10-Q/A", "20-F/A", "40-F/A", "6-K/A", "8-K/A", "F-1/A", "F-10/A", "F-3/A", "F-4/A",
+    "F-9/A", "S-1/A", "S-11/A", "S-3/A", "S-4/A", "10-KT/A", "10-QT/A", "485APOS", "485BPOS", "485BXT", "497",
     "N-CSR", "N-CSRS", "N-Q", "N-CSR/A", "N-CSRS/A", "N-Q/A", "K SDR", "L SDR" }
 docTypesRequiringEntityWellKnownSeasonedIssuer = docTypes10K10KT | docTypes20F | docTypes20FR
 docTypesRequiringEntityFilerCategory = docTypesCoverTagged - docTypes40F - docTypes40FR | {
@@ -76,7 +76,7 @@ submissionTypesAllowingEdgarSmallBusinessFlag = docTypes10all | {
     "S-1", "S-1/A", "S-3", "S-3/A", "S-4", "S-4/A", "S-11", "S-11/A", "S-11MEF", "S-1MEF", "S-3D", "S-3DPOS", "S-3MEF", "S-4 POS", "S-4EF", "S-4MEF"}
 submissionTypesAllowingEmergingGrowthCompanyFlag = \
 submissionTypesAllowingExTransitionPeriodFlag = docTypesCoverTagged | {
-    "F-1", "F-1/A", "F-3", "F-3/A", "F-4", "F-4/A", 
+    "F-1", "F-1/A", "F-3", "F-3/A", "F-4", "F-4/A",
     "S-1", "S-1/A", "S-3", "S-3/A", "S-4", "S-4/A", "S-11", "S-11/A"}
 
 docTypesRequiringRrSchema = \

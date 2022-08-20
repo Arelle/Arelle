@@ -11,7 +11,7 @@ from arelle.XmlValidate import lexicalPatterns
 from arelle.XPathParser import ProgHeader
 from math import isnan, fabs, isinf
 from decimal import Decimal, InvalidOperation
-    
+
 class FORG0001(Exception):
     def __init__(self, message=None):
         self.message = message
@@ -31,7 +31,7 @@ class xsFunctionNotAvailable(Exception):
         self.args =  (_("xs function not available"),)
     def __repr__(self):
         return self.args[0]
-    
+
 def call(xc, p, localname, args):
     source = atomicArg(xc, p, args, 0, "value?", missingArgFallback=() )
     if source == (): return source
@@ -43,14 +43,14 @@ def call(xc, p, localname, args):
             exMsg = ", " + ex.message
         else:
             exMsg = ""
-        raise XPathContext.XPathException(p, 'err:FORG0001', 
+        raise XPathContext.XPathException(p, 'err:FORG0001',
                                           _('invalid cast from {0} to xs:{1}{2}').format(
                                             type(source).__name__,
                                             localname,
                                             exMsg))
     except xsFunctionNotAvailable:
         raise XPathContext.FunctionNotAvailable("xs:{0}".format(localname))
-      
+
 objtype = {
         #'untypedAtomic': untypedAtomic,
         'dateTime':  ModelValue.DateTime,
@@ -102,20 +102,20 @@ def isXsType(localName):
     if localName[-1] in ('?', '+', '*'):
         return localName[:-1] in xsFunctions
     return localName in xsFunctions
-        
+
 def untypedAtomic(xc, p, source):
     raise xsFunctionNotAvailable()
-  
+
 def anyType(xc, p, source):
     raise xsFunctionNotAvailable()
-  
+
 def anyAtomicType(xc, p, source):
     raise xsFunctionNotAvailable()
-  
+
 def dateTime(xc, p, source):
     if isinstance(source,datetime.datetime): return source
     return ModelValue.dateTime(source, type=ModelValue.DATETIME, castException=FORG0001)
-  
+
 def dateTimeInstantEnd(xc, p, source):
     if isinstance(source,datetime.datetime): return source  # true for either datetime.date or datetime.datetime
     return ModelValue.dateTime(source, addOneDay=True, type=ModelValue.DATETIME, castException=FORG0001)
@@ -123,46 +123,46 @@ def dateTimeInstantEnd(xc, p, source):
 def xbrliDateUnion(xc, p, source):
     if isinstance(source,datetime.date): return source  # true for either datetime.date or datetime.datetime
     return ModelValue.dateTime(source, type=ModelValue.DATEUNION, castException=FORG0001)
-  
+
 def date(xc, p, source):
     return ModelValue.dateTime(source, type=ModelValue.DATE, castException=FORG0001)
-  
+
 def time(xc, p, source):
     return ModelValue.time(source, castException=FORG0001)
-  
+
 def duration(xc, p, source):
     raise xsFunctionNotAvailable()
-  
+
 def yearMonthDuration(xc, p, source):
     return ModelValue.yearMonthDuration(source)
-  
+
 def dayTimeDuration(xc, p, source):
     return ModelValue.dayTimeDuration(source)
-  
+
 def xs_float(xc, p, source):
     try:
         return float(source)
     except ValueError:
         raise FORG0001
-  
+
 def double(xc, p, source):
     try:
         return float(source)
     except ValueError:
         raise FORG0001
-  
+
 def decimal(xc, p, source):
     try:
         return Decimal(source)
     except InvalidOperation:
         raise FORG0001
-  
+
 def integer(xc, p, source):
     try:
         return _INT(source)
     except ValueError:
         raise FORG0001
-  
+
 def nonPositiveInteger(xc, p, source):
     try:
         i = _INT(source)
@@ -170,7 +170,7 @@ def nonPositiveInteger(xc, p, source):
     except ValueError:
         pass
     raise FORG0001
-  
+
 def negativeInteger(xc, p, source):
     try:
         i = _INT(source)
@@ -178,13 +178,13 @@ def negativeInteger(xc, p, source):
     except ValueError:
         pass
     raise FORG0001
-  
+
 def long(xc, p, source):
     try:
         return _INT(source)
     except ValueError:
         raise FORG0001
-  
+
 def xs_int(xc, p, source):
     try:
         i = _INT(source)
@@ -192,7 +192,7 @@ def xs_int(xc, p, source):
     except ValueError:
         pass
     raise FORG0001
-  
+
 def short(xc, p, source):
     try:
         i = _INT(source)
@@ -200,7 +200,7 @@ def short(xc, p, source):
     except ValueError:
         pass
     raise FORG0001
-  
+
 def byte(xc, p, source):
     try:
         i = _INT(source)
@@ -208,7 +208,7 @@ def byte(xc, p, source):
     except ValueError:
         pass
     raise FORG0001
-  
+
 def nonNegativeInteger(xc, p, source):
     try:
         i = _INT(source)
@@ -216,7 +216,7 @@ def nonNegativeInteger(xc, p, source):
     except ValueError:
         pass
     raise FORG0001
-  
+
 def unsignedLong(xc, p, source):
     try:
         i = _INT(source)
@@ -224,7 +224,7 @@ def unsignedLong(xc, p, source):
     except ValueError:
         pass
     raise FORG0001
-  
+
 def unsignedInt(xc, p, source):
     try:
         i = _INT(source)
@@ -232,7 +232,7 @@ def unsignedInt(xc, p, source):
     except ValueError:
         pass
     raise FORG0001
-    
+
 def unsignedShort(xc, p, source):
     try:
         i = _INT(source)
@@ -240,7 +240,7 @@ def unsignedShort(xc, p, source):
     except ValueError:
         pass
     raise FORG0001
-  
+
 def unsignedByte(xc, p, source):
     try:
         i = _INT(source)
@@ -248,7 +248,7 @@ def unsignedByte(xc, p, source):
     except ValueError:
         pass
     raise FORG0001
-  
+
 def positiveInteger(xc, p, source):
     try:
         i = _INT(source)
@@ -256,7 +256,7 @@ def positiveInteger(xc, p, source):
     except ValueError:
         pass
     raise FORG0001
-  
+
 def gYearMonth(xc, p, source):
     try:
         match = lexicalPatterns['gYearMonth'].match(source)
@@ -266,7 +266,7 @@ def gYearMonth(xc, p, source):
     except (ValueError, TypeError):
         pass
     raise FORG0001
-  
+
 def gYear(xc, p, source):
     try:
         match = lexicalPatterns['gYear'].match(source)
@@ -276,7 +276,7 @@ def gYear(xc, p, source):
     except (ValueError, TypeError):
         pass
     raise FORG0001
-  
+
 def gMonthDay(xc, p, source):
     try:
         match = lexicalPatterns['gMonthDay'].match(source)
@@ -287,7 +287,7 @@ def gMonthDay(xc, p, source):
     except (ValueError, TypeError):
         pass
     raise FORG0001
-  
+
 def gDay(xc, p, source):
     try:
         match = lexicalPatterns['gDay'].match(source)
@@ -297,7 +297,7 @@ def gDay(xc, p, source):
     except (ValueError, TypeError):
         pass
     raise FORG0001
-  
+
 def gMonth(xc, p, source):
     try:
         match = lexicalPatterns['gMonth'].match(source)
@@ -307,7 +307,7 @@ def gMonth(xc, p, source):
     except (ValueError, TypeError):
         pass
     raise FORG0001
-  
+
 def xsString(xc, p, source):
     if isinstance(source,bool):
         return 'true' if source else 'false'
@@ -320,7 +320,7 @@ def xsString(xc, p, source):
         numMagnitude = fabs(source)
         if numMagnitude < 1000000 and numMagnitude > .000001:
             # don't want floating notation which python does for more than 4 decimal places
-            s = 
+            s =
         '''
         s = str(source)
         if s.endswith(".0"):
@@ -335,40 +335,40 @@ def xsString(xc, p, source):
     elif isinstance(source,ModelValue.DateTime):
         return ('{0:%Y-%m-%d}' if source.dateOnly else '{0:%Y-%m-%dT%H:%M:%S}').format(source)
     return str(source)
-  
+
 def normalizedString(xc, p, source):
     return str(source)
-  
+
 tokenPattern = re.compile(r"^\s*([-\.:\w]+)\s*$")
 def token(xc, p, source):
     s = str(source)
     if tokenPattern.match(s): return s
     raise FORG0001
-  
+
 languagePattern = re.compile("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*")
 def language(xc, p, source):
     s = str(source)
     if languagePattern.match(s): return s
     raise FORG0001
-  
+
 def NMTOKEN(xc, p, source):
     raise xsFunctionNotAvailable()
-  
+
 def Name(xc, p, source):
     raise xsFunctionNotAvailable()
-  
+
 def NCName(xc, p, source):
     raise xsFunctionNotAvailable()
-  
+
 def ID(xc, p, source):
     raise xsFunctionNotAvailable()
-  
+
 def IDREF(xc, p, source):
     raise xsFunctionNotAvailable()
-  
+
 def ENTITY(xc, p, source):
     raise xsFunctionNotAvailable()
-  
+
 def boolean(xc, p, source):
     if isinstance(source,bool):
         return source
@@ -384,16 +384,16 @@ def boolean(xc, p, source):
         elif b in ('false','no'):
             return False
     raise FORG0001
-  
+
 def base64Binary(xc, p, source):
     raise xsFunctionNotAvailable()
-  
+
 def hexBinary(xc, p, source):
     raise xsFunctionNotAvailable()
-  
+
 def anyURI(xc, p, source):
     return ModelValue.anyURI(source)
-  
+
 def QName(xc, p, source):
     if isinstance(p, ProgHeader):
         element = p.element
@@ -402,7 +402,7 @@ def QName(xc, p, source):
     else:
         element = xc.sourceElement
     return ModelValue.qname(element, source, castException=FORG0001, prefixException=FONS0004)
-  
+
 def NOTATION(xc, p, source):
     raise xsFunctionNotAvailable()
 

@@ -30,7 +30,7 @@ def main():
         from win32com.server.dispatcher import DefaultDebugDispatcher
         useDispatcher = DefaultDebugDispatcher
     win32com.server.register.UseCommandLine(CntlrComServer, debug=debugging)
-    
+
 class CntlrComServer(Cntlr.Cntlr):
     _public_methods_ = [ 'Load' ]
     _public_attrs_ = [ ]
@@ -47,7 +47,7 @@ class CntlrComServer(Cntlr.Cntlr):
         self.startedAt = datetime.datetime.now().microsecond
         self.last = "({0})".format(self.startedAt)
         pass
-        
+
 
     def Load(self, url):
         last = self.last

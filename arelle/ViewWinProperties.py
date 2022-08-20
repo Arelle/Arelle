@@ -17,23 +17,23 @@ def viewProperties(modelXbrl, tabWin):
     view.treeView.heading("value", text="Value")
     view.treeView["displaycolumns"] = ("value")
     view.view()
-    
+
 class ViewProperties(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin):
         super(ViewProperties, self).__init__(modelXbrl, tabWin, "Properties", True)
         self.openProperties = set()
-                
+
     def view(self):
         self.viewProperties(None, "")
-        
+
     def cleanPreviousNodes(self,parentNode):
         for previousNode in self.treeView.get_children(parentNode):
-            self.cleanPreviousNodes(previousNode) 
+            self.cleanPreviousNodes(previousNode)
             text = self.treeView.item(previousNode,'text')
             if str(self.treeView.item(previousNode,'open')) in ('true','1'): self.openProperties.add(text)
             else: self.openProperties.discard(text)
-            self.treeView.delete(previousNode)        
-        
+            self.treeView.delete(previousNode)
+
     def viewProperties(self, modelObject, parentNode):
         try:
             self.cleanPreviousNodes(parentNode)
@@ -41,7 +41,7 @@ class ViewProperties(ViewWinTree.ViewTree):
             pass    # possible tkinter issues
         if modelObject is not None and hasattr(modelObject, "propertyView"):
             self.showProperties(modelObject.propertyView, parentNode, 1)
-            
+
     def showProperties(self, properties, parentNode, id):
         for tuple in properties:
             if tuple:
@@ -56,6 +56,6 @@ class ViewProperties(ViewWinTree.ViewTree):
                             self.treeView.item(node,open=True)
                         id = self.showProperties(tuple[2], node, id)
         return id
-    
+
     def viewModelObject(self, modelObject):
         self.viewProperties(modelObject, "")

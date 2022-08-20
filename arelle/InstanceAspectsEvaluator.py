@@ -12,9 +12,9 @@ def setup(view):
     relsSet = view.modelXbrl.relationshipSet(view.arcrole, view.linkrole, view.linkqname, view.arcqname)
     view.concepts = set(fact.concept for fact in view.modelXbrl.facts)
     view.linkroles = set(
-        rel.linkrole 
+        rel.linkrole
             for c in view.concepts
-                for rels in (relsSet.fromModelObject(c), relsSet.toModelObject(c)) 
+                for rels in (relsSet.fromModelObject(c), relsSet.toModelObject(c))
                     for rel in rels)
 
 def setupLinkrole(view, linkrole):
@@ -23,7 +23,7 @@ def setupLinkrole(view, linkrole):
     concepts = set(c for c in view.concepts if relsSet.fromModelObject(c) or relsSet.toModelObject(c))
     facts = set(f for f in view.modelXbrl.facts if f.concept in concepts)
     contexts = set(f.context for f in facts)
-                
+
     view.periodContexts = defaultdict(set)
     contextStartDatetimes = {}
     view.dimensionMembers = defaultdict(set)
@@ -41,7 +41,7 @@ def setupLinkrole(view, linkrole):
         for modelDimension in context.qnameDims.values():
             if modelDimension.isExplicit:
                 view.dimensionMembers[modelDimension.dimension] = modelDimension.member
-            
+
     view.periodKeys = list(view.periodContexts.keys())
     view.periodKeys.sort()
-    
+

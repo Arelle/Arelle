@@ -19,16 +19,16 @@ def xfm_pi(xc, p, contextItem, args):
 def xfm_exp(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())
-    if x != (): 
+    if x != ():
         return math.exp(x)
-    return () 
+    return ()
 
 def xfm_exp10(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())
-    if x != (): 
+    if x != ():
         return math.pow(10.0, x)
-    return () 
+    return ()
 
 def xfm_log(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
@@ -41,12 +41,12 @@ def xfm_log(xc, p, contextItem, args):
         elif x == MINUSINF:
             return NaN
         return math.log(x)
-    return () 
+    return ()
 
 def xfm_log10(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())
-    if x != (): 
+    if x != ():
         if x == 0:
             return MINUSINF
         elif x == -1:
@@ -54,12 +54,12 @@ def xfm_log10(xc, p, contextItem, args):
         elif x == MINUSINF:
             return NaN
         return math.log10(x)
-    return () 
+    return ()
 
 def xfm_pow(xc, p, contextItem, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())
-    if x != (): 
+    if x != ():
         y = numericArg(xc, p, args, 1)
         if x == 0:
             if math.copysign(1, x) < 0: # e.g., value is -0.0
@@ -84,75 +84,75 @@ def xfm_pow(xc, p, contextItem, args):
             return math.pow(x, y)
         except ValueError:
             return NaN # pow(-2.5e0, 2.00000001e0) returns xs:double('NaN').
-    return () 
+    return ()
 
 def  xfm_sqrt(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())
-    if x != (): 
+    if x != ():
         if x == MINUSINF:
             return NaN
         elif x < 0:
             return INF
         return math.sqrt(x)
-    return () 
+    return ()
 
 def  xfm_sin(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())
-    if x != (): 
+    if x != ():
         if math.isinf(x):
             return NaN
         return math.sin(x)
-    return () 
+    return ()
 
 def  xfm_cos(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())
-    if x != (): 
+    if x != ():
         if math.isinf(x):
             return NaN
         return math.cos(x)
-    return () 
+    return ()
 
 def  xfm_tan(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())
-    if x != (): 
+    if x != ():
         if math.isinf(x):
             return NaN
         return math.tan(x)
-    return () 
+    return ()
 
 def  xfm_asin(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())
-    if x != (): 
+    if x != ():
         try:
             return math.asin(x)
         except ValueError:
             return NaN
-    return () 
-    
+    return ()
+
 def  xfm_acos(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())
-    if x != (): 
+    if x != ():
         try:
             return math.acos(x)
         except ValueError:
             return NaN
-    return () 
+    return ()
 
 def  xfm_atan(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())
-    if x != (): 
+    if x != ():
         try:
             return math.atan(x)
         except ValueError:
             return NaN
-    return () 
+    return ()
 
 def xfm_atan2(xc, p, contextItem, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()

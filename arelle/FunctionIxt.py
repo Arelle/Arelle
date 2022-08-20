@@ -20,7 +20,7 @@ class ixtFunctionNotAvailable(Exception):
         self.args =  (_("ixt function not available"),)
     def __repr__(self):
         return self.args[0]
-    
+
 def call(xc, p, qn, args):
     try:
         _ixtFunction = ixtNamespaceFunctions[qn.namespaceURI][qn.localName]
@@ -37,7 +37,7 @@ class RePattern:
         self.pattern = pattern
         self.regex = None
         self.flags = flags
-    
+
     def match(self, target):
         if self.regex is None:
             self.regex = re.compile(self.pattern, self.flags)
@@ -184,10 +184,10 @@ numSpaceCommaPattern = RePattern(r"^[ \t\n\r]*[0-9]{1,3}([ \xA0][0-9]{3,3})*(,[0
 numCanonicalizationPattern = RePattern(r"^[ \t\n\r]*0*([1-9][0-9]*)?(([.]0*)[ \t\n\r]*$|([.][0-9]*[1-9])0*[ \t\n\r]*$|[ \t\n\r]*$)")
 
 monthnumber = {# english
-               "january":1, "february":2, "march":3, "april":4, "may":5, "june":6, 
-               "july":7, "august":8, "september":9, "october":10, "november":11, "december":12, 
-               "jan":1, "feb":2, "mar":3, "apr":4, "may":5, "jun":6, 
-               "jul":7, "aug":8, "sep":9, "oct":10, "nov":11, "dec":12, 
+               "january":1, "february":2, "march":3, "april":4, "may":5, "june":6,
+               "july":7, "august":8, "september":9, "october":10, "november":11, "december":12,
+               "jan":1, "feb":2, "mar":3, "apr":4, "may":5, "jun":6,
+               "jul":7, "aug":8, "sep":9, "oct":10, "nov":11, "dec":12,
                # bulgarian
                "ян":1, "фев":2, "мар":3, "апр":4, "май":5, "маи":5, "юни":6,
                "юли":7, "авг":8, "сеп":9, "окт":10, "ное":11, "дек":12,
@@ -195,49 +195,49 @@ monthnumber = {# english
                "jan":1, "feb":2, "mar": 3, "apr":4, "maj":5, "jun":6,
                "jul":7, "aug":8, "sep":9, "okt":10, "nov":11, "dec":12,
                # de: german
-               "jan":1, "jän":1, "jaen":1, "feb":2, "mär":3, "maer":3, "mar":3,"apr":4, 
+               "jan":1, "jän":1, "jaen":1, "feb":2, "mär":3, "maer":3, "mar":3,"apr":4,
                "mai":5, "jun":6, "jul":7, "aug":8, "sep":9, "okt":10, "nov":11, "dez":12,
                # el: greek
-               "ιαν":1, "ίαν":1, "iαν":1, "φεβ":2, "μάρ":3, "μαρ":3, 
-               "απρ":4, "άπρ":4, "απρ":4, "aπρ":4, "αρίλ":4, "άρίλ":4, "αριλ":4, "άριλ":4, "άριλ":4, "αριλ":4, "aρίλ":4, "aριλ":4, 
-               "μαΐ":5, "μαι":5, "μάι":5, "μαϊ":5, "μάϊ":5, "ΜΑΪ́".lower():5, # ΜΑΪ́ has combining diacritical marks not on lower case pattern 
-               "ιούν":6, "ίούν":6, "ίουν":6, "ιουν":6, "ιουν":6, "ιουν":6, "iούν":6, "iουν":6, 
-               "ιούλ":7, "ίούλ":7, "ίουλ":7, "ίουλ":7, "ιουλ":7, "iούλ":7, "iουλ":7, 
-               "αύγ":8, "αυγ":8, 
+               "ιαν":1, "ίαν":1, "iαν":1, "φεβ":2, "μάρ":3, "μαρ":3,
+               "απρ":4, "άπρ":4, "απρ":4, "aπρ":4, "αρίλ":4, "άρίλ":4, "αριλ":4, "άριλ":4, "άριλ":4, "αριλ":4, "aρίλ":4, "aριλ":4,
+               "μαΐ":5, "μαι":5, "μάι":5, "μαϊ":5, "μάϊ":5, "ΜΑΪ́".lower():5, # ΜΑΪ́ has combining diacritical marks not on lower case pattern
+               "ιούν":6, "ίούν":6, "ίουν":6, "ιουν":6, "ιουν":6, "ιουν":6, "iούν":6, "iουν":6,
+               "ιούλ":7, "ίούλ":7, "ίουλ":7, "ίουλ":7, "ιουλ":7, "iούλ":7, "iουλ":7,
+               "αύγ":8, "αυγ":8,
                "σεπ":9, "οκτ":10, "όκτ":10, "oκτ":10, "νοέ":11, "νοε":11, "δεκ":12,
                # es: spanish (differences)
                "ene":1, "abr":4, "ago":8, "dic":12,
                # et: estonian (differences)
                "jaan":1, "veebr":2, "märts":3, "marts":3, "mai":5, "juuni":6, "juuli":7, "sept":9, "okt":10, "dets":12,
                # fr: french (differences)
-               "janv":1, "févr":2, "fevr":2, "mars":3, "avr":4, "mai":5, "juin":6, "juil":7, "août":8, "aout":8, "déc":12, 
+               "janv":1, "févr":2, "fevr":2, "mars":3, "avr":4, "mai":5, "juin":6, "juil":7, "août":8, "aout":8, "déc":12,
                # hu: hungary (differences)
-               "márc":3, "marc":3, "ápr":4, "máj":5, "maj":5, "jún":6, "jun":6, "júl":7, "jul":7, "szept":9, "okt":10, 
+               "márc":3, "marc":3, "ápr":4, "máj":5, "maj":5, "jún":6, "jun":6, "júl":7, "jul":7, "szept":9, "okt":10,
                # it: italy (differences)
-               "gen":1, "mag":5, "giu":6, "lug":7, "ago":8, "set":9, "ott":10, "dic":12, 
+               "gen":1, "mag":5, "giu":6, "lug":7, "ago":8, "set":9, "ott":10, "dic":12,
                # lv: latvian (differences)
                "janv":1, "febr":2, "marts":3, "maijs":5, "jūn":6, "jūl":7, "okt":10,
                # nl: dutch (differences)
-               "maa":3, "mrt":3, "mei":5, 
+               "maa":3, "mrt":3, "mei":5,
                # no: norway
-               "mai":5, "des":12, 
+               "mai":5, "des":12,
                # pt: portugese (differences)
-               "fev":2, "ago":8, "set":9, "out":10, "dez":12, 
+               "fev":2, "ago":8, "set":9, "out":10, "dez":12,
                # ro: romanian (differences)
                "ian":1, "iun":6, "iul":7, "noi":11,
                # sk: skovak (differences)
-               "máj":5, "maj":5, "jún":6, "júl":7, 
+               "máj":5, "maj":5, "jún":6, "júl":7,
                # sl: sloveniabn
-               "avg":8, 
+               "avg":8,
                }
 
-monthnumbercs = {"ledna":1, "leden":1, "lednu":1, "února":2, "unora":2, "únoru":2, "unoru":2, "únor":2, "unor":2, 
-                 "března":3, "brezna":3, "březen":3, "brezen":3, "březnu":3, "breznu":3, "dubna":4, "duben":4, "dubnu":4, 
+monthnumbercs = {"ledna":1, "leden":1, "lednu":1, "února":2, "unora":2, "únoru":2, "unoru":2, "únor":2, "unor":2,
+                 "března":3, "brezna":3, "březen":3, "brezen":3, "březnu":3, "breznu":3, "dubna":4, "duben":4, "dubnu":4,
                  "května":5, "kvetna":5, "květen":5, "kveten":5, "květnu":5, "kvetnu":5,
-                "června":6, "cervna":6, "červnu":6, "cervnu":6, "července":7, "cervence":7, 
+                "června":6, "cervna":6, "červnu":6, "cervnu":6, "července":7, "cervence":7,
                 "červen":6, "cerven":6, "červenec":7, "cervenec":7, "červenci":7, "cervenci":7,
-                "srpna":8, "srpen":8, "srpnu":8, "září":9, "zari":9, 
-                "října":10, "rijna":10, "říjnu":10, "rijnu":10, "říjen":10, "rijen":10, "listopadu":11, "listopad":11, 
+                "srpna":8, "srpen":8, "srpnu":8, "září":9, "zari":9,
+                "října":10, "rijna":10, "říjnu":10, "rijnu":10, "říjen":10, "rijen":10, "listopadu":11, "listopad":11,
                 "prosince":12, "prosinec":12, "prosinci":12,
                 "led":1, "úno":2, "uno":2, "bře":3, "bre":3, "dub":4, "kvě":5, "kve":5,
                 "čvn":6, "cvn":6, "čvc":7, "cvc":7, "srp":8, "zář":9, "zar":9,
@@ -264,12 +264,12 @@ gLastMoDay = [31,28,31,30,31,30,31,31,30,31,30,31]
 
 gregorianHindiMonthNumber = {
                 "\u091C\u0928\u0935\u0930\u0940": "01",
-                "\u092B\u0930\u0935\u0930\u0940": "02", 
-                "\u092E\u093E\u0930\u094D\u091A": "03", 
+                "\u092B\u0930\u0935\u0930\u0940": "02",
+                "\u092E\u093E\u0930\u094D\u091A": "03",
                 "\u0905\u092A\u094D\u0930\u0948\u0932": "04",
-                "\u092E\u0908": "05", 
+                "\u092E\u0908": "05",
                 "\u091C\u0942\u0928": "06",
-                "\u091C\u0941\u0932\u093E\u0908": "07", 
+                "\u091C\u0941\u0932\u093E\u0908": "07",
                 "\u0905\u0917\u0938\u094D\u0924": "08",
                 "\u0938\u093F\u0924\u0902\u092C\u0930": "09",
                 "\u0905\u0915\u094D\u0924\u0942\u092C\u0930": "10",
@@ -284,8 +284,8 @@ sakaMonthNumber = {
                 "Asadha":4, "Ashadha":4, "\u0100\u1E63\u0101\u1E0Dha":4, "\u0906\u0937\u093E\u0922":4, "\u0906\u0937\u093E\u0922\u093C":4,
                 "Sravana":5, "Shravana":5, "\u015Ar\u0101va\u1E47a":5, "\u0936\u094D\u0930\u093E\u0935\u0923":5, "\u0938\u093E\u0935\u0928":5,
                 "Bhadra":6, "Bhadrapad":6, "Bh\u0101drapada":6, "Bh\u0101dra":6, "Pro\u1E63\u1E6Dhapada":6, "\u092D\u093E\u0926\u094D\u0930\u092A\u0926":6, "\u092D\u093E\u0926\u094B":6,
-                "Aswina":7, "Ashwin":7, "Asvina":7, "\u0100\u015Bvina":7, "\u0906\u0936\u094D\u0935\u093F\u0928":7, 
-                "Kartiak":8, "Kartik":8, "Kartika":8, "K\u0101rtika":8, "\u0915\u093E\u0930\u094D\u0924\u093F\u0915":8, 
+                "Aswina":7, "Ashwin":7, "Asvina":7, "\u0100\u015Bvina":7, "\u0906\u0936\u094D\u0935\u093F\u0928":7,
+                "Kartiak":8, "Kartik":8, "Kartika":8, "K\u0101rtika":8, "\u0915\u093E\u0930\u094D\u0924\u093F\u0915":8,
                 "Agrahayana":9,"Agrah\u0101ya\u1E47a":9,"Margashirsha":9, "M\u0101rga\u015B\u012Br\u1E63a":9, "\u092E\u093E\u0930\u094D\u0917\u0936\u0940\u0930\u094D\u0937":9, "\u0905\u0917\u0939\u0928":9,
                 "Pausa":10, "Pausha":10, "Pau\u1E63a":10, "\u092A\u094C\u0937":10,
                 "Magha":11, "Magh":11, "M\u0101gha":11, "\u092E\u093E\u0918":11,
@@ -353,7 +353,7 @@ def sakaToGregorian(sYr, sMo, sDay): # replacement of plug-in sakaCalendar.py wh
     sMoLength = sakaMonthLength[sMo - 1]
     if sStartsInLeapYr and sMo == 1:
         sMoLength += 1 # Chaitra has 1 extra day when starting in gregorian leap years
-    if sDay < 1 or sDay > sMoLength: 
+    if sDay < 1 or sDay > sMoLength:
         raise ValueError(_("Saka calendar day error: {0} {1} {2} "), sYr, sMo, sDay)
     gMo, gDayOffset, gYrOffset = sakaMonthOffset[sMo - 1] # offset Saka to Gregorian by Saka month
     if sStartsInLeapYr and sMo == 1:
@@ -371,10 +371,10 @@ def sakaToGregorian(sYr, sMo, sDay): # replacement of plug-in sakaCalendar.py wh
             gYr += 1
     return (gYr, gMo, gDay)
 
-# see: http://www.i18nguy.com/l10n/emperor-date.html        
+# see: http://www.i18nguy.com/l10n/emperor-date.html
 eraStart = {'令和': 2018,
             '令': 2018,
-            '\u5E73\u6210': 1988, 
+            '\u5E73\u6210': 1988,
             '\u5E73': 1988,
             '\u660E\u6CBB': 1867,
             '\u660E': 1867,
@@ -393,11 +393,11 @@ def canonicalNumber(n):
         return (m.group(1) or "0") + (m.group(4) or "")
     return m
 
-# transforms    
+# transforms
 
 def booleanfalse(arg):
     return 'false'
-    
+
 def booleantrue(arg):
     return 'true'
 
@@ -406,58 +406,58 @@ def dateslashus(arg):
     if m and m.lastindex == 3:
         return "{0}-{1}-{2}".format(yr4(m.group(3)), z2(m.group(1)), z2(m.group(2)))
     raise XPathContext.FunctionArgType(0,"xs:date")
-    
+
 def dateslasheu(arg):
     m = dateslashPattern.match(arg)
     if m and m.lastindex == 3:
         return "{0}-{1}-{2}".format(yr4(m.group(3)), z2(m.group(2)), z2(m.group(1)))
     raise XPathContext.FunctionArgType(0,"xs:date")
-    
+
 def datedotus(arg):
     m = datedotPattern.match(arg)
     if m and m.lastindex == 3:
         return "{0}-{1}-{2}".format(yr4(m.group(3)), z2(m.group(1)), z2(m.group(2)))
     raise XPathContext.FunctionArgType(0,"xs:date")
-    
+
 def datedoteu(arg):
     m = datedotPattern.match(arg)
     if m and m.lastindex == 3:
         return "{0}-{1}-{2}".format(yr4(m.group(3)), z2(m.group(2)), z2(m.group(1)))
     raise XPathContext.FunctionArgType(0,"xs:date")
-    
+
 def datelongusTR1(arg):
     return datedaymonthyear(arg, dateLongUsTR1Pattern, dy=2, mo=1, yr=3)
-    
+
 def dateshortusTR1(arg):
     return datedaymonthyear(arg, dateShortUsTR1Pattern, dy=2, mo=1, yr=3)
-    
+
 def datelongukTR1(arg):
     return datedaymonthyear(arg, dateLongUkTR1Pattern)
 
 def dateshortukTR1(arg):
     return datedaymonthyear(arg, dateShortUkTR1Pattern)
-    
+
 def datelongeu(arg):
     return datedaymonthyear(arg, dateEuPattern)
-    
+
 def datedaymonthTR2(arg):
     m = daymonthPattern.match(arg)
     if m and m.lastindex == 2:
         mo = z2(m.group(2))
         day = z2(m.group(1))
-        if "01" <= day <= maxDayInMo.get(mo, "00"): 
+        if "01" <= day <= maxDayInMo.get(mo, "00"):
             return "--{0}-{1}".format(mo, day)
     raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
-    
+
 def datemonthday(arg):
     m = monthdayPattern.match(arg)
     if m and m.lastindex == 2:
         mo = z2(m.group(1))
         day = z2(m.group(2))
-        if "01" <= day <= maxDayInMo.get(mo, "00"): 
+        if "01" <= day <= maxDayInMo.get(mo, "00"):
             return "--{0}-{1}".format(mo, day)
     raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
-    
+
 def datedaymonthSlashTR1(arg):
     m = daymonthslashPattern.match(arg)
     if m and m.lastindex == 2:
@@ -465,7 +465,7 @@ def datedaymonthSlashTR1(arg):
         day = z2(m.group(1))
         return "--{0}-{1}".format(mo, day)
     raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
-    
+
 def datemonthdaySlashTR1(arg):
     m = monthdayslashPattern.match(arg)
     if m and m.lastindex == 2:
@@ -486,7 +486,7 @@ def datedaymonth(arg, pattern, moTbl=monthnumber, dy=1, mo=2, lastindex=2):
     except KeyError:
         pass
     raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
-    
+
 def datedaymonthbg(arg):
     return datedaymonth(arg, daymonthBgPattern)
 
@@ -514,19 +514,19 @@ def datedaymonthdk(arg):
                 "01" <= day <= maxDayInMo.get(mo, "00")):
                 return "--{0:02}-{1}".format(mo, day)
     raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
-    
+
 def datedaymonthel(arg):
     return datedaymonth(arg, daymonthElPattern)
 
 def datedaymonthen(arg):
     return datedaymonth(arg, daymonthEnPattern)
-    
+
 def datedaymonthShortEnTR1(arg):
     return datedaymonth(arg, daymonthShortEnTR1Pattern, dy=1, mo=2)
-    
+
 def datedaymonthLongEnTR1(arg):
     return datedaymonth(arg, daymonthLongEnTR1Pattern, dy=1, mo=2)
-    
+
 def datemonthdayen(arg):
     return datedaymonth(arg, monthdayEnPattern, dy=2, mo=1)
 
@@ -592,13 +592,13 @@ def datedaymonthsl(arg):
 
 def datedaymonthyearTR2(arg):
     return datedaymonthyear(arg, daymonthyearPattern, None, dy=1, mo=2, yr=3)
-    
+
 def datedaymonthyearTR4(arg):
     return datedaymonthyear(arg.translate(devanagariDigitsTrTable), daymonthyearPattern, None, dy=1, mo=2, yr=3)
-    
-def datemonthdayyear(arg): 
+
+def datemonthdayyear(arg):
     return datedaymonthyear(arg, monthdayyearPattern, None, dy=2, mo=1, yr=3)
-    
+
 def datemonthyearTR3(arg):
     m = monthyearPattern.match(arg) # "(M)M*(Y)Y(YY)", with non-numeric separator,
     if m and m.lastindex == 2:
@@ -606,7 +606,7 @@ def datemonthyearTR3(arg):
         if "01" <= _mo <= "12":
             return "{0}-{1:2}".format(yr4(m.group(2)), _mo)
     raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
-    
+
 def datemonthyearTR4(arg):
     m = monthyearPattern.match(arg.translate(devanagariDigitsTrTable)) # "(M)M*(Y)Y(YY)", with non-numeric separator,
     if m and m.lastindex == 2:
@@ -614,7 +614,7 @@ def datemonthyearTR4(arg):
         if "01" <= _mo <= "12":
             return "{0}-{1:2}".format(yr4(m.group(2)), _mo)
     raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
-    
+
 def dateyearmonth(arg):
     m = yearmonthPattern.match(arg) # "(Y)Y(YY)*(M)M", with non-numeric separator,
     if m and m.lastindex == 2:
@@ -625,7 +625,7 @@ def dateyearmonth(arg):
 
 def dateyearmonthTR4(arg):
     return dateyearmonth(arg.translate(jpDigitsTrTable))
-    
+
 def datemonthyear(arg, pattern, moTbl=monthnumber, mo=1, yr=2, lastindex=2):
     m = pattern.match(arg)
     try:
@@ -634,7 +634,7 @@ def datemonthyear(arg, pattern, moTbl=monthnumber, mo=1, yr=2, lastindex=2):
     except KeyError:
         pass
     raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
-    
+
 def datemonthyearbg(arg):
     return datemonthyear(arg, monthyearBgPattern)
 
@@ -647,7 +647,7 @@ def datemonthyearcy(arg):
 def datemonthyearde(arg):
     return datemonthyear(arg, monthyearDePattern)
 
-    
+
 def datemonthyeardk(arg):
     m = monthyearDkPattern.match(arg)
     if m and m.lastindex == 4:
@@ -659,22 +659,22 @@ def datemonthyeardk(arg):
                                     (monEnd and not monPer)):
             return "{0}-{1:02}".format(yr4(m.group(4)), monthnumber[mon3])
     raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
-    
+
 def datemonthyearel(arg):
     return datemonthyear(arg, monthyearElPattern)
 
 def datemonthyearen(arg):
     return datemonthyear(arg, monthyearEnPattern, mo=1, yr=2)
-    
+
 def datemonthyearShortEnTR1(arg):
     return datemonthyear(arg, monthyearShortEnTR1Pattern, mo=1, yr=2)
-    
+
 def datemonthyearLongEnTR1(arg):
     return datemonthyear(arg, monthyearLongEnTR1Pattern, mo=1, yr=2)
-    
+
 def datemonthyeares(arg):
     return datemonthyear(arg, monthyearEsPattern)
-    
+
 def dateyearmonthen(arg):
     return datemonthyear(arg, yearmonthEnPattern, mo=2, yr=1)
 
@@ -696,7 +696,7 @@ def datemonthyearhr(arg):
 def datemonthyearin(arg):
     m = monthyearInPattern.match(arg)
     try:
-        return "{0}-{1}".format(yr4(devanagariDigitsToNormal(m.group(2))), 
+        return "{0}-{1}".format(yr4(devanagariDigitsToNormal(m.group(2))),
                                    gregorianHindiMonthNumber[m.group(1)])
     except (AttributeError, IndexError, KeyError):
         pass
@@ -794,7 +794,7 @@ def datedaymonthyearen(arg):
 
 def datemonthdayyearen(arg):
     return datedaymonthyear(arg, monthdayyearEnPattern, dy=2, mo=1, yr=3)
-    
+
 def datedaymonthyeares(arg):
     return datedaymonthyear(arg, daymonthyearEsPattern)
 
@@ -1087,7 +1087,7 @@ tr1Functions = {
 }
 
 tr2Functions = {
-                           
+
     # 2011-07-31 functions
     'booleanfalse': booleanfalse,
     'booleantrue': booleantrue,
@@ -1111,7 +1111,7 @@ tr2Functions = {
     'numdotdecimal': numdotdecimal,
     'numunitdecimal': numunitdecimal
 }
-    
+
     # transformation registry v-3 functions
 tr3Functions = tr2Functions.copy() # tr3 starts with tr2 and adds more functions
 tr3Functions.update ({
@@ -1130,7 +1130,7 @@ tr3Functions.update ({
     # same as v2: 'dateerayearmonthjp': dateerayearmonthjp,
     # same as v2: 'datemonthday': datemonthday,
     # same as v2: 'datemonthdayen': datemonthdayen,
-    # same as v2: 'datemonthdayyear': datemonthdayyear, 
+    # same as v2: 'datemonthdayyear': datemonthdayyear,
     # same as v2: 'datemonthdayyearen': datemonthdayyearen,
     'datemonthyear': datemonthyearTR3,
     'datemonthyeardk': datemonthyeardk,
@@ -1204,8 +1204,8 @@ tr4Functions = {
     'date-monthname-day-lt': datemonthdaylt,
     'date-monthname-day-year-en': datemonthdayyearen,
     'date-month-day': datemonthday,
-    'date-month-day-year': datemonthdayyear, 
-    'date-month-year': datemonthyearTR4, 
+    'date-month-day-year': datemonthdayyear,
+    'date-month-year': datemonthyearTR4,
     'date-monthname-year-bg': datemonthyearbg,
     'date-monthname-year-cs': datemonthyearcs,
     'date-monthname-year-da': datemonthyeardk,

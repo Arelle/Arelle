@@ -20,7 +20,7 @@ def anytypeArg(xc, args, i, type, missingArgFallback=None):
         if len(item) == 0: return ()
         item = item[0]
     return item
-    
+
 def atomicArg(xc, p, args, i, type, missingArgFallback=None, emptyFallback=()):
     item = anytypeArg(xc, args, i, type, missingArgFallback)
     if item == (): return emptyFallback
@@ -37,7 +37,7 @@ def numericArg(xc, p, args, i=0, missingArgFallback=None, emptyFallback=0, conve
     item = anytypeArg(xc, args, i, "numeric?", missingArgFallback)
     if item == (): return emptyFallback
     numeric = xc.atomize(p, item)
-    if not isinstance(numeric,_NUM_TYPES): 
+    if not isinstance(numeric,_NUM_TYPES):
         if convertFallback is None:
             raise FunctionArgType(i,"numeric?",numeric)
         try:
@@ -50,7 +50,7 @@ def integerArg(xc, p, args, i=0, missingArgFallback=None, emptyFallback=0, conve
     item = anytypeArg(xc, args, i, "integer?", missingArgFallback)
     if item == (): return emptyFallback
     numeric = xc.atomize(p, item)
-    if not isinstance(numeric,_INT_TYPES): 
+    if not isinstance(numeric,_INT_TYPES):
         if convertFallback is None:
             raise FunctionArgType(i,"integer?",numeric)
         try:

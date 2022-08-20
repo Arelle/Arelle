@@ -1,7 +1,7 @@
 '''
 Created on Oct 12, 2020
 
-Filer Guidelines: 
+Filer Guidelines:
     https://www.revenue.ie/en/online-services/support/documents/ixbrl/ixbrl-technical-note.pdf
     https://www.revenue.ie/en/online-services/support/documents/ixbrl/error-messages.pdf
     https://www.revenue.ie/en/online-services/support/documents/ixbrl/ixbrl-style-guide.pdf
@@ -40,7 +40,7 @@ TRnamespaces = {
     "http://www.xbrl.org/inlineXBRL/transformation/2011-07-31",
     "http://www.xbrl.org/inlineXBRL/transformation/2015-02-26"
     }
-          
+
 mandatoryElements = {
     "bus": {
         "EntityCurrentLegalOrRegisteredName",
@@ -52,7 +52,7 @@ mandatoryElements = {
         "StartDateForPeriodCoveredByReport",
         "EndDateForPeriodCoveredByReport",
         },
-    "ie-dpl": { 
+    "ie-dpl": {
         "DPLTurnoverRevenue",
         "DPLGovernmentGrantIncome",
         "DPLOtherOperatingIncome",
@@ -61,7 +61,7 @@ mandatoryElements = {
         "DPLSubcontractorCosts",
         "DPLProfitLossBeforeTax"
         },
-    "core": { 
+    "core": {
         "Equity",
         }
     }
@@ -69,7 +69,7 @@ mandatoryElements = {
 # lists of mandatory elements which can be satisfied by other taxonomies
 equivalentMandatoryElements = [
     ]
-                
+
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("ROS", "ROSplugin"),)
@@ -81,7 +81,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateROSplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "ROSplugin", False)
     if not (val.validateROSplugin):
         return
-    
+
 def validateXbrlFinally(val, *args, **kwargs):
     if not (val.validateROSplugin):
         return
@@ -96,17 +96,17 @@ def validateXbrlFinally(val, *args, **kwargs):
     _statusMsg = _("validating {0} filing rules").format(val.disclosureSystem.name)
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
-    
-    
+
+
     if modelDocument.type == ModelDocument.Type.INSTANCE:
         modelXbrl.error("ROS:instanceMustBeInlineXBRL",
-                        _("ROS expects inline XBRL instances."), 
+                        _("ROS expects inline XBRL instances."),
                         modelObject=modelXbrl)
     if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements: # ix root elements for all ix docs in IXDS
             ixNStag = ixdsHtmlRootElt.modelDocument.ixNStag
-            ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))                
-            
+            ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
+
         transformRegistryErrors = set()
         ixTargets = set()
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
@@ -142,10 +142,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 modelXbrl.warning("ROS.embeddedCode",
                                     _("Images should be inlined as a base64-encoded string: %(element)s"),
                                     modelObject=elt, element=eltTag)
-    
+
         if len(ixTargets) > 1:
             modelXbrl.error("ROS:singleOutputDocument",
-                            _("Multiple target instance documents are not supported: %(targets)s."), 
+                            _("Multiple target instance documents are not supported: %(targets)s."),
                             modelObject=modelXbrl, targets=", ".join((t or "(default)") for t in ixTargets))
 
         filingTypes = set()
@@ -159,13 +159,13 @@ def validateXbrlFinally(val, *args, **kwargs):
                     modelXbrl.error("ROS.fileNameExtension",
                         _("The list of acceptable file extensions for upload is: html, htm, ixbrl, xml, xhtml: %(fileName)s"),
                         modelObject=doc, fileName=doc.basename)
-                    
+
                 # document encoding
                 if doc.documentEncoding.lower() != "utf-8":
                     modelXbrl.error("ROS.documentEncoding",
                         _("iXBRL documents submitted to Revenue should be UTF-8 encoded: %(encoding)s"),
                         modelObject=doc, encoding=doc.documentEncoding)
-               
+
                 # identify type of filing
                 for referencedDoc in doc.referencesDocument.keys():
                     if referencedDoc.type == ModelDocument.Type.SCHEMA:
@@ -173,22 +173,22 @@ def validateXbrlFinally(val, *args, **kwargs):
                             filingTypes.add(referencedDoc.uri)
                         else:
                             unexpectedTaxonomyReferences.add(referencedDoc.uri)
-                # count of inline docs in IXDS            
+                # count of inline docs in IXDS
                 numIxDocs += 1
 
         if len(filingTypes) != 1:
             modelXbrl.error("ROS:multipleFilingTypes",
-                            _("Multiple filing types detected: %(filingTypes)s."), 
+                            _("Multiple filing types detected: %(filingTypes)s."),
                             modelObject=modelXbrl, filingTypes=", ".join(sorted(filingTypes)))
         if unexpectedTaxonomyReferences:
             modelXbrl.error("ROS:unexpectedTaxonomyReferences",
-                            _("Referenced schema(s) does not map to a taxonomy supported by Revenue (schemaRef): %(unexpectedReferences)s."), 
+                            _("Referenced schema(s) does not map to a taxonomy supported by Revenue (schemaRef): %(unexpectedReferences)s."),
                             modelObject=modelXbrl, unexpectedReferences=", ".join(sorted(unexpectedTaxonomyReferences)))
 
         # single document IXDS
         if numIxDocs > 1:
             modelXbrl.warning("ROS:multipleInlineDocuments",
-                            _("A single inline document should be submitted but %(numberDocs)s were found."), 
+                            _("A single inline document should be submitted but %(numberDocs)s were found."),
                             modelObject=modelXbrl, numberDocs=numIxDocs)
 
         # build namespace maps
@@ -196,7 +196,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         for prefix in ("ie-common", "bus", "uk-bus", "ie-dpl", "core"):
             if prefix in modelXbrl.prefixedNamespaces:
                 nsMap[prefix] = modelXbrl.prefixedNamespaces[prefix]
-                
+
         # build mandatory table by ns qname in use
         mandatory = set()
         for prefix in mandatoryElements:
@@ -204,22 +204,22 @@ def validateXbrlFinally(val, *args, **kwargs):
                 ns = nsMap[prefix]
                 for localName in mandatoryElements[prefix]:
                     mandatory.add(qname(ns, prefix + ":" + localName))
-          
+
         equivalentManatoryQNames = [[qname(q,nsMap) for q in equivElts] for equivElts in equivalentMandatoryElements]
-        
+
         # document creator requirement
         if "bus" in nsMap:
             if qname("bus:NameProductionSoftware",nsMap) not in modelXbrl.factsByQname or qname("bus:VersionProductionSoftware",nsMap) not in modelXbrl.factsByQname:
                 modelXbrl.warning("ROS:documentCreatorProductInformation",
-                                _("Please use the NameProductionSoftware tag to identify the software package and the VersionProductionSoftware tag to identify the version of the software package."), 
+                                _("Please use the NameProductionSoftware tag to identify the software package and the VersionProductionSoftware tag to identify the version of the software package."),
                                 modelObject=modelXbrl)
         elif "uk-bus" in nsMap:
             if qname("uk-bus:NameAuthor",nsMap) not in modelXbrl.factsByQname or qname("uk-bus:DescriptionOrTitleAuthor",nsMap) not in modelXbrl.factsByQname:
                 modelXbrl.warning("ROS:documentCreatorProductInformation",
-                                _("Revenue request that vendor, product and version information is embedded in the generated inline XBRL document using a single XBRLDocumentAuthorGrouping tuple. The NameAuthor tag should be used to identify the name and version of the software package."), 
+                                _("Revenue request that vendor, product and version information is embedded in the generated inline XBRL document using a single XBRLDocumentAuthorGrouping tuple. The NameAuthor tag should be used to identify the name and version of the software package."),
                                 modelObject=modelXbrl)
-                        
-        
+
+
         schemeEntityIds = set()
         mapContext = {} # identify unique contexts and units
         mapUnit = {}
@@ -245,17 +245,17 @@ def validateXbrlFinally(val, *args, **kwargs):
         del uniqueContextHashes
         if len(schemeEntityIds) > 1:
                 modelXbrl.error("ROS:differentContextEntityIdentifiers",
-                                _("Context entity identifier not all the same: %(schemeEntityIds)s."), 
+                                _("Context entity identifier not all the same: %(schemeEntityIds)s."),
                                 modelObject=modelXbrl, schemeEntityIds=", ".join(sorted(str(s) for s in schemeEntityIds)))
         if unsupportedSchemeContexts:
             modelXbrl.error("ROS:unsupportedContextEntityIdentifierScheme",
-                            _("Context identifier scheme(s) is not supported: %(schemes)s."), 
-                            modelObject=unsupportedSchemeContexts, 
+                            _("Context identifier scheme(s) is not supported: %(schemes)s."),
+                            modelObject=unsupportedSchemeContexts,
                             schemes=", ".join(sorted(set(c.entityIdentifier[0] for c in unsupportedSchemeContexts))))
         if mismatchIdentifierContexts:
             modelXbrl.error("ROS:invalidContextEntityIdentifier",
-                            _("Context entity identifier(s) lexically invalid: %(identifiers)s."), 
-                            modelObject=mismatchIdentifierContexts, 
+                            _("Context entity identifier(s) lexically invalid: %(identifiers)s."),
+                            modelObject=mismatchIdentifierContexts,
                             identifiers=", ".join(sorted(set(c.entityIdentifier[1] for c in mismatchIdentifierContexts))))
 
         uniqueUnitHashes = {}
@@ -271,31 +271,31 @@ def validateXbrlFinally(val, *args, **kwargs):
 
         if hasCRO and "ie-common" in nsMap:
             mandatory.add(qname("ie-common:CompaniesRegistrationOfficeNumber", nsMap))
-        
+
         reportedMandatory = set()
-        factForConceptContextUnitHash = defaultdict(list) 
-                
+        factForConceptContextUnitHash = defaultdict(list)
+
         for qn, facts in modelXbrl.factsByQname.items():
             if qn in mandatory:
                 reportedMandatory.add(qn)
             for f in facts:
-                if (f.parentElement.qname == qnXbrliXbrl and 
+                if (f.parentElement.qname == qnXbrliXbrl and
                     (f.isNil or getattr(f,"xValid", 0) >= VALID) and f.context is not None and f.concept is not None and f.concept.type is not None):
                     factForConceptContextUnitHash[f.conceptContextUnitHash].append(f)
-            
+
         missingElements = (mandatory - reportedMandatory) # | (reportedFootnoteIfNil - reportedFootnoteIfNil)
-        
+
         for qnames in equivalentManatoryQNames: # remove missing elements for which an or-match was reported
             if any(qn in modelXbrl.factsByQname for qn in qnames):
                 for qn in qnames:
                     missingElements.discard(qn)
-                
+
         if missingElements:
             modelXbrl.error("ROS:missingRequiredElements",
-                            _("Required elements missing from document: %(elements)s."), 
+                            _("Required elements missing from document: %(elements)s."),
                             modelObject=modelXbrl, elements=", ".join(sorted(str(qn) for qn in missingElements)))
-                
-        aspectEqualFacts = defaultdict(dict) # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact] 
+
+        aspectEqualFacts = defaultdict(dict) # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact]
         decVals = {}
         for hashEquivalentFacts in factForConceptContextUnitHash.values():
             if len(hashEquivalentFacts) > 1:
@@ -346,15 +346,15 @@ def validateXbrlFinally(val, *args, **kwargs):
                             if _inConsistent:
                                 modelXbrl.error("ROS.inconsistentDuplicateFacts",
                                     "Inconsistent duplicate fact values %(element)s: %(values)s, in contexts: %(contextIDs)s.",
-                                    modelObject=fList, element=f0.qname, 
-                                    contextIDs=", ".join(sorted(set(f.contextID for f in fList))), 
+                                    modelObject=fList, element=f0.qname,
+                                    contextIDs=", ".join(sorted(set(f.contextID for f in fList))),
                                     values=", ".join(strTruncate(f.value,64) for f in fList))
                 aspectEqualFacts.clear()
         del factForConceptContextUnitHash, aspectEqualFacts
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
-    
+
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading

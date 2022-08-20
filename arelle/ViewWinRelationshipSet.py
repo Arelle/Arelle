@@ -13,8 +13,8 @@ from arelle.ModelFormulaObject import ModelFilter
 from arelle.ViewUtil import viewReferences, groupRelationshipSet, groupRelationshipLabel
 from arelle.XbrlConst import conceptNameLabelRole, documentationLabel, widerNarrower
 
-def viewRelationshipSet(modelXbrl, tabWin, arcrole, 
-                        linkrole=None, linkqname=None, arcqname=None, lang=None, 
+def viewRelationshipSet(modelXbrl, tabWin, arcrole,
+                        linkrole=None, linkqname=None, arcqname=None, lang=None,
                         treeColHdr=None, showLinkroles=True, showRelationships=True, showColumns=True,
                         expandAll=False, hasTableIndex=False, noRelationshipsMsg=True):
     arcroleName = groupRelationshipLabel(arcrole)
@@ -24,14 +24,14 @@ def viewRelationshipSet(modelXbrl, tabWin, arcrole,
             modelXbrl.modelManager.addToLog(_("no relationships for {0}").format(arcroleName))
         return False
     modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(arcroleName))
-    view = ViewRelationshipSet(modelXbrl, tabWin, arcrole, linkrole, linkqname, arcqname, lang, 
+    view = ViewRelationshipSet(modelXbrl, tabWin, arcrole, linkrole, linkqname, arcqname, lang,
                                treeColHdr, showLinkroles, showRelationships, showColumns,
                                expandAll, hasTableIndex)
     view.view(firstTime=True, relationshipSet=relationshipSet)
     view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
     view.treeView.bind("<Enter>", view.treeviewEnter, '+')
     view.treeView.bind("<Leave>", view.treeviewLeave, '+')
-    
+
     # pop up menu
     menu = view.contextMenu()
     view.menuAddExpandCollapse()
@@ -39,13 +39,13 @@ def viewRelationshipSet(modelXbrl, tabWin, arcrole,
     view.menuAddLangs()
     view.menuAddLabelRoles(includeConceptName=True)
     view.menuAddViews()
-    
+
     return True
 
-    
+
 class ViewRelationshipSet(ViewWinTree.ViewTree):
-    def __init__(self, modelXbrl, tabWin, 
-                 arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None, 
+    def __init__(self, modelXbrl, tabWin,
+                 arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None,
                  treeColHdr=None, showLinkroles=True, showRelationships=True, showColumns=True,
                  expandAll=False, hasTableIndex=False):
         if isinstance(arcrole, (list,tuple)):
@@ -64,7 +64,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         self.expandAllOnFirstDisplay = expandAll
         self.hasTableIndex = hasTableIndex
         self.isResourceArcrole = False
-        
+
     def view(self, firstTime=False, relationshipSet=None):
         self.blockSelectEvent = 1
         self.blockViewModelObject = 0
@@ -75,7 +75,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         if not relationshipSet:
             self.modelXbrl.modelManager.addToLog(_("no relationships for {0}").format(groupRelationshipLabel(self.arcrole)))
             return False
-        
+
         if firstTime:
             self.showReferences = False
             # set up treeView widget and tabbed pane
@@ -148,7 +148,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     self.treeView.heading("lang", text="Lang")
         self.clearTreeView()
         self.id = 1
-        
+
         # sort URIs by definition
         linkroleUris = []
         linkroleUriChildren = {}
@@ -168,7 +168,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             linkroleUris.append((roledefinition, linkroleUri, roleId))
         # entry may be ((table group, order, role definition), uri, id) or (str definition, uri, id)
         linkroleUris.sort(key=lambda d:d[0] if isinstance(d[0],tuple) else ("9noTableKey",d[0],""))
-        
+
         def insertLinkroleChildren(parentNode, childUris):
             for childUri in childUris:
                 for roledefinition, linkroleUri, roleId in linkroleUris:
@@ -177,8 +177,8 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                             _nextTableGroup, _order, roledefinition = roledefinition
                         else:
                             modelRoleTypes = self.modelXbrl.roleTypes.get(linkroleUri)
-                            roledefinition = (modelRoleTypes[0].genLabel(lang=self.lang, strip=True) or 
-                                              modelRoleTypes[0].definition or 
+                            roledefinition = (modelRoleTypes[0].genLabel(lang=self.lang, strip=True) or
+                                              modelRoleTypes[0].definition or
                                               linkroleUri)
                         childId = "_{}{}".format(self.id, roleId)
                         self.id += 1
@@ -186,7 +186,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                         if childUri in linkroleUriChildren:
                             insertLinkroleChildren(childNode, linkroleUriChildren[childUri])
                         break
-                
+
         # for each URI in definition order
         tableGroup = ""
         for roledefinition, linkroleUri, roleId in linkroleUris:
@@ -221,9 +221,9 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             if isinstance(concept, ModelDtsObject.ModelConcept):
                 text = labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
                 if (self.arcrole in ("XBRL-dimensions", XbrlConst.hypercubeDimension) and
-                    concept.isTypedDimension and 
+                    concept.isTypedDimension and
                     concept.typedDomainElement is not None):
-                    text += " (typedDomain={0})".format(concept.typedDomainElement.qname)  
+                    text += " (typedDomain={0})".format(concept.typedDomainElement.qname)
             elif isinstance(concept, ModelInstanceObject.ModelFact):
                 if concept.concept is not None:
                     text = labelPrefix + concept.concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
@@ -285,7 +285,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     self.treeView.set(childnode, "axis", modelObject.axisDisposition)
                     if isinstance(concept, (ModelEuAxisCoord,ModelRuleDefinitionNode)):
                         self.treeView.set(childnode, "priItem", concept.aspectValue(None, Aspect.CONCEPT))
-                        self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim, concept.aspectValue(None, dim)) 
+                        self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim, concept.aspectValue(None, dim))
                                                                        for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or []))))
             elif self.arcrole == widerNarrower:
                 if isRelation:
@@ -323,14 +323,14 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     if toConcept in visited:
                         childPrefix += "(loop)"
                     labelrole = modelRel.preferredLabel
-                    if not labelrole or self.labelrole == conceptNameLabelRole: 
+                    if not labelrole or self.labelrole == conceptNameLabelRole:
                         labelrole = self.labelrole
                     n += 1 # child has opposite row style of parent
                     self.viewConcept(toConcept, modelRel, childPrefix, labelrole, childnode, n, nestedRelationshipSet, visited)
                 visited.remove(concept)
         except AttributeError:
             return # bad object, don't try to display
-            
+
     def getToolTip(self, tvRowId, tvColId):
         # override tool tip when appropriate
         if self.arcrole == "Table-rendering" and tvColId in ("#0", "#4"):
@@ -355,7 +355,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                                 modelResource.localName, modelResource.viewExpression,
                                 str(modelObject.isComplemented).lower(),
                                 str(modelObject.isCovered).lower(),
-                                '\n'.join("{0}: {1}".format(p[0], p[1]) 
+                                '\n'.join("{0}: {1}".format(p[0], p[1])
                                           for p in modelResource.propertyView
                                           if p and len(p) >= 2))
                 except (AttributeError, KeyError):
@@ -375,7 +375,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             if selection is not None and len(selection)>0:
                 self.modelXbrl.viewModelObject(selection[0])
             self.blockViewModelObject -= 1
-        
+
     def viewModelObject(self, modelObject):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
@@ -383,7 +383,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 # check if modelObject is a relationship in given linkrole
                 if isinstance(modelObject, ModelDtsObject.ModelRelationship):
                     linkroleId = self.tag_has.get(modelObject.linkrole)
-                    if linkroleId: 
+                    if linkroleId:
                         linkroleId = linkroleId[0]
                     else:
                         linkroleId = None
@@ -409,6 +409,6 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         elif node:
             return self.hasAncestor(self.treeView.parent(node), ancestor)
         return False
-    
+
 from arelle.ModelRenderingObject import ModelEuAxisCoord, ModelRuleDefinitionNode
 from arelle.ModelFormulaObject import Aspect

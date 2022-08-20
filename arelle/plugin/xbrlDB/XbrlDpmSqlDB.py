@@ -1,11 +1,11 @@
 '''
 XbrlDpmEbaDB.py implements an SQL database interface for Arelle, based
-on the DPM EBA database.  This is a semantic data points modeling 
-representation of EBA's XBRL information architecture. 
+on the DPM EBA database.  This is a semantic data points modeling
+representation of EBA's XBRL information architecture.
 
 This module may save directly to a Postgres, MySQL, SEQLite, MSSQL, or Oracle server.
 
-This module provides the execution context for saving a dts and instances in 
+This module provides the execution context for saving a dts and instances in
 XBRL SQL database.  It may be loaded by Arelle's RSS feed, or by individual
 DTS and instances opened by interactive or command line/web service mode.
 
@@ -15,10 +15,10 @@ Example dialog or command line parameters for operation:
     port:  the host port of server
     user, password:  if needed for server
     database:  the top level path segment for the SQL Server
-    timeout: 
-    
+    timeout:
 
-(c) Copyright 2014 Mark V Systems Limited, California US, All rights reserved.  
+
+(c) Copyright 2014 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 
@@ -28,13 +28,13 @@ linux
    # be sure plugin is installed
    arelleCmdLine --plugin '+xbrlDB|show'
    arelleCmdLine -f http://sec.org/somewhere/some.rss -v --store-to-XBRL-DB 'myserver.com,portnumber,pguser,pgpasswd,database,timeoutseconds'
-   
+
 macOS
    # plug in installs dynamically
-   
+
    # to store into DB from instance:
    arelleCmdLine -f "/Users/hermf/Documents/mvsl/projects/EIOPA/xbrt/13. XBRL Instance Documents/1_instance_md_ars_123456789.xbrl" --store-to-XBRL-DB ",,,,/Users/hermf/temp/DPM.db,90,sqliteDpmDB" --plugins xbrlDB
-   
+
    # to load from DB and save to instance:
    arelleCmdLine -f "/Users/hermf/temp/instance_md_qrs_123456789.xbrl" --load-from-XBRL-DB ",,,,/Users/hermf/Documents/mvsl/projects/EIOPA/xbrt/3. DPM Database/DPM_DB/DPM_release_ver7_clean.db,90,sqliteDpmDB" --plugins xbrlDB
 
@@ -42,7 +42,7 @@ windows
    rem be sure plugin is installed
    arelleCmdLine --plugin "+xbrlDB|show"
    arelleCmdLine -f http://sec.org/somewhere/some.rss -v --store-to-XBRL-DB "myserver.com,portnumber,pguser,pgpasswd,database,timeoutseconds"
-   
+
 concrete example:
    python3.4 arelleCmdLine.py -f "/Users/hermf/Documents/mvsl/projects/EIOPA/xbrt/13. XBRL Instance Documents/1.5.2 (generated with DPM Architect)/arg.xbrl"  --formula none --store-to-XBRL-DB ",,,,/users/hermf/temp/DBtest5.xbrt,90,sqliteDpmDB" --internetConnectivity offline --skipDT --plugins logging/dpmSignature.pyS
 
@@ -73,7 +73,7 @@ ONE = Decimal("1")
 ONE00 = Decimal("1.00")
 ONE0000 = Decimal("1.0000")
 
-def insertIntoDB(modelXbrl, 
+def insertIntoDB(modelXbrl,
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
                  product=None, rssItem=None, loadDBsaveToFile=None, loadInstanceId=None,
                  streamingState=None, streamedFacts=None, schemaRefSubstitutions=None,
@@ -128,9 +128,9 @@ def insertIntoDB(modelXbrl,
                 xbrlDbConn.close(rollback=True)
             except Exception as ex2:
                 pass
-        raise # reraise original exception with original traceback 
-    return result   
-    
+        raise # reraise original exception with original traceback
+    return result
+
 def isDBPort(host, port, timeout=10, product="postgres"):
     return isSqlConnection(host, port, timeout)
 
@@ -185,7 +185,7 @@ def metDimValKey(cntx, typedDim=False, behaveAsTypedDims=EMPTYSET, restrictToDim
         key = ""
     key += dimValKey(cntx, typedDim=typedDim, behaveAsTypedDims=behaveAsTypedDims, restrictToDims=restrictToDims)
     return key
-        
+
 def metDimNameKey(fact, cntx):
     key = met(fact)
     if cntx.qnameDims:
@@ -201,8 +201,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if missingTables and missingTables != {"sequences"}:
             raise XPDBException("sqlDB:MissingTables",
                                 _("The following tables are missing: %(missingTableNames)s"),
-                                missingTableNames=', '.join(t for t in sorted(missingTables))) 
-            
+                                missingTableNames=', '.join(t for t in sorted(missingTables)))
+
     def insertXbrlToDB(self, rssItem):
         try:
             self.startInsertXbrlToDB()
@@ -212,35 +212,35 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         except Exception as ex:
             self.showStatus("DB insertion failed due to exception", clearAfter=5000)
             raise
-        
+
     def startInsertXbrlToDB(self):
         self.instanceId = None; # instance not yet set up (streaming mode)
-        
+
         # must also have default dimensions loaded
         from arelle import ValidateXbrlDimensions
         ValidateXbrlDimensions.loadDimensionDefaults(self.modelXbrl)
-        
+
         # must have a valid XBRL instance or document
         if self.modelXbrl.modelDocument is None:
             raise DpmDBException("xpgDB:MissingXbrlDocument",
-                                _("No XBRL instance or schema loaded for this filing.")) 
-        
+                                _("No XBRL instance or schema loaded for this filing."))
+
         # at this point we determine what's in the database and provide new tables
         # requires locking most of the table structure
         self.lockTables(("dInstance",  "dFact", "dFilingIndicator",
                          # "dAvailableTable", "dProcessingContext", "dProcessingFact"
                          ), isSessionTransaction=True)
-        
+
         self.dropTemporaryTable()
         self.startedAt = time.time()
-    
+
     def insertInstanceToDB(self, isStreaming=False):
         now = datetime.datetime.now()
         # find primary model taxonomy of instance
         self.modelXbrl.profileActivity()
         self.moduleId = None
         self.numFactsInserted = 0
-        self.availableTableRows = defaultdict(set) # index (tableID, zDimVal) = set of yDimVals 
+        self.availableTableRows = defaultdict(set) # index (tableID, zDimVal) = set of yDimVals
         self.dFilingIndicators = {} # index qName, value filed (boolean)
         self.filedFilingIndicators = None # comma separated list of positive filing indicators
         self.filingIndicatorReportsFacts = {} # index by filing indicator to be reported, value = True if it has any facts reported
@@ -277,7 +277,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if not self.moduleId:
             raise DpmDBException(("EBA.1.5","EIOPA.S.1.5.a"),
                     _("A ModuleID could not be found in table mModule for instance schemaRef {0}.")
-                    .format(_instanceSchemaRef)) 
+                    .format(_instanceSchemaRef))
         self.modelXbrl.profileActivity("dpmDB 01. Get ModuleID for instance schema", minTimeToShow=2.0)
         periodInstantDate = None
         entityIdentifier = ''
@@ -298,19 +298,19 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             if unit.isSingleMeasure and unit.measures[0] and unit.measures[0][0].namespaceURI == XbrlConst.iso4217:
                 self.entityCurrency = unit.measures[0][0].localName
                 break
-        table = self.getTable('dInstance', 'InstanceID', 
+        table = self.getTable('dInstance', 'InstanceID',
                               ('ModuleID', 'FileName', 'CompressedFileBlob',
                                'Timestamp', 'EntityScheme', 'EntityIdentifier', 'PeriodEndDateOrInstant',
-                               'EntityName', 'EntityCurrency'), 
-                              ('FileName',), 
+                               'EntityName', 'EntityCurrency'),
+                              ('FileName',),
                               ((self.moduleId,
                                 os.path.basename(self.modelXbrl.uri),
                                 None,
                                 now,
                                 entityScheme,
-                                entityIdentifier, 
-                                periodInstantDate, 
-                                None, 
+                                entityIdentifier,
+                                periodInstantDate,
+                                None,
                                 self.entityCurrency
                                 ),),
                               checkIfExisting=True)
@@ -319,12 +319,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             break
         self.modelXbrl.profileActivity("dpmDB 02. Store into dInstance", minTimeToShow=2.0)
         self.showStatus("deleting prior data points of this instance")
-        for tableName in ("dFact", "dFilingIndicator", "dInstanceLargeDimensionMember"): # , "dAvailableTable", 
+        for tableName in ("dFact", "dFilingIndicator", "dInstanceLargeDimensionMember"): # , "dAvailableTable",
             self.execute("DELETE FROM {0} WHERE {0}.InstanceID = {1}"
-                         .format( self.dbTableName(tableName), self.instanceId), 
+                         .format( self.dbTableName(tableName), self.instanceId),
                          close=False, fetch=False)
         self.modelXbrl.profileActivity("dpmDB 03. Delete prior data points of this instance", minTimeToShow=2.0)
-            
+
         self.showStatus("obtaining mapping table information")
         '''
         result = self.execute("SELECT MetricAndDimensions, TableID FROM mTableDimensionSet WHERE ModuleID = {}"
@@ -334,7 +334,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             self.metricAndDimensionsTableId[metricAndDimensions].add(tableID)
         '''
         self.modelXbrl.profileActivity("dpmDB 04. Get TableDimensionSet for Module", minTimeToShow=2.0)
-            
+
         result = self.execute("SELECT TableID, YDimVal, ZDimVal FROM mTable WHERE TableID in ({})"
                               .format(', '.join(str(i) for i in sorted(self.tableIDs))))
         self.yDimVal = defaultdict(dict)
@@ -346,7 +346,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         dim, sep, val = dimVal.partition('(')
                         tblDimVal[tableID][dim] = val[:-1]
         self.modelXbrl.profileActivity("dpmDB 05. Get YZ DimVals for Table", minTimeToShow=0.0)
-        
+
         '''
         # get qnames of percent items
         result = self.execute("SELECT mem.MemberXbrlCode from mMetric met, mMember mem "
@@ -354,7 +354,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                               "AND mem.MemberId = met.CorrespondingMemberId")
         self.percentMetrics = {p[0] for p in result}
         '''
-        
+
         # get typed dimension domain element qnames
         result = self.execute("SELECT dim.DimensionXBRLCode, ( '[<]' || dom.DomainXBRLCode || '[>]' || "
                               " CASE WHEN dom.DataType = 'Integer' THEN '\\d+' ELSE '.+' END || " # HF change string dim from \\S+ to .+
@@ -387,7 +387,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 self.explicitDimensionDomain[_dim].add(_memQn)
                 if _dim in self.largeDimensionIds:
                     self.largeDimensionMemberIds[_dim][_memQn] = _memId
-            
+
         # get enumeration element values
         result = self.execute("select mem.MemberXBRLCode, enum.MemberXBRLCode from mMetric met "
                               "inner join mMember mem on mem.MemberID = met.CorrespondingMemberID "
@@ -406,10 +406,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         ("streaming" if isStreaming else "non-streaming"))
 
         # find dpm canonical prefixes and namespaces in DB
-        results = self.execute("SELECT * FROM [vwGetNamespacesPrefixes]")            
+        results = self.execute("SELECT * FROM [vwGetNamespacesPrefixes]")
         self.dpmNsPrefix = dict((namespace, prefix)
                                 for owner, prefix, namespace in results)
-        
+
         # get S.2.18.c (a) metrics with dec >= 2 accuracy
         results = self.execute("select distinct mem.MemberXBRLCode from mOrdinateCategorisation oc "
                                "inner join mAxisOrdinate ao on ao.OrdinateID = oc.OrdinateID "
@@ -421,11 +421,11 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                "order by t.TableCode;")
         self.s_2_18_c_a_Metrics = set(mem for mem in results)
         return True
-    
+
     def correctQnamePrefix(self, qn):
         if qn.prefix != self.dpmNsPrefix[qn.namespaceURI]:
             qn.prefix = self.dpmNsPrefix[qn.namespaceURI]
-            
+
     def correctFactQnamePrefixes(self, f, xValue):
         self.correctQnamePrefix(f.qname)
         cntx = f.context
@@ -439,7 +439,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             cntx._cntxPrefixesCorrected = True
         if isinstance(xValue, QName):
             self.correctQnamePrefix(xValue)
-    
+
     def loadAllowedMetricsAndDims(self):
         self.filedFilingIndicators = ', '.join("'{}'".format(_filingIndicator)
                                                for _filingIndicator, _filed in self.dFilingIndicators.items()
@@ -465,7 +465,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
              .format(self.filedFilingIndicators, self.moduleId))
         for r in results:
             self.metricsForFilingIndicators[r[0]].add(r[1])
-        
+
         results = self.execute(
              "select distinct tc.DatapointSignature "
              "from mTemplateOrTable tott "
@@ -478,7 +478,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
              "inner join mModuleBusinessTemplate mbt on mbt.BusinessTemplateID = tottv.TemplateOrTableID "
              "  and mbt.ModuleID = {1} "
              .format(self.filedFilingIndicators, self.moduleId))
-        
+
         self.signaturesForFilingIndicators = defaultdict(list)
         for dpSig in results:
             _met, _sep, dims = dpSig[0].partition("|")
@@ -490,13 +490,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     _dimVals[_dim] = (_sig, _hier)
             self.signaturesForFilingIndicators[_met[4:-1]].append(_dimVals)
         pass
-            
+
     def dFactValue(self, dFact):
         for v in dFact[4:7]:
             if v is not None:
                 return v
         return None
-    
+
     def dHierarchyMembers(self, hierarchyKey):
         if hierarchyKey in self.domainHiearchyMembers:
             return self.domainHiearchyMembers[hierarchyKey]
@@ -597,7 +597,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 else:
                     _missings = ",".join("{}({})".format(_dim,_closestMatchSig[_dim]) for _dim in _missingDims) or "none"
                     _extras = ",".join("{}({})".format(_dim,_dimVals[_dim]) for _dim in _extraDims) or "none"
-                    _diffs = ",".join("dim: {} fact: {} DPMsig: {}".format(_dim, _dimVals[_dim], _closestMatchSig[_dim])  
+                    _diffs = ",".join("dim: {} fact: {} DPMsig: {}".format(_dim, _dimVals[_dim], _closestMatchSig[_dim])
                                       for _dim in _closestMatchDiffDims) or "none"
                     if isinstance(fact, ModelFact):
                         self.modelXbrl.error("sqlDB:factDimensionsError",
@@ -619,7 +619,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         instanceId = self.instanceId
         if instanceId is None:
             return # cannot proceed with insertion
-        
+
         dFacts = []
         dFactHashes = {}
         skipDTS = self.modelXbrl.skipDTS
@@ -710,9 +710,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         elif c in ('b', 't'):
                             isBool = True
                             xValue = xValue.strip()
-                            if xValue in ("true", "1"):  
+                            if xValue in ("true", "1"):
                                 xValue = True
-                            elif xValue in ("false", "0"): 
+                            elif xValue in ("false", "0"):
                                 xValue = False
                             else:
                                 self.modelXbrl.error("sqlDB:factValueError",
@@ -767,8 +767,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                                  modelObject=filingIndicator, value=filingIndicator.value)
                 self.loadAllowedMetricsAndDims() # reload metrics
             elif f.qname == qnFindFilingIndicator:
-                continue # ignore root-level filing indicators, reported by validate/EBA 
-            elif cntx is None: 
+                continue # ignore root-level filing indicators, reported by validate/EBA
+            elif cntx is None:
                 self.modelXbrl.error("sqlDB:factContextError",
                                      _("Loading XBRL DB: Fact missing %(qname)s, contextRef %(context)s, value: %(value)s"),
                                      modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
@@ -796,7 +796,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 _dataPointSignature = metDimTypedKey(f, behaveAsTypedDims)
                 # self.validateFactSignature(_dataPointSignature, f)
                 # validate signatures at end
-                        
+
                 _factHash = (instanceId, _dataPointSignature)
                 if _factHash in dFactHashes and any(dF[0] == instanceId and dF[1] == _dataPointSignature
                                                     for dF in dFacts):
@@ -819,7 +819,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 ''' deprecated
                 dProcessingFacts.append((instanceId,
                                          met(f),
-                                         f.contextID if isNumeric else None,                                         
+                                         f.contextID if isNumeric else None,
                                          xValue if isText or isBool else None,
                                          xValue if isNumeric else None,
                                          xValue if isDateTime else None,
@@ -858,7 +858,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     self.modelXbrl.error("sqlDB:factContextError",
                                      _("Loading XBRL DB: Instant metric %(qname)s has start end context: %(context)s"),
                                      modelObject=f, qname=f.qname, context=f.contextID)
-                    
+
         if not isStreaming:
             self.showStatus("Loading XBRL Instance {}, non-streaming, storing {} facts"
                             .format(os.path.basename(self.modelXbrl.uri),
@@ -866,8 +866,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
         # check for fact duplicates
         duplicates = self.getTable("dFact", None,
-                                   ('InstanceID', 
-                                    'DataPointSignature', 
+                                   ('InstanceID',
+                                    'DataPointSignature',
                                     'Unit', 'Decimals',
                                     'NumericValue', 'DateTimeValue', 'BooleanValue', 'TextValue'),
                                    ('InstanceID', 'DataPointSignature' ),
@@ -891,14 +891,14 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     iFact += 1
         # insert non-duplicate facts
         self.getTable("dFact", None,
-                      ('InstanceID', 
-                       'DataPointSignature', 
+                      ('InstanceID',
+                       'DataPointSignature',
                        'Unit', 'Decimals',
                        'NumericValue', 'DateTimeValue', 'BooleanValue', 'TextValue'),
                       ('InstanceID', ),
                       dFacts,
                       returnMatches=False)
-        
+
         factsInserted = self.numFactsInserted + len(dFacts)
         if not isStreaming:
             self.showStatus("Loading XBRL Instance {}, non-streaming, stored {} facts"
@@ -910,22 +910,22 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                     factsInserted))
         self.numFactsInserted = factsInserted
         return True  # True causes streaming to be able to dereference facts
-        
+
     def finishInsertXbrlToDB(self):
         if self.instanceId is None:
             return
-        
+
         self.modelXbrl.profileActivity("dpmDB 06. Build facts table for bulk DB update", minTimeToShow=2.0)
 
         # check filing indicators after facts loaded
-        result = self.execute("SELECT InstanceID, DataPointSignature, Unit, Decimals, NumericValue, DateTimeValue, BooleanValue, TextValue " 
+        result = self.execute("SELECT InstanceID, DataPointSignature, Unit, Decimals, NumericValue, DateTimeValue, BooleanValue, TextValue "
                               "FROM dFact WHERE dFact.InstanceID = '{}'"
                               .format(self.instanceId))
-        
+
         self.largeDimIdMemIds = set()
         for dFact in result:
             self.validateFactSignature(dFact[1], dFact)
-            
+
         # large Dimension Member Ids
         if self.largeDimIdMemIds:
             self.getTable("dInstanceLargeDimensionMember", None,
@@ -947,7 +947,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                    .format(self.moduleId, self.allFilingIndicators))
             filingIndicatorCodeIDs = dict((code, id) for code, id in results)
             self.modelXbrl.profileActivity("dpmDB 07. Get business template filing indicator for module", minTimeToShow=2.0)
-            
+
             if filingIndicatorCodeIDs.keys() != self.dFilingIndicators.keys():
                 missingIndicators = set(filingIndicatorCodeIDs.keys() - self.dFilingIndicators.keys())
                 if missingIndicators:
@@ -961,7 +961,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                          _("The filing indicator IDs were not in scope for module %(missingFilingIndicatorCodes)s"),
                                          modelObject=self.modelXbrl,
                                          missingFilingIndicatorCodes=','.join(extraneousIndicators))
-    
+
             self.getTable("dFilingIndicator", None,
                           ("InstanceID", "BusinessTemplateID", "Filed"),
                           ("InstanceID", "BusinessTemplateID"),
@@ -981,7 +981,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.modelXbrl.profileActivity("dpmDB 08. Store dFilingIndicators", minTimeToShow=2.0)
         ''' deprecated
         table = self.getTable("dProcessingFact", None,
-                              ('InstanceID', 'Metric', 'ContextID', 
+                              ('InstanceID', 'Metric', 'ContextID',
                                'ValueTxt', 'ValueDecimal', 'ValueDate',
                                'Error'),
                               ('InstanceID', ),
@@ -989,7 +989,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         '''
         '''
         self.getTable("dAvailableTable", None,
-                      ('InstanceID', 'TableID', 'ZDimVal', "NumberOfRows"), 
+                      ('InstanceID', 'TableID', 'ZDimVal', "NumberOfRows"),
                       ('InstanceID', 'TableID', 'ZDimVal'),
                       ((self.instanceId,
                         availTableKey[0], # table Id
@@ -1006,11 +1006,11 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.commit()
         self.modelXbrl.profileStat(_("XbrlSqlDB: insertion committed"), time.time() - startedAt)
         self.showStatus("DB insertion completed", clearAfter=5000)
-                
+
     def loadXbrlFromDB(self, loadDBsaveToFile, loadInstanceId):
         # load from database
         modelXbrl = self.modelXbrl
-        
+
         # find instance in DB
         self.showStatus("finding instance in database")
         if loadInstanceId and loadInstanceId.isnumeric():
@@ -1030,35 +1030,35 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if not instanceId:
             raise DpmDBException("sqlDB:MissingInstance",
                     _("The instance was not found in table dInstance: %(instanceURI)s")
-                    .format(loadInstanceId or instanceURI)) 
-            
+                    .format(loadInstanceId or instanceURI))
 
-        # find module in DB        
+
+        # find module in DB
         self.showStatus("finding module in database")
         results = self.execute("SELECT XbrlSchemaRef FROM mModule WHERE ModuleID = {}".format(moduleId))
         xbrlSchemaRef = None
         for result in results:
             xbrlSchemaRef = result[0]
             break
-        
+
         if not xbrlSchemaRef:
             raise DpmDBException("sqlDB:MissingDTS",
                     _("The module in mModule, corresponding to the instance, was not found for {0}")
-                    .format(instanceId or instanceURI)) 
-            
+                    .format(instanceId or instanceURI))
+
         _match = schemaRefDatePattern.match(xbrlSchemaRef)
         if _match:
             self.isEIOPAfullVersion = _match.group(1) > "2015-02-28"
             self.isEIOPA_2_0_1 = _match.group(1) >= "2015-10-21"
         else:
             self.isEIOPAfullVersion = self.isEIOPA_2_0_1 = False
-            
+
         if modelXbrl.skipDTS:
             # find prefixes and namespaces in DB
-            results = self.execute("SELECT * FROM [vwGetNamespacesPrefixes]")            
+            results = self.execute("SELECT * FROM [vwGetNamespacesPrefixes]")
             dpmPrefixedNamespaces = dict((prefix, namespace)
                                          for owner, prefix, namespace in results)
-            
+
         # output attributin {comment string}|{processing instruction attributes}
         outputAttribution = getattr(modelXbrl.modelManager, "outputAttribution", "").partition("|")
         if self.isEIOPA_2_0_1:
@@ -1069,38 +1069,38 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             outputAttributionComment = outputAttribution[0] or None
             outputAttributionPIargs = None
             outputDocumentEncoding = "utf-8"
-            
+
         # create the instance document and resulting filing
         modelXbrl.blockDpmDBrecursion = True
         modelXbrl.modelDocument = createModelDocument(
-              modelXbrl, 
+              modelXbrl,
               Type.INSTANCE,
               loadDBsaveToFile,
               schemaRefs=[xbrlSchemaRef],
               isEntry=True,
               initialComment=outputAttributionComment,
               documentEncoding=outputDocumentEncoding)
-        ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl) # needs dimension defaults 
-        
+        ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl) # needs dimension defaults
+
         if outputAttributionPIargs:
-            addProcessingInstruction(modelXbrl.modelDocument.xmlRootElement, 
-                                     'instance-generator', 
+            addProcessingInstruction(modelXbrl.modelDocument.xmlRootElement,
+                                     'instance-generator',
                                      outputAttributionPIargs.replace("'",'"'),
                                      insertBeforeParentElement=True) # passed as ' to avoid cmd line quoting problem in windows
-        addProcessingInstruction(modelXbrl.modelDocument.xmlRootElement, 
-                                 'xbrl-streamable-instance', 
+        addProcessingInstruction(modelXbrl.modelDocument.xmlRootElement,
+                                 'xbrl-streamable-instance',
                                  'version="1.0" contextBuffer="1"')
-        addProcessingInstruction(modelXbrl.modelDocument.xmlRootElement, 
-                                 'xbrl-facts-check', 
+        addProcessingInstruction(modelXbrl.modelDocument.xmlRootElement,
+                                 'xbrl-facts-check',
                                  'version="0.8"')
-        
+
         xbrlFactsCheckSum = Md5Sum()
 
         # add roleRef and arcroleRef (e.g. for footnotes, if any, see inlineXbrlDocue)
-        
+
         cntxTbl = {} # index by d
         unitTbl = {}
-        
+
         # filing indicator code IDs
         # get filing indicators
         results = self.execute("SELECT mToT.TemplateOrTableCode, dFI.Filed"
@@ -1108,7 +1108,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                "  WHERE dFI.InstanceID = {} AND mTot.TemplateOrTableID = dFI.BusinessTemplateID"
                                .format(instanceId))
         filingIndicatorCodes = dict((code[0], code[1]) for code in results)
-        
+
         if filingIndicatorCodes:
             modelXbrl.createContext(entScheme,
                         entId,
@@ -1128,9 +1128,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 attributes = {"contextRef": "c"}
                 if filed is not None and not filed:
                     attributes["{http://www.eurofiling.info/xbrl/ext/filing-indicators}filed"] = "false"
-                f = modelXbrl.createFact(qnFindFilingIndicator, 
+                f = modelXbrl.createFact(qnFindFilingIndicator,
                                      parent=filingIndicatorsTuple,
-                                     attributes=attributes, 
+                                     attributes=attributes,
                                      text=filingIndicatorCode, validate=False)
                 if f is None:
                     raise DpmDBException("sqlDB:createFactError",
@@ -1138,7 +1138,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 xbrlFactsCheckSum += f.md5sum
             XmlValidate.validate(modelXbrl, filingIndicatorsTuple) # must validate after contents are created
             xbrlFactsCheckSum += filingIndicatorsTuple.md5sum
-                
+
 
         # get typed dimension elements
         results = self.execute("SELECT dim.DimensionXBRLCode, "
@@ -1152,15 +1152,15 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                "               ON owndom.OwnerID = condom.OwnerID"
                                " WHERE dim.IsTypedDimension = 1")
         typedDimElts = dict((dimQn,eltQn) for dimQn,eltQn in results)
-        
+
         # facts in this instance
         self.showStatus("finding data points in database")
-        factsTbl = self.execute("SELECT DataPointSignature, " 
+        factsTbl = self.execute("SELECT DataPointSignature, "
                                 " Unit, Decimals, NumericValue, DateTimeValue, BooleanValue, TextValue "
                                 "FROM dFact WHERE InstanceID = {} "
                                 "ORDER BY substr(DataPointSignature, instr(DataPointSignature,'|') + 1)"
                                 .format(instanceId))
-        
+
         # results tuple: factId, dec, varId, dpKey, entId, datePerEnd, unit, numVal, dateVal, boolVal, textVal
 
         # get typed dimension values
@@ -1170,7 +1170,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         prefixedNamespaces[None] = XbrlConst.xbrli # createInstance expects default prefix for xbrli
         if modelXbrl.skipDTS:
             prefixedNamespaces.update(dpmPrefixedNamespaces) # for skipDTS this is always needed
-        
+
         def typedDimElt(s):
             # add xmlns into s for known qnames
             tag, angleBrkt, rest = s[1:].partition('>')
@@ -1178,11 +1178,11 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             qn = qname(tag, prefixedNamespaces)
             # a modelObject xml element is needed for all of the instance functions to manage the typed dim
             return addChild(modelXbrl.modelDocument, qn, text=text, appendChild=False)
-        
+
         def nilTypedDimElt(dimQn):
             qn = qname(typedDimElts[dimQn], prefixedNamespaces)
             return addChild(modelXbrl.modelDocument, qn, appendChild=False, attributes={XbrlConst.qnXsiNil:"true"})
-        
+
         # contexts and facts
         self.showStatus("creating XBRL output contexts, units, and facts")
         for dpSig, unit, dec, numVal, dateVal, boolVal, textVal in factsTbl:
@@ -1238,7 +1238,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         else:
                             mem = qname(dVal, prefixedNamespaces) # explicit dim (even if treat-as-typed)
                         qnameDims[dimQname] = DimValuePrototype(modelXbrl, None, dimQname, mem, "scenario")
-                    
+
                 _cntx = modelXbrl.createContext(
                                         entScheme,
                                         entId,
@@ -1249,7 +1249,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                         qnameDims, [], [],
                                         id=cntxId)
                 cntxTbl[cntxKey] = cntxId
-                
+
             if isNumeric and unit:
                 if unit in unitTbl:
                     unitId = unitTbl[unit]
@@ -1258,7 +1258,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     unitId = 'u{}'.format(unitQn.localName)
                     _unit = modelXbrl.createUnit([unitQn], [], id=unitId)
                     unitTbl[unit] = unitId
-                    
+
             else:
                 unitId = None
             attrs = {"contextRef": cntxId}
@@ -1325,15 +1325,15 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             xbrlFactsCheckSum += f.md5sum
             #print ("f {} v {} c {} u {} f {} s {}".format(
             #        f.qname, f.value, f.context.md5sum, f.unit.md5sum, f.md5sum, xbrlFactsCheckSum))
-            
+
         # add footnotes if any
-        
+
         # save to file
-        addProcessingInstruction(modelXbrl.modelDocument.xmlRootElement, 
-                                 'xbrl-facts-check', 
+        addProcessingInstruction(modelXbrl.modelDocument.xmlRootElement,
+                                 'xbrl-facts-check',
                                  'sum-of-fact-md5s="{}"'.format(xbrlFactsCheckSum),
                                  insertBeforeChildElements=False) # add pi AFTER other elements
-        
+
         # change schemaRef as needed
         if self.schemaRefSubstitutions:
             _xbrlSchemaRef = xbrlSchemaRef
@@ -1344,8 +1344,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 for schemaRefElt in modelXbrl.modelDocument.xmlRootElement.iter("{http://www.xbrl.org/2003/linkbase}schemaRef"):
                     if schemaRefElt.get("{http://www.w3.org/1999/xlink}href") == _xbrlSchemaRef:
                         schemaRefElt.set("{http://www.w3.org/1999/xlink}href", xbrlSchemaRef)
-        
-        
+
+
         self.showStatus("saving XBRL instance")
         modelXbrl.saveInstance(overrideFilepath=loadDBsaveToFile, encoding=outputDocumentEncoding)
         self.showStatus(_("Saved extracted instance"), 5000)

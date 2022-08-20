@@ -25,7 +25,7 @@ def referenceURI(concept):
                 if isinstance(resourceElt,ModelObject) and resourceElt.localName == "URI":
                     return XmlUtil.text(resourceElt)
     return None
-            
+
 def groupRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname):
     if isinstance(arcrole, (list,tuple)): # (group-name, [arcroles])
         arcroles = arcrole[1]
@@ -33,7 +33,7 @@ def groupRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname):
         for arcrole in arcroles[1:]:
             if arcrole != XbrlConst.arcroleGroupDetect:
                 rels = modelXbrl.relationshipSet(arcrole, linkrole, linkqname, arcqname)
-                if rels:                                                    
+                if rels:
                     relationshipSet.modelRelationships.extend(rels.modelRelationships)
         relationshipSet.modelRelationships.sort(key=lambda rel: rel.order)
     else:

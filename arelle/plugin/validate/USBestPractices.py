@@ -1,4 +1,4 @@
-# changed from reporting locs to reporting relationships: HF 2020-06-23 
+# changed from reporting locs to reporting relationships: HF 2020-06-23
 
 from arelle import PluginManager
 from arelle.ModelDtsObject import ModelConcept
@@ -10,73 +10,73 @@ import os, io, re, json, time
 from collections import defaultdict
 
 # ((year, ugtNamespace, ugtDocLB, ugtEntryPoint) ...)
-ugtDocs = ({"year": 2012, 
+ugtDocs = ({"year": 2012,
             "name": "us-gaap",
             "namespace": "http://fasb.org/us-gaap/2012-01-31",
             "docLB": "http://xbrl.fasb.org/us-gaap/2012/us-gaap-2012-01-31.zip/us-gaap-2012-01-31/elts/us-gaap-doc-2012-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/us-gaap/2012/us-gaap-2012-01-31.zip/us-gaap-2012-01-31/entire/us-gaap-entryPoint-std-2012-01-31.xsd",
             },
-           {"year": 2013, 
+           {"year": 2013,
             "name": "us-gaap",
             "namespace": "http://fasb.org/us-gaap/2013-01-31",
             "docLB": "http://xbrl.fasb.org/us-gaap/2013/us-gaap-2013-01-31.zip/us-gaap-2013-01-31/elts/us-gaap-doc-2013-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/us-gaap/2013/us-gaap-2013-01-31.zip/us-gaap-2013-01-31/entire/us-gaap-entryPoint-std-2013-01-31.xsd",
             },
-           {"year": 2014, 
+           {"year": 2014,
             "name": "us-gaap",
             "namespace": "http://fasb.org/us-gaap/2014-01-31",
             "docLB": "http://xbrl.fasb.org/us-gaap/2014/us-gaap-2014-01-31.zip/us-gaap-2014-01-31/elts/us-gaap-doc-2014-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/us-gaap/2014/us-gaap-2014-01-31.zip/us-gaap-2014-01-31/entire/us-gaap-entryPoint-std-2014-01-31.xsd",
             },
-           {"year": 2015, 
+           {"year": 2015,
             "name": "us-gaap",
             "namespace": "http://fasb.org/us-gaap/2015-01-31",
             "docLB": "http://xbrl.fasb.org/us-gaap/2015/us-gaap-2015-01-31.zip/us-gaap-2015-01-31/elts/us-gaap-doc-2015-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/us-gaap/2015/us-gaap-2015-01-31.zip/us-gaap-2015-01-31/entire/us-gaap-entryPoint-std-2015-01-31.xsd",
             },
-           {"year": 2016, 
+           {"year": 2016,
             "name": "us-gaap",
             "namespace": "http://fasb.org/us-gaap/2016-01-31",
             "docLB": "http://xbrl.fasb.org/us-gaap/2016/us-gaap-2016-01-31.zip/us-gaap-2016-01-31/elts/us-gaap-doc-2016-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/us-gaap/2016/us-gaap-2016-01-31.zip/us-gaap-2016-01-31/entire/us-gaap-entryPoint-std-2016-01-31.xsd",
             },
-           {"year": 2017, 
+           {"year": 2017,
             "namespace": "http://fasb.org/us-gaap/2017-01-31",
             "name": "us-gaap",
             "docLB": "http://xbrl.fasb.org/us-gaap/2017/us-gaap-2017-01-31.zip/us-gaap-2017-01-31/elts/us-gaap-doc-2017-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/us-gaap/2017/us-gaap-2017-01-31.zip/us-gaap-2017-01-31/entire/us-gaap-entryPoint-std-2017-01-31.xsd",
             },
-           {"year": 2018, 
+           {"year": 2018,
             "name": "us-gaap",
             "namespace": "http://fasb.org/us-gaap/2018-01-31",
             "docLB": "http://xbrl.fasb.org/us-gaap/2018/us-gaap-2018-01-31.zip/us-gaap-2018-01-31/elts/us-gaap-doc-2018-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/us-gaap/2018/us-gaap-2018-01-31.zip/us-gaap-2018-01-31/entire/us-gaap-entryPoint-std-2018-01-31.xsd",
             },
-           {"year": 2018, 
+           {"year": 2018,
             "name": "srt",
             "namespace": "http://fasb.org/srt/2018-01-31",
             "docLB": "http://xbrl.fasb.org/srt/2018/srt-2018-01-31.zip/srt-2018-01-31/elts/srt-doc-2018-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/srt/2018/srt-2018-01-31.zip/srt-2018-01-31/entire/srt-entryPoint-std-2018-01-31.xsd",
             },
-           {"year": 2019, 
+           {"year": 2019,
             "name": "us-gaap",
             "namespace": "http://fasb.org/us-gaap/2019-01-31",
             "docLB": "http://xbrl.fasb.org/us-gaap/2019/us-gaap-2019-01-31.zip/us-gaap-2019-01-31/elts/us-gaap-doc-2019-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/us-gaap/2019/us-gaap-2019-01-31.zip/us-gaap-2019-01-31/entire/us-gaap-entryPoint-std-2019-01-31.xsd",
             },
-           {"year": 2019, 
+           {"year": 2019,
             "name": "srt",
             "namespace": "http://fasb.org/srt/2019-01-31",
             "docLB": "http://xbrl.fasb.org/srt/2019/srt-2019-01-31.zip/srt-2019-01-31/elts/srt-doc-2019-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/srt/2019/srt-2019-01-31.zip/srt-2019-01-31/entire/srt-entryPoint-std-2019-01-31.xsd",
             },
-           {"year": 2020, 
+           {"year": 2020,
             "name": "us-gaap",
             "namespace": "http://fasb.org/us-gaap/2020-01-31",
             "docLB": "http://xbrl.fasb.org/us-gaap/2020/us-gaap-2020-01-31.zip/us-gaap-2020-01-31/elts/us-gaap-doc-2020-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/us-gaap/2020/us-gaap-2020-01-31.zip/us-gaap-2020-01-31/entire/us-gaap-entryPoint-std-2020-01-31.xsd",
             },
-           {"year": 2020, 
+           {"year": 2020,
             "name": "srt",
             "namespace": "http://fasb.org/srt/2020-01-31",
             "docLB": "http://xbrl.fasb.org/srt/2020/srt-2020-01-31.zip/srt-2020-01-31/elts/srt-doc-2020-01-31.xml",
@@ -116,17 +116,17 @@ def setup(val, *args, **kwargs):
                 # load without SEC/EFM validation (doc file would not be acceptable)
                 priorValidateDisclosureSystem = val.modelXbrl.modelManager.validateDisclosureSystem
                 val.modelXbrl.modelManager.validateDisclosureSystem = False
-                deprecationsInstance = ModelXbrl.load(val.modelXbrl.modelManager, 
+                deprecationsInstance = ModelXbrl.load(val.modelXbrl.modelManager,
                       # "http://xbrl.fasb.org/us-gaap/2012/elts/us-gaap-doc-2012-01-31.xml",
                       # load from zip (especially after caching) is incredibly faster
-                      openFileSource(ugtDocLB, cntlr), 
+                      openFileSource(ugtDocLB, cntlr),
                       _("built deprecations table in cache"))
                 val.modelXbrl.modelManager.validateDisclosureSystem = priorValidateDisclosureSystem
                 if deprecationsInstance is None:
                     val.modelXbrl.error("arelle:notLoaded",
                         _("%(name)s documentation not loaded: %(file)s"),
                         modelXbrl=val, file=os.path.basename(ugtDocLB), name=ugt["name"])
-                else:   
+                else:
                     # load deprecations
                     for labelRel in deprecationsInstance.relationshipSet(XbrlConst.conceptLabel).modelRelationships:
                         modelDocumentation = labelRel.toModelObject
@@ -161,17 +161,17 @@ def setup(val, *args, **kwargs):
                 # load without SEC/EFM validation (doc file would not be acceptable)
                 priorValidateDisclosureSystem = val.modelXbrl.modelManager.validateDisclosureSystem
                 val.modelXbrl.modelManager.validateDisclosureSystem = False
-                calculationsInstance = ModelXbrl.load(val.modelXbrl.modelManager, 
+                calculationsInstance = ModelXbrl.load(val.modelXbrl.modelManager,
                       # "http://xbrl.fasb.org/us-gaap/2012/entire/us-gaap-entryPoint-std-2012-01-31.xsd",
                       # load from zip (especially after caching) is incredibly faster
-                      openFileSource(ugtEntryXsd, cntlr), 
+                      openFileSource(ugtEntryXsd, cntlr),
                       _("built us-gaap calculations cache"))
                 val.modelXbrl.modelManager.validateDisclosureSystem = priorValidateDisclosureSystem
                 if calculationsInstance is None:
                     val.modelXbrl.error("arelle:notLoaded",
                         _("US-GAAP calculations not loaded: %(file)s"),
                         modelXbrl=val, file=os.path.basename(ugtEntryXsd))
-                else:   
+                else:
                     # load calculations
                     for ELR in calculationsInstance.relationshipSet(XbrlConst.summationItem).linkRoleUris:
                         elrRelSet = calculationsInstance.relationshipSet(XbrlConst.summationItem, ELR)
@@ -207,7 +207,7 @@ def factCheck(val, fact, *args, **kwargs):
     context = fact.context
     if concept is None or context is None or not val.validateLoggingSemantic:
         return # not checkable
-    
+
     try:
         if fact.isNumeric:
             # 2.3.3 additional unit tests beyond UTR spec
@@ -221,21 +221,21 @@ def factCheck(val, fact, *args, **kwargs):
                         _("PureItemType fact %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s has disallowed unit denominator %(denominator)s"),
                         modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
                         value=fact.effectiveValue, denominator=", ".join((str(m) for m in unit.measures[1])))
-                        
-            if not fact.isNil and getattr(fact, "xValue", None) is not None:                 
-    
+
+            if not fact.isNil and getattr(fact, "xValue", None) is not None:
+
                 # 2.4.1 decimal disagreement
                 if fact.decimals and fact.decimals != "INF":
                     vf = float(fact.value)
                     if _ISFINITE(vf):
                         dec = _INT(fact.decimals)
                         vround = round(vf, dec)
-                        if vf != vround: 
+                        if vf != vround:
                             val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG.2.4.1",
                                 _("Decimal disagreement %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s has insignificant value %(insignificantValue)s"),
                                 modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
-                                value=fact.effectiveValue, insignificantValue=Locale.format(val.modelXbrl.locale, "%.*f", 
-                                                                                            (dec + 2 if dec > 0 else 0, vf - vround), 
+                                value=fact.effectiveValue, insignificantValue=Locale.format(val.modelXbrl.locale, "%.*f",
+                                                                                            (dec + 2 if dec > 0 else 0, vf - vround),
                                                                                             True))
                 # 2.5.1 fractions disallowed on a disclosure
                 if fact.isFraction:
@@ -245,7 +245,7 @@ def factCheck(val, fact, *args, **kwargs):
                         val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG.2.5.1",
                             _("Disclosure %(fact)s in context %(contextID)s value %(value)s is a fraction"),
                             modelObject=fact, fact=fact.qname, contextID=fact.contextID, value=fact.value)
-                    
+
         # deprecated concept
         if concept.qname.namespaceURI == val.ugtNamespace:
             if concept.name in val.usgaapDeprecations:
@@ -289,15 +289,15 @@ def final(val, conceptsUsed, *args, **kwargs):
                     val.modelXbrl.log('WARNING-SEMANTIC', "FASB:deprecated{0}".format(depType),
                         _("%(deprecation)s of fact(s) %(fact)s (e.g., in context %(contextID)s value %(value)s) was deprecated on %(date)s: %(documentation)s"),
                         modelObject=facts, fact=facts[0].qname, contextID=facts[0].contextID, value=facts[0].value,
-                        deprecation=depType, 
+                        deprecation=depType,
                         date=deprecation[0], documentation=deprecation[1])
             elif concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
                 val.modelXbrl.log('WARNING-SEMANTIC', "FASB:deprecated{0}".format(depType),
                     _("%(deprecation)s of facts %(fact)s in context %(contextID)s value %(value)s was deprecated on %(date)s"),
                     modelObject=facts, fact=facts[0].qname, contextID=facts[0].contextID, value=facts[0].value,
-                    deprecation=depType, 
+                    deprecation=depType,
                     date=concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"))
-                
+
     # check for unused extension concepts
     dimensionDefaults = set()
     def defaultParentCheck(mem, ELR=None):
@@ -313,14 +313,14 @@ def final(val, conceptsUsed, *args, **kwargs):
         defaultParentCheck(defaultMemConcept)
     extensionConceptsUnused = [concept
                                for qn, concept in val.modelXbrl.qnameConcepts.items()
-                               if concept.isItem and 
+                               if concept.isItem and
                                qn.namespaceURI not in standardTaxonomiesDict
                                if concept not in conceptsUsed and
                                   # don't report dimension that has a default member
                                   concept not in val.modelXbrl.dimensionDefaultConcepts and
                                   # don't report default members
                                   concept not in dimensionDefaults and
-                                  (concept.isDimensionItem or 
+                                  (concept.isDimensionItem or
                                    (concept.type is not None and concept.type.isDomainItemType) or
                                    # this or branch only pertains to fact concepts
                                    not concept.isAbstract)
@@ -330,7 +330,7 @@ def final(val, conceptsUsed, *args, **kwargs):
             val.modelXbrl.log('INFO-SEMANTIC', "US-BPG.1.7.1.unusedExtensionConcept",
                 _("Company extension concept is unused: %(concept)s"),
                 modelObject=concept, concept=concept.qname)
-        
+
     # check for unused concept relationships of standard taxonomy elements
     standardRelationships = val.modelXbrl.relationshipSet((XbrlConst.parentChild, XbrlConst.summationItem, XbrlConst.dimensionDomain, XbrlConst.domainMember, XbrlConst.dimensionDefault))
     standardConceptsUnused = defaultdict(set) # dict by concept of relationship where unused
@@ -340,8 +340,8 @@ def final(val, conceptsUsed, *args, **kwargs):
             if (isinstance(concept, ModelConcept) and concept.qname is not None and
                 concept.qname.namespaceURI in standardTaxonomiesDict and
                 concept not in conceptsUsed):
-                if (not concept.isAbstract or 
-                    concept.isDimensionItem or 
+                if (not concept.isAbstract or
+                    concept.isDimensionItem or
                     (concept.type is not None and concept.type.isDomainItemType)):
                     standardConceptsUnused[concept].add(rel)
                 elif ((concept.qname.namespaceURI == ugtNamespace and
@@ -363,13 +363,13 @@ def final(val, conceptsUsed, *args, **kwargs):
                 date=concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"))
         elif (concept not in val.modelXbrl.dimensionDefaultConcepts and # don't report dimension that has a default member
               concept not in dimensionDefaults and # don't report default members
-              (concept.isDimensionItem or 
+              (concept.isDimensionItem or
               (concept.type is not None and concept.type.isDomainItemType) or
               # this or branch only pertains to fact concepts
               not concept.isAbstract)):
             val.modelXbrl.log('INFO-SEMANTIC', "US-BPG.1.7.1.unusedStandardConceptInExtensionRelationship",
                 _("Company extension relationships of unused standard concept: %(concept)s"),
-                modelObject=rels, concept=concept.qname) 
+                modelObject=rels, concept=concept.qname)
     for concept, rels in standardConceptsDeprecated.items():
         if concept.qname.namespaceURI == ugtNamespace and concept.name in val.usgaapDeprecations:
             deprecation = val.usgaapDeprecations[concept.name]
@@ -391,29 +391,29 @@ def final(val, conceptsUsed, *args, **kwargs):
 
     if hasattr(val, 'usgaapCalculations'):
         """
-        The UGT calcuations are loaded and cached from the US-GAAP.  
-        
-        UGT calculation link roles are presumed to (and do) reflect the statement sheets they 
-        correspond to, and therefore each set of UGT summation-item arc-sets are cached and 
-        identified as to whether a statement sheet or other. 
-        
-        A concept that has facts in the instance and is a total concept with summation-item 
-        arc-sets in UGT is examined if it appears on any submission face statement 
-        parent-child link role.  (No examination is made if the concept is only on 
+        The UGT calcuations are loaded and cached from the US-GAAP.
+
+        UGT calculation link roles are presumed to (and do) reflect the statement sheets they
+        correspond to, and therefore each set of UGT summation-item arc-sets are cached and
+        identified as to whether a statement sheet or other.
+
+        A concept that has facts in the instance and is a total concept with summation-item
+        arc-sets in UGT is examined if it appears on any submission face statement
+        parent-child link role.  (No examination is made if the concept is only on
         non-face statements of the submission, even if on some UGT face statement.)
-        
-        Each UGT link role that has facts reported with a total concept has its 
-        summation-item arc-sets examained to see if any compatible pair of UGT total 
-        and item facts in the instance document do not have any submission calculation 
-        sibling or descendant relationship.  (Compatible here only means context and unit 
-        equivalence.)  Addition of descendancy in the submission was needed to avoid 
-        excessive false positives.  Each such issue is reported by filing parent-child 
-        link role, UGT calculation link role, contributing item, and total item.  The 
+
+        Each UGT link role that has facts reported with a total concept has its
+        summation-item arc-sets examained to see if any compatible pair of UGT total
+        and item facts in the instance document do not have any submission calculation
+        sibling or descendant relationship.  (Compatible here only means context and unit
+        equivalence.)  Addition of descendancy in the submission was needed to avoid
+        excessive false positives.  Each such issue is reported by filing parent-child
+        link role, UGT calculation link role, contributing item, and total item.  The
         report of these items is sorted by contributing item.
         """
         startedAt = time.time()
         # check for usgaap calculations missing from extension
-        ugtTotalConceptNames = set(totalConceptName 
+        ugtTotalConceptNames = set(totalConceptName
                                    for ugtRels in val.usgaapCalculations.values()
                                    for totalConceptName in ugtRels.keys())
         issues = []
@@ -472,9 +472,9 @@ def final(val, conceptsUsed, *args, **kwargs):
                         contextIDs.add(totalFact.contextID)
                         contextIDs.add(itemFact.contextID)
                         itemIssuesELRs[itemName].add((filingELR, ugtELR))
-    
+
                     msg = [_("Financial statement calculation missing relationships from total concept to item concepts that are in us-gaap taxonomy.  "),
-                           _("\n\nTotal concept: \n%(conceptSum)s.  ")]                   
+                           _("\n\nTotal concept: \n%(conceptSum)s.  ")]
                     args = {"conceptSum": totalConcept.qname}
                     if len(filingELRs) == 1:
                         msg.append(_("\n\nfiling schedule link role: \n%(filingLinkrole)s. "))
@@ -509,14 +509,14 @@ def final(val, conceptsUsed, *args, **kwargs):
                         **args)
                     issues = []
         val.modelXbrl.profileStat(_("validate US-BGP missing calcs"), time.time() - startedAt)
-                       
+
 
     if hasattr(val, 'usgaapDefaultDimensions'):
         """
-        The UGT default dimensions are loaded and cached from US-GAAP.  
-        
+        The UGT default dimensions are loaded and cached from US-GAAP.
+
         Question E.16 (Updated 02/05/2013):
-        
+
         Filers SHOULD also avoid creating new domains or changing default member elements for pre-defined dimensions.
         """
         for defaultDimRel in val.modelXbrl.relationshipSet(XbrlConst.dimensionDefault).modelRelationships:
@@ -547,7 +547,7 @@ def final(val, conceptsUsed, *args, **kwargs):
         del val.usgaapDefaultDimensions
     if hasattr(val, 'usgaapCalculations'):
         del val.usgaapCalculations
-    
+
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate XBRL-US Best Practice Guidance',

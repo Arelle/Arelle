@@ -58,13 +58,13 @@ def exprStackToksRIndex( toks ):
         if exprStack[i] == _tok0:
             return i
     raise Exception("Unable to determine replacement index of ParseResults {} in expression stack {}".format(toks, exprStack))
-    
+
 def exprStackTokRIndex( tok ):
     for i in range(len(exprStack)-1,0,-1):
         if exprStack[i] == tok:
             return i
     raise Exception("Unable to determine replacement index of ParseResult token {} in expression stack {}".format(tok, exprStack))
-    
+
 def pushFirst( sourceStr, loc, toks ):
     exprStack.append( toks[0] )
 
@@ -103,7 +103,7 @@ class QNameDef(ModelValue.QName):
         return ("{0}QName({1})".format('@' if self.isAttribute else '',str(self)))
     def __eq__(self,other):
         if isinstance(other,QNameDef):
-            return other.loc == self.loc and super(QNameDef, self).__eq__(other) and other.axis == self.axis 
+            return other.loc == self.loc and super(QNameDef, self).__eq__(other) and other.axis == self.axis
         else:
             return super(QNameDef, self).__eq__(other)
     def __ne__(self,other):
@@ -144,7 +144,7 @@ def pushQName( sourceStr, loc, toks ):
                     modelObject=xmlElement,
                     name=qname)
                 return
-            
+
         if (nsLocalname == (XbrlConst.xff,"uncovered-aspect","xff") and
             xmlElement.localName not in ("formula", "consistencyAssertion", "valueAssertion", "message")):
                 modelXbrl.error("xffe:invalidFunctionUse",
@@ -171,7 +171,7 @@ def pushAttr( sourceStr, loc, toks ):
         attr = QNameDef(loc, toks[1], isAttribute=True)
     exprStack.append( attr )
     return attr
-    
+
 class OpDef:
     def __init__(self, loc, toks):
         self.name = toks[0]
@@ -186,7 +186,7 @@ class OpDef:
 def pushOp( sourceStr, loc, toks ):
     op = OpDef(loc, toks)
     # assure this operand not already on stack
-    if len(exprStack) == 0 or exprStack[-1] != op: 
+    if len(exprStack) == 0 or exprStack[-1] != op:
         exprStack.append( op )
     return op
 
@@ -199,7 +199,7 @@ class OperationDef:
             toks1 = toks[1] if len(toks) > 1 else None
             if (isinstance(toks1,_STR_BASE) and isinstance(name,_STR_BASE) and
                 name in ('/', '//', 'rootChild', 'rootDescendant')):
-                if toks1 == '*': 
+                if toks1 == '*':
                     toks1 = QNameDef(loc,None,'*','*')
                 elif toks1.startswith('*:'):
                     toks1 = QNameDef(loc,None,'*',toks1[2:])
@@ -245,7 +245,7 @@ def pushOperation( sourceStr, loc, toks ):
         # exprStack[exprStack.index(removeFrom):] = [operation]  # replace tokens with production
         exprStack[exprStackTokRIndex(removeFrom):] = [operation]  # replace tokens with production
     else:
-        
+
         exprStack.append(operation)
     return operation
 
@@ -265,7 +265,7 @@ def pushFunction( sourceStr, loc, toks ):
     exprStack[exprStack.index(toks[0]):] = [operation]  # replace tokens with production
     if isinstance(name, QNameDef): # function call
         ns = name.namespaceURI
-        if (not name.unprefixed and 
+        if (not name.unprefixed and
             ns not in {XbrlConst.fn, XbrlConst.xfi, XbrlConst.xff, XbrlConst.xsd} and
             ns not in FunctionIxt.ixtNamespaceFunctions and
             name not in modelXbrl.modelManager.customTransforms):
@@ -380,7 +380,7 @@ qName = Regex("([A-Za-z-]+::)?"  # axis step part (just ansi characters)
               # prefix or wildcard-prefix part
               "([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
               "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*:|[*]:)?"
-              # localname or wildcard-localname part  
+              # localname or wildcard-localname part
               "([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
               "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*|[*])"
               )
@@ -398,7 +398,7 @@ prefixOp = Literal(":")
 decimalPoint = Literal('.')
 exponentLiteral = CaselessLiteral('e')
 plusorminusLiteral = Literal('+') | Literal('-')
-digits = Word(nums) 
+digits = Word(nums)
 integerLiteral = Combine( Optional(plusorminusLiteral) + digits )
 decimalFractionLiteral = Combine( Optional(plusorminusLiteral) + decimalPoint + digits )
 infLiteral = Combine( Optional(plusorminusLiteral) + Literal("INF") )
@@ -406,9 +406,9 @@ nanLiteral = Literal("NaN")
 floatLiteral = ( Combine( integerLiteral +
                      ( ( decimalPoint + Optional(digits) + exponentLiteral + integerLiteral ) |
                        ( exponentLiteral + integerLiteral ) )
-                     ) | 
+                     ) |
                  Combine( decimalFractionLiteral + exponentLiteral + integerLiteral ) |
-                 infLiteral | nanLiteral ) 
+                 infLiteral | nanLiteral )
 decimalLiteral =  ( Combine( integerLiteral + decimalPoint + Optional(digits) ) |
                     decimalFractionLiteral )
 
@@ -495,7 +495,7 @@ commentTest = ( Keyword("comment") + Suppress(lParen) + Suppress(rParen) ).setPa
 textTest = ( Keyword("text") + Suppress(lParen) + Suppress(rParen) ).setParseAction(pushOperation)
 documentTest = ( Keyword("document-node") + Suppress(lParen) + Optional(elementTest | schemaElementTest) + Suppress(rParen) ).setParseAction(pushOperation)
 anyKindTest = ( Keyword("node") + Suppress(lParen) + Suppress(rParen) ).setParseAction(pushOperation)
-kindTest = ( documentTest | elementTest | attributeTest | schemaElementTest | 
+kindTest = ( documentTest | elementTest | attributeTest | schemaElementTest |
              schemaAttributeTest | PITest | commentTest | textTest | anyKindTest )
 wildcard = ( Combine( ncName + prefixOp + wildOp ) | Combine( wildOp + prefixOp + ncName ) | wildOp )
 nameTest = ( qName | wildcard )
@@ -505,7 +505,7 @@ abbrevForwardStep = ( ( Literal("@") + nodeTest).setParseAction(pushAttr) |
 atomicType = qName
 itemType = ( kindTest | Keyword("item") + lParen + rParen | atomicType )
 occurrenceIndicator = ( occurOptionalOp | multOp | plusOp ) # oneOf("? * +")
-sequenceType = ( ( Keyword("empty-sequence") + lParen + rParen ) | 
+sequenceType = ( ( Keyword("empty-sequence") + lParen + rParen ) |
                  ( itemType + Optional(occurrenceIndicator) ) )
 singleType  = ( atomicType + Optional( occurOptionalOp ) )
 contextItem = decimalPoint
@@ -533,15 +533,15 @@ reverseStep = ( ( reverseAxis + nodeTest ) | abbrevReverseStep )
 step = ( forwardStep | reverseStep )
 
 expr = Forward()
-atom = ( 
-         ( forOp - (variableRef + inOp + expr).setParseAction(pushRangeVar) + 
-                 ZeroOrMore( Suppress(commaOp) + (variableRef + inOp + expr).setParseAction(pushRangeVar) ) - 
+atom = (
+         ( forOp - (variableRef + inOp + expr).setParseAction(pushRangeVar) +
+                 ZeroOrMore( Suppress(commaOp) + (variableRef + inOp + expr).setParseAction(pushRangeVar) ) -
                  (returnOp + expr).setParseAction(pushExpr) ).setParseAction(pushOperation) |
-         ( quantifiedOp - (variableRef + inOp + expr).setParseAction(pushRangeVar) + 
-                 ZeroOrMore( Suppress(commaOp) + (variableRef + inOp + expr ).setParseAction(pushRangeVar) ) - 
+         ( quantifiedOp - (variableRef + inOp + expr).setParseAction(pushRangeVar) +
+                 ZeroOrMore( Suppress(commaOp) + (variableRef + inOp + expr ).setParseAction(pushRangeVar) ) -
                  (satisfiesOp + expr).setParseAction(pushExpr) ).setParseAction(pushOperation) |
-         ( (ifOp - Suppress(lParen) + Group(expr) + Suppress(rParen)).setParseAction(pushExpr) - 
-           (thenOp + expr).setParseAction(pushOperation) - 
+         ( (ifOp - Suppress(lParen) + Group(expr) + Suppress(rParen)).setParseAction(pushExpr) -
+           (thenOp + expr).setParseAction(pushOperation) -
            (elseOp + expr).setParseAction(pushOperation) ).setParseAction(pushOperation) |
          ( qName + Suppress(lParen) + Optional(delimitedList(expr)) + Suppress(rParen) ).setParseAction(pushFunction) |
          ( floatLiteral ).setParseAction(pushFloat) |
@@ -554,22 +554,22 @@ atom = (
          ( qName ).setParseAction(pushQName) |
          ( Suppress(lParen) - Optional(expr) - ZeroOrMore( commaOp.setParseAction(pushOp) - expr ) - Suppress(rParen) ).setParseAction(pushSequence)
        )
-#stepExpr = ( ( atom + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) | 
+#stepExpr = ( ( atom + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) |
 #             ( (reverseStep | forwardStep) + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) )
-stepExpr = ( ( atom + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) | 
+stepExpr = ( ( atom + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) |
              ( step + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) )
 relativePathExpr = stepExpr + ZeroOrMore( ( ( pathDescOp | pathStepOp ) + stepExpr ).setParseAction( pushOperation ) )
 pathExpr = ( ( pathDescOp + relativePathExpr ).setParseAction( pushRootStep ) |
              ( pathStepOp + relativePathExpr ).setParseAction( pushRootStep ) |
              ( relativePathExpr ) |
-             ( ( pathRootOp ).setParseAction( pushRootStep ) ) 
+             ( ( pathRootOp ).setParseAction( pushRootStep ) )
            )
 
-             
+
 valueExpr = pathExpr
 
 #filterExpr = ( atom + ZeroOrMore( (Suppress(lPred) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) )
-#axisStep = ( (reverseStep | forwardStep) + ZeroOrMore( (Suppress(lPred) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) )         
+#axisStep = ( (reverseStep | forwardStep) + ZeroOrMore( (Suppress(lPred) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) )
 #stepExpr = filterExpr | axisStep
 #relativePathExpr = ( stepExpr + ZeroOrMore( ( pathStepOp | pathDescOp ) + stepExpr ).setParseAction( pushOperation ) )
 #pathExpr = ( ( pathDescOp + relativePathExpr ) |
@@ -594,7 +594,7 @@ orExpr = andExpr + ZeroOrMore( ( orOp + andExpr ).setParseAction( pushOperation 
 expr << orExpr
 xpathExpr = expr + StringEnd()
 
-    
+
 # map operator symbols to corresponding arithmetic operations
 opn = { "+" : ( lambda a,b: a + b ),
         "-" : ( lambda a,b: a - b ),
@@ -635,7 +635,7 @@ def evaluateStack( self, s ):
         else:
             return op
 '''
-        
+
 def normalizeExpr(expr):
     result = []
     prior = None
@@ -673,8 +673,8 @@ def initializeParser(modelManager):
         modelManager.showStatus(_("initializing formula xpath2 grammar"))
         startedAt = time.time()
         xpathExpr.parseString( "0", parseAll=True )
-        modelManager.addToLog(format_string(modelManager.locale, 
-                                    _("Formula xpath2 grammar initialized in %.2f secs"), 
+        modelManager.addToLog(format_string(modelManager.locale,
+                                    _("Formula xpath2 grammar initialized in %.2f secs"),
                                     time.time() - startedAt))
         modelManager.showStatus(None)
         isInitialized = True
@@ -699,18 +699,18 @@ def staticExpressionFunctionContext():
     global _staticExpressionFunctionContext
     if _staticExpressionFunctionContext is None:
         _staticExpressionFunctionContext = xml.dom.minidom.parseString(
-            '<?xml version="1.0" encoding="UTF-8"?>' 
+            '<?xml version="1.0" encoding="UTF-8"?>'
             '<randomRootElement'
             ' xmlns:xlink="http://www.w3.org/1999/xlink"'
             ' xmlns:link="http://www.xbrl.org/2003/linkbase"'
-            ' xmlns:xfi="http://www.xbrl.org/2008/function/instance"' 
+            ' xmlns:xfi="http://www.xbrl.org/2008/function/instance"'
             ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
             ' xmlns:xs="http://www.w3.org/2001/XMLSchema"'
             ' xmlns:fn="http://www.w3.org/2005/xpath-functions"'
             '/>'
              ).documentElement
     return _staticExpressionFunctionContext
-    
+
 def parse(modelObject, xpathExpression, element, name, traceType):
     from arelle.ModelFormulaObject import Trace
     global modelXbrl, pluginCustomFunctions
@@ -721,7 +721,7 @@ def parse(modelObject, xpathExpression, element, name, traceType):
     xmlElement = element
     returnProg = None
     pluginCustomFunctions = {}
-    
+
     for pluginXbrlMethod in pluginClassMethods("Formula.CustomFunctions"):
         pluginCustomFunctions.update(pluginXbrlMethod())
 
@@ -738,7 +738,7 @@ def parse(modelObject, xpathExpression, element, name, traceType):
             # modelObject.modelXbrl.modelManager.showStatus(_("Parsing file {0} line {1} expr {2}").format(element.modelDocument.basename,element.sourceline,normalizedExpr))
 
             # should be option "compiled code"
-            
+
             if ((formulaOptions.traceVariableSetExpressionSource and traceType == Trace.VARIABLE_SET) or
                 (formulaOptions.traceVariableExpressionSource and traceType == Trace.VARIABLE) or
                 (formulaOptions.traceCallExpressionSource and traceType == Trace.CALL)):
@@ -749,7 +749,7 @@ def parse(modelObject, xpathExpression, element, name, traceType):
             exprStack.append( ProgHeader(modelObject,name,element,normalizedExpr,traceType) )
 
             L = xpathExpr.parseString( normalizedExpr, parseAll=True )
-            
+
             #modelXbrl.error( _("AST {0} {1}").format(name, L),
             #    "info", "formula:trace")
 
@@ -761,18 +761,18 @@ def parse(modelObject, xpathExpression, element, name, traceType):
                 modelObject=element,
                 name=name,
                 source=exprStack)
-                
+
         except (ParseException, ParseSyntaxException) as err:
             modelXbrl.error("err:XPST0003",
                 _("Parse error in %(name)s error: %(error)s \n%(source)s"),
                 modelObject=element,
                 name=name,
-                error=err, 
+                error=err,
                 source=exceptionErrorIndication(err))
             # insert after ProgHeader before ordinary executable expression that may have successfully compiled
-            exprStack.insert(1, OperationDef(normalizedExpr, 0, 
-                                             QNameDef(0, "fn", XbrlConst.fn, "error"), 
-                                             (OperationDef(normalizedExpr, 0, 
+            exprStack.insert(1, OperationDef(normalizedExpr, 0,
+                                             QNameDef(0, "fn", XbrlConst.fn, "error"),
+                                             (OperationDef(normalizedExpr, 0,
                                                            QNameDef(0, "fn", XbrlConst.fn, "QName"),
                                                            (XbrlConst.xpath2err, "err:XPST0003"),False),
                                               str(err)), False))
@@ -781,10 +781,10 @@ def parse(modelObject, xpathExpression, element, name, traceType):
                 _("Parsing terminated in %(name)s due to error: %(error)s \n%(source)s"),
                 modelObject=element,
                 name=name,
-                error=err, 
+                error=err,
                 source=normalizedExpr)
             modelXbrl.debug("debug", str(traceback.format_exception(*sys.exc_info())))
-        
+
         '''
         code = []
         compile(exprStack, code)
@@ -833,7 +833,7 @@ def variableReferences(exprStack, varRefSet, element, rangeVars=None):
     for localRangeVar in localRangeVars:
         if localRangeVar in rangeVars:
             rangeVars.remove(localRangeVar)
-            
+
 def prefixDeclarations(exprStack, xmlnsDict, element):
     from arelle.ModelValue import qname
     for p in exprStack:
@@ -865,7 +865,7 @@ def clearProg(exprStack):
                 p.element = None
                 break
         del exprStack[:]
-    
+
 def clearNamedProg(ownerObject, progName):
     clearProg(ownerObject.getattr(progName, []))
 
@@ -876,7 +876,7 @@ def clearNamedProgs(ownerObject, progsListName):
 '''
 pyOpForXPathOp = {
     '+': '+', '-':'-', '*':'*', ',':',',
-    'div': '/', 'idiv': '/', 'mod':'%', 
+    'div': '/', 'idiv': '/', 'mod':'%',
     'gt': '>', 'ge': '>=', 'eq':'==', 'ne':'!=', 'lt':'<', 'le':'<=',
     '>': '>', '>=': '>=', '=':'==', '!=':'!=', '<':'<', '<=':'<=',
     }
@@ -955,7 +955,7 @@ def compile(exprStack, code, inScopeVars=None):
             if p.name in ("return","satisfies"):
                 compile(p.expr, code)
 '''
-                
+
 def codeModule(code):
     return \
         '''
@@ -977,11 +977,11 @@ def parser_unit_test():
     test1 = "3*7+5"
     test1a = "5+3*7"
     test1b = "(5+3)*7"
-    test2a ="concat('abc','def')" 
-    test2b ="'abc'" 
+    test2a ="concat('abc','def')"
+    test2b ="'abc'"
     test3 = "if (sum(1,2,3) gt 123) then 33 else 44"
     test3a = "sum(1,2,3,min(4,5,6))"
-    
+
     '''
                  "for $a in $b, $c in $d, $e in $f return 'foo'",
                  "for $a in $b, $c in $d return (3 + 4)",
@@ -1009,22 +1009,22 @@ def parser_unit_test():
                  "(( 1 + 2) * ( -3 + 1)) + 1",
                  "$a+$b+$c",
                  "(1,2,3)", "((1+2*3),(4))", "for $a in ($b,4,5) return ('foo','bar')",
-                 "$a/b/c", 
-                 "-$a", 
+                 "$a/b/c",
+                 "-$a",
                  "$a[2]", "$a[id=$b]", "/a/b/c [ @id='abc' ]",
-                 "foo/bar", 
+                 "foo/bar",
                  "/",
-                 "//foo/bar", 
-                 "/foo/bar", 
-                 "/foo/bar[@id=3]", 
-                 "/foo[@x='y']/bar[@id=3]", 
-                 "//foo/bar", 
-                 "/foo/bar", 
-                 "/foo/bar[@id=3]", 
-                 "/foo[@x='y']/bar[@id=3]", 
+                 "//foo/bar",
+                 "/foo/bar",
+                 "/foo/bar[@id=3]",
+                 "/foo[@x='y']/bar[@id=3]",
+                 "//foo/bar",
+                 "/foo/bar",
+                 "/foo/bar[@id=3]",
+                 "/foo[@x='y']/bar[@id=3]",
                  "/foo[@x='y']",
-                 "/foo/bar[@id=3]", 
-                 "/foo[@x='y']/bar[@id=3]", 
+                 "/foo/bar[@id=3]",
+                 "/foo[@x='y']/bar[@id=3]",
                  "123", "123.45", "123e6", "123.45e6", "'abc'",
                  "(1,2,3)",
                  "(1)",
@@ -1053,7 +1053,7 @@ def parser_unit_test():
                  "/", "/a", "a",
                  "/a/b/c", "/a//b/c", "a/b//c", "a//b/c",
                  "/a/b/c[@id='abc']",
-                 "$a[2]", "$a[id=$b]", 
+                 "$a[2]", "$a[id=$b]",
                  "/a/b/c",
                  "//", "//a", "a//b",
                  "/", "/a", "a",
@@ -1067,10 +1067,10 @@ def parser_unit_test():
                  "$a instance of element(foo, bar?)",
                  "$a instance of element(*, bar?)",
                  "/a/b/c[@id='abc']",
-                 "$a[2]", "$a[id=$b]", 
+                 "$a[2]", "$a[id=$b]",
                  "$a is /a/b/c",
                  "$a is //b[2]",
-                 "//b[2]", "/b[2] * 2 = $a", 
+                 "//b[2]", "/b[2] * 2 = $a",
                  "../a/b",
                  "/a/b/text( ) eq 'z'",
                  "/a/b/node()",
@@ -1087,7 +1087,7 @@ def parser_unit_test():
     '''
     #tests = [locals()[t] for t in locals().keys() if t.startswith("test")]
     tests = [test1, test1a, test1b, test2a, test2b, test3, test3a]
-    
+
     log = []
     for test in (
                  "concat('abc','def')",
@@ -1112,11 +1112,11 @@ def parser_unit_test():
             L=xpathExpr.parseString( normalizeExpr( test ), parseAll=True )
         except (ParseException, ParseSyntaxException) as err:
             L=['Parse Failure',test,err]
-        
+
         # show result of parsing the input string
         if debug_flag: log.append("{0}->{1}".format(test, L))
         if len(L)==0 or L[0] != 'Parse Failure':
-            if debug_flag: 
+            if debug_flag:
                 log.append("exprStack={0}".format(exprStack))
                 '''
                 code = []
@@ -1128,7 +1128,7 @@ def parser_unit_test():
             result=evaluateStack(exprStack)
             variables['ans']=result
             print (result)
-    
+
             # Assign result to a variable if required
             if debug_flag: print ("var=",varStack)
             if len(varStack)==1:

@@ -10,7 +10,7 @@ def checkForBOMs(modelXbrl, file, mappedUri, filepath, *args, **kwargs):
     # callback is for all opened docs, must only process when SBRNL validation active
     if (modelXbrl.modelManager.validateDisclosureSystem and
         # corrected merge of pre-plugin code per LOGIUS
-        getattr(modelXbrl.modelManager.validateDisclosureSystem, "SBRNLplugin", False)): 
+        getattr(modelXbrl.modelManager.validateDisclosureSystem, "SBRNLplugin", False)):
         #must read file in binary and return nothing to not replace standard loading
         with open(filepath, 'rb') as fb:
             startingBytes = fb.read(8)
@@ -19,4 +19,4 @@ def checkForBOMs(modelXbrl, file, mappedUri, filepath, *args, **kwargs):
                 modelXbrl.error("SBR.NL.2.1.0.09",
                     _("File MUST not start with a Byte Order Mark (BOM): %(filename)s"),
                     modelObject=modelXbrl, filename=mappedUri)
-    return None # must return None for regular document loading to continue    
+    return None # must return None for regular document loading to continue

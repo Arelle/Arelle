@@ -5,23 +5,23 @@ Supports opening manifest file that identifies inline documents of a document se
 Inline XBRL Document Set ("IXDS") identified by multiple files.
 
 Saves extracted instance document for the ixdsTarget (if specified) or default target (if no ixdsTarget).
-(For SEC-compatible inline extractions from command line please specify --encodeSavedXmlChars or use 
+(For SEC-compatible inline extractions from command line please specify --encodeSavedXmlChars or use
 EdgarRenderer plugin features to save extracted instance with characters &#x80; and above encoded.)
 
 (Does not simultaneously load/extract multiple target instance documents in a document set.)
 
 CmdLine allows --file '[{"ixds":[{"file":file1},{"file":file2}...]}]'
-            
+
 If there are non-default target documents, the target document identifier can be specified by ixdsTarget
 
-    --file '[{"ixds":[{"file":file1},{"file":file2}...],"ixdsTarget":"xyz"}]' 
-    
+    --file '[{"ixds":[{"file":file1},{"file":file2}...],"ixdsTarget":"xyz"}]'
+
 If the file source is a zip, CmdLine will discover the inline files in the zip as thus:
     --file '[{"ixds":[{"file":file1.zip}]}]'
-      
+
 If the file source is a local directory, CmdLine will discover the inline files in the directory as thus:
     --file '[{"ixds":[{"file":dir1}]}]'
-      
+
 For GUI operation specify a formula parameter named ixdsTarget of type xs:string (in formula tools->formula parameters).
 
 If a ixdsTarget parameter is absent or has a value of an empty string it is the default target document and matches
@@ -56,7 +56,7 @@ skipExpectedInstanceComparison = None
 
 # class representing surrogate object for multi-document inline xbrl document set, references individual ix documents
 class ModelInlineXbrlDocumentSet(ModelDocument):
-        
+
     def discoverInlineXbrlDocumentSet(self):
         # for JP FSA inline document set manifest, acting as document set surrogate entry object, load referenced ix documents
         for instanceElt in self.xmlRootElement.iter(tag="{http://disclosure.edinet-fsa.go.jp/2013/manifest}instance"):
@@ -170,18 +170,18 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                 prefix = xmlnsprefix(ixTargetRootElt, ns)
                 if prefix not in (None, "xml"):
                     setXmlns(targetInstance.modelDocument, prefix, ns)
-                
+
     if not langIsSet and baseXmlLang:
         targetInstance.modelDocument.xmlRootElement.set("{http://www.w3.org/XML/1998/namespace}lang", baseXmlLang)
         if defaultXmlLang is None:
             defaultXmlLang = baseXmlLang # allows facts/footnotes to override baseXmlLang
-    ValidateXbrlDimensions.loadDimensionDefaults(targetInstance) # need dimension defaults 
+    ValidateXbrlDimensions.loadDimensionDefaults(targetInstance) # need dimension defaults
     # roleRef and arcroleRef (of each inline document)
     for sourceRefs in (modelXbrl.targetRoleRefs, modelXbrl.targetArcroleRefs):
         for roleRefElt in sourceRefs.values():
             addChild(targetInstance.modelDocument.xmlRootElement, roleRefElt.qname,
                      attributes=roleRefElt.items())
-    
+
     # contexts
     for context in sorted(modelXbrl.contexts.values(), key=lambda c: c.objectIndex): # contexts may come from multiple IXDS files
         ignore = targetInstance.createContext(context.entityIdentifier[0],
@@ -248,7 +248,7 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                 newTuple = targetInstance.createFact(fact.qname, attributes=attrs, parent=parent)
                 newFactForOldObjId[fact.objectIndex] = newTuple
                 createFacts(fact.modelTupleFacts, newTuple)
-                
+
     createFacts(modelXbrl.facts, None)
     modelXbrl.modelManager.showStatus(_("Creating and validating footnotes and relationships"))
     HREF = "{http://www.w3.org/1999/xlink}href"
@@ -264,8 +264,8 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                     footnoteLinks[linkrole].append(linkPrototype)
     for linkrole in sorted(footnoteLinks.keys()):
         for linkPrototype in footnoteLinks[linkrole]:
-            newLink = addChild(targetInstance.modelDocument.xmlRootElement, 
-                               linkPrototype.qname, 
+            newLink = addChild(targetInstance.modelDocument.xmlRootElement,
+                               linkPrototype.qname,
                                attributes=linkPrototype.attributes)
             for linkChild in linkPrototype:
                 attributes = linkChild.attributes
@@ -273,7 +273,7 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                     if HREF not in linkChild.attributes:
                         linkChild.attributes[HREF] = \
                         "#" + elementFragmentIdentifier(newFactForOldObjId[linkChild.dereference().objectIndex])
-                    addChild(newLink, linkChild.qname, 
+                    addChild(newLink, linkChild.qname,
                              attributes=attributes)
                 elif isinstance(linkChild, ArcPrototype):
                     addChild(newLink, linkChild.qname, attributes=attributes)
@@ -283,7 +283,7 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                         attributes = linkChild.attributes.copy()
                         attributes["id"] = "{}_{}".format(attributes["id"], idUseCount)
                     footnoteIdCount[linkChild.footnoteID] = idUseCount
-                    newChild = addChild(newLink, linkChild.qname, 
+                    newChild = addChild(newLink, linkChild.qname,
                                         attributes=attributes)
                     xmlLang = linkChild.xmlLang
                     if xmlLang is not None and xmlLang != defaultXmlLang: # default
@@ -307,12 +307,12 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
     baseXmlLang = htmlRootElt.get("{http://www.w3.org/XML/1998/namespace}lang") or htmlRootElt.get("lang")
     for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/1999/xhtml}body"):
         baseXmlLang = ixElt.get("{http://www.w3.org/XML/1998/namespace}lang") or htmlRootElt.get("lang") or baseXmlLang
-    targetInstance = createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingFiles, baseXmlLang) 
+    targetInstance = createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingFiles, baseXmlLang)
     targetInstance.saveInstance(overrideFilepath=targetUrl, outputZip=outputZip, xmlcharrefreplace=kwargs.get("encodeSavedXmlChars", False))
     if getattr(modelXbrl, "isTestcaseVariation", False):
         modelXbrl.extractedInlineInstance = True # for validation comparison
     modelXbrl.modelManager.showStatus(_("Saved extracted instance"), 5000)
-    
+
 def identifyInlineXbrlDocumentSet(modelXbrl, rootNode, filepath):
     for manifestElt in rootNode.iter(tag="{http://disclosure.edinet-fsa.go.jp/2013/manifest}manifest"):
         # it's an edinet fsa manifest of an inline XBRL document set
@@ -321,7 +321,7 @@ def identifyInlineXbrlDocumentSet(modelXbrl, rootNode, filepath):
 
 def discoverInlineXbrlDocumentSet(modelDocument, *args, **kwargs):
     if isinstance(modelDocument, ModelInlineXbrlDocumentSet):
-        return modelDocument.discoverInlineXbrlDocumentSet()        
+        return modelDocument.discoverInlineXbrlDocumentSet()
     return False  # not discoverable by this plug-in
 
 def fileOpenMenuEntender(cntlr, menu, *args, **kwargs):
@@ -329,17 +329,17 @@ def fileOpenMenuEntender(cntlr, menu, *args, **kwargs):
     global DialogURL
     from arelle import DialogURL
     # Extend menu with an item for the savedts plugin
-    menu.insert_command(2, label="Open Web Inline Doc Set", 
-                        underline=0, 
+    menu.insert_command(2, label="Open Web Inline Doc Set",
+                        underline=0,
                         command=lambda: runOpenWebInlineDocumentSetMenuCommand(cntlr, runInBackground=True) )
-    menu.insert_command(2, label="Open File Inline Doc Set", 
-                        underline=0, 
+    menu.insert_command(2, label="Open File Inline Doc Set",
+                        underline=0,
                         command=lambda: runOpenFileInlineDocumentSetMenuCommand(cntlr, runInBackground=True) )
 
 def saveTargetDocumentMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Save target document", 
-                     underline=0, 
+    menu.add_command(label="Save target document",
+                     underline=0,
                      command=lambda: runSaveTargetDocumentMenuCommand(cntlr, runInBackground=True) )
 
 def runOpenFileInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTargetFiling=False):
@@ -350,7 +350,7 @@ def runOpenFileInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTa
                                    filetypes=[(_("XBRL files"), "*.*")],
                                    defaultextension=".xbrl")
     runOpenInlineDocumentSetMenuCommand(cntlr, filenames, runInBackground, saveTargetFiling)
-    
+
 def runOpenWebInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTargetFiling=False):
     url = DialogURL.askURL(cntlr.parent, buttonSEC=True, buttonRSS=True)
     if url:
@@ -374,7 +374,7 @@ def runOpenInlineDocumentSetMenuCommand(cntlr, filenames, runInBackground=False,
                 _archiveFilenameParts = archiveFilenameParts(ixdsFirstFile)
                 if _archiveFilenameParts is not None:
                     ixdsDir = _archiveFilenameParts[0] # it's a zip or package, use zip file name as head of ixds
-                else: 
+                else:
                     ixdsDir = os.path.dirname(ixdsFirstFile)
                 docsetSurrogatePath = os.path.join(ixdsDir, IXDS_SURROGATE)
                 filename = docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(archiveEntries)
@@ -386,7 +386,7 @@ def runOpenInlineDocumentSetMenuCommand(cntlr, filenames, runInBackground=False,
         _archiveFilenameParts = archiveFilenameParts(ixdsFirstFile)
         if _archiveFilenameParts is not None:
             ixdsDir = _archiveFilenameParts[0] # it's a zip or package, use zip file name as head of ixds
-        else: 
+        else:
             ixdsDir = os.path.dirname(ixdsFirstFile)
         docsetSurrogatePath = os.path.join(ixdsDir, IXDS_SURROGATE)
         filename = docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(filenames)
@@ -402,8 +402,8 @@ def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFil
         if pluginXbrlMethod():
             return # saving of target instance is handled by another class
     # save DTS menu item has been invoked
-    if (cntlr.modelManager is None or 
-        cntlr.modelManager.modelXbrl is None or 
+    if (cntlr.modelManager is None or
+        cntlr.modelManager.modelXbrl is None or
         cntlr.modelManager.modelXbrl.modelDocument.type not in (Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET)):
         cntlr.addToLog("No inline XBRL document set loaded.")
         return
@@ -445,46 +445,46 @@ def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFil
             for refFile in filingFiles:
                 if refFile.startswith(instDir):
                     filingZip.write(refFile, modelDocument.relativeUri(refFile))
-            
+
 
 def commandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
-    parser.add_option("--saveInstance", 
-                      action="store_true", 
-                      dest="saveTargetInstance", 
+    parser.add_option("--saveInstance",
+                      action="store_true",
+                      dest="saveTargetInstance",
                       help=_("Save target instance document"))
     parser.add_option("--saveinstance",  # for WEB SERVICE use
-                      action="store_true", 
-                      dest="saveTargetInstance", 
+                      action="store_true",
+                      dest="saveTargetInstance",
                       help=SUPPRESS_HELP)
-    parser.add_option("--saveFiling", 
-                      action="store", 
-                      dest="saveTargetFiling", 
+    parser.add_option("--saveFiling",
+                      action="store",
+                      dest="saveTargetFiling",
                       help=_("Save instance and DTS in zip"))
     parser.add_option("--savefiling",  # for WEB SERVICE use
-                      action="store", 
-                      dest="saveTargetFiling", 
+                      action="store",
+                      dest="saveTargetFiling",
                       help=SUPPRESS_HELP)
-    parser.add_option("--skipExpectedInstanceComparison", 
-                      action="store_true", 
-                      dest="skipExpectedInstanceComparison", 
+    parser.add_option("--skipExpectedInstanceComparison",
+                      action="store_true",
+                      dest="skipExpectedInstanceComparison",
                       help=_("Skip inline XBRL testcases from comparing expected result instances"))
-    parser.add_option("--encodeSavedXmlChars", 
-                      action="store_true", 
-                      dest="encodeSavedXmlChars", 
+    parser.add_option("--encodeSavedXmlChars",
+                      action="store_true",
+                      dest="encodeSavedXmlChars",
                       help=_("Encode saved xml characters (&#x80; and above)"))
     parser.add_option("--encodesavedxmlchars",  # for WEB SERVICE use
-                      action="store_true", 
-                      dest="encodeSavedXmlChars", 
+                      action="store_true",
+                      dest="encodeSavedXmlChars",
                       help=SUPPRESS_HELP)
-    
+
 def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     global skipExpectedInstanceComparison
     skipExpectedInstanceComparison = getattr(options, "skipExpectedInstanceComparison", False)
     if isinstance(entrypointFiles, list):
         # check for any inlineDocumentSet in list
         for entrypointFile in entrypointFiles:
-            _ixds = entrypointFile.get("ixds") 
+            _ixds = entrypointFile.get("ixds")
             if isinstance(_ixds, list):
                 # build file surrogate for inline document set
                 _files = [e["file"] for e in _ixds if isinstance(e, dict)]
@@ -520,7 +520,7 @@ def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, *
                 if len(_files) > 0:
                     docsetSurrogatePath = os.path.join(os.path.dirname(_files[0]), IXDS_SURROGATE)
                     entrypointFile["file"] = docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(_files)
-                    
+
 
 def commandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # skip if another class handles saving (e.g., EdgarRenderer)
@@ -529,17 +529,17 @@ def commandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
             return # saving of target instance is handled by another class
     # extend XBRL-loaded run processing for this option
     if getattr(options, "saveTargetInstance", False) or getattr(options, "saveTargetFiling", False):
-        if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None or (   
+        if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None or (
             cntlr.modelManager.modelXbrl.modelDocument.type not in (Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET)):
             cntlr.addToLog("No inline XBRL document or manifest loaded.")
             return
-        runSaveTargetDocumentMenuCommand(cntlr, 
+        runSaveTargetDocumentMenuCommand(cntlr,
                                          runInBackground=False,
                                          saveTargetFiling=getattr(options, "saveTargetFiling", False),
                                          encodeSavedXmlChars=getattr(options, "encodeSavedXmlChars", False))
-        
+
 def testcaseVariationReadMeFirstUris(modelTestcaseVariation):
-    _readMeFirstUris = [os.path.join(modelTestcaseVariation.modelDocument.filepathdir, 
+    _readMeFirstUris = [os.path.join(modelTestcaseVariation.modelDocument.filepathdir,
                                      (elt.get("{http://www.w3.org/1999/xlink}href") or elt.text).strip())
                         for elt in modelTestcaseVariation.iterdescendants()
                         if isinstance(elt,ModelObject) and elt.get("readMeFirst") == "true"]
@@ -548,7 +548,7 @@ def testcaseVariationReadMeFirstUris(modelTestcaseVariation):
         docsetSurrogatePath = os.path.join(os.path.dirname(_readMeFirstUris[0]), IXDS_SURROGATE)
         modelTestcaseVariation._readMeFirstUris = [docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(_readMeFirstUris)]
         return True
-    
+
 def testcaseVariationReportPackageIxds(filesource, lookOutsideReportsDirectory=False, combineIntoSingleIxds=False):
     # single report directory
     reportFiles = []
@@ -599,10 +599,10 @@ def testcaseVariationResultInstanceUri(modelTestcaseObject):
     return None # default behavior
 
 def testcaseVariationArchiveIxds(val, filesource, entrypointFiles):
-    commandLineFilingStart(val.modelXbrl.modelManager.cntlr, 
+    commandLineFilingStart(val.modelXbrl.modelManager.cntlr,
                            attrdict(skipExpectedInstanceComparison=True),
                            filesource, entrypointFiles)
-       
+
 
 def inlineDocsetDiscovery(filesource, entrypointFiles): # [{"file":"url1"}, ...]
     if len(entrypointFiles): # return [{"ixds":[{"file":"url1"}, ...]}]

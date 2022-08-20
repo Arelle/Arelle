@@ -24,19 +24,19 @@ For command line operation:
     arelleCmdLine --plugins transforms/tester --testTransform 'registry name transformation name pattern' (space separated)
     note: the transform name may be optionally prefixed
     results or errors are in the log
-    
+
     arelleCmdLine --plugins transforms/tester --testTransform 'ixt v3 datedaymonthen 29th February' or
     arelleCmdLine --plugins transforms/tester --testTransform 'ixt v3 ixt:datedaymonthen 29th February'
-     
-    SEC transform example: 
-    
+
+    SEC transform example:
+
     arelleCmdLine --plugins 'transforms/tester|transforms/SEC' --testTransform "ixt-sec durwordsen 23 days"
-    
+
     Help instructions and list of available transforms:
-    
+
     arelleCmdLine --plugins transforms/tester --testTransform 'help'  (or '?') or
     arelleCmdLine --plugins 'transforms/tester|transforms/SEC' --testTransform 'help'
-    
+
 For REST API operation:
     web browser: http://localhost:8080/rest/xbrl/validation?plugins=transforms/tester&testTransform=ixt v3 datedaymonthen 29th February
     cmd line: curl 'http://localhost:8080/rest/xbrl/validation?plugins=transforms/tester&testTransform=ixt%20v3%20datedaymonthen%2029th%20February'
@@ -63,7 +63,7 @@ class TransformTester:
         cntlr.showStatus(None)
 
         self.trRegs = sorted(ixtNamespaces.keys())
-        self.trPrefixNSs = dict((qn.prefix, qn.namespaceURI) 
+        self.trPrefixNSs = dict((qn.prefix, qn.namespaceURI)
                                   for qn in self.modelXbrl.modelManager.customTransforms.keys())
         self.trRegs.extend(sorted(self.trPrefixNSs.keys()))
         self.trPrefixNSs.update(ixtNamespaces)
@@ -79,9 +79,9 @@ class TransformTester:
         return sorted(str(trQn)
                       for trQn in self.modelXbrl.modelManager.customTransforms.keys()
                       if trQn.prefix == trPrefix)
-        
+
     def transform(self, trReg, trName, sourceValue):
-        try:                            
+        try:
             trNS = self.trPrefixNSs[trReg]
             trPrefix = trReg.split()[0] # for ixt remove TRn part
             setXmlns(self.modelXbrl.modelDocument, trPrefix, trNS)
@@ -91,7 +91,7 @@ class TransformTester:
                 prefixedFnName = trName
             else:
                 prefixedFnName = "{}:{}".format(trPrefix, trName)
-            callExprStack = XPathParser.parse(self.validator, 
+            callExprStack = XPathParser.parse(self.validator,
                                               '{}("{}")'.format(prefixedFnName, sourceValue),
                                               elt, trName + " call", Trace.CALL)
             xpathContext = XPathContext.create(self.modelXbrl, sourceElement=elt)
@@ -102,23 +102,23 @@ class TransformTester:
         except XPathContext.XPathException as err:
             self.modelXbrl.error(err.code, err.message)
             return err
-        
 
- 
+
+
 def cmdLineOptionExtender(parser, *args, **kwargs):
-    parser.add_option("--testTransform", 
-                      action="store", 
-                      dest="testTransform", 
+    parser.add_option("--testTransform",
+                      action="store",
+                      dest="testTransform",
                       help=_("Test a transformation registry transform. "
                              "Enter 'help' or '?' for a list of transformation registries available.  "
                              "Enter registry name, space, transformation name, space and pattern.  "
                              "E.g., 'ixt v3 datedaymonthen 29th February' or ixt v3 ixt:datedaymonthen 29th February'. "))
 
-    
+
 def cmdLineRun(cntlr, options, *args, **kwargs):
     if options.testTransform:
         tester = TransformTester(cntlr)
-        arg = options.testTransform 
+        arg = options.testTransform
         argWord, _sep, rest = arg.partition(" ")
         trReg = None
         for _regName in tester.trPrefixNSs.keys():
@@ -126,7 +126,7 @@ def cmdLineRun(cntlr, options, *args, **kwargs):
                 trReg = _regName
                 rest = arg[len(trReg)+1:]
         if trReg is None or argWord in ("help", "?"):
-            cntlr.addToLog("Registries available: {}".format(", ".join(tester.trRegs)), 
+            cntlr.addToLog("Registries available: {}".format(", ".join(tester.trRegs)),
                            messageCode="tester:registries", level=logging.INFO)
         else:
             trName, _sep, sourceValue = rest.partition(" ")
@@ -150,7 +150,7 @@ def transformationTesterMenuExtender(cntlr, menu, *args, **kwargs):
         def __init__(self, tester):
             self.tester = tester
             self.mainWin = tester.cntlr
-    
+
             parent = self.mainWin.parent
             super(DialogTransformTester, self).__init__(parent)
             self.parent = parent
@@ -158,32 +158,32 @@ def transformationTesterMenuExtender(cntlr, menu, *args, **kwargs):
             dialogX = int(parentGeometry.group(3))
             dialogY = int(parentGeometry.group(4))
             self.selectedGroup = None
-    
+
             self.transient(self.parent)
             self.title(_("Transformation Tester"))
-            
+
             frame = Frame(self)
-            
+
             # load grid
             trRegLabel = label(frame, 0, 0, _("Registry:"))
             trReg = self.tester.trRegs[-1] # default is latest
-            self.trRegName = gridCombobox(frame, 1, 0, 
+            self.trRegName = gridCombobox(frame, 1, 0,
                                           value=trReg,
-                                          values=self.tester.trRegs, 
+                                          values=self.tester.trRegs,
                                           comboboxselected=self.dialogTrRegComboBoxSelected)
             trRegToolTipMessage = _("Select Transformation Registry")
             ToolTip(self.trRegName, text=trRegToolTipMessage, wraplength=360)
             ToolTip(trRegLabel, text=trRegToolTipMessage, wraplength=360)
-            
+
             trNameLabel = label(frame, 0, 1, _("Transform:"))
-            self.trNameName = gridCombobox(frame, 1, 1, 
+            self.trNameName = gridCombobox(frame, 1, 1,
                                           value="",
-                                          values=self.tester.getTrNames(trReg), 
+                                          values=self.tester.getTrNames(trReg),
                                           comboboxselected=self.dialogTrNameComboBoxSelected)
             trRegToolTipMessage = _("Select or enter transform")
             ToolTip(self.trRegName, text=trRegToolTipMessage, wraplength=360)
             ToolTip(trRegLabel, text=trRegToolTipMessage, wraplength=360)
-    
+
             sourceLabel = label(frame, 0, 2, _("Source text:"))
             ToolTip(sourceLabel, text=_("Enter the source text which is to be transformed. "), wraplength=240)
             self.sourceVar = StringVar()
@@ -191,7 +191,7 @@ def transformationTesterMenuExtender(cntlr, menu, *args, **kwargs):
             sourceEntry = Entry(frame, textvariable=self.sourceVar, width=50)
             sourceLabel.grid(row=2, column=0, sticky=W)
             sourceEntry.grid(row=2, column=1, sticky=EW, pady=3, padx=3)
-    
+
             resultLabel = label(frame, 1, 3, _("Result:"))
             ToolTip(sourceLabel, text=_("Transformation result. "), wraplength=240)
             self.resultVar = StringVar()
@@ -199,10 +199,10 @@ def transformationTesterMenuExtender(cntlr, menu, *args, **kwargs):
             resultEntry = Entry(frame, textvariable=self.resultVar, width=50)
             resultLabel.grid(row=3, column=0, sticky=W)
             resultEntry.grid(row=3, column=1, sticky=EW, pady=3, padx=3)
-    
-            
+
+
             self.mainWin.showStatus(None)
-    
+
             btnPad = 2 if self.mainWin.isMSW else 0 # buttons too narrow on windows
             okButton = Button(frame, text=_("Transform"), width=8 + btnPad, command=self.dialogOk)
             cancelButton = Button(frame, text=_("Done"), width=4 + btnPad, command=self.dialogClose)
@@ -210,22 +210,22 @@ def transformationTesterMenuExtender(cntlr, menu, *args, **kwargs):
             okButton.grid(row=4, column=0, sticky=E, columnspan=2, pady=3, padx=64)
             ToolTip(okButton, text=_("Transform the source entered. "), wraplength=240)
             ToolTip(cancelButton, text=_("Close this dialog. "), wraplength=240)
-            
+
             frame.grid(row=0, column=0, sticky=(N,S,E,W))
             frame.columnconfigure(1, weight=3)
             frame.columnconfigure(2, weight=1)
             window = self.winfo_toplevel()
             window.columnconfigure(0, weight=1)
             self.geometry("+{0}+{1}".format(dialogX+150,dialogY+100))
-            
+
             #self.bind("<Return>", self.ok)
             #self.bind("<Escape>", self.close)
-            
+
             self.protocol("WM_DELETE_WINDOW", self.dialogClose)
             self.grab_set()
-            
+
             self.wait_window(self)
-            
+
         def dialogOk(self, event=None):
             result = self.tester.transform(
                 self.trRegName.get(),
@@ -235,25 +235,25 @@ def transformationTesterMenuExtender(cntlr, menu, *args, **kwargs):
                 self.resultVar.set(str(result))
             else:
                 self.resultVar.set(str(result))
-                
+
         def dialogClose(self, event=None):
             self.tester.modelXbrl.close()
             self.parent.focus_set()
             self.destroy()
-    
+
         def dialogTrRegComboBoxSelected(self, *args):
             self.trNameName["values"] = self.tester.getTrNames( self.trRegName.get() )
-            
+
         def dialogTrNameComboBoxSelected(self, *args):
             pass
-            
+
     def guiTransformationTester():
         tester = TransformTester(cntlr, isCmdLine=True)
         DialogTransformTester( tester )
         tester.modelXbrl.close()
 
-    menu.add_command(label="Transformtion Tester", 
-                     underline=0, 
+    menu.add_command(label="Transformtion Tester",
+                     underline=0,
                      command=lambda: guiTransformationTester() )
 
 
@@ -267,7 +267,7 @@ __pluginInfo__ = {
     'copyright': '(c) Copyright 2019 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
     'CntlrCmdLine.Options': cmdLineOptionExtender,
-    'CntlrCmdLine.Utility.Run': cmdLineRun, 
+    'CntlrCmdLine.Utility.Run': cmdLineRun,
     'CntlrWinMain.Menu.Tools': transformationTesterMenuExtender
 
 }

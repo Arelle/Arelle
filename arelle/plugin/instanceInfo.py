@@ -23,9 +23,9 @@ def startup(cntlr, options, *args, **kwargs):
     global memoryAtStartup, timeAtStart
     memoryAtStartup = cntlr.memoryUsed
     timeAtStart = time.time()
-    
 
-    
+
+
 def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
     for url, doc in sorted(modelXbrl.urlDocs.items(), key=lambda i: i[0]):
         if not any(url.startswith(w) for w in ("https://xbrl.sec.gov/", "http://xbrl.sec.gov/", "http://xbrl.fasb.org/", "http://www.xbrl.org/",
@@ -77,7 +77,7 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
     mostPopularDims = sorted(frequencyOfDims.items(), key=lambda i:"{:0>9},{}".format(999999999-i[1],i[0]))
     for dimName, count in mostPopularDims[0:3]:
         cntlr.addToLog("Dimension {} used in {:,} contexts".format(dimName, count), messageCode="info", level=logging.DEBUG)
-        
+
     # analyze for tables which could be composed from CSV data
     tblFacts = defaultdict(set)
     tblNestedTables = defaultdict(set)
@@ -91,18 +91,18 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
             tblFacts[tblElt].add(f)
             if childTblElt:
                 tblNestedTables[tblElt].add(childTblElt)
-    
+
     # find tables containing only numeric facts
     def tblNestedFactCount(tbl):
         c = len(tblFacts.get(tbl, ()))
         for nestedTbl in tblNestedTables.get(tbl,()):
             c += tblNestedFactCount(nestedTbl)
         return c
-    
+
     factsInInstance = len(modelXbrl.factsInInstance)
     factsInTables = len(set.union(*(fset for fset in tblFacts.values())))
     cntlr.addToLog("Facts in instance: {:,}, facts in tables: {:,}".format(factsInInstance,factsInTables), messageCode="info", level=logging.DEBUG)
-    
+
     numTblsEligible = 0
     numFactsEligible = 0
     bytesCsvSavings = 0
@@ -144,13 +144,13 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
             bytesSaveableInline += len(context.id) - shortContextIdLen
             if f not in factsEligibleForCsv:
                 bytesSaveableInlineWithCsv += len(context.id) - shortContextIdLen
-            
-            
+
+
     if numTblsEligible:
         cntlr.addToLog("Tables eligible for facts in CSV: {:,}, facts eligible for CSV: {:,}, bytes saveable by facts in CSV {:,}".format(numTblsEligible, numFactsEligible, bytesCsvSavings), messageCode="info", level=logging.DEBUG)
     else:
         cntlr.addToLog("No tables eligible for facts in CSV", messageCode="info", level=logging.DEBUG)
-        
+
 
     mostPopularContexts = sorted(factsPerContext.items(), key=lambda i:"{:0>9},{}".format(999999999-i[1],i[0]))
     cntlr.addToLog("Number of facts {:,}".format(numFacts), messageCode="info", level=logging.DEBUG)
@@ -203,10 +203,10 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
                     numInConsistentDupFacts += 1
                 else:
                     numConsistentDupFacts += 1
-                    
+
             aspectEqualFacts.clear()
     cntlr.addToLog("Number of duplicate facts consistent {:,} inconsistent {:,}".format(numConsistentDupFacts, numInConsistentDupFacts), messageCode="info", level=logging.DEBUG)
-    
+
     styleAttrCountsInline = {}
     styleAttrCountsInlineWithCsv = {}
     totalStyleLenInline = 0
@@ -288,8 +288,8 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
     cntlr.addToLog("Excepting facts eligible for CSV, number of duplicate styles {:,}, bytes saveable by CSS {:,}, len of all non-ix-hidden @styles {:,}".format(numDupStyles, bytesSaveableByCssInlineWithCsv, totalStyleLenInlineWithCsv), messageCode="info", level=logging.DEBUG)
     cntlr.addToLog("Excepting facts eligible for CSV, number of XBRL QNames {:,}, bytes saveable by EBA-style element names {:,}".format(xbrlQnameCountInlineWithCsv, xbrlQnameLengthsInlineWithCsv - (5*xbrlQnameCountInlineWithCsv)), messageCode="info", level=logging.DEBUG)
 
-    
-    
+
+
 __pluginInfo__ = {
     'name': 'Instance Info',
     'version': '1.0',
@@ -297,7 +297,7 @@ __pluginInfo__ = {
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
     'copyright': '(c) Copyright 2020 Mark V Systems Limited, All rights reserved.',
-    'import': ('inlineXbrlDocumentSet',), 
+    'import': ('inlineXbrlDocumentSet',),
     # classes of mount points (required)
     'CntlrCmdLine.Filing.Start': startup,
     'CntlrCmdLine.Xbrl.Loaded': showInfo

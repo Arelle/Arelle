@@ -1,7 +1,7 @@
 '''
 EDGAR.py implements an OpenSql database extension for SEC's EDGAR
 
-(c) Copyright 2017 Mark V Systems Limited, California US, All rights reserved.  
+(c) Copyright 2017 Mark V Systems Limited, California US, All rights reserved.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 
@@ -14,7 +14,7 @@ from arelle.ModelDocument import Type
 from arelle.UrlUtil import authority
 
 EXT_EDGAR_TABLES = {
-                "filing_edgar", "report_edgar", 
+                "filing_edgar", "report_edgar",
                 "industry_edgar", "industry_edgar_level", "industry_edgar_structure",
                 }
 
@@ -80,12 +80,12 @@ def extEdgarMetadata(xbrlOpenDb, entrypoint, rssItem):
     md["mailAddressZip"] = md.get("mail-address.zip")
     md["formType"] = rssItemGet(rssItem, "formType") or md.get("document-type")
     md["reportId"] = "{}|{}|{}".format(md["cik"], md["formType"].replace("/A",""), md["fiscalYearFocus"], md["fiscalPeriodFocus"])
-    
+
 def extEdgarInitializeBatch(self, rssObject):
     results = self.execute("SELECT fe.accession_number, s.accepted_timestamp "
                            "FROM report r, filing_edgar fe, submission s "
                            "WHERE r.filing_fk = fe.filing_pk AND r.submission_fk = s.submission_pk")
-    existingFilings = dict((accessionNumber, timestamp) 
+    existingFilings = dict((accessionNumber, timestamp)
                            for accessionNumber, timestamp in results) # timestamp is a string
     for rssItem in rssObject.rssItems:
         if (rssItem.accessionNumber in existingFilings and
@@ -102,11 +102,11 @@ def extEdgarExistingFilingPk(xbrlOpenDb):
 
 def extEdgarFiling(xbrlOpenDb, now):
     md = xbrlOpenDb.metadata
-    table = xbrlOpenDb.getTable('filing_edgar', 'filing_pk', 
+    table = xbrlOpenDb.getTable('filing_edgar', 'filing_pk',
                           ('filing_pk',
-                           'accession_number', 
+                           'accession_number',
                            'filing_date',
-                           'authority_html_url', 
+                           'authority_html_url',
                            'entry_url',
                            'entity_name',
                            'zip_url',
@@ -126,8 +126,8 @@ def extEdgarFiling(xbrlOpenDb, now):
                            'phone',
                            'phys_addr1', 'phys_addr2', 'phys_city', 'phys_state', 'phys_zip', 'phys_country',
                            'mail_addr1', 'mail_addr2', 'mail_city', 'mail_state', 'mail_zip', 'mail_country'
-                          ), 
-                          ('filing_pk',), 
+                          ),
+                          ('filing_pk',),
                           ((xbrlOpenDb.filingPk,
                             md["accessionNumber"],  # NOT NULL
                             md["filingDate"] or now,  # NOT NULL
@@ -175,11 +175,11 @@ def extEdgarExistingReportPk(xbrlOpenDb):
 
 def extEdgarReport(xbrlOpenDb, now):
     md = xbrlOpenDb.metadata
-    table = xbrlOpenDb.getTable('report_edgar', None, 
+    table = xbrlOpenDb.getTable('report_edgar', None,
                           ('report_pk',
                            'form_type'
-                           ), 
-                          ('report_pk',), 
+                           ),
+                          ('report_pk',),
                           ((xbrlOpenDb.reportPk,
                             md["formType"]
                             ),),
@@ -193,7 +193,7 @@ def extEdgarReport(xbrlOpenDb, now):
                            ("report_pk", "is_most_current"),
                            ((xbrlOpenDb.reportPk, True),)
                            )
-    
+
 def extEdgarReportUpdate(xbrlOpenDb):
     agencySchemaDocId = stdSchemaDocId = None
     for mdlDoc in xbrlOpenDb.modelXbrl.urlDocs.values():
@@ -215,10 +215,10 @@ def extEdgarReportUpdate(xbrlOpenDb):
                                    ("report_pk", "agency_schema_doc_fk", "standard_schema_doc_fk"),
                                    ((xbrlOpenDb.reportPk, agencySchemaDocId, stdSchemaDocId),)
                                    )
-    
+
 __pluginInfo__ = {
     'name': 'xbrlDB Extension for SEC EDGAR',
-    'version': '1.0', 
+    'version': '1.0',
     'description': "This plug-in implements additional database fields for U.S. SEC EDGAR.  ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',

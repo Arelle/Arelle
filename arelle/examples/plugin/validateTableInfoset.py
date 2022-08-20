@@ -1,6 +1,6 @@
 '''
 This is an example of a plug-in to both GUI menu and command line/web service
-that will provide an option to replace behavior of table linkbase validation to 
+that will provide an option to replace behavior of table linkbase validation to
 generate vs diff table linkbase infoset files.
 
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
@@ -14,15 +14,15 @@ def validateTableInfosetMenuEntender(cntlr, validateMenu):
     def setTableInfosetOption(*args):
         cntlr.config["generateTableInfoset"] = cntlr.modelManager.generateTableInfoset = generateTableInfoset.get()
     generateTableInfoset.trace("w", setTableInfosetOption)
-    validateMenu.add_checkbutton(label=_("Generate table infosets (instead of diffing them)"), 
-                                 underline=0, 
+    validateMenu.add_checkbutton(label=_("Generate table infosets (instead of diffing them)"),
+                                 underline=0,
                                  variable=generateTableInfoset, onvalue=True, offvalue=False)
 
 def validateTableInfosetCommandLineOptionExtender(parser):
     # extend command line options with a save DTS option
-    parser.add_option("--generate-table-infoset", 
-                      action="store_true", 
-                      dest="generateTableInfoset", 
+    parser.add_option("--generate-table-infoset",
+                      action="store_true",
+                      dest="generateTableInfoset",
                       help=_("Generate table instance infosets (instead of diffing them)."))
 
 def validateTableInfosetCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
@@ -31,8 +31,8 @@ def validateTableInfosetCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args, 
 def validateTableInfoset(modelXbrl, resultTableUri):
     diffToFile = not getattr(modelXbrl.modelManager, 'generateTableInfoset', False)
     from arelle import ViewFileRenderedGrid
-    ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, 
-                                          resultTableUri, 
+    ViewFileRenderedGrid.viewRenderedGrid(modelXbrl,
+                                          resultTableUri,
                                           diffToFile=diffToFile)  # false to save infoset files
     return True # blocks standard behavior in validate.py
 

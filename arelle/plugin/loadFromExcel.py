@@ -49,18 +49,18 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
     from arelle import ModelDocument, ModelXbrl, XmlUtil
     from arelle.ModelDocument import ModelDocumentReference
     from arelle.ModelValue import qname
-    
+
     def xlUnicodeChar(match):
         return chr(int(match.group(1), 16))
-        
+
     def xlValue(cell): # excel values may have encoded unicode, such as _0000D_
         v = cell.value
         if isinstance(v, str):
             return xlUnicodePattern.sub(xlUnicodeChar, v).replace('\r\n','\n').replace('\r','\n')
         return v
-    
+
     defaultLabelLang = saveXmlLang or "en"
-    
+
     importColumnHeaders = {
         "名前空間プレフィックス": "prefix",
         "prefix": "prefix",
@@ -111,11 +111,11 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
         # reference, required": ("reference", "http://treasury.gov/dataact/role/taxonomyImplementationNote", qname("{http://treasury.gov/dataact/parts-2015-12-31}dataact-part:Required"))
         # attribute, qname (attribute on element in xsd)
         }
-    
+
     fatalLoadingErrors = []
-    
+
     startedAt = time.time()
-    
+
     if os.path.isabs(excelFile):
         # allow relative filenames to loading directory
         priorCWD = os.getcwd()
@@ -125,17 +125,17 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
     importExcelBook = load_workbook(excelFile, data_only=True)
     sheetNames = importExcelBook.get_sheet_names()
     dtsSheet = None
-    if "XBRL DTS" in sheetNames: 
+    if "XBRL DTS" in sheetNames:
         dtsSheet = "XBRL DTS"
-    elif "DTS" in sheetNames: 
+    elif "DTS" in sheetNames:
         dtsSheet = "DTS"
-    elif "Sheet2" in sheetNames: 
+    elif "Sheet2" in sheetNames:
         dtsSheet = "Sheet2"
     if dtsSheet:
         dtsWs = importExcelBook[dtsSheet]
     else:
         dtsWs = None
-    imports = {"xbrli": ( ("namespace", XbrlConst.xbrli), 
+    imports = {"xbrli": ( ("namespace", XbrlConst.xbrli),
                           ("schemaLocation", "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd") )} # xml of imports
     importXmlns = {}
     hasPreLB = hasCalLB = hasDefLB = hasRefLB = hasGenLB = False
@@ -147,7 +147,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
     calLB = []
     refLB = []
     genLB = []
-    
+
     def lbDepthList(lbStruct, depth, parentList=None):
         if len(lbStruct) > 0:
             if depth == topDepth or not (hasDepthColumn or hasPresentationIndentColumnIndentations):
@@ -159,12 +159,12 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                .format(excelSheet=importSheetName, excelRow=iRow),
                                 messageCode="importExcel:depth")
             return None
-    
+
     splitString = None # to split repeating groups (order, depth)
     importFileName = None # for alternate import file
     importSheetNames = []
-    skipRows = []  # [(from,to),(from,to)]  row number starting at 1 
-            
+    skipRows = []  # [(from,to),(from,to)]  row number starting at 1
+
     genDocs = {} # generated documents (schema + referenced linkbases)
     genElementsDoc = None
     def newDoc(name):
@@ -184,7 +184,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             extensionLabels = {},  # key = (prefix, name, lang, role), value = label text
             extensionReferences = OrderedDefaultDict(OrderedSet), # key = (prefix, name, role) values = (partQn, text)
             hasEnumerationDocumentation = False,
-            imports = {"xbrli": ( ("namespace", XbrlConst.xbrli), 
+            imports = {"xbrli": ( ("namespace", XbrlConst.xbrli),
                                   ("schemaLocation", "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd") )}, # xml of imports
             includes = [], # just schemaLocation
             importXmlns = {},
@@ -201,19 +201,19 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             generated = False
             )
         return genDocs[name]
-    
+
     thisDoc = newDoc(None)
-    
+
     excelDir = os.path.dirname(excelFile) + os.path.sep
-    
+
     def docRelpath(filename, baseDir=None):
         if baseDir is None:
             baseDir = thisDoc.extensionSchemaRelDirname
-        if (baseDir is not None and 
+        if (baseDir is not None and
             not (UrlUtil.isAbsolute(filename) or os.path.isabs(filename))):
             return posixpath.relpath(filename, baseDir)
         return filename
-    
+
     isUSGAAP = False
     isGenerateAndImport = True
     extensionPrefixForCoreLabels = None
@@ -347,8 +347,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 except (ValueError, TypeError):
                     fatalLoadingErrors.append("Exception (at skip rows): {error}, Excel sheet: {excelSheet} row: {excelRow}"
                                               .format(error=err, excelSheet=dtsSheet, excelRow=iRow))
-                
-                
+
+
         except Exception as err:
             fatalLoadingErrors.append("Exception: {error}, Excel sheet: {excelSheet} row: {excelRow}, Traceback: {traceback}"
                                       .format(error=err, excelSheet=dtsSheet, excelRow=iRow, traceback=traceback.format_tb(sys.exc_info()[2])))
@@ -362,9 +362,9 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             thisDoc.linkbaseRefs.pop(i)
 
     dtsWs = None # dereference
-    
+
     genOrder = []
-    
+
     for name, doc in genDocs.items():
         insertPos = len(genOrder)
         for i, otherDoc in enumerate(genOrder):
@@ -372,11 +372,11 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 insertPos = i # put this doc before any firstr doc that imports it
                 break
         genOrder.insert(insertPos, doc)
-    
+
     if importFileName: # alternative workbook
         importExcelBook = load_workbook(importFileName, read_only=True, data_only=True)
         sheetNames = importExcelBook.get_sheet_names()
-        
+
     if importSheetNames:
         for importSheetName in importSheetNames:
             if importSheetName not in sheetNames:
@@ -389,13 +389,13 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             for s in sheetNames:
                 if "xbrl" in s.lower() and "dts" not in s:
                     importSheetNames.append(s)
-        if not importSheetNames:   
+        if not importSheetNames:
             fatalLoadingErrors.append("Worksheet {} specified for Excel importing, but not present in workbook.".format(importSheetName))
 
-            
+
     if not isUSGAAP and genOrder: # need extra namespace declaration
         genOrder[0].importXmlns["iod"] = "http://disclosure.edinet-fsa.go.jp/taxonomy/common/2013-03-31/iod"
-    
+
     # find column headers row
     headerCols = OrderedDict()
     headerColsAllElrs = set()
@@ -408,7 +408,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
     hasrelationshipAttributeColumn = False
     headerRows = set()
     topDepth = 999999
-    
+
     for importSheetName in importSheetNames:
         if importSheetName not in sheetNames:
             continue
@@ -422,7 +422,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
         hasRelationshipToCol = False
         hasrelationshipAttributeColumn = False
         conceptsWs = importExcelBook[importSheetName]
-    
+
         def setHeaderCols(row):
             headerCols.clear()
             for iCol, colCell in enumerate(row):
@@ -447,12 +447,12 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     else:
                         # custom/extension non-label/reference value column
                         headerCols[v] = iCol
-        
+
         # find out which rows are header rows
         for iRow, row in enumerate(conceptsWs.rows if conceptsWs else ()):
             if any(fromRow <= iRow+1 <= toRow for fromRow,toRow in skipRows):
                 continue
-            
+
             #for iCol, colCell in enumerate(row):
             setHeaderCols(row)
             # must have some of these to be a header col
@@ -466,7 +466,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                        presentationIndentColumn = i
             if 'linkrole' in headerCols:
                 hasLinkroleSeparateRow = False
-            if 'preferredLabel' in headerCols and any(isinstance(h, tuple) and h[0] == 'label' and h[1] == '/preferredLabel' 
+            if 'preferredLabel' in headerCols and any(isinstance(h, tuple) and h[0] == 'label' and h[1] == '/preferredLabel'
                                                       for h in headerCols):
                 hasPreferredLabelTextColumn = True
             if 'depth' in headerCols:
@@ -484,13 +484,13 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                             topDepth = depth
             hasRelationshipToCol = any(h[0] == "relationship to" for h in headerCols if isinstance(h, tuple))
             headerCols.clear()
-    
+
         def cellHasValue(row, header, _type):
             if header in headerCols:
                 iCol = headerCols[header]
                 return iCol < len(row) and isinstance(row[iCol].value, _type)
             return False
-        
+
         def cellValue(row, header, strip=False, nameChars=False, default=None):
             if header in headerCols:
                 iCol = headerCols[header]
@@ -504,10 +504,10 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                         return default
                     return v
             return default
-        
+
         def valueNameChars(v):
             return ''.join(c for c in v if c.isalnum() or c in ('.', '_', '-'))
-            
+
         def rowPrefixNameValues(row):
             prefix = cellValue(row, 'prefix', nameChars=True)
             if cellHasValue(row, 'name', str):
@@ -536,7 +536,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                         cntlr.addToLog("Warning: prefix schema file is not imported for: {qname}"
                                .format(qname=qname),
                                 messageCode="importExcel:warning", file=thisDoc.extensionSchemaFilename)
-    
+
         # find top depth
         for iRow, row in enumerate(conceptsWs.rows if conceptsWs else ()):
             if (iRow + 1) in headerRows:
@@ -547,7 +547,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 depth = cellValue(row, 'depth')
                 if isinstance(depth, int) and depth < topDepth:
                     topDepth = depth
-    
+
         # find header rows
         currentELR = currentELRdefinition = None
         for iRow, row in enumerate(conceptsWs.rows if conceptsWs else ()):
@@ -555,7 +555,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             eltEnumRefsParts = None
             if any(fromRow <= iRow+1 <= toRow for fromRow,toRow in skipRows):
                 continue
-            if (all(col.value is None for col in row) or 
+            if (all(col.value is None for col in row) or
                 all(isinstance(row[i].value, str) and row[i].value.strip() == "n/a"
                    for i in (headerCols.get("name"), headerCols.get("type"), headerCols.get("value"))
                    if i is not None)):
@@ -624,7 +624,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     else: # depth provided by parent reference
                         depth = 0
                     subsGrp = cellValue(row, 'substitutionGroup')
-                    isConcept = subsGrp in ("xbrli:item", "xbrli:tuple", 
+                    isConcept = subsGrp in ("xbrli:item", "xbrli:tuple",
                                             "xbrldt:hypercubeItem", "xbrldt:dimensionItem")
                     if (prefix in genDocs) and name not in genDocs[prefix].extensionElements and name:
                         thisDoc = genDocs[prefix]
@@ -727,7 +727,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 thisDoc.extensionElements[name] = (eltAttrs, eltFacets)
                         else:
                             thisDoc.extensionElements[name] = (eltAttrs, eltFacets)
-                        thisDoc = None # deref for debugging 
+                        thisDoc = None # deref for debugging
                     useLabels = True
                     if depth is not None or hasPresentationParentColumn:
                         if name is None:
@@ -759,7 +759,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                         preRel = (preParentPrefix, preParentName, prefix, name, currentELR or currentELRdefinition)
                                         if preRel not in preRels:
                                             entryList.append( LBentry(prefix=preParentPrefix, name=preParentName, isRoot=True, childStruct=
-                                                                      [LBentry(prefix=prefix, name=name, arcrole=XbrlConst.parentChild, 
+                                                                      [LBentry(prefix=prefix, name=name, arcrole=XbrlConst.parentChild,
                                                                                preferredLabel=preferredLabel )]) )
                                             preRels.add(preRel)
                                         else:
@@ -817,7 +817,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                         else:
                                             pass
                     hasRelationshipToCol = any(h[0] == "relationship to" for h in headerCols if isinstance(h, tuple))
-                                        
+
                 # accumulate extension labels and any reference parts
                 if useLabels or hasRelationshipToCol:
                     prefix, name = rowPrefixNameValues(row)
@@ -839,7 +839,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                         values = (v,)
                                     elif colItemType in ("labels", "references"):
                                         values = v.split('\n')
-                                    
+
                                 if preferredLabel and "indented" in colItem and not hasPreferredLabelTextColumn:  # indented column sets preferredLabel if any
                                     role = preferredLabel
                                 for i, value in enumerate(values):
@@ -863,7 +863,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                             entryList.append( LBentry(prefix=prefix, name=name, isRoot=True, childStruct=
                                                                       [LBentry(prefix=toPrefix, name=toName, arcrole=role, relAttrs=relAttrs)]) )
                                     elif thisDoc is None:
-                                        pass 
+                                        pass
                                     # following options only apply to linkbases of generated taxonomies
                                     elif colItemType in ("label", "labels"):
                                         if isConcept:
@@ -902,20 +902,20 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                         _role = "{}#{:05.0f}".format(role, i+1)
                                         thisDoc.extensionReferences[prefix, name, _role].add((part, value.strip()))
                         thisDoc = None # deref for debugging
-                                
+
             except Exception as err:
                 fatalLoadingErrors.append("Excel sheet: {excelSheet}, row: {excelRow}, error: {error}, Traceback: {traceback}"
                                    .format(error=err, excelSheet=importSheetName, excelRow=iRow, traceback=traceback.format_tb(sys.exc_info()[2])))            # uncomment to debug raise
-                
+
         if not headerCols:
             if not conceptsWs:
                 fatalLoadingErrors.append("Neither control worksheet (XBRL DTS tab) nor standard columns found, no DTS imported.")
             elif not currentELR:
                 fatalLoadingErrors.append("Extended link role not found, no DTS imported.")
-            
+
     if fatalLoadingErrors:
         raise Exception(",\n ".join(fatalLoadingErrors))
-            
+
     if isUSGAAP and hasDefLB:
         # move line items above table
         def fixUsggapTableDims(lvl1Struct, level=0):
@@ -945,7 +945,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 i1 = lvl1Entry.childStruct.index(lvl2Entry)
                 lvl1Entry.childStruct.insert(i1, lvl3Entry)  # must keep lvl1Rel if it is __root__
                 lvl3Entry.childStruct.insert(0, lvl2Entry)
-                if any(lvl1Entry.name.endswith(suffix) 
+                if any(lvl1Entry.name.endswith(suffix)
                        for suffix in ("Abstract", "_abstract", "Root", "_root", "_package", "_heading")):
                     lvl1Entry.childStruct.remove(lvl2Entry)
                 lvl2Entry.childStruct.remove(lvl3Entry)
@@ -953,14 +953,14 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 lvl1Entry.childStruct.remove(lvl2Entry)
             for emptyLink in emptyLinks:
                 lvl1Struct.remove(emptyLink)
-                
+
             return foundTable
-                
+
         fixUsggapTableDims(defLB)
-        
+
     modelDocuments = []
     modelXbrl.blockDpmDBrecursion = True
-    
+
     def generateDoc(thisDoc, parentDoc, visitedDocNames):
         if thisDoc.name in visitedDocNames:
             modelXbrl.error("loadFromExcel:circularDependency",
@@ -968,7 +968,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                             modelXbrl=modelXbrl, circularDependency=",".join(visitedDocNames) + ", " + thisDoc.name)
             return
         visitedDocNames.append(thisDoc.name)
-            
+
         if XbrlConst.xsd not in thisDoc.importXmlns.values():
             eltName = 'schema xmlns="{}"'.format(XbrlConst.xsd)
         else:
@@ -977,7 +977,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     eltName = "{}:schema".format(k)
                     break
         doc = createModelDocument(
-              modelXbrl, 
+              modelXbrl,
               Type.SCHEMA,
               thisDoc.extensionSchemaFilename,
               isEntry=(parentDoc is None),
@@ -986,17 +986,17 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
               base='', # block pathname from becomming absolute
               initialXml='''
         <{eltName}
-            targetNamespace="{targetNamespace}" 
-            attributeFormDefault="unqualified" 
-            elementFormDefault="qualified" 
-            xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+            targetNamespace="{targetNamespace}"
+            attributeFormDefault="unqualified"
+            elementFormDefault="qualified"
+            xmlns:xs="http://www.w3.org/2001/XMLSchema"
             xmlns:{extensionPrefix}="{targetNamespace}"
-            {importXmlns} 
-            xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric" 
-            xmlns:link="http://www.xbrl.org/2003/linkbase" 
-            xmlns:xbrli="http://www.xbrl.org/2003/instance" 
-            xmlns:xlink="http://www.w3.org/1999/xlink" 
-            xmlns:xbrldt="http://xbrl.org/2005/xbrldt" 
+            {importXmlns}
+            xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric"
+            xmlns:link="http://www.xbrl.org/2003/linkbase"
+            xmlns:xbrli="http://www.xbrl.org/2003/instance"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
             {schemaVersion}{xmlLang} />
         '''.format(eltName=eltName,
                    targetNamespace=thisDoc.extensionSchemaNamespaceURI,
@@ -1012,26 +1012,26 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             modelXbrl.modelDocument = doc
         thisDoc.generated = True # prevent recursion
         doc.loadedFromExcel = True # signal to save generated taoxnomy in saveToFile below
-        
+
         doc.inDTS = True  # entry document always in DTS
         doc.targetNamespace = thisDoc.extensionSchemaNamespaceURI # not set until schemaDiscover too late otherwise
         schemaElt = doc.xmlRootElement
-        
+
         #foreach linkbase
         annotationElt = XmlUtil.addChild(schemaElt, XbrlConst.xsd, "annotation")
         if thisDoc.schemaDocumentation:
             XmlUtil.addChild(annotationElt, XbrlConst.xsd, "documentation", text=thisDoc.schemaDocumentation)
         appinfoElt = XmlUtil.addChild(annotationElt, XbrlConst.xsd, "appinfo")
-        
+
         # add linkbaseRefs
         appinfoElt = XmlUtil.descendant(schemaElt, XbrlConst.xsd, "appinfo")
-        
+
         # don't yet add linkbase refs, want to process imports first to get roleType definitions
-            
+
         # add includes
         for filename in thisDoc.includes:
             XmlUtil.addChild(schemaElt, XbrlConst.xsd, "include", attributes=( ("schemaLocation", filename), ) )
-            
+
         # add imports
         for importPrefix, importAttributes in sorted(thisDoc.imports.items(),
                                                      key=lambda item:item[1]):
@@ -1039,7 +1039,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             # is the import an xsd which we have to generate
             if importPrefix in genDocs and not genDocs[importPrefix].generated:
                 generateDoc(genDocs[importPrefix], doc, visitedDocNames) # generate document
-            
+
         # add imports for gen LB if any role definitions (for discovery) and generic labels
         if any(roleURI in thisDoc.extensionRoleLabels for roleURI in thisDoc.extensionRoles.keys()):
             for importAttributes in ((("namespace", XbrlConst.gen), ("schemaLocation", "http://www.xbrl.org/2008/generic-link.xsd")),
@@ -1047,7 +1047,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 XmlUtil.addChild(schemaElt, XbrlConst.xsd, "import", attributes=importAttributes )
 
         _enumNum = [1] # must be inside an object to be referenced in a nested procedure
-        
+
         def addFacets(thisDoc, restrElt, facets):
             if facets:
                 excludedEnumeration = facets.get("excludedEnumeration")
@@ -1101,14 +1101,14 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                             annotationElt = XmlUtil.addChild(enumElt, XbrlConst.xsd, "annotation")
                                             for _lang, _langLabel in _labelsByLang.items():
                                                 thisDoc.extensionLabels[thisDoc.extensionSchemaPrefix, _name, _lang, XbrlConst.genStandardLabel] = _langLabel
-                                                XmlUtil.addChild(annotationElt, XbrlConst.xsd, "documentation", text=_langLabel, 
+                                                XmlUtil.addChild(annotationElt, XbrlConst.xsd, "documentation", text=_langLabel,
                                                                  attributes={"{http://www.w3.org/XML/1998/namespace}lang": _lang})
                                         else: # non-multi-lingual labels
                                             XmlUtil.addChild(XmlUtil.addChild(enumElt, XbrlConst.xsd, "annotation"),
                                                              XbrlConst.xsd, "documentation", text=_label)
                     elif facet != "excludedEnumeration":
                         XmlUtil.addChild(restrElt, XbrlConst.xsd, facet, attributes={"value":str(facetValue)})
-    
+
         # add elements
         for eltName, eltDef in sorted(thisDoc.extensionElements.items(), key=lambda item: item[0]):
             eltAttrs, eltFacets = eltDef
@@ -1122,7 +1122,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                         eltAttrs[schemaElt.prefixedNameQname(attrname).clarkNotation] = attrvalue
             isConcept = eltAttrs.get('substitutionGroup') in (
                 "xbrli:item", "xbrli:tuple", "xbrldt:hypercubeItem", "xbrldt:dimensionItem")
-            elt = XmlUtil.addChild(schemaElt, 
+            elt = XmlUtil.addChild(schemaElt,
                                    XbrlConst.xsd, "element",
                                    attributes=eltAttrs)
             if annotateElementDocumentation:
@@ -1138,7 +1138,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 restrElt = XmlUtil.addChild(cmplxCont, XbrlConst.xsd, "restriction", attributes={"base": eltType})
                 addFacets(thisDoc, restrElt, eltFacets)
                 del eltType
-                
+
         for roleURI, (roleDefinition, usedOnRoles) in sorted(thisDoc.extensionRoles.items(), key=lambda rd: rd[1]):
             roleElt = XmlUtil.addChild(appinfoElt, XbrlConst.link, "roleType",
                                        attributes=(("roleURI",  roleURI),
@@ -1157,12 +1157,12 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text="link:calculationLink")
                 if hasGenLB and any(e.childStruct and e.isELR and (e.role == roleURI or e.name == roleDefinition) for e in genLB):
                     XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text=qname("{http://xbrl.org/2008/generic}genlink:link"))
-                    
+
             if not any(True for e in roleElt.iterchildren("{http://www.xbrl.org/2003/linkbase}usedOn")):
                 modelXbrl.error("loadFromExcel:roleUsedOn",
                     "Role does not appear to be used in any relationships and has no usedOn elements: %(roleURI)s",
                     modelXbrl=modelXbrl, roleURI=roleURI, filename=thisDoc.extensionSchemaNamespaceURI)
-                        
+
         # add role definitions (for discovery) and generic labels
         if any(roleURI in thisDoc.extensionRoleLabels for roleURI in thisDoc.extensionRoles.keys()):
             # add appinfo generic linkbase for gen labels
@@ -1184,11 +1184,11 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     XmlUtil.addChild(linkElt, XbrlConst.link, "loc",
                                      attributes=(("{http://www.w3.org/1999/xlink}type", "locator"),
                                                  ("{http://www.w3.org/1999/xlink}href", "#roleType_" + xlLabel),
-                                                 ("{http://www.w3.org/1999/xlink}label", "loc_" + xlLabel)))   
-                    XmlUtil.addChild(linkElt, XbrlConst.qnGenArc, 
+                                                 ("{http://www.w3.org/1999/xlink}label", "loc_" + xlLabel)))
+                    XmlUtil.addChild(linkElt, XbrlConst.qnGenArc,
                                      attributes=(("{http://www.w3.org/1999/xlink}type", "arc"),
                                                  ("{http://www.w3.org/1999/xlink}arcrole", elementLabel),
-                                                 ("{http://www.w3.org/1999/xlink}from", "loc_" + xlLabel), 
+                                                 ("{http://www.w3.org/1999/xlink}from", "loc_" + xlLabel),
                                                  ("{http://www.w3.org/1999/xlink}to", "label_" + xlLabel)))
                     for (text, lang) in thisDoc.extensionRoleLabels[roleURI]:
                         XmlUtil.addChild(linkElt, qname("{http://xbrl.org/2008/label}genlabel:label"),
@@ -1197,12 +1197,12 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                                      ("{http://www.w3.org/1999/xlink}role", XbrlConst.genStandardLabel),
                                                      ("{http://www.w3.org/XML/1998/namespace}lang", lang)),
                                          text=text)
-            
+
         def addLinkbaseRef(lbType, lbFilename, lbDoc):
             role = "http://www.xbrl.org/2003/role/{0}LinkbaseRef".format(lbType)
             lbRefElt = XmlUtil.addChild(appinfoElt, XbrlConst.link, "linkbaseRef",
                                         attributes=(("{http://www.w3.org/1999/xlink}type",  "simple"),
-                                                    ("{http://www.w3.org/1999/xlink}href",  
+                                                    ("{http://www.w3.org/1999/xlink}href",
                                                      docRelpath(lbFilename, thisDoc.extensionSchemaRelDirname)),
                                                     ("{http://www.w3.org/1999/xlink}arcrole",  "http://www.w3.org/1999/xlink/properties/linkbase"),
                                                     # generic label ref has no role
@@ -1210,8 +1210,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                                          (("{http://www.w3.org/1999/xlink}role",  role),))
                                         )
             if lbDoc: # provided for generated linbase refs
-                doc.referencesDocument[lbDoc] = ModelDocumentReference("href", lbRefElt) 
-            
+                doc.referencesDocument[lbDoc] = ModelDocumentReference("href", lbRefElt)
+
         # add referenced (not generated) linkbases
         for lbRefType, filename, generate in thisDoc.linkbaseRefs:
             if not generate:
@@ -1222,7 +1222,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 for _otherLbRefType, _otherFilename, _otherGenerate in otherGenDoc.linkbaseRefs):
                         generateDoc(otherGenDoc, doc, visitedDocNames) # generate document
                 addLinkbaseRef(lbRefType, filename, None)
-        
+
         doc.schemaDiscover(schemaElt, False, False, thisDoc.extensionSchemaNamespaceURI)
 
         # add types after include and import are discovered
@@ -1247,7 +1247,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                       for facet, value in typeFacets.items()
                                       if facet not in baseTypeFacets or str(baseTypeFacets[facet]) != value)
                 addFacets(thisDoc, restrElt, typeFacets)
-            
+
         # find extension label roles, reference roles and parts
         extLabelRoles = {}
         extReferenceRoles = {}
@@ -1278,8 +1278,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             else:
                 continue
             _resourceQName, _standardRoles = {
-                    "label": (qnLinkLabel, standardLabelRoles), 
-                    "labels": (qnLinkLabel, standardLabelRoles), 
+                    "label": (qnLinkLabel, standardLabelRoles),
+                    "labels": (qnLinkLabel, standardLabelRoles),
                     "reference": (qnLinkReference, standardReferenceRoles),
                     "references": (qnLinkReference, standardReferenceRoles)
                     }.get(_resourceType, (None,()))
@@ -1328,7 +1328,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 else:
                     relationshipArcroles[_resourceRoleMatchPart] = _arcroleURI
                     relationshipArcqnames[_arcroleURI] = _resourceQName
-    
+
         # label linkbase
         for lbType, lang, filename in thisDoc.labelLinkbases:
             thisDoc.thisLBdir = posixpath.dirname(filename)
@@ -1339,14 +1339,14 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 ModelDocument.load(modelXbrl, "http://www.xbrl.org/2008/generic-link.xsd", isDiscovered=True)
                 ModelDocument.load(modelXbrl, "http://www.xbrl.org/2008/generic-label.xsd", isDiscovered=True)
             lbDoc = ModelDocument.create(modelXbrl, ModelDocument.Type.LINKBASE, filename, base="", initialXml="""
-            <linkbase 
-                xmlns="http://www.xbrl.org/2003/linkbase" 
-                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-                xmlns:xlink="http://www.w3.org/1999/xlink" 
+            <linkbase
+                xmlns="http://www.xbrl.org/2003/linkbase"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xmlns:xlink="http://www.w3.org/1999/xlink"
                 xmlns:xbrli="http://www.xbrl.org/2003/instance"
                 {}
-                xsi:schemaLocation="http://www.xbrl.org/2003/linkbase 
-                http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd{}" 
+                xsi:schemaLocation="http://www.xbrl.org/2003/linkbase
+                http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd{}"
                 {}>{}</linkbase>
             """.format("""
                 xmlns:genlink="http://xbrl.org/2008/generic"
@@ -1366,8 +1366,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             if isGenerateAndImport:
                 addLinkbaseRef(lbType, filename, lbDoc) # must be explicitly imported
             lbElt = lbDoc.xmlRootElement
-            linkElt = XmlUtil.addChild(lbElt, 
-                                       gen if _isGeneric else link, 
+            linkElt = XmlUtil.addChild(lbElt,
+                                       gen if _isGeneric else link,
                                        "link" if _isGeneric else "labelLink",
                                        attributes=(("{http://www.w3.org/1999/xlink}type", "extended"),
                                                    ("{http://www.w3.org/1999/xlink}role", defaultLinkRole)))
@@ -1387,17 +1387,17 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                          XbrlConst.link, "loc",
                                          attributes=(("{http://www.w3.org/1999/xlink}type", "locator"),
                                                      ("{http://www.w3.org/1999/xlink}href", LBHref(thisDoc, prefix, name)),
-                                                     ("{http://www.w3.org/1999/xlink}label", locLabel)))        
+                                                     ("{http://www.w3.org/1999/xlink}label", locLabel)))
                         XmlUtil.addChild(linkElt,
-                                         gen if _isGeneric else link, 
+                                         gen if _isGeneric else link,
                                          "arc" if _isGeneric else "labelArc",
                                          attributes=(("{http://www.w3.org/1999/xlink}type", "arc"),
                                                      ("{http://www.w3.org/1999/xlink}arcrole", elementLabel if _isGeneric else conceptLabel),
-                                                     ("{http://www.w3.org/1999/xlink}from", locLabel), 
-                                                     ("{http://www.w3.org/1999/xlink}to", "label_" + locLabel), 
+                                                     ("{http://www.w3.org/1999/xlink}from", locLabel),
+                                                     ("{http://www.w3.org/1999/xlink}to", "label_" + locLabel),
                                                      ("order", 1.0)))
                     XmlUtil.addChild(linkElt,
-                                     XbrlConst.genLabel if _isGeneric else XbrlConst.link, 
+                                     XbrlConst.genLabel if _isGeneric else XbrlConst.link,
                                      "label",
                                      attributes=(("{http://www.w3.org/1999/xlink}type", "resource"),
                                                  ("{http://www.w3.org/1999/xlink}label", "label_" + locLabel),
@@ -1429,20 +1429,20 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 "Label roles not defined: %(undefinedRoles)s",
                                 modelXbrl=modelXbrl, undefinedRoles=",".join(sorted(extUnrecognizedRoles)))
                 extUnrecognizedRoles.clear()
-                         
+
         # reference linkbase
         for lbType, referenceRole, filename in thisDoc.referenceLinkbases:
             thisDoc.thisLBdir = posixpath.dirname(filename)
             _isGeneric = lbType.startswith("generic")
             lbDoc = ModelDocument.create(modelXbrl, ModelDocument.Type.LINKBASE, filename, base="", initialXml="""
-            <linkbase 
-                xmlns="http://www.xbrl.org/2003/linkbase" 
-                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-                xmlns:xlink="http://www.w3.org/1999/xlink" 
+            <linkbase
+                xmlns="http://www.xbrl.org/2003/linkbase"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xmlns:xlink="http://www.w3.org/1999/xlink"
                 xmlns:xbrli="http://www.xbrl.org/2003/instance"
                 {}
-                xsi:schemaLocation="http://www.xbrl.org/2003/linkbase 
-                http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd{}{}" 
+                xsi:schemaLocation="http://www.xbrl.org/2003/linkbase
+                http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd{}{}"
                 {}>{}</linkbase>
             """.format("""
                 xmlns:genlink="http://xbrl.org/2008/generic"
@@ -1464,8 +1464,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             if isGenerateAndImport:
                 addLinkbaseRef(lbType, filename, lbDoc) # must be explicitly imported
             lbElt = lbDoc.xmlRootElement
-            linkElt = XmlUtil.addChild(lbElt, 
-                                       XbrlConst.gen if _isGeneric else XbrlConst.link, 
+            linkElt = XmlUtil.addChild(lbElt,
+                                       XbrlConst.gen if _isGeneric else XbrlConst.link,
                                        "link" if _isGeneric else "referenceLink",
                                        attributes=(("{http://www.w3.org/1999/xlink}type", "extended"),
                                                    ("{http://www.w3.org/1999/xlink}role", defaultLinkRole)))
@@ -1496,16 +1496,16 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                      XbrlConst.link, "loc",
                                      attributes=(("{http://www.w3.org/1999/xlink}type", "locator"),
                                                  ("{http://www.w3.org/1999/xlink}href", LBHref(thisDoc, prefix, name)),
-                                                 ("{http://www.w3.org/1999/xlink}label", locLabel)))        
+                                                 ("{http://www.w3.org/1999/xlink}label", locLabel)))
                     XmlUtil.addChild(linkElt,
                                      XbrlConst.link, "referenceArc",
                                      attributes=(("{http://www.w3.org/1999/xlink}type", "arc"),
                                                  ("{http://www.w3.org/1999/xlink}arcrole", conceptReference),
-                                                 ("{http://www.w3.org/1999/xlink}from", locLabel), 
-                                                 ("{http://www.w3.org/1999/xlink}to", "label_" + locLabel), 
+                                                 ("{http://www.w3.org/1999/xlink}from", locLabel),
+                                                 ("{http://www.w3.org/1999/xlink}to", "label_" + locLabel),
                                                  ("order", order)))
                     referenceResource = XmlUtil.addChild(linkElt,
-                                     XbrlConst.genReference if _isGeneric else XbrlConst.link, 
+                                     XbrlConst.genReference if _isGeneric else XbrlConst.link,
                                      "reference",
                                      attributes=(("{http://www.w3.org/1999/xlink}type", "resource"),
                                                  ("{http://www.w3.org/1999/xlink}label", "label_" + locLabel),
@@ -1543,8 +1543,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 "Reference roles not defined: %(undefinedRoles)s",
                                 modelXbrl=modelXbrl, undefinedRoles=",".join(sorted(extUnrecognizedRoles)))
                 extUnrecognizedRoles.clear()
-           
-        prefixedNamespaces = modelXbrl.prefixedNamespaces 
+
+        prefixedNamespaces = modelXbrl.prefixedNamespaces
         def hrefConcept(prefix, name):
             qn = qname(prefixedNamespaces[prefix], name)
             if qn in modelXbrl.qnameConcepts:
@@ -1560,7 +1560,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                             "QName not defined: %(prefix)s:%(localName)s",
                             modelXbrl=modelXbrl, prefix=prefix, localName=name)
             return None
-        
+
         def prefixedNameQName(prefixedName):
             if ":" not in prefixedName:
                 return prefixedName
@@ -1571,7 +1571,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 modelXbrl=modelXbrl, prefix=prefix)
                 return prefixedName
             return QName(prefix, prefixedNamespaces[prefix], name)
-                
+
         def lbTreeWalk(lbType, parentElt, lbStruct, roleRefs, dimDef=False, locs=None, arcsFromTo=None, fromPrefix=None, fromName=None):
             order = 1.0
             for lbEntry in lbStruct:
@@ -1590,7 +1590,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     if role == "unspecified":
                         # don't generate for roles not for this schema
                         continue
-                        # 
+                        #
                         #modelXbrl.error("loadFromExcel:linkRoleDefinition",
                         #    "Link role has no definition: %(role)s",
                         #    modelXbrl=modelXbrl, role=lbEntry.name, filename=thisDoc.extensionSchemaNamespaceURI)
@@ -1604,10 +1604,10 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     elif role in modelXbrl.roleTypes: # add roleRef
                         roleType = modelRoleTypes[0]
                         roleRefs.add(("roleRef", role, roleType.modelDocument.uri + "#" + roleType.id))
-                    else: 
+                    else:
                         extUnrecognizedRoles.add(role)
-                    linkElt = XmlUtil.addChild(parentElt, 
-                                               XbrlConst.gen if lbType == "generic" else XbrlConst.link, 
+                    linkElt = XmlUtil.addChild(parentElt,
+                                               XbrlConst.gen if lbType == "generic" else XbrlConst.link,
                                                "link" if lbType == "generic" else lbType + "Link",
                                                attributes=(("{http://www.w3.org/1999/xlink}type", "extended"),
                                                            ("{http://www.w3.org/1999/xlink}role", role)))
@@ -1643,7 +1643,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                          XbrlConst.link, "loc",
                                          attributes=(("{http://www.w3.org/1999/xlink}type", "locator"),
                                                      ("{http://www.w3.org/1999/xlink}href", toHref),
-                                                     ("{http://www.w3.org/1999/xlink}label", toLabel)))        
+                                                     ("{http://www.w3.org/1999/xlink}label", toLabel)))
                         locs.add(toHref)
                     if not lbEntry.isRoot:
                         arcsFromTo.add( (fromLabel, toLabel) )
@@ -1667,7 +1667,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 if lbEntry.role in modelXbrl.roleTypes:
                                     roleType = modelXbrl.roleTypes[lbEntry.role][0]
                                     roleRefs.add(("roleRef", lbEntry.role, roleType.modelDocument.uri + "#" + roleType.id))
-                                else: 
+                                else:
                                     extUnrecognizedRoles.add(lbEntry.role)
                         elif lbType == "generic" and lbEntry.arcrole:
                             if not lbEntry.arcrole.startswith("http://"):
@@ -1692,7 +1692,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                                          XbrlConst.link, "loc",
                                                          attributes=(("{http://www.w3.org/1999/xlink}type", "locator"),
                                                                      ("{http://www.w3.org/1999/xlink}href", toHref),
-                                                                     ("{http://www.w3.org/1999/xlink}label", toLabel)))        
+                                                                     ("{http://www.w3.org/1999/xlink}label", toLabel)))
                                         locs.add(toHref)
                                     if lbEntry.role != "_dimensionDefault_":
                                         lbTreeWalk(lbType, parentElt, lbEntry.childStruct, roleRefs, dimDef, locs, arcsFromTo, toPrefix, toName)
@@ -1700,8 +1700,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                         XmlUtil.addChild(parentElt, XbrlConst.link, "definitionArc",
                                                          attributes=(("{http://www.w3.org/1999/xlink}type", "arc"),
                                                                      ("{http://www.w3.org/1999/xlink}arcrole", XbrlConst.dimensionDefault),
-                                                                     ("{http://www.w3.org/1999/xlink}from", fromLabel), 
-                                                                     ("{http://www.w3.org/1999/xlink}to", toLabel), 
+                                                                     ("{http://www.w3.org/1999/xlink}from", fromLabel),
+                                                                     ("{http://www.w3.org/1999/xlink}to", toLabel),
                                                                      ("order", order)) + otherAttrs )
                                         order += 1.0
                                 else:
@@ -1709,7 +1709,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 continue
                             elif toConcept is not None and toConcept.isHypercubeItem:
                                 arcrole = XbrlConst.all
-                                otherAttrs += ( (XbrlConst.qnXbrldtContextElement, "segment"), 
+                                otherAttrs += ( (XbrlConst.qnXbrldtContextElement, "segment"),
                                                 (qnXbrldtClosed, "true") )
                             elif toConcept is not None and toConcept.isDimensionItem:
                                 arcrole = XbrlConst.hypercubeDimension
@@ -1733,8 +1733,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                          arcNS, arcLocalname,
                                          attributes=(("{http://www.w3.org/1999/xlink}type", "arc"),
                                                      ("{http://www.w3.org/1999/xlink}arcrole", arcrole),
-                                                     ("{http://www.w3.org/1999/xlink}from", fromLabel), 
-                                                     ("{http://www.w3.org/1999/xlink}to", toLabel), 
+                                                     ("{http://www.w3.org/1999/xlink}from", fromLabel),
+                                                     ("{http://www.w3.org/1999/xlink}to", toLabel),
                                                      ("order", order)) + otherAttrs )
                         order += 1.0
                     if lbType != "calculation" or lbEntry.isRoot:
@@ -1753,7 +1753,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     if lbTreeHasDimDefault(lbEntry.childStruct):
                         return True
             return False
-                              
+
         for hasLB, lbType, lbLB in ((hasPreLB and thisDoc.hasPreLB, "presentation", preLB),
                                     (hasDefLB and thisDoc.hasDefLB, "definition", defLB),
                                     (hasCalLB and thisDoc.hasCalLB, "calculation", calLB),
@@ -1764,13 +1764,13 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     if generate and lbType == lbRefType:
                         # output presentation linkbase
                         lbDoc = ModelDocument.create(modelXbrl, ModelDocument.Type.LINKBASE, filename, base='', initialXml="""
-                        <linkbase 
-                            xmlns="http://www.xbrl.org/2003/linkbase" 
-                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-                            xmlns:xlink="http://www.w3.org/1999/xlink" 
+                        <linkbase
+                            xmlns="http://www.xbrl.org/2003/linkbase"
+                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                            xmlns:xlink="http://www.w3.org/1999/xlink"
                             xmlns:xbrli="http://www.xbrl.org/2003/instance"{}
-                            xsi:schemaLocation="http://www.xbrl.org/2003/linkbase 
-                            http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd{}" 
+                            xsi:schemaLocation="http://www.xbrl.org/2003/linkbase
+                            http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd{}"
                             />
                         """.format("""
                         xmlns:generic="http://xbrl.org/2008/generic"
@@ -1808,10 +1808,10 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                              link, roleref,
                                              attributes=(("arcroleURI" if roleref == "arcroleRef" else "roleURI", roleURI),
                                                          ("{http://www.w3.org/1999/xlink}type", "simple"),
-                                                         ("{http://www.w3.org/1999/xlink}href", 
+                                                         ("{http://www.w3.org/1999/xlink}href",
                                                           docRelpath(href, thisDoc.thisLBdir))),
                                              beforeSibling=firstLinkElt)
-                        lbDoc.linkbaseDiscover(lbElt)  
+                        lbDoc.linkbaseDiscover(lbElt)
                         break
                 if extUnrecognizedRoles:
                     modelXbrl.error("loadFromExcel:undefinedRole",
@@ -1819,7 +1819,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                     modelXbrl=modelXbrl, lbType=lbType, undefinedRoles=",".join(sorted(extUnrecognizedRoles)))
                     extUnrecognizedRoles.clear()
         visitedDocNames.pop()
-    
+
     def LBHref(thisDoc, prefix, name):
         if not prefix and name in modelXbrl.nameConcepts:
             _concept = modelXbrl.nameConcepts[name][0]
@@ -1853,10 +1853,10 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
     for thisDoc in genOrder:
         if not thisDoc.generated:
             generateDoc(thisDoc, None, [])
-    
+
     #cntlr.addToLog("Completed in {0:.2} secs".format(time.time() - startedAt),
     #               messageCode="loadFromExcel:info")
-    
+
     if priorCWD:
         os.chdir(priorCWD) # restore prior current working directory
     return modelXbrl.modelDocument
@@ -1916,7 +1916,7 @@ def saveDts(cntlr, modelXbrl, outputDtsDir):
                 modelXbrl.error("loadFromExcel:missingReference",
                                 "Missing source file to copy to output DTS directory: %(missingFile)s",
                                 modelXbrl=modelXbrl, missingFile=doc.uri)
-            
+
 
 def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
     if cntlr.hasGui and getattr(modelXbrl, "loadedFromExcel", False):
@@ -1935,30 +1935,30 @@ def cmdLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
         saveDts(cntlr, modelXbrl, options.saveExcelDTSdirectory)
 
 def excelLoaderOptionExtender(parser, *args, **kwargs):
-    parser.add_option("--save-Excel-DTS-directory", 
-                      action="store", 
-                      dest="saveExcelDTSdirectory", 
+    parser.add_option("--save-Excel-DTS-directory",
+                      action="store",
+                      dest="saveExcelDTSdirectory",
                       help=_("Save a DTS loaded from Excel into this directory."))
-    parser.add_option("--exclude-designated-enumerations", 
-                      action="store_true", 
-                      dest="excludeDesignatedEnumerations", 
+    parser.add_option("--exclude-designated-enumerations",
+                      action="store_true",
+                      dest="excludeDesignatedEnumerations",
                       help=_("Save a DTS loaded from Excel into this directory."))
-    parser.add_option("--annotate-enumerations-documentation", 
-                      action="store_true", 
-                      dest="annotateEnumerationsDocumentation", 
+    parser.add_option("--annotate-enumerations-documentation",
+                      action="store_true",
+                      dest="annotateEnumerationsDocumentation",
                       help=_("Save a DTS loaded from Excel into this directory."))
-    parser.add_option("--annotate-element-documentation", 
-                      action="store_true", 
-                      dest="annotateElementDocumentation", 
+    parser.add_option("--annotate-element-documentation",
+                      action="store_true",
+                      dest="annotateElementDocumentation",
                       help=_("Save a DTS loaded from Excel into this directory."))
-    parser.add_option("--save-lang", 
-                      action="store", 
-                      dest="saveLang", 
+    parser.add_option("--save-lang",
+                      action="store",
+                      dest="saveLang",
                       help=_("Save an xml:lang on top level elements (schema, linkbase)."))
 
 class LBentry:
     __slots__ = ("prefix", "name", "arcrole", "role", "childStruct", "preferredLabel", "relAttrs")
-    def __init__(self, prefix=None, name=None, arcrole=None, role=None, weight=None, 
+    def __init__(self, prefix=None, name=None, arcrole=None, role=None, weight=None,
                  isELR=False, isRoot=False, childStruct=None, preferredLabel=None, relAttrs=None):
         if childStruct is not None:
             self.childStruct = childStruct
@@ -1978,24 +1978,24 @@ class LBentry:
             self.role = role # resource role, or "default" if conept is a default dimension
         self.preferredLabel = preferredLabel
         self.relAttrs = relAttrs
-            
+
     @property
     def isELR(self):
         return self.arcrole == "_ELR_"
-            
+
     @property
     def isRoot(self):
         return self.arcrole == "_root_"
-    
+
     @property
     def weight(self):
         if self.arcrole == summationItem:
             return self.role
         return None
-    
+
     def __repr__(self):
         return "LBentry(prefix={},name={})".format(self.prefix,self.name)
-    
+
 __pluginInfo__ = {
     'name': 'Load From Excel',
     'version': '1.02',

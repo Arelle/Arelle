@@ -11,7 +11,7 @@ class CntlrCsvPreLbExample(Cntlr.Cntlr):
 
     def __init__(self):
         super().__init__(logFileName="c:\\temp\\test-log.txt")
-        
+
     def run(self):
         modelXbrl = self.modelManager.load("c:\\temp\\test.xbrl")
 
@@ -20,8 +20,8 @@ class CntlrCsvPreLbExample(Cntlr.Cntlr):
 
         # close the loaded instance
         self.modelManager.close()
-        
+
         self.close()
-            
+
 if __name__ == "__main__":
     CntlrCsvPreLbExample().run()

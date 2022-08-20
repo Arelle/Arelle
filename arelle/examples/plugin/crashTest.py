@@ -11,9 +11,9 @@ def crashMenuCommand(cntlr):
     foo /= 0
 
 def crashCommandLineOptionExtender(parser):
-    parser.add_option("--crash-test", 
-                      action="store_true", 
-                      dest="crashTest", 
+    parser.add_option("--crash-test",
+                      action="store_true",
+                      dest="crashTest",
                       help=_('Test what happens with an exception'))
 
 def crashCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):

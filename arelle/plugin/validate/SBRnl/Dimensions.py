@@ -11,14 +11,14 @@ import os
 emptySet = set()
 
 def checkFilingDimensions(val, drsELRs):
-    
+
     fromConceptELRs = defaultdict(set)
     hypercubes = set()
     hypercubesInLinkrole = defaultdict(set)
     domainsInLinkrole = defaultdict(set)
     for ELR in drsELRs:
         domainMemberRelationshipSet = val.modelXbrl.relationshipSet( XbrlConst.domainMember, ELR)
-                            
+
         # check Hypercubes in ELR, accumulate list of primary items
         positiveAxisTableSources = defaultdict(set)
         positiveHypercubes = set()
@@ -62,13 +62,13 @@ def checkFilingDimensions(val, drsELRs):
                             if hasHypercubeArcrole == XbrlConst.all:
                                 positiveAxisTableSources[dim].add(sourceConcept)
                             dimDomRels = val.modelXbrl.relationshipSet(
-                                 XbrlConst.dimensionDomain, domELR).fromModelObject(dim)   
+                                 XbrlConst.dimensionDomain, domELR).fromModelObject(dim)
                             checkSBRNLMembers(val, hc, dim, domELR, dimDomRels, ELR, True)
                             for dimDomRel in dimDomRels:
                                 dom = dimDomRel.toModelObject
                                 if isinstance(dom, ModelConcept):
                                     domainsInLinkrole[domELR].add(dom) # this is the elr containing the HC-dim relations
-                    
+
         # check for primary item dimension-member graph undirected cycles
         fromRelationships = domainMemberRelationshipSet.fromModelObjects()
         for relFrom, rels in fromRelationships.items():
@@ -83,16 +83,16 @@ def checkFilingDimensions(val, drsELRs):
                 fromMbr = rel.fromModelObject
                 toMbr = rel.toModelObject
                 toELR = rel.targetRole
-                    
+
     # check hypercubes for unique set of members
     for hc in hypercubes:
         for priHcRel in val.modelXbrl.relationshipSet(XbrlConst.all).toModelObject(hc):
             priItem = priHcRel.fromModelObject
             ELR = priHcRel.linkrole
-            checkSBRNLMembers(val, hc, priItem, ELR, 
-                              val.modelXbrl.relationshipSet(XbrlConst.domainMember, ELR).fromModelObject(priItem), 
+            checkSBRNLMembers(val, hc, priItem, ELR,
+                              val.modelXbrl.relationshipSet(XbrlConst.domainMember, ELR).fromModelObject(priItem),
                               ELR, False)
-            if priHcRel.contextElement == 'segment':  
+            if priHcRel.contextElement == 'segment':
                 val.modelXbrl.error("SBR.NL.2.3.5.06",
                     _("hypercube %(hypercube)s in segment not allowed, ELR role %(linkrole)s"),
                     modelObject=priHcRel, linkrole=ELR, hypercube=hc.qname)
@@ -116,8 +116,8 @@ def checkFilingDimensions(val, drsELRs):
                         modelRel.fromModelObject not in domains and modelRel.toModelObject not in domains):
                         val.modelXbrl.error("SBR.NL.2.2.3.05",
                             _("ELR role %(linkrole)s, has hypercube %(hypercube)s and a %(arcrole)s relationship not involving the hypercube or primary domain, from %(fromConcept)s to %(toConcept)s"),
-                            modelObject=modelRel, linkrole=ELR, hypercube=hc.qname, arcrole=os.path.basename(modelRel.arcrole), 
-                            fromConcept=modelRel.fromModelObject.qname, 
+                            modelObject=modelRel, linkrole=ELR, hypercube=hc.qname, arcrole=os.path.basename(modelRel.arcrole),
+                            fromConcept=modelRel.fromModelObject.qname,
                             toConcept=(modelRel.toModelObject.qname if isinstance(modelRel.toModelObject, ModelConcept) else "unknown"))
     domainsInLinkrole = defaultdict(set)
     dimDomMemsByLinkrole = defaultdict(set)
@@ -208,13 +208,13 @@ def checkFilingDimensions(val, drsELRs):
             dims = frozenset(mutableDims)
             if dims not in hcELRdimSets:
                 hcELRdimSets[dims] = ELR
-            else: 
+            else:
                 val.modelXbrl.error("SBR.NL.2.3.5.02",
                     _("Hypercube %(hypercube)s has same dimensions in ELR roles %(linkrole)s and %(linkrole2)s: %(dimensions)s"),
                     modelObject=hc, hypercube=hc.qname, linkrole=ELR, linkrole2=hcELRdimSets[dims],
                     dimensions=", ".join([str(dim.qname) for dim in dims]))
     del hypercubeDRSDimensions # dereference
-                        
+
 def getDrsRels(val, fromELR, rels, drsELR, drsRelsFrom, drsRelsTo, fromConcepts=None):
     if not fromConcepts: fromConcepts = set()
     for rel in rels:
@@ -224,14 +224,14 @@ def getDrsRels(val, fromELR, rels, drsELR, drsRelsFrom, drsRelsTo, fromConcepts=
             drsRelsTo[relTo].append(rel)
             toELR = rel.targetRole
             if not toELR: toELR = fromELR
-            if relTo not in fromConcepts: 
+            if relTo not in fromConcepts:
                 fromConcepts.add(relTo)
                 domMbrRels = val.modelXbrl.relationshipSet(
                          XbrlConst.domainMember, toELR).fromModelObject(relTo)
                 getDrsRels(val, toELR, domMbrRels, drsELR, drsRelsFrom, drsRelsTo, fromConcepts)
                 fromConcepts.discard(relTo)
-    return False        
-    
+    return False
+
 def undirectedFwdCycle(val, fromELR, rels, drsELR, drsRelsFrom, drsRelsTo, fromConceptELRs, ELRsVisited=None):
     if not ELRsVisited: ELRsVisited = set()
     ELRsVisited.add(fromELR)
@@ -301,12 +301,12 @@ def cyclePath(source, cycles):
         if isinstance(rel,bool):
             isForward = rel
         else:
-            path.append("{0}:{1} {2}".format(rel.modelDocument.basename, 
-                                             rel.sourceline, 
+            path.append("{0}:{1} {2}".format(rel.modelDocument.basename,
+                                             rel.sourceline,
                                              rel.toModelObject.qname if isForward else rel.fromModelObject.qname))
-    return str(source.qname) + " " + " - ".join(path)            
-                
-def commonAncestor(domainMemberRelationshipSet, 
+    return str(source.qname) + " " + " - ".join(path)
+
+def commonAncestor(domainMemberRelationshipSet,
                    negSourceConcept, posSourceConcepts):
     negAncestors = ancestorOrSelf(domainMemberRelationshipSet,negSourceConcept)
     for posSourceConcept in posSourceConcepts:
@@ -322,7 +322,7 @@ def ancestorOrSelf(domainMemberRelationshipSet,sourceConcept,result=None):
         for rels in domainMemberRelationshipSet.toModelObject(sourceConcept):
             ancestorOrSelf(domainMemberRelationshipSet, rels.fromModelObject, result)
     return result
-        
+
 def checkSBRNLMembers(val, hc, dim, domELR, rels, ELR, isDomMbr, members=None, ancestors=None):
     if members is None: members = set()
     if ancestors is None: ancestors = set()
@@ -331,7 +331,7 @@ def checkSBRNLMembers(val, hc, dim, domELR, rels, ELR, isDomMbr, members=None, a
         relTo = rel.toModelObject
         if isinstance(relFrom, ModelConcept) and isinstance(relTo, ModelConcept):
             toELR = (rel.targetRole or rel.linkrole)
-            
+
             if isDomMbr or not relTo.isAbstract:
                 if relTo in members:
                     val.modelXbrl.relationshipSet(XbrlConst.all).toModelObject(hc)
@@ -339,23 +339,23 @@ def checkSBRNLMembers(val, hc, dim, domELR, rels, ELR, isDomMbr, members=None, a
                         pass # removed by RH, now checking dom/mem usable set in entirety for 2.3.6.02 above
                         #val.modelXbrl.error("SBR.NL.2.3.6.02",
                         #    _("Dimension %(dimension)s in DRS role %(linkrole)s for hypercube %(hypercube)s, non-unique member %(concept)s"),
-                        #    modelObject=relTo, dimension=dim.qname, linkrole=ELR, hypercube=hc.qname, concept=relTo.qname) 
+                        #    modelObject=relTo, dimension=dim.qname, linkrole=ELR, hypercube=hc.qname, concept=relTo.qname)
                     else:
                         val.modelXbrl.error("SBR.NL.2.3.5.01",
                             _("Primary items for hypercube %(hypercube)s ELR %(ELR)s, have non-unique (inheritance) member %(concept)s in DRS role %(linkrole)s"),
                             modelObject=relTo, hypercube=hc.qname, ELR=domELR, concept=relTo.qname, linkrole=ELR)
                 members.add(relTo)
             if not isDomMbr: # pri item relationships
-                if (relTo.isAbstract and not relFrom.isAbstract or 
+                if (relTo.isAbstract and not relFrom.isAbstract or
                     relFrom.substitutionGroupQname.localName != "primaryDomainItem"):
                     val.modelXbrl.error("SBR.NL.2.3.7.01",
                         _("Primary item %(concept)s in DRS role %(linkrole)s for hypercube %(hypercube)s, has parent %(concept2)s which is not a primaryDomainItem"),
                         modelObject=rel, concept=relTo.qname, linkrole=ELR, hypercube=hc.qname, concept2=relFrom.qname)
-            if relTo not in ancestors: 
+            if relTo not in ancestors:
                 ancestors.add(relTo)
                 domMbrRels = val.modelXbrl.relationshipSet(
                          XbrlConst.domainMember, toELR).fromModelObject(relTo)
                 checkSBRNLMembers(val, hc, dim, domELR, domMbrRels, ELR, isDomMbr, members, ancestors)
                 ancestors.discard(relTo)
-    return False        
-    
+    return False
+

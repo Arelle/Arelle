@@ -50,9 +50,9 @@ class ViewTree:
             self.treeView.bind("<Motion>", self.motion, '+')
             self.treeView.bind("<Leave>", self.leave, '+')
             self.toolTipText = StringVar()
-            self.toolTip = ToolTip(self.treeView, 
-                                   textvariable=self.toolTipText, 
-                                   wraplength=480, 
+            self.toolTip = ToolTip(self.treeView,
+                                   textvariable=self.toolTipText,
+                                   wraplength=480,
                                    follow_mouse=True,
                                    state="disabled")
             self.toolTipColId = None
@@ -63,14 +63,14 @@ class ViewTree:
         self.nameIsPrefixed = False
         if modelXbrl:
             modelXbrl.views.append(self)
-            if not lang: 
+            if not lang:
                 self.lang = modelXbrl.modelManager.defaultLang
-                
+
     def clearTreeView(self):
         self.treeViewSelection = ()
         for node in self.treeView.get_children():
             self.treeView.delete(node)
-                
+
     def viewSelectionChange(self, event=None):
         for node in self.treeViewSelection:
             if self.treeView.exists(node):
@@ -84,7 +84,7 @@ class ViewTree:
             priorTags = self.treeView.item(node)["tags"]
             if priorTags:
                 self.treeView.item(node, tags=("selected-" + priorTags[0],))
-            
+
     def onViewClick(self, *args):
         self.modelXbrl.modelManager.cntlr.currentView = self
 
@@ -95,10 +95,10 @@ class ViewTree:
             self.modelXbrl.views.remove(self)
             self.modelXbrl = None
             self.view = None
-                
+
     def select(self):
         self.tabWin.select(self.viewFrame)
-        
+
     def leave(self, *args):
         self.toolTipColId = None
         self.toolTipRowId = None
@@ -122,10 +122,10 @@ class ViewTree:
                 except ValueError:
                     pass
             self.setToolTip(newValue, tvColId)
-            
+
     def getToolTip(self, rowId, colId):
         return None
-                
+
     def setToolTip(self, text, colId="#0"):
         self.toolTip._hide()
         if isinstance(text,str) and len(text) > 0:
@@ -161,32 +161,32 @@ class ViewTree:
             self.menuRow = self.treeView.identify_row(event.y)
             self.menuCol = self.treeView.identify_column(event.x)
             self.menu.post( event.x_root, event.y_root )
-        
+
     def expand(self):
         self.setTreeItemOpen(self.menuRow,open=True)
-        
+
     def expandAll(self):
         self.setTreeItemOpen("",open=True)
-        
+
     def collapse(self):
         self.setTreeItemOpen(self.menuRow,open=False)
-        
+
     def collapseAll(self):
         self.setTreeItemOpen("",open=False)
-        
+
     def setTreeItemOpen(self, node, open=True):
         if node:
             self.treeView.item(node, open=open)
         for childNode in self.treeView.get_children(node):
             self.setTreeItemOpen(childNode, open)
-            
+
     def menuAddExpandCollapse(self):
         if self.menu:
             self.menu.add_command(label=_("Expand"), underline=0, command=self.expand)
             self.menu.add_command(label=_("Collapse"), underline=0, command=self.collapse)
             self.menu.add_command(label=_("Expand all"), underline=0, command=self.expandAll)
             self.menu.add_command(label=_("Collapse all"), underline=0, command=self.collapseAll)
-        
+
     def menuAddClipboard(self):
         if self.menu and self.modelXbrl.modelManager.cntlr.hasClipboard:
             try:
@@ -200,7 +200,7 @@ class ViewTree:
                                     _("Exception creating clipboard menu in %(title)s: %(error)s"),
                                     modelObject=self.modelXbrl.modelDocument, title=self.tabTitle, error=str(ex))
                 self.menu = None
-        
+
     def menuAddLangs(self):
         if self.menu:
             try:
@@ -276,7 +276,7 @@ class ViewTree:
                                     _("Exception creating context add-views menu in %(title)s: %(error)s"),
                                     modelObject=self.modelXbrl.modelDocument, title=self.tabTitle, error=str(ex))
                 self.menu = None
-    
+
     def newView(self, arcrole, tabWin):
         if arcrole in ("!CustomRoleTypes!", "!CustomArcroleTypes!"):
             from arelle import ViewWinRoleTypes
@@ -284,34 +284,34 @@ class ViewTree:
         else:
             from arelle import ViewWinRelationshipSet
             ViewWinRelationshipSet.viewRelationshipSet(self.modelXbrl, tabWin, arcrole, lang=self.lang)
-            
+
     def newArcroleGroupView(self, tabWin):
         from arelle.DialogArcroleGroup import getArcroleGroup
         from arelle import ViewWinRelationshipSet
         arcroleGroup = getArcroleGroup(self.modelXbrl.modelManager.cntlr, self.modelXbrl)
-        if arcroleGroup: 
+        if arcroleGroup:
             ViewWinRelationshipSet.viewRelationshipSet(self.modelXbrl, tabWin, arcroleGroup, lang=self.lang)
-            
+
     def setLang(self, lang):
         self.lang = lang
         self.view()
-        
+
     def setLabelrole(self, labelrole):
         self.labelrole = labelrole
         self.view()
-        
+
     def setNamestyle(self, isPrefixed):
         self.nameIsPrefixed = isPrefixed
         self.view()
-        
+
     def setUnitDisplay(self, unitDisplayID=False):
         self.unitDisplayID = unitDisplayID
         self.view()
-        
+
     def setColumnsSortable(self, treeColIsInt=False, startUnsorted=False, initialSortCol="#0", initialSortDirForward=True):
         if hasattr(self, 'lastSortColumn') and self.lastSortColumn:
             self.treeView.heading(self.lastSortColumn, image=self.sortImages[2])
-        self.lastSortColumn = None if startUnsorted else initialSortCol 
+        self.lastSortColumn = None if startUnsorted else initialSortCol
         self.lastSortColumnForward = initialSortDirForward
         self.treeColIsInt = treeColIsInt
         if not hasattr(self, "sortImages"):
@@ -322,11 +322,11 @@ class ViewTree:
             self.treeView.heading(col, command=lambda c=col: self.sortColumn(c))
         if not startUnsorted:
             self.treeView.heading(initialSortCol, image=self.sortImages[not initialSortDirForward])
-            
+
     def colSortVal(self, node, col):
         if col == "#0":
             treeColVal = self.treeView.item(node)["text"]
-            if self.treeColIsInt: 
+            if self.treeColIsInt:
                 return int(treeColVal)
         else:
             treeColVal = self.treeView.set(node, col)
@@ -336,18 +336,18 @@ class ViewTree:
                 except:
                     return 0
         return treeColVal
-    
+
     def sortNestedRows(self, parentNode, col, reverse):
         l = [(self.colSortVal(node, col), node) for node in self.treeView.get_children(parentNode)]
         l.sort(reverse=reverse)
-        # rearrange items in sorted positions     
-        for i, (cell, node) in enumerate(l):         
+        # rearrange items in sorted positions
+        for i, (cell, node) in enumerate(l):
             self.treeView.move(node, parentNode, i)
         # reset even/odd tags
         for i, node in enumerate(self.treeView.get_children(parentNode)):
             self.treeView.item(node, tags=('even' if i & 1 else 'odd',))
             self.sortNestedRows(node, col, reverse)
-                    
+
     def sortColumn(self, col):
         if col == self.lastSortColumn:
             reverse = self.lastSortColumnForward
@@ -361,16 +361,16 @@ class ViewTree:
         self.treeView.heading(col, image=self.sortImages[reverse])
         self.sortNestedRows('', col, reverse)
         self.viewSelectionChange()  # reselect selected rows
-        
+
     def copyCellToClipboard(self, *ignore):
         self.modelXbrl.modelManager.cntlr.clipboardData(
             text=self.treeView.item(self.menuRow)['text'] if self.menuCol == '#0' else self.treeView.set(self.menuRow,self.menuCol))
-        
+
     def copyRowToClipboard(self, *ignore):
         self.modelXbrl.modelManager.cntlr.clipboardData(
             text='\t'.join([self.treeView.item(self.menuRow)['text']] +
                            [self.treeView.set(self.menuRow,c) for c in self.treeView['columns']]))
-        
+
     def copyTableToClipboard(self, *ignore):
         cols = self.treeView['columns']
         lines = ['\t'.join([self.treeView.heading('#0')['text']] +
@@ -378,7 +378,7 @@ class ViewTree:
         self.tabLines('', '', cols, lines)
         self.modelXbrl.modelManager.cntlr.clipboardData(text='\n'.join(lines))
 
-    def tabLines(self, parentNode, indent, cols, lines): 
+    def tabLines(self, parentNode, indent, cols, lines):
         for node in self.treeView.get_children(parentNode):
             lines.append('\t'.join('"{}"'.format(c.replace('"','""')) if (isinstance(c, str) and "\n" in c) else c
                                    for c in ([indent + self.treeView.item(node)['text']] +

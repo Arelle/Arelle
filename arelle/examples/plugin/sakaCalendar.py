@@ -35,26 +35,26 @@ class SakaCalendar:
     # The only practical difference from a Gregorian calendar is that years
     #are numbered since the Saka Era.  A couple of overrides will
     #take care of that....
-    # Starts in 78 AD, 
+    # Starts in 78 AD,
     INDIAN_ERA_START = 78
     # The Indian year starts 80 days later than the Gregorian year.
     INDIAN_YEAR_START = 80
-    def get_month_length(self, extendedYear,  month): 
+    def get_month_length(self, extendedYear,  month):
         if  month < 0  or  month > 11:
             extendedYear += month/12 # floorDivide(month, 12, remainder)
             month =  month%12
         if self.is_gregorian_leap(extendedYear + self.INDIAN_ERA_START) and month == 0:
             return 31
-        if month >= 1 and  month <=5 : 
+        if month >= 1 and  month <=5 :
             return 31
         return 30
-    
-    
+
+
     """
      This routine converts an Indian date to the corresponding Julian date
      @param year   The year in Saka Era according to Indian calendar.
      @param month  The month according to Indian calendar (between 1 to 12)
-     @param date   The date in month 
+     @param date   The date in month
     """
     def saka_to_julian_date(self,year,month, date):
         gyear = year + self.INDIAN_ERA_START
@@ -64,7 +64,7 @@ class SakaCalendar:
         else :
             leapMonth = 30
             start = self.gregorian_to_julian_date(gyear, 3, 22)
-        if month == 1  : 
+        if month == 1  :
             jd = start + (date - 1)
         else:
             jd = start + leapMonth
@@ -76,14 +76,14 @@ class SakaCalendar:
                 jd += m * 30
             jd += date - 1
         return jd
-    
+
 
     """
       The following function is not needed for basic calendar functioning.
       This routine converts a gregorian date to the corresponding Julian date"
       @param year   The year in standard Gregorian calendar (AD/BC) .
       @param month  The month according to Gregorian calendar (between 0 to 11)
-      @param date   The date in month 
+      @param date   The date in month
     """
     def gregorian_to_julian_date(self, year, month, date) :
         jd = ((self.JULIAN_EPOCH - 1) +
@@ -94,7 +94,7 @@ class SakaCalendar:
             math.floor((((367 * month) - 362) / 12) +
             ( 0 if (month <= 2) else -1 if self.is_gregorian_leap(year) else -2) ) +
             date)
-            
+
         return jd
 
 
@@ -118,7 +118,7 @@ class SakaCalendar:
         if  not ((cent == 4)  or (yindex == 4)) :
             year+=1
         yearday = wjd - self.gregorian_to_julian_date(year, 1, 1)
-        leapadj = ( 0 if (wjd < self.gregorian_to_julian_date(year, 3, 1)) else  1 if self.is_gregorian_leap(year) else 2) 
+        leapadj = ( 0 if (wjd < self.gregorian_to_julian_date(year, 3, 1)) else  1 if self.is_gregorian_leap(year) else 2)
         month = int(math.floor((((yearday + leapadj) * 12) + 373) / 367))
         day = int((wjd - self.gregorian_to_julian_date(year, month, 1)) + 1)
         julianDate[0] = year
@@ -161,12 +161,12 @@ class SakaCalendar:
                 mday -= 31 * 5
                 IndianMonth = int(math.floor(mday / 30)) + 6
                 IndianDayOfMonth = (mday % 30) + 1
-            
+
         #Month is 0 based.converting it to 1 based
         if  IndianMonth == 12  :
             IndianMonth = 1
         else :
-            IndianMonth = IndianMonth +1  
+            IndianMonth = IndianMonth +1
         indDate[0]=IndianYear
         indDate[1]=IndianMonth
         indDate[2]=IndianDayOfMonth
@@ -175,17 +175,17 @@ class SakaCalendar:
         return self.SAKA_MONTH_NAMES[month_index-1]
     def get_week_name(self, week_index)  :
         return self.SAKA_WEEK_NAMES[week_index-1]
-    
+
 # Arelle modifications follow this comment.  They do not modify the behavior of the original module.
 
 def gregorianToSaka(gregorianDateArray):
-    if (not isinstance(gregorianDateArray, (tuple,list)) or 
+    if (not isinstance(gregorianDateArray, (tuple,list)) or
         len(gregorianDateArray) != 3):
         raise ValueError("sakaCalendar:Invalid argument, must be tuple or list of yr,mo,day: {}".format(gregorianDateArray))
     return SakaCalendar().gregorian_to_saka_date(gregorianDateArray)
 
 def sakaToGregorian(sakaDateArray):
-    if (not isinstance(sakaDateArray, (tuple,list)) or 
+    if (not isinstance(sakaDateArray, (tuple,list)) or
         len(sakaDateArray) != 3):
         raise ValueError("sakaCalendar:Invalid argument, must be tuple or list of yr,mo,day: {}".format(sakaDateArray))
     sakaCal = SakaCalendar()
@@ -193,7 +193,7 @@ def sakaToGregorian(sakaDateArray):
     sakaMo = sakaDateArray[1]
     sakaDay = sakaDateArray[2]
     # validate date
-    if (not isinstance(sakaDateArray, (tuple,list)) or 
+    if (not isinstance(sakaDateArray, (tuple,list)) or
         len(sakaDateArray) != 3 or
         not 1 <= sakaYr <= 9999 or
         not 1 <= sakaMo <= 12 or
@@ -201,7 +201,7 @@ def sakaToGregorian(sakaDateArray):
         raise ValueError("sakaCalendar:InvalidDate: {} {} {}".format(sakaYr, sakaMo, sakaDay))
     # convert to gregorian calendar
     return sakaCal.julian_date_to_gregorian(sakaCal.saka_to_julian_date(sakaYr, sakaMo, sakaDay))
-    
+
 __pluginInfo__ = {
     'name': 'Saka Calendar',
     'version': '1.0',

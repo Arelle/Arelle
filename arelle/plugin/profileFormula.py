@@ -8,8 +8,8 @@ from tkinter import simpledialog, messagebox
 
 def profileFormulaMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the profile formula plugin
-    menu.add_command(label="Profile formula validation", 
-                     underline=0, 
+    menu.add_command(label="Profile formula validation",
+                     underline=0,
                      command=lambda: profileFormulaMenuCommand(cntlr) )
 
 def profileFormulaMenuCommand(cntlr):
@@ -39,17 +39,17 @@ def profileFormulaMenuCommand(cntlr):
                 break
             except ValueError as err:
                 errMsg = str(err) + "\n\n"
-                
+
     excludeCompileTime = messagebox.askyesno(_("arelle - Exclude formula compile statistics"),
                 _("Should formula compiling be excluded from the statistics?\n"
                   "(Yes will make a separate compiling \"pass\" so that statistics include execution only.)".format(errMsg)),
                 parent=cntlr.parent)
-            
+
     cntlr.config["formulaProfileReportDir"] = os.path.dirname(profileReportFile)
     cntlr.saveConfig()
 
     # perform validation and profiling on background thread
-    import threading    
+    import threading
     thread = threading.Thread(target=lambda c=cntlr, f=profileReportFile, t=maxRunTime, e=excludeCompileTime: backgroundProfileFormula(c,f,t,e))
     thread.daemon = True
     thread.start()
@@ -59,12 +59,12 @@ def backgroundProfileFormula(cntlr, profileReportFile, maxRunTime, excludeCompil
 
     # build grammar before profiling (if this is the first pass, so it doesn't count in profile statistics)
     XPathParser.initializeParser(cntlr.modelManager)
-    
+
     # load dimension defaults
     ValidateXbrlDimensions.loadDimensionDefaults(cntlr.modelManager)
-    
+
     import cProfile, pstats, sys, time
-    
+
     # a minimal validation class for formula validator parameters that are needed
     class Validate:
         def __init__(self, modelXbrl, maxRunTime):
@@ -74,7 +74,7 @@ def backgroundProfileFormula(cntlr, profileReportFile, maxRunTime, excludeCompil
             self.maxFormulaRunTime = maxRunTime
         def close(self):
             self.__dict__.clear()
-            
+
     val = Validate(cntlr.modelManager.modelXbrl, maxRunTime)
     formulaOptions = val.modelXbrl.modelManager.formulaOptions
     if excludeCompileTime:
@@ -83,22 +83,22 @@ def backgroundProfileFormula(cntlr, profileReportFile, maxRunTime, excludeCompil
         val.validateFormulaCompileOnly = True
         ValidateFormula.validate(val)
         del val.validateFormulaCompileOnly
-        cntlr.addToLog(Locale.format_string(cntlr.modelManager.locale, 
-                                            _("formula pre-compiling completed in %.2f secs"), 
+        cntlr.addToLog(Locale.format_string(cntlr.modelManager.locale,
+                                            _("formula pre-compiling completed in %.2f secs"),
                                             time.time() - startedAt))
         cntlr.addToLog(_("executing formulas for profiling"))
     else:
         cntlr.addToLog(_("compiling and executing formulas for profiling"))
     startedAt = time.time()
-            
+
     statsFile = profileReportFile + ".bin"
     cProfile.runctx("ValidateFormula.validate(val)", globals(), locals(), statsFile)
-    cntlr.addToLog(Locale.format_string(cntlr.modelManager.locale, 
-                                        _("formula profiling completed in %.2f secs"), 
+    cntlr.addToLog(Locale.format_string(cntlr.modelManager.locale,
+                                        _("formula profiling completed in %.2f secs"),
                                         time.time() - startedAt))
     # dereference val
     val.close()
-    
+
     # specify a file for log
     priorStdOut = sys.stdout
     sys.stdout = open(profileReportFile, "w")

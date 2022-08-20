@@ -12,8 +12,8 @@ from arelle import PythonUtil # define 2.x or 3.x string types
 import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging, platform
 from optparse import OptionParser, SUPPRESS_HELP
 import re
-from arelle import (Cntlr, FileSource, ModelDocument, RenderingEvaluator, XmlUtil, XbrlConst, Version, 
-                    ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts, 
+from arelle import (Cntlr, FileSource, ModelDocument, RenderingEvaluator, XmlUtil, XbrlConst, Version,
+                    ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts,
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
                     ViewFileRoleTypes,
                     ModelManager)
@@ -33,7 +33,7 @@ PROCESS_QUERY_INFORMATION = 0x400
 def main():
     """Main program to initiate application from command line or as a separate process (e.g, java Runtime.getRuntime().exec).  May perform
     a command line request, or initiate a web server on specified local port.
-       
+
        :param argv: Command line arguments.  (Currently supported arguments can be displayed by the parameter *--help*.)
        :type message: [str]
        """
@@ -42,13 +42,13 @@ def main():
         args = shlex.split(envArgs)
     else:
         args = sys.argv[1:]
-        
+
     gettext.install("arelle") # needed for options messages
     parseAndRun(args)
-    
+
 def wsgiApplication(extraArgs=[]): # for example call wsgiApplication(["--plugins=EdgarRenderer"])
     return parseAndRun( ["--webserver=::wsgi"] + extraArgs )
-       
+
 def parseAndRun(args):
     """interface used by Main program and py.test (arelle_test.py)
     """
@@ -68,8 +68,8 @@ def parseAndRun(args):
             break
 
     usage = "usage: %prog [options]"
-    
-    parser = OptionParser(usage, 
+
+    parser = OptionParser(usage,
                           version="Arelle(r) {0} ({1}bit)".format(Version.__version__, cntlr.systemWordSize),
                           conflict_handler="resolve") # allow reloading plug-in options without errors
     parser.add_option("-f", "--file", dest="entrypointFile",
@@ -137,7 +137,7 @@ def parseAndRun(args):
                       help=_("Language for labels in following file options (override system settings)"))
     parser.add_option("--labellang", action="store", dest="labelLang", help=SUPPRESS_HELP)
     parser.add_option("--disableRtl", action="store_true", dest="disableRtl", default=False,
-                       help=_("Flag to disable reversing string read order for right to left languages, useful for some locale settings")) 
+                       help=_("Flag to disable reversing string read order for right to left languages, useful for some locale settings"))
     parser.add_option("--labelRole", action="store", dest="labelRole",
                       help=_("Label role for labels in following file options (instead of standard label)"))
     parser.add_option("--labelrole", action="store", dest="labelRole", help=SUPPRESS_HELP)
@@ -199,18 +199,18 @@ def parseAndRun(args):
                       help=_("Skip loading discovered or schemaLocated files matching pattern (unix-style file name patterns separated by '|'), useful when not all linkbases are needed."))
     parser.add_option("--skiploading", action="store", dest="skipLoading", help=SUPPRESS_HELP)
     parser.add_option("--logFile", action="store", dest="logFile",
-                      help=_("Write log messages into file, otherwise they go to standard output.  " 
+                      help=_("Write log messages into file, otherwise they go to standard output.  "
                              "If file ends in .xml it is xml-formatted, otherwise it is text. "))
     parser.add_option("--logfile", action="store", dest="logFile", help=SUPPRESS_HELP)
     parser.add_option("--logFormat", action="store", dest="logFormat",
                       help=_("Logging format for messages capture, otherwise default is \"[%(messageCode)s] %(message)s - %(file)s\"."))
     parser.add_option("--logformat", action="store", dest="logFormat", help=SUPPRESS_HELP)
     parser.add_option("--logLevel", action="store", dest="logLevel",
-                      help=_("Minimum level for messages capture, otherwise the message is ignored.  " 
+                      help=_("Minimum level for messages capture, otherwise the message is ignored.  "
                              "Current order of levels are debug, info, info-semantic, warning, warning-semantic, warning, assertion-satisfied, inconsistency, error-semantic, assertion-not-satisfied, and error. "))
     parser.add_option("--loglevel", action="store", dest="logLevel", help=SUPPRESS_HELP)
     parser.add_option("--logLevelFilter", action="store", dest="logLevelFilter",
-                      help=_("Regular expression filter for logLevel.  " 
+                      help=_("Regular expression filter for logLevel.  "
                              "(E.g., to not match *-semantic levels, logLevelFilter=(?!^.*-semantic$)(.+). "))
     parser.add_option("--loglevelfilter", action="store", dest="logLevelFilter", help=SUPPRESS_HELP)
     parser.add_option("--logCodeFilter", action="store", dest="logCodeFilter",
@@ -219,10 +219,10 @@ def parseAndRun(args):
     parser.add_option("--logTextMaxLength", action="store", dest="logTextMaxLength", type="int",
                       help=_("Log file text field max length override."))
     parser.add_option("--logtextmaxlength", action="store", dest="logTextMaxLength", type="int", help=SUPPRESS_HELP)
-    parser.add_option("--logRefObjectProperties", action="store_true", dest="logRefObjectProperties", 
+    parser.add_option("--logRefObjectProperties", action="store_true", dest="logRefObjectProperties",
                       help=_("Log reference object properties (default)."), default=True)
     parser.add_option("--logrefobjectproperties", action="store_true", dest="logRefObjectProperties", help=SUPPRESS_HELP)
-    parser.add_option("--logNoRefObjectProperties", action="store_false", dest="logRefObjectProperties", 
+    parser.add_option("--logNoRefObjectProperties", action="store_false", dest="logRefObjectProperties",
                       help=_("Do not log reference object properties."))
     parser.add_option("--lognorefobjectproperties", action="store_false", dest="logRefObjectProperties", help=SUPPRESS_HELP)
     parser.add_option("--statusPipe", action="store", dest="statusPipe", help=SUPPRESS_HELP)
@@ -233,7 +233,7 @@ def parseAndRun(args):
     parser.add_option("--parameters", action="store", dest="parameters", help=_("Specify parameters for formula and validation (name=value[,name=value])."))
     parser.add_option("--parameterSeparator", action="store", dest="parameterSeparator", help=_("Specify parameters separator string (if other than comma)."))
     parser.add_option("--parameterseparator", action="store", dest="parameterSeparator", help=SUPPRESS_HELP)
-    parser.add_option("--formula", choices=("validate", "run", "none"), dest="formulaAction", 
+    parser.add_option("--formula", choices=("validate", "run", "none"), dest="formulaAction",
                       help=_("Specify formula action: "
                              "validate - validate only, without running, "
                              "run - validate and run, or "
@@ -296,33 +296,33 @@ def parseAndRun(args):
                       help=_("Language for user interface (override system settings, such as program messages).  Does not save setting."))
     parser.add_option("--uilang", action="store", dest="uiLang", help=SUPPRESS_HELP)
     parser.add_option("--proxy", action="store", dest="proxy",
-                      help=_("Modify and re-save proxy settings configuration.  " 
+                      help=_("Modify and re-save proxy settings configuration.  "
                              "Enter 'system' to use system proxy setting, 'none' to use no proxy, "
                              "'http://[user[:password]@]host[:port]' "
                              " (e.g., http://192.168.1.253, http://example.com:8080, http://joe:secret@example.com:8080), "
                              " or 'show' to show current setting, ." ))
-    parser.add_option("--internetConnectivity", choices=("online", "offline"), dest="internetConnectivity", 
+    parser.add_option("--internetConnectivity", choices=("online", "offline"), dest="internetConnectivity",
                       help=_("Specify internet connectivity: online or offline"))
     parser.add_option("--internetconnectivity", action="store", dest="internetConnectivity", help=SUPPRESS_HELP)
-    parser.add_option("--internetTimeout", type="int", dest="internetTimeout", 
+    parser.add_option("--internetTimeout", type="int", dest="internetTimeout",
                       help=_("Specify internet connection timeout in seconds (0 means unlimited)."))
     parser.add_option("--internettimeout", type="int", action="store", dest="internetTimeout", help=SUPPRESS_HELP)
-    parser.add_option("--internetRecheck", choices=("weekly", "daily", "never", "hourly", "quarter-hourly"), action="store", dest="internetRecheck", 
+    parser.add_option("--internetRecheck", choices=("weekly", "daily", "never", "hourly", "quarter-hourly"), action="store", dest="internetRecheck",
                       help=_("Specify rechecking for newer cache files 'daily', 'weekly', 'monthly' or 'never' ('weekly' is default)"))
     parser.add_option("--internetrecheck", choices=("weekly", "daily", "never"), action="store", dest="internetRecheck", help=SUPPRESS_HELP)
-    parser.add_option("--internetLogDownloads", action="store_true", dest="internetLogDownloads", 
+    parser.add_option("--internetLogDownloads", action="store_true", dest="internetLogDownloads",
                       help=_("Log info message for downloads to web cache."))
     parser.add_option("--internetlogdownloads", action="store_true", dest="internetLogDownloads", help=SUPPRESS_HELP)
-    parser.add_option("--noCertificateCheck", action="store_true", dest="noCertificateCheck", 
+    parser.add_option("--noCertificateCheck", action="store_true", dest="noCertificateCheck",
                       help=_("Specify no checking of internet secure connection certificate"))
     parser.add_option("--nocertificatecheck", action="store_true", dest="noCertificateCheck", help=SUPPRESS_HELP)
     parser.add_option("--httpsRedirectCache", action="store_true", dest="httpsRedirectCache",
                       help=_("Treat http and https schemes interchangeably when looking up files from the webcache"))
     parser.add_option("--httpsredirectcache", action="store_true", dest="httpsRedirectCache", help=SUPPRESS_HELP)
-    parser.add_option("--httpUserAgent", action="store", dest="httpUserAgent", 
+    parser.add_option("--httpUserAgent", action="store", dest="httpUserAgent",
                       help=_("Specify non-standard http header User-Agent value"))
     parser.add_option("--httpuseragent", action="store", dest="httpUserAgent", help=SUPPRESS_HELP)
-    parser.add_option("--xdgConfigHome", action="store", dest="xdgConfigHome", 
+    parser.add_option("--xdgConfigHome", action="store", dest="xdgConfigHome",
                       help=_("Specify non-standard location for configuration and cache files (overrides environment parameter XDG_CONFIG_HOME)."))
     parser.add_option("--plugins", action="store", dest="plugins",
                       help=_("Specify plug-in configuration for this invocation.  "
@@ -382,7 +382,7 @@ def parseAndRun(args):
     parser.add_option("-a", "--about",
                       action="store_true", dest="about",
                       help=_("Show product version, copyright, and license."))
-    
+
     if not args and cntlr.isGAE:
         args = ["--webserver=::gae"]
     elif cntlr.isCGI:
@@ -410,7 +410,7 @@ def parseAndRun(args):
                 arg = arg.replace(r'\"', '"')
             args.append(arg)
             priorArg = arg
-        
+
     (options, leftoverArgs) = parser.parse_args(args)
     if options.about:
         print(_("\narelle(r) {0} ({1}bit {6})\n\n"
@@ -443,7 +443,7 @@ def parseAndRun(args):
             print(text.encode("ascii", "replace").decode("ascii"))
     elif len(leftoverArgs) != 0 and (not hasWebServer or options.webserver is None):
         parser.error(_("unrecognized arguments: {}").format(', '.join(leftoverArgs)))
-    elif (options.entrypointFile is None and 
+    elif (options.entrypointFile is None and
           ((not options.proxy) and (not options.plugins) and
            (not any(pluginOption for pluginOption in parser.option_list[pluginOptionsIndex:pluginLastOptionIndex])) and
            (not hasWebServer or options.webserver is None))):
@@ -474,9 +474,9 @@ def parseAndRun(args):
                            logTextMaxLength=options.logTextMaxLength, # e.g., used by EdgarRenderer to require buffered logging
                            logRefObjectProperties=options.logRefObjectProperties)
         cntlr.run(options)
-        
+
         return cntlr
-    
+
 def filesourceEntrypointFiles(filesource, entrypointFiles=[]):
     if filesource.isArchive:
         if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
@@ -504,7 +504,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[]):
                     for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
                         pluginXbrlMethod(filesource, entrypointFiles) # group into IXDS if plugin feature is available
                 break # found inline (or non-inline) entrypoint files, don't look for any other type
-            
+
     elif os.path.isdir(filesource.url):
         del entrypointFiles[:] # clear list
         for _file in os.listdir(filesource.url):
@@ -512,7 +512,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[]):
             if os.path.isfile(_path) and ModelDocument.Type.identify(filesource, _path) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                 entrypointFiles.append({"file":_path})
     return entrypointFiles
-                            
+
 class ParserForDynamicPlugins:
     def __init__(self, options):
         self.options = options
@@ -521,28 +521,28 @@ class ParserForDynamicPlugins:
             _dest = kwargs['dest']
             if not hasattr(self.options, _dest):
                 setattr(self.options, _dest, kwargs.get('default',None))
-        
+
 class CntlrCmdLine(Cntlr.Cntlr):
     """
     .. class:: CntlrCmdLin()
-    
+
     Initialization sets up for platform via Cntlr.Cntlr.
     """
 
     def __init__(self, logFileName=None):
         super(CntlrCmdLine, self).__init__(hasGui=False)
         self.preloadedPlugins =  {}
-        
+
     def run(self, options, sourceZipStream=None, responseZipStream=None):
         """Process command line arguments or web service request, such as to load and validate an XBRL document, or start web server.
-        
+
         When a web server has been requested, this method may be called multiple times, once for each web service (REST) request that requires processing.
         Otherwise (when called for a command line request) this method is called only once for the command line arguments request.
-           
+
         :param options: OptionParser options from parse_args of main argv arguments (when called from command line) or corresponding arguments from web service (REST) request.
         :type options: optparse.Values
         """
-                
+
         if options.statusPipe or options.monitorParentProcess:
             try:
                 global win32file, win32api, win32process, pywintypes
@@ -552,7 +552,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 options.statusPipe = options.monitorParentProcess = None
         if options.statusPipe:
             try:
-                self.statusPipe = win32file.CreateFile("\\\\.\\pipe\\{}".format(options.statusPipe), 
+                self.statusPipe = win32file.CreateFile("\\\\.\\pipe\\{}".format(options.statusPipe),
                                                        win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None, win32file.OPEN_EXISTING, win32file.FILE_FLAG_NO_BUFFERING, None)
                 self.showStatus = self.showStatusOnPipe
                 self.lastStatusTime = 0.0
@@ -624,7 +624,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 elif cmd.startswith("+"):
                     moduleInfo = PluginManager.addPluginModule(cmd[1:])
                     if moduleInfo:
-                        self.addToLog(_("Addition of plug-in {0} successful.").format(moduleInfo.get("name")), 
+                        self.addToLog(_("Addition of plug-in {0} successful.").format(moduleInfo.get("name")),
                                       messageCode="info", file=moduleInfo.get("moduleURL"))
                         resetPlugins = True
                         if "CntlrCmdLine.Options" in moduleInfo["classMethods"]:
@@ -651,12 +651,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         moduleInfo = PluginManager.addPluginModule(cmd)
                         if moduleInfo:
                             resetPlugins = True
-                    if moduleInfo: 
-                        self.addToLog(_("Activation of plug-in {0} successful, version {1}.").format(moduleInfo.get("name"), moduleInfo.get("version")), 
+                    if moduleInfo:
+                        self.addToLog(_("Activation of plug-in {0} successful, version {1}.").format(moduleInfo.get("name"), moduleInfo.get("version")),
                                       messageCode="info", file=moduleInfo.get("moduleURL"))
                     else:
                         self.addToLog(_("Unable to load \"%(name)s\" as a plug-in or \"%(name)s\" is not recognized as a plugin command. "),
-                                      messageCode="arelle:pluginParameterError", 
+                                      messageCode="arelle:pluginParameterError",
                                       messageArgs={"name": cmd, "file": cmd}, level=logging.ERROR)
                 if resetPlugins:
                     PluginManager.reset()
@@ -689,7 +689,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 elif cmd.startswith("+"):
                     packageInfo = PackageManager.addPackage(self, cmd[1:], options.packageManifestName)
                     if packageInfo:
-                        self.addToLog(_("Addition of package {0} successful.").format(packageInfo.get("name")), 
+                        self.addToLog(_("Addition of package {0} successful.").format(packageInfo.get("name")),
                                       messageCode="info", file=packageInfo.get("URL"))
                     else:
                         self.addToLog(_("Unable to load package."), messageCode="info", file=cmd[1:])
@@ -707,12 +707,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     savePackagesChanges = False
                     packageInfo = PackageManager.addPackage(self, cmd, options.packageManifestName)
                     if packageInfo:
-                        self.addToLog(_("Activation of package {0} successful.").format(packageInfo.get("name")), 
+                        self.addToLog(_("Activation of package {0} successful.").format(packageInfo.get("name")),
                                       messageCode="info", file=packageInfo.get("URL"))
                         resetPlugins = True
                     else:
                         self.addToLog(_("Unable to load package \"%(name)s\". "),
-                                      messageCode="arelle:packageLoadingError", 
+                                      messageCode="arelle:packageLoadingError",
                                       messageArgs={"name": cmd, "file": cmd}, level=logging.ERROR)
             if PackageManager.packagesConfigChanged:
                 PackageManager.rebuildRemappings(self)
@@ -727,7 +727,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                   packageInfo.get("name"), packageInfo.get("version"), packageInfo.get("status"),
                                   packageInfo.get("fileDate"), packageInfo.get("description")),
                                   messageCode="info", file=packageInfo.get("URL"))
-                
+
         if options.showEnvironment:
             self.addToLog(_("Config directory: {0}").format(self.configDir))
             self.addToLog(_("Cache directory: {0}").format(self.userAppDir))
@@ -735,10 +735,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 if envVar in os.environ:
                     self.addToLog(_("XDG_CONFIG_HOME={0}").format(os.environ[envVar]))
             return True
-        
+
         self.modelManager.customTransforms = None # clear out prior custom transforms
         self.modelManager.loadCustomTransforms()
-        
+
         self.username = options.username
         self.password = options.password
         if options.disclosureSystemName:
@@ -758,13 +758,13 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.modelManager.validateDisclosureSystem = False
         if options.utrUrl:  # override disclosureSystem utrUrl
             self.modelManager.disclosureSystem.utrUrl = [options.utrUrl]
-            # can be set now because the utr is first loaded at validation time 
+            # can be set now because the utr is first loaded at validation time
         if options.skipDTS: # skip DTS loading, discovery, etc
             self.modelManager.skipDTS = True
         if options.skipLoading: # skip loading matching files (list of unix patterns)
             self.modelManager.skipLoading = re.compile(
                 '|'.join(fnmatch.translate(f) for f in options.skipLoading.split('|')))
-            
+
         # disclosure system sets logging filters, override disclosure filters, if specified by command line
         if options.logLevelFilter:
             self.setLogLevelFilter(options.logLevelFilter)
@@ -804,8 +804,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         fo = FormulaOptions()
         if options.parameters:
             parameterSeparator = (options.parameterSeparator or ',')
-            fo.parameterValues = dict(((qname(key, noPrefixIsNoNamespace=True),(None,value)) 
-                                       for param in options.parameters.split(parameterSeparator) 
+            fo.parameterValues = dict(((qname(key, noPrefixIsNoNamespace=True),(None,value))
+                                       for param in options.parameters.split(parameterSeparator)
                                        for key,sep,value in (param.partition('='),) ) )
         if options.formulaParamExprResult:
             fo.traceParameterExpressionResult = True
@@ -856,13 +856,13 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.testcaseResultOptions:
             fo.testcaseResultOptions = options.testcaseResultOptions
         if options.formulaRunIDs:
-            fo.runIDs = options.formulaRunIDs   
+            fo.runIDs = options.formulaRunIDs
         if options.formulaCompileOnly:
             fo.compileOnly = True
         if options.formulaAction:
             fo.formulaAction = options.formulaAction
         self.modelManager.formulaOptions = fo
-        
+
         # run utility command line options that don't depend on entrypoint Files
         hasUtilityPlugin = False
         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Utility.Run"):
@@ -871,7 +871,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 pluginXbrlMethod(self, options, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
             except SystemExit: # terminate operation, plug in has terminated all processing
                 return True # success
-            
+
         # if no entrypointFile is applicable, quit now
         if options.proxy or options.plugins or hasUtilityPlugin:
             if not (options.entrypointFile or sourceZipStream):
@@ -894,7 +894,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                   messageCode="FileNameFormatError",
                                   level=logging.ERROR)
                     success = False
-                else: # try as file names separated by '|'                    
+                else: # try as file names separated by '|'
                     for f in (_f or '').split('|'):
                         if not sourceZipStream and not isHttpUrl(f) and not os.path.isabs(f):
                             f = os.path.normpath(os.path.join(os.getcwd(), f)) # make absolute normed path
@@ -916,7 +916,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             if filesource and filesource.isArchive:
                 filesource.select(_entrypointFile)
             else:
-                filesource = FileSource.openFileSource(_entrypointFile, self, sourceZipStream)        
+                filesource = FileSource.openFileSource(_entrypointFile, self, sourceZipStream)
             self.entrypointFile = _entrypointFile
             timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
             firstStartedAt = startedAt = time.time()
@@ -937,9 +937,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
             if modelXbrl and modelXbrl.modelDocument:
                 loadTime = time.time() - startedAt
                 modelXbrl.profileStat(_("load"), loadTime)
-                self.addToLog(format_string(self.modelManager.locale, 
-                                            _("loaded in %.2f secs at %s"), 
-                                            (loadTime, timeNow)), 
+                self.addToLog(format_string(self.modelManager.locale,
+                                            _("loaded in %.2f secs at %s"),
+                                            (loadTime, timeNow)),
                                             messageCode="info", file=self.entrypointFile)
                 if modelXbrl.hasTableRendering:
                     RenderingEvaluator.init(modelXbrl)
@@ -950,9 +950,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             fileName = os.path.dirname(modelXbrl.uri) + os.sep + fileName # make relative to sourceZipStream
                         ModelDocument.load(modelXbrl, fileName, isSupplemental=True)
                         loadTime = time.time() - startedAt
-                        self.addToLog(format_string(self.modelManager.locale, 
-                                                    _("import in %.2f secs at %s"), 
-                                                    (loadTime, timeNow)), 
+                        self.addToLog(format_string(self.modelManager.locale,
+                                                    _("import in %.2f secs at %s"),
+                                                    (loadTime, timeNow)),
                                                     messageCode="info", file=importFile)
                         modelXbrl.profileStat(_("import"), loadTime)
                     if modelXbrl.errors:
@@ -977,17 +977,17 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     else:
                         loadTime = time.time() - startedAt
                         modelXbrl.profileStat(_("load"), loadTime)
-                        self.addToLog(format_string(self.modelManager.locale, 
-                                                    _("diff comparison DTS loaded in %.2f secs"), 
-                                                    loadTime), 
+                        self.addToLog(format_string(self.modelManager.locale,
+                                                    _("diff comparison DTS loaded in %.2f secs"),
+                                                    loadTime),
                                                     messageCode="info", file=self.entrypointFile)
                         startedAt = time.time()
                         modelDiffReport = self.modelManager.compareDTSes(options.versReportFile)
                         diffTime = time.time() - startedAt
                         modelXbrl.profileStat(_("diff"), diffTime)
-                        self.addToLog(format_string(self.modelManager.locale, 
-                                                    _("compared in %.2f secs"), 
-                                                    diffTime), 
+                        self.addToLog(format_string(self.modelManager.locale,
+                                                    _("compared in %.2f secs"),
+                                                    diffTime),
                                                     messageCode="info", file=self.entrypointFile)
                 except ModelDocument.LoadingException:
                     success = False
@@ -1011,8 +1011,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.modelManager.validate()
                         if options.formulaAction: # restore setting
                             modelXbrl.hasFormulae = hasFormulae
-                        self.addToLog(format_string(self.modelManager.locale, 
-                                                    _("validated in %.2f secs"), 
+                        self.addToLog(format_string(self.modelManager.locale,
+                                                    _("validated in %.2f secs"),
                                                     time.time() - startedAt),
                                                     messageCode="info", file=self.entrypointFile)
                     if (modelXbrl.modelDocument.type not in ModelDocument.Type.TESTCASETYPES and
@@ -1025,20 +1025,20 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         # setup fresh parameters from formula optoins
                         modelXbrl.parameters = fo.typedParameters(modelXbrl.prefixedNamespaces)
                         ValidateFormula.validate(modelXbrl, compileOnly=(options.formulaAction != "run"))
-                        self.addToLog(format_string(self.modelManager.locale, 
+                        self.addToLog(format_string(self.modelManager.locale,
                                                     _("formula validation and execution in %.2f secs")
                                                     if options.formulaAction == "run"
-                                                    else _("formula validation only in %.2f secs"), 
+                                                    else _("formula validation only in %.2f secs"),
                                                     time.time() - startedAt),
                                                     messageCode="info", file=self.entrypointFile)
-                        
-    
+
+
                     if options.testReport:
                         ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport, options.testReportCols)
-                        
+
                     if options.rssReport:
                         ViewFileRssFeed.viewRssFeed(self.modelManager.modelXbrl, options.rssReport, options.rssReportCols)
-                        
+
                     if options.DTSFile:
                         ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)
                     if options.factsFile:
@@ -1067,19 +1067,19 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=options.labelLang)
                     for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
                         pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
-                                            
+
                 except (IOError, EnvironmentError) as err:
                     self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err),
-                                  messageCode="IOError", 
-                                  file=options.entrypointFile, 
+                                  messageCode="IOError",
+                                  file=options.entrypointFile,
                                   level=logging.CRITICAL)
                     success = False
                 except Exception as err:
                     self.addToLog(_("[Exception] Failed to complete request: \n{0} \n{1}").format(
                                     err,
                                     traceback.format_tb(sys.exc_info()[2])),
-                                  messageCode=err.__class__.__name__, 
-                                  file=options.entrypointFile, 
+                                  messageCode=err.__class__.__name__,
+                                  file=options.entrypointFile,
                                   level=logging.CRITICAL)
                     success = False
             if modelXbrl:
@@ -1111,11 +1111,11 @@ class CntlrCmdLine(Cntlr.Cntlr):
     # default web authentication password
     def internet_user_password(self, host, realm):
         return (self.username, self.password)
-    
+
     # special show status for named pipes
     def showStatusOnPipe(self, message, clearAfter=None):
         # now = time.time() # seems ok without time-limiting writes to the pipe
-        if self.statusPipe is not None:  # max status updates 3 per second now - 0.3 > self.lastStatusTime and 
+        if self.statusPipe is not None:  # max status updates 3 per second now - 0.3 > self.lastStatusTime and
             # self.lastStatusTime = now
             try:
                 if self.parentProcessHandle is not None:
