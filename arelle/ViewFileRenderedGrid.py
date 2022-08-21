@@ -16,7 +16,8 @@ from arelle.FunctionXs import xsString
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import DEFAULT
-from arelle.ModelRenderingObject import (DefnMdlClosedDefinitionNode, DefnMdlRuleDefinitionNode,
+from arelle.ModelRenderingObject import (StrctMdlBreakdown,
+                                         DefnMdlClosedDefinitionNode, DefnMdlRuleDefinitionNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.PrototypeInstanceObject import FactPrototype
 # change tableModel for namespace needed for consistency suite
@@ -343,7 +344,11 @@ class ViewRenderedGrid(ViewFile.View):
             for xStrctNode in xParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
                 xDefnMdlNode = xStrctNode.defnMdlNode
                 noDescendants = False
-                rightCol, row, cols, width, leafNode = self.xAxis(leftCol, topRow + rowsForThisBreakdown, rowBelow, xStrctNode, xStrctNodes, # nested items before totals
+                if isinstance(xStrctNode, StrctMdlBreakdown) and not xStrctNode.isLabeled:
+                    rowsForThisStrctNode = 0
+                else:
+                    rowsForThisStrctNode = rowsForThisBreakdown
+                rightCol, row, cols, width, leafNode = self.xAxis(leftCol, topRow + rowsForThisStrctNode, rowBelow, xStrctNode, xStrctNodes, # nested items before totals
                                                                   True, False)
                 if row - 1 < parentRow:
                     parentRow = row - 1
@@ -369,7 +374,7 @@ class ViewRenderedGrid(ViewFile.View):
                         columnspan = rightCol - leftCol
                     # if columnspan > 0 and nonAbstract: columnspan += 1
                     elt = None
-                    if self.type == HTML:
+                    if self.type == HTML and xStrctNode.isLabeled or not isinstance(xStrctNode, StrctMdlBreakdown):
                         if rightCol == self.dataFirstCol + self.dataCols - 1:
                             edgeBorder = "border-right:.5pt solid windowtext;"
                         else:
@@ -386,7 +391,7 @@ class ViewRenderedGrid(ViewFile.View):
                                             attrib=attrib)
                         if isRollUp:
                             rollUpCellElt = elt
-                        self.rowElts[topRow-2+rowsForThisBreakdown-isRollUp].insert(leftCol,elt)
+                        self.rowElts[topRow-1+rowsForThisBreakdown-isRollUp].insert(leftCol,elt)
                     elif (self.type == XML and # is leaf or no sub-breakdown cardinality
                           # TBD: determine why following clause is needed
                           (True or xStrctNode.strctMdlChildNodes is None or columnspan > 0)): # ignore no-breakdown situation
@@ -442,7 +447,7 @@ class ViewRenderedGrid(ViewFile.View):
                         if source:
                             elt.set("source", source)
                     if nonAbstract or isRollUp:
-                        if self.type == HTML:
+                        if self.type == HTML and xStrctNode.isLabeled or not isinstance(xStrctNode, StrctMdlBreakdown):
                             if isRollUp:   # add spanned left leg portion one row down
                                 attrib= {"class":"xAxisSpanLeg",
                                          "rowspan": str(rowBelow - row)}
@@ -458,7 +463,7 @@ class ViewRenderedGrid(ViewFile.View):
                                 elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                                     attrib={"class":"xAxisHdr",
                                                             "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
-                                self.rowElts[self.dataFirstRow - 1 - len(self.colHdrNonStdRoles) + i].insert(thisCol,elt)
+                                self.rowElts[self.dataFirstRow - len(self.colHdrNonStdRoles) + i].insert(thisCol,elt)
                                 elt.text = xStrctNode.header(role=role, lang=self.lang) or "\u00A0"
                         '''
                         if self.colHdrDocRow:
@@ -502,123 +507,127 @@ class ViewRenderedGrid(ViewFile.View):
             return (rightCol, parentRow, colsToSpanParent, widthToSpanParent, noDescendants)
             
     def yAxisByRow(self, leftCol, row, yParentStrctNode, renderNow, atLeft):
-        if yParentStrctNode is not None:
-            nestedBottomRow = row
-            for yStrctNode in yParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
-                yDefnMdlNode = yStrctNode.defnMdlNode
-                nestRow, nextRow = self.yAxisByRow(leftCol + 1, row, yStrctNode,  # nested items before totals
-                                        True, False)
-                isAbstract = (yStrctNode.isAbstract or 
-                              (yStrctNode.strctMdlChildNodes and
-                               not isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode)))
-                isNonAbstract = not isAbstract
-                isLabeled = yStrctNode.isLabeled
-                topRow = row
-                #print ( "row {0} topRow {1} nxtRow {2} col {3} renderNow {4} label {5}".format(row, topRow, nextRow, leftCol, renderNow, label))
-                if renderNow and isLabeled:
-                    label = yStrctNode.header(lang=self.lang,
-                                                   returnGenLabel=isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode),
-                                                   recurseParent=not isinstance(yStrctNode.defnMdlNode, DefnMdlRuleDefinitionNode))
-                    columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else 1
-                    childrenFirst = not yDefnMdlNode.isRollUp or yStrctNode.parentChildOrder == "children-first"
-                    if childrenFirst and isNonAbstract and nextRow > row:
-                        elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
-                                            attrib={"class":"yAxisSpanArm",
-                                                    "style":"text-align:center;min-width:2em;",
-                                                    "rowspan": str(nextRow - topRow)}
-                                            )
-                        insertPosition = self.rowElts[nextRow-1].__len__()
-                        self.rowElts[row - 1].insert(insertPosition, elt)
-                        elt.text = "\u00A0"
-                        hdrRow = nextRow # put nested stuff on bottom row
-                        row = nextRow    # nested header still goes on this row
-                    else:
-                        hdrRow = row
-                    # provide top or bottom borders
-                    edgeBorder = ""
-                    
-                    if childrenFirst:
-                        if hdrRow == self.dataFirstRow:
-                            edgeBorder = "border-top:.5pt solid windowtext;"
-                    else:
-                        if hdrRow == len(self.rowElts):
-                            edgeBorder = "border-bottom:.5pt solid windowtext;"
-                    depth = yStrctNode.depth
-                    attrib = {"style":"text-align:{0};max-width:{1}em;{2}".format(
-                                            self.langAlign if isNonAbstract or nestRow == hdrRow else "center",
-                                            # this is a wrap length max width in characters
-                                            self.rowHdrColWidth[depth] if isAbstract else
-                                            self.rowHdrWrapLength - sum(self.rowHdrColWidth[0:depth]),
-                                            edgeBorder),
-                              "colspan": str(columnspan)}
-                    if label == OPEN_ASPECT_ENTRY_SURROGATE: # entry of dimension
-                        attrib["style"] += ";background:#fff" # override for white background
-                    if isAbstract:
-                        attrib["rowspan"] = str(nestRow - hdrRow)
-                        attrib["class"] = "yAxisHdrAbstractChildrenFirst" if childrenFirst else "yAxisHdrAbstract"
-                    elif nestRow > hdrRow:
-                        attrib["class"] = "yAxisHdrWithLeg"
-                    elif childrenFirst:
-                        attrib["class"] = "yAxisHdrWithChildrenFirst"
-                    else:
-                        attrib["class"] = "yAxisHdr"
+        noDescendants = True
+        nestedBottomRow = row
+        rowspan = 1
+        columnspan = 1
+        nestedBottomRow = row
+        for yOrdinal, yStrctNode in enumerate(yParentStrctNode.strctMdlChildNodes): # strctMdlEffectiveChildNodes:
+            yDefnMdlNode = yStrctNode.defnMdlNode
+            childrenFirst = yDefnMdlNode.parentChildOrder == "children-first"
+            noDescendants = False
+            isAbstract = (yStrctNode.isAbstract or 
+                          (yStrctNode.strctMdlChildNodes and
+                           not isinstance(yDefnMdlNode, DefnMdlClosedDefinitionNode)))
+            isNonAbstract = not isAbstract
+            isLabeled = yStrctNode.isLabeled
+            nestRow, nextRow = self.yAxisByRow(leftCol + isLabeled, row, yStrctNode,  # nested items before totals
+                                               childrenFirst, False)
+            
+            topRow = row
+            #if childrenFirst and isNonAbstract:
+            #    row = nextRow
+            if renderNow and isLabeled:
+                label = yStrctNode.header(lang=self.lang,
+                                               returnGenLabel=isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode),
+                                               recurseParent=not isinstance(yStrctNode.defnMdlNode, DefnMdlRuleDefinitionNode))
+                columnspan = self.rowHdrCols - len(self.rowHdrNonStdRoles) - leftCol + 1 if isNonAbstract or nextRow == row else 1
+                if childrenFirst and isNonAbstract and nextRow > row:
                     elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
-                                        attrib=attrib
+                                        attrib={"class":"yAxisSpanArm",
+                                                "style":"text-align:center;min-width:2em;",
+                                                "rowspan": str(nextRow - topRow)}
                                         )
-                    elt.text = label if bool(label) and label != OPEN_ASPECT_ENTRY_SURROGATE else "\u00A0"
-                    if isNonAbstract:
-                        self.rowElts[hdrRow-1].append(elt)
-                        if not childrenFirst and nestRow > hdrRow:   # add spanned left leg portion one row down
-                            etree.SubElement(self.rowElts[hdrRow], 
-                                             "{http://www.w3.org/1999/xhtml}th",
-                                             attrib={"class":"yAxisSpanLeg",
-                                                     "style":"text-align:center;max-width:{0}pt;{1}".format(RENDER_UNITS_PER_CHAR, edgeBorder),
-                                                     "rowspan": str(nestRow - hdrRow)}
-                                             ).text = "\u00A0"
-                        hdrClass = "yAxisHdr" if not childrenFirst else "yAxisHdrWithChildrenFirst"
-                        for i, role in enumerate(self.rowHdrNonStdRoles):
-                            hdr = yStrctNode.header(role=role, lang=self.lang)
-                            etree.SubElement(self.rowElts[hdrRow - 1], 
-                                             "{http://www.w3.org/1999/xhtml}th",
-                                             attrib={"class":hdrClass,
-                                                     "style":"text-align:left;max-width:100pt;{0}".format(edgeBorder)}
-                                             ).text = hdr or "\u00A0"
-                        '''
-                        if self.rowHdrDocCol:
-                            docCol = self.dataFirstCol - 1 - self.rowHdrCodeCol
-                            doc = yStrctNode.header(role="http://www.xbrl.org/2008/role/documentation")
-                            etree.SubElement(self.rowElts[hdrRow - 1], 
-                                             "{http://www.w3.org/1999/xhtml}th",
-                                             attrib={"class":hdrClass,
-                                                     "style":"text-align:left;max-width:100pt;{0}".format(edgeBorder)}
-                                             ).text = doc or "\u00A0"
-                        if self.rowHdrCodeCol:
-                            codeCol = self.dataFirstCol - 1
-                            code = yStrctNode.header(role="http://www.eurofiling.info/role/2010/coordinate-code")
-                            etree.SubElement(self.rowElts[hdrRow - 1], 
-                                             "{http://www.w3.org/1999/xhtml}th",
-                                             attrib={"class":hdrClass,
-                                                     "style":"text-align:center;max-width:40pt;{0}".format(edgeBorder)}
-                                             ).text = code or "\u00A0"
-                        # gridBorder(self.gridRowHdr, leftCol, self.dataFirstRow - 1, BOTTOMBORDER)
-                        '''
-                    else:
-                        self.rowElts[hdrRow-1].insert(leftCol - 1, elt)
-                else: # no nodes
-                    childrenFirst = False
-                if isNonAbstract:
-                    row += 1
+                    insertPosition = self.rowElts[nextRow].__len__()
+                    self.rowElts[row].insert(insertPosition, elt)
+                    elt.text = "\u00A0"
+                    hdrRow = nextRow # put nested stuff on bottom row
+                    row = nextRow    # nested header still goes on this row
+                else:
+                    hdrRow = row
+                # provide top or bottom borders
+                edgeBorder = ""
+                
+                if childrenFirst:
+                    if hdrRow == self.dataFirstRow:
+                        edgeBorder = "border-top:.5pt solid windowtext;"
+                else:
+                    if hdrRow == len(self.rowElts):
+                        edgeBorder = "border-bottom:.5pt solid windowtext;"
+                depth = yStrctNode.depth
+                attrib = {"style":"text-align:{0};max-width:{1}em;{2}".format(
+                                        self.langAlign if isNonAbstract or nestRow == hdrRow else "center",
+                                        # this is a wrap length max width in characters
+                                        self.rowHdrColWidth[depth] if isAbstract else
+                                        self.rowHdrWrapLength - sum(self.rowHdrColWidth[0:depth]),
+                                        edgeBorder),
+                          "colspan": str(columnspan)}
+                if label == OPEN_ASPECT_ENTRY_SURROGATE: # entry of dimension
+                    attrib["style"] += ";background:#fff" # override for white background
+                if isAbstract:
+                    attrib["rowspan"] = str(nestRow - hdrRow)
+                    attrib["class"] = "yAxisHdrAbstractChildrenFirst" if childrenFirst else "yAxisHdrAbstract"
+                elif nestRow > hdrRow:
+                    attrib["class"] = "yAxisHdrWithLeg"
                 elif childrenFirst:
-                    row = nextRow
-                if nestRow > nestedBottomRow:
-                    nestedBottomRow = nestRow + (isNonAbstract and not childrenFirst)
-                if row > nestedBottomRow:
-                    nestedBottomRow = row
-                #if renderNow and not childrenFirst:
-                #    dummy, row = self.yAxis(leftCol + 1, row, yAxisHdrObj, childrenFirst, True, False) # render on this pass            
-                if not childrenFirst:
-                    dummy, row = self.yAxisByRow(leftCol + 1, row, yStrctNode, renderNow, False) # render on this pass
-            return (nestedBottomRow, row)
+                    attrib["class"] = "yAxisHdrWithChildrenFirst"
+                else:
+                    attrib["class"] = "yAxisHdr"
+                elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                    attrib=attrib
+                                    )
+                elt.text = label if bool(label) and label != OPEN_ASPECT_ENTRY_SURROGATE else "\u00A0"
+                if isNonAbstract:
+                    self.rowElts[hdrRow].append(elt)
+                    if not childrenFirst and nestRow > hdrRow:   # add spanned left leg portion one row down
+                        etree.SubElement(self.rowElts[hdrRow], 
+                                         "{http://www.w3.org/1999/xhtml}th",
+                                         attrib={"class":"yAxisSpanLeg",
+                                                 "style":"text-align:center;max-width:{0}pt;{1}".format(RENDER_UNITS_PER_CHAR, edgeBorder),
+                                                 "rowspan": str(nestRow - hdrRow)}
+                                         ).text = "\u00A0"
+                    hdrClass = "yAxisHdr" if not childrenFirst else "yAxisHdrWithChildrenFirst"
+                    for i, role in enumerate(self.rowHdrNonStdRoles):
+                        hdr = yStrctNode.header(role=role, lang=self.lang)
+                        etree.SubElement(self.rowElts[hdrRow], 
+                                         "{http://www.w3.org/1999/xhtml}th",
+                                         attrib={"class":hdrClass,
+                                                 "style":"text-align:left;max-width:100pt;{0}".format(edgeBorder)}
+                                         ).text = hdr or "\u00A0"
+                    '''
+                    if self.rowHdrDocCol:
+                        docCol = self.dataFirstCol - 1 - self.rowHdrCodeCol
+                        doc = yStrctNode.header(role="http://www.xbrl.org/2008/role/documentation")
+                        etree.SubElement(self.rowElts[hdrRow], 
+                                         "{http://www.w3.org/1999/xhtml}th",
+                                         attrib={"class":hdrClass,
+                                                 "style":"text-align:left;max-width:100pt;{0}".format(edgeBorder)}
+                                         ).text = doc or "\u00A0"
+                    if self.rowHdrCodeCol:
+                        codeCol = self.dataFirstCol - 1
+                        code = yStrctNode.header(role="http://www.eurofiling.info/role/2010/coordinate-code")
+                        etree.SubElement(self.rowElts[hdrRow], 
+                                         "{http://www.w3.org/1999/xhtml}th",
+                                         attrib={"class":hdrClass,
+                                                 "style":"text-align:center;max-width:40pt;{0}".format(edgeBorder)}
+                                         ).text = code or "\u00A0"
+                    # gridBorder(self.gridRowHdr, leftCol, self.dataFirstRow - 1, BOTTOMBORDER)
+                    '''
+                else:
+                    self.rowElts[hdrRow].insert(leftCol, elt)
+            else: # no nodes
+                childrenFirst = False
+            if isNonAbstract:
+                row += 1
+            elif childrenFirst:
+                row = nextRow
+            if nestRow > nestedBottomRow:
+                nestedBottomRow = nestRow + (isNonAbstract and not childrenFirst)
+            if row > nestedBottomRow:
+                nestedBottomRow = row
+            if not childrenFirst:
+                dummy, row = self.yAxisByRow(leftCol + isLabeled, row, yStrctNode, renderNow, False) # render on this pass
+        return (nestedBottomRow, row)
 
     def yAxisByCol(self, leftCol, row, yParentStrctNode, renderNow, atTop):
         if yParentStrctNode is not None:
@@ -834,8 +843,8 @@ class ViewRenderedGrid(ViewFile.View):
                                                                                    for dimVal in sorted(fp.context.scenDimVals.values(), key=lambda d: d.dimensionQname)),
                                                                          )))
                             if factsVals or ignoreDimValidity or isFactDimensionallyValid(self, fp) or isEntryPrototype:
-                                if self.type == HTML:
-                                    elt = etree.SubElement(self.rowElts[row - 1], 
+                                if self.type == HTML and not isinstance(xStrctNode, StrctMdlBreakdown):
+                                    elt = etree.SubElement(self.rowElts[row], 
                                                            "{http://www.w3.org/1999/xhtml}td",
                                                            attrib={"class":"cell",
                                                                    "style":"text-align:{0};width:8em".format(justify)}
@@ -879,7 +888,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                                                              elementFragmentIdentifier(f))
                             else:
                                 if self.type == HTML:
-                                    etree.SubElement(self.rowElts[row - 1], 
+                                    etree.SubElement(self.rowElts[row], 
                                                      "{http://www.w3.org/1999/xhtml}td",
                                                      attrib={"class":"blockedCell",
                                                              "style":"text-align:{0};width:8em".format(justify)}
@@ -889,7 +898,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                      attrib={"blocked":"true"})
                         else: # concept is abstract
                             if self.type == HTML:
-                                etree.SubElement(self.rowElts[row - 1], 
+                                etree.SubElement(self.rowElts[row], 
                                                  "{http://www.w3.org/1999/xhtml}td",
                                                  attrib={"class":"abstractCell",
                                                          "style":"text-align:{0};width:8em".format(justify)}
