@@ -1154,6 +1154,10 @@ def checkDefinitionNodeRules(val, table, parent, arcrole, xpathContext):
                                 val.modelXbrl.error("arelle:typedDimensionContextItemUndefined",
                                     _("RuleAxis %(xlinkLabel)s includes an typedDimension xpath aspect for which the specification does not define an xpath context: %(incompleteAspect)s"),
                                     modelObject=axis, xlinkLabel=axis.xlinkLabel, incompleteAspect=elt.qname)
+                            elif elt.localName == "occXpath":
+                                val.modelXbrl.error("arelle:occXpathContextItemUndefined",
+                                    _("RuleAxis %(xlinkLabel)s includes an occXpath aspect for which the specification does not define an xpath context: %(incompleteAspect)s"),
+                                    modelObject=axis, xlinkLabel=axis.xlinkLabel, incompleteAspect=elt.qname)
                             elif elt.localName == "occFragments":
                                 rulesByAspect[elt.localName, elt.xAttributes["occ"].xValue].add(elt)
                             if ((elt.localName == ("concept","member") and not any(c.localName in ("qname", "qnameExpression") 

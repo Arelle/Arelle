@@ -676,6 +676,8 @@ class DefnMdlBreakdown(ModelFormulaResource):
         return defnMdlLabelsView(self)
 
 class DefnMdlDefinitionNode(ModelFormulaResource):
+    aspectModel = "dimensional"
+    
     def init(self, modelDocument):
         super(DefnMdlDefinitionNode, self).init(modelDocument)
     

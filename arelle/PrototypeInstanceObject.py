@@ -71,6 +71,7 @@ class ContextPrototype():  # behaves like a context
         self.modelXbrl = v.modelXbrl
         self.segDimVals = {}
         self.scenDimVals = {}
+        self._nonDimValues = {}
         self.qnameDims = {}
         self.entityIdentifierHash = None
         self.entityIdentifier = (None, None)
@@ -105,6 +106,8 @@ class ContextPrototype():  # behaves like a context
             elif aspect == Aspect.SCHEME:
                 self.entityIdentifier = (aspectValue, self.entityIdentifier[1])
                 self.entityIdentifierHash = hash(self.entityIdentifier)
+            elif aspect in (Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO, "segment", Aspect.NON_XDT_SEGMENT, "scenario", Aspect.NON_XDT_SCENARIO):
+                self._nonDimValues[aspect] = aspectValue
             elif isinstance(aspect, QName):
                 try: # if a DimVal, then it has a suggested context element
                     contextElement = aspectValue.contextElement
@@ -162,7 +165,7 @@ class ContextPrototype():  # behaves like a context
             return self.scenDimVals if contextElement == "segment" else self.segDimVals
     
     def nonDimValues(self, contextElement):
-        return []
+        return self._nonDimValues.get(contextElement, [])
 
     def isEntityIdentifierEqualTo(self, cntx2):
         return self.entityIdentifierHash is None or self.entityIdentifierHash == cntx2.entityIdentifierHash

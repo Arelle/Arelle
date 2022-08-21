@@ -400,9 +400,10 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     childStructuralNode.factsPartition = factsPartition
                              
                     childStructuralNode.indent = 0
-                    childStructuralNode.depth -= 1  # for label width; parent is merged/invisible
+                    #TBD this is now computed, not an attribute
+                    #childStructuralNode.depth -= 1  # for label width; parent is merged/invisible
                     childList.append(childStructuralNode)
-                    checkLabelWidth(childStructuralNode, checkBoundFact=True)
+                    checkLabelWidth(view, childStructuralNode, subtreeRels, checkBoundFact=True)
                     #resolveDefinition(view, childStructuralNode, breakdownNode, defnMdlNode, depth, axis, factsPartition, processOpenDefinitionNode=False) #recurse
 
                     if subtreeRels:
