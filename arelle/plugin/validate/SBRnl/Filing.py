@@ -6,7 +6,7 @@ Created on Oct 05, 2012
 '''
 import re
 from collections import defaultdict
-from arelle import (ModelDocument, ModelValue,
+from arelle import (ModelDocument, ModelValue, 
                 ModelRelationshipSet, XmlUtil, XbrlConst)
 from arelle.ModelDtsObject import ModelConcept, ModelResource
 from arelle.ModelObject import ModelObject
@@ -16,15 +16,15 @@ from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
 
 def validateFiling(val, modelXbrl):
-
+    
     linkroleDefinitionStatementSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*", # no restriction to type of statement
                                                   re.IGNORECASE)
     if not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
         return
-
+    
     val._isStandardUri = {}
     modelXbrl.modelManager.disclosureSystem.loadStandardTaxonomiesDict()
-
+    
     # find typedDomainRefs before validateXBRL pass
     val.typedDomainQnames = set()
     val.typedDomainElements = set()
@@ -39,9 +39,9 @@ def validateFiling(val, modelXbrl):
     xbrlInstDoc = modelXbrl.modelDocument.xmlDocument.getroot()
     disclosureSystem = val.disclosureSystem
     disclosureSystemVersion = disclosureSystem.version
-
+    
     modelXbrl.modelManager.showStatus(_("validating {0}").format(disclosureSystem.name))
-
+    
     val.modelXbrl.profileActivity()
     conceptsUsed = {} # key=concept object value=True if has presentation label
     labelsRelationshipSet = modelXbrl.relationshipSet(XbrlConst.conceptLabel)
@@ -49,11 +49,11 @@ def validateFiling(val, modelXbrl):
     presentationRelationshipSet = modelXbrl.relationshipSet(XbrlConst.parentChild)
     referencesRelationshipSetWithProhibits = modelXbrl.relationshipSet(XbrlConst.conceptReference, includeProhibits=True)
     val.modelXbrl.profileActivity("... cache lbl, pre, ref relationships", minTimeToShow=1.0)
-
+    
     val.validateLoggingSemantic = validateLoggingSemantic = (
-          modelXbrl.isLoggingEffectiveFor(level="WARNING-SEMANTIC") or
+          modelXbrl.isLoggingEffectiveFor(level="WARNING-SEMANTIC") or 
           modelXbrl.isLoggingEffectiveFor(level="ERROR-SEMANTIC"))
-
+    
     # instance checks
     val.fileNameBasePart = None # prevent testing on fileNameParts if not instance or invalid
     val.fileNameDate = None
@@ -95,7 +95,7 @@ def validateFiling(val, modelXbrl):
             modelReference = modelRefRel.toModelObject
             text = XmlUtil.innerText(modelReference)
             #6.18.1 no reference to company extension concepts
-            if (concept.modelDocument.targetNamespace in disclosureSystem.standardTaxonomiesDict and
+            if (concept.modelDocument.targetNamespace in disclosureSystem.standardTaxonomiesDict and 
                 not isStandardUri(val, modelRefRel.modelDocument.uri)): # merge of pre-plugin code per LOGIUS
                 #6.18.2 no extension to add or remove references to standard concepts
                 modelXbrl.error("SBR.NL.2.1.0.08",
@@ -121,12 +121,12 @@ def validateFiling(val, modelXbrl):
                     modelXbrl.error("SBR.NL.2.2.10.03",
                         _("DTS concept %(concept)s not referred to by presentation relationship."),
                         modelObject=concept, concept=concept.qname)
-                if (concept.substitutionGroupQname and
+                if (concept.substitutionGroupQname and 
                     concept.substitutionGroupQname.namespaceURI not in disclosureSystem.baseTaxonomyNamespaces):
                     modelXbrl.error("SBR.NL.2.2.2.05",
                         _("Concept %(concept)s has a substitutionGroup of a non-standard concept."),
                         modelObject=concept, concept=concept.qname)
-
+                        
                 if concept.isTuple: # verify same presentation linkbase nesting
                     for missingQname in set(concept.type.elements) ^ pLinkedNonAbstractDescendantQnames(modelXbrl, concept):
                         modelXbrl.error("SBR.NL.2.3.4.01",
@@ -136,7 +136,7 @@ def validateFiling(val, modelXbrl):
             checkConceptLabels(val, modelXbrl, genLabelsRelationshipSet, disclosureSystem, concept)
 
     val.modelXbrl.profileActivity("... filer concepts checks", minTimeToShow=1.0)
-
+    
     # checks on all documents: instance, schema, instance
     checkFilingDTS(val, modelXbrl.modelDocument, [])
     ''' removed RH 2011-12-23, corresponding use of nameWordsTable in ValidateFilingDTS
@@ -150,7 +150,7 @@ def validateFiling(val, modelXbrl):
     usedCalcFromTosELR = {}
     localPreferredLabels = defaultdict(set)
     drsELRs = set()
-
+    
     # do calculation, then presentation, then other arcroles
     val.summationItemRelsSetAllELRs = modelXbrl.relationshipSet(XbrlConst.summationItem)
     for arcroleFilter in (XbrlConst.summationItem, XbrlConst.parentChild, "*"):
@@ -169,8 +169,8 @@ def validateFiling(val, modelXbrl):
                             modelXbrl.error("SBR.NL.2.3.4.06",
                                 _("Ineffective arc %(arc)s in \nlink role %(linkrole)s \narcrole %(arcrole)s \nfrom %(conceptFrom)s \nto %(conceptTo)s \n%(ineffectivity)s"),
                                 modelObject=modelRel, arc=modelRel.qname, arcrole=modelRel.arcrole,
-                                linkrole=modelRel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(modelRel.linkrole),
-                                conceptFrom=modelRel.fromModelObject.qname, conceptTo=modelRel.toModelObject.qname,
+                                linkrole=modelRel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(modelRel.linkrole), 
+                                conceptFrom=modelRel.fromModelObject.qname, conceptTo=modelRel.toModelObject.qname, 
                                 ineffectivity=modelRel.ineffectivity)
                 if arcrole == XbrlConst.parentChild:
                     isStatementSheet = any(linkroleDefinitionStatementSheet.match(roleType.definition or '')
@@ -209,7 +209,7 @@ def validateFiling(val, modelXbrl):
                                         rel2 = relTo2 = None
                                     modelXbrl.error("SBR.NL.2.3.4.06",
                                         _("Concept %(concept)s has duplicate preferred label %(preferredLabel)s in link role %(linkrole)s"),
-                                        modelObject=(rel, relTo, rel2, relTo2),
+                                        modelObject=(rel, relTo, rel2, relTo2), 
                                         concept=relTo.qname, fromConcept=rel.fromModelObject.qname,
                                         preferredLabel=preferredLabel, linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole))
                                 else:
@@ -248,16 +248,16 @@ def validateFiling(val, modelXbrl):
                             _("Calculation linkbase linkrole %(linkrole)s"),
                             modelObject=modelRel, linkrole=ELR)
                         break
-
+                            
                 elif arcrole == XbrlConst.all or arcrole == XbrlConst.notAll:
                     drsELRs.add(ELR)
-
+                    
                 else:
                     if arcrole == XbrlConst.dimensionDefault:
                         for modelRel in val.modelXbrl.relationshipSet(arcrole).modelRelationships:
                             val.modelXbrl.error("SBR.NL.2.3.6.05",
                                 _("Dimension-default in from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s is not allowed"),
-                                modelObject=modelRel, conceptFrom=modelRel.fromModelObject.qname, conceptTo=modelRel.toModelObject.qname,
+                                modelObject=modelRel, conceptFrom=modelRel.fromModelObject.qname, conceptTo=modelRel.toModelObject.qname, 
                                 linkrole=modelRel.linkrole)
                     ''' removed per RH 2013-01-11
                     if not (XbrlConst.isStandardArcrole(arcrole) or XbrlConst.isDefinitionOrXdtArcrole(arcrole)):
@@ -271,28 +271,28 @@ def validateFiling(val, modelXbrl):
                                      (relTo.qname == val.qnSbrLinkroleorder))):
                                 val.modelXbrl.error("SBR.NL.2.3.2.07",
                                     _("The source and target of an arc must be in the DTS from %(elementFrom)s to %(elementTo)s, in linkrole %(linkrole)s, arcrole %(arcrole)s"),
-                                    modelObject=modelRel, elementFrom=relFrom.qname, elementTo=relTo.qname,
+                                    modelObject=modelRel, elementFrom=relFrom.qname, elementTo=relTo.qname, 
                                     linkrole=modelRel.linkrole, arcrole=arcrole)
                         '''
-
+                       
     del localPreferredLabels # dereference
     del usedCalcFromTosELR
     del val.summationItemRelsSetAllELRs
 
     val.modelXbrl.profileActivity("... filer relationships checks", minTimeToShow=1.0)
 
-
+                            
     # checks on dimensions
     checkFilingDimensions(val, drsELRs)
     val.modelXbrl.profileActivity("... filer dimensions checks", minTimeToShow=1.0)
-
+                                    
     del conceptRelsUsedWithPreferredLabels
-
+    
     # 6 16 4, 1.16.5 Base sets of Domain Relationship Sets testing
     val.modelXbrl.profileActivity("... filer preferred label checks", minTimeToShow=1.0)
-
+    
     # moved from original validateSBRnl finally
-
+ 
     for qname, modelType in modelXbrl.qnameTypes.items():
         if qname.namespaceURI not in val.disclosureSystem.baseTaxonomyNamespaces:
             facets = modelType.facets
@@ -325,9 +325,9 @@ def validateFiling(val, modelXbrl):
             self.nameWordsTable[name] = words
     self.modelXbrl.profileActivity("... build name words table", minTimeToShow=1.0)
     '''
-
-
-
+    
+    
+    
     # check presentation link roles for generic linkbase order number
     ordersRelationshipSet = modelXbrl.relationshipSet("http://www.nltaxonomie.nl/2011/arcrole/linkrole-order")
     presLinkroleNumberURI = {}
@@ -362,7 +362,7 @@ def validateFiling(val, modelXbrl):
     # check arc role definitions for labels
     for arcroleURI, modelRoleTypes in modelXbrl.arcroleTypes.items():
         for modelRoleType in modelRoleTypes:
-            if (not arcroleURI.startswith("http://xbrl.org/") and
+            if (not arcroleURI.startswith("http://xbrl.org/") and 
                 modelRoleType.modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
                 (not modelRoleType.genLabel(lang="nl") or not modelRoleType.genLabel(lang="en"))):
                 modelXbrl.error("SBR.NL.2.2.4.02",
@@ -379,7 +379,7 @@ def validateFiling(val, modelXbrl):
                 modelXbrl.error("SBR.NL.2.2.8.02",
                     _("Typed dimension domain element %(concept)s has disallowed complex content"),
                     modelObject=domainElt, concept=domainElt.qname)
-
+            
     modelXbrl.profileActivity("... SBR role types and type facits checks", minTimeToShow=1.0)
     # end moved from ValidateFiling
 
@@ -392,7 +392,7 @@ def validateFiling(val, modelXbrl):
                         _("The assigned namespace prefix %(assignedPrefix)s for the schema that declares the targetnamespace %(namespace)s, MUST be adhired by all other NT schemas, referencedPrefix: %(referencedPrefix)s"),
                         modelObject=doc.xmlRootElement, namespace=NS, assignedPrefix=val.namespacePrefix.get(NS, ''), referencedPrefix=prefix)
 
-    # check non-concept elements that can appear in elements for labels (concepts checked by
+    # check non-concept elements that can appear in elements for labels (concepts checked by 
     labelsRelationshipSet = modelXbrl.relationshipSet((XbrlConst.conceptLabel, XbrlConst.elementLabel))
     baseTaxonomyNamespaces = val.disclosureSystem.baseTaxonomyNamespaces
     for eltDef in modelXbrl.qnameConcepts.values():
@@ -413,15 +413,15 @@ def validateFiling(val, modelXbrl):
                     modelObject=eltDef, element=eltDef.qname)
 
     val.modelXbrl.profileStat(_("validate{0}").format(modelXbrl.modelManager.disclosureSystem.validationType))
-
+    
     modelXbrl.modelManager.showStatus(_("ready"), 2000)
-
+                
 def isStandardUri(val, uri):
     try:
         return val._isStandardUri[uri]
     except KeyError:
         isStd = (uri in val.disclosureSystem.standardTaxonomiesDict or
-                 (not isHttpUrl(uri) and
+                 (not isHttpUrl(uri) and 
                   # try 2011-12-23 RH: if works, remove the localHrefs
                   # any(u.endswith(e) for u in (uri.replace("\\","/"),) for e in disclosureSystem.standardLocalHrefs)
                   "/basis/sbr/" in uri.replace("\\","/")
@@ -455,9 +455,9 @@ def checkConceptLabels(val, modelXbrl, labelsRelationshipSet, disclosureSystem, 
             modelXbrl.error("SBR.NL.2.3.8.05",
                 _("Concept %(concept)s has en but no nl label in role %(role)s."),
                 modelObject=(concept,dupLabels[(role,lang)]), concept=concept.qname, role=role)
+            
 
-
-
+        
 # for SBR 2.3.4.01
 def pLinkedNonAbstractDescendantQnames(modelXbrl, concept, descendants=None):
     if descendants is None: descendants = set()

@@ -24,13 +24,13 @@ newRssWatchOptions = {
     "alertValiditionError": False,
     "latestPubDate": None,
 }
-
+        
         # Note: if adding to this list keep DialogRssWatch in sync
 class ModelRssItem(ModelObject):
     def init(self, modelDocument):
         super(ModelRssItem, self).init(modelDocument)
         try:
-            if (self.modelXbrl.modelManager.rssWatchOptions.latestPubDate and
+            if (self.modelXbrl.modelManager.rssWatchOptions.latestPubDate and 
                 self.pubDate <= self.modelXbrl.modelManager.rssWatchOptions.latestPubDate):
                 self.status = _("tested")
             else:
@@ -55,27 +55,27 @@ class ModelRssItem(ModelObject):
         self.edgrType = edgrPrefix + "type"
         self.edgrUrl = edgrPrefix + "url"
 
-
+        
     @property
     def cikNumber(self):
         return XmlUtil.text(XmlUtil.descendant(self, self.edgr, "cikNumber"))
-
+    
     @property
     def accessionNumber(self):
         return XmlUtil.text(XmlUtil.descendant(self, self.edgr, "accessionNumber"))
-
+    
     @property
     def fileNumber(self):
         return XmlUtil.text(XmlUtil.descendant(self, self.edgr, "fileNumber"))
-
+    
     @property
     def companyName(self):
         return XmlUtil.text(XmlUtil.descendant(self, self.edgr, "companyName"))
-
+    
     @property
     def formType(self):
         return XmlUtil.text(XmlUtil.descendant(self, self.edgr, "formType"))
-
+    
     @property
     def pubDate(self):
         try:
@@ -92,22 +92,22 @@ class ModelRssItem(ModelObject):
             import datetime
             self._filingDate = None
             date = XmlUtil.text(XmlUtil.descendant(self, self.edgr, "filingDate"))
-            d = date.split("/")
+            d = date.split("/") 
             if d and len(d) == 3:
                 self._filingDate = datetime.date(_INT(d[2]),_INT(d[0]),_INT(d[1]))
             return self._filingDate
-
+    
     @property
     def period(self):
         per = XmlUtil.text(XmlUtil.descendant(self, self.edgr, "period"))
         if per and len(per) == 8:
             return "{0}-{1}-{2}".format(per[0:4],per[4:6],per[6:8])
         return None
-
+    
     @property
     def assignedSic(self):
         return XmlUtil.text(XmlUtil.descendant(self, self.edgr, "assignedSic"))
-
+    
     @property
     def acceptanceDatetime(self):
         try:
@@ -119,14 +119,14 @@ class ModelRssItem(ModelObject):
             if date and len(date) == 14:
                 self._acceptanceDatetime = datetime.datetime(_INT(date[0:4]),_INT(date[4:6]),_INT(date[6:8]),_INT(date[8:10]),_INT(date[10:12]),_INT(date[12:14]))
             return self._acceptanceDatetime
-
+    
     @property
     def fiscalYearEnd(self):
         yrEnd = XmlUtil.text(XmlUtil.descendant(self, self.edgr, "fiscalYearEnd"))
         if yrEnd and len(yrEnd) == 4:
             return "{0}-{1}".format(yrEnd[0:2],yrEnd[2:4])
         return None
-
+    
     @property
     def htmlUrl(self):  # main filing document
         htmlDocElt = XmlUtil.descendant(self, self.edgr, "xbrlFile", attrName=self.edgrSequence, attrValue="1")
@@ -145,11 +145,11 @@ class ModelRssItem(ModelObject):
                     self._url = instDocElt.get(self.edgrUrl)
                     break
             return self._url
-
+        
     @property
     def enclosureUrl(self):
         return XmlUtil.childAttr(self, None, "enclosure", "url")
-
+    
     @property
     def zippedUrl(self):
         enclosure = XmlUtil.childAttr(self, None, "enclosure", "url")
@@ -160,8 +160,8 @@ class ModelRssItem(ModelObject):
             return enclosure + sep + file
         else: # no zipped enclosure, just use unzipped file
             return self.url
-
-
+        
+        
     @property
     def htmURLs(self):
         try:
@@ -172,7 +172,7 @@ class ModelRssItem(ModelObject):
                   for instDocElt in XmlUtil.descendants(self, self.edgr, "xbrlFile")
                     if instDocElt.get(self.edgrFile).endswith(".htm")]
             return self._htmURLs
-
+        
     @property
     def primaryDocumentURL(self):
         try:
@@ -185,7 +185,7 @@ class ModelRssItem(ModelObject):
                     self._primaryDocumentURL = instDocElt.get(self.edgrUrl)
                     break
             return self._primaryDocumentURL
-
+        
     def setResults(self, modelXbrl):
         self.results = []
         self.assertionUnsuccessful = False
@@ -202,7 +202,7 @@ class ModelRssItem(ModelObject):
                 self.results.append(error)
                 self.status = "fail" # error code
         self.results.sort()
-
+    
     @property
     def propertyView(self):
         return (("CIK", self.cikNumber),

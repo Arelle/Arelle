@@ -16,25 +16,25 @@ from decimal import Decimal
 from lxml import etree
 
 DECIMAL_5 = Decimal(.5)
-
+    
 class fnFunctionNotAvailable(Exception):
     def __init__(self):
         self.args =  ("fn function not available",)
     def __repr__(self):
         return self.args[0]
-
+    
 def call(xc, p, localname, contextItem, args):
     try:
         if localname not in fnFunctions: raise fnFunctionNotAvailable
         return fnFunctions[localname](xc, p, contextItem, args)
     except fnFunctionNotAvailable:
         raise XPathContext.FunctionNotAvailable("fn:{0}".format(localname))
-
+        
 def node_name(xc, p, contextItem, args):
     node = nodeArg(xc, args, 0, "node()?", missingArgFallback=contextItem, emptyFallback=())
-    if node != ():
+    if node != (): 
         return qname(node)
-    return ()
+    return () 
 
 def nilled(xc, p, contextItem, args):
     node = nodeArg(xc, args, 0, "node()?", missingArgFallback=contextItem, emptyFallback=())
@@ -45,13 +45,13 @@ def nilled(xc, p, contextItem, args):
 def string(xc, p, contextItem, args):
     if len(args) > 1: raise XPathContext.FunctionNumArgs()
     item = anytypeArg(xc, args, 0, "item()?", missingArgFallback=contextItem)
-    if item == ():
+    if item == (): 
         return ''
     if isinstance(item, ModelObject) and getattr(item,"xValid", 0) == VALID_NO_CONTENT:
         x = item.stringValue # represents inner text of this and all subelements
     else:
         x = xc.atomize(p, item)
-    return FunctionXs.xsString( xc, p, x )
+    return FunctionXs.xsString( xc, p, x ) 
 
 def data(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
@@ -59,7 +59,7 @@ def data(xc, p, contextItem, args):
 
 def base_uri(xc, p, contextItem, args):
     item = anytypeArg(xc, args, 0, "node()?", missingArgFallback=contextItem)
-    if item == ():
+    if item == (): 
         return ''
     if isinstance(item, (ModelObject, ModelDocument)):
         return UrlUtil.ensureUrl(item.modelDocument.uri)
@@ -88,9 +88,9 @@ def fn_dateTime(xc, p, contextItem, args):
 def fn_abs(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args)
-    if math.isinf(x):
+    if math.isinf(x): 
         x = float('inf')
-    elif not math.isnan(x):
+    elif not math.isnan(x): 
         x = abs(x)
     return x
 
@@ -105,7 +105,7 @@ def fn_floor(xc, p, contextItem, args):
 def fn_round(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args)
-    if math.isinf(x) or math.isnan(x):
+    if math.isinf(x) or math.isnan(x): 
         return x
     return _INT(x + (DECIMAL_5 if isinstance(x,Decimal) else .5))  # round towards +inf
 
@@ -175,7 +175,7 @@ def substring(xc, p, contextItem, args):
         if start < 0:
             length += start
             if length < 0: length = 0
-            start = 0
+            start = 0 
         return string[start:start + length]
     if start < 0: start = 0
     return string[start:]
@@ -273,7 +273,7 @@ def regexFlags(xc, p, args, n):
         else:
             raise XPathContext.XPathException(p, 'err:FORX0001', _('Regular expression interpretation flag unrecognized: {0}').format(flagsArg))
     return f
-
+            
 def matches(xc, p, contextItem, args):
     if not 2 <= len(args) <= 3: raise XPathContext.FunctionNumArgs()
     input = stringArg(xc, args, 0, "xs:string?", emptyFallback="")
@@ -282,7 +282,7 @@ def matches(xc, p, contextItem, args):
         return bool(re.search(pattern,input,flags=regexFlags(xc, p, args, 2)))
     except sre_constants.error as err:
         raise XPathContext.XPathException(p, 'err:FORX0002', _('fn:matches regular expression pattern error: {0}').format(err))
-
+        
 
 def replace(xc, p, contextItem, args):
     if not 3 <= len(args) <= 4: raise XPathContext.FunctionNumArgs()
@@ -291,7 +291,7 @@ def replace(xc, p, contextItem, args):
     fnReplacement = stringArg(xc, args, 2, "xs:string", emptyFallback="")
     if re.findall(r"(^|[^\\])[$]|[$][^0-9]", fnReplacement):
         raise XPathContext.XPathException(p, 'err:FORX0004', _('fn:replace pattern \'$\' error in: {0}').format(fnReplacement))
-    reReplacement = re.sub(r"[\\][$]", "$",
+    reReplacement = re.sub(r"[\\][$]", "$", 
                          re.sub(r"(^|[^\\])[$]([1-9])", r"\\\2", fnReplacement))
     try:
         return re.sub(pattern,reReplacement,input,flags=regexFlags(xc, p, args, 3))
@@ -322,7 +322,7 @@ def years_from_duration(xc, p, contextItem, args):
     if d == (): return d
     if isinstance(d, DayTimeDuration): return 0
     if isinstance(d, YearMonthDuration): return d.years
-    raise XPathContext.FunctionArgType(1,"xs:duration")
+    raise XPathContext.FunctionArgType(1,"xs:duration")    
 
 def months_from_duration(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
@@ -330,7 +330,7 @@ def months_from_duration(xc, p, contextItem, args):
     if d == (): return d
     if isinstance(d, DayTimeDuration): return 0
     if isinstance(d, YearMonthDuration): return d.months
-    raise XPathContext.FunctionArgType(1,"xs:duration")
+    raise XPathContext.FunctionArgType(1,"xs:duration")    
 
 def days_from_duration(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
@@ -338,7 +338,7 @@ def days_from_duration(xc, p, contextItem, args):
     if d == (): return d
     if isinstance(d, DayTimeDuration): return d.days
     if isinstance(d, YearMonthDuration): return d.dayHrsMinsSecs[0]
-    raise XPathContext.FunctionArgType(1,"xs:duration")
+    raise XPathContext.FunctionArgType(1,"xs:duration")    
 
 def hours_from_duration(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
@@ -346,7 +346,7 @@ def hours_from_duration(xc, p, contextItem, args):
     if d == (): return d
     if isinstance(d, DayTimeDuration): return 0
     if isinstance(d, YearMonthDuration): return d.dayHrsMinsSecs[1]
-    raise XPathContext.FunctionArgType(1,"xs:duration")
+    raise XPathContext.FunctionArgType(1,"xs:duration")    
 
 def minutes_from_duration(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
@@ -354,7 +354,7 @@ def minutes_from_duration(xc, p, contextItem, args):
     if d == (): return d
     if isinstance(d, DayTimeDuration): return 0
     if isinstance(d, YearMonthDuration): return d.dayHrsMinsSecs[2]
-    raise XPathContext.FunctionArgType(1,"xs:duration")
+    raise XPathContext.FunctionArgType(1,"xs:duration")    
 
 def seconds_from_duration(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
@@ -362,112 +362,112 @@ def seconds_from_duration(xc, p, contextItem, args):
     if d == (): return d
     if isinstance(d, DayTimeDuration): return 0
     if isinstance(d, YearMonthDuration): return d.dayHrsMinsSecs[2]
-    raise XPathContext.FunctionArgType(1,"xs:duration")
+    raise XPathContext.FunctionArgType(1,"xs:duration")    
 
 def year_from_dateTime(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.year
-    raise XPathContext.FunctionArgType(1,"xs:dateTime")
+    raise XPathContext.FunctionArgType(1,"xs:dateTime")    
 
 def month_from_dateTime(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.month
-    raise XPathContext.FunctionArgType(1,"xs:dateTime")
+    raise XPathContext.FunctionArgType(1,"xs:dateTime")    
 
 def day_from_dateTime(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.day
-    raise XPathContext.FunctionArgType(1,"xs:dateTime")
+    raise XPathContext.FunctionArgType(1,"xs:dateTime")    
 
 def hours_from_dateTime(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.hour
-    raise XPathContext.FunctionArgType(1,"xs:dateTime")
+    raise XPathContext.FunctionArgType(1,"xs:dateTime")    
 
 def minutes_from_dateTime(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.minute
-    raise XPathContext.FunctionArgType(1,"xs:dateTime")
+    raise XPathContext.FunctionArgType(1,"xs:dateTime")    
 
 def seconds_from_dateTime(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.second
-    raise XPathContext.FunctionArgType(1,"xs:dateTime")
+    raise XPathContext.FunctionArgType(1,"xs:dateTime")    
 
 def timezone_from_dateTime(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.tzinfo
-    raise XPathContext.FunctionArgType(1,"xs:dateTime")
+    raise XPathContext.FunctionArgType(1,"xs:dateTime")    
 
 def year_from_date(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.year
-    raise XPathContext.FunctionArgType(1,"xs:dateTime")
+    raise XPathContext.FunctionArgType(1,"xs:dateTime")    
 
 def month_from_date(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.month
-    raise XPathContext.FunctionArgType(1,"xs:dateTime")
+    raise XPathContext.FunctionArgType(1,"xs:dateTime")    
 
 def day_from_date(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.day
-    raise XPathContext.FunctionArgType(1,"xs:dateTime")
+    raise XPathContext.FunctionArgType(1,"xs:dateTime")    
 
 def timezone_from_date(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.tzinfo
-    raise XPathContext.FunctionArgType(1,"xs:dateTime")
+    raise XPathContext.FunctionArgType(1,"xs:dateTime")    
 
 def hours_from_time(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'time', missingArgFallback=())
     if d == (): return d
     if isinstance(d, Time): return d.hour
-    raise XPathContext.FunctionArgType(1,"xs:time")
+    raise XPathContext.FunctionArgType(1,"xs:time")    
 
 def minutes_from_time(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'time', missingArgFallback=())
     if d == (): return d
     if isinstance(d, Time): return d.minute
-    raise XPathContext.FunctionArgType(1,"xs:time")
+    raise XPathContext.FunctionArgType(1,"xs:time")    
 
 def seconds_from_time(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'time', missingArgFallback=())
     if d == (): return d
     if isinstance(d, Time): return d.second
-    raise XPathContext.FunctionArgType(1,"xs:time")
+    raise XPathContext.FunctionArgType(1,"xs:time")    
 
 def timezone_from_time(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'time', missingArgFallback=())
     if d == (): return d
     if isinstance(d, Time): return d.tzinfo
-    raise XPathContext.FunctionArgType(1,"xs:time")
+    raise XPathContext.FunctionArgType(1,"xs:time")    
 
 def adjust_dateTime_to_timezone(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
@@ -626,7 +626,7 @@ def subsequence(xc, p, contextItem, args):
         if start < 0:
             length += start
             if length < 0: length = 0
-            start = 0
+            start = 0 
         return sequence[start:start + length]
     if start < 0: start = 0
     return sequence[start:]
@@ -669,7 +669,7 @@ def avg(xc, p, contextItem, args):
     addends = xc.atomize( p, args[0] )
     try:
         l = len(addends)
-        if l == 0:
+        if l == 0: 
             return ()  # xpath allows empty sequence argument
         hasFloat = False
         hasDecimal = False
@@ -691,7 +691,7 @@ def fn_max(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     comparands = xc.atomize( p, args[0] )
     try:
-        if len(comparands) == 0:
+        if len(comparands) == 0: 
             return ()  # xpath allows empty sequence argument
         if any(isinstance(c, float) and math.isnan(c) for c in comparands):
             return NaN
@@ -703,7 +703,7 @@ def fn_min(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     comparands = xc.atomize( p, args[0] )
     try:
-        if len(comparands) == 0:
+        if len(comparands) == 0: 
             return ()  # xpath allows empty sequence argument
         if any(isinstance(c, float) and math.isnan(c) for c in comparands):
             return NaN
@@ -715,7 +715,7 @@ def fn_sum(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     addends = xc.atomize( p, args[0] )
     try:
-        if len(addends) == 0:
+        if len(addends) == 0: 
             return 0  # xpath allows empty sequence argument
         hasFloat = False
         hasDecimal = False
@@ -749,7 +749,7 @@ def doc(xc, p, contextItem, args):
     if not UrlUtil.isValidUriReference(uri):
         raise XPathContext.XPathException(p, 'err:FODC0005', _('Function xf:doc $uri is not valid {0}').format(uri))
     normalizedUri = xc.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(
-                                uri,
+                                uri, 
                                 xc.progHeader.element.modelDocument.baseForElement(xc.progHeader.element))
     if normalizedUri in xc.modelXbrl.urlDocs:
         return xc.modelXbrl.urlDocs[normalizedUri].xmlDocument
@@ -804,7 +804,7 @@ def  format_number(xc, p, args):
         return format_picture(xc.modelXbrl.locale, value, picture)
     except ValueError as err:
         raise XPathContext.XPathException(p, 'err:FODF1310', str(err) )
-
+    
 fnFunctions = {
     'node-name': node_name,
     'nilled': nilled,

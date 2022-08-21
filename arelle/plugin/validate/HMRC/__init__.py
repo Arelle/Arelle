@@ -8,9 +8,9 @@ References:
   https://xbrl.frc.org.uk (taxonomies, filing requirements, consistency checks)
   https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434597/joint-filing-validation-checks.pdf
   https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/893127/Joint-Filing-Common-Validation-Checks-v4.0.pdf
-
+  
   Style Guide: https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434588/xbrl-style-guide.pdf
-
+  
 '''
 import os
 from math import isnan
@@ -32,7 +32,7 @@ EMPTYDICT = {}
 _6_APR_2008 = dateTime("2008-04-06", type=DATE)
 
 commonMandatoryItems = {
-    "EntityCurrentLegalOrRegisteredName", "StartDateForPeriodCoveredByReport",
+    "EntityCurrentLegalOrRegisteredName", "StartDateForPeriodCoveredByReport", 
     "EndDateForPeriodCoveredByReport", "BalanceSheetDate"}
 mandatoryItems = {
     "ukGAAP": commonMandatoryItems | {
@@ -40,15 +40,15 @@ mandatoryItems = {
         "DateSigningDirectorsReport", "DirectorSigningReport"
         },
     "charities": commonMandatoryItems | {
-        "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements",
+        "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements", 
         "EntityDormantTruefalse", "EntityTradingStatus",
         "AccountingStandardsApplied", "AccountingStandardsApplied"},
     "ukIFRS": commonMandatoryItems | {
-        "DateAuthorisationFinancialStatementsForIssue", "ExplanationOfBodyOfAuthorisation",
+        "DateAuthorisationFinancialStatementsForIssue", "ExplanationOfBodyOfAuthorisation", 
         "EntityDormant", "EntityTrading", "DateSigningDirectorsReport", "DirectorSigningReport"},
     "FRS": commonMandatoryItems | {
         "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements",
-        "EntityDormantTruefalse", "EntityTradingStatus", "EntityTradingStatus",
+        "EntityDormantTruefalse", "EntityTradingStatus", "EntityTradingStatus", 
         "AccountingStandardsApplied", "AccountsStatusAuditedOrUnaudited", "AccountsTypeFullOrAbbreviated",
         "LegalFormEntity", "DescriptionPrincipalActivities"}
     }
@@ -56,10 +56,10 @@ mandatoryItems = {
 genericDimensionValidation = {
     # "taxonomyType": { "LocalName": (range of numbers if any, first item name, 2nd choice item name if any)
     "ukGAAP": {"Acquisition": (1,10,"NameAcquisition"),
-        "Associate": (1,30,"NameAssociate"),
+        "Associate": (1,30,"NameAssociate"),    
         "BusinessSegment": (1,30,"NameBusinessSegment", "DescriptionBusinessSegment"),
         "Disposal": (1,10,"NameOrDescriptionDisposal"),
-        "Joint-venture": (1,30,"NameJoint-venture"),
+        "Joint-venture": (1,30,"NameJoint-venture"),    
         "OtherInvestment": (1,5,"NameOtherParticipatingInterestOrInvestment",    "DescriptionOtherParticipatingInterestOrInvestment"),
         "OtherParticipatingInterest1": (1,5,"NameOtherParticipatingInterestOrInvestment",    "DescriptionOtherParticipatingInterestOrInvestment"),
         "PensionScheme": (1,8,"NameDefinedContributionScheme","DescriptionContributionScheme"),
@@ -137,10 +137,10 @@ genericDimensionValidation = {
         "OtherPost-employmentBenefitPlan": (1,2, "NameDefinedContributionPlan", "NameDefinedBenefitPlan")}}
 
 allowedImgMimeTypes = (
-        "data:image/gif;base64",
+        "data:image/gif;base64", 
         "data:image/jpeg;base64", "data:image/jpg;base64", # note both jpg and jpeg are in use
         "data:image/png;base64")
-
+        
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("HMRC", "HMRCplugin"),)
@@ -152,7 +152,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateHMRCplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "HMRCplugin", False)
     if not (val.validateHMRCplugin) or not val.modelXbrl.modelDocument:
         return
-
+    
     if parameters:
         p = parameters.get(qname("type",noPrefixIsNoNamespace=True))
         if p and len(p) == 2:  # override implicit type
@@ -164,7 +164,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                                 for doc in val.modelXbrl.urlDocs.values()
                                 if doc.targetNamespace)
         val.isAccounts = not val.isComputation
-
+            
     val.txmyType = None
     for doc in val.modelXbrl.modelDocument.referencesDocument:
         ns = doc.targetNamespace
@@ -195,10 +195,10 @@ def validateXbrlFinally(val, *args, **kwargs):
     _statusMsg = _("validating {0} filing rules").format(val.disclosureSystem.name)
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
-
+    
     if modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
         labelHasNegativeTermPattern = re.compile(r".*[(].*\w.*[)].*")
-
+        
         companyReferenceNumberContexts = defaultdict(list)
         for c1 in modelXbrl.contexts.values():
             scheme, identifier = c1.entityIdentifier
@@ -211,9 +211,9 @@ def validateXbrlFinally(val, *args, **kwargs):
         factForConceptContextUnitHash = defaultdict(list)
         hasCompaniesHouseContext = any(cntx.entityIdentifier[0] == "http://www.companieshouse.gov.uk/"
                                        for cntx in val.modelXbrl.contexts.values())
-
+        
         contextsUsed = set(f.context for f in modelXbrl.factsInInstance if f.context is not None)
-
+        
         contextsWithScenario = []
         for cntx in contextsUsed:
             for dim in cntx.qnameDims.values():
@@ -230,7 +230,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                         gdv = genericDimensionValidation.get(_gdvType,EMPTYDICT).get(l)
                         if gdv: # take first match
                             break
-                    if (gdv and (n is None or
+                    if (gdv and (n is None or 
                                  (isinstance(gdv[0],int) and isinstance(gdv[1],int) and n >= gdv[0] and n <= gdv[1]))):
                         gdvFacts = [f for f in gdv if isinstance(f,str)]
                         if len(gdvFacts) == 1:
@@ -243,11 +243,11 @@ def validateXbrlFinally(val, *args, **kwargs):
 
         if contextsWithScenario:
             modelXbrl.error("FRC.TG.3.6.1",
-                _("Context(s) %(identifiers)s is reported with scenario element."),
-                modelObject=contextsWithScenario,
+                _("Context(s) %(identifiers)s is reported with scenario element."), 
+                modelObject=contextsWithScenario, 
                             identifiers=", ".join(c.id for c in contextsWithScenario))
         del contextsWithScenario
-
+        
         def checkFacts(facts):
             for f in facts:
                 cntx = f.context
@@ -264,11 +264,11 @@ def validateXbrlFinally(val, *args, **kwargs):
                             _scheme, _identifier = _cntx.entityIdentifier
                             if _scheme == "http://www.companieshouse.gov.uk/" and f.xValue != _identifier:
                                 modelXbrl.error("JFCVC.3316",
-                                    _("Context entity identifier %(identifier)s does not match Company Reference Number (UKCompaniesHouseRegisteredNumber) Location: Accounts (context id %(id)s)"),
+                                    _("Context entity identifier %(identifier)s does not match Company Reference Number (UKCompaniesHouseRegisteredNumber) Location: Accounts (context id %(id)s)"), 
                                     modelObject=(f, _cntx), identifier=_identifier, id=_cntx.id)
                     if f.parentElement.qname == qnXbrliXbrl: # JFCVC v4.0 - only check non-tuple facts
                         factForConceptContextUnitHash[f.conceptContextUnitHash].append(f)
-
+                            
                     if f.isNumeric:
                         if f.precision:
                             modelXbrl.error("HMRC.5.4",
@@ -276,7 +276,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 modelObject=f, fact=f.qname, contextID=f.contextID, precision=f.precision)
                         try: # only process validated facts
                             if not f.isNil:
-                                if f.xValue < 0:
+                                if f.xValue < 0: 
                                     label = f.concept.label(lang="en")
                                     if not labelHasNegativeTermPattern.match(label):
                                         modelXbrl.error("HMRC.5.3",
@@ -289,7 +289,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                         if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
                                             modelXbrl.error("HMRC.SG.4.5",
                                                 _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
-                                                modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals,
+                                                modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals, 
                                                 value=f.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
                                     except (ValueError,TypeError):
                                         modelXbrl.error("HMRC.SG.4.5",
@@ -297,13 +297,13 @@ def validateXbrlFinally(val, *args, **kwargs):
                                             modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
                         except AttributeError:
                             pass  # if not validated it should have failed with a schema error
-
+                        
                     # check GDV
                     if f.qname.localName in mandatoryGDV:
                         _gdvReqList = mandatoryGDV[factLocalName]
                         _gdvReqRemovals = []
                         for _gdvReq in _gdvReqList:
-                            if any(_gdvReq.memLocalName == dim.memberQname.localName
+                            if any(_gdvReq.memLocalName == dim.memberQname.localName           
                                    for dim in cntx.qnameDims.values()
                                    if dim.isExplicit):
                                 _gdvReqRemovals.append(_gdvReq)
@@ -311,7 +311,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     _gdvAltList = mandatoryGDV[_gdvReq.altFact]
                                     _gdvAltRemovals = []
                                     for _gdvAlt in _gdvAltList:
-                                        if any(_gdvAlt.memLocalName == dim.memberQname.localName
+                                        if any(_gdvAlt.memLocalName == dim.memberQname.localName           
                                                for dim in cntx.qnameDims.values()
                                                if dim.isExplicit):
                                             _gdvAltRemovals.append(_gdvAlt)
@@ -319,16 +319,16 @@ def validateXbrlFinally(val, *args, **kwargs):
                                         _gdvAltList.remove(_gdvAlt)
                         if _gdvReqRemovals and not f.xValue: # fact was a mandatory name or description
                             modelXbrl.error("JFCVC.3315",
-                                            _("Generic dimension members associated name/description has no text: %(fact)s"),
+                                            _("Generic dimension members associated name/description has no text: %(fact)s"), 
                                             modelObject=f, fact=f.qname)
                         for _gdvReq in _gdvReqRemovals:
                             _gdvReqList.remove(_gdvReq)
-
+                                    
                     if f.modelTupleFacts:
                         checkFacts(f.modelTupleFacts)
-
+                    
         checkFacts(modelXbrl.facts)
-
+        
         if val.isAccounts:
             _missingItems = mandatoryItems[val.txmyType] - mandatoryFacts.keys()
             if hasCompaniesHouseContext and "UKCompaniesHouseRegisteredNumber" not in mandatoryFacts:
@@ -337,7 +337,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 modelXbrl.error("JFCVC.3312",
                     _("Facts are MANDATORY: %(missingItems)s"),
                     modelObject=modelXbrl, missingItems=", ".join(sorted(_missingItems)))
-
+            
             ''' removed with JFCVC v4.0 2020-06-09
             f = mandatoryFacts.get("StartDateForPeriodCoveredByReport")
             if f is not None and (f.isNil or f.xValue < _6_APR_2008):
@@ -345,18 +345,18 @@ def validateXbrlFinally(val, *args, **kwargs):
                     _("Period Start Date (StartDateForPeriodCoveredByReport) must be 6 April 2008 or later, but is %(value)s"),
                     modelObject=f, value=f.value)
             '''
-
+            
             memLocalNamesMissing = set("{}({})".format(_gdvRec.memLocalName, _gdvRec.factNames)
                                        for _gdv in mandatoryGDV.values()
                                        for _gdvRec in _gdv)
             if memLocalNamesMissing:
                 modelXbrl.error("JFCVC.3315",
-                    _("Generic dimension members have no associated name or description item, member names (name or description item): %(memberNames)s"),
+                    _("Generic dimension members have no associated name or description item, member names (name or description item): %(memberNames)s"), 
                     modelObject=modelXbrl, memberNames=", ".join(sorted(memLocalNamesMissing)))
+                
 
 
-
-        aspectEqualFacts = defaultdict(dict) # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact]
+        aspectEqualFacts = defaultdict(dict) # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact] 
         for hashEquivalentFacts in factForConceptContextUnitHash.values():
             if len(hashEquivalentFacts) > 1:
                 for f in hashEquivalentFacts: # check for hash collision by value checks on context and unit
@@ -410,7 +410,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(f.value for f in fList))
                 aspectEqualFacts.clear()
         del factForConceptContextUnitHash, aspectEqualFacts
-
+ 
     if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
         rootElt = modelXbrl.modelDocument.xmlRootElement
         if rootElt.tag in ("html", "xhtml") or not rootElt.tag.startswith("{http://www.w3.org/1999/xhtml}"):
@@ -446,26 +446,26 @@ def validateXbrlFinally(val, *args, **kwargs):
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
-
+    
 class GDV:
     def __init__(self, fact, altFact, memLocalName):
         self.fact = fact
         self.altFact = altFact
         self.memLocalName = memLocalName
         self._hash = hash( (hash(self.fact), hash(self.altFact), hash(self.memLocalName)) )
-
+        
     @property
     def factNames(self):
         if self.altFact:
             return ", ".join(sorted( (self.fact, self.altFact) ))
         return self.fact
-
-    def __hash__(self):
+    
+    def __hash__(self):          
         return self._hash
 
     def __eq__(self,other):
         return self.fact == other.fact and self.altFact == other.altFact and self.memLocalName == other.memLocalName
-
+                
     def __ne__(self,other):
         return not self.__eq__(other)
 

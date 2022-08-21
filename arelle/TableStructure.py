@@ -29,7 +29,7 @@ isCMPRH = r"(?=.*comprehensive)"
     parenthentical
     prenthetical
     parenethetical
-
+    
 use a regular expression that is forgiving on at least the above
 and doens't match variations of parent, transparent, etc.
 '''
@@ -47,7 +47,7 @@ def RE(*args):
 EFMtableCodes = [
     # ELRs are parsed for these patterns in sort order until there is one match per code
     # sheet(s) may be plural
-
+    
     # statement detection including root element of presentation link role
     ("BS", RE(STMT, notDET, notPAR), ("StatementOfFinancialPositionAbstract",)),
     ("BSP", RE(STMT, notDET, isPAR), ("StatementOfFinancialPositionAbstract",)),
@@ -63,7 +63,7 @@ EFMtableCodes = [
     ("CAP", RE(STMT, notDET, isPAR), ("CapitalizationLongtermDebtAndEquityAbstract",)),
     ("IN", RE(STMT, notDET, notPAR), ("ScheduleOfInvestmentsAbstract",)),
     ("INP", RE(STMT, notDET, isPAR), ("ScheduleOfInvestmentsAbstract",)),
-
+                 
     # statement detection without considering root elements
     ("DEI", RE(r".* - (document|statement) - .*document\W+.*entity\W+.*information"), None),
     ("BS", RE(STMT, notDET, notPAR, r".*balance\W+sheet"), None),
@@ -104,7 +104,7 @@ EFMtableCodes = [
     ("EQP", RE(STMT, notDET, isPAR, r"(?=.*reserve).*trust"), None),
     ("LC", RE(STMT, notDET, notPAR, r"(?=.*activities).*liquidati"), None),
     ("EQP", RE(STMT, notDET, isPAR, r".*def[ei][cs]it"), None),
-    ("BSV", RE(STMT, notDET,notPAR, r".*net\W+asset\W+value"), None),
+    ("BSV", RE(STMT, notDET,notPAR, r".*net\W+asset\W+value"), None), 
     ("CFS", RE(STMT, notDET,notPAR, r".*cash\W*flows\W+supplemental"), None),
     ("LAP", RE(STMT, notDET, isPAR, r".*(?!.*changes)(?=.*assets).*liquidati"), None)
     ]
@@ -120,7 +120,7 @@ HMRCtableCodes = [
 
 def evaluateRoleTypesTableCodes(modelXbrl):
     disclosureSystem = modelXbrl.modelManager.disclosureSystem
-
+    
     if disclosureSystem.validationType in ("EFM", "HMRC"):
         detectMultipleOfCode = False
         if disclosureSystem.validationType == "EFM":
@@ -132,10 +132,10 @@ def evaluateRoleTypesTableCodes(modelXbrl):
                                        for v in (docTypeFact.value,))
         elif disclosureSystem.validationType == "HMRC":
             tableCodes = list( HMRCtableCodes ) # separate copy of list so entries can be deleted
-
+ 
         codeRoleURI = {}  # lookup by code for roleURI
         roleURICode = {}  # lookup by roleURI
-
+        
         # resolve structural model
         roleTypes = [roleType
                      for roleURI in modelXbrl.relationshipSet(XbrlConst.parentChild).linkRoleUris
@@ -201,7 +201,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
         for roleDefinition, roleType in sortedRoleTypes:
             roleType._tableChildren = []
             match = usgaapRoleDefinitionPattern.match(roleDefinition) if roleDefinition else None
-            if not match:
+            if not match: 
                 roleType._tableIndex = (UNCATEG, "", roleType.roleURI)
                 continue
             seq, tblType, tblName = match.groups()
@@ -220,13 +220,13 @@ def evaluateTableIndex(modelXbrl, lang=None):
                               "(Polic" in tblName and NOTES or "(Table" in tblName and TABLES or
                               "(Detail" in tblName and DETAILS or NOTES)
             elif tableGroup == NOTES:
-                tableGroup = ("(Polic" in tblName and POLICIES or "(Table" in tblName and TABLES or
+                tableGroup = ("(Polic" in tblName and POLICIES or "(Table" in tblName and TABLES or 
                               "(Detail" in tblName and DETAILS or tblType == "Disclosure" and NOTES or UNCATEG)
             elif tableGroup == POLICIES:
-                tableGroup = ("(Table" in tblName and TABLES or "(Detail" in tblName and DETAILS or
+                tableGroup = ("(Table" in tblName and TABLES or "(Detail" in tblName and DETAILS or 
                               ("Paren" in tblName or "(Polic" in tblName) and POLICIES or UNCATEG)
             elif tableGroup == TABLES:
-                tableGroup = ("(Detail" in tblName and DETAILS or
+                tableGroup = ("(Detail" in tblName and DETAILS or 
                               ("Paren" in tblName or "(Table" in tblName) and TABLES or UNCATEG)
             elif tableGroup == DETAILS:
                 tableGroup = (("Paren" in tblName or "(Detail" in tblName) and DETAILS or UNCATEG)
@@ -315,7 +315,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
                     break
                 elif (cntx.isInstantPeriod and not cntx.qnameDims and thisEnd == cntx.endDatetime):
                     reportingPeriods.add((None, cntx.endDatetime))
-        stmtReportingPeriods = set(reportingPeriods)
+        stmtReportingPeriods = set(reportingPeriods)       
 
         sortedRoleTypes.reverse() # now in descending order
         for i, roleTypes in enumerate(sortedRoleTypes):
@@ -345,7 +345,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
                             tableFacts.add(fact)
                             reportedFacts.add(fact)
             roleType._tableFacts = tableFacts
-
+            
             # find parent if any
             closestParentType = None
             closestParentMatchLength = 0
@@ -356,7 +356,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
                     closestParentType = parentRoleType
             if closestParentType is not None:
                 closestParentType._tableChildren.insert(0, roleType)
-
+                
             # remove lesser-matched children if there was a parent match
             unmatchedChildRoles = set()
             longestChildMatchLen = 0
@@ -368,10 +368,10 @@ def evaluateTableIndex(modelXbrl, lang=None):
                 elif matchLen > longestChildMatchLen:
                     longestChildMatchLen = matchLen
                     numChildren += 1
-            if numChildren > 1:
+            if numChildren > 1: 
                 # remove children that don't have the full match pattern length to parent
                 for childRoleType in roleType._tableChildren:
-                    if (childRoleType not in unmatchedChildRoles and
+                    if (childRoleType not in unmatchedChildRoles and 
                         parentNameMatchLen(tableName, childRoleType) < longestChildMatchLen):
                         unmatchedChildRoles.add(childRoleType)
 
@@ -380,14 +380,14 @@ def evaluateTableIndex(modelXbrl, lang=None):
 
             for childRoleType in roleType._tableChildren:
                 childRoleType._tableParent = roleType
-
+                
             unmatchedChildRoles = None # dereference
-
+        
         global UGT_TOPICS
         if UGT_TOPICS is None:
             try:
                 from arelle import FileSource
-                fh = FileSource.openFileStream(modelXbrl.modelManager.cntlr,
+                fh = FileSource.openFileStream(modelXbrl.modelManager.cntlr, 
                                                os.path.join(modelXbrl.modelManager.cntlr.configDir, "ugt-topics.zip/ugt-topics.json"),
                                                'r', 'utf-8')
                 UGT_TOPICS = json.load(fh)
@@ -412,10 +412,10 @@ def evaluateTableIndex(modelXbrl, lang=None):
                         roleConcepts |= roleUgtConcepts(_tableChild)
                 return roleConcepts
             topicMatches = {} # topicNum: (best score, roleType)
-
+    
             for roleDefinition, roleType in sortedRoleTypes:
                 roleTopicType = 'S' if roleDefinition.startswith('S') else 'D'
-                if getattr(roleType, "_tableParent", None) is None:
+                if getattr(roleType, "_tableParent", None) is None:                
                     # rooted tables in reverse order
                     concepts = roleUgtConcepts(roleType)
                     for i, ugtTopic in enumerate(UGT_TOPICS):
@@ -482,11 +482,11 @@ def evaluateTableIndex(modelXbrl, lang=None):
                 addRoleIdentifiers(rootConcept, None, set())
                 if not linkroleUri and len(roleType._tableChildren) > 0:
                     linkroleUri = roleURI
-        return linkroleUri, linkroleUri  # only show linkroleUri in index table
-    elif _ifrsStyleELRs:
+        return linkroleUri, linkroleUri  # only show linkroleUri in index table   
+    elif _ifrsStyleELRs: 
         for roleType in definitionElrs.values():
             roleType._tableChildren = []
-        return sortedRoleTypes[0][1].roleURI, None # first link role in order
+        return sortedRoleTypes[0][1].roleURI, None # first link role in order             
     return None, None
 
 def parentNameMatchLen(tableName, parentRoleType):
@@ -508,7 +508,7 @@ def EFMlinkRoleURIstructure(modelXbrl, roleURI):
     for rootConcept in relSet.rootConcepts:
         EFMlinkRoleDescendants(relSet, rootConcept, dimMems, priItems)
     return dimMems, priItems
-
+        
 def EFMlinkRoleDescendants(relSet, concept, dimMems, priItems):
     if concept is not None:
         if concept.isDimensionItem:

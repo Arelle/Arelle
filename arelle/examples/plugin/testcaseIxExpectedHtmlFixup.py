@@ -1,5 +1,5 @@
 '''
-This plug-in removes xmlns="http://www.w3.org/1999/xhtml" from
+This plug-in removes xmlns="http://www.w3.org/1999/xhtml" from 
 escaped html in text content of expected instance facts for inline XBRL text facts
 
 It also provides an error code when a testcase variation does not load any iXBRL document.
@@ -20,7 +20,7 @@ def variationInstanceLoaded(testcaseInstance, variationInstance, extraErrors, in
         for ixds in inputDTS:
             if ixds.modelDocument.type not in (Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET):
                 extraErrors.append( "NotAnIxbrlDocument" )
-
+        
 def expectedInstanceLoaded(expectedInstance, outputInstanceToCompare):
     for f in expectedInstance.facts:
         if not f.isNumeric and f.text and "http://www.w3.org/1999/xhtml" in f.text:
@@ -33,7 +33,7 @@ def expectedInstanceLoaded(expectedInstance, outputInstanceToCompare):
             if v:
                 v = resolveHtmlUri(elt, n, v).replace(" ", "%20")
                 elt.set(n, v)
-
+                
 __pluginInfo__ = {
     'name': 'Testcase fixup escaped html xmlns',
     'version': '0.9',

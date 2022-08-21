@@ -15,7 +15,7 @@ from lxml import etree
 XMLSchemaURI = "http://www.w3.org/2001/XMLSchema.xsd"
 
 def validate(modelDocument, schemaElement, targetNamespace):
-    modelXbrl = modelDocument.modelXbrl
+    modelXbrl = modelDocument.modelXbrl 
     modelManager = modelXbrl.modelManager
     """
     if not hasattr(modelManager, "xmlSchemaSchema"):
@@ -32,8 +32,8 @@ def validate(modelDocument, schemaElement, targetNamespace):
         modelManager.showStatus(_("lxml compiling XML Schema for Schemas"))
         modelManager.xmlSchemaSchema = etree.XMLSchema(file=filePath)
         '''
-        modelXbrl.info("info:xmlSchemaValidator", format_string(modelXbrl.modelManager.locale,
-                                            _("schema for XML schemas loaded into lxml %.3f secs"),
+        modelXbrl.info("info:xmlSchemaValidator", format_string(modelXbrl.modelManager.locale, 
+                                            _("schema for XML schemas loaded into lxml %.3f secs"), 
                                             time.time() - startedAt),
                                             modelDocument=XMLSchemaURI)
         modelManager.showStatus("")
@@ -41,15 +41,15 @@ def validate(modelDocument, schemaElement, targetNamespace):
     '''
     #startedAt = time.time()
     #validationSuccess = modelManager.xmlSchemaSchema.validate(schemaElement)
-    #modelXbrl.info("info:xmlSchemaValidator", format_string(modelXbrl.modelManager.locale,
-    #                                    _("schema validated in %.3f secs"),
+    #modelXbrl.info("info:xmlSchemaValidator", format_string(modelXbrl.modelManager.locale, 
+    #                                    _("schema validated in %.3f secs"), 
     #                                    time.time() - startedAt),
     #                                    modelDocument=modelDocument)
     if not validationSuccess:
         for error in modelManager.xmlSchemaSchema.error_log:
             modelXbrl.error("xmlSchema:syntax",
                     _("%(error)s, %(fileName)s, line %(line)s, column %(column)s, %(sourceAction)s source element"),
-                    modelObject=modelDocument, fileName=modelDocument.basename,
+                    modelObject=modelDocument, fileName=modelDocument.basename, 
                     error=error.message, line=error.line, column=error.column, sourceAction=("xml schema"))
         modelManager.xmlSchemaSchema._clear_error_log()
     '''
@@ -62,37 +62,37 @@ def validate(modelDocument, schemaElement, targetNamespace):
 
     if targetNamespace:
         declaredNamespaces.add(targetNamespace)
-
+        
     if targetNamespace in ("http://www.w3.org/2001/XMLSchema",
                            "http://www.w3.org/XML/1998/namespace",
                            ): # or (
         #                targetNamespace and targetNamespace.startswith("http://www.w3.org/1999/xhtml")):
         return # don't validate w3c schemas
-
+    
     # check schema semantics
     def resolvedQnames(elt, qnDefs):
         for attrName, attrType, mdlObjects, isQualifiedForm in qnDefs:
             attr = elt.get(attrName)
             if attr is not None:
                 try:
-                    qnValue = elt.schemaNameQname(attr,
-                                                  isQualifiedForm=isQualifiedForm or elt.isQualifiedForm,
+                    qnValue = elt.schemaNameQname(attr, 
+                                                  isQualifiedForm=isQualifiedForm or elt.isQualifiedForm, 
                                                   prefixException=ValueError)
                     if qnValue.namespaceURI == XbrlConst.xsd:
                         if attrType != ModelType:
                             raise ValueError("{0} can not have xml schema namespace".format(attrName))
                         if qnValue.localName not in {
                                 "anySimpleType", "anyType",
-                                "string", "boolean", "float", "double", "decimal", "duration", "dateTime", "time", "date",
-                                "gYearMonth", "gYear", "gMonthDay", "gDay", "gMonth",
-                                "hexBinary", "base64Binary",
-                                "anyURI", "QName", "NOTATION",
-                                "normalizedString", "token", "language",
-                                "IDREFS", "ENTITIES", "NMTOKEN", "NMTOKENS", "NCName",
-                                "ID", "IDREF",
-                                "integer", "nonPositiveInteger", "negativeInteger",
-                                "long", "int", "short", "byte",
-                                "nonNegativeInteger", "unsignedLong", "unsignedInt", "unsignedShort", "unsignedByte",
+                                "string", "boolean", "float", "double", "decimal", "duration", "dateTime", "time", "date", 
+                                "gYearMonth", "gYear", "gMonthDay", "gDay", "gMonth", 
+                                "hexBinary", "base64Binary", 
+                                "anyURI", "QName", "NOTATION", 
+                                "normalizedString", "token", "language", 
+                                "IDREFS", "ENTITIES", "NMTOKEN", "NMTOKENS", "NCName", 
+                                "ID", "IDREF", 
+                                "integer", "nonPositiveInteger", "negativeInteger", 
+                                "long", "int", "short", "byte", 
+                                "nonNegativeInteger", "unsignedLong", "unsignedInt", "unsignedShort", "unsignedByte", 
                                 "positiveInteger"
                                 }:
                             raise ValueError("{0} qname {1} not recognized".format(attrName, attr))
@@ -110,7 +110,7 @@ def validate(modelDocument, schemaElement, targetNamespace):
                         typeName=attrName,
                         value=attr,
                         error=err)
-
+                    
     def checkSchemaElements(parentElement):
         for elt in parentElement.iterchildren():
             if isinstance(elt,ModelObject) and elt.namespaceURI == XbrlConst.xsd:
@@ -125,4 +125,4 @@ def validate(modelDocument, schemaElement, targetNamespace):
             checkSchemaElements(elt)
 
     checkSchemaElements(schemaElement)
-
+    

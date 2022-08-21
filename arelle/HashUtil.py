@@ -25,7 +25,7 @@ class Md5Sum:
         if s.endswith('L'):
             return s[:-1]
         return s
-
+    
     def __str__(self):
         return self.toHex()
 
@@ -33,12 +33,12 @@ class Md5Sum:
         if not isinstance(other, Md5Sum):
             other = Md5Sum(other)
         return Md5Sum(self.value + other.value)
-
+    
     def __eq__(self, other):
         if not isinstance(other, Md5Sum):
             other = Md5Sum(other)
         return self.value == other.value
-
+    
     def __ne__(self, other):
         return not (self.value == other.value)
 
@@ -66,11 +66,11 @@ def md5hash(argList):
                 _md5.update(_arg.encode('utf-8','replace'))
             elif isinstance(_arg, datetime): # always in isodate format
                 _md5.update("{0.year:04}-{0.month:02}-{0.day:02}T{0.hour:02}:{0.minute:02}:{0.second:02}".format(_arg).encode('utf-8','replace'))
-            elif isinstance(_arg, date):
+            elif isinstance(_arg, date): 
                 _md5.update("{0.year:04}-{0.month:02}-{0.day:02}".format(_arg).encode('utf-8','replace'))
             elif isinstance(_arg, ModelObject):
                 # use inner text list
-                _md5.update('\x1F'.join(text.strip()
+                _md5.update('\x1F'.join(text.strip() 
                                         for text in XmlUtil.innerTextNodes(_arg, True, False, True, False))
                             .encode('utf-8','replace'))
     if firstMd5arg:

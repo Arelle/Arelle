@@ -75,7 +75,7 @@ Magnitude = {
 class NumberException(Exception):
     def __init__(self, msg):
         Exception.__init__(self, msg)
-
+        
 wordSplitPattern = re.compile(r"[\s\u058A\u05BE\u2010\u2011\u2012\u2013\u2014\u2015\uFE58\uFE63\uFF0D-]+")
 
 def text2num(s):
@@ -96,7 +96,7 @@ def text2num(s):
             else:
                 raise NumberException("Unknown number: "+w)
     return n + g
-
+    
 if __name__ == "__main__":
     assert 1 == text2num("one")
     assert 12 == text2num("twelve")

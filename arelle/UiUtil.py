@@ -20,8 +20,8 @@ CENTERCELL = 5
 borderImage = None
 
 class gridBorder(Separator):
-    def __init__(self, master, x, y, border, columnspan=None, rowspan=None):
-        Separator.__init__(self, master=master)
+    def __init__(self, master, x, y, border, columnspan=None, rowspan=None): 
+        Separator.__init__(self, master=master) 
         if border in (TOPBORDER, BOTTOMBORDER):
             x = x * 2 - 1
             if columnspan: columnspan = columnspan * 2 + 1
@@ -67,7 +67,7 @@ class gridBorder(Separator):
         elif rowspan and rowspan > 1:
             self.grid(column=x, row=y, sticky=sticky, rowspan=rowspan)
         else:
-            self.grid(column=x, row=y, sticky=sticky)
+            self.grid(column=x, row=y, sticky=sticky) 
         self.x = x
         self.y = y
         self.columnspan = columnspan
@@ -81,16 +81,16 @@ class gridBorder(Separator):
             pass
         #if isinstance(master.master.master, scrolledHeaderedFrame):
         #    self.bind("<Configure>", master.master.master._configure_cell)
-
+  
 class gridSpacer(Frame):
-    def __init__(self, master, x, y, where):
+    def __init__(self, master, x, y, where): 
         Frame.__init__(self, master=master)
         if where == CENTERCELL:
             offset = 0
         elif where in (TOPBORDER, LEFTBORDER):
             offset = -1
         else:
-            offset = 1
+            offset = 1 
         x = x * 2 + offset
         y = y * 2 + offset
         self.grid(column=x, row=y) # same dimensions as separator in col/row headers
@@ -110,12 +110,12 @@ class gridSpacer(Frame):
             pass
         #if isinstance(master.master.master, scrolledHeaderedFrame):
         #    self.bind("<Configure>", master.master.master._configure_cell)
-
-class gridHdr(Label):
-    def __init__(self, master, x, y, text, columnspan=None, rowspan=None, anchor='center', padding=None,
+  
+class gridHdr(Label): 
+    def __init__(self, master, x, y, text, columnspan=None, rowspan=None, anchor='center', padding=None, 
                  wraplength=None, width=None, minwidth=None, stretchCols=True, stretchRows=True,
-                 objectId=None, onClick=None):
-        Label.__init__(self, master=master)
+                 objectId=None, onClick=None): 
+        Label.__init__(self, master=master) 
         if isinstance(master.master.master, scrolledHeaderedFrame):
             x = x * 2
             y = y * 2
@@ -124,13 +124,13 @@ class gridHdr(Label):
 #           #master.columnconfigure(x, weight=1, uniform='stretchX')
             #master.rowconfigure(y, weight=1, uniform='stretch')
         self.config(text=text if text is not None else "",
-                    #relief="solid", use border instead to effect row-col spanned cells properly
-                    #bg="#ffffff000", fg="#000000fff",
+                    #relief="solid", use border instead to effect row-col spanned cells properly 
+                    #bg="#ffffff000", fg="#000000fff", 
                     #readonlybackground="#ddddddddd",
-
-                    #background="#888000000",
+                    
+                    #background="#888000000", 
                     width=width,
-                    anchor=anchor)
+                    anchor=anchor) 
         if padding:
             self.config(padding=padding)
         if wraplength:
@@ -142,16 +142,16 @@ class gridHdr(Label):
         elif rowspan and rowspan > 1:
             self.grid(column=x, row=y, sticky=(E,W,N,S), rowspan=rowspan)
         else:
-            self.grid(column=x, row=y, sticky=(E,W,N,S))
+            self.grid(column=x, row=y, sticky=(E,W,N,S)) 
         self.x = x
         self.y = y
         self.columnspan = columnspan
         self.rowspan = rowspan
         self.objectId = objectId
-
+        
         if minwidth:
             master.columnconfigure(x, minsize=minwidth)
-
+            
         if stretchCols:
             master.columnconfigure(x, weight=1)
         else:
@@ -171,25 +171,25 @@ class gridHdr(Label):
             self.bind("<Configure>", master.master.master._configure_cell)
         if onClick:
             self.bind("<1>", onClick)
-
-class gridCell(Entry):
-    def __init__(self, master, x, y, value="", width=None, justify=None, objectId=None, onClick=None):
+  
+class gridCell(Entry): 
+    def __init__(self, master, x, y, value="", width=None, justify=None, objectId=None, onClick=None): 
         Entry.__init__(self, master=master)
-        self.valueVar = StringVar()
+        self.valueVar = StringVar() 
         self.valueVar.trace('w', self.valueChanged)
         self.config(textvariable=self.valueVar,
-                    #relief="ridge",
-                    #bg="#ff8ff8ff8", fg="#000000000",
+                    #relief="ridge", 
+                    #bg="#ff8ff8ff8", fg="#000000000", 
                     justify=justify,
                     width=width,
-                    )
+                    ) 
         if isinstance(master.master.master, scrolledHeaderedFrame):
             x = x * 2
             y = y * 2
         self.grid(column=x, row=y, sticky=(N,S,E,W))
         self.x = x
         self.y = y
-        if value is not None:
+        if value is not None: 
             self.valueVar.set(value)
         self.objectId = objectId
         # copy bindings
@@ -204,29 +204,29 @@ class gridCell(Entry):
         if onClick:
             self.bind("<1>", onClick)
         self.isChanged = False
-
+        
     @property
     def value(self):
         return self.valueVar.get()
-
+    
     def setValue(self, value):
         return self.valueVar.set(value)
-
+    
     def valueChanged(self, *args):
         self.isChanged = True
-
-class gridCombobox(_Combobox):
-    def __init__(self, master, x, y, value="", values=(), width=None, objectId=None, columnspan=None, selectindex=None, comboboxselected=None, state=None, padx=None, attr=None):
-        _Combobox.__init__(self, master=master)
-        self.attr = attr
-        self.valueVar = StringVar()
+    
+class gridCombobox(_Combobox): 
+    def __init__(self, master, x, y, value="", values=(), width=None, objectId=None, columnspan=None, selectindex=None, comboboxselected=None, state=None, padx=None, attr=None): 
+        _Combobox.__init__(self, master=master) 
+        self.attr = attr 
+        self.valueVar = StringVar() 
         self.valueVar.trace('w', self.valueChanged)
         self.config(textvariable=self.valueVar,
-                    background="#ff8ff8ff8", foreground="#000000000",
+                    background="#ff8ff8ff8", foreground="#000000000", 
                    # justify='center'
                     width=width,
                     state=state
-                    )
+                    ) 
         self["values"] = values
         if isinstance(master.master.master, scrolledHeaderedFrame):
             x = x * 2
@@ -235,10 +235,10 @@ class gridCombobox(_Combobox):
         if columnspan and columnspan > 1:
             self.grid(column=x, row=y, sticky=(E,W), columnspan=columnspan, padx=padx)
         else:
-            self.grid(column=x, row=y, sticky=(E,W), padx=padx)
+            self.grid(column=x, row=y, sticky=(E,W), padx=padx) 
         if selectindex is not None:
             self.valueVar.set(values[selectindex])
-        elif value:
+        elif value: 
             self.valueVar.set(value)
         elif attr:
             try:
@@ -258,11 +258,11 @@ class gridCombobox(_Combobox):
         if comboboxselected:
             self.bind("<<ComboboxSelected>>", comboboxselected)
         self.isChanged = False
-
+        
     @property
     def value(self):
         return self.valueVar.get()
-
+    
     @property
     def valueIndex(self):
         value = self.valueVar.get()
@@ -270,24 +270,24 @@ class gridCombobox(_Combobox):
         if value in values:
             return values.index(value)
         return -1
-
+        
     def valueChanged(self, *args):
         self.isChanged = True
-
+        
 class label(Label):
     def __init__(self, master, x, y, text):
-        Label.__init__(self, master=master, text=text)
-        #self.config(justify='left')
-        self.grid(column=x, row=y, sticky=W, padx=8)
-
+        Label.__init__(self, master=master, text=text) 
+        #self.config(justify='left') 
+        self.grid(column=x, row=y, sticky=W, padx=8) 
+    
 class checkbox(Checkbutton):
     def __init__(self, master, x, y, text, attr=None, columnspan=None, onclick=None):
-        self.attr = attr
+        self.attr = attr 
         self.onclick = onclick
-        self.valueVar = StringVar()
+        self.valueVar = StringVar() 
         self.valueVar.trace('w', self.valueChanged)
-        Checkbutton.__init__(self, master=master, text=text, variable=self.valueVar)
-        self.grid(column=x, row=y, sticky=W, padx=24)
+        Checkbutton.__init__(self, master=master, text=text, variable=self.valueVar) 
+        self.grid(column=x, row=y, sticky=W, padx=24) 
         if columnspan:
             self.grid(columnspan=columnspan)
         try:
@@ -297,39 +297,39 @@ class checkbox(Checkbutton):
         except AttributeError:
             pass
         self.isChanged = False
-
+        
     @property
     def value(self):
         if self.valueVar.get() == "1":
             return True
         else:
             return False
-
+        
     def valueChanged(self, *args):
         self.isChanged = True
         if self.onclick is not None:
             self.onclick(self)
-
+        
 class radiobutton(Radiobutton):
     def __init__(self, master, x, y, text, value, attr=None, valueVar=None):
-        self.attr = attr
-        self.valueVar = valueVar if valueVar else StringVar()
-        Radiobutton.__init__(self, master=master, text=text, variable=self.valueVar, value=value)
-        self.grid(column=x, row=y, sticky=W, padx=24)
+        self.attr = attr 
+        self.valueVar = valueVar if valueVar else StringVar() 
+        Radiobutton.__init__(self, master=master, text=text, variable=self.valueVar, value=value) 
+        self.grid(column=x, row=y, sticky=W, padx=24) 
         try:
             options = master.master.options
             if attr in options:
                 self.valueVar.set( options[attr] )
         except AttributeError:
             pass
-
+        
     @property
     def value(self):
         return self.valueVar.get()
-
+        
 class scrolledFrame(Frame):
     def __init__(self, parent, *args, **kw):
-        Frame.__init__(self, parent, *args, **kw)
+        Frame.__init__(self, parent, *args, **kw)            
 
         vscrollbar = Scrollbar(self, orient=VERTICAL)
         hscrollbar = Scrollbar(self, orient=HORIZONTAL)
@@ -356,7 +356,7 @@ class scrolledFrame(Frame):
         self.interior_id = canvas.create_window(0, 0, window=interior, anchor=NW)
         interior.bind('<Configure>', self._configure_interior)
         canvas.bind('<Configure>', self._configure_canvas)
-
+    
     def _configure_interior(self,event):
         # update the scrollbars to match the size of the inner frame
         interiorW = self.interior.winfo_reqwidth()
@@ -380,7 +380,7 @@ class scrolledFrame(Frame):
         if self.interior.winfo_reqheight() != canvasH:
             self.canvas.itemconfigure(self.interior_id, height=canvasH)
         '''
-
+        
     def clearGrid(self):
         x,y = self.size()
         for widget in self.winfo_children():
@@ -394,7 +394,7 @@ class scrolledFrame(Frame):
 
 class scrolledHeaderedFrame(Frame):
     def __init__(self, parent, *args, **kw):
-        Frame.__init__(self, parent, *args, **kw)
+        Frame.__init__(self, parent, *args, **kw)            
 
         self.colsConfigured = False
         self.bodyCellsConfigured = False
@@ -465,21 +465,21 @@ class scrolledHeaderedFrame(Frame):
         # on linux Button-4, Button-5 events
         #self.rowHdrCanvas.bind("<MouseWheel>", self._mousewheel)
         #self.bodyCanvas.bind("<MouseWheel>", self._mousewheel)
-
+        
     def _vscroll_body(self, *args):
         self.rowHdrCanvas.yview(*args)
         self.bodyCanvas.yview(*args)
-
+    
     def _hscroll_body(self, *args):
         self.colHdrCanvas.xview(*args)
         self.bodyCanvas.xview(*args)
-
+    
     def _mousewheel(self, event):
         # on linux:  if (event.num == 4): delta = -1 elif (event.num == 5): delta = 1 else: delta = event.delta
         self.rowHdrCanvas.yview("scroll", event.delta, "units")
         self.bodyCanvas.yview("scroll", event.delta, "units")
         return "break" #don't do default scrolling
-
+    
     def clearGrid(self):
         self.colHdrCanvas.xview_moveto(0)
         self.colHdrCanvas.yview_moveto(0)
@@ -525,7 +525,7 @@ class scrolledHeaderedFrame(Frame):
         # also: mac won't display at all without this trick
         self.rowHdrCanvas.config(width=interiorW, scrollregion=(0,0,interiorW,interiorH))
         if widenWidth: # update the canvas's width to fit the inner frame
-
+            
             self.rowHdrCanvas.config(width=interiorW + 1) # remove if tkinter issue gets solved
         #if interiorW != self.tblHdrInterior.winfo_width() or \
         #   interiorW != self.tblHdrInterior.tk.call( ('grid', 'columnconfigure', self.tblHdrInterior._w, 1, '-minsize' ) ):
@@ -579,7 +579,7 @@ class scrolledHeaderedFrame(Frame):
         canvasW = self.rowHdrCanvas.winfo_width()
         if self.rowHdrInterior.winfo_reqwidth() != canvasW:
             self.rowHdrCanvas.itemconfigure(self.rowHdrInterior_id, width=canvasW)
-
+            
     def _configure_cell(self, event):
         #if self.blockConfigureCell:
         #    return
@@ -646,11 +646,11 @@ class scrolledHeaderedFrame(Frame):
             #print("...rowHdrH={} colHdrW={}".format(rowHdrH, colHdrW))
                 #self.bodyInterior.update()
         self.blockConfigureCell = False
-
+    
     def conformHdrsToBody(self):
         self.colsConfigured = True
         # non-spanned cells
-
+        
         '''
         for hdrCell in self.rowHdrInterior.children.values():
             hdrCellH = hdrCell.winfo_reqheight()
@@ -676,7 +676,7 @@ class scrolledHeaderedFrame(Frame):
         for hdrCellId, hdrCell in hdrCells.items():
             if not hdrCell.x & 1:
                 colspan = hdrCell.columnspan if hasattr(hdrCell,'columnspan') and hdrCell.columnspan else 1
-                hdrCellSortKeys.append( (colspan, hdrCell.x, -hdrCell.y, hdrCellId) )
+                hdrCellSortKeys.append( (colspan, hdrCell.x, -hdrCell.y, hdrCellId) ) 
         hdrCellSortKeys.sort()
         for columnspan, x, y, hdrCellId in hdrCellSortKeys:
             hdrCell = hdrCells[hdrCellId]
@@ -696,11 +696,11 @@ class scrolledHeaderedFrame(Frame):
                     if W > bodyColW: # even (body) cells only
                         self.bodyInterior.tk.call( ('grid', 'columnconfigure', self.bodyInterior._w, X, '-minsize', W ) )
                         #self.bodyInterior.update()
-
+                            
     def conformBodyCellsToHeader(self):
         #print("conformBodyCellsToHeader")
         self.bodyCellsConfigured = True
-
+        
         for bodyCell in self.bodyInterior.children.values():
             if isinstance(bodyCell,gridSpacer):
                 continue
@@ -715,8 +715,8 @@ class scrolledHeaderedFrame(Frame):
             #print("conform row=" + str(y) + " rowH=" + str(rowColH) + " cellH=" + str(bodyCellH))
             if bodyCellH < rowColH:
                 self.bodyInterior.tk.call( ('grid', 'rowconfigure', self.bodyInterior._w, y, '-minsize', rowColH ) )
-
+        
 #self.colHdrInterior.update()
         #self.rowHdrInterior.update()
         #self.bodyInterior.update()
-
+            

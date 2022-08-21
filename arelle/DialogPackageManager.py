@@ -17,7 +17,7 @@ try:
     import regex as re
 except ImportError:
     import re
-
+    
 STANDARD_PACKAGES_URL = "https://taxonomies.xbrl.org/api/v0/taxonomy"
 
 def dialogPackageManager(mainWin):
@@ -35,31 +35,31 @@ def backgroundCheckForUpdates(cntlr):
                               .format(', '.join(packageNamesWithNewerFileDates)), clearAfter=5000)
     else:
         cntlr.showStatus(_("No updates found for packages."), clearAfter=5000)
-    time.sleep(0.1) # Mac locks up without this, may be needed for empty ui queue?
+    time.sleep(0.1) # Mac locks up without this, may be needed for empty ui queue? 
     cntlr.uiThreadQueue.put((DialogPackageManager, [cntlr, packageNamesWithNewerFileDates]))
 
 class DialogPackageManager(Toplevel):
     def __init__(self, mainWin, packageNamesWithNewerFileDates):
         super(DialogPackageManager, self).__init__(mainWin.parent)
-
+        
         self.ENABLE = _("Enable")
         self.DISABLE = _("Disable")
         self.parent = mainWin.parent
         self.cntlr = mainWin
         self.webCache = mainWin.webCache
-
+        
         # copy plugins for temporary display
         self.packagesConfig = PackageManager.packagesConfig
         self.packagesConfigChanged = False
         self.packageNamesWithNewerFileDates = packageNamesWithNewerFileDates
-
+        
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", self.parent.geometry())
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
 
         self.title(_("Taxonomy Packages Manager"))
         frame = Frame(self)
-
+        
         # left button frame
         buttonFrame = Frame(frame, width=40)
         buttonFrame.columnconfigure(0, weight=1)
@@ -91,7 +91,7 @@ class DialogPackageManager(Toplevel):
         manifestNameButton.grid(row=selBtnRow, column=0, pady=4)
         selBtnRow += 1
         buttonFrame.grid(row=0, column=0, rowspan=3, sticky=(N, S, W), padx=3, pady=3)
-
+        
         # right tree frame (packages already known to arelle)
         packagesFrame = Frame(frame, width=700)
         vScrollbar = Scrollbar(packagesFrame, orient=VERTICAL)
@@ -135,18 +135,18 @@ class DialogPackageManager(Toplevel):
         remappingsFrame.rowconfigure(0, weight=1)
         remappingsFrame.grid(row=1, column=1, columnspan=4, sticky=(N, S, E, W), padx=3, pady=3)
         self.remappingsView.focus_set()
-
+        
         self.remappingsView.column("#0", width=200, anchor="w")
         self.remappingsView.heading("#0", text=_("Prefix"))
         self.remappingsView["columns"] = ("remapping")
         self.remappingsView.column("remapping", width=500, anchor="w", stretch=False)
         self.remappingsView.heading("remapping", text=_("Remapping"))
-
+        
         # bottom frame package info details
         packageInfoFrame = Frame(frame, width=700)
         packageInfoFrame.columnconfigure(1, weight=1)
-
-        self.packageNameLabel = Label(packageInfoFrame, wraplength=600, justify="left",
+        
+        self.packageNameLabel = Label(packageInfoFrame, wraplength=600, justify="left", 
                                       font=font.Font(family='Helvetica', size=12, weight='bold'))
         self.packageNameLabel.grid(row=0, column=0, columnspan=6, sticky=W)
         self.packageVersionHdr = Label(packageInfoFrame, text=_("version:"), state=DISABLED)
@@ -203,14 +203,14 @@ class DialogPackageManager(Toplevel):
         self.packageRemoveButton.grid(row=9, column=5, sticky=E)
         packageInfoFrame.grid(row=2, column=0, columnspan=5, sticky=(N, S, E, W), padx=3, pady=3)
         packageInfoFrame.config(borderwidth=4, relief="groove")
-
+        
         okButton = Button(frame, text=_("Close"), command=self.ok)
         ToolTip(okButton, text=_("Accept and changes (if any) and close dialog."), wraplength=240)
         cancelButton = Button(frame, text=_("Cancel"), command=self.close)
         ToolTip(cancelButton, text=_("Cancel changes (if any) and close dialog."), wraplength=240)
         okButton.grid(row=3, column=3, sticky=(S,E), pady=3)
         cancelButton.grid(row=3, column=4, sticky=(S,E), pady=3, padx=3)
-
+        
         enableDisableFrame = Frame(frame)
         enableDisableFrame.grid(row=3, column=1, sticky=(S,W), pady=3)
         enableAllButton = Button(enableDisableFrame, text=_("Enable All"), command=self.enableAll)
@@ -219,7 +219,7 @@ class DialogPackageManager(Toplevel):
         ToolTip(disableAllButton, text=_("Disable all packages."), wraplength=240)
         enableAllButton.grid(row=1, column=1)
         disableAllButton.grid(row=1, column=2)
-
+        
         self.loadTreeViews()
 
         self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
@@ -230,19 +230,19 @@ class DialogPackageManager(Toplevel):
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
         window.rowconfigure(0, weight=1)
-
+        
         self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.close)
-
+        
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.grab_set()
         self.wait_window(self)
-
+        
     def loadTreeViews(self):
         self.selectedModule = None
 
         # clear previous treeview entries
-        for previousNode in self.packagesView.get_children(""):
+        for previousNode in self.packagesView.get_children(""): 
             self.packagesView.delete(previousNode)
 
         for i, packageInfo in enumerate(self.packagesConfig.get("packages", [])):
@@ -254,16 +254,16 @@ class DialogPackageManager(Toplevel):
             if name in self.packageNamesWithNewerFileDates:
                 self.packagesView.set(node, "update", _("available"))
             self.packagesView.set(node, "descr", packageInfo.get("description"))
-
+        
         # clear previous treeview entries
-        for previousNode in self.remappingsView.get_children(""):
+        for previousNode in self.remappingsView.get_children(""): 
             self.remappingsView.delete(previousNode)
 
         for i, remappingItem in enumerate(sorted(self.packagesConfig.get("remappings", {}).items())):
             prefix, remapping = remappingItem
             node = self.remappingsView.insert("", "end", prefix, text=prefix)
             self.remappingsView.set(node, "remapping", remapping)
-
+            
         self.packageSelect()  # clear out prior selection
 
     def ok(self, event=None):
@@ -272,7 +272,7 @@ class DialogPackageManager(Toplevel):
             PackageManager.packagesConfigChanged = True
             self.cntlr.onPackageEnablementChanged()
         self.close()
-
+        
     def close(self, event=None):
         self.parent.focus_set()
         self.destroy()
@@ -359,7 +359,7 @@ class DialogPackageManager(Toplevel):
             for label in labels:
                  return label["Label"]
             return ""
-        try:
+        try:   
             with open(self.webCache.getfilename(STANDARD_PACKAGES_URL, reload=True), 'r', errors='replace') as fh:
                 regPkgs = json.load(fh) # always reload
             for pkgTxmy in regPkgs.get("taxonomies", []):
@@ -378,8 +378,8 @@ class DialogPackageManager(Toplevel):
                                    _("Standard packages URL is not accessible, please check if online:\n\n{0}.")
                                    .format(STANDARD_PACKAGES_URL),
                                    parent=self)
-
-
+               
+        
     def findLocally(self):
         initialdir = self.cntlr.pluginDir # default plugin directory
         #if not self.cntlr.isMac: # can't navigate within app easily, always start in default directory
@@ -398,17 +398,17 @@ class DialogPackageManager(Toplevel):
             self.cntlr.config["packageOpenDir"] = os.path.dirname(filename)
             packageInfo = PackageManager.packageInfo(self.cntlr, filename, packageManifestName=self.manifestNamePattern)
             self.loadFoundPackageInfo(packageInfo, filename)
-
+                
 
     def findOnWeb(self):
         self.loadPackageUrl(DialogURL.askURL(self))
-
+        
     def loadPackageUrl(self, url):
         if url:  # url is the in-cache or local file
             packageInfo = PackageManager.packageInfo(self.cntlr, url, packageManifestName=self.manifestNamePattern)
             self.cntlr.showStatus("") # clear web loading status
             self.loadFoundPackageInfo(packageInfo, url)
-
+                
     def manifestName(self):
         self.manifestNamePattern = simpledialog.askstring(_("Archive manifest file name pattern"),
                                                           _("Provide non-standard archive manifest file name pattern (e.g., *taxonomyPackage.xml).  \n"
@@ -417,7 +417,7 @@ class DialogPackageManager(Toplevel):
                                                             "(If blank, search for either .taxonomyPackage.xml or catalog.xml).  "),
                                                           initialvalue=self.manifestNamePattern,
                                                           parent=self)
-
+                
     def loadFoundPackageInfo(self, packageInfo, url):
         if packageInfo and packageInfo.get("name"):
             self.addPackageInfo(packageInfo)
@@ -428,7 +428,7 @@ class DialogPackageManager(Toplevel):
                                      "If opening an archive file, the manifest file search pattern currently is \"\", please press \"Manifest\" to change manifest file name pattern, e.g.,, \"*.taxonomyPackage.xml\", if needed.  ")
                                    .format(url),
                                    parent=self)
-
+            
     def removePackageInfo(self, name, version):
         # find package entry
         packagesList = self.packagesConfig["packages"]
@@ -462,7 +462,7 @@ class DialogPackageManager(Toplevel):
             self.packagesConfigChanged = True
             PackageManager.rebuildRemappings(self.cntlr)
             self.loadTreeViews()
-
+            
     def packageMoveUp(self):
         if 1 <= self.selectedPackageIndex < len(self.packagesConfig["packages"]):
             packages = self.packagesConfig["packages"]
@@ -472,7 +472,7 @@ class DialogPackageManager(Toplevel):
             self.packagesConfigChanged = True
             PackageManager.rebuildRemappings(self.cntlr)
             self.loadTreeViews()
-
+            
     def packageMoveDown(self):
         if 0 <= self.selectedPackageIndex < len(self.packagesConfig["packages"]) - 1:
             packages = self.packagesConfig["packages"]
@@ -482,7 +482,7 @@ class DialogPackageManager(Toplevel):
             self.packagesConfigChanged = True
             PackageManager.rebuildRemappings(self.cntlr)
             self.loadTreeViews()
-
+            
     def packageReload(self):
         if 0 <= self.selectedPackageIndex < len(self.packagesConfig["packages"]):
             packageInfo = self.packagesConfig["packages"][self.selectedPackageIndex]
@@ -507,13 +507,13 @@ class DialogPackageManager(Toplevel):
             self.packagesConfigChanged = True
             PackageManager.rebuildRemappings(self.cntlr)
             self.loadTreeViews()
-
+            
     def enableAll(self):
         self.enableDisableAll(True)
-
+                    
     def disableAll(self):
         self.enableDisableAll(False)
-
+                    
     def enableDisableAll(self, doEnable):
         for iPkg in range(len(self.packagesConfig["packages"])):
             packageInfo = self.packagesConfig["packages"][iPkg]
@@ -526,4 +526,4 @@ class DialogPackageManager(Toplevel):
         self.packagesConfigChanged = True
         PackageManager.rebuildRemappings(self.cntlr)
         self.loadTreeViews()
-
+            

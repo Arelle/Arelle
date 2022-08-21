@@ -1,12 +1,12 @@
 '''
 XbrlSemanticRDFDB.py implements an RDF database interface for Arelle, based
-on a concrete realization of the Abstract Model PWD 2.0 layer.  This is a semantic
-representation of XBRL information.
+on a concrete realization of the Abstract Model PWD 2.0 layer.  This is a semantic 
+representation of XBRL information. 
 
 This module may save directly to a NanoSparqlServer or to append to a file of RDF Turtle.
 See http://sourceforge.net/apps/mediawiki/bigdata/index.php?title=NanoSparqlServer
 
-This module provides the execution context for saving a dts and instances in
+This module provides the execution context for saving a dts and instances in 
 XBRL RDF graph.  It may be loaded by Arelle's RSS feed, or by individual
 DTS and instances opened by interactive or command line/web service mode.
 
@@ -16,10 +16,10 @@ Example dialog or command line parameters for operation:
     port:  the host port (80 is default) if a NanoSparqlServer
     user, password:  if needed for server
     database:  the top level path segment for the NanoSparqlServer or disk file path if rdfTurtleFile
-    timeout:
+    timeout: 
+    
 
-
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
+(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 to do:
@@ -55,7 +55,7 @@ TRACERDFFILE = None
 RDFTURTLEFILE_HOSTNAME = "rdfTurtleFile"
 RDFXMLFILE_HOSTNAME = "rdfXmlFile"
 
-def insertIntoDB(modelXbrl,
+def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
                  product=None, rssItem=None, **kwargs):
     rdfdb = None
@@ -69,8 +69,8 @@ def insertIntoDB(modelXbrl,
                 rdfdb.close(rollback=True)
             except Exception as ex2:
                 pass
-        raise # reraise original exception with original traceback
-
+        raise # reraise original exception with original traceback    
+    
 def isDBPort(host, port, db, timeout=10):
     if host in (RDFTURTLEFILE_HOSTNAME, RDFXMLFILE_HOSTNAME):
         return True
@@ -91,8 +91,8 @@ def isDBPort(host, port, db, timeout=10):
 # deferred rdflib import
 Namespace = URIRef = Literal = Graph = L = XSD = RDF = RDFS = None
 DEFAULT_GRAPH_CLASS = None
-
-
+  
+    
 # namespaces act as abstract model classes
 
 XML = XBRL = XBRLI = LINK = QName = Filing = DTS = Aspect = AspectType = None
@@ -134,19 +134,19 @@ def initRdflibNamespaces():
         Context = Namespace("http://xbrl.org/2013/rdf/Context/")
         Period = Namespace("http://xbrl.org/2013/rdf/Period/")
         Unit = Namespace("http://xbrl.org/2013/rdf/Unit/")
-
+        
         SEC = Namespace("http://www.sec.gov/")
-
+ 
 def modelObjectDocumentUri(modelObject):
     return URIRef( UrlUtil.ensureUrl(modelObject.modelDocument.uri) )
-
+ 
 def modelObjectUri(modelObject):
-    return URIRef('#'.join((modelObjectDocumentUri(modelObject),
+    return URIRef('#'.join((modelObjectDocumentUri(modelObject), 
                             XmlUtil.elementFragmentIdentifier(modelObject))))
-
+ 
 def qnameUri(qname, sep='#'):
     return URIRef(sep.join((qname.namespaceURI, qname.localName)))
-
+ 
 def qnamePrefix_Name(qname, sep='_'):
     # substitutte standard prefixes for commonly-defaulted xmlns namespaces
     prefix = {XbrlConst.xsd: 'xsd',
@@ -157,7 +157,7 @@ def qnamePrefix_Name(qname, sep='_'):
               XbrlConst.xlink: 'xlink'
               }.get(qname.namespaceURI, qname.prefix)
     return L(sep.join((prefix, qname.localName)))
-
+ 
 def modelObjectQnameUri(modelObject, sep='#'):
     return qnameUri(modelObject.qname, sep)
 
@@ -169,7 +169,7 @@ class XRDBException(Exception):
         self.args = ( self.__repr__(), )
     def __repr__(self):
         return _('[{0}] exception: {1}').format(self.code, self.message % self.kwargs)
-
+            
 
 
 class XbrlSemanticRdfDatabaseConnection():
@@ -178,7 +178,7 @@ class XbrlSemanticRdfDatabaseConnection():
             initRdflibNamespaces()
         except ImportError:
             raise XRDBException("xrdfDB:MissingRdflib",
-                                _("Rdflib is not installed or is not available in this build"))
+                                _("Rdflib is not installed or is not available in this build")) 
         self.modelXbrl = modelXbrl
         self.disclosureSystem = modelXbrl.modelManager.disclosureSystem
         #self.conn = RexProConnection(host, int(port or '8182'), (database or 'emptygraph'),
@@ -202,7 +202,7 @@ class XbrlSemanticRdfDatabaseConnection():
             self.conn = urllib.request.build_opener(auth_handler)
             self.timeout = timeout or 60
         self.verticePropTypes = {}
-
+        
     def close(self, rollback=False):
         try:
             if not (self.isRdfTurtleFile or self.isRdfXmlFile):
@@ -211,14 +211,14 @@ class XbrlSemanticRdfDatabaseConnection():
         except Exception as ex:
             self.__dict__.clear() # dereference everything
             raise
-
+        
     @property
     def isClosed(self):
         return not bool(self.__dict__)  # closed when dict is empty
-
+    
     def showStatus(self, msg, clearAfter=None):
         self.modelXbrl.modelManager.showStatus(msg, clearAfter)
-
+        
     def initializeGraph(self, graph=None):
         g =  graph or DEFAULT_GRAPH_CLASS()
         g.bind("xml", XML)
@@ -240,13 +240,13 @@ class XbrlSemanticRdfDatabaseConnection():
         g.bind("unit", Unit)
         g.bind("sec", SEC)
         return g
-
+            
     def execute(self, activity, graph=None, query=None):
         if graph is not None:
             headers = {'User-agent':   'Arelle/1.0',
                        'Accept':       'application/sparql-results+json',
                        'Content-Type': "text/turtle; charset='UTF-8'"}
-            data = graph.serialize(format='pretty-xml' if self.isRdfXmlFile else 'turtle',
+            data = graph.serialize(format='pretty-xml' if self.isRdfXmlFile else 'turtle', 
                                    encoding='utf=8')
         elif query is not None:
             headers = {'User-agent':   'Arelle/1.0',
@@ -290,16 +290,16 @@ class XbrlSemanticRdfDatabaseConnection():
                 error = results
             raise XRDBException("xrdfDB:DatabaseError",
                                 _("%(activity)s not successful: %(error)s"),
-                                activity=activity, error=error)
+                                activity=activity, error=error) 
         return results
-
+    
     def commit(self, graph):
         self.execute("Saving RDF Graph", graph=graph)
-
+    
     def loadGraphRootVertices(self):
         self.showStatus("Load/Create graph root vertices")
         pass
-
+        
     def getDBsize(self):
         self.showStatus("Get database size")
         return 0
@@ -309,16 +309,16 @@ class XbrlSemanticRdfDatabaseConnection():
             # must also have default dimensions loaded
             from arelle import ValidateXbrlDimensions
             ValidateXbrlDimensions.loadDimensionDefaults(self.modelXbrl)
-
+            
             #initialVcount, initialEcount = self.getDBsize() # don't include in timing, very slow
             startedAt = time.time()
-
+            
             # find pre-existing documents in server database
             self.identifyPreexistingDocuments()
-
+            
             g = self.initializeGraph()
             self.insertSchema(g)
-
+            
             # self.load()  this done in the verify step
             self.insertFiling(rssItem,g)
             self.insertDocuments(g)
@@ -348,28 +348,28 @@ class XbrlSemanticRdfDatabaseConnection():
         except Exception as ex:
             self.showStatus("DB insertion failed due to exception", clearAfter=5000)
             raise
-
+        
     def insertSchema(self, g):
         if True:  # if schema not defined
             self.showStatus("insert schema")
             # XML schema
             g.add( (XML.QName, RDF.type, RDFS.Class) )
-
+            
             # Filings schema
             g.add( (XBRL.Filing, RDF.type, RDFS.Class) )
-
+            
             g.add( (XML.Document, RDF.type, RDFS.Class) )
             g.add( (XBRL.Schema, RDFS.subClassOf, XML.Document) )
             g.add( (XBRL.Linkbase, RDFS.subClassOf, XML.Document) )
             g.add( (XBRL.Instance, RDFS.subClassOf, XML.Document) )
             g.add( (XBRL.InlineHtml, RDFS.subClassOf, XML.Document) )
-
+            
             # Aspect schema
-
+            
             # Relationships schema
-
+            
             # DataPoints schema
-
+        
     def insertFiling(self, rssItem, g):
         self.showStatus("insert filing")
         # accession graph -> document vertices
@@ -388,8 +388,8 @@ class XbrlSemanticRdfDatabaseConnection():
             new_filing['filingDate'] = XmlUtil.dateunionValue(rssItem.filingDate)
             new_filing['entityId'] = rssItem.cikNumber
             new_filing['entityName'] = rssItem.companyName
-            new_filing['SICCode'] = rssItem.assignedSic
-            new_filing['SECHtmlUrl'] = rssItem.htmlUrl
+            new_filing['SICCode'] = rssItem.assignedSic 
+            new_filing['SECHtmlUrl'] = rssItem.htmlUrl 
             new_filing['entryUrl'] = URIRef( rssItem.url )
             self.filingDTS = rssItem.htmlUrl
             self.filingURI = URIRef( self.filingDTS )
@@ -404,22 +404,22 @@ class XbrlSemanticRdfDatabaseConnection():
             new_filing['entryUrl'] = URIRef( UrlUtil.ensureUrl(self.modelXbrl.fileSource.url) )
             self.filingDTS = Filing[filingNumber]
             self.filingURI = URIRef( self.filingDTS )
-
+            
         g.add( (self.filingURI, RDF.type, XBRL.Filing) )
         for n, v in new_filing.items():
             g.add( (self.filingURI, Filing[n], L(v)) )
-
+            
         # for now only one report per filing (but SEC may have multiple in future, such as form SD)
         self.reportURI = URIRef( modelObjectDocumentUri(self.modelXbrl) )
         g.add( (self.reportURI, RDF.type, XBRL.Report) )
         g.add( (self.filingURI, Filing.report, self.reportURI) )
         g.add( (self.reportURI, Filing.filing, self.filingURI) )
-
+            
         # relationshipSets are a dts property
         self.relationshipSets = [(arcrole, ELR, linkqname, arcqname)
                                  for arcrole, ELR, linkqname, arcqname in self.modelXbrl.baseSets.keys()
                                  if ELR and (arcrole.startswith("XBRL-") or (linkqname and arcqname))]
-
+        
     def identifyPreexistingDocuments(self):
         self.existingDocumentUris = set()
         if not (self.isRdfTurtleFile or self.isRdfXmlFile):
@@ -428,23 +428,23 @@ class XbrlSemanticRdfDatabaseConnection():
                 if modelDocument.type == Type.SCHEMA:
                     docFilters.append('STR(?doc) = "{}"'.format(UrlUtil.ensureUrl(modelDocument.uri)))
             results = self.execute(
-                "select",
+                "select", 
                 query="""
                     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                     PREFIX DTS: <http://xbrl.org/2013/rdf/DTS/>
-                    SELECT distinct ?doc WHERE { ?doc rdf:type DTS:Document
+                    SELECT distinct ?doc WHERE { ?doc rdf:type DTS:Document 
                     FILTER( """ + '\n|| '.join(docFilters) + ") .}")
             try:
                 for result in results['results']['bindings']:
                     doc = result['doc']
                     if doc.get('type') == 'uri':
-                        self.existingDocumentUris.add(doc['value'])
+                        self.existingDocumentUris.add(doc['value'])                    
             except KeyError:
                 pass # no existingDocumentUris
-
+        
     def insertDocuments(self, g):
         # filing->documents
-        #
+        # 
         self.showStatus("insert documents")
         documents = []
         for modelDocument in self.modelXbrl.urlDocs.values():
@@ -460,10 +460,10 @@ class XbrlSemanticRdfDatabaseConnection():
             g.add( (self.filingURI, Filing.document, docUri) )
             if modelDocument.uri == self.modelXbrl.modelDocument.uri: # entry document
                 g.add( (self.reportURI, DTS.EntryPoint, docUri) )
-
+                
     def conceptsUsed(self):
         conceptsUsed = set(f.qname for f in self.modelXbrl.factsInInstance)
-
+        
         for cntx in self.modelXbrl.contexts.values():
             for dim in cntx.qnameDims.values():
                 conceptsUsed.add(dim.dimensionQname)
@@ -488,7 +488,7 @@ class XbrlSemanticRdfDatabaseConnection():
                     conceptsUsed.add(rel.toModelObject)
         for qn in (XbrlConst.qnXbrliIdentifier, XbrlConst.qnXbrliPeriod, XbrlConst.qnXbrliUnit):
             conceptsUsed.add(qn)
-
+        
         conceptsUsed -= {None}  # remove None if in conceptsUsed
         return conceptsUsed
 
@@ -496,21 +496,21 @@ class XbrlSemanticRdfDatabaseConnection():
         # separate graph
         # document-> dataTypeSet -> dataType
         # do all schema dataTypeSet vertices
-
+            
         self.type_id = {}
         self.aspect_id = {}
         self.aspect_proxy_uri = {}
         self.roleType_id = {}
         self.arcroleType_id = {}
-
-
+        
+            
         '''
         if any((not self.document_isNew[modelDocument.uri])
                for modelDocument in self.modelXbrl.urlDocs.values()):
             conceptsUsed = self.conceptsUsed()
         '''
         conceptsUsed = self.conceptsUsed()
-
+            
         for modelDocument in self.modelXbrl.urlDocs.values():
             self.showStatus("insert DataDictionary " + modelDocument.basename)
             # don't re-output existing documents
@@ -529,24 +529,24 @@ class XbrlSemanticRdfDatabaseConnection():
                             docUri = modelObjectDocumentUri(modelType)
                             g.add( (docUri, XBRL.dataType, typeUri) )
                             g.add( (typeUri, XBRL.document, docUri) )
-
+                     
                             g.add( (typeUri, RDF.type, XBRL.DataType) )
                             g.add( (typeUri, RDF.type, XBRL.QName) )
                             g.add( (typeUri, QName.namespace, L(modelDocument.targetNamespace)) )
                             g.add( (typeUri, QName.localName, L(modelType.name)) )
-
+                     
                             xbrliBaseType = modelType.baseXbrliTypeQname
                             if not isinstance(xbrliBaseType, (tuple,list)):
                                 xbrliBaseType = (xbrliBaseType,)
                             for baseType in xbrliBaseType:
                                 if baseType is not None:
                                     baseTypeUri = qnameUri(baseType)
-                                    g.add( (typeUri,
-                                            AspectType.baseXbrliType,
+                                    g.add( (typeUri, 
+                                            AspectType.baseXbrliType, 
                                             baseTypeUri) )
                                     if baseType.namespaceURI == "http://www.w3.org/2001/XMLSchema":
                                         g.add( (typeUri, AspectType.baseXsdType, baseTypeUri) )
-
+                     
                             typeDerivedFrom = modelType.typeDerivedFrom
                             if not isinstance(typeDerivedFrom, (tuple,list)): # list if a union
                                 typeDerivedFrom = (typeDerivedFrom,)
@@ -554,7 +554,7 @@ class XbrlSemanticRdfDatabaseConnection():
                                 if dt is not None:
                                     dtUri = modelObjectUri(dt)
                                     g.add( (typeUri, AspectType.derivedFrom, dtUri))
-
+                     
                             for prop in ('isTextBlock', 'isDomainItemType'):
                                 propertyValue = getattr(modelType, prop, None)
                                 if propertyValue:
@@ -566,32 +566,32 @@ class XbrlSemanticRdfDatabaseConnection():
                         docUri = modelObjectDocumentUri(modelConcept)
                         g.add( (docUri, XBRL.aspect, conceptUri) )
                         g.add( (conceptUri, XBRL.document, docUri) )
-
+                 
                         g.add( (conceptUri, RDF.type, XBRL.Aspect) )
                         g.add( (conceptUri, RDF.type, XBRL.QName) )
                         g.add( (conceptUri, QName.namespace, L(modelConcept.qname.namespaceURI)) )
                         g.add( (conceptUri, QName.localName, L(modelConcept.qname.localName)) )
-
+                 
                         g.add( (conceptUri, Aspect.isAbstract, L(modelConcept.isAbstract)) )
                         if modelConcept.periodType:
                             g.add( (conceptUri, Aspect.periodType, L(modelConcept.periodType)) )
                         if modelConcept.balance:
                             g.add( (conceptUri, Aspect.balance, L(modelConcept.balance)) )
-
-                        for prop in ('isItem', 'isTuple', 'isLinkPart',
-                                     'isNumeric', 'isMonetary', 'isExplicitDimension',
+                 
+                        for prop in ('isItem', 'isTuple', 'isLinkPart', 
+                                     'isNumeric', 'isMonetary', 'isExplicitDimension', 
                                      'isDimensionItem', 'isPrimaryItem',
                                      'isTypedDimension', 'isDomainMember', 'isHypercubeItem',
                                      'isShares', 'isTextBlock', 'isNillable'):
                             propertyValue = getattr(modelConcept, prop, None)
                             if propertyValue:
                                 g.add( (conceptUri, Aspect[prop], L(propertyValue)) )
-
+                 
                         conceptType = modelConcept.type
                         if conceptType is not None:
                             typeUri = modelObjectUri(conceptType)
                             g.add( (conceptUri, XBRL.dataType, typeUri) )
-
+                        
                         substitutionGroup = modelConcept.substitutionGroup
                         if substitutionGroup is not None:
                             sgUri = modelObjectUri(substitutionGroup)
@@ -602,12 +602,12 @@ class XbrlSemanticRdfDatabaseConnection():
                             docUri = modelObjectDocumentUri(modelRoleType)
                             g.add( (docUri, XBRL.roleType, rtUri) )
                             g.add( (rtUri, XBRL.document, docUri) )
-
+                 
                             g.add( (rtUri, RDF.type, DTS.RoleType) )
                             g.add( (rtUri, RoleType.roleUri, URIRef(modelRoleType.roleURI)) )
                             g.add( (rtUri, RoleType.definition, L(modelRoleType.definition)) )
                             #g.add( (rt_uri, LinkRoleType.cyclesAllowed, LinkRoleType.cycles[rt.cyclesAllowed or "none"]) )
-
+                 
                             for qn in modelRoleType.usedOns:
                                 usedOnConcept = self.modelXbrl.qnameConcepts[qn]
                                 g.add( (rtUri, RoleType.usedOn, modelObjectUri(usedOnConcept)) )
@@ -618,49 +618,49 @@ class XbrlSemanticRdfDatabaseConnection():
                             doc_uri = modelObjectDocumentUri(modelArcroleType)
                             g.add( (doc_uri, XBRL.arcroleType, rt_uri) )
                             g.add( (rtUri, XBRL.document, docUri) )
-
+                 
                             g.add( (rt_uri, RDF.type, DTS.ArcRoleType) )
                             g.add( (rt_uri, ArcRoleType.roleUri, URIRef(modelArcroleType.arcroleURI)) )
                             g.add( (rt_uri, ArcRoleType.definition, L(modelArcroleType.definition)) )
                             g.add( (rt_uri, ArcRoleType.cyclesAllowed, ArcRoleCycles[modelArcroleType.cyclesAllowed]) )
-
+                 
                             for qn in modelArcroleType.usedOns:
                                 usedOnConcept = self.modelXbrl.qnameConcepts[qn]
                                 g.add( (rt_uri, ArcRoleType.usedOn, modelObjectUri(usedOnConcept)) )
                     activity = "Insert data dictionary types, aspects, roles, and arcroles for " + modelDocument.uri
 
-
+        
     '''
     def insertValidCombinations(self):
         # document-> validCombinationsSet-> cubes
         self.showStatus("insert ValidCombinations")
-
+        
         drsELRs = set(ELR
                       for arcrole, ELR, linkqname, arcqname in self.modelXbrl.baseSets.values()
                       if arcrole == XbrlConst.all)
         hasHcRels = self.modelXbrl.relationshipSet(XbrlConst.all).modelRelationships
         hcConcepts = set(hasHcRel.toModelObject for hasHcRel in hasHcRels)
-
+        
         # one cube region per head pri item with multiple cube regions
         for hcConcept in hcConcepts:
             # include any other concepts in this pri item with clean inheritance
             for drsELR in drsELRs:
                 # each ELR is another cube region
-
+         
         for allRel in val.modelXbrl.relationshipSet(XbrlConst.all, ELR)
         drsPriItems(val, fromELR, fromPriItem
-
+        
         ... this becomes an unweildly large model, don't see a use case for compiling it out
 '''
     def insertAspectProxies(self, qnames, g):
-        aspectQnames = [qname
-                        for qname in qnames
+        aspectQnames = [qname 
+                        for qname in qnames 
                         if qname not in self.aspect_proxy_uri and qname in self.modelXbrl.qnameConcepts]
         for qname in aspectQnames:
-            self.insertAspectProxy(qname,
+            self.insertAspectProxy(qname, 
                                    URIRef( "{}/AspectProxy/{}".format(self.reportURI, qnamePrefix_Name(qname)) ),
                                    g)
-
+            
     def insertAspectProxy(self, aspectQName, aspectProxyUri, g):
         concept = self.modelXbrl.qnameConcepts[aspectQName]
         g.add( (aspectProxyUri, RDF.type, DTS.AspectProxy) )
@@ -668,8 +668,8 @@ class XbrlSemanticRdfDatabaseConnection():
         g.add( (aspectProxyUri, DTS.report, self.reportURI ) )
         g.add( (self.reportURI, DTS.aspectProxy, aspectProxyUri ) )
         self.aspect_proxy_uri[aspectQName] = aspectProxyUri
-
-
+            
+    
     def aspectQnameProxyURI(self, qname):
         if hasattr(qname, "modelDocument"):
             return self.aspect_proxy_uri.get(qname.qname)
@@ -681,7 +681,7 @@ class XbrlSemanticRdfDatabaseConnection():
         # separate graph
         # document-> dataTypeSet -> dataType
         self.showStatus("insert DataPoints")
-
+        
         # note these initial aspects Qnames used also must be in conceptsUsed above
         dimensions = [] # index by hash of dimension
         dimensionIds = {}  # index for dimension
@@ -693,14 +693,14 @@ class XbrlSemanticRdfDatabaseConnection():
             for fact in self.modelXbrl.factsInInstance:
                 factUri = modelObjectUri(fact)
                 docUri = modelObjectDocumentUri(fact)
-                baseXsdType = fact.concept.baseXsdType if fact.concept is not None else None
-
+                baseXsdType = fact.concept.baseXsdType if fact.concept is not None else None 
+     
                 g.add( (factUri, RDF.type, XBRL.DataPoint) )
                 g.add( (docUri, XBRL.dataPoint, factUri) )
                 g.add( (factUri, XBRL.document, docUri) )
                 self.insertAspectProxies( (fact.qname,), g )
                 g.add( (factUri, XBRL.baseItem, self.aspectQnameProxyURI(fact.qname) ) )
-
+     
                 # fact related to aspectProxy below
                 g.add( (factUri, XML.id, L(XmlUtil.elementFragmentIdentifier(fact))) )
                 g.add( (factUri, XML.sourceLine, L(fact.sourceline)) )
@@ -710,7 +710,7 @@ class XbrlSemanticRdfDatabaseConnection():
                     if context.entityIdentifier not in entityIdentifierURIs:
                         entityScheme, entityIdentifier = context.entityIdentifier
                         entityIdentifierUri = URIRef( "{}/AspectProxy/{}/{}".format(
-                                                      self.reportURI,
+                                                      self.reportURI, 
                                                       qnamePrefix_Name(XbrlConst.qnXbrliIdentifier),
                                                       entityIdentifier) )
                         self.insertAspectProxy(XbrlConst.qnXbrliIdentifier, entityIdentifierUri, g)
@@ -729,7 +729,7 @@ class XbrlSemanticRdfDatabaseConnection():
                         period = "instant/{}".format(endDate)
                     else:
                         startDate = XmlUtil.dateunionValue(context.startDatetime).replace(':','_')
-                        endDate = XmlUtil.dateunionValue(context.endDatetime, subtractOneDay=True).replace(':','_')
+                        endDate = XmlUtil.dateunionValue(context.endDatetime, subtractOneDay=True).replace(':','_')                        
                         period = "duration/{}/{}".format(startDate, endDate)
                     if period not in periodURIs:
                         periodUri = URIRef( "{}/AspectProxy/{}".format(self.reportURI, period) )
@@ -751,13 +751,13 @@ class XbrlSemanticRdfDatabaseConnection():
                     else:
                         periodUri = periodURIs[period]
                     g.add( (factUri, XBRLI.Period, periodUri ) )
-
+                    
                     contextUri = modelObjectUri(context)
                     g.add( (factUri, XBRLI.contextId, L(context.id) ) )
                     if context.id not in contextAspectValueSelections:
                         contextAspectValueSelection = []
                         contextAspectValueSelections[context.id] = contextAspectValueSelection
-
+                        
                         for dimVal in context.qnameDims.values():
                             dimUri = modelObjectUri(dimVal)
                             self.insertAspectProxy(dimVal.dimensionQname, dimUri, g)
@@ -791,7 +791,7 @@ class XbrlSemanticRdfDatabaseConnection():
                                 self.insertAspectProxy(XbrlConst.qnXbrliUnit, unitUri, g)
                                 g.add( (unitUri, RDF.type, DTS.Unit) )
                                 g.add( (docUri, XBRL.defines, unitUri) )
-
+             
                                 mults, divs = unit.measures
                                 for qn in mults:
                                     qnUri = qnameUri(qn)
@@ -816,18 +816,18 @@ class XbrlSemanticRdfDatabaseConnection():
                     else:
                         # Otherwise insert as plain liternal with no language or datatype
                         g.add( (factUri, DataPoint.value, L(fact.value)) )
-
+                        
                     if fact.modelTupleFacts:
                         g.add( (factUri, RDF.type, XBRL.tuple) )
                         for tupleFact in fact.modelTupleFacts:
                             g.add( (factUri, XBRLI.tuple, modelObjectUri(tupleFact)) )
-
-
+                        
+        
         if self.modelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL):
             for fact in self.modelXbrl.factsInInstance:
                 factUri = modelObjectUri(fact)
 
-
+        
     def insertRelationshipSets(self, g):
         self.showStatus("insert relationship sets")
         entryUrl = URIRef( modelObjectDocumentUri(self.modelXbrl) )
@@ -839,14 +839,14 @@ class XbrlSemanticRdfDatabaseConnection():
             if arcqname:
                 aspectQnamesUsed.add(arcqname)
         self.insertAspectProxies(aspectQnamesUsed, g)
-
+        
         relSetURIs = {}
         for i, relationshipSetKey in enumerate(self.relationshipSets):
             arcrole, linkrole, linkqname, arcqname = relationshipSetKey
             if arcrole not in ("XBRL-formulae", "Table-rendering", "XBRL-footnotes") and linkrole and linkqname and arcqname:
                 # skip paths and qnames for now (add later for non-SEC)
                 relSetUri = URIRef("{}/RelationshipSet/{}/{}".format(
-                                   self.filingURI,
+                                   self.filingURI, 
                                    os.path.basename(arcrole),
                                    os.path.basename(linkrole)) )
                 relSetURIs[relationshipSetKey] = relSetUri
@@ -858,17 +858,17 @@ class XbrlSemanticRdfDatabaseConnection():
                 g.add( (self.reportURI, XBRL.relationshipSet, relSetUri) )
                 g.add( (relSetUri, XBRL.report, self.reportURI) )
 
-
+        
         # do tree walk to build relationships with depth annotated, no targetRole navigation
         relE = [] # fromV, toV, label
         resources = set()
         aspectQnamesUsed = set()
-
+        
         def walkTree(rels, parentRelUri, seq, depth, relationshipSetKey, relationshipSet, visited, relSetUri, doVertices):
             for rel in rels:
                 if rel not in visited:
                     visited.add(rel)
-
+                    
                     if not doVertices:
                         _relProp = {'seq': L(seq),
                                     'depth': L(depth),
@@ -938,7 +938,7 @@ class XbrlSemanticRdfDatabaseConnection():
                             _relProp['to'] = targetUri
                             _arcrole = os.path.basename(rel.arcrole)
                             relUri = URIRef("{}/Relationship/{}/{}/{}/{}".format(
-                                            self.reportURI,
+                                            self.reportURI, 
                                             _arcrole,
                                             os.path.basename(rel.linkrole),
                                             sourceId,
@@ -957,15 +957,15 @@ class XbrlSemanticRdfDatabaseConnection():
                         seq = walkTree(targetRelSet.fromModelObject(toModelObject), relUri, seq, depth+1, targetRelSetKey, targetRelSet, visited, targetRelSetUri, doVertices)
                     visited.remove(rel)
             return seq
-
+        
 
         for doVertices in range(1,-1,-1):  # pass 0 = vertices, pass 1 = edges
             for i, relationshipSetKey in enumerate(self.relationshipSets):
                 arcrole, linkrole, linkqname, arcqname = relationshipSetKey
-                if arcrole not in ("XBRL-formulae", "Table-rendering", "XBRL-footnotes") and linkrole and linkqname and arcqname:
+                if arcrole not in ("XBRL-formulae", "Table-rendering", "XBRL-footnotes") and linkrole and linkqname and arcqname:                
                     relSetUri = relSetURIs[relationshipSetKey]
                     relationshipSet = self.modelXbrl.relationshipSet(*relationshipSetKey)
-                    seq = 1
+                    seq = 1               
                     for rootConcept in relationshipSet.rootConcepts:
                         seq = walkTree(relationshipSet.fromModelObject(rootConcept), None, seq, 1, relationshipSetKey, relationshipSet, set(), relSetUri, doVertices)
             if doVertices:
@@ -976,7 +976,7 @@ class XbrlSemanticRdfDatabaseConnection():
                         g.add( (resourceUri, XBRL.value, L(resource.stringValue)) )
                         if resource.role:
                             g.add( (resourceUri, XBRL.role, L(resource.role)) )
-
+                    
                 self.insertAspectProxies(aspectQnamesUsed, g)
             else:
                 for j, rel in enumerate(relE):
@@ -991,18 +991,18 @@ class XbrlSemanticRdfDatabaseConnection():
                     for k,v in rel.items():
                         if k not in ('relURI', 'relPredicate', 'relSetKey'):
                             g.add( (relUri, Relationship[k], v) )
-
+                
                 # TBD: do we want to link resources to the dts (by role, class, or otherwise?)
-
+                    
         resources = None
-
+        
     def insertValidationResults(self, g):
         logEntries = []
         for handler in logging.getLogger("arelle").handlers:
             if hasattr(handler, "dbHandlerLogEntries"):
                 logEntries = handler.dbHandlerLogEntries()
                 break
-
+        
         messages = []
         messageRefs = [] # direct link to objects
         firstLogMessage = True
@@ -1038,7 +1038,7 @@ class XbrlSemanticRdfDatabaseConnection():
                     else:
                         continue
                     objUri = URIRef("{}/Relationship/{}/{}/{}/{}".format(
-                                    self.reportURI,
+                                    self.reportURI, 
                                     os.path.basename(modelObject.arcrole),
                                     os.path.basename(modelObject.linkrole),
                                     sourceId,
@@ -1047,4 +1047,4 @@ class XbrlSemanticRdfDatabaseConnection():
                     continue
                 g.add( (objUri, XBRL.ref, messageUri) )
                 g.add( (messageUri, XBRL.message, objUri) )
-
+                        

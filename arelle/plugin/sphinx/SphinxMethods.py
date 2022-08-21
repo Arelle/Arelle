@@ -1,13 +1,13 @@
 '''
 sphinxMethods processes the Sphinx language in the context of an XBRL DTS and instance.
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
+(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
-Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer
-(c) Copyright 2012 CoreFiling, Oxford UK.
+Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer 
+(c) Copyright 2012 CoreFiling, Oxford UK. 
 Sphinx copyright applies to the Sphinx language, not to this software.
-Mark V Systems conveys neither rights nor license for the Sphinx language.
+Mark V Systems conveys neither rights nor license for the Sphinx language. 
 '''
 
 from math import exp, fabs, isinf, isnan, log, log10, pow, sqrt
@@ -130,7 +130,7 @@ def numericArg(node, sphinxContext, args, i):
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s numeric parameter %(num)s is not a number: %(value)s"),
                           name=node.name, num=i, value=arg)
-
+    
 def numericArgs(node, sphinxContext, args, expectedArgsLen):
     if expectedArgsLen != len(args):
         raise SphinxException(node, "sphinx.functionArgumentsMismatch",
@@ -150,7 +150,7 @@ def numericArgs(node, sphinxContext, args, expectedArgsLen):
     for i in range(i, expectedArgsLen):
         numArgs.append(0)
     return numArgs
-
+    
 def strArg(node, sphinxContext, args, i):
     hasArg(node, sphinxContext, args, i)
     arg = args[i]
@@ -159,7 +159,7 @@ def strArg(node, sphinxContext, args, i):
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s string parameter %(num)s is not a string: %(value)s"),
                           name=node.name, num=i, value=arg)
-
+    
 def strArgs(node, sphinxContext, args, expectedArgsLen):
     if expectedArgsLen != len(args):
         raise SphinxException(node, "sphinx.functionArgumentsMismatch",
@@ -179,7 +179,7 @@ def strArgs(node, sphinxContext, args, expectedArgsLen):
     for i in range(i, expectedArgsLen):
         strArgs.append(0)
     return strArgs
-
+    
 def factArg(node, sphinxContext, args, i):
     hasArg(node, sphinxContext, args, i)
     fact = evaluate(args[i], sphinxContext, value=False, hsBoundFact=True)
@@ -209,7 +209,7 @@ def conceptArg(node, sphinxContext, args, i):
                           _("Function %(name)s fact parameter %(num)s is not a concept: %(value)s"),
                           name=node.name,
                           num=i, value=concept)
-
+    
 def dtsArg(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
     dts = evaluate(args[0], sphinxContext, value=False)
@@ -268,11 +268,11 @@ def _addTimePeriod(node, sphinxContext, args, subtract=False):
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s argument is not an instant period %(value)s"),
                           name=node.name, value=arg)
-
+    
 def _abs(node, sphinxContext, args):
     args = numericArgs(node, sphinxContext, args, 1)
     return fabs(args[0])
-
+    
 def _balance(node, sphinxContext, args):
     if len(node.args) == 1 and node.args[0] is None:
         return Balance()
@@ -291,7 +291,7 @@ def _booleanFunction(node, sphinxContext, args):
                           _("Function %(name)s fact parameter %(num)s is not \"true\" or \"false\": %(value)s"),
                           name=node.name,
                           num=0, value=arg)
-
+    
 def _concept(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
     if isinstance(args[0], ModelXbrl):
@@ -340,7 +340,7 @@ def _contains(node, sphinxContext, args):
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s argument is not a collection %(value)s"),
                           name=node.name, value=collection)
-
+    
 def _credit(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
     if isinstance(args[0], Balance):
@@ -348,7 +348,7 @@ def _credit(node, sphinxContext, args):
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s argument is not a ::balance %(value)s"),
                           name=node.name, value=args[0])
-
+    
 def _days(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
     arg = args[0]
@@ -361,7 +361,7 @@ def _days(node, sphinxContext, args):
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s argument is not a period %(value)s"),
                           name=node.name, value=arg)
-
+    
 def _debit(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
     if isinstance(args[0], Balance):
@@ -369,7 +369,7 @@ def _debit(node, sphinxContext, args):
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s argument is not a ::balance %(value)s"),
                           name=node.name, value=args[0])
-
+    
 def _decimals(node, sphinxContext, args):
     fact = factArg(node, sphinxContext, args, 0)
     return inferredDecimals(fact)
@@ -422,7 +422,7 @@ def _durationFunction(node, sphinxContext, args):
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s requires two argument that are a date or datetime string or value: %(start)s and %(end)s", ),
                           name=node.name, start=startArg, end=endArg)
-
+      
 def _endDate(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
     arg = args[0]
@@ -438,7 +438,7 @@ def _endsWith(node, sphinxContext, args):
     value = strArgs(node, sphinxContext, args, 0)
     suffix = strArgs(node, sphinxContext, args, 1)
     return value.endswith(suffix)
-
+       
 def _entityMethod(node, sphinxContext, args):
     fact = factArg(node, sphinxContext, args, 0)
     if fact.context is not None:
@@ -460,7 +460,7 @@ def _exp(node, sphinxContext, args):
 
 def _foreverFunction(node, sphinxContext, args):
     return Period(None, None)
-
+      
 def _identifier(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
     arg = args[0]
@@ -469,20 +469,20 @@ def _identifier(node, sphinxContext, args):
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s argument is not an entity identifier %(value)s"),
                           name=node.name, value=arg)
-
+        
 def _hasDecimals(node, sphinxContext, args):
     fact = factArg(node, sphinxContext, args, 0)
     return fact.decimals is not None
-
+    
 def _indexOf(node, sphinxContext, args):
     value = strArgs(node, sphinxContext, args, 0)
     arg = strArgs(node, sphinxContext, args, 1)
     return value.find(arg)
-
+       
 def _hasPrecision(node, sphinxContext, args):
     fact = factArg(node, sphinxContext, args, 0)
     return fact.precision is not None
-
+    
 def _instant(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
     if isinstance(args[0], PeriodType):
@@ -490,7 +490,7 @@ def _instant(node, sphinxContext, args):
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s argument is not a ::period-type %(value)s"),
                           name=node.name, value=args[0])
-
+    
 def _instantFunction(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
     arg = args[0]
@@ -505,7 +505,7 @@ def _instantFunction(node, sphinxContext, args):
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s argument is not a date or datetime string or value %(value)s"),
                           name=node.name, value=arg)
-
+      
 def _isForever(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
     arg = args[0]
@@ -514,7 +514,7 @@ def _isForever(node, sphinxContext, args):
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s argument is not a period %(value)s"),
                           name=node.name, value=arg)
-
+    
 def _isMonetary(node, sphinxContext, args):
     conceptOrFact = conceptOrFactArg(node, sphinxContext, args, 0)
     if isinstance(conceptOrFact, ModelFact):
@@ -530,15 +530,15 @@ def _lastIndexOf(node, sphinxContext, args):
     value = strArgs(node, sphinxContext, args, 0)
     arg = strArgs(node, sphinxContext, args, 1)
     return value.rfind(arg)
-
+       
 def _length(node, sphinxContext, args):
     value = strArgs(node, sphinxContext, args, 0)
     return len(value)
-
+       
 def _lowerCase(node, sphinxContext, args):
     value = strArgs(node, sphinxContext, args, 0)
     return value.lower()
-
+       
 def _ln(node, sphinxContext, args):
     args = numericArgs(node, sphinxContext, args, 1)
     x = args[0]
@@ -557,7 +557,7 @@ def _localPart(node, sphinxContext, args):
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s argument is not a QName %(value)s"),
                           name=node.name, value=args[0])
-
+    
 def _log(node, sphinxContext, args):
     args = numericArgs(node, sphinxContext, args, 2)
     x = args[0]
@@ -577,7 +577,7 @@ def _log10(node, sphinxContext, args):
     if x == POSINF: return POSINF
     if x == 0: return POSINF
     return log10(x)
-
+    
 def _name(node, sphinxContext, args):
     concept = conceptArg(node, sphinxContext, args, 0)
     return concept.qname
@@ -622,12 +622,12 @@ def _power(node, sphinxContext, args):
     args = numericArgs(node, sphinxContext, args, 2)
     x = args[0]
     exp = args[1]
-    if isnan(exp) or (isnan(x) and exp != 0) or (isinf(exp) and x in (1, -1)):
+    if isnan(exp) or (isnan(x) and exp != 0) or (isinf(exp) and x in (1, -1)): 
         return NaN
-    if ((x == POSINF and exp > 0) or
-        (x == NEGINF and x > 0 and not x & 1) or
+    if ((x == POSINF and exp > 0) or 
+        (x == NEGINF and x > 0 and not x & 1) or 
         (exp == POSINF and not -1 <= x <= 1) or
-        (x == 0 and exp < 0)):
+        (x == 0 and exp < 0)): 
         return POSINF
     if x == NEGINF and x > 0 and x & 1:
         return NEGINF
@@ -646,19 +646,19 @@ def _replace(node, sphinxContext, args):
     old = strArgs(node, sphinxContext, args, 1)
     new = strArgs(node, sphinxContext, args, 2)
     return value.replace(old, new)
-
+       
 def _roundItem(node, sphinxContext, args):
     fact = factArg(node, sphinxContext, args, 0)
     return roundValue(fact.xValue, decimals=fact.decimals, precision=fact.precision)
-
+    
 def _roundDecimals(node, sphinxContext, args):
     args = numericArgs(node, sphinxContext, args, 2)
     return roundValue(args[0], decmials=args[1])
-
+    
 def _roundPrecision(node, sphinxContext, args):
     args = numericArgs(node, sphinxContext, args, 2)
     return roundValue(args[0], precision=args[1])
-
+    
 def _schemaTypeFunction(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
     schemaTypeQn = args[0]
@@ -674,7 +674,7 @@ def _signum(node, sphinxContext, args):
     if x == 0 or isnan(x): return 0
     if x > 0: return 1
     return -1
-
+    
 def _scenario(node, sphinxContext, args):
     fact = factArg(node, sphinxContext, args, 0)
     return fact.context.segment.nonDimValues("scenario")
@@ -687,7 +687,7 @@ def _scheme(node, sphinxContext, args):
     raise SphinxException(node, "sphinx.methodArgumentsMismatch",
                           _("Method %(name)s argument is not an entity identifier %(value)s"),
                           name=node.name, value=arg)
-
+        
 def _segment(node, sphinxContext, args):
     fact = factArg(node, sphinxContext, args, 0)
     return fact.context.segment.nonDimValues("segment")
@@ -700,7 +700,7 @@ def _size(node, sphinxContext, args):
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s argument is not a collection %(value)s"),
                           name=node.name, value=collection)
-
+    
 def _sqrt(node, sphinxContext, args):
     args = numericArgs(node, sphinxContext, args, 1)
     x = args[0]
@@ -720,12 +720,12 @@ def _startDate(node, sphinxContext, args):
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s argument is not a period %(value)s"),
                           name=node.name, value=arg)
-
+    
 def _startsWith(node, sphinxContext, args):
     value = strArgs(node, sphinxContext, args, 0)
     suffix = strArgs(node, sphinxContext, args, 1)
     return value.startswith(suffix)
-
+       
 def _substring(node, sphinxContext, args):
     value = strArgs(node, sphinxContext, args, 0)
     start = strArgs(node, sphinxContext, args, 1)
@@ -733,7 +733,7 @@ def _substring(node, sphinxContext, args):
     if isinf(start): start = len(value)
     if isinf(end): end = len(value)
     return value[start:end]
-
+       
 def _subtractTimePeriod(node, sphinxContext, args):
     return _addTimePeriod(node, sphinxContext, args, subtract=True)
 
@@ -743,7 +743,7 @@ def _taxonomy(node, sphinxContext, args):
 def _timePeriodFunction(node, sphinxContext, args):
     duration = strArgs(node, sphinxContext, args, 0)
     return dayTimeDuration(duration)
-
+  
 nowUTC = datetime.datetime.utcnow()
 todayUTC = datetime.date(nowUTC.year, nowUTC.month, nowUTC.day)
 
@@ -753,7 +753,7 @@ def _todayUTC(node, sphinxContext, args):
 def _timeDuration(node, sphinxContext, args):
     duration = strArgs(node, sphinxContext, args, 0)
     return dayTimeDuration(duration)
-
+    
 def toCollection(node, sphinxContext, args, collectionCreator):
     hasArg(node, sphinxContext, args, 0)
     collection = args[0]
@@ -762,7 +762,7 @@ def toCollection(node, sphinxContext, args, collectionCreator):
     raise SphinxException(node, "sphinx.methodArgumentsMismatch",
                           _("Method %(name)s argument is not a collection %(value)s"),
                           name=node.name, value=collection)
-
+    
 def _toList(node, sphinxContext, args):
     return toCollection(node, sphinxContext, args, list)
 
@@ -793,7 +793,7 @@ def _unitFunction(node, sphinxContext, args):
 def _upperCase(node, sphinxContext, args):
     value = strArgs(node, sphinxContext, args, 0)
     return value.upper()
-
+       
 def _xbrlTypeMethod(node, sphinxContext, args):
     concept = conceptArg(node, sphinxContext, args, 0)
     baseTypeLocalName = concept.baseXbrliType
@@ -813,7 +813,7 @@ def networks(node, sphinxContext, args, linkqname=None, linkrole=None, arcqname=
     linkroles = networkAllLinkroles.linkRoleUris
     return set(network(node, sphinxContext, args, linkqname, linkrole, arcqname, arcrole)
                for linkrole in linkroles)
-
+    
 def _conceptHypercubeAll(node, sphinxContext, args):
     linkrole = strArg(node, sphinxContext, args, 1)
     return network(node, sphinxContext, args, linkrole=linkrole, arcrole=XbrlConst.all)
@@ -1058,7 +1058,7 @@ def _median(node, sphinxContext, args):
         return (args[middle - 1] + args[middle]) / 2  # average middle args
     else:
         return args[middle]  # middle item
-
+        
 def _min(node, sphinxContext, args):
     return min(args)
 
@@ -1076,19 +1076,19 @@ def modes(args):
             maxcount = newcount
         if arg not in firstAt:
             firstAt[arg] = i
-    return [(maxcount - count, firstAt[value], value)
+    return [(maxcount - count, firstAt[value], value) 
             for value, count in counts.items()
             if count == maxcount].sort()
 
 def _mode(node, sphinxContext, args):
     return modes(args)[0][2]
-
+    
 def _modes(node, sphinxContext, args):
     return set(mode[2] for mode in modes(args))
 
 def _stdevp(node, sphinxContext, args):
     return _notImplemented(node, sphinxContext)
-
+    
 def _set(node, sphinxContext, args):
     return set(args)
 
@@ -1097,20 +1097,20 @@ def _sum(node, sphinxContext, args):
 
 def _var(node, sphinxContext, args):
     return _notImplemented(node, sphinxContext)
-
+    
 def _varp(node, sphinxContext, args):
     return _notImplemented(node, sphinxContext)
 
 
-# miscellaneous methods
-
+# miscellaneous methods    
+    
 def _notImplemented(node, sphinxContext, args):
     sphinxContext.modelXbrl.log("ERROR", "sphinx.functionNotImplemented",
                                 _("Function %(name)s is not currently implemented"),
                                 sourceFileLine=node.sourceFileLine,
                                 name=node.name)
     return NaN
-
+    
 methodImplementation = {
     "abs":          _abs,
     "add-time-period": _addTimePeriod,
@@ -1172,7 +1172,7 @@ methodImplementation = {
     "unknown":      _notImplemented,
     "upper-case":   _upperCase,
     "xbrl-type":    _xbrlTypeMethod,
-
+    
     #networks
     "concept-hypercube-all":                _conceptHypercubeAll,
     "concept-hypercube-all-networks":       _conceptHypercubeAllNetworks,
@@ -1202,7 +1202,7 @@ methodImplementation = {
     "similar-tuples-networks":              _similarTuplesNetworks,
     "summation-item":                       _summationItem,
     "summation-item-networks":              _summationItemNetworks,
-
+    
     #network methods
     "ancestors":                            _ancestors,
     "ancestor-relationships":               _ancestorRelationships,
@@ -1220,7 +1220,7 @@ methodImplementation = {
     "role":                                 _linkRole,
     "source-concepts":                      _sourceConcepts,
     "target-concepts":                      _targetConcepts,
-
+    
     #relationship methods
     "order":                                _order,
     "preferred-label":                      _preferredLabel,

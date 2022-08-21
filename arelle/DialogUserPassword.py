@@ -54,7 +54,7 @@ def askParams(parent, title, prompt1, prompt2):
                                 userLabel=prompt1, passwordLabel=prompt2, hidePassword=False)
     if dialog.accepted:
         return (dialog.user, dialog.password)
-
+ 
 DBTypes = ("postgres", "mssqlSemantic", "mysqlSemantic", "orclSemantic",
            "pgSemantic", "sqliteSemantic", "pgOpenDB", "sqliteDpmDB", "rexster", "rdfDB", "json")
 DBDescriptions = ("XBRL-US Postgres SQL",
@@ -98,8 +98,8 @@ def askInternetLogon(parent, url, quotedUrl, dialogCaption, dialogText, untilDon
     untilDoneEvent.set()
 
 class DialogUserPassword(Toplevel):
-    def __init__(self, parent, title, host=None, realm=None, useOsProxy=None, urlAddr=None, urlPort=None,
-                 user=None, password=None, database=None, timeout=None, dbType=None,
+    def __init__(self, parent, title, host=None, realm=None, useOsProxy=None, urlAddr=None, urlPort=None, 
+                 user=None, password=None, database=None, timeout=None, dbType=None, 
                  showUrl=False, showUser=False, showHost=True, showRealm=True, showDatabase=False,
                  userLabel=None, passwordLabel=None, hidePassword=True):
         super(DialogUserPassword, self).__init__(parent)
@@ -122,7 +122,7 @@ class DialogUserPassword(Toplevel):
         self.databaseVar.set(database if database else "")
         self.timeoutVar = StringVar()
         self.timeoutVar.set(timeout if timeout else "")
-
+        
         frame = Frame(self)
         y = 0
         if showHost:
@@ -210,7 +210,7 @@ class DialogUserPassword(Toplevel):
             y += 1
             dbTypeLabel = Label(frame, text=_("DB type:"), underline=0)
             dbTypeLabel.grid(row=y, column=0, sticky=W, pady=3, padx=3)
-            self.cbDbType = gridCombobox(frame, 1, y, values=DBDescriptions,
+            self.cbDbType = gridCombobox(frame, 1, y, values=DBDescriptions, 
                                          selectindex=DBTypes.index(dbType) if dbType in DBTypes else None)
             self.cbDbType.grid(columnspan=4, pady=3, padx=3)
             y += 1
@@ -219,7 +219,7 @@ class DialogUserPassword(Toplevel):
         okButton.grid(row=y, column=2, sticky=E, pady=3)
         cancelButton.grid(row=y, column=3, columnspan=2, sticky=EW, pady=3, padx=3)
         y += 1
-
+                
         if useOsProxy is not None:
             self.setEnabledState()
 
@@ -228,14 +228,14 @@ class DialogUserPassword(Toplevel):
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
         self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
-
+        
         self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.close)
-
+        
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.grab_set()
         self.wait_window(self)
-
+            
     def checkEntries(self):
         errors = []
         if self.urlPort and not self.urlPort.isdigit():
@@ -249,7 +249,7 @@ class DialogUserPassword(Toplevel):
                                 "\n ".join(errors), parent=self)
             return False
         return True
-
+    
     def ok(self, event=None):
         if hasattr(self, "useOsProxyCb"):
             self.useOsProxy = self.useOsProxyCb.value
@@ -265,11 +265,11 @@ class DialogUserPassword(Toplevel):
             return
         self.accepted = True
         self.close()
-
+        
     def close(self, event=None):
         self.parent.focus_set()
         self.destroy()
-
+        
     def setEnabledState(self, *args):
         if hasattr(self, "useOsProxyCb"):
             state = DISABLED if self.useOsProxyCb.value else NORMAL

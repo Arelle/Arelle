@@ -14,11 +14,11 @@ def viewDTS(modelXbrl, outfile):
     view.addRow(["DTS"], asHeader=True)
     view.viewDtsElement(modelXbrl.modelDocument, {"entry"}, 0, set())
     view.close()
-
+    
 class ViewDTS(ViewFile.View):
     def __init__(self, modelXbrl, outfile):
         super(ViewDTS, self).__init__(modelXbrl, outfile, "DTS")
-
+                
     def treeDepth(self, modelDocument, indent, visited):
         visited.add(modelDocument)
         if indent > self.treeCols: self.treeCols = indent
@@ -39,4 +39,4 @@ class ViewDTS(ViewFile.View):
             if referencedDocument not in visited:
                 self.viewDtsElement(referencedDocument, ref.referenceTypes, indent + 1, visited)
         visited.remove(modelDocument)
-
+                

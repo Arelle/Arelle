@@ -30,7 +30,7 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs, *args
     if messageCode and messageCode.startswith("DQC"):
         # change ${...} in message into %(...)s
         msg = altParametersPattern.sub(r"%(\1)s", msgIn)
-
+        
         # find qnamed fact references
         qnamedReferences = set()
         paramNames = parametersPattern.findall(msg)
@@ -62,7 +62,7 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs, *args
                             conceptsByQname[str(dim.dimensionQname)] = dim.dimension
                         elif str(dim.dimensionQname) in qnamedReferences:
                             conceptsByQname[str(dim.memberQname)] = dim.member
-
+ 
         def setArgForFactProperty(param, modelFact, propertyNameParts):
             propVal = None
             property = propertyNameParts[0]
@@ -106,7 +106,7 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs, *args
                                 propVal = str((cntx.endDatetime - cntx.startDatetime).days)
                     elif property == "dimensions":
                         if cntx.qnameDims:
-                            propVal = "\n".join("{} = {}".format(d.dimensionQname,
+                            propVal = "\n".join("{} = {}".format(d.dimensionQname, 
                                                                 d.memberQname if d.isExplicit else
                                                                 XmlUtil.xmlstring( XmlUtil.child(d), stripXmlns=True, prettyPrint=True ))
                                                 for d in cntx.qnameDims.values())
@@ -124,7 +124,7 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs, *args
                         else:
                             propVal = ', '.join(measureFormat(m) for m in measures[0])
             fmtArgs[param] = propVal
-
+                
         def setArgForConceptProperty(param, modelConceptOrQname, propertyNameParts):
             propVal = None
             property = propertyNameParts[0]
@@ -147,7 +147,7 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs, *args
                     propVal = modelConcept.rpartition(':')[2]
             if propVal is not None:
                 fmtArgs[param] = propVal
-
+                
         # parse parameter names out of msg
         for param in paramNames:
             try:
@@ -181,7 +181,7 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs, *args
             for missingArgument in missingQnamedArguments:
                 fmtArgs[missingArgument] = "unavailable"
         return msg
-    return None
+    return None       
 
 def loggingCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     global labelrole, lang
@@ -200,12 +200,12 @@ def testcaseVariationExpectedCount(modelTestcaseVariation, *args, **kwargs):
     except (ValueError, TypeError):
         pass
     return None
-
+                
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Logging - DQC Parameters',
     'version': '1.0',
-    'description': '''DQC tests logging messages: adds parameter values from infrastructurally
+    'description': '''DQC tests logging messages: adds parameter values from infrastructurally 
 provided logging arguments.  Usually uses modelObject arguments to supply parameters found
 in message text that can be derived from the arguments.''',
     'license': 'Apache-2',

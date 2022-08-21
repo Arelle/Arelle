@@ -25,18 +25,18 @@ def setup(val, modelXbrl, *args, **kwargs):
     val.prefixNamespace = {}
     val.namespacePrefix = {}
     val.idObjects = {}
-
+    
 '''
 def factCheck(val, fact):
     concept = fact.concept
     context = fact.context
     if concept is None or context is None:
         return # not checkable
-
+    
     try:
     except Exception as err:
 '''
-
+    
 def final(val, conceptsUsed, *args, **kwargs):
     modelXbrl = val.modelXbrl
     # moved from ValidateFiling
@@ -72,9 +72,9 @@ def final(val, conceptsUsed, *args, **kwargs):
             self.nameWordsTable[name] = words
     self.modelXbrl.profileActivity("... build name words table", minTimeToShow=1.0)
     '''
-
-
-
+    
+    
+    
     # check presentation link roles for generic linkbase order number
     ordersRelationshipSet = modelXbrl.relationshipSet("http://www.nltaxonomie.nl/2011/arcrole/linkrole-order")
     presLinkroleNumberURI = {}
@@ -109,7 +109,7 @@ def final(val, conceptsUsed, *args, **kwargs):
     # check arc role definitions for labels
     for arcroleURI, modelRoleTypes in modelXbrl.arcroleTypes.items():
         for modelRoleType in modelRoleTypes:
-            if (not arcroleURI.startswith("http://xbrl.org/") and
+            if (not arcroleURI.startswith("http://xbrl.org/") and 
                 modelRoleType.modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
                 (not modelRoleType.genLabel(lang="nl") or not modelRoleType.genLabel(lang="en"))):
                 modelXbrl.error("SBR.NL.2.2.4.02",
@@ -126,7 +126,7 @@ def final(val, conceptsUsed, *args, **kwargs):
                 modelXbrl.error("SBR.NL.2.2.8.02",
                     _("Typed dimension domain element %(concept)s has disallowed complex content"),
                     modelObject=domainElt, concept=domainElt.qname)
-
+            
     modelXbrl.profileActivity("... SBR role types and type facits checks", minTimeToShow=1.0)
     # end moved from ValidateFiling
 
@@ -139,7 +139,7 @@ def final(val, conceptsUsed, *args, **kwargs):
                         _("The assigned namespace prefix %(assignedPrefix)s for the schema that declares the targetnamespace %(namespace)s, MUST be adhired by all other NT schemas, referencedPrefix: %(referencedPrefix)s"),
                         modelObject=doc.xmlRootElement, namespace=NS, assignedPrefix=val.namespacePrefix.get(NS, ''), referencedPrefix=prefix)
 
-    # check non-concept elements that can appear in elements for labels (concepts checked by
+    # check non-concept elements that can appear in elements for labels (concepts checked by 
     labelsRelationshipSet = modelXbrl.relationshipSet((XbrlConst.conceptLabel, XbrlConst.elementLabel))
     standardXbrlSchmas = _DICT_SET(XbrlConst.standardNamespaceSchemaLocations.values())
     baseTaxonomyNamespaces = val.disclosureSystem.baseTaxonomyNamespaces
@@ -190,7 +190,7 @@ def checkDTSdocument(val, modelDocument, *args, **kwargs):
             modelXbrl.error("SBR.NL.2.2.0.04" if isSchema else "SBR.NL.2.3.0.04",
                 _('%(docType)s must have comment node only on line 2'),
                 modelObject=modelDocument, docType=modelDocument.gettype().title())
-
+        
         # check namespaces are used
         for prefix, ns in modelDocument.xmlRootElement.nsmap.items():
             if ((prefix not in val.valUsedPrefixes) and
@@ -199,7 +199,7 @@ def checkDTSdocument(val, modelDocument, *args, **kwargs):
                     _('%(docType)s namespace declaration "%(declaration)s" is not used'),
                     modelObject=modelDocument, docType=modelDocument.gettype().title(),
                     declaration=("xmlns" + (":" + prefix if prefix else "") + "=" + ns))
-
+                
         if isSchema and val.annotationsCount > 1:
             modelXbrl.error("SBR.NL.2.2.0.22",
                 _('Schema has %(annotationsCount)s xs:annotation elements, only 1 allowed'),
@@ -394,7 +394,7 @@ def checkDTSdocument(val, modelDocument, *args, **kwargs):
                                 modelXbrl.error("SBR.NL.3.2.5.14",
                                     _("Concept %(concept)s must end in TypedAxis to be in xbrldt:dimensionItem substitution group if they represent a typed dimension"),
                                     modelObject=modelConcept, concept=modelConcept.qname)
-                            if (name.endswith("Axis") and
+                            if (name.endswith("Axis") and 
                                 not name.endswith("TypedAxis")) ^ (substititutionGroupQname == XbrlConst.qnXbrldtDimensionItem and
                                                                    modelConcept.isExplicitDimension):
                                 modelXbrl.error("SBR.NL.3.2.5.13",
@@ -409,9 +409,9 @@ def checkDTSdocument(val, modelDocument, *args, **kwargs):
                                 modelXbrl.error("SBR.NL.3.2.5.16",
                                     _("Concept %(concept)s must end in Title to be in sbr:presentationItem substitution group"),
                                     modelObject=modelConcept, concept=modelConcept.qname)
-                        '''
+                        ''' 
                         if len(name) > 200:
-                            modelXbrl.error("SBR.NL.3.2.12.02" if modelConcept.isLinkPart
+                            modelXbrl.error("SBR.NL.3.2.12.02" if modelConcept.isLinkPart 
                                                 else "SBR.NL.3.2.5.21" if (modelConcept.isItem or modelConcept.isTuple)
                                                 else "SBR.NL.3.2.14.01",
                                 _("Concept %(concept)s name length %(namelength)s exceeds 200 characters"),
@@ -421,7 +421,7 @@ def checkDTSdocument(val, modelDocument, *args, **kwargs):
                 for modelType in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}" + typeType):
                     if isinstance(modelType, ModelType):
                         name = modelType.get("name")
-                        if name is None:
+                        if name is None: 
                             name = ""
                             if modelType.get("ref") is not None:
                                 continue    # don't validate ref's here
@@ -447,8 +447,8 @@ def checkDTSdocument(val, modelDocument, *args, **kwargs):
                     modelXbrl.error("SBR.NL.2.2.0.23",
                         _("xs:schema/@id MUST be present in schema files in the reports/{NT partner}/entrypoints/ folder"),
                         modelObject=modelDocument)
-
-
+                    
+                
     # check for idObject conflicts
     for id, modelObject in modelDocument.idObjects.items():
         if id in val.idObjects:
@@ -458,7 +458,7 @@ def checkDTSdocument(val, modelDocument, *args, **kwargs):
         else:
             val.idObjects[id] = modelObject
 
-
+            
     for roleURI, modelRoleTypes in modelXbrl.roleTypes.items():
         if not roleURI.startswith("http://www.xbrl.org"):
             usedOns = set.union(*[modelRoleType.usedOns for modelRoleType in modelRoleTypes])
@@ -486,8 +486,8 @@ def checkDTSdocument(val, modelDocument, *args, **kwargs):
                     modelXbrl.error("SBR.NL.3.2.9.05",
                         _("Linkrole URI's MUST start with 'http://www.nltaxonomie.nl': %(linkrole)s"),
                         modelObject=modelRoleTypes, linkrole=roleURI)
-                if (requiredLinkrole and
-                    not roleURI.startswith(requiredLinkrole) and
+                if (requiredLinkrole and 
+                    not roleURI.startswith(requiredLinkrole) and 
                     re.match(r".*(domain$|axis$|table$|lineitem$)", roleURI)):
                         modelXbrl.error("SBR.NL.3.2.9.06",
                             _("Linkrole URI's MUST have the following construct: http://www.nltaxonomie.nl / {folder path} / {functional name} - {domain or axis or table or lineitem}: %(linkrole)s"),
@@ -501,15 +501,15 @@ def checkDTSdocument(val, modelDocument, *args, **kwargs):
                 partnerPrefix = modelRoleTypes[0].modelDocument.basename.split('-')
                 if partnerPrefix:  # first element before dash is prefix
                     urnPartnerLinkroleStart = "urn:{0}:linkrole:".format(partnerPrefix[0])
-                    if not roleURI.startswith(urnPartnerLinkroleStart):
+                    if not roleURI.startswith(urnPartnerLinkroleStart): 
                         modelXbrl.error("SBR.NL.3.2.9.10",
                             _("Linkrole MUST start with urn:{NT partner code}:linkrole:, \nexpecting: %(expectedStart)s..., \nfound: %(linkrole)s"),
                             modelObject=modelRoleType, expectedStart=urnPartnerLinkroleStart, linkrole=roleURI)
-
+                        
 def checkForBOMs(modelXbrl, file, mappedUri, filepath, *args, **kwargs):
     # callback is for all opened docs, must only process when SBRNL validation active
     if (modelXbrl.modelManager.validateDisclosureSystem and
-        modelXbrl.modelManager.disclosureSystem.SBRNL):
+        modelXbrl.modelManager.disclosureSystem.SBRNL): 
         #must read file in binary and return nothing to not replace standard loading
         with open(filepath, 'rb') as fb:
             startingBytes = fb.read(8)
@@ -518,8 +518,8 @@ def checkForBOMs(modelXbrl, file, mappedUri, filepath, *args, **kwargs):
                 modelXbrl.error("SBR.NL.2.1.0.09",
                     _("File MUST not start with a Byte Order Mark (BOM): %(filename)s"),
                     modelObject=modelXbrl, filename=mappedUri)
-    return None # must return None for regular document loading to continue
-
+    return None # must return None for regular document loading to continue    
+                
 ''' Deprecated and thus commented out so not recognized as a plugin
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading

@@ -115,7 +115,7 @@ qnIXbrl11Footnote = qname("{http://www.xbrl.org/2013/inlineXBRL}footnote")
 qnIXbrl11Relationship = qname("{http://www.xbrl.org/2013/inlineXBRL}relationship")
 qnIXbrl11Hidden = qname("{http://www.xbrl.org/2013/inlineXBRL}hidden")
 ixAttributes = set(qname(n, noPrefixIsNoNamespace=True)
-                   for n in ("continuedAt", "escape", "footnoteRefs", "format", "name", "order",
+                   for n in ("continuedAt", "escape", "footnoteRefs", "format", "name", "order",  
                              "scale", "sign","target", "tupleRef", "tupleID"))
 conceptLabel = "http://www.xbrl.org/2003/arcrole/concept-label"
 conceptReference = "http://www.xbrl.org/2003/arcrole/concept-reference"
@@ -160,21 +160,21 @@ dtr = "http://www.xbrl.org/2009/dtr"
 dtrTypesStartsWith = "http://www.xbrl.org/dtr/type/"
 dtrNumeric = "http://www.xbrl.org/dtr/type/numeric"
 
-dtrNoDecimalsItemTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}noDecimalsMonetaryItemType"),
+dtrNoDecimalsItemTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}noDecimalsMonetaryItemType"), 
                           qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonNegativeNoDecimalsMonetaryItemType"),
-                          qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}noDecimalsMonetaryItemType"),
+                          qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}noDecimalsMonetaryItemType"), 
                           qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}nonNegativeNoDecimalsMonetaryItemType"))
 dtrPrefixedContentItemTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}prefixedContentItemType"),
                                qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}prefixedContentItemType"))
 dtrPrefixedContentTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}prefixedContentType"),
                            qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}prefixedContentType"))
-dtrSQNameItemTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNameItemType"),
+dtrSQNameItemTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNameItemType"), 
                       qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameItemType"))
-dtrSQNameTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNameType"),
+dtrSQNameTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNameType"), 
                   qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameType"))
-dtrSQNamesItemTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesItemType"),
+dtrSQNamesItemTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesItemType"), 
                        qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesItemType"))
-dtrSQNamesTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesType"),
+dtrSQNamesTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesType"), 
                    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesType"))
 dtrSQNameNamesItemTypes = dtrSQNameItemTypes + dtrSQNamesItemTypes
 dtrSQNameNamesTypes = dtrSQNameTypes + dtrSQNamesTypes
@@ -223,8 +223,8 @@ qnEnumerationsItemType2016 = qname("{http://xbrl.org/PWD/2016-10-12/extensible-e
 qnEnumerationListItemTypes = (qnEnumerationListItemType11YYYY, qnEnumerationSetItemType11YYYY, qnEnumerationsItemType2016)
 qnEnumerationSetItemTypes = (qnEnumerationSetItemType11YYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY)
 qnEnumeration2ItemTypes = (qnEnumerationItemType2020, qnEnumerationItemTypeYYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY)
-qnEnumerationItemTypes = (qnEnumerationItemType2014,
-                          qnEnumerationItemType2020, qnEnumerationItemTypeYYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY,
+qnEnumerationItemTypes = (qnEnumerationItemType2014, 
+                          qnEnumerationItemType2020, qnEnumerationItemTypeYYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY, 
                           qnEnumerationItemType11YYYY, qnEnumerationSetItemType11YYYY, qnEnumerationListItemType11YYYY,
                           qnEnumerationItemType2016, qnEnumerationsItemType2016)
 qnEnumerationTypes = qnEnumerationItemTypes + (qnEnumerationSetValDimType2020,qnEnumerationSetValDimTypeYYYY)
@@ -587,12 +587,12 @@ def isNumericXsdType(xsdType):
     return xsdType in {"integer", "positiveInteger", "negativeInteger", "nonNegativeInteger", "nonPositiveInteger",
                        "long", "unsignedLong", "int", "unsignedInt", "short", "unsignedShort",
                        "byte", "unsignedByte", "decimal", "float", "double"}
-
+    
 def isIntegerXsdType(xsdType):
     return xsdType in {"integer", "positiveInteger", "negativeInteger", "nonNegativeInteger", "nonPositiveInteger",
                        "long", "unsignedLong", "int", "unsignedInt", "short", "unsignedShort",
                        "byte", "unsignedByte"}
-
+    
 standardLabelRoles = {
                     "http://www.xbrl.org/2003/role/label",
                     "http://www.xbrl.org/2003/role/terseLabel",
@@ -636,7 +636,7 @@ standardLinkbaseRefRoles = {
                     "http://www.xbrl.org/2003/role/presentationLinkbaseRef",
                     "http://www.xbrl.org/2003/role/referenceLinkbaseRef"}
 
-standardRoles = standardLabelRoles | standardReferenceRoles | standardLinkbaseRefRoles | {
+standardRoles = standardLabelRoles | standardReferenceRoles | standardLinkbaseRefRoles | {   
                     "http://www.xbrl.org/2003/role/link",
                     "http://www.xbrl.org/2003/role/footnote"}
 
@@ -647,11 +647,11 @@ def isTotalRole(role):
     return role in {"http://www.xbrl.org/2003/role/totalLabel",
                     "http://xbrl.us/us-gaap/role/label/negatedTotal",
                     "http://www.xbrl.org/2009/role/negatedTotalLabel"}
-
+    
 def isNetRole(role):
     return role in {"http://www.xbrl.org/2009/role/netLabel",
                     "http://www.xbrl.org/2009/role/negatedNetLabel"}
-
+    
 def isLabelRole(role):
     return role in standardLabelRoles or role == genLabel
 
@@ -673,7 +673,7 @@ def isNumericRole(role):
                     "http://www.xbrl.org/2009/role/negatedNetLabel",
                     "http://www.xbrl.org/2009/role/negatedTerseLabel"
                     }
-
+    
 def isStandardArcrole(role):
     return role in {"http://www.w3.org/1999/xlink/properties/linkbase",
                     "http://www.xbrl.org/2003/arcrole/concept-label",
@@ -685,8 +685,8 @@ def isStandardArcrole(role):
                     "http://www.xbrl.org/2003/arcrole/essence-alias",
                     "http://www.xbrl.org/2003/arcrole/similar-tuples",
                     "http://www.xbrl.org/2003/arcrole/requires-element"}
-
-standardArcroleCyclesAllowed = {
+    
+standardArcroleCyclesAllowed = { 
                     "http://www.xbrl.org/2003/arcrole/concept-label":("any", None),
                     "http://www.xbrl.org/2003/arcrole/concept-reference":("any", None),
                     "http://www.xbrl.org/2003/arcrole/fact-footnote":("any",None),
@@ -707,58 +707,58 @@ def standardArcroleArcElement(arcrole):
             "http://www.xbrl.org/2003/arcrole/essence-alias":"definitionArc",
             "http://www.xbrl.org/2003/arcrole/similar-tuples":"definitionArc",
             "http://www.xbrl.org/2003/arcrole/requires-element":"definitionArc"}[arcrole]
-
+            
 def isDefinitionOrXdtArcrole(arcrole):
     return isDimensionArcrole(arcrole) or arcrole in {
             "http://www.xbrl.org/2003/arcrole/general-special",
             "http://www.xbrl.org/2003/arcrole/essence-alias",
             "http://www.xbrl.org/2003/arcrole/similar-tuples",
             "http://www.xbrl.org/2003/arcrole/requires-element"}
-
+            
 def isStandardResourceOrExtLinkElement(element):
     return element.namespaceURI == link and element.localName in {
-          "definitionLink", "calculationLink", "presentationLink", "labelLink", "referenceLink", "footnoteLink",
+          "definitionLink", "calculationLink", "presentationLink", "labelLink", "referenceLink", "footnoteLink", 
           "label", "footnote", "reference"} or \
           element.qname == qnIXbrl11Relationship
-
+    
 def isStandardArcElement(element):
     return element.namespaceURI == link and element.localName in {
           "definitionArc", "calculationArc", "presentationArc", "labelArc", "referenceArc", "footnoteArc"} or \
           element.qname == qnIXbrl11Relationship
-
+        
 def isStandardArcInExtLinkElement(element):
     return ((isStandardArcElement(element) and isStandardResourceOrExtLinkElement(element.getparent())) or
             element.qname == qnIXbrl11Relationship)
 
-standardExtLinkQnames = {qname("{http://www.xbrl.org/2003/linkbase}definitionLink"),
-                         qname("{http://www.xbrl.org/2003/linkbase}calculationLink"),
-                         qname("{http://www.xbrl.org/2003/linkbase}presentationLink"),
-                         qname("{http://www.xbrl.org/2003/linkbase}labelLink"),
-                         qname("{http://www.xbrl.org/2003/linkbase}referenceLink"),
-                         qname("{http://www.xbrl.org/2003/linkbase}footnoteLink")}
+standardExtLinkQnames = {qname("{http://www.xbrl.org/2003/linkbase}definitionLink"), 
+                         qname("{http://www.xbrl.org/2003/linkbase}calculationLink"), 
+                         qname("{http://www.xbrl.org/2003/linkbase}presentationLink"), 
+                         qname("{http://www.xbrl.org/2003/linkbase}labelLink"),     
+                         qname("{http://www.xbrl.org/2003/linkbase}referenceLink"), 
+                         qname("{http://www.xbrl.org/2003/linkbase}footnoteLink")} 
 
-standardExtLinkQnamesAndResources = {qname("{http://www.xbrl.org/2003/linkbase}definitionLink"),
-                                     qname("{http://www.xbrl.org/2003/linkbase}calculationLink"),
-                                     qname("{http://www.xbrl.org/2003/linkbase}presentationLink"),
-                                     qname("{http://www.xbrl.org/2003/linkbase}labelLink"),
-                                     qname("{http://www.xbrl.org/2003/linkbase}referenceLink"),
-                                     qname("{http://www.xbrl.org/2003/linkbase}footnoteLink"),
-                                     qname("{http://www.xbrl.org/2003/linkbase}label"),
-                                     qname("{http://www.xbrl.org/2003/linkbase}footnote"),
+standardExtLinkQnamesAndResources = {qname("{http://www.xbrl.org/2003/linkbase}definitionLink"), 
+                                     qname("{http://www.xbrl.org/2003/linkbase}calculationLink"), 
+                                     qname("{http://www.xbrl.org/2003/linkbase}presentationLink"), 
+                                     qname("{http://www.xbrl.org/2003/linkbase}labelLink"), 
+                                     qname("{http://www.xbrl.org/2003/linkbase}referenceLink"), 
+                                     qname("{http://www.xbrl.org/2003/linkbase}footnoteLink"), 
+                                     qname("{http://www.xbrl.org/2003/linkbase}label"), 
+                                     qname("{http://www.xbrl.org/2003/linkbase}footnote"), 
                                      qname("{http://www.xbrl.org/2003/linkbase}reference")}
 
 def isStandardExtLinkQname(qName):
     return qName in standardExtLinkQnamesAndResources
-
+    
 def isStandardArcQname(qName):
     return qName in {
-          qname("{http://www.xbrl.org/2003/linkbase}definitionArc"),
-          qname("{http://www.xbrl.org/2003/linkbase}calculationArc"),
-          qname("{http://www.xbrl.org/2003/linkbase}presentationArc"),
+          qname("{http://www.xbrl.org/2003/linkbase}definitionArc"), 
+          qname("{http://www.xbrl.org/2003/linkbase}calculationArc"), 
+          qname("{http://www.xbrl.org/2003/linkbase}presentationArc"), 
           qname("{http://www.xbrl.org/2003/linkbase}labelArc"),
-          qname("{http://www.xbrl.org/2003/linkbase}referenceArc"),
+          qname("{http://www.xbrl.org/2003/linkbase}referenceArc"), 
           qname("{http://www.xbrl.org/2003/linkbase}footnoteArc")}
-
+    
 def isDimensionArcrole(arcrole):
     return arcrole.startswith("http://xbrl.org/int/dim/arcrole/")
 
@@ -775,29 +775,29 @@ def isTableRenderingArcrole(arcrole):
                        tableDefinitionNodeSubtree, tableAspectNodeFilter,
                        # current IWD
                        tableBreakdownMMDD, tableBreakdownTreeMMDD, tableFilterMMDD, tableParameterMMDD,
-                       tableDefinitionNodeSubtreeMMDD, tableAspectNodeFilterMMDD,
-                       # Prior PWD, Montreal and 2013-01-16
+                       tableDefinitionNodeSubtreeMMDD, tableAspectNodeFilterMMDD, 
+                       # Prior PWD, Montreal and 2013-01-16 
                        tableBreakdown201305, tableBreakdownTree201305, tableFilter201305,
                        tableDefinitionNodeSubtree201305, tableAspectNodeFilter201305,
-
+                       
                        tableBreakdown201301, tableFilter201301,
-                       tableDefinitionNodeSubtree201301,
-                       tableTupleContent201301,
+                       tableDefinitionNodeSubtree201301, 
+                       tableTupleContent201301, 
                        tableDefinitionNodeMessage201301, tableDefinitionNodeSelectionMessage201301,
-
-                       tableAxis2011, tableFilter2011,
-                       tableAxisSubtree2011,
+                       
+                       tableAxis2011, tableFilter2011, 
+                       tableAxisSubtree2011, 
                        tableFilterNodeFilter2011, tableAxisFilter2011, tableAxisFilter201205,
                        tableTupleContent201301, tableTupleContent2011,
                        tableAxisSubtree2011, tableAxisFilter2011,
                        # original Eurofiling
                        euTableAxis, euAxisMember,
                        }
-
+   
 tableIndexingArcroles = frozenset((euGroupTable,))
 def isTableIndexingArcrole(arcrole):
     return arcrole in tableIndexingArcroles
-
+    
 def isFormulaArcrole(arcrole):
     return arcrole in {"http://xbrl.org/arcrole/2008/assertion-set",
                        "http://xbrl.org/arcrole/2008/variable-set",
@@ -822,7 +822,7 @@ def isResourceArcrole(arcrole):
                         "http://xbrl.org/arcrole/2008/element-label",
                         "http://xbrl.org/arcrole/2008/element-reference"}
             or isFormulaArcrole(arcrole))
-
+    
 # LRR (https://specifications.xbrl.org/registries/lrr-2.0/index.html)
 lrrRoleHrefs = {
     "http://www.xbrl.org/2006/role/restatedLabel": "http://www.xbrl.org/lrr/role/restated-2006-02-21.xsd#restatedLabel",

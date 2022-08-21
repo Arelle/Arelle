@@ -37,19 +37,19 @@ collapseWhitespacePattern = re_compile(r"[ \t\n\r]+") # collapse multiple spaces
 entirelyWhitespacePattern = re_compile(r"^[ \t\n\r]+$") # collapse multiple spaces, tabs, line feeds and returns to single space
 languagePattern = re_compile("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$")
 NCNamePattern = re_compile("^[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-                            r"[_\-\."
+                            r"[_\-\." 
                                "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*$")
 QNamePattern = re_compile("^([_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-                             r"[_\-\."
+                             r"[_\-\." 
                                "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*:)?"
                           "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-                            r"[_\-\."
+                            r"[_\-\." 
                                "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*$")
 namePattern = re_compile("^[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-                            r"[_\-\.:"
+                            r"[_\-\.:" 
                                "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*$")
 
-NMTOKENPattern = re_compile(r"[_\-\.:"
+NMTOKENPattern = re_compile(r"[_\-\.:" 
                                "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]+$")
 
 decimalPattern = re_compile(r"^[+-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)$")
@@ -62,7 +62,7 @@ lexicalPatterns = {
     "gYear": re_compile(r"-?([1-9][0-9]{3,}|0[0-9]{3})(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "gMonthDay": re_compile(r"--(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "gDay": re_compile(r"---(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
-    "gMonth": re_compile(r"--(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
+    "gMonth": re_compile(r"--(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"), 
     "language": re_compile(r"[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$"),
     "XBRLI_DATEUNION": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*$"),
     "dateTime": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*$"),
@@ -90,8 +90,8 @@ baseXsdTypePatterns = {
                 "NCName": NCNamePattern,
                 "ID": NCNamePattern,
                 "IDREF": NCNamePattern,
-                "ENTITY": NCNamePattern,
-                "QName": QNamePattern,
+                "ENTITY": NCNamePattern, 
+                "QName": QNamePattern,             
             }
 predefinedAttributeTypes = {
     qname("{http://www.w3.org/XML/1998/namespace}xml:lang"):("languageOrEmpty",None),
@@ -143,7 +143,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                     errElt = elt.elementQname
                 modelXbrl.error("xmlSchema:nilNonNillableElement",
                     _("Element %(element)s fact %(fact)s type %(typeName)s is nil but element has not been defined nillable"),
-                    modelObject=elt, element=errElt, fact=elt.qname,
+                    modelObject=elt, element=errElt, fact=elt.qname, 
                     typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown")
             try:
                 if isAbstract:
@@ -248,7 +248,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
             elt.xAttributes
         except AttributeError:
             elt.xAttributes = xAttributesSharedEmptyDict
-
+            
         if type is not None:
             if attrQname is None:
                 missingAttributes = type.requiredAttributeQnames - presentAttributes - elt.slottedAttributesNames
@@ -302,7 +302,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                             if "compositor" in errArgs:  # compositor is an object, provide friendly string
                                 errArgs["compositor"] = modelGroupCompositorTitle(errArgs["compositor"])
                             modelXbrl.error(*errDesc,**errArgs)
-
+                                                        
                             # when error is in an xbrli element, check any further unvalidated children
                             if qnElt.namespaceURI == XbrlConst.xbrli and iElt < len(childElts):
                                 for childElt in childElts[iElt:]:
@@ -314,14 +314,14 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                     #pass  # HF Why is this here????
     if recurse: # if there is no complex or simple type (such as xbrli:measure) then this code is used
         for child in (elt.modelTupleFacts if ixFacts and isIxFact else elt):
-            if isinstance(child, ModelObject):
+            if isinstance(child, ModelObject):     
                 validate(modelXbrl, child, recurse, attrQname, ixFacts)
 
 def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False, isNil=False, facets=None):
     if baseXsdType:
         try:
             '''
-            if (len(value) == 0 and attrTag is None and not isNillable and
+            if (len(value) == 0 and attrTag is None and not isNillable and 
                 baseXsdType not in ("anyType", "string", "normalizedString", "token", "NMTOKEN", "anyURI", "noContent")):
                 raise ValueError("missing value for not nillable element")
             '''
@@ -415,7 +415,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                                      "short","unsignedShort",
                                      "byte","unsignedByte"}:
                     xValue = sValue = _INT(value)
-                    if ((baseXsdType in {"nonNegativeInteger","unsignedLong","unsignedInt"}
+                    if ((baseXsdType in {"nonNegativeInteger","unsignedLong","unsignedInt"} 
                          and xValue < 0) or
                         (baseXsdType == "nonPositiveInteger" and xValue > 0) or
                         (baseXsdType == "positiveInteger" and xValue <= 0) or
@@ -440,9 +440,9 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                         if "minExclusive" in facets and xValue <= facets["minExclusive"]:
                             raise ValueError(" <= minExclusive {0}".format(facets["minExclusive"]))
                 elif baseXsdType == "boolean":
-                    if value in ("true", "1"):
+                    if value in ("true", "1"):  
                         xValue = sValue = True
-                    elif value in ("false", "0"):
+                    elif value in ("false", "0"): 
                         xValue = sValue = False
                     else: raise ValueError
                 elif baseXsdType == "QName":
@@ -451,7 +451,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     sValue = value
                     ''' not sure here, how are explicitDimensions validated, but bad units not?
                     if xValue.namespaceURI in modelXbrl.namespaceDocs:
-                        if (xValue not in modelXbrl.qnameConcepts and
+                        if (xValue not in modelXbrl.qnameConcepts and 
                             xValue not in modelXbrl.qnameTypes and
                             xValue not in modelXbrl.qnameAttributes and
                             xValue not in modelXbrl.qnameAttributeGroups):
@@ -607,7 +607,7 @@ class lxmlSchemaResolver(etree.Resolver):
         super(lxmlSchemaResolver, self).__init__()
         self.cntlr = cntlr
         self.modelXbrl = modelXbrl
-    def resolve(self, url, id, context):
+    def resolve(self, url, id, context): 
         if self.modelXbrl is None or not self.modelXbrl.fileSource.isInArchive(url):
             url = self.cntlr.webCache.getfilename(url)
         if url: # may be None if file doesn't exist
@@ -666,7 +666,7 @@ def lxmlSchemaValidate(modelDocument):
                            messageCode=msgCode,
                            file=modelDocument.basename,
                            level=logging.ERROR)
-            modelDocument.modelXbrl.errors.append(msgCode)
+            modelDocument.modelXbrl.errors.append(msgCode)  
 
 class XsdPattern():
     # shim class for python wrapper of xsd pattern
@@ -677,14 +677,14 @@ class XsdPattern():
                  .replace(r"[\c-[:]]", cMinusCNameChar).replace(r"\c", cNameChar)
         self.pyPattern = re_compile(p + "$") # must match whole string
         return self
-
+        
     def match(self, string):
         return self.pyPattern.match(string)
-
+        
     @property
     def pattern(self):
         return self.xsdPattern
-
+    
     def __repr__(self):
         return self.xsdPattern
 

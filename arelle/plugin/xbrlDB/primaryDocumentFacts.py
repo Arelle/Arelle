@@ -69,7 +69,7 @@ def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
         if fileUrl.endswith(".txt") or fileUrl.endswith(".htm"):
             if formType.startswith('10-K'):
                 parts = SEC10Kparts
-            elif formType.startswith('10-Q'):
+            elif formType.startswith('10-Q'): 
                 parts = SEC10Qparts
             # try to load and use it
             normalizedUrl = dts.modelManager.cntlr.webCache.normalizeUrl(fileUrl)
@@ -100,12 +100,12 @@ def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
                                     modelObject=dts, error=err)
             #with open("/Users/hermf/temp/test.txt", "w", encoding='utf-8') as fh:
             #    fh.write(text)
-
+            
             class Span:
                 def __init__(self, start):
                     self.start = start
                     self.end = -1
-
+                    
             # find the parts
             partSpan = {}
             partPrev = None
@@ -121,13 +121,13 @@ def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
                 partPrev = part
             if partPrev is not None:
                 partSpan[partPrev].end = len(text)
-
+                
             if missing2ndPart1:
                 # signatures
                 signaturesStarts = []
                 for signaturesMatch in signaturesPattern.finditer(text):
                     signaturesStarts.append(signaturesMatch.start(0))
-
+                
                 #check if PART I missing then use first signatures
                 if 'I' in partSpan and 'II' in partSpan:
                     if len(signaturesStarts) == 2 and signaturesStarts[0] > partSpan['I'].start:
@@ -139,8 +139,8 @@ def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
                             partSpan['I'].start = assetsMatch.end(0)
                             partSpan['I'].end = partSpan['II'].start
                             break
-
-
+                    
+                 
             # find the items
             itemSpan = {}
             for part, span in partSpan.items():
@@ -149,10 +149,10 @@ def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
                     if item is not None:
                         itemSpan[(part, item)].end = itemMatch.start(0)
                     item = itemMatch.group(1)
-                    itemSpan[(part, item)] = Span(itemMatch.end(1))
+                    itemSpan[(part, item)] = Span(itemMatch.end(1)) 
                 if item is not None:
                     itemSpan[(part, item)].end = span.end
-
+                
             if any(itemKey in parts for itemKey in itemSpan.keys()):
                 # find default context
                 for cntx in dts.contexts.values():
@@ -164,10 +164,10 @@ def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
                             # add the facts
                             for itemKey, itemSpan in itemSpan.items():
                                 if itemKey in parts:
-                                    dts.createFact(qname("{http://arelle.org/doc/2014-01-31}doc:" + parts[itemKey]),
-                                                   attributes=[("contextRef", cntx.id)],
+                                    dts.createFact(qname("{http://arelle.org/doc/2014-01-31}doc:" + parts[itemKey]), 
+                                                   attributes=[("contextRef", cntx.id)], 
                                                    text=text[itemSpan.start:itemSpan.end])
                             break
-
-
-
+                
+             
+        

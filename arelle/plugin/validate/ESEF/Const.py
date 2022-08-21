@@ -33,8 +33,8 @@ disallowedURIsPattern = re.compile(
 DefaultDimensionLinkroles = ("http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000",)
 LineItemsNotQualifiedLinkrole = "http://www.esma.europa.eu/xbrl/role/cor/esef_role-999999"
 
-qnDomainItemTypes = {qname("{http://www.xbrl.org/dtr/type/non-numeric}nonnum:domainItemType"), #  type: ignore[no-untyped-call]
-                     qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonnum:domainItemType")} #  type: ignore[no-untyped-call]
+qnDomainItemTypes = {qname("{http://www.xbrl.org/dtr/type/non-numeric}nonnum:domainItemType"),
+                     qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonnum:domainItemType")}
 
 
 linkbaseRefTypes = {

@@ -10,7 +10,7 @@ except ImportError:
     import re
 
 def attrValue(str, name):
-    # retrieves attribute in a string, such as xyz="abc" or xyz='abc' or xyz=abc;
+    # retrieves attribute in a string, such as xyz="abc" or xyz='abc' or xyz=abc; 
     prestuff, matchedName, valuePart = str.lower().partition("charset")
     value = []
     endSep = None

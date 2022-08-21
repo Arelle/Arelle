@@ -38,21 +38,21 @@ def askArchiveFile(parent, filesource, multiselect=False):
     try:
         filenames = filesource.dir
         if filenames is not None:   # an IO or other error can return None
-            if filesource.isTaxonomyPackage:
-                dialog = DialogOpenArchive(parent,
-                                           ENTRY_POINTS,
-                                           filesource,
+            if filesource.isTaxonomyPackage:            
+                dialog = DialogOpenArchive(parent, 
+                                           ENTRY_POINTS, 
+                                           filesource, 
                                            filenames,
-                                           _("Select Entry Point"),
+                                           _("Select Entry Point"), 
                                            _("File"),
                                            showAltViewButton=True,
                                            multiselect=multiselect)
             else:
-                dialog = DialogOpenArchive(parent,
-                                           ARCHIVE,
-                                           filesource,
+                dialog = DialogOpenArchive(parent, 
+                                           ARCHIVE, 
+                                           filesource, 
                                            filenames,
-                                           _("Select Archive File"),
+                                           _("Select Archive File"), 
                                            _("File"),
                                            multiselect=multiselect)
             if dialog.accepted:
@@ -64,49 +64,49 @@ def askArchiveFile(parent, filesource, multiselect=False):
     return None
 
 def selectDisclosureSystem(parent, disclosureSystem):
-
+    
     disclosureSystemSelections = disclosureSystem.dir
-
+    
     # if no disclosure system to select, user may need to enable applicable plugin(s)
     if not disclosureSystemSelections and messagebox.askokcancel(
-        _("Load disclosure systems"),
+        _("Load disclosure systems"), 
         _("Disclosure systems are provided by plug-ins, no applicable plug-in(s) have been enabled. \n\n"
           "Press OK to open the plug-in manager and select plug-in(s) (e.g., validate or EdgarRenderer).")):
         from arelle import DialogPluginManager
         DialogPluginManager.dialogPluginManager(parent)
         return None
 
-    dialog = DialogOpenArchive(parent,
-                               DISCLOSURE_SYSTEM,
-                               disclosureSystem,
-                               disclosureSystemSelections,
-                               _("Select Disclosure System"),
+    dialog = DialogOpenArchive(parent, 
+                               DISCLOSURE_SYSTEM, 
+                               disclosureSystem, 
+                               disclosureSystemSelections, 
+                               _("Select Disclosure System"), 
                                _("Disclosure System"))
     if dialog and dialog.accepted:
         return disclosureSystem.selection
     return None
 
 def selectPlugin(parent, pluginChoices):
-
+    
     filesource = attrdict(isRss=False, url="Plug-ins", selection="") # emulates a filesource object for the selection return
-    dialog = DialogOpenArchive(parent,
-                               PLUGIN,
-                               filesource,
-                               pluginChoices,
-                               _("File"),
+    dialog = DialogOpenArchive(parent, 
+                               PLUGIN, 
+                               filesource, 
+                               pluginChoices, 
+                               _("File"), 
                                _("Select Plug-in Module"))
     if dialog and dialog.accepted:
         return filesource.selection
     return None
 
 def selectPackage(parent, packageChoices):
-
+    
     filesource = attrdict(isRss=False, url="Packages", selection="") # emulates a filesource object for the selection return
-    dialog = DialogOpenArchive(parent,
-                               PACKAGE,
-                               filesource,
-                               packageChoices,
-                               _("Name"),
+    dialog = DialogOpenArchive(parent, 
+                               PACKAGE, 
+                               filesource, 
+                               packageChoices, 
+                               _("Name"), 
                                _("Select Package"))
     if dialog and dialog.accepted:
         return filesource.selection
@@ -129,7 +129,7 @@ class DialogOpenArchive(Toplevel):
         self.accepted = False
 
         self.transient(self.parent)
-
+        
         frame = Frame(self)
 
         treeFrame = Frame(frame, width=500)
@@ -146,7 +146,7 @@ class DialogOpenArchive(Toplevel):
         treeFrame.rowconfigure(0, weight=1)
         treeFrame.grid(row=0, column=0, columnspan=4, sticky=(N, S, E, W), padx=3, pady=3)
         self.treeView.focus_set()
-
+        
         if openType not in (PLUGIN, PACKAGE):
             cntlr.showStatus(_("loading archive {0}").format(filesource.url))
         self.filesource = filesource
@@ -172,11 +172,11 @@ class DialogOpenArchive(Toplevel):
                 self.taxonomyPkgMetaInf = '{}/META-INF/'.format(
                             os.path.splitext(os.path.basename(filesource.url))[0])
 
-
+        
                 self.taxonomyPackage = parsePackage(cntlr, filesource, metadata,
                                                     os.sep.join(os.path.split(metadata)[:-1]) + os.sep)
-
-
+                
+                
                 if self.taxonomyPackage["entryPoints"]:
                     # may have instance documents too
                     self.packageContainedInstances = []
@@ -200,7 +200,7 @@ class DialogOpenArchive(Toplevel):
                                     packageContentInstanceCounts[potentialInstance] = packageContentInstanceCounts.get(potentialInstance, 0) + 1
                                     packageContentTypeCounts[_type] = packageContentTypeCounts.get(_type, 0) + 1
                         if self.packageContainedInstances:
-                            break
+                            break 
                     if self.packageContainedInstances: # add sequences to any duplicated entry types
                         for _type, count in packageContentTypeCounts.items():
                             if count > 1:
@@ -216,7 +216,7 @@ class DialogOpenArchive(Toplevel):
                                     if self.packageContainedInstances[i][0] == _instance:
                                         _dupNo += 1
                                         self.packageContainedInstances[i][0] = "{} {}".format(_instance, _dupNo)
-
+                                    
                 else:
                     # may be a catalog file with no entry oint names
                     openType = ARCHIVE  # no entry points to show, just archive
@@ -227,10 +227,10 @@ class DialogOpenArchive(Toplevel):
                 messagebox.showerror(_("Malformed taxonomy package"), err)
                 cntlr.addToLog(err)
                 return
-
+    
         if openType not in (PLUGIN, PACKAGE):
             cntlr.showStatus(None)
-
+        
         if openType in (DISCLOSURE_SYSTEM, PLUGIN, PACKAGE):
             y = 3
         else:
@@ -240,11 +240,11 @@ class DialogOpenArchive(Toplevel):
         cancelButton = Button(frame, text=_("Cancel"), command=self.close)
         okButton.grid(row=y, column=2, sticky=(S,E,W), pady=3)
         cancelButton.grid(row=y, column=3, sticky=(S,E,W), pady=3, padx=3)
-
+        
         if self.showAltViewButton:
             self.altViewButton = Button(frame, command=self.showAltView)
             self.altViewButton.grid(row=y, column=0, sticky=(S,W), pady=3, padx=3)
-
+        
         self.loadTreeView(openType, colHeader, title)
 
         self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
@@ -254,37 +254,37 @@ class DialogOpenArchive(Toplevel):
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
         window.rowconfigure(0, weight=1)
-
+        
         self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.close)
-
+        
         self.toolTipText = StringVar()
         if self.hasToolTip:
             self.treeView.bind("<Motion>", self.motion, '+')
             self.treeView.bind("<Leave>", self.leave, '+')
             self.toolTipText = StringVar()
-            self.toolTip = ToolTip(self.treeView,
-                                   textvariable=self.toolTipText,
-                                   wraplength=640,
+            self.toolTip = ToolTip(self.treeView, 
+                                   textvariable=self.toolTipText, 
+                                   wraplength=640, 
                                    follow_mouse=True,
                                    state="disabled")
             self.toolTipRowId = None
 
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.grab_set()
-
+        
         self.wait_window(self)
 
-
-
-
+    
+        
+        
     def loadTreeView(self, openType, title, colHeader):
         self.title(title)
         self.openType = openType
         selectedNode = None
 
         # clear previous treeview entries
-        for previousNode in self.treeView.get_children(""):
+        for previousNode in self.treeView.get_children(""): 
             self.treeView.delete(previousNode)
 
         # set up treeView widget and tabbed pane
@@ -325,7 +325,7 @@ class DialogOpenArchive(Toplevel):
                 self.treeView.heading("license", text="License")
             else:
                 self.treeView["columns"] = tuple()
-
+        
             loadedPaths = []
             for i, filename in enumerate(self.filenames):
                 if isinstance(filename,tuple):
@@ -343,7 +343,7 @@ class DialogOpenArchive(Toplevel):
                 if not self.isRss and len(path) > 1 and path[:-1] in loadedPaths:
                     parent = "file{0}".format(loadedPaths.index(path[:-1]))
                 else:
-                    parent = ""
+                    parent = "" 
                 node = self.treeView.insert(parent, "end", "file{0}".format(i), text=path[-1])
                 if self.isRss:
                     self.treeView.set(node, "descr", form)
@@ -365,20 +365,20 @@ class DialogOpenArchive(Toplevel):
         elif openType == ENTRY_POINTS:
             self.treeView.column("#0", width=200, anchor="w")
             self.treeView.heading("#0", text="Name")
-
+    
             self.treeView["columns"] = ("url",)
             self.treeView.column("url", width=300, anchor="w")
             self.treeView.heading("url", text="URL")
-
+            
             for fileType, fileUrl in getattr(self, "packageContainedInstances", ()):
-                self.treeView.insert("", "end", fileUrl,
-                                     values=fileType,
+                self.treeView.insert("", "end", fileUrl, 
+                                     values=fileType, 
                                      text=fileUrl or urls[0][2])
             for name, urls in sorted(self.taxonomyPackage["entryPoints"].items(), key=lambda i:i[0][2]):
-                self.treeView.insert("", "end", name,
-                                     values="\n".join(url[1] for url in urls),
+                self.treeView.insert("", "end", name, 
+                                     values="\n".join(url[1] for url in urls), 
                                      text=name or urls[0][2])
-
+                
             self.hasToolTip = True
         else: # unknown openType
             return None
@@ -389,7 +389,7 @@ class DialogOpenArchive(Toplevel):
         if self.showAltViewButton:
             self.altViewButton.config(text=_("Show Files") if openType == ENTRY_POINTS else _("Show Entries"))
 
-
+        
     def ok(self, event=None):
         selection = self.treeView.selection()
         if len(selection) > 0:
@@ -425,7 +425,7 @@ class DialogOpenArchive(Toplevel):
                             filenames.append(_url)
                 if not filenames: # else if it's a named taxonomy entry point of an installed package
                     for url in self.taxonomyPackage["entryPoints"][epName]:
-                        filename = url[1] # use unmapped file name
+                        filename = url[1] # use unmapped file name 
                         if not filename.endswith("/"):
                             # check if it's an absolute URL rather than a path into the archive
                             if not isHttpUrl(filename) and self.metadataFilePrefix != self.taxonomyPkgMetaInf:
@@ -463,18 +463,18 @@ class DialogOpenArchive(Toplevel):
                     self.filesource.select(filename)
                 self.accepted = True
                 self.close()
-
-
+                        
+        
     def close(self, event=None):
         self.parent.focus_set()
         self.destroy()
-
+        
     def showAltView(self, event=None):
         if self.openType == ENTRY_POINTS:
             self.loadTreeView(ARCHIVE, _("Select Entry Point"), _("File"))
         else:
             self.loadTreeView(ENTRY_POINTS, _("Select Archive File"), _("File"))
-
+        
     def leave(self, *args):
         self.toolTipRowId = None
 
@@ -493,12 +493,12 @@ class DialogOpenArchive(Toplevel):
                         pass
             elif self.openType == ENTRY_POINTS:
                 try:
-                    text = "{0}\n{1}".format(tvRowId,
+                    text = "{0}\n{1}".format(tvRowId, 
                              "\n".join(url[1] for url in self.taxonomyPackage["entryPoints"][tvRowId]))
                 except KeyError:
                     pass
             self.setToolTip(text)
-
+                
     def setToolTip(self, text):
         self.toolTip._hide()
         if text:

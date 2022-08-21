@@ -38,7 +38,7 @@ class DialogURL(Toplevel):
         self.title("Enter URL")
         self.urlVar = StringVar()
         self.urlVar.set(url if url is not None else "")
-
+        
         frame = Frame(self)
         urlLabel = Label(frame, text=_("URL:"), underline=0)
         urlEntry = Entry(frame, textvariable=self.urlVar, width=60)
@@ -68,32 +68,32 @@ class DialogURL(Toplevel):
         ToolTip(okButton, text=_("Opens above URL from web cache, downloading to cache if necessary"), wraplength=240)
         cancelButton.grid(row=1, column=3, sticky=EW, pady=3, padx=3)
         ToolTip(cancelButton, text=_("Cancel operation"))
-
+                    
         frame.grid(row=0, column=0, sticky=(N,S,E,W))
         frame.columnconfigure(1, weight=1)
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
         self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
-
+        
         self.bind("<Alt-u>", lambda *ignore: urlEntry.focus_set())
         self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.close)
-
+        
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.grab_set()
         self.wait_window(self)
-
+        
     def ok(self, event=None):
         self.url = self.urlVar.get().strip()
         if self.url and self.url[0] == '"' and self.url[-1] == '"':
             self.url = self.url[1:-1] # strip double quotes (from cut and paste from database etc
         self.accepted = True
         self.close()
-
+        
     def close(self, event=None):
         self.parent.focus_set()
         self.destroy()
-
+        
     def usSec(self, event=None):
         import webbrowser
         webbrowser.open("http://www.sec.gov/edgar/searchedgar/companysearch.html")

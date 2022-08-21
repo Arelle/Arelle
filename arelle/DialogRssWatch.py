@@ -39,11 +39,11 @@ rssFeeds = {
     "US SEC Mutual Fund Risk/Return Filings": "http://www.sec.gov/Archives/edgar/xbrl-rr.rss.xml",
     "US SEC All Filings": "http://www.sec.gov/Archives/edgar/xbrlrss.all.xml",
             }
-
+  
 emailPattern = re.compile(
-      r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*"  # dot-atom
-      r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-011\013\014\016-\177])*"' # quoted-string
-      r')@(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?$', re.IGNORECASE)
+      r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*"  # dot-atom     
+      r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-011\013\014\016-\177])*"' # quoted-string     
+      r')@(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?$', re.IGNORECASE) 
 
 
 class DialogRssWatch(Toplevel):
@@ -60,7 +60,7 @@ class DialogRssWatch(Toplevel):
 
         self.transient(self.parent)
         self.title(_("RSS Feed Processing Control"))
-
+        
         frame = Frame(self)
 
         # checkbox entries
@@ -116,17 +116,17 @@ class DialogRssWatch(Toplevel):
         label(frame, 2, row, "Validate:")
         row += 1
         self.checkboxes = (
-           checkbox(frame, 2, row,
-                    "XBRL 2.1 and Dimensions rules",
+           checkbox(frame, 2, row, 
+                    "XBRL 2.1 and Dimensions rules", 
                     "validateXbrlRules"),
-           checkbox(frame, 2, row+1,
-                    "Selected disclosure system rules",
+           checkbox(frame, 2, row+1, 
+                    "Selected disclosure system rules", 
                     "validateDisclosureSystemRules"),
            checkbox(frame, 2, row+2,
-                    "Calculation linkbase roll-up",
+                    "Calculation linkbase roll-up", 
                     "validateCalcLinkbase"),
            checkbox(frame, 2, row+3,
-                    "Formula assertions",
+                    "Formula assertions", 
                     "validateFormulaAssertions"),
            # Note: if adding to this list keep ModelFormulaObject.FormulaOptions in sync
         )
@@ -137,19 +137,19 @@ class DialogRssWatch(Toplevel):
         label(frame, 2, row, "Alert on:")
         row += 1
         self.checkboxes += (
-           checkbox(frame, 2, row,
-                    "Facts with matching text",
+           checkbox(frame, 2, row, 
+                    "Facts with matching text", 
                     "alertMatchedFactText"),
            checkbox(frame, 2, row+1,
-                    "Unsuccessful formula assertions",
+                    "Unsuccessful formula assertions", 
                     "alertAssertionUnsuccessful"),
-           checkbox(frame, 2, row+2,
-                    "Validation errors",
+           checkbox(frame, 2, row+2, 
+                    "Validation errors", 
                     "alertValiditionError"),
            # Note: if adding to this list keep ModelFormulaObject.FormulaOptions in sync
            )
         row += 3
-
+        
         mainWin.showStatus(None)
 
         cancelButton = Button(frame, text=_("Cancel"), width=8, command=self.close)
@@ -158,20 +158,20 @@ class DialogRssWatch(Toplevel):
         ToolTip(okButton, text=_("Accept the options as entered above"))
         cancelButton.grid(row=row, column=1, columnspan=3, sticky=E, pady=3, padx=3)
         okButton.grid(row=row, column=1, columnspan=3, sticky=E, pady=3, padx=86)
-
+        
         frame.grid(row=0, column=0, sticky=(N,S,E,W))
         frame.columnconfigure(2, weight=1)
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
         self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
-
+        
         #self.bind("<Return>", self.ok)
         #self.bind("<Escape>", self.close)
-
+        
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.grab_set()
         self.wait_window(self)
-
+        
     def chooseFormulaFile(self):
         filename = tkinter.filedialog.askopenfilename(
                             title=_("Choose formula file for RSS Watch"),
@@ -182,7 +182,7 @@ class DialogRssWatch(Toplevel):
         if filename:
             self.options["rssWatchFormulaFileDir"] = os.path.dirname(filename)
             self.cellFormulaFile.setValue(filename)
-
+        
     def chooseLogFile(self):
         filename = tkinter.filedialog.asksaveasfilename(
                             title=_("Choose log file for RSS Watch"),
@@ -193,16 +193,16 @@ class DialogRssWatch(Toplevel):
         if filename:
             self.options["rssWatchLogFileDir"] = os.path.dirname(filename)
             self.cellLogFile.setValue(filename)
-
+        
     def setupSmtp(self):
         from arelle.DialogUserPassword import askSmtp
         smtpSettings = askSmtp(self, self.options.get("smtpEmailSettings",()))
         if smtpSettings:
             self.options["smtpEmailSettings"] = smtpSettings
-
+        
     def clearPubDate(self):
         self.cellLatestPubDate.setValue("")
-
+        
     def checkEntries(self):
         errors = []
         if not self.cellFeed.value in rssFeeds and not isValidAbsolute(self.cellFeed.value):
@@ -228,7 +228,7 @@ class DialogRssWatch(Toplevel):
                                 "\n ".join(errors), parent=self)
             return False
         return True
-
+        
     def setOptions(self):
         # set formula options
         self.options["feedSource"] = self.cellFeed.value
@@ -247,15 +247,15 @@ class DialogRssWatch(Toplevel):
             self.options["latestPubDate"] = None
         for checkbox in self.checkboxes:
             self.options[checkbox.attr] = checkbox.value
-
+        
     def ok(self, event=None):
         if not self.checkEntries():
             return
         self.setOptions()
         self.accepted = True
         self.close()
-
+        
     def close(self, event=None):
         self.parent.focus_set()
         self.destroy()
-
+        

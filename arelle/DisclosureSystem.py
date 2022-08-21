@@ -13,7 +13,7 @@ from arelle.UrlUtil import isHttpUrl
 
 def compileAttrPattern(elt, attrName, flags=None, patternIfNoAttr=""):
     attr = elt.get(attrName)
-    if attr is None:
+    if attr is None: 
         # pattern to match if no attribute provided
         if patternIfNoAttr is None:
             return None # if None, then there is no pattern if attribute missing
@@ -36,7 +36,7 @@ class DisclosureSystem:
     def __init__(self, modelManager):
         self.modelManager = modelManager
         self.clear()
-
+        
     def clear(self):
         self.selection = None
         self.standardTaxonomiesDict = {}
@@ -104,7 +104,7 @@ class DisclosureSystem:
     @property
     def dir(self):
         return self.dirlist("dir")
-
+    
     @property
     def urls(self):
         _urls = [os.path.join(self.modelManager.cntlr.configDir, "disclosuresystems.xml")]
@@ -112,11 +112,11 @@ class DisclosureSystem:
         for pluginXbrlMethod in pluginClassMethods("DisclosureSystem.ConfigURL"):
             _urls.insert(0, pluginXbrlMethod(self))
         return _urls
-
+    
     @property
     def url(self): # needed for status messages (not used in this module)
         return ", ".join(os.path.basename(url) for url in self.urls)
-
+    
     def dirlist(self, listFormat):
         self.modelManager.cntlr.showStatus(_("parsing disclosuresystems.xml"))
         namepaths = []
@@ -133,7 +133,7 @@ class DisclosureSystem:
                                 namepaths.append('{0}: {1}'.format(entryName,names[0]))
                             elif listFormat == "help-verbose":
                                 namepaths.append('{0}: {1}\n{2}\n'.format(entryName,
-                                                                          names[0],
+                                                                          names[0], 
                                                                           dsElt.get("description").replace('\\n','\n')))
                             elif listFormat == "dir":
                                 namepaths.append((names[0],
@@ -142,8 +142,8 @@ class DisclosureSystem:
         except (EnvironmentError,
                 etree.LxmlError) as err:
             self.modelManager.cntlr.addToLog(_("Disclosure System listing, import error: %(error)s"),
-                                             messageCode="arelle:disclosureSystemListingError",
-                                             messageArgs={"error": str(err)},
+                                             messageCode="arelle:disclosureSystemListingError", 
+                                             messageArgs={"error": str(err)}, 
                                              level=logging.ERROR)
         self.modelManager.cntlr.showStatus("")
         return namepaths
@@ -244,20 +244,20 @@ class DisclosureSystem:
             else:
                 status = _("unable to load disclosure system {}").format(name)
                 self.modelManager.cntlr.addToLog(_("Disclosure System \"%(name)s\" not recognized (a plug-in may be needed)."),
-                                                 messageCode="arelle:disclosureSystemName",
+                                                 messageCode="arelle:disclosureSystemName", 
                                                  messageArgs={"name": name}, level=logging.ERROR)
-
+                
         except (EnvironmentError,
                 etree.LxmlError) as err:
             status = _("exception during loading")
             result = False
             self.modelManager.cntlr.addToLog(_("Disclosure System \"%(name)s\" loading error: %(error)s"),
-                                             messageCode="arelle:disclosureSystemLoadingError",
+                                             messageCode="arelle:disclosureSystemLoadingError", 
                                              messageArgs={"error": str(err), "name": name}, level=logging.ERROR)
             etree.clear_error_log()
         self.modelManager.cntlr.showStatus(_("Disclosure system and mappings {0}: {1}").format(status,name), 3500)
         return result
-
+    
     def loadStandardTaxonomiesDict(self):
         if self.selection:
             self.standardTaxonomiesDict = defaultdict(set)
@@ -271,7 +271,7 @@ class DisclosureSystem:
             self.modelManager.cntlr.showStatus(_("parsing {0}").format(basename))
             try:
                 from arelle.FileSource import openXmlFileStream
-                for filepath in (self.standardTaxonomiesUrl,
+                for filepath in (self.standardTaxonomiesUrl, 
                                  os.path.join(self.modelManager.cntlr.configDir,"xbrlschemafiles.xml")):
                     xmldoc = etree.parse(filepath) # must open with file path for xinclude to know base of file
                     xmldoc.xinclude() # to include elements below root use xpointer(/*/*)
@@ -330,8 +330,8 @@ class DisclosureSystem:
             except (EnvironmentError,
                     etree.LxmlError) as err:
                 self.modelManager.cntlr.addToLog(_("Disclosure System \"%(name)s\" import %(importFile)s, error: %(error)s"),
-                                                 messageCode="arelle:disclosureSystemImportError",
-                                                 messageArgs={"error": str(err), "name": self.name, "importFile": basename},
+                                                 messageCode="arelle:disclosureSystemImportError", 
+                                                 messageArgs={"error": str(err), "name": self.name, "importFile": basename}, 
                                                  level=logging.ERROR)
                 etree.clear_error_log()
 
@@ -348,11 +348,11 @@ class DisclosureSystem:
         except (EnvironmentError,
                 etree.LxmlError) as err:
             self.modelManager.cntlr.addToLog(_("Disclosure System \"%(name)s\" import %(importFile)s, error: %(error)s"),
-                                             messageCode="arelle:disclosureSystemImportError",
-                                             messageArgs={"error": str(err), "name": self.name, "importFile": basename},
+                                             messageCode="arelle:disclosureSystemImportError", 
+                                             messageArgs={"error": str(err), "name": self.name, "importFile": basename}, 
                                              level=logging.ERROR)
             etree.clear_error_log()
-
+            
     def mappedUrl(self, url):
         if url in self.mappedFiles:
             mappedUrl = self.mappedFiles[url]
@@ -368,7 +368,7 @@ class DisclosureSystem:
         if self.standardTaxonomiesUrl:
             return UrlUtil.authority(uri) in self.standardAuthorities
         return True # no standard authorities to test
-
+    
     def disallowedHrefOfNamespace(self, href, namespaceUri):
         if self.standardTaxonomiesUrl:
             if namespaceUri in self.standardTaxonomiesDict:

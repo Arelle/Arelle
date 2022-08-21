@@ -39,7 +39,7 @@ class DialogLanguage(Toplevel):
         self.languageCodes = languageCodes()
         langs = (["System default language ({0})".format(mainWin.modelManager.defaultLang)] +
                  sorted(self.languageCodes.keys() if self.mainWin.isMSW else
-                        [k
+                        [k 
                          for avail in [availableLocales()] # unix/Mac locale -a supported locale codes
                          for k, v in self.languageCodes.items()
                          if v.partition(" ")[0] in avail]
@@ -62,9 +62,9 @@ class DialogLanguage(Toplevel):
                 if i > 0 and self.labelLang in self.languageCodes[langName]:
                     self.labelLangIndex = i
                     break
-
+        
         frame = Frame(self)
-
+        
         defaultLanguage = mainWin.modelManager.defaultLang
         for langName, langCodes in self.languageCodes.items():
             if mainWin.modelManager.defaultLang in langCodes:
@@ -92,14 +92,14 @@ class DialogLanguage(Toplevel):
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
         self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
-
+        
         self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.close)
-
+        
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.grab_set()
         self.wait_window(self)
-
+            
     def ok(self, event=None):
         self.mainWin.disableRtl= self.cbDisableRtl.value
         self.mainWin.config['disableRtl']= self.cbDisableRtl.value
@@ -122,14 +122,14 @@ class DialogLanguage(Toplevel):
                 langCode, sep, localeCode = self.languageCodes[self.cbUiLang.value].partition(" ")
                 if not self.mainWin.isMSW:  # Windows uses string language codes
                     localeCode = langCode.replace("-", "_") + ".UTF-8" # Unix and Mac uses en_US.UTF-8
-
+                    
             newLocale = getUserLocale(localeCode)
             if newLocale is not None:
                 self.mainWin.modelManager.locale = newLocale
             else:
-                messagebox.showerror(_("User interface locale error"),
+                messagebox.showerror(_("User interface locale error"), 
                                      _("Locale setting {0} ({1}) is not supported on this system")
-                                     .format(langCode, localeCode),
+                                     .format(langCode, localeCode), 
                                      parent=self)
                 return
             if localeCode != "": # not the system default
@@ -139,20 +139,20 @@ class DialogLanguage(Toplevel):
                 self.mainWin.config.pop("userInterfaceLangOverride", None)
                 self.mainWin.config.pop("userInterfaceLocaleOverride", None)
             self.mainWin.setUiLanguage(langCode)
-
+            
             if messagebox.askyesno(
-                    _("User interface language changed"),
-                    _("Should Arelle restart with changed user interface language, if there are any unsaved changes they would be lost!"),
+                    _("User interface language changed"), 
+                    _("Should Arelle restart with changed user interface language, if there are any unsaved changes they would be lost!"), 
                    parent=self):
                 self.mainWin.uiThreadQueue.put((self.mainWin.quit, [None, True]))
             else:
                 messagebox.showwarning(
-                    _("User interface language changed"),
-                    _("Please restart Arelle for the change in user interface language."),
+                    _("User interface language changed"), 
+                    _("Please restart Arelle for the change in user interface language."), 
                    parent=self)
         self.close()
-
+        
     def close(self, event=None):
         self.parent.focus_set()
         self.destroy()
-
+        

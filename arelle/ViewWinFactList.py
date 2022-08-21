@@ -53,11 +53,11 @@ def viewFacts(modelXbrl, tabWin, lang=None):
         view.menuAddLangs()
         view.menuAddLabelRoles(includeConceptName=True)
         view.menuAddUnitDisplay()
-
+    
 class ViewFactList(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin, lang):
         super(ViewFactList, self).__init__(modelXbrl, tabWin, "Fact List", True, lang)
-
+        
     def setViewTupleChildMenuItem(self, event=None):
         if event is not None and self.menu is not None:
             #self.menu.delete(0, 0) # remove old filings
@@ -69,20 +69,20 @@ class ViewFactList(ViewWinTree.ViewTree):
             else:
                 self.menu.entryconfigure(0, state='disabled')
                 self.viewedTupleId = None
-
+                
     def viewTuplesGrid(self):
         from arelle.ViewWinTupleGrid import viewTuplesGrid
         viewTuples = viewTuplesGrid(self.modelXbrl, self.tabWin, self.viewedTupleId, self.lang)
         self.modelXbrl.modelManager.showStatus(_("Ready..."), clearAfter=2000)
         viewTuples.select()  # bring new grid to foreground
-
+                
     def view(self):
         self.id = 1
         self.tag_has = {}
         self.clearTreeView()
         self.setColumnsSortable(initialSortCol="sequence")
         self.viewFacts(self.modelXbrl.facts, "", 1)
-
+        
     def viewFacts(self, modelFacts, parentNode, n):
         for modelFact in modelFacts:
             try:
@@ -96,7 +96,7 @@ class ViewFactList(ViewWinTree.ViewTree):
                 else:
                     lbl = (modelFact.qname or modelFact.prefixedName) # defective inline facts may have no qname
                     objectIds = (modelFact.objectId())
-                node = self.treeView.insert(parentNode, "end", modelFact.objectId(self.id),
+                node = self.treeView.insert(parentNode, "end", modelFact.objectId(self.id), 
                                             text=lbl,
                                             tags=("odd" if n & 1 else "even",))
                 for tag in objectIds:
@@ -146,7 +146,7 @@ class ViewFactList(ViewWinTree.ViewTree):
             except (AttributeError, KeyError):
                 pass
         return None
-
+    
     def treeviewEnter(self, *args):
         self.blockSelectEvent = 0
 
@@ -158,7 +158,7 @@ class ViewFactList(ViewWinTree.ViewTree):
             self.blockViewModelObject += 1
             self.modelXbrl.viewModelObject(self.treeView.selection()[0])
             self.blockViewModelObject -= 1
-
+        
     def viewModelObject(self, modelObject):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
@@ -175,4 +175,4 @@ class ViewFactList(ViewWinTree.ViewTree):
             except (AttributeError, KeyError):
                     self.treeView.selection_set(())
             self.blockViewModelObject -= 1
-
+       
