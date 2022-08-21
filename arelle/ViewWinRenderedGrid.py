@@ -663,7 +663,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                          not isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode))) and yStrctNode.isLabeled:
                     isYEntryPrototype = yStrctNode.isEntryPrototype(default=False) # row to enter open aspects
                     yAspectStrctNodes = defaultdict(set)
-                    for aspect in aspectModels["dimensional"]:
+                    for aspect in aspectModels["dimensional"] | yStrctNode.aspectsCovered():
                         if yStrctNode.hasAspect(aspect):
                             if aspect == Aspect.DIMENSIONS:
                                 for dim in (yStrctNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
@@ -684,7 +684,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     for i, xStrctNode in enumerate(xStrctNodes):
                         isEntryPrototype = isYEntryPrototype or xStrctNode.isEntryPrototype(default=False)
                         xAspectStrctNodes = defaultdict(set)
-                        for aspect in aspectModels["dimensional"]:
+                        for aspect in aspectModels["dimensional"] | xStrctNode.aspectsCovered():
                             if xStrctNode.hasAspect(aspect):
                                 if aspect == Aspect.DIMENSIONS:
                                     for dim in (xStrctNode.aspectValue(Aspect.DIMENSIONS) or emptyList):

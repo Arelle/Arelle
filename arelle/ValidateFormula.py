@@ -1163,6 +1163,8 @@ def checkDefinitionNodeRules(val, table, parent, arcrole, xpathContext):
                                     not val.modelXbrl.qnameConcepts.get(elt.xAttributes["dimension"].xValue).isDimensionItem)) or
                                 (elt.localName == "typedDimension" and not any(c.localName in ("xpath", "value") 
                                                                     for c in XmlUtil.children(elt, XbrlConst.formula, "*"))) or
+                                (elt.localName == "period" and not any(c.localName in ("instant", "forever", "duration") 
+                                                                       for c in XmlUtil.children(elt, XbrlConst.formula, "*"))) or
                                 (elt.localName == "instant" and not elt.get("value")) or
                                 (elt.localName == "duration" and not (elt.get("start") or elt.get("end"))) or
                                 (elt.localName == "entityIdentifier" and not (elt.get("scheme") and elt.get("value"))) or

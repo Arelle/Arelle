@@ -325,7 +325,7 @@ class DateTime(datetime.datetime):
         if isinstance(other, YearMonthDuration):
             return self.addYearMonthDuration(other, 1)
         else:
-            if isinstance(other, Time): other = dayTimeDuration(other)
+            if isinstance(other, (Time,str)): other = dayTimeDuration(other)
             dt = super(DateTime, self).__add__(other)
             return DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo, self.dateOnly)
 
