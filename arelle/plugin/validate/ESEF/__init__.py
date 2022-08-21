@@ -97,7 +97,7 @@ ixErrorPattern = re.compile(r"ix11[.]|xmlSchema[:]|(?!xbrl.5.2.5.2|xbrl.5.2.6.2)
 docTypeXhtmlPattern = re.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-//W3C//DTD\s+(X?HTML)\s)?.*>$", re.IGNORECASE)
 
 FOOTNOTE_LINK_CHILDREN = {qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote}
-PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType") #  type: ignore[no-untyped-call]
+PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
 IXT_NAMESPACES = {ixtNamespaces["ixt v4"], # only tr4 or newer REC is currently recommended
                   ixtNamespaces["ixt v5"]}
 
@@ -169,7 +169,7 @@ def validateXbrlStart(val: ValidateXbrl, parameters: dict[Any, Any] | None=None,
     val.consolidated = not val.unconsolidated
     val.authority = None
     if parameters:
-        p = parameters.get(qname("authority",noPrefixIsNoNamespace=True)) #  type: ignore[no-untyped-call]
+        p = parameters.get(qname("authority",noPrefixIsNoNamespace=True))
         if p and len(p) == 2 and p[1] not in ("null", "None", None):
             v = p[1] # formula dialog and cmd line formula parameters may need type conversion
             val.authority = v
@@ -264,9 +264,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         if _ifrsNses:
             _ifrsNs = _ifrsNses[0]
 
-    esefPrimaryStatementPlaceholders = set(qname(_ifrsNs, n) for n in esefPrimaryStatementPlaceholderNames) #  type: ignore[no-untyped-call]
-    esefStatementsOfMonetaryDeclaration = set(qname(_ifrsNs, n) for n in esefStatementsOfMonetaryDeclarationNames) #  type: ignore[no-untyped-call]
-    esefMandatoryElements2020 = set(qname(_ifrsNs, n) for n in esefMandatoryElementNames2020) #  type: ignore[no-untyped-call]
+    esefPrimaryStatementPlaceholders = set(qname(_ifrsNs, n) for n in esefPrimaryStatementPlaceholderNames)
+    esefStatementsOfMonetaryDeclaration = set(qname(_ifrsNs, n) for n in esefStatementsOfMonetaryDeclarationNames)
+    esefMandatoryElements2020 = set(qname(_ifrsNs, n) for n in esefMandatoryElementNames2020)
 
     if modelDocument.type == ModelDocument.Type.INSTANCE and not val.unconsolidated:
         modelXbrl.error("ESEF.I.1.instanceShallBeInlineXBRL",
@@ -1083,9 +1083,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 modelObject=missingMandatoryElements, qnames=", ".join(sorted(str(qn) for qn in missingMandatoryElements)))
 
         # supplemental authority required tags
-        additionalTagQnames = set(qname(n, prefixedNamespaces) #  type: ignore[no-untyped-call]
+        additionalTagQnames = set(qname(n, prefixedNamespaces)
                                   for n in val.authParam.get("additionalMandatoryTags", ())
-                                  if qname(n, prefixedNamespaces)) #  type: ignore[no-untyped-call]
+                                  if qname(n, prefixedNamespaces))
         missingAuthorityElements = additionalTagQnames - modelXbrl.factsByQname.keys()
         if missingAuthorityElements:
             modelXbrl.warning("arelle.ESEF.missingAuthorityMandatoryMarkups",
