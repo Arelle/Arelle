@@ -1,4 +1,4 @@
-"""Shared functions and type hints."""
+"""Type hints for Arelle."""
 from __future__ import annotations
 from collections.abc import Callable
 

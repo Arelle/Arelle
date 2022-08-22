@@ -73,7 +73,7 @@ from .Const import (mandatory, untransformableTypes,
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
 from .Util import isExtension, checkImageContents, loadAuthorityValidations
-from .common import TypeGetText
+from arelle.typing import TypeGetText
 from arelle.ModelObject import ModelObject
 from arelle.DisclosureSystem import DisclosureSystem
 from arelle.ModelDtsObject import ModelConcept

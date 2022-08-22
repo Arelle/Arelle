@@ -26,7 +26,7 @@ from .Const import (qnDomainItemTypes, esefDefinitionArcroles, DefaultDimensionL
                     linkbaseRefTypes, filenamePatterns, filenameRegexes)
 from .Util import isExtension
 from arelle.ValidateXbrl import ValidateXbrl
-from .common import TypeGetText
+from arelle.typing import TypeGetText
 
 _: TypeGetText  # Handle gettext
 
