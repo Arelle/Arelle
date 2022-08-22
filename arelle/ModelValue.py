@@ -4,11 +4,12 @@ Created on Jan 4, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
+from __future__ import annotations
 from arelle import PythonUtil # define 2.x or 3.x string types
 import copy, datetime, isodate
 from decimal import Decimal
 from functools import total_ordering
-from typing import Optional
+from typing import Any, Optional
 
 try:
     import regex as re
@@ -16,7 +17,8 @@ except ImportError:
     import re
 XmlUtil = None
 
-def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, prefixException=None):
+def qname(value: ModelObject | str | QName | Any | None, name: str | ModelObject | None = None, noPrefixIsNoNamespace: bool = False, castException: Exception | None = None, prefixException: Exception | None = None) -> QName | None:
+    # Note: while using Any for value catches all of the other types, it adds value to know what types are expected here
     # either value can be an etree ModelObject element: if no name then qname is element tag quanem
     #     if name provided qname uses element as xmlns reference and name as prefixed name
     # value can be namespaceURI and name is localname or prefix:localname
@@ -719,5 +721,4 @@ class InvalidValue(str):
         return str.__new__(cls, value)
 
 INVALIDixVALUE = InvalidValue("(ixTransformValueError)")
-
 

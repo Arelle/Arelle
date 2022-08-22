@@ -66,7 +66,7 @@ def checkImageContents(modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, 
                         modelXbrl.error("ESEF.2.5.1.executableCodePresent",
                             _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
                             modelObject=imgElt, element=eltTag)
-                    elif scheme(href) in ("http", "https", "ftp"):  # type: ignore[no-untyped-call]
+                    elif scheme(href) in ("http", "https", "ftp"):
                         modelXbrl.error("ESEF.2.5.1.referencesPointingOutsideOfTheReportingPackagePresent",
                             _("Inline XBRL instance document [image] MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
                             modelObject=imgElt, element=eltTag)
