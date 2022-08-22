@@ -12,7 +12,7 @@ pycountry==22.3.5
 # EdgarRenderer plugin
 NumPy==1.23.2
 Matplotlib==3.5.3
-holidays==0.14.2
+holidays==0.15
 Tornado==6.2
 # security plugin
 PyCryptodome==3.15.0
