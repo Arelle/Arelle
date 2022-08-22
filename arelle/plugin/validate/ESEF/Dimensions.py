@@ -22,7 +22,7 @@ except ImportError:
     import re  # type: ignore[no-redef]
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.ModelDtsObject import ModelConcept
-from .common import TypeGetText
+from arelle.typing import TypeGetText
 
 _: TypeGetText  # Handle gettext
 

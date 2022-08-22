@@ -19,7 +19,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
 from typing import Any, Union, cast
 from arelle.ModelDocument import ModelDocument
-from .common import TypeGetText
+from arelle.typing import TypeGetText
 
 _: TypeGetText  # Handle gettext
 
