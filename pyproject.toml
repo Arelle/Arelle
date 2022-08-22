@@ -2,6 +2,9 @@
 requires = ["setuptools~=62.3", "wheel~=0.37.1"]
 build-backend = "setuptools.build_meta"
 
+[tool.pytest.ini_options]
+xfail_strict = true
+
 [tool.mypy]
 # Warn when a # type: ignore comment does not specify any error codes
 enable_error_code = "ignore-without-code"
