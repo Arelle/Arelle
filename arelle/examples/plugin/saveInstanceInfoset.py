@@ -8,8 +8,7 @@ that will save facts decorated with ptv:periodType, ptv:balance, ptv:decimals an
 def generateInstanceInfoset(dts, instanceInfosetFile):
     if dts.fileSource.isArchive:
         return
-    import os, io
-    from arelle import XmlUtil, XbrlConst
+    from arelle import XmlUtil
     from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals
 
     XmlUtil.setXmlns(dts.modelDocument, "ptv", "http://www.xbrl.org/2003/ptv")

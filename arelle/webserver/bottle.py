@@ -263,7 +263,6 @@ class lazy_attribute(object):
 
 class BottleException(Exception):
     """ A base class for exceptions used by bottle. """
-    pass
 
 ###############################################################################
 # Routing ######################################################################

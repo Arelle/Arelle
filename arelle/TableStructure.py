@@ -8,8 +8,8 @@ try:
     import regex as re
 except ImportError:
     import re
-from collections import defaultdict
-import os, io, json
+import json
+import os
 from datetime import datetime, timedelta
 from arelle import XbrlConst
 from arelle.ModelDtsObject import ModelConcept

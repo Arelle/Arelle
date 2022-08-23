@@ -10,7 +10,6 @@ try:
     import regex as re
 except ImportError:
     import re
-from arelle.PluginManager import pluginClassMethods
 from arelle.XmlValidate import decimalPattern
 from arelle import XPathContext
 from datetime import datetime

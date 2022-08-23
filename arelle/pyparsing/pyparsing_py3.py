@@ -225,12 +225,10 @@ class ParseException(ParseBaseException):
         - col - returns the column number of the exception text
         - line - returns the line containing the exception text
     """
-    pass
 
 class ParseFatalException(ParseBaseException):
     """user-throwable exception thrown when inconsistent parse content
        is found; stops all parsing immediately"""
-    pass
 
 class ParseSyntaxException(ParseFatalException):
     """just like C{ParseFatalException}, but thrown internally when an
@@ -671,7 +669,6 @@ def _defaultExceptionDebugAction( instring, loc, expr, exc ):
 
 def nullDebugAction(*args):
     """'Do-nothing' debug action, to suppress debugging output during parsing."""
-    pass
 
 class ParserElement(object):
     """Abstract base level parser element class."""

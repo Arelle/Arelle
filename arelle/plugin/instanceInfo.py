@@ -6,7 +6,11 @@ instanceInfo.py provides information about an XBRL instance
 Operation with arelleCmdLine: --plugin instanceInfo -f entryUrl
 
 '''
-import sys, os, time, math, re, logging
+import logging
+import math
+import os
+import re
+import time
 from math import isnan
 from collections import defaultdict
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue

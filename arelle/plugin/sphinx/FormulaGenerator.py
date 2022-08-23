@@ -10,21 +10,23 @@ Sphinx copyright applies to the Sphinx language, not to this software.
 Mark V Systems conveys neither rights nor license for the Sphinx language.
 '''
 
-import time, sys, io, os.path, re
+import io
+import os.path
+import re
+import sys
 from lxml import etree
 from arelle.ModelValue import QName
 from .SphinxParser import (parse, astNode, astNamespaceDeclaration,
-                           astFormulaRule, astReportRule, astValidationRule,
-                           astQnameLiteral)
+                           astFormulaRule, astReportRule, astValidationRule)
 from .SphinxMethods import aggreateFunctionImplementation
 
 
 def generateFormulaLB(cntlr, sphinxFiles, generatedSphinxFormulasDirectory):
 
     if sys.version[0] >= '3':
-        from arelle.pyparsing.pyparsing_py3 import lineno
+        pass
     else:
-        from pyparsing import lineno
+        pass
 
     from .SphinxContext import SphinxContext
     from .SphinxValidator import validate

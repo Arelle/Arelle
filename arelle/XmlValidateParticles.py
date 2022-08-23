@@ -4,11 +4,8 @@ Created on Jan 20, 2012
 @author: Mark V Systems Limited
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
-from lxml import etree
-from arelle.ModelDtsObject import (ModelConcept, ModelType, ModelGroupDefinition,
-                                   ModelAll, ModelChoice, ModelSequence,
-                                   ModelAny, anonymousTypeSuffix)
-from arelle.ModelObject import ModelObject, ModelAttribute
+from arelle.ModelDtsObject import (ModelConcept, ModelType, ModelAll,
+                                   ModelChoice, ModelAny, anonymousTypeSuffix)
 from arelle.XbrlConst import xsd
 from arelle.XmlValidate import validate
 

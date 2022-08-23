@@ -9,8 +9,7 @@ try:
     from tkinter.ttk import *
 except ImportError:
     from ttk import *
-import os
-from arelle import (ViewWinTree, ModelDocument)
+from arelle import ViewWinTree
 
 def viewRssFeed(modelXbrl, tabWin):
     view = ViewRssFeed(modelXbrl, tabWin)

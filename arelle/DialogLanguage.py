@@ -4,21 +4,19 @@ Created on Apr 7, 2012
 @author: Mark V Systems Limited
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
-import os
-from tkinter import Toplevel, StringVar, N, S, E, W, EW, messagebox
+from tkinter import E, EW, N, S, Toplevel, W, messagebox
 try:
-    from tkinter.ttk import Frame, Button, Label, Entry
+    from tkinter.ttk import Button, Frame
 except ImportError:
-    from ttk import Frame, Button, Label, Entry
+    from ttk import Button, Frame
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.Locale import setDisableRTL
-from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox
-import gettext
+from arelle.UiUtil import checkbox, gridCombobox, gridHdr, label
 try:
     import regex as re
 except ImportError:
     import re
-from arelle.Locale import getLanguageCodes, languageCodes, getUserLocale, availableLocales
+from arelle.Locale import availableLocales, getUserLocale, languageCodes
 
 '''
 allow user to override system language codes for user interface and labels

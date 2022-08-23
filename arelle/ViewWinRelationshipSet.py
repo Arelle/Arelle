@@ -6,10 +6,8 @@ Created on Oct 6, 2010
 '''
 from collections import defaultdict
 import os
-from arelle import ViewWinTree, ModelDtsObject, ModelInstanceObject, ModelRenderingObject, XbrlConst, XmlUtil, Locale
-from arelle.ModelRelationshipSet import ModelRelationshipSet
+from arelle import Locale, ModelDtsObject, ModelInstanceObject, ModelRenderingObject, ViewWinTree, XbrlConst
 from arelle.ModelDtsObject import ModelRelationship
-from arelle.ModelFormulaObject import ModelFilter
 from arelle.ViewUtil import viewReferences, groupRelationshipSet, groupRelationshipLabel
 from arelle.XbrlConst import conceptNameLabelRole, documentationLabel, widerNarrower
 

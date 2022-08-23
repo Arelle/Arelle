@@ -13,7 +13,9 @@ and does not apply to the XBRL US Database schema and description.
 
 '''
 
-import time, os, io, sys, logging
+import logging
+import sys
+import time
 from arelle.Locale import format_string
 from .XbrlPublicPostgresDB import insertIntoDB as insertIntoPostgresDB, isDBPort as isPostgresPort
 from .XbrlSemanticSqlDB import insertIntoDB as insertIntoSemanticSqlDB, isDBPort as isSemanticSqlPort
@@ -21,7 +23,7 @@ from .XbrlOpenSqlDB import insertIntoDB as insertIntoOpenSqlDB
 from .XbrlSemanticGraphDB import insertIntoDB as insertIntoRexsterDB, isDBPort as isRexsterPort
 from .XbrlSemanticRdfDB import insertIntoDB as insertIntoRdfDB, isDBPort as isRdfPort
 from .XbrlSemanticJsonDB import insertIntoDB as insertIntoJsonDB, isDBPort as isJsonPort
-from .XbrlDpmSqlDB import insertIntoDB as insertIntoDpmDB, isDBPort as isDpmPort
+from .XbrlDpmSqlDB import insertIntoDB as insertIntoDpmDB
 
 dbTypes = {
     "postgres": insertIntoPostgresDB,

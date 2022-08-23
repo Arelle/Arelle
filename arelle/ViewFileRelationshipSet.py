@@ -4,9 +4,9 @@ Created on Oct 6, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import ModelObject, ModelDtsObject, XbrlConst, XmlUtil, ViewFile
+from arelle import ModelDtsObject, ViewFile, XbrlConst, XmlUtil
 from arelle.ModelDtsObject import ModelRelationship
-from arelle.ViewFile import NOOUT, CSV, XLSX, HTML, XML, JSON
+from arelle.ViewFile import CSV, JSON, XML
 from arelle.ViewUtil import viewReferences
 from arelle.XbrlConst import conceptNameLabelRole, documentationLabel, widerNarrower
 from arelle.ModelRenderingObject import ModelEuAxisCoord, ModelRuleDefinitionNode

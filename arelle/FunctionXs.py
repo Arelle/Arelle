@@ -6,10 +6,10 @@ Created on Dec 20, 2010
 '''
 import datetime, re
 from arelle import (XPathContext, ModelValue)
-from arelle.FunctionUtil import (anytypeArg, atomicArg, stringArg, numericArg, qnameArg, nodeArg)
+from arelle.FunctionUtil import atomicArg
 from arelle.XmlValidate import lexicalPatterns
 from arelle.XPathParser import ProgHeader
-from math import isnan, fabs, isinf
+from math import isinf, isnan
 from decimal import Decimal, InvalidOperation
 
 class FORG0001(Exception):

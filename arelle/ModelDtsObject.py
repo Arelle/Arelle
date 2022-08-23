@@ -60,10 +60,8 @@ validation.
 from __future__ import annotations
 from collections import defaultdict
 import os, sys
-from lxml import etree
 import decimal
-from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue, XmlValidate)
-from arelle.XmlValidate import UNVALIDATED, VALID
+from arelle import (XmlUtil, XbrlConst, XbrlUtil, Locale, ModelValue, XmlValidate)
 from arelle.ModelObject import ModelObject
 
 ModelFact = None

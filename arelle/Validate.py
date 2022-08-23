@@ -4,11 +4,13 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, sys, traceback, re, logging
+import logging
+import os
+import re
 from collections import defaultdict, OrderedDict
-from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlConst,
-               ValidateXbrl, ValidateVersReport, ValidateFormula,
-               ValidateInfoset, RenderingEvaluator, ViewFileRenderedGrid, UrlUtil)
+from arelle import (FileSource, ModelXbrl, ModelVersReport, XbrlConst, ValidateXbrl,
+               ValidateVersReport, ValidateFormula, ValidateInfoset,
+               RenderingEvaluator, ViewFileRenderedGrid, UrlUtil)
 from arelle.ModelDocument import Type, ModelDocumentReference, load as modelDocumentLoad
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact
@@ -17,7 +19,7 @@ from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelTestcaseObject import testcaseVariationsByTarget
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
-from arelle.XmlUtil import collapseWhitespace, xmlstring
+from arelle.XmlUtil import collapseWhitespace
 
 def validate(modelXbrl):
     validate = Validate(modelXbrl)

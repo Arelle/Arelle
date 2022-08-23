@@ -15,17 +15,18 @@ Calls these plug-in classes:
    Streaming.Finish(modelXbrl): notifies that streaming is finished
 '''
 
-import io, os, time, sys, re, gc
+import io
+import os
+import re
+import time
 from decimal import Decimal, InvalidOperation
 from lxml import etree
 from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateXbrlDimensions
 from arelle.ModelDocument import ModelDocument, Type
-from arelle.ModelObjectFactory import parser
-from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
 from arelle.PluginManager import pluginClassMethods
 from arelle.Validate import Validate
-from arelle.HashUtil import md5hash, Md5Sum
+from arelle.HashUtil import Md5Sum
 
 _streamingExtensionsCheck = True  # check streaming if enabled except for CmdLine, then only when requested
 _streamingExtensionsValidate = False

@@ -5,11 +5,9 @@ Created on Dec 12, 2013
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
 import os, sys, re
-from arelle import PluginManager
 from arelle import ModelDocument, XbrlConst, XmlUtil, UrlUtil, LeiUtil
-from arelle.HashUtil import md5hash, Md5Sum
-from arelle.ModelDtsObject import ModelConcept, ModelType, ModelLocator, ModelResource
-from arelle.ModelFormulaObject import Aspect
+from arelle.HashUtil import Md5Sum
+from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelObject import ModelObject
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import qname, qnameEltPfxName

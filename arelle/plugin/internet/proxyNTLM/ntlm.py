@@ -13,7 +13,6 @@
 
 import struct
 import base64
-import string
 try:
     from . import des
 except ValueError:
@@ -422,7 +421,7 @@ def create_sessionbasekey(password):
     return hashlib.new('md4', create_NT_hashed_password_v1(password)).digest()
 
 if __name__ == "__main__":
-    from binascii import unhexlify, hexlify
+    from binascii import unhexlify
     def ByteToHex( byteStr ):
         """
         Convert a byte string to it's hex string representation e.g. for output.

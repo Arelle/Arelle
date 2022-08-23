@@ -4,14 +4,11 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, sys, traceback, re
-from arelle import (ModelXbrl, XmlUtil, ModelVersReport, XbrlConst, ModelDocument,
-               ValidateXbrl, ValidateFormula)
+import re
+from arelle import (ModelXbrl, XmlUtil, ModelDocument, ValidateXbrl, ValidateFormula)
 from arelle.FileSource import openFileSource
-from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import parseRfcDatetime
-import datetime
 
 def initializeWatcher(modelXbrl):
     return WatchRss(modelXbrl)

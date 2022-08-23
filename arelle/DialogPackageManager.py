@@ -12,7 +12,9 @@ except ImportError:
     from ttk import Treeview, Scrollbar, Frame, Label, Button
 from arelle import PackageManager, DialogURL, DialogOpenArchive
 from arelle.CntlrWinTooltip import ToolTip
-import os, time, json, sys, traceback
+import json
+import os
+import time
 try:
     import regex as re
 except ImportError:

@@ -16,7 +16,6 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeDtsObject import PrototypeObject, PrototypeElementTree
 from decimal import Decimal, InvalidOperation
 from lxml import etree
-from types import LambdaType
 
 # deferred types initialization
 boolean = None

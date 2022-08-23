@@ -5,8 +5,7 @@ Created on May 12, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from collections import defaultdict
-import os, datetime
-from arelle import (ModelObject)
+import datetime
 
 def setup(view):
     relsSet = view.modelXbrl.relationshipSet(view.arcrole, view.linkrole, view.linkqname, view.arcqname)

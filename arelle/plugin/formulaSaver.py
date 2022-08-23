@@ -19,18 +19,18 @@ from arelle.ModelFormulaObject import (ModelValueAssertion, ModelExistenceAssert
                                        ModelAssertionSet,
                                        ModelFactVariable, ModelGeneralVariable, ModelFormula, ModelParameter,
                                        ModelFilter, ModelConceptName, ModelConceptPeriodType, ModelConceptBalance,
-                                       ModelConceptCustomAttribute, ModelConceptDataType, ModelConceptSubstitutionGroup,
-                                       ModelTestFilter, ModelGeneral, ModelGeneralMeasures, ModelInstantDuration,
-                                       ModelDateTimeFilter, ModelSingleMeasure, ModelExplicitDimension, ModelTypedDimension,
-                                       ModelEntitySpecificIdentifier, ModelEntityScheme, ModelEntityRegexpScheme,
-                                       ModelEntityRegexpIdentifier, ModelMatchFilter, ModelRelativeFilter,
-                                       ModelAncestorFilter, ModelParentFilter, ModelSiblingFilter, ModelNilFilter,
-                                       ModelAspectCover, ModelConceptRelation,
-                                       ModelCustomFunctionSignature, ModelCustomFunctionImplementation,
-                                       ModelPeriod,
-                                       ModelAndFilter, ModelOrFilter, ModelMessage, ModelAssertionSeverity)
+                                       ModelConceptDataType, ModelConceptSubstitutionGroup, ModelTestFilter,
+                                       ModelGeneral, ModelGeneralMeasures, ModelInstantDuration, ModelDateTimeFilter,
+                                       ModelSingleMeasure, ModelExplicitDimension, ModelTypedDimension, ModelEntitySpecificIdentifier,
+                                       ModelEntityScheme, ModelEntityRegexpScheme, ModelEntityRegexpIdentifier,
+                                       ModelMatchFilter, ModelRelativeFilter, ModelAncestorFilter,
+                                       ModelParentFilter, ModelSiblingFilter, ModelNilFilter, ModelAspectCover,
+                                       ModelConceptRelation, ModelCustomFunctionSignature,
+                                       ModelCustomFunctionImplementation, ModelPeriod,
+                                       ModelAndFilter,
+                                       ModelOrFilter, ModelMessage, ModelAssertionSeverity)
 from arelle import XbrlConst, XmlUtil, XPathParser
-import os, datetime
+import datetime
 
 class NotExportable(Exception):
     def __init__(self, message):

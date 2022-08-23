@@ -179,12 +179,10 @@ class Cntlr:
                 self.userAppDir = os.path.join( impliedAppDir, "Arelle")
             if hasGui:
                 try:
-                    import win32clipboard
                     self.hasClipboard = True
                 except ImportError:
                     self.hasClipboard = False
                 try:
-                    import win32gui
                     self.hasWin32gui = True # active state for open file dialogs
                 except ImportError:
                     pass
@@ -202,7 +200,6 @@ class Cntlr:
                     self.userAppDir = os.path.join( os.path.expanduser("~/.config"), "arelle")
             if hasGui:
                 try:
-                    import gtk
                     self.hasClipboard = True
                 except ImportError:
                     self.hasClipboard = False
@@ -210,7 +207,6 @@ class Cntlr:
                 self.hasClipboard = False
             self.contextMenuClick = "<Button-3>"
         try:
-            from arelle import webserver
             self.hasWebServer = True
         except ImportError:
             self.hasWebServer = False
@@ -380,7 +376,6 @@ class Cntlr:
         :param clearAfter: Time, in ms., after which to clear the message (e.g., 5000 for 5 sec.)
         :type clearAfter: int
         """
-        pass
 
     def close(self, saveConfig=False):
         """Closes the controller and its logger, optionally saving the user preferences configuration
@@ -427,15 +422,12 @@ class Cntlr:
         :param modelXbrl: ModelXbrl (DTS) whose views are to be notified
         :type modelXbrl: ModelXbrl
         """
-        pass
 
     def rssWatchUpdateOption(self, **args):
         """Notification to change rssWatch options, as passed in, usually from a modal dialog."""
-        pass
 
     def onPackageEnablementChanged(self):
         """Notification that package enablement changed, usually from a modal dialog."""
-        pass
 
     # default web authentication password
     def internet_user_password(self, host, realm):

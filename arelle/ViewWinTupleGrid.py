@@ -6,8 +6,8 @@ Created on May 12, 2011
 '''
 from arelle import (ViewWinGrid, )
 from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell,
-                     label,
-                     TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
+                     TOPBORDER,
+                     LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
 
 def viewTuplesGrid(modelXbrl, tabWin, tupleObjectId, lang=None):
     modelTuple = modelXbrl.modelObject(tupleObjectId)

@@ -6,7 +6,8 @@ Created on Jan 4, 2011
 '''
 from __future__ import annotations
 from arelle import PythonUtil # define 2.x or 3.x string types
-import copy, datetime, isodate
+import datetime
+import isodate
 from decimal import Decimal
 from functools import total_ordering
 from typing import Any, Optional

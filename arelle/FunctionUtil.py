@@ -4,8 +4,8 @@ Created on Dec 31, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom, datetime
-from arelle import (ModelValue, XmlUtil)
+import datetime
+from arelle import ModelValue
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.XPathContext import (XPathException, FunctionArgType)
 from arelle.PythonUtil import pyTypeName

@@ -23,20 +23,24 @@ Extensions can be added to the results in the following manner:
 
 (c) Copyright 2015 Mark V Systems Limited, All rights reserved.
 '''
-import sys, os, io, time, regex as re, json, csv, zipfile
+import csv
+import io
+import json
+import os
+import regex as re
+import sys
+import zipfile
 from decimal import Decimal
 from math import isinf, isnan
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict
 from arelle import ModelDocument, XbrlConst
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelValue import (qname, QName, DateTime, YearMonthDuration, tzinfoStr,
-                               dayTimeDuration, DayTimeDuration, yearMonthDayTimeDuration, Time,
-                               gYearMonth, gMonthDay, gYear, gMonth, gDay, IsoDuration)
+                               DayTimeDuration, Time, gYearMonth, gMonthDay,
+                               gYear, gMonth, gDay, IsoDuration)
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.UrlUtil import relativeUri
 from arelle.ValidateXbrlCalcs import inferredDecimals
-from arelle.XmlUtil import dateunionValue, elementIndex, xmlstring
-from collections import defaultdict
 
 nsOim = "https://xbrl.org/2021"
 qnOimConceptAspect = qname("concept", noPrefixIsNoNamespace=True)
@@ -527,7 +531,7 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None,
                             "entity": 20, "period": 20, "unit": 20, "metadata": 100}
             from openpyxl import Workbook
             from openpyxl.cell.cell import WriteOnlyCell
-            from openpyxl.styles import Font, PatternFill, Border, Alignment, Color, fills, Side
+            from openpyxl.styles import Alignment, Color, PatternFill, fills
             from openpyxl.worksheet.dimensions import ColumnDimension
             hdrCellFill = PatternFill(patternType=fills.FILL_SOLID, fgColor=Color("00FFBF5F")) # Excel's light orange fill color = 00FF990
             workbook = Workbook()

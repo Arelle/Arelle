@@ -9,8 +9,8 @@ and does not apply to the XBRL US Database schema and description.
 
 '''
 
-import time, os, io, sys, logging
-from arelle.Locale import format_string
+import logging
+import os
 from arelle.ModelDtsObject import ModelConcept, ModelRelationship, ModelLocator
 from arelle.ModelInstanceObject import ModelFact
 

@@ -19,10 +19,6 @@ from arelle.ModelDtsObject import (ModelConcept, ModelAttribute, ModelAttributeG
 ModelDocument = ModelFact = None # would be circular imports, resolve at first use after static loading
 from arelle.ModelRssItem import ModelRssItem
 from arelle.ModelTestcaseObject import ModelTestcaseVariation
-from arelle.ModelVersObject import (ModelAssignment, ModelAction, ModelNamespaceRename,
-                                    ModelRoleChange, ModelVersObject, ModelConceptUseChange,
-                                    ModelConceptDetailsChange, ModelRelationshipSetChange,
-                                    ModelRelationshipSet, ModelRelationships)
 
 def parser(modelXbrl, baseUrl, target=None):
     moduleObject_init() # init ModelObject globals

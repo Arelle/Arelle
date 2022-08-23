@@ -16,7 +16,16 @@ Example to run from web server:
 
 
 '''
-import os, sys, io, time, traceback, json, csv, logging, zipfile, datetime, isodate
+import csv
+import datetime
+import io
+import isodate
+import json
+import os
+import sys
+import time
+import traceback
+import zipfile
 from math import isnan, log10
 try:
     from regex import compile as re_compile, match as re_match, sub as re_sub, DOTALL as re_DOTALL
@@ -26,18 +35,15 @@ from lxml import etree
 from collections import defaultdict, OrderedDict
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelDtsObject import ModelResource
-from arelle import XbrlConst, ModelDocument, ModelXbrl, PackageManager, ValidateXbrlDimensions
+from arelle import ModelDocument, PackageManager, ValidateXbrlDimensions, XbrlConst
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, dateTime, DateTime, DATETIME, yearMonthDuration, dayTimeDuration
 from arelle.PrototypeInstanceObject import DimValuePrototype
-from arelle.PythonUtil import attrdict, flattenToSet, strTruncate
+from arelle.PythonUtil import attrdict, strTruncate
 from arelle.UrlUtil import isHttpUrl, isAbsolute as isAbsoluteUri, isValidUriReference
-from arelle.XbrlConst import (xbrli, qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
-                              qnLinkPart, gen, link, defaultLinkRole, footnote, factFootnote, isStandardRole,
-                              conceptLabel, elementLabel, conceptReference, all as hc_all, notAll as hc_notAll,
-                              xhtml, qnXbrliDateItemType,
-                              dtrPrefixedContentItemTypes, dtrPrefixedContentTypes, dtrSQNameNamesItemTypes, dtrSQNameNamesTypes,
-                              lrrRoleHrefs, lrrArcroleHrefs)
+from arelle.XbrlConst import (xbrli, link, footnote, factFootnote, isStandardRole,
+                              all as hc_all, qnXbrliDateItemType, dtrPrefixedContentItemTypes, dtrPrefixedContentTypes, dtrSQNameNamesItemTypes, dtrSQNameNamesTypes, lrrRoleHrefs,
+                              lrrArcroleHrefs)
 from arelle.XmlUtil import addChild, addQnameValue, copyIxFootnoteHtml, setXmlns
 from arelle.XmlValidate import integerPattern, languagePattern, NCNamePattern, QNamePattern, validate as xmlValidate, VALID
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
@@ -763,8 +769,7 @@ def getTaxonomyContextElement(modelXbrl):
 def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
     from openpyxl import load_workbook
     from openpyxl.cell import Cell
-    from arelle import ModelDocument, ModelXbrl, XmlUtil
-    from arelle.ModelDocument import ModelDocumentReference
+    from arelle import ModelXbrl
     from arelle.ModelValue import qname
 
     _return = None # modelDocument or an exception
@@ -2882,8 +2887,6 @@ def oimLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
 
 def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
     if cntlr.hasGui and getattr(modelXbrl, "loadedFromOIM", False):
-        from arelle import ModelDocument
-        from tkinter.filedialog import askdirectory
         instanceFile = cntlr.uiFileDialog("save",
                 title=_("arelle - Save XBRL instance document"),
                 initialdir=cntlr.config.setdefault("outputInstanceDir","."),

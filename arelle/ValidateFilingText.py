@@ -8,7 +8,6 @@ Created on Oct 17, 2010
 from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, XMLSyntaxError, XMLParser
 import os, re, io, base64
 from arelle.XbrlConst import ixbrlAll, xhtml
-from arelle.XmlUtil import setXmlns, xmlstring
 from arelle.ModelObject import ModelObject
 from arelle.UrlUtil import isHttpUrl, scheme
 

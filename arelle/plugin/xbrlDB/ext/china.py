@@ -12,7 +12,6 @@ to use from command line:
 
 '''
 import os
-from arelle.UrlUtil import ensureUrl
 
 EXT_CHINA_TABLES = {
                 "filing_china"

@@ -9,7 +9,6 @@ try:
     from tkinter.ttk import *
 except ImportError:
     from ttk import *
-from arelle.CntlrWinTooltip import ToolTip
 import io
 from arelle import (XmlUtil, ViewWinList)
 
@@ -35,7 +34,6 @@ class ViewXml(ViewWinList.ViewList):
     def validate(self):
         try:
             from arelle import Validate
-            import traceback
             Validate.validate(self.modelXbrl)
         except Exception as err:
             self.modelXbrl.exception("exception", _("Validation exception: \s%(error)s"), error=err, exc_info=True)

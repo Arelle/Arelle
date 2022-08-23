@@ -5,7 +5,7 @@ Created on Aug 8, 2013
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
 from collections import defaultdict
-from arelle import ViewWinTree, ModelDtsObject, XbrlConst, XmlUtil, Locale
+from arelle import ModelDtsObject, ViewWinTree
 
 def viewRoleTypes(modelXbrl, tabWin, isArcrole=False, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing arcrole types") if isArcrole else _("viewing role types"))

@@ -10,7 +10,7 @@ try:
 except ImportError:
     from ttk import Frame, Button
 import os, re
-from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox
+from arelle.UiUtil import checkbox, gridCombobox, label
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import XbrlConst
 

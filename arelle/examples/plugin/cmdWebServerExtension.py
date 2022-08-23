@@ -8,7 +8,7 @@ To run test:
 
 '''
 
-from arelle.CntlrWebMain import GET, Options, runOptionsAndGetResult
+from arelle.CntlrWebMain import Options, runOptionsAndGetResult
 
 def my_test():
     return _("<html><body><h1>Test</h1><p>It works!</p></body></html>")

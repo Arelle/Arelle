@@ -1,9 +1,7 @@
 
-import Cntlr, ModelManager, FileSource, time
-from optparse import OptionParser
+import Cntlr
+import FileSource
 import cProfile
-import gettext
-import locale
 
 def main():
     CntlrProfiler().run()

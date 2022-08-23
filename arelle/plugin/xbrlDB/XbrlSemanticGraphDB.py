@@ -23,13 +23,18 @@ to do:
 
 '''
 
-import os, io, re, time, json, socket, logging, zlib
+import io
+import json
+import logging
+import os
+import socket
+import time
+import zlib
 from math import isnan, isinf
 from arelle.ModelDtsObject import ModelConcept, ModelResource, ModelRelationship
-from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
+from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelDocument import Type
-from arelle.ModelValue import qname, datetime
-from arelle.ValidateXbrlCalcs import roundValue
+from arelle.ModelValue import datetime
 from arelle import XbrlConst, XmlUtil
 import urllib.request
 from urllib.error import HTTPError, URLError

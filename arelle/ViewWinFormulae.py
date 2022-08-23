@@ -5,10 +5,9 @@ Created on Dec 6, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from collections import defaultdict
-import os
-from arelle import ViewWinTree, ModelObject, XbrlConst
-from arelle.ModelFormulaObject import (ModelParameter, ModelVariable, ModelVariableSet,
-                                       ModelVariableSetAssertion, ModelConsistencyAssertion)
+from arelle import ViewWinTree, XbrlConst
+from arelle.ModelFormulaObject import (ModelParameter, ModelVariable, ModelVariableSetAssertion,
+                                       ModelConsistencyAssertion)
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ViewUtilFormulae import rootFormulaObjects, formulaObjSortKey
 

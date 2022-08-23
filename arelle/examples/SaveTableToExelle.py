@@ -5,10 +5,10 @@ Preconfigured here to use SEC Edgar Rendering R files as input
 @author: Mark V Systems Limited
 (c) Copyright 2014 Mark V Systems Limited, All rights reserved.
 '''
-import os, sys, re
+import os
+import re
 from lxml import etree, html
 from openpyxl.workbook import Workbook
-from openpyxl.worksheet import ColumnDimension
 from openpyxl.cell import get_column_letter
 from openpyxl.style import Alignment
 

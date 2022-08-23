@@ -4,11 +4,11 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, datetime, re
+import datetime
+import re
 from arelle import (ModelDocument, XmlUtil, XbrlConst, UrlUtil)
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelConcept
-from .Consts import standardNamespacesPattern
 
 targetNamespaceDatePattern = None
 efmFilenamePattern = None

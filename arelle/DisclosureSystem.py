@@ -270,7 +270,6 @@ class DisclosureSystem:
             basename = os.path.basename(self.standardTaxonomiesUrl)
             self.modelManager.cntlr.showStatus(_("parsing {0}").format(basename))
             try:
-                from arelle.FileSource import openXmlFileStream
                 for filepath in (self.standardTaxonomiesUrl,
                                  os.path.join(self.modelManager.cntlr.configDir,"xbrlschemafiles.xml")):
                     xmldoc = etree.parse(filepath) # must open with file path for xinclude to know base of file

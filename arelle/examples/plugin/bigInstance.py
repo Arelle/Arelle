@@ -7,7 +7,8 @@ for efficiency and to avoid dependency on an underlying DOM.
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
 
-import xml.sax, io, sys
+import io
+import xml.sax
 from collections import defaultdict
 from arelle import XbrlConst, XmlUtil, XmlValidate
 from arelle.ModelDocument import ModelDocument, Type
@@ -311,7 +312,6 @@ class saxHandler(xml.sax.ContentHandler):
             self.currentNamespaceURI = None
             self.currentLocalName = None
             XmlValidate.validate(self.modelXbrl, elt, recurse=False)
-            pass
 
     def characters(self, content):
         if self.currentNamespaceURI:

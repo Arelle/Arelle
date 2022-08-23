@@ -8,9 +8,9 @@ This product uses graphviz, which must be installed separately on the platform.
 
 (c) Copyright 2017 Mark V Systems Limited, All rights reserved.
 '''
-import os, io, time, re
+import os
 from tkinter import Menu
-from arelle import ModelDocument, XmlUtil, XbrlConst
+from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelConcept
 
 diagramNetworks = {

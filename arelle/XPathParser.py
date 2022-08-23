@@ -13,14 +13,14 @@ if sys.version[0] >= '3':
     # python 3 requires modified parser to allow release of global objects when closing DTS
     from arelle.pyparsing.pyparsing_py3 import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
                  Literal, CaselessLiteral,
-                 Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
-                 ParserElement, quotedString, delimitedList, Suppress, Regex)
+                 Combine, Optional, nums, Forward, Group, ZeroOrMore, StringEnd, alphanums, ParserElement,
+                 quotedString, delimitedList, Suppress, Regex)
 else:
     # installed for python 2.7 and clean packages, otherwise use tweaked version
     from arelle.pyparsing.pyparsing_py2 import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
                  Literal, CaselessLiteral,
-                 Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
-                 ParserElement, quotedString, delimitedList, Suppress, Regex)
+                 Combine, Optional, nums, Forward, Group, ZeroOrMore, StringEnd, alphanums, ParserElement,
+                 quotedString, delimitedList, Suppress, Regex)
 from arelle.Locale import format_string
 import time, xml.dom, traceback
 from decimal import Decimal

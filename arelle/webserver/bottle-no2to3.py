@@ -36,7 +36,7 @@ if __name__ == '__main__':
         import gevent.monkey; gevent.monkey.patch_all()
 
 import base64, cgi, email.utils, functools, hmac, imp, itertools, mimetypes,\
-        os, re, subprocess, sys, tempfile, threading, time, urllib, warnings
+        os, re, subprocess, sys, tempfile, threading, time, warnings
 
 from datetime import date as datedate, datetime, timedelta
 from tempfile import TemporaryFile
@@ -72,7 +72,7 @@ if py3k:
     import http.client as httplib
     import _thread as thread
     from urllib.parse import urljoin, parse_qs, SplitResult as UrlSplitResult
-    from urllib.parse import urlencode, quote as urlquote, unquote as urlunquote
+    from urllib.parse import quote as urlquote, urlencode
     from http.cookies import SimpleCookie
     from collections import MutableMapping as DictMixin
     import pickle
@@ -86,7 +86,7 @@ else: # 2.x
     import httplib
     import thread
     from urlparse import urljoin, SplitResult as UrlSplitResult
-    from urllib import urlencode, quote as urlquote, unquote as urlunquote
+    from urllib import quote as urlquote, urlencode
     from Cookie import SimpleCookie
     from itertools import imap
     import cPickle as pickle
@@ -199,7 +199,6 @@ class lazy_attribute(object):
 
 class BottleException(Exception):
     """ A base class for exceptions used by bottle. """
-    pass
 
 
 #TODO: This should subclass BaseRequest

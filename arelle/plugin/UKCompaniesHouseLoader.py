@@ -6,9 +6,7 @@ that loads a Companies House zip XBRL instances file.
 
 (c) Copyright 2014 Mark V Systems Limited, All rights reserved.
 '''
-from lxml import html
-import datetime, re, os
-from arelle import FileSource
+import datetime
 from arelle.ModelRssObject import ModelRssObject
 from arelle.XmlValidate import UNVALIDATED, VALID
 

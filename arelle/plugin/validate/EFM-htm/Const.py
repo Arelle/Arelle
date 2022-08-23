@@ -7,9 +7,9 @@ Created on Dec 12, 2013
 
 '''
 try:
-    from regex import compile as re_compile, match as re_match, DOTALL as re_DOTALL
+    pass
 except ImportError:
-    from re import compile as re_compile, match as re_match, DOTALL as re_DOTALL
+    pass
 
 edgarAdditionalTags = {
     "listing",

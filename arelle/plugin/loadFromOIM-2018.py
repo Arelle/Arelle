@@ -19,16 +19,13 @@ Example to run from web server:
 import os, sys, io, time, re, traceback, json, csv, logging, math, zipfile
 from collections import defaultdict, OrderedDict
 from arelle.ModelDocument import Type, create as createModelDocument
-from arelle import XbrlConst, ModelDocument, ModelXbrl, ValidateXbrlDimensions
+from arelle import ValidateXbrlDimensions, XbrlConst
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelValue import qname, dateTime, DATETIME
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict
 from arelle.UrlUtil import isHttpUrl
-from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
-                              qnLinkPart, gen, link, defaultLinkRole,
-                              conceptLabel, elementLabel, conceptReference
-                              )
+from arelle.XbrlConst import link
 from arelle.XmlUtil import addChild, addQnameValue
 from arelle.XmlValidate import NCNamePattern, validate as xmlValidate
 
@@ -137,8 +134,7 @@ def csvCellValue(cellValue):
 def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=None):
     from openpyxl import load_workbook
     from openpyxl.cell import Cell
-    from arelle import ModelDocument, ModelXbrl, XmlUtil
-    from arelle.ModelDocument import ModelDocumentReference
+    from arelle import ModelXbrl
     from arelle.ModelValue import qname
 
     _return = None # modelDocument or an exception
@@ -1219,8 +1215,6 @@ def oimLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
 
 def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
     if cntlr.hasGui and getattr(modelXbrl, "loadedFromOIM", False):
-        from arelle import ModelDocument
-        from tkinter.filedialog import askdirectory
         instanceFile = cntlr.uiFileDialog("save",
                 title=_("arelle - Save XBRL instance document"),
                 initialdir=cntlr.config.setdefault("outputInstanceDir","."),

@@ -1,5 +1,4 @@
-from arelle import XmlUtil, XbrlConst
-from arelle.ModelValue import QName
+from arelle import XbrlConst
 from arelle.XmlValidate import VALID
 from collections import defaultdict
 import decimal, os

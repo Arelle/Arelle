@@ -10,14 +10,12 @@ Sphinx copyright applies to the Sphinx language, not to this software.
 Mark V Systems conveys neither rights nor license for the Sphinx language.
 '''
 
-from collections import OrderedDict
-from .SphinxParser import astNode, astWith
+from .SphinxParser import astNode
 from arelle.ModelFormulaObject import aspectModels, Aspect, aspectStr
-from arelle.ModelInstanceObject import ModelFact, ModelDimensionValue
+from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.FormulaEvaluator import implicitFilter, aspectsMatch
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import DEFAULT, NONDEFAULT
-from arelle import XmlUtil
 
 class SphinxContext:
     def __init__(self, sphinxProgs, modelXbrl=None):

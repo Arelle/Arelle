@@ -5,9 +5,9 @@ Created on April 14, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 try:
-    import regex as re
+    pass
 except ImportError:
-    import re
+    pass
 
 def attrValue(str, name):
     # retrieves attribute in a string, such as xyz="abc" or xyz='abc' or xyz=abc;

@@ -6,10 +6,8 @@ Created on Jun 6, 2012
 '''
 from arelle import XPathContext, XbrlConst, XmlUtil
 from arelle.ModelFormulaObject import (aspectModels, aspectStr, Aspect)
-from arelle.ModelRenderingObject import (CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST,
-                                         ModelDefinitionNode, ModelEuAxisCoord,
-                                         ModelBreakdown,
-                                         ModelClosedDefinitionNode,
+from arelle.ModelRenderingObject import (ModelDefinitionNode, ModelEuAxisCoord,
+                                         ModelBreakdown, ModelClosedDefinitionNode,
                                          ModelRuleDefinitionNode,
                                          ModelFilterDefinitionNode,
                                          ModelDimensionRelationshipDefinitionNode)

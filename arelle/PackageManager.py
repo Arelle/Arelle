@@ -4,7 +4,12 @@ Separated on Jul 28, 2013 from DialogOpenArchive.py
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import sys, os, io, re, time, json, logging
+import io
+import json
+import logging
+import os
+import sys
+import time
 from collections import defaultdict
 from fnmatch import fnmatch
 from lxml import etree
@@ -13,7 +18,7 @@ if sys.version[0] >= '3':
 else:
     from urlparse import urljoin
 openFileSource = None
-from arelle import Locale, XmlUtil
+from arelle import Locale
 from arelle.UrlUtil import isAbsolute
 from arelle.XmlValidate import lxmlResolvingParser
 ArchiveFileIOError = None

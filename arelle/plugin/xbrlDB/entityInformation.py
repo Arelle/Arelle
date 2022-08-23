@@ -16,9 +16,6 @@ former-name-{1..}.{former-conformed-name,date-changed}
 filer-category, public-float, trading-symbol, fiscal-year-focus, fiscal-period-focus
 '''
 import os, re, datetime
-from lxml import html, etree
-from arelle import ModelDocument
-from arelle.ModelValue import qname
 from arelle.ValidateXbrlCalcs import roundValue
 
 

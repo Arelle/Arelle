@@ -12,8 +12,7 @@ and does not apply to the XBRL US Database schema and description.
 '''
 
 def dialogRssWatchDBextender(dialog, frame, row, options, cntlr, openFileImage, openDatabaseImage):
-    from tkinter import PhotoImage, N, S, E, W
-    from tkinter.simpledialog import askstring
+    from tkinter import W
     from arelle.CntlrWinTooltip import ToolTip
     from arelle.UiUtil import gridCell, label
     try:

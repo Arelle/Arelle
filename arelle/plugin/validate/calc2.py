@@ -12,7 +12,7 @@ from decimal import Decimal
 from arelle import Locale
 from arelle.PythonUtil import OrderedDefaultDict
 from arelle.ValidateXbrlCalcs import ZERO, inferredDecimals, rangeValue
-from arelle.XbrlConst import link, xbrli, xl, xlink, domainMember
+from arelle.XbrlConst import domainMember
 
 calc2YYYY = "http://xbrl.org/WGWD/YYYY-MM-DD/calculation-2.0"
 calc2 = {calc2YYYY}

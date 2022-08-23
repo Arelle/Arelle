@@ -4,7 +4,7 @@ Created on Nov 9, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import ModelVersObject, XbrlConst, ValidateXbrl, ModelDocument
+from arelle import ModelVersObject, ValidateXbrl, XbrlConst
 from arelle.ModelValue import qname
 
 conceptAttributeEventAttributes = {

@@ -11,13 +11,11 @@ Mark V Systems conveys neither rights nor license for the Sphinx language.
 '''
 
 from arelle.ModelValue import QName
-from .SphinxParser import (astBinaryOperation, astSourceFile, astNamespaceDeclaration, astRuleBasePrecondition,
-                           astConstant, astNamespaceDeclaration, astStringLiteral,
-                           astHyperspaceExpression, astHyperspaceAxis,
+from .SphinxParser import (astBinaryOperation, astRuleBasePrecondition, astConstant, astHyperspaceExpression,
                            astFunctionDeclaration, astFunctionReference, astNode,
                            astPreconditionDeclaration, astPreconditionReference,
-                           astFormulaRule, astReportRule, astValidationRule, astWith,
-                           namedAxes
+                           astFormulaRule, astReportRule, astValidationRule,
+                           astWith
                            )
 
 def validate(logMessage, sphinxContext):

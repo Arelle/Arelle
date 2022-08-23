@@ -5,7 +5,7 @@ Created on Mar 7, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 import inspect, os
-from arelle import XmlUtil, XbrlConst, XPathParser, Locale, XPathContext
+from arelle import XPathContext, XPathParser, XbrlConst, XmlUtil
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import qname, QName

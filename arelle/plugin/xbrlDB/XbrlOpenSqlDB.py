@@ -46,18 +46,16 @@ from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelDtsObject import ModelConcept, ModelType, ModelResource, ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelXbrl import ModelXbrl
-from arelle.ModelDocument import ModelDocument
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, QName, dateTime, DATETIME
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeInstanceObject import DimValuePrototype
-from arelle.PythonUtil import flattenSequence
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlValidate import collapseWhitespacePattern, UNVALIDATED, VALID
 from arelle.XmlUtil import elementChildSequence, xmlstring, addQnameValue, addChild
 from arelle import XbrlConst, ValidateXbrlDimensions
-from arelle.UrlUtil import authority, ensureUrl
+from arelle.UrlUtil import ensureUrl
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
 from .tableFacts import tableFacts
 from .entityInformation import loadEntityInformation

@@ -235,7 +235,6 @@ class ViewTree:
                 if menulabel is None: menulabel = _("Name Style")
                 nameStyleMenu = Menu(self.viewFrame, tearoff=0)
                 self.menu.add_cascade(label=menulabel, menu=nameStyleMenu, underline=0)
-                from arelle.ModelRelationshipSet import labelroles
                 nameStyleMenu.add_command(label=_("Prefixed"), underline=0, command=lambda a=True: self.setNamestyle(a))
                 nameStyleMenu.add_command(label=_("No prefix"), underline=0, command=lambda a=False: self.setNamestyle(a))
             except Exception as ex: # tkinter menu problem maybe

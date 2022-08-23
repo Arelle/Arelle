@@ -4,7 +4,7 @@ Created on Jan 9, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import (XPathContext, XbrlConst, XmlUtil, XbrlUtil, XmlValidate)
+from arelle import (XPathContext, XbrlConst, XmlUtil, XbrlUtil)
 from arelle.FunctionXs import xsString
 from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import (aspectModels, Aspect, aspectModelAspect,
@@ -13,7 +13,6 @@ from arelle.ModelFormulaObject import (aspectModels, Aspect, aspectModelAspect,
                                  ModelFactVariable, ModelGeneralVariable, ModelVariable,
                                  ModelParameter, ModelFilter, ModelAspectCover, ModelBooleanFilter, ModelTypedDimension)
 from arelle.PrototypeInstanceObject import DimValuePrototype
-from arelle.PythonUtil import OrderedSet
 from arelle.ModelValue import (QName)
 import datetime, time, logging, re
 from decimal import Decimal
@@ -129,7 +128,6 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
             vb.close()  # dereference
         xpCtx.varBindings.clear() # dereference
         uncoveredAspectFacts.clear()    # dereference
-        pass
 
 def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFacts):
     if varIndex == len(varSet.orderedVariableRelationships):
@@ -1285,7 +1283,6 @@ class VariableBinding:
 
     def close(self):
         self.__dict__.clear() # dereference
-        pass
 
     @property
     def resourceElementName(self):

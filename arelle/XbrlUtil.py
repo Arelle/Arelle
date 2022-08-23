@@ -4,9 +4,8 @@ Created on Nov 26, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom.minidom, math
-from arelle import XbrlConst, XmlUtil
-from arelle.ModelValue import qname, QName, DateTime
+import math
+from arelle.ModelValue import DateTime, QName
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.XmlValidate import UNKNOWN, VALID, VALID_ID, validate as xmlValidate
 

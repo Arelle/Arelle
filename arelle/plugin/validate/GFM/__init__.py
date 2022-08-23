@@ -5,8 +5,6 @@ Created on Dec 12, 2013
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
 import os
-from arelle import ModelDocument, ModelValue, XmlUtil
-from arelle.ModelValue import qname
 from arelle.plugin.validate.EFM.Document import checkDTSdocument
 from arelle.plugin.validate.EFM.Filing import validateFiling
 

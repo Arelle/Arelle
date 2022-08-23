@@ -4,13 +4,9 @@ Created on Apr 10, 2013
 @author: Mark V Systems Limited
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
-import time
-from arelle import ModelXbrl, XbrlConst, XmlValidate
+from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelAttribute, ModelConcept, ModelType
-from arelle.ModelValue import qname
-from arelle.Locale import format_string
-from lxml import etree
 
 XMLSchemaURI = "http://www.w3.org/2001/XMLSchema.xsd"
 

@@ -53,16 +53,14 @@ from collections import defaultdict
 from arelle.HashUtil import Md5Sum
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelInstanceObject import ModelFact
-from arelle import Locale, ValidateXbrlDimensions
+from arelle import ValidateXbrlDimensions
 from arelle.ModelValue import qname, QName, dateTime, DATE, dateunionDate, DateTime
 from arelle.PrototypeInstanceObject import DimValuePrototype
-from arelle.ValidateXbrlCalcs import roundValue
-from arelle.XmlUtil import xmlstring, datetimeValue, DATETIME_MAXYEAR, dateunionValue, addChild, addQnameValue, addProcessingInstruction
+from arelle.XmlUtil import DATETIME_MAXYEAR, addChild, addProcessingInstruction, addQnameValue, datetimeValue
 from arelle import XbrlConst
-from arelle.XmlValidate import UNKNOWN, NONE as xmlValidateNONE, INVALID, VALID
+from arelle.XmlValidate import NONE as xmlValidateNONE, UNKNOWN, VALID
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
 from decimal import Decimal, InvalidOperation
-from _ctypes import _memset_addr
 
 qnFindFilingIndicators = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:fIndicators")
 qnFindFilingIndicator = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:filingIndicator")
@@ -489,7 +487,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     _dim, _sig, _hierTerm, _hier = _dimSigMatch.groups()
                     _dimVals[_dim] = (_sig, _hier)
             self.signaturesForFilingIndicators[_met[4:-1]].append(_dimVals)
-        pass
 
     def dFactValue(self, dFact):
         for v in dFact[4:7]:

@@ -4,10 +4,7 @@ Created on Aug 8, 2013
 @author: Mark V Systems Limited
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import ModelObject, ModelDtsObject, XbrlConst, XmlUtil, ViewFile
-from arelle.ModelDtsObject import ModelRelationship
-from arelle.ViewUtil import viewReferences
-import os
+from arelle import ViewFile
 
 def viewRoleTypes(modelXbrl, outfile, header, isArcrole=False, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing arcrole types") if isArcrole else _("viewing role types"))

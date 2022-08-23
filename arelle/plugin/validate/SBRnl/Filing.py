@@ -6,11 +6,10 @@ Created on Oct 05, 2012
 '''
 import re
 from collections import defaultdict
-from arelle import (ModelDocument, ModelValue,
-                ModelRelationshipSet, XmlUtil, XbrlConst)
+from arelle import (ModelDocument, ModelRelationshipSet,
+                XmlUtil, XbrlConst)
 from arelle.ModelDtsObject import ModelConcept, ModelResource
 from arelle.ModelObject import ModelObject
-from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS

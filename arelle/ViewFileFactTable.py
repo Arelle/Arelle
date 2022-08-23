@@ -6,7 +6,7 @@ Created on Jan 24, 2011
 '''
 from arelle import ViewFile, ModelDtsObject, XbrlConst, XmlUtil
 from arelle.XbrlConst import conceptNameLabelRole, standardLabel, terseLabel, documentationLabel
-from arelle.ViewFile import CSV, XLSX, HTML, XML, JSON
+from arelle.ViewFile import CSV, HTML, XLSX
 import datetime, re
 from collections import defaultdict
 

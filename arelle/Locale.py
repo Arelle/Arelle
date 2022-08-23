@@ -504,7 +504,7 @@ def atoi(conv, str):
     return atof(conv, str, _INT)
 
 # decimal formatting
-from decimal import getcontext, Decimal
+from decimal import Decimal
 
 def format_picture(conv, value, picture):
     monetary = False

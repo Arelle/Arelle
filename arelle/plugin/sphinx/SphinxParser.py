@@ -12,7 +12,7 @@ Mark V Systems conveys neither rights nor license for the Sphinx language.
 
 import time, sys, os, os.path, re, zipfile
 from arelle.ModelValue import qname
-from arelle.ModelFormulaObject import Aspect, aspectStr
+from arelle.ModelFormulaObject import Aspect
 from arelle.ModelXbrl import DEFAULT, NONDEFAULT, DEFAULTorNONDEFAULT
 
 # Debugging flag can be set to either "debug_flag=True" or "debug_flag=False"
@@ -773,17 +773,15 @@ def compileSphinxGrammar( cntlr ):
     cntlr.showStatus(_("Compiling Sphinx Grammar"))
     if sys.version[0] >= '3':
         # python 3 requires modified parser to allow release of global objects when closing DTS
-        from arelle.pyparsing.pyparsing_py3 import (Word, Keyword, alphas,
-                     Literal, CaselessLiteral,
-                     Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
-                     ParserElement, quotedString, delimitedList, Suppress, Regex, FollowedBy,
-                     lineno)
+        from arelle.pyparsing.pyparsing_py3 import (Word, Keyword, Literal,
+                     CaselessLiteral, Combine,
+                     Optional, nums, Forward, ZeroOrMore, StringEnd, ParserElement, quotedString, delimitedList, Suppress,
+                     Regex, lineno)
     else:
-        from pyparsing import (Word, Keyword, alphas,
-                     Literal, CaselessLiteral,
-                     Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
-                     ParserElement, quotedString, delimitedList, Suppress, Regex, FollowedBy,
-                     lineno)
+        from pyparsing import (Word, Keyword, Literal,
+                     CaselessLiteral, Combine,
+                     Optional, nums, Forward, ZeroOrMore, StringEnd, ParserElement, quotedString, delimitedList, Suppress,
+                     Regex, lineno)
 
     ParserElement.enablePackrat()
 
@@ -1102,4 +1100,4 @@ def parse(cntlr, _logMessage, sphinxFiles):
 
     return sphinxProgs
 
-from .SphinxMethods import methodImplementation, aggreateFunctionImplementation
+from .SphinxMethods import methodImplementation

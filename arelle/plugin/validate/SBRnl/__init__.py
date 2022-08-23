@@ -5,13 +5,10 @@ Created on Dec 12, 2013
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
 import os
-from arelle import ModelDocument, ModelValue, XmlUtil
-from arelle.ModelValue import qname
 try:
-    import regex as re
+    pass
 except ImportError:
-    import re
-from collections import defaultdict
+    pass
 from .CustomLoader import checkForBOMs
 from .Document import checkDTSdocument
 from .Filing import validateFiling

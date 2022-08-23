@@ -32,8 +32,7 @@
     measure sets.
 """
 from collections import defaultdict
-from lxml import etree
-from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
+from arelle import Locale, ModelValue, XbrlConst, XbrlUtil, XmlUtil
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue, rangeValue
 from arelle.XmlValidate import UNVALIDATED, INVALID, VALID, validate as xmlValidate
 from arelle.PrototypeInstanceObject import DimValuePrototype
@@ -41,7 +40,7 @@ from math import isnan, isinf
 from arelle.ModelObject import ModelObject
 from decimal import Decimal, InvalidOperation
 from hashlib import md5
-from arelle.HashUtil import md5hash, Md5Sum
+from arelle.HashUtil import md5hash
 
 Aspect = None
 Type = None

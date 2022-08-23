@@ -4,7 +4,9 @@ Created on Dec 9, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, sys, time, logging, re
+import logging
+import re
+import time
 from collections import defaultdict
 from threading import Timer
 
@@ -16,7 +18,6 @@ from arelle.ModelFormulaObject import (ModelParameter, ModelInstance, ModelVaria
                                        Aspect, aspectModels, ModelAspectCover,
                                        ModelMessage)
 from arelle.ModelRenderingObject import (ModelRuleDefinitionNode, ModelRelationshipDefinitionNode, ModelFilterDefinitionNode)
-from arelle.ModelObject import (ModelObject)
 from arelle.ModelValue import (qname,QName)
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import normalizeSpace

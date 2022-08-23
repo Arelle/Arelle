@@ -9,16 +9,14 @@ for efficiency and to avoid dependency on an underlying DOM.
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
 
-import io, sys, os, time
+import io
+import os
+import time
 from decimal import Decimal, InvalidOperation
 from lxml import etree
-from collections import defaultdict
-from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateXbrlDimensions
+from arelle import ValidateXbrlDimensions, XbrlConst, XmlValidate
 from arelle.ModelDocument import ModelDocument, Type
-from arelle.ModelObject import ModelObject
 from arelle.ModelObjectFactory import parser
-from arelle.ModelValue import QName
-from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
 from arelle.Validate import Validate
 
 _streamingExtensionsValidate = False

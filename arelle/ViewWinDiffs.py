@@ -4,8 +4,6 @@ Created on Mar 21, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from collections import defaultdict
-import os
 from tkinter import *
 try:
     from tkinter.ttk import *

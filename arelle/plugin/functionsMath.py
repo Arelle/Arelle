@@ -5,7 +5,7 @@ Formula math functions plugin.
 '''
 import math
 from arelle.ModelValue import qname
-from arelle import XPathContext, XbrlUtil
+from arelle import XPathContext
 from arelle.FunctionUtil import numericArg
 
 INF = float('inf')

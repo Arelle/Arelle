@@ -24,24 +24,15 @@ from arelle.ViewUtilFormulae import rootFormulaObjects, formulaObjSortKey
 from arelle.ModelFormulaObject import (aspectStr, ModelValueAssertion, ModelExistenceAssertion, ModelConsistencyAssertion,
                                        ModelAssertionSet,
                                        ModelFactVariable, ModelGeneralVariable, ModelFormula, ModelParameter,
-                                       ModelFilter, ModelConceptName, ModelConceptPeriodType, ModelConceptBalance,
-                                       ModelConceptCustomAttribute, ModelConceptDataType, ModelConceptSubstitutionGroup,
-                                       ModelTestFilter, ModelGeneral, ModelGeneralMeasures, ModelInstantDuration,
-                                       ModelDateTimeFilter, ModelSingleMeasure, ModelExplicitDimension, ModelTypedDimension,
-                                       ModelEntitySpecificIdentifier, ModelEntityScheme, ModelEntityRegexpScheme,
-                                       ModelEntityRegexpIdentifier, ModelMatchFilter, ModelRelativeFilter,
-                                       ModelAncestorFilter, ModelParentFilter, ModelSiblingFilter, ModelNilFilter,
-                                       ModelAspectCover, ModelConceptRelation,
-                                       ModelCustomFunctionSignature, ModelCustomFunctionImplementation,
-                                       ModelPeriod,
-                                       ModelAndFilter, ModelOrFilter, ModelMessage, ModelAssertionSeverity)
-from arelle.XPathParser import (VariableRef, QNameDef, OperationDef, RangeDecl, Expr, ProgHeader,
-                                exceptionErrorIndication)
+                                       ModelFilter, ModelConceptName, ModelTestFilter, ModelSingleMeasure,
+                                       ModelExplicitDimension, ModelTypedDimension, ModelEntitySpecificIdentifier,
+                                       ModelEntityScheme, ModelAncestorFilter, ModelParentFilter, ModelAspectCover,
+                                       ModelConceptRelation, ModelCustomFunctionImplementation, ModelMessage)
+from arelle.XPathParser import (QNameDef, OperationDef, RangeDecl, Expr, ProgHeader)
 from arelle.XPathContext import (XPathException, VALUE_OPS, GENERALCOMPARISON_OPS, NODECOMPARISON_OPS,
-                                 COMBINING_OPS, LOGICAL_OPS, UNARY_OPS, FORSOMEEVERY_OPS, PATH_OPS,
-                                 SEQUENCE_TYPES, GREGORIAN_TYPES)
-from arelle import FileSource, PackageManager, XbrlConst, XmlUtil, XPathParser, ValidateXbrlDimensions, ValidateFormula
-import os, datetime, logging
+                                 COMBINING_OPS, LOGICAL_OPS, UNARY_OPS, FORSOMEEVERY_OPS, PATH_OPS)
+from arelle import FileSource, PackageManager, XbrlConst
+import logging
 
 FNs_BLOCKED = ("doc", "doc-available", "collection", "element-with-id")
 

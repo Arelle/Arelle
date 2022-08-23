@@ -15,8 +15,7 @@ import re
 from arelle import (Cntlr, FileSource, ModelDocument, RenderingEvaluator, XmlUtil, XbrlConst, Version,
                     ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts,
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
-                    ViewFileRoleTypes,
-                    ModelManager)
+                    ViewFileRoleTypes)
 from arelle.ModelValue import qname
 from arelle.Locale import format_string, setDisableRTL
 from arelle.ModelFormulaObject import FormulaOptions
@@ -53,7 +52,6 @@ def parseAndRun(args):
     """interface used by Main program and py.test (arelle_test.py)
     """
     try:
-        from arelle import webserver
         hasWebServer = True
     except ImportError:
         hasWebServer = False

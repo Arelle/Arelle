@@ -6,15 +6,15 @@ Created on Dec 12, 2013
 
 
 '''
-import os, io
-from lxml.etree import HTMLParser, parse, DTD, _ElementTree, _Comment, _ProcessingInstruction
+import os
+from lxml.etree import HTMLParser, _Comment, _ElementTree, _ProcessingInstruction, parse
 try:
-    from regex import compile as re_compile, match as re_match, DOTALL as re_DOTALL
+    from regex import match as re_match
 except ImportError:
-    from re import compile as re_compile, match as re_match, DOTALL as re_DOTALL
+    from re import match as re_match
 from arelle import ValidateFilingText
 from arelle.ModelDocument import Type, create as createModelDocument
-from arelle.UrlUtil import isHttpUrl, scheme
+from arelle.UrlUtil import scheme
 from .Const import edgarAdditionalTags, disallowedElements, disallowedElementAttrs, recognizedElements
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):

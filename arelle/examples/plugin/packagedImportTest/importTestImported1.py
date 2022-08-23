@@ -3,9 +3,6 @@ pluginPackages test case
 
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
-from . import importTestImported11
-from .subdir import importTestImported111
-from .subdir.subsubdir import importTestImported1111
 
 def foo():
 	print ("imported packaged plug-in relative imported 1")

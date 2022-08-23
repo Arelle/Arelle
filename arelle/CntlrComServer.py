@@ -12,10 +12,10 @@ Future source-code plugins may possibly use this mechanism.)
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import PythonUtil # define 2.1 or 3.2 string types
-import gettext, time, datetime, os, shlex, sys, traceback
-from optparse import OptionParser
+import datetime
+import gettext
+import sys
 from arelle import Cntlr
-import logging
 import datetime
 
 debugging = 0
@@ -46,7 +46,6 @@ class CntlrComServer(Cntlr.Cntlr):
         print (sys.path)
         self.startedAt = datetime.datetime.now().microsecond
         self.last = "({0})".format(self.startedAt)
-        pass
 
 
     def Load(self, url):

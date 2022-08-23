@@ -5,7 +5,8 @@ input and optionally save an (extension) DTS.
 
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
-import os, io, time, re
+import os
+import re
 from collections import defaultdict
 from arelle import XbrlConst
 
@@ -94,7 +95,7 @@ dtsWsHeaders = (
 
 def saveLoadableExcel(dts, excelFile):
     from arelle import ModelDocument, XmlUtil
-    from openpyxl import Workbook, cell
+    from openpyxl import Workbook
     from openpyxl.styles import Font, PatternFill, Border, Alignment, Color, fills, Side
     from openpyxl.worksheet.dimensions import ColumnDimension
     from openpyxl.utils import get_column_letter

@@ -7,18 +7,14 @@ Created on Oct 05, 2012
 Deprecated Nov 15, 2015.  Use plugin/validate/SBRnl
 '''
 
-from arelle import PluginManager
 from arelle import ModelDocument, XbrlConst, XmlUtil
 from arelle.ModelDtsObject import ModelConcept, ModelType, ModelLocator, ModelResource
-from arelle.ModelFormulaObject import Aspect
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import qname
 try:
     import regex as re
 except ImportError:
     import re
 from lxml import etree
-from collections import defaultdict
 
 def setup(val, modelXbrl, *args, **kwargs):
     cntlr = modelXbrl.modelManager.cntlr

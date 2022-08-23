@@ -12,9 +12,8 @@ Mark V Systems conveys neither rights nor license for the Sphinx language.
 
 import operator
 from .SphinxContext import HyperspaceBindings, HyperspaceBinding
-from .SphinxParser import (astFunctionReference, astHyperspaceExpression, astNode,
-                           astFormulaRule, astReportRule,
-                           astVariableReference)
+from .SphinxParser import (astFunctionReference, astNode, astFormulaRule,
+                           astReportRule, astVariableReference)
 from .SphinxMethods import (methodImplementation, functionImplementation,
                             aggreateFunctionImplementation, aggreateFunctionAcceptsFactArgs,
                             moduleInit as SphinxMethodsModuleInit)

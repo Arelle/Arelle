@@ -16,8 +16,7 @@ from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import qname
-from arelle.XbrlConst import ixbrlAll, xhtml
+from arelle.XbrlConst import xhtml
 from .Const import cpicModules # , mandatoryElements
 
 cipcBlockedInlineHtmlElements = {

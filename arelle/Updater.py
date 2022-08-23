@@ -4,7 +4,9 @@ Created on May 30, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import tkinter.messagebox, webbrowser, os, threading
+import os
+import threading
+import tkinter.messagebox
 
 def checkForUpdates(cntlr):
     if not cntlr.webCache.workOffline:
@@ -29,7 +31,7 @@ def backgroundCheckForUpdates(cntlr):
 def checkUpdateUrl(cntlr, attachmentFileName):
     # get latest header file
     try:
-        from arelle import WebCache, Version
+        from arelle import Version
         filename = os.path.basename(attachmentFileName)
         if filename and "-20" in filename:
             i = filename.index("-20") + 1

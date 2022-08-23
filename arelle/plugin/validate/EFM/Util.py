@@ -9,7 +9,7 @@ from collections import defaultdict, OrderedDict
 from arelle.FileSource import openFileStream, openFileSource, saveFile # only needed if building a cached file
 from arelle.ModelValue import qname
 from arelle import XbrlConst
-from arelle.PythonUtil import attrdict, flattenSequence, pyObjectSize
+from arelle.PythonUtil import attrdict, flattenSequence
 from arelle.ValidateXbrlCalcs import inferredDecimals, floatINF
 from arelle.XmlValidate import VALID
 from .Consts import standardNamespacesPattern, latestTaxonomyDocs, latestEntireUgt

@@ -6,10 +6,16 @@ input and optionally save an (extension) DTS.
 
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
-import os, io, sys, time, re, traceback, json, posixpath
+import json
+import os
+import posixpath
+import re
+import sys
+import time
+import traceback
 from fnmatch import fnmatch
 from collections import defaultdict, OrderedDict
-from arelle import PythonUtil, XbrlConst, ModelDocument, UrlUtil
+from arelle import PythonUtil, UrlUtil, XbrlConst
 from arelle.PythonUtil import OrderedDefaultDict, OrderedSet
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelValue import qname, QName
@@ -46,7 +52,7 @@ facetSortOrder = {
 
 def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
     from openpyxl import load_workbook
-    from arelle import ModelDocument, ModelXbrl, XmlUtil
+    from arelle import ModelDocument, XmlUtil
     from arelle.ModelDocument import ModelDocumentReference
     from arelle.ModelValue import qname
 

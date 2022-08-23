@@ -11,7 +11,7 @@ def unpackEIS(cntlr, eisFile, unpackToDir):
     if not filesource.isArchive:
         cntlr.addToLog("[info:unpackEIS] Not recognized as an EIS file: " + eisFile)
         return
-    import os, io
+    import os
 
     unpackedFiles = []
 

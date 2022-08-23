@@ -6,7 +6,7 @@ Created on Nov 15, 2010
 '''
 from collections import defaultdict
 import os, datetime, re
-from tkinter import Menu, constants, BooleanVar
+from tkinter import BooleanVar, Menu
 from arelle import ViewWinTree, ModelDtsObject, ModelInstanceObject, XbrlConst, XmlUtil
 from arelle.XbrlConst import conceptNameLabelRole
 

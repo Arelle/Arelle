@@ -1,12 +1,13 @@
 # changed from reporting locs to reporting relationships: HF 2020-06-23
 
-from arelle import PluginManager
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelValue import qname
-from arelle.XmlValidate import UNVALIDATED, VALID
 from arelle import Locale, ModelXbrl, XbrlConst
 from arelle.FileSource import openFileSource, openFileStream, saveFile
-import os, io, re, json, time
+import json
+import os
+import re
+import time
 from collections import defaultdict
 
 # ((year, ugtNamespace, ugtDocLB, ugtEntryPoint) ...)

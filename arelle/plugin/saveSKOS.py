@@ -7,7 +7,7 @@ that will save the concepts a DTS into an RDF file.
 
 def generateSkos(dts, skosFile):
     try:
-        import os, io
+        import io
         from arelle import XmlUtil, XbrlConst
         from arelle.ViewUtil import viewReferences, referenceURI
         skosNs = "http://www.w3.org/2004/02/skos/core#"

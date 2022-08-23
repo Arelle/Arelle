@@ -6,7 +6,6 @@ Refactored on Jun 11, 2011 to ModelDtsObject, ModelInstanceObject, ModelTestcase
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from lxml import etree
-from collections import namedtuple
 from arelle import Locale
 XmlUtil = None
 VALID_NO_CONTENT = None

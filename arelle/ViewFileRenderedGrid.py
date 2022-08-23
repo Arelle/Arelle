@@ -10,7 +10,7 @@ from lxml import etree
 from arelle.RenderingResolver import resolveAxesStructure, RENDER_UNITS_PER_CHAR
 from arelle.ViewFile import HTML, XML
 from arelle.ModelObject import ModelObject
-from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
+from arelle.ModelFormulaObject import Aspect, aspectModelAspect, aspectModels, aspectStr
 from arelle.FormulaEvaluator import aspectMatches
 from arelle.FunctionXs import xsString
 from arelle.ModelInstanceObject import ModelDimensionValue
@@ -25,7 +25,7 @@ from arelle.XbrlConst import (tableModelMMDD as tableModelNamespace,
                               tableModelMMDDQName as tableModelQName)
 '''
 from arelle import XbrlConst
-from arelle.XmlUtil import innerTextList, child, elementFragmentIdentifier, addQnameValue
+from arelle.XmlUtil import addQnameValue, elementFragmentIdentifier, innerTextList
 from collections import defaultdict
 
 emptySet = set()

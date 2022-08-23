@@ -40,7 +40,13 @@ rdflib pass
 
 '''
 
-import os, io, time, json, socket, logging, zlib, datetime
+import datetime
+import io
+import json
+import logging
+import os
+import socket
+import time
 from arelle.ModelDtsObject import ModelConcept, ModelResource, ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelDocument import Type
@@ -298,7 +304,6 @@ class XbrlSemanticRdfDatabaseConnection():
 
     def loadGraphRootVertices(self):
         self.showStatus("Load/Create graph root vertices")
-        pass
 
     def getDBsize(self):
         self.showStatus("Get database size")

@@ -99,10 +99,8 @@ For GUI mode there are two ways to set rendering output, (1) by formula paramete
 import os, io, json, zipfile, logging
 jsonIndent = 1  # None for most compact, 0 for left aligned
 from decimal import Decimal
-from lxml.etree import XML, XMLSyntaxError
-from arelle import ModelDocument, ModelValue, XmlUtil, FileSource
+from arelle import ModelValue, XmlUtil
 from arelle.ModelDocument import Type
-from arelle.ModelValue import qname
 from arelle.PluginManager import pluginClassMethods  # , pluginMethodsForClasses, modulePluginInfos
 from arelle.PythonUtil import flattenSequence
 from arelle.UrlUtil import authority, relativeUri

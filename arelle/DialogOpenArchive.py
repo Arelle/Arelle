@@ -9,7 +9,7 @@ try:
     from tkinter.ttk import Frame, Button, Treeview, Scrollbar
 except ImportError:
     from ttk import Frame, Button, Treeview, Scrollbar
-import os, sys
+import os
 from collections import defaultdict
 try:
     import regex as re
@@ -20,7 +20,6 @@ from arelle.CntlrWinTooltip import ToolTip
 from arelle.UrlUtil import isHttpUrl
 from arelle.PackageManager import parsePackage
 from arelle.PythonUtil import attrdict
-from arelle import PluginManager
 
 '''
 caller checks accepted, if True, caller retrieves url

@@ -42,12 +42,12 @@ For REST API operation:
     cmd line: curl 'http://localhost:8080/rest/xbrl/validation?plugins=transforms/tester&testTransform=ixt%20v3%20datedaymonthen%2029th%20February'
 
 '''
-import os, re, logging
-from optparse import SUPPRESS_HELP
+import logging
+import re
 from arelle.FunctionIxt import ixtNamespaces, ixtNamespaceFunctions
 from arelle.ModelFormulaObject import Trace
 from arelle.XmlUtil import setXmlns
-from arelle import ModelDocument, ModelXbrl, ValidateXbrl, XbrlConst, XPathParser, XPathContext
+from arelle import ModelDocument, ModelXbrl, ValidateXbrl, XPathContext, XPathParser
 
 class TransformTester:
     def __init__(self, cntlr, isCmdLine=False):
@@ -144,7 +144,7 @@ def transformationTesterMenuExtender(cntlr, menu, *args, **kwargs):
         from tkinter.ttk import Frame, Button, Entry
     except ImportError:
         from ttk import Frame, Button
-    from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox
+    from arelle.UiUtil import gridCombobox, label
     from arelle.CntlrWinTooltip import ToolTip
     class DialogTransformTester(Toplevel):
         def __init__(self, tester):

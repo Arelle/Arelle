@@ -41,7 +41,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import attrdict
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateFilingText import CDATApattern
-from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence, xmlnsprefix, setXmlns
+from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, setXmlns, xmlnsprefix
 import os, zipfile, re
 from optparse import SUPPRESS_HELP
 from lxml.etree import XML, XMLSyntaxError

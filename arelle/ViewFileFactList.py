@@ -5,7 +5,6 @@ Created on Jan 10, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import ViewFile, XbrlConst, XmlUtil
-from collections import defaultdict
 
 def viewFacts(modelXbrl, outfile, lang=None, labelrole=None, cols=None):
     modelXbrl.modelManager.showStatus(_("viewing facts"))

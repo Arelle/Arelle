@@ -1,5 +1,3 @@
-from arelle import PluginManager
-from arelle.ModelValue import qname
 from arelle import XbrlConst
 try:
     import regex as re

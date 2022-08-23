@@ -24,7 +24,6 @@ modified to not have an instance html header on the table body in xsl:template m
 '''
 import os
 from lxml import etree
-from lxml.etree import tostring as treeToString
 
 def edgarRendererFilingStartSupplement(cntlr, options, entrypointFiles, filing, *args, **kwargs):
     edgarRenderer = filing.edgarRenderer

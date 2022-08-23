@@ -16,7 +16,7 @@ Sphinx copyright applies to the Sphinx language, not to this software.
 Mark V Systems conveys neither rights nor license for the Sphinx language.
 '''
 
-import time, os, io, sys
+import os
 from arelle.ModelValue import qname
 from arelle import XmlUtil
 
@@ -49,7 +49,8 @@ def sphinxFilesOpenMenuEntender(cntlr, menu, *args, **kwargs):
 
     def sphinxFileMenuCommand():
         from arelle import ModelDocument
-        import os, sys, traceback
+        import sys
+        import traceback
         if not cntlr.modelManager.modelXbrl or cntlr.modelManager.modelXbrl.modelDocument.type not in (
              ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE, ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
             import tkinter.messagebox
@@ -88,7 +89,8 @@ def sphinxFilesOpenMenuEntender(cntlr, menu, *args, **kwargs):
 def sphinxToLBMenuEntender(cntlr, menu, *args, **kwargs):
 
     def sphinxToLBMenuCommand():
-        import os, sys, traceback
+        import sys
+        import traceback
         from .FormulaGenerator import generateFormulaLB
 
         sphinxFiles = sphinxFilesDialog(cntlr)
@@ -201,7 +203,7 @@ def sphinxTestcaseVariationExpectedSeverity(modelTestcaseVariation, *args, **kwa
     return None # no issue or not a sphinx test case variation
 
 def sphinxDialogRssWatchFileChoices(dialog, frame, row, options, cntlr, openFileImage, openDatabaseImage, *args, **kwargs):
-    from tkinter import PhotoImage, N, S, E, W
+    from tkinter import W
     try:
         from tkinter.ttk import Button
     except ImportError:

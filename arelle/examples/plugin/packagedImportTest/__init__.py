@@ -3,9 +3,7 @@ pluginPackages test case
 
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
-from os import path
 from arelle.PluginManager import pluginClassMethods
-from . import importTestImported1
 from .importTestImported1 import foo
 
 def parentMenuEntender(cntlr, menu):

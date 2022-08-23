@@ -12,7 +12,7 @@ Filer Guidelines:
 '''
 import os, re
 from arelle import ModelDocument, ValidateFilingText, XmlUtil
-from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
+from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
 from arelle.XbrlConst import xbrli, xhtml

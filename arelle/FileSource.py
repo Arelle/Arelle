@@ -4,12 +4,21 @@ Created on Oct 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import zipfile, tarfile, os, io, errno, base64, gzip, zlib, re, struct, random, time
+import base64
+import errno
+import gzip
+import io
+import os
+import random
+import re
+import struct
+import tarfile
+import zipfile
+import zlib
 from lxml import etree
 from arelle import XmlUtil
 from arelle import PackageManager
 from arelle.UrlUtil import isHttpUrl
-from operator import indexOf
 pluginClassMethods = None # dynamic import
 
 archivePathSeparators = (".zip" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
@@ -144,7 +153,6 @@ class FileSource:
                 except EnvironmentError as err:
                     if self.cntlr:
                         self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
-                    pass
 
     def logError(self, err):
         if self.cntlr:
@@ -165,14 +173,12 @@ class FileSource:
                     self.isOpen = True
                 except EnvironmentError as err:
                     self.logError(err)
-                    pass
             elif self.isTarGz:
                 try:
                     self.fs = tarfile.open(self.basefile, "r:gz")
                     self.isOpen = True
                 except EnvironmentError as err:
                     self.logError(err)
-                    pass
             elif self.isEis:
                 # check first line of file
                 buf = b''
@@ -193,7 +199,6 @@ class FileSource:
                     file.close()
                 except EnvironmentError as err:
                     self.logError(err)
-                    pass
                 #uncomment to save for debugging
                 #with open("c:/temp/test.xml", "wb") as f:
                 #    f.write(buf)

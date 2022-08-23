@@ -12,7 +12,6 @@ def package(dts):
     from zipfile import ZipFile, ZIP_STORED, ZIP_DEFLATED
     from arelle.UrlUtil import isHttpUrl
     try:
-        import zlib
         compression = ZIP_DEFLATED
     except ImportError:
         compression = ZIP_STORED

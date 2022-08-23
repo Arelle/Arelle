@@ -7,7 +7,7 @@ Created on Jan 14, 2020
 Provides infrastructure for local viewers of GUI applications such as inline XBRL viewers
 
 '''
-from arelle.webserver.bottle import Bottle, request, static_file, HTTPResponse
+from arelle.webserver.bottle import Bottle, HTTPResponse, request
 import threading, time, logging, sys, traceback
 
 class LocalViewer:

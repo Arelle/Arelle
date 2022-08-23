@@ -28,14 +28,13 @@ To specify entity identifier scheme:
   --sample-entity-scheme http://foo.com/scheme
 '''
 
-import os, io, re
-from arelle.ModelDtsObject import ModelConcept, ModelRelationship
-from arelle import Locale, XbrlConst, ModelXbrl, XmlUtil
+import os
+import re
+from arelle import Locale, XbrlConst, XmlUtil
 from arelle.ModelValue import qname
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ValidateXbrlDimensions import loadDimensionDefaults
-from arelle.XbrlConst import conceptLabel, conceptReference, qnXsiNil
-from lxml import etree
+from arelle.XbrlConst import qnXsiNil
 try:
     import exrex
 except ImportError:

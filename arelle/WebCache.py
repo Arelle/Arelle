@@ -13,7 +13,6 @@ if sys.version[0] >= '3':
     from urllib.parse import quote, unquote
     from urllib.error import URLError, HTTPError, ContentTooShortError
     from http.client import IncompleteRead
-    from urllib import request
     from urllib import request as proxyhandlers
 else: # python 2.7.2
     from urllib import quote, unquote

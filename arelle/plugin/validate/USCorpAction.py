@@ -1,5 +1,4 @@
 from arelle.ModelValue import qname
-from arelle.XmlValidate import VALID
 import time
 from collections import defaultdict
 

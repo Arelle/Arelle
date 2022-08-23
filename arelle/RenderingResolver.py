@@ -4,7 +4,8 @@ Created on Sep 13, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import os, io, sys, json
+import os
+import sys
 from collections import defaultdict
 from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
@@ -16,8 +17,7 @@ from arelle.ModelRenderingObject import (ModelEuTable, ModelTable, ModelBreakdow
                                          ModelRelationshipDefinitionNode, ModelSelectionDefinitionNode, ModelFilterDefinitionNode,
                                          ModelConceptRelationshipDefinitionNode, ModelDimensionRelationshipDefinitionNode,
                                          ModelCompositionDefinitionNode, ModelTupleDefinitionNode, StructuralNode,
-                                         ROLLUP_NOT_ANALYZED, CHILDREN_BUT_NO_ROLLUP, CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST,
-                                         OPEN_ASPECT_ENTRY_SURROGATE)
+                                         ROLLUP_NOT_ANALYZED, CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST, OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.XPathContext import XPathException
 

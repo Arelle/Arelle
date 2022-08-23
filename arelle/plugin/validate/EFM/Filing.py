@@ -12,13 +12,18 @@ to domestic copyright protection. 17 U.S.C. 105.
 Implementation of DQC rules invokes https://xbrl.us/dqc-license and https://xbrl.us/dqc-patent
 
 '''
-import re, datetime, decimal, json, unicodedata, holidays, fnmatch
+import datetime
+import fnmatch
+import holidays
+import json
+import re
+import unicodedata
 from math import isnan, pow
 from collections import defaultdict, OrderedDict
 from pytz import timezone
 from arelle import (ModelDocument, ModelValue, ModelRelationshipSet,
                     XmlUtil, XbrlConst, ValidateFilingText)
-from arelle.ModelValue import qname, QName, dateUnionEqual
+from arelle.ModelValue import dateUnionEqual, qname
 from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
@@ -31,19 +36,13 @@ from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue, roundValue, ONE
 from arelle.XmlValidate import VALID
 from .DTS import checkFilingDTS
-from .Consts import submissionTypesAllowingWellKnownSeasonedIssuer, \
-                    submissionTypesNotRequiringPeriodEndDate, \
-                    submissionTypesAllowingEntityInvCompanyType, docTypesRequiringEntityFilerCategory, \
-                    submissionTypesAllowingAcceleratedFilerStatus, submissionTypesAllowingShellCompanyFlag, \
-                    submissionTypesAllowingEdgarSmallBusinessFlag, submissionTypesAllowingEmergingGrowthCompanyFlag, \
-                    submissionTypesAllowingExTransitionPeriodFlag, submissionTypesAllowingSeriesClasses, \
-                    submissionTypesExemptFromRoleOrder, docTypesExemptFromRoleOrder, \
-                    submissionTypesAllowingPeriodOfReport, docTypesRequiringPeriodOfReport, \
-                    docTypesRequiringEntityWellKnownSeasonedIssuer, invCompanyTypesAllowingSeriesClasses, \
-                    submissionTypesAllowingVoluntaryFilerFlag, docTypesNotAllowingInlineXBRL, \
-                    docTypesRequiringRrSchema, docTypesNotAllowingIfrs, \
-                    untransformableTypes, rrUntransformableEltsPattern, \
-                    docTypes20F, hideableNamespacesPattern, linkbaseValidations
+from .Consts import submissionTypesAllowingSeriesClasses, \
+                    submissionTypesExemptFromRoleOrder, \
+                    docTypesExemptFromRoleOrder, invCompanyTypesAllowingSeriesClasses, \
+                    docTypesNotAllowingInlineXBRL, docTypesRequiringRrSchema, \
+                    docTypesNotAllowingIfrs, untransformableTypes, \
+                    rrUntransformableEltsPattern, hideableNamespacesPattern, \
+                    linkbaseValidations
 
 from .Dimensions import checkFilingDimensions
 from .PreCalAlignment import checkCalcsTreeWalk

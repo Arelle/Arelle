@@ -4,11 +4,9 @@ Created on Nov 27, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import ModelObject, XbrlConst, ViewFile
-from arelle.ModelDtsObject import ModelRelationship
+from arelle import ViewFile, XbrlConst
 from arelle.ModelFormulaObject import ModelParameter, ModelVariable, ModelVariableSetAssertion, ModelConsistencyAssertion
 from arelle.ViewUtilFormulae import rootFormulaObjects, formulaObjSortKey
-import os
 
 def viewFormulae(modelXbrl, outfile, header, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing formulae"))

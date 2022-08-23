@@ -206,7 +206,6 @@ def saveHtmlEbaTablesMenuEntender(cntlr, menu, *args, **kwargs):
 
 def saveHtmlEbaTablesMenuCommand(cntlr):
     # save Infoset menu item has been invoked
-    from arelle.ModelDocument import Type
     if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
         cntlr.addToLog("No DTS loaded.")
         return

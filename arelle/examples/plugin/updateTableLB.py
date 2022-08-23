@@ -6,9 +6,8 @@ that updates a table linkbase from Eurofiling 2010 syntax to XII 2011 PWD syntax
 '''
 
 def generateUpdatedTableLB(dts, updatedTableLinkbaseFile):
-    import os, io
+    import io
     from arelle import XmlUtil, XbrlConst
-    from arelle.ViewUtil import viewReferences, referenceURI
     from arelle.ModelRenderingObject import ModelEuAxisCoord
 
     if dts.fileSource.isArchive:

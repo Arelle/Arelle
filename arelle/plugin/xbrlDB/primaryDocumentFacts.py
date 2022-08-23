@@ -6,7 +6,7 @@ Created on Feb 21, 2014
 
 Represents modelFacts in an (SEC) filing primary document
 '''
-import os, re
+import re
 from lxml import html, etree
 from arelle import ModelDocument
 from arelle.ModelValue import qname

@@ -41,7 +41,6 @@ from arelle.ModelDocument import Type
 from arelle.ModelDtsObject import ModelConcept, ModelType, ModelResource, ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelXbrl import ModelXbrl
-from arelle.ModelDocument import ModelDocument
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
 from arelle.ValidateXbrlCalcs import roundValue

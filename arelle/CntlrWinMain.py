@@ -7,14 +7,21 @@ This module is Arelle's controller in windowing interactive UI mode
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types
-import os, sys, subprocess, pickle, time, locale, re, fnmatch, platform
+import fnmatch
+import os
+import pickle
+import platform
+import re
+import subprocess
+import sys
+import time
 
 if sys.platform == 'win32' and getattr(sys, 'frozen', False):
     # need the .dll directory in path to be able to access Tk and Tcl DLLs efore importinng Tk, etc.
     os.environ['PATH'] = os.path.dirname(sys.executable) + ";" + os.environ['PATH']
 
-from tkinter import (Tk, Tcl, TclError, Toplevel, Menu, PhotoImage, StringVar, BooleanVar, N, S, E, W, EW,
-                     HORIZONTAL, VERTICAL, END, font as tkFont)
+from tkinter import (Tk, Tcl, TclError, Menu, PhotoImage, StringVar, BooleanVar, N, S, E, W, EW, HORIZONTAL,
+                     VERTICAL, END, font as tkFont)
 try:
     from tkinter.ttk import Frame, Button, Label, Combobox, Separator, PanedWindow, Notebook
 except ImportError:  # 3.0 versions of tkinter
@@ -27,7 +34,6 @@ import tkinter.tix
 import tkinter.filedialog
 import tkinter.messagebox, traceback
 import tkinter.simpledialog
-from arelle.FileSource import saveFile as writeToFile
 from arelle.Locale import format_string
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import XbrlConst
@@ -41,16 +47,15 @@ from arelle import Cntlr
 from arelle import (DialogURL, DialogLanguage,
                     DialogPluginManager, DialogPackageManager,
                     ModelDocument,
-                    ModelManager,
                     PackageManager,
                     RenderingEvaluator,
                     TableStructure,
                     ViewWinDTS,
-                    ViewWinProperties, ViewWinConcepts, ViewWinRelationshipSet, ViewWinFormulae,
-                    ViewWinFactList, ViewFileFactList, ViewWinFactTable, ViewWinRenderedGrid, ViewWinXml,
-                    ViewWinRoleTypes, ViewFileRoleTypes, ViewFileConcepts,
-                    ViewWinTests, ViewWinTree, ViewWinVersReport, ViewWinRssFeed,
-                    ViewFileTests,
+                    ViewWinProperties,
+                    ViewWinConcepts, ViewWinRelationshipSet, ViewWinFormulae, ViewWinFactList,
+                    ViewFileFactList, ViewWinFactTable, ViewWinRenderedGrid, ViewWinXml, ViewWinRoleTypes,
+                    ViewFileRoleTypes, ViewFileConcepts, ViewWinTests,
+                    ViewWinTree, ViewWinVersReport, ViewWinRssFeed, ViewFileTests,
                     ViewFileRenderedGrid,
                     ViewFileRelationshipSet,
                     Updater

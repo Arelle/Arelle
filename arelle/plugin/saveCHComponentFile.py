@@ -5,14 +5,13 @@ that will save the presentation tree of concepts in Charlie Hoffman's Component 
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
 
-from arelle.ModelDtsObject import ModelConcept, ModelRelationship
 from arelle import XbrlConst
 from lxml import etree
 
 def generateCHComponent(dts, componentFile):
     if dts.fileSource.isArchive:
         return
-    import os, io
+    import io
     from arelle import XmlUtil, XbrlConst
     file = io.StringIO('''
 <nsmap>

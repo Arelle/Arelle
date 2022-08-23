@@ -7,9 +7,8 @@ that loads a Correspondence tar.gz file.
 (c) Copyright 2014 Mark V Systems Limited, All rights reserved.
 '''
 import datetime, re, os, time
-from arelle import FileSource, ModelDocument
+from arelle import ModelDocument
 from arelle.ModelRssObject import ModelRssObject
-from arelle.XmlValidate import UNVALIDATED, VALID
 
 class SECCorrespondenceItem:
     def __init__(self, modelXbrl, fileName, entryUrl):

@@ -6,7 +6,7 @@ Created on Nov 8, 2014
 '''
 from hashlib import md5
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import QName, DateTime
+from arelle.ModelValue import QName
 from datetime import date, datetime
 from arelle import XmlUtil
 

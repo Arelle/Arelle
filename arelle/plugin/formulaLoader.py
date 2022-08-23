@@ -1280,12 +1280,11 @@ def compileXfsGrammar( cntlr, debugParsing ):
         return xfsProg
 
     cntlr.showStatus(_("Compiling Formula Grammar"))
-    from pyparsing import (Word, Keyword, alphas,
-                 Literal, CaselessLiteral,
-                 Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, OneOrMore, StringEnd, alphanums,
-                 ParserElement, quotedString, dblQuotedString, sglQuotedString, QuotedString,
-                 delimitedList, Suppress, Regex, FollowedBy,
-                 lineno, line, col)
+    from pyparsing import (Word, Keyword, Literal,
+                 CaselessLiteral, Combine,
+                 Optional, nums, Forward, ZeroOrMore, OneOrMore, StringEnd, ParserElement, quotedString, dblQuotedString, sglQuotedString,
+                 QuotedString, delimitedList, Suppress, Regex, lineno,
+                 line, col)
 
     ParserElement.enablePackrat()
 
@@ -2109,8 +2108,6 @@ def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
     #return
     #### disabled for future less annoying option
     if cntlr.hasGui and getattr(modelXbrl, "loadedFromXbrlFormula", False):
-        from arelle import ModelDocument
-        from tkinter.filedialog import askdirectory
         for doc in modelXbrl.urlDocs.values():
             if getattr(doc,"loadedFromXbrlFormula", False):
                 linkbaseFile = cntlr.uiFileDialog("save",
