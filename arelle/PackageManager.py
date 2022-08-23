@@ -18,7 +18,7 @@ if sys.version[0] >= '3':
 else:
     from urlparse import urljoin
 openFileSource = None
-from arelle import Locale
+from arelle import Locale, XmlUtil # Node 2022-08-23: XmlUtil import required for tests to work
 from arelle.UrlUtil import isAbsolute
 from arelle.XmlValidate import lxmlResolvingParser
 ArchiveFileIOError = None
