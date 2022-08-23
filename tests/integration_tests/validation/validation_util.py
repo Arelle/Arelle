@@ -1,4 +1,5 @@
 from collections import Counter
+import os.path
 from pathlib import PurePosixPath
 
 import pytest
@@ -7,7 +8,7 @@ from arelle.CntlrCmdLine import parseAndRun
 from arelle import ModelDocument, PackageManager, PluginManager
 
 
-def get_test_data(args, expected_failure_ids=frozenset()):
+def get_test_data(args, expected_failure_ids=frozenset(), expected_empty_testcases=frozenset()):
     """
     Produces a list of Pytest Params that can be fed into a parameterized pytest function
 
@@ -15,6 +16,8 @@ def get_test_data(args, expected_failure_ids=frozenset()):
     :type args: list of strings
     :param expected_failure_ids: The set of string test IDs that are expected to fail
     :type expected_failure_ids: frozenset of strings
+    :param expected_empty_testcases: The set of paths of empty testcases, relative to the suite zip
+    :type expected_empty_testcases: frozenset of strings
     :return: A list of PyTest Params that can be used to run a parameterized pytest function
     :rtype: list of ::class:: `~pytest.param`
     """
@@ -34,7 +37,7 @@ def get_test_data(args, expected_failure_ids=frozenset()):
             for test_case in test_cases:
                 path = PurePosixPath(test_case.uri)
                 test_case_path_tail = path.parts[-3:-1] if path.name == 'index.xml' else path.parts[-2:]
-                if not getattr(test_case, "testcaseVariations", None):
+                if not getattr(test_case, "testcaseVariations", None) and os.path.relpath(test_case.filepath, model_document.modelXbrl.fileSource.basefile) not in expected_empty_testcases:
                     test_cases_with_no_variations.add(test_case_path_tail)
                 else:
                     for mv in test_case.testcaseVariations:
