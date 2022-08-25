@@ -122,15 +122,24 @@ class Table(tkinter.Widget):
             if tktable_lib:
                 master.tk.eval('global auto_path; '
                                'lappend auto_path {%s}' % tktable_lib)
-            master.tk.call('package', 'require', 'Tktable')
-            _TKTABLE_LOADED = True
+            try:
+                master.tk.call('package', 'require', 'Tktable')
+                _TKTABLE_LOADED = True
+            except Exception as ex:
+                tkinter.messagebox.showerror(_("Exception"), 
+                    _("Unable to locate or to load Tktable.  \n\n"
+                      "GUI functions requiring tables, such as TableLinkbase, are likely to be unusable. \n\n"
+                      "Environment parameter TKTABLE_LIBRARY may be used to specify the location of Tktable. \n\n"
+                      "Details: {}").format(ex))
         # force minimum padding
         if not 'padx' in kw:
             kw['padx'] = 1
         if not 'pady' in kw:
             kw['pady'] = 1
-        tkinter.Widget.__init__(self, master, 'table', kw)
+        if _TKTABLE_LOADED:
+            tkinter.Widget.__init__(self, master, 'table', kw)
         self.contextMenuClick = "<Button-2>" if sys.platform=="darwin" else "<Button-3>"
+        self.isInitialized = _TKTABLE_LOADED 
 
 
     def _options(self, cnf, kw=None):
@@ -631,7 +640,7 @@ def sample_test():
 
     numrows, numcols = 6250,40
 
-    #Using ArrayVar consumes double as much memory as NumPy+command
+    #Using ArrayVar consumes double as much memory as NumPy+command 
     #var = ArrayVar(root)
     #for y in range(0, numrows):
     #    for x in range(0, numcols):
@@ -695,7 +704,7 @@ def sample_test():
         test.tag_cell('border-left-right', index)
         index = "%i,%i" % (y, 1)
         test.tag_cell('border', index)
-
+    
     for y in range(2, numrows):
         cities = ('Brussels', 'Luxembourg', 'Strasbourg', 'Trier', 'Rome')
         combobox = ttk.Combobox(test, values=cities, state='readonly')
