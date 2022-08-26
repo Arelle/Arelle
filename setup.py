@@ -252,6 +252,14 @@ setup(
     include_package_data=True,
     packages=packages,
     data_files=data_files,
+    entry_points={
+        'console_scripts': [
+            'arelle=arelle.CntlrCmdLine:main',
+        ],
+        'gui_scripts': [
+            'arelle-gui=arelle.CntlrWinMain:main',
+        ],
+    },
     extras_require={
         'Crypto': [
             'pycryptodome==3.*',
@@ -272,14 +280,6 @@ setup(
             'cheroot==8.*',
             'CherryPy==18.*',
             'tornado==6.*',
-        ],
-    },
-    entry_points={
-        'console_scripts': [
-            'arelle=arelle.CntlrCmdLine:main',
-        ],
-        'gui_scripts': [
-            'arelle-gui=arelle.CntlrWinMain:main',
         ],
     },
     install_requires=[
