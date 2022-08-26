@@ -2,6 +2,41 @@
 requires = ["setuptools~=62.3", "wheel~=0.37.1"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name        = "arelle-release"
+dynamic     = ["version", "readme"]
+license     = {text = "Apache-2.0"}
+description = "An open source XBRL platform."
+authors     = [
+    {name = "arelle.org", email = "support@arelle.org"}
+]
+keywords    = ["xbrl"]
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: End Users/Desktop',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: Apache Software License',
+    'Natural Language :: English',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.9',
+    'Operating System :: OS Independent',
+    'Topic :: Text Processing :: Markup :: XML'
+]
+requires-python = ">=3.7.0"
+
+[tool.setuptools.dynamic]
+version = {file = "arelle/VERSION"}
+readme = {file = ["README.md"]}
+
+[project.urls]
+"Source Code" = "https://github.com/Arelle/Arelle"
+"Bug Reports" = "https://github.com/Arelle/Arelle/issues"
+"Blog"        = "https://arelle.org/arelle/blog/"
+"Docs"        = "https://arelle.org/arelle/"
+
+[tool.setuptools]
+platforms = ["any"]
+
 [tool.pytest.ini_options]
 xfail_strict = true
 
