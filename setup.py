@@ -249,27 +249,9 @@ else:
 
 timestamp = datetime.datetime.utcnow()
 setup(
-    version=get_version(),
-    description='An open source XBRL platform',
-    long_description=open('README.md').read(),
-    long_description_content_type='text/markdown',
-    author='arelle.org',
-    author_email='support@arelle.org',
-    url='http://www.arelle.org',
-    download_url='http://www.arelle.org/pub',
     include_package_data=True,
     packages=packages,
     data_files=data_files,
-    platforms=['OS Independent'],
-    license='Apache-2',
-    entry_points={
-        'console_scripts': [
-            'arelle=arelle.CntlrCmdLine:main',
-        ],
-        'gui_scripts': [
-            'arelle-gui=arelle.CntlrWinMain:main',
-        ],
-    },
     extras_require={
         'Crypto': [
             'pycryptodome==3.*',
@@ -290,6 +272,14 @@ setup(
             'cheroot==8.*',
             'CherryPy==18.*',
             'tornado==6.*',
+        ],
+    },
+    entry_points={
+        'console_scripts': [
+            'arelle=arelle.CntlrCmdLine:main',
+        ],
+        'gui_scripts': [
+            'arelle-gui=arelle.CntlrWinMain:main',
         ],
     },
     install_requires=[
