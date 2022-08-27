@@ -781,5 +781,3 @@ class LogToBufferHandler(LogToXmlHandler):
 
     def flush(self):
         pass # do nothing -- overrides LogToXmlHandler's flush
-
-

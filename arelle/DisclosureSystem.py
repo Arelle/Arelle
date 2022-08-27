@@ -385,5 +385,3 @@ class DisclosureSystem:
         if self.standardTaxonomiesUrl:
             return href in self.standardTaxonomiesDict
         return True # no standard taxonomies to test
-
-

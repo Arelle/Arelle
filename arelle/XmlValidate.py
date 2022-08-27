@@ -687,4 +687,3 @@ class XsdPattern():
 
     def __repr__(self):
         return self.xsdPattern
-

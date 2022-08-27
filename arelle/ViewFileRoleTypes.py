@@ -44,4 +44,3 @@ class ViewRoleTypes(ViewFile.View):
                                       for usedOn in modelRoleType.usedOns))
 
                 self.addRow(cols, treeIndent=0, xmlRowElementName=xmlRowElementName, xmlRowEltAttr=attr)
-

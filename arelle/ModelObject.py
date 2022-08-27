@@ -406,5 +406,3 @@ class ObjectPropertyViewWrapper:  # extraProperties = ( (p1, v1), (p2, v2), ... 
 
     def __repr__(self):
         return "objectPropertyViewWrapper({}, extraProperties={})".format(self.modelObject, self.extraProperties)
-
-

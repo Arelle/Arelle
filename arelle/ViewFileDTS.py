@@ -39,4 +39,3 @@ class ViewDTS(ViewFile.View):
             if referencedDocument not in visited:
                 self.viewDtsElement(referencedDocument, ref.referenceTypes, indent + 1, visited)
         visited.remove(modelDocument)
-

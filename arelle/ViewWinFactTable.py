@@ -298,5 +298,3 @@ class ViewFactTable(ViewWinTree.ViewTree):
                 self.treeView.selection_set(())
             if self.blockViewModelObject > 0:
                 self.blockViewModelObject -= 1
-
-

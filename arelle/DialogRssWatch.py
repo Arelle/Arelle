@@ -258,4 +258,3 @@ class DialogRssWatch(Toplevel):
     def close(self, event=None):
         self.parent.focus_set()
         self.destroy()
-

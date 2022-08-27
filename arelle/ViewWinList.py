@@ -113,4 +113,3 @@ class ViewList():
         self.menu.add_command(label=_("Save to file"), underline=0, command=self.modelXbrl.modelManager.cntlr.fileSave)
         if self.modelXbrl.modelManager.cntlr.hasClipboard:
             self.menu.add_command(label=_("Copy to clipboard"), underline=0, command=self.copyToClipboard)
-

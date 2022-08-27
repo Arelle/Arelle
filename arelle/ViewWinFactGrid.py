@@ -312,4 +312,3 @@ class ViewFactsGrid(ViewWinGrid.ViewGrid):
                     self.treeView.selection_set(())
             '''
             self.blockViewModelObject -= 1
-

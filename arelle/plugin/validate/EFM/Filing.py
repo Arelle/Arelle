@@ -86,7 +86,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     efmRoleDefinitionPattern = re.compile(r"([0-9]+) - (Statement|Disclosure|Schedule|Document) - (.+)")
     messageKeySectionPattern = re.compile(r"(.*[{]efmSection[}]|[a-z]{2}-[0-9]{4})(.*)")
     secDomainPattern = re.compile(r"(fasb\.org|xbrl\.sec\.gov)")
-    
+
     val._isStandardUri = {}
     modelXbrl.modelManager.disclosureSystem.loadStandardTaxonomiesDict()
 
@@ -3202,4 +3202,3 @@ def cleanedCompanyName(name):
                                  ):
         name = re.sub(pattern, replacement, name, flags=re.IGNORECASE)
     return unicodedata.normalize('NFKD', name.strip().lower()).encode('ASCII', 'ignore').decode()  # remove diacritics
-

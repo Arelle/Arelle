@@ -252,5 +252,3 @@ def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
         modelXbrl.error("arelle:tableModelFileError",
             _("Table model comparison file %(xmlfile)s error %(error)s"),
             modelObject=modelXbrl, xmlfile=comparisonFile, error=str(err))
-
-

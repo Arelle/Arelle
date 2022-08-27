@@ -1517,4 +1517,3 @@ xfiFunctions = {
     'negative-filing-indicators': negative_filing_indicators,
     'negative-filing-indicator': negative_filing_indicator,
      }
-

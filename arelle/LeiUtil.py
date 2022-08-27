@@ -59,4 +59,3 @@ if __name__ == "__main__":
 5299003M8JKHEFX58Y02""", "Error 4")
                         ):
             print ("LEI {} result {} name {}".format(lei, LEI_RESULTS[checkLei(lei)], name)  )
-
