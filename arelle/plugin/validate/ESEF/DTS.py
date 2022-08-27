@@ -374,4 +374,3 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: lis
                 val.modelXbrl.error("UKFRC.1.1.instanceDocumentEncoding",
                     _("UKFRC instance documents should be UTF-8 encoded: %(encoding)s"),
                     modelObject=modelDocument, encoding=modelDocument.documentEncoding)
-

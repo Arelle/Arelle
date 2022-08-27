@@ -125,4 +125,3 @@ def validate(modelDocument, schemaElement, targetNamespace):
             checkSchemaElements(elt)
 
     checkSchemaElements(schemaElement)
-

@@ -526,4 +526,3 @@ class DialogPackageManager(Toplevel):
         self.packagesConfigChanged = True
         PackageManager.rebuildRemappings(self.cntlr)
         self.loadTreeViews()
-

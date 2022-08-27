@@ -1394,4 +1394,3 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         modelXbrl.saveInstance(overrideFilepath=loadDBsaveToFile, encoding="utf-8")
         self.showStatus(_("Saved extracted instance"), 5000)
         return modelXbrl.modelDocument
-

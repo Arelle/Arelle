@@ -125,4 +125,3 @@ __pluginInfo__ = {
     'Security.Crypt.FileSource.File': securityFileSourceFile,
     'Security.Crypt.Write': securityWrite
 }
-

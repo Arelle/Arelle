@@ -1174,4 +1174,3 @@ countryOfState = {
     "WI": "US","WY": "US","DC": "US","PR": "US","VI": "US","AS": "US","GU": "US","MP": "US",
     "AB": "CA","BC": "CA","MB": "CA","NB": "CA","NL": "CA","NS": "CA","ON": "CA","PE": "CA",
     "QC": "CA","SK": "CA","NT": "CA","NU": "CA","YT": "CA"}
-

@@ -178,4 +178,3 @@ def checkFilingDimensions(val: ValidateXbrl) -> None:
                         val.modelXbrl.error("ESEF.3.4.3.dimensionDefaultLinkrole",
                             _("Each dimension in an issuer specific extension taxonomy MUST be assigned to a default member in the ELR with role URI http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000, but linkrole used is %(linkrole)s."),
                             modelObject=linkChild, linkrole=modelLink.role)
-

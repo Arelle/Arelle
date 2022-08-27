@@ -719,4 +719,3 @@ class scrolledHeaderedFrame(Frame):
 #self.colHdrInterior.update()
         #self.rowHdrInterior.update()
         #self.bodyInterior.update()
-

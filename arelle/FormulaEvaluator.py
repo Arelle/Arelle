@@ -1460,6 +1460,3 @@ class VariableBinding:
             elif aspect in (Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY):
                 return fact.unit.measures
         return None
-
-
-

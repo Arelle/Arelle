@@ -29,4 +29,3 @@ class ModelRssObject(ModelDocument):
         self.xmlRootElement = rootElement
         for itemElt in XmlUtil.descendants(rootElement, None, "item"):
             self.rssItems.append(itemElt)
-
