@@ -4,6 +4,7 @@ Created on Oct 22, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+from __future__ import annotations
 import datetime
 try:
     import regex as re
@@ -11,11 +12,17 @@ except ImportError:
     import re
 from lxml import etree
 from arelle.XbrlConst import ixbrlAll, qnLinkFootnote, xhtml, xml, xsd, xhtml
-from arelle.ModelObject import ModelObject, ModelComment
+from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, QName, tzinfoStr
 from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
-htmlEltUriAttrs = resolveHtmlUri = None
+from typing import TYPE_CHECKING, Any
+from arelle.ModelObject import ModelObject
 
+if TYPE_CHECKING:
+    from arelle.ModelInstanceObject import ModelContext
+    from arelle.ModelInstanceObject import ModelUnit
+
+htmlEltUriAttrs = resolveHtmlUri = None
 datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*|"
                              r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})(Z|[+-][0-9]{2}:[0-9]{2})?\s*")
 xmlEncodingPattern = re.compile(r"\s*<\?xml\s.*encoding=['\"]([^'\"]*)['\"].*\?>")
@@ -23,7 +30,7 @@ xpointerFragmentIdentifierPattern = re.compile(r"([\w.]+)(\(([^)]*)\))?")
 xmlnsStripPattern = re.compile(r'\s*xmlns(:[\w.-]+)?="[^"]*"')
 nonSpacePattern = re.compile(r"\S+")
 
-def xmlns(element, prefix):
+def xmlns(element, prefix) -> Any:
     ns = element.nsmap.get(prefix)
     if ns:
         return ns
@@ -31,7 +38,7 @@ def xmlns(element, prefix):
         return xml
     return ns # return results of get (which may be no namespace
 
-def xmlnsprefix(element, ns):
+def xmlnsprefix(element, ns) -> Any | None:
     if ns is None:
         return None
     if ns == xml: # never declared explicitly
@@ -315,11 +322,11 @@ def childAttr(element, childNamespaceURI, childLocalNames, attrClarkName):
     childElt = child(element, childNamespaceURI, childLocalNames)
     return childElt.get(attrClarkName) if childElt is not None else None
 
-def descendantAttr(element, childNamespaceURI, childLocalNames, attrClarkName, attrName=None, attrValue=None):
+def descendantAttr(element, childNamespaceURI, childLocalNames, attrClarkName, attrName=None, attrValue=None) -> Any:
     descendantElt = descendant(element, childNamespaceURI, childLocalNames, attrName, attrValue)
     return descendantElt.get(attrClarkName) if (descendantElt is not None) else None
 
-def children(element, childNamespaceURIs, childLocalNames, ixTarget=False):
+def children(element, childNamespaceURIs, childLocalNames, ixTarget=False) -> list[ModelObject | ModelContext | ModelUnit]:
     children = []
     if not isinstance(childLocalNames,tuple): childLocalNames = (childLocalNames ,)
     wildLocalName = childLocalNames == ('*',)
@@ -337,6 +344,7 @@ def children(element, childNamespaceURIs, childLocalNames, ixTarget=False):
         if (wildNamespaceURI or child.elementNamespaceURI in childNamespaceURIs) and \
            (wildLocalName or child.localName in childLocalNames):
             children.append(child)
+
     return children
 
 def child(element, childNamespaceURI=None, childLocalNames=("*",)):
@@ -372,7 +380,7 @@ def childrenAttrs(element, childNamespaceURI, childLocalNames, attrLocalName):
     childrenAttrs.sort()
     return childrenAttrs
 
-def descendant(element, descendantNamespaceURI, descendantLocalNames, attrName=None, attrValue=None):
+def descendant(element, descendantNamespaceURI, descendantLocalNames, attrName=None, attrValue=None) -> Any | None:
     d = descendants(element, descendantNamespaceURI, descendantLocalNames, attrName, attrValue, breakOnFirst=True)
     if d:
         return d[0]

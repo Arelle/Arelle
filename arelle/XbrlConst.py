@@ -568,7 +568,7 @@ def labelroleLabel(role): # with sort char in first position
     elif role == conceptNameLabelRole: return _("0Name")
     return "3" + os.path.basename(role).title()
 
-def isStandardNamespace(namespaceURI):
+def isStandardNamespace(namespaceURI) -> bool:
     return namespaceURI in {xsd, xbrli, link, gen, xbrldt, xbrldi}
 
 standardNamespaceSchemaLocations = {
@@ -747,10 +747,10 @@ standardExtLinkQnamesAndResources = {qname("{http://www.xbrl.org/2003/linkbase}d
                                      qname("{http://www.xbrl.org/2003/linkbase}footnote"),
                                      qname("{http://www.xbrl.org/2003/linkbase}reference")}
 
-def isStandardExtLinkQname(qName):
+def isStandardExtLinkQname(qName) -> bool:
     return qName in standardExtLinkQnamesAndResources
 
-def isStandardArcQname(qName):
+def isStandardArcQname(qName) -> bool:
     return qName in {
           qname("{http://www.xbrl.org/2003/linkbase}definitionArc"),
           qname("{http://www.xbrl.org/2003/linkbase}calculationArc"),

@@ -588,4 +588,3 @@ class DialogPluginManager(Toplevel):
                     self.moduleEnableButton['text'] = self.ENABLE
         self.pluginConfigChanged = True
         self.loadTreeViews()
-

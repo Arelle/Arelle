@@ -238,4 +238,3 @@ class XbrlPrototype(): # behaves like ModelXbrl
     def close(self):
         self.modelDocument.clear()
         self.__dict__.clear()  # delete local attributes
-

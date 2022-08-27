@@ -114,8 +114,8 @@ def checkFilingDimensions(val: ValidateXbrl) -> None:
                concept not in elrPrimaryItems.get("*", set()) and
                (not nsExcl or not nsExclPat.match(qn.namespaceURI)))
     if i:
-        val.modelXbrl.warning("ESEF.3.4.2.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
-            _("Dimensional line item reported non-dimensionally SHOULD be linked to \"not dimensionally qualified\" hypercube %(linkrole)s, primary item %(qnames)s"),
+        val.modelXbrl.error("ESEF.3.4.2.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
+            _("Line items that do not require any dimensional information to tag data MUST be linked to the dedicated \"Line items not dimensionally qualified\" hypercube in %(linkrole)s declared in esef_cor.xsd, primary item %(qnames)s"),
             modelObject=i, linkrole=LineItemsNotQualifiedLinkrole, qnames=", ".join(sorted(str(c.qname) for c in i)))
     # pri items in LineItemsNotQualifiedLinkrole which are not used in report non-dimensionally
     # check no longer in Filer Manual as of 2021
@@ -178,4 +178,3 @@ def checkFilingDimensions(val: ValidateXbrl) -> None:
                         val.modelXbrl.error("ESEF.3.4.3.dimensionDefaultLinkrole",
                             _("Each dimension in an issuer specific extension taxonomy MUST be assigned to a default member in the ELR with role URI http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000, but linkrole used is %(linkrole)s."),
                             modelObject=linkChild, linkrole=modelLink.role)
-

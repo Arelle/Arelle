@@ -357,4 +357,3 @@ class View:
             self.docEltLevels = None
 
         self.__dict__.clear() # dereference everything after closing document
-

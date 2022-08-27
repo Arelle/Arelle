@@ -10,6 +10,7 @@ from arelle import (UrlUtil, XbrlConst)
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelConcept
 from arelle.PrototypeInstanceObject import ContextPrototype, DimValuePrototype
+from typing import cast
 
 NONDEFAULT = sys.intern(_STR_8BIT("non-default"))
 
@@ -24,7 +25,7 @@ def loadDimensionDefaults(val):
             checkBaseSet(val, arcrole, ELR, val.modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname))
     val.modelXbrl.isDimensionsValidated = True
 
-def checkBaseSet(val, arcrole, ELR, relsSet):
+def checkBaseSet(val, arcrole, ELR, relsSet) -> None:
     # check hypercube-dimension relationships
     if arcrole == XbrlConst.hypercubeDimension:
         for modelRel in relsSet.modelRelationships:
@@ -228,7 +229,7 @@ def drsPolymorphism(val, fromELR, rels, priItems, visitedMbrs=None):
             visitedMbrs.discard(relTo)
     return None
 
-def checkConcept(val, concept):
+def checkConcept(val, concept) -> None:
     if concept.get("{http://xbrl.org/2005/xbrldt}typedDomainRef"):
         if concept.isDimensionItem:
             typedDomainElement = concept.typedDomainElement
@@ -253,7 +254,7 @@ def checkConcept(val, concept):
                 _("Concept %(concept)s is not a dimension item but has a typedDomainRef"),
                 modelObject=concept, concept=concept.qname)
 
-def checkContext(val, cntx):
+def checkContext(val, cntx) -> None:
     def logDimAndFacts(modelDimValue):
         dimAndFacts = [modelDimValue]
         for f in val.modelXbrl.facts:
@@ -340,7 +341,7 @@ def checkContext(val, cntx):
                 _("Context %(contextID)s dimension %(dimension)s is a repeated dimension value"),
                 modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, dimension=modelDimValue.dimensionQname)
 
-def checkFact(val, f, otherFacts=None):
+def checkFact(val, f, otherFacts=None) -> None:
     if not isFactDimensionallyValid(val, f, otherFacts):
         val.modelXbrl.error("xbrldie:PrimaryItemDimensionallyInvalidError",
             _("Fact %(fact)s context %(contextID)s dimensionally not valid"),
@@ -533,11 +534,11 @@ def usableEnumerationMembers(val, enumConcept):
         usableMembers -= unusableMembers
         return usableMembers
 
-def enumerationMemberUsable(val, enumConcept, memConcept):
+def enumerationMemberUsable(val, enumConcept, memConcept) -> bool:
     if enumConcept is None or memConcept is None:
         return False
     else:
-        return memConcept in usableEnumerationMembers(val, enumConcept)
+        return cast(bool, memConcept in usableEnumerationMembers(val, enumConcept))
 ''' removed to cache all members usability for domain
 def dimensionMemberState(val, dimConcept, memConcept, domELR):
     try:

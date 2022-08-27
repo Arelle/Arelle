@@ -919,4 +919,3 @@ fnFunctions = {
     'static-base-uri': static_base_uri,
     'format-number': format_number,
     }
-

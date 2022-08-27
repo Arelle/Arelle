@@ -2037,7 +2037,7 @@ class ModelRelationship(ModelObject):
                 XbrlUtil.attributes(self.modelXbrl, self.arcElement,
                     exclusions=arcCustAttrsExclusions, keyByTag=True) # use clark tag for key instead of qname
 
-    def isIdenticalTo(self, otherModelRelationship):
+    def isIdenticalTo(self, otherModelRelationship) -> bool:
         """(bool) -- Determines if relationship is identical to another, based on arc and identical from and to objects"""
         return (otherModelRelationship is not None and
                 self.arcElement == otherModelRelationship.arcElement and

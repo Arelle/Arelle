@@ -22,6 +22,8 @@ try:
     from collections import OrderedDict
 except ImportError:
     OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order
+from collections.abc import Generator, Callable
+
 
 if TYPE_CHECKING:
     # Prevent potential circular import error
@@ -456,7 +458,7 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
             else:
                 print(_msg, file=sys.stderr)
 
-def pluginClassMethods(className):
+def pluginClassMethods(className: str) -> Generator[Callable[..., Any], None, None]:
     if pluginConfig:
         try:
             pluginMethodsForClass = pluginMethodsForClasses[className]

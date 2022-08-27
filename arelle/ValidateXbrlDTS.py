@@ -4,6 +4,8 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from arelle import (ModelDocument, ModelDtsObject, HtmlUtil, UrlUtil, XmlUtil, XbrlUtil, XbrlConst,
                     XmlValidate)
 from arelle.ModelRelationshipSet import baseSetRelationship
@@ -17,6 +19,10 @@ try:
     import regex as re
 except ImportError:
     import re
+
+if TYPE_CHECKING:
+    from arelle.ValidateXbrl import ValidateXbrl
+
 
 instanceSequence = {"schemaRef":1, "linkbaseRef":2, "roleRef":3, "arcroleRef":4}
 schemaTop = {"import", "include", "redefine"}
@@ -61,7 +67,7 @@ def arcToConceptQname(arcElement):
     else:
         return modelRelationship.toModelObject.qname
 
-def checkDTS(val, modelDocument, checkedModelDocuments):
+def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument, checkedModelDocuments: set[ModelDocument.ModelDocument]) -> None:
     checkedModelDocuments.add(modelDocument)
     for referencedDocument in modelDocument.referencesDocument.keys():
         if referencedDocument not in checkedModelDocuments:
@@ -1251,7 +1257,7 @@ def checkElements(val, modelDocument, parent):
                             modelObject=elt, fileType=modelDocument.gettype().title(), value=elt.text,
                             messageCodes=("SBR.NL.2.2.0.05", "SBR.NL.2.3.0.05"))
 
-def checkLinkRole(val, elt, linkEltQname, xlinkRole, xlinkType, roleRefURIs):
+def checkLinkRole(val, elt, linkEltQname, xlinkRole, xlinkType, roleRefURIs) -> None:
     if xlinkRole == "" and xlinkType == "simple":
         val.modelXbrl.error("xbrl.3.5.1.3:emptySimpleLinkRole",
             _("Simple link role %(xlinkRole)s is empty"),
@@ -1315,7 +1321,7 @@ def checkLinkRole(val, elt, linkEltQname, xlinkRole, xlinkType, roleRefURIs):
             _("LRR resource role %(xlinkRole)s on %(element)s has status %(status)s"),
             modelObject=elt, xlinkRole=xlinkRole, element=linkEltQname, status=XbrlConst.lrrUnapprovedRoles[xlinkRole])
 
-def checkArcrole(val, elt, arcEltQname, arcrole, arcroleRefURIs):
+def checkArcrole(val, elt, arcEltQname, arcrole, arcroleRefURIs) -> None:
     if arcrole == "" and \
         elt.get("{http://www.w3.org/1999/xlink}type") == "simple":
         val.modelXbrl.error("xbrl.3.5.1.4:emptyXlinkArcrole",

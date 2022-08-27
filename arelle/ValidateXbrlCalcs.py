@@ -29,7 +29,7 @@ NaN = decimal.Decimal("NaN")
 floatNaN = float("NaN")
 floatINF = float("INF")
 
-def validate(modelXbrl, inferDecimals=False, deDuplicate=False):
+def validate(modelXbrl, inferDecimals=False, deDuplicate=False) -> None:
     ValidateXbrlCalcs(modelXbrl, inferDecimals, deDuplicate).validate()
 
 class ValidateXbrlCalcs:

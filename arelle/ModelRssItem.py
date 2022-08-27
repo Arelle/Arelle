@@ -217,4 +217,3 @@ class ModelRssItem(ModelObject):
                 )
     def __repr__(self):
         return ("rssItem[{0}]{1})".format(self.objectId(),self.propertyView))
-

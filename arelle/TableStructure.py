@@ -526,4 +526,3 @@ def EFMdimMems(relSet, concept, memQNames):
             memQNames.add(dimConcept.qname)
             EFMdimMems(relSet, dimConcept, memQNames)
     return memQNames
-

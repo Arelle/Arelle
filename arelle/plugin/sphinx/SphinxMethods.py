@@ -1283,4 +1283,3 @@ aggreateFunctionAcceptsFactArgs = {
     "var":          False,
     "varp":         False,
     }
-

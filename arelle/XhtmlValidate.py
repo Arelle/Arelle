@@ -234,7 +234,7 @@ ixSect = {
         "tuple": {"constraint": "ix11.15.1.1", "validation": "ix11.15.1.2"},
         "other": {"constraint": "ix11", "validation": "ix11"}}
     }
-def ixMsgCode(codeName, elt=None, sect="constraint", ns=None, name=None):
+def ixMsgCode(codeName, elt=None, sect="constraint", ns=None, name=None) -> str:
     if elt is None:
         if ns is None: ns = XbrlConst.ixbrl11
         if name is None: name = "other"

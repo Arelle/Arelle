@@ -234,4 +234,3 @@ def checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblAxisRel, parentAspec
                     _("%(definitionNode)s %(xlinkLabel)s does not define an aspect for %(aspect)s"),
                     modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, definitionNode=definitionNode.localName,
                     aspect=', '.join(aspectStr(aspect) for aspect in missingAspects))
-

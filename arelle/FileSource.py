@@ -320,6 +320,7 @@ class FileSource:
         if self.isEis and self.isOpen:
             self.eisDocument.getroot().clear() # unlink nodes
             self.eisDocument = None
+            self.isOpen = False
             self.isEis = False
         if self.isXfd and self.isOpen:
             self.xfdDocument.getroot().clear() # unlink nodes
@@ -790,6 +791,3 @@ def gaeSet(key, bytesValue): # stores bytes, not string valye
             return False
         chunkKeys.append(chunkKey)
     return gaeMemcache.set(key, chunkKeys, time=GAE_EXPIRE_WEEK)
-
-
-

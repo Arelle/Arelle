@@ -7,7 +7,7 @@ Created on Oct 3, 2010
 from __future__ import annotations
 from collections import defaultdict
 import os, sys, re, traceback, uuid
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 import logging
 from decimal import Decimal
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
@@ -22,6 +22,7 @@ from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 
 if TYPE_CHECKING:
     from arelle.ModelRelationshipSet import ModelRelationshipSet as ModelRelationshipSetClass
+    from arelle.ModelInstanceObject import ModelContext
 
 
 ModelFact = None
@@ -266,8 +267,12 @@ class ModelXbrl:
 
     """
 
+    dimensionDefaultConcepts: dict
     ixdsHtmlElements: list
+    isDimensionsValidated: bool
     uriDir: str
+    targetRelationships: Any
+    qnameDimensionContextElement: dict
 
     def __init__(self, modelManager, errorCaptureLevel=None):
         self.modelManager = modelManager
@@ -296,7 +301,7 @@ class ModelXbrl:
         self.facts = []
         self.factsInInstance = set()
         self.undefinedFacts = [] # elements presumed to be facts but not defined
-        self.contexts = {}
+        self.contexts: dict[Any, Any] = {}
         self.units = {}
         self.modelObjects = []
         self.qnameParameters = {}
@@ -451,7 +456,7 @@ class ModelXbrl:
                 subsGrpMdlObj = subsGrpMdlObj.substitutionGroup
         return subsGrpMatchTable.get(None)
 
-    def isInSubstitutionGroup(self, elementQname, subsGrpQnames):
+    def isInSubstitutionGroup(self, elementQname, subsGrpQnames) -> bool:
         """Determine if element is in substitution group(s)
 
         Used by ModelObjectFactory to return Class type for new ModelObject subclass creation, and isInSubstitutionGroup
@@ -1187,7 +1192,7 @@ class ModelXbrl:
         """@messageCatalog=[]"""
         self.log('DEBUG', codes, msg, **args)
 
-    def info(self, codes, msg, **args):
+    def info(self, codes, msg, **args) -> None:
         """Same as error(), but as info
         """
         """@messageCatalog=[]"""
@@ -1223,7 +1228,7 @@ class ModelXbrl:
             """@messageCatalog=[]"""
             logger.log(numericLevel, *logArgs, exc_info=args.get("exc_info"), extra=extras)
 
-    def error(self, codes, msg, **args) -> None:
+    def error(self, codes: str | list[str] | tuple[str, ...], msg: str, **args) -> None:
         """Logs a message as info, by code, logging-system message text (using %(name)s named arguments
         to compose string by locale language), resolving model object references (such as qname),
         to prevent non-dereferencable memory usage.  Supports logging system parameters, and
@@ -1265,7 +1270,7 @@ class ModelXbrl:
                 modelObject=self.modelXbrl.modelDocument, profileStats=self.profileStats,
                 timeTotal=timeTotal, timeEFM=timeEFM)
 
-    def profileStat(self, name=None, stat=None):
+    def profileStat(self, name=None, stat=None) -> None:
         '''
         order 1xx - load, import, setup, etc
         order 2xx - views, 26x - table lb

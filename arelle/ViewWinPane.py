@@ -88,4 +88,3 @@ class ViewPane:
     def setLang(self, lang):
         self.lang = lang
         self.view()
-

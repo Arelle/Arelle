@@ -628,6 +628,3 @@ def addRelationships(breakdownNode, relDefinitionNode, rels, structuralNode, car
             addRelationships(breakdownNode, relDefinitionNode, rel, childStructuralNode, cartesianProductNestedArgs)
         else:
             addRelationships(breakdownNode, relDefinitionNode, rel, childStructuralNode, cartesianProductNestedArgs)
-
-
-

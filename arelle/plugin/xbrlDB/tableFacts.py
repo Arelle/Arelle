@@ -63,4 +63,3 @@ def tableFacts(dts):
 
         return roleURIcodeFacts
     return None
-
