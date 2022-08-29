@@ -265,5 +265,3 @@ def ancestorOrSelf(domainMemberRelationshipSet,sourceConcept,result=None):
         for rels in domainMemberRelationshipSet.toModelObject(sourceConcept):
             ancestorOrSelf(domainMemberRelationshipSet, rels.fromModelObject, result)
     return result
-
-

@@ -228,4 +228,3 @@ class ModelManager:
             self.customTransforms = {}
             for pluginMethod in pluginClassMethods("ModelManager.LoadCustomTransforms"):
                 pluginMethod(self.customTransforms)
-

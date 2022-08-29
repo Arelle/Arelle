@@ -175,4 +175,3 @@ class ViewFactList(ViewWinTree.ViewTree):
             except (AttributeError, KeyError):
                     self.treeView.selection_set(())
             self.blockViewModelObject -= 1
-

@@ -168,6 +168,3 @@ def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
                                                    attributes=[("contextRef", cntx.id)],
                                                    text=text[itemSpan.start:itemSpan.end])
                             break
-
-
-

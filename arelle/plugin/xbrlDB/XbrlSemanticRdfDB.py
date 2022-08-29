@@ -1047,4 +1047,3 @@ class XbrlSemanticRdfDatabaseConnection():
                     continue
                 g.add( (objUri, XBRL.ref, messageUri) )
                 g.add( (messageUri, XBRL.message, objUri) )
-

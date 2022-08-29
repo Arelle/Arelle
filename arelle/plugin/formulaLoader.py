@@ -2212,5 +2212,3 @@ if __name__ == "__main__":
     # load xf formula files
     if xfFiles:
         xfsProgs = parse(_cntlr(), _logMessage, xfFiles, debugParsing=debugParsing)
-
-

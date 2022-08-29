@@ -248,4 +248,3 @@ class WatchRss:
             self.cntlr.logHandler.close()
         self.thread = None  # close thread
         self.stopRequested = False
-

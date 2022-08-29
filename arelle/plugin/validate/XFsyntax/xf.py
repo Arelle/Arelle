@@ -18,7 +18,7 @@ import sys
 from tatsu.buffering import Buffer
 from tatsu.parsing import Parser
 from tatsu.parsing import tatsumasu
-from tatsu.util import re, generic_main  # noqa
+from tatsu.util import re, generic_main
 
 
 KEYWORDS = {}  # type: ignore
@@ -80,7 +80,7 @@ class XFParser(Parser):
         )
 
     @tatsumasu()
-    def _module_(self):  # noqa
+    def _module_(self):
 
         def block0():
             self._namespace_declaration_()
@@ -113,11 +113,11 @@ class XFParser(Parser):
         self._check_eof()
 
     @tatsumasu()
-    def _separator_(self):  # noqa
+    def _separator_(self):
         self._token(';')
 
     @tatsumasu()
-    def _namespace_declaration_(self):  # noqa
+    def _namespace_declaration_(self):
         self._token('namespace')
         self._name_()
         self._token('=')
@@ -125,7 +125,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _default_(self):  # noqa
+    def _default_(self):
         with self._choice():
             with self._option():
                 self._severity_()
@@ -136,13 +136,13 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _severity_(self):  # noqa
+    def _severity_(self):
         self._token('unsatisfied-severity')
         self._message_severity_()
         self._separator_()
 
     @tatsumasu()
-    def _message_severity_(self):  # noqa
+    def _message_severity_(self):
         with self._choice():
             with self._option():
                 self._token('ERROR')
@@ -153,7 +153,7 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _parameter_(self):  # noqa
+    def _parameter_(self):
         self._token('parameter')
         self._name_()
         with self._optional():
@@ -169,7 +169,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _filter_declaration_(self):  # noqa
+    def _filter_declaration_(self):
         self._token('filter')
         self._name_()
         self._token('{')
@@ -181,7 +181,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _filter_(self):  # noqa
+    def _filter_(self):
         with self._group():
             with self._choice():
                 with self._option():
@@ -215,7 +215,7 @@ class XFParser(Parser):
                 self._error('no available options')
 
     @tatsumasu()
-    def _concept_filter_(self):  # noqa
+    def _concept_filter_(self):
         with self._optional():
             self._token('complemented')
         with self._group():
@@ -303,7 +303,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _general_filter_(self):  # noqa
+    def _general_filter_(self):
         with self._optional():
             self._token('complemented')
         self._token('general')
@@ -312,7 +312,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _period_filter_(self):  # noqa
+    def _period_filter_(self):
         with self._optional():
             self._token('complemented')
         with self._group():
@@ -387,7 +387,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _dimension_filter_(self):  # noqa
+    def _dimension_filter_(self):
         with self._optional():
             self._token('complemented')
         with self._group():
@@ -457,7 +457,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _dimension_axis_(self):  # noqa
+    def _dimension_axis_(self):
         with self._choice():
             with self._option():
                 self._token('child')
@@ -470,7 +470,7 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _unit_filter_(self):  # noqa
+    def _unit_filter_(self):
         with self._optional():
             self._token('complemented')
         with self._group():
@@ -493,7 +493,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _entity_filter_(self):  # noqa
+    def _entity_filter_(self):
         with self._optional():
             self._token('complemented')
         with self._group():
@@ -525,7 +525,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _match_filter_(self):  # noqa
+    def _match_filter_(self):
         with self._optional():
             self._token('complemented')
         with self._group():
@@ -562,7 +562,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _relative_filter_(self):  # noqa
+    def _relative_filter_(self):
         with self._optional():
             self._token('complemented')
         self._token('relative')
@@ -571,7 +571,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _tuple_filter_(self):  # noqa
+    def _tuple_filter_(self):
         with self._optional():
             self._token('complemented')
         with self._group():
@@ -604,14 +604,14 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _value_filter_(self):  # noqa
+    def _value_filter_(self):
         with self._optional():
             self._token('complemented')
         self._token('nilled')
         self._separator_()
 
     @tatsumasu()
-    def _boolean_filter_(self):  # noqa
+    def _boolean_filter_(self):
         with self._optional():
             self._token('complemented')
         with self._group():
@@ -631,7 +631,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _aspect_cover_filter_(self):  # noqa
+    def _aspect_cover_filter_(self):
         with self._optional():
             self._token('complemented')
         self._token('aspect-cover')
@@ -680,7 +680,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _concept_relation_filter_(self):  # noqa
+    def _concept_relation_filter_(self):
         with self._optional():
             self._token('complemented')
         self._token('concept-relation')
@@ -726,7 +726,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _relation_axis_(self):  # noqa
+    def _relation_axis_(self):
         with self._group():
             with self._choice():
                 with self._option():
@@ -755,14 +755,14 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _declared_filter_reference_(self):  # noqa
+    def _declared_filter_reference_(self):
         self._token('filter')
         self._cut()
         self._variable_ref_()
         self._separator_()
 
     @tatsumasu()
-    def _fact_variable_(self):  # noqa
+    def _fact_variable_(self):
         self._token('variable')
         self._cut()
         self._variable_ref_()
@@ -784,7 +784,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _general_variable_(self):  # noqa
+    def _general_variable_(self):
         self._token('variable')
         self._cut()
         self._variable_ref_()
@@ -797,7 +797,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _function_declaration_(self):  # noqa
+    def _function_declaration_(self):
         self._token('function')
         self._cut()
         self._qname_()
@@ -820,7 +820,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _assertion_(self):  # noqa
+    def _assertion_(self):
         self._token('assertion')
         self._name_()
         self._token('{')
@@ -871,7 +871,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _label_(self):  # noqa
+    def _label_(self):
         self._token('label')
         with self._optional():
             self._token('(')
@@ -881,7 +881,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _message_(self):  # noqa
+    def _message_(self):
         with self._group():
             with self._choice():
                 with self._option():
@@ -899,7 +899,7 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _referenced_parameter_(self):  # noqa
+    def _referenced_parameter_(self):
         self._token('parameter')
         self._cut()
         self._variable_ref_()
@@ -908,83 +908,83 @@ class XFParser(Parser):
         self._separator_()
 
     @tatsumasu()
-    def _precondition_(self):  # noqa
+    def _precondition_(self):
         self._token('precondition')
         self._enclosed_expression_()
 
     @tatsumasu()
-    def _value_expression_(self):  # noqa
+    def _value_expression_(self):
         self._token('test')
         self._enclosed_expression_()
         self._separator_()
 
     @tatsumasu()
-    def _existence_expression_(self):  # noqa
+    def _existence_expression_(self):
         self._token('evaluation-count')
         self._enclosed_expression_()
         self._separator_()
 
     @tatsumasu()
-    def _enclosed_expression_(self):  # noqa
+    def _enclosed_expression_(self):
         self._token('{')
         self._xPath_()
         self._token('}')
 
     @tatsumasu()
-    def _name_(self):  # noqa
+    def _name_(self):
         self._NCNAME_FRAG_()
 
     @tatsumasu()
-    def _language_(self):  # noqa
+    def _language_(self):
         self._pattern(r'[A-Za-z]{2}(-[A-Za-z]{2})?')
 
     @tatsumasu()
-    def _quoted_anyURI_(self):  # noqa
+    def _quoted_anyURI_(self):
         self._quoted_url_()
 
     @tatsumasu()
-    def _quoted_url_(self):  # noqa
+    def _quoted_url_(self):
         self._quoted_string_()
 
     @tatsumasu()
-    def _localname_(self):  # noqa
+    def _localname_(self):
         self._name_()
 
     @tatsumasu()
-    def _variable_ref_(self):  # noqa
+    def _variable_ref_(self):
         self._token('$')
         self._variable_name_()
 
     @tatsumasu()
-    def _variable_name_(self):  # noqa
+    def _variable_name_(self):
         self._name_()
 
     @tatsumasu()
-    def _non_negative_integer_(self):  # noqa
+    def _non_negative_integer_(self):
         self._pattern(r'[0-9]+')
 
     @tatsumasu()
-    def _date_time_constant_(self):  # noqa
+    def _date_time_constant_(self):
         self._pattern(r'\b(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?\b')
 
     @tatsumasu()
-    def _date_constant_(self):  # noqa
+    def _date_constant_(self):
         self._pattern(r'\b(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])\b')
 
     @tatsumasu()
-    def _quoted_string_(self):  # noqa
+    def _quoted_string_(self):
         self._pattern(r'("([^\\"]|\\.)*"|\'([^\\\']|\\.)*\')')
 
     @tatsumasu()
-    def _regexp_pattern_(self):  # noqa
+    def _regexp_pattern_(self):
         self._pattern(r'\/([^\\\/]|\\.)*\/')
 
     @tatsumasu()
-    def _xPath_(self):  # noqa
+    def _xPath_(self):
         self._expr_()
 
     @tatsumasu()
-    def _expr_(self):  # noqa
+    def _expr_(self):
         self._exprSingle_()
 
         def block0():
@@ -993,7 +993,7 @@ class XFParser(Parser):
         self._closure(block0)
 
     @tatsumasu()
-    def _exprSingle_(self):  # noqa
+    def _exprSingle_(self):
         with self._choice():
             with self._option():
                 self._forExpr_()
@@ -1006,13 +1006,13 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _forExpr_(self):  # noqa
+    def _forExpr_(self):
         self._simpleForClause_()
         self._token('return')
         self._exprSingle_()
 
     @tatsumasu()
-    def _simpleForClause_(self):  # noqa
+    def _simpleForClause_(self):
         self._token('for')
         self._token('$')
         self._varName_()
@@ -1028,7 +1028,7 @@ class XFParser(Parser):
         self._closure(block0)
 
     @tatsumasu()
-    def _quantifiedExpr_(self):  # noqa
+    def _quantifiedExpr_(self):
         with self._group():
             with self._choice():
                 with self._option():
@@ -1052,7 +1052,7 @@ class XFParser(Parser):
         self._exprSingle_()
 
     @tatsumasu()
-    def _ifExpr_(self):  # noqa
+    def _ifExpr_(self):
         self._token('if')
         self._token('(')
         self._expr_()
@@ -1063,7 +1063,7 @@ class XFParser(Parser):
         self._exprSingle_()
 
     @tatsumasu()
-    def _orExpr_(self):  # noqa
+    def _orExpr_(self):
         self._andExpr_()
 
         def block0():
@@ -1072,7 +1072,7 @@ class XFParser(Parser):
         self._closure(block0)
 
     @tatsumasu()
-    def _andExpr_(self):  # noqa
+    def _andExpr_(self):
         self._comparisonExpr_()
 
         def block0():
@@ -1081,7 +1081,7 @@ class XFParser(Parser):
         self._closure(block0)
 
     @tatsumasu()
-    def _comparisonExpr_(self):  # noqa
+    def _comparisonExpr_(self):
         self._rangeExpr_()
         with self._optional():
             with self._group():
@@ -1096,14 +1096,14 @@ class XFParser(Parser):
             self._rangeExpr_()
 
     @tatsumasu()
-    def _rangeExpr_(self):  # noqa
+    def _rangeExpr_(self):
         self._additiveExpr_()
         with self._optional():
             self._token('to')
             self._additiveExpr_()
 
     @tatsumasu()
-    def _additiveExpr_(self):  # noqa
+    def _additiveExpr_(self):
         self._multiplicativeExpr_()
 
         def block0():
@@ -1118,7 +1118,7 @@ class XFParser(Parser):
         self._closure(block0)
 
     @tatsumasu()
-    def _multiplicativeExpr_(self):  # noqa
+    def _multiplicativeExpr_(self):
         self._unionExpr_()
 
         def block0():
@@ -1137,7 +1137,7 @@ class XFParser(Parser):
         self._closure(block0)
 
     @tatsumasu()
-    def _unionExpr_(self):  # noqa
+    def _unionExpr_(self):
         self._intersectExceptExpr_()
 
         def block0():
@@ -1152,7 +1152,7 @@ class XFParser(Parser):
         self._closure(block0)
 
     @tatsumasu()
-    def _intersectExceptExpr_(self):  # noqa
+    def _intersectExceptExpr_(self):
         self._instanceofExpr_()
 
         def block0():
@@ -1167,7 +1167,7 @@ class XFParser(Parser):
         self._closure(block0)
 
     @tatsumasu()
-    def _instanceofExpr_(self):  # noqa
+    def _instanceofExpr_(self):
         self._treatExpr_()
         with self._optional():
             self._token('instance')
@@ -1175,7 +1175,7 @@ class XFParser(Parser):
             self._sequenceType_()
 
     @tatsumasu()
-    def _treatExpr_(self):  # noqa
+    def _treatExpr_(self):
         self._castableExpr_()
         with self._optional():
             self._token('treat')
@@ -1183,7 +1183,7 @@ class XFParser(Parser):
             self._sequenceType_()
 
     @tatsumasu()
-    def _castableExpr_(self):  # noqa
+    def _castableExpr_(self):
         self._castExpr_()
         with self._optional():
             self._token('castable')
@@ -1191,7 +1191,7 @@ class XFParser(Parser):
             self._singleType_()
 
     @tatsumasu()
-    def _castExpr_(self):  # noqa
+    def _castExpr_(self):
         self._unaryExpr_()
         with self._optional():
             self._token('cast')
@@ -1199,7 +1199,7 @@ class XFParser(Parser):
             self._singleType_()
 
     @tatsumasu()
-    def _unaryExpr_(self):  # noqa
+    def _unaryExpr_(self):
 
         def block0():
             with self._choice():
@@ -1212,11 +1212,11 @@ class XFParser(Parser):
         self._valueExpr_()
 
     @tatsumasu()
-    def _valueExpr_(self):  # noqa
+    def _valueExpr_(self):
         self._pathExpr_()
 
     @tatsumasu()
-    def _generalComp_(self):  # noqa
+    def _generalComp_(self):
         with self._choice():
             with self._option():
                 self._token('=')
@@ -1233,7 +1233,7 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _valueComp_(self):  # noqa
+    def _valueComp_(self):
         with self._choice():
             with self._option():
                 self._token('eq')
@@ -1250,7 +1250,7 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _nodeComp_(self):  # noqa
+    def _nodeComp_(self):
         with self._choice():
             with self._option():
                 self._token('is')
@@ -1261,7 +1261,7 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _pathExpr_(self):  # noqa
+    def _pathExpr_(self):
         with self._choice():
             with self._option():
                 with self._group():
@@ -1277,7 +1277,7 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _relativePathExpr_(self):  # noqa
+    def _relativePathExpr_(self):
         self._stepExpr_()
 
         def block0():
@@ -1292,7 +1292,7 @@ class XFParser(Parser):
         self._closure(block0)
 
     @tatsumasu()
-    def _stepExpr_(self):  # noqa
+    def _stepExpr_(self):
         with self._choice():
             with self._option():
                 self._filterExpr_()
@@ -1301,7 +1301,7 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _axisStep_(self):  # noqa
+    def _axisStep_(self):
         with self._group():
             with self._choice():
                 with self._option():
@@ -1312,7 +1312,7 @@ class XFParser(Parser):
         self._predicateList_()
 
     @tatsumasu()
-    def _forwardStep_(self):  # noqa
+    def _forwardStep_(self):
         with self._choice():
             with self._option():
                 with self._group():
@@ -1323,7 +1323,7 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _forwardAxis_(self):  # noqa
+    def _forwardAxis_(self):
         with self._choice():
             with self._option():
                 with self._group():
@@ -1360,13 +1360,13 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _abbrevForwardStep_(self):  # noqa
+    def _abbrevForwardStep_(self):
         with self._optional():
             self._token('@')
         self._nodeTest_()
 
     @tatsumasu()
-    def _reverseStep_(self):  # noqa
+    def _reverseStep_(self):
         with self._choice():
             with self._option():
                 with self._group():
@@ -1377,7 +1377,7 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _reverseAxis_(self):  # noqa
+    def _reverseAxis_(self):
         with self._choice():
             with self._option():
                 with self._group():
@@ -1402,11 +1402,11 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _abbrevReverseStep_(self):  # noqa
+    def _abbrevReverseStep_(self):
         self._token('..')
 
     @tatsumasu()
-    def _nodeTest_(self):  # noqa
+    def _nodeTest_(self):
         with self._choice():
             with self._option():
                 self._kindTest_()
@@ -1415,7 +1415,7 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _nameTest_(self):  # noqa
+    def _nameTest_(self):
         with self._choice():
             with self._option():
                 self._qname_()
@@ -1424,7 +1424,7 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _wildcard_(self):  # noqa
+    def _wildcard_(self):
         with self._choice():
             with self._option():
                 self._token('*')
@@ -1441,25 +1441,25 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _filterExpr_(self):  # noqa
+    def _filterExpr_(self):
         self._primaryExpr_()
         self._predicateList_()
 
     @tatsumasu()
-    def _predicateList_(self):  # noqa
+    def _predicateList_(self):
 
         def block0():
             self._predicate_()
         self._closure(block0)
 
     @tatsumasu()
-    def _predicate_(self):  # noqa
+    def _predicate_(self):
         self._token('[')
         self._expr_()
         self._token(']')
 
     @tatsumasu()
-    def _primaryExpr_(self):  # noqa
+    def _primaryExpr_(self):
         with self._choice():
             with self._option():
                 self._literal_()
@@ -1474,7 +1474,7 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _literal_(self):  # noqa
+    def _literal_(self):
         with self._choice():
             with self._option():
                 self._numericLiteral_()
@@ -1483,7 +1483,7 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _numericLiteral_(self):  # noqa
+    def _numericLiteral_(self):
         with self._choice():
             with self._option():
                 self._integerLiteral_()
@@ -1494,27 +1494,27 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _varRef_(self):  # noqa
+    def _varRef_(self):
         self._token('$')
         self._varName_()
 
     @tatsumasu()
-    def _varName_(self):  # noqa
+    def _varName_(self):
         self._qname_()
 
     @tatsumasu()
-    def _parenthesizedExpr_(self):  # noqa
+    def _parenthesizedExpr_(self):
         self._token('(')
         with self._optional():
             self._expr_()
         self._token(')')
 
     @tatsumasu()
-    def _contextItemExpr_(self):  # noqa
+    def _contextItemExpr_(self):
         self._token('.')
 
     @tatsumasu()
-    def _functionCall_(self):  # noqa
+    def _functionCall_(self):
         self._qname_()
         self._token('(')
         with self._optional():
@@ -1527,13 +1527,13 @@ class XFParser(Parser):
         self._token(')')
 
     @tatsumasu()
-    def _singleType_(self):  # noqa
+    def _singleType_(self):
         self._atomicType_()
         with self._optional():
             self._token('?')
 
     @tatsumasu()
-    def _sequenceType_(self):  # noqa
+    def _sequenceType_(self):
         with self._choice():
             with self._option():
                 with self._group():
@@ -1548,7 +1548,7 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _occurrenceIndicator_(self):  # noqa
+    def _occurrenceIndicator_(self):
         with self._choice():
             with self._option():
                 self._token('?')
@@ -1559,7 +1559,7 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _itemType_(self):  # noqa
+    def _itemType_(self):
         with self._choice():
             with self._option():
                 self._kindTest_()
@@ -1573,11 +1573,11 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _atomicType_(self):  # noqa
+    def _atomicType_(self):
         self._qname_()
 
     @tatsumasu()
-    def _kindTest_(self):  # noqa
+    def _kindTest_(self):
         with self._choice():
             with self._option():
                 self._documentTest_()
@@ -1600,13 +1600,13 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _anyKindTest_(self):  # noqa
+    def _anyKindTest_(self):
         self._token('node')
         self._token('(')
         self._token(')')
 
     @tatsumasu()
-    def _documentTest_(self):  # noqa
+    def _documentTest_(self):
         self._token('document-node')
         self._token('(')
         with self._optional():
@@ -1619,19 +1619,19 @@ class XFParser(Parser):
         self._token(')')
 
     @tatsumasu()
-    def _textTest_(self):  # noqa
+    def _textTest_(self):
         self._token('text')
         self._token('(')
         self._token(')')
 
     @tatsumasu()
-    def _commentTest_(self):  # noqa
+    def _commentTest_(self):
         self._token('comment')
         self._token('(')
         self._token(')')
 
     @tatsumasu()
-    def _pITest_(self):  # noqa
+    def _pITest_(self):
         self._token('processing-instruction')
         self._token('(')
         with self._optional():
@@ -1644,7 +1644,7 @@ class XFParser(Parser):
         self._token(')')
 
     @tatsumasu()
-    def _attributeTest_(self):  # noqa
+    def _attributeTest_(self):
         self._token('attribute')
         self._token('(')
         with self._optional():
@@ -1655,7 +1655,7 @@ class XFParser(Parser):
         self._token(')')
 
     @tatsumasu()
-    def _attribNameOrWildcard_(self):  # noqa
+    def _attribNameOrWildcard_(self):
         with self._choice():
             with self._option():
                 self._attributeName_()
@@ -1664,18 +1664,18 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _schemaAttributeTest_(self):  # noqa
+    def _schemaAttributeTest_(self):
         self._token('schema-attribute')
         self._token('(')
         self._attributeDeclaration_()
         self._token(')')
 
     @tatsumasu()
-    def _attributeDeclaration_(self):  # noqa
+    def _attributeDeclaration_(self):
         self._attributeName_()
 
     @tatsumasu()
-    def _elementTest_(self):  # noqa
+    def _elementTest_(self):
         self._token('element')
         self._token('(')
         with self._optional():
@@ -1688,7 +1688,7 @@ class XFParser(Parser):
         self._token(')')
 
     @tatsumasu()
-    def _elementNameOrWildcard_(self):  # noqa
+    def _elementNameOrWildcard_(self):
         with self._choice():
             with self._option():
                 self._elementName_()
@@ -1697,34 +1697,34 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _schemaElementTest_(self):  # noqa
+    def _schemaElementTest_(self):
         self._token('schema-element')
         self._token('(')
         self._elementDeclaration_()
         self._token(')')
 
     @tatsumasu()
-    def _elementDeclaration_(self):  # noqa
+    def _elementDeclaration_(self):
         self._elementName_()
 
     @tatsumasu()
-    def _attributeName_(self):  # noqa
+    def _attributeName_(self):
         self._qname_()
 
     @tatsumasu()
-    def _elementName_(self):  # noqa
+    def _elementName_(self):
         self._qname_()
 
     @tatsumasu()
-    def _typeName_(self):  # noqa
+    def _typeName_(self):
         self._qname_()
 
     @tatsumasu()
-    def _integerLiteral_(self):  # noqa
+    def _integerLiteral_(self):
         self._DIGITS_()
 
     @tatsumasu()
-    def _decimalLiteral_(self):  # noqa
+    def _decimalLiteral_(self):
         with self._choice():
             with self._option():
                 with self._group():
@@ -1737,7 +1737,7 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _doubleLiteral_(self):  # noqa
+    def _doubleLiteral_(self):
         with self._group():
             with self._choice():
                 with self._option():
@@ -1753,7 +1753,7 @@ class XFParser(Parser):
         self._DIGITS_()
 
     @tatsumasu()
-    def _stringLiteral_(self):  # noqa
+    def _stringLiteral_(self):
         with self._choice():
             with self._option():
                 with self._group():
@@ -1784,15 +1784,15 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _ESCAPEQUOT_(self):  # noqa
+    def _ESCAPEQUOT_(self):
         self._token('""')
 
     @tatsumasu()
-    def _ESCAPEAPOS_(self):  # noqa
+    def _ESCAPEAPOS_(self):
         self._token("''")
 
     @tatsumasu()
-    def _qname_(self):  # noqa
+    def _qname_(self):
         with self._choice():
             with self._option():
                 with self._group():
@@ -1804,401 +1804,401 @@ class XFParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _ncname_(self):  # noqa
+    def _ncname_(self):
         self._NCNAME_FRAG_()
 
     @tatsumasu()
-    def _NCNAME_FRAG_(self):  # noqa
+    def _NCNAME_FRAG_(self):
         self._pattern(r'([A-Z]|_|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]|[\U00010000-\U000EFFFF])([A-Z]|_|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]|[\U00010000-\U000EFFFF]|-|\.|[0-9]|\u00B7|[\u0300-\u036F]|[\u203F-\u2040])*')
 
     @tatsumasu()
-    def _DIGITS_(self):  # noqa
+    def _DIGITS_(self):
         self._pattern(r'[0-9]+')
 
 
 class XFSemantics(object):
-    def module(self, ast):  # noqa
+    def module(self, ast):
         return ast
 
-    def separator(self, ast):  # noqa
+    def separator(self, ast):
         return ast
 
-    def namespace_declaration(self, ast):  # noqa
+    def namespace_declaration(self, ast):
         return ast
 
-    def default(self, ast):  # noqa
+    def default(self, ast):
         return ast
 
-    def severity(self, ast):  # noqa
+    def severity(self, ast):
         return ast
 
-    def message_severity(self, ast):  # noqa
+    def message_severity(self, ast):
         return ast
 
-    def parameter(self, ast):  # noqa
+    def parameter(self, ast):
         return ast
 
-    def filter_declaration(self, ast):  # noqa
+    def filter_declaration(self, ast):
         return ast
 
-    def filter(self, ast):  # noqa
+    def filter(self, ast):
         return ast
 
-    def concept_filter(self, ast):  # noqa
+    def concept_filter(self, ast):
         return ast
 
-    def general_filter(self, ast):  # noqa
+    def general_filter(self, ast):
         return ast
 
-    def period_filter(self, ast):  # noqa
+    def period_filter(self, ast):
         return ast
 
-    def dimension_filter(self, ast):  # noqa
+    def dimension_filter(self, ast):
         return ast
 
-    def dimension_axis(self, ast):  # noqa
+    def dimension_axis(self, ast):
         return ast
 
-    def unit_filter(self, ast):  # noqa
+    def unit_filter(self, ast):
         return ast
 
-    def entity_filter(self, ast):  # noqa
+    def entity_filter(self, ast):
         return ast
 
-    def match_filter(self, ast):  # noqa
+    def match_filter(self, ast):
         return ast
 
-    def relative_filter(self, ast):  # noqa
+    def relative_filter(self, ast):
         return ast
 
-    def tuple_filter(self, ast):  # noqa
+    def tuple_filter(self, ast):
         return ast
 
-    def value_filter(self, ast):  # noqa
+    def value_filter(self, ast):
         return ast
 
-    def boolean_filter(self, ast):  # noqa
+    def boolean_filter(self, ast):
         return ast
 
-    def aspect_cover_filter(self, ast):  # noqa
+    def aspect_cover_filter(self, ast):
         return ast
 
-    def concept_relation_filter(self, ast):  # noqa
+    def concept_relation_filter(self, ast):
         return ast
 
-    def relation_axis(self, ast):  # noqa
+    def relation_axis(self, ast):
         return ast
 
-    def declared_filter_reference(self, ast):  # noqa
+    def declared_filter_reference(self, ast):
         return ast
 
-    def fact_variable(self, ast):  # noqa
+    def fact_variable(self, ast):
         return ast
 
-    def general_variable(self, ast):  # noqa
+    def general_variable(self, ast):
         return ast
 
-    def function_declaration(self, ast):  # noqa
+    def function_declaration(self, ast):
         return ast
 
-    def assertion(self, ast):  # noqa
+    def assertion(self, ast):
         return ast
 
-    def label(self, ast):  # noqa
+    def label(self, ast):
         return ast
 
-    def message(self, ast):  # noqa
+    def message(self, ast):
         return ast
 
-    def referenced_parameter(self, ast):  # noqa
+    def referenced_parameter(self, ast):
         return ast
 
-    def precondition(self, ast):  # noqa
+    def precondition(self, ast):
         return ast
 
-    def value_expression(self, ast):  # noqa
+    def value_expression(self, ast):
         return ast
 
-    def existence_expression(self, ast):  # noqa
+    def existence_expression(self, ast):
         return ast
 
-    def enclosed_expression(self, ast):  # noqa
+    def enclosed_expression(self, ast):
         return ast
 
-    def name(self, ast):  # noqa
+    def name(self, ast):
         return ast
 
-    def language(self, ast):  # noqa
+    def language(self, ast):
         return ast
 
-    def quoted_anyURI(self, ast):  # noqa
+    def quoted_anyURI(self, ast):
         return ast
 
-    def quoted_url(self, ast):  # noqa
+    def quoted_url(self, ast):
         return ast
 
-    def localname(self, ast):  # noqa
+    def localname(self, ast):
         return ast
 
-    def variable_ref(self, ast):  # noqa
+    def variable_ref(self, ast):
         return ast
 
-    def variable_name(self, ast):  # noqa
+    def variable_name(self, ast):
         return ast
 
-    def non_negative_integer(self, ast):  # noqa
+    def non_negative_integer(self, ast):
         return ast
 
-    def date_time_constant(self, ast):  # noqa
+    def date_time_constant(self, ast):
         return ast
 
-    def date_constant(self, ast):  # noqa
+    def date_constant(self, ast):
         return ast
 
-    def quoted_string(self, ast):  # noqa
+    def quoted_string(self, ast):
         return ast
 
-    def regexp_pattern(self, ast):  # noqa
+    def regexp_pattern(self, ast):
         return ast
 
-    def xPath(self, ast):  # noqa
+    def xPath(self, ast):
         return ast
 
-    def expr(self, ast):  # noqa
+    def expr(self, ast):
         return ast
 
-    def exprSingle(self, ast):  # noqa
+    def exprSingle(self, ast):
         return ast
 
-    def forExpr(self, ast):  # noqa
+    def forExpr(self, ast):
         return ast
 
-    def simpleForClause(self, ast):  # noqa
+    def simpleForClause(self, ast):
         return ast
 
-    def quantifiedExpr(self, ast):  # noqa
+    def quantifiedExpr(self, ast):
         return ast
 
-    def ifExpr(self, ast):  # noqa
+    def ifExpr(self, ast):
         return ast
 
-    def orExpr(self, ast):  # noqa
+    def orExpr(self, ast):
         return ast
 
-    def andExpr(self, ast):  # noqa
+    def andExpr(self, ast):
         return ast
 
-    def comparisonExpr(self, ast):  # noqa
+    def comparisonExpr(self, ast):
         return ast
 
-    def rangeExpr(self, ast):  # noqa
+    def rangeExpr(self, ast):
         return ast
 
-    def additiveExpr(self, ast):  # noqa
+    def additiveExpr(self, ast):
         return ast
 
-    def multiplicativeExpr(self, ast):  # noqa
+    def multiplicativeExpr(self, ast):
         return ast
 
-    def unionExpr(self, ast):  # noqa
+    def unionExpr(self, ast):
         return ast
 
-    def intersectExceptExpr(self, ast):  # noqa
+    def intersectExceptExpr(self, ast):
         return ast
 
-    def instanceofExpr(self, ast):  # noqa
+    def instanceofExpr(self, ast):
         return ast
 
-    def treatExpr(self, ast):  # noqa
+    def treatExpr(self, ast):
         return ast
 
-    def castableExpr(self, ast):  # noqa
+    def castableExpr(self, ast):
         return ast
 
-    def castExpr(self, ast):  # noqa
+    def castExpr(self, ast):
         return ast
 
-    def unaryExpr(self, ast):  # noqa
+    def unaryExpr(self, ast):
         return ast
 
-    def valueExpr(self, ast):  # noqa
+    def valueExpr(self, ast):
         return ast
 
-    def generalComp(self, ast):  # noqa
+    def generalComp(self, ast):
         return ast
 
-    def valueComp(self, ast):  # noqa
+    def valueComp(self, ast):
         return ast
 
-    def nodeComp(self, ast):  # noqa
+    def nodeComp(self, ast):
         return ast
 
-    def pathExpr(self, ast):  # noqa
+    def pathExpr(self, ast):
         return ast
 
-    def relativePathExpr(self, ast):  # noqa
+    def relativePathExpr(self, ast):
         return ast
 
-    def stepExpr(self, ast):  # noqa
+    def stepExpr(self, ast):
         return ast
 
-    def axisStep(self, ast):  # noqa
+    def axisStep(self, ast):
         return ast
 
-    def forwardStep(self, ast):  # noqa
+    def forwardStep(self, ast):
         return ast
 
-    def forwardAxis(self, ast):  # noqa
+    def forwardAxis(self, ast):
         return ast
 
-    def abbrevForwardStep(self, ast):  # noqa
+    def abbrevForwardStep(self, ast):
         return ast
 
-    def reverseStep(self, ast):  # noqa
+    def reverseStep(self, ast):
         return ast
 
-    def reverseAxis(self, ast):  # noqa
+    def reverseAxis(self, ast):
         return ast
 
-    def abbrevReverseStep(self, ast):  # noqa
+    def abbrevReverseStep(self, ast):
         return ast
 
-    def nodeTest(self, ast):  # noqa
+    def nodeTest(self, ast):
         return ast
 
-    def nameTest(self, ast):  # noqa
+    def nameTest(self, ast):
         return ast
 
-    def wildcard(self, ast):  # noqa
+    def wildcard(self, ast):
         return ast
 
-    def filterExpr(self, ast):  # noqa
+    def filterExpr(self, ast):
         return ast
 
-    def predicateList(self, ast):  # noqa
+    def predicateList(self, ast):
         return ast
 
-    def predicate(self, ast):  # noqa
+    def predicate(self, ast):
         return ast
 
-    def primaryExpr(self, ast):  # noqa
+    def primaryExpr(self, ast):
         return ast
 
-    def literal(self, ast):  # noqa
+    def literal(self, ast):
         return ast
 
-    def numericLiteral(self, ast):  # noqa
+    def numericLiteral(self, ast):
         return ast
 
-    def varRef(self, ast):  # noqa
+    def varRef(self, ast):
         return ast
 
-    def varName(self, ast):  # noqa
+    def varName(self, ast):
         return ast
 
-    def parenthesizedExpr(self, ast):  # noqa
+    def parenthesizedExpr(self, ast):
         return ast
 
-    def contextItemExpr(self, ast):  # noqa
+    def contextItemExpr(self, ast):
         return ast
 
-    def functionCall(self, ast):  # noqa
+    def functionCall(self, ast):
         return ast
 
-    def singleType(self, ast):  # noqa
+    def singleType(self, ast):
         return ast
 
-    def sequenceType(self, ast):  # noqa
+    def sequenceType(self, ast):
         return ast
 
-    def occurrenceIndicator(self, ast):  # noqa
+    def occurrenceIndicator(self, ast):
         return ast
 
-    def itemType(self, ast):  # noqa
+    def itemType(self, ast):
         return ast
 
-    def atomicType(self, ast):  # noqa
+    def atomicType(self, ast):
         return ast
 
-    def kindTest(self, ast):  # noqa
+    def kindTest(self, ast):
         return ast
 
-    def anyKindTest(self, ast):  # noqa
+    def anyKindTest(self, ast):
         return ast
 
-    def documentTest(self, ast):  # noqa
+    def documentTest(self, ast):
         return ast
 
-    def textTest(self, ast):  # noqa
+    def textTest(self, ast):
         return ast
 
-    def commentTest(self, ast):  # noqa
+    def commentTest(self, ast):
         return ast
 
-    def pITest(self, ast):  # noqa
+    def pITest(self, ast):
         return ast
 
-    def attributeTest(self, ast):  # noqa
+    def attributeTest(self, ast):
         return ast
 
-    def attribNameOrWildcard(self, ast):  # noqa
+    def attribNameOrWildcard(self, ast):
         return ast
 
-    def schemaAttributeTest(self, ast):  # noqa
+    def schemaAttributeTest(self, ast):
         return ast
 
-    def attributeDeclaration(self, ast):  # noqa
+    def attributeDeclaration(self, ast):
         return ast
 
-    def elementTest(self, ast):  # noqa
+    def elementTest(self, ast):
         return ast
 
-    def elementNameOrWildcard(self, ast):  # noqa
+    def elementNameOrWildcard(self, ast):
         return ast
 
-    def schemaElementTest(self, ast):  # noqa
+    def schemaElementTest(self, ast):
         return ast
 
-    def elementDeclaration(self, ast):  # noqa
+    def elementDeclaration(self, ast):
         return ast
 
-    def attributeName(self, ast):  # noqa
+    def attributeName(self, ast):
         return ast
 
-    def elementName(self, ast):  # noqa
+    def elementName(self, ast):
         return ast
 
-    def typeName(self, ast):  # noqa
+    def typeName(self, ast):
         return ast
 
-    def integerLiteral(self, ast):  # noqa
+    def integerLiteral(self, ast):
         return ast
 
-    def decimalLiteral(self, ast):  # noqa
+    def decimalLiteral(self, ast):
         return ast
 
-    def doubleLiteral(self, ast):  # noqa
+    def doubleLiteral(self, ast):
         return ast
 
-    def stringLiteral(self, ast):  # noqa
+    def stringLiteral(self, ast):
         return ast
 
-    def ESCAPEQUOT(self, ast):  # noqa
+    def ESCAPEQUOT(self, ast):
         return ast
 
-    def ESCAPEAPOS(self, ast):  # noqa
+    def ESCAPEAPOS(self, ast):
         return ast
 
-    def qname(self, ast):  # noqa
+    def qname(self, ast):
         return ast
 
-    def ncname(self, ast):  # noqa
+    def ncname(self, ast):
         return ast
 
-    def NCNAME_FRAG(self, ast):  # noqa
+    def NCNAME_FRAG(self, ast):
         return ast
 
-    def DIGITS(self, ast):  # noqa
+    def DIGITS(self, ast):
         return ast
 
 

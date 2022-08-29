@@ -44,4 +44,3 @@ def setupLinkrole(view, linkrole):
 
     view.periodKeys = list(view.periodContexts.keys())
     view.periodKeys.sort()
-

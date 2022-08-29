@@ -1056,4 +1056,3 @@ class ValidateXbrl:
     def executeCallTest(self, modelXbrl, name, callTuple, testTuple):
         self.modelXbrl = modelXbrl
         ValidateFormula.executeCallTest(self, name, callTuple, testTuple)
-

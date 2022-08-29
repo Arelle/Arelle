@@ -508,4 +508,3 @@ class DialogOpenArchive(Toplevel):
         else:
             self.toolTipText.set("")
             self.toolTip.configure(state="disabled")
-

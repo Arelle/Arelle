@@ -721,4 +721,3 @@ class InvalidValue(str):
         return str.__new__(cls, value)
 
 INVALIDixVALUE = InvalidValue("(ixTransformValueError)")
-
