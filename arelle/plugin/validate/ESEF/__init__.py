@@ -1032,7 +1032,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     checkMonetaryUnits(rootConcept, relSet, set())
             if pfsConceptsRootInELR and (len(pfsConceptsRootInELR) + len(nonPfsConceptsRootInELR) ) > 1:
                 roots = pfsConceptsRootInELR | nonPfsConceptsRootInELR
-                modelXbrl.warning("ESEF.3.4.7.singleExtendedLinkRoleUsedForAllPFSs",
+                modelXbrl.error("ESEF.3.4.7.singleExtendedLinkRoleUsedForAllPFSs",
                     _("Separate Extended Link Roles are required by %(elr)s for hierarchies: %(roots)s."),
                     modelObject=roots, elr=modelXbrl.roleTypeDefinition(ELR), roots=", ".join(sorted((str(c.qname) for c in roots))))
 
