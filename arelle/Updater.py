@@ -48,49 +48,48 @@ def backgroundCheckForUpdates(cntlr: CntlrWinMain) -> None:
     cntlr.showStatus(_("Checking for updates to Arelle"))
     try:
         attachmentFileName = cntlr.webCache.getAttachmentFilename(cntlr.updateURL)
-        if attachmentFileName:
-            cntlr.showStatus("")  # clear web loading status entry
-            cntlr.uiThreadQueue.put((checkUpdateUrl, [cntlr, attachmentFileName]))
-    except:
-        pass
-    cntlr.showStatus("")  # clear web loading status entry
+    except RuntimeError as e:
+        _showWarning(
+            cntlr,
+            _("Failed to check for updates. URL {0}, {1}").format(cntlr.updateURL, e),
+        )
+        return
+    finally:
+        cntlr.showStatus("")  # clear web loading status entry
+    cntlr.uiThreadQueue.put((checkUpdateUrl, [cntlr, attachmentFileName]))
 
 
 def checkUpdateUrl(cntlr: CntlrWinMain, attachmentFileName: str) -> None:
-    # get latest header file
-    try:
-        filename = os.path.basename(attachmentFileName)
-        if filename and "-20" in filename:
-            i = filename.index("-20") + 1
-            filenameDate = filename[i : i + 10]
-            versionDate = Version.version[0:10]
-            if filenameDate > versionDate:
-                # newer
-                reply = tkinter.messagebox.askokcancel(
-                    _(_MESSAGE_HEADER),
-                    _(
-                        "Update {0} is available, running version is {1}.  \n\nDownload now?    \n\n(Arelle will exit before installing.)"
-                    ).format(filenameDate, versionDate),
-                    parent=cntlr.parent,
+    filename = os.path.basename(attachmentFileName)
+    if filename and "-20" in filename:
+        i = filename.index("-20") + 1
+        filenameDate = filename[i : i + 10]
+        versionDate = Version.version[0:10]
+        if filenameDate > versionDate:
+            # newer
+            reply = tkinter.messagebox.askokcancel(
+                _(_MESSAGE_HEADER),
+                _(
+                    "Update {0} is available, running version is {1}.  \n\nDownload now?    \n\n(Arelle will exit before installing.)"
+                ).format(filenameDate, versionDate),
+                parent=cntlr.parent,
+            )
+            if reply:
+                thread = threading.Thread(
+                    target=lambda u=attachmentFileName: backgroundDownload(cntlr, u)
                 )
-                if reply:
-                    thread = threading.Thread(
-                        target=lambda u=attachmentFileName: backgroundDownload(cntlr, u)
-                    )
-                    thread.daemon = True
-                    thread.start()
+                thread.daemon = True
+                thread.start()
+        else:
+            if filenameDate < versionDate:
+                msg = _(
+                    "Arelle running version, {0}, is newer than the downloadable version, {1}."
+                ).format(versionDate, filenameDate)
             else:
-                if filenameDate < versionDate:
-                    msg = _(
-                        "Arelle running version, {0}, is newer than the downloadable version, {1}."
-                    ).format(versionDate, filenameDate)
-                else:
-                    msg = _(
-                        "Arelle running version, {0}, is the same as the downloadable version."
-                    ).format(versionDate)
-                _showInfo(cntlr, msg)
-    except:
-        pass
+                msg = _(
+                    "Arelle running version, {0}, is the same as the downloadable version."
+                ).format(versionDate)
+            _showInfo(cntlr, msg)
 
 
 def backgroundDownload(cntlr: CntlrWinMain, url: str) -> None:
@@ -98,9 +97,13 @@ def backgroundDownload(cntlr: CntlrWinMain, url: str) -> None:
     if not filepathTmp:
         _showWarning(cntlr, _("Failed to download update."))
         return
-    cntlr.modelManager.showStatus(_("Download completed"), 5000)
+    cntlr.showStatus(_("Download completed"), 5000)
     filepath = os.path.join(os.path.dirname(filepathTmp), os.path.basename(url))
-    os.rename(filepathTmp, filepath)
+    try:
+        os.rename(filepathTmp, filepath)
+    except OSError:
+        _showWarning(cntlr, _("Failed to process update."))
+        return
     cntlr.uiThreadQueue.put((install, [cntlr, filepath]))
 
 
@@ -114,8 +117,9 @@ def install(cntlr: CntlrWinMain, filepath: str) -> None:
             command = "xdg-open"
         try:
             subprocess.Popen([command, filepath])
-        except:
-            pass
+        except (OSError, subprocess.SubprocessError):
+            _showWarning(cntlr, _("Failed to start updated Arelle instance."))
+            return
     cntlr.uiThreadQueue.put((cntlr.quit, []))
 
 

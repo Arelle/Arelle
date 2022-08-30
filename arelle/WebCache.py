@@ -646,14 +646,12 @@ class WebCache:
                 pass
         return None
 
-    def getAttachmentFilename(self, url: str) -> str | None:  # get the filename attachment from the header
-        if url and isHttpUrl(url):
-            try:
-                fp = self.opener.open(url, timeout=self.timeout)
-                return cgi.parse_header(fp.headers.get("Content-Disposition"))[1]["filename"]
-            except Exception:
-                pass
-        return None
+    def getAttachmentFilename(self, url: str) -> str:  # get the filename attachment from the header
+        try:
+            fp = self.opener.open(url, timeout=self.timeout)
+            return cgi.parse_header(fp.headers.get("Content-Disposition"))[1]["filename"]
+        except (URLError, IndexError, KeyError) as e:
+            raise RuntimeError(f"Unable to to retrieve filename from headers for {url}") from e
 
     def retrieve(self, url, filename=None, filestream=None, reporthook=None, data=None):
         # return filename, headers (in dict), initial file bytes (to detect logon requests)
