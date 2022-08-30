@@ -8,9 +8,13 @@ from __future__ import annotations
 
 import gettext
 import os
+import subprocess
+import sys
 import threading
 import tkinter.messagebox
 import typing
+
+from arelle import Version
 
 if typing.TYPE_CHECKING:
     from arelle.CntlrWinMain import CntlrWinMain
@@ -23,8 +27,6 @@ _MESSAGE_HEADER = "arelle\u2122 - Updater"
 def checkForUpdates(cntlr: CntlrWinMain) -> None:
     if not cntlr.webCache.workOffline:
         # check for updates in background
-        import threading
-
         thread = threading.Thread(target=lambda c=cntlr: backgroundCheckForUpdates(c))
         thread.daemon = True
         thread.start()
@@ -45,8 +47,6 @@ def backgroundCheckForUpdates(cntlr: CntlrWinMain) -> None:
 def checkUpdateUrl(cntlr: CntlrWinMain, attachmentFileName: str) -> None:
     # get latest header file
     try:
-        from arelle import WebCache, Version
-
         filename = os.path.basename(attachmentFileName)
         if filename and "-20" in filename:
             i = filename.index("-20") + 1
@@ -93,8 +93,6 @@ def backgroundDownload(cntlr: CntlrWinMain, url: str) -> None:
 
 
 def install(cntlr: CntlrWinMain, filepath: str) -> None:
-    import sys
-
     if sys.platform.startswith("win"):
         os.startfile(filepath)
     else:
@@ -103,8 +101,6 @@ def install(cntlr: CntlrWinMain, filepath: str) -> None:
         else:  # linux/unix
             command = "xdg-open"
         try:
-            import subprocess
-
             subprocess.Popen([command, filepath])
         except:
             pass
