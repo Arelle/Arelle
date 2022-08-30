@@ -22,7 +22,7 @@ classifiers = [
     'Operating System :: OS Independent',
     'Topic :: Text Processing :: Markup :: XML'
 ]
-requires-python = ">=3.7.0"
+requires-python = ">=3.7,<3.10"
 dependencies    = [
     'isodate==0.*',
     'lxml==4.*',
