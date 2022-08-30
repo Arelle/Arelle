@@ -12,10 +12,7 @@ except ImportError:
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UiUtil import checkbox, gridCombobox
 import sys
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 
 '''
 caller checks accepted, if True, caller retrieves url

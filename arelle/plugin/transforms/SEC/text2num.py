@@ -25,7 +25,7 @@
 #
 # HF: 2019-02-07 modified word split pattern for transformation dash pattern
 
-import re
+import regex as re
 
 Small = {
     'zero': 0,

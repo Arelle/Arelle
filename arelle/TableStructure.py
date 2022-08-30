@@ -4,10 +4,7 @@ Created on Feb 02, 2014
 @author: Mark V Systems Limited
 (c) Copyright 2014 Mark V Systems Limited, All rights reserved.
 '''
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 from collections import defaultdict
 import os, io, json
 from datetime import datetime, timedelta

@@ -6,10 +6,7 @@ It also provides an error code when a testcase variation does not load any iXBRL
 
 (c) Copyright 2019 Mark V Systems Limited, All rights reserved.
 '''
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 from arelle.ModelDocument import Type
 from arelle.XhtmlValidate import htmlEltUriAttrs, resolveHtmlUri
 

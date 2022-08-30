@@ -4,7 +4,7 @@ Created on Oct 05, 2012
 @author: Mark V Systems Limited
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
-import re
+import regex as re
 from collections import defaultdict
 from arelle import (ModelDocument, ModelValue,
                 ModelRelationshipSet, XmlUtil, XbrlConst)

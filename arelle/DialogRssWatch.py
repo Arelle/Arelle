@@ -11,10 +11,7 @@ except ImportError:
     from ttk import Frame, Button
 import tkinter.filedialog
 import os
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 from arelle.ModelValue import dateTime
 from arelle import XmlUtil
 from arelle.UiUtil import gridCell, gridCombobox, label, checkbox
