@@ -58,10 +58,13 @@ version = {file = "arelle/VERSION"}
 readme = {file = ["README.md"]}
 
 [project.urls]
-"Source Code" = "https://github.com/Arelle/Arelle"
-"Bug Reports" = "https://github.com/Arelle/Arelle/issues"
-"Blog"        = "https://arelle.org/arelle/blog/"
-"Docs"        = "https://arelle.org/arelle/"
+"Homepage" = "https://arelle.org/"
+"Downloads" = "https://arelle.org/arelle/pub/"
+"Documentation" = "https://arelle.org/arelle/documentation/"
+"Blog" = "https://arelle.org/arelle/blog/"
+"Source Code" = "https://github.com/Arelle/Arelle/"
+"Bug Reports" = "https://github.com/Arelle/Arelle/issues/"
+"Support" = "https://groups.google.com/g/arelle-users/"
 
 [tool.setuptools]
 platforms = ["any"]
