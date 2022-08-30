@@ -25,8 +25,7 @@ _MESSAGE_HEADER = "arelle\u2122 - Updater"
 
 
 def checkForUpdates(cntlr: CntlrWinMain) -> None:
-    thread = threading.Thread(target=lambda c=cntlr: backgroundCheckForUpdates(c))
-    thread.daemon = True
+    thread = threading.Thread(daemon=True, target=lambda c=cntlr: backgroundCheckForUpdates(c))
     thread.start()
 
 
@@ -76,9 +75,9 @@ def checkUpdateUrl(cntlr: CntlrWinMain, attachmentFileName: str) -> None:
             )
             if reply:
                 thread = threading.Thread(
+                    daemon=True,
                     target=lambda u=attachmentFileName: backgroundDownload(cntlr, u)
                 )
-                thread.daemon = True
                 thread.start()
         else:
             if filenameDate < versionDate:
