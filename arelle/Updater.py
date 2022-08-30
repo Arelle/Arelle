@@ -25,14 +25,26 @@ _MESSAGE_HEADER = "arelle\u2122 - Updater"
 
 
 def checkForUpdates(cntlr: CntlrWinMain) -> None:
-    if not cntlr.webCache.workOffline:
-        # check for updates in background
-        thread = threading.Thread(target=lambda c=cntlr: backgroundCheckForUpdates(c))
-        thread.daemon = True
-        thread.start()
+    thread = threading.Thread(target=lambda c=cntlr: backgroundCheckForUpdates(c))
+    thread.daemon = True
+    thread.start()
 
 
 def backgroundCheckForUpdates(cntlr: CntlrWinMain) -> None:
+    if cntlr.updateURL is None:
+        _showInfo(
+            cntlr,
+            _(
+                """
+                Operating system not supported by update checker.
+                Please go to arelle.org to check for updates.
+                """
+            ),
+        )
+        return
+    if cntlr.webCache.workOffline:
+        _showInfo(cntlr, _("Disable offline mode to check for updates."))
+        return
     cntlr.showStatus(_("Checking for updates to Arelle"))
     try:
         attachmentFileName = cntlr.webCache.getAttachmentFilename(cntlr.updateURL)
