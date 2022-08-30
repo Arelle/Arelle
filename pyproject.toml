@@ -23,6 +23,35 @@ classifiers = [
     'Topic :: Text Processing :: Markup :: XML'
 ]
 requires-python = ">=3.7.0"
+dependencies    = [
+    'isodate==0.*',
+    'lxml==4.*',
+    'numpy==1.*',
+    'openpyxl==2.*',
+    'regex==2022.*',
+]
+
+[project.optional-dependencies]
+Crypto          = [
+    'pycryptodome==3.*',
+]
+DB              = [
+    'pg8000==1.*',
+    'PyMySQL==1.*',
+    'pyodbc==4.*',
+    'rdflib==5.*',
+]
+EFM             = [
+    'holidays==0.*',
+]
+ObjectMaker     = [
+    'graphviz==0.*',
+]
+WebServer       = [
+    'cheroot==8.*',
+    'CherryPy==18.*',
+    'tornado==6.*',
+]
 
 [tool.setuptools.dynamic]
 version = {file = "arelle/VERSION"}

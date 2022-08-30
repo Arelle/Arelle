@@ -261,9 +261,6 @@ setup(
         ],
     },
     extras_require={
-        'Crypto': [
-            'pycryptodome==3.*',
-        ],
         'DB': [
             'pg8000==1.*',
             'PyMySQL==1.*',
@@ -282,13 +279,6 @@ setup(
             'tornado==6.*',
         ],
     },
-    install_requires=[
-        'isodate==0.*',
-        'lxml==4.*',
-        'numpy==1.*',
-        'openpyxl==2.*',
-        'regex==2022.*',
-    ],
     options=options,
     executables=cx_freeze_executables,
 )
