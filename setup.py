@@ -260,25 +260,6 @@ setup(
             'arelle-gui=arelle.CntlrWinMain:main',
         ],
     },
-    extras_require={
-        'DB': [
-            'pg8000==1.*',
-            'PyMySQL==1.*',
-            'pyodbc==4.*',
-            'rdflib==5.*',
-        ],
-        'EFM': [
-            'holidays==0.*',
-        ],
-        'ObjectMaker': [
-            'graphviz==0.*',
-        ],
-        'WebServer': [
-            'cheroot==8.*',
-            'CherryPy==18.*',
-            'tornado==6.*',
-        ],
-    },
     options=options,
     executables=cx_freeze_executables,
 )
