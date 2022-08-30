@@ -249,6 +249,7 @@ else:
 
 timestamp = datetime.datetime.utcnow()
 setup(
+    version=get_version(),
     include_package_data=True,
     packages=packages,
     data_files=data_files,
