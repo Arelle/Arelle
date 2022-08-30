@@ -4,18 +4,16 @@ on:
   workflow_dispatch:
     inputs:
       edgar_renderer_ref:
-        default: master
-        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout'
-        required: true
+        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+        required: false
         type: string
       ixbrl_viewer_ref:
-        default: master
-        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout'
-        required: true
+        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
+        required: false
         type: string
       node_version:
         default: lts/*
-        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout'
+        description: 'Node.js version to use'
         required: true
         type: string
       python_version:
@@ -29,9 +27,8 @@ on:
         required: true
         type: string
       xule_ref:
-        default: master
-        description: 'xbrlus/xule branch, tag or SHA to checkout'
-        required: true
+        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
+        required: false
         type: string
 
 jobs:
