@@ -3,14 +3,14 @@ requires = ["setuptools~=62.3", "wheel~=0.37.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name        = "arelle-release"
-readme      = "README.md"
-license     = {text = "Apache-2.0"}
+name = "arelle-release"
+readme = "README.md"
+license = {text = "Apache-2.0"}
 description = "An open source XBRL platform."
-authors     = [
+authors = [
     {name = "arelle.org", email = "support@arelle.org"}
 ]
-keywords    = ["xbrl"]
+keywords = ["xbrl"]
 classifiers = [
     'Development Status :: 5 - Production/Stable',
     'Intended Audience :: End Users/Desktop',
@@ -23,7 +23,7 @@ classifiers = [
     'Topic :: Text Processing :: Markup :: XML'
 ]
 requires-python = ">=3.7,<3.10"
-dependencies    = [
+dependencies = [
     'isodate==0.*',
     'lxml==4.*',
     'numpy==1.*',
@@ -32,22 +32,22 @@ dependencies    = [
 ]
 
 [project.optional-dependencies]
-Crypto          = [
+Crypto = [
     'pycryptodome==3.*',
 ]
-DB              = [
+DB = [
     'pg8000==1.*',
     'PyMySQL==1.*',
     'pyodbc==4.*',
     'rdflib==5.*',
 ]
-EFM             = [
+EFM = [
     'holidays==0.*',
 ]
-ObjectMaker     = [
+ObjectMaker = [
     'graphviz==0.*',
 ]
-WebServer       = [
+WebServer = [
     'cheroot==8.*',
     'CherryPy==18.*',
     'tornado==6.*',
