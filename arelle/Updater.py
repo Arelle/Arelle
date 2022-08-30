@@ -54,15 +54,13 @@ def checkUpdateUrl(cntlr: CntlrWinMain, attachmentFileName: str) -> None:
             versionDate = Version.version[0:10]
             if filenameDate > versionDate:
                 # newer
-                reply = tkinter.messagebox.askyesnocancel(
+                reply = tkinter.messagebox.askokcancel(
                     _(_MESSAGE_HEADER),
                     _(
                         "Update {0} is available, running version is {1}.  \n\nDownload now?    \n\n(Arelle will exit before installing.)"
                     ).format(filenameDate, versionDate),
                     parent=cntlr.parent,
                 )
-                if reply is None:
-                    return
                 if reply:
                     thread = threading.Thread(
                         target=lambda u=attachmentFileName: backgroundDownload(cntlr, u)
