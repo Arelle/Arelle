@@ -1,6 +1,38 @@
 name: Build for Linux
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      edgar_renderer_ref:
+        default: master
+        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout'
+        required: true
+        type: string
+      ixbrl_viewer_ref:
+        default: master
+        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout'
+        required: true
+        type: string
+      node_version:
+        default: lts/*
+        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout'
+        required: true
+        type: string
+      python_version:
+        default: 3.9.13
+        description: 'Python version to use'
+        required: true
+        type: string
+      tcltk_version:
+        default: 8.6.12
+        description: 'tcl/tk version to use'
+        required: true
+        type: string
+      xule_ref:
+        default: master
+        description: 'xbrlus/xule branch, tag or SHA to checkout'
+        required: true
+        type: string
 
 jobs:
   build-linux:
@@ -21,6 +53,7 @@ jobs:
         with:
           repository: Arelle/EdgarRenderer
           path: arelle/plugin/EdgarRenderer
+          ref: ${{ inputs.edgar_renderer_ref }}
       - name: Cleanup EdgarRenderer
         run: rm -rf arelle/plugin/EdgarRenderer/.git
       - name: Checkout XULE
@@ -28,6 +61,7 @@ jobs:
         with:
           repository: xbrlus/xule
           path: xule
+          ref: ${{ inputs.xule_ref }}
       - name: Move XULE plugins
         run: |
           mv xule/plugin/validate/* arelle/plugin/validate/
@@ -40,10 +74,11 @@ jobs:
         with:
           repository: Workiva/ixbrl-viewer
           path: ixbrl-viewer
+          ref: ${{ inputs.ixbrl_viewer_ref }}
       - name: Set up Node JS
         uses: actions/setup-node@v3.4.1
         with:
-          node-version: lts/*
+          node-version: ${{ inputs.node_version }}
       - name: Build ixbrl-viewer
         working-directory: ixbrl-viewer
         run: |
@@ -65,8 +100,8 @@ jobs:
         uses: docker/build-push-action@v3.1.1
         with:
           build-args: |
-            "PYTHON_VERSION=3.9.13"
-            "TCLTK_VERSION=8.6.12"
+            "PYTHON_VERSION=${{ inputs.python_version }}"
+            "TCLTK_VERSION=${{ inputs.tcltk_version }}"
           context: .
           file: docker/${{ matrix.distro }}.Dockerfile
           load: true
