@@ -35,7 +35,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: [${{ inputs.python_version }}]
+        python-version: ['${{ inputs.python_version }}']
 
     permissions:
       contents: write
