@@ -8,6 +8,8 @@ import os
 import threading
 import tkinter.messagebox
 
+_MESSAGE_HEADER = "arelle\u2122 - Updater"
+
 
 def checkForUpdates(cntlr):
     if not cntlr.webCache.workOffline:
@@ -44,7 +46,7 @@ def checkUpdateUrl(cntlr, attachmentFileName):
             if filenameDate > versionDate:
                 # newer
                 reply = tkinter.messagebox.askyesnocancel(
-                    _("arelle\u2122 - Updater"),
+                    _(_MESSAGE_HEADER),
                     _(
                         "Update {0} is available, running version is {1}.  \n\nDownload now?    \n\n(Arelle will exit before installing.)"
                     ).format(filenameDate, versionDate),
@@ -67,18 +69,19 @@ def checkUpdateUrl(cntlr, attachmentFileName):
                     msg = _(
                         "Arelle running version, {0}, is the same as the downloadable version."
                     ).format(versionDate)
-                tkinter.messagebox.showwarning(
-                    _("arelle\u2122 - Updater"), msg, parent=cntlr.parent
-                )
+                _showInfo(cntlr, msg)
     except:
         pass
 
 
 def backgroundDownload(cntlr, url):
-    filepathtmp = cntlr.webCache.getfilename(cntlr.updateURL, reload=True)
+    filepathTmp = cntlr.webCache.getfilename(cntlr.updateURL, reload=True)
+    if not filepathTmp:
+        _showWarning(cntlr, _("Failed to download update."))
+        return
     cntlr.modelManager.showStatus(_("Download completed"), 5000)
-    filepath = os.path.join(os.path.dirname(filepathtmp), os.path.basename(url))
-    os.rename(filepathtmp, filepath)
+    filepath = os.path.join(os.path.dirname(filepathTmp), os.path.basename(url))
+    os.rename(filepathTmp, filepath)
     cntlr.uiThreadQueue.put((install, [cntlr, filepath]))
 
 
@@ -99,3 +102,11 @@ def install(cntlr, filepath):
         except:
             pass
     cntlr.uiThreadQueue.put((cntlr.quit, []))
+
+
+def _showInfo(cntlr, msg):
+    tkinter.messagebox.showinfo(_(_MESSAGE_HEADER), msg, parent=cntlr.parent)
+
+
+def _showWarning(cntlr, msg):
+    tkinter.messagebox.showwarning(_(_MESSAGE_HEADER), msg, parent=cntlr.parent)
