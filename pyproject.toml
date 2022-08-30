@@ -53,10 +53,6 @@ WebServer = [
     'tornado==6.*',
 ]
 
-[tool.setuptools.dynamic]
-version = {file = "arelle/VERSION"}
-readme = {file = ["README.md"]}
-
 [project.urls]
 "Homepage" = "https://arelle.org/"
 "Downloads" = "https://arelle.org/arelle/pub/"
