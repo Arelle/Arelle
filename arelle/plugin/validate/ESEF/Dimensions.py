@@ -16,7 +16,7 @@ from arelle.PrototypeDtsObject import PrototypeObject
 from arelle import XbrlConst
 from .Const import LineItemsNotQualifiedLinkrole, DefaultDimensionLinkroles
 from .Util import isExtension, isInEsefTaxonomy
-import regex as re  # type: ignore[no-redef]
+import regex as re
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.ModelDtsObject import ModelConcept
 from arelle.typing import TypeGetText

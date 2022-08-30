@@ -44,7 +44,7 @@ Client with curl:
 '''
 from __future__ import annotations
 import os, base64
-import regex as re  # type: ignore[no-redef]
+import regex as re
 from collections import defaultdict
 from math import isnan
 from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, EntityBase, _Element
