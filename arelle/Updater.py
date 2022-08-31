@@ -31,13 +31,11 @@ _ISO_DATE_PATTERN = regex.compile(
 
 
 def checkForUpdates(cntlr: CntlrWinMain) -> None:
-    thread = threading.Thread(
-        daemon=True, target=lambda c=cntlr: backgroundCheckForUpdates(c)
-    )
+    thread = threading.Thread(daemon=True, target=lambda c=cntlr: _checkForUpdates(c))
     thread.start()
 
 
-def backgroundCheckForUpdates(cntlr: CntlrWinMain) -> None:
+def _checkForUpdates(cntlr: CntlrWinMain) -> None:
     if cntlr.updateURL is None:
         _showInfo(
             cntlr,
@@ -63,10 +61,10 @@ def backgroundCheckForUpdates(cntlr: CntlrWinMain) -> None:
         return
     finally:
         cntlr.showStatus("")  # clear web loading status entry
-    cntlr.uiThreadQueue.put((checkUpdateUrl, [cntlr, attachmentFileName]))
+    cntlr.uiThreadQueue.put((_checkUpdateUrl, [cntlr, attachmentFileName]))
 
 
-def checkUpdateUrl(cntlr: CntlrWinMain, attachmentFileName: str) -> None:
+def _checkUpdateUrl(cntlr: CntlrWinMain, attachmentFileName: str) -> None:
     filename = os.path.basename(attachmentFileName)
     try:
         currentVersion = _parseVersion(Version.version)
@@ -94,8 +92,7 @@ def checkUpdateUrl(cntlr: CntlrWinMain, attachmentFileName: str) -> None:
         )
         if reply:
             thread = threading.Thread(
-                daemon=True,
-                target=lambda u=attachmentFileName: backgroundDownload(cntlr, u),
+                daemon=True, target=lambda u=attachmentFileName: _download(cntlr, u)
             )
             thread.start()
     elif updateVersion < currentVersion:
@@ -121,7 +118,7 @@ def _parseVersion(versionStr: str) -> date:
     return date.fromisoformat(versionDateMatch.group("date"))
 
 
-def backgroundDownload(cntlr: CntlrWinMain, url: str) -> None:
+def _download(cntlr: CntlrWinMain, url: str) -> None:
     filepathTmp = cntlr.webCache.getfilename(cntlr.updateURL, reload=True)
     if not filepathTmp:
         _showWarning(cntlr, _("Failed to download update."))
@@ -133,10 +130,10 @@ def backgroundDownload(cntlr: CntlrWinMain, url: str) -> None:
     except OSError:
         _showWarning(cntlr, _("Failed to process update."))
         return
-    cntlr.uiThreadQueue.put((install, [cntlr, filepath]))
+    cntlr.uiThreadQueue.put((_install, [cntlr, filepath]))
 
 
-def install(cntlr: CntlrWinMain, filepath: str) -> None:
+def _install(cntlr: CntlrWinMain, filepath: str) -> None:
     if sys.platform.startswith("win"):
         os.startfile(filepath)
     else:
