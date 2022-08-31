@@ -4,6 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arelle-release"
+dynamic = ['version']
 readme = "README.md"
 license = {text = "Apache-2.0"}
 description = "An open source XBRL platform."
@@ -30,6 +31,9 @@ dependencies = [
     'openpyxl==2.*',
     'regex==2022.*',
 ]
+
+[tool.setuptools.dynamic]
+version = {attr = "arelle.Version.__version__"}
 
 [project.optional-dependencies]
 Crypto = [
