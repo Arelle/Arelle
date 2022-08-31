@@ -10,7 +10,7 @@ from arelle.ModelObject import ModelObject
 from arelle.PythonUtil import flattenSequence
 from arelle.XmlUtil import xmlstring, descendantAttr
 from arelle import XbrlConst, XmlUtil
-import re
+import regex as re
 from collections import defaultdict
 from decimal import Decimal
 

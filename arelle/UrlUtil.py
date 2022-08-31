@@ -6,10 +6,7 @@ Created on Oct 22, 2010
 '''
 from __future__ import annotations
 import os, sys
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 if sys.version[0] >= '3':
     from urllib.request import pathname2url
     from urllib.parse import urldefrag, unquote, quote, urljoin

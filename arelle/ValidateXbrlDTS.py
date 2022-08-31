@@ -13,10 +13,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.XhtmlValidate import ixMsgCode
 from lxml import etree
 from collections import defaultdict
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 
 instanceSequence = {"schemaRef":1, "linkbaseRef":2, "roleRef":3, "arcroleRef":4}
 schemaTop = {"import", "include", "redefine"}

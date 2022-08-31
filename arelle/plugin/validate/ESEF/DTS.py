@@ -12,10 +12,7 @@ Taxonomy package expected to be installed:
 '''
 from __future__ import annotations
 import unicodedata
-try:
-    import regex as re
-except ImportError:
-    import re  # type: ignore[no-redef]
+import regex as re
 from collections import defaultdict
 from arelle import XbrlConst, ModelDocument as ModelDocumentFile
 from arelle.ModelDtsObject import ModelConcept, ModelType

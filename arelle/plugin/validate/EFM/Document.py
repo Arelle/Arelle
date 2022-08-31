@@ -4,7 +4,7 @@ Created on Dec 12, 2013
 @author: Mark V Systems Limited
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
-import re
+import regex as re
 from arelle import ModelDocument, UrlUtil, XbrlConst, XmlUtil
 from arelle.ModelObject import ModelObject
 from arelle.ValidateXbrlDTS import arcFromConceptQname, arcToConceptQname

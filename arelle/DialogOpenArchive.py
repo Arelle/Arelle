@@ -11,10 +11,7 @@ except ImportError:
     from ttk import Frame, Button, Treeview, Scrollbar
 import os, sys
 from collections import defaultdict
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 from arelle.Cntlr import Cntlr
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UrlUtil import isHttpUrl

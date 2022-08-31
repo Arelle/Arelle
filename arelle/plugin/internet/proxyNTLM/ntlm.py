@@ -21,7 +21,7 @@ except ValueError:
 import hashlib
 import hmac
 import random
-import re
+import regex as re
 import binascii
 from socket import gethostname
 
