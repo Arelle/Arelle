@@ -4,7 +4,7 @@ Created on Oct 05, 2012
 @author: Mark V Systems Limited
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
-import re
+import regex as re
 
 def checkForBOMs(modelXbrl, file, mappedUri, filepath, *args, **kwargs):
     # callback is for all opened docs, must only process when SBRNL validation active

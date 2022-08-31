@@ -7,10 +7,7 @@ Created on Dec 12, 2013
 import os
 from arelle import ModelDocument, ModelValue, XmlUtil
 from arelle.ModelValue import qname
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 from collections import defaultdict
 from .CustomLoader import checkForBOMs
 from .Document import checkDTSdocument

@@ -11,10 +11,7 @@ system-wide settings.  (The system settings can remain in 'C' locale.)
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 import sys, subprocess
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 try:
     from collections.abc import Mapping
 except:

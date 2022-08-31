@@ -5,10 +5,7 @@ Created on Oct 17, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from __future__ import annotations
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 from typing import Any
 from arelle import (ModelDocument, XmlUtil, XbrlUtil, XbrlConst,
                 ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateFormula, ValidateUtr)

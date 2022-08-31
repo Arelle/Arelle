@@ -6,10 +6,7 @@ Created on July 5, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 from arelle.PluginManager import pluginClassMethods
 from arelle.XmlValidate import decimalPattern
 from arelle import XPathContext

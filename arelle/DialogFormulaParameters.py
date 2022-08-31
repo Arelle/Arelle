@@ -9,10 +9,7 @@ try:
     from tkinter.ttk import Frame, Button
 except ImportError:
     from ttk import Frame, Button
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 from arelle.UiUtil import (gridHdr, gridCell, gridCombobox, label, checkbox)
 
 '''

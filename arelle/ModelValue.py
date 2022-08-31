@@ -11,10 +11,7 @@ from decimal import Decimal
 from functools import total_ordering
 from typing import Any, Optional
 
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 XmlUtil = None
 
 def qname(value: ModelObject | str | QName | Any | None, name: str | ModelObject | None = None, noPrefixIsNoNamespace: bool = False, castException: Exception | None = None, prefixException: Exception | None = None) -> QName | None:

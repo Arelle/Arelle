@@ -14,10 +14,7 @@ from arelle.CntlrWinTooltip import ToolTip
 from arelle.Locale import setDisableRTL
 from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox
 import gettext
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 from arelle.Locale import getLanguageCodes, languageCodes, getUserLocale, availableLocales
 
 '''

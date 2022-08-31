@@ -9,10 +9,7 @@ Filer Guidelines: esma32-60-254_esef_reporting_manual.pdf
 (c) Copyright 2022 Workiva, All rights reserved.
 '''
 from __future__ import annotations
-try:
-    import regex as re
-except ImportError:
-    import re #  type: ignore[no-redef]
+import regex as re
 from typing import Any, Callable
 from arelle.ModelValue import qname
 from arelle.XbrlConst import all, notAll, hypercubeDimension, dimensionDomain, domainMember, dimensionDefault, widerNarrower
