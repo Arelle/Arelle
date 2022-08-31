@@ -82,9 +82,9 @@ def _checkUpdateUrl(cntlr: CntlrWinMain, attachmentFileName: str) -> None:
             _(
                 """
                 Update {0} is available, current version is {1}.
-                
+
                 Download now?
-                
+
                 (Arelle will exit before installing.)
                 """
             ).format(updateVersion, currentVersion),
