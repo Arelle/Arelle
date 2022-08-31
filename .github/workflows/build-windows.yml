@@ -102,10 +102,10 @@ jobs:
     - name: Build exe
       run: python setup.py build_exe
     - name: Copy Tktable2.11
-      run: xcopy libs\win64\Tktable2.11 build\exe.win-amd64-3.9\lib\tkinter\tk8.6 /y
+      run: xcopy libs\win64\Tktable2.11 build\exe.win-amd64-${{ matrix.python-version }}\lib\tkinter\tk8.6 /y
     - name: Delete .git
       shell: cmd
-      run: if exist "build\exe.win-amd64-3.9\.git" rmdir /s /q build\exe.win-amd64-3.9\.git
+      run: if exist "build\exe.win-amd64-${{ matrix.python-version }}\.git" rmdir /s /q build\exe.win-amd64-${{ matrix.python-version }}\.git
     - name: Make installer
       run: makensis installWin64.nsi
     - name: Zip distribution
