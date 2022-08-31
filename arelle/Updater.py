@@ -138,18 +138,16 @@ def _download(cntlr: CntlrWinMain, url: str) -> None:
 
 
 def _install(cntlr: CntlrWinMain, filepath: str) -> None:
-    if sys.platform.startswith("win"):
+    if sys.platform == "win32":
         os.startfile(filepath)
-    else:
-        if sys.platform in ("darwin", "macos"):
-            command = "open"
-        else:  # linux/unix
-            command = "xdg-open"
+    elif sys.platform == "darwin":
         try:
-            subprocess.Popen([command, filepath])
+            subprocess.Popen(["open", filepath])
         except (OSError, subprocess.SubprocessError):
             _showWarning(cntlr, _("Failed to start updated Arelle instance."))
             return
+    else:
+        raise RuntimeError("Tried to install update on unsupported platform.")
     cntlr.uiThreadQueue.put((cntlr.quit, []))
 
 

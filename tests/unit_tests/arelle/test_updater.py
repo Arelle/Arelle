@@ -3,6 +3,8 @@ from __future__ import annotations
 import queue
 from unittest.mock import Mock, call, patch
 
+import pytest
+
 from arelle import Updater
 
 OLD_FILENAME = "arelle-macOS-2021-01-01.dmg"
@@ -296,4 +298,20 @@ class TestUpdater:
         assert not startfile.called
         assert Popen.called
         assert Popen.call_args == call(["open", filepath])
+        assert cntlr.uiThreadQueue.empty()
+
+    @patch("sys.platform", "linux")
+    @patch("subprocess.Popen")
+    @patch("os.startfile", create=True)
+    @patch("tkinter.messagebox.showwarning")
+    def test_install_unsupported_platform(self, showWarning, startfile, Popen):
+        cntlr = _mockCntlrWinMain()
+        filepath = "filepath"
+
+        with pytest.raises(RuntimeError) as e:
+            Updater._install(cntlr, filepath)
+
+        assert not showWarning.called
+        assert not startfile.called
+        assert not Popen.called
         assert cntlr.uiThreadQueue.empty()
