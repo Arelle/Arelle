@@ -13,6 +13,9 @@ import sys
 import threading
 import tkinter.messagebox
 import typing
+from datetime import date
+
+import regex
 
 from arelle import Version
 
@@ -22,10 +25,15 @@ if typing.TYPE_CHECKING:
 _ = gettext.gettext
 
 _MESSAGE_HEADER = "arelle\u2122 - Updater"
+_ISO_DATE_PATTERN = regex.compile(
+    r"(?P<date>(?P<year>[0-9]{4})-(?P<month>0[1-9]|1[0-2])-(?P<day>0[1-9]|[12][0-9]|3[01]))"
+)
 
 
 def checkForUpdates(cntlr: CntlrWinMain) -> None:
-    thread = threading.Thread(daemon=True, target=lambda c=cntlr: backgroundCheckForUpdates(c))
+    thread = threading.Thread(
+        daemon=True, target=lambda c=cntlr: backgroundCheckForUpdates(c)
+    )
     thread.start()
 
 
@@ -60,35 +68,57 @@ def backgroundCheckForUpdates(cntlr: CntlrWinMain) -> None:
 
 def checkUpdateUrl(cntlr: CntlrWinMain, attachmentFileName: str) -> None:
     filename = os.path.basename(attachmentFileName)
-    if filename and "-20" in filename:
-        i = filename.index("-20") + 1
-        filenameDate = filename[i : i + 10]
-        versionDate = Version.version[0:10]
-        if filenameDate > versionDate:
-            # newer
-            reply = tkinter.messagebox.askokcancel(
-                _(_MESSAGE_HEADER),
-                _(
-                    "Update {0} is available, running version is {1}.  \n\nDownload now?    \n\n(Arelle will exit before installing.)"
-                ).format(filenameDate, versionDate),
-                parent=cntlr.parent,
+    try:
+        currentVersion = _parseVersion(Version.version)
+    except ValueError:
+        _showWarning(cntlr, _("Unable to determine current version of Arelle."))
+        return
+    try:
+        updateVersion = _parseVersion(filename)
+    except ValueError:
+        _showWarning(cntlr, _("Unable to determine version of Arelle update."))
+        return
+    if updateVersion > currentVersion:
+        reply = tkinter.messagebox.askokcancel(
+            _(_MESSAGE_HEADER),
+            _(
+                """
+                Update {0} is available, current version is {1}.
+                
+                Download now?
+                
+                (Arelle will exit before installing.)
+                """
+            ).format(updateVersion, currentVersion),
+            parent=cntlr.parent,
+        )
+        if reply:
+            thread = threading.Thread(
+                daemon=True,
+                target=lambda u=attachmentFileName: backgroundDownload(cntlr, u),
             )
-            if reply:
-                thread = threading.Thread(
-                    daemon=True,
-                    target=lambda u=attachmentFileName: backgroundDownload(cntlr, u)
-                )
-                thread.start()
-        else:
-            if filenameDate < versionDate:
-                msg = _(
-                    "Arelle running version, {0}, is newer than the downloadable version, {1}."
-                ).format(versionDate, filenameDate)
-            else:
-                msg = _(
-                    "Arelle running version, {0}, is the same as the downloadable version."
-                ).format(versionDate)
-            _showInfo(cntlr, msg)
+            thread.start()
+    elif updateVersion < currentVersion:
+        _showInfo(
+            cntlr,
+            _("Current Arelle version {0} is newer than update {1}.").format(
+                currentVersion, updateVersion
+            ),
+        )
+    else:
+        _showInfo(
+            cntlr,
+            _("Arelle is already running the latest version {0}.").format(
+                currentVersion
+            ),
+        )
+
+
+def _parseVersion(versionStr: str) -> date:
+    versionDateMatch = _ISO_DATE_PATTERN.search(versionStr)
+    if versionDateMatch is None:
+        raise ValueError(f"Unable to parse version date from {versionStr}")
+    return date.fromisoformat(versionDateMatch.group("date"))
 
 
 def backgroundDownload(cntlr: CntlrWinMain, url: str) -> None:
