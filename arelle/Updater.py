@@ -91,10 +91,7 @@ def _checkUpdateUrl(cntlr: CntlrWinMain, attachmentFileName: str) -> None:
             parent=cntlr.parent,
         )
         if reply:
-            thread = threading.Thread(
-                daemon=True, target=lambda u=attachmentFileName: _download(cntlr, u)
-            )
-            thread.start()
+            _backgroundDownload(cntlr, attachmentFileName)
     elif updateVersion < currentVersion:
         _showInfo(
             cntlr,
@@ -116,6 +113,13 @@ def _parseVersion(versionStr: str) -> date:
     if versionDateMatch is None:
         raise ValueError(f"Unable to parse version date from {versionStr}")
     return date.fromisoformat(versionDateMatch.group("date"))
+
+
+def _backgroundDownload(cntlr: CntlrWinMain, attachmentFileName: str) -> None:
+    thread = threading.Thread(
+        daemon=True, target=lambda u=attachmentFileName: _download(cntlr, u)
+    )
+    thread.start()
 
 
 def _download(cntlr: CntlrWinMain, url: str) -> None:
