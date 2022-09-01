@@ -10,15 +10,15 @@ Created on Jan 30, 2011
     >> windows only install cx_Oracle
   install numpy matplotlib
   install rdflib
-  install isodate regex aniso8601 graphviz holidays openpyxl Pillow 
+  install isodate regex aniso8601 graphviz holidays openpyxl Pillow
   #  install pycrypto  << end user installed only if using any plugin/security module
   install cx_freeze cherrypy cheroot tornado
   pip install --no-cache --use-pep517 pycountry
-  
+
   may need to reinstall pycountry to get pep517 format
   install pycountry: pip uninstall -y pycountry ; pip install --no-cache --use-pep517 pycountry
 
-to install pycrypto on windows (by end-users using plugin/security modules) see: 
+to install pycrypto on windows (by end-users using plugin/security modules) see:
   https://www.dariawan.com/tutorials/python/python-3-install-pycrypto-windows/
 
 """
@@ -46,7 +46,7 @@ cx_freeze_executables = []
 if sys.platform in ('darwin', 'linux'):
     from setuptools import find_packages
     try:
-        from cx_Freeze import setup, Executable  
+        from cx_Freeze import setup, Executable
         cx_freeze_executables = [
             Executable(script="arelleGUI.py", target_name="arelleGUI"),
             Executable(script="arelleCmdLine.py")
@@ -77,7 +77,7 @@ if sys.platform in ('darwin', 'linux'):
     if sys.platform == 'darwin':
         include_files.append(('arelle/scripts-macOS', 'scripts'))
         include_files.append(('libs/macos/Tktable2.11', 'Tktable2.11'))
-    else: 
+    else:
         include_files.append(('arelle/scripts-unix', 'scripts'))
         if os.path.exists("/etc/redhat-release"):
             # extra libraries needed for red hat
@@ -93,10 +93,10 @@ if sys.platform in ('darwin', 'linux'):
 
     if os.path.exists(VERSION_FILE):
         include_files.append((VERSION_FILE, VERSION_FILE))
-        
+
     include_libs = [
         'lxml', 'lxml.etree', 'lxml._elementpath', 'lxml.html',
-        'pg8000', 'pymysql', 'sqlite3', 'numpy', 
+        'pg8000', 'pymysql', 'sqlite3', 'numpy',
         'numpy.core._methods', 'numpy.lib.format',
         # note cx_Oracle isn't here because it is version and machine specific,
         # ubuntu not likely working
@@ -127,7 +127,7 @@ if sys.platform in ('darwin', 'linux'):
             'cherrypy',  # 'cherrypy.wsgiserver.wsgiserver3',
             'dateutil', 'pytz',  # pytz installed by dateutil
             'dateutil.relativedelta',
-            
+
             'tornado',
             'pyparsing',
             'matplotlib', 'matplotlib.pyplot'
@@ -150,7 +150,7 @@ if sys.platform in ('darwin', 'linux'):
         "bundle_name": 'Arelle',
     }
 
-    
+
 elif sys.platform == 'win32':
     from setuptools import find_packages
     from cx_Freeze import setup, Executable
@@ -177,7 +177,7 @@ elif sys.platform == 'win32':
 
     if os.path.exists(VERSION_FILE):
         win32_include_files.append(VERSION_FILE)
-        
+
     include_libs = [
         'lxml', 'lxml.etree', 'lxml._elementpath', 'lxml.html',
         'pg8000', 'pymysql', 'cx_Oracle', 'pyodbc', 'sqlite3', 'numpy',
@@ -196,7 +196,7 @@ elif sys.platform == 'win32':
         'rdflib.plugins.sparql',
         'rdflib.plugins.stores',
         'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz', 'holidays',
-        'openpyxl', 'PIL', 'pycountry', 
+        'openpyxl', 'PIL', 'pycountry',
         # only installed by end-users when using security plugins: 'Crypto', 'Crypto.Cipher', 'Crypto.Cipher.AES',
         'requests', 'requests_negotiate_sspi'
     ]
@@ -223,7 +223,7 @@ elif sys.platform == 'win32':
             "includes": include_libs
         }
     )
-   
+
     # windows uses arelleGUI.exe to launch in GUI mode, arelleCmdLine.exe in command line mode
     cx_freeze_executables = [
         Executable(
@@ -249,33 +249,10 @@ else:
 
 timestamp = datetime.datetime.utcnow()
 setup(
-    name='arelle-release',
     version=get_version(),
-    description='An open source XBRL platform',
-    long_description=open('README.md').read(),
-    long_description_content_type='text/markdown',
-    author='arelle.org',
-    author_email='support@arelle.org',
-    url='http://www.arelle.org',
-    download_url='http://www.arelle.org/pub',
     include_package_data=True,
     packages=packages,
     data_files=data_files,
-    platforms=['OS Independent'],
-    license='Apache-2',
-    keywords=['xbrl'],
-    # Valid classifiers here: https://pypi.org/classifiers/
-    classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: End Users/Desktop',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache Software License',
-        'Natural Language :: English',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.9',
-        'Operating System :: OS Independent',
-        'Topic :: Text Processing :: Markup :: XML',
-    ],
     entry_points={
         'console_scripts': [
             'arelle=arelle.CntlrCmdLine:main',
@@ -284,35 +261,6 @@ setup(
             'arelle-gui=arelle.CntlrWinMain:main',
         ],
     },
-    extras_require={
-        'Crypto': [
-            'pycryptodome==3.*',
-        ],
-        'DB': [
-            'pg8000==1.*',
-            'PyMySQL==1.*',
-            'pyodbc==4.*',
-            'rdflib==5.*',
-        ],
-        'EFM': [
-            'holidays==0.*',
-        ],
-        'ObjectMaker': [
-            'graphviz==0.*',
-        ],
-        'WebServer': [
-            'cheroot==8.*',
-            'CherryPy==18.*',
-            'tornado==6.*',
-        ],
-    },
-    install_requires=[
-        'isodate==0.*',
-        'lxml==4.*',
-        'numpy==1.*',
-        'openpyxl==2.*',
-        'regex==2022.*',
-    ],
     options=options,
     executables=cx_freeze_executables,
 )
