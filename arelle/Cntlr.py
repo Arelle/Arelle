@@ -96,7 +96,7 @@ class Cntlr:
         True if a system platform clipboard is implemented on current platform
 
         .. attribute:: updateURL
-        URL string of application download file (on arelle.org server).  Usually redirected to latest released application installable module.
+        URL string of application download file (on arelle.org) or None if update installs not supported by platform.
 
     """
     __version__ = "1.6.0"
@@ -109,6 +109,7 @@ class Cntlr:
         self.isCGI = False
         self.systemWordSize = int(round(math.log(sys.maxsize, 2)) + 1) # e.g., 32 or 64
         self.uiLangDir = "ltr"
+        self.updateURL = None
 
         # sys.setrecursionlimit(10000) # 1000 default exceeded in some inline documents
 
@@ -166,7 +167,7 @@ class Cntlr:
             # note that cache is in ~/Library/Caches/Arelle
             self.contextMenuClick = "<Button-2>"
             self.hasClipboard = hasGui  # clipboard always only if Gui (not command line mode)
-            self.updateURL = "http://arelle.org/download/1005"
+            self.updateURL = "https://arelle.org/download/1005"
         elif sys.platform.startswith("win"):
             self.isMac = False
             self.isMSW = True
@@ -192,9 +193,9 @@ class Cntlr:
                 self.hasClipboard = False
             self.contextMenuClick = "<Button-3>"
             if "64 bit" in sys.version:
-                self.updateURL = "http://arelle.org/download/1008"
+                self.updateURL = "https://arelle.org/download/1008"
             else: # 32 bit
-                self.updateURL = "http://arelle.org/download/1011"
+                self.updateURL = "https://arelle.org/download/1011"
         else: # Unix/Linux
             self.isMac = False
             self.isMSW = False

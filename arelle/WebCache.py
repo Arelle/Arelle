@@ -8,6 +8,8 @@ For SEC EDGAR data access see: https://www.sec.gov/os/accessing-edgar-data
 e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
 
 '''
+from __future__ import annotations
+
 import os, posixpath, sys, re, shutil, time, calendar, io, json, logging, shutil, cgi, zlib
 if sys.version[0] >= '3':
     from urllib.parse import quote, unquote
@@ -328,7 +330,10 @@ class WebCache:
                         .sub(lambda c: chr( int(c.group(0)[1:]) ), # remove ^nnn encoding
                          urlpart) for urlpart in urlparts)
 
-    def getfilename(self, url, base=None, reload=False, checkModifiedTime=False, normalize=False, filenameOnly=False):
+    def getfilename(
+            self, url: str | None, base: str | None = None,
+            reload: bool = False, checkModifiedTime: bool = False,
+            normalize: bool = False, filenameOnly: bool = False) -> str | None:
         if url is None:
             return url
         if base is not None or normalize:
@@ -641,14 +646,12 @@ class WebCache:
                 pass
         return None
 
-    def getAttachmentFilename(self, url):  # get the filename attachment from the header
-        if url and isHttpUrl(url):
-            try:
-                fp = self.opener.open(url, timeout=self.timeout)
-                return cgi.parse_header(fp.headers.get("Content-Disposition"))[1]["filename"]
-            except Exception:
-                pass
-        return None
+    def getAttachmentFilename(self, url: str) -> str:  # get the filename attachment from the header
+        try:
+            fp = self.opener.open(url, timeout=self.timeout)
+            return cgi.parse_header(fp.headers.get("Content-Disposition"))[1]["filename"]
+        except (URLError, IndexError, KeyError) as e:
+            raise RuntimeError(f"Unable to to retrieve filename from headers for {url}") from e
 
     def retrieve(self, url, filename=None, filestream=None, reporthook=None, data=None):
         # return filename, headers (in dict), initial file bytes (to detect logon requests)
