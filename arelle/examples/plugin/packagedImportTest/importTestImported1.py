@@ -8,7 +8,7 @@ from .subdir import importTestImported111
 from .subdir.subsubdir import importTestImported1111
 
 def foo():
-	print ("imported packaged plug-in relative imported 1")
+    print ("imported packaged plug-in relative imported 1")
 
 __pluginInfo__ = {
     'name': 'Package Relative Import 1',

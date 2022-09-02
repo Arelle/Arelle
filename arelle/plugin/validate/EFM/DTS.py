@@ -234,7 +234,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                         val.modelXbrl.error(("EFM.6.07.22", "GFM.1.03.24"),
                             _("Concept %(concept)s  is abstract but type is not xbrli:stringItemType"),
                             modelObject=modelConcept, concept=modelConcept.qname)
-					'''
+                    '''
                     substitutionGroupQname = modelConcept.substitutionGroupQname
                     # 6.7.23 Axis must be subs group dimension
                     if name.endswith("Axis") ^ (substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
