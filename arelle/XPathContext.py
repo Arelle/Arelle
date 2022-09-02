@@ -486,7 +486,7 @@ class XPathContext:
                         self.inScopeVars[rvQname] = rv
                         self.evaluateRangeVars(op, args[0], args[1:], contextItem, result)
                         if op != 'for' and len(result) > 0:
-                            break	# short circuit evaluation
+                            break    # short circuit evaluation
                     if op == 'every' and len(result) == 0:
                         result.append( True )   # true if no false result returned during iteration
                     if hasPrevValue:

@@ -466,27 +466,27 @@ def checkElements(val, modelDocument, parent):
                                 eltDecl = elt.dereference()
                                 if (elt.get("minOccurs") is None or elt.get("maxOccurs") is None):
                                     val.modelXbrl.error("SBR.NL.2.2.2.14",
-		                                _('Schema %(element)s must have minOccurs and maxOccurs'),
-		                                modelObject=elt, element=eltDecl.qname)
+                                        _('Schema %(element)s must have minOccurs and maxOccurs'),
+                                        modelObject=elt, element=eltDecl.qname)
                                 elif elt.get("maxOccurs") != "1" and eltDecl.isItem:
                                     val.modelXbrl.error("SBR.NL.2.2.2.30",
-	                                    _("Tuple concept %(concept)s must have maxOccurs='1'"),
-	                                    modelObject=elt, concept=eltDecl.qname)
+                                        _("Tuple concept %(concept)s must have maxOccurs='1'"),
+                                        modelObject=elt, concept=eltDecl.qname)
                                 if eltDecl.isItem and eltDecl.isAbstract:
                                     val.modelXbrl.error("SBR.NL.2.2.2.31",
                                         _("Abstract concept %(concept)s must not be a child of a tuple"),
-	                                    modelObject=elt, concept=eltDecl.qname)
+                                        modelObject=elt, concept=eltDecl.qname)
                         elif localName in ("sequence","choice"):
                             for attrName in ("minOccurs", "maxOccurs"):
                                 attrValue = elt.get(attrName)
                                 if  attrValue is None:
                                     val.modelXbrl.error("SBR.NL.2.2.2.14",
-		                                _('Schema %(element)s must have %(attrName)s'),
-		                                modelObject=elt, element=elt.elementQname, attrName=attrName)
+                                        _('Schema %(element)s must have %(attrName)s'),
+                                        modelObject=elt, element=elt.elementQname, attrName=attrName)
                                 elif attrValue != "1":
                                     val.modelXbrl.error("SBR.NL.2.2.2.33",
-		                                _('Schema %(element)s must have %(attrName)s = "1"'),
-		                                modelObject=elt, element=elt.elementQname, attrName=attrName)
+                                        _('Schema %(element)s must have %(attrName)s = "1"'),
+                                        modelObject=elt, element=elt.elementQname, attrName=attrName)
                         elif localName in {"complexType","simpleType"}:
                             qnameDerivedFrom = elt.qnameDerivedFrom
                             if qnameDerivedFrom is not None:
