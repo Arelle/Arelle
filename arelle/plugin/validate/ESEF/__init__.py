@@ -62,7 +62,7 @@ from arelle.XmlValidate import VALID, lexicalPatterns
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import (ixbrl11, xhtml, parentChild, summationItem, standardLabel,
                               all as hc_all, notAll as hc_notAll, dimensionDomain, domainMember,
-                              qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote, iso17442)
+                              qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote, iso17442, widerNarrower)
 from arelle.XmlValidate import VALID
 from arelle.ValidateUtr import ValidateUtr
 from .Const import (mandatory, untransformableTypes,
@@ -430,6 +430,10 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             modelXbrl.error("ESEF.2.5.1.executableCodePresent",
                                 _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
                                 modelObject=elt, element=eltTag)
+                        elif eltTag == "a" and "mailto" in elt.get("href", ""):
+                            modelXbrl.error("ESEF.2.5.1.executableCodePresent",
+                                _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
+                                modelObject=elt, element=eltTag)
                         elif eltTag == "img":
                             src = elt.get("src","").strip()
                             hasParentIxTextTag = False # check if image is in an ix text-bearing element
@@ -544,6 +548,18 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             _("Target attribute %(severityVerb)s not be used unless explicitly required by local jurisdictions: element %(localName)s, target attribute %(target)s."),
                             modelObject=elt, localName=elt.elementQname, target=elt.get("target"),
                             severityVerb={"warning":"SHOULD","error":"MUST"}[ixTargetUsage])
+
+                    if hasattr(elt, "concept") and elt.concept.isTextBlock:
+                        if not elt.value:
+                            modelXbrl.warning("ESEF.1.3.3.emptyTextBlock",
+                                    _("The text block element SHOULD not be empty: %(qname)s."),
+                                    modelObject=elt, qname=elt.qname)
+                        elif any(character in elt.stringValue for character in ['&lt;', '&amp;', '&', '<']):
+                            if hasattr(elt, 'attrib') and ('escape' not in elt.attrib or elt.attrib.get('escape').lower() != 'true'):
+                                modelXbrl.error("ESEF.2.2.6.escapedHTMLUsedInBlockTagWithSpecialCharacters",
+                                        _("A text block containing '&' or '<' character MUST have an 'escape' attribute: %(qname)s."),
+                                        modelObject=elt, qname=elt.qname)
+
                     if eltTag == ixTupleTag:
                         modelXbrl.error("ESEF.2.4.1.tupleElementUsed",
                             _("The ix:tuple element MUST not be used in the Inline XBRL document: %(qname)s."),
@@ -762,6 +778,10 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         modelXbrl.warning("ESEF.2.2.2.percentGreaterThan100",
                             _("A percent fact should have value <= 100: %(element)s in context %(context)s value %(value)s"),
                             modelObject=f, element=f.qname, context=f.context.id, value=f.xValue)
+                    elif f.concept.balance is not None and f.xValue < 0:
+                        modelXbrl.warning("ESEF.1.6.1.negativeAmountWithBalance",
+                            _("A fact with balance should be a positive number: %(element)s in context %(context)s value %(value)s"),
+                            modelObject=f, element=f.qname, context=f.context.id, value=f.xValue)
                 elif f.concept is not None and f.concept.type is not None:
                     if f.concept.type.isOimTextFactType:
                         lang = f.xmlLang
@@ -959,12 +979,27 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     reportedEltsNotInLb -= set(c for c in reportedEltsNotInLb if nsExclPat.match(c.qname.namespaceURI))
             if reportedEltsNotInLb and lbType != "calculation":
                 modelXbrl.error("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
-                    _("All concepts used by tagged facts MUST be in extension taxonomy %(linkbaseType)s relationships: %(elements)s."),
+                    _("All concepts used by tagged facts SHOULD be in extension taxonomy %(linkbaseType)s relationships: %(elements)s."),
                     modelObject=reportedEltsNotInLb, elements=", ".join(sorted((str(c.qname) for c in reportedEltsNotInLb))), linkbaseType=lbType)
         if unreportedLbElts:
             modelXbrl.error("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
-                _("All usable concepts in extension taxonomy relationships MUST be applied by tagged facts: %(elements)s."),
+                _("All usable concepts in extension taxonomy relationships SHOULD be applied by tagged facts: %(elements)s."),
                 modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))))
+
+        anchoringToAbstractConcept = set()
+        for rel in modelXbrl.relationshipSet(widerNarrower).modelRelationships:
+            fr = rel.fromModelObject
+            to = rel.toModelObject
+
+            if fr is not None and not fr.isAbstract and isExtension(val, fr):
+                anchoringToAbstractConcept.add(fr)
+            if to is not None and not to.isAbstract and isExtension(val, to):
+                anchoringToAbstractConcept.add(to)
+
+        for _elem in anchoringToAbstractConcept:
+            modelXbrl.warning("ESEF.3.3.1.ExtensionConceptAnchoredToAbstractConcept",
+                _("A concept from extension SHOULD NOT be anchored to an abstract concept: %(qname)s."),
+                modelObject=_elem, qname=_elem.qname)
 
         # 3.4.4 check for presentation preferred labels
         missingConceptLabels = defaultdict(set) # by role
@@ -975,7 +1010,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         def checkLabels(parent: ModelConcept, relSet: ModelRelationshipSet, labelrole: str | None, visited: set[ModelConcept]) -> None:
             if not parent.label(labelrole,lang=reportXmlLang,fallbackToQname=False):
-                if (not labelrole or labelrole == standardLabel) and isExtension(val, parent):
+                if not labelrole or labelrole == standardLabel:
                     missingConceptLabels[labelrole].add(parent)
             visited.add(parent)
             conceptRels = defaultdict(list) # counts for concepts without preferred label role
@@ -1029,7 +1064,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     checkMonetaryUnits(rootConcept, relSet, set())
             if pfsConceptsRootInELR and (len(pfsConceptsRootInELR) + len(nonPfsConceptsRootInELR) ) > 1:
                 roots = pfsConceptsRootInELR | nonPfsConceptsRootInELR
-                modelXbrl.error("ESEF.3.4.7.singleExtendedLinkRoleUsedForAllPFSs",
+                modelXbrl.warning("ESEF.3.4.7.singleExtendedLinkRoleUsedForAllPFSs",
                     _("Separate Extended Link Roles are required by %(elr)s for hierarchies: %(roots)s."),
                     modelObject=roots, elr=modelXbrl.roleTypeDefinition(ELR), roots=", ".join(sorted((str(c.qname) for c in roots))))
 
