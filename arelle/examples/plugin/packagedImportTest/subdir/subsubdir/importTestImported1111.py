@@ -5,7 +5,7 @@ pluginPackages test case
 '''
 
 def foo():
-	print ("imported packaged plug-in relative subdir imported 1.1/1/1")
+    print ("imported packaged plug-in relative subdir imported 1.1/1/1")
 
 __pluginInfo__ = {
     'name': 'Package Relative Import 1.1/1/1',

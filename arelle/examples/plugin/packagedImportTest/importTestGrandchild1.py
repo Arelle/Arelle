@@ -5,7 +5,7 @@ pluginPackages test case
 '''
 
 def foo():
-	print ("imported packaged plug-in grandchild 1")
+    print ("imported packaged plug-in grandchild 1")
 
 __pluginInfo__ = {
     'name': 'Package Listed Import Grandchild 1.1',
