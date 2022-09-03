@@ -109,10 +109,7 @@ from arelle.UrlUtil import authority, relativeUri
 from arelle.ValidateFilingText import referencedFiles
 from .Document import checkDTSdocument
 from .Filing import validateFiling
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 from collections import defaultdict
 
 

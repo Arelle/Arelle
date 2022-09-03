@@ -18,10 +18,7 @@ from arelle import ModelDocument, XmlUtil
 from arelle.ModelValue import qname, dateTime, DATE
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue, insignificantDigits
 from arelle.XbrlConst import xbrli, qnXbrliXbrl
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 from collections import defaultdict
 
 memNameNumPattern = re.compile(r"^([A-Za-z-]+)([0-9]+)$")

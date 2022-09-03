@@ -13,10 +13,7 @@ except ImportError:
 from arelle import PackageManager, DialogURL, DialogOpenArchive
 from arelle.CntlrWinTooltip import ToolTip
 import os, time, json, sys, traceback
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 
 STANDARD_PACKAGES_URL = "https://taxonomies.xbrl.org/api/v0/taxonomy"
 

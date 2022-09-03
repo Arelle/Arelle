@@ -1,6 +1,30 @@
 name: Build for Windows
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      edgar_renderer_ref:
+        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+      ixbrl_viewer_ref:
+        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+      node_version:
+        default: lts/*
+        description: 'Node.js version to use'
+        required: true
+        type: string
+      python_version:
+        default: '3.9'
+        description: 'Python version to use'
+        required: true
+        type: string
+      xule_ref:
+        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
 
 jobs:
   build-windows:
@@ -8,7 +32,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: ['3.9']
+        python-version: ['${{ inputs.python_version }}']
 
     permissions:
       contents: write
@@ -21,6 +45,7 @@ jobs:
       with:
         repository: Arelle/EdgarRenderer
         path: arelle/plugin/EdgarRenderer
+        ref: ${{ inputs.edgar_renderer_ref }}
     - shell: cmd
       run: rmdir /s /q arelle\plugin\EdgarRenderer\.git
     - name: Checkout xule
@@ -28,6 +53,7 @@ jobs:
       with:
         repository: xbrlus/xule
         path: xule
+        ref: ${{ inputs.xule_ref }}
     - name: Move plugins
       run: |
         mv xule\plugin\validate\* arelle\plugin\validate\
@@ -40,8 +66,11 @@ jobs:
       with:
         repository: Workiva/ixbrl-viewer
         path: ixbrl-viewer
+        ref: ${{ inputs.ixbrl_viewer_ref }}
     - name: Set up Node JS
       uses: actions/setup-node@v3.4.1
+      with:
+        node-version: ${{ inputs.node_version }}
     - name: Build ixbrl-viewer
       working-directory: ixbrl-viewer
       run: |
@@ -73,10 +102,10 @@ jobs:
     - name: Build exe
       run: python setup.py build_exe
     - name: Copy Tktable2.11
-      run: xcopy libs\win64\Tktable2.11 build\exe.win-amd64-3.9\lib\tkinter\tk8.6 /y
+      run: xcopy libs\win64\Tktable2.11 build\exe.win-amd64-${{ matrix.python-version }}\lib\tkinter\tk8.6 /y
     - name: Delete .git
       shell: cmd
-      run: if exist "build\exe.win-amd64-3.9\.git" rmdir /s /q build\exe.win-amd64-3.9\.git
+      run: if exist "build\exe.win-amd64-${{ matrix.python-version }}\.git" rmdir /s /q build\exe.win-amd64-${{ matrix.python-version }}\.git
     - name: Make installer
       run: makensis installWin64.nsi
     - name: Zip distribution

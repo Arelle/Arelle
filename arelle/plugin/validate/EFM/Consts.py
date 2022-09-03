@@ -4,7 +4,7 @@ Created on Jun 30, 2018
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import re
+import regex as re
 from arelle.PythonUtil import attrdict
 
 #qnFasbExtensibleListItemTypes = (qname("{http://fasb.org/us-types/2017-01-31}us-types:extensibleListItemType"),

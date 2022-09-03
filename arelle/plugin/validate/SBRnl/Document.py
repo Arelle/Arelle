@@ -11,7 +11,7 @@ from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ValidateXbrlDTS import arcFromConceptQname, arcToConceptQname
 from arelle import XmlValidate
 from lxml import etree
-import re
+import regex as re
 
 xsd1_1datatypes = {qname(XbrlConst.xsd,'anyAtomicType'), qname(XbrlConst.xsd,'yearMonthDuration'), qname(XbrlConst.xsd,'dayTimeDuration'), qname(XbrlConst.xsd,'dateTimeStamp'), qname(XbrlConst.xsd,'precisionDecimal')}
 

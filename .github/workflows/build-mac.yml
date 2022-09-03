@@ -1,6 +1,30 @@
 name: Build for Mac
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      edgar_renderer_ref:
+        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+      ixbrl_viewer_ref:
+        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+      node_version:
+        default: lts/*
+        description: 'Node.js version to use'
+        required: true
+        type: string
+      python_version:
+        default: '3.9'
+        description: 'Python version to use'
+        required: true
+        type: string
+      xule_ref:
+        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
 
 jobs:
   build-distribution:
@@ -12,23 +36,25 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3.0.2
-      - name: Install Python 3
+      - name: Install Python
         uses: actions/setup-python@v4.2.0
         with:
           cache: 'pip' # caching pip dependencies
           check-latest: true
-          python-version: 3.9
+          python-version: ${{ inputs.python_version }}
       - run: pip install -r requirements-dev.txt
       - run: pip install -r requirements-mac-build.txt
       - uses: actions/checkout@v3.0.2
         with:
           repository: Arelle/EdgarRenderer
           path: arelle/plugin/EdgarRenderer
+          ref: ${{ inputs.edgar_renderer_ref }}
       - run: rm -rf arelle/plugin/EdgarRenderer/.git
       - uses: actions/checkout@v3.0.2
         with:
           repository: xbrlus/xule
           path: tmp
+          ref: ${{ inputs.xule_ref }}
       - run: |
           mv tmp/plugin/validate/* arelle/plugin/validate/
           rm -rf tmp/plugin/validate
@@ -38,9 +64,10 @@ jobs:
         with:
           repository: Workiva/ixbrl-viewer
           path: tmp/ixbrl-viewer
+          ref: ${{ inputs.ixbrl_viewer_ref }}
       - uses: actions/setup-node@v3.4.1
         with:
-          node-version: lts/*
+          node-version: ${{ inputs.node_version }}
       - run: |
           cd tmp/ixbrl-viewer
           npm install

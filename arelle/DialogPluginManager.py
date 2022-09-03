@@ -16,10 +16,7 @@ except ImportError:
 from arelle import PluginManager, DialogURL, DialogOpenArchive
 from arelle.CntlrWinTooltip import ToolTip
 import os, time
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 EMPTYLIST = []
 GROUPSEP = '\x01d'
 

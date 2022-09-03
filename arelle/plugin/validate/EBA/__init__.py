@@ -16,10 +16,7 @@ from arelle.ModelValue import qname, qnameEltPfxName
 from arelle.ValidateUtr import ValidateUtr
 from arelle.XbrlConst import qnEnumerationItemTypes
 from arelle.ModelInstanceObject import ModelFact
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 from lxml import etree
 from collections import defaultdict
 

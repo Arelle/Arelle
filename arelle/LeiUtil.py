@@ -7,10 +7,7 @@ Created on Apr 25, 2015
 Implementation of ISO 17442:2012(E) Appendix A
 
 '''
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 
 LEI_VALID = 0
 LEI_INVALID_LEXICAL = 1

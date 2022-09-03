@@ -6,10 +6,7 @@ Created on Oct 22, 2010
 '''
 from __future__ import annotations
 import datetime
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 from lxml import etree
 from arelle.XbrlConst import ixbrlAll, qnLinkFootnote, xhtml, xml, xsd, xhtml
 from arelle.ModelObject import ModelObject

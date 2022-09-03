@@ -1,10 +1,7 @@
 from arelle import PluginManager
 from arelle.ModelValue import qname
 from arelle import XbrlConst
-try:
-    import regex as re
-except ImportError:
-    import re
+import regex as re
 from collections import defaultdict
 
 def compile(list, traceRows):

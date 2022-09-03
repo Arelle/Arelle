@@ -18,7 +18,7 @@ try:
     from . import ntlm
 except ValueError:
     import ntlm
-import re
+import regex as re
 
 class AbstractNtlmAuthHandler:
 

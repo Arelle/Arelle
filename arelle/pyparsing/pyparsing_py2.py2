@@ -67,7 +67,7 @@ from weakref import ref as wkref
 import copy
 import sys
 import warnings
-import re
+import regex as re
 import sre_constants
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
