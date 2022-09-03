@@ -8,18 +8,28 @@
    :license: Apache-2.
    :synopsis: Common controller class to initialize for platform and setup common logger functions
 """
+from __future__ import annotations
+from typing import Optional, Union, Any, TYPE_CHECKING, TextIO
+from .typing import TypeGetText
 from arelle import PythonUtil # define 2.x or 3.x string types
 import tempfile, os, io, sys, logging, gettext, json, re, subprocess, math
 from arelle import ModelManager
+from arelle.WebCache import WebCache
 from arelle.Locale import getLanguageCodes, setDisableRTL
 from arelle import PluginManager, PackageManager
 from collections import defaultdict
+
+_: TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.ModelXbrl import ModelXbrl
+
 osPrcs = None
 isPy3 = (sys.version[0] >= '3')
 LOG_TEXT_MAX_LENGTH = 32767
 cxFrozen = getattr(sys, 'frozen', False)
 
-def resourcesDir():
+def resourcesDir() -> str:
     if cxFrozen: # Check if frozen by cx_Freeze
         _resourcesDir = os.path.dirname(sys.executable)
         if os.path.exists(os.path.join(_resourcesDir,"images")):
@@ -100,8 +110,46 @@ class Cntlr:
 
     """
     __version__ = "1.6.0"
+    hasWin32gui: bool
+    hasGui: bool
+    hasFileSystem: bool
+    isGAE: bool
+    isCGI: bool
+    systemWordSize: int
+    uiLang: str
+    uiLangDir: str
+    updateURL: Optional[str]
+    configDir: str
+    imagesDir: str
+    localeDir: str
+    pluginDir: str
+    userAppDir: str
+    isMac: bool
+    isMSW: bool
+    hasClipboard: bool
+    contextMenuClick: str
+    hasWebServer: bool
+    config: Optional[dict[str, Any]]
+    configJsonFile: str
+    webCache: WebCache
+    modelManager: ModelManager.ModelManager
+    logger: Optional[logging.Logger]
+    logHandler: Union[
+        LogToBufferHandler,
+        LogToPrintHandler,
+        LogToXmlHandler,
+        logging.Handler,
+        logging.FileHandler
+        ]
 
-    def __init__(self, hasGui=False, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None):
+    def __init__(
+        self,
+        hasGui: bool = False,
+        logFileName: Optional[str] = None,
+        logFileMode: Optional[str] = None,
+        logFileEncoding: Optional[str] = None,
+        logFormat: Optional[str] = None
+    ) -> None:
         self.hasWin32gui = False
         self.hasGui = hasGui
         self.hasFileSystem = True # no file system on Google App Engine servers
@@ -238,7 +286,6 @@ class Cntlr:
         self.setUiLanguage(self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
         setDisableRTL(self.config.get('disableRtl', False))
 
-        from arelle.WebCache import WebCache
         self.webCache = WebCache(self, self.config.get("proxySettings"))
 
         # start plug in server (requres web cache initialized, but not logger)
@@ -256,7 +303,7 @@ class Cntlr:
         for pluginMethod in PluginManager.pluginClassMethods("Cntlr.Init"):
             pluginMethod(self)
 
-    def setUiLanguage(self, lang, fallbackToDefault=False):
+    def setUiLanguage(self, lang: str, fallbackToDefault: bool = False) -> None:
         try:
             langCodes = getLanguageCodes(lang)
             gettext.translation("arelle",
@@ -265,8 +312,8 @@ class Cntlr:
             self.uiLang = langCodes[0].lower()
             self.uiLangDir = 'rtl' if self.uiLang[0:2] in {"ar","he"} else 'ltr'
             if not isPy3: # 2.7 gettext provides string instead of unicode from .mo files
-                installedGettext = __builtins__['_']
-                def convertGettextResultToUnicode(msg):
+                installedGettext: TypeGetText = __builtins__['_']
+                def convertGettextResultToUnicode(msg: str) -> Any:
                     translatedMsg = installedGettext(msg)
                     if isinstance(translatedMsg, _STR_UNICODE):
                         return translatedMsg
@@ -279,8 +326,18 @@ class Cntlr:
                 gettext.install("arelle",
                                 self.localeDir)
 
-    def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None,
-                     logLevel=None, logHandler=None, logToBuffer=False, logTextMaxLength=None, logRefObjectProperties=True):
+    def startLogging(
+        self,
+        logFileName: Optional[str] = None,
+        logFileMode: Optional[str] = None,
+        logFileEncoding: Optional[str] = None,
+        logFormat: Optional[str] = None,
+        logLevel: Optional[str] = None,
+        logHandler: Optional[logging.Handler] = None,
+        logToBuffer: bool = False,
+        logTextMaxLength: Optional[int] = None,
+        logRefObjectProperties: bool = True
+    ) -> None:
         # add additional logging levels (for python 2.7, all of these are ints)
         logging.addLevelName(logging.INFO - 1, "INFO-RESULT") # result data, has @name, @value, optional href to source and readable message
         logging.addLevelName(logging.INFO + 1, "INFO-SEMANTIC")
@@ -328,15 +385,23 @@ class Cntlr:
             self.logger.messageLevelFilter = None
             self.logHandler.logTextMaxLength = (logTextMaxLength or LOG_TEXT_MAX_LENGTH)
 
-    def setLogLevelFilter(self, logLevelFilter):
+    def setLogLevelFilter(self, logLevelFilter: str) -> None:
         if self.logger:
             self.logger.messageLevelFilter = re.compile(logLevelFilter) if logLevelFilter else None
 
-    def setLogCodeFilter(self, logCodeFilter):
+    def setLogCodeFilter(self, logCodeFilter: str) -> None:
         if self.logger:
             self.logger.messageCodeFilter = re.compile(logCodeFilter) if logCodeFilter else None
 
-    def addToLog(self, message, messageCode="", messageArgs=None, file="", refs=None, level=logging.INFO):
+    def addToLog(
+        self,
+        message: str,
+        messageCode: str = "",
+        messageArgs: Optional[dict[str, Any]] = None,
+        file: str = "",
+        refs: Optional[list[dict[str, Any]]] = None,
+        level: int = logging.INFO
+    ) -> None:
         """Add a simple info message to the default logger
 
         :param message: Text of message to add to log.
@@ -348,6 +413,7 @@ class Cntlr:
         :param file: File name (and optional line numbers) pertaining to message
         :type file: str
         """
+        args: Union[tuple[str], tuple[str, dict[str, Any]]]
         if self.logger is not None:
             if messageArgs:
                 args = (message, messageArgs)
@@ -372,7 +438,7 @@ class Cntlr:
                        .encode(sys.stdout.encoding, 'backslashreplace')
                        .decode(sys.stdout.encoding, 'strict')))
 
-    def showStatus(self, message, clearAfter=None):
+    def showStatus(self, message: str, clearAfter: Optional[int] = None) -> None:
         """Dummy method for specialized controller classes to specialize,
         provides user feedback on status line of GUI or web page
 
@@ -383,7 +449,7 @@ class Cntlr:
         """
         pass
 
-    def close(self, saveConfig=False):
+    def close(self, saveConfig: bool = False) -> None:
         """Closes the controller and its logger, optionally saving the user preferences configuration
 
            :param saveConfig: save the user preferences configuration
@@ -401,7 +467,7 @@ class Cntlr:
             except Exception: # fails on some earlier pythons (3.1)
                 pass
 
-    def saveConfig(self):
+    def saveConfig(self) -> None:
         """Save user preferences configuration (in json configuration file)."""
         if self.hasFileSystem:
             with io.open(self.configJsonFile, 'wt', encoding='utf-8') as f:
@@ -409,7 +475,7 @@ class Cntlr:
                 f.write(jsonStr)  # 2.7 getss unicode this way
 
     # default non-threaded viewModelObject
-    def viewModelObject(self, modelXbrl, objectId):
+    def viewModelObject(self, modelXbrl: ModelXbrl, objectId: str) -> None:
         """Notify any watching views to show and highlight selected object.  Generally used
         to scroll list control to object and highlight it, or if tree control, to find the object
         and open tree branches as needed for visibility, scroll to and highlight the object.
@@ -421,7 +487,7 @@ class Cntlr:
         """
         modelXbrl.viewModelObject(objectId)
 
-    def reloadViews(self, modelXbrl):
+    def reloadViews(self, modelXbrl: ModelXbrl) -> None:
         """Notification to reload views (probably due to change within modelXbrl).  Dummy
         for subclasses to specialize when they have a GUI or web page.
 
@@ -430,16 +496,16 @@ class Cntlr:
         """
         pass
 
-    def rssWatchUpdateOption(self, **args):
+    def rssWatchUpdateOption(self, **args: Any) -> None:
         """Notification to change rssWatch options, as passed in, usually from a modal dialog."""
         pass
 
-    def onPackageEnablementChanged(self):
+    def onPackageEnablementChanged(self) -> None:
         """Notification that package enablement changed, usually from a modal dialog."""
         pass
 
     # default web authentication password
-    def internet_user_password(self, host, realm):
+    def internet_user_password(self, host: str, realm: str) -> tuple[str, str]:
         """Request (for an interactive UI or web page) to obtain user ID and password (usually for a proxy
         or when getting a web page that requires entry of a password).  This function must be overridden
         in a subclass that provides interactive user interface, as the superclass provides only a dummy
@@ -454,7 +520,13 @@ class Cntlr:
         return ('myusername','mypassword')
 
     # default web authentication password
-    def internet_logon(self, url, quotedUrl, dialogCaption, dialogText):
+    def internet_logon(
+        self,
+        url: str,
+        quotedUrl: str,
+        dialogCaption: str,
+        dialogText: str
+    ) -> str:
         """Web file retrieval results in html that appears to require user logon,
         if interactive allow the user to log on.
 
@@ -469,7 +541,7 @@ class Cntlr:
         return 'cancel'
 
     # if no text, then return what is on the clipboard, otherwise place text onto clipboard
-    def clipboardData(self, text=None):
+    def clipboardData(self, text: Optional[str]=None) -> Optional[str]:
         """Places text onto the clipboard (if text is not None), otherwise retrieves and returns text from the clipboard.
         Only supported for those platforms that have clipboard support in the current python implementation (macOS
         or ActiveState Windows Python).
@@ -514,13 +586,15 @@ class Cntlr:
         return None
 
     @property
-    def memoryUsed(self):
+    def memoryUsed(self) -> Optional[float]:
         try:
-            global osPrcs
+            global osPrcs # is this needed?
             if self.isMSW:
                 if osPrcs is None:
                     import win32process as osPrcs
-                return osPrcs.GetProcessMemoryInfo(osPrcs.GetCurrentProcess())['WorkingSetSize'] / 1024
+                    process_memory = osPrcs.GetProcessMemoryInfo(osPrcs.GetCurrentProcess())['WorkingSetSize']
+                    if isinstance(process_memory, int):
+                        return process_memory / 1024
             elif sys.platform == "sunos5": # ru_maxrss is broken on sparc
                 if osPrcs is None:
                     import resource as osPrcs
@@ -532,8 +606,8 @@ class Cntlr:
             pass
         return 0
 
-def logRefsFileLines(refs):
-    fileLines = defaultdict(set)
+def logRefsFileLines(refs: list[dict[str, Any]]) -> str:
+    fileLines: defaultdict[Any, set[str]] = defaultdict(set)
     for ref in refs:
         href = ref.get("href")
         if href:
@@ -544,14 +618,14 @@ def logRefsFileLines(refs):
                     for file, lines in sorted(fileLines.items()))
 
 class LogFormatter(logging.Formatter):
-    def __init__(self, fmt=None, datefmt=None):
+    def __init__(self, fmt: Optional[str] = None, datefmt: Optional[str] = None) -> None:
         super(LogFormatter, self).__init__(fmt, datefmt)
 
-    def fileLines(self, record):
+    def fileLines(self, record: logging.LogRecord) -> str:
         # provide a file parameter made up from refs entries
         return logRefsFileLines(record.refs)
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         record.file = self.fileLines(record)
         try:
             formattedMessage = super(LogFormatter, self).format(record)
@@ -575,17 +649,19 @@ class LogToPrintHandler(logging.Handler):
 
     CAUTION: Output is utf-8 encoded, which is fine for saving to files, but may not display correctly in terminal windows.
 
-    :param logOutput: 'logToStdErr' to cause log printint to stderr instead of stdout
+    :param logOutput: 'logToStdErr' to cause log print to stderr instead of stdout
     :type logOutput: str
     """
-    def __init__(self, logOutput):
+    logFile: Optional[Union[str, TextIO]]
+
+    def __init__(self, logOutput: str) -> None:
         super(LogToPrintHandler, self).__init__()
         if logOutput == "logToStdErr":
             self.logFile = sys.stderr
         else:
             self.logFile = None
 
-    def emit(self, logRecord):
+    def emit(self, logRecord: logging.LogRecord) -> None:
         file = sys.stderr if self.logFile else None
         logEntry = self.format(logRecord)
         if not isPy3:
@@ -600,16 +676,17 @@ class LogToPrintHandler(logging.Handler):
                   file=file)
 
 class LogHandlerWithXml(logging.Handler):
-    def __init__(self):
+    logTextMaxLength: int
+    def __init__(self) -> None:
         super(LogHandlerWithXml, self).__init__()
 
-    def recordToXml(self, logRec):
-        def entityEncode(arg, truncateAt=self.logTextMaxLength):  # be sure it's a string, vs int, etc, and encode &, <, ".
+    def recordToXml(self, logRec: logging.LogRecord) -> str:
+        def entityEncode(arg: Any, truncateAt: int = self.logTextMaxLength) -> str:  # be sure it's a string, vs int, etc, and encode &, <, ".
             s = str(arg)
             s = s if len(s) <= truncateAt else s[:truncateAt] + '...'
             return s.replace("&","&amp;").replace("<","&lt;").replace('"','&quot;')
 
-        def ncNameEncode(arg):
+        def ncNameEncode(arg: str) -> str:
             s = []
             for c in arg:
                 if c.isalnum() or c in ('.','-','_'):
@@ -618,7 +695,7 @@ class LogHandlerWithXml(logging.Handler):
                     s.append('_') # change : into _ for xml correctness
             return "".join(s)
 
-        def propElts(properties, indent, truncateAt=128):
+        def propElts(properties: list[tuple[Any, Any, Any]], indent: str, truncateAt: int = 128) -> str:
             nestedIndent = indent + ' '
             return indent.join('<property name="{0}" value="{1}"{2}>'.format(
                                     entityEncode(p[0]),
@@ -651,7 +728,7 @@ class LogHandlerWithXml(logging.Handler):
                                     args,
                                     entityEncode(msg),
                                     refs))
-    def recordToJson(self, logRec):
+    def recordToJson(self, logRec: logging.LogRecord) -> dict[str, Any]:
         message = { "text": self.format(logRec) }
         if logRec.args:
             for n, v in logRec.args.items():
@@ -667,13 +744,17 @@ class LogToXmlHandler(LogHandlerWithXml):
 
     A log handler that writes log entries to named XML file (utf-8 encoded) upon closing the application.
     """
-    def __init__(self, filename=None, mode='w'):
+    logRecordBuffer: list[logging.LogRecord]
+    filename: Optional[str]
+    filemode: str
+
+    def __init__(self, filename: Optional[str] = None, mode: str = 'w') -> None:
         super(LogToXmlHandler, self).__init__()
         self.filename = filename # may be none if buffer is retrieved by get methods below and not written anywhere
         self.logRecordBuffer = []
         self.filemode = mode
 
-    def flush(self):
+    def flush(self) -> None:
         if self.filename == "logToStdOut.xml":
             print('<?xml version="1.0" encoding="utf-8"?>')
             print('<log>')
@@ -719,10 +800,10 @@ class LogToXmlHandler(LogHandlerWithXml):
                         fh.write(self.format(logRec) + "\n")
         self.clearLogBuffer()
 
-    def clearLogBuffer(self):
+    def clearLogBuffer(self) -> None:
         del self.logRecordBuffer[:]
 
-    def getXml(self, clearLogBuffer=True):
+    def getXml(self, clearLogBuffer: bool = True) -> str:
         """Returns an XML document (as a string) representing the messages in the log buffer, and clears the buffer.
 
         :reeturns: str -- XML document string of messages in the log buffer.
@@ -736,7 +817,7 @@ class LogToXmlHandler(LogHandlerWithXml):
             self.clearLogBuffer()
         return '\n'.join(xml)
 
-    def getJson(self, clearLogBuffer=True):
+    def getJson(self, clearLogBuffer: bool = True) -> str:
         """Returns an JSON string representing the messages in the log buffer, and clears the buffer.
 
         :returns: str -- json representation of messages in the log buffer
@@ -748,7 +829,7 @@ class LogToXmlHandler(LogHandlerWithXml):
             self.clearLogBuffer()
         return json.dumps( {"log": entries}, ensure_ascii=False, indent=1, default=str )
 
-    def getLines(self, clearLogBuffer=True):
+    def getLines(self, clearLogBuffer: bool = True) -> list[str]:
         """Returns a list of the message strings in the log buffer, and clears the buffer.
 
         :returns: [str] -- list of strings representing messages corresponding to log buffer entries
@@ -758,7 +839,7 @@ class LogToXmlHandler(LogHandlerWithXml):
             self.clearLogBuffer()
         return lines
 
-    def getText(self, separator='\n', clearLogBuffer=True):
+    def getText(self, separator: str = '\n', clearLogBuffer: bool = True) -> str:
         """Returns a string of the lines in the log buffer, separated by newline or provided separator.
 
         :param separator: Line separator (default is platform os newline character)
@@ -767,7 +848,7 @@ class LogToXmlHandler(LogHandlerWithXml):
         """
         return separator.join(self.getLines(clearLogBuffer=clearLogBuffer))
 
-    def emit(self, logRecord):
+    def emit(self, logRecord: logging.LogRecord) -> None:
         self.logRecordBuffer.append(logRecord)
 
 class LogToBufferHandler(LogToXmlHandler):
@@ -777,8 +858,8 @@ class LogToBufferHandler(LogToXmlHandler):
     A log handler that writes log entries to a memory buffer for later retrieval (to a string) in XML, JSON, or text lines,
     usually for return to a web service or web page call.
     """
-    def __init__(self):
+    def __init__(self) -> None:
         super(LogToBufferHandler, self).__init__()
 
-    def flush(self):
+    def flush(self) -> None:
         pass # do nothing -- overrides LogToXmlHandler's flush
