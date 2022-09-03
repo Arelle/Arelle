@@ -25,7 +25,6 @@ from arelle.XmlValidate import VALID
 from collections import defaultdict
 from arelle.typing import TypeGetText
 from arelle.ModelRelationshipSet import ModelRelationshipSet
-from arelle.ModelFormulaObject import ModelConceptName
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelFormulaObject import ModelCustomFunctionSignature
 from arelle.XmlValidateParticles import validateUniqueParticleAttribution
