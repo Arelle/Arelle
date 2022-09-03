@@ -7,7 +7,7 @@ pluginPackages test case
 from . import importTestImported11
 
 def foo():
-	print ("imported unpackaged plug-in relative imported 1")
+    print ("imported unpackaged plug-in relative imported 1")
 
 __pluginInfo__ = {
     'name': 'Unpackaged Relative Import 1',

@@ -6,7 +6,7 @@ pluginPackages test case
 # this module would raise system error due to PEP 366 after python 3.4.3
 
 def foo():
-	print ("imported unpackaged plug-in imported relative 1.1")
+    print ("imported unpackaged plug-in imported relative 1.1")
 
 __pluginInfo__ = {
     'name': 'Unpackaged Relative Import 1.1',

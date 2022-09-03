@@ -24,11 +24,11 @@ def parentCommandLineOptionExtender(parser):
                       help=_('Test that unpackaged imported plug-ins were actually loaded and activated"'))
 
 def parentCommandLineUtilityRun(cntlr, options, **kwargs):
-	if options.unpackageParentImportExample:
-	    parentMenuCommand(cntlr)
+    if options.unpackageParentImportExample:
+        parentMenuCommand(cntlr)
 
 def foo():
-	print ("parent of imported unpackaged plug-ins")
+    print ("parent of imported unpackaged plug-ins")
 
 __pluginInfo__ = {
     'name': 'Import Test Unpackaged Parent',

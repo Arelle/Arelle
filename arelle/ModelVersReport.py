@@ -23,7 +23,7 @@ def create(modelXbrlFromDTS, modelXbrlToDTS):
     """
     modelXbrlVersReport = ModelXbrl.create(modelXbrlFromDTS.modelManager)
     modelVersReport = ModelVersReport(
-    	ModelDocument.Type.VERSIONINGREPORT)
+        ModelDocument.Type.VERSIONINGREPORT)
     modelXbrlVersReport.modelDocument = modelVersReport
     modelVersReport.diffDTSes(modelXbrlFromDTS, modelXbrlToDTS)
     return modelVersReport
