@@ -35,7 +35,7 @@ def xmlns(element, prefix) -> Any:
         return xml
     return ns # return results of get (which may be no namespace
 
-def xmlnsprefix(element, ns) -> Any | None:
+def xmlnsprefix(element, ns) -> Any:
     if ns is None:
         return None
     if ns == xml: # never declared explicitly
@@ -377,7 +377,7 @@ def childrenAttrs(element, childNamespaceURI, childLocalNames, attrLocalName):
     childrenAttrs.sort()
     return childrenAttrs
 
-def descendant(element, descendantNamespaceURI, descendantLocalNames, attrName=None, attrValue=None) -> Any | None:
+def descendant(element, descendantNamespaceURI, descendantLocalNames, attrName=None, attrValue=None) -> Any:
     d = descendants(element, descendantNamespaceURI, descendantLocalNames, attrName, attrValue, breakOnFirst=True)
     if d:
         return d[0]

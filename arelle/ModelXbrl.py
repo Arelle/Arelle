@@ -267,6 +267,7 @@ class ModelXbrl:
 
     """
 
+    contexts: dict[Any, Any]
     dimensionDefaultConcepts: dict
     ixdsHtmlElements: list
     isDimensionsValidated: bool
@@ -301,7 +302,7 @@ class ModelXbrl:
         self.facts = []
         self.factsInInstance = set()
         self.undefinedFacts = [] # elements presumed to be facts but not defined
-        self.contexts: dict[Any, Any] = {}
+        self.contexts = {}
         self.units = {}
         self.modelObjects = []
         self.qnameParameters = {}
