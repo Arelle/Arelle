@@ -25,7 +25,6 @@ if TYPE_CHECKING:
     from arelle.ModelXbrl import ModelXbrl
 
 osPrcs = None
-isPy3 = (sys.version[0] >= '3')
 LOG_TEXT_MAX_LENGTH = 32767
 cxFrozen = getattr(sys, 'frozen', False)
 
@@ -311,14 +310,6 @@ class Cntlr:
                                 langCodes).install()
             self.uiLang = langCodes[0].lower()
             self.uiLangDir = 'rtl' if self.uiLang[0:2] in {"ar","he"} else 'ltr'
-            if not isPy3: # 2.7 gettext provides string instead of unicode from .mo files
-                installedGettext: TypeGetText = __builtins__['_']
-                def convertGettextResultToUnicode(msg: str) -> Any:
-                    translatedMsg = installedGettext(msg)
-                    if isinstance(translatedMsg, _STR_UNICODE):
-                        return translatedMsg
-                    return translatedMsg.decode('utf-8')
-                __builtins__['_'] = convertGettextResultToUnicode
         except Exception:
             if fallbackToDefault or (lang and lang.lower().startswith("en")):
                 self.uiLang = "en"
@@ -664,8 +655,6 @@ class LogToPrintHandler(logging.Handler):
     def emit(self, logRecord: logging.LogRecord) -> None:
         file = sys.stderr if self.logFile else None
         logEntry = self.format(logRecord)
-        if not isPy3:
-            logEntry = logEntry.encode("utf-8", "replace")
         try:
             print(logEntry, file=file)
         except UnicodeEncodeError:
@@ -784,8 +773,6 @@ class LogToXmlHandler(LogHandlerWithXml):
                 _file = sys.stderr if self.filename == "logToStdErr" else None
                 for logRec in self.logRecordBuffer:
                     logEntry = self.format(logRec)
-                    if not isPy3:
-                        logEntry = logEntry.encode("utf-8", "replace")
                     try:
                         print(logEntry, file=_file)
                     except UnicodeEncodeError:
