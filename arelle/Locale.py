@@ -10,6 +10,7 @@ system-wide settings.  (The system settings can remain in 'C' locale.)
 
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
+from __future__ import annotations
 import sys, subprocess
 import regex as re
 from typing import Optional
@@ -79,7 +80,7 @@ def getLanguageCode():
     except (AttributeError, ValueError): #language code and encoding may be None if their values cannot be determined.
         return "en"
 
-def getLanguageCodes(lang: Optional[str] = None) -> list[str, str, str]:
+def getLanguageCodes(lang: Optional[str] = None) -> list[str]:
     if lang is None:
         lang = getLanguageCode()
     # allow searching on the lang with country part, either python or standard form, or just language

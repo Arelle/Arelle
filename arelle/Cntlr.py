@@ -9,7 +9,7 @@
    :synopsis: Common controller class to initialize for platform and setup common logger functions
 """
 from __future__ import annotations
-from typing import Optional, Union, Any, TYPE_CHECKING, TextIO
+from typing import Any, TYPE_CHECKING, TextIO, Mapping
 from .typing import TypeGetText
 from arelle import PythonUtil # define 2.x or 3.x string types
 import tempfile, os, io, sys, logging, gettext, json, re, subprocess, math
@@ -117,7 +117,7 @@ class Cntlr:
     systemWordSize: int
     uiLang: str
     uiLangDir: str
-    updateURL: Optional[str]
+    updateURL: str | None
     configDir: str
     imagesDir: str
     localeDir: str
@@ -128,26 +128,20 @@ class Cntlr:
     hasClipboard: bool
     contextMenuClick: str
     hasWebServer: bool
-    config: Optional[dict[str, Any]]
+    config: dict[str, Any] | None
     configJsonFile: str
     webCache: WebCache
     modelManager: ModelManager.ModelManager
-    logger: Optional[logging.Logger]
-    logHandler: Union[
-        LogToBufferHandler,
-        LogToPrintHandler,
-        LogToXmlHandler,
-        logging.Handler,
-        logging.FileHandler
-        ]
+    logger: logging.Logger | None
+    logHandler: logging.Handler
 
     def __init__(
         self,
         hasGui: bool = False,
-        logFileName: Optional[str] = None,
-        logFileMode: Optional[str] = None,
-        logFileEncoding: Optional[str] = None,
-        logFormat: Optional[str] = None
+        logFileName: str | None = None,
+        logFileMode: str | None = None,
+        logFileEncoding: str | None = None,
+        logFormat: str | None = None
     ) -> None:
         self.hasWin32gui = False
         self.hasGui = hasGui
@@ -250,7 +244,7 @@ class Cntlr:
                     self.userAppDir = os.path.join( os.path.expanduser("~/.config"), "arelle")
             if hasGui:
                 try:
-                    import gtk
+                    import gtk  # type: ignore[import]
                     self.hasClipboard = True
                 except ImportError:
                     self.hasClipboard = False
@@ -319,14 +313,14 @@ class Cntlr:
 
     def startLogging(
         self,
-        logFileName: Optional[str] = None,
-        logFileMode: Optional[str] = None,
-        logFileEncoding: Optional[str] = None,
-        logFormat: Optional[str] = None,
-        logLevel: Optional[str] = None,
-        logHandler: Optional[logging.Handler] = None,
+        logFileName: str | None = None,
+        logFileMode: str | None = None,
+        logFileEncoding:str | None = None,
+        logFormat: str | None = None,
+        logLevel: str | None = None,
+        logHandler: logging.Handler | None = None,
         logToBuffer: bool = False,
-        logTextMaxLength: Optional[int] = None,
+        logTextMaxLength: int | None = None,
         logRefObjectProperties: bool = True
     ) -> None:
         # add additional logging levels (for python 2.7, all of these are ints)
@@ -368,8 +362,8 @@ class Cntlr:
             except ValueError:
                 self.addToLog(_("Unknown log level name: {0}, please choose from {1}").format(
                     logLevel, ', '.join(logging.getLevelName(l).lower()
-                                        for l in sorted([i for i in logging.loggingLevelNums.keys()
-                                                         if isinstance(i,_INT_TYPES) and i > 0]))),
+                                        for l in sorted([i for i in logging._levelToName.keys()
+                                                         if isinstance(i,_INT_TYPES) and i > 0]))),  # type: ignore[name-defined]
                               level=logging.ERROR, messageCode="arelle:logLevel")
             setattr(self.logger, "messageCodeFilter", None)
             setattr(self.logger, "messageLevelFilter", None)
@@ -403,7 +397,7 @@ class Cntlr:
         :param file: File name (and optional line numbers) pertaining to message
         :type file: str
         """
-        args: Union[tuple[str], tuple[str, dict[str, Any]]]
+        args: tuple[str] | tuple[str, dict[str, Any]]
         if self.logger is not None:
             if messageArgs:
                 args = (message, messageArgs)
@@ -414,10 +408,9 @@ class Cntlr:
             if isinstance(file, (tuple,list,set)):
                 for _file in file:
                     refs.append( {"href": _file} )
-            elif isinstance(file, _STR_BASE):
+            elif isinstance(file, _STR_BASE):  # type: ignore[name-defined]
                 refs.append( {"href": file} )
-            if isinstance(level, _STR_BASE):
-                level = logging._checkLevel(level)
+            if isinstance(level, _STR_BASE):  # type: ignore[name-defined]
                 # given level is str at this point, level_int will always
                 # be an int but logging.getLevelName returns Any (int if
                 # input is str, and str if input is int)
@@ -433,7 +426,7 @@ class Cntlr:
                        .encode(sys.stdout.encoding, 'backslashreplace')
                        .decode(sys.stdout.encoding, 'strict')))
 
-    def showStatus(self, message: str, clearAfter: Optional[int] = None) -> None:
+    def showStatus(self, message: str, clearAfter: int | None = None) -> None:
         """Dummy method for specialized controller classes to specialize,
         provides user feedback on status line of GUI or web page
 
@@ -466,7 +459,8 @@ class Cntlr:
         """Save user preferences configuration (in json configuration file)."""
         if self.hasFileSystem:
             with io.open(self.configJsonFile, 'wt', encoding='utf-8') as f:
-                jsonStr = _STR_UNICODE(json.dumps(self.config, ensure_ascii=False, indent=2)) # might not be unicode in 2.7
+                # might not be unicode in 2.7
+                jsonStr = _STR_UNICODE(json.dumps(self.config, ensure_ascii=False, indent=2)) # type: ignore[name-defined]
                 f.write(jsonStr)  # 2.7 getss unicode this way
 
     # default non-threaded viewModelObject
@@ -536,7 +530,7 @@ class Cntlr:
         return 'cancel'
 
     # if no text, then return what is on the clipboard, otherwise place text onto clipboard
-    def clipboardData(self, text: Optional[str]=None) -> Optional[str]:
+    def clipboardData(self, text: str | None = None) -> Any:
         """Places text onto the clipboard (if text is not None), otherwise retrieves and returns text from the clipboard.
         Only supported for those platforms that have clipboard support in the current python implementation (macOS
         or ActiveState Windows Python).
@@ -581,7 +575,7 @@ class Cntlr:
         return None
 
     @property
-    def memoryUsed(self) -> Optional[float]:
+    def memoryUsed(self) -> float | None:
         try:
             global osPrcs # is this needed?
             # to tell mypy this is for windows
@@ -615,7 +609,7 @@ def logRefsFileLines(refs: list[dict[str, Any]]) -> str:
                     for file, lines in sorted(fileLines.items()))
 
 class LogFormatter(logging.Formatter):
-    def __init__(self, fmt: Optional[str] = None, datefmt: Optional[str] = None) -> None:
+    def __init__(self, fmt: str | None = None, datefmt: str | None = None) -> None:
         super(LogFormatter, self).__init__(fmt, datefmt)
 
     def fileLines(self, record: logging.LogRecord) -> str:
@@ -650,7 +644,7 @@ class LogToPrintHandler(logging.Handler):
     :param logOutput: 'logToStdErr' to cause log print to stderr instead of stdout
     :type logOutput: str
     """
-    logFile: Optional[Union[str, TextIO]]
+    logFile: str | TextIO | None
 
     def __init__(self, logOutput: str) -> None:
         super(LogToPrintHandler, self).__init__()
