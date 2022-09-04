@@ -348,10 +348,10 @@ class Cntlr:
                 self.logHandler = LogToPrintHandler(logFileName)
             elif logFileName == "logToBuffer":
                 self.logHandler = LogToBufferHandler()
-                self.logger.logRefObjectProperties = logRefObjectProperties
+                setattr(self.logger, "logRefObjectProperties", logRefObjectProperties)
             elif logFileName.endswith(".xml") or logFileName.endswith(".json") or logToBuffer:
                 self.logHandler = LogToXmlHandler(filename=logFileName, mode=logFileMode or "a")  # should this be "w" mode??
-                self.logger.logRefObjectProperties = logRefObjectProperties
+                setattr(self.logger, "logRefObjectProperties", logRefObjectProperties)
                 if not logFormat:
                     logFormat = "%(message)s"
             else:
@@ -366,32 +366,31 @@ class Cntlr:
             try:
                 self.logger.setLevel((logLevel or "debug").upper())
             except ValueError:
-                loggingLevelNums = logging._levelNames if sys.version < '3.4' else logging._levelToName
                 self.addToLog(_("Unknown log level name: {0}, please choose from {1}").format(
                     logLevel, ', '.join(logging.getLevelName(l).lower()
                                         for l in sorted([i for i in logging.loggingLevelNums.keys()
                                                          if isinstance(i,_INT_TYPES) and i > 0]))),
                               level=logging.ERROR, messageCode="arelle:logLevel")
-            self.logger.messageCodeFilter = None
-            self.logger.messageLevelFilter = None
-            self.logHandler.logTextMaxLength = (logTextMaxLength or LOG_TEXT_MAX_LENGTH)
+            setattr(self.logger, "messageCodeFilter", None)
+            setattr(self.logger, "messageLevelFilter", None)
+            setattr(self.logHandler, "logTextMaxLength", (logTextMaxLength or LOG_TEXT_MAX_LENGTH))
 
     def setLogLevelFilter(self, logLevelFilter: str) -> None:
         if self.logger:
-            self.logger.messageLevelFilter = re.compile(logLevelFilter) if logLevelFilter else None
+            setattr(self.logger, "messageLevelFilter", re.compile(logLevelFilter) if logLevelFilter else None)
 
     def setLogCodeFilter(self, logCodeFilter: str) -> None:
         if self.logger:
-            self.logger.messageCodeFilter = re.compile(logCodeFilter) if logCodeFilter else None
+            setattr(self.logger, "messageCodeFilter", re.compile(logCodeFilter) if logCodeFilter else None)
 
     def addToLog(
         self,
         message: str,
         messageCode: str = "",
-        messageArgs: Optional[dict[str, Any]] = None,
+        messageArgs: dict[str, Any] | None = None,
         file: str = "",
-        refs: Optional[list[dict[str, Any]]] = None,
-        level: int = logging.INFO
+        refs: list[dict[str, Any]] | None = None,
+        level: int | str = logging.INFO
     ) -> None:
         """Add a simple info message to the default logger
 
@@ -419,6 +418,11 @@ class Cntlr:
                 refs.append( {"href": file} )
             if isinstance(level, _STR_BASE):
                 level = logging._checkLevel(level)
+                # given level is str at this point, level_int will always
+                # be an int but logging.getLevelName returns Any (int if
+                # input is str, and str if input is int)
+                level = logging.getLevelName(level)
+            assert isinstance(level, int)
             self.logger.log(level, *args, extra={"messageCode":messageCode,"refs":refs})
         else:
             try:
@@ -580,19 +584,21 @@ class Cntlr:
     def memoryUsed(self) -> Optional[float]:
         try:
             global osPrcs # is this needed?
-            if self.isMSW:
+            # to tell mypy this is for windows
+            if sys.platform.startswith("win"):
                 if osPrcs is None:
                     import win32process as osPrcs
-                    process_memory = osPrcs.GetProcessMemoryInfo(osPrcs.GetCurrentProcess())['WorkingSetSize']
-                    if isinstance(process_memory, int):
-                        return process_memory / 1024
+                process_memory = osPrcs.GetProcessMemoryInfo(osPrcs.GetCurrentProcess())['WorkingSetSize']
+                if isinstance(process_memory, int):
+                    return process_memory / 1024
             elif sys.platform == "sunos5": # ru_maxrss is broken on sparc
                 if osPrcs is None:
                     import resource as osPrcs
                 return int(subprocess.getoutput("ps -p {0} -o rss".format(os.getpid())).rpartition('\n')[2])
             else: # unix or linux where ru_maxrss works
-                import resource as osPrcs
-                return osPrcs.getrusage(osPrcs.RUSAGE_SELF).ru_maxrss # in KB
+                import resource as osPrcs  # is this needed?
+                # in KB
+                return float(osPrcs.getrusage(osPrcs.RUSAGE_SELF).ru_maxrss)  # type: ignore[attr-defined]
         except Exception:
             pass
         return 0
@@ -614,7 +620,7 @@ class LogFormatter(logging.Formatter):
 
     def fileLines(self, record: logging.LogRecord) -> str:
         # provide a file parameter made up from refs entries
-        return logRefsFileLines(record.refs)
+        return logRefsFileLines(getattr(record, "refs", []))
 
     def format(self, record: logging.LogRecord) -> str:
         record.file = self.fileLines(record)
@@ -623,13 +629,14 @@ class LogFormatter(logging.Formatter):
         except (KeyError, TypeError, ValueError) as ex:
             formattedMessage = "Message: "
             if getattr(record, "messageCode", ""):
-                formattedMessage += "[{0}] ".format(record.messageCode)
+                formattedMessage += "[{0}] ".format(getattr(record, "messageCode", ""))
             if getattr(record, "msg", ""):
                 formattedMessage += record.msg + " "
             if isinstance(record.args, dict) and 'error' in record.args: # args may be list or empty
                 formattedMessage += record.args['error']
             formattedMessage += " \nMessage log error: " + str(ex)
-        del record.file
+        if hasattr(record, "file"):
+            delattr(record, "file")
         return formattedMessage
 
 class LogToPrintHandler(logging.Handler):
@@ -695,7 +702,7 @@ class LogHandlerWithXml(logging.Handler):
                                 if 2 <= len(p) <= 3)
 
         msg = self.format(logRec)
-        if logRec.args:
+        if logRec.args and isinstance(logRec.args, Mapping):
             args = "".join([' {0}="{1}"'.format(ncNameEncode(n), entityEncode(v,
                                                 truncateAt=(65535 if n in ("json",) else 128)))
                             for n, v in logRec.args.items()])
@@ -709,22 +716,22 @@ class LogHandlerWithXml(logging.Handler):
                              if 'customAttributes' in ref else '',
                         (">\n  " + propElts(ref["properties"],"\n  ", truncateAt=self.logTextMaxLength) + "\n </ref" )
                                    if ("properties" in ref) else '/')
-                       for ref in logRec.refs)
+                       for ref in getattr(logRec, "refs", []))
         return ('<entry code="{0}" level="{1}">'
                 '\n <message{2}>{3}</message>{4}'
-                '</entry>\n'.format(logRec.messageCode,
+                '</entry>\n'.format(getattr(logRec, "messageCode", ""),
                                     logRec.levelname.lower(),
                                     args,
                                     entityEncode(msg),
                                     refs))
     def recordToJson(self, logRec: logging.LogRecord) -> dict[str, Any]:
         message = { "text": self.format(logRec) }
-        if logRec.args:
+        if logRec.args and isinstance(logRec.args, Mapping):
             for n, v in logRec.args.items():
-                message[n] = v
-        return {"code": logRec.messageCode,
+                message[n] = str(v)
+        return {"code": getattr(logRec, "messageCode", ""),
                 "level": logRec.levelname.lower(),
-                "refs": logRec.refs,
+                "refs": getattr(logRec, "refs", []),
                 "message": message}
 
 class LogToXmlHandler(LogHandlerWithXml):
@@ -734,10 +741,10 @@ class LogToXmlHandler(LogHandlerWithXml):
     A log handler that writes log entries to named XML file (utf-8 encoded) upon closing the application.
     """
     logRecordBuffer: list[logging.LogRecord]
-    filename: Optional[str]
+    filename: str | None
     filemode: str
 
-    def __init__(self, filename: Optional[str] = None, mode: str = 'w') -> None:
+    def __init__(self, filename: str | None = None, mode: str = 'w') -> None:
         super(LogToXmlHandler, self).__init__()
         self.filename = filename # may be none if buffer is retrieved by get methods below and not written anywhere
         self.logRecordBuffer = []
