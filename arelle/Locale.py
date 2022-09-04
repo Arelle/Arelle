@@ -13,7 +13,6 @@ system-wide settings.  (The system settings can remain in 'C' locale.)
 from __future__ import annotations
 import sys, subprocess
 import regex as re
-from typing import Optional
 try:
     from collections.abc import Mapping
 except:
@@ -80,7 +79,7 @@ def getLanguageCode():
     except (AttributeError, ValueError): #language code and encoding may be None if their values cannot be determined.
         return "en"
 
-def getLanguageCodes(lang: Optional[str] = None) -> list[str]:
+def getLanguageCodes(lang: str | None = None) -> list[str]:
     if lang is None:
         lang = getLanguageCode()
     # allow searching on the lang with country part, either python or standard form, or just language
