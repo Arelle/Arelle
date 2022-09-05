@@ -154,7 +154,7 @@ class StrctMdlNode:
                         if aspectValue.isExplicit:
                             concept = aspectValue.member
                         elif aspectValue.isTyped:
-                            return XmlUtil.innerTextList(aspectValue.typedMember)
+                            return XmlUtil.innerTextList(aspectValue.typedMember), "processor"
                 elif isinstance(aspectValue, ModelObject):
                     text = XmlUtil.innerTextList(aspectValue)
                     if not text and XmlUtil.hasChild(aspectValue, aspectValue.namespaceURI, "forever"):
