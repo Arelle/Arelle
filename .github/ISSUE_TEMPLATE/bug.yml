@@ -1,0 +1,84 @@
+name: Bug Report
+description: Help us improve.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+
+        Arelle is distributed in a few different ways and can be run in a variety of environments.
+        Providing details on how you're using Arelle will significantly decrease the amount of time to figure out what's wrong.
+
+        When relevant please try to provide a document that reproduces the issue.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: And what did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: documents
+    attributes:
+      label: Documents
+      description: If possible, please attach any documents that cause the bug.
+      placeholder: Drag and drop documents here.
+  - type: input
+    id: cli-command
+    attributes:
+      label: If running from the command line, what command did you run?
+      placeholder: e.g. `python -m arelleCmdLine --plugins validate/EFM --validate --file xbrl.zip`
+  - type: dropdown
+    id: interface
+    attributes:
+      label: Interface
+      description: Which interfaces did you experience the bug with?
+      multiple: true
+      options:
+        - CLI (arelleCmdLine)
+        - GUI (arelleGUI)
+        - Python library (pip install)
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: |
+        What version of Arelle are you running?
+        CLI: `python arelleCmdLine.py --about`
+        GUI: Help -> About...
+        From source (git checkout): `git rev-parse HEAD`
+        Python Library (pip install): `pip show arelle-release`
+      placeholder: e.g. 1.2022.08.08 or git hash d9fe63173b84df74d3ed15a0afe37214df85ca82
+    validations:
+      required: true
+  - type: dropdown
+    id: download
+    attributes:
+      label: Download
+      description: Which downloads of Arelle did you use?
+      multiple: true
+      options:
+        - arelle.org (bundled Python)
+        - GitHub release (bundled Python)
+        - From source (git checkout)
+        - pip install
+    validations:
+      required: true
+  - type: dropdown
+    id: operating-system
+    attributes:
+      label: Operating System
+      description: Which operating systems did you use?
+      multiple: true
+      options:
+        - Linux (Red Hat)
+        - Linux (Ubuntu)
+        - Linux (Other)
+        - macOS
+        - Windows
+        - Other (please specify)
+    validations:
+      required: true
