@@ -11,6 +11,7 @@ body:
         Providing details on how you're using Arelle will significantly decrease the amount of time to figure out what's wrong.
 
         When relevant please try to provide a document that reproduces the issue.
+        Also please provide a screenshot if reporting a bug in the GUI.
   - type: textarea
     id: what-happened
     attributes:
