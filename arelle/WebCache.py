@@ -9,6 +9,7 @@ e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
 
 '''
 from __future__ import annotations
+from typing import TYPE_CHECKING, Optional
 
 import os, posixpath, sys, re, shutil, time, calendar, io, json, logging, shutil, cgi, zlib
 if sys.version[0] >= '3':
@@ -31,6 +32,10 @@ from arelle.FileSource import SERVER_WEB_CACHE, archiveFilenameParts
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 from arelle.Version import __version__
+
+if TYPE_CHECKING:
+    from .Cntlr import Cntlr
+
 addServerWebCache = None
 
 DIRECTORY_INDEX_FILE = "!~DirectoryIndex~!"
@@ -84,7 +89,11 @@ class WebCache:
 
     default_timeout = None
 
-    def __init__(self, cntlr, httpProxyTuple):
+    def __init__(
+        self, cntlr: Cntlr,
+        httpProxyTuple: Optional[tuple[bool, str, str, str, str]]
+    ) -> None:
+
         self.cntlr = cntlr
         #self.proxies = request.getproxies()
         #self.proxies = {'ftp': 'ftp://63.192.17.1:3128', 'http': 'http://63.192.17.1:3128', 'https': 'https://63.192.17.1:3128'}

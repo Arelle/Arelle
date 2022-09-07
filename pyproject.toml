@@ -93,6 +93,7 @@ ignore_errors = true
 # when the library is converted, the above entry will be replaced (strict is demanded)
 [[tool.mypy.overrides]]
 module = [
+    'arelle.Cntlr',
     'arelle.plugin.validate.ESEF.*',
     'arelle.Updater',
 ]
