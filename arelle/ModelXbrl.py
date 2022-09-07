@@ -7,7 +7,7 @@ Created on Oct 3, 2010
 from __future__ import annotations
 from collections import defaultdict
 import os, sys, re, traceback, uuid
-from typing import TYPE_CHECKING, cast, Any
+from typing import TYPE_CHECKING, cast
 import logging
 from decimal import Decimal
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
