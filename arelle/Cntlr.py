@@ -10,7 +10,7 @@
 """
 from __future__ import annotations
 from typing import Any, TYPE_CHECKING, TextIO, Mapping
-from .typing import TypeGetText
+from arelle.typing import TypeGetText
 import tempfile, os, io, sys, logging, gettext, json, re, subprocess, math
 from arelle import ModelManager
 from arelle.WebCache import WebCache

@@ -28,7 +28,7 @@ TP_XSD = "http://www.xbrl.org/2016/taxonomy-package.xsd"
 CAT_XSD = "http://www.xbrl.org/2016/taxonomy-package-catalog.xsd"
 
 if TYPE_CHECKING:
-    from .Cntlr import Cntlr
+    from arelle.Cntlr import Cntlr
 
 EMPTYDICT = {}
 
