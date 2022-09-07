@@ -187,24 +187,26 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblAxisDisp
     return hasCoveredAspect
 
 def checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblBrkdnRel, parentAspectsCovered, breakdownAspects):
-    definitionNode = tblBrkdnRel.toModelObject
-    aspectsCovered = parentAspectsCovered.copy()
-    if isinstance(definitionNode, DefnMdlDefinitionNode):
-        for aspect in definitionNode.aspectsCovered():
-            aspectsCovered.add(aspect)
-        definitionNodeHasChild = False
-        for axisSubtreeRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD)).fromModelObject(definitionNode):
-            checkBreakdownLeafNodeAspects(modelXbrl, modelTable, axisSubtreeRel, aspectsCovered, breakdownAspects)
-            definitionNodeHasChild = True
-        
-        if not definitionNode.isAbstract and not isinstance(definitionNode, DefnMdlBreakdown): # this is a leaf node
-            missingAspects = set(aspect
-                                 for aspect in breakdownAspects
-                                 if aspect not in aspectsCovered and
-                                    aspect != Aspect.DIMENSIONS and not isinstance(aspect,QName))
-            if (missingAspects):
-                modelXbrl.error("xbrlte:missingAspectValue",
-                    _("%(definitionNode)s %(xlinkLabel)s does not define an aspect for %(aspect)s"),
-                    modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, definitionNode=definitionNode.localName,
-                    aspect=', '.join(aspectStr(aspect) for aspect in missingAspects))
-    
+    breakdown = tblBrkdnRel.toModelObject
+
+    for dfnRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree,XbrlConst.tableBreakdownTreeMMDD)).fromModelObject(breakdown):
+        definitionNode = dfnRel.toModelObject
+        aspectsCovered = parentAspectsCovered.copy()
+        if isinstance(definitionNode, DefnMdlDefinitionNode):
+            for aspect in definitionNode.aspectsCovered():
+                aspectsCovered.add(aspect)
+            definitionNodeHasChild = False
+            for axisSubtreeRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD)).fromModelObject(definitionNode):
+                checkBreakdownLeafNodeAspects(modelXbrl, modelTable, axisSubtreeRel, aspectsCovered, breakdownAspects)
+                definitionNodeHasChild = True
+
+            if not definitionNode.isAbstract and not isinstance(definitionNode, DefnMdlBreakdown): # this is a leaf node
+                missingAspects = set(aspect
+                                     for aspect in breakdownAspects
+                                     if aspect not in aspectsCovered and
+                                        aspect != Aspect.DIMENSIONS and not isinstance(aspect,QName))
+                if (missingAspects):
+                    modelXbrl.error("xbrlte:missingAspectValue",
+                        _("%(definitionNode)s %(xlinkLabel)s does not define an aspect for %(aspect)s"),
+                        modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, definitionNode=definitionNode.localName,
+                        aspect=', '.join(aspectStr(aspect) for aspect in missingAspects))
