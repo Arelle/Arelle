@@ -22,6 +22,7 @@ from arelle.XPathContext import XPathException
 NoneType = type(None)
 
 TRACE_RESOLUTION = True
+TRACE_TABLE_STRUCTURE = False
 
 RENDER_UNITS_PER_CHAR = 16 # nominal screen units per char for wrapLength computation and adjustment
 
@@ -41,7 +42,7 @@ def resolveTableStructure(view, viewTblELR):
         # find an ELR for this table object
         defnMdlTable = viewTblELR
         strctMdlTable = StrctMdlTable(defnMdlTable)
-        for rel in view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD)).fromModelObject(table):
+        for rel in view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD)).fromModelObject(defnMdlTable):
             # find relationships in table's linkrole
             view.defnSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD), rel.linkrole)
             return resolveTableAxesStructure(view, strctMdlTable,
@@ -180,8 +181,10 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
             # print(str(o))
             return o
         raise TypeError("Type {} is not supported for json output".format(type(obj).__name__))
-    with io.open(r"/Users/hermf/temp/test.json", 'wt') as fh:
-        json.dump(strctMdlTable, fh, ensure_ascii=False, indent=2, default=jsonStrctMdlEncoder)
+
+    if TRACE_TABLE_STRUCTURE:
+        with io.open(r"/Users/hermf/temp/test.json", 'wt') as fh:
+            json.dump(strctMdlTable, fh, ensure_ascii=False, indent=2, default=jsonStrctMdlEncoder)
    
     view.colHdrTopRow = view.zAxisBreakdowns # need rest if combobox used (2 if view.zAxisRows else 1)
     for i in range(view.rowHdrCols):

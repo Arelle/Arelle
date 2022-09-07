@@ -374,7 +374,7 @@ class ViewRenderedGrid(ViewFile.View):
                         columnspan = rightCol - leftCol
                     # if columnspan > 0 and nonAbstract: columnspan += 1
                     elt = None
-                    if self.type == HTML and xStrctNode.isLabeled or not isinstance(xStrctNode, StrctMdlBreakdown):
+                    if self.type == HTML and (xStrctNode.isLabeled or not isinstance(xStrctNode, StrctMdlBreakdown)):
                         if rightCol == self.dataFirstCol + self.dataCols - 1:
                             edgeBorder = "border-right:.5pt solid windowtext;"
                         else:
@@ -447,7 +447,7 @@ class ViewRenderedGrid(ViewFile.View):
                         if source:
                             elt.set("source", source)
                     if nonAbstract or isRollUp:
-                        if self.type == HTML and xStrctNode.isLabeled or not isinstance(xStrctNode, StrctMdlBreakdown):
+                        if self.type == HTML and (xStrctNode.isLabeled or not isinstance(xStrctNode, StrctMdlBreakdown)):
                             if isRollUp:   # add spanned left leg portion one row down
                                 attrib= {"class":"xAxisSpanLeg",
                                          "rowspan": str(rowBelow - row)}
@@ -730,7 +730,7 @@ class ViewRenderedGrid(ViewFile.View):
                 else:
                     row = nextRow
                 if nestRow > nestedBottomRow:
-                    nestedBottomRow = nestRow + (isNonAbstract and not childrenFirst)
+                    nestedBottomRow = nestRow + isNonAbstract # and not childrenFirst)
                 if row > nestedBottomRow:
                     nestedBottomRow = row
                 #if renderNow and not childrenFirst:
