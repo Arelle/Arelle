@@ -1229,7 +1229,7 @@ class ModelXbrl:
             """@messageCatalog=[]"""
             logger.log(numericLevel, *logArgs, exc_info=args.get("exc_info"), extra=extras)
 
-    def error(self, codes: str | list[str] | tuple[str, ...], msg: str, **args) -> None:
+    def error(self, codes: str | tuple[str, ...], msg: str, **args) -> None:
         """Logs a message as info, by code, logging-system message text (using %(name)s named arguments
         to compose string by locale language), resolving model object references (such as qname),
         to prevent non-dereferencable memory usage.  Supports logging system parameters, and
@@ -1244,7 +1244,6 @@ class ModelXbrl:
         Args must include a named argument for each msg %(namedArg)s replacement.
 
         :param codes: Message code or tuple/list of message codes
-        :type codes: str or [str]
         :param msg: Message text string to be formatted and replaced with named parameters in **args
         :param **args: Named arguments including modelObject, modelXbrl, or modelDocument, named arguments in msg string, and any exc_info argument.
         :param messageCodes: If first parameter codes, above, is dynamically formatted, this is a documentation string of the message codes only used for extraction of the message catalog document (not used in run-time processing).

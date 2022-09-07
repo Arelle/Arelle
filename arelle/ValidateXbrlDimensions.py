@@ -538,7 +538,7 @@ def enumerationMemberUsable(val, enumConcept, memConcept) -> bool:
     if enumConcept is None or memConcept is None:
         return False
     else:
-        return cast(bool, memConcept in usableEnumerationMembers(val, enumConcept))
+        return memConcept in usableEnumerationMembers(val, enumConcept)
 ''' removed to cache all members usability for domain
 def dimensionMemberState(val, dimConcept, memConcept, domELR):
     try:

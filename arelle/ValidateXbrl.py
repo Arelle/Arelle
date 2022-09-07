@@ -169,20 +169,18 @@ class ValidateXbrl:
                 noUndirected = cyclesAllowed == "none"
                 fromRelationships = relsSet.fromModelObjects()
                 for relFrom, rels in fromRelationships.items():
-                    cycleFound = self.fwdCycle(relsSet, rels, noUndirected, {relFrom})
+                    cycleFound = cast(list[ModelRelationship], self.fwdCycle(relsSet, rels, noUndirected, {relFrom}))
 
                     if cycleFound is not None:
                         pathEndsAt = len(cycleFound)  # consistently find start of path
 
-                        loopedModelObject = cast(ModelRelationship, cycleFound[1]).toModelObject
+                        loopedModelObject = cycleFound[1].toModelObject
                         for i, rel in enumerate(cycleFound[2:]):
-                            rel = cast(ModelRelationship, rel)
-
                             if rel.fromModelObject == loopedModelObject:
                                 pathEndsAt = 3 + i # don't report extra path elements before loop
                                 break
 
-                        reversed_list = cast(list[ModelRelationship], reversed(cycleFound[1:pathEndsAt]))
+                        reversed_list = reversed(cycleFound[1:pathEndsAt])
                         path = str(loopedModelObject.qname) + " " + " - ".join(
                             "{0}:{1} {2}".format(rel.modelDocument.basename, rel.sourceline, rel.toModelObject.qname)
                             for rel in reversed_list)
@@ -993,7 +991,15 @@ class ValidateXbrl:
                             _("Unit %(unitID)s numerator measure: %(measure)s also appears as denominator measure"),
                             modelObject=unit, unitID=unit.id, measure=numeratorMeasure)
 
-    def fwdCycle(self, relsSet: ModelRelationshipSet, rels: list[ModelRelationship], noUndirected: bool, fromConcepts: set[ModelConcept | ModelCustomFunctionSignature | ModelInlineFact], cycleType: str = "directed", revCycleRel: ModelRelationship | None = None) -> list[str | ModelRelationship] | None:
+    def fwdCycle(
+        self,
+        relsSet: ModelRelationshipSet,
+        rels: list[ModelRelationship],
+        noUndirected: bool,
+        fromConcepts: set[ModelConcept | ModelCustomFunctionSignature | ModelInlineFact],
+        cycleType: str = "directed",
+        revCycleRel: ModelRelationship | None = None,
+    ) -> list[str | ModelRelationship] | None:
         for rel in rels:
             if revCycleRel is not None and rel.isIdenticalTo(revCycleRel):
                 continue # don't double back on self in undirected testing
@@ -1015,7 +1021,13 @@ class ValidateXbrl:
                     return foundCycle
         return None
 
-    def revCycle(self, relsSet: ModelRelationshipSet, toConcept: ModelConcept, turnbackRel: ModelRelationship, fromConcepts: set[ModelConcept | ModelCustomFunctionSignature | ModelInlineFact]) -> list[str | ModelRelationship] | None:
+    def revCycle(
+        self,
+        relsSet: ModelRelationshipSet,
+        toConcept: ModelConcept,
+        turnbackRel: ModelRelationship,
+        fromConcepts: set[ModelConcept | ModelCustomFunctionSignature | ModelInlineFact],
+    ) -> list[str | ModelRelationship] | None:
         for rel in relsSet.toModelObject(toConcept):
             if not rel.isIdenticalTo(turnbackRel):
                 relFrom = rel.fromModelObject
@@ -1034,7 +1046,14 @@ class ValidateXbrl:
                 fromConcepts.discard(relFrom)
         return None
 
-    def segmentScenario(self, element: ModelObject | ModelDimensionValue | None, contextId: str, name: str, sect: str, topLevel: bool = True) -> None:
+    def segmentScenario(
+        self,
+        element: ModelObject | ModelDimensionValue | None,
+        contextId: str,
+        name: str,
+        sect: str,
+        topLevel: bool = True,
+    ) -> None:
         if topLevel:
             if element is None:
                 return  # nothing to check
