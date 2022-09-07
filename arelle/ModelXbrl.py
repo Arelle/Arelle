@@ -985,7 +985,7 @@ class ModelXbrl:
             return None
 
     # UI thread viewModelObject
-    def viewModelObject(self, objectId):
+    def viewModelObject(self, objectId: str | int) -> None:
         """Finds model object, if any, and synchronizes any views displaying it to bring the model object into scrollable view region and highlight it
         :param objectId: string which includes _ordinalNumber, produced by ModelObject.objectId(), or integer object index
         :type objectId: str or int

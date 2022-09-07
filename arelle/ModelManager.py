@@ -4,11 +4,17 @@ Created on Oct 3, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+from __future__ import annotations
+from typing import TYPE_CHECKING
 import gc, sys, traceback, logging
 from arelle import ModelXbrl, Validate, DisclosureSystem, PackageManager
 from arelle.PluginManager import pluginClassMethods
 
-def initialize(cntlr):
+
+if TYPE_CHECKING:
+    from .Cntlr import Cntlr
+
+def initialize(cntlr: Cntlr) -> ModelManager:
     modelManager = ModelManager(cntlr)
     modelManager.modelXbrl = None
     return modelManager
