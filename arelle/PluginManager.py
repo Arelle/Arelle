@@ -22,6 +22,8 @@ try:
     from collections import OrderedDict
 except ImportError:
     OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order
+from collections.abc import Generator, Callable
+
 
 if TYPE_CHECKING:
     # Prevent potential circular import error

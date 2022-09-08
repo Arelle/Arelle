@@ -32,6 +32,7 @@
     measure sets.
 """
 from collections import defaultdict
+from typing import Any
 from lxml import etree
 from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue, rangeValue
@@ -578,6 +579,9 @@ class ModelFact(ModelObject):
         return self.concept
 
 class ModelInlineValueObject:
+
+    xValue: Any
+
     def init(self, modelDocument):
         super(ModelInlineValueObject, self).init(modelDocument)
 

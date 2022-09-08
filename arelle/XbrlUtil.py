@@ -4,9 +4,10 @@ Created on Nov 26, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom.minidom, math
-from arelle import XbrlConst, XmlUtil
-from arelle.ModelValue import qname, QName, DateTime
+from __future__ import annotations
+from typing import Any
+import math
+from arelle.ModelValue import QName, DateTime
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.XmlValidate import UNKNOWN, VALID, VALID_ID, validate as xmlValidate
 
@@ -134,7 +135,7 @@ def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeID
                 pass  # what should be done if attribute failed to have psvi value
     return attrs
 
-def attributes(modelXbrl, elt, exclusions=set(), ns2ns1Tbl=None, keyByTag=False):
+def attributes(modelXbrl, elt, exclusions=set(), ns2ns1Tbl=None, keyByTag=False) -> tuple[Any, Any]:
     a = attributeDict(modelXbrl, elt, exclusions, ns2ns1Tbl=ns2ns1Tbl, keyByTag=keyByTag)
     return tuple( (k,a[k]) for k in sorted(a.keys()) )
 
