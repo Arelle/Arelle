@@ -11,6 +11,7 @@ from arelle.ModelRenderingObject import (DefnMdlDefinitionNode,
                                          DefnMdlClosedDefinitionNode, 
                                          DefnMdlRuleDefinitionNode,
                                          DefnMdlAspectNode,
+                                         DefnMdlConceptRelationshipNode,
                                          DefnMdlDimensionRelationshipNode)
 from arelle.ModelValue import (QName)
 
@@ -108,17 +109,18 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblAxisDisp
             else:
                 modelTable.priorAspectAxisDisposition[aspect] = (tblAxisDisposition, definitionNode)
         ruleSetChildren = XmlUtil.children(definitionNode, definitionNode.namespaceURI, "ruleSet")
+        if definitionNode.isMerged or isinstance(definitionNode, (DefnMdlConceptRelationshipNode, DefnMdlAspectNode)):
+            labelRels = modelXbrl.relationshipSet(XbrlConst.elementLabel).fromModelObject(definitionNode)
+            if labelRels:
+                modelXbrl.error("xbrlte:invalidUseOfLabel",
+                    _("Merged %(definitionNode)s %(xlinkLabel)s has label(s)"),
+                    modelObject=[modelTable, definitionNode] + [r.toModelObject for r in labelRels],
+                    definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel)
         if definitionNode.isMerged:
             if ruleSetChildren:
                 modelXbrl.error("xbrlte:mergedRuleNodeWithTaggedRuleSet",
                     _("Merged %(definitionNode)s %(xlinkLabel)s has tagged rule set(s)"),
                     modelObject=[modelTable, definitionNode] + ruleSetChildren, 
-                    definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel)
-            labelRels = modelXbrl.relationshipSet(XbrlConst.elementLabel).fromModelObject(definitionNode)
-            if labelRels:
-                modelXbrl.error("xbrlte:invalidUseOfLabel",
-                    _("Merged %(definitionNode)s %(xlinkLabel)s has label(s)"),
-                    modelObject=[modelTable, definitionNode] + [r.toModelObject for r in labelRels], 
                     definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel)
             if not definitionNode.isAbstract:
                 modelXbrl.error("xbrlte:nonAbstractMergedRuleNode",
