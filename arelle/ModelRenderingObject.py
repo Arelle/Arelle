@@ -18,7 +18,7 @@ from arelle.FormulaEvaluator import (filterFacts as formulaEvaluatorFilterFacts,
                                      aspectsMatch, factsPartitions, VariableBinding)
 from arelle.PrototypeInstanceObject import FactPrototype
 
-OPEN_ASPECT_ENTRY_SURROGATE = '\uDBFF'
+OPEN_ASPECT_ENTRY_SURROGATE = '\uFFEE' # this need to be a utf-8 compatible char
 
 EMPTY_SET = set()
 
