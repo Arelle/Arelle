@@ -287,6 +287,10 @@ class StrctMdlBreakdown(StrctMdlNode):
                     return (sibling,)
         return ()
 
+    @ property
+    def strctMdlAncestorBreakdownNode(self):
+        return self
+
     @property     
     def strctMdlEffectiveChildNodes(self):
         if self.strctMdlChildNodes: # not leaf
