@@ -206,7 +206,16 @@ def checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblBrkdnRel, parentAspe
                 missingAspects = set(aspect
                                      for aspect in breakdownAspects
                                      if aspect not in aspectsCovered and
-                                        aspect != Aspect.DIMENSIONS and not isinstance(aspect,QName))
+                                        aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS) and not isinstance(aspect,QName))
+
+                isForever = definitionNode.aspectValue(modelXbrl.rendrCntx, Aspect.PERIOD_TYPE) == "forever"
+                # a definition node cannot define a period and a instant, but it's not the case for the breakdown Aspects
+                if (Aspect.START in aspectsCovered and Aspect.END in aspectsCovered) or isForever:
+                    missingAspects.discard(Aspect.INSTANT)
+                elif Aspect.INSTANT in aspectsCovered or isForever:
+                    missingAspects.discard(Aspect.START)
+                    missingAspects.discard(Aspect.END)
+
                 if (missingAspects):
                     modelXbrl.error("xbrlte:missingAspectValue",
                         _("%(definitionNode)s %(xlinkLabel)s does not define an aspect for %(aspect)s"),
