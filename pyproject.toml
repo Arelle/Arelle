@@ -96,6 +96,7 @@ module = [
     'arelle.plugin.validate.ESEF.*',
     'arelle.Cntlr',
     'arelle.Updater',
+    'arelle.UrlUtil',
     'arelle.ValidateXbrl',
 ]
 ignore_errors = false
