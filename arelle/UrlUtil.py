@@ -5,18 +5,10 @@ Created on Oct 22, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from __future__ import annotations
-import os, sys
+import os
 import regex as re
-if sys.version[0] >= '3':
-    from urllib.request import pathname2url
-    from urllib.parse import urldefrag, unquote, quote, urljoin
-    isPy3 = True
-else:
-    from urlparse import urldefrag, urljoin
-    from urllib import quote
-    from urllib import pathname2url
-    from arelle.PythonUtil import py3unquote as unquote
-    isPy3 = False
+from urllib.request import pathname2url
+from urllib.parse import urldefrag, unquote, quote, urljoin
 
 def authority(url, includeScheme=True):
     if url:
@@ -50,21 +42,14 @@ def splitDecodeFragment(url):
     if url is None: # urldefrag returns byte strings for none, instead of unicode strings
         return _STR_UNICODE(""), _STR_UNICODE("")
     urlPart, fragPart = urldefrag(url)
-    if isPy3:
-        return (urlPart, unquote(fragPart, "utf-8", errors=None))
-    else:
-        return _STR_UNICODE(urlPart), unquote(_STR_UNICODE(fragPart), "utf-8", errors=None)
+    return (urlPart, unquote(fragPart, "utf-8", errors=None))
 
 def anyUriQuoteForPSVI(uri):
     # only quote if quotable character found
     if any(c in {' ', '<', '>', '"', '{', '}', '|', '\\', '^', '~', '`'} or
            not '\x1f' < c < '\x7f'
            for c in uri):
-        if not isPy3:  # patch for unicode per http://hg.python.org/cpython/rev/1e21d94e05f4/
-            return quote(uri.encode(b'utf-8', b'strict'),
-                         safe=b"/_.-%#!~*'();?:@&=+$,")  # b'str' converts to 2.7 str type which is required here
-        else:
-            return quote(uri, safe="/_.-%#!~*'();?:@&=+$,")
+        return quote(uri, safe="/_.-%#!~*'();?:@&=+$,")
     return uri
 
 def isValidAbsolute(url):
