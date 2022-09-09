@@ -6,18 +6,18 @@ Refactored on Jun 11, 2011 to ModelDtsObject, ModelInstanceObject, ModelTestcase
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from lxml import etree
-from collections import namedtuple
 from arelle import Locale
-XmlUtil = None
+from arelle.ModelValue import qname, qnameEltPfxName, QName
+import arelle.XmlUtil
+
+
 VALID_NO_CONTENT = None
 
 emptySet = set()
 
 def init(): # init globals
-    global XmlUtil, VALID_NO_CONTENT
-    if XmlUtil is None:
-        from arelle import XmlUtil
-        from arelle.XmlValidate import VALID_NO_CONTENT
+    global VALID_NO_CONTENT
+    from arelle.XmlValidate import VALID_NO_CONTENT
 
 class ModelObject(etree.ElementBase):
     """ModelObjects represent the XML elements within a document, and are implemented as custom
@@ -312,8 +312,7 @@ class ModelObject(etree.ElementBase):
             elif id in doc.idObjects:
                 return doc.idObjects[id]
             else:
-                from arelle.XmlUtil import xpointerElement
-                xpointedElement = xpointerElement(doc,id)
+                xpointedElement = arelle.XmlUtil.xpointerElement(doc,id)
                 # find element
                 for docModelObject in doc.xmlRootElement.iter():
                     if docModelObject == xpointedElement:
@@ -344,13 +343,11 @@ class ModelObject(etree.ElementBase):
     @property
     def propertyView(self):
         return (("QName", self.elementQname),) + tuple(
-                (XmlUtil.clarkNotationToPrefixedName(self, _tag, isAttribute=True), _value)
+                (arelle.XmlUtil.clarkNotationToPrefixedName(self, _tag, isAttribute=True), _value)
                 for _tag, _value in self.items())
 
     def __repr__(self):
         return ("{0}[{1}, {2} line {3})".format(type(self).__name__, self.objectIndex, self.modelDocument.basename, self.sourceline))
-
-from arelle.ModelValue import qname, qnameEltPfxName, QName
 
 class ModelComment(etree.CommentBase):
     """ModelConcept is a custom proxy objects for etree.
