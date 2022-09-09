@@ -235,8 +235,9 @@ class StrctMdlNode:
         return result
     
     def hasValueExpression(self, otherAxisStructuralNode=None):
-        return (self.defnMdlNode.hasValueExpression or 
-                (otherAxisStructuralNode is not None and 
+        return (self.defnMdlNode.hasValueExpression or
+                not isinstance(otherAxisStructuralNode, StrctMdlBreakdown) and
+                (otherAxisStructuralNode is not None and
                  otherAxisStructuralNode.defnMdlNode is not None and
                  otherAxisStructuralNode.defnMdlNode.hasValueExpression))
     
