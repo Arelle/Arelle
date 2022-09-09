@@ -43,7 +43,7 @@ relativeUrlPattern = re.compile(r"^(urn:|(([a-zA-Z][a-zA-Z0-9.+-]+):)?(//([^/\?#
 
 def splitDecodeFragment(url: str) -> tuple[str, str]:
     if url is None: # urldefrag returns byte strings for none, instead of unicode strings
-        return _STR_UNICODE(""), _STR_UNICODE("") # type: ignore[name-defined]
+        return "", ""
     urlPart, fragPart = urldefrag(url)
     return (urlPart, unquote(fragPart, "utf-8"))
 
