@@ -89,11 +89,10 @@ class ViewRenderedGrid(ViewFile.View):
         
         for tblELR in tblELRs:
             self.zOrdinateChoices = {}
-            
-                
+
+            strctMdlTable = resolveTableStructure(self, tblELR)
             for discriminator in range(1, 65535):
                 # each table z production
-                strctMdlTable = resolveTableStructure(self, tblELR)
                 defnMdlTable = strctMdlTable.defnMdlNode
                 self.hasTableFilters = bool(self.defnMdlTable.filterRelationships)
                 
@@ -202,7 +201,7 @@ class ViewRenderedGrid(ViewFile.View):
                 moreDiscriminators = False
                 for zStrNodeWithChoices in self.zStrNodesWithChoices:
                     currentIndex = zStrNodeWithChoices.choiceNodeIndex + 1
-                    if currentIndex < len(zStrNodeWithChoices.chosenStrctNode):
+                    if currentIndex < len(zStrNodeWithChoices.strctMdlChildNodes):
                         zStrNodeWithChoices.choiceNodeIndex = currentIndex
                         self.zOrdinateChoices[zStrNodeWithChoices.defnMdlNode] = currentIndex
                         moreDiscriminators = True
@@ -223,11 +222,11 @@ class ViewRenderedGrid(ViewFile.View):
             effectiveStrctNode = zStrctNode
             isRollUp = zDefnMdlNode.isRollUp
             span = 1
-            if zStrctNode.chosenStrctNode: # same as combo box selection in GUI mode
+            if zStrctNode.strctMdlChildNodes: # same as combo box selection in GUI mode
                 if not discriminatorsTable:
                     self.zStrNodesWithChoices.insert(0, zStrctNode) # iteration from last is first
                 try:
-                    effectiveStrctNode = zStrctNode.chosenStrctNode[zStrctNode.choiceNodeIndex]
+                    effectiveStrctNode = zStrctNode.strctMdlChildNodes[zStrctNode.choiceNodeIndex]
                     choiceLabel = effectiveStrctNode.header(lang=self.lang)
                     if not label and choiceLabel:
                         label = choiceLabel # no header for choice
@@ -258,19 +257,19 @@ class ViewRenderedGrid(ViewFile.View):
                 # headers element built for first pass on z axis
                 if discriminatorsTable:
                     brkdownNode = zStrctNode.strctMdlAncestorBreakdownNode
-                    if zStrctNode.chosenStrctNode: # same as combo box selection in GUI mode
+                    if zStrctNode.strctMdlChildNodes: # same as combo box selection in GUI mode
                         # hdrElt.set("label", label)
                         if discriminatorsTable:
                             def zSpan(zNode, startNode=False):
                                 if startNode:
                                     thisSpan = 0
-                                elif zStrctNode.chosenStrctNode:
-                                    thisSpan = len(zStrctNode.chosenStrctNode)
+                                elif zStrctNode.strctMdlChildNodes:
+                                    thisSpan = len(zStrctNode.strctMdlChildNodes)
                                 else:
                                     thisSpan = 1
                                 return sum(zSpan(z) for z in zNode.strctMdlChildNodes) + thisSpan
                             span = zSpan(zStrctNode, True)
-                            for i, choiceStrctNode in enumerate(zStrctNode.chosenStrctNode):
+                            for i, choiceStrctNode in enumerate(zStrctNode.strctMdlChildNodes):
                                 choiceLabel, source = choiceStrctNode.headerAndSource(lang=self.lang)
                                 cellElt = etree.Element(self.tableModelQName("cell"),
                                                         attrib={"span": str(span)} if span > 1 else None)

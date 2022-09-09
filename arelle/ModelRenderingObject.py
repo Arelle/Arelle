@@ -72,6 +72,7 @@ class StrctMdlNode:
         self.variables = {}
         self.zInheritance = None
         self.rollup = False # true when this is the rollup node among its siblings
+        self.choiceNodeIndex = 0
         
     @property
     def axis(self):
