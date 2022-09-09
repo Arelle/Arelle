@@ -902,7 +902,7 @@ class DefnMdlConstraintSet(ModelFormulaRules):
     '''
     
     def cardinalityAndDepth(self, structuralNode, **kwargs):
-        if self.aspectValues or self.aspectProgs or structuralNode.header(evaluate=False) is not None:
+        if self.aspectValues or self.aspectProgs or structuralNode.header(role="*", evaluate=False) is not None:
             return (1, 1)
         else:
             return (0, 0)
