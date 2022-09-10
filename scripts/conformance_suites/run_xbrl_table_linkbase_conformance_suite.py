@@ -3,7 +3,7 @@ import os
 from arelle.CntlrCmdLine import parseAndRun
 
 
-CONFORMANCE_SUITE = 'tests/resources/conformance_suites/table-linkbase-conf-2014-03-18.zip/conf'
+CONFORMANCE_SUITE = 'tests/resources/conformance_suites/table-linkbase-conf-2015-08-12.zip/table-linkbase-conf-2015-08-12/conf'
 BASE_ARGS = [
     '--csvTestReport', './table-linkbase-conf-report.csv',
     '--file', os.path.abspath(os.path.join(CONFORMANCE_SUITE, 'testcases-index.xml')),
