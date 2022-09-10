@@ -8,13 +8,28 @@ from __future__ import annotations
 import datetime, isodate
 from decimal import Decimal
 from functools import total_ordering
-from typing import Any, Optional
-from arelle.ModelObject import ModelObject
+from typing import TYPE_CHECKING, Any, Callable, Optional, cast, overload
+
+if TYPE_CHECKING:
+    from arelle.ModelObject import ModelObject
+    from arelle.ModelDtsObject import ModelConcept
+    from arelle.ModelDtsObject import ModelAttribute
+    from arelle.ModelFormulaObject import ModelCustomFunctionSignature
+    from arelle.ModelDtsObject import ModelType
+    from arelle.ModelInstanceObject import ModelInlineFact
 
 import regex as re
 XmlUtil = None
 
-def qname(value: ModelObject | str | QName | Any | None, name: str | ModelObject | None = None, noPrefixIsNoNamespace: bool = False, castException: Exception | None = None, prefixException: Exception | None = None) -> QName | None:
+def qname(
+    value: ModelObject | str | QName | Any | None,
+    name: str | ModelObject | None = None,
+    noPrefixIsNoNamespace: bool = False,
+    castException: Exception | None = None,
+    prefixException: Exception | None = None,
+) -> QName | None:
+    from arelle.ModelObject import ModelObject
+
     # Note: while using Any for value catches all of the other types, it adds value to know what types are expected here
     # either value can be an etree ModelObject element: if no name then qname is element tag quanem
     #     if name provided qname uses element as xmlns reference and name as prefixed name
@@ -35,11 +50,13 @@ def qname(value: ModelObject | str | QName | Any | None, name: str | ModelObject
         element = None
     if isinstance(value,QName):
         return value
-    elif not isinstance(value,_STR_BASE):
+    elif not isinstance(value, str):
         if castException: raise castException
         return None
     if value and value[0] == '{': # clark notation (with optional prefix)
         namespaceURI,sep,prefixedLocalName = value[1:].rpartition('}')
+        prefix: str | None
+
         prefix,sep,localName = prefixedLocalName.rpartition(':')
         if not sep:
             prefix = None
@@ -88,27 +105,40 @@ def qname(value: ModelObject | str | QName | Any | None, name: str | ModelObject
         namespaceURI = None # cancel namespace if it is a zero length string
     return QName(prefix, namespaceURI, localName)
 
-def qnameHref(href): # namespaceUri#localname
+def qnameHref(href: str) -> QName: # namespaceUri#localname
     namespaceURI, _sep, localName = href.rpartition("#")
     return QName(None, namespaceURI or None, localName)
 
 
-def qnameNsLocalName(namespaceURI, localName):  # does not handle localNames with prefix
+def qnameNsLocalName(namespaceURI: str, localName: str) -> QName:  # does not handle localNames with prefix
     return QName(None, namespaceURI or None, localName)
 
-def qnameClarkName(clarkname):  # does not handle clark names with prefix
+
+def qnameClarkName(clarkname: str) -> QName:  # does not handle clark names with prefix
     if clarkname and clarkname[0] == '{': # clark notation (with optional prefix)
         namespaceURI,sep,localName = clarkname[1:].rpartition('}')
         return QName(None, namespaceURI or None, localName)
     else:
         return QName(None, None, clarkname)
 
-def qnameEltPfxName(element, prefixedName, prefixException=None):
+def qnameEltPfxName(
+    element: ModelConcept
+    | ModelAttribute
+    | ModelCustomFunctionSignature
+    | ModelType
+    | ModelInlineFact,
+    prefixedName: str,
+    prefixException: Exception | None = None,
+) -> QName | None:
+    prefix: str | None
+    namespaceURI: str | None
+
     # check for href name style first
     if "#" in prefixedName:
         namespaceURI, _sep, localName = prefixedName.rpartition('#')
         return QName(None, namespaceURI, localName)
     # check for prefixed name style
+
     prefix,_sep,localName = prefixedName.rpartition(':')
     if not prefix:
         prefix = None # don't want '' but instead None if no prefix
@@ -131,23 +161,26 @@ def _default_to_empty(string: Optional[str]) -> str:
 
 @total_ordering
 class QName:
+
+    localName: str | None
+
     __slots__ = ("prefix", "namespaceURI", "localName", "qnameValueHash")
 
-    def __init__(self, prefix: Optional[str], namespaceURI: Optional[str], localName: Optional[str]):
+    def __init__(self, prefix: str | None, namespaceURI: str | None, localName: str | None) -> None:
         self.prefix = prefix
         self.namespaceURI = namespaceURI
         self.localName = localName
         self.qnameValueHash = hash((self.namespaceURI, self.localName))
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self.qnameValueHash
 
     @staticmethod
-    def _conforms(other):
+    def _conforms(other: QName) -> bool:
         return isinstance(other, QName) or (hasattr(other, 'namespaceURI') and hasattr(other, 'localName'))
 
     @property
-    def clarkNotation(self) -> Optional[str]:
+    def clarkNotation(self) -> str | None:
         if self.namespaceURI:
             return '{{{0}}}{1}'.format(self.namespaceURI, self.localName)
         else:
@@ -157,34 +190,35 @@ class QName:
     def expandedName(self) -> str:
         return '{0}#{1}'.format(self.namespaceURI or "", self.localName)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.prefix:
             return '{}:{}'.format(self.prefix, self.localName)
         else:
+            assert self.localName is not None
             return self.localName
 
-    def __eq__(self, other):
+    def __eq__(self, other: QName) -> bool: # type: ignore[override]
         if QName._conforms(other):
             return self.localName == other.localName and self.namespaceURI == other.namespaceURI
         return False
 
-    def __lt__(self, other):
+    def __lt__(self, other: QName) -> bool:
         if QName._conforms(other):
             return (_default_to_empty(self.namespaceURI), _default_to_empty(self.localName)) < (_default_to_empty(other.namespaceURI), _default_to_empty(other.localName))
         return NotImplemented
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         # QName object bool is false if there is no local name (even if there is a namespace URI).
         return bool(self.localName)
 
-def anyURI(value):
+def anyURI(value: str) -> AnyURI:
     return AnyURI(value)
 
 class AnyURI(str):
-    def __new__(cls, value):
+    def __new__(cls, value: str) -> AnyURI:
         return str.__new__(cls, value)
 
 datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})[T ]([0-9]{2}):([0-9]{2}):([0-9]{2})(\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*|"
@@ -196,7 +230,7 @@ DATE = 1
 DATETIME = 2
 DATEUNION = 3
 
-def tzinfo(tz):
+def tzinfo(tz: str | None) -> datetime.timezone | None:
     if tz is None:
         return None
     elif tz == 'Z':
@@ -204,13 +238,21 @@ def tzinfo(tz):
     else:
         return datetime.timezone(datetime.timedelta(hours=int(tz[0:3]), minutes=int(tz[0]+tz[4:6])))
 
-def tzinfoStr(dt):
+def tzinfoStr(dt: datetime.datetime) -> str:
     tz = str(dt.tzinfo or "")
     if tz.startswith("UTC"):
         return tz[3:] or "Z"
     return ""
 
-def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
+def dateTime(
+    value: str | ModelObject | DateTime | datetime.datetime | datetime.date | None,
+    time: Any = None,
+    addOneDay: bool = False,
+    # TODO: type is a reserved name in Python, we should rename this
+    type: int | None = None,
+    castException: Exception | None = None,
+) -> DateTime | None:
+
     if value == "MinDate":
         return DateTime(datetime.MINYEAR,1,1)
     elif value == "maxyear":
@@ -231,19 +273,20 @@ def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
         return DateTime(value.year, value.month, value.day, value.hour, value.minute, value.second, value.microsecond, tzinfo=value.tzinfo, dateOnly=dateOnly, addOneDay=addOneDay)
     elif isinstance(value, datetime.date):
         return DateTime(value.year, value.month, value.day,dateOnly=True,addOneDay=addOneDay)
-    elif castException and not isinstance(value, _STR_BASE):
-        raise castException("not a string value")
+    elif castException and not isinstance(value, str):
+        raise castException("not a string value") # type: ignore[operator]
     if value is None:
         return None
     match = datetimePattern.match(value.strip())
     if match is None:
         if castException:
-            raise castException("lexical pattern mismatch")
+            raise castException("lexical pattern mismatch") # type: ignore[operator]
         return None
+    assert match.lastindex is not None
     if 6 <= match.lastindex <= 8:
         if type == DATE:
             if castException:
-                raise castException("date-only object has too many fields or contains time")
+                raise castException("date-only object has too many fields or contains time") # type: ignore[operator]
             return None
         ms = 0
         fracSec = match.group(7)
@@ -260,7 +303,7 @@ def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
         result = DateTime(int(match.group(9)),int(match.group(10)),int(match.group(11)),tzinfo=tzinfo(match.group(12)),dateOnly=dateOnly,addOneDay=addOneDay)
     return result
 
-def lastDayOfMonth(year, month):
+def lastDayOfMonth(year: int, month: int) -> int:
     if month in (1,3,5,7,8,10,12): return 31
     if month in (4,6,9,11): return 30
     if year % 400 == 0 or (year % 100 != 0 and year % 4 == 0): return 29
@@ -269,7 +312,22 @@ def lastDayOfMonth(year, month):
 #!!! see note in XmlUtil.py datetimeValue, may need exceptions handled or special treatment for end time of 9999-12-31
 
 class DateTime(datetime.datetime):
-    def __new__(cls, y, m, d, hr=0, min=0, sec=0, microsec=0, tzinfo=None, dateOnly=None, addOneDay=None):
+
+    dateOnly: bool
+
+    def __new__(
+        cls,
+        y: int,
+        m: int,
+        d: int,
+        hr: int = 0,
+        min: int = 0,
+        sec: int = 0,
+        microsec: int = 0,
+        tzinfo: datetime.tzinfo | None = None,
+        dateOnly: bool = False,
+        addOneDay: bool = False,
+    ) -> DateTime:
         # note: does not support negative years but xml date does allow negative dates
         lastDay = lastDayOfMonth(y, m)
         # check day and month before adjustment
@@ -286,16 +344,16 @@ class DateTime(datetime.datetime):
         dateTime = datetime.datetime.__new__(cls, y, m, d, hr, min, sec, microsec, tzinfo)
         dateTime.dateOnly = dateOnly
         return dateTime
-    def __copy__(self):
+    def __copy__(self) -> DateTime:
         return DateTime(self.year, self.month, self.day, self.hour, self.minute, self.second, self.microsecond, self.tzinfo, self.dateOnly)
-    def __str__(self):
+    def __str__(self) -> str:
         # note does not print negative dates but xml does allow negative date
         tz = tzinfoStr(self)
         if self.dateOnly:
             return "{0.year:04}-{0.month:02}-{0.day:02}{1}".format(self, tz)
         else:
             return "{0.year:04}-{0.month:02}-{0.day:02}T{0.hour:02}:{0.minute:02}:{0.second:02}{1}".format(self, tz)
-    def addYearMonthDuration(self, other, sign):
+    def addYearMonthDuration(self, other: YearMonthDuration, sign: int) -> DateTime:
         m = self.month + sign * other.months - 1 # m is zero based now (0 - Jan, 11 - Dec)
         y = self.year + sign * other.years + m // 12
         m = (m % 12) + 1 # m back to 1 based (1 = Jan)
@@ -303,15 +361,28 @@ class DateTime(datetime.datetime):
         lastDay = lastDayOfMonth(y, m)
         if d > lastDay: d = lastDay
         return DateTime(y, m, d, self.hour, self.minute, self.second, self.microsecond, self.tzinfo, self.dateOnly)
-    def __add__(self, other):
+    def __add__(self, other: YearMonthDuration | Time) -> DateTime: # type: ignore[override]
         if isinstance(other, YearMonthDuration):
             return self.addYearMonthDuration(other, 1)
         else:
-            if isinstance(other, Time): other = dayTimeDuration(other)
+            if isinstance(other, Time):other = dayTimeDuration(other)
             dt = super(DateTime, self).__add__(other)
             return DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo, self.dateOnly)
 
-    def __sub__(self, other):
+
+    @overload
+    def __sub__(self, other: datetime.timedelta) -> DayTimeDuration:
+        ...
+
+    @overload
+    def __sub__(self, other: YearMonthDuration) -> DateTime:
+        ...
+
+    @overload
+    def __sub__(self, other: Time) -> DateTime:
+        ...
+
+    def __sub__(self, other: YearMonthDuration | Time) -> DayTimeDuration | DateTime:
         if isinstance(other, YearMonthDuration):
             return self.addYearMonthDuration(other, -1)
         else:
@@ -322,7 +393,7 @@ class DateTime(datetime.datetime):
                 if isinstance(other, Time): other = dayTimeDuration(other)
                 return DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo, self.dateOnly)
 
-def dateUnionEqual(dateUnion1, dateUnion2, instantEndDate=False):
+def dateUnionEqual(dateUnion1: DateTime | datetime.date, dateUnion2: DateTime | datetime.date, instantEndDate: bool = False) -> bool:
     if isinstance(dateUnion1,DateTime):
         if instantEndDate and dateUnion1.dateOnly:
             dateUnion1 += datetime.timedelta(1)
@@ -335,30 +406,32 @@ def dateUnionEqual(dateUnion1, dateUnion2, instantEndDate=False):
         dateUnion2 = dateTime(dateUnion2, addOneDay=instantEndDate)
     return dateUnion1 == dateUnion2
 
-def dateunionDate(datetimeValue, subtractOneDay=False):
+def dateunionDate(datetimeValue: DateTime, subtractOneDay: bool = False) -> datetime.date:
     isDate = (hasattr(datetimeValue,'dateOnly') and datetimeValue.dateOnly) or not hasattr(datetimeValue, 'hour')
     d = datetimeValue
     if isDate or (d.hour == 0 and d.minute == 0 and d.second == 0):
         if subtractOneDay and not isDate: d -= datetime.timedelta(1)
     return datetime.date(d.year, d.month, d.day)
 
-def yearMonthDuration(value):
-    minus, hasYr, yrs, hasMo, mos, hasDay, days, hasTime, hasHr, hrs, hasMin, mins, hasSec, secs = durationPattern.match(value).groups()
+def yearMonthDuration(value: str) -> YearMonthDuration:
+    durationPatternMatch = durationPattern.match(value)
+    assert durationPatternMatch is not None
+    minus, hasYr, yrs, hasMo, mos, hasDay, days, hasTime, hasHr, hrs, hasMin, mins, hasSec, secs = durationPatternMatch.groups()
     if hasDay or hasHr or hasMin or hasSec: raise ValueError
     sign = -1 if minus else 1
     return YearMonthDuration(sign * int(yrs if yrs else 0), sign * int(mos if mos else 0))
 
 class YearMonthDuration():
-    def __init__(self, years, months):
+    def __init__(self, years: int, months: int) -> None:
         self.years = years
         self.months = months
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
-    def __str__(self):
+    def __str__(self) -> str:
         return "P{0}Y{1}M".format(self.years, self.months)
 
-def dayTimeDuration(value):
+def dayTimeDuration(value: Time | datetime.timedelta) -> DayTimeDuration:
     if isinstance(value,Time):
         return DayTimeDuration(1 if value.hour24 else 0, value.hour, value.minute, value.second)
     if isinstance(value,datetime.timedelta):
@@ -369,10 +442,10 @@ def dayTimeDuration(value):
     return DayTimeDuration(sign * int(days if days else 0), sign * int(hrs if hrs else 0), sign * int(mins if mins else 0), sign * int(secs if secs else 0))
 
 class DayTimeDuration(datetime.timedelta):
-    def __new__(cls, days, hours, minutes, seconds):
+    def __new__(cls, days: int, hours: int, minutes: int, seconds: int) -> DayTimeDuration:
         dyTm = datetime.timedelta.__new__(cls,days,hours,minutes,seconds)
         return dyTm
-    def dayHrsMinsSecs(self):
+    def dayHrsMinsSecs(self) -> tuple[int, int, int, int]:
         days = int(self.days)
         if days < 0 and (self.seconds > 0 or self.microseconds > 0):
             days -= 1
@@ -390,19 +463,19 @@ class DayTimeDuration(datetime.timedelta):
             seconds += 1
         hours = int(seconds / 86400 )
         if hours > 24:
-            days += hours / 24
+            days = hours / 24 # type: ignore[assignment]
             hours = hours % 24
         seconds -= hours * 86400
         minutes = int(seconds / 60)
         seconds -= minutes * 60
         return (days, hours, minutes, seconds)
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
-    def __str__(self):
+    def __str__(self) -> str:
         x = self.dayHrsMinsSecs()
         return "P{0}DT{1}H{2}M{3}S".format(x[0], x[1], x[2], x[3])
 
-def yearMonthDayTimeDuration(value, value2=None):
+def yearMonthDayTimeDuration(value: datetime.datetime, value2: datetime.datetime | None = None) -> YearMonthDayTimeDuration:
     if isinstance(value, datetime.datetime) and isinstance(value, datetime.datetime):
         years = value2.year - value.year
         months = value2.month - value.month
@@ -427,13 +500,16 @@ def yearMonthDayTimeDuration(value, value2=None):
             minutes -= 1
             seconds += 60
         return YearMonthDayTimeDuration(years, months, days, hours, minutes, seconds)
-    minus, hasYr, yrs, hasMo, mos, hasDay, days, hasTime, hasHr, hrs, hasMin, mins, hasSec, secs = durationPattern.match(value).groups()
+
+    durationPatternMatch = durationPattern.match(value)
+    assert durationPatternMatch is not None
+    minus, hasYr, yrs, hasMo, mos, hasDay, days, hasTime, hasHr, hrs, hasMin, mins, hasSec, secs = durationPatternMatch.groups()
     sign = -1 if minus else 1
     # TBD implement
     return YearMonthDayTimeDuration(sign * int(yrs if yrs else 0), sign * int(mos if mos else 0))
 
 class YearMonthDayTimeDuration():
-    def __init__(self, years, months, days, hours, minutes, seconds):
+    def __init__(self, years, months, days: int | None = None, hours: int | None = None, minutes: int | None = None, seconds: int | None = None):
         self.years = years
         self.months = months
         self.days = days
@@ -441,9 +517,9 @@ class YearMonthDayTimeDuration():
         self.minutes = minutes
         self.seconds = seconds
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
-    def __str__(self):
+    def __str__(self) -> str:
         per = []
         if self.years: per.append("{}Y".format(self.years))
         if self.months: per.append("{}Y".format(self.months))
@@ -456,18 +532,24 @@ class YearMonthDayTimeDuration():
             return "PT0S"
         return "P" + ''.join(per)
 
-def time(value, castException=None):
+def time(value: str, castException: Exception | None = None) -> Time | None:
     if value == "MinTime":
-        return Time(time.min)
+        # Note 2022-09-10
+        # Note sure what this does but don't want to alter code when adding type hints
+        # Ignoring for now
+        return Time(time.min) # type: ignore[attr-defined]
     elif value == "MaxTime":
-        return Time(time.max)
+        # Note 2022-09-10
+        # Note sure what this does but don't want to alter code when adding type hints
+        # Ignoring for now
+        return Time(time.max) # type: ignore[attr-defined]
     elif isinstance(value, ModelObject):
         value = value.text
     elif isinstance(value, datetime.time):
         return Time(value.hour, value.minute, value.second, value.microsecond, value.tzinfo)
     elif isinstance(value, datetime.datetime):
         return Time(value.hour, value.minute, value.second, value.microsecond, value.tzinfo)
-    elif castException and not isinstance(value, _STR_BASE):
+    elif castException and not isinstance(value, str):
         raise castException
     if value is None:
         return None
@@ -481,7 +563,10 @@ def time(value, castException=None):
     return Time(int(match.group(1)),int(match.group(2)),int(match.group(3)),ms,tzinfo(match.group(5)))
 
 class Time(datetime.time):
-    def __new__(cls, hour=0, minute=0, second=0, microsecond=0, tzinfo=None):
+
+    hour24: bool
+
+    def __new__(cls, hour: int = 0, minute: int = 0, second: int = 0, microsecond: int = 0, tzinfo: datetime.timezone | None = None) -> Time:
         hour24 = (hour == 24 and minute == 0 and second == 0 and microsecond == 0)
         if hour24: hour = 0
         time = datetime.time.__new__(cls, hour, minute, second, microsecond, tzinfo)
@@ -489,116 +574,116 @@ class Time(datetime.time):
         return time
 
 class gYearMonth():
-    def __init__(self, year, month):
+    def __init__(self, year: int, month: int) -> None:
         self.year = int(year) # may be negative
         self.month = int(month)
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
-    def __str__(self):
+    def __str__(self) -> str:
         return "{0:0{2}}-{1:02}".format(self.year, self.month, 5 if self.year < 0 else 4) # may be negative
-    def __eq__(self,other):
+    def __eq__(self,other: gYearMonth) -> bool: # type: ignore[override]
         return type(other) == gYearMonth and self.year == other.year and self.month == other.month
-    def __ne__(self,other):
+    def __ne__(self,other: gYearMonth) -> bool: # type: ignore[override]
         return not self.__eq__(other)
-    def __lt__(self,other):
+    def __lt__(self,other: gYearMonth) -> bool:
         return type(other) == gYearMonth and ((self.year < other.year) or (self.year == other.year and self.month < other.month))
-    def __le__(self,other):
+    def __le__(self,other: gYearMonth) -> bool:
         return type(other) == gYearMonth and ((self.year <= other.year) or (self.year == other.year and self.month <= other.month))
-    def __gt__(self,other):
+    def __gt__(self,other: gYearMonth) -> bool:
         return type(other) == gYearMonth and ((self.year > other.year) or (self.year == other.year and self.month > other.month))
-    def __ge__(self,other):
+    def __ge__(self,other: gYearMonth) -> bool:
         return type(other) == gYearMonth and ((self.year >= other.year) or (self.year == other.year and self.month >= other.month))
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.year != 0 or self.month != 0
 
 
 class gMonthDay():
-    def __init__(self, month, day):
+    def __init__(self, month: int, day: int) -> None:
         self.month = int(month)
         self.day = int(day)
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
-    def __str__(self):
+    def __str__(self) -> str:
         return "--{0:02}-{1:02}".format(self.month, self.day)
-    def __eq__(self,other):
+    def __eq__(self,other: gMonthDay) -> bool: # type: ignore[override]
         return type(other) == gMonthDay and self.month == other.month and self.day == other.day
-    def __ne__(self,other):
+    def __ne__(self,other: gMonthDay) -> bool: # type: ignore[override]
         return not self.__eq__(other)
-    def __lt__(self,other):
+    def __lt__(self,other: gMonthDay) -> bool:
         return type(other) == gMonthDay and ((self.month < other.month) or (self.month == other.month and self.day < other.day))
-    def __le__(self,other):
+    def __le__(self,other: gMonthDay) -> bool:
         return type(other) == gMonthDay and ((self.month <= other.month) or (self.month == other.month and self.day <= other.day))
-    def __gt__(self,other):
+    def __gt__(self,other: gMonthDay) -> bool:
         return type(other) == gMonthDay and ((self.month > other.month) or (self.month == other.month and self.day > other.day))
-    def __ge__(self,other):
+    def __ge__(self,other: gMonthDay) -> bool:
         return type(other) == gMonthDay and ((self.month >= other.month) or (self.month == other.month and self.day >= other.day))
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.month != 0 or self.day != 0
 
 class gYear():
-    def __init__(self, year):
+    def __init__(self, year: int):
         self.year = int(year) # may be negative
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
-    def __str__(self):
+    def __str__(self) -> str:
         return "{0:0{1}}".format(self.year, 5 if self.year < 0 else 4) # may be negative
-    def __eq__(self,other):
+    def __eq__(self,other: gYear) -> bool: # type: ignore[override]
         return type(other) == gYear and self.year == other.year
-    def __ne__(self,other):
+    def __ne__(self,other: gYear) -> bool: # type: ignore[override]
         return not self.__eq__(other)
-    def __lt__(self,other):
+    def __lt__(self,other: gYear) -> bool:
         return type(other) == gYear and self.year < other.year
-    def __le__(self,other):
+    def __le__(self,other: gYear) -> bool:
         return type(other) == gYear and self.year <= other.year
-    def __gt__(self,other):
+    def __gt__(self,other: gYear) -> bool:
         return type(other) == gYear and self.year > other.year
-    def __ge__(self,other):
+    def __ge__(self,other: gYear) -> bool:
         return type(other) == gYear and self.year >= other.year
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.year != 0 != 0
 
 class gMonth():
-    def __init__(self, month):
+    def __init__(self, month: int):
         self.month = int(month)
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
-    def __str__(self):
+    def __str__(self) -> str:
         return "--{0:02}".format(self.month)
-    def __eq__(self,other):
+    def __eq__(self,other: gMonth) -> bool: # type: ignore[override]
         return type(other) == gMonth and self.month == other.month
-    def __ne__(self,other):
+    def __ne__(self,other: gMonth) -> bool: # type: ignore[override]
         return not self.__eq__(other)
-    def __lt__(self,other):
+    def __lt__(self,other: gMonth) -> bool:
         return type(other) == gMonth and self.month < other.month
-    def __le__(self,other):
+    def __le__(self,other: gMonth) -> bool:
         return type(other) == gMonth and self.month <= other.month
-    def __gt__(self,other):
+    def __gt__(self,other: gMonth) -> bool:
         return type(other) == gMonth and self.month > other.month
-    def __ge__(self,other):
+    def __ge__(self,other: gMonth) -> bool:
         return type(other) == gMonth and self.month >= other.month
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.month != 0
 
 class gDay():
-    def __init__(self, day):
+    def __init__(self, day: int) -> None:
         self.day = int(day)
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
-    def __str__(self):
+    def __str__(self) -> str:
         return "---{0:02}".format(self.day)
-    def __eq__(self,other):
+    def __eq__(self,other: gDay) -> bool: # type: ignore[override]
         return type(other) == gDay and self.day == other.day
-    def __ne__(self,other):
+    def __ne__(self,other: gDay) -> bool: # type: ignore[override]
         return not self.__eq__(other)
-    def __lt__(self,other):
+    def __lt__(self,other: gDay) -> bool:
         return type(other) == gDay and self.day < other.day
-    def __le__(self,other):
+    def __le__(self,other: gDay) -> bool:
         return type(other) == gDay and self.day <= other.day
-    def __gt__(self,other):
+    def __gt__(self,other: gDay) -> bool:
         return type(other) == gDay and self.day > other.day
-    def __ge__(self,other):
+    def __ge__(self,other: gDay) -> bool:
         return type(other) == gDay and self.day >= other.day
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.day != 0
 
 isoDurationPattern = re.compile(
@@ -612,7 +697,7 @@ isoDurationPattern = re.compile(
     r"(?P<minutes>[0-9]+([,.][0-9]+)?M)?"
     r"(?P<seconds>[0-9]+([,.][0-9]+)?S)?)?$")
 
-def isoDuration(value):
+def isoDuration(value: str) -> IsoDuration:
     """(str) -- Text of contained (inner) text nodes except for any whose localName
         starts with URI, for label and reference parts displaying purposes.
         (Footnotes, which return serialized html content of footnote.)
@@ -634,11 +719,11 @@ def isoDuration(value):
                 # these values are passed into a timedelta object,
                 # which works with floats.
                 groups[key] = float(groups[key][:-1].replace(',', '.'))
-    return IsoDuration(years=groups["years"], months=groups["months"],
-                       days=groups["days"], hours=groups["hours"],
-                       minutes=groups["minutes"], seconds=groups["seconds"],
-                       weeks=groups["weeks"],
-                       negate=(groups["sign"]=='-'),
+    return IsoDuration(years=Decimal(groups["years"]), months=Decimal(groups["months"]),
+                       days=float(groups["days"]), hours=float(groups["hours"]),
+                       minutes=float(groups["minutes"]), seconds=float(groups["seconds"]),
+                       weeks=float(groups["weeks"]),
+                       negate=bool(groups["sign"]=='-'),
                        sourceValue=value) # preserve source lexical value for str() value
 
 DAYSPERMONTH = Decimal("30.4375") # see: https://www.ibm.com/support/knowledgecenter/SSLVMB_20.0.0/com.ibm.spss.statistics.help/alg_adp_date-time_handling.htm
@@ -650,7 +735,7 @@ DAYSPERMONTH = Decimal("30.4375") # see: https://www.ibm.com/support/knowledgece
     Arelle provides value comparisons for xs:duration even though they are not "totally ordered" per XPath 1.0
     because these are necessary in order to define typed dimension ordering
 """
-class IsoDuration(isodate.Duration):
+class IsoDuration(isodate.Duration): # type: ignore[misc]
     """
     .. class:: IsoDuration(modelDocument)
 
@@ -660,9 +745,13 @@ class IsoDuration(isodate.Duration):
     For formula purposes this object is not used because xpath 1.0 requires use of
     xs:yearMonthDuration or xs:dayTimeDuration which are totally ordered instead.
     """
-    def __init__(self,  days=0, seconds=0, microseconds=0, milliseconds=0,
-                 minutes=0, hours=0, weeks=0, months=0, years=0,
-                 negate=False, sourceValue=None):
+    years: Decimal
+    months: Decimal
+    tdelta: datetime.timedelta
+
+    def __init__(self,  days: float = 0, seconds: float = 0, microseconds: float = 0, milliseconds: float = 0,
+                 minutes: float = 0, hours: float = 0, weeks: float = 0, months: Decimal = Decimal(0), years: Decimal = Decimal(0),
+                 negate: bool = False, sourceValue: str | None = None) -> None:
         super(IsoDuration, self).__init__(days, seconds, microseconds, milliseconds,
                                           minutes, hours, weeks, months, years)
         if negate:
@@ -672,16 +761,16 @@ class IsoDuration(isodate.Duration):
         self.sourceValue = sourceValue
         self.avgdays = (self.years * 12 + self.months) * DAYSPERMONTH + self.tdelta.days
         self._hash = hash((self.avgdays, self.tdelta))
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self._hash
-    def __eq__(self,other):
+    def __eq__(self, other: IsoDuration) -> bool: # type: ignore[override]
         try:
             return self.avgdays == other.avgdays and self.tdelta.seconds == other.tdelta.seconds and self.tdelta.microseconds == other.tdelta.microseconds
         except AttributeError:
             return False
-    def __ne__(self,other):
+    def __ne__(self,other: IsoDuration) -> bool: # type: ignore[override]
         return not self.__eq__(other)
-    def __lt__(self,other):
+    def __lt__(self,other: IsoDuration) -> bool:
         if self.avgdays < other.avgdays:
             return True
         elif self.avgdays == other.avgdays:
@@ -691,9 +780,9 @@ class IsoDuration(isodate.Duration):
                 if self.tdelta.microseconds < other.tdelta.microseconds:
                     return True
         return False
-    def __le__(self,other):
+    def __le__(self,other:IsoDuration) -> bool:
         return self.__lt__(other) or self.__eq__(other)
-    def __gt__(self,other):
+    def __gt__(self,other: IsoDuration) -> bool:
         if self.avgdays > other.avgdays:
             return True
         elif self.avgdays > other.avgdays:
@@ -703,15 +792,15 @@ class IsoDuration(isodate.Duration):
                 if self.tdelta.microseconds > other.tdelta.microseconds:
                     return True
         return False
-    def __ge__(self,other):
+    def __ge__(self,other: IsoDuration) -> bool:
         return self.__gt__(other) or self.__eq__(other)
-    def viewText(self, labelrole=None, lang=None):
-        return super(IsoDuration, self).__str__() # textual words form of duration
-    def __str__(self):
-        return self.sourceValue
+    def viewText(self, labelrole: str | None = None, lang: str | None = None) -> str:
+        return cast(str, super(IsoDuration, self).__str__()) # textual words form of duration
+    def __str__(self) -> str:
+        return cast(str, self.sourceValue)
 
 class InvalidValue(str):
-    def __new__(cls, value):
+    def __new__(cls, value: str) -> InvalidValue:
         return str.__new__(cls, value)
 
 INVALIDixVALUE = InvalidValue("(ixTransformValueError)")
