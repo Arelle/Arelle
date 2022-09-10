@@ -5,11 +5,11 @@ Created on Jan 4, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from __future__ import annotations
-from arelle import PythonUtil # define 2.x or 3.x string types
-import copy, datetime, isodate
+import datetime, isodate
 from decimal import Decimal
 from functools import total_ordering
 from typing import Any, Optional
+from arelle.ModelObject import ModelObject
 
 import regex as re
 XmlUtil = None
@@ -179,9 +179,6 @@ class QName:
     def __bool__(self):
         # QName object bool is false if there is no local name (even if there is a namespace URI).
         return bool(self.localName)
-
-
-from arelle.ModelObject import ModelObject
 
 def anyURI(value):
     return AnyURI(value)
