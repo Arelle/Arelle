@@ -476,7 +476,7 @@ class DayTimeDuration(datetime.timedelta):
         return "P{0}DT{1}H{2}M{3}S".format(x[0], x[1], x[2], x[3])
 
 def yearMonthDayTimeDuration(value: datetime.datetime, value2: datetime.datetime | None = None) -> YearMonthDayTimeDuration:
-    if isinstance(value, datetime.datetime) and isinstance(value, datetime.datetime):
+    if isinstance(value, datetime.datetime) and isinstance(value2, datetime.datetime):
         years = value2.year - value.year
         months = value2.month - value.month
         if months < 0:
