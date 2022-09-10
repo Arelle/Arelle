@@ -328,7 +328,7 @@ class ModelObject(etree.ElementBase):
             hrefElt,doc,id = hrefObject
         elif uri:
             from arelle import UrlUtil
-            url, id = UrlUtil.splitDecodeFragment(uri) # type: ignore[no-untyped-call]
+            url, id = UrlUtil.splitDecodeFragment(uri)
             if url == "":
                 doc = self.modelDocument
             else:
