@@ -5,19 +5,33 @@ Refactored on Jun 11, 2011 to ModelDtsObject, ModelInstanceObject, ModelTestcase
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+from __future__ import annotations
+from typing import TYPE_CHECKING, Any, Generator, Optional, cast
 from lxml import etree
 from arelle import Locale
 from arelle.ModelValue import qname, qnameEltPfxName, QName
 import arelle.XmlUtil
 
+if TYPE_CHECKING:
+    from arelle.ModelDocument import ModelDocument
+    from arelle.ModelXbrl import ModelXbrl
+    from arelle.ModelDtsObject import ModelConcept
+    from arelle.ModelValue import AnyURI
+    from arelle.ModelDtsObject import ModelLink
+    from arelle.ModelDtsObject import ModelLocator
+    from arelle.ModelDtsObject import ModelResource
+    from arelle.ModelInstanceObject import ModelInlineXbrliXbrl
+    from arelle.ModelInstanceObject import ModelInlineFootnote
+    from arelle.ModelInstanceObject import ModelInlineFact
+    from arelle.ModelInstanceObject import ModelDimensionValue
 
 VALID_NO_CONTENT = None
 
-emptySet = set()
+emptySet: set[Any] = set()
 
-def init(): # init globals
+def init() -> None: # init globals
     global VALID_NO_CONTENT
-    from arelle.XmlValidate import VALID_NO_CONTENT
+    from arelle.XmlValidate import VALID_NO_CONTENT # type: ignore[misc]
 
 class ModelObject(etree.ElementBase):
     """ModelObjects represent the XML elements within a document, and are implemented as custom
@@ -91,17 +105,24 @@ class ModelObject(etree.ElementBase):
         .. attribute:: xAttributes
         Dict by attrTag of ModelAttribute objects (see below) of specified and default attributes of this element.
     """
-    def _init(self):
+
+    _elementQname: QName | None
+    _parentQname: QName | None
+    _elementSequence: int
+    _namespaceURI: str | None
+    xlinkLabel: str
+
+    def _init(self) -> None:
         self.isChanged = False
         parent = self.getparent()
         if parent is not None and hasattr(parent, "modelDocument"):
-            self.init(parent.modelDocument)
+            self.init(parent.modelDocument) # type: ignore[attr-defined]
 
-    def clear(self):
+    def clear(self) -> None:
         self.__dict__.clear()  # delete local attributes
         super(ModelObject, self).clear()  # delete children
 
-    def init(self, modelDocument):
+    def init(self, modelDocument: ModelDocument) -> None:
         self.modelDocument = modelDocument
         self.objectIndex = len(modelDocument.modelXbrl.modelObjects)
         modelDocument.modelXbrl.modelObjects.append(self)
@@ -109,7 +130,7 @@ class ModelObject(etree.ElementBase):
         if id:
             modelDocument.idObjects[id] = self
 
-    def objectId(self,refId=""):
+    def objectId(self, refId: str = "") -> str:
         """Returns a string surrogate representing the object index of the model document,
         prepended by the refId string.
         :param refId: A string to prefix the refId for uniqueless (such as to use in tags for tkinter)
@@ -118,20 +139,20 @@ class ModelObject(etree.ElementBase):
         return "_{0}_{1}".format(refId, self.objectIndex)
 
     @property
-    def modelXbrl(self):
+    def modelXbrl(self) -> ModelXbrl | None:
         try:
-            return self.modelDocument.modelXbrl
+            return cast("ModelXbrl", self.modelDocument.modelXbrl)
         except AttributeError:
             return None
 
-    def attr(self, attrname):
+    def attr(self, attrname: str) -> str | None:
         return self.get(attrname)
 
     @property
-    def slottedAttributesNames(self):
+    def slottedAttributesNames(self) -> set[Any]:
         return emptySet
 
-    def setNamespaceLocalName(self):
+    def setNamespaceLocalName(self) -> None:
         ns, sep, self._localName = self.tag.rpartition("}")
         if sep:
             self._namespaceURI = ns[1:]
@@ -142,14 +163,14 @@ class ModelObject(etree.ElementBase):
         else:
             self._prefixedName = self.localName
 
-    def getStripped(self, attrName):
+    def getStripped(self, attrName: str) -> str | None:
         attrValue = self.get(attrName)
         if attrValue is not None:
             return attrValue.strip()
         return attrValue
 
     @property
-    def localName(self):
+    def localName(self) -> str:
         try:
             return self._localName
         except AttributeError:
@@ -157,7 +178,7 @@ class ModelObject(etree.ElementBase):
             return self._localName
 
     @property
-    def prefixedName(self):
+    def prefixedName(self) -> str:
         try:
             return self._prefixedName
         except AttributeError:
@@ -165,7 +186,7 @@ class ModelObject(etree.ElementBase):
             return self._prefixedName
 
     @property
-    def namespaceURI(self):
+    def namespaceURI(self) -> str | None:
         try:
             return self._namespaceURI
         except AttributeError:
@@ -173,7 +194,7 @@ class ModelObject(etree.ElementBase):
             return self._namespaceURI
 
     @property
-    def elementNamespaceURI(self):  # works also for concept elements
+    def elementNamespaceURI(self) -> str | None:  # works also for concept elements
         try:
             return self._namespaceURI
         except AttributeError:
@@ -182,7 +203,7 @@ class ModelObject(etree.ElementBase):
 
     # qname of concept of fact or element for all but concept element, type, attr, param, override to the name parameter
     @property
-    def qname(self):
+    def qname(self) -> QName | None:
         try:
             return self._elementQname
         except AttributeError:
@@ -191,31 +212,31 @@ class ModelObject(etree.ElementBase):
 
     # qname is overridden for concept, type, attribute, and formula parameter, elementQname is unambiguous
     @property
-    def elementQname(self):
+    def elementQname(self) -> QName | None:
         try:
             return self._elementQname
         except AttributeError:
             self._elementQname = qname(self)
             return self._elementQname
 
-    def vQname(self, validationModelXbrl=None):
+    def vQname(self, validationModelXbrl: ModelXbrl | None = None) -> QName | None:
         if validationModelXbrl is not None and validationModelXbrl != self.modelXbrl:
             # use physical element declaration in specified modelXbrl
             return self.elementQname
         # use logical qname (inline element's fact qname, or concept's qname)
         return self.qname
 
-
-    def elementDeclaration(self, validationModelXbrl=None):
+    def elementDeclaration(self, validationModelXbrl: ModelXbrl | None = None) -> ModelConcept | None:
         elementModelXbrl = self.modelXbrl
         if validationModelXbrl is not None and validationModelXbrl != elementModelXbrl:
             # use physical element declaration in specified modelXbrl
             return validationModelXbrl.qnameConcepts.get(self.elementQname)
         # use logical element declaration in element's own modelXbrl
+        assert elementModelXbrl is not None
         return elementModelXbrl.qnameConcepts.get(self.qname)
 
     @property
-    def elementSequence(self):
+    def elementSequence(self) -> int:
         # ordinal position among siblings, 1 is first position
         try:
             return self._elementSequence
@@ -224,28 +245,28 @@ class ModelObject(etree.ElementBase):
             return self._elementSequence
 
     @property
-    def parentQname(self):
+    def parentQname(self) -> QName | None:
         try:
             return self._parentQname
         except AttributeError:
             parentObj = self.getparent()
-            self._parentQname = parentObj.elementQname if parentObj is not None else None
+            self._parentQname = parentObj.elementQname if parentObj is not None else None # type: ignore[attr-defined]
             return self._parentQname
 
 
     @property
-    def id(self):
+    def id(self) -> str | None:
         return self.get("id")
 
     @property
-    def stringValue(self):    # "string value" of node, text of all Element descendants
+    def stringValue(self) -> str:    # "string value" of node, text of all Element descendants
         return ''.join(self._textNodes(recurse=True))  # return text of Element descendants
 
     @property
-    def textValue(self):  # xml axis text() differs from string value, no descendant element text
+    def textValue(self) -> str:  # xml axis text() differs from string value, no descendant element text
         return ''.join(self._textNodes())  # no text nodes returns ''
 
-    def _textNodes(self, recurse=False):
+    def _textNodes(self, recurse:bool = False) ->  Generator[str | Any, None, None]:
         if self.text and getattr(self,"xValid", 0) != VALID_NO_CONTENT: # skip tuple whitespaces
                 yield self.text
         for c in self.iterchildren():
@@ -256,10 +277,10 @@ class ModelObject(etree.ElementBase):
                 yield c.tail  # get tail of nested element, comment or processor nodes
 
     @property
-    def document(self):
+    def document(self) -> ModelDocument:
         return self.modelDocument
 
-    def prefixedNameQname(self, prefixedName):
+    def prefixedNameQname(self, prefixedName: str | None) -> QName | None:
         """Returns ModelValue.QName of prefixedName using this element and its ancestors' xmlns.
 
         :param prefixedName: A prefixed name string
@@ -267,19 +288,28 @@ class ModelObject(etree.ElementBase):
         :returns: QName -- the resolved prefixed name, or None if no prefixed name was provided
         """
         if prefixedName:    # passing None would return element qname, not prefixedName None Qname
-            return qnameEltPfxName(self, prefixedName)
+            return_value = qnameEltPfxName(self, prefixedName) # type: ignore[no-untyped-call]
+            return cast(Optional[QName], return_value)
         else:
             return None
 
     @property
-    def elementAttributesTuple(self):
+    def elementAttributesTuple(self) -> tuple[Any, ...]:
         return tuple((name,value) for name,value in self.items())
 
     @property
-    def elementAttributesStr(self):
-        return ', '.join(["{0}='{1}'".format(name,value) for name,value in self.items()])
+    def elementAttributesStr(self) -> str:
+        # Note 2022-09-09:
+        # Mypy raises the following error. Not sure why this is the case, this returns a str not binary data?
+        # On Python 3 formatting "b'abc'" with "{}" produces "b'abc'", not "abc"; use "{!r}" if this is desired behavior
+        return ', '.join(["{0}='{1}'".format(name, value) for name, value in self.items()]) # type: ignore[str-bytes-safe]
 
-    def resolveUri(self, hrefObject=None, uri=None, dtsModelXbrl=None):
+    def resolveUri(
+        self,
+        hrefObject: tuple[str, ModelDocument, str] | None = None,
+        uri: str | None = None,
+        dtsModelXbrl: ModelXbrl | None = None,
+    ) -> ModelObject | None:
         """Returns the modelObject within modelDocment that resolves a URI based on arguments relative
         to this element
 
@@ -290,6 +320,7 @@ class ModelObject(etree.ElementBase):
         :type dtsModelXbrl: ModelXbrl
         :returns: ModelObject -- Document node corresponding to the href or resolved uri
         """
+        from arelle.ModelDocument import ModelDocument
         if dtsModelXbrl is None:
             dtsModelXbrl = self.modelXbrl
         doc = None
@@ -297,39 +328,50 @@ class ModelObject(etree.ElementBase):
             hrefElt,doc,id = hrefObject
         elif uri:
             from arelle import UrlUtil
-            url, id = UrlUtil.splitDecodeFragment(uri)
+            url, id = UrlUtil.splitDecodeFragment(uri) # type: ignore[no-untyped-call]
             if url == "":
                 doc = self.modelDocument
             else:
+                assert self.modelXbrl is not None
                 normalizedUrl = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(
                                    url,
-                                   self.modelDocument.baseForElement(self))
+                                   self.modelDocument.baseForElement(self)) # type: ignore[no-untyped-call]
+
+                assert dtsModelXbrl is not None
                 doc = dtsModelXbrl.urlDocs.get(normalizedUrl)
-        from arelle import ModelDocument
-        if isinstance(doc, ModelDocument.ModelDocument):
+        if isinstance(doc, ModelDocument):
             if id is None:
-                return doc
+                return cast(ModelObject, doc)
             elif id in doc.idObjects:
-                return doc.idObjects[id]
+                return cast(ModelObject, doc.idObjects[id])
             else:
-                xpointedElement = arelle.XmlUtil.xpointerElement(doc,id)
+                xpointedElement = arelle.XmlUtil.xpointerElement(doc,id) # type: ignore[no-untyped-call]
                 # find element
                 for docModelObject in doc.xmlRootElement.iter():
                     if docModelObject == xpointedElement:
                         doc.idObjects[id] = docModelObject # cache for reuse
-                        return docModelObject
+                        return cast(ModelObject, docModelObject)
         return None
 
-    def genLabel(self,role=None,fallbackToQname=False,fallbackToXlinkLabel=False,lang=None,strip=False,linkrole=None):
+    def genLabel(
+        self,
+        role: str | None = None,
+        fallbackToQname: bool = False,
+        fallbackToXlinkLabel: bool = False,
+        lang: str | None = None,
+        strip: bool = False,
+        linkrole: str | None = None,
+    ) -> str | None:
         from arelle import XbrlConst
         if role is None: role = XbrlConst.genStandardLabel
         if role == XbrlConst.conceptNameLabelRole: return str(self.qname)
+        assert self.modelXbrl is not None
         labelsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.elementLabel,linkrole)
         if labelsRelationshipSet:
-            label = labelsRelationshipSet.label(self, role, lang)
+            label = labelsRelationshipSet.label(self, role, lang) # type: ignore[no-untyped-call]
             if label is not None:
-                if strip: return label.strip()
-                return Locale.rtlString(label, lang=lang)
+                if strip: return cast(str, label.strip())
+                return cast(str, Locale.rtlString(label, lang=lang)) # type: ignore[no-untyped-call]
         if fallbackToQname:
             return str(self.qname)
         elif fallbackToXlinkLabel and hasattr(self,"xlinkLabel"):
@@ -337,34 +379,34 @@ class ModelObject(etree.ElementBase):
         else:
             return None
 
-    def viewText(self, labelrole=None, lang=None):
+    def viewText(self, labelrole: str | None = None, lang: str | None = None) -> str:
         return self.stringValue
 
     @property
-    def propertyView(self):
+    def propertyView(self) -> tuple[Any, ...]:
         return (("QName", self.elementQname),) + tuple(
-                (arelle.XmlUtil.clarkNotationToPrefixedName(self, _tag, isAttribute=True), _value)
+                (arelle.XmlUtil.clarkNotationToPrefixedName(self, _tag, isAttribute=True), _value) # type: ignore[no-untyped-call, misc]
                 for _tag, _value in self.items())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ("{0}[{1}, {2} line {3})".format(type(self).__name__, self.objectIndex, self.modelDocument.basename, self.sourceline))
 
-class ModelComment(etree.CommentBase):
+class ModelComment(etree.CommentBase): # type: ignore[misc]
     """ModelConcept is a custom proxy objects for etree.
     """
-    def _init(self):
+    def _init(self) -> None:
         self.isChanged = False
         parent = self.getparent()
         if parent is not None and hasattr(parent, "modelDocument"):
             self.init(parent.modelDocument)
 
-    def init(self, modelDocument):
+    def init(self, modelDocument: ModelDocument) -> None:
         self.modelDocument = modelDocument
 
-class ModelProcessingInstruction(etree.PIBase):
+class ModelProcessingInstruction(etree.PIBase): # type: ignore[misc]
     """ModelProcessingInstruction is a custom proxy object for etree.
     """
-    def _init(self):
+    def _init(self) -> None:
         pass
 
 class ModelAttribute:
@@ -383,7 +425,22 @@ class ModelAttribute:
     :param sValue: s-equals value (for s-equality)
     """
     __slots__ = ("modelElement", "attrTag", "xValid", "xValue", "sValue", "text")
-    def __init__(self, modelElement, attrTag, xValid, xValue, sValue, text):
+    def __init__(
+        self,
+        modelElement: ModelObject
+        | ModelLink
+        | ModelLocator
+        | ModelResource
+        | ModelInlineXbrliXbrl
+        | ModelInlineFact
+        | ModelDimensionValue
+        | ModelInlineFootnote,
+        attrTag: str,
+        xValid: int,
+        xValue: QName | AnyURI | int | str | None,
+        sValue: str | None,
+        text: str,
+    ):
         self.modelElement = modelElement
         self.attrTag = attrTag
         self.xValid = xValid
@@ -393,13 +450,13 @@ class ModelAttribute:
 
 class ObjectPropertyViewWrapper:  # extraProperties = ( (p1, v1), (p2, v2), ... )
     __slots__ = ("modelObject", "extraProperties")
-    def __init__(self, modelObject, extraProperties=()):
+    def __init__(self, modelObject: ModelObject, extraProperties: tuple[Any, ...] = ()) -> None:
         self.modelObject = modelObject
         self.extraProperties = extraProperties
 
     @property
-    def propertyView(self):
+    def propertyView(self) -> tuple[Any, ...]:
         return self.modelObject.propertyView + self.extraProperties
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "objectPropertyViewWrapper({}, extraProperties={})".format(self.modelObject, self.extraProperties)
