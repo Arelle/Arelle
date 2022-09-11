@@ -6,6 +6,7 @@ Created on Jan 4, 2011
 '''
 from __future__ import annotations
 import datetime, isodate
+from typing_extensions import reveal_type
 from decimal import Decimal
 from functools import total_ordering
 from typing import TYPE_CHECKING, Any, Optional, cast, overload
@@ -368,14 +369,24 @@ class DateTime(datetime.datetime):
             dt = super(DateTime, self).__add__(_other)
             return DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo, self.dateOnly)
 
-    def __sub__(self, other: YearMonthDuration | datetime.timedelta | Time) -> DateTime | DayTimeDuration | DateTime:
+    @overload
+    def __sub__(self, other: YearMonthDuration) -> DateTime: ...
+
+    @overload
+    def __sub__(self, other: datetime.timedelta) -> DayTimeDuration: ...
+
+    @overload
+    def __sub__(self, other: datetime.datetime) -> DateTime: ...
+
+    def __sub__(self, other: YearMonthDuration | datetime.timedelta | datetime.datetime) -> DateTime | DayTimeDuration:
         if isinstance(other, YearMonthDuration):
             return self.addYearMonthDuration(other, -1)
         else:
             dt = super(DateTime, self).__sub__(other) # type: ignore[operator]
             if isinstance(dt, datetime.timedelta):
                 return DayTimeDuration(dt.days, 0, 0, dt.seconds)
-            elif isinstance(dt, datetime.datetime):
+
+            if isinstance(dt, datetime.datetime):
                 # Note 2022-09-10:
                 # Is this a bug? Why are we assigning to other but never use it?
                 if isinstance(other, Time): other = dayTimeDuration(other)
