@@ -29,8 +29,6 @@ def qname(
     prefixException: Exception | None = None,
 ) -> QName | None:
     from arelle.ModelObject import ModelObject
-
-    # Note: while using Any for value catches all of the other types, it adds value to know what types are expected here
     # either value can be an etree ModelObject element: if no name then qname is element tag quanem
     #     if name provided qname uses element as xmlns reference and name as prefixed name
     # value can be namespaceURI and name is localname or prefix:localname
