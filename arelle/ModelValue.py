@@ -6,7 +6,6 @@ Created on Jan 4, 2011
 '''
 from __future__ import annotations
 import datetime, isodate
-from typing_extensions import reveal_type
 from decimal import Decimal
 from functools import total_ordering
 from typing import TYPE_CHECKING, Any, Optional, cast, overload
