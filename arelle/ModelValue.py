@@ -8,7 +8,7 @@ from __future__ import annotations
 import datetime, isodate
 from decimal import Decimal
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, Callable, Optional, cast, overload
+from typing import TYPE_CHECKING, Any, Optional, cast, overload
 
 if TYPE_CHECKING:
     from arelle.ModelObject import ModelObject
@@ -365,50 +365,46 @@ class DateTime(datetime.datetime):
         if isinstance(other, YearMonthDuration):
             return self.addYearMonthDuration(other, 1)
         else:
-            if isinstance(other, Time):other = dayTimeDuration(other)
-            dt = super(DateTime, self).__add__(other)
+            if isinstance(other, Time):
+                _other: DayTimeDuration = dayTimeDuration(other)
+            dt = super(DateTime, self).__add__(_other)
             return DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo, self.dateOnly)
 
-
-    @overload
-    def __sub__(self, other: datetime.timedelta) -> DayTimeDuration:
-        ...
-
-    @overload
-    def __sub__(self, other: YearMonthDuration) -> DateTime:
-        ...
-
-    @overload
-    def __sub__(self, other: Time) -> DateTime:
-        ...
-
-    def __sub__(self, other: YearMonthDuration | Time) -> DayTimeDuration | DateTime:
+    def __sub__(self, other: YearMonthDuration | datetime.timedelta | Time) -> DateTime | DayTimeDuration | DateTime:
         if isinstance(other, YearMonthDuration):
             return self.addYearMonthDuration(other, -1)
         else:
-            dt = super(DateTime, self).__sub__(other)
-            if isinstance(dt,datetime.timedelta):
+            dt = super(DateTime, self).__sub__(other) # type: ignore[operator]
+            if isinstance(dt, datetime.timedelta):
                 return DayTimeDuration(dt.days, 0, 0, dt.seconds)
-            else:
+            elif isinstance(dt, datetime.datetime):
+                # Note 2022-09-10:
+                # Is this a bug? Why are we assigning to other but never use it?
                 if isinstance(other, Time): other = dayTimeDuration(other)
                 return DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo, self.dateOnly)
 
-def dateUnionEqual(dateUnion1: DateTime | datetime.date, dateUnion2: DateTime | datetime.date, instantEndDate: bool = False) -> bool:
+def dateUnionEqual(
+    dateUnion1: DateTime | datetime.date,
+    dateUnion2: DateTime | datetime.date,
+    instantEndDate: bool = False,
+) -> bool:
     if isinstance(dateUnion1,DateTime):
         if instantEndDate and dateUnion1.dateOnly:
+            dateUnion1 = cast(datetime.datetime, dateUnion1)
             dateUnion1 += datetime.timedelta(1)
     elif isinstance(dateUnion1,datetime.date):
-        dateUnion1 = dateTime(dateUnion1, addOneDay=instantEndDate)
+        dateUnion1 = cast(DateTime, dateTime(dateUnion1, addOneDay=instantEndDate))
     if isinstance(dateUnion2,DateTime):
         if instantEndDate and dateUnion2.dateOnly:
+            dateUnion2 = cast(datetime.datetime, dateUnion2)
             dateUnion2 += datetime.timedelta(1)
     elif isinstance(dateUnion2,datetime.date):
-        dateUnion2 = dateTime(dateUnion2, addOneDay=instantEndDate)
+        dateUnion2 = cast(DateTime, dateTime(dateUnion2, addOneDay=instantEndDate))
     return dateUnion1 == dateUnion2
 
 def dateunionDate(datetimeValue: DateTime, subtractOneDay: bool = False) -> datetime.date:
     isDate = (hasattr(datetimeValue,'dateOnly') and datetimeValue.dateOnly) or not hasattr(datetimeValue, 'hour')
-    d = datetimeValue
+    d = cast(datetime.datetime, datetimeValue)
     if isDate or (d.hour == 0 and d.minute == 0 and d.second == 0):
         if subtractOneDay and not isDate: d -= datetime.timedelta(1)
     return datetime.date(d.year, d.month, d.day)
@@ -501,15 +497,57 @@ def yearMonthDayTimeDuration(value: datetime.datetime, value2: datetime.datetime
             seconds += 60
         return YearMonthDayTimeDuration(years, months, days, hours, minutes, seconds)
 
-    durationPatternMatch = durationPattern.match(value)
+    # Note 2022-09-10:
+    # Value is a datetime here but match expects a str. Thus ignoring.
+    durationPatternMatch = durationPattern.match(value) # type: ignore[arg-type]
     assert durationPatternMatch is not None
-    minus, hasYr, yrs, hasMo, mos, hasDay, days, hasTime, hasHr, hrs, hasMin, mins, hasSec, secs = durationPatternMatch.groups()
+
+    minus: str
+    hasYr: str
+    yrs: str
+    hasMo: str
+    mos: str
+    hasDay: str
+    days: str # type: ignore[no-redef]
+    hasTime: str
+    hasHr: str
+    hrs: str
+    hasMin: str
+    mins: str
+    hasSec: str
+    secs: str
+
+    (
+        minus,
+        hasYr,
+        yrs,
+        hasMo,
+        mos,
+        hasDay,
+        days,
+        hasTime,
+        hasHr,
+        hrs,
+        hasMin,
+        mins,
+        hasSec,
+        secs,
+    ) = durationPatternMatch.groups() # type: ignore[assignment]
+
     sign = -1 if minus else 1
     # TBD implement
     return YearMonthDayTimeDuration(sign * int(yrs if yrs else 0), sign * int(mos if mos else 0))
 
 class YearMonthDayTimeDuration():
-    def __init__(self, years, months, days: int | None = None, hours: int | None = None, minutes: int | None = None, seconds: int | None = None):
+    def __init__(
+        self,
+        years: int,
+        months: int,
+        days: int | None = None,
+        hours: int | None = None,
+        minutes: int | None = None,
+        seconds: int | None = None,
+    ) -> None:
         self.years = years
         self.months = months
         self.days = days
