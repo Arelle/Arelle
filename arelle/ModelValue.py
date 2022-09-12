@@ -386,9 +386,6 @@ class DateTime(datetime.datetime):
                 return DayTimeDuration(dt.days, 0, 0, dt.seconds)
 
             if isinstance(dt, datetime.datetime):
-                # Note 2022-09-10:
-                # Is this a bug? Why are we assigning to other but never use it?
-                if isinstance(other, Time): other = dayTimeDuration(other)
                 return DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo, self.dateOnly)
 
 def dateUnionEqual(
