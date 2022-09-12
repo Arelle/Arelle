@@ -50,9 +50,9 @@ __pluginInfo__ = {
     'name': 'Hello Dolly',
     'version': '0.9',
     'description': "This is not just a plug-in, it symbolizes the hope and enthusiasm "
-					"of an entire generation summed up in two words sung most famously "
-					"by Louis Armstrong: Hello, Dolly. When activated you will randomly "
-					"see a lyric from Hello, Dolly.",
+                    "of an entire generation summed up in two words sung most famously "
+                    "by Louis Armstrong: Hello, Dolly. When activated you will randomly "
+                    "see a lyric from Hello, Dolly.",
     'license': 'Apache-2',
     'author': 'R\xe9gis D\xce9camps',
     'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
