@@ -464,7 +464,7 @@ class DayTimeDuration(datetime.timedelta):
             seconds += 1
         hours = int(seconds / 86400 )
         if hours > 24:
-            days = hours / 24 # type: ignore[assignment]
+            days += hours // 24
             hours = hours % 24
         seconds -= hours * 86400
         minutes = int(seconds / 60)
