@@ -106,7 +106,7 @@ class ModelObject(etree.ElementBase):
         Dict by attrTag of ModelAttribute objects (see below) of specified and default attributes of this element.
     """
 
-    _elementQname: QName | None
+    _elementQname: QName
     _parentQname: QName | None
     _elementSequence: int
     _namespaceURI: str | None
@@ -203,7 +203,7 @@ class ModelObject(etree.ElementBase):
 
     # qname of concept of fact or element for all but concept element, type, attr, param, override to the name parameter
     @property
-    def qname(self) -> QName | None:
+    def qname(self) -> QName:
         try:
             return self._elementQname
         except AttributeError:
@@ -212,14 +212,14 @@ class ModelObject(etree.ElementBase):
 
     # qname is overridden for concept, type, attribute, and formula parameter, elementQname is unambiguous
     @property
-    def elementQname(self) -> QName | None:
+    def elementQname(self) -> QName:
         try:
             return self._elementQname
         except AttributeError:
-            self._elementQname = qname(self)
+            self._elementQname = cast(QName, qname(self))
             return self._elementQname
 
-    def vQname(self, validationModelXbrl: ModelXbrl | None = None) -> QName | None:
+    def vQname(self, validationModelXbrl: ModelXbrl | None = None) -> QName:
         if validationModelXbrl is not None and validationModelXbrl != self.modelXbrl:
             # use physical element declaration in specified modelXbrl
             return self.elementQname
@@ -255,8 +255,9 @@ class ModelObject(etree.ElementBase):
 
 
     @property
-    def id(self) -> str | None:
-        return self.get("id")
+    def id(self) -> str:
+        _id = self.get("id")
+        return cast(str, _id)
 
     @property
     def stringValue(self) -> str:    # "string value" of node, text of all Element descendants
