@@ -624,9 +624,13 @@ class gYearMonth():
         return self.__str__()
     def __str__(self) -> str:
         return "{0:0{2}}-{1:02}".format(self.year, self.month, 5 if self.year < 0 else 4) # may be negative
-    def __eq__(self,other: gYearMonth) -> bool: # type: ignore[override]
+    def __eq__(self,other: Any) -> bool:
+        if not isinstance(other, gYearMonth):
+            return NotImplemented
         return type(other) == gYearMonth and self.year == other.year and self.month == other.month
-    def __ne__(self,other: gYearMonth) -> bool: # type: ignore[override]
+    def __ne__(self,other: Any) -> bool:
+        if not isinstance(other, gYearMonth):
+            return NotImplemented
         return not self.__eq__(other)
     def __lt__(self,other: gYearMonth) -> bool:
         return type(other) == gYearMonth and ((self.year < other.year) or (self.year == other.year and self.month < other.month))
@@ -648,9 +652,13 @@ class gMonthDay():
         return self.__str__()
     def __str__(self) -> str:
         return "--{0:02}-{1:02}".format(self.month, self.day)
-    def __eq__(self,other: gMonthDay) -> bool: # type: ignore[override]
+    def __eq__(self,other: Any) -> bool:
+        if not isinstance(other, gMonthDay):
+            return NotImplemented
         return type(other) == gMonthDay and self.month == other.month and self.day == other.day
-    def __ne__(self,other: gMonthDay) -> bool: # type: ignore[override]
+    def __ne__(self,other: Any) -> bool:
+        if not isinstance(other, gMonthDay):
+            return NotImplemented
         return not self.__eq__(other)
     def __lt__(self,other: gMonthDay) -> bool:
         return type(other) == gMonthDay and ((self.month < other.month) or (self.month == other.month and self.day < other.day))
@@ -670,9 +678,13 @@ class gYear():
         return self.__str__()
     def __str__(self) -> str:
         return "{0:0{1}}".format(self.year, 5 if self.year < 0 else 4) # may be negative
-    def __eq__(self,other: gYear) -> bool: # type: ignore[override]
+    def __eq__(self,other: Any) -> bool:
+        if not isinstance(other, gYear):
+            return NotImplemented
         return type(other) == gYear and self.year == other.year
-    def __ne__(self,other: gYear) -> bool: # type: ignore[override]
+    def __ne__(self,other: Any) -> bool:
+        if not isinstance(other, gYear):
+            return NotImplemented
         return not self.__eq__(other)
     def __lt__(self,other: gYear) -> bool:
         return type(other) == gYear and self.year < other.year
@@ -692,9 +704,13 @@ class gMonth():
         return self.__str__()
     def __str__(self) -> str:
         return "--{0:02}".format(self.month)
-    def __eq__(self,other: gMonth) -> bool: # type: ignore[override]
+    def __eq__(self,other: Any) -> bool:
+        if not isinstance(other, gMonth):
+            return NotImplemented
         return type(other) == gMonth and self.month == other.month
-    def __ne__(self,other: gMonth) -> bool: # type: ignore[override]
+    def __ne__(self,other: Any) -> bool:
+        if not isinstance(other, gMonth):
+            return NotImplemented
         return not self.__eq__(other)
     def __lt__(self,other: gMonth) -> bool:
         return type(other) == gMonth and self.month < other.month
@@ -714,9 +730,13 @@ class gDay():
         return self.__str__()
     def __str__(self) -> str:
         return "---{0:02}".format(self.day)
-    def __eq__(self,other: gDay) -> bool: # type: ignore[override]
+    def __eq__(self,other: Any) -> bool:
+        if not isinstance(other, gDay):
+            return NotImplemented
         return type(other) == gDay and self.day == other.day
-    def __ne__(self,other: gDay) -> bool: # type: ignore[override]
+    def __ne__(self,other: Any) -> bool:
+        if not isinstance(other, gDay):
+            return NotImplemented
         return not self.__eq__(other)
     def __lt__(self,other: gDay) -> bool:
         return type(other) == gDay and self.day < other.day
@@ -806,12 +826,16 @@ class IsoDuration(isodate.Duration): # type: ignore[misc]
         self._hash = hash((self.avgdays, self.tdelta))
     def __hash__(self) -> int:
         return self._hash
-    def __eq__(self, other: IsoDuration) -> bool: # type: ignore[override]
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, IsoDuration):
+            return NotImplemented
         try:
             return self.avgdays == other.avgdays and self.tdelta.seconds == other.tdelta.seconds and self.tdelta.microseconds == other.tdelta.microseconds
         except AttributeError:
             return False
-    def __ne__(self,other: IsoDuration) -> bool: # type: ignore[override]
+    def __ne__(self,other: Any) -> bool:
+        if not isinstance(other, IsoDuration):
+            return NotImplemented
         return not self.__eq__(other)
     def __lt__(self,other: IsoDuration) -> bool:
         if self.avgdays < other.avgdays:
