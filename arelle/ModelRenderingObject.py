@@ -289,7 +289,7 @@ class StrctMdlBreakdown(StrctMdlNode):
                     return (sibling,)
         return ()
 
-    @ property
+    @property
     def strctMdlAncestorBreakdownNode(self):
         return self
 
