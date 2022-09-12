@@ -362,7 +362,10 @@ class DateTime(datetime.datetime):
         lastDay = lastDayOfMonth(y, m)
         if d > lastDay: d = lastDay
         return DateTime(y, m, d, self.hour, self.minute, self.second, self.microsecond, self.tzinfo, self.dateOnly)
-    def __add__(self, other: YearMonthDuration | Time) -> DateTime: # type: ignore[override]
+    def __add__(self, other: Any) -> DateTime:
+        if not isinstance(other, YearMonthDuration) and not isinstance(other, Time):
+            return NotImplemented
+
         if isinstance(other, YearMonthDuration):
             return self.addYearMonthDuration(other, 1)
         else:
