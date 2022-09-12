@@ -255,9 +255,8 @@ class ModelObject(etree.ElementBase):
 
 
     @property
-    def id(self) -> str:
-        _id = self.get("id")
-        return cast(str, _id)
+    def id(self) -> str | None:
+        return self.get("id")
 
     @property
     def stringValue(self) -> str:    # "string value" of node, text of all Element descendants
