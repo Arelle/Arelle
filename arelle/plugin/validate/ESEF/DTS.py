@@ -169,10 +169,11 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: lis
                                 conceptsWithoutStandardLabel.append(modelConcept)
                             else:
                                 conceptsWithNoLabel.append(modelConcept)
-                        elif not hasLc3Match:
-                            val.modelXbrl.warning("ESEF.3.2.1.extensionTaxonomyElementNameDoesNotFollowLc3Convention",
-                                _("Extension taxonomy element name SHOULD follow the LC3 convention: %(concept)s should match an expected LC3 composition %(lc3names)s"),
-                                modelObject=modelConcept, concept=modelConcept.qname, lc3names=", ".join(lc3names))
+                        # elif not hasLc3Match: val.modelXbrl.warning(
+                        # "ESEF.3.2.1.extensionTaxonomyElementNameDoesNotFollowLc3Convention", _("Extension taxonomy
+                        # element name SHOULD follow the LC3 convention: %(concept)s should match an expected LC3
+                        # composition %(lc3names)s"), modelObject=modelConcept, concept=modelConcept.qname,
+                        # lc3names=", ".join(lc3names))
                         for (lang,labelrole),labels in langRoleLabels.items():
                             if len(labels) > 1:
                                 val.modelXbrl.error("ESEF.3.4.5.extensionTaxonomyElementDuplicateLabels",
@@ -216,12 +217,12 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: lis
                 _("Anchoring relationships for concepts MUST use "
                   "\"http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower\" arcrole: %(concepts)s."),
                 modelObject=extLineItemsWronglyAnchored, concepts=", ".join(sorted(str(c.qname) for c in extLineItemsWronglyAnchored)))
-        if extAbstractConcepts and val.authParam["extensionAbstractContexts"] != "allowed":
-            val.modelXbrl.log(val.authParam["extensionAbstractContexts"].upper(),
-                "ESEF.3.2.5.abstractConceptDefinitionInExtensionTaxonomy",
-                _("Extension taxonomy %(severityVerb)s define abstract concepts: concept %(concepts)s."),
-                modelObject=extAbstractConcepts, concepts=", ".join(str(c.qname) for c in extAbstractConcepts),
-                severityVerb={"warning":"SHOULD NOT","error":"MUST NOT"}[val.authParam["extensionAbstractContexts"]])
+        # if extAbstractConcepts and val.authParam["extensionAbstractContexts"] != "allowed":
+            # val.modelXbrl.log(val.authParam["extensionAbstractContexts"].upper(),
+            # "ESEF.3.2.5.abstractConceptDefinitionInExtensionTaxonomy",
+            # _("Extension taxonomy %(severityVerb)s define abstract concepts: concept %(concepts)s."),
+            # modelObject=extAbstractConcepts, concepts=", ".join(str(c.qname) for c in extAbstractConcepts),
+            # severityVerb={"warning":"SHOULD NOT","error":"MUST NOT"}[val.authParam["extensionAbstractContexts"]])
         if extMonetaryConceptsWithoutBalance:
             val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.4.2.monetaryConceptWithoutBalance",
                 _("Extension monetary concepts MUST provide balance attribute: concept %(concepts)s."),

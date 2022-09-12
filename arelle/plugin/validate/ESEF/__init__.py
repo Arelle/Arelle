@@ -51,13 +51,12 @@ from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, EntityBas
 from arelle import LeiUtil, ModelDocument, XbrlConst, XhtmlValidate
 from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelDtsObject import ModelResource
-from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
-from arelle.ModelObject import ModelObject
+from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import qname
 from arelle.PackageManager import validateTaxonomyPackage
-from arelle.PythonUtil import strTruncate
+from arelle.PythonUtil import strTruncate, normalizeSpace
 from arelle.UrlUtil import isHttpUrl, scheme
-from arelle.XmlValidate import VALID, lexicalPatterns
+from arelle.XmlValidate import lexicalPatterns
 
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import (ixbrl11, xhtml, parentChild, summationItem, standardLabel,
@@ -69,7 +68,7 @@ from .Const import (mandatory, untransformableTypes,
                     esefPrimaryStatementPlaceholderNames, esefStatementsOfMonetaryDeclarationNames, esefMandatoryElementNames2020)
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
-from .Util import isExtension, checkImageContents, loadAuthorityValidations
+from .Util import isExtension, checkImageContents, loadAuthorityValidations, checkForMultiLangDuplicates
 from arelle.typing import TypeGetText
 from arelle.ModelObject import ModelObject
 from arelle.DisclosureSystem import DisclosureSystem
@@ -425,12 +424,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                     reportXmlLang = xmlLang
                                     firstRootmostXmlLangDepth = depth
                         if ((eltTag in ("object", "script")) or
-                            (eltTag == "a" and "javascript:" in elt.get("href","")) or
-                            (eltTag == "img" and "javascript:" in elt.get("src",""))):
-                            modelXbrl.error("ESEF.2.5.1.executableCodePresent",
-                                _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
-                                modelObject=elt, element=eltTag)
-                        elif eltTag == "a" and "mailto" in elt.get("href", ""):
+                            (eltTag == "a" and "javascript:" in elt.get("href", "")) or
+                            (eltTag == "img" and "javascript:" in elt.get("src", "")) or
+                            (eltTag == "a" and "mailto" in elt.get("href", ""))):
                             modelXbrl.error("ESEF.2.5.1.executableCodePresent",
                                 _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
                                 modelObject=elt, element=eltTag)
@@ -550,12 +546,13 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             severityVerb={"warning":"SHOULD","error":"MUST"}[ixTargetUsage])
 
                     if hasattr(elt, "concept") and elt.concept.isTextBlock:
-                        if not elt.value:
+                        normalized_str = normalizeSpace(elt.value)
+                        if not normalized_str or normalized_str.isspace():
                             modelXbrl.warning("ESEF.1.3.3.emptyTextBlock",
                                     _("The text block element SHOULD not be empty: %(qname)s."),
                                     modelObject=elt, qname=elt.qname)
                         elif any(character in elt.stringValue for character in ['&lt;', '&amp;', '&', '<']):
-                            if hasattr(elt, 'attrib') and ('escape' not in elt.attrib or elt.attrib.get('escape').lower() != 'true'):
+                            if not (hasattr(elt, 'attrib')) or ('escape' not in elt.attrib or elt.attrib.get('escape').lower() != 'true'):
                                 modelXbrl.error("ESEF.2.2.6.escapedHTMLUsedInBlockTagWithSpecialCharacters",
                                         _("A text block containing '&' or '<' character MUST have an 'escape' attribute: %(qname)s."),
                                         modelObject=elt, qname=elt.qname)
@@ -816,8 +813,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         _("Each tagged text fact MUST have the 'xml:lang' provided in at least the language of the report: %(element)s"),
                         modelObject=fList, element=fList[0].qname)
 
-
         # 2.2.4 test
+        checkForMultiLangDuplicates(modelXbrl)
+
         decVals = {}
         for fList in numFactsByConceptContextUnit.values():
             if len(fList) > 1:
@@ -978,11 +976,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     nsExclPat = re.compile(nsExcl)
                     reportedEltsNotInLb -= set(c for c in reportedEltsNotInLb if nsExclPat.match(c.qname.namespaceURI))
             if reportedEltsNotInLb and lbType != "calculation":
-                modelXbrl.error("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
+                modelXbrl.warning("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
                     _("All concepts used by tagged facts SHOULD be in extension taxonomy %(linkbaseType)s relationships: %(elements)s."),
                     modelObject=reportedEltsNotInLb, elements=", ".join(sorted((str(c.qname) for c in reportedEltsNotInLb))), linkbaseType=lbType)
         if unreportedLbElts:
-            modelXbrl.error("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
+            modelXbrl.warning("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
                 _("All usable concepts in extension taxonomy relationships SHOULD be applied by tagged facts: %(elements)s."),
                 modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))))
 
@@ -991,10 +989,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             fr = rel.fromModelObject
             to = rel.toModelObject
 
-            if fr is not None and not fr.isAbstract and isExtension(val, fr):
-                anchoringToAbstractConcept.add(fr)
-            if to is not None and not to.isAbstract and isExtension(val, to):
-                anchoringToAbstractConcept.add(to)
+            if fr is not None and to is not None:
+                if to.isAbstract and isExtension(val, fr):
+                    anchoringToAbstractConcept.add(fr)
+                if fr.isAbstract and isExtension(val, to):
+                    anchoringToAbstractConcept.add(to)
 
         for _elem in anchoringToAbstractConcept:
             modelXbrl.warning("ESEF.3.3.1.ExtensionConceptAnchoredToAbstractConcept",
@@ -1064,7 +1063,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     checkMonetaryUnits(rootConcept, relSet, set())
             if pfsConceptsRootInELR and (len(pfsConceptsRootInELR) + len(nonPfsConceptsRootInELR) ) > 1:
                 roots = pfsConceptsRootInELR | nonPfsConceptsRootInELR
-                modelXbrl.warning("ESEF.3.4.7.singleExtendedLinkRoleUsedForAllPFSs",
+                modelXbrl.error("ESEF.3.4.7.singleExtendedLinkRoleUsedForAllPFSs",
                     _("Separate Extended Link Roles are required by %(elr)s for hierarchies: %(roots)s."),
                     modelObject=roots, elr=modelXbrl.roleTypeDefinition(ELR), roots=", ".join(sorted((str(c.qname) for c in roots))))
 
