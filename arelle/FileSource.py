@@ -4,13 +4,23 @@ Created on Oct 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+from __future__ import annotations
+from typing import IO, TYPE_CHECKING, Any, cast
 import zipfile, tarfile, os, io, errno, base64, gzip, zlib, re, struct, random, time
 from lxml import etree
 from arelle import XmlUtil
 from arelle import PackageManager
 from arelle.UrlUtil import isHttpUrl
 from operator import indexOf
-pluginClassMethods = None # dynamic import
+from arelle.typing import TypeGetText
+import arelle.PluginManager
+
+
+_: TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.Cntlr import Cntlr
+
 
 archivePathSeparators = (".zip" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
                         ((".zip/", ".tar.gz/", ".eis/", ".xml/", ".xfd/", ".frm/", '.taxonomyPackage.xml/') if os.sep != "/" else ()) #acomodate windows and http styles
@@ -24,7 +34,15 @@ XMLdeclaration = re.compile(r"<\?xml[^><\?]*\?>", re.DOTALL)
 
 TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD packages
 
-def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=False, reloadCache=False, base=None, sourceFileSource=None):
+def openFileSource(
+    filename: str | None,
+    cntlr: Cntlr | None = None,
+    sourceZipStream: str | None = None,
+    checkIfXmlIsEis: bool = False,
+    reloadCache: bool = False,
+    base: str | None = None,
+    sourceFileSource: FileSource | None = None,
+) -> FileSource:
     if sourceZipStream:
         filesource = FileSource(POST_UPLOADED_ZIP, cntlr)
         filesource.openZipStream(sourceZipStream)
@@ -33,12 +51,24 @@ def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=F
         return filesource
     else:
         if cntlr and base:
-            filename = cntlr.webCache.normalizeUrl(filename, base=base)
+            filename = cntlr.webCache.normalizeUrl(filename, base=base) # type: ignore[no-untyped-call]
+
+        assert filename is not None
         archivepathSelection = archiveFilenameParts(filename, checkIfXmlIsEis)
         if archivepathSelection is not None:
             archivepath = archivepathSelection[0]
-            selection = archivepathSelection[1]
-            if sourceFileSource and sourceFileSource.isArchive and selection in sourceFileSource.dir and selection.endswith(".zip"):
+            selection: str | None = archivepathSelection[1]
+
+            assert selection is not None
+            assert sourceFileSource is not None
+            assert sourceFileSource.dir is not None
+            if (
+                sourceFileSource
+                and sourceFileSource.isArchive
+                and selection in sourceFileSource.dir
+                and selection.endswith(".zip")
+            ):
+                assert cntlr is not None
                 filesource = FileSource(filename, cntlr)
                 selection = None
             else:
@@ -50,7 +80,7 @@ def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=F
         # not archived content
         return FileSource(filename, cntlr, checkIfXmlIsEis)
 
-def archiveFilenameParts(filename, checkIfXmlIsEis=False):
+def archiveFilenameParts(filename: str, checkIfXmlIsEis: bool = False) -> tuple[str, str] | None:
     # check if path has an archive file plus appended in-archive content reference
     for archiveSep in archivePathSeparators:
         if (filename and
@@ -64,39 +94,39 @@ def archiveFilenameParts(filename, checkIfXmlIsEis=False):
     return None
 
 class FileNamedStringIO(io.StringIO):  # provide string IO in memory but behave as a fileName string
-    def __init__(self, fileName, *args, **kwargs):
+    def __init__(self, fileName: str, *args: Any, **kwargs: Any) -> None:
         super(FileNamedStringIO, self).__init__(*args, **kwargs)
         self.fileName = fileName
 
-    def close(self):
+    def close(self) -> None:
         del self.fileName
         super(FileNamedStringIO, self).close()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.fileName
 
 class FileNamedTextIOWrapper(io.TextIOWrapper):  # provide string IO in memory but behave as a fileName string
-    def __init__(self, fileName, *args, **kwargs):
+    def __init__(self, fileName: str, *args: Any, **kwargs: Any):
         super(FileNamedTextIOWrapper, self).__init__(*args, **kwargs)
         self.fileName = fileName
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.fileName
 
 class FileNamedBytesIO(io.BytesIO):  # provide Bytes IO in memory but behave as a fileName string
-    def __init__(self, fileName, *args, **kwargs):
+    def __init__(self, fileName: str, *args: Any, **kwargs: Any) -> None:
         super(FileNamedBytesIO, self).__init__(*args, **kwargs)
         self.fileName = fileName
 
-    def close(self):
+    def close(self) -> None:
         del self.fileName
         super(FileNamedBytesIO, self).close()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.fileName
 
 class ArchiveFileIOError(IOError):
-    def __init__(self, fileSource, errno, fileName):
+    def __init__(self, fileSource: FileSource, errno: int, fileName: str) -> None:
         super(ArchiveFileIOError, self).__init__(errno,
                                                  _("Archive {}").format(fileSource.url),
                                                  fileName)
@@ -104,10 +134,13 @@ class ArchiveFileIOError(IOError):
         self.url = fileSource.url
 
 class FileSource:
-    def __init__(self, url, cntlr=None, checkIfXmlIsEis=False):
-        global pluginClassMethods
-        if pluginClassMethods is None: # dynamic import
-            from arelle.PluginManager import pluginClassMethods
+
+    url: str | list[str] | None
+    fs: zipfile.ZipFile | tarfile.TarFile | io.StringIO | None
+
+    referencedFileSources: dict[Any, Any]
+
+    def __init__(self, url: str, cntlr: Cntlr | None = None, checkIfXmlIsEis: bool = False) -> None:
         self.url = str(url)  # allow either string or FileNamedStringIO
         self.baseIsHttp = isHttpUrl(self.url)
         self.cntlr = cntlr
@@ -136,7 +169,10 @@ class FileSource:
                 self.isInstalledTaxonomyPackage = True
             elif checkIfXmlIsEis:
                 try:
-                    file = open(self.cntlr.webCache.getfilename(self.url), 'r', errors='replace')
+                    assert self.cntlr is not None
+                    _filename = self.cntlr.webCache.getfilename(self.url)
+                    assert _filename is not None
+                    file = open(_filename, 'r', errors='replace')
                     l = file.read(256) # may have comments before first element
                     file.close()
                     if re.match(r"\s*(<[?]xml[^?]+[?]>)?\s*(<!--.*-->\s*)*<(cor[a-z]*:|sdf:)?edgarSubmission", l):
@@ -146,13 +182,15 @@ class FileSource:
                         self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
                     pass
 
-    def logError(self, err):
+    def logError(self, err: Exception) -> None:
         if self.cntlr:
             self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
 
-    def open(self, reloadCache=False):
+    def open(self, reloadCache: bool = False) -> None:
         if not self.isOpen:
             if (self.isZip or self.isTarGz or self.isEis or self.isXfd or self.isRss or self.isInstalledTaxonomyPackage) and self.cntlr:
+                assert self.url is not None
+                assert isinstance(self.url, str)
                 self.basefile = self.cntlr.webCache.getfilename(self.url, reload=reloadCache)
             else:
                 self.basefile = self.url
@@ -161,13 +199,16 @@ class FileSource:
                 return  # an error should have been logged
             if self.isZip:
                 try:
-                    self.fs = zipfile.ZipFile(openFileStream(self.cntlr, self.basefile, 'rb'), mode="r")
+                    assert self.cntlr is not None
+                    fileStream = openFileStream(self.cntlr, self.basefile, 'rb')
+                    self.fs = zipfile.ZipFile(fileStream, mode="r")
                     self.isOpen = True
                 except EnvironmentError as err:
                     self.logError(err)
                     pass
             elif self.isTarGz:
                 try:
+                    assert isinstance(self.basefile, str)
                     self.fs = tarfile.open(self.basefile, "r:gz")
                     self.isOpen = True
                 except EnvironmentError as err:
@@ -201,14 +242,14 @@ class FileSource:
                 if buf.startswith(b"<?xml "):
                     try:
                         # must strip encoding
-                        str = buf.decode(XmlUtil.encoding(buf))
-                        endEncoding = str.index("?>", 0, 128)
+                        _str = buf.decode(XmlUtil.encoding(buf))  # type: ignore[no-untyped-call]
+                        endEncoding = _str.index("?>", 0, 128)
                         if endEncoding > 0:
-                            str = str[endEncoding+2:]
-                        file = io.StringIO(initial_value=str)
+                            _str = _str[endEncoding+2:]
+                        _file = io.StringIO(initial_value=_str)
                         parser = etree.XMLParser(recover=True, huge_tree=True)
-                        self.eisDocument = etree.parse(file, parser=parser)
-                        file.close()
+                        self.eisDocument = etree.parse(_file, parser=parser)
+                        _file.close()
                         self.isOpen = True
                     except EnvironmentError as err:
                         self.logError(err)
@@ -224,8 +265,8 @@ class FileSource:
                 if firstline.startswith(b"application/x-xfdl;content-encoding=\"asc-gzip\""):
                     # file has been gzipped
                     base64input = file.read(-1)
-                    file.close();
-                    file = None;
+                    file.close()
+                    file = None
 
                     fb = base64.b64decode(base64input)
                     ungzippedBytes = b""
@@ -286,33 +327,43 @@ class FileSource:
                 # load mappings
                 self.loadTaxonomyPackageMappings()
 
-    def loadTaxonomyPackageMappings(self, errors=[], expectTaxonomyPackage=None):
+    def loadTaxonomyPackageMappings(self, errors: list[str] = [], expectTaxonomyPackage: bool = False) -> None:
         if not self.mappedPaths and (self.taxonomyPackageMetadataFiles or expectTaxonomyPackage):
             if PackageManager.validateTaxonomyPackage(self.cntlr, self, errors=errors):
+                assert self.baseurl is not None
+                assert isinstance(self.baseurl, str)
                 metadata = self.baseurl + os.sep + self.taxonomyPackageMetadataFiles[0]
-                self.taxonomyPackage = PackageManager.parsePackage(self.cntlr, self, metadata,
+                self.taxonomyPackage = PackageManager.parsePackage(self.cntlr, self, metadata,  # type: ignore[no-untyped-call]
                                                                    os.sep.join(os.path.split(metadata)[:-1]) + os.sep,
                                                                    errors=errors)
+
+                assert self.taxonomyPackage is not None
                 self.mappedPaths = self.taxonomyPackage.get("remappings")
 
-    def openZipStream(self, sourceZipStream):
+    def openZipStream(self, sourceZipStream: str) -> None:
         if not self.isOpen:
+            assert self.url is not None
+            assert isinstance(self.url, str)
             self.basefile = self.url
             self.baseurl = self.url # url gets changed by selection
+            assert self.fs is not None
             self.fs = zipfile.ZipFile(sourceZipStream, mode="r")
             self.isOpen = True
 
-    def close(self):
+    def close(self) -> None:
         if self.referencedFileSources:
-            for referencedFileSource in self.referencedFileSources.values():
+            for uncastReferencedFileSource in self.referencedFileSources.values():
+                referencedFileSource = cast(FileSource, uncastReferencedFileSource)
                 referencedFileSource.close()
         self.referencedFileSources.clear()
         if self.isZip and self.isOpen:
+            assert self.fs is not None
             self.fs.close()
             self.fs = None
             self.isOpen = False
             self.isZip = self.isZipBackslashed = False
         if self.isTarGz and self.isOpen:
+            assert self.fs is not None
             self.fs.close()
             self.fs = None
             self.isOpen = False
@@ -336,36 +387,37 @@ class FileSource:
         self.filesDir = None
 
     @property
-    def isArchive(self):
+    def isArchive(self) -> bool:
         return self.isZip or self.isTarGz or self.isEis or self.isXfd or self.isInstalledTaxonomyPackage
 
     @property
-    def isTaxonomyPackage(self):
+    def isTaxonomyPackage(self) -> bool:
         return bool(self.isZip and self.taxonomyPackageMetadataFiles) or self.isInstalledTaxonomyPackage
 
     @property
-    def taxonomyPackageMetadataFiles(self):
+    def taxonomyPackageMetadataFiles(self) -> list[str]:
         for f in (self.dir or []):
             if f.endswith("/META-INF/taxonomyPackage.xml"): # must be in a sub directory in the zip
                 return [f]  # standard package
         return [f for f in (self.dir or []) if os.path.split(f)[-1] in TAXONOMY_PACKAGE_FILE_NAMES]
 
-    def isInArchive(self,filepath, checkExistence=False):
+    def isInArchive(self, filepath: str, checkExistence: bool = False) -> bool:
         archiveFileSource = self.fileSourceContainingFilepath(filepath)
         if archiveFileSource is None:
             return False
         if checkExistence:
+            assert isinstance(archiveFileSource.basefile, list)
             archiveFileName = filepath[len(archiveFileSource.basefile) + 1:].replace("\\", "/") # must be / file separators
             return archiveFileName in archiveFileSource.dir
         return True # True only means that the filepath maps into the archive, not that the file is really there
 
-    def isMappedUrl(self, url):
+    def isMappedUrl(self, url: str) -> bool:
         if self.mappedPaths is not None:
             return any(url.startswith(mapFrom)
                        for mapFrom in self.mappedPaths)
         return False
 
-    def mappedUrl(self, url):
+    def mappedUrl(self, url: str) -> str:
         if self.mappedPaths:
             for mapFrom, mapTo in self.mappedPaths.items():
                 if url.startswith(mapFrom):
@@ -373,7 +425,7 @@ class FileSource:
                     break
         return url
 
-    def fileSourceContainingFilepath(self, filepath):
+    def fileSourceContainingFilepath(self, filepath: str) -> FileSource | None:
         if self.isOpen:
             # archiveFiles = self.dir
             ''' change to return file source if archive would be in there (vs actually is in archive)
@@ -383,6 +435,8 @@ class FileSource:
                  filepath[len(self.baseurl) + 1:] in archiveFiles)):
                 return self
             '''
+            assert isinstance(self.basefile, str)
+            assert isinstance(self.baseurl, str)
             if (filepath.startswith(self.basefile) or
                 filepath.startswith(self.baseurl)):
                 return self
@@ -392,7 +446,7 @@ class FileSource:
             if referencedArchiveFile in self.referencedFileSources:
                 referencedFileSource = self.referencedFileSources[referencedArchiveFile]
                 if referencedFileSource.isInArchive(filepath):
-                    return referencedFileSource
+                    return cast(FileSource, referencedFileSource)
             elif (not self.isOpen or
                   (referencedArchiveFile != self.basefile and referencedArchiveFile != self.baseurl)):
                 referencedFileSource = openFileSource(filepath, self.cntlr)
@@ -400,16 +454,19 @@ class FileSource:
                     self.referencedFileSources[referencedArchiveFile] = referencedFileSource
         return None
 
-    def file(self, filepath, binary=False, stripDeclaration=False, encoding=None):
+    def file(self, filepath: str, binary: bool = False, stripDeclaration: bool = False, encoding: str | None = None):
         '''
             for text, return a tuple of (open file handle, encoding)
             for binary, return a tuple of (open file handle, )
         '''
         archiveFileSource = self.fileSourceContainingFilepath(filepath)
         if archiveFileSource is not None:
+            assert isinstance(archiveFileSource.basefile, str)
+
             if filepath.startswith(archiveFileSource.basefile):
                 archiveFileName = filepath[len(archiveFileSource.basefile) + 1:]
             else: # filepath.startswith(self.baseurl)
+                assert isinstance(archiveFileSource.baseurl, str)
                 archiveFileName = filepath[len(archiveFileSource.baseurl) + 1:]
             if archiveFileSource.isZip:
                 try:
@@ -417,11 +474,14 @@ class FileSource:
                         f = archiveFileName.replace("/", "\\")
                     else:
                         f = archiveFileName.replace("\\","/")
+
+                    assert archiveFileSource.fs is not None
+                    assert isinstance(archiveFileSource.fs, zipfile.ZipFile)
                     b = archiveFileSource.fs.read(f)
                     if binary:
                         return (io.BytesIO(b), )
                     if encoding is None:
-                        encoding = XmlUtil.encoding(b)
+                        encoding = XmlUtil.encoding(b) # type: ignore[no-untyped-call]
                     if stripDeclaration:
                         b = stripDeclarationBytes(b)
                     return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding),
@@ -430,19 +490,27 @@ class FileSource:
                     raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
             elif archiveFileSource.isTarGz:
                 try:
+                    assert archiveFileSource.fs is not None
+                    assert isinstance(archiveFileSource.fs, tarfile.TarFile)
                     fh = archiveFileSource.fs.extractfile(archiveFileName)
+                    assert fh is not None
                     b = fh.read()
                     fh.close() # doesn't seem to close properly using a with construct
                     if binary:
                         return (io.BytesIO(b), )
                     if encoding is None:
-                        encoding = XmlUtil.encoding(b)
+                        encoding = XmlUtil.encoding(b) # type: ignore[no-untyped-call]
                     if stripDeclaration:
                         b = stripDeclarationBytes(b)
                     return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding),
                             encoding)
                 except KeyError:
-                    raise ArchiveFileIOError(self, archiveFileName)
+                    # Note 2022-09-06
+                    # The following error is raised by mypy, indicating there's a bug here:
+                    # Missing positional argument "fileName"
+                    # Not fixing this bug as a part of this PR
+                    # Also expecting second argument to be int but is str here
+                    raise ArchiveFileIOError(self, archiveFileName) # type: ignore[call-arg, arg-type]
             elif archiveFileSource.isEis:
                 for docElt in self.eisDocument.iter(tag="{http://www.sec.gov/edgar/common}document"):
                     outfn = docElt.findtext("{http://www.sec.gov/edgar/common}conformedName")
@@ -452,16 +520,16 @@ class FileSource:
                             b = base64.b64decode(b64data.encode("latin-1"))
                             # remove BOM codes if present
                             if len(b) > 3 and b[0] == 239 and b[1] == 187 and b[2] == 191:
-                                start = 3;
-                                length = len(b) - 3;
+                                start = 3
+                                length = len(b) - 3
                                 b = b[start:start + length]
                             else:
-                                start = 0;
-                                length = len(b);
+                                start = 0
+                                length = len(b)
                             if binary:
                                 return (io.BytesIO(b), )
                             if encoding is None:
-                                encoding = XmlUtil.encoding(b, default="latin-1")
+                                encoding = XmlUtil.encoding(b, default="latin-1")  # type: ignore[no-untyped-call]
                             return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding),
                                     encoding)
                 raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
@@ -474,80 +542,101 @@ class FileSource:
                             b = base64.b64decode(b64data.encode("latin-1"))
                             # remove BOM codes if present
                             if len(b) > 3 and b[0] == 239 and b[1] == 187 and b[2] == 191:
-                                start = 3;
-                                length = len(b) - 3;
+                                start = 3
+                                length = len(b) - 3
                                 b = b[start:start + length]
                             else:
-                                start = 0;
-                                length = len(b);
+                                start = 0
+                                length = len(b)
                             if binary:
                                 return (io.BytesIO(b), )
                             if encoding is None:
-                                encoding = XmlUtil.encoding(b, default="latin-1")
+                                encoding = XmlUtil.encoding(b, default="latin-1")  # type: ignore[no-untyped-call]
                             return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding),
                                     encoding)
                 raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
             elif archiveFileSource.isInstalledTaxonomyPackage:
                 # remove TAXONOMY_PACKAGE_FILE_NAME from file path
                 if filepath.startswith(archiveFileSource.basefile):
+                    assert isinstance(archiveFileSource.basefile, list)
                     l = len(archiveFileSource.basefile)
                     for f in TAXONOMY_PACKAGE_FILE_NAMES:
                         if filepath[l - len(f):l] == f:
                             filepath = filepath[0:l - len(f) - 1] + filepath[l:]
                             break
-        for pluginMethod in pluginClassMethods("FileSource.File"): #custom overrides for decription, etc
+
+        # custom overrides for decription, etc
+        for pluginMethod in arelle.PluginManager.pluginClassMethods("FileSource.File"):
             fileResult = pluginMethod(self.cntlr, filepath, binary, stripDeclaration)
             if fileResult is not None:
                 return fileResult
         if binary:
+            assert self.cntlr is not None
             return (openFileStream(self.cntlr, filepath, 'rb'), )
         elif encoding:
+            assert self.cntlr is not None
             return (openFileStream(self.cntlr, filepath, 'rt', encoding=encoding), )
         else:
+            assert self.cntlr is not None
             return openXmlFileStream(self.cntlr, filepath, stripDeclaration)
 
-    def exists(self, filepath):
+    def exists(self, filepath: str) -> bool:
         archiveFileSource = self.fileSourceContainingFilepath(filepath)
         if archiveFileSource is not None:
-            if filepath.startswith(archiveFileSource.basefile):
+            # Note 2022-09-12
+            # Can we handle this with an assert? Feels like we need to check if this is a str when
+            # also testing for startswith
+            if isinstance(archiveFileSource.basefile, str) and filepath.startswith(archiveFileSource.basefile):
                 archiveFileName = filepath[len(archiveFileSource.basefile) + 1:]
             else: # filepath.startswith(self.baseurl)
+                assert isinstance(archiveFileSource.baseurl, list)
                 archiveFileName = filepath[len(archiveFileSource.baseurl) + 1:]
             if (archiveFileSource.isZip or archiveFileSource.isTarGz or
                 archiveFileSource.isEis or archiveFileSource.isXfd or
                 archiveFileSource.isRss or self.isInstalledTaxonomyPackage):
+                assert archiveFileSource.dir is not None
                 return archiveFileName.replace("\\","/") in archiveFileSource.dir
-        for pluginMethod in pluginClassMethods("FileSource.Exists"): #custom overrides for decription, etc
+
+        # custom overrides for decription, etc
+        for pluginMethod in arelle.PluginManager.pluginClassMethods("FileSource.Exists"):
             existsResult = pluginMethod(self.cntlr, filepath)
             if existsResult is not None:
-                return existsResult
+                return cast(bool, existsResult)
         # assume it may be a plain ordinary file path
         return os.path.exists(filepath)
 
     @property
-    def dir(self):
+    def dir(self) -> list[str] | None:
         self.open()
         if not self.isOpen:
             return None
         elif self.filesDir is not None:
-            return self.filesDir
+            return cast(list[str], self.filesDir)
         elif self.isZip:
-            files = []
+            files: list[str] = []
+
+            assert self.fs is not None
+            assert isinstance(self.fs, zipfile.ZipFile)
             for zipinfo in self.fs.infolist():
                 f = zipinfo.filename
                 if '\\' in f:
                     self.isZipBackslashed = True
                     f = f.replace("\\", "/")
                 files.append(f)
+            assert self.filesDir is not None
             self.filesDir = files
         elif self.isTarGz:
+            assert self.fs is not None
+            assert isinstance(self.fs, tarfile.TarFile)
+            assert self.filesDir is not None
             self.filesDir = self.fs.getnames()
         elif self.isEis:
             files = []
             for docElt in self.eisDocument.iter(tag="{http://www.sec.gov/edgar/common}document"):
                 outfn = docElt.findtext("{http://www.sec.gov/edgar/common}conformedName")
                 if outfn:
-                    files.append(outfn);
+                    files.append(outfn)
+            assert self.filesDir is not None
             self.filesDir = files
         elif self.isXfd:
             files = []
@@ -557,59 +646,68 @@ class FileSource:
                     if len(outfn) > 2 and outfn[0].isalpha() and \
                         outfn[1] == ':' and outfn[2] == '\\':
                         continue
-                    files.append(outfn);
+                    files.append(outfn)
+            assert self.filesDir is not None
             self.filesDir = files
         elif self.isRss:
             files = []  # return title, descr, pubdate, linst doc
             edgr = "http://www.sec.gov/Archives/edgar"
             try:
-                for dsElt in XmlUtil.descendants(self.rssDocument, None, "item"):
+                for dsElt in XmlUtil.descendants(self.rssDocument, None, "item"):  # type: ignore[no-untyped-call]
                     instDoc = None
-                    for instDocElt in XmlUtil.descendants(dsElt, edgr, "xbrlFile"):
+                    for instDocElt in XmlUtil.descendants(dsElt, edgr, "xbrlFile"):  # type: ignore[no-untyped-call]
                         if instDocElt.get("(http://www.sec.gov/Archives/edgar}description").endswith("INSTANCE DOCUMENT"):
                             instDoc = instDocElt.get("(http://www.sec.gov/Archives/edgar}url")
                             break
                     if not instDoc:
                         continue
                     files.append((
-                        XmlUtil.text(XmlUtil.descendant(dsElt, None, "title")),
+                        XmlUtil.text(XmlUtil.descendant(dsElt, None, "title")),  # type: ignore[no-untyped-call]
                         # tooltip
                         "{0}\n {1}\n {2}\n {3}\n {4}".format(
-                            XmlUtil.text(XmlUtil.descendant(dsElt, edgr, "companyName")),
-                            XmlUtil.text(XmlUtil.descendant(dsElt, edgr, "formType")),
-                            XmlUtil.text(XmlUtil.descendant(dsElt, edgr, "filingDate")),
-                            XmlUtil.text(XmlUtil.descendant(dsElt, edgr, "cikNumber")),
-                            XmlUtil.text(XmlUtil.descendant(dsElt, edgr, "period"))),
-                        XmlUtil.text(XmlUtil.descendant(dsElt, None, "description")),
-                        XmlUtil.text(XmlUtil.descendant(dsElt, None, "pubDate")),
+                            XmlUtil.text(XmlUtil.descendant(dsElt, edgr, "companyName")), # type: ignore[no-untyped-call]
+                            XmlUtil.text(XmlUtil.descendant(dsElt, edgr, "formType")), # type: ignore[no-untyped-call]
+                            XmlUtil.text(XmlUtil.descendant(dsElt, edgr, "filingDate")), # type: ignore[no-untyped-call]
+                            XmlUtil.text(XmlUtil.descendant(dsElt, edgr, "cikNumber")), # type: ignore[no-untyped-call]
+                            XmlUtil.text(XmlUtil.descendant(dsElt, edgr, "period"))), # type: ignore[no-untyped-call]
+                        XmlUtil.text(XmlUtil.descendant(dsElt, None, "description")), # type: ignore[no-untyped-call]
+                        XmlUtil.text(XmlUtil.descendant(dsElt, None, "pubDate")), # type: ignore[no-untyped-call]
                         instDoc))
+                assert self.filesDir is not None
                 self.filesDir = files
             except (EnvironmentError,
                     etree.LxmlError) as err:
                 pass
         elif self.isInstalledTaxonomyPackage:
             files = []
+            assert isinstance(self.baseurl, str)
             baseurlPathLen = len(os.path.dirname(self.baseurl)) + 1
-            def packageDirsFiles(dir):
+            def packageDirsFiles(dir: str) -> None:
                 for file in os.listdir(dir):
                     path = dir + "/" + file   # must have / and not \\ even on windows
                     files.append(path[baseurlPathLen:])
                     if os.path.isdir(path):
                         packageDirsFiles(path)
             packageDirsFiles(self.baseurl[0:baseurlPathLen - 1])
+            assert self.filesDir is not None
             self.filesDir = files
 
         return self.filesDir
 
-    def basedUrl(self, selection):
+    def basedUrl(self, selection: str) -> str:
         if isHttpUrl(selection) or os.path.isabs(selection):
             return selection
         elif self.baseIsHttp or os.sep == '/':
+            assert self.baseurl is not None
+            assert isinstance(self.baseurl, str)
             return self.baseurl + "/" + selection
         else: # MSFT os.sep == '\\'
+            assert self.baseurl is not None
+            assert isinstance(self.baseurl, str)
             return self.baseurl + os.sep + selection.replace("/", os.sep)
 
-    def select(self, selection):
+    def select(self, selection: str | list[Any] | None) -> None:
+        assert isinstance(self.selection, str)
         self.selection = selection
         if not selection:
             self.url = None
@@ -620,11 +718,17 @@ class FileSource:
             else:
                 self.url = self.basedUrl(selection)
 
-def openFileStream(cntlr, filepath, mode='r', encoding=None):
-    if PackageManager.isMappedUrl(filepath):
-        filepath = PackageManager.mappedUrl(filepath)
-    elif isHttpUrl(filepath) and cntlr and hasattr(cntlr, "modelManager"): # may be called early in initialization for PluginManager
-        filepath = cntlr.modelManager.disclosureSystem.mappedUrl(filepath)
+def openFileStream(
+    cntlr: Cntlr, filepath: str, mode: str = "r", encoding: str | None = None
+) -> (FileSource | FileNamedStringIO | io.BytesIO | IO[bytes] | IO[str]):
+    if PackageManager.isMappedUrl(filepath):  # type: ignore[no-untyped-call]
+        filepath = PackageManager.mappedUrl(filepath)  # type: ignore[no-untyped-call]
+    elif (
+            isHttpUrl(filepath)
+            and cntlr
+            and hasattr(cntlr, "modelManager")
+        ): # may be called early in initialization for PluginManager
+        filepath = cntlr.modelManager.disclosureSystem.mappedUrl(filepath)  # type: ignore[no-untyped-call]
     if archiveFilenameParts(filepath): # file is in an archive
         return openFileSource(filepath, cntlr).file(filepath, binary='b' in mode, encoding=encoding)[0]
     if isHttpUrl(filepath) and cntlr:
@@ -644,7 +748,7 @@ def openFileStream(cntlr, filepath, mode='r', encoding=None):
                 filestream = io.BytesIO(cachedBytes)
         if filestream is None:
             filestream = io.BytesIO()
-            cntlr.webCache.retrieve(cntlr.webCache.cacheFilepathToUrl(filepath),
+            cntlr.webCache.retrieve(cntlr.webCache.cacheFilepathToUrl(filepath),  # type: ignore[no-untyped-call]
                                     filestream=filestream)
             if cntlr.isGAE:
                 gaeSet(cacheKey, filestream.getvalue())
@@ -657,21 +761,22 @@ def openFileStream(cntlr, filepath, mode='r', encoding=None):
     elif encoding is None and 'b' not in mode:
         openedFileStream = io.open(filepath, mode='rb')
         hdrBytes = openedFileStream.read(512)
-        encoding = XmlUtil.encoding(hdrBytes, default=None)
+        encoding = XmlUtil.encoding(hdrBytes, default=None)  # type: ignore[no-untyped-call]
         openedFileStream.close()
         return io.open(filepath, mode=mode, encoding=encoding)
     else:
         # local file system
         return io.open(filepath, mode=mode, encoding=encoding)
 
-def openXmlFileStream(cntlr, filepath, stripDeclaration=False):
+def openXmlFileStream(cntlr: Cntlr, filepath: str, stripDeclaration: bool=False) -> tuple[FileNamedStringIO, str]:
     # returns tuple: (fileStream, encoding)
     openedFileStream = openFileStream(cntlr, filepath, 'rb')
+    assert not isinstance(openedFileStream, FileSource)
     # check encoding
     hdrBytes = openedFileStream.read(512)
-    encoding = XmlUtil.encoding(hdrBytes,
+    encoding = cast(str, XmlUtil.encoding(hdrBytes,  # type: ignore[no-untyped-call]
                                 default=cntlr.modelManager.disclosureSystem.defaultXmlEncoding
-                                        if cntlr else 'utf-8')
+                                        if cntlr else 'utf-8'))
     # encoding default from disclosure system could be None
     if encoding.lower() in ('utf-8','utf8','utf-8-sig') and (cntlr is None or not cntlr.isGAE) and not stripDeclaration:
         text = None
@@ -693,7 +798,7 @@ def openXmlFileStream(cntlr, filepath, stripDeclaration=False):
                 text = text[0:start] + text[end:]
         return (FileNamedStringIO(filepath, initial_value=text), encoding)
 
-def stripDeclarationBytes(xml):
+def stripDeclarationBytes(xml: bytes) -> bytes:
     xmlStart = xml[0:120]
     indexOfDeclaration = xmlStart.find(b"<?xml")
     if indexOfDeclaration >= 0:
@@ -702,7 +807,7 @@ def stripDeclarationBytes(xml):
             return xml[indexOfDeclarationEnd + 2:]
     return xml
 
-def saveFile(cntlr, filepath, contents, encoding=None, mode='wt'):
+def saveFile(cntlr: Cntlr, filepath: str, contents: str, encoding: str | None = None, mode: str='wt') -> None:
     if isHttpUrl(filepath):
         _cacheFilepath = cntlr.webCache.getfilename(filepath)
         if _cacheFilepath is None:
@@ -725,16 +830,18 @@ gaeMemcache = None
 GAE_MEMCACHE_MAX_ITEM_SIZE = 900 * 1024
 GAE_EXPIRE_WEEK = 60 * 60 * 24 * 7 # one week
 
-def gaeGet(key):
+def gaeGet(key: str) -> bytes | None:
     # returns bytes (not string) value
     global gaeMemcache
     if gaeMemcache is None:
         from google.appengine.api import memcache as gaeMemcache
+
+    assert gaeMemcache is not None
     chunk_keys = gaeMemcache.get(key)
     if chunk_keys is None:
         return None
     chunks = []
-    if isinstance(chunk_keys, _STR_BASE):
+    if isinstance(chunk_keys, _STR_BASE): # type: ignore[name-defined]
         chunks.append(chunk_keys)  # only one shard
     else:
         for chunk_key in chunk_keys:
@@ -750,18 +857,21 @@ def gaeGet(key):
         return None
 
 
-def gaeDelete(key):
+def gaeDelete(key: str) -> bool:
+    assert gaeMemcache is not None
     chunk_keys = gaeMemcache.get(key)
     if chunk_keys is None:
         return False
-    if isinstance(chunk_keys, _STR_BASE):
+    if isinstance(chunk_keys, _STR_BASE): # type: ignore[name-defined]
         chunk_keys = []
     chunk_keys.append(key)
     gaeMemcache.delete_multi(chunk_keys)
     return True
 
 
-def gaeSet(key, bytesValue): # stores bytes, not string valye
+# Note 2022-09-12
+# Looks like maybe memcache of google.appengine.api is Python 2?
+def gaeSet(key: str, bytesValue: bytes) -> bool: # stores bytes, not string valye
     global gaeMemcache
     if gaeMemcache is None:
         from google.appengine.api import memcache as gaeMemcache
@@ -772,6 +882,8 @@ def gaeSet(key, bytesValue): # stores bytes, not string valye
     gaeDelete(key)
 
     valueSize = len(compressedValue)
+    assert gaeMemcache is not None
+
     if valueSize < GAE_MEMCACHE_MAX_ITEM_SIZE: # only one segment
         return gaeMemcache.set(key, compressedValue, time=GAE_EXPIRE_WEEK)
     # else store in separate chunk shards
@@ -790,4 +902,4 @@ def gaeSet(key, bytesValue): # stores bytes, not string valye
         if not isSuccess:
             return False
         chunkKeys.append(chunkKey)
-    return gaeMemcache.set(key, chunkKeys, time=GAE_EXPIRE_WEEK)
+    return cast(bool, gaeMemcache.set(key, chunkKeys, time=GAE_EXPIRE_WEEK))
