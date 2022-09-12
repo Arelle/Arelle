@@ -95,9 +95,19 @@ ignore_errors = true
 module = [
     'arelle.plugin.validate.ESEF.*',
     'arelle.Cntlr',
+    'arelle.FileSource',
     'arelle.Updater',
     'arelle.UrlUtil',
     'arelle.ValidateXbrl',
 ]
 ignore_errors = false
 strict = true
+
+# --- Modules lacking stubs ---
+# Add any module missing library stubs or not having
+# the py.typed marker here
+[[tool.mypy.overrides]]
+module = [
+    'google.appengine.api.*',
+]
+ignore_missing_imports = true
