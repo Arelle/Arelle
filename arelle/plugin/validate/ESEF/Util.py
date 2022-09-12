@@ -42,7 +42,7 @@ def isInEsefTaxonomy(val: ValidateXbrl, modelObject: ModelObject | None) -> bool
 
     assert modelObject.qname is not None
     ns = modelObject.qname.namespaceURI
-    assert ns  is not None
+    assert ns is not None
     return (any(ns.startswith(esefNsPrefix) for esefNsPrefix in esefTaxonomyNamespaceURIs))
 
 supportedImgTypes: dict[bool, tuple[str, ...]] = {
