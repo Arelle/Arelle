@@ -198,7 +198,10 @@ class QName:
             assert self.localName is not None
             return self.localName
 
-    def __eq__(self, other: QName) -> bool: # type: ignore[override]
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, QName):
+            return NotImplemented
+
         if QName._conforms(other):
             return self.localName == other.localName and self.namespaceURI == other.namespaceURI
         return False
