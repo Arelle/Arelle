@@ -374,16 +374,9 @@ class DateTime(datetime.datetime):
             dt = super(DateTime, self).__add__(_other)
             return DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo, self.dateOnly)
 
-    @overload
-    def __sub__(self, other: YearMonthDuration) -> DateTime: ...
-
-    @overload
-    def __sub__(self, other: datetime.timedelta) -> DayTimeDuration: ...
-
-    @overload
-    def __sub__(self, other: datetime.datetime) -> DateTime: ...
-
-    def __sub__(self, other: YearMonthDuration | datetime.timedelta | datetime.datetime) -> DateTime | DayTimeDuration:
+    def __sub__( # type: ignore[override]
+        self, other: YearMonthDuration | datetime.timedelta | datetime.datetime
+    ) -> DateTime | DayTimeDuration:
         if isinstance(other, YearMonthDuration):
             return self.addYearMonthDuration(other, -1)
         else:
