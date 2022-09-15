@@ -51,7 +51,6 @@ if sys.platform in ("darwin", "linux"):
         exclude=["*.plugin.*", "*.lib.*"],
     )
 
-    dataFiles = []
     includeFiles = [
         ("arelle/config", "config"),
         ("arelle/doc", "doc"),
@@ -168,7 +167,6 @@ elif sys.platform == "win32":
     # FIXME: this should use the entry_points mechanism
     packages = find_packages(".")
     print("packages={}".format(packages))
-    dataFiles = None
     includeFiles = [
         ("arelle\\config", "config"),
         ("arelle\\doc", "doc"),
@@ -269,21 +267,9 @@ elif sys.platform == "win32":
         ),
     ]
 else:
-    from setuptools import setup, find_packages
-
-    packages = find_packages(
-        ".",  # note that new setuptools finds plugin and lib unwanted stuff
-        exclude=["*.plugin.*", "*.lib.*"],
-    )
-    dataFiles = [
-        ("config", ["arelle/config/" + f for f in os.listdir("arelle/config")])
-    ]
     executables = []
 
 setup(
-    include_package_data=True,
-    packages=packages,
-    data_files=dataFiles,
     options=options,
     executables=executables,
 )

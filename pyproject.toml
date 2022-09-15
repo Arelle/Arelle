@@ -75,6 +75,9 @@ platforms = ["any"]
 [tool.setuptools.dynamic]
 version = {attr = "arelle.Version.__version__"}
 
+[tool.setuptools.packages.find]
+namespaces = false
+
 [tool.pytest.ini_options]
 xfail_strict = true
 
