@@ -284,14 +284,6 @@ setup(
     include_package_data=True,
     packages=packages,
     data_files=dataFiles,
-    entry_points={
-        "console_scripts": [
-            "arelle=arelle.CntlrCmdLine:main",
-        ],
-        "gui_scripts": [
-            "arelle-gui=arelle.CntlrWinMain:main",
-        ],
-    },
     options=options,
     executables=executables,
 )

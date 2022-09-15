@@ -54,6 +54,12 @@ WebServer = [
     'tornado==6.*',
 ]
 
+[project.scripts]
+arelleCmdLine = "arelle.CntlrCmdLine:main"
+
+[project.gui-scripts]
+arelleGUI = "arelle.CntlrWinMain:main"
+
 [project.urls]
 "Homepage" = "https://arelle.org/"
 "Downloads" = "https://arelle.org/arelle/pub/"
