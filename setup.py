@@ -27,17 +27,6 @@ import sys
 
 VERSION_FILE = "version.txt"
 
-
-def get_version():
-    """
-    Retrieving version string from git tag using GitHub Actions environment variables.
-    Returns 0.0.0 if no tag included.
-    """
-    github_ref_type = os.getenv("GITHUB_REF_TYPE")
-    github_ref_name = os.getenv("GITHUB_REF_NAME")
-    return github_ref_name if github_ref_type == "tag" else "0.0.0"
-
-
 options = {}
 executables = []
 
@@ -292,7 +281,6 @@ else:
     executables = []
 
 setup(
-    version=get_version(),
     include_package_data=True,
     packages=packages,
     data_files=dataFiles,
