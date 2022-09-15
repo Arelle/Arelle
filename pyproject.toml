@@ -32,9 +32,6 @@ dependencies = [
     'regex==2022.*',
 ]
 
-[tool.setuptools.dynamic]
-version = {attr = "arelle.Version.__version__"}
-
 [project.optional-dependencies]
 Crypto = [
     'pycryptodome==3.*',
@@ -68,6 +65,9 @@ WebServer = [
 
 [tool.setuptools]
 platforms = ["any"]
+
+[tool.setuptools.dynamic]
+version = {attr = "arelle.Version.__version__"}
 
 [tool.pytest.ini_options]
 xfail_strict = true
