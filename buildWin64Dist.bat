@@ -7,7 +7,7 @@ rem Build Arelle GUI using cx_Freeze
 rem rmdir build /s/q
 rmdir dist /s/q
 mkdir dist
-"%PYTHONDIR%\python" setup.py build_exe
+"%PYTHONDIR%\python" distro.py build_exe
 
 "%NSISDIR%\makensis" installWin64.nsi
 
