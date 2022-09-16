@@ -104,6 +104,7 @@ ignore_errors = true
 module = [
     'arelle.plugin.validate.ESEF.*',
     'arelle.Cntlr',
+    'arelle.Locale',
     'arelle.ModelObject',
     'arelle.Updater',
     'arelle.UrlUtil',

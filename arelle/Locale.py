@@ -13,12 +13,17 @@ system-wide settings.  (The system settings can remain in 'C' locale.)
 from __future__ import annotations
 import sys, subprocess
 import regex as re
+from typing import Generator, cast, Any, Callable
+from fractions import Fraction
+from arelle.typing import TypeGetText, LocaleDict
 from arelle.PythonUtil import STR_NUM_TYPES
 try:
     from collections.abc import Mapping
 except:
     from collections import Mapping
 import unicodedata
+
+_: TypeGetText
 
 CHAR_MAX = 127
 LC_ALL = 6
@@ -31,7 +36,7 @@ LC_TIME = 2
 
 C_LOCALE = None # culture-invariant locale
 
-def getUserLocale(localeCode=''):
+def getUserLocale(localeCode: str = '') -> LocaleDict:
     # get system localeconv and reset system back to default
     import locale
     global C_LOCALE
@@ -64,10 +69,10 @@ def getUserLocale(localeCode=''):
     if conv is None: # some other issue prevents getting culture code, use 'C' defaults (no thousands sep, no currency, etc)
         conv = locale.localeconv() # use 'C' environment, e.g., en_US
     if C_LOCALE is None: # load culture-invariant C locale
-        C_LOCALE = locale.localeconv()
-    return conv
+        C_LOCALE =  locale.localeconv()
+    return cast(LocaleDict, conv)
 
-def getLanguageCode():
+def getLanguageCode() -> str:
     if sys.platform == "darwin":
         # possibly this MacOS bug: http://bugs.python.org/issue18378
         # even when fixed, macOS won't provide right default code for some language-culture combinations
@@ -75,10 +80,13 @@ def getLanguageCode():
         if localeQueryResult[0] == 0 and localeQueryResult[1]: # successful
             return localeQueryResult[1][:5].replace("_","-")
     import locale
-    try:
-        return locale.getdefaultlocale()[0].replace("_","-")
-    except (AttributeError, ValueError): #language code and encoding may be None if their values cannot be determined.
-        return "en"
+
+    language_code, encoding = locale.getdefaultlocale()
+    if isinstance(language_code, str):
+        language_code = language_code.replace("_","-")
+    else:
+        language_code = "en"
+    return language_code
 
 def getLanguageCodes(lang: str | None = None) -> list[str]:
     if lang is None:
@@ -125,7 +133,7 @@ iso3region = {
 "US": "usa"}
 
 _availableLocales = None
-def availableLocales():
+def availableLocales() -> set[str]:
     global _availableLocales
     if _availableLocales is not None:
         return _availableLocales
@@ -139,7 +147,7 @@ def availableLocales():
         return _availableLocales
 
 _languageCodes = None
-def languageCodes():  # dynamically initialize after gettext is loaded
+def languageCodes() -> dict[str, str]:  # dynamically initialize after gettext is loaded
     global _languageCodes
     if _languageCodes is not None:
         return _languageCodes
@@ -255,16 +263,16 @@ def languageCodes():  # dynamically initialize after gettext is loaded
         }
         return _languageCodes
 
-_disableRtl: bool = False # disable for implementations where tkinter supports rtl
+_disableRTL: bool = False # disable for implementations where tkinter supports rtl
 def setDisableRTL(disableRTL: bool) -> None:
     global _disableRTL
     _disableRTL = disableRTL
 
-def rtlString(source, lang):
+def rtlString(source: str, lang: str | None) -> str:
     if lang and source and lang[0:2] in {"ar","he"} and not _disableRTL:
-        line = []
+        line: list[str] = []
         lineInsertion = 0
-        words = []
+        words: list[str] = []
         rtl = True
         for c in source:
             bidi = unicodedata.bidirectional(c)
@@ -297,7 +305,7 @@ def rtlString(source, lang):
         return source
 
 # Iterate over grouping intervals
-def _grouping_intervals(grouping):
+def _grouping_intervals(grouping: list[int]) -> Generator[int, None, None]:
     last_interval = 3 # added by Mark V to prevent compile error but not necessary semantically
     for interval in grouping:
         # if grouping is -1, we are done
@@ -311,7 +319,7 @@ def _grouping_intervals(grouping):
         last_interval = interval
 
 #perform the grouping from right to left
-def _group(conv, s, monetary=False):
+def _group(conv: LocaleDict, s: str, monetary: bool = False) -> tuple[str, int]:
     thousands_sep = conv[monetary and 'mon_thousands_sep' or 'thousands_sep']
     grouping = conv[monetary and 'mon_grouping' or 'grouping']
     if not grouping:
@@ -343,7 +351,7 @@ def _group(conv, s, monetary=False):
     )
 
 # Strip a given amount of excess padding from the given string
-def _strip_padding(s, amount):
+def _strip_padding(s: str, amount: int) -> str:
     lpos = 0
     while amount and s[lpos] == ' ':
         lpos += 1
@@ -357,7 +365,14 @@ def _strip_padding(s, amount):
 _percent_re = re.compile(r'%(?:\((?P<key>.*?)\))?'
                          r'(?P<modifiers>[-#0-9 +*.hlL]*?)[eEfFgGdiouxXcrs%]')
 
-def format(conv, percent, value, grouping=False, monetary=False, *additional):
+def format(
+    conv: LocaleDict,
+    percent: str,
+    value: Any, # this can be a Mapping, tuple, str, float ... anything that can appear in "{}".format(<value>)
+    grouping: bool = False,
+    monetary: bool = False,
+    *additional: str
+) -> str:
     """Returns the locale-aware substitution of a %? specifier
     (percent).
 
@@ -371,7 +386,14 @@ def format(conv, percent, value, grouping=False, monetary=False, *additional):
                              "format specifier, %s not valid") % repr(percent))
     return _format(conv, percent, value, grouping, monetary, *additional)
 
-def _format(conv, percent, value, grouping=False, monetary=False, *additional):
+def _format(
+    conv: LocaleDict,
+    percent: str,
+    value: Any, # this can be a Mapping, tuple, str, float ... anything that can appear in "{}".format(<value>)
+    grouping: bool = False,
+    monetary: bool = False,
+    *additional: str
+) -> str:
     if percent.startswith("{"): # new formatting {:.{}f}
         formattype = percent[-2]
         if additional:
@@ -402,7 +424,12 @@ def _format(conv, percent, value, grouping=False, monetary=False, *additional):
             formatted = _strip_padding(formatted, seps)
     return formatted
 
-def format_string(conv, f, val, grouping=False):
+def format_string(
+    conv: LocaleDict,
+    f: str,
+    val: Any, # this can be a Mapping, tuple, str, float ... anything that can appear in "{}".format(<val>)
+    grouping: bool = False
+) -> str:
     """Formats a string in the same way that the % formatting would use,
     but takes the current locale into account.
     Grouping is applied if the third parameter is true."""
@@ -435,9 +462,15 @@ def format_string(conv, f, val, grouping=False):
                 i += (1 + starcount)
     val = tuple(new_val)
 
-    return new_f % val
+    return cast(str, new_f % val)
 
-def currency(conv, val, symbol=True, grouping=False, international=False):
+def currency(
+    conv: LocaleDict,
+    val: int | float,
+    symbol: bool = True,
+    grouping: bool = False,
+    international: bool = False
+) -> str:
     """Formats val according to the currency settings
     in the current locale."""
 
@@ -447,7 +480,7 @@ def currency(conv, val, symbol=True, grouping=False, international=False):
         raise ValueError("Currency formatting is not possible using "
                          "the 'C' locale.")
 
-    s = format('%%.%if' % digits, abs(val), grouping, monetary=True)
+    s = format(conv, '%%.%if' % digits, abs(val), grouping, monetary=True) # code change here (added missing conv arg)
     # '<' and '>' are markers if the sign must be inserted between symbol and value
     s = '<' + s + '>'
 
@@ -481,11 +514,11 @@ def currency(conv, val, symbol=True, grouping=False, international=False):
 
     return s.replace('<', '').replace('>', '')
 
-def ftostr(conv, val):
+def ftostr(conv: LocaleDict, val: Any) -> str:
     """Convert float to integer, taking the locale into account."""
     return format(conv, "%.12g", val)
 
-def atof(conv, string, func=float):
+def atof(conv: LocaleDict, string: str, func: Callable[[str], Any] = float) -> Any:  # return type depends on func param, it is used to return float, int, and str
     "Parses a string as a float according to the locale settings."
     #First, get rid of the grouping
     ts = conv['thousands_sep']
@@ -498,14 +531,14 @@ def atof(conv, string, func=float):
     #finally, parse the string
     return func(string)
 
-def atoi(conv, str):
+def atoi(conv: LocaleDict, str: str) -> int:
     "Converts a string to an integer according to the locale settings."
-    return atof(conv, str, int)
+    return cast(int, atof(conv, str, int))
 
 # decimal formatting
-from decimal import getcontext, Decimal
+from decimal import Decimal
 
-def format_picture(conv, value, picture):
+def format_picture(conv: LocaleDict, value: Any, picture: str) -> str:
     monetary = False
     decimal_point = conv['decimal_point']
     thousands_sep = conv[monetary and 'mon_thousands_sep' or 'thousands_sep']
@@ -516,10 +549,12 @@ def format_picture(conv, value, picture):
 
     if isinstance(value, float):
         value = Decimal.from_float(value)
-    elif isinstance(value, STR_NUM_TYPES):
+    elif isinstance(value, STR_NUM_TYPES) and not isinstance(value, Fraction):
         value = Decimal(value)
+    elif isinstance(value, Fraction):
+        value = Decimal(float(value))
     elif not isinstance(value, Decimal):
-        raise ValueError(_('Picture requires a number convertable to decimal or float').format(picture))
+        raise ValueError(_('Picture requires a number convertible to decimal or float').format(picture))
 
     if value.is_nan():
         return 'NaN'
@@ -590,7 +625,20 @@ def format_picture(conv, value, picture):
                           trailpos=suffix,
                           trailneg=suffix)
 
-def format_decimal(conv, value, intPlaces=1, fractPlaces=2, curr='', sep=None, grouping=None, dp=None, pos=None, neg=None, trailpos=None, trailneg=None):
+def format_decimal(
+    conv: LocaleDict | None,
+    value: Decimal,
+    intPlaces: int = 1,
+    fractPlaces: int = 2,
+    curr: str = '',
+    sep: str | None = None,
+    grouping: int | None = None,
+    dp: str | None= None,
+    pos: str | None = None,
+    neg: str | None = None,
+    trailpos: str | None = None,
+    trailneg: str | None = None
+) -> str:
     """Convert Decimal to a formatted string including currency if any.
 
     intPlaces:  required number of digits before the decimal point
@@ -604,17 +652,18 @@ def format_decimal(conv, value, intPlaces=1, fractPlaces=2, curr='', sep=None, g
     trailneg:optional trailing minus indicator:  '-', ')', space or blank
 
     >>> d = Decimal('-1234567.8901')
-    >>> format(d, curr='$')
+    >>> format_decimal(getUserLocale(), d, curr='$')
     '-$1,234,567.89'
-    >>> format(d, places=0, sep='.', dp='', neg='', trailneg='-')
+    >>> format_decimal(getUserLocale(), d, fractPlaces=0, sep='.', dp='', neg='', trailneg='-')
     '1.234.568-'
-    >>> format(d, curr='$', neg='(', trailneg=')')
+    >>> format_decimal(getUserLocale(), d, curr='$', neg='(', trailneg=')')
     '($1,234,567.89)'
-    >>> format(Decimal(123456789), sep=' ')
+    >>> format_decimal(getUserLocale(), Decimal(123456789), sep=' ')
     '123 456 789.00'
-    >>> format(Decimal('-0.02'), neg='<', trailneg='>')
+    >>> format_decimal(getUserLocale(), Decimal('-0.02'), neg='<', trailneg='>')
     '<0.02>'
 
+    2022-09-16: re-ran above tests after changes during typing
     """
     if conv is not None:
         if dp is None:
@@ -658,11 +707,11 @@ def format_decimal(conv, value, intPlaces=1, fractPlaces=2, curr='', sep=None, g
         if grouping is None:
             grouping = 3
     q = Decimal(10) ** -fractPlaces      # 2 places --> '0.01'
-    sign, digits, exp = value.quantize(q).as_tuple()
-    result = []
-    digits = list(map(str, digits))
+    sign, _digits, exp = value.quantize(q).as_tuple()
+    result: list[str] = []
+    digits = list(map(str, _digits))
     build, next = result.append, digits.pop
-    build(trailneg if sign else trailpos)
+    build(trailneg or '' if sign else trailpos or '')
     if value.is_finite():
         for i in range(fractPlaces):
             build(next() if digits else '0')
@@ -681,5 +730,5 @@ def format_decimal(conv, value, intPlaces=1, fractPlaces=2, curr='', sep=None, g
     elif value.is_infinite():
         result.append("ytinifnI")
     build(curr)
-    build(neg if sign else pos)
+    build(neg or '' if sign else pos or '')
     return ''.join(reversed(result))
