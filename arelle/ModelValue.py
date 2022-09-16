@@ -825,10 +825,7 @@ class IsoDuration(isodate.Duration): # type: ignore[misc]
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, IsoDuration):
             return NotImplemented
-        try:
-            return self.avgdays == other.avgdays and self.tdelta.seconds == other.tdelta.seconds and self.tdelta.microseconds == other.tdelta.microseconds
-        except AttributeError:
-            return False
+        return self.avgdays == other.avgdays and self.tdelta.seconds == other.tdelta.seconds and self.tdelta.microseconds == other.tdelta.microseconds
     def __ne__(self,other: Any) -> bool:
         if not isinstance(other, IsoDuration):
             return NotImplemented
