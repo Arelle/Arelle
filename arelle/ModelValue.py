@@ -625,8 +625,6 @@ class gYearMonth():
             return NotImplemented
         return type(other) == gYearMonth and self.year == other.year and self.month == other.month
     def __ne__(self,other: Any) -> bool:
-        if not isinstance(other, gYearMonth):
-            return NotImplemented
         return not self.__eq__(other)
     def __lt__(self,other: gYearMonth) -> bool:
         return type(other) == gYearMonth and ((self.year < other.year) or (self.year == other.year and self.month < other.month))
