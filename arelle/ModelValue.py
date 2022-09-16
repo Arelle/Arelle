@@ -843,7 +843,7 @@ class IsoDuration(isodate.Duration): # type: ignore[misc]
                 if self.tdelta.microseconds < other.tdelta.microseconds:
                     return True
         return False
-    def __le__(self,other:IsoDuration) -> bool:
+    def __le__(self, other: Any) -> bool:
         return self.__lt__(other) or self.__eq__(other)
     def __gt__(self,other: IsoDuration) -> bool:
         if self.avgdays > other.avgdays:
