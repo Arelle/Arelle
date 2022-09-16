@@ -945,6 +945,7 @@ class ValidateXbrl:
                     self.modelXbrl.error("xbrl.4.7.2:contextDateError",
                         _("Context %(contextID)s instant date: %(error)s"),
                         modelObject=cntx, contextID=cntx.id, error=err)
+            assert cntx.id is not None
             self.segmentScenario(cntx.segment, cntx.id, "segment", "4.7.3.2")
             self.segmentScenario(cntx.scenario, cntx.id, "scenario", "4.7.4")
 
