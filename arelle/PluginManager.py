@@ -447,7 +447,7 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
                     logPluginTrace(_msg, error=True)
             for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
                 loadModule(importModuleInfo, packageImportPrefix)
-        except (AttributeError, ImportError, ModuleNotFoundError, TypeError, SystemError) as err:
+        except (AttributeError, ImportError, FileNotFoundError, ModuleNotFoundError, TypeError, SystemError) as err:
             # Send a summary of the error to the logger and retain the stacktrace for stderr
             _cntlr.addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
 
