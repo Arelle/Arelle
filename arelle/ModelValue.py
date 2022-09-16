@@ -199,12 +199,9 @@ class QName:
             return self.localName
 
     def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, QName):
-            return NotImplemented
-
         if QName._conforms(other):
             return self.localName == other.localName and self.namespaceURI == other.namespaceURI
-        return False
+        return NotImplemented
 
     def __lt__(self, other: QName) -> bool:
         if QName._conforms(other):
