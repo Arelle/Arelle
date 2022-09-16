@@ -623,7 +623,7 @@ class gYearMonth():
     def __eq__(self,other: Any) -> bool:
         if not isinstance(other, gYearMonth):
             return NotImplemented
-        return type(other) == gYearMonth and self.year == other.year and self.month == other.month
+        return self.year == other.year and self.month == other.month
     def __ne__(self,other: Any) -> bool:
         return not self.__eq__(other)
     def __lt__(self,other: gYearMonth) -> bool:
