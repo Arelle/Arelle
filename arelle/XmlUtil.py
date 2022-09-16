@@ -722,16 +722,16 @@ def addChild(
             if isinstance(name,QName):
                 if name.namespaceURI:
                     addQnameValue(modelDocument, name)
-                child.set(name.clarkNotation, str(value))  # type: ignore[arg-type]
+                child.set(name.clarkNotation, str(value))  # type: ignore[arg-type] # ModelValue type hints
             else:
                 assert isinstance(name, str)
-                child.set(name, xsString(None, None, value) )  # type: ignore[no-untyped-call]
+                child.set(name, xsString(None, None, value) )  # type: ignore[no-untyped-call] # FunctionXs type hints
     if text is not None:
-        child.text = xsString(None, None, text)  # type: ignore[no-untyped-call]
+        child.text = xsString(None, None, text)  # type: ignore[no-untyped-call] # FunctionXs type hints
         # check if the text is a QName and add the namespace if needed!
         if isinstance(text, QName):
             addQnameValue(modelDocument, text)
-    child.init(modelDocument)  # type: ignore[no-untyped-call]
+    child.init(modelDocument)  # type: ignore[no-untyped-call] # ModelDocument type hints
     return child
 
 def copyNodes(parent: ModelObject, elts: Sequence[ModelObject] | ModelObject) -> None:
@@ -854,7 +854,7 @@ def addQnameValue(modelDocument: ModelDocument, qnameValue: QName | str) -> str:
     ns = qnameValue.namespaceURI or '' # None can't be used as a no-namespace prefix
     existingPrefix = xmlnsprefix(xmlRootElement, ns)
     if existingPrefix is not None:  # namespace is already declared, use that for qnameValue's prefix
-        return qnameValue.localName if len(existingPrefix) == 0 else existingPrefix + ':' + qnameValue.localName  # type: ignore[return-value, operator]
+        return qnameValue.localName if len(existingPrefix) == 0 else existingPrefix + ':' + qnameValue.localName  # type: ignore[return-value, operator] # ModelValue type hints
     prefix = qnameValue.prefix
     dupNum = 2 # start with _2 being 'second' use of same prefix, etc.
     while (dupNum < 10000): # check if another namespace has prefix already (but don't die if running away)
@@ -864,7 +864,7 @@ def addQnameValue(modelDocument: ModelDocument, qnameValue: QName | str) -> str:
         dupNum += 1
     setXmlns(modelDocument, prefix, ns)
     assert isinstance(prefix, str)
-    return qnameValue.localName if len(prefix) == 0 else prefix + ':' + qnameValue.localName  # type: ignore[return-value, operator]
+    return qnameValue.localName if len(prefix) == 0 else prefix + ':' + qnameValue.localName  # type: ignore[return-value, operator]  # ModelValue type hints
 
 
 def setXmlns(modelDocument: etree._ElementTree | ModelDocument, prefix: str | None, namespaceURI: str) -> None:
@@ -883,10 +883,10 @@ def setXmlns(modelDocument: etree._ElementTree | ModelDocument, prefix: str | No
             # 2022-09-16: for some reason prefix is encouraged to always be a str in lxml-stubs,
             # but '' for default ns is not accepted by lxml nsmap arg and lxml produces and error
             # see https://github.com/lxml/lxml-stubs/blob/0a9b6099dd39b298fd0ff897dbcd4fed632d8776/lxml-stubs/etree.pyi#L69
-            newroot = etree.Element('nsmap', nsmap=newmap)  # type: ignore[arg-type]
+            newroot = etree.Element('nsmap', nsmap=newmap)  # type: ignore[arg-type]  # above note
             newroot.extend(root)
         else:  # new xmlns-extension root
-            newroot = etree.Element('nsmap', nsmap={prefix: namespaceURI})  # type: ignore[dict-item]
+            newroot = etree.Element('nsmap', nsmap={prefix: namespaceURI})  # type: ignore[dict-item]  # above note
             comments = []
             comment = root.getprevious()
             while isinstance(comment, etree._Comment):
@@ -945,7 +945,7 @@ def datetimeValue(
         return None
     match = datetimePattern.match(
         element if isinstance(
-            element,_STR_BASE) else text(element).strip())  # type: ignore[name-defined]
+            element,_STR_BASE) else text(element).strip())  # type: ignore[name-defined]  # builtins
     if match is None:
         return None
     hour24 = False
@@ -982,7 +982,7 @@ def dateunionValue(
 ) -> str:
     if not isinstance(datetimeValue, (datetime.datetime, datetime.date)):
         return "INVALID"
-    tz = tzinfoStr(datetimeValue)  # type: ignore[no-untyped-call]
+    tz = tzinfoStr(datetimeValue)  # type: ignore[no-untyped-call]  # ModelValue type hints
     isDate = getattr(
         datetimeValue,'dateOnly', False) or not getattr(datetimeValue, 'hour', False)
     if isDate or (
@@ -1044,7 +1044,7 @@ def xpointerElement(modelDocument: ModelDocument, fragmentIdentifier: str) -> et
                     iter = node
             else:
                 node = modelDocument.xmlDocument
-                iter = (node.getroot(),)  # type: ignore[union-attr] # should go away when ModelDocument is typed
+                iter = (node.getroot(),)  # type: ignore[union-attr] # ModelDocument type hints
             i = 1
             while i < len(pathParts):
                 childNbr = int(pathParts[i])
@@ -1125,7 +1125,7 @@ def xmlstring(
         return _text + ('\n' if prettyPrint else '').join(
             xmlstring(child, stripXmlns, prettyPrint)
             for child in elt.iterchildren()) + _tail
-    xml: str = etree.tostring(elt, encoding=_STR_UNICODE, pretty_print=prettyPrint)  # type: ignore[name-defined]
+    xml: str = etree.tostring(elt, encoding=_STR_UNICODE, pretty_print=prettyPrint)  # type: ignore[name-defined] # builtins
     if not prettyPrint:
         xml = xml.strip()
     if stripXmlns:
@@ -1195,7 +1195,7 @@ def writexml(
         for prefix, ns in sorted((k if k is not None else '', v)
                                  # items wrapped in set for 2.7 compatibility
                                  for k, v in (
-                                    _DICT_SET(node.nsmap.items()) - _DICT_SET(parentNsmap.items()))):  # type: ignore[name-defined]
+                                    _DICT_SET(node.nsmap.items()) - _DICT_SET(parentNsmap.items()))):  # type: ignore[name-defined] # builtins
             if prefix:
                 attrs["xmlns:" + prefix] = ns
             else:
