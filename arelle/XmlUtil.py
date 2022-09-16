@@ -429,7 +429,7 @@ def children(
     childNamespaceURIs: str | tuple[str, ...] | None,
     childLocalNames: str | tuple[str, ...],
     ixTarget: bool = False
-    # 2022-09-15 ModelUnit/Context are model objects, 
+    # 2022-09-15 ModelUnit/Context are model objects,
     # the check in line ~444 below if for ModelObject base class
 ) -> list[ModelObject]:
     children = []
@@ -589,7 +589,7 @@ def schemaDescendant(
                     return child
     return None
 
-# 2022-09-15: recursive type alias for schemaBaseTypeDerivedFrom return 
+# 2022-09-15: recursive type alias for schemaBaseTypeDerivedFrom return
 # not supported yet as far as I understand, this is for the future.
 # see -> https://github.com/python/mypy/issues/731
 # from typing import Union
@@ -604,7 +604,7 @@ def schemaBaseTypeDerivedFrom(
         elif child.tag == "{http://www.w3.org/2001/XMLSchema}union":
             return (child.get("memberTypes") or "").split() + [
                     schemaBaseTypeDerivedFrom(cast(ModelObject, _child))
-                    for _child in child.iterchildren(tag="{http://www.w3.org/2001/XMLSchema}simpleType")]  # list[str | QName | list[This func return] | None] 
+                    for _child in child.iterchildren(tag="{http://www.w3.org/2001/XMLSchema}simpleType")]  # list[str | QName | list[This func return] | None]
         elif child.tag in ("{http://www.w3.org/2001/XMLSchema}complexType",
                            "{http://www.w3.org/2001/XMLSchema}simpleType",
                            "{http://www.w3.org/2001/XMLSchema}complexContent",
