@@ -143,9 +143,20 @@ moduleInfo = {
 
 '''
 
+def logPluginTrace(message: str, error: bool=False) -> None:
+    """
+    If PLUGIN_TRACE_FILE is configured, logs `message` to it.
+    Otherwise, only prints to `stderr` if `error` flag is `True`
+    """
+    if PLUGIN_TRACE_FILE:
+        with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
+            fh.write(message + '\n')
+    elif error:
+        print(message, file=sys.stderr)
+
 def modulesWithNewerFileDates():
     names = set()
-    for moduleInfo in pluginConfig["modules"].values():
+    for moduleName, moduleInfo in pluginConfig["modules"].items():
         freshenedFilename = _cntlr.webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
         try:
             if os.path.isdir(freshenedFilename): # if freshenedFilename is a directory containing an __init__.py file, open that instead
@@ -153,15 +164,16 @@ def modulesWithNewerFileDates():
                     freshenedFilename = os.path.join(freshenedFilename, "__init__.py")
             elif not freshenedFilename.endswith(".py") and not os.path.exists(freshenedFilename) and os.path.exists(freshenedFilename + ".py"):
                 freshenedFilename += ".py" # extension module without .py suffix
-            if moduleInfo["fileDate"] < time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
-                names.add(moduleInfo["name"])
+            if os.path.exists(freshenedFilename):
+                if moduleInfo["fileDate"] < time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
+                    names.add(moduleInfo["name"])
+            else:
+                _msg = _("File not found for '{name}' plug-in when checking for updated module info. Path: '{path}'") \
+                    .format(name=moduleName, path=freshenedFilename)
+                logPluginTrace(_msg, error=True)
         except Exception as err:
             _msg = _("Exception at plug-in method modulesWithNewerFileDates: {error}").format(error=err)
-            if PLUGIN_TRACE_FILE:
-                with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
-                    fh.write(_msg + '\n')
-            else:
-                print(_msg, file=sys.stderr)
+            logPluginTrace(_msg, error=True)
 
     return names
 
@@ -176,17 +188,18 @@ def freshenModuleInfos():
                     freshenedFilename = os.path.join(freshenedFilename, "__init__.py")
             elif not freshenedFilename.endswith(".py") and not os.path.exists(freshenedFilename) and os.path.exists(freshenedFilename + ".py"):
                 freshenedFilename += ".py" # extension module without .py suffix
-            if moduleInfo["fileDate"] != time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
-                freshenedModuleInfo = moduleModuleInfo(moduleInfo["moduleURL"], reload=True)
-                if freshenedModuleInfo is not None:
-                    pluginConfig["modules"][moduleName] = freshenedModuleInfo
+            if os.path.exists(freshenedFilename):
+                if moduleInfo["fileDate"] != time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
+                    freshenedModuleInfo = moduleModuleInfo(moduleInfo["moduleURL"], reload=True)
+                    if freshenedModuleInfo is not None:
+                        pluginConfig["modules"][moduleName] = freshenedModuleInfo
+            else:
+                _msg = _("File not found for '{name}' plug-in when attempting to update module info. Path: '{path}'")\
+                    .format(name=moduleName, path=freshenedFilename)
+                logPluginTrace(_msg, error=True)
         except Exception as err:
             _msg = _("Exception at plug-in method freshenModuleInfos: {error}").format(error=err)
-            if PLUGIN_TRACE_FILE:
-                with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
-                    fh.write(_msg + '\n')
-            else:
-                print(_msg, file=sys.stderr)
+            logPluginTrace(_msg, error=True)
 
 def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
     #TODO several directories, eg User Application Data
@@ -203,9 +216,7 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
             elif not moduleFilename.endswith(".py") and not os.path.exists(moduleFilename) and os.path.exists(moduleFilename + ".py"):
                 moduleFilename += ".py" # extension module without .py suffix
             moduleDir, moduleName = os.path.split(moduleFilename)
-            if PLUGIN_TRACE_FILE:
-                with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
-                    fh.write("Scanning module for plug-in info: {}\n".format(moduleFilename))
+            logPluginTrace("Scanning module for plug-in info: {}\n".format(moduleFilename))
             f = openFileStream(_cntlr, moduleFilename)
             tree = ast.parse(f.read(), filename=moduleFilename)
             constantStrings = {}
@@ -302,17 +313,11 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
                                         moduleImports.append(_importeePfxName)
                 elif isinstance(item, ast.FunctionDef): # possible functionDef used in plugininfo
                     functionDefNames.add(item.name)
-            if PLUGIN_TRACE_FILE:
-                with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
-                    fh.write("Successful module plug-in info: " + moduleFilename + '\n')
+            logPluginTrace("Successful module plug-in info: " + moduleFilename + '\n')
         except Exception as err:
             _msg = _("Exception obtaining plug-in module info: {moduleFilename}\n{error}\n{traceback}").format(
                     error=err, moduleFilename=moduleFilename, traceback=traceback.format_tb(sys.exc_info()[2]))
-            if PLUGIN_TRACE_FILE:
-                with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
-                    fh.write(_msg + '\n')
-            else:
-                print(_msg, file=sys.stderr)
+            logPluginTrace(_msg, error=True)
 
         if f:
             f.close()
@@ -439,11 +444,7 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
                 except Exception as err:
                     _msg = _("Exception loading plug-in {name}: processing ModelObjectFactory.ElementSubstitutionClasses").format(
                             name=name, error=err)
-                    if PLUGIN_TRACE_FILE:
-                        with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
-                            fh.write(_msg + '\n')
-                    else:
-                        print(_msg, file=sys.stderr)
+                    logPluginTrace(_msg, error=True)
             for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
                 loadModule(importModuleInfo, packageImportPrefix)
         except (AttributeError, ImportError, ModuleNotFoundError, TypeError, SystemError) as err:
@@ -452,11 +453,7 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
 
             _msg = _("Exception loading plug-in {name}: {error}\n{traceback}").format(
                     name=name, error=err, traceback=traceback.format_tb(sys.exc_info()[2]))
-            if PLUGIN_TRACE_FILE:
-                with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
-                    fh.write(_msg + '\n')
-            else:
-                print(_msg, file=sys.stderr)
+            logPluginTrace(_msg, error=True)
 
 def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
     if pluginConfig:
