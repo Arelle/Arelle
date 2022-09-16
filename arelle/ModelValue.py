@@ -248,7 +248,7 @@ def dateTime(
     addOneDay: bool = False,
     # TODO: type is a reserved name in Python, we should rename this
     type: int | None = None,
-    castException: Exception | None = None,
+    castException: Type[Exception] | None = None,
 ) -> DateTime | None:
 
     if value == "MinDate":
@@ -428,7 +428,7 @@ class YearMonthDuration():
     def __str__(self) -> str:
         return "P{0}Y{1}M".format(self.years, self.months)
 
-def dayTimeDuration(value: Time | datetime.timedelta) -> DayTimeDuration:
+def dayTimeDuration(value: Time | datetime.timedelta | str) -> DayTimeDuration:
     if isinstance(value,Time):
         return DayTimeDuration(1 if value.hour24 else 0, value.hour, value.minute, value.second)
     if isinstance(value,datetime.timedelta):
@@ -571,17 +571,17 @@ class YearMonthDayTimeDuration():
             return "PT0S"
         return "P" + ''.join(per)
 
-def time(value: str, castException: Exception | None = None) -> Time | None:
+def time(value: str, castException: Type[Exception] | None = None) -> Time | None:
     if value == "MinTime":
         # Note 2022-09-10
         # Note sure what this does but don't want to alter code when adding type hints
         # Ignoring for now
-        return Time(time.min) # type: ignore[attr-defined]
+        return Time(datetime.time.min)
     elif value == "MaxTime":
         # Note 2022-09-10
         # Note sure what this does but don't want to alter code when adding type hints
         # Ignoring for now
-        return Time(time.max) # type: ignore[attr-defined]
+        return Time(datetime.time.max)
     elif isinstance(value, ModelObject):
         value = value.text
     elif isinstance(value, datetime.time):
