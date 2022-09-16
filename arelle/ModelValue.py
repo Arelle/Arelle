@@ -682,8 +682,10 @@ class gYear():
         if not isinstance(other, gYear):
             return NotImplemented
         return not self.__eq__(other)
-    def __lt__(self,other: gYear) -> bool:
-        return type(other) == gYear and self.year < other.year
+    def __lt__(self, other: Any) -> bool:
+        if not isinstance(other, gYear):
+            return NotImplemented
+        return self.year < other.year
     def __le__(self,other: gYear) -> bool:
         return type(other) == gYear and self.year <= other.year
     def __gt__(self,other: gYear) -> bool:
