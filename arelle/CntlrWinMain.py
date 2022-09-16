@@ -73,6 +73,10 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.labelLang = overrideLang if overrideLang else self.modelManager.defaultLang
         self.data = {}
 
+        # Background processes communicate with UI thread through this queue
+        # Prepare early so messages encountered during initialization can be queued for logging
+        self.uiThreadQueue = queue.Queue()
+
         if self.isMac: # mac Python fonts bigger than other apps (terminal, text edit, Word), and to windows Arelle
             _defaultFont = tkFont.nametofont("TkDefaultFont") # label, status bar, treegrid
             _defaultFont.configure(size=11)
@@ -429,7 +433,6 @@ class CntlrWinMain (Cntlr.Cntlr):
 
         self.logFile = None
 
-        self.uiThreadQueue = queue.Queue()     # background processes communicate with ui thread
         self.uiThreadChecker(self.statusbar)    # start background queue
 
         self.modelManager.loadCustomTransforms() # load if custom transforms not loaded
