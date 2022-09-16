@@ -708,8 +708,10 @@ class gMonth():
         if not isinstance(other, gMonth):
             return NotImplemented
         return not self.__eq__(other)
-    def __lt__(self,other: gMonth) -> bool:
-        return type(other) == gMonth and self.month < other.month
+    def __lt__(self, other: Any) -> bool:
+        if not isinstance(other, gMonth):
+            return NotImplemented
+        return self.month < other.month
     def __le__(self,other: gMonth) -> bool:
         return type(other) == gMonth and self.month <= other.month
     def __gt__(self,other: gMonth) -> bool:
