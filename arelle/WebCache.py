@@ -9,7 +9,7 @@ e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
 
 '''
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import os, posixpath, sys, re, shutil, time, calendar, io, json, logging, shutil, cgi, zlib
 if sys.version[0] >= '3':
@@ -34,7 +34,7 @@ from arelle.UrlUtil import isHttpUrl
 from arelle.Version import __version__
 
 if TYPE_CHECKING:
-    from .Cntlr import Cntlr
+    from arelle.Cntlr import Cntlr
 
 addServerWebCache = None
 
@@ -91,7 +91,7 @@ class WebCache:
 
     def __init__(
         self, cntlr: Cntlr,
-        httpProxyTuple: Optional[tuple[bool, str, str, str, str]]
+        httpProxyTuple: tuple[bool, str, str, str, str] | None
     ) -> None:
 
         self.cntlr = cntlr
