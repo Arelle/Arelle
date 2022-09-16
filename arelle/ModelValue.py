@@ -734,8 +734,10 @@ class gDay():
         if not isinstance(other, gDay):
             return NotImplemented
         return not self.__eq__(other)
-    def __lt__(self,other: gDay) -> bool:
-        return type(other) == gDay and self.day < other.day
+    def __lt__(self, other: Any) -> bool:
+        if not isinstance(other, gDay):
+            return NotImplemented
+        return self.day < other.day
     def __le__(self,other: gDay) -> bool:
         return type(other) == gDay and self.day <= other.day
     def __gt__(self,other: gDay) -> bool:
