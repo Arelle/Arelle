@@ -666,14 +666,22 @@ class gMonthDay():
         if not isinstance(other, gMonthDay):
             return NotImplemented
         return not self.__eq__(other)
-    def __lt__(self,other: gMonthDay) -> bool:
-        return type(other) == gMonthDay and ((self.month < other.month) or (self.month == other.month and self.day < other.day))
-    def __le__(self,other: gMonthDay) -> bool:
-        return type(other) == gMonthDay and ((self.month <= other.month) or (self.month == other.month and self.day <= other.day))
-    def __gt__(self,other: gMonthDay) -> bool:
-        return type(other) == gMonthDay and ((self.month > other.month) or (self.month == other.month and self.day > other.day))
-    def __ge__(self,other: gMonthDay) -> bool:
-        return type(other) == gMonthDay and ((self.month >= other.month) or (self.month == other.month and self.day >= other.day))
+    def __lt__(self,other: Any) -> bool:
+        if not isinstance(other, gMonthDay):
+            return NotImplemented
+        return (self.month < other.month) or (self.month == other.month and self.day < other.day)
+    def __le__(self,other: Any) -> bool:
+        if not isinstance(other, gMonthDay):
+            return NotImplemented
+        return (self.month < other.month) or (self.month == other.month and self.day <= other.day)
+    def __gt__(self,other: Any) -> bool:
+        if not isinstance(other, gMonthDay):
+            return NotImplemented
+        return (self.month > other.month) or (self.month == other.month and self.day > other.day)
+    def __ge__(self,other: Any) -> bool:
+        if not isinstance(other, gMonthDay):
+            return NotImplemented
+        return (self.month > other.month) or (self.month == other.month and self.day >= other.day)
     def __bool__(self) -> bool:
         return self.month != 0 or self.day != 0
 
@@ -696,12 +704,18 @@ class gYear():
         if not isinstance(other, gYear):
             return NotImplemented
         return self.year < other.year
-    def __le__(self,other: gYear) -> bool:
-        return type(other) == gYear and self.year <= other.year
-    def __gt__(self,other: gYear) -> bool:
-        return type(other) == gYear and self.year > other.year
-    def __ge__(self,other: gYear) -> bool:
-        return type(other) == gYear and self.year >= other.year
+    def __le__(self,other: Any) -> bool:
+        if not isinstance(other, gYear):
+            return NotImplemented
+        return self.year <= other.year
+    def __gt__(self,other: Any) -> bool:
+        if not isinstance(other, gYear):
+            return NotImplemented
+        return self.year > other.year
+    def __ge__(self,other: Any) -> bool:
+        if not isinstance(other, gYear):
+            return NotImplemented
+        return self.year >= other.year
     def __bool__(self) -> bool:
         return self.year != 0 != 0
 
@@ -724,12 +738,18 @@ class gMonth():
         if not isinstance(other, gMonth):
             return NotImplemented
         return self.month < other.month
-    def __le__(self,other: gMonth) -> bool:
-        return type(other) == gMonth and self.month <= other.month
-    def __gt__(self,other: gMonth) -> bool:
-        return type(other) == gMonth and self.month > other.month
-    def __ge__(self,other: gMonth) -> bool:
-        return type(other) == gMonth and self.month >= other.month
+    def __le__(self,other: Any) -> bool:
+        if not isinstance(other, gMonth):
+            return NotImplemented
+        return self.month <= other.month
+    def __gt__(self,other: Any) -> bool:
+        if not isinstance(other, gMonth):
+            return NotImplemented
+        return self.month > other.month
+    def __ge__(self,other: Any) -> bool:
+        if not isinstance(other, gMonth):
+            return NotImplemented
+        return self.month >= other.month
     def __bool__(self) -> bool:
         return self.month != 0
 
@@ -743,7 +763,7 @@ class gDay():
     def __eq__(self,other: Any) -> bool:
         if not isinstance(other, gDay):
             return NotImplemented
-        return type(other) == gDay and self.day == other.day
+        return self.day == other.day
     def __ne__(self,other: Any) -> bool:
         if not isinstance(other, gDay):
             return NotImplemented
@@ -752,12 +772,18 @@ class gDay():
         if not isinstance(other, gDay):
             return NotImplemented
         return self.day < other.day
-    def __le__(self,other: gDay) -> bool:
-        return type(other) == gDay and self.day <= other.day
-    def __gt__(self,other: gDay) -> bool:
-        return type(other) == gDay and self.day > other.day
-    def __ge__(self,other: gDay) -> bool:
-        return type(other) == gDay and self.day >= other.day
+    def __le__(self,other: Any) -> bool:
+        if not isinstance(other, gDay):
+            return NotImplemented
+        return self.day <= other.day
+    def __gt__(self,other: Any) -> bool:
+        if not isinstance(other, gDay):
+            return NotImplemented
+        return self.day > other.day
+    def __ge__(self,other: Any) -> bool:
+        if not isinstance(other, gDay):
+            return NotImplemented
+        return self.day >= other.day
     def __bool__(self) -> bool:
         return self.day != 0
 
@@ -846,7 +872,10 @@ class IsoDuration(isodate.Duration): # type: ignore[misc]
         if not isinstance(other, IsoDuration):
             return NotImplemented
         return not self.__eq__(other)
-    def __lt__(self,other: IsoDuration) -> bool:
+    def __lt__(self,other: Any) -> bool:
+        if not isinstance(other, IsoDuration):
+            return NotImplemented
+
         if self.avgdays < other.avgdays:
             return True
         elif self.avgdays == other.avgdays:
@@ -858,7 +887,7 @@ class IsoDuration(isodate.Duration): # type: ignore[misc]
         return False
     def __le__(self, other: Any) -> bool:
         return self.__lt__(other) or self.__eq__(other)
-    def __gt__(self,other: IsoDuration) -> bool:
+    def __gt__(self,other: Any) -> bool:
         if self.avgdays > other.avgdays:
             return True
         elif self.avgdays > other.avgdays:
@@ -868,7 +897,7 @@ class IsoDuration(isodate.Duration): # type: ignore[misc]
                 if self.tdelta.microseconds > other.tdelta.microseconds:
                     return True
         return False
-    def __ge__(self,other: IsoDuration) -> bool:
+    def __ge__(self,other: Any) -> bool:
         return self.__gt__(other) or self.__eq__(other)
     def viewText(self, labelrole: str | None = None, lang: str | None = None) -> str:
         return cast(str, super(IsoDuration, self).__str__()) # textual words form of duration
