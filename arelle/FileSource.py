@@ -15,7 +15,6 @@ from operator import indexOf
 from arelle.typing import TypeGetText
 import arelle.PluginManager
 
-
 _: TypeGetText
 
 if TYPE_CHECKING:
@@ -135,10 +134,12 @@ class ArchiveFileIOError(IOError):
 
 class FileSource:
 
-    url: str | list[str] | None
+    eisDocument: etree._ElementTree | None
     fs: zipfile.ZipFile | tarfile.TarFile | io.StringIO | None
-
     referencedFileSources: dict[Any, Any]
+    rssDocument: etree._ElementTree | None
+    url: str | list[str] | None
+    xfdDocument: etree._ElementTree | None
 
     def __init__(self, url: str, cntlr: Cntlr | None = None, checkIfXmlIsEis: bool = False) -> None:
         self.url = str(url)  # allow either string or FileNamedStringIO
@@ -369,15 +370,18 @@ class FileSource:
             self.isOpen = False
             self.isTarGz = False
         if self.isEis and self.isOpen:
+            assert self.eisDocument is not None
             self.eisDocument.getroot().clear() # unlink nodes
             self.eisDocument = None
             self.isOpen = False
             self.isEis = False
         if self.isXfd and self.isOpen:
+            assert self.xfdDocument is not None
             self.xfdDocument.getroot().clear() # unlink nodes
             self.xfdDocument = None
             self.isXfd = False
         if self.isRss and self.isOpen:
+            assert self.rssDocument is not None
             self.rssDocument.getroot().clear() # unlink nodes
             self.rssDocument = None
             self.isRss = False
@@ -512,6 +516,7 @@ class FileSource:
                     # Also expecting second argument to be int but is str here
                     raise ArchiveFileIOError(self, archiveFileName) # type: ignore[call-arg, arg-type]
             elif archiveFileSource.isEis:
+                assert self.eisDocument is not None
                 for docElt in self.eisDocument.iter(tag="{http://www.sec.gov/edgar/common}document"):
                     outfn = docElt.findtext("{http://www.sec.gov/edgar/common}conformedName")
                     if outfn == archiveFileName:
@@ -534,6 +539,7 @@ class FileSource:
                                     encoding)
                 raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
             elif archiveFileSource.isXfd:
+                assert archiveFileSource.xfdDocument is not None
                 for data in archiveFileSource.xfdDocument.iter(tag="data"):
                     outfn = data.findtext("filename")
                     if outfn == archiveFileName:
@@ -632,6 +638,7 @@ class FileSource:
             self.filesDir = self.fs.getnames()
         elif self.isEis:
             files = []
+            assert self.eisDocument is not None
             for docElt in self.eisDocument.iter(tag="{http://www.sec.gov/edgar/common}document"):
                 outfn = docElt.findtext("{http://www.sec.gov/edgar/common}conformedName")
                 if outfn:
@@ -640,6 +647,7 @@ class FileSource:
             self.filesDir = files
         elif self.isXfd:
             files = []
+            assert self.xfdDocument is not None
             for data in self.xfdDocument.iter(tag="data"):
                 outfn = data.findtext("filename")
                 if outfn:
