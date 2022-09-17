@@ -1,201 +1,213 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+from typing import cast
+from typing import Pattern
+from typing import Tuple # tuple type conflicts with xbrl tuple qname
 from arelle.ModelValue import qname
 import os
 try:
     from regex import compile as re_compile
 except ImportError:
-    from re import compile as re_compile
+    from re import compile as re_compile  # type: ignore[misc]
 
-xsd = "http://www.w3.org/2001/XMLSchema"
-qnXsdSchema = qname("{http://www.w3.org/2001/XMLSchema}xsd:schema")
-qnXsdAppinfo = qname("{http://www.w3.org/2001/XMLSchema}xsd:appinfo")
-qnXsdDefaultType = qname("{http://www.w3.org/2001/XMLSchema}xsd:anyType")
-xsi = "http://www.w3.org/2001/XMLSchema-instance"
-qnXsiNil = qname(xsi,"xsi:nil") # need default prefix in qname
-qnXmlLang = qname("{http://www.w3.org/XML/1998/namespace}xml:lang")
-builtinAttributes = {qnXsiNil,
+if TYPE_CHECKING:
+    from lxml import etree
+    from arelle.ModelValue import QName
+    from arelle.ModelObject import ModelObject
+    from arelle.typing import TypeGetText
+    _: TypeGetText
+
+xsd: str = "http://www.w3.org/2001/XMLSchema"
+qnXsdSchema: QName = qname("{http://www.w3.org/2001/XMLSchema}xsd:schema")
+qnXsdAppinfo: QName = qname("{http://www.w3.org/2001/XMLSchema}xsd:appinfo")
+qnXsdDefaultType: QName = qname("{http://www.w3.org/2001/XMLSchema}xsd:anyType")
+xsi: str = "http://www.w3.org/2001/XMLSchema-instance"
+qnXsiNil: QName = qname(xsi,"xsi:nil") # need default prefix in qname
+qnXmlLang: QName = qname("{http://www.w3.org/XML/1998/namespace}xml:lang")
+builtinAttributes: set[QName] = {qnXsiNil,
                      qname(xsi,"xsi:type"),
                      qname(xsi,"xsi:schemaLocation")
                      ,qname(xsi,"xsi:noNamespaceSchemaLocation")}
-xml = "http://www.w3.org/XML/1998/namespace"
-xbrli = "http://www.xbrl.org/2003/instance"
-eurofilingModelNamespace = "http://www.eurofiling.info/xbrl/ext/model"
-eurofilingModelPrefix = "model"
-qnNsmap = qname("nsmap") # artificial parent for insertion of xmlns in saving xml documents
-qnXbrliXbrl = qname("{http://www.xbrl.org/2003/instance}xbrli:xbrl")
-qnPrototypeXbrliXbrl = qname("{http://arelle.org/prototype/xbrli}xbrl") # prototype for inline derived xbrl instance
-qnXbrliItem = qname("{http://www.xbrl.org/2003/instance}xbrli:item")
-qnXbrliNumerator = qname("{http://www.xbrl.org/2003/instance}xbrli:numerator")
-qnXbrliDenominator = qname("{http://www.xbrl.org/2003/instance}xbrli:denominator")
-qnXbrliTuple = qname("{http://www.xbrl.org/2003/instance}xbrli:tuple")
-qnXbrliContext = qname("{http://www.xbrl.org/2003/instance}xbrli:context")
-qnXbrliPeriod = qname("{http://www.xbrl.org/2003/instance}xbrli:period")
-qnXbrliIdentifier = qname("{http://www.xbrl.org/2003/instance}xbrli:identifier")
-qnXbrliUnit = qname("{http://www.xbrl.org/2003/instance}xbrli:unit")
-qnXbrliStringItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:stringItemType")
-qnXbrliMonetaryItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:monetaryItemType")
-qnXbrliDateItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:dateItemType")
-qnXbrliDurationItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:durationItemType")
-qnXbrliBooleanItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:booleanItemType")
-qnXbrliQNameItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:QNameItemType")
-qnXbrliPure = qname("{http://www.xbrl.org/2003/instance}xbrli:pure")
-qnXbrliShares = qname("{http://www.xbrl.org/2003/instance}xbrli:shares")
-qnInvalidMeasure = qname("{http://arelle.org}arelle:invalidMeasureQName")
-qnXbrliDateUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:dateUnion")
-qnDateUnionXsdTypes = [qname("{http://www.w3.org/2001/XMLSchema}xsd:date"),qname("{http://www.w3.org/2001/XMLSchema}xsd:dateTime")]
-qnXbrliDecimalsUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:decimalsType")
-qnXbrliPrecisionUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:precisionType")
-qnXbrliNonZeroDecimalUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:nonZeroDecimal")
-link = "http://www.xbrl.org/2003/linkbase"
-qnLinkLinkbase = qname("{http://www.xbrl.org/2003/linkbase}link:linkbase")
-qnLinkLinkbaseRef = qname("{http://www.xbrl.org/2003/linkbase}link:linkbaseRef")
-qnLinkLoc = qname("{http://www.xbrl.org/2003/linkbase}link:loc")
-qnLinkLabelLink = qname("{http://www.xbrl.org/2003/linkbase}link:labelLink")
-qnLinkLabelArc = qname("{http://www.xbrl.org/2003/linkbase}link:labelArc")
-qnLinkLabel = qname("{http://www.xbrl.org/2003/linkbase}link:label")
-qnLinkReferenceLink = qname("{http://www.xbrl.org/2003/linkbase}link:referenceLink")
-qnLinkReferenceArc = qname("{http://www.xbrl.org/2003/linkbase}link:referenceArc")
-qnLinkReference = qname("{http://www.xbrl.org/2003/linkbase}link:reference")
-qnLinkPart = qname("{http://www.xbrl.org/2003/linkbase}link:part")
-qnLinkFootnoteLink = qname("{http://www.xbrl.org/2003/linkbase}link:footnoteLink")
-qnLinkFootnoteArc = qname("{http://www.xbrl.org/2003/linkbase}link:footnoteArc")
-qnLinkFootnote = qname("{http://www.xbrl.org/2003/linkbase}link:footnote")
-qnLinkPresentationLink = qname("{http://www.xbrl.org/2003/linkbase}link:presentationLink")
-qnLinkPresentationArc = qname("{http://www.xbrl.org/2003/linkbase}link:presentationArc")
-qnLinkCalculationLink = qname("{http://www.xbrl.org/2003/linkbase}link:calculationLink")
-qnLinkCalculationArc = qname("{http://www.xbrl.org/2003/linkbase}link:calculationArc")
-qnLinkDefinitionLink = qname("{http://www.xbrl.org/2003/linkbase}link:definitionLink")
-qnLinkDefinitionArc = qname("{http://www.xbrl.org/2003/linkbase}link:definitionArc")
-gen = "http://xbrl.org/2008/generic"
-qnGenLink = qname("{http://xbrl.org/2008/generic}gen:link")
-qnGenArc = qname("{http://xbrl.org/2008/generic}gen:arc")
-elementReference = "http://xbrl.org/arcrole/2008/element-reference"
-genReference = "http://xbrl.org/2008/reference"
-qnGenReference = qname("{http://xbrl.org/2008/reference}reference")
-elementLabel = "http://xbrl.org/arcrole/2008/element-label"
-genLabel = "http://xbrl.org/2008/label"
-qnGenLabel = qname("{http://xbrl.org/2008/label}label")
-xbrldt = "http://xbrl.org/2005/xbrldt"
-qnXbrldtHypercubeItem = qname("{http://xbrl.org/2005/xbrldt}xbrldt:hypercubeItem")
-qnXbrldtDimensionItem = qname("{http://xbrl.org/2005/xbrldt}xbrldt:dimensionItem")
-qnXbrldtContextElement = qname("{http://xbrl.org/2005/xbrldt}xbrldt:contextElement")
-xbrldi = "http://xbrl.org/2006/xbrldi"
-qnXbrldiExplicitMember = qname("{http://xbrl.org/2006/xbrldi}xbrldi:explicitMember")
-qnXbrldiTypedMember = qname("{http://xbrl.org/2006/xbrldi}xbrldi:typedMember")
-xlink = "http://www.w3.org/1999/xlink"
-xl = "http://www.xbrl.org/2003/XLink"
-qnXlExtended = qname("{http://www.xbrl.org/2003/XLink}xl:extended")
-qnXlLocator = qname("{http://www.xbrl.org/2003/XLink}xl:locator")
-qnXlResource = qname("{http://www.xbrl.org/2003/XLink}xl:resource")
-qnXlExtendedType = qname("{http://www.xbrl.org/2003/XLink}xl:extendedType")
-qnXlLocatorType = qname("{http://www.xbrl.org/2003/XLink}xl:locatorType")
-qnXlResourceType = qname("{http://www.xbrl.org/2003/XLink}xl:resourceType")
-qnXlArcType = qname("{http://www.xbrl.org/2003/XLink}xl:arcType")
-xhtml = "http://www.w3.org/1999/xhtml"
-ixbrl = "http://www.xbrl.org/2008/inlineXBRL"
-ixbrl11 = "http://www.xbrl.org/2013/inlineXBRL"
-ixbrlAll = {ixbrl, ixbrl11}
-ixbrlTags = ("{http://www.xbrl.org/2013/inlineXBRL}*","{http://www.xbrl.org/2008/inlineXBRL}*")
-ixbrlTagPattern = re_compile("[{]http://www.xbrl.org/(2008|2013)/inlineXBRL[}]")
-qnIXbrlResources = qname("{http://www.xbrl.org/2008/inlineXBRL}resources")
-qnIXbrlTuple = qname("{http://www.xbrl.org/2008/inlineXBRL}tuple")
-qnIXbrlNonNumeric = qname("{http://www.xbrl.org/2008/inlineXBRL}nonNumeric")
-qnIXbrlNonFraction = qname("{http://www.xbrl.org/2008/inlineXBRL}nonFraction")
-qnIXbrlFraction = qname("{http://www.xbrl.org/2008/inlineXBRL}fraction")
-qnIXbrlNumerator = qname("{http://www.xbrl.org/2008/inlineXBRL}numerator")
-qnIXbrlDenominator = qname("{http://www.xbrl.org/2008/inlineXBRL}denominator")
-qnIXbrlFootnote = qname("{http://www.xbrl.org/2008/inlineXBRL}footnote")
-qnIXbrl11Resources = qname("{http://www.xbrl.org/2013/inlineXBRL}resources")
-qnIXbrl11Tuple = qname("{http://www.xbrl.org/2013/inlineXBRL}tuple")
-qnIXbrl11NonNumeric = qname("{http://www.xbrl.org/2013/inlineXBRL}nonNumeric")
-qnIXbrl11NonFraction = qname("{http://www.xbrl.org/2013/inlineXBRL}nonFraction")
-qnIXbrl11Fraction = qname("{http://www.xbrl.org/2013/inlineXBRL}fraction")
-qnIXbrl11Numerator = qname("{http://www.xbrl.org/2013/inlineXBRL}numerator")
-qnIXbrl11Denominator = qname("{http://www.xbrl.org/2013/inlineXBRL}denominator")
-qnIXbrl11Footnote = qname("{http://www.xbrl.org/2013/inlineXBRL}footnote")
-qnIXbrl11Relationship = qname("{http://www.xbrl.org/2013/inlineXBRL}relationship")
-qnIXbrl11Hidden = qname("{http://www.xbrl.org/2013/inlineXBRL}hidden")
-ixAttributes = set(qname(n, noPrefixIsNoNamespace=True)
+xml: str = "http://www.w3.org/XML/1998/namespace"
+xbrli: str = "http://www.xbrl.org/2003/instance"
+eurofilingModelNamespace: str = "http://www.eurofiling.info/xbrl/ext/model"
+eurofilingModelPrefix: str = "model"
+qnNsmap: QName = qname("nsmap") # artificial parent for insertion of xmlns in saving xml documents
+qnXbrliXbrl: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:xbrl")
+qnPrototypeXbrliXbrl: QName = qname("{http://arelle.org/prototype/xbrli}xbrl") # prototype for inline derived xbrl instance
+qnXbrliItem: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:item")
+qnXbrliNumerator: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:numerator")
+qnXbrliDenominator: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:denominator")
+qnXbrliTuple: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:tuple")
+qnXbrliContext: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:context")
+qnXbrliPeriod: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:period")
+qnXbrliIdentifier: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:identifier")
+qnXbrliUnit: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:unit")
+qnXbrliStringItemType: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:stringItemType")
+qnXbrliMonetaryItemType: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:monetaryItemType")
+qnXbrliDateItemType: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:dateItemType")
+qnXbrliDurationItemType: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:durationItemType")
+qnXbrliBooleanItemType: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:booleanItemType")
+qnXbrliQNameItemType: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:QNameItemType")
+qnXbrliPure: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:pure")
+qnXbrliShares: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:shares")
+qnInvalidMeasure: QName = qname("{http://arelle.org}arelle:invalidMeasureQName")
+qnXbrliDateUnion: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:dateUnion")
+qnDateUnionXsdTypes: list[qname] = [qname("{http://www.w3.org/2001/XMLSchema}xsd:date"),qname("{http://www.w3.org/2001/XMLSchema}xsd:dateTime")]
+qnXbrliDecimalsUnion: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:decimalsType")
+qnXbrliPrecisionUnion: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:precisionType")
+qnXbrliNonZeroDecimalUnion: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:nonZeroDecimal")
+link: str = "http://www.xbrl.org/2003/linkbase"
+qnLinkLinkbase: QName = qname("{http://www.xbrl.org/2003/linkbase}link:linkbase")
+qnLinkLinkbaseRef: QName = qname("{http://www.xbrl.org/2003/linkbase}link:linkbaseRef")
+qnLinkLoc: QName = qname("{http://www.xbrl.org/2003/linkbase}link:loc")
+qnLinkLabelLink: QName = qname("{http://www.xbrl.org/2003/linkbase}link:labelLink")
+qnLinkLabelArc: QName = qname("{http://www.xbrl.org/2003/linkbase}link:labelArc")
+qnLinkLabel: QName = qname("{http://www.xbrl.org/2003/linkbase}link:label")
+qnLinkReferenceLink: QName = qname("{http://www.xbrl.org/2003/linkbase}link:referenceLink")
+qnLinkReferenceArc: QName = qname("{http://www.xbrl.org/2003/linkbase}link:referenceArc")
+qnLinkReference: QName = qname("{http://www.xbrl.org/2003/linkbase}link:reference")
+qnLinkPart: QName = qname("{http://www.xbrl.org/2003/linkbase}link:part")
+qnLinkFootnoteLink: QName = qname("{http://www.xbrl.org/2003/linkbase}link:footnoteLink")
+qnLinkFootnoteArc: QName = qname("{http://www.xbrl.org/2003/linkbase}link:footnoteArc")
+qnLinkFootnote: QName = qname("{http://www.xbrl.org/2003/linkbase}link:footnote")
+qnLinkPresentationLink: QName = qname("{http://www.xbrl.org/2003/linkbase}link:presentationLink")
+qnLinkPresentationArc: QName = qname("{http://www.xbrl.org/2003/linkbase}link:presentationArc")
+qnLinkCalculationLink: QName = qname("{http://www.xbrl.org/2003/linkbase}link:calculationLink")
+qnLinkCalculationArc: QName = qname("{http://www.xbrl.org/2003/linkbase}link:calculationArc")
+qnLinkDefinitionLink: QName = qname("{http://www.xbrl.org/2003/linkbase}link:definitionLink")
+qnLinkDefinitionArc: QName = qname("{http://www.xbrl.org/2003/linkbase}link:definitionArc")
+gen: str = "http://xbrl.org/2008/generic"
+qnGenLink: QName = qname("{http://xbrl.org/2008/generic}gen:link")
+qnGenArc: QName = qname("{http://xbrl.org/2008/generic}gen:arc")
+elementReference: str = "http://xbrl.org/arcrole/2008/element-reference"
+genReference: str = "http://xbrl.org/2008/reference"
+qnGenReference: QName = qname("{http://xbrl.org/2008/reference}reference")
+elementLabel: str = "http://xbrl.org/arcrole/2008/element-label"
+genLabel: str = "http://xbrl.org/2008/label"
+qnGenLabel: QName = qname("{http://xbrl.org/2008/label}label")
+xbrldt: str = "http://xbrl.org/2005/xbrldt"
+qnXbrldtHypercubeItem: QName = qname("{http://xbrl.org/2005/xbrldt}xbrldt:hypercubeItem")
+qnXbrldtDimensionItem: QName = qname("{http://xbrl.org/2005/xbrldt}xbrldt:dimensionItem")
+qnXbrldtContextElement: QName = qname("{http://xbrl.org/2005/xbrldt}xbrldt:contextElement")
+xbrldi: str = "http://xbrl.org/2006/xbrldi"
+qnXbrldiExplicitMember: QName = qname("{http://xbrl.org/2006/xbrldi}xbrldi:explicitMember")
+qnXbrldiTypedMember: QName = qname("{http://xbrl.org/2006/xbrldi}xbrldi:typedMember")
+xlink: str = "http://www.w3.org/1999/xlink"
+xl: str = "http://www.xbrl.org/2003/XLink"
+qnXlExtended: QName = qname("{http://www.xbrl.org/2003/XLink}xl:extended")
+qnXlLocator: QName = qname("{http://www.xbrl.org/2003/XLink}xl:locator")
+qnXlResource: QName = qname("{http://www.xbrl.org/2003/XLink}xl:resource")
+qnXlExtendedType: QName = qname("{http://www.xbrl.org/2003/XLink}xl:extendedType")
+qnXlLocatorType: QName = qname("{http://www.xbrl.org/2003/XLink}xl:locatorType")
+qnXlResourceType: QName = qname("{http://www.xbrl.org/2003/XLink}xl:resourceType")
+qnXlArcType: QName = qname("{http://www.xbrl.org/2003/XLink}xl:arcType")
+xhtml: str = "http://www.w3.org/1999/xhtml"
+ixbrl: str = "http://www.xbrl.org/2008/inlineXBRL"
+ixbrl11: str = "http://www.xbrl.org/2013/inlineXBRL"
+ixbrlAll: set[str] = {ixbrl, ixbrl11}
+ixbrlTags: Tuple[str, str] = ("{http://www.xbrl.org/2013/inlineXBRL}*","{http://www.xbrl.org/2008/inlineXBRL}*")
+ixbrlTagPattern: Pattern[str] = re_compile("[{]http://www.xbrl.org/(2008|2013)/inlineXBRL[}]")
+qnIXbrlResources: QName = qname("{http://www.xbrl.org/2008/inlineXBRL}resources")
+qnIXbrlTuple: QName = qname("{http://www.xbrl.org/2008/inlineXBRL}tuple")
+qnIXbrlNonNumeric: QName = qname("{http://www.xbrl.org/2008/inlineXBRL}nonNumeric")
+qnIXbrlNonFraction: QName = qname("{http://www.xbrl.org/2008/inlineXBRL}nonFraction")
+qnIXbrlFraction: QName = qname("{http://www.xbrl.org/2008/inlineXBRL}fraction")
+qnIXbrlNumerator: QName = qname("{http://www.xbrl.org/2008/inlineXBRL}numerator")
+qnIXbrlDenominator: QName = qname("{http://www.xbrl.org/2008/inlineXBRL}denominator")
+qnIXbrlFootnote: QName = qname("{http://www.xbrl.org/2008/inlineXBRL}footnote")
+qnIXbrl11Resources: QName = qname("{http://www.xbrl.org/2013/inlineXBRL}resources")
+qnIXbrl11Tuple: QName = qname("{http://www.xbrl.org/2013/inlineXBRL}tuple")
+qnIXbrl11NonNumeric: QName = qname("{http://www.xbrl.org/2013/inlineXBRL}nonNumeric")
+qnIXbrl11NonFraction: QName = qname("{http://www.xbrl.org/2013/inlineXBRL}nonFraction")
+qnIXbrl11Fraction: QName = qname("{http://www.xbrl.org/2013/inlineXBRL}fraction")
+qnIXbrl11Numerator: QName = qname("{http://www.xbrl.org/2013/inlineXBRL}numerator")
+qnIXbrl11Denominator: QName = qname("{http://www.xbrl.org/2013/inlineXBRL}denominator")
+qnIXbrl11Footnote: QName = qname("{http://www.xbrl.org/2013/inlineXBRL}footnote")
+qnIXbrl11Relationship: QName = qname("{http://www.xbrl.org/2013/inlineXBRL}relationship")
+qnIXbrl11Hidden: QName = qname("{http://www.xbrl.org/2013/inlineXBRL}hidden")
+ixAttributes: set[QName] = set(qname(n, noPrefixIsNoNamespace=True)
                    for n in ("continuedAt", "escape", "footnoteRefs", "format", "name", "order",
                              "scale", "sign","target", "tupleRef", "tupleID"))
-conceptLabel = "http://www.xbrl.org/2003/arcrole/concept-label"
-conceptReference = "http://www.xbrl.org/2003/arcrole/concept-reference"
-footnote = "http://www.xbrl.org/2003/role/footnote"
-factFootnote = "http://www.xbrl.org/2003/arcrole/fact-footnote"
-factExplanatoryFact = "http://www.xbrl.org/2009/arcrole/fact-explanatoryFact"
-parentChild = "http://www.xbrl.org/2003/arcrole/parent-child"
-summationItem = "http://www.xbrl.org/2003/arcrole/summation-item"
-essenceAlias = "http://www.xbrl.org/2003/arcrole/essence-alias"
-similarTuples = "http://www.xbrl.org/2003/arcrole/similar-tuples"
-requiresElement = "http://www.xbrl.org/2003/arcrole/requires-element"
-generalSpecial = "http://www.xbrl.org/2003/arcrole/general-special"
-dimStartsWith = "http://xbrl.org/int/dim"
-all = "http://xbrl.org/int/dim/arcrole/all"
-notAll = "http://xbrl.org/int/dim/arcrole/notAll"
-hypercubeDimension = "http://xbrl.org/int/dim/arcrole/hypercube-dimension"
-dimensionDomain = "http://xbrl.org/int/dim/arcrole/dimension-domain"
-domainMember = "http://xbrl.org/int/dim/arcrole/domain-member"
-dimensionDefault = "http://xbrl.org/int/dim/arcrole/dimension-default"
-defaultLinkRole = "http://www.xbrl.org/2003/role/link"
-defaultGenLinkRole = "http://www.xbrl.org/2008/role/link"
-iso4217 = "http://www.xbrl.org/2003/iso4217"
-iso17442 = "http://standards.iso.org/iso/17442"
-def qnIsoCurrency(token):
+conceptLabel: str = "http://www.xbrl.org/2003/arcrole/concept-label"
+conceptReference: str = "http://www.xbrl.org/2003/arcrole/concept-reference"
+footnote: str = "http://www.xbrl.org/2003/role/footnote"
+factFootnote: str = "http://www.xbrl.org/2003/arcrole/fact-footnote"
+factExplanatoryFact: str = "http://www.xbrl.org/2009/arcrole/fact-explanatoryFact"
+parentChild: str = "http://www.xbrl.org/2003/arcrole/parent-child"
+summationItem: str = "http://www.xbrl.org/2003/arcrole/summation-item"
+essenceAlias: str = "http://www.xbrl.org/2003/arcrole/essence-alias"
+similarTuples: str = "http://www.xbrl.org/2003/arcrole/similar-tuples"
+requiresElement: str = "http://www.xbrl.org/2003/arcrole/requires-element"
+generalSpecial: str = "http://www.xbrl.org/2003/arcrole/general-special"
+dimStartsWith: str = "http://xbrl.org/int/dim"
+all: str = "http://xbrl.org/int/dim/arcrole/all"
+notAll: str = "http://xbrl.org/int/dim/arcrole/notAll"
+hypercubeDimension: str = "http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+dimensionDomain: str = "http://xbrl.org/int/dim/arcrole/dimension-domain"
+domainMember: str = "http://xbrl.org/int/dim/arcrole/domain-member"
+dimensionDefault: str = "http://xbrl.org/int/dim/arcrole/dimension-default"
+defaultLinkRole: str = "http://www.xbrl.org/2003/role/link"
+defaultGenLinkRole: str = "http://www.xbrl.org/2008/role/link"
+iso4217: str = "http://www.xbrl.org/2003/iso4217"
+iso17442: str = "http://standards.iso.org/iso/17442"
+def qnIsoCurrency(token: str) -> QName | None:
     return qname(iso4217, "iso4217:" + token) if token else None
-standardLabel = "http://www.xbrl.org/2003/role/label"
-genStandardLabel = "http://www.xbrl.org/2008/role/label"
-documentationLabel = "http://www.xbrl.org/2003/role/documentation"
-genDocumentationLabel = "http://www.xbrl.org/2008/role/documentation"
-standardReference = "http://www.xbrl.org/2003/role/reference"
-genStandardReference = "http://www.xbrl.org/2010/role/reference"
-periodStartLabel = "http://www.xbrl.org/2003/role/periodStartLabel"
-periodEndLabel = "http://www.xbrl.org/2003/role/periodEndLabel"
-verboseLabel = "http://www.xbrl.org/2003/role/verboseLabel"
-terseLabel = "http://www.xbrl.org/2003/role/terseLabel"
-conceptNameLabelRole = "XBRL-concept-name" # fake label role to show concept QName instead of label
-xlinkLinkbase = "http://www.w3.org/1999/xlink/properties/linkbase"
+standardLabel: str = "http://www.xbrl.org/2003/role/label"
+genStandardLabel: str = "http://www.xbrl.org/2008/role/label"
+documentationLabel: str = "http://www.xbrl.org/2003/role/documentation"
+genDocumentationLabel: str = "http://www.xbrl.org/2008/role/documentation"
+standardReference: str = "http://www.xbrl.org/2003/role/reference"
+genStandardReference: str = "http://www.xbrl.org/2010/role/reference"
+periodStartLabel: str = "http://www.xbrl.org/2003/role/periodStartLabel"
+periodEndLabel: str = "http://www.xbrl.org/2003/role/periodEndLabel"
+verboseLabel: str = "http://www.xbrl.org/2003/role/verboseLabel"
+terseLabel: str = "http://www.xbrl.org/2003/role/terseLabel"
+conceptNameLabelRole: str = "XBRL-concept-name" # fake label role to show concept QName instead of label
+xlinkLinkbase: str = "http://www.w3.org/1999/xlink/properties/linkbase"
 
-utr = "http://www.xbrl.org/2009/utr"
+utr: str = "http://www.xbrl.org/2009/utr"
 
-dtr = "http://www.xbrl.org/2009/dtr"
-dtrTypesStartsWith = "http://www.xbrl.org/dtr/type/"
-dtrNumeric = "http://www.xbrl.org/dtr/type/numeric"
+dtr: str = "http://www.xbrl.org/2009/dtr"
+dtrTypesStartsWith: str = "http://www.xbrl.org/dtr/type/"
+dtrNumeric: str = "http://www.xbrl.org/dtr/type/numeric"
 
-dtrNoDecimalsItemTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}noDecimalsMonetaryItemType"),
+dtrNoDecimalsItemTypes: Tuple[QName, ...] = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}noDecimalsMonetaryItemType"),
                           qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonNegativeNoDecimalsMonetaryItemType"),
                           qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}noDecimalsMonetaryItemType"),
                           qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}nonNegativeNoDecimalsMonetaryItemType"))
-dtrPrefixedContentItemTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}prefixedContentItemType"),
+dtrPrefixedContentItemTypes: Tuple[QName, QName] = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}prefixedContentItemType"),
                                qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}prefixedContentItemType"))
-dtrPrefixedContentTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}prefixedContentType"),
+dtrPrefixedContentTypes: Tuple[QName, QName] = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}prefixedContentType"),
                            qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}prefixedContentType"))
-dtrSQNameItemTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNameItemType"),
+dtrSQNameItemTypes: Tuple[QName, QName] = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNameItemType"),
                       qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameItemType"))
-dtrSQNameTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNameType"),
+dtrSQNameTypes: Tuple[QName, QName] = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNameType"),
                   qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameType"))
-dtrSQNamesItemTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesItemType"),
+dtrSQNamesItemTypes: Tuple[QName, QName] = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesItemType"),
                        qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesItemType"))
-dtrSQNamesTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesType"),
+dtrSQNamesTypes: Tuple[QName, QName] = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesType"),
                    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesType"))
-dtrSQNameNamesItemTypes = dtrSQNameItemTypes + dtrSQNamesItemTypes
-dtrSQNameNamesTypes = dtrSQNameTypes + dtrSQNamesTypes
+dtrSQNameNamesItemTypes: Tuple[QName, ...] = dtrSQNameItemTypes + dtrSQNamesItemTypes
+dtrSQNameNamesTypes: Tuple[QName, ...] = dtrSQNameTypes + dtrSQNamesTypes
 
-wgnStringItemTypeNames = ("stringItemType", "normalizedStringItemType")
-dtrNoLangItemTypeNames = ("domainItemType", "noLangTokenItemType", "noLangStringItemType")
-xsdNoLangTypeNames = ("language", "Name")
-xsdStringTypeNames = ("string", "normalizedString", "token", "language", "Name", "NCName", "ID", "IDREF", "IDREFS", "ENTITY", "ENTITIES", "NMTOKEN", "NMTOKENS")
+wgnStringItemTypeNames: Tuple[str, str] = ("stringItemType", "normalizedStringItemType")
+dtrNoLangItemTypeNames: Tuple[str, ...] = ("domainItemType", "noLangTokenItemType", "noLangStringItemType")
+xsdNoLangTypeNames: Tuple[str, ...] = ("language", "Name")
+xsdStringTypeNames: Tuple[str, ...] = ("string", "normalizedString", "token", "language", "Name", "NCName", "ID", "IDREF", "IDREFS", "ENTITY", "ENTITIES", "NMTOKEN", "NMTOKENS")
 
-ver10 = "http://xbrl.org/2010/versioning-base"
+ver10: str = "http://xbrl.org/2010/versioning-base"
 # 2010 names
-vercb = "http://xbrl.org/2010/versioning-concept-basic"
-verce = "http://xbrl.org/2010/versioning-concept-extended"
-verrels = "http://xbrl.org/2010/versioning-relationship-sets"
-veria = "http://xbrl.org/2010/versioning-instance-aspects"
+vercb: str = "http://xbrl.org/2010/versioning-concept-basic"
+verce: str = "http://xbrl.org/2010/versioning-concept-extended"
+verrels: str = "http://xbrl.org/2010/versioning-relationship-sets"
+veria: str = "http://xbrl.org/2010/versioning-instance-aspects"
 # 2013 names
-ver = "http://xbrl.org/2013/versioning-base"
-vercu = "http://xbrl.org/2013/versioning-concept-use"
-vercd = "http://xbrl.org/2013/versioning-concept-details"
-verdim = "http://xbrl.org/2013/versioning-dimensions"
-verPrefixNS = {"ver":ver,
+ver: str = "http://xbrl.org/2013/versioning-base"
+vercu: str = "http://xbrl.org/2013/versioning-concept-use"
+vercd: str = "http://xbrl.org/2013/versioning-concept-details"
+verdim: str = "http://xbrl.org/2013/versioning-dimensions"
+verPrefixNS: dict[str, str] = {"ver":ver,
                "vercu":vercu,
                "vercd":vercd,
                "verrels":verrels,
@@ -203,231 +215,234 @@ verPrefixNS = {"ver":ver,
                }
 
 # extended enumeration spec
-enum2s = {"http://xbrl.org/2020/extensible-enumerations-2.0",
+enum2s: set[str] = {"http://xbrl.org/2020/extensible-enumerations-2.0",
           "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0"}
-enums = {"http://xbrl.org/2014/extensible-enumerations", "http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1",
+enums: set[str] = {"http://xbrl.org/2014/extensible-enumerations", "http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1",
          "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1"
          } | enum2s
-qnEnumerationItemType2014 = qname("{http://xbrl.org/2014/extensible-enumerations}enum:enumerationItemType")
-qnEnumerationItemType2020 = qname("{http://xbrl.org/2020/extensible-enumerations-2.0}enum2:enumerationItemType")
-qnEnumerationItemTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum2:enumerationItemType")
-qnEnumerationSetItemType2020 = qname("{http://xbrl.org/2020/extensible-enumerations-2.0}enum2:enumerationSetItemType")
-qnEnumerationSetItemTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum2:enumerationSetItemType")
-qnEnumerationSetValDimType2020 = qname("{http://xbrl.org/2020/extensible-enumerations-2.0}enum2:setValueDimensionType")
-qnEnumerationSetValDimTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum2:setValueDimensionType")
-qnEnumerationItemType11YYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}enum:enumerationItemType")
-qnEnumerationSetItemType11YYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}enum:enumerationSetItemType")
-qnEnumerationListItemType11YYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}enum:enumerationListItemType")
-qnEnumerationItemType2016 = qname("{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}enum:enumerationItemType")
-qnEnumerationsItemType2016 = qname("{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}enum:enumerationsItemType")
-qnEnumerationListItemTypes = (qnEnumerationListItemType11YYYY, qnEnumerationSetItemType11YYYY, qnEnumerationsItemType2016)
-qnEnumerationSetItemTypes = (qnEnumerationSetItemType11YYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY)
-qnEnumeration2ItemTypes = (qnEnumerationItemType2020, qnEnumerationItemTypeYYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY)
-qnEnumerationItemTypes = (qnEnumerationItemType2014,
+qnEnumerationItemType2014: QName = qname("{http://xbrl.org/2014/extensible-enumerations}enum:enumerationItemType")
+qnEnumerationItemType2020: QName = qname("{http://xbrl.org/2020/extensible-enumerations-2.0}enum2:enumerationItemType")
+qnEnumerationItemTypeYYYY: QName = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum2:enumerationItemType")
+qnEnumerationSetItemType2020: QName = qname("{http://xbrl.org/2020/extensible-enumerations-2.0}enum2:enumerationSetItemType")
+qnEnumerationSetItemTypeYYYY: QName = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum2:enumerationSetItemType")
+qnEnumerationSetValDimType2020: QName = qname("{http://xbrl.org/2020/extensible-enumerations-2.0}enum2:setValueDimensionType")
+qnEnumerationSetValDimTypeYYYY: QName = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum2:setValueDimensionType")
+qnEnumerationItemType11YYYY: QName = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}enum:enumerationItemType")
+qnEnumerationSetItemType11YYYY: QName = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}enum:enumerationSetItemType")
+qnEnumerationListItemType11YYYY: QName = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}enum:enumerationListItemType")
+qnEnumerationItemType2016: QName = qname("{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}enum:enumerationItemType")
+qnEnumerationsItemType2016: QName = qname("{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}enum:enumerationsItemType")
+qnEnumerationListItemTypes: Tuple[QName, ...] = (qnEnumerationListItemType11YYYY, qnEnumerationSetItemType11YYYY, qnEnumerationsItemType2016)
+qnEnumerationSetItemTypes: Tuple[QName, ...] = (qnEnumerationSetItemType11YYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY)
+qnEnumeration2ItemTypes: Tuple[QName, ...] = (qnEnumerationItemType2020, qnEnumerationItemTypeYYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY)
+qnEnumerationItemTypes: Tuple[QName, ...] = (qnEnumerationItemType2014,
                           qnEnumerationItemType2020, qnEnumerationItemTypeYYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY,
                           qnEnumerationItemType11YYYY, qnEnumerationSetItemType11YYYY, qnEnumerationListItemType11YYYY,
                           qnEnumerationItemType2016, qnEnumerationsItemType2016)
-qnEnumerationTypes = qnEnumerationItemTypes + (qnEnumerationSetValDimType2020,qnEnumerationSetValDimTypeYYYY)
-qnEnumeration2ItemTypes = (qnEnumerationItemType2020, qnEnumerationSetItemType2020)
-attrEnumerationDomain2014 = "{http://xbrl.org/2014/extensible-enumerations}domain"
-attrEnumerationDomain2020 = "{http://xbrl.org/2020/extensible-enumerations-2.0}domain"
-attrEnumerationDomainYYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}domain"
-attrEnumerationDomain11YYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}domain"
-attrEnumerationDomain2016 = "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}domain"
-attrEnumerationLinkrole2014 = "{http://xbrl.org/2014/extensible-enumerations}linkrole"
-attrEnumerationLinkrole2020 = "{http://xbrl.org/2020/extensible-enumerations-2.0}linkrole"
-attrEnumerationLinkroleYYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}linkrole"
-attrEnumerationLinkrole11YYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}linkrole"
-attrEnumerationLinkrole2016 = "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}linkrole"
-attrEnumerationUsable2014 = "{http://xbrl.org/2014/extensible-enumerations}headUsable"
-attrEnumerationUsable2020 = "{http://xbrl.org/2020/extensible-enumerations-2.0}headUsable"
-attrEnumerationUsableYYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}headUsable"
-attrEnumerationUsable11YYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}headUsable"
-attrEnumerationUsable2016 = "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}headUsable"
+qnEnumerationTypes: Tuple[QName, ...] = qnEnumerationItemTypes + (qnEnumerationSetValDimType2020,qnEnumerationSetValDimTypeYYYY)
+qnEnumeration2ItemTypes: Tuple[QName, QName] = (qnEnumerationItemType2020, qnEnumerationSetItemType2020)
+attrEnumerationDomain2014: str = "{http://xbrl.org/2014/extensible-enumerations}domain"
+attrEnumerationDomain2020: str = "{http://xbrl.org/2020/extensible-enumerations-2.0}domain"
+attrEnumerationDomainYYYY: str = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}domain"
+attrEnumerationDomain11YYYY: str = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}domain"
+attrEnumerationDomain2016: str = "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}domain"
+attrEnumerationLinkrole2014: str = "{http://xbrl.org/2014/extensible-enumerations}linkrole"
+attrEnumerationLinkrole2020: str = "{http://xbrl.org/2020/extensible-enumerations-2.0}linkrole"
+attrEnumerationLinkroleYYYY: str = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}linkrole"
+attrEnumerationLinkrole11YYYY: str = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}linkrole"
+attrEnumerationLinkrole2016: str = "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}linkrole"
+attrEnumerationUsable2014: str = "{http://xbrl.org/2014/extensible-enumerations}headUsable"
+attrEnumerationUsable2020: str = "{http://xbrl.org/2020/extensible-enumerations-2.0}headUsable"
+attrEnumerationUsableYYYY: str = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}headUsable"
+attrEnumerationUsable11YYYY: str = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}headUsable"
+attrEnumerationUsable2016: str = "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}headUsable"
 
 # formula specs
-variable = "http://xbrl.org/2008/variable"
-qnVariableSet = qname("{http://xbrl.org/2008/variable}variable:variableSet")
-qnVariableVariable = qname("{http://xbrl.org/2008/variable}variable:variable")
-qnVariableFilter = qname("{http://xbrl.org/2008/variable}variable:filter")
-qnVariableFilterArc = qname("{http://xbrl.org/2008/variable}variable:variableFilterArc")
-qnParameter = qname("{http://xbrl.org/2008/variable}variable:parameter")
-qnFactVariable = qname("{http://xbrl.org/2008/variable}variable:factVariable")
-qnGeneralVariable = qname("{http://xbrl.org/2008/variable}variable:generalVariable")
-qnPrecondition = qname("{http://xbrl.org/2008/variable}variable:precondition")
-qnEqualityDefinition = qname("{http://xbrl.org/2008/variable}variable:equalityDefinition")
-qnEqualityTestA = qname("{http://xbrl.org/2008/variable/aspectTest}aspectTest:a")
-qnEqualityTestB = qname("{http://xbrl.org/2008/variable/aspectTest}aspectTest:b")
-formula = "http://xbrl.org/2008/formula"
-tuple = "http://xbrl.org/2010/formula/tuple"
-qnFormula = qname("{http://xbrl.org/2008/formula}formula:formula")
-qnTuple = qname("{http://xbrl.org/2010/formula/tuple}tuple:tuple")
-qnFormulaUncovered = qname("{http://xbrl.org/2008/formula}formula:uncovered")
-qnFormulaDimensionSAV = qname("{http://xbrl.org/2008/formula}DimensionSAV") #signal that dimension aspect should use SAV of this dimension
-qnFormulaOccEmpty = qname("{http://xbrl.org/2008/formula}occEmpty") #signal that OCC aspect should omit the SAV values
-ca = "http://xbrl.org/2008/assertion/consistency"
-qnConsistencyAssertion = qname("{http://xbrl.org/2008/assertion/consistency}ca:consistencyAssertion")
-qnCaAspectMatchedFacts = qname("{http://xbrl.org/2008/assertion/consistency}ca:aspect-matched-facts")
-qnCaAcceptanceRadius = qname("{http://xbrl.org/2008/assertion/consistency}ca:ca:acceptance-radius")
-qnCaAbsoluteAcceptanceRadiusExpression = qname("{http://xbrl.org/2008/assertion/consistency}ca:absolute-acceptance-radius-expression")
-qnCaProportionalAcceptanceRadiusExpression = qname("{http://xbrl.org/2008/assertion/consistency}ca:proportional-acceptance-radius-expression")
-ea = "http://xbrl.org/2008/assertion/existence"
-qnExistenceAssertion = qname("{http://xbrl.org/2008/assertion/existence}ea:existenceAssertion")
-qnEaTestExpression = qname(ea,'test-expression')
-va = "http://xbrl.org/2008/assertion/value"
-qnValueAssertion = qname("{http://xbrl.org/2008/assertion/value}va:valueAssertion")
-qnVaTestExpression = qname(va,'test-expression')
-variable = "http://xbrl.org/2008/variable"
-formulaStartsWith = "http://xbrl.org/arcrole/20"
-equalityDefinition = "http://xbrl.org/arcrole/2008/equality-definition"
-qnEqualityDefinition = qname("{http://xbrl.org/2008/variable}variable:equalityDefinition")
-variableSet = "http://xbrl.org/arcrole/2008/variable-set"
-variableSetFilter = "http://xbrl.org/arcrole/2008/variable-set-filter"
-variableFilter = "http://xbrl.org/arcrole/2008/variable-filter"
-variableSetPrecondition = "http://xbrl.org/arcrole/2008/variable-set-precondition"
-equalityDefinition = "http://xbrl.org/arcrole/2008/equality-definition"
-consistencyAssertionFormula = "http://xbrl.org/arcrole/2008/consistency-assertion-formula"
-consistencyAssertionParameter = "http://xbrl.org/arcrole/2008/consistency-assertion-parameter"
-validation = "http://xbrl.org/2008/validation"
-qnAssertion = qname("{http://xbrl.org/2008/validation}validation:assertion")
-qnVariableSetAssertion = qname("{http://xbrl.org/2008/validation}validation:variableSetAssertion")
-qnAssertionSet = qname("{http://xbrl.org/2008/validation}validation:assertionSet")
-assertionSet = "http://xbrl.org/arcrole/2008/assertion-set"
-assertionUnsatisfiedSeverity = "http://xbrl.org/arcrole/2016/assertion-unsatisfied-severity"
-assertionUnsatisfiedSeverity20 = "http://xbrl.org/arcrole/2022/assertion-unsatisfied-severity"
-assertionUnsatisfiedSeverities = (assertionUnsatisfiedSeverity, assertionUnsatisfiedSeverity20)
-qnAssertionSeverityError = qname("{http://xbrl.org/2016/assertion-severity}sev:error")
-qnAssertionSeverityWarning = qname("{http://xbrl.org/2016/assertion-severity}sev:warning")
-qnAssertionSeverityOk = qname("{http://xbrl.org/2016/assertion-severity}sev:ok")
-qnAssertionSeverityError20 = qname("{http://xbrl.org/2022/assertion-severity}sev:error")
-qnAssertionSeverityWarning20 = qname("{http://xbrl.org/2022/assertion-severity}sev:warning")
-qnAssertionSeverityOk20 = qname("{http://xbrl.org/2022/assertion-severity}sev:ok")
-qnAssertionSeverityExpression20 = qname("{http://xbrl.org/2022/assertion-severity}sev:expression")
+variable: str = "http://xbrl.org/2008/variable"
+qnVariableSet: QName = qname("{http://xbrl.org/2008/variable}variable:variableSet")
+qnVariableVariable: QName = qname("{http://xbrl.org/2008/variable}variable:variable")
+qnVariableFilter: QName = qname("{http://xbrl.org/2008/variable}variable:filter")
+qnVariableFilterArc: QName = qname("{http://xbrl.org/2008/variable}variable:variableFilterArc")
+qnParameter: QName = qname("{http://xbrl.org/2008/variable}variable:parameter")
+qnFactVariable: QName = qname("{http://xbrl.org/2008/variable}variable:factVariable")
+qnGeneralVariable: QName = qname("{http://xbrl.org/2008/variable}variable:generalVariable")
+qnPrecondition: QName = qname("{http://xbrl.org/2008/variable}variable:precondition")
+qnEqualityDefinition: QName = qname("{http://xbrl.org/2008/variable}variable:equalityDefinition")
+qnEqualityTestA: QName = qname("{http://xbrl.org/2008/variable/aspectTest}aspectTest:a")
+qnEqualityTestB: QName = qname("{http://xbrl.org/2008/variable/aspectTest}aspectTest:b")
+formula: str = "http://xbrl.org/2008/formula"
+tuple: str = "http://xbrl.org/2010/formula/tuple"
+qnFormula: QName = qname("{http://xbrl.org/2008/formula}formula:formula")
+qnTuple: QName = qname("{http://xbrl.org/2010/formula/tuple}tuple:tuple")
+qnFormulaUncovered: QName = qname("{http://xbrl.org/2008/formula}formula:uncovered")
+qnFormulaDimensionSAV: QName = qname("{http://xbrl.org/2008/formula}DimensionSAV") #signal that dimension aspect should use SAV of this dimension
+qnFormulaOccEmpty: QName = qname("{http://xbrl.org/2008/formula}occEmpty") #signal that OCC aspect should omit the SAV values
+ca: str = "http://xbrl.org/2008/assertion/consistency"
+qnConsistencyAssertion: QName = qname("{http://xbrl.org/2008/assertion/consistency}ca:consistencyAssertion")
+qnCaAspectMatchedFacts: QName = qname("{http://xbrl.org/2008/assertion/consistency}ca:aspect-matched-facts")
+qnCaAcceptanceRadius: QName = qname("{http://xbrl.org/2008/assertion/consistency}ca:ca:acceptance-radius")
+qnCaAbsoluteAcceptanceRadiusExpression: QName = qname("{http://xbrl.org/2008/assertion/consistency}ca:absolute-acceptance-radius-expression")
+qnCaProportionalAcceptanceRadiusExpression: QName = qname("{http://xbrl.org/2008/assertion/consistency}ca:proportional-acceptance-radius-expression")
+ea: str = "http://xbrl.org/2008/assertion/existence"
+qnExistenceAssertion: QName = qname("{http://xbrl.org/2008/assertion/existence}ea:existenceAssertion")
+qnEaTestExpression: QName = qname(ea,'test-expression')
+va: str = "http://xbrl.org/2008/assertion/value"
+qnValueAssertion: QName = qname("{http://xbrl.org/2008/assertion/value}va:valueAssertion")
+qnVaTestExpression: QName = qname(va,'test-expression')
+# already defined above, just keeping it for record
+# variable: str = "http://xbrl.org/2008/variable"
+formulaStartsWith: str = "http://xbrl.org/arcrole/20"
+equalityDefinition: str = "http://xbrl.org/arcrole/2008/equality-definition"
+# already defined lin 271
+# qnEqualityDefinition: QName = qname("{http://xbrl.org/2008/variable}variable:equalityDefinition")
+variableSet: str = "http://xbrl.org/arcrole/2008/variable-set"
+variableSetFilter: str = "http://xbrl.org/arcrole/2008/variable-set-filter"
+variableFilter: str = "http://xbrl.org/arcrole/2008/variable-filter"
+variableSetPrecondition: str = "http://xbrl.org/arcrole/2008/variable-set-precondition"
+#  Already defined line 296
+# equalityDefinition: str = "http://xbrl.org/arcrole/2008/equality-definition"
+consistencyAssertionFormula: str = "http://xbrl.org/arcrole/2008/consistency-assertion-formula"
+consistencyAssertionParameter: str = "http://xbrl.org/arcrole/2008/consistency-assertion-parameter"
+validation: str = "http://xbrl.org/2008/validation"
+qnAssertion: QName = qname("{http://xbrl.org/2008/validation}validation:assertion")
+qnVariableSetAssertion: QName = qname("{http://xbrl.org/2008/validation}validation:variableSetAssertion")
+qnAssertionSet: QName = qname("{http://xbrl.org/2008/validation}validation:assertionSet")
+assertionSet: str = "http://xbrl.org/arcrole/2008/assertion-set"
+assertionUnsatisfiedSeverity: str = "http://xbrl.org/arcrole/2016/assertion-unsatisfied-severity"
+assertionUnsatisfiedSeverity20: str = "http://xbrl.org/arcrole/2022/assertion-unsatisfied-severity"
+assertionUnsatisfiedSeverities: Tuple[str, str] = (assertionUnsatisfiedSeverity, assertionUnsatisfiedSeverity20)
+qnAssertionSeverityError: QName = qname("{http://xbrl.org/2016/assertion-severity}sev:error")
+qnAssertionSeverityWarning: QName = qname("{http://xbrl.org/2016/assertion-severity}sev:warning")
+qnAssertionSeverityOk: QName = qname("{http://xbrl.org/2016/assertion-severity}sev:ok")
+qnAssertionSeverityError20: QName = qname("{http://xbrl.org/2022/assertion-severity}sev:error")
+qnAssertionSeverityWarning20: QName = qname("{http://xbrl.org/2022/assertion-severity}sev:warning")
+qnAssertionSeverityOk20: QName = qname("{http://xbrl.org/2022/assertion-severity}sev:ok")
+qnAssertionSeverityExpression20: QName = qname("{http://xbrl.org/2022/assertion-severity}sev:expression")
 
-acf = "http://xbrl.org/2010/filter/aspect-cover"
-qnAspectCover = qname("{http://xbrl.org/2010/filter/aspect-cover}acf:aspectCover")
-bf = "http://xbrl.org/2008/filter/boolean"
-qnAndFilter = qname("{http://xbrl.org/2008/filter/boolean}bf:andFilter")
-qnOrFilter = qname("{http://xbrl.org/2008/filter/boolean}bf:orFilter")
-booleanFilter = "http://xbrl.org/arcrole/2008/boolean-filter"
-cfi = "http://xbrl.org/2010/custom-function"
-functionImplementation = "http://xbrl.org/arcrole/2010/function-implementation"
-qnCustomFunctionSignature = qname("{http://xbrl.org/2008/variable}cfi:function")
-qnCustomFunctionImplementation = qname("{http://xbrl.org/2010/custom-function}cfi:implementation")
-crf = "http://xbrl.org/2010/filter/concept-relation"
-qnConceptRelation = qname("{http://xbrl.org/2010/filter/concept-relation}crf:conceptRelation")
-cf = "http://xbrl.org/2008/filter/concept"
-qnConceptName = qname("{http://xbrl.org/2008/filter/concept}cf:conceptName")
-qnConceptPeriodType = qname("{http://xbrl.org/2008/filter/concept}cf:conceptPeriodType")
-qnConceptBalance = qname("{http://xbrl.org/2008/filter/concept}cf:conceptBalance")
-qnConceptCustomAttribute = qname("{http://xbrl.org/2008/filter/concept}cf:conceptCustomAttribute")
-qnConceptDataType = qname("{http://xbrl.org/2008/filter/concept}cf:conceptDataType")
-qnConceptSubstitutionGroup = qname("{http://xbrl.org/2008/filter/concept}cf:conceptSubstitutionGroup")
-cfcn = "http://xbrl.org/2008/conformance/function"
-df = "http://xbrl.org/2008/filter/dimension"
-qnExplicitDimension = qname("{http://xbrl.org/2008/filter/dimension}df:explicitDimension")
-qnTypedDimension = qname("{http://xbrl.org/2008/filter/dimension}df:typedDimension")
-ef = "http://xbrl.org/2008/filter/entity"
-qnEntityIdentifier = qname("{http://xbrl.org/2008/filter/entity}ef:identifier")
-qnEntitySpecificIdentifier = qname("{http://xbrl.org/2008/filter/entity}ef:specificIdentifier")
-qnEntitySpecificScheme = qname("{http://xbrl.org/2008/filter/entity}ef:specificScheme")
-qnEntityRegexpIdentifier = qname("{http://xbrl.org/2008/filter/entity}ef:regexpIdentifier")
-qnEntityRegexpScheme = qname("{http://xbrl.org/2008/filter/entity}ef:regexpScheme")
-function = "http://xbrl.org/2008/function"
-fn = "http://www.w3.org/2005/xpath-functions"
-xfi = "http://www.xbrl.org/2008/function/instance"
-qnXfiRoot = qname("{http://www.xbrl.org/2008/function/instance}xfi:root")
-xff = "http://www.xbrl.org/2010/function/formula"
-gf = "http://xbrl.org/2008/filter/general"
-qnGeneral = qname("{http://xbrl.org/2008/filter/general}gf:general")
-instances = "http://xbrl.org/2010/variable/instance"
-qnInstance = qname(instances,"instances:instance")
-instanceVariable = "http://xbrl.org/arcrole/2010/instance-variable"
-formulaInstance = "http://xbrl.org/arcrole/2010/formula-instance"
-qnStandardInputInstance = qname(instances,"instances:standard-input-instance")
-qnStandardOutputInstance = qname(instances,"instances:standard-output-instance")
-mf = "http://xbrl.org/2008/filter/match"
-qnMatchConcept = qname("{http://xbrl.org/2008/filter/match}mf:matchConcept")
-qnMatchDimension = qname("{http://xbrl.org/2008/filter/match}mf:matchDimension")
-qnMatchEntityIdentifier = qname("{http://xbrl.org/2008/filter/match}mf:matchEntityIdentifier")
-qnMatchLocation = qname("{http://xbrl.org/2008/filter/match}mf:matchLocation")
-qnMatchPeriod = qname("{http://xbrl.org/2008/filter/match}mf:matchPeriod")
-qnMatchSegment = qname("{http://xbrl.org/2008/filter/match}mf:matchSegment")
-qnMatchScenario = qname("{http://xbrl.org/2008/filter/match}mf:matchScenario")
-qnMatchNonXDTSegment = qname("{http://xbrl.org/2008/filter/match}mf:matchNonXDTSegment")
-qnMatchNonXDTScenario = qname("{http://xbrl.org/2008/filter/match}mf:matchNonXDTScenario")
-qnMatchUnit = qname("{http://xbrl.org/2008/filter/match}mf:matchUnit")
-msg = "http://xbrl.org/2010/message"
-qnMessage = qname("{http://xbrl.org/2010/message}message")
-assertionSatisfiedMessage = "http://xbrl.org/arcrole/2010/assertion-satisfied-message"
-assertionUnsatisfiedMessage = "http://xbrl.org/arcrole/2010/assertion-unsatisfied-message"
-standardMessage = "http://www.xbrl.org/2010/role/message"
-terseMessage = "http://www.xbrl.org/2010/role/terseMessage"
-verboseMessage = "http://www.xbrl.org/2010/role/verboseMessage"
-pf = "http://xbrl.org/2008/filter/period"
-qnPeriod = qname("{http://xbrl.org/2008/filter/period}pf:period")
-qnPeriodStart = qname("{http://xbrl.org/2008/filter/period}pf:periodStart")
-qnPeriodEnd = qname("{http://xbrl.org/2008/filter/period}pf:periodEnd")
-qnPeriodInstant = qname("{http://xbrl.org/2008/filter/period}pf:periodInstant")
-qnForever = qname("{http://xbrl.org/2008/filter/period}pf:forever")
-qnInstantDuration = qname("{http://xbrl.org/2008/filter/period}pf:instantDuration")
-registry = "http://xbrl.org/2008/registry"
-rf = "http://xbrl.org/2008/filter/relative"
-qnRelativeFilter = qname("{http://xbrl.org/2008/filter/relative}rf:relativeFilter")
-ssf = "http://xbrl.org/2008/filter/segment-scenario"
-qnSegmentFilter = qname("{http://xbrl.org/2008/filter/segment-scenario}ssf:segment")
-qnScenarioFilter = qname("{http://xbrl.org/2008/filter/segment-scenario}ssf:scenario")
-tf = "http://xbrl.org/2008/filter/tuple"
-qnAncestorFilter = qname("{http://xbrl.org/2008/filter/tuple}tf:ancestorFilter")
-qnLocationFilter = qname("{http://xbrl.org/2008/filter/tuple}tf:locationFilter")
-qnParentFilter = qname("{http://xbrl.org/2008/filter/tuple}tf:parentFilter")
-qnSiblingFilter = qname("{http://xbrl.org/2008/filter/tuple}tf:siblingFilter")
-uf = "http://xbrl.org/2008/filter/unit"
-qnSingleMeasure = qname("{http://xbrl.org/2008/filter/unit}uf:singleMeasure")
-qnGeneralMeasures = qname("{http://xbrl.org/2008/filter/unit}uf:generalMeasures")
-vf = "http://xbrl.org/2008/filter/value"
-qnNilFilter = qname("{http://xbrl.org/2008/filter/value}vf:nil")
-qnPrecisionFilter = qname("{http://xbrl.org/2008/filter/value}vf:precision")
-xpath2err = "http://www.w3.org/2005/xqt-errors"
-variablesScope = "http://xbrl.org/arcrole/2010/variables-scope"
+acf: str = "http://xbrl.org/2010/filter/aspect-cover"
+qnAspectCover: QName = qname("{http://xbrl.org/2010/filter/aspect-cover}acf:aspectCover")
+bf: str = "http://xbrl.org/2008/filter/boolean"
+qnAndFilter: QName = qname("{http://xbrl.org/2008/filter/boolean}bf:andFilter")
+qnOrFilter: QName = qname("{http://xbrl.org/2008/filter/boolean}bf:orFilter")
+booleanFilter: str = "http://xbrl.org/arcrole/2008/boolean-filter"
+cfi: str = "http://xbrl.org/2010/custom-function"
+functionImplementation: str = "http://xbrl.org/arcrole/2010/function-implementation"
+qnCustomFunctionSignature: QName = qname("{http://xbrl.org/2008/variable}cfi:function")
+qnCustomFunctionImplementation: QName = qname("{http://xbrl.org/2010/custom-function}cfi:implementation")
+crf: str = "http://xbrl.org/2010/filter/concept-relation"
+qnConceptRelation: QName = qname("{http://xbrl.org/2010/filter/concept-relation}crf:conceptRelation")
+cf: str = "http://xbrl.org/2008/filter/concept"
+qnConceptName: QName = qname("{http://xbrl.org/2008/filter/concept}cf:conceptName")
+qnConceptPeriodType: QName = qname("{http://xbrl.org/2008/filter/concept}cf:conceptPeriodType")
+qnConceptBalance: QName = qname("{http://xbrl.org/2008/filter/concept}cf:conceptBalance")
+qnConceptCustomAttribute: QName = qname("{http://xbrl.org/2008/filter/concept}cf:conceptCustomAttribute")
+qnConceptDataType: QName = qname("{http://xbrl.org/2008/filter/concept}cf:conceptDataType")
+qnConceptSubstitutionGroup: QName = qname("{http://xbrl.org/2008/filter/concept}cf:conceptSubstitutionGroup")
+cfcn: str = "http://xbrl.org/2008/conformance/function"
+df: str = "http://xbrl.org/2008/filter/dimension"
+qnExplicitDimension: QName = qname("{http://xbrl.org/2008/filter/dimension}df:explicitDimension")
+qnTypedDimension: QName = qname("{http://xbrl.org/2008/filter/dimension}df:typedDimension")
+ef: str = "http://xbrl.org/2008/filter/entity"
+qnEntityIdentifier: QName = qname("{http://xbrl.org/2008/filter/entity}ef:identifier")
+qnEntitySpecificIdentifier: QName = qname("{http://xbrl.org/2008/filter/entity}ef:specificIdentifier")
+qnEntitySpecificScheme: QName = qname("{http://xbrl.org/2008/filter/entity}ef:specificScheme")
+qnEntityRegexpIdentifier: QName = qname("{http://xbrl.org/2008/filter/entity}ef:regexpIdentifier")
+qnEntityRegexpScheme: QName = qname("{http://xbrl.org/2008/filter/entity}ef:regexpScheme")
+function: str = "http://xbrl.org/2008/function"
+fn: str = "http://www.w3.org/2005/xpath-functions"
+xfi: str = "http://www.xbrl.org/2008/function/instance"
+qnXfiRoot: QName = qname("{http://www.xbrl.org/2008/function/instance}xfi:root")
+xff: str = "http://www.xbrl.org/2010/function/formula"
+gf: str = "http://xbrl.org/2008/filter/general"
+qnGeneral: QName = qname("{http://xbrl.org/2008/filter/general}gf:general")
+instances: str = "http://xbrl.org/2010/variable/instance"
+qnInstance: QName = qname(instances,"instances:instance")
+instanceVariable: str = "http://xbrl.org/arcrole/2010/instance-variable"
+formulaInstance: str = "http://xbrl.org/arcrole/2010/formula-instance"
+qnStandardInputInstance: QName = qname(instances,"instances:standard-input-instance")
+qnStandardOutputInstance: QName = qname(instances,"instances:standard-output-instance")
+mf: str = "http://xbrl.org/2008/filter/match"
+qnMatchConcept: QName = qname("{http://xbrl.org/2008/filter/match}mf:matchConcept")
+qnMatchDimension: QName = qname("{http://xbrl.org/2008/filter/match}mf:matchDimension")
+qnMatchEntityIdentifier: QName = qname("{http://xbrl.org/2008/filter/match}mf:matchEntityIdentifier")
+qnMatchLocation: QName = qname("{http://xbrl.org/2008/filter/match}mf:matchLocation")
+qnMatchPeriod: QName = qname("{http://xbrl.org/2008/filter/match}mf:matchPeriod")
+qnMatchSegment: QName = qname("{http://xbrl.org/2008/filter/match}mf:matchSegment")
+qnMatchScenario: QName = qname("{http://xbrl.org/2008/filter/match}mf:matchScenario")
+qnMatchNonXDTSegment: QName = qname("{http://xbrl.org/2008/filter/match}mf:matchNonXDTSegment")
+qnMatchNonXDTScenario: QName = qname("{http://xbrl.org/2008/filter/match}mf:matchNonXDTScenario")
+qnMatchUnit: QName = qname("{http://xbrl.org/2008/filter/match}mf:matchUnit")
+msg: str = "http://xbrl.org/2010/message"
+qnMessage: QName = qname("{http://xbrl.org/2010/message}message")
+assertionSatisfiedMessage: str = "http://xbrl.org/arcrole/2010/assertion-satisfied-message"
+assertionUnsatisfiedMessage: str = "http://xbrl.org/arcrole/2010/assertion-unsatisfied-message"
+standardMessage: str = "http://www.xbrl.org/2010/role/message"
+terseMessage: str = "http://www.xbrl.org/2010/role/terseMessage"
+verboseMessage: str = "http://www.xbrl.org/2010/role/verboseMessage"
+pf: str = "http://xbrl.org/2008/filter/period"
+qnPeriod: QName = qname("{http://xbrl.org/2008/filter/period}pf:period")
+qnPeriodStart: QName = qname("{http://xbrl.org/2008/filter/period}pf:periodStart")
+qnPeriodEnd: QName = qname("{http://xbrl.org/2008/filter/period}pf:periodEnd")
+qnPeriodInstant: QName = qname("{http://xbrl.org/2008/filter/period}pf:periodInstant")
+qnForever: QName = qname("{http://xbrl.org/2008/filter/period}pf:forever")
+qnInstantDuration: QName = qname("{http://xbrl.org/2008/filter/period}pf:instantDuration")
+registry: str = "http://xbrl.org/2008/registry"
+rf: str = "http://xbrl.org/2008/filter/relative"
+qnRelativeFilter: QName = qname("{http://xbrl.org/2008/filter/relative}rf:relativeFilter")
+ssf: str = "http://xbrl.org/2008/filter/segment-scenario"
+qnSegmentFilter: QName = qname("{http://xbrl.org/2008/filter/segment-scenario}ssf:segment")
+qnScenarioFilter: QName = qname("{http://xbrl.org/2008/filter/segment-scenario}ssf:scenario")
+tf: str = "http://xbrl.org/2008/filter/tuple"
+qnAncestorFilter: QName = qname("{http://xbrl.org/2008/filter/tuple}tf:ancestorFilter")
+qnLocationFilter: QName = qname("{http://xbrl.org/2008/filter/tuple}tf:locationFilter")
+qnParentFilter: QName = qname("{http://xbrl.org/2008/filter/tuple}tf:parentFilter")
+qnSiblingFilter: QName = qname("{http://xbrl.org/2008/filter/tuple}tf:siblingFilter")
+uf: str = "http://xbrl.org/2008/filter/unit"
+qnSingleMeasure: QName = qname("{http://xbrl.org/2008/filter/unit}uf:singleMeasure")
+qnGeneralMeasures: QName = qname("{http://xbrl.org/2008/filter/unit}uf:generalMeasures")
+vf: str = "http://xbrl.org/2008/filter/value"
+qnNilFilter: QName = qname("{http://xbrl.org/2008/filter/value}vf:nil")
+qnPrecisionFilter: QName = qname("{http://xbrl.org/2008/filter/value}vf:precision")
+xpath2err: str = "http://www.w3.org/2005/xqt-errors"
+variablesScope: str = "http://xbrl.org/arcrole/2010/variables-scope"
 
 # 2014-MM-DD current IWD
-tableMMDD = "http://xbrl.org/PWD/2016-MM-DD/table"
-tableModelMMDD = "http://xbrl.org/PWD/2016-MM-DD/table/model"
-tableBreakdownMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/table-breakdown"
-tableBreakdownTreeMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/breakdown-tree"
-tableDefinitionNodeSubtreeMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/definition-node-subtree"
-tableFilterMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/table-filter"
-tableAspectNodeFilterMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/aspect-node-filter"
-tableParameterMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/table-parameter"
-qnTableTableMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:table")
-qnTableBreakdownMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:breakdown")
-qnTableRuleNodeMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:ruleNode")
-qnTableRuleSetMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:ruleSet")
-qnTableDefinitionNodeMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:definitionNode")
-qnTableClosedDefinitionNodeMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:closedDefinitionNode")
-qnTableConceptRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:conceptRelationshipNode")
-qnTableDimensionRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:dimensionRelationshipNode")
-qnTableAspectNodeMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:aspectNode")
+tableMMDD: str = "http://xbrl.org/PWD/2016-MM-DD/table"
+tableModelMMDD: str = "http://xbrl.org/PWD/2016-MM-DD/table/model"
+tableBreakdownMMDD: str = "http://xbrl.org/arcrole/PWD/2014-MM-DD/table-breakdown"
+tableBreakdownTreeMMDD: str = "http://xbrl.org/arcrole/PWD/2014-MM-DD/breakdown-tree"
+tableDefinitionNodeSubtreeMMDD: str = "http://xbrl.org/arcrole/PWD/2014-MM-DD/definition-node-subtree"
+tableFilterMMDD: str = "http://xbrl.org/arcrole/PWD/2014-MM-DD/table-filter"
+tableAspectNodeFilterMMDD: str = "http://xbrl.org/arcrole/PWD/2014-MM-DD/aspect-node-filter"
+tableParameterMMDD: str = "http://xbrl.org/arcrole/PWD/2014-MM-DD/table-parameter"
+qnTableTableMMDD: QName = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:table")
+qnTableBreakdownMMDD: QName = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:breakdown")
+qnTableRuleNodeMMDD: QName = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:ruleNode")
+qnTableRuleSetMMDD: QName = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:ruleSet")
+qnTableDefinitionNodeMMDD: QName = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:definitionNode")
+qnTableClosedDefinitionNodeMMDD: QName = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:closedDefinitionNode")
+qnTableConceptRelationshipNodeMMDD: QName = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:conceptRelationshipNode")
+qnTableDimensionRelationshipNodeMMDD: QName = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:dimensionRelationshipNode")
+qnTableAspectNodeMMDD: QName = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:aspectNode")
 
 # REC
-table = "http://xbrl.org/2014/table"
-tableModel = "http://xbrl.org/2014/table/model"
-tableBreakdown = "http://xbrl.org/arcrole/2014/table-breakdown"
-tableBreakdownTree = "http://xbrl.org/arcrole/2014/breakdown-tree"
-tableDefinitionNodeSubtree = "http://xbrl.org/arcrole/2014/definition-node-subtree"
-tableFilter = "http://xbrl.org/arcrole/2014/table-filter"
-tableAspectNodeFilter = "http://xbrl.org/arcrole/2014/aspect-node-filter"
-tableParameter = "http://xbrl.org/arcrole/2014/table-parameter"
-qnTableTable = qname("{http://xbrl.org/2014/table}table:table")
-qnTableBreakdown = qname("{http://xbrl.org/2014/table}table:breakdown")
-qnTableRuleNode = qname("{http://xbrl.org/2014/table}table:ruleNode")
-qnTableRuleSet = qname("{http://xbrl.org/2014/table}table:ruleSet")
-qnTableDefinitionNode = qname("{http://xbrl.org/2014/table}table:definitionNode")
-qnTableClosedDefinitionNode = qname("{http://xbrl.org/2014/table}table:closedDefinitionNode")
-qnTableConceptRelationshipNode = qname("{http://xbrl.org/2014/table}table:conceptRelationshipNode")
-qnTableDimensionRelationshipNode = qname("{http://xbrl.org/2014/table}table:dimensionRelationshipNode")
-qnTableAspectNode = qname("{http://xbrl.org/2014/table}table:aspectNode")
+table: str = "http://xbrl.org/2014/table"
+tableModel: str = "http://xbrl.org/2014/table/model"
+tableBreakdown: str = "http://xbrl.org/arcrole/2014/table-breakdown"
+tableBreakdownTree: str = "http://xbrl.org/arcrole/2014/breakdown-tree"
+tableDefinitionNodeSubtree: str = "http://xbrl.org/arcrole/2014/definition-node-subtree"
+tableFilter: str = "http://xbrl.org/arcrole/2014/table-filter"
+tableAspectNodeFilter: str = "http://xbrl.org/arcrole/2014/aspect-node-filter"
+tableParameter: str = "http://xbrl.org/arcrole/2014/table-parameter"
+qnTableTable: QName = qname("{http://xbrl.org/2014/table}table:table")
+qnTableBreakdown: QName = qname("{http://xbrl.org/2014/table}table:breakdown")
+qnTableRuleNode: QName = qname("{http://xbrl.org/2014/table}table:ruleNode")
+qnTableRuleSet: QName = qname("{http://xbrl.org/2014/table}table:ruleSet")
+qnTableDefinitionNode: QName = qname("{http://xbrl.org/2014/table}table:definitionNode")
+qnTableClosedDefinitionNode: QName = qname("{http://xbrl.org/2014/table}table:closedDefinitionNode")
+qnTableConceptRelationshipNode: QName = qname("{http://xbrl.org/2014/table}table:conceptRelationshipNode")
+qnTableDimensionRelationshipNode: QName = qname("{http://xbrl.org/2014/table}table:dimensionRelationshipNode")
+qnTableAspectNode: QName = qname("{http://xbrl.org/2014/table}table:aspectNode")
 
 # 2013-MM-DD current CR
 '''
@@ -470,91 +485,91 @@ qnTableAspectNode = qname("{http://xbrl.org/PWD/2013-08-28/table}table:aspectNod
 '''
 
 # prior 2013-05-17 PWD
-table201305 = "http://xbrl.org/PWD/2013-05-17/table"
-tableModel201305 = "http://xbrl.org/PWD/2013-05-17/table/model"
-tableBreakdown201305 = "http://xbrl.org/arcrole/PWD/2013-05-17/table-breakdown"
-tableBreakdownTree201305 = "http://xbrl.org/arcrole/PWD/2013-05-17/breakdown-tree"
-tableDefinitionNodeSubtree201305 = "http://xbrl.org/arcrole/PWD/2013-05-17/definition-node-subtree"
-tableFilter201305 = "http://xbrl.org/arcrole/PWD/2013-05-17/table-filter"
-tableAspectNodeFilter201305 = "http://xbrl.org/arcrole/PWD/2013-05-17/aspect-node-filter"
-qnTableTable201305 = qname("{http://xbrl.org/PWD/2013-05-17/table}table:table")
-qnTableBreakdown201305 = qname("{http://xbrl.org/PWD/2013-05-17/table}table:breakdown")
-qnTableRuleNode201305 = qname("{http://xbrl.org/PWD/2013-05-17/table}table:ruleNode")
-qnTableClosedDefinitionNode201305 = qname("{http://xbrl.org/PWD/2013-05-17/table}table:closedDefinitionNode")
-qnTableConceptRelationshipNode201305 = qname("{http://xbrl.org/PWD/2013-05-17/table}table:conceptRelationshipNode")
-qnTableDimensionRelationshipNode201305 = qname("{http://xbrl.org/PWD/2013-05-17/table}table:dimensionRelationshipNode")
-qnTableAspectNode201305 = qname("{http://xbrl.org/PWD/2013-05-17/table}table:aspectNode")
+table201305: str = "http://xbrl.org/PWD/2013-05-17/table"
+tableModel201305: str = "http://xbrl.org/PWD/2013-05-17/table/model"
+tableBreakdown201305: str = "http://xbrl.org/arcrole/PWD/2013-05-17/table-breakdown"
+tableBreakdownTree201305: str = "http://xbrl.org/arcrole/PWD/2013-05-17/breakdown-tree"
+tableDefinitionNodeSubtree201305: str = "http://xbrl.org/arcrole/PWD/2013-05-17/definition-node-subtree"
+tableFilter201305: str = "http://xbrl.org/arcrole/PWD/2013-05-17/table-filter"
+tableAspectNodeFilter201305: str = "http://xbrl.org/arcrole/PWD/2013-05-17/aspect-node-filter"
+qnTableTable201305: QName = qname("{http://xbrl.org/PWD/2013-05-17/table}table:table")
+qnTableBreakdown201305: QName = qname("{http://xbrl.org/PWD/2013-05-17/table}table:breakdown")
+qnTableRuleNode201305: QName = qname("{http://xbrl.org/PWD/2013-05-17/table}table:ruleNode")
+qnTableClosedDefinitionNode201305: QName = qname("{http://xbrl.org/PWD/2013-05-17/table}table:closedDefinitionNode")
+qnTableConceptRelationshipNode201305: QName = qname("{http://xbrl.org/PWD/2013-05-17/table}table:conceptRelationshipNode")
+qnTableDimensionRelationshipNode201305: QName = qname("{http://xbrl.org/PWD/2013-05-17/table}table:dimensionRelationshipNode")
+qnTableAspectNode201305: QName = qname("{http://xbrl.org/PWD/2013-05-17/table}table:aspectNode")
 
 # prior 2013-01-16 PWD
-table201301 = "http://xbrl.org/PWD/2013-01-16/table"
-tableBreakdown201301 = "http://xbrl.org/arcrole/PWD/2013-01-16/table-breakdown"
-tableFilter201301 = "http://xbrl.org/arcrole/PWD/2013-01-16/table-filter"
-tableDefinitionNodeSubtree201301 = "http://xbrl.org/arcrole/PWD/2013-01-16/definition-node-subtree"
-tableTupleContent201301 = "http://xbrl.org/arcrole/PWD/2013-01-16/tuple-content"
-tableDefinitionNodeMessage201301 = "http://xbrl.org/arcrole/PWD/2013-01-16/definition-node-message"
-tableDefinitionNodeSelectionMessage201301 = "http://xbrl.org/arcrole/PWD/2013-01-16/definition-node-selection-message"
-qnTableTable201301 = qname("{http://xbrl.org/PWD/2013-01-16/table}table:table")
-qnTableCompositionNode201301 = qname("{http://xbrl.org/PWD/2013-01-16/table}table:compositionNode")
-qnTableFilterNode201301 = qname("{http://xbrl.org/PWD/2013-01-16/table}table:filterNode")
-qnTableConceptRelationshipNode201301 = qname("{http://xbrl.org/PWD/2013-01-16/table}table:conceptRelationshipNode")
-qnTableDimensionRelationshipNode201301 = qname("{http://xbrl.org/PWD/2013-01-16/table}table:dimensionRelationshipNode")
-qnTableRuleNode201301 = qname("{http://xbrl.org/PWD/2013-01-16/table}table:ruleNode")
-qnTableClosedDefinitionNode201301 = qname("{http://xbrl.org/PWD/2013-01-16/table}table:closedDefinitionNode")
-qnTableSelectionNode201301 = qname("{http://xbrl.org/PWD/2013-01-16/table}table:selectionNode")
-qnTableTupleNode201301 = qname("{http://xbrl.org/PWD/2013-01-16/table}table:tupleNode")
+table201301: str = "http://xbrl.org/PWD/2013-01-16/table"
+tableBreakdown201301: str = "http://xbrl.org/arcrole/PWD/2013-01-16/table-breakdown"
+tableFilter201301: str = "http://xbrl.org/arcrole/PWD/2013-01-16/table-filter"
+tableDefinitionNodeSubtree201301: str = "http://xbrl.org/arcrole/PWD/2013-01-16/definition-node-subtree"
+tableTupleContent201301: str = "http://xbrl.org/arcrole/PWD/2013-01-16/tuple-content"
+tableDefinitionNodeMessage201301: str = "http://xbrl.org/arcrole/PWD/2013-01-16/definition-node-message"
+tableDefinitionNodeSelectionMessage201301: str = "http://xbrl.org/arcrole/PWD/2013-01-16/definition-node-selection-message"
+qnTableTable201301: QName = qname("{http://xbrl.org/PWD/2013-01-16/table}table:table")
+qnTableCompositionNode201301: QName = qname("{http://xbrl.org/PWD/2013-01-16/table}table:compositionNode")
+qnTableFilterNode201301: QName = qname("{http://xbrl.org/PWD/2013-01-16/table}table:filterNode")
+qnTableConceptRelationshipNode201301: QName = qname("{http://xbrl.org/PWD/2013-01-16/table}table:conceptRelationshipNode")
+qnTableDimensionRelationshipNode201301: QName = qname("{http://xbrl.org/PWD/2013-01-16/table}table:dimensionRelationshipNode")
+qnTableRuleNode201301: QName = qname("{http://xbrl.org/PWD/2013-01-16/table}table:ruleNode")
+qnTableClosedDefinitionNode201301: QName = qname("{http://xbrl.org/PWD/2013-01-16/table}table:closedDefinitionNode")
+qnTableSelectionNode201301: QName = qname("{http://xbrl.org/PWD/2013-01-16/table}table:selectionNode")
+qnTableTupleNode201301: QName = qname("{http://xbrl.org/PWD/2013-01-16/table}table:tupleNode")
 
 # Montreal 2011 table linkbase
-table2011 = "http://xbrl.org/2011/table"
-tableAxis2011 = "http://xbrl.org/arcrole/2011/table-axis"
-tableAxisSubtree2011 = "http://xbrl.org/arcrole/2011/axis/axis-subtree"
-tableFilter2011 = "http://xbrl.org/arcrole/2011/table-filter"
-tableFilterNodeFilter2011 = "http://xbrl.org/arcrole/2011/filter-node-filter"
-tableAxisFilter2011 = "http://xbrl.org/arcrole/2011/axis/axis-filter"
-tableAxisFilter201205 = "http://xbrl.org/arcrole/2011/axis-filter"
-tableTupleContent2011 = "http://xbrl.org/arcrole/2011/axis/tuple-content"
-tableAxisMessage2011 = "http://xbrl.org/arcrole/PWD/2013-01-16/axis-message"
-tableAxisSelectionMessage2011 = "http://xbrl.org/arcrole/PWD/2013-01-16/axis-selection-message"
-qnTableTable2011 = qname("{http://xbrl.org/2011/table}table:table")
-qnTableCompositionAxis2011 = qname("{http://xbrl.org/2011/table}table:compositionAxis")
-qnTableFilterAxis2011 = qname("{http://xbrl.org/2011/table}table:filterAxis")
-qnTableConceptRelationshipAxis2011 = qname("{http://xbrl.org/2011/table}table:conceptRelationshipAxis")
-qnTableDimensionRelationshipAxis2011 = qname("{http://xbrl.org/2011/table}table:dimensionRelationshipAxis")
-qnTableRuleAxis2011 = qname("{http://xbrl.org/2011/table}table:ruleAxis")
-qnTablePredefinedAxis2011 = qname("{http://xbrl.org/2011/table}table:predefinedAxis")
-qnTableSelectionAxis2011 = qname("{http://xbrl.org/2011/table}table:selectionAxis")
-qnTableTupleAxis2011 = qname("{http://xbrl.org/2011/table}table:tupleAxis")
+table2011: str = "http://xbrl.org/2011/table"
+tableAxis2011: str = "http://xbrl.org/arcrole/2011/table-axis"
+tableAxisSubtree2011: str = "http://xbrl.org/arcrole/2011/axis/axis-subtree"
+tableFilter2011: str = "http://xbrl.org/arcrole/2011/table-filter"
+tableFilterNodeFilter2011: str = "http://xbrl.org/arcrole/2011/filter-node-filter"
+tableAxisFilter2011: str = "http://xbrl.org/arcrole/2011/axis/axis-filter"
+tableAxisFilter201205: str = "http://xbrl.org/arcrole/2011/axis-filter"
+tableTupleContent2011: str = "http://xbrl.org/arcrole/2011/axis/tuple-content"
+tableAxisMessage2011: str = "http://xbrl.org/arcrole/PWD/2013-01-16/axis-message"
+tableAxisSelectionMessage2011: str = "http://xbrl.org/arcrole/PWD/2013-01-16/axis-selection-message"
+qnTableTable2011: QName = qname("{http://xbrl.org/2011/table}table:table")
+qnTableCompositionAxis2011: QName = qname("{http://xbrl.org/2011/table}table:compositionAxis")
+qnTableFilterAxis2011: QName = qname("{http://xbrl.org/2011/table}table:filterAxis")
+qnTableConceptRelationshipAxis2011: QName = qname("{http://xbrl.org/2011/table}table:conceptRelationshipAxis")
+qnTableDimensionRelationshipAxis2011: QName = qname("{http://xbrl.org/2011/table}table:dimensionRelationshipAxis")
+qnTableRuleAxis2011: QName = qname("{http://xbrl.org/2011/table}table:ruleAxis")
+qnTablePredefinedAxis2011: QName = qname("{http://xbrl.org/2011/table}table:predefinedAxis")
+qnTableSelectionAxis2011: QName = qname("{http://xbrl.org/2011/table}table:selectionAxis")
+qnTableTupleAxis2011: QName = qname("{http://xbrl.org/2011/table}table:tupleAxis")
 
-booleanValueTrue = "true"
-booleanValueFalse = "false"
+booleanValueTrue: str = "true"
+booleanValueFalse: str = "false"
 
 # Eurofiling 2010 table linkbase
-euRend = "http://www.eurofiling.info/2010/rendering"
-euTableAxis = "http://www.eurofiling.info/arcrole/2010/table-axis"
-euAxisMember = "http://www.eurofiling.info/arcrole/2010/axis-member"
-qnEuTable = qname("{http://www.eurofiling.info/2010/rendering}rendering:table")
-qnEuAxisCoord = qname("{http://www.eurofiling.info/2010/rendering}rendering:axisCoord")
-euGroupTable = "http://www.eurofiling.info/xbrl/arcrole/group-table"
+euRend: str = "http://www.eurofiling.info/2010/rendering"
+euTableAxis: str = "http://www.eurofiling.info/arcrole/2010/table-axis"
+euAxisMember: str = "http://www.eurofiling.info/arcrole/2010/axis-member"
+qnEuTable: QName = qname("{http://www.eurofiling.info/2010/rendering}rendering:table")
+qnEuAxisCoord: QName = qname("{http://www.eurofiling.info/2010/rendering}rendering:axisCoord")
+euGroupTable: str = "http://www.eurofiling.info/xbrl/arcrole/group-table"
 
 # Anchoring (ESEF and allowed by SEC)
-widerNarrower = "http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower"
+widerNarrower: str = "http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower"
 
-xdtSchemaErrorNS = "http://www.xbrl.org/2005/genericXmlSchemaError"
-errMsgPrefixNS = { # err prefixes which are not declared, such as XPath's "err" prefix
+xdtSchemaErrorNS: str = "http://www.xbrl.org/2005/genericXmlSchemaError"
+errMsgPrefixNS: dict[str, str] = { # err prefixes which are not declared, such as XPath's "err" prefix
     "err": xpath2err,
     "xmlSchema": xdtSchemaErrorNS,
     "utre" : "http://www.xbrl.org/2009/utr/errors",
     }
 
 # Filing Indicators
-qnEuFiTuple = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}ef-find:fIndicators")
-qnEuFiIndFact = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}ef-find:filingIndicator")
-cnEuFiIndAttr = "{http://www.eurofiling.info/xbrl/ext/filing-indicators}filed" # clark name
-qnFiFact = qname("{http://www.xbrl.org/taxonomy/int/filing-indicators/REC/2021-02-03}fi:filed")
-qnFiDim = qname("{http://www.xbrl.org/taxonomy/int/filing-indicators/REC/2021-02-03}fi:template")
+qnEuFiTuple: QName = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}ef-find:fIndicators")
+qnEuFiIndFact: QName = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}ef-find:filingIndicator")
+cnEuFiIndAttr: str = "{http://www.eurofiling.info/xbrl/ext/filing-indicators}filed" # clark name
+qnFiFact: QName = qname("{http://www.xbrl.org/taxonomy/int/filing-indicators/REC/2021-02-03}fi:filed")
+qnFiDim: QName = qname("{http://www.xbrl.org/taxonomy/int/filing-indicators/REC/2021-02-03}fi:template")
 
-arcroleGroupDetect = "*detect*"
+arcroleGroupDetect: str = "*detect*"
 
-def baseSetArcroleLabel(arcrole): # with sort char in first position
+def baseSetArcroleLabel(arcrole: str)-> str: # with sort char in first position
     if arcrole == "XBRL-dimensions": return _("1Dimension")
     if arcrole == "XBRL-formulae": return _("1Formula")
     if arcrole == "Table-rendering": return _("1Rendering")
@@ -563,15 +578,15 @@ def baseSetArcroleLabel(arcrole): # with sort char in first position
     if arcrole == widerNarrower: return ("1Anchoring")
     return "2" + os.path.basename(arcrole).title()
 
-def labelroleLabel(role): # with sort char in first position
+def labelroleLabel(role: str) -> str: # with sort char in first position
     if role == standardLabel: return _("1Standard Label")
     elif role == conceptNameLabelRole: return _("0Name")
     return "3" + os.path.basename(role).title()
 
-def isStandardNamespace(namespaceURI) -> bool:
+def isStandardNamespace(namespaceURI: str) -> bool:
     return namespaceURI in {xsd, xbrli, link, gen, xbrldt, xbrldi}
 
-standardNamespaceSchemaLocations = {
+standardNamespaceSchemaLocations: dict[str, str] = {
     xbrli: "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd",
     link: "http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd",
     xl: "http://www.xbrl.org/2003/xl-2003-12-31.xsd",
@@ -583,17 +598,17 @@ standardNamespaceSchemaLocations = {
     genReference: "http://www.xbrl.org/2008/generic-reference.xsd"
     }
 
-def isNumericXsdType(xsdType):
+def isNumericXsdType(xsdType: str) -> bool:
     return xsdType in {"integer", "positiveInteger", "negativeInteger", "nonNegativeInteger", "nonPositiveInteger",
                        "long", "unsignedLong", "int", "unsignedInt", "short", "unsignedShort",
                        "byte", "unsignedByte", "decimal", "float", "double"}
 
-def isIntegerXsdType(xsdType):
+def isIntegerXsdType(xsdType: str) -> bool:
     return xsdType in {"integer", "positiveInteger", "negativeInteger", "nonNegativeInteger", "nonPositiveInteger",
                        "long", "unsignedLong", "int", "unsignedInt", "short", "unsignedShort",
                        "byte", "unsignedByte"}
 
-standardLabelRoles = {
+standardLabelRoles: set[str] = {
                     "http://www.xbrl.org/2003/role/label",
                     "http://www.xbrl.org/2003/role/terseLabel",
                     "http://www.xbrl.org/2003/role/verboseLabel",
@@ -617,7 +632,7 @@ standardLabelRoles = {
                     "http://www.xbrl.org/2003/role/commentaryGuidance",
                     "http://www.xbrl.org/2003/role/exampleGuidance"}
 
-standardReferenceRoles = {
+standardReferenceRoles: set[str] = {
                     "http://www.xbrl.org/2003/role/reference",
                     "http://www.xbrl.org/2003/role/definitionRef",
                     "http://www.xbrl.org/2003/role/disclosureRef",
@@ -629,33 +644,33 @@ standardReferenceRoles = {
                     "http://www.xbrl.org/2003/role/commentaryRef",
                     "http://www.xbrl.org/2003/role/exampleRef"}
 
-standardLinkbaseRefRoles = {
+standardLinkbaseRefRoles: set[str] = {
                     "http://www.xbrl.org/2003/role/calculationLinkbaseRef",
                     "http://www.xbrl.org/2003/role/definitionLinkbaseRef",
                     "http://www.xbrl.org/2003/role/labelLinkbaseRef",
                     "http://www.xbrl.org/2003/role/presentationLinkbaseRef",
                     "http://www.xbrl.org/2003/role/referenceLinkbaseRef"}
 
-standardRoles = standardLabelRoles | standardReferenceRoles | standardLinkbaseRefRoles | {
+standardRoles: set[str] = standardLabelRoles | standardReferenceRoles | standardLinkbaseRefRoles | {
                     "http://www.xbrl.org/2003/role/link",
                     "http://www.xbrl.org/2003/role/footnote"}
 
-def isStandardRole(role):
+def isStandardRole(role: str) -> bool:
     return role in standardRoles
 
-def isTotalRole(role):
+def isTotalRole(role: str) -> bool:
     return role in {"http://www.xbrl.org/2003/role/totalLabel",
                     "http://xbrl.us/us-gaap/role/label/negatedTotal",
                     "http://www.xbrl.org/2009/role/negatedTotalLabel"}
 
-def isNetRole(role):
+def isNetRole(role: str) -> bool:
     return role in {"http://www.xbrl.org/2009/role/netLabel",
                     "http://www.xbrl.org/2009/role/negatedNetLabel"}
 
-def isLabelRole(role):
+def isLabelRole(role: str) -> bool:
     return role in standardLabelRoles or role == genLabel
 
-def isNumericRole(role):
+def isNumericRole(role: str) -> bool:
     return role in {"http://www.xbrl.org/2003/role/totalLabel",
                     "http://www.xbrl.org/2003/role/positiveLabel",
                     "http://www.xbrl.org/2003/role/negativeLabel",
@@ -674,7 +689,7 @@ def isNumericRole(role):
                     "http://www.xbrl.org/2009/role/negatedTerseLabel"
                     }
 
-def isStandardArcrole(role):
+def isStandardArcrole(role: str) -> bool:
     return role in {"http://www.w3.org/1999/xlink/properties/linkbase",
                     "http://www.xbrl.org/2003/arcrole/concept-label",
                     "http://www.xbrl.org/2003/arcrole/concept-reference",
@@ -686,7 +701,7 @@ def isStandardArcrole(role):
                     "http://www.xbrl.org/2003/arcrole/similar-tuples",
                     "http://www.xbrl.org/2003/arcrole/requires-element"}
 
-standardArcroleCyclesAllowed = {
+standardArcroleCyclesAllowed: dict[str, Tuple[str, str | None]] = {
                     "http://www.xbrl.org/2003/arcrole/concept-label":("any", None),
                     "http://www.xbrl.org/2003/arcrole/concept-reference":("any", None),
                     "http://www.xbrl.org/2003/arcrole/fact-footnote":("any",None),
@@ -697,7 +712,7 @@ standardArcroleCyclesAllowed = {
                     "http://www.xbrl.org/2003/arcrole/similar-tuples":("any", "xbrl.5.2.6.2.3"),
                     "http://www.xbrl.org/2003/arcrole/requires-element":("any", "xbrl.5.2.6.2.4")}
 
-def standardArcroleArcElement(arcrole):
+def standardArcroleArcElement(arcrole: str) -> str:
     return {"http://www.xbrl.org/2003/arcrole/concept-label":"labelArc",
             "http://www.xbrl.org/2003/arcrole/concept-reference":"referenceArc",
             "http://www.xbrl.org/2003/arcrole/fact-footnote":"footnoteArc",
@@ -708,36 +723,36 @@ def standardArcroleArcElement(arcrole):
             "http://www.xbrl.org/2003/arcrole/similar-tuples":"definitionArc",
             "http://www.xbrl.org/2003/arcrole/requires-element":"definitionArc"}[arcrole]
 
-def isDefinitionOrXdtArcrole(arcrole):
+def isDefinitionOrXdtArcrole(arcrole: str) -> bool:
     return isDimensionArcrole(arcrole) or arcrole in {
             "http://www.xbrl.org/2003/arcrole/general-special",
             "http://www.xbrl.org/2003/arcrole/essence-alias",
             "http://www.xbrl.org/2003/arcrole/similar-tuples",
             "http://www.xbrl.org/2003/arcrole/requires-element"}
 
-def isStandardResourceOrExtLinkElement(element):
+def isStandardResourceOrExtLinkElement(element: ModelObject) -> bool:
     return element.namespaceURI == link and element.localName in {
           "definitionLink", "calculationLink", "presentationLink", "labelLink", "referenceLink", "footnoteLink",
           "label", "footnote", "reference"} or \
           element.qname == qnIXbrl11Relationship
 
-def isStandardArcElement(element):
+def isStandardArcElement(element: ModelObject) -> bool:
     return element.namespaceURI == link and element.localName in {
           "definitionArc", "calculationArc", "presentationArc", "labelArc", "referenceArc", "footnoteArc"} or \
           element.qname == qnIXbrl11Relationship
 
-def isStandardArcInExtLinkElement(element):
-    return ((isStandardArcElement(element) and isStandardResourceOrExtLinkElement(element.getparent())) or
+def isStandardArcInExtLinkElement(element: ModelObject) -> bool:
+    return ((isStandardArcElement(element) and isStandardResourceOrExtLinkElement(cast(ModelObject, element.getparent()))) or
             element.qname == qnIXbrl11Relationship)
 
-standardExtLinkQnames = {qname("{http://www.xbrl.org/2003/linkbase}definitionLink"),
+standardExtLinkQnames: set[QName] = {qname("{http://www.xbrl.org/2003/linkbase}definitionLink"),
                          qname("{http://www.xbrl.org/2003/linkbase}calculationLink"),
                          qname("{http://www.xbrl.org/2003/linkbase}presentationLink"),
                          qname("{http://www.xbrl.org/2003/linkbase}labelLink"),
                          qname("{http://www.xbrl.org/2003/linkbase}referenceLink"),
                          qname("{http://www.xbrl.org/2003/linkbase}footnoteLink")}
 
-standardExtLinkQnamesAndResources = {qname("{http://www.xbrl.org/2003/linkbase}definitionLink"),
+standardExtLinkQnamesAndResources: set[QName] = {qname("{http://www.xbrl.org/2003/linkbase}definitionLink"),
                                      qname("{http://www.xbrl.org/2003/linkbase}calculationLink"),
                                      qname("{http://www.xbrl.org/2003/linkbase}presentationLink"),
                                      qname("{http://www.xbrl.org/2003/linkbase}labelLink"),
@@ -747,10 +762,10 @@ standardExtLinkQnamesAndResources = {qname("{http://www.xbrl.org/2003/linkbase}d
                                      qname("{http://www.xbrl.org/2003/linkbase}footnote"),
                                      qname("{http://www.xbrl.org/2003/linkbase}reference")}
 
-def isStandardExtLinkQname(qName) -> bool:
+def isStandardExtLinkQname(qName: QName) -> bool:
     return qName in standardExtLinkQnamesAndResources
 
-def isStandardArcQname(qName) -> bool:
+def isStandardArcQname(qName: QName) -> bool:
     return qName in {
           qname("{http://www.xbrl.org/2003/linkbase}definitionArc"),
           qname("{http://www.xbrl.org/2003/linkbase}calculationArc"),
@@ -759,17 +774,17 @@ def isStandardArcQname(qName) -> bool:
           qname("{http://www.xbrl.org/2003/linkbase}referenceArc"),
           qname("{http://www.xbrl.org/2003/linkbase}footnoteArc")}
 
-def isDimensionArcrole(arcrole):
+def isDimensionArcrole(arcrole: str) -> bool:
     return arcrole.startswith("http://xbrl.org/int/dim/arcrole/")
 
-consecutiveArcrole = { # can be list of or single arcrole
+consecutiveArcrole: dict[str, str | Tuple[str, ...]] = { # can be list of or single arcrole
     all: (dimensionDomain,hypercubeDimension), notAll: (dimensionDomain,hypercubeDimension),
     hypercubeDimension: dimensionDomain,
     dimensionDomain: (domainMember, all, notAll),
     domainMember: (domainMember, all, notAll),
     dimensionDefault: ()}
 
-def isTableRenderingArcrole(arcrole):
+def isTableRenderingArcrole(arcrole: str) -> bool:
     return arcrole in {# current PWD 2013-05-17
                        tableBreakdown, tableBreakdownTree, tableFilter, tableParameter,
                        tableDefinitionNodeSubtree, tableAspectNodeFilter,
@@ -795,10 +810,10 @@ def isTableRenderingArcrole(arcrole):
                        }
 
 tableIndexingArcroles = frozenset((euGroupTable,))
-def isTableIndexingArcrole(arcrole):
+def isTableIndexingArcrole(arcrole: str) -> bool:
     return arcrole in tableIndexingArcroles
 
-def isFormulaArcrole(arcrole):
+def isFormulaArcrole(arcrole: str) -> bool:
     return arcrole in {"http://xbrl.org/arcrole/2008/assertion-set",
                        "http://xbrl.org/arcrole/2008/variable-set",
                        "http://xbrl.org/arcrole/2008/variable-set-filter",
@@ -815,7 +830,7 @@ def isFormulaArcrole(arcrole):
                        "http://xbrl.org/arcrole/2010/function-implementation",
                        "http://xbrl.org/arcrole/2010/variables-scope"}
 
-def isResourceArcrole(arcrole):
+def isResourceArcrole(arcrole: str) -> bool:
     return (arcrole in {"http://www.xbrl.org/2003/arcrole/concept-label",
                         "http://www.xbrl.org/2003/arcrole/concept-reference",
                         "http://www.xbrl.org/2003/arcrole/fact-footnote",
@@ -824,7 +839,7 @@ def isResourceArcrole(arcrole):
             or isFormulaArcrole(arcrole))
 
 # LRR (https://specifications.xbrl.org/registries/lrr-2.0/index.html)
-lrrRoleHrefs = {
+lrrRoleHrefs: dict[str, str] = {
     "http://www.xbrl.org/2006/role/restatedLabel": "http://www.xbrl.org/lrr/role/restated-2006-02-21.xsd#restatedLabel",
     "http://xbrl.us/us-gaap/role/label/negated": "http://www.xbrl.org/lrr/role/negated-2008-03-31.xsd#negated",
     "http://xbrl.us/us-gaap/role/label/negatedPeriodEnd": "http://www.xbrl.org/lrr/role/negated-2008-03-31.xsd#negatedPeriodEnd",
@@ -859,7 +874,7 @@ lrrRoleHrefs = {
     "http://www.xbrl.org/2009/role/nonauthoritativeLiteratureRef": "http://www.xbrl.org/lrr/role/reference-2009-12-16.xsd#nonauthoritativeLiteratureRef",
     "http://www.xbrl.org/2009/role/recognitionRef": "http://www.xbrl.org/lrr/role/reference-2009-12-16.xsd#recognitionRef",
     }
-lrrArcroleHrefs = {
+lrrArcroleHrefs: dict[str, str] = {
     "http://info.edinet-fsa.go.jp/jp/fr/gaap/arcrole/Gross-Net": "http://www.xbrl.org/lrr/arcrole/jpfr-arcrole-2007-11-07.xsd#ArcroleGrossNet",
     "http://info.edinet-fsa.go.jp/jp/fr/gaap/arcrole/Gross-Allowance": "http://www.xbrl.org/lrr/arcrole/jpfr-arcrole-2007-11-07.xsd#ArcroleGrossAllowance",
     "http://info.edinet-fsa.go.jp/jp/fr/gaap/arcrole/Gross-AccumulatedDepreciation": "http://www.xbrl.org/lrr/arcrole/jpfr-arcrole-2007-11-07.xsd#ArcroleGrossAccumulatedDepreciation",
@@ -874,7 +889,7 @@ lrrArcroleHrefs = {
     "http://www.xbrl.org/2013/arcrole/parent-child": "http://www.xbrl.org/lrr/arcrole/parent-child-2013-09-19.xsd#parent-child",
     "http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower": "http://www.xbrl.org/lrr/arcrole/esma-arcrole-2018-11-21.xsd#wider-narrower",
     }
-lrrUnapprovedRoles = { # lrr entries which are not REC or ACK status
+lrrUnapprovedRoles: dict[str, str] = { # lrr entries which are not REC or ACK status
     "http://info.edinet-fsa.go.jp/jp/fr/gaap/role/NotesNumber":"IWD",
     "http://info.edinet-fsa.go.jp/jp/fr/gaap/role/NotesNumberPeriodStart": "IWD",
     "http://info.edinet-fsa.go.jp/jp/fr/gaap/role/NotesNumberPeriodEnd": "IWD",
@@ -883,7 +898,7 @@ lrrUnapprovedRoles = { # lrr entries which are not REC or ACK status
     # only for test case use
     "http://www.xbrl.org/2005/role/nieRole": "NIE",
     }
-lrrUnapprovedArcroles = { # lrr entries which are not REC or ACK status
+lrrUnapprovedArcroles: dict[str, str] = { # lrr entries which are not REC or ACK status
     # only for test case use
     "http://www.xbrl.org/2005/arcrole/nieRole": "NIE",
     }
