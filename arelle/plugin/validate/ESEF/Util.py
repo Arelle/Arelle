@@ -8,7 +8,7 @@ Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 '''
 from __future__ import annotations
 import os, json
-
+import io
 from arelle.ModelObject import ModelObject
 from .Const import esefTaxonomyNamespaceURIs
 from lxml.etree import XML, XMLSyntaxError
@@ -17,9 +17,12 @@ from arelle.UrlUtil import scheme
 from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
-from typing import Any, Union, cast
+from typing import TYPE_CHECKING, Any, Union, cast
 from arelle.ModelDocument import ModelDocument
 from arelle.typing import TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.FileSource import FileSource
 
 _: TypeGetText  # Handle gettext
 
@@ -123,6 +126,9 @@ def resourcesFilePath(modelManager: ModelManager, fileName: str) -> str:
 
 def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]:
     _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), 'rt', encoding='utf-8')
+    assert not isinstance(_file, io.IOBase)
+    assert not isinstance(_file, FileSource)
     validations = json.load(_file) # {localName: date, ...}
+    assert isinstance(_file, io.IOBase)
     _file.close()
     return cast(Union[dict[Any, Any], list[Any]], validations)
