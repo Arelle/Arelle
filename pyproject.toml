@@ -108,6 +108,7 @@ module = [
     'arelle.Updater',
     'arelle.UrlUtil',
     'arelle.ValidateXbrl',
+    'arelle.XbrlUtil',
     'arelle.XmlUtil',
 ]
 ignore_errors = false
