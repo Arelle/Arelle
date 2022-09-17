@@ -96,6 +96,7 @@ module = [
     'arelle.plugin.validate.ESEF.*',
     'arelle.Cntlr',
     'arelle.FileSource',
+    'arelle.ModelObject',
     'arelle.Updater',
     'arelle.UrlUtil',
     'arelle.ValidateXbrl',
