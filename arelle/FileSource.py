@@ -6,12 +6,11 @@ Created on Oct 20, 2010
 '''
 from __future__ import annotations
 from typing import IO, TYPE_CHECKING, Any, Union, cast
-import zipfile, tarfile, os, io, errno, base64, gzip, zlib, re, struct, random, time
+import zipfile, tarfile, os, io, errno, base64, gzip, zlib, re, struct, random
 from lxml import etree
 from arelle import XmlUtil
 from arelle import PackageManager
 from arelle.UrlUtil import isHttpUrl
-from operator import indexOf
 from arelle.typing import TypeGetText
 import arelle.PluginManager
 
