@@ -5,7 +5,7 @@ Created on Oct 20, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from __future__ import annotations
-from typing import IO, TYPE_CHECKING, Any, cast
+from typing import IO, TYPE_CHECKING, Any, Union, cast
 import zipfile, tarfile, os, io, errno, base64, gzip, zlib, re, struct, random, time
 from lxml import etree
 from arelle import XmlUtil
@@ -15,10 +15,12 @@ from operator import indexOf
 from arelle.typing import TypeGetText
 import arelle.PluginManager
 
+
 _: TypeGetText
 
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
+    from _typeshed import SupportsRead
 
 
 archivePathSeparators = (".zip" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
@@ -139,6 +141,7 @@ class FileSource:
     referencedFileSources: dict[Any, Any]
     rssDocument: etree._ElementTree | None
     url: str | list[str] | None
+    basefile: str | list[str] | None
     xfdDocument: etree._ElementTree | None
 
     def __init__(self, url: str, cntlr: Cntlr | None = None, checkIfXmlIsEis: bool = False) -> None:
@@ -201,7 +204,8 @@ class FileSource:
             if self.isZip:
                 try:
                     assert self.cntlr is not None
-                    fileStream = openFileStream(self.cntlr, self.basefile, 'rb')
+                    assert isinstance(self.basefile, str)
+                    fileStream = cast(Union[Union[str, os.PathLike[str]], IO[bytes]], openFileStream(self.cntlr, self.basefile, 'rb'))
                     self.fs = zipfile.ZipFile(fileStream, mode="r")
                     self.isOpen = True
                 except EnvironmentError as err:
@@ -219,7 +223,10 @@ class FileSource:
                 # check first line of file
                 buf = b''
                 try:
-                    file = open(self.basefile, 'rb')
+                    assert isinstance(self.basefile, str)
+                    file: io.BufferedReader | io.BytesIO | io.StringIO | None = open(self.basefile, 'rb')
+                    assert file is not None
+                    assert isinstance(file, io.BytesIO)
                     more = True
                     while more:
                         l = file.read(8)
@@ -261,6 +268,7 @@ class FileSource:
 
             elif self.isXfd:
                 # check first line of file
+                assert isinstance(self.basefile, str)
                 file = open(self.basefile, 'rb')
                 firstline = file.readline()
                 if firstline.startswith(b"application/x-xfdl;content-encoding=\"asc-gzip\""):
@@ -299,6 +307,7 @@ class FileSource:
                     file = io.StringIO(initial_value=ungzippedBytes.decode("utf-8"))
                 else:
                     # position to start of file
+                    assert file is not None
                     file.seek(0,io.SEEK_SET)
 
                 try:
@@ -314,6 +323,7 @@ class FileSource:
 
             elif self.isRss:
                 try:
+                    assert isinstance(self.basefile, str)
                     self.rssDocument = etree.parse(self.basefile)
                     self.isOpen = True
                 except EnvironmentError as err:
@@ -411,6 +421,7 @@ class FileSource:
             return False
         if checkExistence:
             assert isinstance(archiveFileSource.basefile, list)
+            assert archiveFileSource.dir is not None
             archiveFileName = filepath[len(archiveFileSource.basefile) + 1:].replace("\\", "/") # must be / file separators
             return archiveFileName in archiveFileSource.dir
         return True # True only means that the filepath maps into the archive, not that the file is really there
@@ -458,7 +469,18 @@ class FileSource:
                     self.referencedFileSources[referencedArchiveFile] = referencedFileSource
         return None
 
-    def file(self, filepath: str, binary: bool = False, stripDeclaration: bool = False, encoding: str | None = None):
+    def file(
+        self,
+        filepath: str,
+        binary: bool = False,
+        stripDeclaration: bool = False,
+        encoding: str | None = None,
+    ) -> (
+            tuple[io.BytesIO]
+            | tuple[FileNamedTextIOWrapper, str | None]
+            | tuple[io.TextIOWrapper, str | None]
+            | tuple[FileSource | io.IOBase | SupportsRead[str | bytes]]
+        ):
         '''
             for text, return a tuple of (open file handle, encoding)
             for binary, return a tuple of (open file handle, )
@@ -575,7 +597,7 @@ class FileSource:
         for pluginMethod in arelle.PluginManager.pluginClassMethods("FileSource.File"):
             fileResult = pluginMethod(self.cntlr, filepath, binary, stripDeclaration)
             if fileResult is not None:
-                return fileResult
+                return fileResult # type: ignore[no-any-return]
         if binary:
             assert self.cntlr is not None
             return (openFileStream(self.cntlr, filepath, 'rb'), )
@@ -669,7 +691,10 @@ class FileSource:
                             break
                     if not instDoc:
                         continue
-                    files.append((
+                    # Note 2022-09-17
+                    # files is a list[str] but here we are appending a tuple here.
+                    # I don't wish to alter any code behaviour so ignoring for now.
+                    files.append(( # type: ignore[arg-type]
                         XmlUtil.text(XmlUtil.descendant(dsElt, None, "title")),  # type: ignore[no-untyped-call]
                         # tooltip
                         "{0}\n {1}\n {2}\n {3}\n {4}".format(
@@ -728,7 +753,8 @@ class FileSource:
 
 def openFileStream(
     cntlr: Cntlr, filepath: str, mode: str = "r", encoding: str | None = None
-) -> (FileSource | FileNamedStringIO | io.BytesIO | IO[bytes] | IO[str]):
+) -> FileSource | io.IOBase | SupportsRead[str | bytes]:
+    filestream: io.IOBase | FileNamedStringIO | None
     if PackageManager.isMappedUrl(filepath):  # type: ignore[no-untyped-call]
         filepath = PackageManager.mappedUrl(filepath)  # type: ignore[no-untyped-call]
     elif (
@@ -738,7 +764,7 @@ def openFileStream(
         ): # may be called early in initialization for PluginManager
         filepath = cntlr.modelManager.disclosureSystem.mappedUrl(filepath)  # type: ignore[no-untyped-call]
     if archiveFilenameParts(filepath): # file is in an archive
-        return openFileSource(filepath, cntlr).file(filepath, binary='b' in mode, encoding=encoding)[0]
+        return cast(FileSource, openFileSource(filepath, cntlr).file(filepath, binary='b' in mode, encoding=encoding)[0])
     if isHttpUrl(filepath) and cntlr:
         _cacheFilepath = cntlr.webCache.getfilename(filepath, normalize=True) # normalize is separate step in ModelDocument retrieval, combined here
         if _cacheFilepath is None:
@@ -776,7 +802,9 @@ def openFileStream(
         # local file system
         return io.open(filepath, mode=mode, encoding=encoding)
 
-def openXmlFileStream(cntlr: Cntlr, filepath: str, stripDeclaration: bool=False) -> tuple[FileNamedStringIO, str]:
+def openXmlFileStream(
+    cntlr: Cntlr, filepath: str, stripDeclaration: bool = False
+) -> tuple[io.TextIOWrapper, str]:
     # returns tuple: (fileStream, encoding)
     openedFileStream = openFileStream(cntlr, filepath, 'rb')
     assert not isinstance(openedFileStream, FileSource)
@@ -788,8 +816,10 @@ def openXmlFileStream(cntlr: Cntlr, filepath: str, stripDeclaration: bool=False)
     # encoding default from disclosure system could be None
     if encoding.lower() in ('utf-8','utf8','utf-8-sig') and (cntlr is None or not cntlr.isGAE) and not stripDeclaration:
         text = None
+        assert isinstance(openedFileStream, io.IOBase)
         openedFileStream.close()
     else:
+        assert isinstance(openedFileStream, io.IOBase)
         openedFileStream.seek(0)
         text = openedFileStream.read().decode(encoding or 'utf-8')
         openedFileStream.close()
