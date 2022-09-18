@@ -10,9 +10,10 @@ try:
 except ImportError:
     import re
 from lxml import etree
+from arelle.arelle_c import QName, ModelObject, ModelComment
 from arelle.XbrlConst import ixbrlAll, qnLinkFootnote, xhtml, xml, xsd, xhtml
-from arelle.ModelObject import ModelObject, ModelComment
-from arelle.ModelValue import qname, QName
+from arelle.ModelValue import qname
+htmlEltUriAttrs = resolveHtmlUri = None
 
 datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})\s*|"
                              r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*")
@@ -22,49 +23,16 @@ xmlnsStripPattern = re.compile(r'\s*xmlns(:[\w.-]+)?="[^"]*"')
 nonSpacePattern = re.compile(r"\S+")
 
 def xmlns(element, prefix):
-    ns = element.nsmap.get(prefix)
-    if ns:
-        return ns
-    if prefix == 'xml': # not normally declared explicitly
-        return xml
-    return ns # return results of get (which may be no namespace
+    return element.xmlnsPrefixNamespace(prefix)
 
 def xmlnsprefix(element, ns):
-    if ns is None:
-        return None
-    if ns == xml: # never declared explicitly
-        return 'xml'
-    for prefix, NS in element.nsmap.items():
-        if NS == ns:
-            if prefix is not None:
-                return prefix
-            else:
-                return ""   # prefix none but exists, xml process as zero-length string
-    return None
+    return element.xmlnsNamespacePrefix(ns)
     
 def targetNamespace(element):
     treeElt = element
     while treeElt is not None:
         if treeElt.localName == "schema" and treeElt.namespaceURI == xsd and treeElt.get("targetNamespace"):
             return treeElt.get("targetNamespace")
-        treeElt = treeElt.getparent()
-    return None
-
-def schemaLocation(element, namespace, returnElement=False):
-    treeElt = element
-    while treeElt is not None:
-        sl = treeElt.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
-        if sl:
-            ns = None
-            for entry in sl.split():
-                if ns is None:
-                    if returnElement and entry == namespace:
-                        return treeElt
-                    ns = entry
-                else:
-                    if not returnElement and ns == namespace:
-                        return entry
-                    ns = None
         treeElt = treeElt.getparent()
     return None
 
@@ -150,47 +118,54 @@ def textNotStripped(element):
     return element.textValue  # allows embedded comment nodes, returns '' if None
 
 # ixEscape can be None, "html" (xhtml namespace becomes default), "xhtml", or "xml"
-def innerText(element, ixExclude=False, ixEscape=None, ixContinuation=False, strip=True):   
+def innerText(element, ixExclude=False, ixEscape=None, ixContinuation=False, ixResolveUris=False, strip=True):   
     try:
-        text = "".join(text for text in innerTextNodes(element, ixExclude, ixEscape, ixContinuation))
+        text = "".join(text for text in innerTextNodes(element, ixExclude, ixEscape, ixContinuation, ixResolveUris))
         if strip:
-            return text.strip()
+            return text.strip(" \t\r\n") # strip follows xml whitespace collapse, only blank, tab and newlines
         return text
     except (AttributeError, TypeError):
         return ""
 
-def innerTextList(element, ixExclude=False, ixEscape=None, ixContinuation=False):   
+def innerTextList(element, ixExclude=False, ixEscape=None, ixContinuation=False, ixResolveUris=False):   
     try:
-        return ", ".join(text.strip() for text in innerTextNodes(element, ixExclude, ixEscape, ixContinuation) if len(text.strip()) > 0)
+        return ", ".join(text.strip() for text in innerTextNodes(element, ixExclude, ixEscape, ixContinuation, ixResolveUris) if len(text.strip()) > 0)
     except (AttributeError, TypeError):
         return ""
 
-def innerTextNodes(element, ixExclude, ixEscape, ixContinuation):
-    if element.text:
-        yield escapedText(element.text) if ixEscape else element.text
-    for child in element.iterchildren():
-        if isinstance(child,ModelObject) and (
-           not ixExclude or 
-           not (child.localName == "exclude" and child.namespaceURI in ixbrlAll)):
-            firstChild = True
-            for nestedText in innerTextNodes(child, ixExclude, ixEscape, False): # nested elements don't participate in continuation chain
-                if firstChild and ixEscape:
-                    yield escapedNode(child, True, False, ixEscape)
-                    firstChild = False
-                yield nestedText
-            if ixEscape:
-                yield escapedNode(child, False, firstChild, ixEscape)
-        if child.tail:
-            yield escapedText(child.tail) if ixEscape else child.tail
-    if ixContinuation:
-        contAt = getattr(element, "_continuationElement", None)
-        if contAt is not None:
-            for contText in innerTextNodes(contAt, ixExclude, ixEscape, ixContinuation):
-                yield contText
+def innerTextNodes(element, ixExclude, ixEscape, ixContinuation, ixResolveUris):
+    global htmlEltUriAttrs, resolveHtmlUri
+    if htmlEltUriAttrs is None:
+        from arelle.XhtmlValidate import htmlEltUriAttrs, resolveHtmlUri
+    while element is not None:
+        if element.text:
+            yield escapedText(element.text) if ixEscape else element.text
+        for child in element.iterchildren():
+            if isinstance(child,ModelObject) and (
+               not ixExclude or 
+               not ((child.localName == "exclude" or ixExclude == "tuple") and child.namespaceURI in ixbrlAll)):
+                firstChild = True
+                for nestedText in innerTextNodes(child, ixExclude, ixEscape, False, ixResolveUris): # nested elements don't participate in continuation chain
+                    if firstChild and ixEscape:
+                        yield escapedNode(child, True, False, ixEscape, ixResolveUris)
+                        firstChild = False
+                    yield nestedText
+                if ixEscape:
+                    yield escapedNode(child, False, firstChild, ixEscape, ixResolveUris)
+            if child.tail:
+                yield escapedText(child.tail) if ixEscape else child.tail
+        if ixContinuation:
+            element = element.get("=continuationElement")
+        else:
+            break
             
-def escapedNode(elt, start, empty, ixEscape):
+def escapedNode(elt, start, empty, ixEscape, ixResolveUris):
     if elt.namespaceURI in ixbrlAll:
         return ''  # do not yield XML for nested facts
+    if ixResolveUris:
+        uriAttrs = htmlEltUriAttrs.get(elt.qname.localName, ())
+    else:
+        uriAttrs = ()
     s = ['<']
     if not start and not empty:
         s.append('/')
@@ -199,9 +174,14 @@ def escapedNode(elt, start, empty, ixEscape):
     else:
         s.append(str(elt.qname))
     if start or empty:
-        for n,v in sorted(elt.items(), key=lambda item: item[0]):
-            s.append(' {0}="{1}"'.format(qname(elt,n),
-                                         v.replace("&","&amp;").replace('"','&quot;')))
+        if elt.localName == "object" and elt.get("codebase"): # resolve codebase before other element names
+            elt.set("codebase", resolveHtmlUri(elt, "codebase"), elt.get("codebase"))
+        for n,v in sorted(elt.iterattrs(), key=lambda item: item[0]):
+            if not elt.defaultedAttrs or n not in elt.defaultedAttrs:
+                if n in uriAttrs:
+                    v = resolveHtmlUri(elt, n, v).replace(" ", "%20") # %20 replacement needed for conformance test passing
+                s.append(' {0}="{1}"'.format(qname(elt,n),
+                    v.replace("&","&amp;").replace('"','&quot;')))
     if not start and empty:
         s.append('/')
     s.append('>')
@@ -250,7 +230,7 @@ def ancestor(element, ancestorNamespaceURI, ancestorLocalNames):
     if not isinstance(ancestorLocalNames,tuple): ancestorLocalNames = (ancestorLocalNames ,)
     wildLocalName = ancestorLocalNames == ('*',)
     while isinstance(treeElt,ModelObject):
-        if wildNamespaceURI or treeElt.elementNamespaceURI == ancestorNamespaceURI:
+        if wildNamespaceURI or treeElt.elementQName.namespaceURI == ancestorNamespaceURI:
             if treeElt.localName in ancestorLocalNames or wildLocalName:
                 return treeElt
         treeElt = treeElt.getparent()
@@ -261,7 +241,7 @@ def parent(element, parentNamespaceURI=None, parentLocalNames=None):
     if parentNamespaceURI or parentLocalNames:
         wildNamespaceURI = not parentNamespaceURI or parentNamespaceURI == '*'
         if isinstance(p,ModelObject):
-            if wildNamespaceURI or p.elementNamespaceURI == parentNamespaceURI:
+            if wildNamespaceURI or p.elementQName.namespaceURI == parentNamespaceURI:
                 if isinstance(parentLocalNames,tuple):
                     if p.localName in parentLocalNames:
                         return p
@@ -277,7 +257,7 @@ def ancestors(element, ancestorNamespaceURI=None, ancestorLocalNames=None):
     wildNamespaceURI = not ancestorNamespaceURI or ancestorNamespaceURI == '*'
     treeElt = element.getparent()
     while isinstance(treeElt,ModelObject):
-        if wildNamespaceURI or treeElt.elementNamespaceURI == ancestorNamespaceURI:
+        if wildNamespaceURI or treeElt.elementQName.namespaceURI == ancestorNamespaceURI:
             if isinstance(ancestorLocalNames,tuple):
                 if treeElt.localName in ancestorLocalNames:
                     ancestors.append(treeElt)
@@ -312,12 +292,12 @@ def children(element, childNamespaceURIs, childLocalNames):
     if isinstance(element,ModelObject):
         for child in element.iterchildren():
             if isinstance(child,ModelObject) and \
-                (wildNamespaceURI or child.elementNamespaceURI in childNamespaceURIs) and \
+                (wildNamespaceURI or child.elementQName.namespaceURI in childNamespaceURIs) and \
                 (wildLocalName or child.localName in childLocalNames):
                 children.append(child)
     elif isinstance(element,etree._ElementTree): # document root
         child = element.getroot()
-        if (wildNamespaceURI or child.elementNamespaceURI in childNamespaceURIs) and \
+        if (wildNamespaceURI or child.elementQName.namespaceURI in childNamespaceURIs) and \
            (wildLocalName or child.localName in childLocalNames):
             children.append(child)
     return children
@@ -366,10 +346,10 @@ def descendants(element, descendantNamespaceURI, descendantLocalNames, attrName=
     if not isinstance(descendantLocalNames,tuple): descendantLocalNames = (descendantLocalNames ,)
     wildLocalName = descendantLocalNames == ('*',)
     wildNamespaceURI = not descendantNamespaceURI or descendantNamespaceURI == '*'
-    if isinstance(element,(ModelObject,etree._ElementTree)):
+    if isinstance(element,ModelObject):
         for child in (element.iterdescendants() if isinstance(element,ModelObject) else element.iter()):
             if isinstance(child,ModelObject) and \
-                (wildNamespaceURI or child.elementNamespaceURI == descendantNamespaceURI) and \
+                (wildNamespaceURI or child.elementQName.namespaceURI == descendantNamespaceURI) and \
                 (wildLocalName or child.localName in descendantLocalNames):
                 if attrName:
                     if child.get(attrName) == attrValue or (attrValue == "*" and child.get(attrName) is not None):
@@ -490,7 +470,10 @@ def addChild(parent, childName1, childName2=None, attributes=None, text=None, af
                     
     if isinstance(childName1, QName):
         addQnameValue(modelDocument, childName1)
-        child = modelDocument.parser.makeelement(childName1.clarkNotation)
+        if childName1.prefix:
+            child = modelDocument.parser.makeelement(childName1.clarkNotation, nsmap={childName1.prefix:childName1.namespaceURI}) 
+        else:
+            child = modelDocument.parser.makeelement(childName1.clarkNotation)
     else:   # called with namespaceURI, localName
         existingPrefix = xmlnsprefix(parent, childName1)
         prefix, sep, localName = childName2.partition(":")
@@ -526,7 +509,7 @@ def addChild(parent, childName1, childName2=None, attributes=None, text=None, af
 def copyNodes(parent, elts):
     modelDocument = parent.modelDocument
     for origElt in elts if isinstance(elts, (tuple,list,set)) else (elts,):
-        addQnameValue(modelDocument, origElt.elementQname)
+        addQnameValue(modelDocument, origElt.elementQName)
         copyElt = modelDocument.parser.makeelement(origElt.tag)
         copyElt.init(modelDocument)
         parent.append(copyElt)
@@ -744,10 +727,9 @@ def xpointerElement(modelDocument, fragmentIdentifier):
     # try element schemes until one of them works
     for scheme, parenPart, path in matches:
         if scheme and (parenPart is None or len(parenPart) == 0): # shorthand id notation
-            if scheme in modelDocument.idObjects:
-                node = modelDocument.idObjects.get(scheme)
-            else:
-                node = modelDocument.xmlDocument.find("//*[@id='{0}']".format(scheme))
+            node = modelDocument.idObjects.get(scheme)
+            #else:
+            #    node = modelDocument.xmlDocument.find("//*[@id='{0}']".format(scheme))
             if node is not None:
                 return node    # this scheme fails
         elif scheme == "element" and parenPart and path:
@@ -756,13 +738,16 @@ def xpointerElement(modelDocument, fragmentIdentifier):
                 id = pathParts[0]
                 if id in modelDocument.idObjects:
                     node = modelDocument.idObjects.get(id)
-                else:
-                    node = modelDocument.xmlDocument.find("//*[@id='{0}']".format(id))
+                #else:
+                #    node = modelDocument.xmlDocument.find("//*[@id='{0}']".format(id))
                 if node is None:
                     continue    # this scheme fails
+            elif modelDocument.xmlRootElement: # won't work for schema files
+                node = modelDocument.xmlRootElement
+                iter = (node,)
             else:
-                node = modelDocument.xmlDocument
-                iter = (node.getroot(),)
+                node = None
+                iter = ()
             i = 1
             while i < len(pathParts):
                 childNbr = int(pathParts[i])
@@ -770,7 +755,7 @@ def xpointerElement(modelDocument, fragmentIdentifier):
                 parent = node
                 node = None
                 for child in iter:
-                    if isinstance(child,etree.ElementBase):
+                    if isinstance(child,ModelObject):
                         if childNbr == eltNbr:
                             node = child
                             break
@@ -791,7 +776,7 @@ def elementFragmentIdentifier(element):
     else:
         childSequence = [""] # "" represents document element for / (root) on the join below
         while element is not None:
-            if isinstance(element,etree.ElementBase):
+            if isinstance(element,ModelObject):
                 if element.get('id'):  # has ID, use as start of path instead of root
                     childSequence[0] = element.get('id')
                     break
@@ -800,7 +785,7 @@ def elementFragmentIdentifier(element):
                 except AttributeError:
                     siblingPosition = 1
                     for sibling in element.itersiblings(preceding=True):
-                        if isinstance(sibling,etree.ElementBase):
+                        if isinstance(sibling,ModelObject):
                             siblingPosition += 1
                 childSequence.insert(1, str(siblingPosition))
             element = element.getparent()

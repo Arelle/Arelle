@@ -60,7 +60,7 @@ class DialogFormulaParameters(Toplevel):
         
         self.gridCells = []
         y = 2
-        dataTypes = ("xs:string", "xs:integer", "xs:decimal", "xs:date", "xs:datetime", "xs:QName")
+        dataTypes = ("xs:string", "xs:integer", "xs:decimal", "xs:boolean", "xs:date", "xs:datetime", "xs:QName")
         for parameter in options["parameterValues"].items():
             paramQname, paramTypeValue = parameter
             if isinstance(paramTypeValue, (tuple,list)):
@@ -85,6 +85,7 @@ class DialogFormulaParameters(Toplevel):
         # checkbox entries
         label(frame, 1, y, "Parameter Trace:")
         label(frame, 1, y + 3, "API Calls Trace:")
+        label(frame, 1, y + 8, "Testcase Results:")
         label(frame, 2, y, "Variable Set Trace:")
         label(frame, 3, y, "Variables Trace:")
         self.checkboxes = (
@@ -106,6 +107,9 @@ class DialogFormulaParameters(Toplevel):
            checkbox(frame, 1, y + 7,
                     "Expression Result", 
                     "traceCallExpressionResult"),
+           checkbox(frame, 1, y + 9,
+                    "Capture Warnings", 
+                    "testcaseResultsCaptureWarnings"),
 
            checkbox(frame, 2, y + 1, 
                     "Expression Source", 

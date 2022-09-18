@@ -14,7 +14,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import qname, qnameEltPfxName
 from arelle.ValidateUtr import ValidateUtr
-from arelle.XbrlConst import qnEnumerationItemType2014
+from arelle.XbrlConst import qnEnumerationItemTypes
 from arelle.ModelInstanceObject import ModelFact
 try:
     import regex as re
@@ -294,7 +294,7 @@ def validateFacts(val, factsToCheck):
                     isInteger = concept.baseXbrliType in integerItemTypes
                     isPercent = concept.typeQname in (qnPercentItemType, qnPureItemType)
                     isString = concept.baseXbrliType in ("stringItemType", "normalizedStringItemType")
-                    isEnum = concept.typeQname == qnEnumerationItemType
+                    isEnum = concept.typeQname in qnEnumerationItemTypes
                 else:
                     isNumeric = isString = isEnum = False # error situation
             k = (f.getparent().objectIndex,
@@ -546,7 +546,7 @@ def final(val):
     
     if modelDocument.type == ModelDocument.Type.INSTANCE and (val.validateEBA or val.validateEIOPA):
 
-        if not modelDocument.url.endswith(".xbrl"):
+        if not modelDocument.uri.endswith(".xbrl"):
             modelXbrl.warning("EBA.1.1",
                     _('XBRL instance documents SHOULD use the extension ".xbrl" but it is "%(extension)s"'),
                     modelObject=modelDocument, extension=os.path.splitext(modelDocument.basename)[1])

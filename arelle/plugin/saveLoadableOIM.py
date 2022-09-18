@@ -22,10 +22,8 @@ from collections import defaultdict
 nsOim = "http://www.xbrl.org/WGWD/YYYY-MM-DD/oim"
 qnOimConceptAspect = qname(nsOim, "xbrl:concept")
 qnOimLangAspect = qname(nsOim, "xbrl:language")
-qnOimTupleParentAspect = qname(nsOim, "xbrl:tupleParent")
-qnOimTupleOrderAspect = qname(nsOim, "xbrl:tupleOrder")
-qnOimPeriodStartAspect = qname(nsOim, "xbrl:periodStart")
-qnOimPeriodEndAspect = qname(nsOim, "xbrl:periodEnd")
+qnOimPeriodStartAspect = qname(nsOim, "xbrl:start")
+qnOimPeriodEndAspect = qname(nsOim, "xbrl:end")
 qnOimEntityAspect = qname(nsOim, "xbrl:entity")
 qnOimUnitAspect = qname(nsOim, "xbrl:unit")
 
@@ -171,6 +169,11 @@ def saveLoadableOIM(modelXbrl, oimFile):
             hasUnits = True
         if fact.modelTupleFacts:
             hasTuple = True
+    if hasTuple:
+        modelXbrl.error("arelleOIMsaver:tuplesNotAllowed",
+                        "Tuples are not allowed in an OIM document",
+                        modelObject=modelXbrl)
+        return
             
     entitySchemePrefixes = {}
     for cntx in modelXbrl.contexts.values():
@@ -238,22 +241,18 @@ def saveLoadableOIM(modelXbrl, oimFile):
                 factFootnotes.append(oimFootnote)
                 oimFootnote
     '''
-    dtsReferences = [
-        {"type": "schema" if doc.type == ModelDocument.Type.SCHEMA
-                 else "linkbase" if doc.type == ModelDocument.Type.LINKBASE
-                 else "other",
-         "href": doc.uri}
-        for doc,ref in sorted(modelXbrl.modelDocument.referencesDocument.items(),
-                              key=lambda _item:_item[0].uri)
-        if ref.referringModelObject.qname in SCHEMA_LB_REFS
-        ] + [{"type": refType,
-              "href": refElt.get("{http://www.w3.org/1999/xlink}href")}
-             for refType in ("role", "arcrole")
-             for refElt in sorted(modelXbrl.modelDocument.xmlRootElement.iterchildren(
-                                    "{{http://www.xbrl.org/2003/linkbase}}{}Ref".format(refType)),
-                                  key=lambda elt:elt.get(refType+"URI")
-                                  )
-        ]
+    dtsReferences = set()
+    for doc,ref in sorted(modelXbrl.modelDocument.referencesDocument.items(),
+                              key=lambda _item:_item[0].uri):
+        if ref.referringModelObject.qname in SCHEMA_LB_REFS:
+            dtsReferences.add(doc.uri)
+    for refType in ("role", "arcrole"):
+        for refElt in sorted(modelXbrl.modelDocument.xmlRootElement.iterchildren(
+                                "{{http://www.xbrl.org/2003/linkbase}}{}Ref".format(refType)),
+                              key=lambda elt:elt.get(refType+"URI")
+                              ):
+            dtsReferences.add(refElt.get("{http://www.w3.org/1999/xlink}href").partition("#")[0])
+    dtsReferences = sorted(dtsReferences) # turn into list
             
     def factFootnotes(fact):
         footnotes = []
@@ -374,7 +373,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
         
         oimReport = OrderedDict() # top level of oim json output
             
-        oimFacts = []
+        oimFacts = OrderedDict()
         oimReport["documentType"] = nsOim.replace("/oim", "/xbrl-json")
         oimReport["prefixes"] = prefixes
         oimReport["dtsReferences"] = dtsReferences
@@ -383,7 +382,8 @@ def saveLoadableOIM(modelXbrl, oimFile):
         def saveJsonFacts(facts, oimFacts, parentFact):
             for fact in facts:
                 oimFact = factAspects(fact)
-                oimFacts.append(oimFact)
+                id = fact.id if fact.id else "f{}".format(fact.objectIndex)
+                oimFacts[id] = oimFact
                 if fact.modelTupleFacts:
                     saveJsonFacts(fact.modelTupleFacts, oimFacts, fact)
                 

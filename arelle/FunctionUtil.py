@@ -76,6 +76,8 @@ def testTypeCompatiblity(xc, p, op, a1, a2):
     if (isinstance(a1,ModelValue.DateTime) and isinstance(a2,ModelValue.DateTime)):
         if a1.dateOnly == a2.dateOnly:
             return # can't interoperate between date and datetime
+    elif isinstance(a1, bool) != isinstance(a2, bool):
+        pass # fail if one arg is bool and the other is not (don't let bool be subclass of num types)
     elif ((type(a1) == type(a2)) or
         (isinstance(a1,_NUM_TYPES) and isinstance(a2,_NUM_TYPES)) or
         (isinstance(a1,_STR_BASE) and isinstance(a2,_STR_BASE))):

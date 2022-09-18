@@ -5,7 +5,7 @@ Created on Aug 8, 2013
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import ModelObject, ModelDtsObject, XbrlConst, XmlUtil, ViewFile
-from arelle.ModelDtsObject import ModelRelationship
+from arelle.arelle_c import ModelXlinkResource
 from arelle.ViewUtil import viewReferences
 import os
 

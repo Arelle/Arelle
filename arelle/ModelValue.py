@@ -7,6 +7,7 @@ Created on Jan 4, 2011
 from arelle import PythonUtil # define 2.x or 3.x string types
 import copy, datetime, isodate
 from decimal import Decimal
+from arelle.arelle_c import QName
 try:
     import regex as re
 except ImportError:
@@ -25,12 +26,10 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
             value = name
             name = None
         else:
-            return QName(value.prefix, value.namespaceURI, value.localName)
+            return QName(value.namespaceURI, value.prefix, value.localName)
     elif isinstance(name, ModelObject):
         element = name
         name = None
-        element = None
-        value = name
     else:
         element = None
     if isinstance(value,QName):
@@ -73,12 +72,12 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
             if noPrefixIsNoNamespace:
                 return QName(None, None, localName)
     if namespaceURI:
-        return QName(prefix, namespaceURI, localName)
+        return QName(namespaceURI, prefix, localName)
     elif namespaceDict and prefix in namespaceDict:
-        return QName(prefix, namespaceDict[prefix], localName)
+        return QName(namespaceDict[prefix], prefix, localName)
     elif element is not None:
         # same as XmlUtil.xmlns but local for efficiency
-        namespaceURI = element.nsmap.get(prefix)
+        namespaceURI = element.xmlnsPrefixNamespace(prefix)
         if not namespaceURI and prefix == 'xml':
             namespaceURI = "http://www.w3.org/XML/1998/namespace"
     if not namespaceURI:
@@ -86,7 +85,12 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
             if prefixException: raise prefixException
             return None  # error, prefix not found
         namespaceURI = None # cancel namespace if it is a zero length string
-    return QName(prefix, namespaceURI, localName)
+    return QName(namespaceURI, prefix, localName)
+
+def qnameHref(href): # namespaceUri#localname
+    namespaceURI, _sep, localName = href.rpartition("#")
+    return QName(None, namespaceURI or None, localName)
+
 
 def qnameNsLocalName(namespaceURI, localName):  # does not handle localNames with prefix
     return QName(None, namespaceURI or None, localName)
@@ -99,10 +103,15 @@ def qnameClarkName(clarkname):  # does not handle clark names with prefix
         return QName(None, None, clarkname)
 
 def qnameEltPfxName(element, prefixedName, prefixException=None):
-    prefix,sep,localName = prefixedName.rpartition(':')
+    # check for href name style first
+    if "#" in prefixedName:
+        namespaceURI, _sep, localName = prefixedName.rpartition('#')
+        return QName(None, namespaceURI, localName)
+    # check for prefixed name style
+    prefix,_sep,localName = prefixedName.rpartition(':')
     if not prefix:
         prefix = None # don't want '' but instead None if no prefix
-    namespaceURI = element.nsmap.get(prefix)
+    namespaceURI = element.xmlnsPrefixNamespace(prefix)
     if not namespaceURI:
         if prefix:
             if prefix == 'xml':
@@ -114,78 +123,7 @@ def qnameEltPfxName(element, prefixedName, prefixException=None):
             namespaceURI = None # cancel namespace if it is a zero length string
     return QName(prefix, namespaceURI, localName)
 
-class QName:
-    __slots__ = ("prefix", "namespaceURI", "localName", "qnameValueHash")
-    def __init__(self,prefix,namespaceURI,localName):
-        self.prefix = prefix
-        self.namespaceURI = namespaceURI
-        self.localName = localName
-        self.qnameValueHash = hash( (namespaceURI, localName) )
-    def __hash__(self):
-        return self.qnameValueHash
-    @property
-    def clarkNotation(self):
-        if self.namespaceURI:
-            return '{{{0}}}{1}'.format(self.namespaceURI, self.localName)
-        else:
-            return self.localName
-    def __repr__(self):
-        return self.__str__() 
-    def __str__(self):
-        if self.prefix and self.prefix != '':
-            return self.prefix + ':' + self.localName
-        else:
-            return self.localName
-    def __eq__(self,other):
-        try:
-            return (self.qnameValueHash == other.qnameValueHash and 
-                    self.localName == other.localName and self.namespaceURI == other.namespaceURI)
-        except AttributeError:
-            return False
-        ''' don't think this is used any longer
-        if isinstance(other,_STR_BASE):
-            # only compare nsnames {namespace}localname format, if other has same hash
-            return self.__hash__() == other.__hash__() and self.clarkNotation == other
-        elif isinstance(other,QName):
-            return self.qnameValueHash == other.qnameValueHash and \
-                    self.namespaceURI == other.namespaceURI and self.localName == other.localName
-        elif isinstance(other,ModelObject):
-            return self.namespaceURI == other.namespaceURI and self.localName == other.localName
-        '''
-        '''
-        try:
-            return (self.qnameValueHash == other.qnameValueHash and 
-                    self.namespaceURI == other.namespaceURI and self.localName == other.localName)
-        except AttributeError:  # other may be a model object and not a QName
-            try:
-                return self.namespaceURI == other.namespaceURI and self.localName == other.localName
-            except AttributeError:
-                return False
-        return False
-        '''
-    def __ne__(self,other):
-        return not self.__eq__(other)
-    def __lt__(self,other):
-        return (self.namespaceURI is None and other.namespaceURI) or \
-                (self.namespaceURI and other.namespaceURI and self.namespaceURI < other.namespaceURI) or \
-                (self.namespaceURI == other.namespaceURI and self.localName < other.localName)
-    def __le__(self,other):
-        return (self.namespaceURI is None and other.namespaceURI) or \
-                (self.namespaceURI and other.namespaceURI and self.namespaceURI < other.namespaceURI) or \
-                (self.namespaceURI == other.namespaceURI and self.localName <= other.localName)
-    def __gt__(self,other):
-        return (self.namespaceURI and other.namespaceURI is None) or \
-                (self.namespaceURI and other.namespaceURI and self.namespaceURI > other.namespaceURI) or \
-                (self.namespaceURI == other.namespaceURI and self.localName > other.localName)
-    def __ge__(self,other):
-        return (self.namespaceURI and other.namespaceURI is None) or \
-                (self.namespaceURI and other.namespaceURI and self.namespaceURI > other.namespaceURI) or \
-                (self.namespaceURI == other.namespaceURI and self.localName >= other.localName)
-    def __bool__(self):
-        # QName object bool is false if there is no local name (even if there is a namespace URI).
-        return bool(self.localName)
-
-from arelle.ModelObject import ModelObject
+from arelle.arelle_c import ModelObject
     
 def anyURI(value):
     return AnyURI(value)
@@ -194,14 +132,29 @@ class AnyURI(str):
     def __new__(cls, value):
         return str.__new__(cls, value)
 
-datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})[T ]([0-9]{2}):([0-9]{2}):([0-9]{2})\s*|"
-                             r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*")
-timePattern = re.compile(r"\s*([0-9]{2}):([0-9]{2}):([0-9]{2})\s*")
+datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})[T ]([0-9]{2}):([0-9]{2}):([0-9]{2})(\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*|"
+                             r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})(Z|[+-][0-9]{2}:[0-9]{2})?\s*")
+timePattern = re.compile(r"\s*([0-9]{2}):([0-9]{2}):([0-9]{2})(\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*")
 durationPattern = re.compile(r"\s*(-?)P((-?[0-9]+)Y)?((-?[0-9]+)M)?((-?[0-9]+)D)?(T((-?[0-9]+)H)?((-?[0-9]+)M)?((-?[0-9.]+)S)?)?\s*")
 
 DATE = 1
 DATETIME = 2
 DATEUNION = 3
+
+def tzinfo(tz):
+    if tz is None:
+        return None
+    elif tz == 'Z':
+        return datetime.timezone(datetime.timedelta(0))
+    else:
+        return datetime.timezone(datetime.timedelta(hours=int(tz[0:3]), minutes=int(tz[0]+tz[4:6])))
+    
+def tzinfoStr(dt):
+    tz = str(dt.tzinfo or "")
+    if tz.startswith("UTC"):
+        return tz[3:] or "Z"
+    return ""
+
 def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
     if value == "MinDate":
         return DateTime(datetime.MINYEAR,1,1)
@@ -232,12 +185,16 @@ def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
         if castException:
             raise castException("lexical pattern mismatch")
         return None
-    if match.lastindex == 6:
+    if 6 <= match.lastindex <= 8:
         if type == DATE: 
             if castException:
                 raise castException("date-only object has too many fields or contains time")
             return None
-        result = DateTime(int(match.group(1)),int(match.group(2)),int(match.group(3)),int(match.group(4)),int(match.group(5)),int(match.group(6)), dateOnly=False)
+        ms = 0
+        fracSec = match.group(7)
+        if fracSec and fracSec[0] == ".":
+            ms = int(fracSec[1:7].ljust(6,'0'))
+        result = DateTime(int(match.group(1)),int(match.group(2)),int(match.group(3)),int(match.group(4)),int(match.group(5)),int(match.group(6)),ms,tzinfo(match.group(8)), dateOnly=False)
     else:
         if type == DATE or type == DATEUNION: 
             dateOnly = True
@@ -245,7 +202,7 @@ def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
             dateOnly = False
         else: 
             dateOnly = False
-        result = DateTime(int(match.group(7)),int(match.group(8)),int(match.group(9)),dateOnly=dateOnly,addOneDay=addOneDay)
+        result = DateTime(int(match.group(9)),int(match.group(10)),int(match.group(11)),tzinfo=tzinfo(match.group(12)),dateOnly=dateOnly,addOneDay=addOneDay)
     return result
 
 def lastDayOfMonth(year, month):
@@ -278,14 +235,15 @@ class DateTime(datetime.datetime):
         return DateTime(self.year, self.month, self.day, self.hour, self.minute, self.second, self.microsecond, self.tzinfo, self.dateOnly)
     def __str__(self):
         # note does not print negative dates but xml does allow negative date
+        tz = tzinfoStr(self)
         if self.dateOnly:
-            return "{0.year:04}-{0.month:02}-{0.day:02}".format(self)
+            return "{0.year:04}-{0.month:02}-{0.day:02}{1}".format(self, tz)
         else:
-            return "{0.year:04}-{0.month:02}-{0.day:02}T{0.hour:02}:{0.minute:02}:{0.second:02}".format(self)
+            return "{0.year:04}-{0.month:02}-{0.day:02}T{0.hour:02}:{0.minute:02}:{0.second:02}{1}".format(self, tz)
     def addYearMonthDuration(self, other, sign):
-        m = self.month + sign * other.months
+        m = self.month + sign * other.months - 1 # m is zero based now (0 - Jan, 11 - Dec)
         y = self.year + sign * other.years + m // 12
-        m %= 12
+        m = (m % 12) + 1 # m back to 1 based (1 = Jan)
         d = self.day
         lastDay = lastDayOfMonth(y, m)
         if d > lastDay: d = lastDay
@@ -461,7 +419,11 @@ def time(value, castException=None):
     match = timePattern.match(value.strip())
     if match is None:
         return None
-    return Time(int(match.group(1)),int(match.group(2)),int(match.group(3)))
+    ms = 0
+    fracSec = match.group(4)
+    if fracSec and fracSec[0] == ".":
+        ms = int(fracSec[1:7].ljust(6,'0'))
+    return Time(int(match.group(1)),int(match.group(2)),int(match.group(3)),ms,tzinfo(match.group(5)))
 
 class Time(datetime.time):
     def __new__(cls, hour=0, minute=0, second=0, microsecond=0, tzinfo=None):
@@ -470,54 +432,155 @@ class Time(datetime.time):
         time = datetime.time.__new__(cls, hour, minute, second, microsecond, tzinfo)
         time.hour24 = hour24
         return time
-    
+
+gYearMonthPattern = re.compile(r"-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])(Z|[+-][0-9]{2}:[0-9]{2})?$")
+
 class gYearMonth():
-    def __init__(self, year, month):
+    def __init__(self, value):
+        match = gYearMonthPattern.match(value)
+        if match is None:
+            raise ValueError("lexical pattern mismatch")
+        year, month, tz = match.groups()
         self.year = int(year) # may be negative
         self.month = int(month)
-
+        self.tzinfo = tzinfo(tz)
     def __repr__(self):
         return self.__str__() 
     def __str__(self):
-        return "{0:0{2}}-{1:02}".format(self.year, self.month, 5 if self.year < 0 else 4) # may be negative
+        return "{0:0{2}}-{1:02}{3}".format(self.year, self.month, 5 if self.year < 0 else 4, tzinfoStr(self)) # may be negative
+    def __eq__(self,other):
+        return type(other) == gYearMonth and self.year == other.year and self.month == other.month and self.tzinfo == other.tzinfo
+    def __ne__(self,other):
+        return not self.__eq__(other)
+    def __lt__(self,other):
+        return type(other) == gYearMonth and ((self.year < other.year) or (self.year == other.year and self.month < other.month))
+    def __le__(self,other):
+        return type(other) == gYearMonth and ((self.year <= other.year) or (self.year == other.year and self.month <= other.month))
+    def __gt__(self,other):
+        return type(other) == gYearMonth and ((self.year > other.year) or (self.year == other.year and self.month > other.month))
+    def __ge__(self,other):
+        return type(other) == gYearMonth and ((self.year >= other.year) or (self.year == other.year and self.month >= other.month))
+    def __bool__(self):
+        return self.year != 0 or self.month != 0
     
     
+gMonthDayPattern = re.compile(r"--(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(Z|[+-][0-9]{2}:[0-9]{2})?$")
+
 class gMonthDay():
-    def __init__(self, month, day):
+    def __init__(self, value):
+        match = gMonthDayPattern.match(value)
+        if match is None:
+            raise ValueError("lexical pattern mismatch")
+        month, day, tz = match.groups()
         self.month = int(month)
         self.day = int(day)
-
+        self.tzinfo = tzinfo(tz)
     def __repr__(self):
         return self.__str__() 
     def __str__(self):
-        return "--{0:02}-{1:02}".format(self.month, self.day)
+        return "--{0:02}-{1:02}{2}".format(self.month, self.day, tzinfoStr(self))
+    def __eq__(self,other):
+        return type(other) == gMonthDay and self.month == other.month and self.day == other.day and self.tzinfo == other.tzinfo
+    def __ne__(self,other):
+        return not self.__eq__(other)
+    def __lt__(self,other):
+        return type(other) == gMonthDay and ((self.month < other.month) or (self.month == other.month and self.day < other.day))
+    def __le__(self,other):
+        return type(other) == gMonthDay and ((self.month <= other.month) or (self.month == other.month and self.day <= other.day))
+    def __gt__(self,other):
+        return type(other) == gMonthDay and ((self.month > other.month) or (self.month == other.month and self.day > other.day))
+    def __ge__(self,other):
+        return type(other) == gMonthDay and ((self.month >= other.month) or (self.month == other.month and self.day >= other.day))
+    def __bool__(self):
+        return self.month != 0 or self.day != 0
+
+gYearPattern = re.compile(r"(-?[1-9][0-9]{3,}|-?0[0-9]{3})(Z|[+-][0-9]{2}:[0-9]{2})?$")
     
 class gYear():
-    def __init__(self, year):
+    def __init__(self, value):
+        match = gYearPattern.match(value)
+        if match is None:
+            raise ValueError("lexical pattern mismatch")
+        year, tz = match.groups()
         self.year = int(year) # may be negative
-
+        self.tzinfo = tzinfo(tz)
     def __repr__(self):
         return self.__str__() 
     def __str__(self):
-        return "{0:0{1}}".format(self.year, 5 if self.year < 0 else 4) # may be negative
+        return "{0:0{1}{2}}".format(self.year, 5 if self.year < 0 else 4, tzinfoStr(self)) # may be negative
+    def __eq__(self,other):
+        return type(other) == gYear and self.year == other.year and self.tzinfo == other.tzinfo
+    def __ne__(self,other):
+        return not self.__eq__(other)
+    def __lt__(self,other):
+        return type(other) == gYear and self.year < other.year
+    def __le__(self,other):
+        return type(other) == gYear and self.year <= other.year
+    def __gt__(self,other):
+        return type(other) == gYear and self.year > other.year
+    def __ge__(self,other):
+        return type(other) == gYear and self.year >= other.year
+    def __bool__(self):
+        return self.year != 0 != 0
     
+
+gMonthPattern = re.compile(r"--(0[1-9]|1[0-2])(Z|[+-][0-9]{2}:[0-9]{2})?$")
+
 class gMonth():
-    def __init__(self, month):
+    def __init__(self, value):
+        match = gMonthPattern.match(value)
+        if match is None:
+            raise ValueError("lexical pattern mismatch")
+        month, tz = match.groups()
         self.month = int(month)
-
+        self.tzinfo = tzinfo(tz)
     def __repr__(self):
         return self.__str__() 
     def __str__(self):
-        return "--{0:02}".format(self.month)
+        return "--{0:02}{1}".format(self.month, tzinfoStr(self))
+    def __eq__(self,other):
+        return type(other) == gMonth and self.month == other.month and self.tzinfo == other.tzinfo
+    def __ne__(self,other):
+        return not self.__eq__(other)
+    def __lt__(self,other):
+        return type(other) == gMonth and self.month < other.month
+    def __le__(self,other):
+        return type(other) == gMonth and self.month <= other.month
+    def __gt__(self,other):
+        return type(other) == gMonth and self.month > other.month
+    def __ge__(self,other):
+        return type(other) == gMonth and self.month >= other.month
+    def __bool__(self):
+        return self.month != 0
     
-class gDay():
-    def __init__(self, day):
-        self.day = int(day)
+gDayPattern = re.compile(r"---(0[1-9]|[12][0-9]|3[01])(Z|[+-][0-9]{2}:[0-9]{2})?$")
 
+class gDay():
+    def __init__(self, value):
+        match = gDayPattern.match(value)
+        if match is None:
+            raise ValueError("lexical pattern mismatch")
+        day, tz = match.groups()
+        self.day = int(day)
+        self.tzinfo = tzinfo(tz)
     def __repr__(self):
         return self.__str__() 
     def __str__(self):
-        return "---{0:02}".format(self.day)
+        return "---{0:02}{1}".format(self.day, tzinfoStr(self))
+    def __eq__(self,other):
+        return type(other) == gDay and self.day == other.day and self.tzinfo == other.tzinfo
+    def __ne__(self,other):
+        return not self.__eq__(other)
+    def __lt__(self,other):
+        return type(other) == gDay and self.day < other.day
+    def __le__(self,other):
+        return type(other) == gDay and self.day <= other.day
+    def __gt__(self,other):
+        return type(other) == gDay and self.day > other.day
+    def __ge__(self,other):
+        return type(other) == gDay and self.day >= other.day
+    def __bool__(self):
+        return self.day != 0
     
 isoDurationPattern = re.compile(
     r"^(?P<sign>[+-])?"

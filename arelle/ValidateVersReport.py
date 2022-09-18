@@ -312,12 +312,12 @@ class ValidateVersReport():
                             customAttributeQname = conceptChange.customAttributeQname(attr)
                             if not customAttributeQname:
                                 self.modelVersReport.info("arelle:invalidAttributeChange",
-                                    _("%(action)s %(event)s %(attr)s $(attrName)s does not have a name"),
+                                    _("%(action)s %(event)s %(attr)s %(attrName)s does not have a name"),
                                     modelObject=conceptChange, action=conceptChange.actionId,
                                     attr=attr, attrName=customAttributeQname)
                             elif customAttributeQname.namespaceURI in (None, XbrlConst.xbrli, XbrlConst.xsd):
                                 self.modelVersReport.error("vercde:illegalCustomAttributeEvent",
-                                    _("%(action)s %(event)s %(attr)s $(attrName)s has an invalid namespace"),
+                                    _("%(action)s %(event)s %(attr)s %(attrName)s has an invalid namespace"),
                                     modelObject=conceptChange, action=conceptChange.actionId, event=conceptChange.name,
                                     attr=attr, attrName=customAttributeQname)
                     except KeyError:

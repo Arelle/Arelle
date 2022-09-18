@@ -106,14 +106,15 @@ def pyTypeName(object):
     except:
         return str(type(object))
     
-def pyNamedObject(name):
+def pyNamedObject(name, *args, **kwargs):
     try:
         if sys.version[0] >= '3':
             import builtins
-            return builtins.__dict__[name]
+            objectConstructor = builtins.__dict__[name]
         else:
             import __builtin__
-            return __builtin__.__dict__[name]
+            objectConstructor =  __builtin__.__dict__[name]
+        return objectConstructor(*args, **kwargs)
     except:
         return None
     
@@ -122,8 +123,13 @@ def strTruncate(value, length):
     if len(_s) <= length:
         return _s
     return _s[0:length] + "..."
+
+def normalizeSpace(s):
+    if isinstance(s, str):
+        return " ".join(s.split())
+    return s
     
-SEQUENCE_TYPES = (tuple,list,set)
+SEQUENCE_TYPES = (tuple,list,set,frozenset)
 def flattenSequence(x, sequence=None):
     if sequence is None: 
         if not isinstance(x, SEQUENCE_TYPES):
@@ -242,3 +248,23 @@ def Fraction(numerator,denominator=None):
     elif isinstance(numerator, Decimal) and isinstance(denominator, Decimal):
         return Fraction(int(numerator), int(denominator))
     return Fraction(numerator, denominator)
+
+def pyObjectSize(obj, seen=None):
+    """Recursively finds size of objects"""
+    size = sys.getsizeof(obj)
+    if seen is None:
+        seen = set()
+    obj_id = id(obj)
+    if obj_id in seen:
+        return 0
+    # Important mark as seen *before* entering recursion to gracefully handle
+    # self-referential objects
+    seen.add(obj_id)
+    if isinstance(obj, dict):
+        size += sum([pyObjectSize(v, seen) for v in obj.values()])
+        size += sum([pyObjectSize(k, seen) for k in obj.keys()])
+    elif hasattr(obj, '__dict__'):
+        size += pyObjectSize(obj.__dict__, seen)
+    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
+        size += sum([pyObjectSize(i, seen) for i in obj])
+    return size

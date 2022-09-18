@@ -7,7 +7,7 @@ Created on Jan 25, 2011
 from tkinter import *
 try:
     from tkinter.ttk import *
-    _Combobox = ttk.Combobox
+    from tkinter.ttk import Combobox as _Combobox
 except ImportError:
     from ttk import *
     _Combobox = Combobox

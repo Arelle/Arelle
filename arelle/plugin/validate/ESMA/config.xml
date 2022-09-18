@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<DisclosureSystems  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+      xsi:noNamespaceSchemaLocation="../../../config/disclosuresystems.xsd" >
+  <!-- see ../config/disclosuresystem.xml for full comments -->
+
+  <DisclosureSystem 
+     names="ESMA RTS for ESEF|esma"
+     description="ESMA RTS for ESEF Validation Checks"
+     validationType="ESMA"
+     blockDisallowedReferences="false" 
+     defaultXmlLang="en" 
+     defaultLanguage="English" 
+     validateFileText="false"
+     contextElement="scenario" 
+     />
+
+
+</DisclosureSystems>

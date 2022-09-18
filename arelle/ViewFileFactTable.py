@@ -4,9 +4,10 @@ Created on Jan 24, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import ViewFile, ModelDtsObject, XbrlConst, XmlUtil
+from arelle import ViewFile, XbrlConst, XmlUtil
+from arelle.arelle_c import ModelConcept
 from arelle.XbrlConst import conceptNameLabelRole
-from arelle.ViewFile import CSV, HTML, XML, JSON
+from arelle.ViewFile import CSV, XLSX, HTML, XML, JSON
 import datetime, re
 from collections import defaultdict
 
@@ -49,6 +50,11 @@ class ViewFacts(ViewFile.View):
                 for rootConcept in linkRelationshipSet.rootConcepts:
                     self.treeDepth(rootConcept, rootConcept, 2, self.arcrole, linkRelationshipSet, set())
         
+        # allocate facts to table structure for US-GAAP-style filings
+        if not self.modelXbrl.hasTableIndexing:
+            from arelle import TableStructure
+            TableStructure.evaluateTableIndex(self.modelXbrl, lang=self.lang)
+            
         # set up facts
         self.conceptFacts = defaultdict(list)
         for fact in self.modelXbrl.facts:
@@ -57,8 +63,10 @@ class ViewFacts(ViewFile.View):
         self.periodContexts = defaultdict(set)
         contextStartDatetimes = {}
         for context in self.modelXbrl.contexts.values():
-            if self.type in (CSV, HTML):
-                if self.ignoreDims:
+            if self.type in (CSV, XLSX, HTML):
+                if context is None or context.endDatetime is None:
+                    contextkey = "missing period"
+                elif self.ignoreDims:
                     if context.isForeverPeriod:
                         contextkey = datetime.datetime(datetime.MINYEAR,1,1)
                     else:
@@ -124,6 +132,8 @@ class ViewFacts(ViewFile.View):
                 heading.append(colHeading)
 
                     
+        self.setColWidths([(70 if iCol==0 else 24) for iCol, col in enumerate(heading)])
+        self.setColWrapText([True for col in heading])
         self.addRow(heading, asHeader=True) # must do after determining tree depth
 
         if relationshipSet:
@@ -133,6 +143,16 @@ class ViewFacts(ViewFile.View):
                 self.addRow([roledefinition], treeIndent=0, colSpan=len(heading), 
                             xmlRowElementName="linkRole", xmlRowEltAttr=attr, xmlCol0skipElt=True)
                 linkRelationshipSet = self.modelXbrl.relationshipSet(self.arcrole, linkroleUri, self.linkqname, self.arcqname)
+                # set up concepts which apply to linkrole for us-gaap style filings
+                self.conceptFacts.clear()
+                if linkroleUri and hasattr(self.modelXbrl.roleTypes[linkroleUri][0], "_tableFacts"):
+                    for fact in self.modelXbrl.roleTypes[linkroleUri][0]._tableFacts:
+                        self.conceptFacts[fact.qname].append(fact)
+                else:
+                    for fact in self.modelXbrl.facts:
+                        if linkRelationshipSet.fromModelObject(fact.concept) or linkRelationshipSet.toModelObject(fact.concept):
+                            self.conceptFacts[fact.qname].append(fact)
+                # view root and descendant
                 for rootConcept in linkRelationshipSet.rootConcepts:
                     self.viewConcept(rootConcept, rootConcept, "", self.labelrole, 1, linkRelationshipSet, set())
     
@@ -156,8 +176,8 @@ class ViewFacts(ViewFile.View):
             
     def viewConcept(self, concept, modelObject, labelPrefix, preferredLabel, n, relationshipSet, visited):
         # bad relationship could identify non-concept or be None
-        if (not isinstance(concept, ModelDtsObject.ModelConcept) or 
-            concept.substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
+        if (not isinstance(concept, ModelConcept) or 
+            concept.substitutionGroupQName == XbrlConst.qnXbrldtDimensionItem):
             return
         cols = ['' for i in range(self.numCols)]
         cols[0] = labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)

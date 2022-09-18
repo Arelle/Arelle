@@ -115,13 +115,12 @@ class DialogLanguage(Toplevel):
                 if not self.mainWin.isMSW:  # Windows uses string language codes
                     localeCode = langCode.replace("-", "_") + ".UTF-8" # Unix and Mac uses en_US.UTF-8
                     
-            newLocale = getUserLocale(localeCode)
-            if newLocale is not None:
+            newLocale, message = getUserLocale(localeCode)
+            if message is None:
                 self.mainWin.modelManager.locale = newLocale
             else:
                 messagebox.showerror(_("User interface locale error"), 
-                                     _("Locale setting {0} ({1}) is not supported on this system")
-                                     .format(langCode, localeCode), 
+                                     message,
                                      parent=self)
                 return
             if localeCode != "": # not the system default

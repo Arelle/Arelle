@@ -6,11 +6,11 @@ Created on Oct 6, 2010
 '''
 from collections import defaultdict
 import os
-from arelle import ViewWinTree, ModelDtsObject, ModelInstanceObject, ModelRenderingObject, XbrlConst, XmlUtil, Locale
+from arelle import arelle_c, ViewWinTree, ModelDtsObject, ModelInstanceObject, ModelRenderingObject, XbrlConst, XmlUtil, Locale
 from arelle.ModelRelationshipSet import ModelRelationshipSet
-from arelle.ModelDtsObject import ModelRelationship
+from arelle.arelle_c import ModelRelationship
 from arelle.ModelFormulaObject import ModelFilter
-from arelle.ViewUtil import viewReferences, groupRelationshipSet, groupRelationshipLabel
+from arelle.ViewUtil import viewReferences, groupRelationshipLabel
 from arelle.XbrlConst import conceptNameLabelRole
 
 def viewRelationshipSet(modelXbrl, tabWin, arcrole, 
@@ -18,7 +18,7 @@ def viewRelationshipSet(modelXbrl, tabWin, arcrole,
                         treeColHdr=None, showLinkroles=True, showRelationships=True, showColumns=True,
                         expandAll=False, hasTableIndex=False):
     arcroleName = groupRelationshipLabel(arcrole)
-    relationshipSet = groupRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname)
+    relationshipSet = ModelRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname)
     if not relationshipSet:
         modelXbrl.modelManager.addToLog(_("no relationships for {0}").format(arcroleName))
         return False
@@ -38,6 +38,8 @@ def viewRelationshipSet(modelXbrl, tabWin, arcrole,
     view.menuAddLangs()
     view.menuAddLabelRoles(includeConceptName=True)
     view.menuAddViews()
+    
+    return True
 
     
 class ViewRelationshipSet(ViewWinTree.ViewTree):
@@ -68,7 +70,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         self.tag_has = defaultdict(list) # temporary until Tk 8.6
         # relationship set based on linkrole parameter, to determine applicable linkroles
         if relationshipSet is None:
-            relationshipSet = groupRelationshipSet(self.modelXbrl, self.arcrole, self.linkrole, self.linkqname, self.arcqname)
+            relationshipSet = self.modelXbrl.relationshipSet( self.arcrole, self.linkrole, self.linkqname, self.arcqname)
         if not relationshipSet:
             self.modelXbrl.modelManager.addToLog(_("no relationships for {0}").format(groupRelationshipLabel(self.arcrole)))
             return False
@@ -106,7 +108,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     self.treeView.heading("closed", text="Closed")
                     self.treeView.column("usable", width=40, anchor="center", stretch=False)
                     self.treeView.heading("usable", text="Usable")
-                elif self.arcrole == "Table-rendering":    # add columns for dimensional information
+                elif self.arcrole == "XBRL-table-rendering":    # add columns for dimensional information
                     self.treeView.column("#0", width=160, anchor="w")
                     self.treeView["columns"] = ("axis", "abstract", "merge", "header", "priItem", "dims")
                     self.treeView.column("axis", width=28, anchor="center", stretch=False)
@@ -143,12 +145,12 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         for linkroleUri in relationshipSet.linkRoleUris:
             modelRoleTypes = self.modelXbrl.roleTypes.get(linkroleUri)
             if modelRoleTypes:
-                roledefinition = ((self.hasTableIndex and getattr(modelRoleTypes[0], "_tableIndex", False)) or
+                roledefinition = ((self.hasTableIndex and hasattr(self.modelXbrl, "_tableElr")) or
                                   self.modelXbrl.roleTypeDefinition(linkroleUri, self.lang))
                 roleId = modelRoleTypes[0].objectId(self.id)
-                if (self.hasTableIndex and hasattr(modelRoleTypes[0], "_tableChildren")):
+                if (self.hasTableIndex and hasattr(self.modelXbrl, "_tableElr") and modelXbrl._tableElrs[linkroleUri].children):
                     linkroleUriChildren[linkroleUri] = [roleType.roleURI
-                                                        for roleType in modelRoleTypes[0]._tableChildren]
+                                                        for roleType in modelXbrl._tableElrs[linkroleUri].children]
             else:
                 roledefinition = linkroleUri
                 roleId = "node{0}".format(self.id)
@@ -193,7 +195,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             else:
                 linknode = ""
             if self.showRelationships:
-                linkRelationshipSet = groupRelationshipSet(self.modelXbrl, self.arcrole, linkroleUri, self.linkqname, self.arcqname)
+                linkRelationshipSet = self.modelXbrl.relationshipSet(self.arcrole, linkroleUri, self.linkqname, self.arcqname)
                 for rootConcept in linkRelationshipSet.rootConcepts:
                     self.viewConcept(rootConcept, rootConcept, "", self.labelrole, linknode, 1, linkRelationshipSet, set())
                     self.tag_has[linkroleUri].append(linknode)
@@ -205,7 +207,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         if concept is None:
             return
         try:
-            isRelation = isinstance(modelObject, ModelDtsObject.ModelRelationship)
+            isRelation = isinstance(modelObject, arelle_c.ModelRelationship)
             if isinstance(concept, ModelDtsObject.ModelConcept):
                 text = labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
                 if (self.arcrole in ("XBRL-dimensions", XbrlConst.hypercubeDimension) and
@@ -219,11 +221,11 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     text = str(concept.qname)
                 if concept.contextID:
                     text += " [" + concept.contextID + "] = " + concept.effectiveValue
-            elif self.arcrole == "Table-rendering":
+            elif self.arcrole == "XBRL-table-rendering":
                 text = concept.localName
             elif isinstance(concept, ModelRenderingObject.ModelTable):
                 text = (concept.genLabel(lang=self.lang, strip=True) or concept.localName)
-            elif isinstance(concept, ModelDtsObject.ModelResource):
+            elif isinstance(concept, arelle_c.ModelResource):
                 if self.showReferences:
                     text = (concept.viewText() or concept.localName)
                 else:
@@ -257,7 +259,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     self.treeView.set(childnode, "usable", modelObject.usable)
                 childRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.consecutiveArcrole.get(relArcrole,"XBRL-dimensions"),
                                                                       modelObject.consecutiveLinkrole)
-            elif self.arcrole == "Table-rendering": # extra columns
+            elif self.arcrole == "XBRL-table-rendering": # extra columns
                 try:
                     header = concept.header(lang=self.lang,strip=True,evaluate=False)
                 except AttributeError:
@@ -278,7 +280,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             elif self.isResourceArcrole: # resource columns
                 if isRelation:
                     self.treeView.set(childnode, "arcrole", os.path.basename(modelObject.arcrole))
-                if isinstance(concept, ModelDtsObject.ModelResource):
+                if isinstance(concept, arelle_c.ModelResource):
                     self.treeView.set(childnode, "resource", concept.localName)
                     self.treeView.set(childnode, "resourcerole", os.path.basename(concept.role or ''))
                     self.treeView.set(childnode, "lang", concept.xmlLang)
@@ -313,10 +315,10 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             
     def getToolTip(self, tvRowId, tvColId):
         # override tool tip when appropriate
-        if self.arcrole == "Table-rendering" and tvColId in ("#0", "#4"):
+        if self.arcrole == "XBRL-table-rendering" and tvColId in ("#0", "#4"):
             try:
                 modelObject = self.modelXbrl.modelObject(tvRowId) # this is a relationship object
-                if isinstance(modelObject, ModelRelationship):
+                if isinstance(modelObject, arelle_c.ModelRelationship):
                     modelResource = modelObject.toModelObject
                 else:
                     modelResource = modelObject
@@ -361,7 +363,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             self.blockViewModelObject += 1
             try:
                 # check if modelObject is a relationship in given linkrole
-                if isinstance(modelObject, ModelDtsObject.ModelRelationship):
+                if isinstance(modelObject, arelle_c.ModelRelationship):
                     linkroleId = self.tag_has.get(modelObject.linkrole)
                     if linkroleId: 
                         linkroleId = linkroleId[0]

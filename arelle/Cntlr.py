@@ -17,9 +17,12 @@ from arelle import PluginManager, PackageManager
 from collections import defaultdict
 osPrcs = None
 isPy3 = (sys.version[0] >= '3')
+LOG_TEXT_MAX_LENGTH = 32767
 
-def resourcesDir():
-    if getattr(sys, 'frozen', False): # Check if frozen by cx_Freeze
+cxFrozen = getattr(sys, 'frozen', False)
+
+def resourcesDir(): 
+    if cxFrozen: # Check if frozen by cx_Freeze
         _resourcesDir = os.path.dirname(sys.executable)
         if os.path.exists(os.path.join(_resourcesDir,"images")):
             return _resourcesDir
@@ -112,10 +115,15 @@ class Cntlr(arelle_c.Cntlr):
         self.imagesDir = os.path.join(_resourcesDir, "images")
         self.localeDir = os.path.join(_resourcesDir, "locale")
         self.pluginDir = os.path.join(_resourcesDir, "plugin")
-        _mplDir = os.path.join(_resourcesDir, "mpl-data")
-        if os.path.exists(_mplDir): # set matplotlibdata for cx_Freeze with local directory
-            os.environ["MATPLOTLIBDATA"] = _mplDir
-        
+        if cxFrozen:
+            if sys.platform == "darwin": # not needed on windows and other builds
+                _mplDir = os.path.join(_resourcesDir, "mpl-data")
+                if os.path.exists(_mplDir): # set matplotlibdata for cx_Freeze with local directory
+                    os.environ["MATPLOTLIBDATA"] = _mplDir        
+            else: # some cx_freeze versions set this variable, which is incompatible with matplotlib after v3.1
+                os.environ.pop("MATPLOTLIBDATA", None)
+            if sys.platform == "linux": # frozen Ubuntu and RedHat (only)
+                os.environ["TKTABLE_LIBRARY"] = os.path.join(_resourcesDir, "lib") # TkTableWrapper needs to locate Tktable library
         serverSoftware = os.getenv("SERVER_SOFTWARE", "")
         if serverSoftware.startswith("Google App Engine/") or serverSoftware.startswith("Development/"):
             self.hasFileSystem = False # no file system, userAppDir does not exist
@@ -162,7 +170,7 @@ class Cntlr(arelle_c.Cntlr):
             # note that cache is in ~/Library/Caches/Arelle
             self.contextMenuClick = "<Button-2>"
             self.hasClipboard = hasGui  # clipboard always only if Gui (not command line mode)
-            self.updateURL = "http://arelle.org/downloads/8"
+            self.updateURL = "http://arelle.org/download/1005"
         elif sys.platform.startswith("win"):
             self.isMac = False
             self.isMSW = True
@@ -188,9 +196,9 @@ class Cntlr(arelle_c.Cntlr):
                 self.hasClipboard = False
             self.contextMenuClick = "<Button-3>"
             if "64 bit" in sys.version:
-                self.updateURL = "http://arelle.org/downloads/9"
+                self.updateURL = "http://arelle.org/download/1008"
             else: # 32 bit
-                self.updateURL = "http://arelle.org/downloads/10"
+                self.updateURL = "http://arelle.org/download/1011"
         else: # Unix/Linux
             self.isMac = False
             self.isMSW = False
@@ -269,8 +277,9 @@ class Cntlr(arelle_c.Cntlr):
                                 self.localeDir)
         
     def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None, 
-                     logLevel=None, logHandler=None, logToBuffer=False):
+                     logLevel=None, logHandler=None, logToBuffer=False, logTextMaxLength=None, logRefObjectProperties=True):
         # add additional logging levels (for python 2.7, all of these are ints)
+        logging.addLevelName(logging.INFO - 1, "INFO-RESULT") # result data, has @name, @value, optional href to source and readable message
         logging.addLevelName(logging.INFO + 1, "INFO-SEMANTIC")
         logging.addLevelName(logging.WARNING + 1, "WARNING-SEMANTIC")
         logging.addLevelName(logging.WARNING + 2, "ASSERTION-SATISFIED")
@@ -288,10 +297,10 @@ class Cntlr(arelle_c.Cntlr):
                 self.logHandler = LogToPrintHandler(logFileName)
             elif logFileName == "logToBuffer":
                 self.logHandler = LogToBufferHandler()
-                self.logger.logRefObjectProperties = True
+                self.logger.logRefObjectProperties = logRefObjectProperties
             elif logFileName.endswith(".xml") or logFileName.endswith(".json") or logToBuffer:
                 self.logHandler = LogToXmlHandler(filename=logFileName, mode=logFileMode or "a")  # should this be "w" mode??
-                self.logger.logRefObjectProperties = True
+                self.logger.logRefObjectProperties = logRefObjectProperties
                 if not logFormat:
                     logFormat = "%(message)s"
             else:
@@ -314,6 +323,7 @@ class Cntlr(arelle_c.Cntlr):
                               level=logging.ERROR, messageCode="arelle:logLevel")
             self.logger.messageCodeFilter = None
             self.logger.messageLevelFilter = None
+            self.logHandler.logTextMaxLength = (logTextMaxLength or LOG_TEXT_MAX_LENGTH)
                 
     def setLogLevelFilter(self, logLevelFilter):
         if self.logger:
@@ -525,9 +535,13 @@ def logRefsFileLines(refs):
     for ref in refs:
         href = ref.get("href")
         if href:
-            fileLines[href.partition("#")[0]].add(ref.get("sourceLine", 0))
-    return ", ".join(file + " " + ', '.join(str(line) 
-                                            for line in sorted(lines, key=lambda l: l)
+            if ref.get("sourceCol"):
+                fileLines[href.partition("#")[0]].add((ref.get("sourceLine", 0),ref.get("sourceCol", 0))) # has column number
+            else:
+                fileLines[href.partition("#")[0]].add(ref.get("sourceLine", 0)) # no column number
+    return ", ".join(file + " " + ', '.join("{}[{}]".format(line[0],line[1]) if isinstance(line,tuple) and len(line)>1
+                                            else"{}".format(line) 
+                                            for line in sorted(lines)
                                             if line)
                     for file, lines in sorted(fileLines.items()))
 
@@ -592,7 +606,7 @@ class LogHandlerWithXml(logging.Handler):
         super(LogHandlerWithXml, self).__init__()
         
     def recordToXml(self, logRec):
-        def entityEncode(arg, truncateAt=32767):  # be sure it's a string, vs int, etc, and encode &, <, ".
+        def entityEncode(arg, truncateAt=self.logTextMaxLength):  # be sure it's a string, vs int, etc, and encode &, <, ".
             s = str(arg)
             s = s if len(s) <= truncateAt else s[:truncateAt] + '...'
             return s.replace("&","&amp;").replace("<","&lt;").replace('"','&quot;')
@@ -606,11 +620,11 @@ class LogHandlerWithXml(logging.Handler):
                     s.append('_') # change : into _ for xml correctness
             return "".join(s)
         
-        def propElts(properties, indent, truncatAt=128):
+        def propElts(properties, indent, truncateAt=128):
             nestedIndent = indent + ' '
             return indent.join('<property name="{0}" value="{1}"{2}>'.format(
                                     entityEncode(p[0]),
-                                    entityEncode(p[1], truncateAt=truncatAt),
+                                    entityEncode(p[1], truncateAt=truncateAt),
                                     '/' if len(p) == 2 
                                     else '>' + nestedIndent + propElts(p[2],nestedIndent) + indent + '</property')
                                 for p in properties 
@@ -618,7 +632,8 @@ class LogHandlerWithXml(logging.Handler):
         
         msg = self.format(logRec)
         if logRec.args:
-            args = "".join([' {0}="{1}"'.format(ncNameEncode(n), entityEncode(v, truncateAt=128)) 
+            args = "".join([' {0}="{1}"'.format(ncNameEncode(n), entityEncode(v, 
+                                                truncateAt=(65535 if n in ("json",) else 128))) 
                             for n, v in logRec.args.items()])
         else:
             args = ""
@@ -628,7 +643,8 @@ class LogHandlerWithXml(logging.Handler):
                         ''.join(' {}="{}"'.format(ncNameEncode(k),entityEncode(v)) 
                                                   for k,v in ref["customAttributes"].items())
                              if 'customAttributes' in ref else '',
-                        (">\n  " + propElts(ref["properties"],"\n  ", 32767) + "\n </ref" ) if "properties" in ref else '/')
+                        (">\n  " + propElts(ref["properties"],"\n  ", truncateAt=self.logTextMaxLength) + "\n </ref" ) 
+                                   if ("properties" in ref) else '/')
                        for ref in logRec.refs)
         return ('<entry code="{0}" level="{1}">'
                 '\n <message{2}>{3}</message>{4}'
@@ -637,6 +653,15 @@ class LogHandlerWithXml(logging.Handler):
                                     args, 
                                     entityEncode(msg), 
                                     refs))
+    def recordToJson(self, logRec):
+        message = { "text": self.format(logRec) }
+        if logRec.args:
+            for n, v in logRec.args.items():
+                message[n] = v
+        return {"code": logRec.messageCode,
+                "level": logRec.levelname.lower(),
+                "refs": logRec.refs,
+                "message": message}
     
 class LogToXmlHandler(LogHandlerWithXml):
     """
@@ -720,15 +745,7 @@ class LogToXmlHandler(LogHandlerWithXml):
         """
         entries = []
         for logRec in self.logRecordBuffer:
-            message = { "text": self.format(logRec) }
-            if logRec.args:
-                for n, v in logRec.args.items():
-                    message[n] = v
-            entry = {"code": logRec.messageCode,
-                     "level": logRec.levelname.lower(),
-                     "refs": logRec.refs,
-                     "message": message}
-            entries.append(entry)
+            entries.append(self.recordToJson(logRec))
         if clearLogBuffer:
             self.clearLogBuffer()
         return json.dumps( {"log": entries}, ensure_ascii=False, indent=1, default=str )

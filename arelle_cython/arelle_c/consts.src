@@ -1,0 +1,337 @@
+from arelle_c.xerces_uniDefs cimport chNull, chHTab, chLF, chVTab, chFF, chCR, chAmpersand, chAsterisk, chAt, chBackSlash, chBang, \
+	chCaret, chCloseAngle, chCloseCurly, chCloseParen, chCloseSquare, chColon, chComma, chDash, chDollarSign, chDoubleQuote, chEqual, \
+	chForwardSlash, chGrave, chNEL, chOpenAngle, chOpenCurly, chOpenParen, chOpenSquare, chPercent, chPeriod, chPipe, chPlus, \
+	chPound, chQuestion, chSingleQuote, chSpace, chSemiColon, chTilde, chUnderscore, chSwappedUnicodeMarker, chUnicodeMarker, \
+	chDigit_0, chDigit_1, chDigit_2, chDigit_3, chDigit_4, chDigit_5, chDigit_6, chDigit_7, chDigit_8, chDigit_9, \
+	chLatin_A, chLatin_B, chLatin_C, chLatin_D, chLatin_E, chLatin_F, chLatin_G, chLatin_H, chLatin_I, chLatin_J, chLatin_K, \
+	chLatin_L, chLatin_M, chLatin_N, chLatin_O, chLatin_P, chLatin_Q, chLatin_R, chLatin_S, chLatin_T, chLatin_U, chLatin_V, \
+	chLatin_W, chLatin_X, chLatin_Y, chLatin_Z, \
+	chLatin_a, chLatin_b, chLatin_c, chLatin_d, chLatin_e, chLatin_f, chLatin_g, chLatin_h, chLatin_i, chLatin_j, chLatin_k, \
+	chLatin_l, chLatin_m, chLatin_n, chLatin_o, chLatin_p, chLatin_q, chLatin_r, chLatin_s, chLatin_t, chLatin_u, chLatin_v, \
+	chLatin_w, chLatin_x, chLatin_y, chLatin_z, chYenSign, chWonSign, chLineSeparator, chParagraphSeparator
+from arelle_c.xerces_util cimport XMLCh, XMLSize_t
+from arelle_c.xerces_ctypes cimport int64_t, XMLFileLoc
+from decimal import Decimal
+from regex import compile as re_compile
+
+# generate XMLCh constant strings and hashes
+#    x"..." gets replaced with array of XMLCh character constants
+#    h"..." gets replaced by python 64 bit hash code (c++ long long)
+
+ctypedef int64_t  hash_t
+cdef XMLCh[] nsDtr = x"http://www.xbrl.org/2009/dtr"
+cdef XMLCh[] nsDtrNumeric = x"http://www.xbrl.org/dtr/type/numeric"
+cdef XMLCh[] nsDtrYMD = x"http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD"
+cdef XMLCh[] nsEnum2014 = x"http://xbrl.org/2014/extensible-enumerations"
+cdef XMLCh[] nsEnum2016 = x"http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1"
+cdef XMLCh[] nsEnum1YMD = x"http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1"
+cdef XMLCh[] nsEnum2YMD = x"http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0"
+cdef XMLCh[] nsIxbrl = x"http://www.xbrl.org/2008/inlineXBRL"
+cdef XMLCh[] nsIxbrl11 = x"http://www.xbrl.org/2013/inlineXBRL"
+cdef XMLCh[] nsLink = x"http://www.xbrl.org/2003/linkbase"
+cdef XMLCh[] nsNoNamespace = x"" # empty string (not NULL/None) for no-namespace
+cdef XMLCh[] nsNoPrefix = x"" # empty string (not NULL/None) for no-prefix
+cdef XMLCh[] nsRegistry = x"http://xbrl.org/2008/registry"
+cdef XMLCh[] nsVer = x"http://xbrl.org/2013/versioning-base"
+cdef XMLCh[] nsXbrldi = x"http://xbrl.org/2006/xbrldi"
+cdef XMLCh[] nsXbrldt = x"http://xbrl.org/2005/xbrldt"
+cdef XMLCh[] nsXbrli = x"http://www.xbrl.org/2003/instance"
+cdef XMLCh[] nsXhtml = x"http://www.w3.org/1999/xhtml"
+cdef XMLCh[] nsXl = x"http://www.xbrl.org/2003/XLink"
+cdef XMLCh[] nsXlink = x"http://www.w3.org/1999/xlink"
+cdef XMLCh[] nsXml = x"http://www.w3.org/XML/1998/namespace"
+cdef XMLCh[] nsXmlns = x"http://www.w3.org/2000/xmlns/"
+cdef XMLCh[] nsXsd = x"http://www.w3.org/2001/XMLSchema"
+cdef XMLSize_t lenNsXsd = stringLen(nsXsd)
+cdef XMLCh[] nsXsSyntheticAnnotation = x"http://arelle.org/2018/XsSynAnot" # same string length as nsXsd
+cdef XMLCh[] nsXsi = x"http://www.w3.org/2001/XMLSchema-instance"
+
+cdef XMLCh[] prefixXsd = x"xs"
+
+cdef XMLCh[] lnActuate = x"actuate"
+cdef XMLCh[] lnAnnotation = x"annotation"
+cdef XMLCh[] lnAppinfo = x"appinfo"
+cdef XMLCh[] lnArc = x"arc"
+cdef XMLCh[] lnArcrole = x"arcrole"
+cdef XMLCh[] lnArcroleRef = x"arcroleRef"
+cdef XMLCh[] lnArcroleType = x"arcroleType"
+cdef XMLCh[] lnArcroleURI = x"arcroleURI"
+cdef XMLCh[] lnArea = x"area"
+cdef XMLCh[] lnBalance = x"balance"
+cdef XMLCh[] lnBase = x"base"
+cdef XMLCh[] lnContext = x"context"
+cdef XMLCh[] lnContextRef = x"contextRef"
+cdef XMLCh[] lnCyclesAllowed = x"cyclesAllowed"
+cdef XMLCh[] lnDateUnion = x"dateUnion"
+cdef XMLCh[] lnDecimals = x"decimals"
+cdef XMLCh[] lnDefinition = x"definition"
+cdef XMLCh[] lnDimension = x"dimension"
+cdef XMLCh[] lnDimensionItem = x"dimensionItem"
+cdef XMLCh[] lnDocumentation = x"documentation"
+cdef XMLCh[] lnElement = x"element"
+cdef XMLCh[] lnEndDate = x"endDate"
+cdef XMLCh[] lnEnumerationItemType = x"enumerationItemType"
+cdef XMLCh[] lnEnumerationsItemType = x"enumerationsItemType"
+cdef XMLCh[] lnEnumerationListItemType = x"enumerationListItemType"
+cdef XMLCh[] lnEnumerationSetItemType = x"enumerationSetItemType"
+cdef XMLCh[] lnExplicitMember = x"explicitMember"
+cdef XMLCh[] lnExtended = x"extended"
+cdef XMLCh[] lnFacts = x"facts"
+cdef XMLCh[] lnFrom = x"from"
+cdef XMLCh[] lnHref = x"href"
+cdef XMLCh[] lnHtml = x"html"
+cdef XMLCh[] lnHypercubeItem = x"hypercubeItem"
+cdef XMLCh[] lnId = x"id"
+cdef XMLCh[] lnImport = x"import"
+cdef XMLCh[] lnInclude = x"include"
+cdef XMLCh[] lnInstant = x"instant"
+cdef XMLCh[] lnItem = x"item"
+cdef XMLCh[] lnLabel = x"label"
+cdef XMLCh[] lnLang = x"lang"
+cdef XMLCh[] lnLinkbase = x"linkbase"
+cdef XMLCh[] lnLinkbaseRef = x"linkbaseRef"
+cdef XMLCh[] lnLoc = x"loc"
+cdef XMLCh[] lnLocator = x"locator"
+cdef XMLCh[] lnName = x"name"
+cdef XMLCh[] lnNamespace = x"namespace"
+cdef XMLCh[] lnNil = x"nil"
+cdef XMLCh[] lnNoDecimalsMonetaryItemType = x"noDecimalsMonetaryItemType"
+cdef XMLCh[] lnNoNamespaceSchemaLocation = x"noNamespaceSchemaLocation"
+cdef XMLCh[] lnNonNegativeNoDecimalsMonetaryItemType = x"nonNegativeNoDecimalsMonetaryItemType"
+cdef XMLCh[] lnOrder = x"order"
+cdef XMLCh[] lnPart = x"part"
+cdef XMLCh[] lnPeriodType = x"periodType"
+cdef XMLCh[] lnPrecision = x"precision"
+cdef XMLCh[] lnPreferredLabel = x"preferredLabel"
+cdef XMLCh[] lnPriority = x"priority"
+cdef XMLCh[] lnPtvl = x"ptvl"
+cdef XMLCh[] lnReferences = x"references"
+cdef XMLCh[] lnRegistry = x"registry"
+cdef XMLCh[] lnReport = x"report"
+cdef XMLCh[] lnRelationship = x"relationship"
+cdef XMLCh[] lnResource = x"resource"
+cdef XMLCh[] lnResources = x"resources"
+cdef XMLCh[] lnRole = x"role"
+cdef XMLCh[] lnRoleRef = x"roleRef"
+cdef XMLCh[] lnRoleType = x"roleType"
+cdef XMLCh[] lnRoleURI = x"roleURI"
+cdef XMLCh[] lnRss = x"rss"
+cdef XMLCh[] lnSchema = x"schema"
+cdef XMLCh[] lnScheme = x"scheme"
+cdef XMLCh[] lnSchemaLocation = x"schemaLocation"
+cdef XMLCh[] lnSchemaRef = x"schemaRef"
+cdef XMLCh[] lnShow = x"show"
+cdef XMLCh[] lnSimple = x"simple"
+cdef XMLCh[] lnSQNameItemType = x"SQNameItemType"
+cdef XMLCh[] lnSQNameType = x"SQNameType"
+cdef XMLCh[] lnTarget = x"target"
+cdef XMLCh[] lnTargetNamespace = x"targetNamespace"
+cdef XMLCh[] lnTestcase = x"testcase"
+cdef XMLCh[] lnTestcases = x"testcases"
+cdef XMLCh[] lnTestSet = x"testSet"
+cdef XMLCh[] lnTestSuite = x"testSuite"
+cdef XMLCh[] lnTitle = x"title"
+cdef XMLCh[] lnTo = x"to"
+cdef XMLCh[] lnTuple = x"tuple"
+cdef XMLCh[] lnType = x"type"
+cdef XMLCh[] lnTypedMember = x"typedMember"
+cdef XMLCh[] lnUnit = x"unit"
+cdef XMLCh[] lnUnitRef = x"unitRef"
+cdef XMLCh[] lnUse = x"use"
+cdef XMLCh[] lnUsedOn = x"usedOn"
+cdef XMLCh[] lnWeight = x"weight"
+cdef XMLCh[] lnXbrl = x"xbrl"
+cdef XMLCh[] lnXhtml = x"xhtml"
+cdef XMLCh[] lnXmlns = x"xmlns"
+
+
+#singleton address constants
+cdef XMLCh[] nElementQName = x"@elementQName@" # fake constants to use in setting values to model objects
+cdef XMLCh[] nElementText = x"@elementText@" # original input text (not transformed inline value)
+cdef XMLCh[] nElementSequence = x"@elementSequence@"
+cdef XMLCh[] nElementTail = x"@elementTail@" # original not transformed tail
+cdef XMLCh[] nElementTypedValue = x"@elementTypedValue@" # typed value of original text or if inline transformed value
+cdef XMLCh[] nFactIsTuple = x"@factIsTuple@"
+cdef XMLCh[] nNsmap = x"@nsmap@"
+cdef XMLCh[] nSourceLine = x"@sourceLine@"
+cdef XMLCh[] nSourceCol = x"@sourceCol@"
+cdef XMLCh[] nValidity = x"@sourceCol@"
+
+cdef hash_t hArc = h"arc"
+cdef hash_t hArcroleType = h"arcroleType"
+cdef hash_t hArcroleRef = h"arcroleRef"
+cdef hash_t hContext = h"@context@"
+cdef hash_t hDimension = h"@dimension@"
+cdef hash_t hExtended = h"extended"
+cdef hash_t hFactItem = h"@factItem@"
+cdef hash_t hFactTuple = h"@factTuple@"
+cdef hash_t hLocator = h"locator"
+cdef hash_t hPyNone = PyObject_Hash(None)
+cdef hash_t hResource = h"resource"
+cdef hash_t hRoleRef = h"roleRef"
+cdef hash_t hRoleType = h"roleType"
+cdef hash_t hRootElement = h"@rootElement@"
+cdef hash_t hSimple = h"simple"
+cdef hash_t hUnit = h"@unit@"
+cdef hash_t hXbrlDimensions = h"XBRL-dimensions"
+cdef hash_t hXbrlFormulae = h"XBRL-formulae"
+cdef hash_t hXbrlTableRendering = h"XBRL-table-rendering"
+cdef hash_t hXbrlFootnotes = h"XBRL-footnotes"
+
+cdef XMLCh[] xmlnsPrefix = x"xmlns:"
+cdef XMLCh[] xmlns = x"xmlns"
+
+cdef XMLCh[] xmlchPipe = x"|"
+cdef XMLCh[] xmlchLBrace = x"{"
+cdef XMLCh[] xmlchRBrace = x"}"
+cdef XMLCh[] xmlchColon = x":"
+
+cdef XMLCh[] xmlchTrue = x"true"
+cdef XMLCh[] xmlchFalse = x"false"
+cdef XMLCh[] xmlchZero = x"0"
+cdef XMLCh[] xmlchOne = x"1"
+
+cdef XMLCh[] xmlchSchemaLocationsForXsdFileLinkbases = x" \
+   http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd \
+   http://www.w3.org/1999/xlink http://www.xbrl.org/2003/xlink-2003-12-31.xsd \
+   http://xbrl.org/2008/generic http://www.xbrl.org/2008/generic-link.xsd \
+   http://www.w3.org/XML/1998/namespace http://www.w3.org/2001/xml.xsd \
+   http://arelle.org/2018/XsSynAnot http://arelle.org/2018/XsSyntheticAnnotation.xsd" # needed when linkbase is in an appinfo
+# must match    
+cdef XMLCh[] xmlchSchemaLocationsForXsdElements = x" \
+   http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd \
+   http://www.w3.org/XML/1998/namespace http://www.w3.org/2001/xml.xsd \
+   http://arelle.org/2018/XsSynAnot http://arelle.org/2018/XsSyntheticAnnotation.xsd" # needed when linkbase is in an appinfo
+   
+# schemarefs need to be synced with XbrlConsts.hrefScheamImports
+
+cdef XMLCh[] xmlchNsXsdQuoted1 = x"\x22http://www.w3.org/2001/XMLSchema\x22"
+cdef XMLCh[] xmlchNsXsdQuoted2 = x"'http://www.w3.org/2001/XMLSchema'"
+
+# unicode strings
+cdef unicode uClarkXbrldtTypedDomainRef = u"{http://xbrl.org/2005/xbrldt}typedDomainRef"
+cdef unicode uClarkEnumerationDomain2014 = u"{http://xbrl.org/2014/extensible-enumerations}domain"
+cdef unicode uClarkEnumerationDomain2016 = u"{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}domain"
+cdef unicode uClarkEnumerationDomain2YMD = u"{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}domain"
+cdef unicode uClarkEnumerationDomain1YMD = u"{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}domain"
+cdef unicode uClarkEnumerationLinkrole2014 = u"{http://xbrl.org/2014/extensible-enumerations}linkrole"
+cdef unicode uClarkEnumerationLinkrole2016 = u"{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}linkrole"
+cdef unicode uClarkEnumerationLinkrole2YMD = u"{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}linkrole"
+cdef unicode uClarkEnumerationLinkrole1YMD = u"{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}linkrole"
+cdef unicode uClarkEnumerationUsable2014 = u"{http://xbrl.org/2014/extensible-enumerations}headUsable"
+cdef unicode uClarkEnumerationUsable2016 = u"{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}headUsable"
+cdef unicode uClarkEnumerationUsable2YMD = u"{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}headUsable"
+cdef unicode uClarkEnumerationUsable1YMD = u"{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}headUsable"
+cdef unicode uClarkXlinkActuate = u"{http://www.w3.org/1999/xlink}actuate"
+cdef unicode uClarkXlinkArcrole = u"{http://www.w3.org/1999/xlink}arcrole"
+cdef unicode uClarkXlinkHref = u"{http://www.w3.org/1999/xlink}href"
+cdef unicode uClarkXlinkFrom = u"{http://www.w3.org/1999/xlink}from"
+cdef unicode uClarkXlinkLabel = u"{http://www.w3.org/1999/xlink}label"
+cdef unicode uClarkXlinkRole = u"{http://www.w3.org/1999/xlink}role"
+cdef unicode uClarkXlinkShow = u"{http://www.w3.org/1999/xlink}show"
+cdef unicode uClarkXlinkTitle = u"{http://www.w3.org/1999/xlink}title"
+cdef unicode uClarkXlinkTo = u"{http://www.w3.org/1999/xlink}to"
+cdef unicode uClarkXlinkType = u"{http://www.w3.org/1999/xlink}type"
+cdef unicode uClarkXsiNil = u"{http://www.w3.org/2001/XMLSchema-instance}nil"
+cdef unicode uClarkXmlBase = u"{http://www.w3.org/XML/1998/namespace}base"
+cdef unicode uClarkXmlLang = u"{http://www.w3.org/XML/1998/namespace}lang"
+
+
+
+cdef unicode uAnonymousType = u"@anonymousType"
+cdef unicode uArcroleURI = u"arcroleURI"
+cdef unicode uContextRef = u"contextRef"
+cdef unicode uCyclesAllowed = u"cyclesAllowed"
+cdef unicode uDecimals = u"decimals"
+cdef unicode uDimension = u"dimension"
+cdef unicode uEmptyStr = u""
+cdef unicode uErrorStr = u"(Error)"
+cdef unicode uId = u"id"
+cdef unicode uLexicalPatternMismatch = u"lexical pattern mismatch"
+cdef unicode uHrefXsd = u"http://www.w3.org/2001/XMLSchema.xsd"
+cdef unicode uHrefIx10 = u"http://www.xbrl.org/2008/inlineXBRL/xhtml-inlinexbrl-1_0.xsd"
+cdef unicode uHrefIx11 = u"http://www.xbrl.org/2013/inlineXBRL/xhtml-inlinexbrl-1_1.xsd"
+cdef unicode uHrefLink = u"http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"
+cdef unicode uNsIso4217 = u"http://www.xbrl.org/2003/iso4217"
+cdef unicode uNsIxbrl11 = u"http://www.xbrl.org/2013/inlineXBRL"
+cdef unicode uNsLink = u"http://www.xbrl.org/2003/linkbase"
+cdef unicode uNsXbrldi = u"http://xbrl.org/2006/xbrldi"
+cdef unicode uNsXbrldt = u"http://xbrl.org/2005/xbrldt"
+cdef unicode uNsXbrli = u"http://www.xbrl.org/2003/instance"
+cdef unicode uNsXml = u"http://www.w3.org/XML/1998/namespace"
+cdef unicode uNsXsd = u"http://www.w3.org/2001/XMLSchema"
+cdef unicode uIx = u"ix"
+cdef unicode uLink = u"link"
+cdef unicode uOrder = u"order"
+cdef unicode uPrecision = u"precision"
+cdef unicode uPreferredLabel = u"preferredLabel"
+cdef unicode uPriority = u"priority"
+cdef unicode uRoleURI = u"roleURI"
+cdef unicode uScenario = u"scenario"	
+cdef unicode uSegment = u"segment"
+cdef unicode uUnitRef = u"unitRef"
+cdef unicode uUse = u"use"
+cdef unicode uWeight = u"weight"
+cdef unicode uXbrldi = u"xbrldi"
+cdef unicode uXbrli = u"xbrli"
+cdef unicode uXbrlDimensions = u"XBRL-dimensions"
+cdef unicode uXbrlFormulae = u"XBRL-formulae"
+cdef unicode uXbrlTableRendering = u"XBRL-table-rendering"
+cdef unicode uXbrlFootnotes = u"XBRL-footnotes"
+cdef unicode uXml = u"xml"
+cdef unicode uXs = u"xs"
+
+cdef QName qnXbrldiExplicitMember = QName(uNsXbrldi, uXbrldi, u"explicitMember")
+cdef QName qnXbrldiTypedMember = QName(uNsXbrldi, uXbrldi, u"typedMember")
+cdef QName qnXbrliDateUnion = QName(uNsXbrli, uXbrli, u"dateUnion")
+cdef QName qnXbrliDecimalsUnion = QName(uNsXbrli, uXbrli, u"decimalsType")
+cdef QName qnXbrliDenominator = QName(uNsXbrli, uXbrli, u"denominator")
+cdef QName qnXbrliDivide = QName(uNsXbrli, uXbrli, u"divide")
+cdef QName qnXbrliEntity = QName(uNsXbrli, uXbrli, u"entity")
+cdef QName qnXbrliEndDate = QName(uNsXbrli, uXbrli, u"endDate")
+cdef QName qnXbrliForever = QName(uNsXbrli, uXbrli, u"forever")
+cdef QName qnXbrliIdentifier = QName(uNsXbrli, uXbrli, u"identifier")
+cdef QName qnXbrliInstant = QName(uNsXbrli, uXbrli, u"instant")
+cdef QName qnXbrliMeasure = QName(uNsXbrli, uXbrli, u"measure")
+cdef QName qnXbrliNonZeroDecimalUnion = QName(uNsXbrli, uXbrli, u"nonZeroDecimal")
+cdef QName qnXbrliNumerator = QName(uNsXbrli, uXbrli, u"numerator")
+cdef QName qnXbrliPeriod = QName(uNsXbrli, uXbrli, u"period")
+cdef QName qnXbrliPrecisionUnion = QName(uNsXbrli, uXbrli, u"precisionType")
+cdef QName qnXbrliScenario = QName(uNsXbrli, uXbrli, uScenario)
+cdef QName qnXbrliSegment = QName(uNsXbrli, uXbrli, uSegment)
+cdef QName qnXbrliStartDate = QName(uNsXbrli, uXbrli, u"startDate")
+cdef QName qnXbrliUnitNumerator = QName(uNsXbrli, uXbrli, u"unitNumerator")
+cdef QName qnXbrliUnitDenominator = QName(uNsXbrli, uXbrli, u"unitDenominator")
+cdef QName qnXsdSchema = QName(uNsXsd, uXs, u"schema")
+cdef QName qnLinkRoleType = QName(uNsLink, uLink, u"roleType")
+cdef QName qnLinkArcroleType = QName(uNsLink, uLink, u"arcroleType")
+cdef QName qnIxbrl11Hidden = QName(uNsIxbrl11, uIx, u"hidden")
+
+
+# AnyURI objects
+cdef AnyURI uriErrorStr = AnyURI(uErrorStr)
+cdef AnyURI uriXml = AnyURI(uNsXml)
+
+# decimal objects
+cdef object dZERO = Decimal(0)
+cdef object dONE = Decimal(1)
+cdef object dNaN = Decimal("nan")
+cdef float fNaN = float("nan")
+
+cdef dict EMPTY_DICT = dict()
+
+cdef set inlineElementsWithNoContent = {
+    "relationship", # inline 1.1
+    "schemaRef", "linkbaseRef", "roleRef", "arcroleRef", # xbrl instance
+    "area", "base", "basefont", "br", "col", "frame", "hr", "img", "input", "isindex", "link", "meta", "param", # xhtml
+    # elements which can have no text node siblings, tested with IE, Chrome and Safari
+    "td", "tr"
+    }
+    
+cdef unicode NO_VALUE = u"@no-value@" # singleton for no value
+
+# regex pattern objects
+cdef object pValidateDecimalPattern = re_compile(r"^[+-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)$")
+cdef object pValidateIntegerPattern = re_compile(r"^[+-]?([0-9]+)$")
+cdef object pValidateFloatPattern = re_compile(r"^(\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)([Ee](\+|-)?[0-9]+)?$|^(\+|-)?INF$|^NaN$")
+cdef object pXpointerFragmentIdentifierPattern = re_compile(r"([\w.]+)(\(([^)]*)\))?")

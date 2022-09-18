@@ -1,5 +1,6 @@
 __pycache__
 *.pyc
+*.zip
 build
 dist
 buildRenameX64.bat
@@ -7,4 +8,5 @@ buildRenameX86.bat
 arelle/Version.py
 arelle/plugin/EdgarRenderer
 arelle/plugin/validate/DQC_US_Rules
-
+arelle-dev
+arelle_cython-dev

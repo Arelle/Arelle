@@ -6,19 +6,43 @@ Refactored from ModelObject on Jun 11, 2011
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os, io, logging
-from arelle import XmlUtil, XbrlConst, ModelValue
-from arelle.ModelObject import ModelObject
+from collections import defaultdict
+from arelle import arelle_c, XmlUtil, XbrlConst, ModelValue
 from arelle.ModelValue import qname
 from arelle.PluginManager import pluginClassMethods
 
-TXMY_PLG_SRC_ELTS = ("metadata", "catalog", "taxonomy")
+TXMY_PKG_SRC_ELTS = ("metadata", "catalog", "taxonomy")
 
-class ModelTestcaseVariation(ModelObject):
-    def init(self, modelDocument):
-        super(ModelTestcaseVariation, self).init(modelDocument)
+def testcaseVariationsByTarget(testcaseVariations):
+    for modelTestcaseVariation in testcaseVariations:
+        modelTestcaseVariation.errors = None # Errors accumulate over multiple ixdsTargets for same variation
+        ixdsTargets = [instElt.get("target")
+                      for resultElt in modelTestcaseVariation.iterdescendants("{*}result")       
+                      for instElt in resultElt.iterdescendants("{*}instance")]
+        if ixdsTargets:
+            # track status and actual (error codes, counts) across all targets
+            allTargetsActual = []
+            allTargetsStatus = ""
+            for ixdsTarget in ixdsTargets:
+                modelTestcaseVariation.ixdsTarget = ixdsTarget
+                yield modelTestcaseVariation
+                allTargetsActual.extend(modelTestcaseVariation.actual)
+                if allTargetsStatus not in ("fail", "fail (count)"):
+                    # update status unless fail were noted by a prior target of this variation
+                    allTargetsStatus = modelTestcaseVariation.status
+            modelTestcaseVariation.status = allTargetsStatus
+        else: # probably an expected error situation
+            modelTestcaseVariation.ixdsTarget = None
+            yield modelTestcaseVariation
+
+class ModelTestcaseVariation(arelle_c.ModelObject):
+    def __init__(self, *args):
+        #print("pyMdlC init {}".format(args))
+        super(ModelTestcaseVariation, self).__init__(*args)        
         self.status = ""
         self.actual = []
         self.assertions = None
+        self.ixdsTarget = None
         
     @property
     def id(self):
@@ -37,11 +61,10 @@ class ModelTestcaseVariation(ModelObject):
             if self.get("name"):
                 self._name = self.get("name")
             else:
-                nameElement = XmlUtil.descendant(self, None, "name" if self.localName != "testcase" else "number")
-                if nameElement is not None:
+                self._name = None
+                for nameElement in self.iterdescendants("{*}name" if self.localName != "testcase" else "{*}number"):
                     self._name = XmlUtil.innerText(nameElement)
-                else:
-                    self._name = None
+                    break
             return self._name
 
     @property
@@ -53,23 +76,19 @@ class ModelTestcaseVariation(ModelObject):
 
     @property
     def reference(self):
-        efmNameElts = XmlUtil.children(self.getparent(), None, "name")
-        for efmNameElt in efmNameElts:
-            if efmNameElt is not None and efmNameElt.text.startswith("EDGAR"):
+        for efmNameElt in self.itersiblings("{*}name"):
+            if efmNameElt.text.startswith("EDGAR"):
                 return efmNameElt.text
-        referenceElement = XmlUtil.descendant(self, None, "reference")
-        if referenceElement is not None: # formula test suite
+        for referenceElement in self.iterdescendants("{*}reference"):
             return "{0}#{1}".format(referenceElement.get("specification"), referenceElement.get("id"))
-        referenceElement = XmlUtil.descendant(self, None, "documentationReference")
-        if referenceElement is not None: # w3c test suite
+        for referenceElement in self.iterdescendants("{*}documentationReference"):
             return referenceElement.get("{http://www.w3.org/1999/xlink}href")
-        descriptionElement = XmlUtil.descendant(self, None, "description")
-        if descriptionElement is not None and descriptionElement.get("reference"):
-            return descriptionElement.get("reference")  # xdt test suite
+        for descriptionElement in self.iterdescendants("{*}description"):
+            if descriptionElement.get("reference"):
+                return descriptionElement.get("reference")  # xdt test suite
         if self.getparent().get("description"):
             return self.getparent().get("description")  # base spec 2.1 test suite
-        functRegistryRefElt = XmlUtil.descendant(self.getparent(), None, "reference")
-        if functRegistryRefElt is not None: # function registry
+        for functRegistryRefElt in self.siblings("{*}reference"):
             return functRegistryRefElt.get("{http://www.w3.org/1999/xlink}href")
         return None
     
@@ -83,27 +102,22 @@ class ModelTestcaseVariation(ModelObject):
             if not any(pluginXbrlMethod(self)
                        for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReadMeFirstUris")):
                 if self.localName == "testGroup":  #w3c testcase
-                    instanceTestElement = XmlUtil.descendant(self, None, "instanceTest")
-                    if instanceTestElement is not None: # take instance first
-                        self._readMeFirstUris.append(XmlUtil.descendantAttr(instanceTestElement, None, 
-                                                                            "instanceDocument", 
-                                                                            "{http://www.w3.org/1999/xlink}href"))
+                    for instanceTestElement in self.iterdescendants("{*}instanceTest"): # take instance first
+                        for instanceDocElement in instanceTestElement.iterdescendants("{*}instanceDocument"):
+                            self._readMeFirstUris.append(instanceDocElement.get("{http://www.w3.org/1999/xlink}href"))
                     else:
-                        schemaTestElement = XmlUtil.descendant(self, None, "schemaTest")
-                        if schemaTestElement is not None:
-                            self._readMeFirstUris.append(XmlUtil.descendantAttr(schemaTestElement, None, 
-                                                                                "schemaDocument", 
-                                                                                "{http://www.w3.org/1999/xlink}href"))
+                        for schemaTestElement in self.iterdescendants("{*}schemaTest"):
+                            for schemaDocElement in self.iterdescendants("{*}schemaDocument"):
+                                self._readMeFirstUris.append(schemaDocElement.get("{http://www.w3.org/1999/xlink}href"))
                 elif self.localName == "test-case":  #xpath testcase
-                    inputFileElement = XmlUtil.descendant(self, None, "input-file")
-                    if inputFileElement is not None: # take instance first
+                    for inputFileElement in self.iterdescendants("{*}input-file"): # take instance first
                         self._readMeFirstUris.append("TestSources/" + inputFileElement.text + ".xml")
                 elif self.resultIsTaxonomyPackage:
                     self._readMeFirstUris.append( os.path.join(self.modelDocument.filepathdir, "tests", self.get("name") + ".zip") )
                 else:
                     # default built-in method for readme first uris
                     for anElement in self.iterdescendants():
-                        if isinstance(anElement,ModelObject) and anElement.get("readMeFirst") == "true":
+                        if isinstance(anElement,arelle_c.ModelObject) and anElement.get("readMeFirst") in (True, "true"):
                             if anElement.get("{http://www.w3.org/1999/xlink}href"):
                                 uri = anElement.get("{http://www.w3.org/1999/xlink}href")
                             else:
@@ -117,6 +131,17 @@ class ModelTestcaseVariation(ModelObject):
             if not self._readMeFirstUris:  # provide a dummy empty instance document
                 self._readMeFirstUris.append(os.path.join(self.modelXbrl.modelManager.cntlr.configDir, "empty-instance.xml"))
             return self._readMeFirstUris
+    
+    @property
+    def dataUrls(self):
+        try:
+            return self._dataUrls
+        except AttributeError:
+            self._dataUrls = defaultdict(list) # may contain instances, schemas, linkbases
+            for dataElement in XmlUtil.descendants(self, None, ("data", "input")):
+                for elt in XmlUtil.descendants(dataElement, None, ("xsd", "schema", "linkbase", "instance")):
+                    self._dataUrls["schema" if elt.localName == "xsd" else elt.localName].append(elt.textValue.strip())
+            return self._dataUrls
     
     @property
     def parameters(self):
@@ -142,10 +167,16 @@ class ModelTestcaseVariation(ModelObject):
         return XmlUtil.descendant(XmlUtil.descendant(self, None, "result"), None, "instance") is not None
         
     @property
-    def resultXbrlInstanceUri(self):
-        resultInstance = XmlUtil.descendant(XmlUtil.descendant(self, None, "result"), None, "instance")
-        if resultInstance is not None:
-            return XmlUtil.text(resultInstance)
+    def resultXbrlInstanceUrl(self):
+        for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ResultXbrlInstanceUrl"):
+            resultInstanceUri = pluginXbrlMethod(self)
+            if resultInstanceUri is not None:
+                return resultInstanceUri or None # (empty string returns None)
+            
+        for resultElt in self.iterdescendants("{*}result"):
+            for instElt in resultElt.iterdescendants("{*}instance"):
+                if (instElt.get("target") or "") == (self.ixdsTarget or ""): # match null and emptyString
+                    return XmlUtil.text(instElt)
         return None
     
     @property
@@ -169,7 +200,8 @@ class ModelTestcaseVariation(ModelObject):
         result = XmlUtil.descendant(self, None, "result")
         if result is not None :
             child = XmlUtil.child(result, None, "table")
-            return child is not None and XmlUtil.text(child).endswith(".xml")
+            if child is not None and XmlUtil.text(child).endswith(".xml"):
+                return True
         return False
         
     @property
@@ -177,12 +209,13 @@ class ModelTestcaseVariation(ModelObject):
         result = XmlUtil.descendant(self, None, "result")
         if result is not None:
             child = XmlUtil.child(result, None, "table")
-            return os.path.join(self.modelDocument.outpath, XmlUtil.text(child if child is not None else result))
+            if child is not None:
+                return os.path.join(self.modelDocument.outpath, XmlUtil.text(child))
         return None    
     
     @property
     def resultIsTaxonomyPackage(self):
-        return any(e.localName for e in XmlUtil.descendants(self,None,TXMY_PLG_SRC_ELTS))
+        return any(e.localName for e in XmlUtil.descendants(self,None,TXMY_PKG_SRC_ELTS))
 
     @property
     def cfcnCall(self):
@@ -245,39 +278,40 @@ class ModelTestcaseVariation(ModelObject):
         if self.localName == "testcase":
             return self.document.basename[:4]   #starts with PASS or FAIL
         elif self.localName == "testGroup":  #w3c testcase
-            instanceTestElement = XmlUtil.descendant(self, None, "instanceTest")
-            if instanceTestElement is not None: # take instance first
-                return XmlUtil.descendantAttr(instanceTestElement, None, "expected", "validity")
-            else:
-                schemaTestElement = XmlUtil.descendant(self, None, "schemaTest")
-                if schemaTestElement is not None:
-                    return XmlUtil.descendantAttr(schemaTestElement, None, "expected", "validity")
-        errorElement = XmlUtil.descendant(self, None, "error")
-        if errorElement is not None:
-            _errorText = XmlUtil.text(errorElement)
-            if ' ' in _errorText: # list of tokens
-                return _errorText
-            return ModelValue.qname(errorElement, _errorText)  # turn into a QName
-        resultElement = XmlUtil.descendant(self, None, "result")
-        if resultElement is not None:
+            for instanceTestElement in self.iterdescendants(self, "{*}instanceTest", "{*}schemaTest"):
+                for elt in self.iterdescendants("{*}expected"):
+                    return elt.get("validity")
+        for resultElement in self.iterdescendants("{*}result"):
             expected = resultElement.get("expected")
+            if expected and resultElement.get("nonStandardErrorCodes") in (True, "true"):
+                # if @expected and @nonStandardErrorCodes then use expected instead of error codes
+                return expected
+        for errorElement in self.iterdescendants("{*}error"):
+            if not errorElement.get("nonStandardErrorCodes"):
+                if isinstance(errorElement.xValue, arelle_c.QName):
+                    return errorElement.xValue
+                _errorText = XmlUtil.text(errorElement)
+                if ' ' in _errorText: # list of tokens
+                    return _errorText
+                return errorElement.prefixedNameQName(_errorText)
+        for resultElement in self.iterdescendants("{*}result"):
             if expected:
                 return expected
-            for assertElement in XmlUtil.children(resultElement, None, "assert"):
+            for assertElement in resultElement.iterchildren("{*}assert"):
                 num = assertElement.get("num")
                 if num == "99999": # inline test, use name as expected
                     return assertElement.get("name")
                 if len(num) == 5:
                     return "EFM.{0}.{1}.{2}".format(num[0],num[1:3],num[3:6])
             asserTests = {}
-            for atElt in XmlUtil.children(resultElement, None, "assertionTests"):
+            for atElt in resultElement.iterchildren("{*}assertionTests"):
                 try:
                     asserTests[atElt.get("assertionID")] = (_INT(atElt.get("countSatisfied")),_INT(atElt.get("countNotSatisfied")))
                 except ValueError:
                     pass
             if asserTests:
                 return asserTests
-        elif self.get("result"):
+        if self.get("result"):
             return self.get("result")
                 
         return None
@@ -299,21 +333,28 @@ class ModelTestcaseVariation(ModelObject):
                 return logging._checkLevel(severityLevelName)
         # default behavior without plugins
         # SEC error cases have <assert severity={err|wrn}>...
-        if (XmlUtil.descendant(self, None, "assert", attrName="severity", attrValue="wrn") is not None or
-            XmlUtil.descendant(self, None, "result", attrName="severity", attrValue="warning") is not None):
-            return logging._checkLevel("WARNING")
+        for elt in self.iterdescendants("{*}assert", "{*}result"):
+            if elt.get("severity") in ("wrn", "warning"):
+                return logging._checkLevel("WARNING")
         return logging._checkLevel("INCONSISTENCY")
 
     @property
     def blockedMessageCodes(self):
-        return XmlUtil.descendantAttr(self, None, "results", "blockedMessageCodes")
+        for elt in self.iterdescendants("{*}assert", "{*}result"):
+            return elt.get("blockedMessageCodes")
+        return None
     
     @property
     def expectedVersioningReport(self):
-        XmlUtil.text(XmlUtil.text(XmlUtil.descendant(XmlUtil.descendant(self, None, "result"), None, "versioningReport")))
+        for e1 in self.iterdescendants("{*}result"):
+            for e2 in self.iterdescendants("{*}versioningReport"):
+                return XmlUtil.text(e2)
 
     @property
     def propertyView(self):
+        if not hasattr(self, "testcaseVariations"): # testcase object not yet set up
+            return  [("id", self.id),
+                     ("name", self.name)]
         assertions = []
         for assertionElement in XmlUtil.descendants(self, None, "assertionTests"):
             assertions.append(("assertion",assertionElement.get("assertionID")))
@@ -347,9 +388,12 @@ class ModelTestcaseVariation(ModelObject):
     def __repr__(self):
         return ("modelTestcaseVariation[{0}]{1})".format(self.objectId(),self.propertyView))
 
-from arelle.ModelObjectFactory import elementSubstitutionModelClass
-elementSubstitutionModelClass.update((
-     (qname("{http://edgar/2009/conformance}variation"), ModelTestcaseVariation),
-     (qname("{http://www.w3.org/XML/2004/xml-schema-test-suite/}testGroup"), ModelTestcaseVariation),
-     (qname("{http://www.w3.org/2005/02/query-test-XQTSCatalog}test-case"), ModelTestcaseVariation),
-    ))
+from arelle.ModelObjectFactory import registerModelObjectClass
+registerModelObjectClass("http://xbrl.org/2005/conformance", "variation", ModelTestcaseVariation)
+registerModelObjectClass("http://xbrl.org/2006/conformance", "variation", ModelTestcaseVariation)
+registerModelObjectClass("http://xbrl.org/2008/conformance", "variation", ModelTestcaseVariation)
+registerModelObjectClass("http://edgar/2009/conformance", "variation", ModelTestcaseVariation)
+registerModelObjectClass(None, "variation", ModelTestcaseVariation) # e.g., Common/200/preferredLabel.xml test case has no namespace
+registerModelObjectClass("http://www.w3.org/XML/2004/xml-schema-test-suite/", "variation", ModelTestcaseVariation)
+registerModelObjectClass("http://www.w3.org/2005/02/query-test-XQTSCatalog", "testGroup", ModelTestcaseVariation)
+registerModelObjectClass("http://www.w3.org/2005/02/query-test-XQTSCatalog", "test-case", ModelTestcaseVariation)

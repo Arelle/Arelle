@@ -19,6 +19,8 @@ from arelle.XmlValidate import UNVALIDATED, VALID
 numberPattern = re_compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
 ZERO = decimal.Decimal(0)
 ONE = decimal.Decimal(1)
+TWO = decimal.Decimal(2)
+TEN = decimal.Decimal(10)
 NaN = decimal.Decimal("NaN")
 floatNaN = float("NaN")
 floatINF = float("INF")
@@ -66,7 +68,7 @@ class ValidateXbrlCalcs:
         del uniqueContextHashes
         self.modelXbrl.profileActivity("... identify equal contexts", minTimeToShow=1.0)
 
-        # identify equal contexts
+        # identify equal units
         uniqueUnitHashes = {}
         for unit in self.modelXbrl.units.values():
             h = unit.hash
@@ -75,12 +77,12 @@ class ValidateXbrlCalcs:
                     self.mapUnit[unit] = uniqueUnitHashes[h]
             else:
                 uniqueUnitHashes[h] = unit
+        del uniqueUnitHashes
         self.modelXbrl.profileActivity("... identify equal units", minTimeToShow=1.0)
                     
         # identify concepts participating in essence-alias relationships
         # identify calcluation & essence-alias base sets (by key)
-        for baseSetKey in self.modelXbrl.baseSets.keys():
-            arcrole, ELR, linkqname, arcqname = baseSetKey
+        for (arcrole, ELR, linkqname, arcqname) in self.modelXbrl.baseSets.keys():
             if ELR and linkqname and arcqname:
                 if arcrole in (XbrlConst.essenceAlias, XbrlConst.requiresElement):
                     conceptsSet = {XbrlConst.essenceAlias:self.conceptsInEssencesAlias,
@@ -95,14 +97,14 @@ class ValidateXbrlCalcs:
         self.modelXbrl.profileActivity("... bind facts", minTimeToShow=1.0)
         
         # identify calcluation & essence-alias base sets (by key)
-        for baseSetKey in self.modelXbrl.baseSets.keys():
-            arcrole, ELR, linkqname, arcqname = baseSetKey
+        for (arcrole, ELR, linkqname, arcqname) in self.modelXbrl.baseSets.keys():
             if ELR and linkqname and arcqname:
                 if arcrole in (XbrlConst.summationItem, XbrlConst.essenceAlias, XbrlConst.requiresElement):
                     relsSet = self.modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname)
                     if arcrole == XbrlConst.summationItem:
                         fromRelationships = relsSet.fromModelObjects()
-                        for sumConcept, modelRels in fromRelationships.items():
+                        for sumConceptIndex, modelRels in fromRelationships.items():
+                            sumConcept = self.modelXbrl.modelObjects[sumConceptIndex]
                             sumBindingKeys = self.sumConceptBindKeys[sumConcept]
                             dupBindingKeys = set()
                             boundSumKeys = set()
@@ -116,7 +118,7 @@ class ValidateXbrlCalcs:
                             boundSums = defaultdict(decimal.Decimal) # sum of facts meeting factKey
                             boundSummationItems = defaultdict(list) # corresponding fact refs for messages
                             for modelRel in modelRels:
-                                weight = modelRel.weightDecimal
+                                weight = modelRel.weight
                                 itemConcept = modelRel.toModelObject
                                 if itemConcept is not None:
                                     for itemBindKey in boundSumKeys:
@@ -297,8 +299,8 @@ def roundFact(fact, inferDecimals=False, vDecimal=None):
     if dStr == "INF" or pStr == "INF":
         vRounded = vDecimal
     elif inferDecimals: #infer decimals, round per 4.6.7.2, e.g., half-down
-        if pStr:
-            p = int(pStr)
+        if pStr is not None:
+            p = pStr
             if p == 0:
                 vRounded = NaN
             elif vDecimal == 0:
@@ -311,8 +313,8 @@ def roundFact(fact, inferDecimals=False, vDecimal=None):
                 #    vFloat += 10 ** (-d - 1) * (1.0 if vFloat > 0 else -1.0)
                 #vRounded = round(vFloat, d)
                 vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_EVEN)
-        elif dStr:
-            d = int(dStr)
+        elif dStr is not None:
+            d = dStr
             # defeat binary rounding to nearest even
             #if trunc(fmod(vFloat * (10 ** d),2)) != 0:
             #    vFloat += 10 ** (-d - 1) * (-1.0 if vFloat > 0 else 1.0)
@@ -322,17 +324,17 @@ def roundFact(fact, inferDecimals=False, vDecimal=None):
         else: # no information available to do rounding (other errors xbrl.4.6.3 error)
             vRounded = vDecimal
     else: # infer precision
-        if dStr:
+        if dStr is not None:
             match = numberPattern.match(vStr if vStr else str(vDecimal))
             if match:
                 nonZeroInt, period, zeroDec, nonZeroDec, e, exp = match.groups()
                 p = (len(nonZeroInt) if nonZeroInt and (len(nonZeroInt)) > 0 else -len(zeroDec)) + \
                     (int(exp) if exp and (len(exp) > 0) else 0) + \
-                    (int(dStr))
+                    (dStr)
             else:
                 p = 0
-        elif pStr:
-            p = int(pStr)
+        elif pStr is not None:
+            p = pStr
         else: # no rounding information
             p = None
         if p == 0:
@@ -368,19 +370,19 @@ def inferredPrecision(fact):
         return floatINF
     try:
         vFloat = float(vStr)
-        if dStr:
+        if dStr is not None:
             match = numberPattern.match(vStr if vStr else str(vFloat))
             if match:
                 nonZeroInt, period, zeroDec, nonZeroDec, e, exp = match.groups()
                 p = (len(nonZeroInt) if nonZeroInt else (-len(zeroDec) if nonZeroDec else 0)) + \
                     (int(exp) if exp else 0) + \
-                    (int(dStr))
+                    (dStr)
                 if p < 0:
                     p = 0 # "pathological case" 2.1 spec example 13 line 7
             else:
                 p = 0
         else:
-            return int(pStr)
+            return pStr
     except ValueError:
         return floatNaN
     if p == 0:
@@ -397,8 +399,8 @@ def inferredDecimals(fact):
     if dStr == "INF" or pStr == "INF":
         return floatINF
     try:
-        if pStr:
-            p = int(pStr)
+        if pStr is not None:
+            p = pStr
             if p == 0:
                 return floatNaN # =0 cannot be determined
             vFloat = float(vStr)
@@ -463,6 +465,22 @@ def roundValue(value, precision=None, decimals=None, scale=None):
     else:
         vRounded = vDecimal
     return vRounded
+
+def rangeValue(value, decimals=None):
+    try:
+        vDecimal = decimal.Decimal(value)
+    except (decimal.InvalidOperation, ValueError): # would have been a schema error reported earlier
+        return (NaN, NaN)
+    if decimals is not None and decimals != "INF":
+        if not isinstance(decimals, (int,float)):
+            try:
+                decimals = int(decimals)
+            except ValueError: # would be a schema error
+                decimals = floatNaN
+        if not (isinf(decimals) or isnan(decimals)):
+            dd = (TEN**(decimal.Decimal(decimals).quantize(ONE,decimal.ROUND_DOWN)*-ONE)) / TWO
+            return (vDecimal - dd, vDecimal + dd)
+    return (vDecimal, vDecimal)
 
 def insignificantDigits(value, precision=None, decimals=None, scale=None):
     try:

@@ -9,7 +9,6 @@ import os
 import datetime
 from distutils.command.build_py import build_py as _build_py
 
-print ("argv={}".format(sys.argv))
 
 def get_version():
     """
@@ -203,7 +202,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
     try:
         from cx_Freeze import setup, Executable  
         cx_FreezeExecutables = [ 
-            Executable(script="arelleGUI.pyw", targetName="arelle"),
+            Executable(script="arelleGUI.pyw", targetName="arelleGUI"),
             Executable(script="arelleCmdLine.py")
         ]
     except:
@@ -214,6 +213,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         '.',  # note that new setuptools finds plugin and lib unwanted stuff
         exclude=['*.plugin.*', '*.lib.*']
     )
+
     dataFiles = []
     includeFiles = [
         ('arelle/config','config'),
@@ -233,8 +233,21 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         # copy tck and tk built as described: https://www.tcl.tk/doc/howto/compile.html#mac
         includeFiles.append(('/Library/Frameworks/Tcl.framework/Versions/8.6/Resources/Scripts','tcl8.6'))
         includeFiles.append(('/Library/Frameworks/Tk.framework/Versions/8.6/Resources/Scripts','tk8.6'))
+        includeFiles.append(('/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/tkinter','lib/tkinter'))
+        includeFiles.append(('/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload/_tkinter.cpython-35m-darwin.so','lib/_tkinter.cpython-35m-darwin.so'))
     else: 
         includeFiles.append(('arelle/scripts-unix','scripts'))
+        if os.path.exists("/etc/redhat-release"):
+            # extra libraries needed for red hat
+            includeFiles.append(('/usr/local/lib/libexslt.so', 'libexslt.so'))
+            includeFiles.append(('/usr/local/lib/libxml2.so', 'libxml2.so'))
+            # for some reason redhat needs libxml2.so.2 as well
+            includeFiles.append(('/usr/local/lib/libxml2.so.2', 'libxml2.so.2'))
+            includeFiles.append(('/usr/local/lib/libxslt.so', 'libxslt.so'))
+            includeFiles.append(('/lib64/libz.so.1', 'libz.so.1')) # not standard in RHEL6
+            includeFiles.append(('/usr/lib64/liblzma.so.0', 'liblzma.so.0')) # not standard in RHEL6
+            includeFiles.append(('/usr/local/lib/tcl8.6', 'tcl8.6')) 
+            includeFiles.append(('/usr/local/lib/tk8.6', 'tk8.6')) 
                 
     if os.path.exists("version.txt"):
         includeFiles.append(('version.txt', 'version.txt'))
@@ -242,6 +255,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
     includeLibs = [
         'lxml', 'lxml.etree', 'lxml._elementpath', 'lxml.html',
         'pg8000', 'pymysql', 'sqlite3', 'numpy', 
+        'numpy.core._methods', 'numpy.lib.format', # additional modules of numpy
         # note cx_Oracle isn't here because it is version and machine specific,
         # ubuntu not likely working
         # more rdflib plugin modules may need to be added later
@@ -257,9 +271,15 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         'rdflib.plugins.serializers.xmlwriter',
         'rdflib.plugins.sparql',
         'rdflib.plugins.stores',
-        'isodate', 'regex', 'gzip', 'zlib', 
-        'openpyxl' # openpyxl's __init__.py must be hand edited, see https://bitbucket.org/openpyxl/openpyxl/pull-requests/80/__about__py/diff
+        'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz',
+        'openpyxl', # openpyxl's __init__.py must be hand edited, see https://bitbucket.org/openpyxl/openpyxl/pull-requests/80/__about__py/diff
+        'google_api_python_client', 'oauth2client', 'six', 'httplib2', 'uritemplate', 'pyasn1', 'rsa', 'pyasn1_modules' # google-api-python-client
     ]
+
+    excludeLibs = []
+
+    if sys.platform == 'darwin':
+        excludeLibs += ['tkinter'] # copied in as files
     
     # uncomment the next two files if cx_Freezing with EdgarRenderer
     # note that openpyxl must be 2.1.4 at this time
@@ -268,13 +288,13 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
             'cherrypy', # 'cherrypy.wsgiserver.wsgiserver3',
             'dateutil',
             'dateutil.relativedelta',
-            'six',
+            
             'tornado',
             'pyparsing',
-            'matplotlib'
+            'matplotlib', "matplotlib.pyplot"
         ]
         import matplotlib
-        dataFiles += matplotlib.get_py2exe_datafiles()
+        #dataFiles += matplotlib.get_py2exe_datafiles()
 
     if sys.platform != 'sunos5':
         try:
@@ -290,6 +310,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
             # subdirectories to site-packages directory
             #
             "includes": includeLibs,
+            "excludes": excludeLibs,
             "packages": packages,
         }
     )
@@ -297,8 +318,6 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         options["bdist_mac"] = {
             "iconfile": 'arelle/images/arelle.icns',
             "bundle_name": 'Arelle',
-            "include_frameworks": ["/Library/Frameworks/Tcl.framework/Versions/8.6/Tcl",
-                                   "/Library/Frameworks/Tk.framework/Versions/8.6/Tk"]
         }
         
     
@@ -334,6 +353,7 @@ elif sys.platform == 'win32':
     includeLibs = [
         'lxml', 'lxml.etree', 'lxml._elementpath', 'lxml.html',
         'pg8000', 'pymysql', 'cx_Oracle', 'pyodbc', 'sqlite3', 'numpy',
+        'numpy.core._methods', 'numpy.lib.format', # additional modules of numpy
         # more rdflib plugin modules may need to be added later
         'rdflib',
         'rdflib.extras',
@@ -347,7 +367,7 @@ elif sys.platform == 'win32':
         'rdflib.plugins.serializers.xmlwriter',
         'rdflib.plugins.sparql',
         'rdflib.plugins.stores',
-        'isodate', 'regex', 'gzip', 'zlib', 
+        'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz',
         'openpyxl' # openpyxl's __init__.py must be hand edited, see https://bitbucket.org/openpyxl/openpyxl/pull-requests/80/__about__py/diff
 
     ]
@@ -356,10 +376,11 @@ elif sys.platform == 'win32':
     # removed tornado
     if os.path.exists("arelle/plugin/EdgarRenderer"):
         includeLibs += [
-            'cherrypy', 'cherrypy.wsgiserver.wsgiserver3', 
+            'cherrypy', # 'cherrypy.wsgiserver.wsgiserver3', 
             'dateutil', 'dateutil.relativedelta',
-            "six", "pyparsing", "matplotlib"
+            "six", "pyparsing", "matplotlib", "matplotlib.pyplot"
         ]
+        import matplotlib
         
     options = dict(
         build_exe={
@@ -411,7 +432,7 @@ setup(
     url='http://www.arelle.org',
     download_url='http://www.arelle.org/download',
     cmdclass=cmdclass,
-    #include_package_data=True,  # note: this uses MANIFEST.in
+    # include_package_data=True,  # note: this uses MANIFEST.in
     packages=packages,
     data_files=dataFiles,
     platforms=['OS Independent'],

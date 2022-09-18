@@ -116,7 +116,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
         # check for duplicate multi-lingual elements (among children of nodes)
         langElts = defaultdict(list)
         for n in root.iter(tag=nsPrefix + "*"):
-            for eltName in ("name", "description"):
+            for eltName in ("name", "description", "publisher"):
                 langElts.clear()
                 for m in n.iterchildren(tag=nsPrefix + eltName):
                     langElts[xmlLang(m)].append(m)
@@ -176,7 +176,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                             if not os.path.isabs(replaceValue):
                                 replaceValue = fileBase + replaceValue
                             replaceValue = replaceValue.replace("/", os.sep)
-                    _normedValue = os.path.normpath(replaceValue)
+                    _normedValue = cntlr.webCache.normalizeUrl(replaceValue)
                     if replaceValue.endswith(os.sep) and not _normedValue.endswith(os.sep):
                         _normedValue += os.sep
                     remappings[prefixValue] = _normedValue
@@ -191,7 +191,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
 
     pkg["remappings"] = remappings
 
-    entryPoints = {}
+    entryPoints = defaultdict(list)
     pkg["entryPoints"] = entryPoints
 
     for entryPointSpec in tree.iter(tag=nsPrefix + "entryPoint"):
@@ -221,14 +221,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                 resolvedUrl = urljoin(base, epUrl)
             else:
                 resolvedUrl = epUrl
-            if epDocCount:
-                cntlr.addToLog(_("Skipping multiple-document entry point (not supported) %(href)s"),
-                               messageArgs={"href": epUrl},
-                               messageCode="arelle.packageMultipleDocumentEntryPoints",
-                               file=os.path.basename(metadataFile),
-                               level=logging.WARNING)
-                errors.append("arelle.packageMultipleDocumentEntryPoints")
-                continue
+                
             epDocCount += 1
     
             #perform prefix remappings
@@ -261,7 +254,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                     closest = s   # pick english if nothing better
             if not closest and name:  # assign default name when none in taxonomy package
                 closest = name
-            entryPoints[name] = (remappedUrl, resolvedUrl, closest)
+            entryPoints[name].append( (remappedUrl, resolvedUrl, closest) )
 
     return pkg
 

@@ -94,6 +94,7 @@ class ModelManager:
         :type clearAfter: int
         """
         self.cntlr.showStatus(message, clearAfter)
+        if self.cntlr.traceToStdout: print("status: " + message)
         
     def viewModelObject(self, modelXbrl, objectId):
         """Notify any active views to show and highlight selected object.  Generally used

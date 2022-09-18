@@ -14,11 +14,13 @@ from arelle.ModelObject import ModelObject, ObjectPropertyViewWrapper
 from arelle.Locale import format_string
 from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeInstanceObject import FactPrototype, DimValuePrototype
-from arelle.PythonUtil import flattenSequence
+from arelle.PythonUtil import OrderedSet, flattenSequence
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 ModelRelationshipSet = None # dynamic import
 ModelFact = None
+EmptySchema = None
+EmptyDTD = None
 
 profileStatNumber = 0
 
@@ -47,6 +49,7 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
     if nextaction is None: nextaction = _("loading")
     from arelle import (ModelDocument, FileSource)
     modelXbrl = create(modelManager, errorCaptureLevel=errorCaptureLevel)
+    supplementalUrls = None
     if useFileSource is not None:
         modelXbrl.fileSource = useFileSource
         modelXbrl.closeFileSource = False
@@ -54,15 +57,20 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
     elif isinstance(url,FileSource.FileSource):
         modelXbrl.fileSource = url
         modelXbrl.closeFileSource= True
-        url = modelXbrl.fileSource.url
+        if isinstance(modelXbrl.fileSource.url, list): # json list
+            url = modelXbrl.fileSource.url[0]
+            supplementalUrls = modelXbrl.fileSource.url[1:]
+        #elif isinstance(modelXbrl.fileSource.url, dict): # json object
+        else:
+            url = modelXbrl.fileSource.url
     else:
         modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr)
         modelXbrl.closeFileSource= True
-    modelXbrl.reloadCache = kwargs.get("reloadCache", False)
-    modelXbrl.checkModifiedTime = kwargs.get("checkModifiedTime",False)
     modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True, **kwargs)
+    if supplementalUrls:
+        for url in supplementalUrls:
+            ModelDocument.load(modelXbrl, url, base, isEntry=False, isDiscovered=True, **kwargs)
     del modelXbrl.entryLoadingUrl
-    loadSchemalocatedSchemas(modelXbrl)
     
     #from arelle import XmlValidate
     #uncomment for trial use of lxml xml schema validation of entry document
@@ -258,23 +266,11 @@ class ModelXbrl(arelle_c.ModelXbrl):
         self.errorCaptureLevel = (errorCaptureLevel or logging._checkLevel("INCONSISTENCY"))
         self.errors = []
         self.logCount = {}
-        self.arcroleTypes = defaultdict(list)
-        self.roleTypes = defaultdict(list)
-        self.qnameConcepts = {} # indexed by qname of element
-        self.nameConcepts = defaultdict(list) # contains ModelConcepts by name 
         self.qnameAttributes = {}
         self.qnameAttributeGroups = {}
         self.qnameGroupDefinitions = {}
-        self.qnameTypes = {} # contains ModelTypes by qname key of type
-        self.baseSets = defaultdict(list) # contains ModelLinks for keys arcrole, arcrole#linkrole
         self.relationshipSets = {} # contains ModelRelationshipSets by bas set keys
         self.qnameDimensionDefaults = {} # contains qname of dimension (index) and default member(value)
-        self.facts = []
-        self.factsInInstance = set()
-        self.undefinedFacts = [] # elements presumed to be facts but not defined
-        self.contexts = {}
-        self.units = {}
-        self.modelObjects = []
         self.qnameParameters = {}
         self.modelVariableSets = set()
         self.modelCustomFunctionSignatures = {}
@@ -282,10 +278,6 @@ class ModelXbrl(arelle_c.ModelXbrl):
         self.modelRenderingTables = set()
         if not keepViews:
             self.views = []
-        self.langs = {self.modelManager.defaultLang}
-        from arelle.XbrlConst import standardLabel
-        self.labelroles = {standardLabel}
-        self.hasXDT = False
         self.hasTableRendering = False
         self.hasTableIndexing = False
         self.hasFormulae = False
@@ -318,7 +310,7 @@ class ModelXbrl(arelle_c.ModelXbrl):
             self.__dict__.clear() # dereference everything before closing document
             if modelDocument:
                 modelDocument.close(urlDocs=urlDocs)
-            #super(ModelObject, self).close()
+            super(ModelXbrl, self).close()
             
     @property
     def isClosed(self):
@@ -350,7 +342,7 @@ class ModelXbrl(arelle_c.ModelXbrl):
                     self.views[0].close()
                     
     def xerces_resolve_entity(self, request_type, public_id, system_id, schemaLocation, base_url, namespace,
-                              loc_public_id, loc_system_id, loc_line_number, loc_column_number):
+                              loc_public_id, loc_system_id, loc_line_number, loc_column_number, **kwargs):
         """Xerces resolver call to provide fileDesc for input
         :param request_type: int 0=SchemaGrammar, 1=SchemaImport, 2=SchemaInclude, 3=SchemaRedefine, 4=ExternalEntity, 255=UnKnown
         :type int
@@ -373,15 +365,42 @@ class ModelXbrl(arelle_c.ModelXbrl):
         :param loc_column_number
         :type int
         """
-        # print("xerces_resolve_entity type {} pub {} sys {} schLoc {} base {} ns {} loc_pub {} loc_sys {} loc_line {} loc_col {}".format(request_type, public_id, system_id, schemaLocation, base_url, namespace, loc_public_id, loc_system_id, loc_line_number, loc_column_number))
-        _baseUrl = base_url or loc_system_id
-        if not (os.path.isabs(system_id) or UrlUtil.isAbsolute(system_id)) and not _baseUrl:
+        #print("xerces_resolve_entity type {} pub {} sys {} schLoc {} base {} ns {} loc_pub {} loc_sys {} loc_line {} loc_col {}".format(request_type, public_id, system_id, schemaLocation, base_url, namespace, loc_public_id, loc_system_id, loc_line_number, loc_column_number))
+        _baseUrl = loc_system_id
+        if not (system_id is not None and (os.path.isabs(system_id) or UrlUtil.isAbsolute(system_id))) and not _baseUrl:
             # relative
-            print("xerces system id is relative {}, allowing xerces default processing".format(system_id))
+            if self.cntlr.traceToStdout: print("xerces system id is relative {}, allowing xerces default processing".format(system_id))
             return None
+        #if system_id == XbrlConst.hrefXsd:
+        #    # loading xsd messes up xerces, which has it built in already
+        #    if self.cntlr.traceToStdout: print("xerces system id is XMLSchema.xsd, blocking it")
+        #    return None
         _unmappedBaseUrl = self.mappedUrls.get(_baseUrl, _baseUrl)
-        normalizedUrl = self.modelManager.cntlr.webCache.normalizeUrl(system_id, _unmappedBaseUrl)
-        if self.fileSource.isMappedUrl(normalizedUrl):
+        #if _unmappedBaseUrl in self.resolvedUrls:
+        #    if self.cntlr.traceToStdout: print("xerces system id already is resolved: {}".format(_unmappedBaseUrl))
+        #    return None
+        _mappedSystemId = self.mappedUrls.get(system_id, system_id)
+        normalizedUrl = self.modelManager.cntlr.webCache.normalizeUrl(_mappedSystemId, _unmappedBaseUrl)
+        if normalizedUrl is None:
+            if namespace:
+                if self.cntlr.traceToStdout: print("xerces system id is absent, allowing xerces default processing for namespace {}".format(namespace))
+                return None
+            self.error("FileNotLoadable",
+                _("File can not be loaded: %(fileName)s, referenced from %(referencingFileName)s"),
+                modelObject=s, fileName=normalizedUrl, referencingFileName=kwargs["referringElementUrl"])
+            if self.cntlr.traceToStdout: print("xerces system id is absent, allowing xerces default processing for namespace {}".format(namespace))
+            return None
+        if normalizedUrl == XbrlConst.hrefXsd:
+            global EmptySchema
+            if EmptySchema is None:
+                EmptySchema = os.path.join(self.modelManager.cntlr.configDir, "empty-schema.xsd")
+            mappedUrl = EmptySchema
+        elif normalizedUrl in ("http://www.w3.org/2001/XMLSchema.dtd", "http://www.w3.org/2001/datatypes.dtd"):
+            global EmptyDTD
+            if EmptyDTD is None:
+                EmptyDTD = os.path.join(self.modelManager.cntlr.configDir, "empty-schema.dtd")
+            mappedUrl = EmptyDTD
+        elif self.fileSource.isMappedUrl(normalizedUrl):
             mappedUrl = self.fileSource.mappedUrl(normalizedUrl)
         elif PackageManager.isMappedUrl(normalizedUrl):
             mappedUrl = PackageManager.mappedUrl(normalizedUrl)
@@ -396,33 +415,46 @@ class ModelXbrl(arelle_c.ModelXbrl):
             if self.modelManager.abortOnMajorError and (isEntry or isDiscovered):
                 self.error("FileNotLoadable",
                         _("File can not be loaded: %(fileName)s \nLoading terminated."),
-                        modelObject=referringElement, fileName=mappedUrl)
+                        modelObject=self, fileName=mappedUrl)
                 raise LoadingException()
             if normalizedUrl not in self.urlUnloadableDocs:
                 if "referringElementUrl" in kwargs:
                     self.error("FileNotLoadable",
                             _("File can not be loaded: %(fileName)s, referenced from %(referencingFileName)s"),
-                            modelObject=referringElement, fileName=normalizedUrl, referencingFileName=kwargs["referringElementUrl"])
+                            modelObject=s, fileName=normalizedUrl, referencingFileName=kwargs["referringElementUrl"])
                 else:
                     self.error("FileNotLoadable",
                             _("File can not be loaded: %(fileName)s"),
-                            modelObject=referringElement, fileName=normalizedUrl)
+                            modelObject=self, fileName=normalizedUrl)
                 self.urlUnloadableDocs[normalizedUrl] = True # always blocked if not loadable on this error
             return None
-        if (self.modelManager.validateDisclosureSystem and 
-            self.modelManager.disclosureSystem.validateFileText):
-            fileDesc = ValidateFilingText.checkfile(self,filepath)
-        else:
-            fileDesc = self.fileSource.file(filepath, stripDeclaration=True)
-        fileDesc.url = normalizedUrl
-        if normalizedUrl != fileDesc.filepath and fileDesc.filepath not in self.mappedUrls:
-            self.mappedUrls[fileDesc.filepath] = normalizedUrl
+        if normalizedUrl in self.urlUnloadableDocs:
+            return None
+        try:
+            if (self.modelManager.validateDisclosureSystem and 
+                self.modelManager.disclosureSystem.validateFileText):
+                fileSrcObj = ValidateFilingText.checkfile(self,filepath)
+            else:
+                fileSrcObj = self.fileSource.file(filepath, bytesOrLocalpathObj=True) # bytes or raw local file for Xerces
+        except (EnvironmentError, KeyError) as err:  # missing zip file raises KeyError
+            self.urlUnloadableDocs[normalizedUrl] = True # always blocked if not loadable on this error
+            self.error("IOerror",
+                    _("%(fileName)s: file error: %(error)s"),
+                    modelObject=self, fileName=os.path.basename(normalizedUrl), error=str(err))
+            self.debug("IOerror", "traceback %(traceback)s",
+                            modeObject=self, traceback=traceback.format_tb(sys.exc_info()[2]))
+            self.urlUnloadableDocs[normalizedUrl] = True  # not loadable due to IO issue
+            return None
+        fileSrcObj.url = normalizedUrl
+        if normalizedUrl != fileSrcObj.filepath and fileSrcObj.filepath not in self.mappedUrls:
+            self.mappedUrls[fileSrcObj.filepath] = normalizedUrl
         if _unmappedBaseUrl not in self.resolvedUrls:
-            self.resolvedUrls[_unmappedBaseUrl] = defaultdict(set)
+            self.resolvedUrls[_unmappedBaseUrl] = defaultdict(OrderedSet)
         self.resolvedUrls[_unmappedBaseUrl][request_type].add(normalizedUrl)
         self.resolvedUrlLog.append((_unmappedBaseUrl, request_type, normalizedUrl))
-        # print("resolve_xerces_entity sys id {} fileDesc {}".format(system_id, fileDesc))
-        return fileDesc
+        if self.cntlr.traceToStdout: 
+            print("resolve_xerces_entity sys id {} normalizedUrl {}".format(system_id, normalizedUrl))
+        return fileSrcObj
         
     def relationshipSet(self, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
         """Returns a relationship set matching specified parameters (only arcrole is required).
@@ -544,10 +576,11 @@ class ModelXbrl(arelle_c.ModelXbrl):
             self.closeFileSource= True
             del self.entryLoadingUrl
         # reload dts views
-        from arelle import ViewWinDTS
-        for view in self.views:
-            if isinstance(view, ViewWinDTS.ViewDTS):
-                self.modelManager.cntlr.uiThreadQueue.put((view.view, []))
+        if self.views: # runs with GUI
+            from arelle import ViewWinDTS
+            for view in self.views:
+                if isinstance(view, ViewWinDTS.ViewDTS):
+                    self.modelManager.cntlr.uiThreadQueue.put((view.view, []))
                 
     def saveInstance(self, **kwargs):
         """Saves current instance document file.
@@ -808,6 +841,21 @@ class ModelXbrl(arelle_c.ModelXbrl):
                     fbqn[f.qname].add(f)
             return fbqn
         
+    @property
+    def factsByLocalName(self): # indexed by fact (concept) localName
+        """Facts in the instance indexed by their LocalName, cached
+        
+        :returns: dict -- indexes are LocalNames, values are ModelFacts
+        """
+        try:
+            return self._factsByLocalName
+        except AttributeError:
+            self._factsByLocalName = fbln = defaultdict(set)
+            for f in self.factsInInstance: 
+                if f.qname is not None:
+                    fbln[f.qname.localName].add(f)
+            return fbln
+        
     def factsByDatatype(self, notStrict, typeQname): # indexed by fact (concept) qname
         """Facts in the instance indexed by data type QName, cached as types are requested
 
@@ -880,7 +928,7 @@ class ModelXbrl(arelle_c.ModelXbrl):
                         fbdq[DEFAULT].add(fact)
             return fbdq[memQname]
         
-    def matchFact(self, otherFact, unmatchedFactsStack=None, deemP0inf=False):
+    def matchFact(self, otherFact, unmatchedFactsStack=None, deemP0inf=False, matchId=False, matchLang=True):
         """Finds matching fact, by XBRL 2.1 duplicate definition (if tuple), or by
         QName and VEquality (if an item), lang and accuracy equality, as in formula and test case usage
         
@@ -890,17 +938,21 @@ class ModelXbrl(arelle_c.ModelXbrl):
         :returns: ModelFact -- Matching fact or None
         """
         for fact in self.facts:
-            if (fact.isTuple):
-                if otherFact.isDuplicateOf(fact, unmatchedFactsStack=unmatchedFactsStack):
-                    return fact
-            elif (fact.qname == otherFact.qname and fact.isVEqualTo(otherFact, deemP0inf=deemP0inf)):
-                if not fact.isNumeric:
-                    if fact.xmlLang == otherFact.xmlLang:
+            if not matchId or otherFact.id == fact.id:
+                if (fact.isTuple):
+                    if otherFact.isDuplicateOf(fact, unmatchedFactsStack=unmatchedFactsStack):
                         return fact
-                else:
-                    if (fact.decimals == otherFact.decimals and
-                        fact.precision == otherFact.precision):
+                elif (fact.qname == otherFact.qname and fact.isVEqualTo(otherFact, deemP0inf=deemP0inf)):
+                    if fact.isFraction:
                         return fact
+                    elif fact.isMultiLanguage and matchLang:
+                        if fact.xmlLang == otherFact.xmlLang:
+                            return fact
+                        # else: print('*** lang mismatch extracted "{}" expected "{}" on {} in {}'.format(fact.xmlLang or "", otherFact.xmlLang or "", fact.qname, otherFact.modelDocument.uri))
+                    else:
+                        if (fact.decimals == otherFact.decimals and
+                            fact.precision == otherFact.precision):
+                            return fact
         return None
             
     def createFact(self, conceptQname, attributes=None, text=None, parent=None, afterSibling=None, beforeSibling=None, validate=True):
@@ -986,7 +1038,7 @@ class ModelXbrl(arelle_c.ModelXbrl):
         """
         modelObject = ""
         try:
-            if isinstance(objectId, (ModelObject,FactPrototype)):
+            if isinstance(objectId, (arelle_c.ModelObject,FactPrototype)):
                 modelObject = objectId
             elif isinstance(objectId, str) and objectId.startswith("_"):
                 modelObject = self.modelObject(objectId)
@@ -1076,10 +1128,13 @@ class ModelXbrl(arelle_c.ModelXbrl):
                         except:
                             file = ""
                         ref = {}
-                        if isinstance(arg,(ModelObject, ObjectPropertyViewWrapper)):
+                        if isinstance(arg,(arelle_c.ModelObject, ObjectPropertyViewWrapper)):
                             _arg = arg.modelObject if isinstance(arg, ObjectPropertyViewWrapper) else arg
                             ref["href"] = file + "#" + XmlUtil.elementFragmentIdentifier(_arg)
-                            ref["sourceLine"] = _arg.sourceline
+                            if _arg.sourceline > 0:
+                                ref["sourceLine"] = _arg.sourceline
+                            if _arg.sourcecol > 0:
+                                ref["sourceCol"] = _arg.sourcecol
                             ref["objectId"] = _arg.objectId()
                             if self.logRefObjectProperties:
                                 try:
@@ -1095,7 +1150,10 @@ class ModelXbrl(arelle_c.ModelXbrl):
                         else:
                             ref["href"] = file
                             try:
-                                ref["sourceLine"] = arg.sourceline
+                                if arg.sourceline > 0:
+                                    ref["sourceLine"] = arg.sourceline
+                                if arg.sourcecol > 0:
+                                    ref["sourceCol"] = arg.sourcecol
                             except AttributeError:
                                 pass # arg may not have sourceline, ignore if so
                         if self.logRefHasPluginAttrs:
@@ -1107,12 +1165,14 @@ class ModelXbrl(arelle_c.ModelXbrl):
                         refs.append(ref)
                 extras["refs"] = refs
             elif argName == "sourceFileLine":
-                # sourceFileLines is pairs of file and line numbers, e.g., ((file,line),(file2,line2),...)
+                # sourceFileLines is pairs of file and line numbers, e.g., (file,line[,col])
                 ref = {}
                 if isinstance(argValue, (tuple,list)):
                     ref["href"] = str(argValue[0])
                     if len(argValue) > 1 and argValue[1]:
                         ref["sourceLine"] = str(argValue[1])
+                    if len(argValue) > 2 and argValue[2]:
+                        ref["sourceCol"] = str(argValue[2])
                 else:
                     ref["href"] = str(argValue)
                 extras["refs"] = [ref]
@@ -1133,22 +1193,7 @@ class ModelXbrl(arelle_c.ModelXbrl):
                 if isinstance(argValue, _INT_TYPES):    # must be sortable with int's in logger
                     extras["sourceLine"] = argValue
             elif argName not in ("exc_info", "messageCodes"):
-                if isinstance(argValue, (ModelValue.QName, ModelObject, bool, FileNamedStringIO,
-                                         # might be a set of lxml objects not dereferencable at shutdown 
-                                         tuple, list, set)):
-                    fmtArgs[argName] = str(argValue)
-                elif argValue is None:
-                    fmtArgs[argName] = "(none)"
-                elif isinstance(argValue, _INT_TYPES):
-                    # need locale-dependent formatting
-                    fmtArgs[argName] = format_string(self.modelManager.locale, '%i', argValue)
-                elif isinstance(argValue,(float,Decimal)):
-                    # need locale-dependent formatting
-                    fmtArgs[argName] = format_string(self.modelManager.locale, '%f', argValue)
-                elif isinstance(argValue, dict):
-                    fmtArgs[argName] = argValue
-                else:
-                    fmtArgs[argName] = str(argValue)
+                fmtArgs[argName] = self.loggableValue(argValue) # dereference anything not loggable
 
         if "refs" not in extras:
             try:
@@ -1165,6 +1210,26 @@ class ModelXbrl(arelle_c.ModelXbrl):
         return (messageCode, 
                 (msg, fmtArgs) if fmtArgs else (msg,), 
                 extras)
+        
+    def loggableValue(self, argValue): # must be dereferenced and not related to object lifetimes
+        if isinstance(argValue, (ModelValue.QName, ModelObject, bool, FileNamedStringIO,
+                                 # might be a set of lxml objects not dereferencable at shutdown 
+                                 tuple, list, set)):
+            return str(argValue)
+        elif argValue is None:
+            return "(none)"
+        elif isinstance(argValue, bool):
+            return str(argValue).lower() # show lower case true/false xml values
+        elif isinstance(argValue, _INT_TYPES):
+            # need locale-dependent formatting
+            return format_string(self.modelManager.locale, '%i', argValue)
+        elif isinstance(argValue,(float,Decimal)):
+            # need locale-dependent formatting
+            return format_string(self.modelManager.locale, '%f', argValue)
+        elif isinstance(argValue, dict):
+            return dict((self.loggableValue(k), self.loggableValue(v)) for k,v in argValue.items())
+        else:
+            return str(argValue)
 
     def debug(self, codes, msg, **args):
         """Same as error(), but as info

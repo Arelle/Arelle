@@ -150,7 +150,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         return
     
     if parameters:
-        p = parameters.get(ModelValue.qname("type",noPrefixIsNoNamespace=True))
+        p = parameters.get(qname("type",noPrefixIsNoNamespace=True))
         if p and len(p) == 2:  # override implicit type
             paramType = p[1].lower()
             val.isAccounts = paramType == "accounts"
@@ -350,17 +350,27 @@ def validateXbrlFinally(val, *args, **kwargs):
                 
 
 
-        aspectEqualFacts = defaultdict(list)
+        aspectEqualFacts = defaultdict(dict) # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact] 
         for hashEquivalentFacts in factForConceptContextUnitLangHash.values():
             if len(hashEquivalentFacts) > 1:
-                for f in hashEquivalentFacts:
-                    aspectEqualFacts[(f.qname,f.contextID,f.unitID,f.xmlLang)].append(f)
-                for fList in aspectEqualFacts.values():
-                    f0 = fList[0]
-                    if any(not f.isVEqualTo(f0) for f in fList[1:]):
-                        modelXbrl.error("JFCVC.3314",
-                            "Inconsistent duplicate fact values %(fact)s: %(values)s.",
-                            modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(f.value for f in fList))
+                for f in hashEquivalentFacts: # check for hash collision by value checks on context and unit
+                    cuDict = aspectEqualFacts[(f.qname,f.xmlLang)]
+                    _matched = False
+                    for (_cntx,_unit),fList in cuDict.items():
+                        if (((_cntx is None and f.context is None) or (f.context is not None and f.context.isEqualTo(_cntx))) and
+                            ((_unit is None and f.unit is None) or (f.unit is not None and f.unit.isEqualTo(_unit)))):
+                            _matched = True
+                            fList.append(f)
+                            break
+                    if not _matched:
+                        cuDict[(f.context,f.unit)] = [f]
+                for cuDict in aspectEqualFacts.values(): # dups by qname, lang
+                    for fList in cuDict.values():  # dups by equal-context equal-unit
+                        f0 = fList[0]
+                        if any(not f.isVEqualTo(f0, normalizeSpace=False) for f in fList[1:]):
+                            modelXbrl.error("JFCVC.3314",
+                                "Inconsistent duplicate fact values %(fact)s: %(values)s.",
+                                modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(f.value for f in fList))
                 aspectEqualFacts.clear()
         del factForConceptContextUnitLangHash, aspectEqualFacts
  

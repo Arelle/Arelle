@@ -5,7 +5,7 @@ Created on Oct 5, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import ViewWinTree, XbrlConst
-from arelle.ModelDtsObject import ModelRelationship
+from arelle.arelle_c import ModelXlinkResource
 from arelle.ModelInstanceObject import ModelFact
 from collections import defaultdict
 
@@ -94,8 +94,8 @@ class ViewConcepts(ViewWinTree.ViewTree):
                     self.treeView.set(node, "conceptname", concept.qname if nameIsPrefixed else concept.name)
                     self.treeView.set(node, "id", concept.id)
                     self.treeView.set(node, "abstr", concept.abstract)
-                    self.treeView.set(node, "subsGrp", concept.substitutionGroupQname)
-                    self.treeView.set(node, "type", concept.typeQname)
+                    self.treeView.set(node, "subsGrp", concept.substitutionGroupQName)
+                    self.treeView.set(node, "type", concept.typeQName)
                     if concept.periodType:
                         self.treeView.set(node, "periodType", concept.periodType)
                     if concept.balance:
@@ -126,7 +126,7 @@ class ViewConcepts(ViewWinTree.ViewTree):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             try:
-                if isinstance(modelObject, ModelRelationship):
+                if isinstance(modelObject, ModelXlinkResource):
                     conceptId = modelObject.toModelObject.objectId()
                 elif isinstance(modelObject, ModelFact):
                     conceptId = self.modelXbrl.qnameConcepts[modelObject.qname].objectId()

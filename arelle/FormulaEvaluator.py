@@ -196,7 +196,9 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                 msg = varSet.message(result)
                 if msg is not None:
                     xpCtx.inScopeVars[XbrlConst.qnVaTestExpression] = varSet.test
-                    xpCtx.modelXbrl.info("message:" + (varSet.id or varSet.xlinkLabel or  _("unlabeled variableSet")),
+                    xpCtx.modelXbrl.log(
+                        "INFO" if result else {"OK":"INFO", "WARNING":"WARNING", "ERROR":"ERROR"}[varSet.unsatisfiedSeverity()],
+                        "message:" + (varSet.id or varSet.xlinkLabel or  _("unlabeled variableSet")),
                         msg.evaluate(xpCtx),
                         modelObject=varSet,
                         label=varSet.logLabel(),
@@ -212,13 +214,15 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                             factVarBindings.append(", \n${}: fallback {}".format(vb.qname, xpCtx.flattenSequence(vb.values)))
                         else:
                             if vb.isBindAsSequence:
-                                _modelObjects.extend(vb.yieldedEvaluation)
-                            else:
+                                if isinstance(vb.yieldedEvaluation, list):
+                                    _modelObjects.extend(vb.yieldedEvaluation)
+                            elif vb.yieldedFact is not None:
                                 _modelObjects.append(vb.yieldedFact)
-                            if vb.yieldedFact.isItem:
-                                factVarBindings.append(", \n${}: {} context {}".format(vb.qname, vb.yieldedFact.qname, vb.yieldedFactContext.id))
-                            elif vb.yieldedFact.isTuple and isinstance(vb.yieldedFact.parentElement, ModelFact):
-                                factVarBindings.append(", \n${}: {} tuple {}".format(vb.qname, vb.yieldedFact.qname, vb.yieldedFact.parentElement.qname))
+                            if vb.yieldedFact is not None:
+                                if vb.yieldedFact.isItem:
+                                    factVarBindings.append(", \n${}: {} context {}".format(vb.qname, vb.yieldedFact.qname, vb.yieldedFactContext.id))
+                                elif vb.yieldedFact.isTuple and isinstance(vb.yieldedFact.parentElement, ModelFact):
+                                    factVarBindings.append(", \n${}: {} tuple {}".format(vb.qname, vb.yieldedFact.qname, vb.yieldedFact.parentElement.qname))
                     xpCtx.modelXbrl.log(
                         "ERROR" if (xpCtx.formulaOptions.errorUnsatisfiedAssertions and not result) else "INFO",
                         "formula:assertionSatisfied" if result else "formula:assertionUnsatisfied",
@@ -817,10 +821,11 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
         vQnDependentOnOtherVarFallenBackButBoundInOtherEval = set(
             vQn
             for vQn, vBoundFact in thisEval.items()
-            if vBoundFact is not None and
+            if vBoundFact is not None and vQn in varBindings and
                any(varBindings[varRefQn].isFallback and 
                    any(m[varRefQn] is not None for m in matchingEvals)
-                   for varRefQn in varBindings[vQn].var.variableRefs()))
+                   for varRefQn in varBindings[vQn].var.variableRefs()
+                   if varRefQn in varBindings))
         # detects evaluations which are not different (duplicate) and extra fallback evaluations
         # vBoundFact may be single fact or tuple of facts
         return any(all([vBoundFact == matchingEval[vQn] 
@@ -923,8 +928,8 @@ def produceOutputFact(xpCtx, formula, result):
                         lookForCommonUnits = False
                         for commonUnit in multiplyBy:
                             if commonUnit in divideBy:
-                                multiplyBy.remove(commonUnit)
-                                divideBy.remove(commonUnit)
+                                multiplyBy = tuple(u for u in multiplyBy if u != commonUnit)
+                                divideBy = tuple(u for u in divideBy if u != commonUnit)
                                 lookForCommonUnits = True
                                 break
                     if len(multiplyBy) == 0: # if no units add pure
@@ -933,7 +938,7 @@ def produceOutputFact(xpCtx, formula, result):
                             xpCtx.modelXbrl.error("xbrlfe:missingUnitRule",
                                _("Formula %(label)s"), 
                                modelObject=formula, label=formula.logLabel())
-                        multiplyBy.append(XbrlConst.qnXbrliPure)
+                        multiplyBy = (XbrlConst.qnXbrliPure,)
                             
         
         # dimensions
@@ -1152,12 +1157,12 @@ def formulaAspectValue(xpCtx, formula, aspect, srcMissingErr):
         if aspectSourceValue and (not augment or augment == "true"): # true is the default behavior
             return aspectSourceValue
         else:
-            return ([],[])
+            return ((),())
     elif aspect in (Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY):
         if sourceQname and aspectSourceValue:
             return aspectSourceValue
         else:
-            return (ruleValue,[])
+            return (ruleValue,())
     elif aspect == Aspect.DIMENSIONS:
         if aspectSourceValue is None: aspectSourceValue = set()
         if ruleValue is None: ruleValueSet = set()

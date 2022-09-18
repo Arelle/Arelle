@@ -7,7 +7,8 @@ Created on Nov 15, 2010
 from collections import defaultdict
 import os, datetime, re
 from tkinter import Menu, constants, BooleanVar
-from arelle import ViewWinTree, ModelDtsObject, ModelInstanceObject, XbrlConst, XmlUtil
+from arelle import ViewWinTree, XbrlConst, XmlUtil
+from arelle.arelle_c import ModelRoleType, ModelRelationship, ModelConcept, ModelFact
 from arelle.XbrlConst import conceptNameLabelRole
 
 stripXmlPattern = re.compile(r"<.*?>", re.DOTALL)
@@ -64,8 +65,8 @@ class ViewFactTable(ViewWinTree.ViewTree):
         # consider facts in the relationshipSet (only)
         contexts = set()
         self.conceptFacts = defaultdict(list)
-        if self.linkrole and hasattr(self.modelXbrl.roleTypes[self.linkrole][0], "_tableFacts"):
-            for fact in self.modelXbrl.roleTypes[self.linkrole][0]._tableFacts:
+        if self.linkrole and hasattr(self.modelXbrl, "_tableElrs") and self.modelXbrl._tableElrs[self.linkrole].facts:
+            for fact in self.modelXbrl._tableElrs[self.linkrole].facts:
                 self.conceptFacts[fact.qname].append(fact)
                 if fact.context is not None:
                     contexts.add(fact.context)
@@ -81,7 +82,9 @@ class ViewFactTable(ViewWinTree.ViewTree):
         ignoreDims = self.ignoreDims.get()
         showDimDefaults = self.showDimDefaults.get()
         for context in contexts:
-            if ignoreDims:
+            if context is None or context.endDatetime is None:
+                contextkey = "missing period"
+            elif ignoreDims:
                 if context.isForeverPeriod:
                     contextkey = datetime.datetime(datetime.MINYEAR,1,1)
                 else:
@@ -188,8 +191,8 @@ class ViewFactTable(ViewWinTree.ViewTree):
 
     def viewConcept(self, concept, modelObject, labelPrefix, preferredLabel, parentnode, n, relationshipSet, visited):
         # bad relationship could identify non-concept or be None
-        if (not isinstance(concept, ModelDtsObject.ModelConcept) or 
-            concept.substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
+        if (not isinstance(concept, ModelConcept) or 
+            concept.substitutionGroupQName == XbrlConst.qnXbrldtDimensionItem):
             return
         childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id),
                     text=labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole), 
@@ -197,7 +200,7 @@ class ViewFactTable(ViewWinTree.ViewTree):
         self.setRowFacts(childnode,concept,preferredLabel)
         self.id += 1
         self.tag_has[modelObject.objectId()].append(childnode)
-        if isinstance(modelObject, ModelDtsObject.ModelRelationship):
+        if isinstance(modelObject, ModelRelationship):
             self.tag_has[modelObject.toModelObject.objectId()].append(childnode)
         if concept not in visited:
             visited.add(concept)
@@ -280,12 +283,12 @@ class ViewFactTable(ViewWinTree.ViewTree):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             try:
-                if isinstance(modelObject, ModelDtsObject.ModelRoleType):
+                if isinstance(modelObject, ModelRoleType):
                     self.linkrole = modelObject.roleURI
                     self.view()
                     modelObject = None
                 # get concept of fact or toConcept of relationship, role obj if roleType
-                if not isinstance(modelObject, ModelInstanceObject.ModelFact):
+                if not isinstance(modelObject, ModelFact):
                     modelObject = modelObject.viewConcept
                 if modelObject is not None:
                     items = self.tag_has.get(modelObject.objectId())

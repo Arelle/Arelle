@@ -9,7 +9,7 @@ import os
 from arelle import ViewWinTree, ModelObject, XbrlConst
 from arelle.ModelFormulaObject import (ModelParameter, ModelVariable, ModelVariableSet, 
                                        ModelVariableSetAssertion, ModelConsistencyAssertion)
-from arelle.ModelDtsObject import ModelRelationship
+from arelle.arelle_c import ModelXlinkResource
 from arelle.ViewUtilFormulae import rootFormulaObjects, formulaObjSortKey
 
 def viewFormulae(modelXbrl, tabWin):
@@ -101,7 +101,7 @@ class ViewFormulae(ViewWinTree.ViewTree):
         if tvColId == "#0":
             try:
                 modelObject = self.modelXbrl.modelObject(tvRowId)
-                if isinstance(modelObject, ModelRelationship):
+                if isinstance(modelObject, ModelXlinkResource):
                     modelObject = modelObject.toModelObject
                 return modelObject.xmlElementView
             except (AttributeError, KeyError):

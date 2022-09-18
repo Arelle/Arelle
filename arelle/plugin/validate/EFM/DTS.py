@@ -8,6 +8,7 @@ import os, datetime, re
 from arelle import (ModelDocument, XmlUtil, XbrlConst, UrlUtil)
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelConcept
+from .Consts import standardNamespacesPattern
 
 targetNamespaceDatePattern = None
 efmFilenamePattern = None
@@ -16,8 +17,6 @@ roleTypePattern = None
 arcroleTypePattern = None
 arcroleDefinitionPattern = None
 namePattern = None
-usNamespacesConflictPattern = None
-ifrsNamespacesConflictPattern = None
 linkroleDefinitionBalanceIncomeSheet = None
 extLinkEltFileNameEnding = {
     "calculationLink": "_cal",
@@ -28,8 +27,7 @@ extLinkEltFileNameEnding = {
 
 def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
     global targetNamespaceDatePattern, efmFilenamePattern, htmlFileNamePattern, roleTypePattern, arcroleTypePattern, \
-            arcroleDefinitionPattern, namePattern, linkroleDefinitionBalanceIncomeSheet, \
-            usNamespacesConflictPattern, ifrsNamespacesConflictPattern
+            arcroleDefinitionPattern, namePattern, linkroleDefinitionBalanceIncomeSheet
     if targetNamespaceDatePattern is None:
         targetNamespaceDatePattern = re.compile(r"/([12][0-9]{3})-([01][0-9])-([0-3][0-9])|"
                                             r"/([12][0-9]{3})([01][0-9])([0-3][0-9])|")
@@ -41,8 +39,6 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
         namePattern = re.compile("[][()*+?\\\\/^{}|@#%^=~`\"';:,<>&$\u00a3\u20ac]") # u20ac=Euro, u00a3=pound sterling 
         linkroleDefinitionBalanceIncomeSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*(income|balance|financial\W+position)",
                                                           re.IGNORECASE)
-        usNamespacesConflictPattern = re.compile(r"http://(xbrl\.us|fasb\.org|xbrl\.sec\.gov)/(dei|us-types|us-roles|rr)/([0-9]{4}-[0-9]{2}-[0-9]{2})$")
-        ifrsNamespacesConflictPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/([0-9]{4}-[0-9]{2}-[0-9]{2})/(ifrs[\w-]*)$")
     nonDomainItemNameProblemPattern = re.compile(
         r"({0})|(FirstQuarter|SecondQuarter|ThirdQuarter|FourthQuarter|[1-4]Qtr|Qtr[1-4]|ytd|YTD|HalfYear)(?:$|[A-Z\W])"
         .format(re.sub(r"\W", "", (val.entityRegistrantName or "").title())))
@@ -55,8 +51,8 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
             val.modelXbrl.error(("EFM.6.07.01", "GFM.1.03.01"),
                 _("Taxonomy schema %(schema)s includes %(include)s, only import is allowed"),
                 modelObject=modelDocumentReference.referringModelObject,
-                    schema=os.path.basename(modelDocument.url), 
-                    include=os.path.basename(referencedDocument.uri))
+                    schema=modelDocument.basename, 
+                    include=referencedDocument.basename)
         if referencedDocument not in visited and referencedDocument.inDTS: # ignore EdgarRenderer added non-DTS documents
             checkFilingDTS(val, referencedDocument, isEFM, isGFM, visited)
             
@@ -64,13 +60,18 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
         pass
 
     if isEFM: 
-        if modelDocument.url in val.disclosureSystem.standardTaxonomiesDict:
+        if modelDocument.uri in val.disclosureSystem.standardTaxonomiesDict:
             if modelDocument.targetNamespace:
                 # check for duplicates of us-types, dei, and rr taxonomies
-                for pattern, indexGroup in ((usNamespacesConflictPattern,2),(ifrsNamespacesConflictPattern,2)):
-                    match = pattern.match(modelDocument.targetNamespace)
-                    if match is not None:
-                        val.standardNamespaceConflicts[match.group(indexGroup)].add(modelDocument)
+                match = standardNamespacesPattern.match(modelDocument.targetNamespace)
+                if match is not None:
+                    conflictClass = match.group(2) or match.group(5)
+                    if (conflictClass == 'us-gaap' and match.group(3) < '2018') or conflictClass == 'srt':
+                        val.standardNamespaceConflicts['srt+us-gaap'].add(modelDocument) # ignore non-srt multi-usgaap in Filing.py
+                    if conflictClass == 'us-gaap' or conflictClass == 'ifrs-full':
+                        val.standardNamespaceConflicts['ifrs+us-gaap'].add(modelDocument)
+                    if conflictClass not in ('us-gaap', 'srt'):
+                        val.standardNamespaceConflicts[conflictClass].add(modelDocument)
                 
         else:
             if len(modelDocument.basename) > 32:
@@ -82,6 +83,8 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                     val.modelXbrl.error("EFM.5.01.01",
                         _("Document file name %(filename)s must start with a-z or 0-9, contain upper or lower case letters, ., -, _, and end with .htm."),
                         modelObject=modelDocument, filename=modelDocument.basename)
+            elif modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
+                pass # don't check surrogate for inline document set
             elif not efmFilenamePattern.match(modelDocument.basename):
                 val.modelXbrl.error("EFM.5.01.01",
                     _("Document file name %(filename)s must start with a-z or 0-9, contain upper or lower case letters, ., -, _, and end with .xsd or .xml."),
@@ -89,7 +92,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
     
     if (modelDocument.type == ModelDocument.Type.SCHEMA and 
         modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
-        modelDocument.url.startswith(val.modelXbrl.uriDir)):
+        modelDocument.uri.startswith(val.modelXbrl.uriDir)):
         
         val.hasExtensionSchema = True
         # check schema contents types
@@ -97,8 +100,10 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
         targetNamespaceAuthority = UrlUtil.authority(modelDocument.targetNamespace) 
         if targetNamespaceAuthority in val.disclosureSystem.standardAuthorities:
             val.modelXbrl.error(("EFM.6.07.03", "GFM.1.03.03"),
-                _("Taxonomy schema %(schema)s namespace %(targetNamespace)s is a disallowed authority"),
-                modelObject=modelDocument, schema=os.path.basename(modelDocument.url), targetNamespace=modelDocument.targetNamespace, 
+                _("The target namespace, %(targetNamespace)s cannot have the same authority (%(targetNamespaceAuthority)s) as a standard "
+                  "taxonomy, in %(schema)s.  Please change your target namespace."),
+                edgarCode="fs-0703-Extension-Has-Standard-Namespace-Authority",
+                modelObject=modelDocument, schema=modelDocument.basename, targetNamespace=modelDocument.targetNamespace, 
                 targetNamespaceAuthority=UrlUtil.authority(modelDocument.targetNamespace, includeScheme=False))
             
         # 6.7.4 check namespace format
@@ -119,12 +124,14 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 match = None
         if match is None:
             val.modelXbrl.error(("EFM.6.07.04", "GFM.1.03.04"),
-                _("Taxonomy schema %(schema)s namespace %(targetNamespace)s must have format http://{authority}/{versionDate}"),
-                modelObject=modelDocument, schema=os.path.basename(modelDocument.url), targetNamespace=modelDocument.targetNamespace)
+                _("You did not adhere to the requirements for target namespace, for %(targetNamespace)s in %(schema)s.  "
+                  "Please recheck your submission and adhere to the target namespace requirements."),
+                edgarCode="cp-0704-Taxonomy-Valid-Target-Namespace",
+                modelObject=modelDocument, schema=modelDocument.basename, targetNamespace=modelDocument.targetNamespace)
         elif val.fileNameDate and date > val.fileNameDate:
             val.modelXbrl.info(("EFM.6.07.06", "GFM.1.03.06"),
                 _("Warning: Taxonomy schema %(schema)s namespace %(targetNamespace)s has date later than document name date %(docNameDate)s"),
-                modelObject=modelDocument, schema=os.path.basename(modelDocument.url), targetNamespace=modelDocument.targetNamespace,
+                modelObject=modelDocument, schema=modelDocument.basename, targetNamespace=modelDocument.targetNamespace,
                 docNameDate=val.fileNameDate)
 
         if modelDocument.targetNamespace is not None:
@@ -132,17 +139,33 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
             authority = UrlUtil.authority(modelDocument.targetNamespace)
             if not re.match(r"(http://|https://|ftp://|urn:)\w+",authority):
                 val.modelXbrl.error(("EFM.6.07.05", "GFM.1.03.05"),
-                    _("Taxonomy schema %(schema)s namespace %(targetNamespace)s must be a valid URL with a valid authority for the namespace."),
-                    modelObject=modelDocument, schema=os.path.basename(modelDocument.url), targetNamespace=modelDocument.targetNamespace)
-            prefix = XmlUtil.xmlnsprefix(modelDocument.xmlRootElement,modelDocument.targetNamespace)
-            if not prefix:
+                    _("Taxonomy schema %(schema)s namespace %(targetNamespace)s must be a valid URI with a valid authority for the namespace."),
+                    modelObject=modelDocument, schema=modelDocument.basename, targetNamespace=modelDocument.targetNamespace)
+            # may be multiple prefixes for namespace
+            prefixes = [(prefix if prefix is not None else "")
+                        for prefix, NS in modelDocument.xmlRootElement.nsmap.items()
+                        if NS == modelDocument.targetNamespace]
+            if not prefixes:
+                prefix = None
                 val.modelXbrl.error(("EFM.6.07.07", "GFM.1.03.07"),
-                    _("Taxonomy schema %(schema)s namespace %(targetNamespace)s missing prefix for the namespace."),
-                    modelObject=modelDocument, schema=os.path.basename(modelDocument.url), targetNamespace=modelDocument.targetNamespace)
-            elif "_" in prefix:
-                val.modelXbrl.error(("EFM.6.07.07", "GFM.1.03.07"),
-                    _("Taxonomy schema %(schema)s namespace %(targetNamespace)s prefix %(prefix)s must not have an '_'"),
-                    modelObject=modelDocument, schema=os.path.basename(modelDocument.url), targetNamespace=modelDocument.targetNamespace, prefix=prefix)
+                    _("The schema does not supply a prefix for %(targetNamespace)s without an underscore character, in file %(schema)s. "
+                      "Please provide or change a prefix"),
+                    edgarCode="du-0707-Recommended-Prefix-Disallowed",
+                    modelObject=modelDocument, schema=modelDocument.basename, targetNamespace=modelDocument.targetNamespace)
+            else:
+                prefix = prefixes[0]
+                if len(prefixes) > 1:
+                    val.modelXbrl.error(("EFM.6.07.07", "GFM.1.03.07"),
+                        _("The schema does not supply a prefix for %(targetNamespace)s without an underscore character, in file %(schema)s. "
+                          "Please provide or change a prefix"),
+                        edgarCode="du-0707-Recommended-Prefix-Disallowed",
+                        modelObject=modelDocument, schema=modelDocument.basename, targetNamespace=modelDocument.targetNamespace, prefix=", ".join(prefixes))
+                elif "_" in prefix:
+                    val.modelXbrl.error(("EFM.6.07.07", "GFM.1.03.07"),
+                        _("The schema does not supply a prefix for %(targetNamespace)s without an underscore character, in file %(schema)s. "
+                          "Please provide or change a prefix"),
+                        edgarCode="du-0707-Recommended-Prefix-Disallowed",
+                        modelObject=modelDocument, schema=modelDocument.basename, targetNamespace=modelDocument.targetNamespace, prefix=prefix)
 
             for modelConcept in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}element"):
                 if isinstance(modelConcept,ModelConcept):
@@ -154,37 +177,45 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                             continue    # don't validate ref's here
                     for c in val.modelXbrl.nameConcepts.get(name, []):
                         if c.modelDocument != modelDocument:
-                            if not c.modelDocument.url.startswith(val.modelXbrl.uriDir):
+                            if not c.modelDocument.uri.startswith(val.modelXbrl.uriDir):
                                 val.modelXbrl.error(("EFM.6.07.16", "GFM.1.03.18"),
-                                    _("Concept %(concept)s is also defined in standard taxonomy schema schema %(standardSchema)s"),
-                                    modelObject=(modelConcept,c), concept=modelConcept.qname, standardSchema=os.path.basename(c.modelDocument.url), standardConcept=c.qname)
+                                    _("Your extension taxonomy contains an element, %(concept)s, which has the same name as an element in the base taxonomy, "
+                                      "%(standardConcept)s.  Please ensure that this extension is appropriate and if so, please change the extension concept name."),
+                                    edgarCode="cp-0716-Element-Name-Same-As-Base",
+                                    modelObject=(modelConcept,c), concept=modelConcept.qname, standardSchema=c.modelDocument.basename, standardConcept=c.qname)
 
                     # 6.7.17 id properly formed
                     _id = modelConcept.id
                     requiredId = (prefix if prefix is not None else "") + "_" + name
                     if _id != requiredId:
                         val.modelXbrl.error(("EFM.6.07.17", "GFM.1.03.19"),
-                            _("Concept %(concept)s id %(id)s should be %(requiredId)s"),
+                            _("You did not adhere to the declarations for concepts by containing an 'id' attribute whose value begins with the recommended "
+                              "namespace prefix of the taxonomy, followed by an underscore, followed by an element name, for the concept %(concept)s.  "
+                              "Please recheck your submission."),
+                            edgarCode="cp-0717-Element-Id",
                             modelObject=modelConcept, concept=modelConcept.qname, id=_id, requiredId=requiredId)
                         
                     # 6.7.18 nillable is true
                     nillable = modelConcept.get("nillable")
                     if nillable != "true" and modelConcept.isItem:
                         val.modelXbrl.error(("EFM.6.07.18", "GFM.1.03.20"),
-                            _("Taxonomy schema %(schema)s element %(concept)s nillable %(nillable)s should be 'true'"),
-                            modelObject=modelConcept, schema=os.path.basename(modelDocument.url),
+                            _("Element %(concept)s is declared without a 'true' value for the nillable attribute.  Please set the value to 'true'."),
+                            edgarCode="du-0718-Nillable-Not-True",
+                            modelObject=modelConcept, schema=modelDocument.basename,
                             concept=name, nillable=nillable)
         
                     # 6.7.19 not tuple
                     if modelConcept.isTuple:
                         val.modelXbrl.error(("EFM.6.07.19", "GFM.1.03.21"),
-                            _("Concept %(concept)s is a tuple"),
+                            _("You provided an extension concept which is a tuple, %(concept)s.  Please remove tuples and check your submission."),
+                            edgarCode="cp-0719-No-Tuple-Element",
                             modelObject=modelConcept, concept=modelConcept.qname)
                         
                     # 6.7.20 no typed domain ref
                     if modelConcept.isTypedDimension:
                         val.modelXbrl.error(("EFM.6.07.20", "GFM.1.03.22"),
-                            _("Concept %(concept)s has typedDomainRef %(typedDomainRef)s"),
+                            _("There is an xbrldt:typedDomainRef attribute on %(concept)s (%(typedDomainRef)s). Please remove it."),
+                            edgarCode="du-0720-Typed-Domain-Ref-Disallowed",
                             modelObject=modelConcept, concept=modelConcept.qname,
                             typedDomainRef=modelConcept.typedDomainElement.qname if modelConcept.typedDomainElement is not None else modelConcept.typedDomainRef)
                         
@@ -192,8 +223,10 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                     isDuration = modelConcept.periodType == "duration"
                     if modelConcept.isAbstract and not isDuration:
                         val.modelXbrl.error(("EFM.6.07.21", "GFM.1.03.23"),
-                            _("Taxonomy schema %(schema)s element %(concept)s is abstract but period type is not duration"),
-                            modelObject=modelConcept, schema=os.path.basename(modelDocument.url), concept=modelConcept.qname)
+                            _("Element %(concept)s is declared as an abstract item with period type 'instant'.  Please change it to 'duration' or "
+                              "make the element not abstract."),
+                            edgarCode="du-0721-Abstract-Is-Instant",
+                            modelObject=modelConcept, schema=modelDocument.basename, concept=modelConcept.qname)
                         
                     # 6.7.22 abstract must be stringItemType
                     ''' removed SEC EFM v.17, Edgar release 10.4, and GFM 2011-04-08
@@ -206,14 +239,18 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                     # 6.7.23 Axis must be subs group dimension
                     if name.endswith("Axis") ^ (substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
                         val.modelXbrl.error(("EFM.6.07.23", "GFM.1.03.25"),
-                            _("Concept %(concept)s must end in Axis to be in xbrldt:dimensionItem substitution group"),
-                            modelObject=modelConcept, concept=modelConcept.qname)
+                            _("The substitution group 'xbrldt:dimensionItem' is only consistent with an element name that ends with 'Axis'.  "
+                              "Please change %(conceptLocalName)s or change the substitutionGroup."),
+                            edgarCode="du-0723-Axis-Dimension-Name-Mismatch",
+                            modelObject=modelConcept, concept=modelConcept.qname, conceptLocalName=modelConcept.qname.localName)
 
                     # 6.7.24 Table must be subs group hypercube
                     if name.endswith("Table") ^ (substitutionGroupQname == XbrlConst.qnXbrldtHypercubeItem):
                         val.modelXbrl.error(("EFM.6.07.24", "GFM.1.03.26"),
-                            _("Concept %(concept)s must end in Table to be in xbrldt:hypercubeItem substitution group"),
-                            modelObject=modelConcept, schema=os.path.basename(modelDocument.url), concept=modelConcept.qname)
+                            _("The substitution group 'xbrldt:hypercubeItem' is only allowed with an element name that ends with 'Table'.  "
+                              "Please change %(conceptLocalName)s or change the substitutionGroup."),
+                            edgarCode="du-0724-Table-Hypercube-Name-Mismatch",
+                            modelObject=modelConcept, schema=modelDocument.basename, concept=modelConcept.qname, conceptLocalName=modelConcept.qname.localName)
 
                     # 6.7.25 if neither hypercube or dimension, substitution group must be item
                     if substitutionGroupQname not in (None,
@@ -221,15 +258,19 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                                                         XbrlConst.qnXbrldtHypercubeItem,
                                                         XbrlConst.qnXbrliItem):                           
                         val.modelXbrl.error(("EFM.6.07.25", "GFM.1.03.27"),
-                            _("Concept %(concept)s has disallowed substitution group %(substitutionGroup)s"),
-                            modelObject=modelConcept, concept=modelConcept.qname,
+                            _("The substitution group attribute value %(substitutionGroup)s of element %(conceptLocalName)s is not allowed.  "
+                              "Please change it to one of 'xbrli:item', 'xbrldt:dimensionItem' or 'xbrldt:hypercubeItem'."),
+                            edgarCode="du-0725-Substitution-Group-Custom",
+                            modelObject=modelConcept, concept=modelConcept.qname, conceptLocalName=modelConcept.qname.localName,
                             substitutionGroup=modelConcept.substitutionGroupQname)
                         
                     # 6.7.26 Table must be subs group hypercube
                     if name.endswith("LineItems") and modelConcept.abstract != "true":
                         val.modelXbrl.error(("EFM.6.07.26", "GFM.1.03.28"),
-                            _("Concept %(concept)s is a LineItems but not abstract"),
-                            modelObject=modelConcept, concept=modelConcept.qname)
+                            _("The element %(conceptLocalName)s ends with 'LineItems' but is not abstract. Please change %(conceptLocalName)s or "
+                              "the value of the 'abstract' attribute."),
+                            edgarCode="du-0726-LineItems-Abstract-Name-Mismatch",
+                            modelObject=modelConcept, concept=modelConcept.qname, conceptLocalName=modelConcept.qname.localName)
 
                     # 6.7.27 type domainMember must end with Domain or Member
                     conceptType = modelConcept.type
@@ -237,26 +278,32 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                     endsWithDomainOrMember = name.endswith("Domain") or name.endswith("Member")
                     if isDomainItemType != endsWithDomainOrMember:
                         val.modelXbrl.error(("EFM.6.07.27", "GFM.1.03.29"),
-                            _("Concept %(concept)s must end with Domain or Member for type of domainItemType"),
-                            modelObject=modelConcept, concept=modelConcept.qname)
+                            _("The type 'us-types:domainItemType' is only allowed with an element name that ends with 'Domain' or 'Member'.  "
+                              "Please change %(conceptLocalName)s or change the type."),
+                            edgarCode="du-0727-Domain-Type-Name-Mismatch",
+                            modelObject=modelConcept, concept=modelConcept.qname, conceptLocalName=modelConcept.qname.localName)
 
                     # 6.7.28 domainItemType must be duration
                     if isDomainItemType and not isDuration:
                         val.modelXbrl.error(("EFM.6.07.28", "GFM.1.03.30"),
-                            _("Concept %(concept)s is a domainItemType and must be periodType duration"),
-                            modelObject=modelConcept, concept=modelConcept.qname)
+                            _("Element %(conceptLocalName)s is declared as a us-types:domainItemType with period type 'instant'.  "
+                              "Please change it to 'duration' or change the item type."),
+                            edgarCode="du-0728-Domain-Member-Is-Instant",
+                            modelObject=modelConcept, concept=modelConcept.qname, conceptLocalName=modelConcept.qname.localName)
                                                 
                     #6.7.31 (version 27) fractions
                     if modelConcept.isFraction:
                         val.modelXbrl.error("EFM.6.07.31",
-                            _("Concept %(concept)s is a fraction"),
+                            _("Element %(concept)s is declared as a fraction item type.  Change or remove the declaration."),
+                            edgarCode="du-0731-Fraction-Item-Type",
                             modelObject=modelConcept, concept=modelConcept.qname)
     
                     #6.7.32 (version 27) instant non numeric
                     if modelConcept.isItem and (not modelConcept.isNumeric and not isDuration and not modelConcept.isAbstract and not isDomainItemType):
                         val.modelXbrl.error("EFM.6.07.32",
-                            _("Taxonomy schema %(schema)s element %(concept)s is non-numeric but period type is not duration"),
-                            modelObject=modelConcept, schema=os.path.basename(modelDocument.url), concept=modelConcept.qname)
+                            _("Declaration of element %(concept)s in %(schema)s must have xbrli:periodType of 'duration' because its base type is not numeric."),
+                            edgarCode="rq-0732-Nonnnumeric-Must-Be-Duration",
+                            modelObject=modelConcept, schema=modelDocument.basename, concept=modelConcept.qname)
                         
                     # 6.8.5 semantic check, check LC3 name
                     if name:
@@ -331,7 +378,8 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
         for e in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}linkbase"):
             if isinstance(e,ModelObject):
                 val.modelXbrl.error(("EFM.6.07.08", "GFM.1.03.08"),
-                    _("Taxonomy schema %(schema)s contains an embedded linkbase"),
+                    _("Your filing contained embedded linkbases in %(schema)s.  Please recheck your submission and remove all embedded linkbases."),
+                    edgarCode="cp-0708-No-Embedded-Linkbases",
                     modelObject=e, schema=modelDocument.basename)
                 break
 
@@ -352,7 +400,9 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 roleURI = e.get("roleURI")
                 if targetNamespaceAuthority != UrlUtil.authority(roleURI):
                     val.modelXbrl.error(("EFM.6.07.09", "GFM.1.03.09"),
-                        _("RoleType %(roleType)s does not match authority %(targetNamespaceAuthority)s"),
+                        _("Role %(roleType)s does not begin with %(targetNamespace)s's scheme and authority. "
+                          "Please change the role URI or target namespace URI."),
+                        edgarCode="du-0709-Role-Namespace-Mismatch",
                         modelObject=e, roleType=roleURI, targetNamespaceAuthority=targetNamespaceAuthority, targetNamespace=modelDocument.targetNamespace)
                 # 6.7.9 end with .../role/lc3 name
                 if not roleTypePattern.match(roleURI):
@@ -370,14 +420,18 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                         # 6.7.11 used on's for pre, cal, def if any has a used on
                         if not usedOns.isdisjoint(requiredUsedOns) and len(requiredUsedOns - usedOns) > 0:
                             val.modelXbrl.error(("EFM.6.07.11", "GFM.1.03.11"),
-                                _("RoleType %(roleType)s missing used on %(usedOn)s"),
+                                _("The role %(roleType)s did not provide a usedOn element for all three link types (presentation, "
+                                  "calculation and definition), missing %(usedOn)s. Change the declaration to be for all three types of link, and resubmit."),
+                                edgarCode="du-0711-Role-Type-Declaration-Incomplete",
                                 modelObject=e, roleType=roleURI, usedOn=requiredUsedOns - usedOns)
                             
                         # 6.7.12 definition match pattern
                         if (val.disclosureSystem.roleDefinitionPattern is not None and
                             (definition is None or not val.disclosureSystem.roleDefinitionPattern.match(definition))):
                             val.modelXbrl.error(("EFM.6.07.12", "GFM.1.03.12-14"),
-                                _("RoleType %(roleType)s definition \"%(definition)s\" must match {Sortcode} - {Type} - {Title}"),
+                                _("The definition '%(definition)s' of role %(roleType)s does not match the expected format. "
+                                  "Please check that the definition matches {number} - {type} - {text}."),
+                                edgarCode="rq-0712-Role-Definition-Mismatch",
                                 modelObject=e, roleType=roleURI, definition=(definition or ""))
 
                     if usedOns & standardUsedOns: # semantics check
@@ -392,7 +446,9 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 arcroleURI = e.get("arcroleURI")
                 if targetNamespaceAuthority != UrlUtil.authority(arcroleURI):
                     val.modelXbrl.error(("EFM.6.07.13", "GFM.1.03.15"),
-                        _("ArcroleType %(arcroleType)s does not match authority %(targetNamespaceAuthority)s"),
+                        _("Relationship role %(arcroleType)s does not begin with %(targetNamespace)s's scheme and authority.  "
+                          "Please change the relationship role URI or target namespace URI."),
+                        edgarCode="du-0713-Arcrole-Namespace-Mismatch",
                         modelObject=e, arcroleType=arcroleURI, targetNamespaceAuthority=targetNamespaceAuthority, targetNamespace=modelDocument.targetNamespace)
                 # 6.7.13 end with .../arcrole/lc3 name
                 if not arcroleTypePattern.match(arcroleURI):
@@ -405,7 +461,8 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 definition = modelRoleTypes[0].definition
                 if definition is None or not arcroleDefinitionPattern.match(definition):
                     val.modelXbrl.error(("EFM.6.07.15", "GFM.1.03.17"),
-                        _("ArcroleType %(arcroleType)s definition must be non-empty"),
+                        _("Relationship role declaration %(arcroleType)s is missing a definition.  Please provide a definition."),
+                        edgarCode="du-0715-Arcrole-Definition-Missing",
                         modelObject=e, arcroleType=arcroleURI)
     
                 # semantic checks
@@ -487,8 +544,10 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                             for rel in labelRels.toModelObject(labelElt):
                                 if rel.fromModelObject is not None and not rel.fromModelObject.isNumeric:
                                     val.modelXbrl.error("EFM.6.10.09",
-                                        _("Label of non-numeric concept %(concept)s has a numeric role: %(role)s"), 
-                                          modelObject=(labelElt, rel.fromModelObject), concept=rel.fromModelObject.qname, role=labelElt.role)
+                                        _("Non-numeric element %(concept)s has a label role for numeric elements: %(role)s. "
+                                          "Please change the role attribute."), 
+                                        edgarCode="du-1009-Numeric-Label-Role",
+                                        modelObject=(labelElt, rel.fromModelObject), concept=rel.fromModelObject.qname, role=labelElt.role)
     
 def tupleCycle(val, concept, ancestorTuples=None):
     if ancestorTuples is None: ancestorTuples = set()

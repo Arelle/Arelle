@@ -1,0 +1,17 @@
+<html>
+<body>
+<form id="upload-form" name="upload-form" enctype="multipart/form-data"
+      action="/rest/xbrl/validation?media=text&plugins=validate/DQC|logging/dqcParameters.py&disclosureSystem=efm-pragmatic-all-years&logFormat=[%(messageCode)s] %(message)s" 
+      method="POST">
+ <center>
+  <table>
+   <tr><td>
+    <input name="upload" type="file" />
+   </td></tr><tr><td>
+    <input id="submit" type="submit" />
+   </td></tr>
+  </table>
+ </center>
+</form>
+</body>
+</html>

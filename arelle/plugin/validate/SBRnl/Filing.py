@@ -96,7 +96,7 @@ def validateFiling(val, modelXbrl):
             text = XmlUtil.innerText(modelReference)
             #6.18.1 no reference to company extension concepts
             if (concept.modelDocument.targetNamespace in disclosureSystem.standardTaxonomiesDict and 
-                not isStandardUri(val, modelRefRel.modelDocument.url)): # merge of pre-plugin code per LOGIUS
+                not isStandardUri(val, modelRefRel.modelDocument.uri)): # merge of pre-plugin code per LOGIUS
                 #6.18.2 no extension to add or remove references to standard concepts
                 modelXbrl.error("SBR.NL.2.1.0.08",
                     _("References for standard taxonomy concept %(concept)s are not allowed in an extension linkbase: %(text)s"),

@@ -51,7 +51,8 @@ cdef extern from "xercesc/sax2/Attributes.hpp" namespace "xercesc":
 
 cdef extern from "xercesc/sax2/SAX2XMLReader.hpp" namespace "xercesc":
     cdef cppclass SAX2XMLReader:
-        void setFeature( const XMLCh*, bool )
+        void setFeature(const XMLCh*, bool)
+        bool getFeature(const XMLCh* const name)
         void setProperty(const XMLCh* const name, void* value)
         void setContentHandler( ContentHandler* )
         ContentHandler* getContentHandler()
@@ -64,15 +65,18 @@ cdef extern from "xercesc/sax2/SAX2XMLReader.hpp" namespace "xercesc":
         SchemaGrammar* loadGrammar(const InputSource& source, const GrammarType grammarType, const bool toCache)
         SchemaGrammar* getGrammar(const XMLCh* const nameSpaceKey)
         SchemaGrammar* getRootGrammar()
-        bool parseFirst( const XMLCh* const systemId, XMLPScanToken& toFill)
-        bool parseFirst( const char* const systemId, XMLPScanToken& toFill)
-        bool parseFirst( const InputSource& source, XMLPScanToken& toFill)
+        bool parseFirst( const XMLCh* const systemId, XMLPScanToken& toFill) except +
+        bool parseFirst( const char* const systemId, XMLPScanToken& toFill) except +
+        bool parseFirst( const InputSource& source, XMLPScanToken& toFill) except +
         bool parseNext(XMLPScanToken& token)
         void parseReset(XMLPScanToken& token)
 
-cdef extern from "/Users/hermf/temp/xerces-c-3.1.4/src/xercesc/parsers/SAX2XMLReaderImpl.hpp" namespace "xercesc":
+cdef extern from "xercesc/parsers/SAX2XMLReaderImpl.hpp" namespace "xercesc":
     cdef cppclass SAX2XMLReaderImpl:
+        SAX2XMLReaderImpl()
+        SAX2XMLReaderImpl(MemoryManager* const  manager, XMLGrammarPool* const gramPool) except +
         void setFeature( const XMLCh*, bool )
+        bool getFeature(const XMLCh* const name)
         void setProperty(const XMLCh* const name, void* value)
         void setContentHandler( ContentHandler* )
         ContentHandler* getContentHandler()
@@ -81,17 +85,18 @@ cdef extern from "/Users/hermf/temp/xerces-c-3.1.4/src/xercesc/parsers/SAX2XMLRe
         void setEntityResolver( EntityResolver* )
         void setXMLEntityResolver( XMLEntityResolver* )
         void setPSVIHandler(PSVIHandler* const handler)
-        void parse( InputSource& )
-        void parse( const XMLCh* )
-        void parse( const char* )
+        void parse( InputSource& ) except +
+        void parse( const XMLCh* ) except +
+        void parse( const char* ) except +
         SchemaGrammar* loadGrammar(const InputSource& source, const GrammarType grammarType, const bool toCache)
         SchemaGrammar* getGrammar(const XMLCh* const nameSpaceKey)
         SchemaGrammar* getRootGrammar()
-        bool parseFirst( const XMLCh* const systemId, XMLPScanToken& toFill)
-        bool parseFirst( const char* const systemId, XMLPScanToken& toFill)
-        bool parseFirst( const InputSource& source, XMLPScanToken& toFill)
+        bool parseFirst( const XMLCh* const systemId, XMLPScanToken& toFill) except +
+        bool parseFirst( const char* const systemId, XMLPScanToken& toFill) except +
+        bool parseFirst( const InputSource& source, XMLPScanToken& toFill) except +
         bool parseNext(XMLPScanToken& token)
         void parseReset(XMLPScanToken& token)
+        #void installAdvDocHandler(XMLDocumentHandler* const toInstall)
         
 cdef extern from "xercesc/sax2/XMLReaderFactory.hpp" namespace "xercesc::XMLReaderFactory":
     SAX2XMLReader * createXMLReader( )

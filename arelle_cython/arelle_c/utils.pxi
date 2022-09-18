@@ -1,9 +1,10 @@
 from arelle_c.xerces_sax2 cimport Attributes
-from arelle_c.xerces_util cimport XMLCh, XMLSize_t, XMLByte
-from arelle_c.xerces_framework cimport LocalFileInputSource, MemBufInputSource
+from arelle_c.xerces_util cimport XMLCh, XMLSize_t, XMLByte, stringLen, copyString, catString, StringHasher, RefHashTableOf, RefHashTableOfEnumerator
+from arelle_c.xerces_framework cimport LocalFileInputSource, MemBufInputSource, PSVIHandler, PSVIAttributeList, PSVIElement, XSElementDeclaration
 from arelle_c.xerces_sax cimport InputSource, ErrorHandler, SAXParseException, Locator
-from arelle_c.xerces_sax2 cimport ContentHandler, LexicalHandler, DefaultHandler
+from arelle_c.xerces_sax2 cimport ContentHandler, LexicalHandler
 from libcpp.string cimport string
+from libcpp cimport bool
 
 cdef class attrdict(dict):
     """ utility to simulate an dictionary with named fields from the kwargs """
@@ -20,96 +21,200 @@ cdef class genobj:
     def __repr__(self):
         return str(self.__dict__)
 
-cdef InputSource* fileDescInputSource( pyFileDesc ):
-    cdef const char* c_s
-    #cdef string std_s
-    cdef XMLCh* xmlChFile
-    cdef XMLCh* xmlChUrl
+cdef InputSource* fileDescInputSource( pyFileDesc, const char* chXmlSrc=NULL ) except *:
+    cdef const char* chXml
+    cdef const char* chBufId # file name
+    cdef XMLCh* xmlchFile
+    cdef bytes bytesBufId
     cdef InputSource* inpSrc = NULL
-    cdef bool adoptBuffer
-    cdef bytes b_str
+    cdef bool adoptBuffer = False
+    cdef char* charStr
     cdef XMLByte* xmlByteStr
-    if hasattr(pyFileDesc, "bytes"):
-        b_str = pyFileDesc.bytes
-        c_s = b_str # fast operation, pointer is tied to life time of python bytes string in fileDesc object
-        xmlByteStr = <XMLByte*>c_s # avoid copying byte content to another buffer and depend on fileDesc lifetime for contents
-        if hasattr(pyFileDesc, "filepath"): 
-            byte_s = pyFileDesc.filepath.encode("utf-8")
-        else:
-            byte_s = b"(in memory, no filename provided, no xml base or relative hrefs possible)"
-        c_s = byte_s
-        xmlChFile = transcode(c_s)
-        adoptBuffer = False
-        inpSrc = ( new MemBufInputSource( xmlByteStr, len(b_str), xmlChFile, adoptBuffer ))
-        release(&xmlChFile)
-    elif hasattr(pyFileDesc, "filepath"): 
-        byte_s = pyFileDesc.filepath.encode("utf-8")
-        c_s = byte_s
-        xmlChFile = transcode(c_s)
-        inpSrc = ( new LocalFileInputSource( xmlChFile ))
-        release(&xmlChFile)
-    byte_s = None
+    
+    if hasattr(pyFileDesc, "filepath"): 
+        bytesBufId = pyFileDesc.filepath.encode("utf-8")
+    else:
+        bytesBufId = b"(in memory, no filename provided, no xml base or relative hrefs possible)"
+    chBufId = bytesBufId
+    if chXmlSrc != NULL: # char* direct input
+        inpSrc = new MemBufInputSource( <const XMLByte*>chXmlSrc, stringLen(chXmlSrc), chBufId, adoptBuffer )
+    elif hasattr(pyFileDesc, "bytes"):
+        # print("fileDescInputSrc has bytes")
+        chXml = <bytes>pyFileDesc.bytes # fast operation, pointer is tied to life time of python bytes string in fileDesc object
+        # print("fileDescInputSrc bytes: {}".format(chXml))
+        inpSrc = new MemBufInputSource( <const XMLByte*>chXml, stringLen(chXml), chBufId, adoptBuffer )
+    elif hasattr(pyFileDesc, "filepath"):
+        xmlchFile = transcode(chBufId)
+        inpSrc = ( new LocalFileInputSource( xmlchFile ))
+        release(&xmlchFile)
+    bytesBufId = None # deref python bytes buffer ID and chBufId (which references bytesBufId)
     return inpSrc
 
-cdef cppclass TemplateSAX2Handler(ErrorHandler, LexicalHandler, ContentHandler):
+ctypedef RefHashTableOf[XMLCh,StringHasher] StringHashTable
+ctypedef RefHashTableOfEnumerator[XMLCh,StringHasher] StringHashTableEnumerator
+
+cdef struct EltDesc:
+    XMLCh* xmlchQName
+    XMLCh* xmlchChars
+    hash_t hashQName
+    StringHashTable *prefixNsMap
+    StringHashTable *nsPrefixMap
+    XSElementDeclaration *eltDecl
+    XMLFileLoc sourceLine, sourceCol
+    bool hasError
+    
+cdef cppclass TemplateSAX2Handler(ErrorHandler, LexicalHandler, ContentHandler, PSVIHandler):
     # document handlers
     void characters(const XMLCh* chars, const XMLSize_t length):
-        pass # needed if any analyzed element contents were to be significant
+        return # needed if any analyzed element contents were to be significant
     void endDocument():
-        pass 
+        return 
     void endElement(const XMLCh* uri, const XMLCh* localname, const XMLCh* qname):
-        pass
+        return
     void ignorableWhitespace(const XMLCh* chars, const XMLSize_t length):
-        pass
+        return
     void processingInstruction(const XMLCh* target, const XMLCh* data):
-        pass
+        return
     void setDocumentLocator(const Locator* const locator):
-        pass
+        return
     void startDocument():
-        pass
+        return
     void startElement(const XMLCh* uri, const XMLCh* localname, const XMLCh* qname, const Attributes& attrs):
-        pass
+        return
     void startPrefixMapping(const XMLCh* prefix, const XMLCh* uri):
-        pass
+        return
     void endPrefixMapping(const XMLCh* prefix):
-        pass
+        return
     void skippedEntity(const XMLCh* name):
-        pass
+        return
     void comment(const XMLCh* chars, const XMLSize_t length):
-        pass
+        return
     void endCDATA():
-        pass
+        return
     void endDTD():
-        pass #print("endDTD")
+        return #print("endDTD")
     void endEntity(const XMLCh* name):
-        pass #print("endEntity name: {}".format(transcode(name)))
+        return #print("endEntity name: {}".format(transcode(name)))
     void startCDATA():
-        pass #print("startCDATA")
+        return #print("startCDATA")
     void startDTD(const XMLCh* name, const XMLCh* publicId, const XMLCh* systemId):
-        pass #print("startDTD")
+        return #print("startDTD")
     void startEntity(const XMLCh* name):
-        pass #print("startEntity")
+        return #print("startEntity")
     void elementDecl(const XMLCh* name, const XMLCh* model):
-        pass #print("elementDecl")
+        return #print("elementDecl")
+    # psvi handlers
+    void handleElementPSVI(const XMLCh* const localName, const XMLCh* const uri, PSVIElement * elementInfo):
+        return
+    void handlePartialElementPSVI(const XMLCh* const localName, const XMLCh* const uri, PSVIElement * elementInfo):
+        return
+    void handleAttributesPSVI(const XMLCh* const localName, const XMLCh* const uri, PSVIAttributeList * psviAttributes):
+        return
     # error handlers
     void logError(const SAXParseException& exc, level):
-        pass
+        return
     void error(const SAXParseException& exc):
-        pass
+        return
     void fatalError(const SAXParseException& exc):
-        pass
+        return
     void warning(const SAXParseException& exc):
-        pass
+        return
     void resetErrors():
-        pass  
+        return  
 
-cdef getAttrValue(const Attributes& attrs, XMLCh* uri, XMLCh* localName):
-    cdef object _pyValue
-    cdef const XMLCh* _XmlValue = attrs.getValue(uri, localName)
-    cdef char* _charValue
-    if _XmlValue == NULL:
+cdef cppclass TemplatePSVIHandler(PSVIHandler):
+    # psvi handlers
+    void handleElementPSVI(const XMLCh* const localName, const XMLCh* const uri, PSVIElement * elementInfo):
+        return
+    void handlePartialElementPSVI(const XMLCh* const localName, const XMLCh* const uri, PSVIElement * elementInfo):
+        return
+    void handleAttributesPSVI(const XMLCh* const localName, const XMLCh* const uri, PSVIAttributeList * psviAttributes):
+        return
+
+cdef unicode getAttrValue(const Attributes& attrs, XMLCh* uri, XMLCh* localName):
+    cdef const XMLCh* xmlchVal = attrs.getValue(uri, localName)
+    cdef char* chVal
+    cdef unicode pyVal
+    if xmlchVal == NULL:
         return None
-    _charValue = transcode(_XmlValue)
-    _pyValue = _charValue
-    release(&_charValue)
-    return _pyValue
+    chVal = transcode(xmlchVal)
+    pyVal = chVal
+    release(&chVal)
+    return pyVal
+
+cdef unicode clarkName(const XMLCh* uri, const XMLCh* prefix, const XMLCh* localName):
+    cdef XMLCh* xmlchClarkName
+    cdef char* chClarkName
+    cdef unicode pyClarkName
+    cdef int len
+    if localName == NULL:
+        return None
+    if uri != NULL and uri[0] != chNull:
+        len = stringLen(uri) + stringLen(localName) + 3
+        if prefix != NULL:
+            len += stringLen(prefix) + 1
+        xmlchClarkName = <XMLCh*>PyMem_Malloc(len * sizeof(XMLCh))
+        copyString(xmlchClarkName, xmlchLBrace)
+        catString(xmlchClarkName, uri)
+        catString(xmlchClarkName, xmlchRBrace)
+        if prefix != NULL:
+            catString(xmlchClarkName, prefix)
+            catString(xmlchClarkName, xmlchColon)
+        catString(xmlchClarkName, localName)
+    else:
+        xmlchClarkName = <XMLCh*>localName
+    chClarkName = transcode(xmlchClarkName)
+    if uri != NULL and uri[0] != chNull:
+        PyMem_Free(xmlchClarkName)
+    pyClarkName = chClarkName
+    release(&chClarkName)
+    return pyClarkName
+
+cdef unicode internString(dict internedStrings, unicode pyStr):
+    if pyStr is None:
+        return None
+    # if string is in internStrings return an interned version of str, otherwise intern str
+    return internedStrings.setdefault(pyStr, pyStr)
+
+cdef unicode internXMLChString(dict internedStrings, XMLCh* xmlchStr):
+    cdef char* chStr
+    cdef unicode pyStr
+    if xmlchStr == NULL:
+        return None
+    chStr = transcode(xmlchStr)
+    pyStr = chStr
+    release(&chStr)
+    return internString(internedStrings, pyStr)
+    
+cdef QName internQName(dict internedQNames, dict internedStrings, unicode pyClarkName):
+    cdef unicode ns = None
+    cdef unicode prefix = None
+    cdef unicode ln = None
+    cdef unicode _sep
+    if pyClarkName is None:
+        return None
+    try:
+        return internedQNames[pyClarkName]
+    except KeyError:
+        if pyClarkName.startswith("{"): # clark name
+            ns, _sep, ln = pyClarkName[1:].partition('}')
+            prefix, _sep, ln = ln.rpartition(":")
+            if not _sep:
+                prefix = None
+        else:
+            ln = pyClarkName
+        return internedQNames.setdefault(pyClarkName, 
+            QName(internString(internedStrings, ns), internString(internedStrings, prefix), internString(internedStrings, ln)))
+
+cdef bool isAbsoluteUrl(object url):
+    cdef unicode scheme, _sep, path
+    if url:
+        scheme, _sep, path = url.partition("#")[0].partition(":")
+        if scheme == "http" or scheme == "https" or scheme == "ftp":
+            return path.startswith("//")
+        if scheme == "urn":
+            return True
+    return False
+
+
+

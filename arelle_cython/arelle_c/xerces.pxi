@@ -1,7 +1,7 @@
 from arelle_c.xerces_ctypes cimport XMLCh, XMLSize_t, XMLByte, XMLFileLoc
 from arelle_c.xerces_util cimport Initialize, Terminate, XMLByte, transcode, release,  \
     fgMemoryManager, stringLen, release, RefHash3KeysIdPoolEnumerator, XMLEnumerator, StringHasher, \
-    catString, copyString, startsWith
+    catString, copyString, startsWith, fgMemoryManager
 from arelle_c.xerces_parsers cimport XercesDOMParser
 from arelle_c.xerces_framework cimport MemBufInputSource, XSAnnotation, XMLElementDecl, XMLGrammarPool, XMLGrammarPoolImpl, \
     XSModel, StringList, XSNamedMap, XSObject, ELEMENT_DECLARATION, TYPE_DEFINITION, COMPONENT_TYPE, \
@@ -24,7 +24,6 @@ from arelle_c.xerces_sax2 cimport Attributes
 from arelle_c.xerces_validators cimport SchemaGrammar, SchemaElementDecl, GrammarType
 from time import time
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
-from libc.stdlib cimport malloc, free
 from collections import OrderedDict
 
 cdef bool _initialized = False, _terminated = False
@@ -48,6 +47,22 @@ def terminate():
 cdef void* pyListTestPtr
 cdef object _list = []
 pyListTestPtr = <void*>_list
+
+def QNtest():
+    print("hash test abc {}".format(PyObject_Hash(u"abc")))
+    print("hash test ns1,ln1 {}".format(PyObject_Hash((u"ns1",u"ln1"))))
+    print("hash test abc {}".format(PyObject_Hash(u"abc")))
+    print("qnTrace")
+    cdef qName1 = QName(u"ns1", u"p1", u"ln1")
+    cdef qName1a = QName(u"ns1", u"p1a", u"ln1")
+    cdef qName2 = QName(u"ns2", u"p2", u"ln2")
+    print("qn1 {} {}".format(qName1, qName1.clarkNotation, qName1.__hash__()))
+    print("qn2 {}".format(qName1a.clarkNotation, qName1a.__hash__()))
+    print("qn3 {}".format(qName2.clarkNotation, qName2.__hash__()))
+    print("hash test qn1 {}".format(PyObject_Hash(qName1)))
+    print("qn1 == qn1 {}".format(qName1 == qName1))
+    print("qn1 == qn1a {}".format(qName1 == qName1a))
+    print("qn1 == qn2 {}".format(qName1 == qName2))
 
 def test():
     cdef object pyListTest
@@ -312,7 +327,17 @@ cdef cppclass _ErrorHandler(ErrorHandler):
             msgText = "null"
         print("fatal error msg={} line={} col={}".format(msgText, exc.getLineNumber(),exc.getColumnNumber()))
     void warning(const SAXParseException& exc):
-        print("warning")
+        cdef const XMLCh* msg = exc.getMessage()
+        if msg != NULL:
+            msgText = transcode(msg)
+        else:
+            msgText = "null"
+        cdef const XMLCh* _file = exc.getSystemId()
+        if _file != NULL:
+            fileName = transcode(_file)
+        else:
+            fileName = "null"
+        print("warning msg={} line={} col={} file={}".format(msgText, exc.getLineNumber(),exc.getColumnNumber(),fileName))
     void resetErrors():
         print("resetErrors")
 
@@ -333,9 +358,8 @@ cdef cppclass _LXMLSAX2Handler(ErrorHandler, LexicalHandler, ContentHandler):
     _LXMLSAX2Handler(void* pyRootDictPtr) except +:
         global EMPTYSTR
         print("_LXMLSAX2Handler initialization")
-        #this.eltDescs = <eltDescEntry*>PyMem_Malloc(1000 * sizeof(eltDescEntry))
         print("size {} {}".format(sizeof(eltDescEntry), 1000 * sizeof(eltDescEntry)))
-        this.eltDescs = <eltDescEntry*>malloc(1000 * sizeof(eltDescEntry))
+        this.eltDescs = <eltDescEntry*>fgMemoryManager.allocate(1000 * sizeof(eltDescEntry))
         cdef eltDescEntry* eltDesc
         cdef int i
         for i in range(1000):
@@ -356,7 +380,7 @@ cdef cppclass _LXMLSAX2Handler(ErrorHandler, LexicalHandler, ContentHandler):
         #this.lastChars = NULL
         #PyMem_Free(this.lastLength)
         #this.lastLength = NULL
-        PyMem_Free(this.eltDescs)
+        fgMemoryManager.deallocate(this.eltDescs)
         this.eltDescs = NULL
         print("_LXMLSAX2Handler done")
     # document handlers
@@ -513,7 +537,38 @@ cdef cppclass _LXMLSAX2Handler(ErrorHandler, LexicalHandler, ContentHandler):
         if msg != NULL:
             release(&msgText)
     void warning(const SAXParseException& exc):
-        print("warning")
+        cdef const XMLCh* msg = exc.getMessage()
+        cdef char* msgText
+        cdef char* fileName
+        cdef char* eltQn
+        cdef char* eltVal
+        if msg != NULL:
+            msgText = transcode(msg)
+        else:
+            msgText = b"null"
+        cdef const XMLCh* _file = exc.getSystemId()
+        if _file != NULL:
+            fileName = transcode(_file)
+        else:
+            fileName = b"null"
+        if this.eltDescs[this.eltDepth].lastElementQname != NULL:
+            eltQn = transcode(this.eltDescs[this.eltDepth].lastElementQname)
+        else:
+            eltQn = b""
+        if this.eltDescs[this.eltDepth].lastChars != NULL:
+            eltVal = transcode(this.eltDescs[this.eltDepth].lastChars)
+        else:
+            eltVal = b""
+        _msg = "warning msg={} line={} col={} file={} elt={} val={}".format(msgText, exc.getLineNumber(),exc.getColumnNumber(),fileName,eltQn,eltVal)
+        print(_msg)
+        if msg != NULL:
+            release(&msgText)
+        if _file != NULL:
+            release(&fileName)
+        if this.eltDescs[this.eltDepth].lastElementQname != NULL:
+            release(&eltQn)
+        if this.eltDescs[this.eltDepth].lastChars != NULL:
+            release(&eltVal)
     void resetErrors():
         print("resetErrors")
         
@@ -886,6 +941,6 @@ def validate( txmyFile, instFile, schemaLocation ):
     del parser
     lxmlSaxHandler.close()
     del lxmlSaxHandler
-    print("pyRootList {}".format(pyRootDict))
+    # print("pyRootList {}".format(pyRootDict))
     print("done")
 

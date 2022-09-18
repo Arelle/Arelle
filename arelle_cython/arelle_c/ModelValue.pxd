@@ -1,0 +1,1 @@
+def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, prefixException=None);

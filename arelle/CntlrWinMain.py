@@ -7,7 +7,13 @@ This module is Arelle's controller in windowing interactive UI mode
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types
+from arelle import Cntlr
 import os, sys, subprocess, pickle, time, locale, re, fnmatch
+
+if sys.platform == 'win32' and getattr(sys, 'frozen', False): 
+    # need the .dll directory in path to be able to access Tk and Tcl DLLs efore importinng Tk, etc.
+    os.environ['PATH'] = os.path.dirname(sys.executable) + ";" + os.environ['PATH']
+
 from tkinter import (Tk, Tcl, TclError, Toplevel, Menu, PhotoImage, StringVar, BooleanVar, N, S, E, W, EW, 
                      HORIZONTAL, VERTICAL, END, font as tkFont)
 try:
@@ -31,7 +37,6 @@ import logging
 
 import threading, queue
 
-from arelle import Cntlr
 from arelle import (DialogURL, DialogLanguage,
                     DialogPluginManager, DialogPackageManager,
                     ModelDocument,
@@ -144,7 +149,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateCalcLB = BooleanVar(value=self.modelManager.validateCalcLB)
         self.validateCalcLB.trace("w", self.setValidateCalcLB)
         validateMenu.add_checkbutton(label=_("Calc Linkbase checks"), underline=0, variable=self.validateCalcLB, onvalue=True, offvalue=False)
-        self.modelManager.validateInferDecimals = self.config.setdefault("validateInferDecimals",False)
+        self.modelManager.validateInferDecimals = self.config.setdefault("validateInferDecimals",True)
         self.validateInferDecimals = BooleanVar(value=self.modelManager.validateInferDecimals)
         self.validateInferDecimals.trace("w", self.setValidateInferDecimals)
         validateMenu.add_checkbutton(label=_("Infer Decimals in calculations"), underline=0, variable=self.validateInferDecimals, onvalue=True, offvalue=False)
@@ -212,6 +217,10 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.showDebugMessages = BooleanVar(value=self.config.setdefault("showDebugMessages",False))
         self.showDebugMessages.trace("w", self.setShowDebugMessages)
         logmsgMenu.add_checkbutton(label=_("Show debug messages"), underline=0, variable=self.showDebugMessages, onvalue=True, offvalue=False)
+        self.showCythonTrace = BooleanVar(value=self.config.setdefault("showCythonTrace",False))
+        self.traceToStdout = self.showCythonTrace.get()
+        self.showCythonTrace.trace("w", self.setShowCythonTrace)
+        logmsgMenu.add_checkbutton(label=_("Show Cython trace"), underline=0, variable=self.showCythonTrace, onvalue=True, offvalue=False)
 
         toolsMenu.add_command(label=_("Language..."), underline=0, command=lambda: DialogLanguage.askLanguage(self))
         
@@ -449,9 +458,12 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.packagesMenu = Menu(self.menubar, tearoff=0)
         hasPackages = False
         for i, packageInfo in enumerate(sorted(PackageManager.packagesConfig.get("packages", []),
-                                               key=lambda packageInfo: packageInfo.get("name")),
+                                               key=lambda packageInfo: (packageInfo.get("name",""),packageInfo.get("version",""))),
                                         start=1):
             name = packageInfo.get("name", "package{}".format(i))
+            version = packageInfo.get("version")
+            if version:
+                name = "{} ({})".format(name, version)
             URL = packageInfo.get("URL")
             if name and URL and packageInfo.get("status") == "enabled":
                 self.packagesMenu.add_command(
@@ -585,9 +597,9 @@ class CntlrWinMain (Cntlr.Cntlr):
             elif isinstance(view, ViewWinTree.ViewTree):
                 filename = self.uiFileDialog("save",
                         title=_("arelle - Save {0}").format(view.tabTitle),
-                        initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.url),
-                        filetypes=[(_("CSV file"), "*.csv"),(_("HTML file"), "*.html"),(_("XML file"), "*.xml"),(_("JSON file"), "*.json")],
-                        defaultextension=".csv")
+                        initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
+                        filetypes=[(_("XLSX file"), "*.xlsx"),(_("CSV file"), "*.csv"),(_("HTML file"), "*.html"),(_("XML file"), "*.xml"),(_("JSON file"), "*.json")],
+                        defaultextension=".xlsx")
                 if not filename:
                     return False
                 try:
@@ -715,23 +727,31 @@ class CntlrWinMain (Cntlr.Cntlr):
         
     def fileOpenFile(self, filename, importToDTS=False, selectTopView=False):
         if filename:
+            for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Open"):
+                filename = xbrlLoadedMethod(self, filename) # runs in GUI thread, allows mapping filename, mult return filename
             filesource = None
             # check for archive files
             filesource = openFileSource(filename, self,
                                         checkIfXmlIsEis=self.modelManager.disclosureSystem and
                                         self.modelManager.disclosureSystem.validationType == "EFM")
-            if filesource.isArchive and not filesource.selection: # or filesource.isRss:
-                from arelle import DialogOpenArchive
-                filename = DialogOpenArchive.askArchiveFile(self, filesource)
-                
+            if filesource.isArchive:
+                if not filesource.selection: # or filesource.isRss:
+                    from arelle import DialogOpenArchive
+                    filename = DialogOpenArchive.askArchiveFile(self, filesource)
+                    if filesource.basefile and not isHttpUrl(filesource.basefile):
+                        self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl)
+                filesource.loadTaxonomyPackageMappings() # if a package, load mappings if not loaded yet
         if filename:
-            if importToDTS:
-                if not isHttpUrl(filename):
-                    self.config["importOpenDir"] = os.path.dirname(filename)
-            else:
-                if not isHttpUrl(filename):
-                    self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl if filesource.isArchive else filename)
-            self.updateFileHistory(filename, importToDTS)
+            if not isinstance(filename, (dict, list)): # json objects
+                if importToDTS:
+                    if not isHttpUrl(filename):
+                        self.config["importOpenDir"] = os.path.dirname(filename)
+                else:
+                    if not isHttpUrl(filename):
+                        self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl if filesource.isArchive else filename)
+                self.updateFileHistory(filename, importToDTS)
+            elif len(filename) == 1:
+                self.updateFileHistory(filename[0], importToDTS)
             thread = threading.Thread(target=self.backgroundLoadXbrl, args=(filesource,importToDTS,selectTopView), daemon=True).start()
             
     def webOpen(self, *ignore):
@@ -740,11 +760,13 @@ class CntlrWinMain (Cntlr.Cntlr):
         url = DialogURL.askURL(self.parent, buttonSEC=True, buttonRSS=True)
         if url:
             self.updateFileHistory(url, False)
+            for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Open"):
+                url = xbrlLoadedMethod(self, url) # runs in GUI thread, allows mapping url, mult return url
             filesource = openFileSource(url,self)
             if filesource.isArchive and not filesource.selection: # or filesource.isRss:
                 from arelle import DialogOpenArchive
                 url = DialogOpenArchive.askArchiveFile(self, filesource)
-            self.updateFileHistory(url, False)
+                self.updateFileHistory(url, False)
             thread = threading.Thread(target=self.backgroundLoadXbrl, args=(filesource,False,False), daemon=True).start()
             
     def importWebOpen(self, *ignore):
@@ -802,6 +824,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.addToLog(format_string(self.modelManager.locale, 
                                         _("not successfully %s in %.2f secs"), 
                                         (action, time.time() - startedAt)))
+            self.showStatus(_("Loading terminated"), 15000)
 
     def showLoadedXbrl(self, modelXbrl, attach, selectTopView=False):
         startedAt = time.time()
@@ -845,7 +868,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                     ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopLeft, ("Tables", (XbrlConst.parentChild,)), lang=self.labelLang,
                                                                treeColHdr="Fact Table Index", showLinkroles=True, showColumns=False, showRelationships=False, expandAll=False)
                 '''
-                currentAction = "tree view of tests"
+                currentAction = "tree view of DTS"
                 ViewWinDTS.viewDTS(modelXbrl, self.tabWinTopLeft, altTabWin=self.tabWinTopRt)
                 currentAction = "view of concepts"
                 ViewWinConcepts.viewConcepts(modelXbrl, self.tabWinBtm, "Concepts", lang=self.labelLang, altTabWin=self.tabWinTopRt)
@@ -854,30 +877,38 @@ class CntlrWinMain (Cntlr.Cntlr):
                     if topView is None: topView = modelXbrl.views[-1]
                 if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
                     currentAction = "table view of facts"
-                    if not modelXbrl.hasTableRendering: # table view only if not grid rendered view
+                    if (not modelXbrl.hasTableRendering and # table view only if not grid rendered view
+                        modelXbrl.relationshipSet(XbrlConst.parentChild)): # requires presentation relationships to render this tab
                         ViewWinFactTable.viewFacts(modelXbrl, self.tabWinTopRt, linkrole=firstTableLinkroleURI, lang=self.labelLang, expandAll=firstTableLinkroleURI is not None)
                         if topView is None: topView = modelXbrl.views[-1]
                     currentAction = "tree/list of facts"
                     ViewWinFactList.viewFacts(modelXbrl, self.tabWinTopRt, lang=self.labelLang)
                     if topView is None: topView = modelXbrl.views[-1]
+                currentAction = "presentation linkbase view"
+                hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.parentChild, lang=self.labelLang)
+                if hasView and topView is None: topView = modelXbrl.views[-1]
+                currentAction = "calculation linkbase view"
+                hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.summationItem, lang=self.labelLang)
+                if hasView and topView is None: topView = modelXbrl.views[-1]
+                currentAction = "dimensions relationships view"
+                hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "XBRL-dimensions", lang=self.labelLang)
+                if hasView and topView is None: topView = modelXbrl.views[-1]
+                currentAction = "anchoring relationships view"
+                hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.widerNarrower, lang=self.labelLang)
+                if hasView and topView is None: topView = modelXbrl.views[-1]
+                if modelXbrl.hasTableRendering:
+                    currentAction = "rendering view"
+                    hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "Table-rendering", lang=self.labelLang)
+                    if hasView and topView is None: topView = modelXbrl.views[-1]
                 if modelXbrl.hasFormulae:
                     currentAction = "formulae view"
                     ViewWinFormulae.viewFormulae(modelXbrl, self.tabWinTopRt)
                     if topView is None: topView = modelXbrl.views[-1]
-                currentAction = "presentation linkbase view"
-                ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.parentChild, lang=self.labelLang)
-                if topView is None: topView = modelXbrl.views[-1]
-                currentAction = "calculation linkbase view"
-                ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.summationItem, lang=self.labelLang)
-                currentAction = "dimensions relationships view"
-                ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "XBRL-dimensions", lang=self.labelLang)
-                if modelXbrl.hasTableRendering:
-                    currentAction = "rendering view"
-                    ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "Table-rendering", lang=self.labelLang)
                 for name, arcroles in sorted(self.config.get("arcroleGroups", {}).items()):
                     if XbrlConst.arcroleGroupDetect in arcroles:
                         currentAction = name + " view"
-                        ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, (name, arcroles), lang=self.labelLang)
+                        hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, (name, arcroles), lang=self.labelLang)
+                        if hasView and topView is None: topView = modelXbrl.views[-1]
             currentAction = "property grid"
             ViewWinProperties.viewProperties(modelXbrl, self.tabWinTopLeft)
             currentAction = "log view creation time"
@@ -950,7 +981,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                                 _("Validation - disclosure system checks is requested but no disclosure system is selected, please select one by validation - select disclosure system."),
                                 parent=self.parent)
             else:
-                if modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
+                if modelXbrl.modelDocument and modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
                     for pluginXbrlMethod in pluginClassMethods("Testcases.Start"):
                         pluginXbrlMethod(self, None, modelXbrl)
                 thread = threading.Thread(target=self.backgroundValidate, daemon=True).start()
@@ -1237,6 +1268,11 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.config["showDebugMessages"] = self.showDebugMessages.get()
         self.saveConfig()
         
+    def setShowCythonTrace(self, *args):
+        self.traceToStdout = self.showCythonTrace.get()
+        self.config["showCythonTrace"] = self.traceToStdout
+        self.saveConfig()
+        
     def find(self, *args):
         from arelle.DialogFind import find
         find(self)
@@ -1247,9 +1283,9 @@ class CntlrWinMain (Cntlr.Cntlr):
         DialogAbout.about(self.parent,
                           _("About arelle"),
                           os.path.join(self.imagesDir, "arelle32.gif"),
-                          _("arelle\u00ae {0} {1}bit {2}\n"
+                          _("arelle\u00ae {0} ({1}bit)\n"
                               "An open source XBRL platform\n"
-                              "\u00a9 2010-2015 Mark V Systems Limited\n"
+                              "\u00a9 2010-{2} Mark V Systems Limited\n"
                               "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
                               "Licensed under the Apache License, Version 2.0 (the \"License\"); "
                               "you may not use this file except in compliance with the License.  "
@@ -1264,20 +1300,20 @@ class CntlrWinMain (Cntlr.Cntlr):
                               "\n   Python\u00ae {4[0]}.{4[1]}.{4[2]} \u00a9 2001-2016 Python Software Foundation"
                               "\n   Tcl/Tk {6} \u00a9 Univ. of Calif., Sun, Scriptics, ActiveState, and others"
                               "\n   PyParsing \u00a9 2003-2013 Paul T. McGuire"
-                              "\n   lxml {5[0]}.{5[1]}.{5[2]} \u00a9 2004 Infrae, ElementTree \u00a9 1999-2004 by Fredrik Lundh"
+                              "\n   Xerces-C++ {5[0]}.{5[1]}.{5[2]} \u00a9 1999-2017 The Apache Software Foundation"
                               "{3}"
                               "\n   May include installable plug-in modules with author-specific license terms"
                               )
-                            .format(self.__version__, self.systemWordSize, Version.version,
+                            .format(Version.__version__, self.systemWordSize, Version.copyrightLatestYear,
                                     _("\n   Bottle \u00a9 2011-2013 Marcel Hellkamp"
                                       "\n   CherryPy \u00a9 2002-2013 CherryPy Team") if self.hasWebServer else "",
-                                    sys.version_info, etree.LXML_VERSION, Tcl().eval('info patchlevel')
+                                    sys.version_info, self.xerces_version, Tcl().eval('info patchlevel')
                                     ))
 
     # worker threads addToLog        
     def addToLog(self, message, messageCode="", messageArgs=None, file="", refs=[], level=logging.INFO):
-        if level == logging.DEBUG and not self.showDebugMessages.get():
-            return
+        if level < logging.INFO and not self.showDebugMessages.get():
+            return # skip DEBUG and INFO-RESULT messages
         if messageCode and messageCode not in message: # prepend message code
             message = "[{}] {}".format(messageCode, message)
         if refs:
@@ -1288,7 +1324,10 @@ class CntlrWinMain (Cntlr.Cntlr):
             elif isinstance(file, _STR_BASE):
                 message += " - " + file
         if isinstance(messageArgs, dict):
-            message = message % messageArgs
+            try:
+                message = message % messageArgs
+            except (KeyError, TypeError, ValueError) as ex:
+                message += " \nMessage log error: " + str(ex) + " \nMessage arguments: " + str(messageArgs)
         self.uiThreadQueue.put((self.uiAddToLog, [message]))
         
     # ui thread addToLog
@@ -1402,9 +1441,9 @@ class CntlrWinMain (Cntlr.Cntlr):
                                     filetypes=[] if self.isMac else filetypes,
                                     defaultextension=defaultextension,
                                     parent=parent)
-            if self.isMac:
+            if isinstance(multFileNames, (tuple,list)):
                 return multFileNames
-            return re.findall("[{]([^}]+)[}]",  # multiple returns "{file1} {file2}..."
+            return re.findall("[{]([^}]+)[}]",  # older multiple returns "{file1} {file2}..."
                               multFileNames)
         elif self.hasWin32gui:
             import win32gui
@@ -1439,10 +1478,18 @@ class WinMainLogHandler(logging.Handler):
         #formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(file)s %(sourceLine)s")
         formatter = Cntlr.LogFormatter("[%(messageCode)s] %(message)s - %(file)s")
         self.setFormatter(formatter)
+        self.logRecordBuffer = None
+    def startLogBuffering(self):
+        if self.logRecordBuffer is None:
+            self.logRecordBuffer = []
+    def endLogBuffering(self):
+        self.logRecordBuffer = None
     def flush(self):
         ''' Nothing to flush '''
     def emit(self, logRecord):
-        # add to logView        
+        if self.logRecordBuffer is not None:
+            self.logRecordBuffer.append(logRecord)
+        # add to logView
         msg = self.format(logRecord)        
         try:            
             self.cntlr.addToLog(msg, level=logRecord.levelno)

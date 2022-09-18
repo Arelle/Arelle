@@ -13,50 +13,94 @@ def viewTests(modelXbrl, outfile, cols=None):
     view.viewTestcaseIndexElement(modelXbrl.modelDocument)
     view.close()
     
+COL_WIDTHS = {
+    "Index": 12, 
+    "Index.1": 12, 
+    "Index.2": 12, 
+    "Index.3": 12, 
+    "Index.4": 12, 
+    "Testcase": 20, 
+    "Id": 10, 
+    "Name": 50, 
+    "Reference": 20, 
+    "ReadMeFirst": 20, 
+    "Status": 8, 
+    "Expected": 20,
+    "Actual": 100}
+
 class ViewTests(ViewFile.View):
     def __init__(self, modelXbrl, outfile, cols):
         super(ViewTests, self).__init__(modelXbrl, outfile, "Tests")
         self.cols = cols
         
-    def viewTestcaseIndexElement(self, modelDocument):
-        if self.cols:
-            if isinstance(self.cols,str): self.cols = self.cols.replace(',',' ').split()
-            unrecognizedCols = []
-            for col in self.cols:
-                if col not in ("Index", "Testcase", "Id", "Name", "Reference", "ReadMeFirst", "Status", "Expected","Actual"):
-                    unrecognizedCols.append(col)
-            if unrecognizedCols:
-                self.modelXbrl.error("arelle:unrecognizedTestReportColumn",
-                                     _("Unrecognized columns: %(cols)s"),
-                                     modelXbrl=self.modelXbrl, cols=','.join(unrecognizedCols))
-            if "Period" in self.cols:
-                i = self.cols.index("Period")
-                self.cols[i:i+1] = ["Start", "End/Instant"]
-        else:
-            self.cols = ["Index", "Testcase", "Id"]
-            if self.type != ViewFile.XML:
-                self.cols.append("Name")
-            self.cols += ["ReadMeFirst", "Status", "Expected", "Actual"]
-        
-        self.addRow(self.cols, asHeader=True)
+    def viewTestcaseIndexElement(self, modelDocument, parentDocument=None, nestedDepth=0):
+        if parentDocument is None: # not a nested testacases index
+            self.nestedIndexDepth = 0
+            self.xlsxDocNames = []
+            self.xlsxTestcase = ""
+            if self.cols:
+                if isinstance(self.cols,str): self.cols = self.cols.replace(',',' ').split()
+                unrecognizedCols = []
+                for col in self.cols:
+                    if col not in COL_WIDTHS:
+                        unrecognizedCols.append(col)
+                if unrecognizedCols:
+                    self.modelXbrl.error("arelle:unrecognizedTestReportColumn",
+                                         _("Unrecognized columns: %(cols)s"),
+                                         modelXbrl=self.modelXbrl, cols=','.join(unrecognizedCols))
+                if "Period" in self.cols:
+                    i = self.cols.index("Period")
+                    self.cols[i:i+1] = ["Start", "End/Instant"]
+            else:
+                self.cols = ["Index"]
+                def determineNestedIndexDepth(doc, nestedDepth):
+                    if nestedDepth > self.nestedIndexDepth:
+                        self.nestedIndexDepth = nestedDepth
+                        self.cols.append("Index.{}".format(nestedDepth))
+                        self.xlsxDocNames.append("")
+                    for referencedDocument in doc.referencesDocument.keys():
+                        if referencedDocument.type == ModelDocument.Type.TESTCASESINDEX:
+                            determineNestedIndexDepth(referencedDocument, nestedDepth + 1)
+                determineNestedIndexDepth(modelDocument, 0)
+                self.cols += ["Testcase", "Id"]
+                if self.type != ViewFile.XML:
+                    self.cols.append("Name")
+                    self.xlsxDocNames.append("")
+                self.cols += ["ReadMeFirst", "Status", "Expected", "Actual"]
+            
+            self.setColWidths([COL_WIDTHS.get(col, 8) for col in self.cols])
+            self.addRow(self.cols, asHeader=True)
 
         if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
             cols = []
             attr = {}
+            if self.type == ViewFile.XLSX:
+                self.xlsxDocName = None
+            indexColName = "Index.{}".format(nestedDepth) if nestedDepth else "Index"
             for col in self.cols:
-                if col == "Index":
+                if col == indexColName:
+                    docName = os.path.basename(modelDocument.url)
+                    if parentDocument and os.path.basename(parentDocument.url) == docName:
+                        docName = os.path.basename(os.path.dirname(modelDocument.url))
                     if self.type == ViewFile.CSV:
-                        cols.append(os.path.basename(modelDocument.url))
+                        cols.append(docName)
+                    elif self.type == ViewFile.XLSX:
+                        self.xlsxDocNames[nestedDepth] = docName
                     else:
-                        attr["name"] = os.path.basename(modelDocument.url)
+                        attr["name"] = docName
                     break
                 else:
                     cols.append("")
-            self.addRow(cols, treeIndent=0, xmlRowElementName="testcaseIndex", xmlRowEltAttr=attr, xmlCol0skipElt=True)
-            # sort test cases by uri
+            if self.type != ViewFile.XLSX:
+                self.addRow(cols, treeIndent=0, xmlRowElementName="testcaseIndex", xmlRowEltAttr=attr, xmlCol0skipElt=True)
+            # sort test cases by url
             testcases = []
-            for referencedDocument in modelDocument.referencesDocument.keys():
-                testcases.append((referencedDocument.uri, referencedDocument.objectId()))
+            for referencedDocument, _ref in sorted(modelDocument.referencesDocument.items(),
+                                             key=lambda i:i[1].referringModelObject.objectIndex if i[1] else 0):
+                if referencedDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
+                    self.viewTestcaseIndexElement(referencedDocument, modelDocument, nestedDepth+1)
+                else:
+                    testcases.append((referencedDocument.url, referencedDocument.objectId()))
             testcases.sort()
             for testcaseTuple in testcases:
                 self.viewTestcase(self.modelXbrl.modelObject(testcaseTuple[1]), 1)
@@ -68,6 +112,8 @@ class ViewTests(ViewFile.View):
     def viewTestcase(self, modelDocument, indent):
         cols = []
         attr = {}
+        if self.type == ViewFile.XLSX:
+            self.xlsxTestcase = os.path.basename(modelDocument.url)
         for col in self.cols:
             if col == "Testcase":
                 if self.type != ViewFile.XML:
@@ -77,10 +123,10 @@ class ViewTests(ViewFile.View):
                 break
             else:
                 cols.append("")
-        self.addRow(cols, treeIndent=indent, xmlRowElementName="testcase", xmlRowEltAttr=attr, xmlCol0skipElt=True)
-        if hasattr(modelDocument, "testcaseVariations"):
-            for modelTestcaseVariation in modelDocument.testcaseVariations:
-                self.viewTestcaseVariation(modelTestcaseVariation, indent+1)
+        if self.type != ViewFile.XLSX:
+            self.addRow(cols, treeIndent=indent, xmlRowElementName="testcase", xmlRowEltAttr=attr, xmlCol0skipElt=True)
+        for modelTestcaseVariation in getattr(modelDocument, "testcaseVariations", ()):
+            self.viewTestcaseVariation(modelTestcaseVariation, indent+1)
                 
     def viewTestcaseVariation(self, modelTestcaseVariation, indent):
         id = modelTestcaseVariation.id
@@ -88,8 +134,14 @@ class ViewTests(ViewFile.View):
             id = ""
         cols = []
         attr = {}
+        if self.type == ViewFile.XLSX:
+            cols.extend(self.xlsxDocNames)
+            cols.append(self.xlsxTestcase)
+            indent = 0 # excel shows all columns to allow filtering
         for col in self.cols:
-            if col == "Id":
+            if self.type == ViewFile.XLSX and (col.startswith("Index") or col == "Testcase"):
+                pass # these columns added above
+            elif col == "Id":
                 cols.append(id or modelTestcaseVariation.name)
             elif col == "Name":
                 if self.type != ViewFile.XML:
@@ -105,7 +157,7 @@ class ViewTests(ViewFile.View):
             elif col == "Expected":
                 cols.append(modelTestcaseVariation.expected)
             elif col == "Actual":
-                cols.append(" ".join(str(code) for code in modelTestcaseVariation.actual))
+                cols.append(", ".join(str(code) for code in modelTestcaseVariation.actual))
             else:
                 cols.append("")
         self.addRow(cols, treeIndent=indent, xmlRowElementName="variation", xmlRowEltAttr=attr, xmlCol0skipElt=False)

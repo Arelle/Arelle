@@ -36,11 +36,17 @@ def checkFilingDimensions(val, drsELRs):
                     elif hasHypercubeArcrole == XbrlConst.notAll:
                         if hasHcRel.isClosed:
                             val.modelXbrl.error(("EFM.6.16.06", "GFM.1.08.06"),
-                                _("Not all hypercube %(hypercube)s in DRS role %(linkrole)s, does not have closed='false'"),
+                                _("The notAll relationship for table %(hypercube)s must have the closed attribute set to 'false' "
+                                  "so that it can achieve its intended purpose of excluding combinations of domain values, on "
+                                  "relationship from %(primaryItem)s, in role %(linkrole)s. Please recheck submission."),
+                                edgarCode="fs-1606-Not-All-Relationship-Is-Closed",
                                 modelObject=hasHcRel, hypercube=hc.qname, linkrole=ELR, primaryItem=sourceConcept.qname)
                         if hc in positiveHypercubes:
                             val.modelXbrl.error(("EFM.6.16.08", "GFM.1.08.08"),
-                                _("Not all hypercube %(hypercube)s in DRS role %(linkrole)s, is also the target of a positive hypercube"),
+                                _("Element %(hypercube)s is a table that negates itself in %(linkroleDefinition)s for primary item "
+                                  "%(primaryItem)s.  Modify the 'all' and 'notAll' relationships that have the element as a target.  "
+                                  "Please recheck submission."),
+                                edgarCode="fs-1608-Table-Excludes-Itself",
                                 modelObject=hasHcRel, hypercube=hc.qname, linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR), primaryItem=sourceConcept.qname)
                     dimELR = hasHcRel.targetRole
                     dimTargetRequired = (dimELR is not None)
@@ -51,7 +57,10 @@ def checkFilingDimensions(val, drsELRs):
                              XbrlConst.hypercubeDimension, dimELR).fromModelObject(hc)
                     if dimTargetRequired and len(hcDimRels) == 0:
                         val.modelXbrl.error(("EFM.6.16.09", "GFM.1.08.09"),
-                            _("Table %(hypercube)s in DRS role %(linkrole)s, missing targetrole consecutive relationship"),
+                            _("A table is malformed because the %(arcroleURI)s from %(fromConcept)s to %(toConcept)s in link role "
+                              "%(linkroleDefinition)s has no consecutive relationships.  "
+                              "Remove the targetRole attribute, or provide a consecutive relationship."),
+                            edgarCode="fs-1609-Target-Role-With-No-Consecutive-Relationships",
                             modelObject=hasHcRel, hypercube=hc.qname, fromConcept=sourceConcept.qname, toConcept=hc.qname, 
                             linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR),
                             arcroleURI=hasHcRel.arcrole, arcrole=os.path.basename(hasHcRel.arcrole))
@@ -70,13 +79,19 @@ def checkFilingDimensions(val, drsELRs):
                                   not commonAncestor(domainMemberRelationshipSet,
                                                   sourceConcept, positiveAxisTableSources[dim])):
                                 val.modelXbrl.error(("EFM.6.16.07", "GFM.1.08.08"),
-                                    _("Negative table axis %(dimension)s in DRS role %(linkrole)s, not in any positive table in same role"),
-                                     modelObject=hcDimRel, dimension=dim.qname, linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR), primaryItem=sourceConcept.qname)
+                                    _("Members of axis %(dimension)s are excluded, in role %(linkroleDefinition)s, "
+                                      "from primary item %(primaryItem)s but not included in any table.  "
+                                      "Please modify the relationships to make it consistent."),
+                                    edgarCode="fs-1607-Axis-Excluded-Not-In-Table",
+                                    modelObject=hcDimRel, dimension=dim.qname, linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR), primaryItem=sourceConcept.qname)
                             dimDomRels = val.modelXbrl.relationshipSet(
                                  XbrlConst.dimensionDomain, domELR).fromModelObject(dim)   
                             if domTargetRequired and len(dimDomRels) == 0:
                                 val.modelXbrl.error(("EFM.6.16.09", "GFM.1.08.09"),
-                                    _("Axis %(dimension)s in DRS role %(linkrole)s, missing targetrole consecutive relationship"),
+                                    _("A table is malformed because the %(arcroleURI)s from %(fromConcept)s to %(toConcept)s "
+                                      "in link role %(linkroleDefinition)s has no consecutive relationships.  "
+                                      "Remove the targetRole attribute, or provide a consecutive relationship."),
+                                    edgarCode="fs-1609-Target-Role-With-No-Consecutive-Relationships",
                                     modelObject=hcDimRel, dimension=dim.qname, fromConcept=hc.qname, toConcept=dim.qname, linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR), arcroleURI=hasHcRel.arcrole, arcrole=os.path.basename(hcDimRel.arcrole))
                             # flatten DRS member relationsihps in ELR for undirected cycle detection
                             drsRelsFrom = defaultdict(list)
@@ -89,7 +104,10 @@ def checkFilingDimensions(val, drsELRs):
                             if cycleCausingConcept is not None:
                                 cycleCausingConcept.append(hcDimRel)
                                 val.modelXbrl.error(("EFM.6.16.04", "GFM.1.08.04"),
-                                    _("Dimension relationships have an undirected cycle in DRS role %(linkrole)s \nstarting from table %(hypercube)s, \naxis %(dimension)s, \npath %(path)s"),
+                                    _("Element %(conceptFrom)s appears in overlapping sets of members in a Directed Relationship "
+                                      "Set in role %(linkroleDefinition)s, axis %(dimension)s, path %(path)s.  "
+                                      "Remove it as a target of one of its domain-member relationships. Please recheck submission."),
+                                    edgarCode="fs-1604-Domain-Is-Tangled",
                                     modelObject=[hc, dim] + [rel for rel in cycleCausingConcept if not isinstance(rel, bool)], 
                                     linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR), 
                                     hypercube=hc.qname, dimension=dim.qname, conceptFrom=dim.qname,
@@ -97,7 +115,10 @@ def checkFilingDimensions(val, drsELRs):
                             fromConceptELRs.clear()
                 if hasHypercubeArcrole == XbrlConst.all and len(hasHcRels) > 1:
                     val.modelXbrl.error(("EFM.6.16.05", "GFM.1.08.05"),
-                        _("Multiple tables (%(hypercubeCount)s) DRS role %(linkrole)s, source %(concept)s, only 1 allowed"),
+                        _("Element %(concept)s is a primary element of more than one Table in relationship group %(linkroleDefinition)s, "
+                          "to tables %(hypercubes)s. Please modify the 'all' relationships that have the element as a source so that "
+                          "it has only one primary axis."),
+                        edgarCode="fs-1605-Primary-Element-Has-Redundant-Tables",
                         modelObject=[sourceConcept] + hasHcRels, 
                         hypercubeCount=len(hasHcRels), linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR),
                         concept=sourceConcept.qname,
@@ -114,9 +135,13 @@ def checkFilingDimensions(val, drsELRs):
                 cycleCausingConcept = undirectedFwdCycle(val, ELR, rels, ELR, drsRelsFrom, drsRelsTo, fromConceptELRs)
                 if cycleCausingConcept is not None:
                     val.modelXbrl.error(("EFM.6.16.04", "GFM.1.08.04"),
-                        _("Domain-member primary-item relationships have an undirected cycle in DRS role %(linkrole)s \nstarting from %(conceptFrom)s, \npath %(path)s"),
+                        _("Element %(conceptFrom)s appears in overlapping sets of members in a Directed Relationship Set in "
+                          "role %(linkroleDefinition)s, from %(conceptFrom)s, path %(path)s.  "
+                          "Remove it as a target of one of its domain-member relationships. Please recheck submission."),
+                        edgarCode="fs-1604-Domain-Is-Tangled",
                         modelObject=[relFrom] + [rel for rel in cycleCausingConcept if not isinstance(rel, bool)], 
-                        linkrole=ELR, conceptFrom=relFrom.qname, path=cyclePath(relFrom, cycleCausingConcept))
+                        linkrole=ELR, conceptFrom=relFrom.qname, path=cyclePath(relFrom, cycleCausingConcept),
+                        linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR))
                 fromConceptELRs.clear()
             for rel in rels:
                 fromMbr = rel.fromModelObject
@@ -126,7 +151,10 @@ def checkFilingDimensions(val, drsELRs):
                     val.modelXbrl.relationshipSet(
                          XbrlConst.domainMember, toELR).fromModelObject(toMbr)) == 0:
                     val.modelXbrl.error(("EFM.6.16.09", "GFM.1.08.09"),
-                        _("Domain member %(concept)s in DRS role %(linkrole)s, missing targetrole consecutive relationship"),
+                        _("A table is malformed because the %(arcroleURI)s from %(fromConcept)s to %(toConcept)s in link role "
+                          "%(linkroleDefinition)s has no consecutive relationships.  "
+                          "Remove the targetRole attribute, or provide a consecutive relationship."),
+                        edgarCode="fs-1609-Target-Role-With-No-Consecutive-Relationships",
                         modelObject=rel, concept=fromMbr.qname, fromConcept=toMbr.qname, toConcept=fromMbr.qname, linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR), arcroleURI=hasHcRel.arcrole, arcrole=os.path.basename(rel.arcrole))
                     
 

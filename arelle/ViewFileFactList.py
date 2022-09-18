@@ -13,6 +13,20 @@ def viewFacts(modelXbrl, outfile, lang=None, labelrole=None, cols=None):
     view.view(modelXbrl.modelDocument)
     view.close()
     
+COL_WIDTHS = {
+    "Label": 80,
+    "Name":  40,
+    "contextRef": 40,
+    "unitRef": 40,
+    "Dec": 5,
+    "Prec": 5,
+    "Lang": 6,
+    "Value": 40,
+    "EntityScheme": 40,
+    "EntityIdentifier": 40,
+    "Period": 40,
+    "Dimensions": 60
+    }
 class ViewFacts(ViewFile.View):
     def __init__(self, modelXbrl, outfile, labelrole, lang, cols):
         super(ViewFacts, self).__init__(modelXbrl, outfile, "Fact List", lang)
@@ -24,7 +38,7 @@ class ViewFacts(ViewFile.View):
             if isinstance(self.cols,str): self.cols = self.cols.replace(',',' ').split()
             unrecognizedCols = []
             for col in self.cols:
-                if col not in ("Label","Name","contextRef","unitRef","Dec","Prec","Lang","Value","EntityScheme","EntityIdentifier","Period","Dimensions"):
+                if col not in COL_WIDTHS:
                     unrecognizedCols.append(col)
             if unrecognizedCols:
                 self.modelXbrl.error("arelle:unrecognizedFactListColumn",
@@ -48,6 +62,7 @@ class ViewFacts(ViewFile.View):
         else:
             lastColSpan = None
         self.addRow(self.cols, asHeader=True, lastColSpan=lastColSpan)
+        self.setColWidths([COL_WIDTHS.get(col, 8) for col in self.cols])
         self.viewFacts(self.modelXbrl.facts, 0)
         
     def tupleDepth(self, modelFacts, indentedCol):

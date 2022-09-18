@@ -12,6 +12,7 @@ from collections import defaultdict
 import os, io, json
 from datetime import datetime, timedelta
 from arelle import XbrlConst
+from arelle.PythonUtil import genobj
 from arelle.ModelDtsObject import ModelConcept
 from arelle.XmlValidate import VALID
 
@@ -173,6 +174,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
     definitionElrs = dict((modelXbrl.roleTypeDefinition(roleURI, lang), roleType)
                           for roleURI in modelXbrl.relationshipSet(XbrlConst.parentChild).linkRoleUris
                           for roleType in modelXbrl.roleTypes.get(roleURI,()))
+    modelXbrl._tableElrs = {}
     sortedRoleTypes = sorted(definitionElrs.items(), key=lambda item: item[0])
     disclosureSystem = modelXbrl.modelManager.disclosureSystem
     _usgaapStyleELRs = _isJpFsa = _ifrsStyleELRs = False
@@ -199,10 +201,10 @@ def evaluateTableIndex(modelXbrl, lang=None):
         firstTableLinkroleURI = None
         firstDocumentLinkroleURI = None
         for roleDefinition, roleType in sortedRoleTypes:
-            roleType._tableChildren = []
             match = usgaapRoleDefinitionPattern.match(roleDefinition) if roleDefinition else None
             if not match: 
-                roleType._tableIndex = (UNCATEG, "", roleType.roleURI)
+                modelXbrl._tableElrs[roleType.roleURI] = genobj(group=UNCATEG, seq="", name=roleType.roleURI, parent=None, children=[], facts=set())
+                #roleType._tableIndex = (UNCATEG, "", roleType.roleURI)
                 continue
             seq, tblType, tblName = match.groups()
             if isRR:
@@ -236,7 +238,8 @@ def evaluateTableIndex(modelXbrl, lang=None):
                 firstTableLinkroleURI = roleType.roleURI
             if tblType == "Document" and not firstDocumentLinkroleURI:
                 firstDocumentLinkroleURI = roleType.roleURI
-            roleType._tableIndex = (tableGroup, seq, tblName)
+            modelXbrl._tableElrs[roleType.roleURI] = genobj(group=tableGroup, seq=seq, name=tblName, parent=None, children=[], facts=set())
+            #roleType._tableIndex = (tableGroup, seq, tblName)
 
         # flow allocate facts to roles (SEC presentation groups)
         if not modelXbrl.qnameDimensionDefaults: # may not have run validatino yet
@@ -259,7 +262,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
                         break
         if "DocumentType" in deiFact:
             fact = deiFact["DocumentType"]
-            if fact.xValid >= VALID and "-Q" in fact.xValue or "": # fact may be invalid
+            if fact.xValid >= VALID and "-Q" in (fact.xValue or ""): # fact may be invalid
                 # need quarterly and yr to date durations
                 endDatetime = fact.context.endDatetime
                 # if within 2 days of end of month use last day of month
@@ -303,8 +306,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
         for i, roleTypes in enumerate(sortedRoleTypes):
             roleDefinition, roleType = roleTypes
             # find defined non-default axes in pre hierarchy for table
-            tableFacts = set()
-            tableGroup, tableSeq, tableName = roleType._tableIndex
+            tableElr = modelXbrl._tableElrs[roleType.roleURI]
             roleURIdims, priItemQNames = EFMlinkRoleURIstructure(modelXbrl, roleType.roleURI)
             for priItemQName in priItemQNames:
                 for fact in factsByQname[priItemQName]:
@@ -319,32 +321,31 @@ def evaluateTableIndex(modelXbrl, lang=None):
                         # the flow-up part, drop
                         cntxStartDatetime = cntx.startDatetime
                         cntxEndDatetime = cntx.endDatetime
-                        if (tableGroup != STMTS or
+                        if (tableElr.group != STMTS or
                             (cntxStartDatetime, cntxEndDatetime) in stmtReportingPeriods and
                              (fact not in reportedFacts or
                               all(dimQn not in cntx.qnameDims # unspecified dims are all defaulted if reported elsewhere
                                   for dimQn in (cntx.qnameDims.keys() - roleURIdims.keys())))):
-                            tableFacts.add(fact)
+                            tableElr.facts.add(fact)
                             reportedFacts.add(fact)
-            roleType._tableFacts = tableFacts
             
             # find parent if any
             closestParentType = None
             closestParentMatchLength = 0
             for _parentRoleDefinition, parentRoleType in sortedRoleTypes[i+1:]:
-                matchLen = parentNameMatchLen(tableName, parentRoleType)
+                matchLen = parentNameMatchLen(tableElr.name, parentRoleType)
                 if matchLen > closestParentMatchLength:
                     closestParentMatchLength = matchLen
                     closestParentType = parentRoleType
             if closestParentType is not None:
-                closestParentType._tableChildren.insert(0, roleType)
+                modelXbrl._tableElrs[closestParentType.roleURI].children.insert(0, roleType)
                 
             # remove lesser-matched children if there was a parent match
             unmatchedChildRoles = set()
             longestChildMatchLen = 0
             numChildren = 0
-            for childRoleType in roleType._tableChildren:
-                matchLen = parentNameMatchLen(tableName, childRoleType)
+            for childRoleType in tableElr.children:
+                matchLen = parentNameMatchLen(tableElr.name, childRoleType)
                 if matchLen < closestParentMatchLength:
                     unmatchedChildRoles.add(childRoleType)
                 elif matchLen > longestChildMatchLen:
@@ -352,16 +353,16 @@ def evaluateTableIndex(modelXbrl, lang=None):
                     numChildren += 1
             if numChildren > 1: 
                 # remove children that don't have the full match pattern length to parent
-                for childRoleType in roleType._tableChildren:
+                for childRoleType in tableElr.children:
                     if (childRoleType not in unmatchedChildRoles and 
-                        parentNameMatchLen(tableName, childRoleType) < longestChildMatchLen):
+                        parentNameMatchLen(tableElr.name, childRoleType) < longestChildMatchLen):
                         unmatchedChildRoles.add(childRoleType)
 
             for unmatchedChildRole in unmatchedChildRoles:
-                roleType._tableChildren.remove(unmatchedChildRole)
+                tableElr.children.remove(unmatchedChildRole)
 
-            for childRoleType in roleType._tableChildren:
-                childRoleType._tableParent = roleType
+            for childRoleType in tableElr.children:
+                modelXbrl._tableElrs[childRoleType.roleURI].parent = roleType
                 
             unmatchedChildRoles = None # dereference
         
@@ -381,7 +382,8 @@ def evaluateTableIndex(modelXbrl, lang=None):
             except Exception as ex:
                     UGT_TOPICS = None
 
-        if UGT_TOPICS is not None:
+        if UGT_TOPICS is not None and False: # TableTopicScore not possible with arelle_c role types
+            # reimplement
             def roleUgtConcepts(roleType):
                 roleConcepts = set()
                 for rel in modelXbrl.relationshipSet(XbrlConst.parentChild, roleType.roleURI).modelRelationships:
@@ -389,15 +391,14 @@ def evaluateTableIndex(modelXbrl, lang=None):
                         roleConcepts.add(rel.toModelObject.name)
                     if isinstance(rel.fromModelObject, ModelConcept):
                         roleConcepts.add(rel.fromModelObject.name)
-                if hasattr(roleType, "_tableChildren"):
-                    for _tableChild in roleType._tableChildren:
-                        roleConcepts |= roleUgtConcepts(_tableChild)
+                for _tableChild in modelXbrl._tableElrs[roleType.roleURI].children:
+                    roleConcepts |= roleUgtConcepts(_tableChild)
                 return roleConcepts
             topicMatches = {} # topicNum: (best score, roleType)
     
             for roleDefinition, roleType in sortedRoleTypes:
                 roleTopicType = 'S' if roleDefinition.startswith('S') else 'D'
-                if getattr(roleType, "_tableParent", None) is None:                
+                if modelXbrl._tableElrs[roleType.roleURI].parent is None:                
                     # rooted tables in reverse order
                     concepts = roleUgtConcepts(roleType)
                     for i, ugtTopic in enumerate(UGT_TOPICS):
@@ -428,21 +429,21 @@ def evaluateTableIndex(modelXbrl, lang=None):
                         for roleType in modelXbrl.roleTypes.get(roleURI,()))
         roleIdentifierItems = {}
         for roleURI, roleType in roleElrs.items():
-            roleType._tableChildren = []
             relSet = modelXbrl.relationshipSet(XbrlConst.parentChild, roleURI)
             for rootConcept in relSet.rootConcepts:
-                if rootConcept.substitutionGroupQname and rootConcept.substitutionGroupQname.localName == "identifierItem":
+                if rootConcept.substitutionGroupQName and rootConcept.substitutionGroupQName.localName == "identifierItem":
                     roleIdentifierItems[rootConcept] = roleType
         linkroleUri = None
         for roleURI, roleType in roleElrs.items():
+            tableElr = modelXbrl._tableElrs[roleType.roleURI]
             relSet = modelXbrl.relationshipSet(XbrlConst.parentChild, roleURI)
             def addRoleIdentifiers(fromConcept, parentRoleType, visited):
                 for rel in relSet.fromModelObject(fromConcept):
                     _fromConcept = rel.fromModelObject
                     _toConcept = rel.toModelObject
                     if isinstance(_fromConcept, ModelConcept) and isinstance(_toConcept, ModelConcept):
-                        _fromSubQn = _fromConcept.substitutionGroupQname
-                        _toSubQn = _toConcept.substitutionGroupQname
+                        _fromSubQn = _fromConcept.substitutionGroupQName
+                        _toSubQn = _toConcept.substitutionGroupQName
                         if ((parentRoleType is not None or
                              (_fromSubQn and _fromSubQn.localName == "identifierItem" and _fromConcept in roleIdentifierItems )) and
                             _toSubQn and _toSubQn.localName == "identifierItem" and
@@ -450,8 +451,8 @@ def evaluateTableIndex(modelXbrl, lang=None):
                             if parentRoleType is None:
                                 parentRoleType = roleIdentifierItems[_fromConcept]
                             _toRoleType = roleIdentifierItems[_toConcept]
-                            if _toConcept not in parentRoleType._tableChildren:
-                                parentRoleType._tableChildren.append(_toRoleType)
+                            if _toConcept not in modelXbrl._tableElrs[parentRoleType.roleURI].children:
+                                modelXbrl._tableElrs[parentRoleType.roleURI].children.append(_toRoleType)
                             if _toConcept not in visited:
                                 visited.add(_toConcept)
                                 addRoleIdentifiers(_toConcept, _toRoleType, visited)
@@ -462,18 +463,19 @@ def evaluateTableIndex(modelXbrl, lang=None):
                             visited.discard(_toConcept)
             for rootConcept in relSet.rootConcepts:
                 addRoleIdentifiers(rootConcept, None, set())
-                if not linkroleUri and len(roleType._tableChildren) > 0:
+                if not linkroleUri and len(tableElr.children) > 0:
                     linkroleUri = roleURI
         return linkroleUri, linkroleUri  # only show linkroleUri in index table   
     elif _ifrsStyleELRs: 
         for roleType in definitionElrs.values():
-            roleType._tableChildren = []
+            modelXbrl._tableElrs[roleType.roleURI].children = []
         return sortedRoleTypes[0][1], None # first link role in order             
     return None, None
 
 def parentNameMatchLen(tableName, parentRoleType):
     lengthOfMatch = 0
-    parentName = parentRoleType._tableIndex[2]
+    parentName = parentRoleType.modelXbrl._tableElrs[parentRoleType.roleURI].name
+    #parentName = parentRoleType._tableIndex[2]
     parentNameLen = len(parentName.partition('(')[0])
     fullWordFound = False
     for c in tableName.partition('(')[0]:

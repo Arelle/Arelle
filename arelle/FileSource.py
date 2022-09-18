@@ -11,6 +11,7 @@ from arelle import PackageManager
 from arelle.PythonUtil import genobj
 from arelle.UrlUtil import isHttpUrl
 from operator import indexOf
+pluginClassMethods = None # dynamic import
 
 archivePathSeparators = (".zip" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
                         ((".zip/", ".tar.gz/", ".eis/", ".xml/", ".xfd/", ".frm/", '.taxonomyPackage.xml/') if os.sep != "/" else ()) #acomodate windows and http styles
@@ -22,7 +23,7 @@ XMLdeclaration = re.compile(r"<\?xml[^><\?]*\?>", re.DOTALL)
 
 TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD packages
 
-def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=False, reloadCache=False):
+def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=False, reloadCache=False, base=None):
     if sourceZipStream:
         filesource = FileSource(POST_UPLOADED_ZIP, cntlr)
         filesource.openZipStream(sourceZipStream)
@@ -30,6 +31,8 @@ def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=F
             filesource.select(filename)
         return filesource
     else:
+        if cntlr and base:
+            filename = cntlr.webCache.normalizeUrl(filename, base=base)
         archivepathSelection = archiveFilenameParts(filename, checkIfXmlIsEis)
         if archivepathSelection is not None:
             archivepath = archivepathSelection[0]
@@ -75,6 +78,18 @@ class FileNamedTextIOWrapper(io.TextIOWrapper):  # provide string IO in memory b
     def __str__(self):
         return self.fileName
     
+class FileNamedBytesIO(io.BytesIO):  # provide Bytes IO in memory but behave as a fileName string
+    def __init__(self, fileName, *args, **kwargs):
+        super(FileNamedBytesIO, self).__init__(*args, **kwargs)
+        self.fileName = fileName
+        
+    def close(self):
+        del self.fileName
+        super(FileNamedBytesIO, self).close()
+
+    def __str__(self):
+        return self.fileName
+    
 class ArchiveFileIOError(IOError):
     def __init__(self, fileSource, errno, fileName):
         super(ArchiveFileIOError, self).__init__(errno,
@@ -85,6 +100,9 @@ class ArchiveFileIOError(IOError):
             
 class FileSource:
     def __init__(self, url, cntlr=None, checkIfXmlIsEis=False):
+        global pluginClassMethods
+        if pluginClassMethods is None: # dynamic import
+            from arelle.PluginManager import pluginClassMethods
         self.url = str(url)  # allow either string or FileNamedStringIO
         self.baseIsHttp = isHttpUrl(self.url)
         self.cntlr = cntlr
@@ -93,6 +111,7 @@ class FileSource:
         if not self.isTarGz:
             self.type = self.type[3:]
         self.isZip = self.type == ".zip"
+        self.isZipBackslashed = False # windows style backslashed paths
         self.isEis = self.type == ".eis"
         self.isXfd = (self.type == ".xfd" or self.type == ".frm")
         self.isRss = (self.type == ".rss" or self.url.endswith(".rss.xml"))
@@ -112,9 +131,9 @@ class FileSource:
             elif checkIfXmlIsEis:
                 try:
                     file = open(self.cntlr.webCache.getfilename(self.url), 'r', errors='replace')
-                    l = file.read(128)
+                    l = file.read(256) # may have comments before first element
                     file.close()
-                    if re.match(r"\s*(<[?]xml[^?]+[?]>)?\s*<(cor[a-z]*:|sdf:)?edgarSubmission", l):
+                    if re.match(r"\s*(<[?]xml[^?]+[?]>)?\s*(<!--.*-->\s*)*<(cor[a-z]*:|sdf:)?edgarSubmission", l):
                         self.isEis = True
                 except EnvironmentError as err:
                     if self.cntlr:
@@ -259,23 +278,14 @@ class FileSource:
             elif self.isInstalledTaxonomyPackage:
                 self.isOpen = True
                 # load mappings
-                try:
-                    metadataFiles = self.taxonomyPackageMetadataFiles
-                    if len(metadataFiles) != 1:
-                        raise IOError(_("Taxonomy package must contain one and only one metadata file: {0}.")
-                                      .format(', '.join(metadataFiles)))
-                    # HF: this won't work, see DialogOpenArchive for correct code
-                    # not sure if it is used
-                    taxonomyPackage = PackageManager.parsePackage(self.cntlr, self.url)
-                    fileSourceDir = os.path.dirname(self.baseurl) + os.sep
-                    self.mappedPaths = \
-                        dict((prefix, 
-                              remapping if isHttpUrl(remapping)
-                              else (fileSourceDir + remapping.replace("/", os.sep)))
-                              for prefix, remapping in taxonomyPackage["remappings"].items())
-                except EnvironmentError as err:
-                    self.logError(err)
-                    return # provide error message later
+                self.loadTaxonomyPackageMappings()
+                
+    def loadTaxonomyPackageMappings(self):
+        if not self.mappedPaths and self.taxonomyPackageMetadataFiles:
+            metadata = self.baseurl + os.sep + self.taxonomyPackageMetadataFiles[0]
+            taxonomyPackage = PackageManager.parsePackage(self.cntlr, self, metadata,
+                                                          os.sep.join(os.path.split(metadata)[:-1]) + os.sep)
+            self.mappedPaths = taxonomyPackage["remappings"]
 
     def openZipStream(self, sourceZipStream):
         if not self.isOpen:
@@ -293,7 +303,7 @@ class FileSource:
             self.fs.close()
             self.fs = None
             self.isOpen = False
-            self.isZip = False
+            self.isZip = self.isZipBackslashed = False
         if self.isTarGz and self.isOpen:
             self.fs.close()
             self.fs = None
@@ -327,7 +337,7 @@ class FileSource:
     @property
     def taxonomyPackageMetadataFiles(self):
         for f in (self.dir or []):
-            if f.endswith("/META-INF/taxonomyPackage.xml"):
+            if f.endswith("/META-INF/taxonomyPackage.xml"): # must be in a sub directory in the zip
                 return [f]  # standard package
         return [f for f in (self.dir or []) if os.path.split(f)[-1] in TAXONOMY_PACKAGE_FILE_NAMES]
     
@@ -381,10 +391,13 @@ class FileSource:
                     self.referencedFileSources[referencedArchiveFile] = referencedFileSource
         return None
     
-    def file(self, filepath, binary=False, stripDeclaration=False, encoding=None):
+    def file(self, filepath, binary=False, stripDeclaration=False, encoding=None, bytesOrLocalpathObj=False):
         ''' 
-            for text, return genobj(filepath=filepath, encoding)
+            for text, return a tuple of (open file handle, encoding)
             for binary, return a tuple of (open file handle, )
+            for bytesOrLocalFilepath, 
+              if a local file return genobj(filepath=filepath, cntlr=)
+              else if zip, eis, etc return genobj(bytes=, filepath=filepath, cntlr=)
         '''
         archiveFileSource = self.fileSourceContainingFilepath(filepath)
         if archiveFileSource is not None:
@@ -394,14 +407,21 @@ class FileSource:
                 archiveFileName = filepath[len(archiveFileSource.baseurl) + 1:]
             if archiveFileSource.isZip:
                 try:
-                    b = archiveFileSource.fs.read(archiveFileName.replace("\\","/"))
+                    if archiveFileSource.isZipBackslashed:
+                        f = archiveFileName.replace("/", "\\")
+                    else:
+                        f = archiveFileName.replace("\\","/")
+                    b = archiveFileSource.fs.read(f)
+                    if bytesOrLocalpathObj:
+                        return genobj(bytes=b, filepath=filepath, cntlr=self.cntlr)
                     if binary:
                         return (io.BytesIO(b), )
                     if encoding is None:
                         encoding = XmlUtil.encoding(b)
                     if stripDeclaration:
                         b = stripDeclarationBytes(b)
-                    return genobj(bytes=b, encoding=encoding, cntlr=self.cntlr)
+                    return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding), 
+                            encoding)
                 except KeyError:
                     raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
             elif archiveFileSource.isTarGz:
@@ -409,13 +429,16 @@ class FileSource:
                     fh = archiveFileSource.fs.extractfile(archiveFileName)
                     b = fh.read()
                     fh.close() # doesn't seem to close properly using a with construct
+                    if bytesOrLocalpathObj:
+                        return genobj(bytes=b, filepath=filepath, cntlr=self.cntlr)
                     if binary:
                         return (io.BytesIO(b), )
                     if encoding is None:
                         encoding = XmlUtil.encoding(b)
                     if stripDeclaration:
                         b = stripDeclarationBytes(b)
-                    return genobj(bytes=b, encoding=encoding, cntlr=self.cntlr)
+                    return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding), 
+                            encoding)
                 except KeyError:
                     raise ArchiveFileIOError(self, archiveFileName)
             elif archiveFileSource.isEis:
@@ -433,11 +456,14 @@ class FileSource:
                             else:
                                 start = 0;
                                 length = len(b);
+                            if bytesOrLocalpathObj:
+                                return genobj(bytes=b, filepath=filepath, cntlr=self.cntlr)
                             if binary:
                                 return (io.BytesIO(b), )
                             if encoding is None:
                                 encoding = XmlUtil.encoding(b, default="latin-1")
-                            return genobj(bytes=b, encoding=encoding, cntlr=self.cntlr)
+                            return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
+                                    encoding)
                 raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
             elif archiveFileSource.isXfd:
                 for data in archiveFileSource.xfdDocument.iter(tag="data"):
@@ -454,11 +480,14 @@ class FileSource:
                             else:
                                 start = 0;
                                 length = len(b);
+                            if bytesOrLocalpathObj:
+                                return genobj(bytes=b, filepath=filepath, cntlr=self.cntlr)
                             if binary:
                                 return (io.BytesIO(b), )
                             if encoding is None:
                                 encoding = XmlUtil.encoding(b, default="latin-1")
-                            return genobj(bytes=b, encoding=encoding, cntlr=self.cntlr)
+                            return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
+                                    encoding)
                 raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
             elif archiveFileSource.isInstalledTaxonomyPackage:
                 # remove TAXONOMY_PACKAGE_FILE_NAME from file path
@@ -468,7 +497,20 @@ class FileSource:
                         if filepath[l - len(f):l] == f:
                             filepath = filepath[0:l - len(f) - 1] + filepath[l:]
                             break
-        return genobj(filepath=filepath, cntlr=self.cntlr)
+        for pluginMethod in pluginClassMethods("FileSource.File"): #custom overrides for decription, etc
+            fileResult = pluginMethod(self.cntlr, filepath, binary, stripDeclaration)
+            if fileResult is not None:
+                return fileResult
+        if bytesOrLocalpathObj:
+            return genobj(filepath=filepath, cntlr=self.cntlr)
+        for pluginMethod in pluginClassMethods("FileSource.File"): #custom overrides for decription, etc
+            fileResult = pluginMethod(self.cntlr, filepath, binary, stripDeclaration)
+            if fileResult is not None:
+                return fileResult
+        if binary:
+            return (openFileStream(self.cntlr, filepath, 'rb'), )
+        else:
+            return openXmlFileStream(self.cntlr, filepath, stripDeclaration)
 
     def exists(self, filepath):
         archiveFileSource = self.fileSourceContainingFilepath(filepath)
@@ -481,6 +523,10 @@ class FileSource:
                 archiveFileSource.isEis or archiveFileSource.isXfd or
                 archiveFileSource.isRss or self.isInstalledTaxonomyPackage):
                 return archiveFileName.replace("\\","/") in archiveFileSource.dir
+        for pluginMethod in pluginClassMethods("FileSource.Exists"): #custom overrides for decription, etc
+            existsResult = pluginMethod(self.cntlr, filepath)
+            if existsResult is not None:
+                return existsResult
         # assume it may be a plain ordinary file path
         return os.path.exists(filepath)
     
@@ -494,7 +540,11 @@ class FileSource:
         elif self.isZip:
             files = []
             for zipinfo in self.fs.infolist():
-                files.append(zipinfo.filename)
+                f = zipinfo.filename
+                if '\\' in f:
+                    self.isZipBackslashed = True
+                    f = f.replace("\\", "/")
+                files.append(f)
             self.filesDir = files
         elif self.isTarGz:
             self.filesDir = self.fs.getnames()
@@ -557,14 +607,24 @@ class FileSource:
             
         return self.filesDir
     
+    def basedUrl(self, selection):
+        if isHttpUrl(selection) or os.path.isabs(selection):
+            return selection
+        elif self.baseIsHttp or os.sep == '/':
+            return self.baseurl + "/" + selection
+        else: # MSFT os.sep == '\\'
+            return self.baseurl + os.sep + selection.replace("/", os.sep)
+    
     def select(self, selection):
         self.selection = selection
-        if isHttpUrl(selection) or os.path.isabs(selection):
-            self.url = selection
-        elif self.baseIsHttp or os.sep == '/':
-            self.url = self.baseurl + "/" + selection
-        else: # MSFT os.sep == '\\'
-            self.url = self.baseurl + os.sep + selection.replace("/", os.sep)
+        if not selection:
+            self.url = None
+        else:
+            if isinstance(selection, list): # json list
+                self.url = [self.basedUrl(s) for s in selection]
+            # elif isinstance(selection, dict): # json objects
+            else:
+                self.url = self.basedUrl(selection)
             
 def openFileStream(cntlr, filepath, mode='r', encoding=None):
     if PackageManager.isMappedUrl(filepath):
@@ -627,7 +687,7 @@ def openXmlFileStream(cntlr, filepath, stripDeclaration=False):
         # allow filepath to close
     # this may not be needed for Mac or Linux, needs confirmation!!!
     if text is None:  # ok to read as utf-8
-        return io.open(filepath, 'rt', encoding='utf-8'), encoding
+        return io.open(filepath, 'rt', encoding=encoding or 'utf-8'), encoding
     else:
         if stripDeclaration:
             # strip XML declaration
@@ -658,6 +718,9 @@ def saveFile(cntlr, filepath, contents, encoding=None, mode='wt'):
         if cntlr.isGAE: # check if in memcache
             gaeSet(cacheKey, contents.encode(encoding or 'utf-8'))
     else:
+        _dirpath = os.path.dirname(filepath)
+        if not os.path.exists(_dirpath): # directory must exist before io.open
+            os.makedirs(_dirpath)
         with io.open(filepath, mode, encoding=(encoding or 'utf-8')) as f:
             f.write(contents)
                           
@@ -732,5 +795,4 @@ def gaeSet(key, bytesValue): # stores bytes, not string valye
             return False
         chunkKeys.append(chunkKey)
     return gaeMemcache.set(key, chunkKeys, time=GAE_EXPIRE_WEEK)
-
 

@@ -4,10 +4,11 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import re, datetime
+import re, datetime, decimal
 from collections import defaultdict
 from arelle import (ModelDocument, ModelValue, ModelRelationshipSet, 
                     XmlUtil, XbrlConst, ValidateFilingText)
+from arelle.ModelValue import qname
 from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFootnote
@@ -16,11 +17,24 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
 from arelle.PythonUtil import pyNamedObject, strTruncate
 from arelle.UrlUtil import isHttpUrl
-from arelle.ValidateXbrlCalcs import inferredDecimals
+from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XmlValidate import VALID
 from .DTS import checkFilingDTS
+from .Consts import edgarDocumentTypes, edgarSubmissionTypeAllowedDocumentTypes, docTypeDeiItems, \
+                    docTypesRequiringEntityVolFilersAndPubFloat, submissionTypesAllowingWellKnownSeasonedIssuer, \
+                    submissionTypesAllowingEntityInvCompanyType, docTypesRequiringEntityFilerCategory, \
+                    submissionTypesAllowingAcceleratedFilerStatus, submissionTypesAllowingShellCompanyFlag, \
+                    submissionTypesAllowingEdgarSmallBusinessFlag, submissionTypesAllowingEmergingGrowthCompanyFlag, \
+                    submissionTypesAllowingExTransitionPeriodFlag, submissionTypesAllowingSeriesClasses, \
+                    submissionTypesExemptFromRoleOrder, docTypesExemptFromRoleOrder, \
+                    submissionTypesAllowingPeriodOfReport, docTypesRequiringPeriodOfReport, \
+                    docTypesRequiringEntityWellKnownSeasonedIssuer, \
+                    submissionTypesAllowingVoluntaryFilerFlag
+                                        
 from .Dimensions import checkFilingDimensions
 from .PreCalAlignment import checkCalcsTreeWalk
+from .Util import conflictClassFromNamespace, abbreviatedNamespace, abbreviatedWildNamespace, loadDeprecatedConceptDates, \
+                    loadCustomAxesReplacements, loadNonNegativeFacts
 
 def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     if not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
@@ -38,6 +52,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     instantPreferredLabelRolePattern = re.compile(r".*[pP]eriod(Start|End)")
     embeddingCommandPattern = re.compile(r"[^~]*~\s*()[^~]*~")
     styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-sec-ix-hidden\s*:\s*([\w.-]+).*")
+    efmRoleDefinitionPattern = re.compile(r"([0-9]+) - (Statement|Disclosure|Schedule|Document) - (.+)")
     
     val._isStandardUri = {}
     modelXbrl.modelManager.disclosureSystem.loadStandardTaxonomiesDict()
@@ -78,16 +93,26 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     val.requiredContext = None
     val.standardNamespaceConflicts = defaultdict(set)
     documentType = None # needed for non-instance validation too
+    submissionType = val.params.get("submissionType")
+    hasSubmissionType = bool(submissionType)
     isInlineXbrl = modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL
     if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or isInlineXbrl:
         instanceName = modelXbrl.modelDocument.basename
+        deprecatedConceptDates = {}
+        deprecatedConceptFacts = defaultdict(list) # index by concept Qname, value is list of facts
+        deprecatedConceptContexts = defaultdict(list) # index by contextID, value is list of concept QNames of deprecated dimensions, members
+        
+        if isEFM:
+            loadDeprecatedConceptDates(val, deprecatedConceptDates)
+            nonNegFacts = loadNonNegativeFacts(modelXbrl)
+            customAxesReplacements = loadCustomAxesReplacements(modelXbrl)
         
         #6.3.3 filename check
         m = instanceFileNamePattern.match(instanceName)
         if isInlineXbrl:
             m = htmlFileNamePattern.match(instanceName)
             if m:
-                val.fileNameBasePart     = None # html file name not necessarily parseable.
+                val.fileNameBasePart = None # html file name not necessarily parseable.
                 val.fileNameDatePart = None
             else:
                 modelXbrl.error(val.EFM60303,
@@ -130,7 +155,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         except AttributeError:
                             contextId = "not available"
                         modelXbrl.error(("EFM.6.05.01", "GFM.1.02.01"),
-                            _("Invalid entity identifier scheme %(scheme)s in context %(context)s for identifier %(identifier)s"),
+                            _("Your identifier for the CIK code, %(identifier)s, or scheme %(scheme)s, in context %(context)s, did not adhere "
+                              "to the standard naming convention of <identifier scheme='http://www.sec.gov/CIK'>xxxxxxxxxx</identifier>'.  "
+                              "Please recheck your submission and comply with the standard naming convention."),
+                            edgarCode="cp-0501-Entity-Identifier-Scheme",
                             modelObject=entityIdentifierElt, scheme=schemeAttr,
                             context=contextId, identifier=entityIdentifier)
                     if not disclosureSystem.identifierValuePattern.match(entityIdentifier):
@@ -144,25 +172,32 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         entityIdentifierValueElt = entityIdentifierElt
                         if isEFM and not efmCIKpattern.match(entityIdentifierValue):
                             val.modelXbrl.error("EFM.6.05.23.cikValue",
-                                _("EntityIdentifier %(entityIdentifer)s must be 10 digits."),
-                                modelObject=entityIdentifierElt, entityIdentifer=entityIdentifierValue)
+                                _("The context identifier CIK %(entityIdentifier)s is not 10 digits, for required context(s).  "
+                                  "Please include a correct context identifier CIK in the filing."),
+                                edgarCode="cp-0523-Non-Matching-Cik",
+                                modelObject=entityIdentifierElt, entityIdentifier=entityIdentifierValue)
                     elif entityIdentifier != entityIdentifierValue:
                         modelXbrl.error(("EFM.6.05.03", "GFM.1.02.03"),
-                            _("Multiple %(entityIdentifierName)ss: %(entityIdentifer)s, %(entityIdentifer2)s"),
+                            _("The submission CIK, %(filerIdentifier)s does not match either the EntityCentralIndexKey, %(entityIdentifer)s, "
+                              "or context identifier CIK(s) %(entityIdentifer)s, %(entityIdentifer2)s, or is not 10 digits, for required context(s).  "
+                              "Please include a correct matching EntityCentralIndexKey and context identifier CIK(s) in the filing."),
+                            edgarCode="cp-0523-Non-Matching-Cik",
                             modelObject=(entityIdentifierElt, entityIdentifierValueElt),  
                             entityIdentifierName=disclosureSystem.identifierValueName,
                             entityIdentifer=entityIdentifierValue,
                             entityIdentifer2=entityIdentifier,
-                            filerIdentifier=",".join(sorted(val.paramFilerIdentifierNames.keys()) if val.paramFilerIdentifierNames else []))
+                            filerIdentifier=",".join(sorted(val.params["cikNameList"].keys()) if "cikNameList" in val.params else []))
             val.modelXbrl.profileActivity("... filer identifier checks", minTimeToShow=1.0)
 
         #6.5.7 duplicated contexts
         contexts = modelXbrl.contexts.values()
         contextIDs = set()
+        contextsWithNonNilFacts = set()
         uniqueContextHashes = {}
         contextsWithDisallowedOCEs = []
         contextsWithDisallowedOCEcontent = []
         nonStandardTypedDimensions = defaultdict(set)
+        nonStandardReplacableDimensions = defaultdict(set)
         for context in contexts:
             contextID = context.id
             contextIDs.add(contextID)
@@ -170,7 +205,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             if h in uniqueContextHashes:
                 if context.isEqualTo(uniqueContextHashes[h]):
                     modelXbrl.error(("EFM.6.05.07", "GFM.1.02.07"),
-                        _("Context ID %(context)s is equivalent to context ID %(context2)s"),
+                        _("The instance document contained more than one context equivalent to %(context)s (%(context2)s).  "
+                          "Please remove duplicate contexts from the instance."),
+                        edgarCode="du-0507-Duplicate-Contexts",
                         modelObject=(context, uniqueContextHashes[h]), context=contextID, context2=uniqueContextHashes[h].id)
             else:
                 uniqueContextHashes[h] = context
@@ -201,7 +238,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     contextsWithDisallowedOCEs.append(context)
                 else:
                     modelXbrl.error(("EFM.6.05.04", "GFM.1.02.04"),
-                        _("%(elementName)s element not allowed in context Id: %(context)s"),
+                        _("There must be no contexts with %(elementName)s, but %(count)s was(were) found: %(context)s."),
+                        edgarCode="cp-0504-No-Scenario",
                         modelObject=context, elementName=notAllowed, context=contextID, count=1)
     
             #6.5.5 segment only explicit dimensions
@@ -213,35 +251,46 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 }[disclosureSystem.contextElement]:
                 for segScenElt in context.iterdescendants(contextName):
                     if isinstance(segScenElt,ModelObject):
-                        childTags = ", ".join([child.prefixedName for child in segScenElt.iterchildren()
-                                               if isinstance(child,ModelObject) and 
-                                               child.tag not in ("{http://xbrl.org/2006/xbrldi}explicitMember",
-                                                                 "{http://xbrl.org/2006/xbrldi}typedMember")])
+                        _childTagNames = [child.prefixedName for child in segScenElt.iterchildren()
+                                          if isinstance(child,ModelObject) and 
+                                             child.tag not in ("{http://xbrl.org/2006/xbrldi}explicitMember",
+                                                               "{http://xbrl.org/2006/xbrldi}typedMember")]
+                        childTags = ", ".join(_childTagNames)
                         if len(childTags) > 0:
                             if validateEFMpragmatic:
                                 contextsWithDisallowedOCEcontent.append(context)
                             else:
                                 modelXbrl.error(("EFM.6.05.05", "GFM.1.02.05"),
-                                                _("%(elementName)s of context Id %(context)s has disallowed content: %(content)s"),
-                                                modelObject=context, context=contextID, content=childTags, 
+                                                _("There must be no %(elementName)s with non-explicitDimension content, but %(count)s was(were) found: %(content)s."),
+                                                edgarCode="cp-0505-Segment-Child-Not-Explicit-Member",
+                                                modelObject=context, context=contextID, content=childTags, count=len(_childTagNames),
                                                 elementName=contextName.partition("}")[2].title())
             for dim in context.qnameDims.values():
-                if dim.isTyped and dim.dimensionQname.namespaceURI not in disclosureSystem.standardTaxonomiesDict:
-                    nonStandardTypedDimensions[dim.dimensionQname].add(context)
+                if dim.dimensionQname.namespaceURI not in disclosureSystem.standardTaxonomiesDict and isEFM:
+                    if dim.isTyped:
+                        nonStandardTypedDimensions[dim.dimensionQname].add(context)
+                    if customAxesReplacements.customNamePatterns.match(dim.dimensionQname.localName):
+                        nonStandardReplacableDimensions[dim.dimensionQname].add(context)
+                for _qname in (dim.dimensionQname, dim.memberQname):
+                    if _qname in deprecatedConceptDates: # none if typed and then won't be in deprecatedConceptDates
+                        deprecatedConceptContexts[contextID].append(_qname)
             #6.5.38 period forever
             if context.isForeverPeriod:
                 val.modelXbrl.error("EFM.6.05.38",
-                    _("Context %(contextID)s has a forever period."),
+                    _("Context %(contextID)s uses period <xbrli:forever>. Please remove it and resubmit."),
+                    edgarCode="du-0538-Context-Has-Period-Forever",
                     modelObject=context, contextID=contextID)
         if validateEFMpragmatic: # output combined count message
             if contextsWithDisallowedOCEs:
                 modelXbrl.error(("EFM.6.05.04", "GFM.1.02.04"),
-                    _("%(count)s contexts contain disallowed %(elementName)s: %(context)s"),
+                    _("There must be no contexts with %(elementName)s, but %(count)s was(were) found: %(context)s."),
+                    edgarCode="cp-0504-No-Scenario",
                     modelObject=contextsWithDisallowedOCEs, elementName=notAllowed, 
                     count=len(contextsWithDisallowedOCEs), context=', '.join(c.id for c in contextsWithDisallowedOCEs))
             if contextsWithDisallowedOCEcontent:
                 modelXbrl.error(("EFM.6.05.05", "GFM.1.02.05"),
-                    _("%(count)s contexts contain disallowed %(elementName)s content: %(context)s"),
+                    _("There must be no %(elementName)s with non-explicitDimension content, but %(count)s was(were) found: %(context)s."),
+                    edgarCode="cp-0505-Segment-Child-Not-Explicit-Member",
                     modelObject=contextsWithDisallowedOCEcontent, elementName=disclosureSystem.contextElement, 
                     count=len(contextsWithDisallowedOCEcontent), context=', '.join(c.id for c in contextsWithDisallowedOCEcontent))
         if nonStandardTypedDimensions:
@@ -250,7 +299,20 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 modelObject=set.union(*nonStandardTypedDimensions.values()), 
                 contextIDs=", ".join(sorted(cntx.id for cntx in set.union(*nonStandardTypedDimensions.values()))),
                 dimensions=", ".join(sorted(str(qn) for qn in nonStandardTypedDimensions.keys())))
-        del uniqueContextHashes, contextsWithDisallowedOCEs, contextsWithDisallowedOCEcontent, nonStandardTypedDimensions
+        for qn, contexts in sorted(nonStandardReplacableDimensions.items(), key=lambda i:str(i[0])):
+            try:
+                replacableAxisMatch = customAxesReplacements.customNamePatterns.match(qn.localName)
+                axis = [customAxesReplacements.standardAxes[k] for k,v in replacableAxisMatch.groupdict().items() if v is not None][0]
+                if replacableAxisMatch and any(v is not None for v in replacableAxisMatch.groupdict().values()):
+                    val.modelXbrl.warning("EFM.6.05.44.customAxis",
+                        _("Contexts %(contextIDs)s use dimension %(dimension)s in namespace %(namespace)s but %(axis)s in %(taxonomy)s is preferred."),
+                        edgarCode="dq-0544-Custom-Axis",
+                        modelObject=contexts, dimension=qn.localName, namespace=qn.namespaceURI,
+                        axis=axis.partition(":")[2], taxonomy=axis.partition(":")[0],
+                        contextIDs=", ".join(sorted(c.id for c in contexts)))
+            except (AttributeError, IndexError):
+                pass # something wrong with match table
+        del uniqueContextHashes, contextsWithDisallowedOCEs, contextsWithDisallowedOCEcontent, nonStandardTypedDimensions, nonStandardReplacableDimensions
         val.modelXbrl.profileActivity("... filer context checks", minTimeToShow=1.0)
 
 
@@ -264,6 +326,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         documentTypeFact = None
         deiItems = {}
         deiFacts = {}
+        def hasDeiFact(deiName):
+            return deiName in deiFacts and not deiFacts[deiName].isNil
+        
         commonSharesItemsByStockClass = defaultdict(list)
         commonSharesClassMembers = None
         # hasDefinedStockAxis = False
@@ -272,17 +337,23 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         # commonStockMeasurementDatetime = None
 
         deiCheckLocalNames = {
-            "EntityRegistrantName", 
+            disclosureSystem.deiCurrentFiscalYearEndDateElement, 
+            disclosureSystem.deiDocumentFiscalYearFocusElement, 
+            "CurrentFiscalYearEndDate",
+            "DocumentFiscalPeriodFocus",
             "EntityCommonStockSharesOutstanding",
             "EntityCurrentReportingStatus", 
-            "EntityVoluntaryFilers", 
-            disclosureSystem.deiCurrentFiscalYearEndDateElement, 
+            "EntityEmergingGrowthCompany",
+            "EntityExTransitionPeriod",
             "EntityFilerCategory", 
-            "EntityWellKnownSeasonedIssuer", 
+            "EntityInvCompanyType",
             "EntityPublicFloat", 
-            disclosureSystem.deiDocumentFiscalYearFocusElement, 
-            "DocumentFiscalPeriodFocus",
-            "EntityReportingCurrencyISOCode", # for SD 
+            "EntityRegistrantName", 
+            "EntityReportingCurrencyISOCode",
+            "EntityShellCompany",
+            "EntitySmallBusiness",
+            "EntityVoluntaryFilers", 
+            "EntityWellKnownSeasonedIssuer"
              }
         #6.5.8 unused contexts
         #candidateRequiredContexts = set()
@@ -322,6 +393,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         elif factElementName == "DocumentType":
                             documentType = value
                             documentTypeFact = f
+                            if not hasSubmissionType: # wch 18/aug/18
+                                modelXbrl.info("info",_("Setting submissionType %(documentType)s"),documentType=documentType)
+                                submissionType = documentType #wch 18/aug/18
                         elif factElementName == disclosureSystem.deiFilerIdentifierElement:
                             deiItems[factElementName] = value
                             deiFilerIdentifierFact = f
@@ -366,8 +440,23 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 
                     if isEntityCommonStockSharesOutstanding and not hasClassOfStockMember:
                         hasCommonSharesOutstandingDimensionedFactWithDefaultStockClass = True   # absent dimension, may be no def LB
-
-                if isEFM: # note that this is in the "if context is not None" region
+                     
+                # 6.5.43 signs - applies to all facts having a context.
+                if (isEFM and f.qname in nonNegFacts.concepts and f.isNumeric and not f.isNil and f.xValid >= VALID and f.xValue < 0 and (
+                    all(dim.dimensionQname not in nonNegFacts.excludedAxesMembers or
+                        ("*" not in nonNegFacts.excludedAxesMembers[dim.dimensionQname] and
+                         dim.memberQname not in nonNegFacts.excludedAxesMembers[dim.dimensionQname])
+                        for dim in context.qnameDims.values()))):
+                    modelXbrl.warning("EFM.6.05.43",
+                        _("Concept %(element)s in %(taxonomy)s has a negative value %(value)s in context %(context)s.  Correct the sign, use a more appropriate concept, or change the context."),
+                        edgarCode="dq-0543-Negative-Fact-Value",
+                        modelObject=f, element=f.qname.localName, taxonomy=abbreviatedNamespace(f.qname.namespaceURI),
+                        value=f.value, context=f.contextID)
+                    
+                if not f.isNil:
+                    contextsWithNonNilFacts.add(context)
+                    
+                if isEFM: # note that this is in the "if context is not None" region.  It does receive nil facts.
                     for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Fact"):
                         pluginXbrlMethod(val, f)
             #6.5.17 facts with precision
@@ -383,14 +472,39 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if concept.isNumeric:
                     if f.precision:
                         modelXbrl.error(("EFM.6.05.17", "GFM.1.02.16"),
-                            _("Numeric fact %(fact)s of context %(contextID)s has a precision attribute '%(precision)s'"),
+                            _("Your filing contained elements using the precision attribute.  Please recheck your submission and replace "
+                              "the precision attribute with the decimals attribute."),
+                            edgarCode="fs-0517-Decimals-Not-Precision",
                             modelObject=f, fact=f.qname, contextID=factContextID, precision=f.precision)
 
                 #6.5.25 domain items as facts
                 if isEFM and concept.type is not None and concept.type.isDomainItemType:
                     modelXbrl.error("EFM.6.05.25",
-                        _("Domain item %(fact)s in context %(contextID)s may not appear as a fact"),
+                        _("The domain item %(fact)s cannot appear as a fact.  Please remove the fact from context %(contextID)s."),
+                        edgarCode="du-0525-Domain-As-Fact",
                         modelObject=f, fact=f.qname, contextID=factContextID)
+                    
+                # fasb extensibleListItemType checks (2017-2018 only)
+                #if concept.instanceOfType(qnFasbExtensibleListItemTypes):
+                #    qnEnumsInvalid = []
+                #    for qnToken in value.split():
+                #        for qnValue in qnameEltPfxName(f, qnToken):
+                #            qnConcept = modelXbrl.qnameConcepts.get(qnValue)
+                #            if qnConcept is None:
+                #                qnEnumsInvalid.append(qnToken)
+                #            else:
+                #                conceptsUsed[qnConcept] = False
+                #    if qnEnumsInvalid:
+                #        modelXbrl.error("EFM.tbd",
+                #            _("The fact %(fact)s contains inappropriate enumeration items %(enumerationItems)s in context %(contextID)s.  Please remove the inappropriate enumeratiuon items."),
+                #            edgarCode="du-tbd",
+                #            modelObject=f, fact=f.qname, contextID=factContextID, enumerationItems=", ".join(qnEnumsInvalid))
+                
+                if concept.qname in deprecatedConceptDates:
+                    deprecatedConceptFacts[concept.qname].append(f) 
+            if factContextID in deprecatedConceptContexts: # deprecated dimension and member qnames
+                for _qname in deprecatedConceptContexts[factContextID]:
+                    deprecatedConceptFacts[_qname].append(f) 
                 
             if validateInlineXbrlGFM:
                 if f.localName == "nonFraction" or f.localName == "fraction":
@@ -409,27 +523,35 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 value = deiItems[disclosureSystem.deiFilerIdentifierElement]
                 if entityIdentifierValue != value:
                     val.modelXbrl.error(("EFM.6.05.23", "GFM.3.02.02"),
-                        _("dei:%(elementName)s %(value)s must match the context entity identifier %(entityIdentifier)s"),
+                        _("The EntityCentralIndexKey, %(value)s, does not match the context identifier CIK %(entityIdentifier)s.  "
+                          "Please include a correct matching EntityCentralIndexKey and context identifier CIK(s) in the filing."),
+                        edgarCode="cp-0523-Non-Matching-Cik",
                         modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
                         value=value, entityIdentifier=entityIdentifierValue)
-                if val.paramFilerIdentifierNames:
-                    if value not in val.paramFilerIdentifierNames:
+                if "cikNameList" in val.params:
+                    if value not in val.params["cikNameList"]:
                         val.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
-                            _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
+                            _("The submission CIK, %(filerIdentifier)s does not match the EntityCentralIndexKey.  "
+                              "Please include a correct matching EntityCentralIndexKey in the filing."),
+                            edgarCode="cp-0523-Non-Matching-Cik",
                             modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
-                            value=value, filerIdentifier=",".join(sorted(val.paramFilerIdentifierNames.keys())))
-                elif val.paramFilerIdentifier and value != val.paramFilerIdentifier:
+                            value=value, filerIdentifier=",".join(sorted(val.params["cikNameList"].keys())))
+                elif val.params.get("cik") and value != val.params["cik"]:
                     val.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
-                        _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
+                        _("The submission CIK, %(filerIdentifier)s does not match the %(elementName)s.  "
+                          "Please include a correct matching %(elementName)s in the filing."),
+                        edgarCode="cp-0523-Non-Matching-Cik",
                         modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
-                        value=value, filerIdentifier=val.paramFilerIdentifier)
+                        value=value, filerIdentifier=val.params["cik"])
             if disclosureSystem.deiFilerNameElement in deiItems:
                 value = deiItems[disclosureSystem.deiFilerNameElement]
-                if val.paramFilerIdentifierNames and entityIdentifierValue in val.paramFilerIdentifierNames:
-                    prefix = val.paramFilerIdentifierNames[entityIdentifierValue]
+                if "cikNameList" in val.params and entityIdentifierValue in val.params["cikNameList"]:
+                    prefix = val.params["cikNameList"][entityIdentifierValue]
                     if prefix is not None and not value.lower().startswith(prefix.lower()):
                         val.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),
-                            _("dei:%(elementName)s %(prefix)s should be a case-insensitive prefix of: %(value)s"),
+                            _("The Official Registrant name, %(prefix)s, does not match the value %(value)s in the Required Context.  "
+                              "Please correct dei:%(elementName)s."),
+                            edgarCode="cp-0524-Registrant-Name-Mismatch",
                             modelObject=f, elementName=disclosureSystem.deiFilerNameElement,
                             prefix=prefix, value=value)
                         
@@ -440,7 +562,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 contextIDs.discard(undefinedFact.get("contextRef"))
             if len(contextIDs) > 0:
                 modelXbrl.error(("EFM.6.05.08", "GFM.1.02.08"),
-                                _("The instance document contained a context(s) %(contextIDs)s that was(are) not used in any fact."),
+                                _("The instance document contained a context %(contextIDs)s that was not used in any fact. Please remove the context from the instance."),
+                                edgarCode="du-0508-Unused-Context",
                                 modelXbrl=modelXbrl, contextIDs=", ".join(str(c) for c in contextIDs))
 
         #6.5.9, .10 start-end durations
@@ -508,7 +631,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             for end, probCntxs in probStartEndCntxsByEnd.items():
                 endCntxs = startEndCntxsByEnd[end]
                 modelXbrl.error(("EFM.6.05.09", "GFM.1.2.9"),
-                    _("Context endDate %(endDate)s, and startDate(s) have a duration of one day, for end context(s): %(endContexts)s and start context(s): %(startContexts)s; that is inconsistent with document type %(documentType)s."),
+                    _("Context %(endContexts)s endDate and %(startContexts)s startDate have a duration of one day; that is inconsistent "
+                      "with document type %(documentType)s."),
+                    edgarCode="fs-0509-Start-And-End-Dates-Not-Distinct-Inconsistent-With-Document-Type",
                     modelObject=probCntxs, endDate=XmlUtil.dateunionValue(end, subtractOneDay=True), 
                     endContexts=', '.join(sorted(c.id for c in endCntxs)),
                     startContexts=', '.join(sorted(c.id for c in probCntxs)), 
@@ -516,7 +641,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             if disclosureSystemVersion[0] < 27:
                 for end, probCntxs in probInstantCntxsByEnd.items():
                     modelXbrl.error("EFM.6.05.10",
-                        _("Context instant date %(endDate)s startDate has a duration of one day,with end (instant) of context(s): %(contexts)s; that is inconsistent with document type %(documentType)s."),
+                        _("Contexts %(contexts)s have an overlap of one day; that is inconsistent with document type %(documentType)s."),
+                        edgarCode="fs-0510-Start-And-Instant-Dates-Not-Distinct-Inconsistent-With-Document-Type",
                         modelObject=probCntxs, endDate=XmlUtil.dateunionValue(end, subtractOneDay=True), 
                         contexts=', '.join(sorted(c.id for c in probCntxs)), 
                         documentType=documentType)
@@ -539,6 +665,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         if val.requiredContext is None:
             modelXbrl.error(("EFM.6.05.19", "GFM.1.02.18"),
                 _("Required context (no segment) not found for document type %(documentType)s."),
+                edgarCode="cp-0519-Required-Context",
                 modelObject=documentTypeFact, documentType=documentType)
             
         #6.5.11 equivalent units
@@ -548,7 +675,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             if h in uniqueUnitHashes:
                 if unit.isEqualTo(uniqueUnitHashes[h]):
                     modelXbrl.error(("EFM.6.05.11", "GFM.1.02.10"),
-                        _("Units %(unitID)s and %(unitID2)s are equivalent."),
+                        _("There is more than one unit equivalent to %(unitID)s (%(unitID2)s).  Please remove all but one and resubmit."),
+                        edgarCode="du-0511-Duplicate-Units",
                         modelObject=(unit, uniqueUnitHashes[h]), unitID=unit.id, unitID2=uniqueUnitHashes[h].id)
             else:
                 uniqueUnitHashes[h] = unit
@@ -558,9 +686,23 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         l = len(measureElt.xValue.localName.encode("utf-8"))
                         if l > 200:
                             modelXbrl.error("EFM.6.05.36",
-                                _("Unit has a measure  with localName length (%(length)s) over 200 bytes long in utf-8, %(measure)s."),
+                                _("Unit %(unitID)s contains a measure element whose local-name in UTF-8, length %(length)s, has more than 200 bytes:  %(measure)s.  Shorten the measure name."),
+                                edgarCode="du-0536-name-length-limit",
                                 modelObject=measureElt, unitID=unit.id, measure=measureElt.xValue.localName, length=l)
         del uniqueUnitHashes
+        
+        # 6.5.42 deprecated concepts
+        if deprecatedConceptFacts:
+            for conceptQn, facts in sorted(deprecatedConceptFacts.items(), key=lambda i:[0]):
+                date = deprecatedConceptDates[conceptQn]
+                version1 = abbreviatedNamespace(conceptQn.namespaceURI)
+                modelXbrl.warning("EFM.6.05.42",
+                    _("Concept %(element)s in %(version1)s used in %(count)s facts was deprecated in %(version2)s as of %(date)s and should not be used."),
+                    edgarCode="dq-0542-Deprecated-Concept",
+                    modelObject=facts, element=conceptQn.localName, count=len(facts), date=date,
+                    version1=version1, version2=version1[:-4]+date[0:4])
+            
+        del deprecatedConceptContexts, deprecatedConceptFacts, deprecatedConceptDates, nonNegFacts
         val.modelXbrl.profileActivity("... filer unit checks", minTimeToShow=1.0)
 
 
@@ -591,12 +733,16 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             insignificance = insignificantDigits(f1.xValue, decimals=f1.decimals)
                             if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
                                 modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
-                                    _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
+                                    _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has insignificant digits %(insignificantDigits)s.  "
+                                      "Please correct the fact value and resubmit."),
+                                    edgarCode="du-0537-Nonzero-Digits-Truncated",
                                     modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, 
                                     value=f1.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
                         except (ValueError,TypeError):
                             modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
-                                _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
+                                _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes a Value Error exception.  "
+                                  "Please correct the fact value and resubmit."),
+                                edgarCode="du-0537-Nonzero-Digits-Truncated",
                                 modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
                 # 6.5.12 test
                 factForConceptContextUnitLangHash[f1.conceptContextUnitLangHash].append(f1)
@@ -607,11 +753,27 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 for f in hashEquivalentFacts:
                     aspectEqualFacts[(f.qname,f.contextID,f.unitID,f.xmlLang)].append(f)
                 for fList in aspectEqualFacts.values():
-                    fList.sort(key=lambda f: inferredDecimals(f), reverse=True)
                     f0 = fList[0]
-                    if any(not f.isVEqualTo(f0) for f in fList[1:]):
+                    if f0.concept.isNumeric:
+                        if any(f.isNil for f in fList):
+                            _inConsistent = not all(f.isNil for f in fList)
+                        elif all(inferredDecimals(f) == inferredDecimals(f0) for f in fList[1:]): # same decimals
+                            v0 = rangeValue(f0.value)
+                            _inConsistent = not all(rangeValue(f.value) == v0 for f in fList[1:])
+                        else: # not all have same decimals
+                            aMax, bMin = rangeValue(f0.value, inferredDecimals(f0))
+                            for f in fList[1:]:
+                                a, b = rangeValue(f.value, inferredDecimals(f))
+                                if a > aMax: aMax = a
+                                if b < bMin: bMin = b
+                            _inConsistent = (bMin < aMax)
+                    else:
+                        _inConsistent = any(not f.isVEqualTo(f0) for f in fList[1:])
+                    if _inConsistent:
                         modelXbrl.error(("EFM.6.05.12", "GFM.1.02.11"),
-                            "Fact values of %(fact)s in context %(contextID)s are not V-equal: %(values)s.",
+                            "The instance document contained an element, %(fact)s that was used more than once in contexts equivalent to %(contextID)s: values %(values)s.  "
+                            "Please ensure there are no duplicate combinations of concept and context in the instance.",
+                            edgarCode="du-0512-Duplicate-Facts",
                             modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(strTruncate(f.value, 128) for f in fList))
                 aspectEqualFacts.clear()
         del factForConceptContextUnitLangHash, aspectEqualFacts
@@ -626,7 +788,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     break
             if not anyDefaultLangFact:
                 val.modelXbrl.error(("EFM.6.05.14", "GFM.1.02.13"),
-                    _("Fact %(fact)s of context %(contextID)s has text of xml:lang '%(lang)s' without corresponding %(lang2)s text"),
+                    _("Element %(fact)s in context %(contextID)s has text with xml:lang other than '%(lang2)s' (%(lang)s) without matching English text.  "
+                      "Please provide a fact with xml:lang equal to '%(lang2)s'."),
+                    edgarCode="du-0514-English-Text-Missing",
                     modelObject=factNotDefaultLang, fact=factNotDefaultLang.qname, contextID=factNotDefaultLang.contextID, 
                     lang=factNotDefaultLang.xmlLang, lang2=requiredFactLang) # factLangStartsWith)
                 
@@ -642,17 +806,269 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
         #6.5.15 facts with xml in text blocks
         ValidateFilingText.validateTextBlockFacts(modelXbrl)
+        
+        isDei2018orLater = any(doc.targetNamespace.startswith("http://xbrl.sec.gov/dei") and doc.targetNamespace >= "http://xbrl.sec.gov/dei/2018"
+                               for doc in modelXbrl.urlDocs.values() if doc.targetNamespace)
     
         if amendmentFlag is None:
             modelXbrl.log("WARNING" if validateEFMpragmatic else "ERROR",
                           ("EFM.6.05.20.missingAmendmentFlag", "GFM.3.02.01"),
-                _("%(elementName)s is not found in the required context"),
-                modelXbrl=modelXbrl, elementName=disclosureSystem.deiAmendmentFlagElement)
-
+                _("You did not include the following data: %(elementName)s.  Please include %(elementName)s."),
+                edgarCode="cp-0521-Amendment-Flag-Existence",
+                modelObject=modelXbrl, elementName=disclosureSystem.deiAmendmentFlagElement)
+        # periodOfReport = DocumentPeriodEndDate
         if not documentPeriodEndDate:
             modelXbrl.error(("EFM.6.05.20.missingDocumentPeriodEndDate", "GFM.3.02.01"),
-                _("%(elementName)s was not found in the required context"),
-                modelXbrl=modelXbrl, elementName=disclosureSystem.deiDocumentPeriodEndDateElement)
+                _("You did not include the following data: %(elementName)s.  Please include %(elementName)s."),
+                edgarCode="cp-0520-Document-Period-End-Date-Existence",
+                modelObject=modelXbrl, elementName=disclosureSystem.deiDocumentPeriodEndDateElement)
+        elif "periodOfReport" in val.params and submissionType not in submissionTypesAllowingPeriodOfReport:
+            modelXbrl.warning("EFM.6.05.40.submissionUnexpectedPeriodOfReport",
+                _("Submission has unexpected periodOfReport element in submission type %(submissionType)s."),
+                edgarCode="dq-0540-Submission-Unexpected-Period",
+                modelObject=modelXbrl, submissionType=submissionType)
+        elif "periodOfReport" in val.params and not deiParamEqual(
+            "DocumentPeriodEndDate", documentPeriodEndDate, val.params["periodOfReport"]):
+            modelXbrl.warning("EFM.6.05.40.documentPeriodEndDateValue",
+                _("dei:DocumentPeriodEndDate value %(deiValue)s does not agree with periodOfReport value %(submissionValue)s."),
+                edgarCode="dq-0540-Document-Period-End-Date-Value",
+                modelObject=documentPeriodEndDateFact, submissionValue=val.params["periodOfReport"], deiValue=documentPeriodEndDate)
+        # entity.fy_end = CurrentFiscalYearEndDate
+        if (hasDeiFact("CurrentFiscalYearEndDate") and "entity.fyEnd" in val.params and not deiParamEqual(
+            "CurrentFiscalYearEndDate", deiItems["CurrentFiscalYearEndDate"], val.params["entity.fyEnd"])):
+            modelXbrl.warning("EFM.6.05.40.currentFiscalYearEndDateValue",
+                _("The official fiscal year end date %(submissionValue)s for CIK %(cik)s, is not the same month and day as the value %(deiValue)s in the Required Context.  Please correct dei:CurrentFiscalYearEndDate."),
+                edgarCode="dq-0540-Current-Fiscal-Year-End-Date-Value",
+                modelObject=deiFacts["CurrentFiscalYearEndDate"], submissionValue=val.params["entity.fyEnd"], 
+                deiValue=deiItems["CurrentFiscalYearEndDate"], 
+                cik=deiItems[disclosureSystem.deiFilerIdentifierElement])
+        # voluntaryFilerFlag = EntityVoluntaryFilers
+        if hasDeiFact("EntityVoluntaryFilers") and "voluntaryFilerFlag" in val.params and not deiParamEqual(
+            "EntityVoluntaryFilers", deiItems["EntityVoluntaryFilers"], val.params["voluntaryFilerFlag"]):
+            modelXbrl.warning("EFM.6.05.40.entityVoluntaryFilersValue",
+                _("dei:EntityVoluntaryFilers value %(deiValue)s does not agree with submission voluntary filer flag value %(submissionValue)s."),
+                edgarCode="dq-0540-Entity-Voluntary-Filers-Value",
+                modelObject=deiFacts["EntityVoluntaryFilers"], submissionValue=val.params["voluntaryFilerFlag"], deiValue=deiItems["EntityVoluntaryFilers"])
+        if submissionType not in submissionTypesAllowingVoluntaryFilerFlag and "voluntaryFilerFlag" in val.params:
+            modelXbrl.warning("EFM.6.05.40.submissionUnexpectedVoluntaryFilerFlag",
+                _("Submission has unexpected \"voluntaryFilerFlag\" element in submission type %(submissionType)s."),
+                edgarCode="dq-0540-Submission-Unexpected-Voluntary-Filer-Flag",
+                modelObject=modelXbrl, submissionType=submissionType)
+        if submissionType not in submissionTypesAllowingVoluntaryFilerFlag and hasDeiFact("EntityVoluntaryFilers"):
+            modelXbrl.warning("EFM.6.05.40.entityVoluntaryFilersUnexpected",
+                _("Submission type %(submissionType)s should not have dei:EntityVoluntaryFilers."),
+                edgarCode="dq-0540-Entity-Voluntary-Filers-Unexpected",
+                modelObject=deiFacts["EntityVoluntaryFilers"], submissionType=submissionType)
+        # wellKnownSeasonedIssuerFlag = EntityWellKnownSeasonedIsseur
+        if hasDeiFact("EntityWellKnownSeasonedIssuer") and "wellKnownSeasonedIssuerFlag" in val.params and not deiParamEqual(
+            "EntityWellKnownSeasonedIssuer", deiItems["EntityWellKnownSeasonedIssuer"], val.params["wellKnownSeasonedIssuerFlag"]):
+            modelXbrl.warning("EFM.6.05.40.entityWellKnownSeasonedIssuerValue",
+                _("dei:EntityWellKnownSeasonedIssuer value %(deiValue)s in the Required Context does not agree with submission voluntary filer flag value %(submissionValue)s."),
+                edgarCode="dq-0540-Entity-Well-Known-Seasoned-Issuer-Value",
+                modelObject=deiFacts["EntityWellKnownSeasonedIssuer"], submissionValue=val.params["wellKnownSeasonedIssuerFlag"], deiValue=deiItems["EntityWellKnownSeasonedIssuer"])
+        if submissionType not in docTypesRequiringEntityWellKnownSeasonedIssuer and "wellKnownSeasonedIssuerFlag" in val.params:
+            modelXbrl.warning("EFM.6.05.40.submissionUnexpectedWellKnownSeasonedIssuerFlag",
+                _("Submission has unexpected \"wellKnownSeasonedIssuerFlag\" element in submission type %(submissionType)s."),
+                edgarCode="dq-0540-Submission-Unexpected-Well-Known-Seasoned-Issuer-Flag",
+                modelObject=modelXbrl, submissionType=submissionType)
+        if submissionType not in submissionTypesAllowingWellKnownSeasonedIssuer and hasDeiFact("EntityWellKnownSeasonedIssuer"):
+            modelXbrl.warning("EFM.6.05.40.entityWellKnownSeasonedIssuerUnexpected",
+                _("Submission type %(submissionType)s should not have dei:EntityWellKnownSeasonedIssuer in the Required Context."),
+                edgarCode="dq-0540-Entity-Well-Known-Seasoned-Issuer-Unexpected",
+                modelObject=deiFacts["EntityWellKnownSeasonedIssuer"], submissionType=submissionType)
+        # shellCompanyFlag = (2018)EntityShellCompany
+        if "shellCompanyFlag" in val.params and hasDeiFact("EntityShellCompany") and not deiParamEqual(
+            "EntityShellCompany", deiItems["EntityShellCompany"], val.params["shellCompanyFlag"]):
+            modelXbrl.warning("EFM.6.05.40.entityShellCompanyValue",
+                _("dei:EntityShellCompany value %(deiValue)s does not agree with submission shell company flag value %(submissionValue)s."),
+                edgarCode="dq-0540-Entity-Shell-Company-Value",
+                modelXbrl=deiFacts["EntityShellCompany"], submissionValue=val.params["shellCompanyFlag"], deiValue=deiItems["EntityShellCompany"])
+        if submissionType in submissionTypesAllowingShellCompanyFlag: 
+            if isDei2018orLater and "shellCompanyFlag" in val.params and not hasDeiFact("EntityShellCompany"):
+                modelXbrl.warning("EFM.6.05.40.entityShellCompanyMissing",
+                    _("Submission type %(submissionType)s should have a value for dei:EntityShellCompany in the Required Context."),
+                    edgarCode="dq-0540-Entity-Shell-Company-Missing",
+                    modelObject=modelXbrl, submissionType=submissionType)
+        elif "shellCompanyFlag" in val.params:
+            modelXbrl.warning("EFM.6.05.40.submissionUnexpectedShellCompanyFlag",
+                _("Submission has unexpected \"shellCompanyFlag\" element in submission type %(submissionType)s."),
+                edgarCode="dq-0540-Submission-Unexpected-Shell-Company-Flag",
+                modelObject=modelXbrl, submissionType=submissionType)
+        if submissionType not in submissionTypesAllowingShellCompanyFlag and hasDeiFact("EntityShellCompany"):
+            modelXbrl.warning("EFM.6.05.40.entityShellCompanyUnexpected",
+                _("Submission type %(submissionType)s should not have dei:EntityShellCompany in the Required Context."),
+                edgarCode="dq-0540-Entity-Shell-Company-Unexpected",
+                modelObject=deiFacts["EntityShellCompany"], submissionType=submissionType)
+        # invCompanyType = (2018)EntityInvCompanyType
+        if "invCompanyType" in val.params and hasDeiFact("EntityInvCompanyType") and not deiParamEqual(
+            "EntityInvCompanyType", deiItems["EntityInvCompanyType"], val.params["invCompanyType"]):
+            modelXbrl.warning("EFM.6.05.40.entityInvCompanyTypeValue",
+                _("dei:EntityInvCompanyType value %(deiValue)s in the Required Context is incompatible with the submission Investment Company Type value %(submissionValue)s."),
+                edgarCode="dq-0540-Entity-Inv-Company-Type-Value",
+                modelObject=deiFacts["EntityInvCompanyType"], submissionValue=val.params["invCompanyType"], deiValue=deiItems["EntityInvCompanyType"])
+        if isDei2018orLater and submissionType in submissionTypesAllowingEntityInvCompanyType and not hasDeiFact("EntityInvCompanyType"):
+            modelXbrl.warning("EFM.6.05.40.entityInvCompanyTypeMissing",
+                _("Submission type %(submissionType)s requires a value for dei:EntityInvCompanyType in the Required Context."),
+                edgarCode="dq-0540-Entity-Inv-Company-Type-Missing",
+                modelObject=modelXbrl, submissionType=submissionType)
+        if submissionType not in submissionTypesAllowingEntityInvCompanyType and hasDeiFact("EntityInvCompanyType"):
+            modelXbrl.warning("EFM.6.05.40.entityInvCompanyTypeUnexpected",
+                _("Submission type %(submissionType)s should not have dei:EntityInvCompanyType in the Required Context."),
+                edgarCode="dq-0540-Entity-Inv-Company-Type-Unexpected",
+                modelObject=deiFacts["EntityInvCompanyType"], submissionType=submissionType )
+        if "invCompanyType" in val.params and submissionType not in submissionTypesAllowingEntityInvCompanyType:
+            modelXbrl.warning("EFM.6.05.40.submissionUnexpectedInvCompanyType",
+                _("Submission has unexpected \"invCompanyType\" element in submission type %(submissionType)s."),
+                edgarCode="dq-0540-Submission-Unexpected-Inv-Company-Type",
+                modelObject=modelXbrl, submissionType=submissionType)
+        # acceleratedFilerStatus - 6.5.21 requires entityFilerCategory on some submission types not having acceleratedFilerStatus in the header
+        if "acceleratedFilerStatus" in val.params and submissionType in submissionTypesAllowingAcceleratedFilerStatus and hasDeiFact("EntityFilerCategory") and not deiParamEqual(
+            "EntityFilerCategory", deiItems["EntityFilerCategory"], val.params["acceleratedFilerStatus"]):
+            modelXbrl.warning("EFM.6.05.40.entityFilerCategoryValue",
+                _("dei:EntityFilerCategory value %(deiValue)s in the Required Context is inconsistent with the submission Accelerated Filer Status value %(submissionValue)s."),
+                edgarCode="dq-0540-Entity-Filer-Category-Value",
+                modelObject=deiFacts["EntityFilerCategory"], submissionValue=val.params["acceleratedFilerStatus"], deiValue=deiItems["EntityFilerCategory"])
+        if "acceleratedFilerStatus" in val.params and submissionType not in submissionTypesAllowingAcceleratedFilerStatus:
+            modelXbrl.warning("EFM.6.05.40.submissionUnexpectedAcceleratedFilerStatus",
+                _("Submission has unexpected \"acceleratedFilerStatus\" element in submission type %(submissionType)s."),
+                edgarCode="dq-0540-Submission-Unexpected-Accelerated-Filer-Status",
+                modelObject=modelXbrl, submissionType=submissionType)
+        if submissionType not in submissionTypesAllowingAcceleratedFilerStatus and not (submissionType in docTypesRequiringEntityFilerCategory or documentType in docTypesRequiringEntityFilerCategory):
+            if hasDeiFact("EntityFilerCategory") and submissionType:
+                modelXbrl.warning("EFM.6.05.40.entityFilerCategoryUnexpected",
+                    _("Submission type %(submissionType)s should not have dei:EntityFilerCategory in the Required Context."),
+                    edgarCode="dq-0540-Entity-Filer-Category-Unexpected",
+                    modelObject=deiFacts["EntityFilerCategory"], submissionType=submissionType)
+        # smallBusinessFlag = (2018)EntitySmallBusiness
+        if not isDei2018orLater:
+            if "smallBusinessFlag" in val.params and hasDeiFact("EntityFilerCategory") and not deiParamEqual(
+                "2014EntityFilerCategory", deiItems["EntityFilerCategory"], val.params["smallBusinessFlag"]):
+                modelXbrl.warning("EFM.6.05.40.entitySmallBusinessFilerCategoryConsistency",
+                    _("dei:EntityFilerCategory value %(deiValue)s in the Required Context is inconsistent with the %(submissionValue)s of smallBusinessFlag in the Submission."),
+                    edgarCode="dq-0540-Entity-Small-Business-Filer-Category-Consistency",
+                    modelObject=deiFacts["EntityFilerCategory"], submissionValue=val.params["smallBusinessFlag"], deiValue=deiItems["EntityFilerCategory"])
+        elif hasDeiFact("EntityFilerCategory"):
+            if deiItems["EntityFilerCategory"] == "Smaller Reporting Company":
+                modelXbrl.warning("EFM.6.05.40.entityFilerCategorySmall",
+                    _("dei:EntityFilerCategory in the Required Context is 'Smaller Reporting Company', use 'Non-Accelerated Filer' instead and set dei:EntitySmallBusinessFlag equal to true."),
+                    edgarCode="dq-0540-Entity-Filer-Category-Small",
+                    modelObject=deiFacts["EntityFilerCategory"])
+            elif deiItems["EntityFilerCategory"] == "Smaller Reporting Accelerated Filer":
+                modelXbrl.warning("EFM.6.05.40.entityFilerCategorySmallAccelerated",
+                    _("dei:EntityFilerCategory in the Required Context is 'Smaller Reporting Accelerated Filer', use 'Accelerated Filer' instead and set dei:EntitySmallBusinessFlag equal to true."),
+                    edgarCode="dq-0540-Entity-Filer-Category-Small-Accelerated",
+                    modelObject=deiFacts["EntityFilerCategory"])
+        if hasSubmissionType and submissionType not in submissionTypesAllowingEdgarSmallBusinessFlag:
+            if "smallBusinessFlag" in val.params:
+                modelXbrl.warning("EFM.6.05.40.submissionUnexpectedSmallBusinessFlag",
+                    _("Submission has unexpected \"smallBusinessFlag\" element in submission type %(submissionType)s"),
+                    edgarCode="dq-0540-Submission-Unexpected-Small-Business-Flag",
+                    modelObject=modelXbrl, submissionType=submissionType)
+            if hasDeiFact("EntitySmallBusiness") and submissionType not in submissionTypesAllowingEdgarSmallBusinessFlag : 
+                modelXbrl.warning("EFM.6.05.40.entitySmallBusinessUnexpected",
+                    _("Submission type %(submissionType)s should not have dei:EntitySmallBusiness."),
+                    edgarCode="dq-0540-Entity-Small-Business-Unexpected",
+                    modelObject=deiFacts["EntitySmallBusiness"], submissionType=submissionType)
+        else:
+            if "smallBusinessFlag" in val.params and hasDeiFact("EntitySmallBusiness") and not deiParamEqual(
+                "EntitySmallBusiness", deiItems["EntitySmallBusiness"], val.params["smallBusinessFlag"]):
+                modelXbrl.warning("EFM.6.05.40.entitySmallBusinessValue",
+                    _("dei:EntitySmallBusiness value %(deiValue)s does not agree with the submission Small business flag value %(submissionValue)s."),
+                    edgarCode="dq-0540-Entity-Small-Business-Value",
+                    modelObject=deiFacts["EntitySmallBusiness"], submissionValue=val.params["smallBusinessFlag"], deiValue=deiItems["EntitySmallBusiness"])
+            if isDei2018orLater and submissionType in submissionTypesAllowingEdgarSmallBusinessFlag and not hasDeiFact("EntitySmallBusiness"):
+                modelXbrl.warning("EFM.6.05.40.entitySmallBusinessMissing",
+                    _("Submission type %(submissionType)should have a value for dei:EntitySmallBusiness in the Required Context."),
+                    edgarCode="dq-0540-Entity-Small-Business-Missing",
+                    modelObject=modelXbrl, submissionType=submissionType)
+        # emergingGrowthCompanyFlag = (2018) EntityEmergingGrowthCompany
+        if hasSubmissionType and submissionType not in submissionTypesAllowingEmergingGrowthCompanyFlag:
+            if "emergingGrowthCompanyFlag" in val.params:
+                modelXbrl.warning("EFM.6.05.40.submissionUnexpectedEmergingGrowthCompanyFlag",
+                    _("Submission has unexpected \"emergingGrowthCompanyFlag\" element in submission type %(submissionType)s"),
+                    edgarCode="dq-0540-Submission-Unexpected-Emerging-Growth-Company-Flag",
+                    modelObject=modelXbrl, submissionType=submissionType)
+            if hasDeiFact("EntityEmergingGrowthCompany"):
+                modelXbrl.warning("EFM.6.05.40.entityEmergingGrowthCompanyUnexpected",
+                    _("Submission type %(submissionType)s should not have dei:EntityEmergingGrowthCompany."),
+                    edgarCode="dq-0540-Entity-Emerging-Growth-Company-Unexpected",
+                    modelObject=deiFacts["EntityEmergingGrowthCompany"], submissionType=submissionType)
+        else:
+            if "emergingGrowthCompanyFlag" in val.params and hasDeiFact("EntityEmergingGrowthCompany") and not deiParamEqual(
+                "EntityEmergingGrowthCompany", deiItems["EntityEmergingGrowthCompany"], val.params["emergingGrowthCompanyFlag"]):
+                modelXbrl.warning("EFM.6.05.40.entityEmergingGrowthCompanyValue",
+                    _("dei:EntityEmergingGrowthCompany value  %(deiValue)s does not agree with the submission Emerging Growth company flag value %(submissionValue)s."),
+                    edgarCode="dq-0540-Entity-Emerging-Growth-Company-Value",
+                    modelObject=deiFacts["EntityEmergingGrowthCompany"], submissionValue=val.params["emergingGrowthCompanyFlag"], deiValue=deiItems["EntityEmergingGrowthCompany"])
+            if isDei2018orLater and submissionType in submissionTypesAllowingEmergingGrowthCompanyFlag and not hasDeiFact("EntityEmergingGrowthCompany"):
+                modelXbrl.warning("EFM.6.05.40.entityEmergingGrowthCompanyMissing",
+                    _("Submission type %(submissionType)s should have a value for dei:EntityEmergingGrowthCompany in the Required Context."),
+                    edgarCode="dq-0540-Entity-Emerging-Growth-Company-Missing",
+                    modelObject=modelXbrl, submissionType=submissionType)
+        # exTransitionPeriodFlag = (2018) EntityExTransitionPeriod
+        if submissionType not in submissionTypesAllowingExTransitionPeriodFlag:
+            if "exTransitionPeriodFlag" in val.params:
+                modelXbrl.warning("EFM.6.05.40.submissionUnexpectedExTransitionPeriodFlag",
+                                  _("Submission has unexpected \"exTransitionPeriodFlag\" element in submission type %(submissionType)s"),
+                                  edgarCode="dq-0540-Submission-Unexpected-Ex-Transition-Period-Flag",
+                                  modelObject=modelXbrl, submissionType=submissionType)
+            if hasDeiFact("EntityExTransitionPeriod"):
+                modelXbrl.warning("EFM.6.05.40.entityExTransitionPeriodUnexpected",
+                    _("Submission type %(submissionType)s should not have dei:EntityExTransitionPeriod."),
+                    edgarCode="dq-0540-Entity-Ex-Transition-Period-Unexpected",
+                    modelObject=deiFacts["EntityExTransitionPeriod"], submissionType=submissionType)
+        else:
+            if "exTransitionPeriodFlag" in val.params and hasDeiFact("EntityExTransitionPeriod") and not deiParamEqual(
+                "EntityExTransitionPeriod", deiItems["EntityExTransitionPeriod"], val.params["exTransitionPeriodFlag"]):
+                modelXbrl.warning("EFM.6.05.40.entityExTransitionPeriodValue",
+                    _("dei:EntityExTransitionPeriod value %(deiValue)s in the Required Context is incompatible with the submission exTransitionPeriodFlag value %(submissionValue)s."),
+                    edgarCode="dq-0540-Entity-Ex-Transition-Period-Value",
+                    modelObject=deiFacts["EntityExTransitionPeriod"], submissionValue=val.params["exTransitionPeriodFlag"], deiValue=deiItems["EntityExTransitionPeriod"])
+            if isDei2018orLater and hasDeiFact("EntityEmergingGrowthCompany") and deiItems["EntityEmergingGrowthCompany"] in (True,"true","1") and not hasDeiFact("EntityExTransitionPeriod"):
+                modelXbrl.warning("EFM.6.05.40.entityExTransitionPeriodMissing",
+                    _("Submission type %(submissionType)s should have a value for dei:EntityExTransitionPeriod in the Required Context."),
+                    edgarCode="dq-0540-Entity-Ex-Transition-Period-Missing",
+                    modelObject=modelXbrl, submissionType=submissionType)
+        # seriesId 6.5.41
+        if submissionType in submissionTypesAllowingSeriesClasses:
+            legalEntityAxis = modelXbrl.nameConcepts.get("LegalEntityAxis",())
+            legalEntityAxisQname = legalEntityAxis[0].qname
+            if len(legalEntityAxis) > 0 and legalEntityAxisQname.namespaceURI.startswith("http://xbrl.sec.gov/dei"):
+                legalEntityAxisRelationshipSet = modelXbrl.modelXbrl.relationshipSet("XBRL-dimensions")
+                if val.params.get("rptIncludeAllSeriesFlag"):
+                    seriesIds = val.params.get("newClass2.seriesIds", ())
+                else:
+                    seriesIds = val.params.get("rptSeriesClassInfo.seriesIds", ())
+                for seriesId in seriesIds:
+                    seriesIdMemberName = seriesId + "Member"
+                    seriesIdMember = None
+                    for c in modelXbrl.nameConcepts.get(seriesIdMemberName, ()):
+                        if c.type.isDomainItemType:
+                            seriesIdMember = c
+                            break
+                    if seriesIdMember is None:
+                        xsds = [doc for url, doc in modelXbrl.urlDocs.items()  # all filer schemas
+                                if doc.type == ModelDocument.Type.SCHEMA and 
+                                url not in disclosureSystem.standardTaxonomiesDict]
+                        modelXbrl.warning("EFM.6.05.41.seriesIdMemberNotDeclared",
+                            _("Submission type %(submissionType)s should have %(seriesIdMember)s declared as a domainItemType element."),
+                            edgarCode="dq-0541-Series-Id-Member-Not-Declared",
+                            modelObject=xsds, seriesIdMember=seriesIdMemberName, submissionType=submissionType)
+                    elif not legalEntityAxisRelationshipSet.isRelated(legalEntityAxis[0],"descendant", seriesIdMember):
+                        defLBs = [doc for url, doc in modelXbrl.urlDocs.items()  # all filer def LBs
+                                  if doc.type == ModelDocument.Type.LINKBASE and 
+                                  url not in disclosureSystem.standardTaxonomiesDict and
+                                  url.endswith("_def.xml")]
+                        modelXbrl.warning("EFM.6.05.41.seriesIdMemberNotAxisMember",
+                            _("Submission type %(submissionType)s should have %(seriesIdMember)s as a member of the Legal Entity Axis."),
+                            edgarCode="dq-0541-Series-Id-Member-Not-Axis-Member",
+                            modelObject=[seriesIdMember, defLBs], seriesIdMember=seriesIdMemberName, submissionType=submissionType)
+                    elif not any(cntx.hasDimension(legalEntityAxisQname) and seriesIdMember == cntx.qnameDims[legalEntityAxisQname].member
+                                 for cntx in contextsWithNonNilFacts):
+                        modelXbrl.warning("EFM.6.05.41.seriesIdMemberNotInContext",
+                            _("Submission type %(submissionType)s should have a context with %(seriesIdMember)s as a member of the Legal Entity Axis."),
+                            edgarCode="dq-0541-Series-Id-Member-Not-In-Context",
+                            modelObject=(modelXbrl,seriesIdMember), seriesIdMember=seriesIdMemberName, submissionType=submissionType)                            
         """ not required, now handled by schema validation
         else:
             dateMatch = datePattern.match(documentPeriodEndDate)
@@ -668,279 +1084,56 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             if amendmentFlag == True and amendmentDescription is None:
                 modelXbrl.log("WARNING" if validateEFMpragmatic else "ERROR",
                               "EFM.6.05.20.missingAmendmentDescription",
-                    _("AmendmentFlag is true in context %(contextID)s so AmendmentDescription is also required"),
+                    _("AmendmentFlag is true in context %(contextID)s, so you must also provide an AmendmentDescription in that context."),
+                    edgarCode="fs-0520-Amendment-Flag-Without-Amendment-Description",
                     modelObject=amendmentFlagFact, contextID=amendmentFlagFact.contextID if amendmentFlagFact is not None else "unknown")
     
             if amendmentDescription is not None and amendmentFlag != True:
                 modelXbrl.log("WARNING" if validateEFMpragmatic else "ERROR",
                               "EFM.6.05.20.extraneous",
-                    _("AmendmentDescription can not be provided when AmendmentFlag is not true in context %(contextID)s"),
+                    _("AmendmentFlag is not true in context %(contextID)s, so do not provide an AmendmentDescription in that context."),
+                    edgarCode="fs-0520-Amendment-Description-Without-Amendment-Flag",
                     modelObject=amendmentDescriptionFact, contextID=amendmentDescriptionFact.contextID)
                 
             if documentType is None:
                 modelXbrl.error("EFM.6.05.20.missingDocumentType",
-                    _("DocumentType was not found in the required context"), 
+                    _("You did not include the following data: DocumentType  Please include DocumentType."), 
+                    edgarCode="cp-0520-Document-Type-Existence",
                     modelXbrl=modelXbrl)
-            elif documentType not in {
-                                        "497",
-                                        "10-12B",
-                                        "10-12B/A",
-                                        "10-12G",
-                                        "10-12G/A",
-                                        "10-K/A",
-                                        "10-KT",
-                                        "10-K",
-                                        "10-KT/A",
-                                        "10-Q/A",
-                                        "10-QT",
-                                        "10-Q",
-                                        "10-QT/A",
-                                        "20-F",
-                                        "20-F/A",
-                                        "20FR12B",
-                                        "20FR12B/A",
-                                        "20FR12G",
-                                        "20FR12G/A",
-                                        "40-F",
-                                        "40-F/A",
-                                        "40FR12B",
-                                        "40FR12B/A",
-                                        "40FR12G",
-                                        "40FR12G/A",
-                                        "485BPOS",
-                                        "6-K",
-                                        "6-K/A",
-                                        "8-K",
-                                        "8-K/A",
-                                        "8-K12B",
-                                        "8-K12B/A",
-                                        "8-K12G3",
-                                        "8-K12G3/A",
-                                        "8-K15D5",
-                                        "8-K15D5/A",
-                                        "F-1",
-                                        "F-1/A",
-                                        "F-1MEF",
-                                        "F-3",
-                                        "F-3/A",
-                                        "F-3ASR",
-                                        "F-3D",
-                                        "F-3DPOS",
-                                        "F-3MEF",
-                                        "F-4",
-                                        "F-4 POS",
-                                        "F-4/A",
-                                        "F-4EF",
-                                        "F-4MEF",
-                                        "F-6",
-                                        "F-9 POS",
-                                        "F-9/A",
-                                        "F-9",
-                                        "F-9EF",
-                                        "F-10",
-                                        "F-10/A",
-                                        "F-10EF",
-                                        "F-10POS",
-                                        "N-1A",
-                                        "N-1A/A",
-                                        "N-CSR",
-                                        "N-CSR/A",
-                                        "N-CSRS",
-                                        "N-CSRS/A",
-                                        "N-Q",
-                                        "N-Q/A",
-                                        "POS AM",
-                                        "SD",
-                                        "SD/A",
-                                        "S-20",
-                                        "S-B",
-                                        "K SDR",
-                                        "L SDR",
-                                        "POS EX",
-                                        "POS462B",
-                                        "POS462C",
-                                        "S-BMEF",
-                                        "Other",
-                                        "POSASR",
-                                        "S-1",
-                                        "S-1/A",
-                                        "S-11",
-                                        "S-11/A",
-                                        "S-11MEF",
-                                        "S-1MEF",
-                                        "S-3/A",
-                                        "S-3ASR",
-                                        "S-3D",
-                                        "S-3",
-                                        "S-3DPOS",
-                                        "S-3MEF",
-                                        "S-4 POS",
-                                        "S-4/A",
-                                        "S-4",
-                                        "S-4EF",
-                                        "S-4MEF",
-                                        "SD",
-                                        "SD/A",
-                                        "SP 15D2",
-                                        "SP 15D2/A"
-                                      }:
+            elif documentType not in edgarDocumentTypes:
                 modelXbrl.error("EFM.6.05.20.documentTypeValue",
-                    _("DocumentType '%(documentType)s' of context %(contextID)s was not recognized"),
+                    _("Your dei:DocumentType has an illegal value, %(documentType)s, in context %(contextID)s.  Please correct it."),
+                    edgarCode="cp-0520-Document-Type-Value",
                     modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType)
-            elif val.paramSubmissionType:
-                expectedDocumentTypes = { 
-                                        "10-12B": ("10-12B", "Other"),
-                                        "10-12B/A": ("10-12B/A", "Other"),
-                                        "10-12G": ("10-12G", "Other"),
-                                        "10-12G/A": ("10-12G/A", "Other"),
-                                        "10-K": ("10-K",),
-                                        "10-K/A": ("10-K", "10-K/A"),
-                                        "10-KT": ("10-K","10-KT","Other"),
-                                        "10-KT/A": ("10-K", "10-KT", "10-KT/A", "Other"),
-                                        "10-Q": ("10-Q",),
-                                        "10-Q/A": ("10-Q", "10-Q/A"),
-                                        "10-QT": ("10-Q", "10-QT", "Other"),
-                                        "10-QT/A": ("10-Q", "10-QT", "10-QT/A", "Other"),
-                                        "20-F": ("20-F",),
-                                        "20-F/A": ("20-F", "20-F/A"),
-                                        "20FR12B": ("20FR12B", "Other"),
-                                        "20FR12B/A": ("20FR12B/A", "Other"),
-                                        "20FR12G": ("20FR12G", "Other"),
-                                        "20FR12G/A": ("20FR12G/A", "Other"),
-                                        "40-F": ("40-F",),
-                                        "40-F/A": ("40-F", "40-F/A"),
-                                        "40FR12B": ("40FR12B", "Other"),
-                                        "40FR12B/A": ("40FR12B/A", "Other"),
-                                        "40FR12G": ("40FR12G", "Other"),
-                                        "40FR12G/A": ("40FR12G/A", "Other"),
-                                        "485BPOS": ("485BPOS",),
-                                        "497": ("497", "Other"),
-                                        "6-K": ("6-K",),
-                                        "6-K/A": ("6-K", "6-K/A"),
-                                        "8-K": ("8-K",),
-                                        "8-K/A": ("8-K", "8-K/A"),
-                                        "8-K12B": ("8-K12B", "Other"),
-                                        "8-K12B/A": ("8-K12B/A", "Other"),
-                                        "8-K12G3": ("8-K12G3", "Other"),
-                                        "8-K12G3/A": ("8-K12G3/A", "Other"),
-                                        "8-K15D5": ("8-K15D5", "Other"),
-                                        "8-K15D5/A": ("8-K15D5/A", "Other"),
-                                        "F-1": ("F-1",),
-                                        "F-1/A": ("F-1", "F-1/A"),
-                                        "F-10": ("F-10",),
-                                        "F-10/A": ("F-10", "F-10/A"),
-                                        "F-10EF": ("F-10EF", "Other"),
-                                        "F-10POS": ("F-10POS", "Other"),
-                                        "F-1MEF": ("F-1MEF",),
-                                        "F-3": ("F-3",),
-                                        "F-3/A": ("F-3", "F-3/A"),
-                                        "F-3ASR": ("F-3", "F-3ASR"),
-                                        "F-3D": ("F-3", "F-3D"),
-                                        "F-3DPOS": ("F-3", "F-3DPOS"),
-                                        "F-3MEF": ("F-3MEF",),
-                                        "F-4": ("F-4",),
-                                        "F-4 POS": ("F-4", "F-4 POS"),
-                                        "F-4/A": ("F-4", "F-4/A"),
-                                        "F-4EF": ("F-4", "F-4EF"),
-                                        "F-4MEF": ("F-4MEF",),
-                                        "F-9": ("F-9",),
-                                        "F-9 POS": ("F-9", "F-9 POS"),
-                                        "F-9/A": ("F-9", "F-9/A"),
-                                        "F-9EF": ("F-9", "F-9EF"),
-                                        "N-1A": ("N-1A",),
-                                        "N-1A/A": ("N-1A/A", "Other"),
-                                        "N-CSR": ("N-CSR",),
-                                        "N-CSR/A": ("N-CSR/A",),
-                                        "N-CSRS": ("N-CSRS",),
-                                        "N-CSRS/A": ("N-CSRS/A",),
-                                        "N-Q": ("N-Q",),
-                                        "N-Q/A": ("N-Q/A",),
-                                        "POS AM": ("F-1", "F-3", "F-4", "F-6", "Other", 
-                                                   "POS AM", "S-1", "S-11", "S-20", "S-3", "S-4", "S-B"),
-                                        "POS EX": ("F-3", "F-4", "Other", 
-                                                   "POS EX", "S-1", "S-3", "S-4"),
-                                        "POS462B": ("F-1MEF", "F-3MEF", "F-4MEF", "Other", 
-                                                    "POS462B", "POS462C", "S-11MEF", "S-1MEF", "S-3MEF", "S-BMEF"),
-                                        "POSASR": ("F-3", "Other", "POSASR", "S-3"),
-                                        "S-1": ("S-1",),
-                                        "S-1/A": ("S-1", "S-1/A"),
-                                        "S-11": ("S-11",),
-                                        "S-11/A": ("S-11/A",),
-                                        "S-11MEF": ("S-11MEF",),
-                                        "S-1MEF": ("S-1MEF",),
-                                        "S-3": ("S-3",),
-                                        "S-3/A": ("S-3", "S-3/A"),
-                                        "S-3ASR": ("S-3", "S-3ASR"),
-                                        "S-3D": ("S-3", "S-3D"),
-                                        "S-3DPOS": ("S-3", "S-3DPOS"),
-                                        "S-3MEF": ("S-3MEF",),
-                                        "S-4": ("S-4",),
-                                        "S-4 POS": ("S-4", "S-4 POS"),
-                                        "S-4/A": ("S-4", "S-4/A"),
-                                        "S-4EF": ("S-4", "S-4EF"),
-                                        "S-4MEF": ("S-4MEF",),
-                                        "SD": ("SD",),
-                                        "SD/A": ("SD/A",),
-                                        "SP 15D2": ("SP 15D2",),
-                                        "SP 15D2/A": ("SP 15D2/A",),
-                                        "SDR": ("K SDR", "L SDR"),
-                                        "SDR/A": ("K SDR", "L SDR"),
-                                        "SDR-A": ("K SDR", "L SDR"),
-                                        "SDR/W ": ("K SDR", "L SDR")
-                        }.get(val.paramSubmissionType)
-                if expectedDocumentTypes and documentType not in expectedDocumentTypes:
-                    modelXbrl.error("EFM.6.05.20.submissionDocumentType" if val.paramExhibitType != "EX-2.01" else "EFM.6.23.03",
-                        _("DocumentType '%(documentType)s' of context %(contextID)s inapplicable to submission form %(submissionType)s"),
-                        modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, submissionType=val.paramSubmissionType,
+            elif hasSubmissionType:
+                expectedDocumentTypes = edgarSubmissionTypeAllowedDocumentTypes.get(submissionType, ())
+                if documentType not in expectedDocumentTypes: #SPR22607 always check submission type
+                    modelXbrl.error("EFM.6.05.20.submissionDocumentType" if val.params.get("exhibitType") != "EX-2.01" else "EFM.6.23.03",
+                        _("The value for dei:DocumentType, %(documentType)s, does not match the submission type, %(submissionType)s, in context %(contextID)s. "
+                          "EDGAR Filer Manual section 6.5.20 lists allowed submission types."),
+                        #edgarCode="cp-0520-Document-Type-Not-Matched-To-Submission-Type",
+                        modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, submissionType=val.params["submissionType"],
                         messageCodes=("EFM.6.05.20.submissionDocumentType", "EFM.6.23.03"))
-            if val.paramExhibitType and documentType is not None:
-                if (documentType in ("SD", "SD/A")) != (val.paramExhibitType == "EX-2.01"):
+            if val.params.get("exhibitType") and documentType is not None:
+                _exhibitType = val.params["exhibitType"]
+                if (documentType in ("SD", "SD/A")) != (_exhibitType == "EX-2.01"):
                     modelXbrl.error({"EX-100":"EFM.6.23.04",
                                      "EX-101":"EFM.6.23.04",    
                                      "EX-99.K SDR.INS":"EFM.6.23.04",
                                      "EX-99.L SDR.INS":"EFM.6.23.04",
-                                     "EX-2.01":"EFM.6.23.05"}.get(val.paramExhibitType,"EX-101"),
+                                     "EX-2.01":"EFM.6.23.05"}.get(_exhibitType,"EX-101"),
+                        #edgarCode
                         _("The value for dei:DocumentType, %(documentType)s, is not allowed for %(exhibitType)s attachments."),
-                        modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, exhibitType=val.paramExhibitType,
+                        modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, exhibitType=_exhibitType,
                         messageCodes=("EFM.6.23.04", "EFM.6.23.04", "EFM.6.23.05"))
-                elif (((documentType == "K SDR") != (val.paramExhibitType in ("EX-99.K SDR", "EX-99.K SDR.INS"))) or
-                      ((documentType == "L SDR") != (val.paramExhibitType in ("EX-99.L SDR", "EX-99.L SDR.INS")))):
+                elif (((documentType == "K SDR") != (_exhibitType in ("EX-99.K SDR", "EX-99.K SDR.INS"))) or
+                      ((documentType == "L SDR") != (_exhibitType in ("EX-99.L SDR", "EX-99.L SDR.INS")))):
                     modelXbrl.error("EFM.6.05.20.exhibitDocumentType",
                         _("The value for dei:DocumentType, '%(documentType)s' is not allowed for %(exhibitType)s attachments."),
-                        modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, exhibitType=val.paramExhibitType)
+                        modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, exhibitType=_exhibitType)
                 
             # 6.5.21
-            for doctypesRequired, deiItemsRequired in (
-                  (("10-K", "10-KT", "10-Q", "10-QT", "20-F", "40-F",
-                    "10-K/A", "10-KT/A", "10-Q/A", "10-QT/A", "20-F/A", "40-F/A",
-                    "6-K", "NCSR", "N-CSR", "N-CSRS", "N-Q",
-                    "6-K/A", "NCSR/A", "N-CSR/A", "N-CSRS/A", "N-Q/A",
-                    "10", "S-1", "S-3", "S-4", "S-11", "POS AM",
-                    "10/A", "S-1/A", "S-3/A", "S-4/A", "S-11/A", 
-                    "8-K", "F-1", "F-3", "F-10", "497", "485BPOS",
-                    "8-K/A", "F-1/A", "F-3/A", "F-10/A", "K SDR", "L SDR",
-                    "Other"),
-                    ("EntityRegistrantName", "EntityCentralIndexKey")),
-                  (("10-K", "10-KT", "20-F", "40-F",
-                    "10-K/A", "10-KT/A", "20-F/A", "40-F/A"),
-                   ("EntityCurrentReportingStatus",)),
-                 (("10-K", "10-KT", "10-K/A", "10-KT/A",),
-                  ("EntityVoluntaryFilers", "EntityPublicFloat")),
-                  (("10-K", "10-KT", "10-Q", "10-QT", "20-F", "40-F",
-                    "10-K/A", "10-KT/A", "10-Q/A", "10-QT/A", "20-F/A", "40-F/A",
-                    "6-K", "NCSR", "N-CSR", "N-CSRS", "N-Q",
-                    "6-K/A", "NCSR/A", "N-CSR/A", "N-CSRS/A", "N-Q/A", "K SDR", "L SDR"),
-                    ("CurrentFiscalYearEndDate", "DocumentFiscalYearFocus", "DocumentFiscalPeriodFocus")),
-                  (("10-K", "10-KT", "10-Q", "10-QT", "20-F",
-                    "10-K/A", "10-KT/A", "10-Q/A", "10-QT/A", "20-F/A",
-                    "10", "S-1", "S-3", "S-4", "S-11", "POS AM",
-                    "10/A", "S-1/A", "S-3/A", "S-4/A", "S-11/A"),
-                    ("EntityFilerCategory",)),
-                   (("10-K", "10-KT", "20-F", "10-K/A", "10-KT/A", "20-F/A"),
-                     ("EntityWellKnownSeasonedIssuer",)),
-                   (("SD", "SD/A"),
-                     ("EntityReportingCurrencyISOCode", ))
-            ):
+            for doctypesRequired, deiItemsRequired in docTypeDeiItems:
                 if documentType in doctypesRequired:
                     for deiItem in deiItemsRequired:
                         if deiItem not in deiItems or deiItems[deiItem] is None: #must exist and value must be non-empty (incl not nil)
@@ -956,7 +1149,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                              "EntityVoluntaryFilers", "EntityWellKnownSeasonedIssuer"
                                             } else "EFM.6.23.36" if deiItem == "EntityReportingCurrencyISOCode"
                                               else "EFM.6.05.21"),
-                                            _("dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s"),
+                                            _("Element dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s.  Please include it."),
+                    #edgarCode
                     modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType,
                     elementName=deiItem,
                     messageCodes=("EFM.6.05.21.CurrentFiscalYearEndDate", "EFM.6.05.21.DocumentFiscalPeriodFocus", "EFM.6.05.21.DocumentFiscalYearFocus",
@@ -972,11 +1166,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if commonSharesClassMembers:
                     if defaultContextSharesOutstandingValue is not None: # checks that it exists and is not empty or nil
                         modelXbrl.log(errLevel, "EFM.6.05.26",
-                            _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but not in the required context because there are multiple classes of common shares"),
+                            _("An instance with dei:DocumentType of %(documentType)s must have one dei:EntityCommonStockSharesOutstanding fact for each class of stock or units outstanding."),
+                            edgarCode="im-0526-Entity-Common-Shares-Outstanding",
                             modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType)
                     elif len(commonSharesClassMembers) == 1: # and not hasDefinedStockAxis:
                         modelXbrl.log(errLevel, "EFM.6.05.26",
                             _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but but a required-context because only one class of stock"),
+                            #edgarCode
                             modelObject=documentTypeFact, documentType=documentType)
                     ''' per Dean R, this test no longer makes sense because we don't check against def LB defined members
                     missingClasses = commonSharesClassMembers - _DICT_SET(commonSharesItemsByStockClass.keys())
@@ -989,6 +1185,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if len(facts) != 1:
                             modelXbrl.log(errLevel, "EFM.6.05.26",
                                 _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but only one per stock class %(stockClass)s"),
+                                #edgarCode
                                 modelObject=documentTypeFact, documentType=documentType, stockClass=mem)
                         ''' removed per ARELLE-124 (should check measurement date vs report date)
                         elif facts[0].context.instantDatetime != commonStockMeasurementDatetime:
@@ -1018,7 +1215,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 rxdNs = rxdDoc.targetNamespace
                             else:
                                 modelXbrl.error("EFM.6.23.10",
-                                    _("The DTS of must use only one version of the RXD schema"),
+                                    _("The DTS of $(instance) must use only one version of the RXD schema."),
+                                    edgarCode="rxd-2310-RXD-Version-Value",
                                     modelObject=(rxdDoc, modelXbrl.urlDocs[rxdUri]), instance=instanceName)
                         elif "/rxd-pre-" in rxdUri:
                             hasRxdPre = True
@@ -1026,11 +1224,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             hasRxdDef = True
                 if not hasRxdPre:
                     modelXbrl.error("EFM.6.23.08",
-                        _("The DTS must use a standard presentation linkbase from Family RXD in edgartaxonomies.xml."),
+                        _("The DTS of %(instance)s must use a standard presentation linkbase from Family RXD in edgartaxonomies.xml."),
+                        edgarCode="rxd-2308-RXD-Presentation-Existence",
                         modelObject=modelXbrl, instance=instanceName)
                 if not hasRxdDef:
                     modelXbrl.error("EFM.6.23.09",
-                        _("The DTS must use a standard definition linkbase from Family RXD in edgartaxonomies.xml."),
+                        _("The DTS of %(instance)s must use a standard definition linkbase from Family RXD in edgartaxonomies.xml."),
+                        edgarCode="rxd-2309-RXD-Definition-Existence",
                         modelObject=modelXbrl, instance=instanceName)
                 countryNs = None
                 deiNS = None
@@ -1041,7 +1241,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 countryNs = doc.targetNamespace
                             else:
                                 modelXbrl.error("EFM.6.23.11",
-                                    _("The DTS must use must use only one version of the COUNTRY schema."),
+                                    _("The DTS of %(instance)s must use only one version of the COUNTRY schema."),
+                                    edgarCode="rxd-2311-Country-Version-Value",
                                     modelObject=(doc
                                                  for url,doc in modelXbrl.urlDocs.items()
                                                  if url.startswith("http://xbrl.sec.gov/country/")), instance=instanceName)
@@ -1049,24 +1250,26 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             deiNS = doc.targetNamespace
 
                 if rxdNs:
-                    qn = ModelValue.qname(rxdNs, "AmendmentNumber")
+                    qn = qname(rxdNs, "AmendmentNumber")
                     if amendmentFlag == True and (
                                 qn not in modelXbrl.factsByQname or not any(
                                        f.context is not None and not f.context.hasSegment 
                                        for f in modelXbrl.factsByQname[qn])):
                         modelXbrl.error("EFM.6.23.06",
                             _("The value for dei:DocumentType, %(documentType)s, requires a value for rxd:AmendmentNumber in the Required Context."),
+                            edgarCode="rxd-2306-Amendment-Number-Existence",
                             modelObject=modelXbrl, documentType=documentType)
                 else:
                     modelXbrl.error("EFM.6.23.07",
-                        _("The DTS must use a standard schema from Family RXD in edgartaxonomies.xml."),
+                        _("The DTS of %(instance)s must use a standard schema from Family SD in edgartaxonomies.xml."),
+                        edgarCode="rxd-2307-RXD-Schema-Existence",
                         modelObject=modelXbrl, instance=instanceName)
                 class Rxd(): # fake class of rxd qnames based on discovered rxd namespace
                     def __init__(self):
                         for name in ("CountryAxis", "GovernmentAxis", "PaymentTypeAxis", "ProjectAxis","PmtAxis",
                                     "AllGovernmentsMember", "AllProjectsMember","BusinessSegmentAxis", "EntityDomain", 
                                     "A", "Cm", "Co", "Cu", "D", "Gv", "E", "K", "Km", "P", "Payments", "Pr", "Sm"):
-                            setattr(self, name, ModelValue.qname(rxdNs, "rxd:" + name))
+                            setattr(self, name, qname(rxdNs, "rxd:" + name))
 
                 rxd = Rxd()
                 f1 = deiFacts.get(disclosureSystem.deiCurrentFiscalYearEndDateElement)
@@ -1074,14 +1277,16 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     d = ModelValue.dateunionDate(documentPeriodEndDateFact.xValue)# is an end date, convert back to a start date without midnight part
                     if f1.xValue.month != d.month or f1.xValue.day != d.day:
                         modelXbrl.error("EFM.6.23.26",
-                            _("The dei:CurrentFiscalYearEndDate, %(fyEndDate)s does not match the dei:DocumentReportingPeriod %(reportingPeriod)s"),
+                            _("The financial period %(reportingPeriod)s does not match the fiscal year end %(fyEndDate)s."),
+                            edgarCode="rxd-2326-Fiscal-Year-End-Date-Value",
                             modelObject=(f1,documentPeriodEndDateFact), fyEndDate=f1.value, reportingPeriod=documentPeriodEndDateFact.value)
                 if (documentPeriodEndDateFact is not None and documentPeriodEndDateFact.xValid >= VALID and
                     not any(f2.xValue == documentPeriodEndDateFact.xValue
                             for f2 in modelXbrl.factsByQname[rxd.D]
                             if f2.xValid >= VALID)):
                     modelXbrl.error("EFM.6.23.27",
-                        _("The dei:DocumentPeriodEndDate %(reportingPeriod)s has no corresponding rxd:D fact."),
+                        _("The financial period %(reportingPeriod)s does not match rxd:D in any facts."),
+                        edgarCode="rxd-2327-Payment-Financial-Period-Existence",
                         modelObject=documentPeriodEndDateFact, reportingPeriod=documentPeriodEndDateFact.value)
                 for url,doc in modelXbrl.urlDocs.items():
                     if (url not in disclosureSystem.standardTaxonomiesDict and
@@ -1091,11 +1296,15 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             name = concept.name
                             if not concept.isAbstract and not concept.isTextBlock:
                                 modelXbrl.error("EFM.6.23.12",
-                                    _("Extension concept %(concept)s is non-abstract and not a Text Block."),
+                                    _("%(schemaName)s contained a non-abstract declaration for %(name)s that is not a Text Block.  "
+                                      "Use a standard element or change the type to Text Block."),
+                                    edgarCode="rxd-2312-Custom-Element-Value",
                                     modelObject=concept, schemaName=doc.basename, name=concept.name, concept=concept.qname)
                             elif name.endswith("Table") or name.endswith("Axis") or name.endswith("Domain"):
                                 modelXbrl.error("EFM.6.23.13",
-                                    _("Extension concept %(concept)s is not allowed in an extension schema."),
+                                    _("%(schemaName)s contained a declaration for %(name)s that is not allowed.  "
+                                      "Use dimensions from a standard schema instead."),
+                                    edgarCode="rxd-2313-Custom-Dimension-Existence",
                                     modelObject=concept, schemaName=doc.basename, name=concept.name, concept=concept.qname)
                 val.modelXbrl.profileActivity("... SD checks 6-13, 26-27", minTimeToShow=1.0)
                 dimDefRelSet = modelXbrl.relationshipSet(XbrlConst.dimensionDefault)
@@ -1106,7 +1315,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if (isinstance(rel.fromModelObject, ModelConcept) and isinstance(rel.toModelObject, ModelConcept) and 
                         not dimDefRelSet.isRelated(rel.fromModelObject, "child", rel.toModelObject)):
                         modelXbrl.error("EFM.6.23.14",
-                            _("The target of the dimension-domain relationship in role %(linkrole)s from %(source)s to %(target)s must be the default member of %(source)s."),
+                            _("In %(linkbaseName)s the target of the dimension-domain relationship in role %(linkrole)s from "
+                              "%(source)s to %(target)s must be the default member of %(source)s."),
+                            edgarCode="rxd-2314-Dimension-Domain-Relationship-Existence",
                             modelObject=(rel, rel.fromModelObject, rel.toModelObject), 
                             linkbaseName=rel.modelDocument.basename, linkrole=rel.linkrole,
                             source=rel.fromModelObject.qname, target=rel.toModelObject.qname)
@@ -1125,11 +1336,15 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 if isinstance(dim, ModelConcept) and isinstance(mem, ModelConcept):
                                     if dim.qname == rxd.PaymentTypeAxis and not mem.modelDocument.targetNamespace.startswith("http://xbrl.sec.gov/rxd/"):
                                         modelXbrl.error("EFM.6.23.17",
-                                            _("The member %(member)s in dimension rxd:PaymentTypeAxis in linkrole %(linkrole)s must be a QName with namespace that begins with \"http://xbrl.sec.gov/rxd/\". "),
+                                            _("The member %(member)s of dimension rxd:PaymentTypeAxis in link role %(linkrole)s must be a QName "
+                                              "with namespace that begins with 'http://xbrl.sec.gov/rxd/'."),
+                                            edgarCode="rxd-2317-Payment-Type-Dimension-Value",
                                             modelObject=(rel, memRel, dim, mem), member=mem.qname, linkrole=rel.linkrole)
                                     if dim.qname == rxd.CountryAxis and not mem.modelDocument.targetNamespace.startswith("http://xbrl.sec.gov/country/"):
                                         modelXbrl.error("EFM.6.23.18",
-                                            _("The member %(member)s in dimension rxd:CountryAxis in linkrole %(linkrole)s must be a QName with namespace that begins with \"http://xbrl.sec.gov/country//\". "),
+                                            _("The member %(member)s of dimension rxd:CountryAxisAxis in link role %(linkrole)s must be a QName with namespace "
+                                              "that begins with 'http://xbrl.sec.gov/country/'."),
+                                            edgarCode="rxd-2318-Country-Dimension-Member-Value",
                                             modelObject=(rel, memRel, dim, mem), member=mem.qname, linkrole=rel.linkrole)
                                     checkMemMultDims(memRel, rel, rel.fromModelObject, rel.linkrole, visited)
                         for rel in hypDimRelSet.toModelObject(elt):
@@ -1144,7 +1359,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 else:
                                     otherDimRel, otherMemRel = memDim[mem,linkrole]
                                     modelXbrl.error("EFM.6.23.16",
-                                        _("The member %(member)s has two dimensions, %(dimension1)s in linkrole %(linkrole1)s and  %(dimension2)s in linkrole %(linkrole2)s. "),
+                                        _("Member element %(member)s appears in more than one axis: %(dimension1)s and %(dimension2)s.  "
+                                          "Use distinct members for the Project, Country, Government, Legal Entity, Business Segment and Payment Type axes."),
+                                        edgarCode="rxd-2316-Member-Multiple-Axis-Existence",
                                         modelObject=(dimRel, otherDimRel, memRel, otherMemRel, dimRel.fromModelObject, otherDimRel.fromModelObject),
                                         member=mem.qname, dimension1=dimRel.fromModelObject.qname, linkrole1=linkrole, 
                                         dimension2=otherDimRel.fromModelObject.qname, linkrole2=otherDimRel.linkrole)
@@ -1154,13 +1371,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         for rel2 in modelXbrl.relationshipSet(XbrlConst.domainMember, rel.consecutiveLinkrole).fromModelObject(rel.toModelObject):
                             if isinstance(rel2.fromModelObject, ModelConcept) and isinstance(rel2.toModelObject, ModelConcept):
                                 modelXbrl.error("EFM.6.23.15",
-                                    _("The domain-member relationship in %(linkrole)s from %(source)s to %(target)s is consecutive with domain-member relationship in %(linkrole2)s to %(target2)s. "),
+                                    _("The domain-member relationship in %(linkrole)s from %(source)s to %(target)s is consecutive with domain-member relationship in %(linkrole2)s to %(target2)s."),
+                                    edgarCode="rxd-2315-Consecutive-Domain-Member-Relationships-Existence",
                                     modelObject=(rel, rel.fromModelObject, rel.toModelObject), 
                                     linkrole=rel.linkrole, linkrole2=rel2.linkrole,
                                     source=rel.fromModelObject.qname, target=rel.toModelObject.qname, target2=rel2.toModelObject.qname)
                         checkMemMultDims(rel, None, rel.fromModelObject, rel.linkrole, set())
                 val.modelXbrl.profileActivity("... SD checks 14-18", minTimeToShow=1.0)
-                qnDeiEntityDomain = ModelValue.qname(deiNS, "dei:EntityDomain")
+                qnDeiEntityDomain = qname(deiNS, "dei:EntityDomain")
                 for relSet, dom, priItem, errCode in ((domMemRelSet, rxd.AllProjectsMember, rxd.Pr, "EFM.6.23.30"),
                                                       (domMemRelSet, rxd.AllGovernmentsMember, rxd.Gv, "EFM.6.23.31"),
                                                       (dimDomRelSet, rxd.BusinessSegmentAxis, rxd.Sm, "EFM.6.23.33"),
@@ -1181,7 +1399,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 
                 qnCurrencyMeasure = XbrlConst.qnIsoCurrency(deiItems.get("EntityReportingCurrencyISOCode"))
                 currencyMeasures = ([qnCurrencyMeasure],[])
-                qnAllCountriesDomain = ModelValue.qname(countryNs, "country:AllCountriesDomain")
+                qnAllCountriesDomain = qname(countryNs, "country:AllCountriesDomain")
                 for cntxFacts in cntxEqualFacts.values():
                     qnameFacts = dict((f.qname,f) for f in cntxFacts)
                     context = cntxFacts[0].context
@@ -1197,7 +1415,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if (rxd.Co in qnameFacts and not qnameFacts[rxd.Co].isNil and
                         not domMemRelSet.isRelated(qnAllCountriesDomain, "descendant", qnameFacts[rxd.Co].xValue, isDRS=True)):
                         modelXbrl.error("EFM.6.23.44",
-                            _("Fact rxd:Co value %(value)s in context %(context)s is not in the domain of country:AllCountriesDomain"),
+                            _("The value of rxd:Co in context %(context)s, %(value)s, is not in the domain of rxd:CountryAxis. "
+                              "Change the value of rxd:Co or add it %(value)s to the Country Axis."),
+                            edgarCode="rxd-2344-Country-Value",
                             modelObject=f, context=context.id, value=qnameFacts[rxd.Co].value)
                     # required present facts based on other present fact
                     for qnF, fNilOk, qnG, gNilOk, errCode in ((rxd.A, True, rxd.Cu, False, "EFM.6.23.24"),
@@ -1220,7 +1440,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if (not context.hasDimension(rxd.PmtAxis) and f.isNumeric and 
                             f.unit is not None and f.unit.measures != currencyMeasures):
                             modelXbrl.error("EFM.6.23.37",
-                                _("Fact %(fact)s in context %(context)s has unit %(unit)s not matching dei:EntityReportingCurrencyISOCode %(currency)s"),
+                                _("An %(fact)s fact in context %(context)s has unit %(unit)s not matching the dei:EntityReportingCurrencyISOCode %(currency)s."),
+                                edgarCode="rxd-2337-Payment-Unit-Value",
                                 modelObject=f, fact=f.qname, context=context.id, unit=f.unit.value, currency=qnCurrencyMeasure)
                     
                     if (rxd.A in qnameFacts and not qnameFacts[rxd.A].isNil and
@@ -1228,12 +1449,15 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         qnameFacts[rxd.A].unit is not None and qnameFacts[rxd.A].unit.measures == currencyMeasures): 
                         modelXbrl.error("EFM.6.23.38",
                             _("A value cannot be given for rxd:Cm in context %(context)s because the payment is in the reporting currency %(currency)s."),
+                            edgarCode="rxd-2338-Conversion-Method-Value",
                             modelObject=(qnameFacts[rxd.A],qnameFacts[rxd.Cm]), context=context.id, currency=qnCurrencyMeasure)
                     if (rxd.A in qnameFacts and 
                         rxd.Cu in qnameFacts and not qnameFacts[rxd.Cu].isNil and
                         qnameFacts[rxd.A].unit is not None and qnameFacts[rxd.A].unit.measures != ([XbrlConst.qnIsoCurrency(qnameFacts[rxd.Cu].xValue)],[])): 
                         modelXbrl.error("EFM.6.23.41",
-                            _("The unit %(unit)s of rxd:A in context %(context)s is not consistent with the value %(currency)s of rxd:Cu."),
+                            _("The unit %(unit)s of rxd:A in context %(context)s is not consistent with the value %(currency)s of rxd:Cu.  "
+                              "Change one or the other to match."),
+                            edgarCode="rxd-2341-Amount-Currency-Existence",
                             modelObject=(qnameFacts[rxd.A],qnameFacts[rxd.Cu]), context=context.id, unit=qnameFacts[rxd.A].unit.value, currency=qnameFacts[rxd.Cu].value)
                                                 
                     if (context.hasDimension(rxd.ProjectAxis) and
@@ -1242,7 +1466,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 for f in modelXbrl.factsByQname[rxd.Pr]
                                 if f.context is not None)):
                         modelXbrl.error("EFM.6.23.19",
-                            _("The Context %(context)s has dimension %(dimension)s but is missing any payment."),
+                            _("A payment for each project axis member is required.  Provide a value for element rxd:Pr with value %(dimension)s in context %(context)s."),
+                            edgarCode="rxd-2319-Project-Payment-Amount-Existence",
                             modelObject=context, context=context.id, dimension=rxd.GovernmentAxis)
                     if (context.hasDimension(rxd.GovernmentAxis) and
                         not any(f.xValue == m and f.context.hasDimension(rxd.PmtAxis)
@@ -1250,22 +1475,26 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 for f in modelXbrl.factsByQname[rxd.Gv]
                                 if f.context is not None)):
                         modelXbrl.error("EFM.6.23.21",
-                            _("The Context %(context)s has dimension %(dimension)s member %(member)s but is missing any payment."),
+                            _("A payment amount for each government is required.  Provide a value for element rxd:Gv with value %(member)s."),
+                            edgarCode="rxd-2321-Government-Payment-Amount-Existence",
                             modelObject=context, context=context.id, dimension=rxd.GovernmentAxis, member=context.dimMemberQname(rxd.GovernmentAxis))
                     if rxd.P in qnameFacts and not any(f.context is not None and not f.context.hasSegment
                                                        for f in modelXbrl.factsByQname.get(qnameFacts[rxd.P].xValue,())):
                         modelXbrl.error("EFM.6.23.23",
-                            _("The Context %(context)s has payment type %(paymentType)s but is missing a corresponding fact in the required context."),
+                            _("Payment type %(paymentType)s was reported in context %(context)s but there is no fact with element %(paymentType)s in the Required Context."),
+                            edgarCode="rxd-2323-Category-Total-Existence",
                             modelObject=context, context=context.id, paymentType=qnameFacts[rxd.P].xValue)
                     if not context.hasDimension(rxd.PmtAxis) and rxd.A in qnameFacts and not qnameFacts[rxd.A].isNil:
                         modelXbrl.error("EFM.6.23.40",
-                            _("There is a non-nil rxd:A in context %(context)s but missing a dimension rxd:PmtAxis."),
+                            _("There is a fact with element rxd:A in context %(context)s not defining its payment number on axis rxd:PmtAxis."),
+                            edgarCode="rxd-2340-Amount-Line-Existence",
                             modelObject=(context, qnameFacts[rxd.A]), context=context.id)
                 val.modelXbrl.profileActivity("... SD by context for 19-25, 28-29, 35, 37-39, 40-44", minTimeToShow=1.0)
                 for f in modelXbrl.factsByQname[rxd.D]:
                     if not f.isNil and f.xValid >= VALID and f.xValue + datetime.timedelta(1) != f.context.endDatetime: # date needs to be midnite to compare to datetime
                         modelXbrl.error("EFM.6.23.32",
-                            _("The rxd:D %(value)s in context %(context)s does not match the context end date %(endDate)s."),
+                            _("The value of rxd:D in context %(context)s, %(value)s, is not equal to %(endDate)s.  Change the context end date or the value."),
+                            edgarCode="rxd-2332-Date-Value",
                             modelObject=f, value=f.xValue, context=f.context.id, endDate=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True))
                 val.modelXbrl.profileActivity("... SD checks 32 (last SD check)", minTimeToShow=1.0)
                 # deference object references no longer needed
@@ -1323,7 +1552,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                              xlinkType not in ("locator", "resource", "arc") or
                              child.localName not in ("loc", "footnote", "footnoteArc"))):
                                 modelXbrl.error(("EFM.6.05.27", "GFM.1.02.19"),
-                                    _("FootnoteLink %(footnoteLinkNumber)s has disallowed child element %(elementName)s"),
+                                    _("Footnote link %(footnoteLinkNumber)s has a child element %(elementName)s that is not allowed.  Please remove it."),
+                                    edgarCode="du-0527-Footnote-Substitution-Group",
                                     modelObject=child, footnoteLinkNumber=footnoteLinkNbr, elementName=child.prefixedName)
                         elif xlinkType == "locator":
                             locNbr += 1
@@ -1331,14 +1561,16 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if locrole is not None and (disclosureSystem.GFM or \
                                                         not disclosureSystem.uriAuthorityValid(locrole)): 
                                 modelXbrl.error(("EFM.6.05.29", "GFM.1.02.21"),
-                                    _("FootnoteLink %(footnoteLinkNumber)s loc %(locNumber)s has disallowed role %(role)s"),
+                                    _("Footnote locator %(xlinkLabel)s has a custom role, %(role)s that is not allowed.  Please replace it with the default footnote role."),
+                                    edgarCode="du-0529-Footnote-Custom-Loc-Role",
                                     modelObject=child, footnoteLinkNumber=footnoteLinkNbr, 
                                     xlinkLabel=child.xlinkLabel,
                                     locNumber=locNbr, role=locrole)
                             href = child.get("{http://www.w3.org/1999/xlink}href")
                             if not href.startswith("#"): 
                                 modelXbrl.error(("EFM.6.05.32", "GFM.1.02.23"),
-                                    _("FootnoteLink %(footnoteLinkNumber)s loc %(locNumber)s has disallowed href %(locHref)s"),
+                                    _("Footnote %(locLabel)s refers to a location, %(locHref)s, that does not begin with '#' so that any change to the file name would render the XBRL invalid."),
+                                    edgarCode="du-0532-Footnote-Locator-Portable",
                                     modelObject=child, footnoteLinkNumber=footnoteLinkNbr, locNumber=locNbr, locHref=href,
                                     locLabel=child.get("{http://www.w3.org/1999/xlink}label"))
                             #else:
@@ -1349,7 +1581,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if (isEFM and not disclosureSystem.uriAuthorityValid(arcrole)) or \
                                (disclosureSystem.GFM  and arcrole != XbrlConst.factFootnote and arcrole != XbrlConst.factExplanatoryFact): 
                                 modelXbrl.error(("EFM.6.05.30", "GFM.1.02.22"),
-                                    _("FootnoteLink %(footnoteLinkNumber)s arc %(arcNumber)s has disallowed arcrole %(arcrole)s"),
+                                    _("Footnote relationship %(arcToLabel)s has a custom arc role %(arcrole)s that is not allowed.  "
+                                      "Please replace it with the default (fact-footnote) arcrole."),
+                                    edgarCode="du-0530-Footnote-Custom-Arcrole",
                                     modelObject=child, footnoteLinkNumber=footnoteLinkNbr, arcNumber=arcNbr, 
                                     arcToLabel=child.get("{http://www.w3.org/1999/xlink}to"),
                                     arcrole=arcrole)
@@ -1357,12 +1591,15 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             footnoterole = child.role if isinstance(child,ModelInlineFootnote) else child.get("{http://www.w3.org/1999/xlink}role")
                             if footnoterole == "":
                                 modelXbrl.error(("EFM.6.05.28.missingRole", "GFM.1.2.20"),
-                                    _("Footnote %(xlinkLabel)s is missing a role"),
+                                    _("Footnote %(xlinkLabel)s is missing a role. Please provide the default footnote role."),
+                                    edgarCode="du-0528-Footnote-Custom-Footnote-Role",
                                     modelObject=child, xlinkLabel=getattr(child, "xlinkLabel", None))
                             elif (isEFM and not disclosureSystem.uriAuthorityValid(footnoterole)) or \
                                  (disclosureSystem.GFM  and footnoterole != XbrlConst.footnote): 
                                 modelXbrl.error(("EFM.6.05.28", "GFM.1.2.20"),
-                                    _("Footnote %(xlinkLabel)s has disallowed role %(role)s"),
+                                    _("Footnote %(xlinkLabel)s has a role %(role)s that is not allowed. "
+                                      "Please replace it with the default footnote role."),
+                                    edgarCode="du-0528-Footnote-Custom-Footnote-Role",
                                     modelObject=child, xlinkLabel=getattr(child, "xlinkLabel", None),
                                     role=footnoterole)
                             if isEFM and not isInlineXbrl: # inline content was validated before and needs continuations assembly
@@ -1377,7 +1614,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                             break
                                 if not foundFact:
                                     modelXbrl.error(("EFM.6.05.33", "GFM.1.02.24"),
-                                        _("FootnoteLink %(footnoteLinkNumber)s footnote %(footnoteLabel)s has no linked fact"),
+                                        _("The footnote with label %(footnoteLabel)s and text '%(text)s' is not connected to any fact.  "
+                                          "Please remove the footnote, or link it to a fact."),
+                                        edgarCode="cp-0533-Dangling-Footnote",
                                         modelObject=child, footnoteLinkNumber=footnoteLinkNbr, 
                                         footnoteLabel=getattr(child, "xlinkLabel", None),
                                         text=XmlUtil.text(child)[:100])
@@ -1406,6 +1645,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if _ns == ns and _prefix != prefix:
                     modelXbrl.error("EFM.5.02.05.standardNamespacePrefix",
                         _("The prefix %(submittedPrefix)s must be replaced by %(recommendedPrefix)s for standard namespace %(namespace)s."),
+                        edgarCode="ix-0502-Standard-Namespace-Prefix",
                         modelObject=elt, submittedPrefix=_prefix, recommendedPrefix=prefix, namespace=ns)
         ixNStag = modelXbrl.modelDocument.ixNStag
         ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
@@ -1454,24 +1694,29 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         if eligibleForTransformHiddenFacts:
             modelXbrl.warning("EFM.5.02.05.14.hidden-fact-eligible-for-transform",
                 _("%(countEligible)s fact(s) appearing in ix:hidden were eligible for transformation: %(elements)s"),
+                edgarCode="ix-0514-Hidden-Fact-Eligible-For-Transform",
                 modelObject=eligibleForTransformHiddenFacts, 
                 countEligible=len(eligibleForTransformHiddenFacts),
                 elements=", ".join(sorted(set(str(f.qname) for f in eligibleForTransformHiddenFacts))))
-        for ixElt in modelXbrl.modelDocument.xmlDocument.iterfind("//{http://www.w3.org/1999/xhtml}*[@style]"):
-            hiddenFactRefMatch = styleIxHiddenPattern.match(ixElt.get("style",""))
-            if hiddenFactRefMatch:
-                hiddenFactRef = hiddenFactRefMatch.group(2)
-                if hiddenFactRef not in hiddenEltIds:
-                    modelXbrl.error("EFM.5.02.05.14.hidden-fact-not-found",
-                        _("The value of the -sec-ix-hidden style property, %(id)s, does not correspond to the id of any hidden fact."),
-                        modelObject=ixElt, id=hiddenFactRef)
-                else:
-                    presentedHiddenEltIds[hiddenFactRef].append(ixElt)
+        for ixElt in modelXbrl.modelDocument.xmlDocument.iter("{http://www.w3.org/1999/xhtml}*"):
+            styleAttr = ixElt.get("style","")
+            if styleAttr:
+                hiddenFactRefMatch = styleIxHiddenPattern.match(styleAttr)
+                if hiddenFactRefMatch:
+                    hiddenFactRef = hiddenFactRefMatch.group(2)
+                    if hiddenFactRef not in hiddenEltIds:
+                        modelXbrl.error("EFM.5.02.05.14.hidden-fact-not-found",
+                            _("The value of the -sec-ix-hidden style property, %(id)s, does not correspond to the id of any hidden fact."),
+                            edgarCode="ix-0514-Hidden-Fact-Not-Found",
+                            modelObject=ixElt, id=hiddenFactRef)
+                    else:
+                        presentedHiddenEltIds[hiddenFactRef].append(ixElt)
         for hiddenFactRef, ixElts in presentedHiddenEltIds.items():
             if len(ixElts) > 1 and hiddenFactRef in hiddenEltIds:
                 fact = hiddenEltIds[hiddenFactRef]
                 modelXbrl.warning("EFM.5.02.05.14.hidden-fact-multiple-references",
                     _("Fact %(element)s, id %(id)s, is referenced from %(countReferences)s elements."),
+                    edgarCode="ix-0514-Hidden-Fact-Multiple-References",
                     modelObject=ixElts + [fact], id=hiddenFactRef, element=fact.qname, countReferences=len(ixElts))
         for hiddenEltId, ixElt in hiddenEltIds.items():
             if (hiddenEltId not in presentedHiddenEltIds and
@@ -1482,6 +1727,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         if requiredToDisplayFacts:
             modelXbrl.warning("EFM.5.02.05.14.hidden-fact-not-referenced",
                 _("%(countUnreferenced)s fact(s) appearing in ix:hidden were not referenced by any -sec-ix-hidden style property: %(elements)s"),
+                edgarCode="ix-0514-Hidden-Fact-Not-Referenced",
                 modelObject=requiredToDisplayFacts, 
                 countUnreferenced=len(requiredToDisplayFacts),
                 elements=", ".join(sorted(set(str(f.qname) for f in requiredToDisplayFacts))))
@@ -1499,14 +1745,17 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if role == XbrlConst.documentationLabel:
                     if concept.modelDocument.targetNamespace in disclosureSystem.standardTaxonomiesDict:
                         modelXbrl.error(("EFM.6.10.05", "GFM.1.05.05"),
-                            _("Concept %(concept)s of a standard taxonomy cannot have a documentation label: %(text)s"),
+                            _("Your filing attempted to add a new definition, '%(text)s', to an existing concept in the standard taxonomy, %(concept)s.  Please remove this definition."),
+                            edgarCode="cp-1005-Custom-Documentation-Standard-Element",
                             modelObject=modelLabel, concept=concept.qname, text=text)
                 elif text and lang and disclosureSystem.defaultXmlLang and lang.startswith(disclosureSystem.defaultXmlLang):
                     if role == XbrlConst.standardLabel:
                         if text in defaultLangStandardLabels:
                             concept2, modelLabel2 = defaultLangStandardLabels[text]
                             modelXbrl.error(("EFM.6.10.04", "GFM.1.05.04"),
-                                _("Same labels for concepts %(concept)s and %(concept2)s for %(lang)s standard role: %(text)s."),
+                                _("More than one element has %(text)s as its English standard label (%(concept)s and %(concept2)s).  "
+                                  "Please change or remove all but one label."),
+                                edgarCode="du-1004-English-Standard-Labels-Duplicated",
                                 modelObject=(concept, modelLabel, concept2, modelLabel2), 
                                 concept=concept.qname, 
                                 concept2=concept2.qname, 
@@ -1516,7 +1765,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         # conceptHasDefaultLangStandardLabel = True
                     if len(text) > 511:
                         modelXbrl.error(("EFM.6.10.06", "GFM.1.05.06"),
-                            _("Label for concept %(concept)s role %(role)s length %(length)s must be shorter than 511 characters: %(text)s"),
+                            _("Element %(concept)s, label length %(length)s, has more than 511 characters or contains a left-angle-bracket character in the label for role %(role)s. "
+                              "Please correct the label."),
+                            edgarCode="rq-1006-Label-Disallowed",
                             modelObject=modelLabel, concept=concept.qname, role=role, length=len(text), text=text[:80])
                     match = modelXbrl.modelManager.disclosureSystem.labelCheckPattern.search(text)
                     if match:
@@ -1528,7 +1779,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                    (modelXbrl.modelManager.disclosureSystem.labelTrimPattern.match(text[0]) or \
                     modelXbrl.modelManager.disclosureSystem.labelTrimPattern.match(text[-1]))):
                     modelXbrl.error(("EFM.6.10.08", "GFM.1.05.08"),
-                        _("Label for concept %(concept)s role %(role)s lang %(lang)s is not trimmed: %(text)s"),
+                        _("The label %(text)s of element %(concept)s has leading or trailing white space in role %(role)s for lang %(lang)s.  Please remove it."),
+                        edgarCode="du-1008-Label-Not-Trimmed",
                         modelObject=modelLabel, concept=concept.qname, role=role, lang=lang, text=text)
         for modelRefRel in referencesRelationshipSetWithProhibits.fromModelObject(concept):
             if modelRefRel.modelDocument.inDTS: # ignore references added by EdgarRenderer that are not in DTS
@@ -1537,27 +1789,47 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 #6.18.1 no reference to company extension concepts
                 if concept.modelDocument.targetNamespace not in disclosureSystem.standardTaxonomiesDict:
                     modelXbrl.error(("EFM.6.18.01", "GFM.1.9.1"),
-                        _("References for extension concept %(concept)s are not allowed: %(text)s"),
+                        _("Your filing provides a reference, '%(xml)s', for an custom concept in extension taxonomy, %(concept)s.  "
+                          "Please remove this reference."),
+                        edgarCode="cp-1801-Custom-Element-Has-Reference",
                         modelObject=modelReference, concept=concept.qname, text=text, xml=XmlUtil.xmlstring(modelReference, stripXmlns=True, contentsOnly=True))
-                elif isEFM and not isStandardUri(val, modelRefRel.modelDocument.url): 
+                elif isEFM and not isStandardUri(val, modelRefRel.modelDocument.uri): 
                     #6.18.2 no extension to add or remove references to standard concepts
                     modelXbrl.error(("EFM.6.18.02"),
-                        _("References for standard taxonomy concept %(concept)s are not allowed in an extension linkbase: %(text)s"),
+                        _("Your filing attempted to add a new reference, '%(xml)s', to an existing concept in the standard taxonomy, %(concept)s.  "
+                          "Please remove this reference."),
+                        edgarCode="cp-1802-Standard-Element-Has-Reference",
                         modelObject=modelReference, concept=concept.qname, text=text, xml=XmlUtil.xmlstring(modelReference, stripXmlns=True, contentsOnly=True))
+
+    for concept in modelXbrl.qnameConcepts.values():
+        if concept.modelDocument.inDTS:
+            name = concept.localName
+            if name and len(name) > 64:
+                l = len(name.encode("utf-8"))
+                if l > 200:
+                    modelXbrl.error("EFM.6.07.29",
+                        _("Schema %(element)s has a name length (%(length)s) over 200 bytes long in utf-8, %(name)s."),
+                        modelObject=concept, element=concept.qname, name=name, length=l)
 
     # role types checks
     # 6.7.10 only one role type declaration in DTS
     for roleURI, modelRoleTypes in modelXbrl.roleTypes.items():
-        if len(modelRoleTypes) > 1:
+        countInDTS = sum(1 for m in modelRoleTypes if m.modelDocument.inDTS)
+        if countInDTS > 1:
             modelXbrl.error(("EFM.6.07.10", "GFM.1.03.10"),
-                _("RoleType %(roleType)s is defined in multiple taxonomies"),
-                modelObject=modelRoleTypes, roleType=roleURI, numberOfDeclarations=len(modelRoleTypes))
+                _("Role %(roleType)s was declared more than once (%(numberOfDeclarations)s times.).  "
+                  "Please remove all but one declaration."),
+                edgarCode="du-0710-Role-Type-Duplicates",
+                modelObject=modelRoleTypes, roleType=roleURI, numberOfDeclarations=countInDTS)
     # 6.7.14 only one arcrole type declaration in DTS
     for arcroleURI, modelRoleTypes in modelXbrl.arcroleTypes.items():
-        if len(modelRoleTypes) > 1:
+        countInDTS = sum(1 for m in modelRoleTypes if m.modelDocument.inDTS)
+        if countInDTS > 1:
             modelXbrl.error(("EFM.6.07.14", "GFM.1.03.16"),
-                _("ArcroleType %(arcroleType)s is defined in multiple taxonomies"),
-                modelObject=modelRoleTypes, arcroleType=arcroleURI, numberOfDeclarations=len(modelRoleTypes) )
+                _("Relationship arc role %(arcroleType)s is declared more than once (%(numberOfDeclarations)s duplicates).  "
+                  "Please remove all but one of them."),
+                edgarCode="du-0714-Arcrole-Type-Duplicates",
+                modelObject=modelRoleTypes, arcroleType=arcroleURI, numberOfDeclarations=countInDTS )
                 
 
     val.modelXbrl.profileActivity("... filer concepts checks", minTimeToShow=1.0)
@@ -1572,61 +1844,108 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     # checks for namespace clashes
     if isEFM:
         # check number of us-roles taxonomies referenced
-        for conflictClass, modelDocuments in val.standardNamespaceConflicts.items():
-            if len(modelDocuments) > 1:
-                modelXbrl.error("EFM.6.22.03",
-                    _("References for conflicting standard %(conflictClass)s taxonomies %(namespaceConflicts)s are not allowed in same DTS"),
-                    modelObject=modelXbrl, conflictClass=conflictClass, 
-                    namespaceConflicts=sorted((d.targetNamespace for d in modelDocuments),
-                                              key=lambda ns: ns.rpartition('/')[2]))
+        for conflictClass, modelDocuments in val.standardNamespaceConflicts.items():                                                                
+            if (len(modelDocuments) > 1 and 
+                (conflictClass != 'srt+us-gaap' or ('us-types' in val.standardNamespaceConflicts and
+                                                    'srt-types' in val.standardNamespaceConflicts)) and # ignore multi us-gaap/srt conflicts without the other
+                (conflictClass != 'ifrs+us-gaap' or ('us-types' in val.standardNamespaceConflicts and
+                                                     'ifrs-full' in val.standardNamespaceConflicts)) # ignore multi us-gaap/ifrs conflicts without the other
+                ):
+                if conflictClass == 'ifrs+us-gaap':
+                    if set(d.targetNamespace for d in val.standardNamespaceConflicts['ifrs+us-gaap']) >= {
+                        "http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/us-gaap/2017-01-31"}:
+                        conflictClass = 'ifrs-2018+us-gaap-2017'
+                    else:
+                        continue
+                modelXbrl.error("EFM.6.22.03.incompatibleSchemas",
+                    _("References for conflicting standard taxonomies %(conflictClass)s are not allowed in same DTS %(namespaceConflicts)s"),
+                    edgarCode="cp-2203-Incompatible-Taxonomy-Versions",
+                    modelObject=modelXbrl, conflictClass=conflictClass,
+                    namespaceConflicts=", ".join(sorted([conflictClassFromNamespace(d.targetNamespace) for d in modelDocuments])))
+        if 'rr' in val.standardNamespaceConflicts and documentType not in {"485BPOS", "497"}:
+            modelXbrl.error("EFM.6.22.03.incompatibleTaxonomyDocumentType",
+                _("Taxonomy class %(conflictClass)s may not be used with document type %(documentType)s"),
+                modelObject=modelXbrl, conflictClass="RR", documentType=documentType)
+        if 'ifrs-full' in val.standardNamespaceConflicts and documentType in {"485BPOS", "497", "K SDR", "L SDR",
+                                                                              "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A", "N-Q", "N-Q/A"}:
+            modelXbrl.error("EFM.6.22.03.incompatibleTaxonomyDocumentType",
+                _("Taxonomy class %(conflictClass)s may not be used with document type %(documentType)s"),
+                modelObject=modelXbrl, conflictClass="IFRS", documentType=documentType)
         if 'ifrs-full' in val.standardNamespaceConflicts:
-            ''' HF: both ifrs and us-types allowed for purposes of reconciliation
-            if 'us-types' in val.standardNamespaceConflicts:
-                modelXbrl.error("EFM.6.22.03",
-                    _("References for conflicting standard taxonomies %(namespaceConflicts)s are not allowed in same DTS"),
-                    modelObject=modelXbrl, 
-                    namespaceConflicts=sorted((d.targetNamespace 
-                                               for k in ('us-types', 'ifrs-full')
-                                               for d in val.standardNamespaceConflicts[k]),
-                                              key=lambda ns: ns.rpartition('/')[2]))
-            '''
-            if documentType not in { # IFRS document types
-                                        "20-F",
-                                        "20-F/A",
-                                        "20FR12B",
-                                        "20FR12B/A",
-                                        "20FR12G",
-                                        "20FR12G/A",
-                                        "40-F",
-                                        "40-F/A",
-                                        "40FR12B",
-                                        "40FR12B/A",
-                                        "40FR12G",
-                                        "40FR12G/A",
-                                        "6-K",
-                                        "6-K/A",
-                                        "F-4",
-                                        "F-4 POS",
-                                        "F-4/A",
-                                        "F-4EF",
-                                        "F-4MEF",
-                                        "F-9 POS",
-                                        "F-9/A",
-                                        "F-9",
-                                        "F-9EF",
-                                        "F-10",
-                                        "F-10/A",
-                                        "F-10EF",
-                                        "F-10POS"
-                                      }:
-                modelXbrl.error("EFM.6.05.20.documentTypeNamespaceInconsistency",
-                    _("DocumentType '%(documentType)s' of context %(contextID)s is not consistent with standard namespace %(namespace)s"),
-                    modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType,
-                    namespace=next(iter(val.standardNamespaceConflicts['ifrs-full'])).targetNamespace)        
+            ifrsNS = next(iter(val.standardNamespaceConflicts['ifrs-full'])).targetNamespace
+            srtNS = None
+            for ns in modelXbrl.namespaceDocs:
+                if "fasb.org/srt/" in ns:
+                    srtNS = ns
+                    break
+            """ removed per PCR22280 5/16/18
+            ifrsSrtConceptQNs = set(qname(ifrsNS, ifrsConceptName) for ifrsConceptName in ifrsSrtConcepts.keys())
+            ifrsSrtConceptsUsed = set(c.qname for c in conceptsUsed if c.qname in ifrsSrtConceptQNs)
+            if ifrsSrtConceptsUsed and srtNS:
+                ifrsSrtObjs = set(f for f in modelXbrl.facts if f.qname in ifrsSrtConceptsUsed
+                                  ) | set(c for c in modelXbrl.contexts.values() if _DICT_SET(c.qnameDims.keys()) & ifrsSrtConceptsUsed)
+                modelXbrl.warning("EFM.6.05.40.srtConceptsForIFRSConcepts",
+                    _("Taxonomy concepts from the SRT taxonomy should be used for the following IFRS concepts: %(ifrsSrtConceptsUsed)s"),
+                    edgarCode="cp-0540-SRT-Concepts-For-IFRS-Concepts",
+                    modelObject=ifrsSrtObjs, ifrsSrtConceptsUsed=", ".join(str(qn) for qn in sorted(ifrsSrtConceptsUsed)))
+            srtAxesIfrsMemberQNs = {}
+            for srtAxisName, ifrsMems in srtAxisIfrsMembers.items():
+                srtAxisQn = qname(srtNS, srtAxisName)
+                srtAxisConcept = modelXbrl.qnameConcepts.get(srtAxisQn)
+                if srtAxisConcept in conceptsUsed:
+                    srtAxesIfrsMemberQNs[srtAxisQn] = set(qname(ifrsNS, ifrsMem) for ifrsMem in ifrsMems)
+            if srtAxesIfrsMemberQNs:
+                ifrsSrtMembersUsed = set(dim.memberQname 
+                                         for c in modelXbrl.contexts.values()
+                                         for dim in c.qnameDims.values()
+                                         if dim.dimensionQname in srtAxesIfrsMemberQNs and dim.memberQname in srtAxesIfrsMemberQNs[dim.dimensionQname])
+                if ifrsSrtMembersUsed:
+                    ifrsSrtObjs = set(c for c in modelXbrl.contexts.values() for dim in c.qnameDims.values()
+                                      if dim.dimensionQname in srtAxesIfrsMemberQNs and dim.memberQname in srtAxesIfrsMemberQNs[dim.dimensionQname])
+                    modelXbrl.warning("EFM.6.05.40.srtMembersForSRTAxes",
+                        _("Taxonomy axes from the SRT taxonomy should use SRT or extension members for the following IFRS member concepts: %(ifrsSrtConceptsUsed)s."),
+                        edgarCode="cp-0540-SRT-Members-For-SRT-Axes",
+                        modelObject=ifrsSrtObjs, ifrsSrtConceptsUsed=", ".join(str(qn) for qn in sorted(ifrsSrtMembersUsed)))
+            """
+        if isInlineXbrl and documentType in {
+            "485BPOS", "497", "K SDR", "L SDR",
+            "S-1", "S-1/A", "S-1MEF", "S-3", "S-3/A", "S-3ASR", "S-3D", "S-3DPOS", "S-3MEF", "S-4", "S-4/A", "S-4EF", 
+            "S-4MEF", "S-4 POS", "S-11", "S-11/A", "S-11MEF", "F-1", "F-1/A", "F-1MEF", "F-3", "F-3/A", "F-3ASR", 
+            "F-3D", "F-3DPOS", "F-3MEF", "F-4", "F-4/A", "F-4EF", "F-4MEF", "F-4 POS", "F-10", "F-10/A", "F-10EF", 
+            "F-10POS", "N-Q", "N-Q/A", "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A"}:
+            modelXbrl.error("EFM.6.22.03.incompatibleInlineDocumentType",
+                _("Inline XBRL may not be used with document type %(documentType)s"),
+                modelObject=modelXbrl, conflictClass="inline XBRL", documentType=documentType)
         if documentType is not None and not val.hasExtensionSchema and documentType != "L SDR":
             modelXbrl.error("EFM.6.03.10",
                             _("%(documentType)s report is missing a extension schema file."),
                             modelObject=modelXbrl, documentType=documentType)
+        
+        # 6.7.12: check link role orders
+        if submissionType not in submissionTypesExemptFromRoleOrder and documentType not in docTypesExemptFromRoleOrder:    
+            seqDefRoleTypes = []
+            for roleURI in modelXbrl.relationshipSet(XbrlConst.parentChild).linkRoleUris:
+                for roleType in modelXbrl.roleTypes.get(roleURI,()):
+                    match = efmRoleDefinitionPattern.match(roleType.definitionNotStripped)
+                    if match and modelXbrl.relationshipSet(XbrlConst.parentChild, roleURI).modelRelationships:
+                        seqDefRoleTypes.append((match.group(1), roleType))
+            priorLevel = level = (0, None, None, None) # (sort order, level, description)
+            for seq, roleType in sorted(seqDefRoleTypes, key=lambda s: s[0]): # sort on sequence only
+                definition = roleType.definitionNotStripped
+                if '- Document - ' in definition: level = (0, "0, Cover", definition, roleType)
+                elif ' - Statement - ' in definition: level = (1, "1, Statement", definition, roleType)
+                elif ' (Detail' in definition: level = (5, "4, Detail", definition, roleType)
+                elif ' (Table' in definition: level = (4, "3, Table", definition, roleType)
+                elif ' (Polic' in definition: level = (3, "2, Policy", definition, roleType)
+                else: level = (2, "1, Note", definition, roleType)
+                if priorLevel[1] is not None and level[0] < priorLevel[0]:
+                    modelXbrl.warning("EFM.6.07.12.presentationBaseSetOrder", 
+                                      _("Role '%(descriptionX)s', a level %(levelX)s role, appears before '%(descriptionY)s', a level %(levelY)s role."),
+                                        edgarCode="dq-0712-Presentation-Base-Set-Order",
+                                        modelObject=(priorLevel[3], level[3]), descriptionX=priorLevel[2], levelX=priorLevel[1],
+                                        descriptionY=level[2], levelY=level[1])
+                priorLevel = level
+            del seqDefRoleTypes, priorLevel, level # dereference
         
     conceptRelsUsedWithPreferredLabels = defaultdict(list)
     usedCalcsPresented = defaultdict(set) # pairs of concepts objectIds used in calc
@@ -1649,7 +1968,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 for modelRel in ineffectiveArcs:
                     if isinstance(modelRel.fromModelObject, ModelObject) and isinstance(modelRel.toModelObject, ModelObject):
                         modelXbrl.error(("EFM.6.09.03", "GFM.1.04.03"),
-                            _("Ineffective arc %(arc)s in \nlink role %(linkrole)s \narcrole %(arcrole)s \nfrom %(conceptFrom)s \nto %(conceptTo)s \n%(ineffectivity)s"),
+                            _("The %(arcrole)s relationship from %(conceptFrom)s to %(conceptTo)s, link role %(linkroleDefinition)s, in the submission is ineffectual.  Please remove or correct the relationship."),
+                            edgarCode="du-0903-Relationship-Ineffectual",
                             modelObject=modelRel, arc=modelRel.qname, arcrole=modelRel.arcrole,
                             linkrole=modelRel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(modelRel.linkrole), 
                             conceptFrom=modelRel.fromModelObject.qname, conceptTo=modelRel.toModelObject.qname, 
@@ -1685,7 +2005,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     else:
                                         rel2 = relTo2 = None
                                     modelXbrl.error(("EFM.6.12.05", "GFM.1.06.05"),
-                                        _("Concept %(concept)s has duplicate preferred label %(preferredLabel)s in link role %(linkrole)s"),
+                                        _("Relationships from %(fromConcept)s to %(concept)s in role %(linkroleDefinition)s do not have distinct values for "
+                                          "the preferredLabel attribute, %(preferredLabel)s.  Change all but one value of preferredLabel."),
+                                        edgarCode="rq-1205-Preferred-Label-Duplicates",
                                         modelObject=(rel, relTo, rel2, relTo2), 
                                         concept=relTo.qname, fromConcept=rel.fromModelObject.qname,
                                         preferredLabel=preferredLabel, linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole))
@@ -1698,7 +2020,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             order = rel.order
                             if order in orderRels:
                                 modelXbrl.error(("EFM.6.12.02", "GFM.1.06.02"),
-                                    _("Duplicate presentation relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s"),
+                                    _("More than one presentation relationship in role %(linkroleDefinition)s has order value %(order)s, from concept %(conceptFrom)s.  "
+                                      "Change all but one so they are distinct."),
+                                    edgarCode="rq-1202-Presentation-Order-Duplicates",
                                     modelObject=(rel, orderRels[order]), conceptFrom=relFrom.qname, order=rel.arcElement.get("order"), linkrole=rel.linkrole, 
                                     linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole), linkroleName=modelXbrl.roleTypeName(rel.linkrole),
                                     conceptTo=relTo.qname, conceptTo2=orderRels[order].toModelObject.qname)
@@ -1707,7 +2031,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if isinstance(relTo, ModelConcept):
                                 if relTo.periodType == "duration" and instantPreferredLabelRolePattern.match(preferredLabel or ""): 
                                     modelXbrl.warning("EFM.6.12.07",
-                                        _("In \"%(linkrole)s\", element %(conceptTo)s has period type 'duration' but is given a preferred label %(preferredLabel)s when shown under parent %(conceptFrom)s.  The preferred label will be ignored."),
+                                        _("In \"%(linkrole)s\", element %(conceptTo)s has period type 'duration' but is given a preferred label %(preferredLabel)s "
+                                          "when shown under parent %(conceptFrom)s.  The preferred label will be ignored."),
                                         modelObject=(rel, relTo), conceptTo=relTo.qname, conceptFrom=relFrom.qname, order=rel.arcElement.get("order"), linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole),
                                         linkroleName=modelXbrl.roleTypeName(rel.linkrole),
                                         conceptTo2=orderRels[order].toModelObject.qname, 
@@ -1758,7 +2083,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             # 6.14.03 must have matched period types across relationshp
                             if isinstance(relTo, ModelConcept) and relFrom.periodType != relTo.periodType:
                                 val.modelXbrl.error(("EFM.6.14.03", "GFM.1.07.03"),
-                                    "Calculation relationship period types mismatched in base set role %(linkrole)s from %(conceptFrom)s to %(conceptTo)s",
+                                    "Element %(conceptFrom)s and element %(conceptTo)s have different period types, but there is a calculation relationship between them in role %(linkroleDefinition)s. "
+                                    "Please recheck submission calculation links.",
+                                    edgarCode="fs-1403-Calculation-Relationship-Has-Different-Period-Types",
                                     modelObject=rel, linkrole=rel.linkrole, conceptFrom=relFrom.qname, conceptTo=relTo.qname, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR))
                             # 6.14.5 concepts used must have pres in same ext link
                             if relFrom in conceptsUsed and relTo in conceptsUsed:
@@ -1780,7 +2107,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         directedCycleRels = directedCycle(val, relFrom,relFrom,fromRelationships,{relFrom})
                         if directedCycleRels is not None:
                             val.modelXbrl.error(("EFM.6.14.04", "GFM.1.07.04"),
-                                _("Calculation relationships have a directed cycle in base set role %(linkrole)s starting from %(concept)s"),
+                                _("Element %(concept)s is summed into itself in calculation group %(linkroleDefinition)s.  Please recheck submission."),
+                                edgarCode="fs-1404-Circular-Calculation",
                                 modelObject=[relFrom] + directedCycleRels, linkrole=ELR, concept=relFrom.qname, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR))
                         orderRels.clear()
                         # if relFrom used by fact and multiple calc networks from relFrom, test 6.15.04
@@ -1806,9 +2134,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         for rel in rels:
                             relTo = rel.toModelObject
 
-                            if not (isinstance(relTo, ModelConcept) and relTo.type is not None and relTo.type.isDomainItemType) and not isStandardUri(val, rel.modelDocument.url):
+                            if not (isinstance(relTo, ModelConcept) and relTo.type is not None and relTo.type.isDomainItemType) and not isStandardUri(val, rel.modelDocument.uri):
                                 val.modelXbrl.error(("EFM.6.16.03", "GFM.1.08.03"),
-                                    _("Definition relationship from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s requires domain item target"),
+                                    _("There is a dimension-domain relationship from %(conceptFrom)s but its target element %(conceptTo)s is not a domain.  "
+                                      "Please change the relationship or change the type of the target element."),
+                                    edgarCode="du-1603-Dimension-Domain-Target-Mismatch",
                                     modelObject=(rel, relFrom, relTo), conceptFrom=relFrom.qname, conceptTo=(relTo.qname if relTo is not None else None), linkrole=rel.linkrole)
 
                        
@@ -1822,7 +2152,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             order = rel.order
                             if order in orderRels and disclosureSystem.GFM:
                                 val.modelXbrl.error("GFM.1.08.10",
-                                    _("Duplicate definitions relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s"),
+                                    _("Duplicate definitions relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s "
+                                      "to concept %(conceptTo)s and to concept %(conceptTo2)s"),
                                     modelObject=(rel, relFrom, relTo), conceptFrom=relFrom.qname, order=order, linkrole=rel.linkrole, 
                                     conceptTo=rel.toModelObject.qname, conceptTo2=orderRels[order].toModelObject.qname)
                             else:
@@ -1830,7 +2161,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if (arcrole not in (XbrlConst.dimensionDomain, XbrlConst.domainMember) and
                                 rel.get("{http://xbrl.org/2005/xbrldt}usable") == "false"):
                                 val.modelXrl.error("GFM.1.08.11",
-                                    _("Disallowed xbrldt:usable='false' attribute on %(arc)s relationship from concept %(conceptFrom)s in base set role %(linkrole)s to concept %(conceptTo)s"),
+                                    _("Disallowed xbrldt:usable='false' attribute on %(arc)s relationship from concept %(conceptFrom)s in "
+                                      "base set role %(linkrole)s to concept %(conceptTo)s"),
                                     modelObject=(rel, relFrom, relTo), arc=rel.qname, conceptFrom=relFrom.qname, linkrole=rel.linkrole, conceptTo=rel.toModelObject.qname)
 
     del localPreferredLabels # dereference
@@ -1847,7 +2179,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     for concept, hasPresentationRelationship in conceptsUsed.items():
         if not hasPresentationRelationship:
             val.modelXbrl.error(("EFM.6.12.03", "GFM.1.6.3"),
-                _("Concept used in instance %(concept)s does not participate in an effective presentation relationship"),
+                _("Element %(concept)s is used in a fact or context in the instance, but is not in any presentation relationships.  "
+                  "Add the element to at least one presentation group."),
+                edgarCode="cp-1203-Element-Used-Not-Presented",
                 modelObject=[concept] + list(modelXbrl.factsByQname[concept.qname]), concept=concept.qname)
             
     for fromIndx, toIndxs in usedCalcsPresented.items():
@@ -1869,7 +2203,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             if contextId is None:
                 contextId = backupId
             val.modelXbrl.error(("EFM.6.14.05", "GFM.1.7.5"),
-                _("Used calculation relationship from %(conceptFrom)s to %(conceptTo)s does not participate in an effective presentation relationship"),
+                _("Context %(contextId)s has facts of elements %(conceptFrom)s and %(conceptTo)s, with a calculation relationship in %(linkroleDefinition)s, "
+                  "but these elements are not in any common corresponding presentation relationship group."),
+                edgarCode="du-1405-Facts-In-Calculations-Presentation-Missing",
                 modelObject=calcRels + [fromModelObject, toModelObject],
                 linkroleDefinition=val.modelXbrl.roleTypeDefinition(calcRels[0].linkrole if calcRels else None),
                 conceptFrom=val.modelXbrl.modelObject(fromIndx).qname, conceptTo=val.modelXbrl.modelObject(toIndx).qname, contextId=contextId)
@@ -1940,7 +2276,7 @@ def checkConceptLabels(val, modelXbrl, labelsRelationshipSet, disclosureSystem, 
     dupLabels = {}
     for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
         modelLabel = modelLabelRel.toModelObject
-        if isinstance(modelLabel, ModelResource) and modelLabel.xmlLang:
+        if isinstance(modelLabel, ModelResource) and modelLabel.xmlLang and modelLabel.modelDocument.inDTS:
             if modelLabel.xmlLang.startswith(disclosureSystem.defaultXmlLang) and \
                modelLabel.role == XbrlConst.standardLabel:
                 hasDefaultLangStandardLabel = True
@@ -1956,8 +2292,9 @@ def checkConceptLabels(val, modelXbrl, labelsRelationshipSet, disclosureSystem, 
     #6 10.1 en-US standard label
     if not hasDefaultLangStandardLabel:
         modelXbrl.error(("EFM.6.10.01", "GFM.1.05.01"),
-            _("Concept used in facts %(concept)s is missing an %(lang)s standard label."),
+            _("You have submitted an instance using an element without an %(lang)s standard label %(concept)s. Please check your submission and correct the labels."),
             # concept must be the first referenced modelObject
+            edgarCode="cp-1001-Element-Used-Standard-Label",    
             modelObject=[concept] + list(modelXbrl.factsByQname[concept.qname]), concept=concept.qname, 
             lang=disclosureSystem.defaultLanguage)
         
@@ -1971,7 +2308,8 @@ def checkConceptLabels(val, modelXbrl, labelsRelationshipSet, disclosureSystem, 
             if role != priorRole:
                 if not hasDefaultLang:
                     modelXbrl.error(("EFM.6.10.03", "GFM.1.5.3"),
-                        _("Concept %(concept)s is missing an %(lang)s label for role %(role)s."),
+                        _("You have submitted an instance using an element %(concept)s with %(lang)s for role %(role)s. Please check your submission and correct the labels."),
+                        edgarCode="cp-1003-Element-Used-Standard-English-Label",
                         modelObject=list(modelXbrl.factsByQname[concept.qname]) + [dupLabels[(priorRole,priorLang)]], 
                         concept=concept.qname, 
                         lang=disclosureSystem.defaultLanguage, role=priorRole)
@@ -1982,5 +2320,32 @@ def checkConceptLabels(val, modelXbrl, labelsRelationshipSet, disclosureSystem, 
                 hasDefaultLang = True
     except Exception:
         pass
-
-
+    
+def deiParamEqual(deiName, xbrlVal, secVal):
+    if xbrlVal is None: # nil fact
+        return False
+    if deiName == "DocumentPeriodEndDate":
+        x = str(xbrlVal).split('-')
+        s = secVal.split('-')
+        return (x[0]==s[2] and x[1]==s[0] and x[2]==s[1])
+    elif deiName == "CurrentFiscalYearEndDate":
+        x = str(xbrlVal).lstrip('-').split('-')
+        s = secVal.split('/')
+        return (len(secVal) == 5 and secVal[2] == '/' and x[0] == s[0] and x[1] == s[1])
+    elif deiName in {"EntityEmergingGrowthCompany", "EntityExTransitionPeriod", "EntityShellCompany", 
+                     "EntitySmallBusiness", "EntityVoluntaryFilers", "EntityWellKnownSeasonedIssuer"}:
+        return {"y": True, "yes": True, "true": True, "n": False, "no": False, "false": False
+                }.get(str(xbrlVal).lower()) == secVal
+    elif deiName == "EntityFileNumber":
+        return secVal == xbrlVal
+    elif deiName == "EntityInvCompanyType":
+        return xbrlVal in {"N-1A":("N-1A",), "N-1":("N-1",), "N-2":("N-2"), "N-3":("N-3",), "N-4":("N-4",), "N-5":("N-5",),
+                           "N-6":("N-6",), "S-1":("S-1","S-3"), "S-3":("S-1","S-3"),"S-6":("S-6")}.get(secVal,())
+    elif deiName == "EntityFilerCategory":
+        return xbrlVal in {"Non-Accelerated Filer":("Non-accelerated Filer", "Smaller Reporting Company"),
+                           "Accelerated Filer":("Accelerated Filer", "Smaller Reporting Accelerated Filer"),
+                           "Large Accelerated Filer":("Large Accelerated Filer",),
+                           "Not Applicable":("Non-accelerated Filer", "Smaller Reporting Company")}.get(secVal,())
+    elif deiName == "2014EntityFilerCategory":
+        return xbrlVal in {"true":("Smaller Reporting Company", "Smaller Reporting Accelerated Filer"),
+                           "false":("Non-accelerated Filer", "Accelerated Filer", "Large Accelerated Filer")}.get(secVal,())

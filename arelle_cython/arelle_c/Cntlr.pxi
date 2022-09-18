@@ -1,20 +1,23 @@
-from arelle_c.xerces_util cimport Initialize, Terminate, fgMemoryManager
+from arelle_c.xerces_util cimport Initialize, Terminate, fgMemoryManager, gXercesMajVersion, gXercesMinVersion, gXercesRevision
 from arelle_c.xerces_framework cimport XMLGrammarPool, XMLGrammarPoolImpl
 from libcpp cimport bool
 
 cdef bool _xerces_initialized = False, _xerces_terminated = False
 cdef XMLGrammarPool* xerces_grammar_pool = NULL
 
+cdef void assureXercesIsInitialized():
+    global _xerces_initialized
+    if not _xerces_initialized:
+        Initialize()
+        _xerces_initialized = True
+
+cdef bool traceToStdout = False
 
 cdef class Cntlr:
     
     def __init__(self):
-        global _xerces_initialized, _xerces_terminated, xerces_grammar_pool
-        assert not _xerces_initialized, "xerces already initialized" # can only be one per instance
-        if not _xerces_initialized:
-            Initialize()
-            _xerces_initialized = True
-            initialize_constants()
+        global _xerces_terminated, xerces_grammar_pool
+        assureXercesIsInitialized()
         xerces_grammar_pool = new XMLGrammarPoolImpl(fgMemoryManager)
     
     def close(self):
@@ -33,5 +36,22 @@ cdef class Cntlr:
             
     def xerces_terminated(self):
         return _xerces_terminated
+    
+    @property
+    def xerces_version(self):
+        return [gXercesMajVersion, gXercesMinVersion, gXercesRevision]
+        
+    @property
+    def arelle_c_version(self):
+        return uDateCompiled
+    
+    @property
+    def traceToStdout(self):
+        return traceToStdout
+    
+    @traceToStdout.setter
+    def traceToStdout(self, value):
+        global traceToStdout
+        traceToStdout = value
     
     

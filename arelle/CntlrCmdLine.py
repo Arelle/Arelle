@@ -12,7 +12,7 @@ from arelle import PythonUtil # define 2.x or 3.x string types
 import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging
 from optparse import OptionParser, SUPPRESS_HELP
 import re
-from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version, 
+from arelle import (Cntlr, FileSource, ModelDocument, RenderingEvaluator, XmlUtil, XbrlConst, Version, 
                     ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts, 
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
                     ViewFileRoleTypes,
@@ -61,7 +61,7 @@ def parseAndRun(args):
     usage = "usage: %prog [options]"
     
     parser = OptionParser(usage, 
-                          version="Arelle(r) {0}bit {1}".format(cntlr.systemWordSize, Version.version),
+                          version="Arelle(r) {0} ({1}bit)".format(Version.__version__, cntlr.systemWordSize),
                           conflict_handler="resolve") # allow reloading plug-in options without errors
     parser.add_option("-f", "--file", dest="entrypointFile",
                       help=_("FILENAME is an entry point, which may be "
@@ -142,10 +142,14 @@ def parseAndRun(args):
                       help=_("Write concepts into FILE"))
     parser.add_option("--pre", "--csvPre", action="store", dest="preFile",
                       help=_("Write presentation linkbase into FILE"))
+    parser.add_option("--table", "--csvTable", action="store", dest="tableFile",
+                      help=_("Write table linkbase into FILE"))
     parser.add_option("--cal", "--csvCal", action="store", dest="calFile",
                       help=_("Write calculation linkbase into FILE"))
     parser.add_option("--dim", "--csvDim", action="store", dest="dimFile",
                       help=_("Write dimensions (of definition) linkbase into FILE"))
+    parser.add_option("--anch", action="store", dest="anchFile",
+                      help=_("Write anchoring relationships (of definition) linkbase into FILE"))
     parser.add_option("--formulae", "--htmlFormulae", action="store", dest="formulaeFile",
                       help=_("Write formulae linkbase into FILE"))
     parser.add_option("--viewArcrole", action="store", dest="viewArcrole",
@@ -196,6 +200,15 @@ def parseAndRun(args):
     parser.add_option("--logCodeFilter", action="store", dest="logCodeFilter",
                       help=_("Regular expression filter for log message code."))
     parser.add_option("--logcodefilter", action="store", dest="logCodeFilter", help=SUPPRESS_HELP)
+    parser.add_option("--logTextMaxLength", action="store", dest="logTextMaxLength", type="int",
+                      help=_("Log file text field max length override."))
+    parser.add_option("--logtextmaxlength", action="store", dest="logTextMaxLength", type="int", help=SUPPRESS_HELP)
+    parser.add_option("--logRefObjectProperties", action="store_true", dest="logRefObjectProperties", 
+                      help=_("Log reference object properties (default)."), default=True)
+    parser.add_option("--logrefobjectproperties", action="store_true", dest="logRefObjectProperties", help=SUPPRESS_HELP)
+    parser.add_option("--logNoRefObjectProperties", action="store_false", dest="logRefObjectProperties", 
+                      help=_("Do not log reference object properties."))
+    parser.add_option("--lognorefobjectproperties", action="store_false", dest="logRefObjectProperties", help=SUPPRESS_HELP)
     parser.add_option("--statusPipe", action="store", dest="statusPipe", help=SUPPRESS_HELP)
     parser.add_option("--monitorParentProcess", action="store", dest="monitorParentProcess", help=SUPPRESS_HELP)
     parser.add_option("--outputAttribution", action="store", dest="outputAttribution", help=SUPPRESS_HELP)
@@ -252,8 +265,13 @@ def parseAndRun(args):
     parser.add_option("--formulavarfilterwinnowing", action="store_true", dest="formulaVarFilterWinnowing", help=SUPPRESS_HELP)
     parser.add_option("--formulaVarFiltersResult", action="store_true", dest="formulaVarFiltersResult", help=_("Specify formula tracing."))
     parser.add_option("--formulavarfiltersresult", action="store_true", dest="formulaVarFiltersResult", help=SUPPRESS_HELP)
+    parser.add_option("--testcaseResultsCaptureWarnings", action="store_true", dest="testcaseResultsCaptureWarnings",
+                      help=_("For testcase variations capture warning results, default is inconsistency or warning if there is any warning expected result.  "))
+    parser.add_option("--testcaseresultscapturewarnings", action="store_true", dest="testcaseResultsCaptureWarnings", help=SUPPRESS_HELP)
     parser.add_option("--formulaRunIDs", action="store", dest="formulaRunIDs", help=_("Specify formula/assertion IDs to run, separated by a '|' character."))
     parser.add_option("--formularunids", action="store", dest="formulaRunIDs", help=SUPPRESS_HELP)
+    parser.add_option("--formulaCompileOnly", action="store_true", dest="formulaCompileOnly", help=_("Specify formula are to be compiled but not executed."))
+    parser.add_option("--formulacompileonly", action="store_true", dest="formulaCompileOnly", help=SUPPRESS_HELP)
     parser.add_option("--uiLang", action="store", dest="uiLang",
                       help=_("Language for user interface (override system settings, such as program messages).  Does not save setting."))
     parser.add_option("--uilang", action="store", dest="uiLang", help=SUPPRESS_HELP)
@@ -281,25 +299,23 @@ def parseAndRun(args):
     parser.add_option("--xdgConfigHome", action="store", dest="xdgConfigHome", 
                       help=_("Specify non-standard location for configuration and cache files (overrides environment parameter XDG_CONFIG_HOME)."))
     parser.add_option("--plugins", action="store", dest="plugins",
-                      help=_("Modify plug-in configuration.  "
-                             "Re-save unless 'temp' is in the module list.  " 
-                             "Enter 'show' to show current plug-in configuration.  "
+                      help=_("Specify plug-in configuration for this invocation.  "
+                             "Enter 'show' to confirm plug-in configuration.  "
                              "Commands show, and module urls are '|' separated: "
-                             "+url to add plug-in by its url or filename, ~name to reload a plug-in by its name, -name to remove a plug-in by its name, "
+                             "url specifies a plug-in by its url or filename, "
                              "relative URLs are relative to installation plug-in directory, "
-                             " (e.g., '+http://arelle.org/files/hello_web.py', '+C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load, "
-                             "or +../examples/plugin/hello_dolly.py for relative use of examples directory, "
-                             "~Hello Dolly to reload, -Hello Dolly to remove).  "
-                             "If + is omitted from .py file nothing is saved (same as temp).  "
-                             "Packaged plug-in urls are their directory's url.  " ))
+                             " (e.g., 'http://arelle.org/files/hello_web.py', 'C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load, "
+                             "or ../examples/plugin/hello_dolly.py for relative use of examples directory) "
+                             "Local python files do not require .py suffix, e.g., hello_dolly without .py is sufficient, "
+                             "Packaged plug-in urls are their directory's url (e.g., --plugins EdgarRenderer or --plugins xbrlDB).  " ))
     parser.add_option("--packages", action="store", dest="packages",
-                      help=_("Modify taxonomy packages configuration.  "
-                             "Re-save unless 'temp' is in the module list.  " 
+                      help=_("Specify taxonomy packages configuration.  "
                              "Enter 'show' to show current packages configuration.  "
                              "Commands show, and module urls are '|' separated: "
-                             "+url to add package by its url or filename, ~name to reload package by its name, -name to remove a package by its name, "
-                             "URLs are full absolute paths.  "
-                             "If + is omitted from package file nothing is saved (same as temp).  " ))
+                             "url specifies a package by its url or filename, please use full paths. "
+                             "(Package settings from GUI are no longer shared with cmd line operation. "
+                             "Cmd line package settings are not persistent.)  " ))
+    parser.add_option("--package", action="store", dest="packages", help=SUPPRESS_HELP)
     parser.add_option("--packageManifestName", action="store", dest="packageManifestName",
                       help=_("Provide non-standard archive manifest file name pattern (e.g., *taxonomyPackage.xml).  "
                              "Uses unix file name pattern matching.  "
@@ -308,6 +324,7 @@ def parseAndRun(args):
     parser.add_option("--abortOnMajorError", action="store_true", dest="abortOnMajorError", help=_("Abort process on major error, such as when load is unable to find an entry or discovered file."))
     parser.add_option("--showEnvironment", action="store_true", dest="showEnvironment", help=_("Show Arelle's config and cache directory and host OS environment parameters."))
     parser.add_option("--showenvironment", action="store_true", dest="showEnvironment", help=SUPPRESS_HELP)
+    parser.add_option("--showCythonTrace", action="store_true", dest="showCythonTrace", help=_("Print Cython trace (low level) to stdout."))
     parser.add_option("--collectProfileStats", action="store_true", dest="collectProfileStats", help=_("Collect profile statistics, such as timing of validation activities and formulae."))
     if hasWebServer:
         parser.add_option("--webserver", action="store", dest="webserver",
@@ -318,7 +335,7 @@ def parseAndRun(args):
 
     # install any dynamic plugins so their command line options can be parsed if present
     for i, arg in enumerate(args):
-        if arg.startswith('--plugins'):
+        if arg.startswith('--plugin'): # allow singular or plural (option must simply be non-ambiguous
             if len(arg) > 9 and arg[9] == '=':
                 preloadPlugins = arg[10:]
             elif i < len(args) - 1:
@@ -371,9 +388,9 @@ def parseAndRun(args):
         
     (options, leftoverArgs) = parser.parse_args(args)
     if options.about:
-        print(_("\narelle(r) {0}bit {1}\n\n"
+        print(_("\narelle(r) {0} ({1}bit) lib {3}\n\n"
                 "An open source XBRL platform\n"
-                "(c) 2010-2015 Mark V Systems Limited\n"
+                "(c) 2010-{2} Mark V Systems Limited\n"
                 "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
                 "Licensed under the Apache License, Version 2.0 (the \"License\"); "
                 "you may not \nuse this file except in compliance with the License.  "
@@ -385,14 +402,14 @@ def parseAndRun(args):
                 "See the License for the specific language governing permissions and \n"
                 "limitations under the License."
                 "\n\nIncludes:"
-                "\n   Python(r) {3[0]}.{3[1]}.{3[2]} (c) 2001-2013 Python Software Foundation"
+                "\n   Python(r) {5[0]}.{5[1]}.{5[2]} (c) 2001-2013 Python Software Foundation"
                 "\n   PyParsing (c) 2003-2013 Paul T. McGuire"
-                "\n   lxml {4[0]}.{4[1]}.{4[2]} (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
-                "{2}"
+                "\n   Xerces-C++ {6[0]}.{6[1]}.{6[2]} (c) 1999-2017 The Apache Software Foundation"
+                "{4}"
                 "\n   May include installable plug-in modules with author-specific license terms"
-                ).format(cntlr.systemWordSize, Version.version,
+                ).format(Version.__version__, cntlr.systemWordSize, Version.copyrightLatestYear, cntlr.arelle_c_version,
                          _("\n   Bottle (c) 2011-2013 Marcel Hellkamp") if hasWebServer else "",
-                         sys.version_info, etree.LXML_VERSION))
+                         sys.version_info, cntlr.xerces_version))
     elif options.disclosureSystemName in ("help", "help-verbose"):
         text = _("Disclosure system choices: \n{0}").format(' \n'.join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName)))
         try:
@@ -400,7 +417,7 @@ def parseAndRun(args):
         except UnicodeEncodeError:
             print(text.encode("ascii", "replace").decode("ascii"))
     elif len(leftoverArgs) != 0 and (not hasWebServer or options.webserver is None):
-        parser.error(_("unrecognized arguments: {}".format(', '.join(leftoverArgs))))
+        parser.error(_("unrecognized arguments: {}").format(', '.join(leftoverArgs)))
     elif (options.entrypointFile is None and 
           ((not options.proxy) and (not options.plugins) and
            (not any(pluginOption for pluginOption in parser.option_list[pluginOptionsIndex:pluginLastOptionIndex])) and
@@ -410,13 +427,15 @@ def parseAndRun(args):
         # webserver incompatible with file operations
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
                 options.factsFile, options.factListCols, options.factTableFile,
-                options.conceptsFile, options.preFile, options.calFile, options.dimFile, options.formulaeFile, options.viewArcrole, options.viewFile,
+                options.conceptsFile, options.preFile, options.tableFile, options.calFile, options.dimFile, options.anchFile, options.formulaeFile, options.viewArcrole, options.viewFile,
                 options.roleTypesFile, options.arcroleTypesFile
                 )):
             parser.error(_("incorrect arguments with --webserver, please try\n  python CntlrCmdLine.py --help"))
         else:
             # note that web server logging does not strip time stamp, use logFormat if that is desired
-            cntlr.startLogging(logFileName='logToBuffer')
+            cntlr.startLogging(logFileName='logToBuffer',
+                               logTextMaxLength=options.logTextMaxLength,
+                               logRefObjectProperties=options.logRefObjectProperties)
             from arelle import CntlrWebMain
             app = CntlrWebMain.startWebserver(cntlr, options)
             if options.webserver == '::wsgi':
@@ -426,7 +445,9 @@ def parseAndRun(args):
         cntlr.startLogging(logFileName=(options.logFile or "logToPrint"),
                            logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
                            logLevel=(options.logLevel or "DEBUG"),
-                           logToBuffer=getattr(options, "logToBuffer", False)) # e.g., used by EdgarRenderer to require buffered logging
+                           logToBuffer=getattr(options, "logToBuffer", False),
+                           logTextMaxLength=options.logTextMaxLength, # e.g., used by EdgarRenderer to require buffered logging
+                           logRefObjectProperties=options.logRefObjectProperties)
         cntlr.run(options)
         
         return cntlr
@@ -647,22 +668,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     self.addToLog(_("XDG_CONFIG_HOME={0}").format(os.environ[envVar]))
             return True
         
+        if options.showCythonTrace:
+            self.traceToStdout = True
+        
         self.modelManager.customTransforms = None # clear out prior custom transforms
         self.modelManager.loadCustomTransforms()
         
-        # run utility command line options that don't depend on entrypoint Files
-        hasUtilityPlugin = False
-        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Utility.Run"):
-            hasUtilityPlugin = True
-            try:
-                pluginXbrlMethod(self, options, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
-            except SystemExit: # terminate operation, plug in has terminated all processing
-                return True # success
-            
-        # if no entrypointFile is applicable, quit now
-        if options.proxy or options.plugins or hasUtilityPlugin:
-            if not (options.entrypointFile or sourceZipStream):
-                return True # success
         self.username = options.username
         self.password = options.password
         if options.disclosureSystemName:
@@ -773,9 +784,29 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.traceVariableFiltersResult = True
         if options.formulaVarFiltersResult:
             fo.traceVariableFiltersResult = True
+        if options.testcaseResultsCaptureWarnings:
+            fo.testcaseResultsCaptureWarnings = True
         if options.formulaRunIDs:
             fo.runIDs = options.formulaRunIDs   
+        if options.formulaCompileOnly:
+            fo.compileOnly = True
+        if options.formulaAction:
+            fo.formulaAction = options.formulaAction
         self.modelManager.formulaOptions = fo
+        
+        # run utility command line options that don't depend on entrypoint Files
+        hasUtilityPlugin = False
+        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Utility.Run"):
+            hasUtilityPlugin = True
+            try:
+                pluginXbrlMethod(self, options, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
+            except SystemExit: # terminate operation, plug in has terminated all processing
+                return True # success
+            
+        # if no entrypointFile is applicable, quit now
+        if options.proxy or options.plugins or hasUtilityPlugin:
+            if not (options.entrypointFile or sourceZipStream):
+                return True # success
 
         success = True
         # entrypointFile may be absent (if input is a POSTED zip or file name ending in .zip)
@@ -807,11 +838,33 @@ class CntlrCmdLine(Cntlr.Cntlr):
         _entrypointFiles = _entryPoints
         if filesource and not filesource.selection:
             if filesource.isArchive:
-                _entrypointFiles = []
-                for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
-                    filesource.select(_archiveFile)
-                    if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-                        _entrypointFiles.append({"file":filesource.url})
+                if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
+                    filesource.loadTaxonomyPackageMappings()
+                if not (sourceZipStream and len(_entrypointFiles) > 0): # web loaded files specify archive files to load
+                    _entrypointFiles = [] # clear out archive from entrypointFiles
+                    # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
+                    for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
+                        if _archiveFile.endswith(".xhtml"):
+                            filesource.select(_archiveFile)
+                            if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+                                _entrypointFiles.append({"file":filesource.url})
+                    urlsByType = {}
+                    if not _entrypointFiles:
+                        for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
+                            filesource.select(_archiveFile)
+                            identifiedType = ModelDocument.Type.identify(filesource, filesource.url)
+                            if identifiedType in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+                                urlsByType.setdefault(identifiedType, []).append(filesource.url)
+                    # use inline instances, if any, else non-inline instances
+                    for identifiedType in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE):
+                        for url in urlsByType.get(identifiedType, []):
+                            _entrypointFiles.append({"file":url})
+                        if _entrypointFiles:
+                            if identifiedType == ModelDocument.Type.INLINEXBRL:
+                                for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
+                                    _entrypointFiles = pluginXbrlMethod(_entrypointFiles) # group into IXDS if plugin feature is available
+                            break # found inline (or non-inline) entrypoint files, don't look for any other type
+                    
             elif os.path.isdir(filesource.url):
                 _entrypointFiles = []
                 for _file in os.listdir(filesource.url):
@@ -833,7 +886,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             modelXbrl = None
             try:
                 if filesource:
-                    modelXbrl = self.modelManager.load(filesource, _("views loading"))
+                    modelXbrl = self.modelManager.load(filesource, _("views loading"), entrypoint=_entrypoint)
             except ModelDocument.LoadingException:
                 pass
             except Exception as err:
@@ -850,6 +903,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                             _("loaded in %.2f secs at %s"), 
                                             (loadTime, timeNow)), 
                                             messageCode="info", file=self.entrypointFile)
+                if modelXbrl.hasTableRendering:
+                    RenderingEvaluator.init(modelXbrl)
                 if options.importFiles:
                     for importFile in options.importFiles.split("|"):
                         fileName = importFile.strip()
@@ -869,7 +924,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         pluginXbrlMethod(self, options, modelXbrl)
                 else: # not a test case, probably instance or DTS
                     for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
-                        pluginXbrlMethod(self, options, modelXbrl, _entrypoint)
+                        pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
             else:
                 success = False
             if success and options.diffFile and options.versReportFile:
@@ -929,7 +984,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         if not options.validate:
                             ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
                         # setup fresh parameters from formula optoins
-                        modelXbrl.parameters = fo.typedParameters()
+                        modelXbrl.parameters = fo.typedParameters(modelXbrl.prefixedNamespaces)
                         ValidateFormula.validate(modelXbrl, compileOnly=(options.formulaAction != "run"))
                         self.addToLog(format_string(self.modelManager.locale, 
                                                     _("formula validation and execution in %.2f secs")
@@ -954,11 +1009,15 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if options.conceptsFile:
                         ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, labelrole=options.labelRole, lang=options.labelLang)
                     if options.preFile:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", "http://www.xbrl.org/2003/arcrole/parent-child", labelrole=options.labelRole, lang=options.labelLang)
+                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", XbrlConst.parentChild, labelrole=options.labelRole, lang=options.labelLang)
+                    if options.tableFile:
+                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.tableFile, "Table Linkbase", "Table-rendering", labelrole=options.labelRole, lang=options.labelLang)
                     if options.calFile:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", "http://www.xbrl.org/2003/arcrole/summation-item", labelrole=options.labelRole, lang=options.labelLang)
+                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", XbrlConst.summationItem, labelrole=options.labelRole, lang=options.labelLang)
                     if options.dimFile:
                         ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=options.labelLang)
+                    if options.anchFile:
+                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.anchFile, "Anchoring", XbrlConst.widerNarrower, labelrole=options.labelRole, lang=options.labelLang)
                     if options.formulaeFile:
                         ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)
                     if options.viewArcrole and options.viewFile:
@@ -968,7 +1027,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if options.arcroleTypesFile:
                         ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=options.labelLang)
                     for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
-                        pluginXbrlMethod(self, options, modelXbrl, _entrypoint)
+                        pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
                                             
                 except (IOError, EnvironmentError) as err:
                     self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err),

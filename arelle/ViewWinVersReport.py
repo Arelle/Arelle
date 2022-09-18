@@ -7,7 +7,7 @@ Created on Nov 9, 2010
 from collections import defaultdict
 import os
 from arelle import ViewWinTree
-from arelle.ModelDtsObject import ModelRelationship
+from arelle.arelle_c import ModelXlinkResource
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelVersObject import ModelRelationshipSetChange, ModelInstanceAspectsChange
 
@@ -160,7 +160,7 @@ class ViewVersReport(ViewWinTree.ViewTree):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             try:
-                if isinstance(modelObject, ModelRelationship):
+                if isinstance(modelObject, ModelXlinkResource):
                     conceptId = modelObject.toModelObject.objectId()
                 elif isinstance(modelObject, ModelFact):
                     conceptId = self.modelXbrl.qnameConcepts[modelObject.qname].objectId()

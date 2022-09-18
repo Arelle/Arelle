@@ -17,6 +17,11 @@ from decimal import Decimal, InvalidOperation
 from lxml import etree
 from types import LambdaType
 
+# deferred types initialization
+boolean = None
+testTypeCompatiblity = None
+Trace = None
+
 class XPathException(Exception):
     def __init__(self, progStep, code, message):
         self.column = None
@@ -75,6 +80,12 @@ class RunTimeExceededException(Exception):
 
    
 def create(modelXbrl, inputXbrlInstance=None, sourceElement=None):
+    global boolean, testTypeCompatiblity, Trace
+    if boolean is None:
+        from arelle.FunctionUtil import testTypeCompatiblity
+        from arelle.ModelFormulaObject import Trace
+        from arelle.FunctionFn import boolean
+
     return XPathContext(modelXbrl, 
                         inputXbrlInstance if inputXbrlInstance else modelXbrl.modelDocument,
                         sourceElement)
@@ -164,6 +175,8 @@ class XPathContext:
                         from arelle import (FunctionXs, FunctionFn, FunctionXfi, FunctionIxt, FunctionCustom)
                         if op in self.modelXbrl.modelCustomFunctionSignatures:
                             result = FunctionCustom.call(self, p, op, contextItem, args)
+                        elif op in self.customFunctions: # plug in method custom functions 
+                            result = self.customFunctions[op](self, p, contextItem, args) # use plug-in's method
                         elif op.unprefixed and localname in {'attribute', 'comment', 'document-node', 'element', 
                            'item', 'node', 'processing-instruction', 'schema-attribute', 'schema-element', 'text'}:
                             # step axis operation
@@ -204,7 +217,6 @@ class XPathContext:
                     else:
                         op1 = s1[0]
                         op2 = s2[0]
-                        from arelle.FunctionUtil import (testTypeCompatiblity)
                         testTypeCompatiblity( self, p, op, op1, op2 )
                         if type(op1) != type(op2) and op in ('+', '-', '*', 'div', 'idiv', 'mod'):
                             # check if type promotion needed (Decimal-float, not needed for integer-Decimal)
@@ -250,6 +262,7 @@ class XPathContext:
                     result = [];
                     for op1 in s1:
                         for op2 in s2:
+                            testTypeCompatiblity( self, p, op, op1, op2 )
                             if op == '>=':
                                 result = op1 >= op2
                             elif op == '>':
@@ -310,12 +323,17 @@ class XPathContext:
                         result = []
                     else:
                         op1 = self.effectiveBooleanValue( p, resultStack.pop() ) if len(resultStack) > 0 else False
-                        op2 = self.effectiveBooleanValue( p, self.evaluate(p.args, contextItem=contextItem) )
-                        result = False;
-                        if op == 'and':
-                            result = op1 and op2
-                        elif op == 'or':
-                            result = op1 or op2
+                        # consider short circuit possibilities
+                        if op == 'or' and op1:
+                            result = True
+                        elif op == 'and' and not op1:
+                            result = False
+                        else: # must evaluate other operand
+                            op2 = self.effectiveBooleanValue( p, self.evaluate(p.args, contextItem=contextItem) )
+                            if op == 'and':
+                                result = op1 and op2
+                            elif op == 'or':
+                                result = op1 or op2
                 elif op in UNARY_OPS:
                     s1 = self.atomize( p, self.evaluate(p.args, contextItem=contextItem) )
                     if len(s1) > 1:
@@ -408,7 +426,6 @@ class XPathContext:
                     result = self.documentOrderedNodes(self.flattenSequence(navSequence))
             elif isinstance(p,ProgHeader):
                 self.progHeader = p
-                from arelle.ModelFormulaObject import Trace
                 if p.traceType not in (Trace.MESSAGE, Trace.CUSTOM_FUNCTION): 
                     self.traceType = p.traceType
                 setProgHeader = True
@@ -696,7 +713,6 @@ class XPathContext:
         return x
     
     def effectiveBooleanValue(self, p, x):
-        from arelle.FunctionFn import boolean
         return boolean( self, p, None, (self.flattenSequence(x),) )
     
     def traceEffectiveVariableValue(self, elt, varname):

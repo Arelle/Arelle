@@ -1,4 +1,5 @@
-from xerces_util cimport QName, XMLCh, XMemory, XMLByte, XMLSize_t, RefArrayVectorOf, RefVectorOf
+from xerces_util cimport QName, XMLCh, XMemory, XMLByte, XMLSize_t, RefArrayVectorOf, RefVectorOf, ValueHashTableOf
+from xerces_ctypes cimport XMLFileLoc
 from xerces_sax cimport InputSource
 from xerces_sax2 cimport ContentHandler
 from xerces_framework_memory_manager cimport MemoryManager
@@ -19,34 +20,53 @@ cdef extern from "xercesc/framework/LocalFileInputSource.hpp" namespace "xercesc
 
 cdef extern from "xercesc/framework/MemBufInputSource.hpp" namespace "xercesc":
     cdef cppclass MemBufInputSource( InputSource ):
-        MemBufInputSource( XMLByte*, XMLSize_t, XMLCh*, bool )
+        MemBufInputSource(const XMLByte* const srcDocBytes, const XMLSize_t byteCount, const XMLCh* const bufId, const bool adoptBuffer)
+        MemBufInputSource(const XMLByte* const srcDocBytes, const XMLSize_t byteCount, const char* const bufId, const bool adoptBuffer)
 
 cdef extern from "xercesc/framework/XMLPScanToken.hpp" namespace "xercesc":
     cdef cppclass XMLPScanToken:
         XMLPScanToken()
 
-cdef extern from "xercesc/framework/psvi/PSVIAttribute.hpp" namespace "xercesc":
-    cdef cppclass PSVIAttribute:
-        PSVIAttribute()
-        XSAttributeDeclaration *getAttributeDeclaration()
+cdef extern from "xercesc/framework/psvi/PSVIItem.hpp" namespace "xercesc::PSVIItem":
+    ctypedef enum VALIDITY_STATE:
+        VALIDITY_NOTKNOWN              = 0
+        VALIDITY_INVALID               = 1
+        VALIDITY_VALID                 = 2
+    ctypedef enum ASSESSMENT_TYPE:
+        VALIDATION_NONE                = 0 
+        VALIDATION_PARTIAL             = 1
+        VALIDATION_FULL                = 2
+                       
+cdef extern from "xercesc/framework/psvi/PSVIItem.hpp" namespace "xercesc":
+    cdef cppclass PSVIItem:
+        const XMLCh *getValidationContext()
+        VALIDITY_STATE getValidity()
+        ASSESSMENT_TYPE getValidationAttempted()
+        const XMLCh *getSchemaNormalizedValue()
         XSTypeDefinition *getTypeDefinition()
         XSSimpleTypeDefinition *getMemberTypeDefinition()
+        const XMLCh *getSchemaDefault()
+        bool getIsSchemaSpecified()
+        const XMLCh *getCanonicalRepresentation()
+        XSValue *getActualValue()
 
-cdef extern from "xercesc/framework/psvi/PSVIAttributeList.hpp" namespace "xercesc":
-    cdef cppclass PSVIAttributeList:
-        PSVIAttributeList()
-        XMLSize_t getLength() const
-        const XMLCh *getAttributeNamespaceAtIndex(const XMLSize_t index)
-        PSVIAttribute *getAttributePSVIByName(const XMLCh *attrName, const XMLCh * attrNamespace)
-        
 cdef extern from "xercesc/framework/psvi/PSVIElement.hpp" namespace "xercesc":
-    cdef cppclass PSVIElement:
-        PSVIElement()
+    cdef cppclass PSVIElement(PSVIItem):
         XSElementDeclaration *getElementDeclaration()
         XSNotationDeclaration *getNotationDeclaration()
         XSModel *getSchemaInformation()
-        XSTypeDefinition *getTypeDefinition()
-        XSSimpleTypeDefinition *getMemberTypeDefinition()
+         
+cdef extern from "xercesc/framework/psvi/PSVIAttribute.hpp" namespace "xercesc":
+    cdef cppclass PSVIAttribute(PSVIItem):
+        XSAttributeDeclaration *getAttributeDeclaration()
+
+cdef extern from "xercesc/framework/psvi/PSVIAttributeList.hpp" namespace "xercesc":
+    cdef cppclass PSVIAttributeList:
+        XMLSize_t getLength()
+        PSVIAttribute *getAttributePSVIAtIndex(const XMLSize_t index)
+        const XMLCh *getAttributeNameAtIndex(const XMLSize_t index)
+        const XMLCh *getAttributeNamespaceAtIndex(const XMLSize_t index)
+        PSVIAttribute *getAttributePSVIByName(const XMLCh *attrName, const XMLCh * attrNamespace)
         
 cdef extern from "xercesc/framework/psvi/PSVIHandler.hpp" namespace "xercesc":
     cdef cppclass PSVIHandler:
@@ -60,6 +80,8 @@ cdef extern from "xercesc/framework/psvi/XSAnnotation.hpp" namespace "xercesc":
         const XMLCh* getAnnotationString()
         void writeAnnotation(ContentHandler* handler)
         XSAnnotation* getNext()
+        void getLineCol (XMLFileLoc& line, XMLFileLoc& col)
+        const XMLCh * getSystemId ()
         
 cdef extern from "xercesc/framework/psvi/XSObject.hpp" namespace "xercesc":
     cdef cppclass XSObject:
@@ -162,9 +184,6 @@ cdef extern from "xercesc/framework/psvi/XSTypeDefinition.hpp" namespace "xerces
 
 cdef extern from "xercesc/framework/psvi/XSAttributeDeclaration.hpp" namespace "xercesc":
     cdef cppclass XSAttributeDeclaration( XSObject ):
-        const XMLCh* getName()
-        const XMLCh* getNamespace()
-        XSNamespaceItem* getNamespaceItem()
         XSSimpleTypeDefinition *getTypeDefinition()
         SCOPE getScope()
         XSComplexTypeDefinition *getEnclosingCTDefinition()
@@ -174,13 +193,10 @@ cdef extern from "xercesc/framework/psvi/XSAttributeDeclaration.hpp" namespace "
         bool getRequired()
         
 cdef extern from "xercesc/framework/psvi/XSAttributeGroupDefinition.hpp" namespace "xercesc":
-        cdef cppclass XSAttributeGroupDefinition( XSObject ):
-            const XMLCh* getName()
-            const XMLCh* getNamespace()
-            XSNamespaceItem* getNamespaceItem()
-            XSAttributeUseList *getAttributeUses()
-            XSWildcard *getAttributeWildcard()
-            XSAnnotation *getAnnotation()
+    cdef cppclass XSAttributeGroupDefinition( XSObject ):
+        XSAttributeUseList *getAttributeUses()
+        XSWildcard *getAttributeWildcard()
+        XSAnnotation *getAnnotation()
 
 cdef extern from "xercesc/framework/psvi/XSAttributeUse.hpp" namespace "xercesc":
     cdef cppclass XSAttributeUse( XSObject ):
@@ -241,9 +257,6 @@ cdef extern from "xercesc/framework/psvi/XSModelGroup.hpp" namespace "xercesc":
 
 cdef extern from "xercesc/framework/psvi/XSModelGroupDefinition.hpp" namespace "xercesc":
     cdef cppclass XSModelGroupDefinition( XSObject ):
-        const XMLCh* getName()
-        const XMLCh* getNamespace()
-        XSNamespaceItem *getNamespaceItem()
         XSModelGroup *getModelGroup()
         XSAnnotation *getAnnotation()
 
@@ -264,9 +277,6 @@ cdef extern from "xercesc/framework/psvi/XSNamedMap.hpp" namespace "xercesc":
 
 cdef extern from "xercesc/framework/psvi/XSNotationDeclaration.hpp" namespace "xercesc":
     cdef cppclass XSNotationDeclaration( XSObject ):
-        const XMLCh* getName()
-        const XMLCh* getNamespace()
-        XSNamespaceItem *getNamespaceItem()
         const XMLCh *getSystemId()
         const XMLCh *getPublicId()
         XSAnnotation *getAnnotation()
@@ -283,7 +293,6 @@ cdef extern from "xercesc/framework/psvi/XSParticle.hpp" namespace "xercesc":
 
 cdef extern from "xercesc/framework/psvi/XSTypeDefinition.hpp" namespace "xercesc":
     cdef cppclass XSTypeDefinition( XSObject ):
-        XSNamespaceItem *getNamespaceItem()
         TYPE_CATEGORY getTypeCategory()
         XSTypeDefinition *getBaseType()
         bool isFinal(short toTest)
@@ -337,7 +346,8 @@ cdef extern from "xercesc/framework/XMLGrammarPool.hpp" namespace "xercesc":
     cdef cppclass XMLGrammarPool:
         XMLGrammarPoolImpl(MemoryManager* const memMgr)
         XSModel *getXSModel(bool& XSModelWasChanged)
-        
+        bool clear()
+                
 cdef extern from "xercesc/framework/XMLGrammarPoolImpl.hpp" namespace "xercesc":
     cdef cppclass XMLGrammarPoolImpl(XMLGrammarPool):
         XMLGrammarPoolImpl(MemoryManager* const memMgr)
@@ -436,13 +446,9 @@ cdef extern from "xercesc/framework/psvi/XSValue.hpp" namespace "xercesc::XSValu
         dg_numerics
         dg_datetimes
         dg_strings
-    ctypedef enum DoubleFloatType:
-        DoubleFloatType_NegINF
-        DoubleFloatType_PosINF
-        DoubleFloatType_NaN
-        DoubleFloatType_Zero
-        DoubleFloatType_Normal
+    cdef DataType getDataType(const XMLCh* const dtString)
         
 cdef extern from "xercesc/framework/psvi/XSValue.hpp" namespace "xercesc":
     cdef cppclass XSValue # ( XMemory )
+
 

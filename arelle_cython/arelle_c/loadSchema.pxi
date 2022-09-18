@@ -1,4 +1,4 @@
-from arelle_c.xerces_util cimport compareString, compareIString, transcode, release, XMLCh, XMLSize_t
+from arelle_c.xerces_util cimport compareString, compareIString, transcode, release, XMLCh, XMLSize_t, fgMemoryManager
 from arelle_c.xerces_sax cimport SAXParseException, ErrorHandler
 from arelle_c.xerces_framework cimport XMLPScanToken
 from arelle_c.xerces_sax2 cimport createXMLReader, SAX2XMLReader, ContentHandler, LexicalHandler, DefaultHandler
@@ -7,7 +7,6 @@ from libcpp cimport bool
 from arelle_c.xerces_sax cimport InputSource, DocumentHandler, ErrorHandler, SAXParseException, Locator
 from arelle_c.xerces_sax2 cimport Attributes
 from arelle_c.xerces_uni cimport fgSAX2CoreNameSpacePrefixes
-from libc.stdlib cimport malloc, free
 #from arelle_c.utils cimport templateSAX2Handler
 
 cdef cppclass _LoadSchemaSAX2Handler(templateSAX2Handler):
@@ -18,14 +17,14 @@ cdef cppclass _LoadSchemaSAX2Handler(templateSAX2Handler):
     bool hasIxNamespace, hasIx11Namespace
     
     _IdentificationSAX2Handler(void* pyIdentificationResultsPtr) except +:
-        this.eltQNames = <XMLCh**>malloc(1000 * sizeof(XMLCh*))
+        this.eltQNames = <XMLCh**>fgMemoryManager.allocate(1000 * sizeof(XMLCh*))
         this.eltDepth = 0
         this.pyIdentificationResultsPtr = pyIdentificationResultsPtr
         this.isXbrl = this.isXsd = this.isHtml = this.isInline = this.isIdentified = False
         this.hasIxNamespace = this.hasIx11Namespace = False
     close():
         this.pyIdentificationResultsPtr = NULL
-        free(this.eltQNames)
+        fgMemoryManager.deallocate(this.eltQNames)
         this.eltQNames = NULL
     # document handlers
     void endElement(const XMLCh* uri, const XMLCh* localname, const XMLCh* qname):

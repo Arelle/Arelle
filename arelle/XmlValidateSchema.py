@@ -7,7 +7,7 @@ Created on Apr 10, 2013
 import time
 from arelle import ModelXbrl, XbrlConst, XmlValidate
 from arelle.ModelObject import ModelObject
-from arelle.ModelDtsObject import ModelAttribute, ModelConcept, ModelType
+from arelle.ModelDtsObject import ModelAttribute, ModelConcept # , ModelType
 from arelle.ModelValue import qname
 from arelle.Locale import format_string
 from lxml import etree
@@ -69,6 +69,7 @@ def validate(modelDocument, schemaElement, targetNamespace):
         #                targetNamespace and targetNamespace.startswith("http://www.w3.org/1999/xhtml")):
         return # don't validate w3c schemas
     
+    '''
     # check schema semantics
     def resolvedQnames(elt, qnDefs):
         for attrName, attrType, mdlObjects, isQualifiedForm in qnDefs:
@@ -125,4 +126,5 @@ def validate(modelDocument, schemaElement, targetNamespace):
             checkSchemaElements(elt)
 
     checkSchemaElements(schemaElement)
+    '''
     

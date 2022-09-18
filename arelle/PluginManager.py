@@ -133,6 +133,11 @@ def modulesWithNewerFileDates():
     for moduleInfo in pluginConfig["modules"].values():
         freshenedFilename = _cntlr.webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
         try:
+            if os.path.isdir(freshenedFilename): # if freshenedFilename is a directory containing an __init__.py file, open that instead
+                if os.path.isfile(os.path.join(freshenedFilename, "__init__.py")):
+                    freshenedFilename = os.path.join(freshenedFilename, "__init__.py")
+            elif not freshenedFilename.endswith(".py") and not os.path.exists(freshenedFilename) and os.path.exists(freshenedFilename + ".py"):
+                freshenedFilename += ".py" # extension module without .py suffix
             if moduleInfo["fileDate"] < time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
                 names.add(moduleInfo["name"])
         except Exception as err:
@@ -151,12 +156,17 @@ def freshenModuleInfos():
         moduleInfo = pluginConfig["modules"][moduleName]
         freshenedFilename = _cntlr.webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
         try: # check if moduleInfo cached may differ from referenced moduleInfo
+            if os.path.isdir(freshenedFilename): # if freshenedFilename is a directory containing an __ini__.py file, open that instead
+                if os.path.isfile(os.path.join(freshenedFilename, "__init__.py")):
+                    freshenedFilename = os.path.join(freshenedFilename, "__init__.py")
+            elif not freshenedFilename.endswith(".py") and not os.path.exists(freshenedFilename) and os.path.exists(freshenedFilename + ".py"):
+                freshenedFilename += ".py" # extension module without .py suffix
             if moduleInfo["fileDate"] != time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
                 freshenedModuleInfo = moduleModuleInfo(moduleInfo["moduleURL"], reload=True)
                 if freshenedModuleInfo is not None:
                     pluginConfig["modules"][moduleName] = freshenedModuleInfo
         except Exception as err:
-            _msg = _("Exception at plug-in method freshenModules: {error}").format(error=err)
+            _msg = _("Exception at plug-in method freshenModuleInfos: {error}").format(error=err)
             if PLUGIN_TRACE_FILE:
                 with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
                     fh.write(_msg + '\n')
@@ -170,8 +180,13 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
         f = None
         try:
             # if moduleFilename is a directory containing an __ini__.py file, open that instead
-            if os.path.isdir(moduleFilename) and os.path.isfile(os.path.join(moduleFilename, "__init__.py")):
-                moduleFilename = os.path.join(moduleFilename, "__init__.py")
+            if os.path.isdir(moduleFilename):
+                if os.path.isfile(os.path.join(moduleFilename, "__init__.py")):
+                    moduleFilename = os.path.join(moduleFilename, "__init__.py")
+                else: # impossible to get a moduleinfo from a directory without an __init__.py
+                    return None
+            elif not moduleFilename.endswith(".py") and not os.path.exists(moduleFilename) and os.path.exists(moduleFilename + ".py"):
+                moduleFilename += ".py" # extension module without .py suffix
             moduleDir, moduleName = os.path.split(moduleFilename)
             if PLUGIN_TRACE_FILE:
                 with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
@@ -194,13 +209,13 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
                             _value = item.value.values[i]
                             _valueType = _value.__class__.__name__
                             if _key == "import":
-                                if _valueType == 'Str':
+                                if _valueType in ('Str', 'Constant'):
                                     importURLs.append(_value.s)
                                 elif _valueType in ("List", "Tuple"):
                                     for elt in _value.elts:
                                         importURLs.append(elt.s)
-                            elif _valueType == 'Str':
-                                moduleInfo[_key] = _value.s
+                            elif _valueType in ('Str', 'Constant'): # Str < =python 3.7, Constant python 3.8+
+                                moduleInfo[_key] = _value.s                             
                             elif _valueType == 'Name':
                                 if _value.id in constantStrings:
                                     moduleInfo[_key] = constantStrings[_value.id]
@@ -276,8 +291,8 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
                 with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
                     fh.write("Successful module plug-in info: " + moduleFilename + '\n')
         except Exception as err:
-            _msg = _("Exception obtaining plug-in module info: {error}\n{traceback}").format(
-                    error=err, traceback=traceback.format_tb(sys.exc_info()[2]))
+            _msg = _("Exception obtaining plug-in module info: {moduleFilename}\n{error}\n{traceback}").format(
+                    error=err, moduleFilename=moduleFilename, traceback=traceback.format_tb(sys.exc_info()[2]))
             if PLUGIN_TRACE_FILE:
                 with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
                     fh.write(_msg + '\n')

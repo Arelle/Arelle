@@ -4,9 +4,8 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import ViewWinTree, ModelDtsObject, XbrlConst
+from arelle import arelle_c, ViewWinTree, ModelDtsObject, XbrlConst
 from arelle.ModelRelationshipSet import ModelRelationshipSet
-from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact
 
 def viewFacts(modelXbrl, tabWin, lang=None):
@@ -127,7 +126,7 @@ class ViewFactList(ViewWinTree.ViewTree):
                     fns = []
                     for i, footnoteRel in enumerate(footnoteRels):
                         modelObject = footnoteRel.toModelObject
-                        if isinstance(modelObject, ModelResource):
+                        if isinstance(modelObject, arelle_c.ModelResource):
                             fns.append("Footnote {}: {}".format(
                                i+1,
                                modelObject.viewText()))

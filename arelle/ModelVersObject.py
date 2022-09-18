@@ -528,8 +528,8 @@ class ModelAspectProperty(ModelVersObject):
                ((self.localName, ''),
                 ) + self.elementAttributesTuple
 
-from arelle.ModelObjectFactory import elementSubstitutionModelClass
-elementSubstitutionModelClass.update((
+from arelle.ModelObjectFactory import registerModelObjectClass
+for _qn, _class in ((
     # 2010 names
     (qname(XbrlConst.ver10, "assignment"), ModelAssignment),
     (qname(XbrlConst.ver10, "action"), ModelAction),
@@ -627,4 +627,5 @@ elementSubstitutionModelClass.update((
     (qname(XbrlConst.verdim, "typedDimension"), ModelConceptsDimsAspect),
     (qname(XbrlConst.verdim, "concept"), ModelRelatedConcept),
     (qname(XbrlConst.verdim, "member"), ModelRelatedConcept),
-     ))
+     )):
+    registerModelObjectClass(_qn, _class)

@@ -157,7 +157,7 @@ class DialogPluginManager(Toplevel):
         self.moduleClassesLabel = Label(moduleInfoFrame, wraplength=600, justify="left")
         self.moduleClassesLabel.grid(row=3, column=1, columnspan=3, sticky=W)
         ToolTip(self.moduleClassesLabel, text=_("List of classes that this plug-in handles."), wraplength=240)
-        self.moduleVersionHdr = Label(moduleInfoFrame, text=_("Version:"), state=DISABLED)
+        self.moduleVersionHdr = Label(moduleInfoFrame, text=_("version:"), state=DISABLED)
         self.moduleVersionHdr.grid(row=4, column=0, sticky=W)
         self.moduleVersionLabel = Label(moduleInfoFrame, wraplength=600, justify="left")
         self.moduleVersionLabel.grid(row=4, column=1, columnspan=3, sticky=W)
@@ -400,10 +400,10 @@ class DialogPluginManager(Toplevel):
                             choices.append((indent + f, 
                                             "name: {}\ndescription: {}\nversion: {}\nlicense: {}".format(
                                                         moduleInfo["name"],
-                                                        moduleInfo["description"],
+                                                        moduleInfo.get("description"),
                                                         moduleInfo.get("version"),
                                                         moduleInfo.get("license")), 
-                                            fPath, moduleInfo["name"], moduleInfo.get("version"), moduleInfo["description"], moduleInfo.get("license")))
+                                            fPath, moduleInfo["name"], moduleInfo.get("version"), moduleInfo.get("description"), moduleInfo.get("license")))
                             dirHasEntries = True
                     if os.path.isdir(fPath) and f not in ("DQC_US_Rules",):
                         if selectChoices(fPath, indent=indent + "   ") and not moduleInfo:

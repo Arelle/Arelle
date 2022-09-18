@@ -1,0 +1,5 @@
+<!--
+      Empty schema.  Used by xerces-c interface to provide a dummy schema with no elements,
+      such as for explicit requests for http://www.w3.org/2001/XMLSchema.xsd whose elements
+      are already built into xerces, and where loading it causes multiple xerces errors.
+-->

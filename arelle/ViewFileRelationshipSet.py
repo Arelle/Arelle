@@ -5,7 +5,7 @@ Created on Oct 6, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import ModelObject, ModelDtsObject, XbrlConst, XmlUtil, ViewFile
-from arelle.ModelDtsObject import ModelRelationship
+from arelle.arelle_c import ModelXlinkResource
 from arelle.ViewUtil import viewReferences
 from arelle.XbrlConst import conceptNameLabelRole
 
@@ -17,6 +17,14 @@ def viewRelationshipSet(modelXbrl, outfile, header, arcrole, linkrole=None, link
     view.view(arcrole, linkrole, linkqname, arcqname)
     view.close()
     
+COL_WIDTHS = {
+    "Presentation Relationships":80, "Pref. Label":16, "Type": 16, "References":120,
+    "Calculation Relationships": 80, "Weight": 16, "Balance": 16,
+    "Dimensions Relationships": 80, "Arcrole": 32,"CntxElt": 12,"Closed": 8,"Usable": 8,
+    "Resource Relationships": 80, "Arcrole": 32,"Resource": 50,"ResourceRole": 32,"Language": 20,
+    "Table Relationships": 80, "Axis": 28, "Abs": 16, "Mrg": 16, "Header": 50, "Primary Item": 30, "Dimensions": 50
+    }
+
 class ViewRelationshipSet(ViewFile.View):
     def __init__(self, modelXbrl, outfile, header, labelrole, lang):
         super(ViewRelationshipSet, self).__init__(modelXbrl, outfile, header, lang)
@@ -32,6 +40,8 @@ class ViewRelationshipSet(ViewFile.View):
             heading = ["Calculation Relationships", "Weight", "Balance"]
         elif arcrole == "XBRL-dimensions":    # add columns for dimensional information
             heading = ["Dimensions Relationships", "Arcrole","CntxElt","Closed","Usable"]
+        elif arcrole == "Table-rendering":
+            heading = ["Table Relationships", "Axis", "Abs", "Mrg", "Header", "Primary Item", "Dimensions"]
         elif isinstance(arcrole, (list,tuple)) or XbrlConst.isResourceArcrole(arcrole):
             self.isResourceArcrole = True
             self.showReferences = isinstance(arcrole, _STR_BASE) and arcrole.endswith("-reference")
@@ -61,6 +71,7 @@ class ViewRelationshipSet(ViewFile.View):
                     self.treeDepth(rootConcept, rootConcept, 2, arcrole, linkRelationshipSet, set())
                     
         self.addRow(heading, asHeader=True) # must do after determining tree depth
+        self.setColWidths([COL_WIDTHS.get(hdg, 80 if hdg.endswith("  Relationships") else 8) for hdg in heading])
         
         if relationshipSet:
             # for each URI in definition order
@@ -79,9 +90,13 @@ class ViewRelationshipSet(ViewFile.View):
         if concept not in visited:
             visited.add(concept)
             childRelationshipSet = relationshipSet
-            if isinstance(modelObject, ModelRelationship) and arcrole == "XBRL-dimensions": 
-                childRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.consecutiveArcrole.get(modelObject.arcrole,"XBRL-dimensions"),
-                                                                      modelObject.linkrole)
+            if isinstance(modelObject, ModelXlinkResource):
+                if arcrole == "XBRL-dimensions": 
+                    childRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.consecutiveArcrole.get(modelObject.arcrole,"XBRL-dimensions"),
+                                                                          modelObject.linkrole)
+                elif self.arcrole == "XBRL-table-rendering" and isinstance(concept, (ModelEuAxisCoord, ModelRuleDefinitionNode)):
+                    numDims = len(concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or ()) * 2
+                    if numDims > self.maxNumDims: self.maxNumDims = numDims
             for modelRel in childRelationshipSet.fromModelObject(concept):
                 targetRole = modelRel.targetRole
                 if targetRole is None or len(targetRole) == 0:
@@ -96,7 +111,7 @@ class ViewRelationshipSet(ViewFile.View):
         try:
             if concept is None:
                 return
-            isRelation = isinstance(modelObject, ModelRelationship)
+            isRelation = isinstance(modelObject, ModelXlinkResource)
             childRelationshipSet = relationshipSet
             if isinstance(concept, ModelDtsObject.ModelConcept):
                 text = labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
@@ -108,7 +123,7 @@ class ViewRelationshipSet(ViewFile.View):
                 attr = {"name": str(concept.qname)}
                 if preferredLabel != XbrlConst.conceptNameLabelRole:
                     attr["label"] = text
-            elif self.arcrole == "Table-rendering":
+            elif self.arcrole == "XBRL-table-rendering":
                 text = concept.localName
                 xmlRowElementName = "element"
                 attr = {"label": concept.xlinkLabel}
@@ -163,7 +178,38 @@ class ViewRelationshipSet(ViewFile.View):
                     cols.append(concept.localName)
                     cols.append(concept.role or '')
                     cols.append(concept.xmlLang)
-            self.addRow(cols, treeIndent=indent, xmlRowElementName=xmlRowElementName, xmlRowEltAttr=attr, xmlCol0skipElt=True)
+            elif self.arcrole == "XBRL-table-rendering":
+                try:
+                    header = concept.header(lang=self.lang,strip=True,evaluate=False)
+                except AttributeError:
+                    header = None # could be a filter
+                if isRelation:
+                    cols.append(modelObject.axisDisposition)
+                else:
+                    cols.append('')
+                if isRelation and header is None:
+                    header = "{0} {1}".format(os.path.basename(modelObject.arcrole), concept.xlinkLabel)
+                if concept.get("abstract") == "true":
+                    cols.append('\u2713')
+                else:
+                    cols.append('')
+                if concept.get("merge") == "true":
+                    cols.append('\u2713')
+                else:
+                    cols.append('')
+                cols.append(header)
+                if isRelation and isinstance(concept, (ModelEuAxisCoord, ModelRuleDefinitionNode)):
+                    cols.append(concept.aspectValue(None, Aspect.CONCEPT))
+                    if self.type in (CSV, XML, JSON): # separate dimension fields
+                        for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or ()):
+                            cols.append(dim)
+                            cols.append(concept.aspectValue(None, dim))
+                    else: # combined dimension fields
+                        cols.append(' '.join(("{0},{1}".format(dim, concept.aspectValue(None, dim)) 
+                                              for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or ()))))
+                else:
+                    cols.append('')
+            self.addRow(cols, treeIndent=indent, xmlRowElementName=xmlRowElementName, xmlRowEltAttr=attr, xmlCol0skipElt=True, arcRole=self.arcrole)
             if concept not in visited:
                 visited.add(concept)
                 for modelRel in childRelationshipSet.fromModelObject(concept):

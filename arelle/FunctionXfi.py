@@ -13,6 +13,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ModelDtsObject import anonymousTypeSuffix, ModelConcept
 from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact, ModelInlineFact
 from arelle.ModelFormulaObject import ModelFormulaResource
+from arelle.PythonUtil import flattenSequence
 from arelle.XmlValidate import UNKNOWN, VALID, validate as xmlValidate, NCNamePattern
 from arelle.ValidateXbrlCalcs import inferredDecimals, inferredPrecision
 from arelle.ValidateXbrlDimensions import priItemElrHcRels
@@ -375,8 +376,8 @@ def uncovered_aspects(xc, p, args, dimensionAspects=False):
 
 def nodesEqual(xc, args, test, mustBeItems=False, nonItemErrCode=None):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
-    seq1 = args[0] if isinstance(args[0],(list,tuple)) else (args[0],)
-    seq2 = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
+    seq1 = flattenSequence(args[0])
+    seq2 = flattenSequence(args[1])
     for i, node1 in enumerate(seq1):
         try:
             node2 = seq2[i]
@@ -397,8 +398,8 @@ def nodesEqual(xc, args, test, mustBeItems=False, nonItemErrCode=None):
 
 def setsEqual(xc, args, test, mustBeItems=False):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
-    seq1 = args[0] if isinstance(args[0],(list,tuple)) else (args[0],)
-    seq2 = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
+    seq1 = flattenSequence(args[0])
+    seq2 = flattenSequence(args[1])
     for node1 in seq1:
         if not isinstance(node1, ModelObject): 
             raise XPathContext.FunctionArgType(1,"node()*")
@@ -642,7 +643,7 @@ def concept_data_type_derived_from(xc, p, args):
 
 def concept_substitutions(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    return concept(xc,p,args).substitutionGroupQnames
+    return concept(xc,p,args).substitutionGroupQNames
 
 def concepts_from_local_name(xc, p, args):
     if not 1 <= len(args) <= 2: raise XPathContext.FunctionNumArgs()
@@ -685,13 +686,15 @@ def filter_member_network_selection(xc, p, args):
     relationshipSet = xc.modelXbrl.relationshipSet(arcroleURI, linkroleURI)
     if relationshipSet is not None:
         members = set()
+        ''' removed 2011-03-10:
         linkQnames = set()
         arcQnames = set()
+        '''
         if axis.endswith("-or-self"):
             members.add(qnMem)
         fromRels = relationshipSet.fromModelObject(memConcept)
         if fromRels is not None:
-            filter_member_network_members(relationshipSet, fromRels, axis.startswith("descendant"), members, linkQnames, arcQnames)
+            filter_member_network_members(relationshipSet, fromRels, axis.startswith("descendant"), members=members)
             ''' removed 2011-03-10:
             if len(linkQnames) > 1 or len(arcQnames) > 1:
                 raise XPathContext.XPathException(p, 'xfie:ambiguousFilterMemberNetwork', 
@@ -705,16 +708,22 @@ def filter_member_network_selection(xc, p, args):
     # removed error 2011-03-10: raise XPathContext.XPathException(p, 'xfie:unrecognisedExplicitDimensionValueQName', _('Argument 1 {0} member is not in the network.').format(qnMem))
     return ()
 
-def filter_member_network_members(relationshipSet, fromRels, recurse, members, linkQnames, arcQnames):
+def filter_member_network_members(relationshipSet, fromRels, recurse, members=None, relationships=None, linkQnames=None, arcQnames=None):
+    if members is None:
+        members = set()
     for modelRel in fromRels:
         toConcept = modelRel.toModelObject
         toConceptQname = toConcept.qname
-        linkQnames.add(modelRel.linkQname)
-        arcQnames.add(modelRel.qname)
+        if linkQnames is not None:
+            linkQnames.add(modelRel.linkQname)
+        if arcQnames is not None:
+            arcQnames.add(modelRel.qname)
         if toConceptQname not in members:
             members.add(toConceptQname)
+            if relationships is not None:
+                relationships.add(modelRel)
             if recurse:
-                filter_member_network_members(relationshipSet, relationshipSet.fromModelObject(toConcept), recurse, members, linkQnames, arcQnames)                
+                filter_member_network_members(relationshipSet, relationshipSet.fromModelObject(toConcept), recurse, members, relationships, linkQnames, arcQnames)                
 
 def filter_member_DRS_selection(xc, p, args):
     if len(args) != 5: raise XPathContext.FunctionNumArgs()
@@ -979,8 +988,8 @@ def fact_footnotes(xc, p, args):
     if not footnoteroleURI: footnoteroleURI = XbrlConst.footnote
     lang = stringArg(xc, args, 4, "xs:string", emptyFallback='')
     relationshipSet = inst.relationshipSet(arcroleURI,linkroleURI)
-    if relationshipSet:
-        return relationshipSet.label(itemObj, footnoteroleURI, lang, returnMultiple=True)
+    if relationshipSet: # must return empty sequence, not None if no footnotes match filters
+        return relationshipSet.label(itemObj, footnoteroleURI, lang, returnMultiple=True) or ()
     return ()
 
 def concept_relationships(xc, p, args, nestResults=False):
@@ -1201,7 +1210,7 @@ def  format_number(xc, p, args):
 def  create_element(xc, p, args):
     if not 2 <= len(args) <= 4: raise XPathContext.FunctionNumArgs()
     qn = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
-    attrArg = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
+    attrArg = flattenSequence(args[1])
     # attributes have to be pairs
     if attrArg:
         if (len(attrArg) & 1 or 

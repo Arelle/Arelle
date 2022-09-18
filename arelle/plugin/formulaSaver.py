@@ -16,6 +16,7 @@ To run from command line, loading formula linkbase and saving formula syntax fil
 '''
 from arelle.ViewUtilFormulae import rootFormulaObjects, formulaObjSortKey
 from arelle.ModelFormulaObject import (ModelValueAssertion, ModelExistenceAssertion, ModelConsistencyAssertion,
+                                       ModelAssertionSet,
                                        ModelFactVariable, ModelGeneralVariable, ModelFormula, ModelParameter,
                                        ModelFilter, ModelConceptName, ModelConceptPeriodType, ModelConceptBalance,
                                        ModelConceptCustomAttribute, ModelConceptDataType, ModelConceptSubstitutionGroup,
@@ -27,8 +28,8 @@ from arelle.ModelFormulaObject import (ModelValueAssertion, ModelExistenceAssert
                                        ModelAspectCover, ModelConceptRelation,
                                        ModelCustomFunctionSignature, ModelCustomFunctionImplementation,
                                        ModelPeriod,
-                                       ModelAndFilter, ModelOrFilter, ModelMessage)
-from arelle import XbrlConst, XmlUtil
+                                       ModelAndFilter, ModelOrFilter, ModelMessage, ModelAssertionSeverity)
+from arelle import XbrlConst, XmlUtil, XPathParser
 import os, datetime
 
 class NotExportable(Exception):
@@ -48,6 +49,7 @@ class GenerateXbrlFormula:
         self.xfLines = []
         self.xmlns = {}
         self.eltTypeCount = {}
+        self.nextIdDupNbr = {}
         
         for cfQnameArity in sorted(qnameArity
                                    for qnameArity in self.modelXbrl.modelCustomFunctionSignatures.keys()
@@ -67,7 +69,7 @@ class GenerateXbrlFormula:
         if self.xmlns:
             self.xfLines.insert(0, "")
             for prefix, ns in sorted(self.xmlns.items(), reverse=True):
-                self.xfLines.insert(0, "namespace \"{}\" = \"{}\";".format(prefix, ns))
+                self.xfLines.insert(0, "namespace {} = \"{}\";".format(prefix, ns))
             
         self.xfLines.insert(0, "")
         self.xfLines.insert(0, "(: Generated from {} by Arelle on {} :)".format(modelXbrl.modelDocument.basename, XmlUtil.dateunionValue(datetime.datetime.now())))
@@ -85,18 +87,34 @@ class GenerateXbrlFormula:
     def xf(self, line):
         self.xfLines.append(line)
         
+    def objectId(self, fObj, elementType):
+        eltNbr = self.eltTypeCount[elementType] = self.eltTypeCount.get(elementType, 0) + 1
+        _id = fObj.id
+        if _id:
+            idDupNbr = self.nextIdDupNbr.get(_id,"")
+            self.nextIdDupNbr[_id] = (idDupNbr or 1) + 1
+            _id = "{}{}".format(_id, idDupNbr)
+        else:
+            _id = "{}{}".format(elementType, eltNbr)
+        return _id
+        
     def doObject(self, fObj, fromRel, pIndent, visited):
         if fObj is None:
             return
         cIndent = pIndent + "   "
-        if isinstance(fObj, (ModelValueAssertion, ModelExistenceAssertion, ModelFormula)):
+        if isinstance(fObj, ModelAssertionSet):
+            self.xf = "{}assertion-set {} {{".format(pIndent,  self.objectId(fObj, "assertionSet"))
+            for modelRel in self.modelXbrl.relationshipSet(XbrlConst.assertionSet).fromModelObject(fObj):
+                self.doObject(modelRel.toModelObject, modelRel, cIndent, visited)
+            self.xf = "{}}};".format(pIndent)
+        elif isinstance(fObj, (ModelValueAssertion, ModelExistenceAssertion, ModelFormula)):
             varSetType = "formula" if isinstance(fObj, ModelFormula) else "assertion"
-            eltNbr = self.eltTypeCount[varSetType] = self.eltTypeCount.get(varSetType, 0) + 1
-            _id = fObj.id or "{}{}".format(varSetType, eltNbr)
-            self.xf = "{}{} {} {{".format(pIndent, varSetType, _id)
+            self.xf = "{}{} {} {{".format(pIndent, varSetType, self.objectId(fObj, varSetType))
             for arcrole in (XbrlConst.elementLabel,
                             XbrlConst.assertionSatisfiedMessage,
-                            XbrlConst.assertionUnsatisfiedMessage):
+                            XbrlConst.assertionUnsatisfiedMessage,
+                            XbrlConst.assertionUnsatisfiedSeverity
+                            ):
                 for modelRel in self.modelXbrl.relationshipSet(arcrole).fromModelObject(fObj):
                     self.doObject(modelRel.toModelObject, modelRel, cIndent, visited)
             if fObj.aspectModel == "non-dimensional":
@@ -121,14 +139,12 @@ class GenerateXbrlFormula:
                 for modelRel in self.modelXbrl.relationshipSet(arcrole).fromModelObject(fObj):
                     self.doObject(modelRel.toModelObject, modelRel, cIndent, visited)
             if isinstance(fObj, ModelValueAssertion):
-                self.xf = "{}test {{{}}}".format(cIndent, fObj.viewExpression)
+                self.xf = "{}test {{{}}};".format(cIndent, fObj.viewExpression)
             elif isinstance(fObj, ModelExistenceAssertion):
-                self.xf = "{}evaluation-count {{{}}}".format(cIndent, fObj.viewExpression or ". gt 0")
+                self.xf = "{}evaluation-count {{{}}};".format(cIndent, fObj.viewExpression or ". gt 0")
             self.xf = "{}}};".format(pIndent)
         elif isinstance(fObj, ModelConsistencyAssertion):
-            eltNbr = self.eltTypeCount["consistencyAssertion"] = self.eltTypeCount.get("consistencyAssertion", 0) + 1
-            _id = fObj.id or "{}{}".format("consistencyAssertion", eltNbr)
-            self.xf = "{}consistency-assertion {} {{".format(pIndent, _id)
+            self.xf = "{}consistency-assertion {} {{".format(pIndent, self.objectId(fObj, "consistencyAssertion"))
             for arcrole in (XbrlConst.elementLabel,
                             XbrlConst.assertionSatisfiedMessage,
                             XbrlConst.assertionUnsatisfiedMessage):
@@ -237,12 +253,12 @@ class GenerateXbrlFormula:
                     if axis:
                         members.append("axis")
                         members.append(axis)
-                self.xf = "{}explicit-dimension {}{};".format(pIndent, 
-                                                              fObj.dimQname or "{{{}}}".format(fObj.dimQnameExpression) if fObj.dimQnameExpression else "",
+                self.xf = "{}explicit-dimension {} {};".format(pIndent, 
+                                                              fObj.dimQname or ("{{{}}}".format(fObj.dimQnameExpression) if fObj.dimQnameExpression else ""),
                                                               " ".join(members))
             elif isinstance(fObj, ModelTypedDimension): # this is a ModelTestFilter not same as genera/unit/period
-                self.xf = "{}typed-dimension {}{};".format(pIndent, 
-                                                           fObj.dimQname or "{{{}}}".format(fObj.dimQnameExpression) if fObj.dimQnameExpression else "",
+                self.xf = "{}typed-dimension {} {};".format(pIndent, 
+                                                           fObj.dimQname or ("{{{}}}".format(fObj.dimQnameExpression) if fObj.dimQnameExpression else ""),
                                                            " {{{}}}".format(fObj.test) if fObj.test else "")
             elif isinstance(fObj, ModelTestFilter):
                 self.xf = "{}{} {{{}}};".format(pIndent, 
@@ -257,7 +273,8 @@ class GenerateXbrlFormula:
             elif isinstance(fObj, ModelInstantDuration):
                 self.xf = "{}instant-duration {} {};".format(pIndent, fObj.boundary, fObj.variable)
             elif isinstance(fObj, ModelSingleMeasure):
-                self.xf = "{}unit {} {};".format(pIndent, fObj.boundary, fObj.variable)
+                self.xf = "{}unit-single-measure {};".format(pIndent, 
+                                                             fObj.measureQname or ("{{{}}}".format(fObj.qnameExpression) if fObj.qnameExpression else ""))
             elif isinstance(fObj, ModelEntitySpecificIdentifier):
                 self.xf = "{}entity scheme {{{}}} value {{{}}};".format(pIndent, fObj.scheme, fObj.value)
             elif isinstance(fObj, ModelEntityScheme):
@@ -267,17 +284,17 @@ class GenerateXbrlFormula:
             elif isinstance(fObj, ModelEntityRegexpIdentifier):
                 self.xf = "{}entity-identifier-pattern \"{}\";".format(pIndent, fObj.pattern)
             elif isinstance(fObj, ModelMatchFilter):
-                self.xf = "{}{} ${} {}{};".format(pIndent, kebabCase(fObj.localName), fObj.variable, 
-                                                  fObj.dimension or "",
+                self.xf = "{}{} ${} {}{};".format(pIndent, kebabCase(fObj.localName), fObj.variable,
+                                                  " dimension {}".format(fObj.dimension) if fObj.get("dimension") else "",
                                                   " match-any" if fObj.matchAny else "")
             elif isinstance(fObj, ModelRelativeFilter):
                 self.xf = "{}relative ${};".format(pIndent, fObj.variable)
             elif isinstance(fObj, ModelAncestorFilter):
                 self.xf = "{}ancestor {};".format(pIndent, 
-                                                  fObj.ancestorQname or "{{{}}}".format(fObj.qnameExpression) if fObj.qnameExpression else "")
+                                                  fObj.ancestorQname or ("{{{}}}".format(fObj.qnameExpression) if fObj.qnameExpression else ""))
             elif isinstance(fObj, ModelParentFilter):
                 self.xf = "{}parent {};".format(pIndent, 
-                                                  fObj.parentQname or "{{{}}}".format(fObj.qnameExpression) if fObj.qnameExpression else "")
+                                                  fObj.parentQname or ("{{{}}}".format(fObj.qnameExpression) if fObj.qnameExpression else ""))
             elif isinstance(fObj, ModelSiblingFilter):
                 self.xf = "{}sibling ${};".format(pIndent, fObj.variable)
             elif isinstance(fObj, ModelNilFilter):
@@ -336,7 +353,12 @@ class GenerateXbrlFormula:
                 pIndent, 
                 "satisfied-message" if fromRel.arcrole == XbrlConst.assertionSatisfiedMessage else "unsatisfied-message",
                 " ({})".format(fObj.xmlLang) if fObj.xmlLang else "",
-                fObj.text)
+                fObj.text.replace('"', '""'))
+        elif isinstance(fObj, ModelAssertionSeverity):
+            self.xf = "{}{} {};".format(
+                pIndent, 
+                "unsatisfied-severity",
+                fObj.level)
         elif isinstance(fObj, ModelCustomFunctionSignature):
             hasImplememntation = False
             if fObj not in visited:
@@ -346,16 +368,18 @@ class GenerateXbrlFormula:
                     hasImplementation = True
                 visited.remove(fObj)
             if not hasImplementation:
+                self.xmlns[fObj.functionQname.prefix] = fObj.functionQname.namespaceURI
                 self.xf = "{}abstract-function {}({}) as {};".format(pIndent, fObj.name, 
                                                                       ", ".join(str(t) for t in fObj.inputTypes), 
                                                                       fObj.outputType)
         elif isinstance(fObj, ModelCustomFunctionImplementation):
             sigObj = fromRel.fromModelObject
-            self.xf = "{}function {}({}) as {} {{;".format(pIndent, 
-                                                            sigObj.name, 
-                                                            ", ".join("{} as {}".format(inputName, sigObj.inputTypes[i])
-                                                                      for i, inputName in enumerate(fObj.inputNames)),
-                                                            sigObj.outputType)
+            self.xmlns[sigObj.functionQname.prefix] = sigObj.functionQname.namespaceURI
+            self.xf = "{}function {}({}) as {} {{".format(pIndent, 
+                                                          sigObj.name, 
+                                                          ", ".join("{} as {}".format(inputName, sigObj.inputTypes[i])
+                                                                    for i, inputName in enumerate(fObj.inputNames)),
+                                                          sigObj.outputType)
             for name, stepExpr in fObj.stepExpressions:
                 if "\n" not in stepExpr:
                     self.xf = "{}step ${} {{{}}};".format(cIndent, name, stepExpr)
@@ -424,8 +448,13 @@ class GenerateXbrlFormula:
                     self.xf = "{}{}{};".format(cIndent, kebabCase(elt.localName), arg)
             if fObj.localName not in ("concept", "entityIdentifier", "period"):
                 self.xf = "{}}};".format(pIndent)
-            
-                
+        # check for prefixes in AST of programs of fObj
+        if hasattr(fObj, "compile") and type(fObj.compile).__name__ == "method":
+            fObj.compile()
+            for _prog, _ast in fObj.__dict__.items():
+                if _prog.endswith("Prog") and isinstance(_ast, list):
+                    XPathParser.prefixDeclarations(_ast, self.xmlns, fObj)
+
 
 def saveXfMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
@@ -443,8 +472,8 @@ def saveXfMenuCommand(cntlr):
     xbrlFormulaFile = cntlr.uiFileDialog("save",
             title=_("arelle - Save XBRL Formula file"),
             initialdir=cntlr.config.setdefault("xbrlFormulaFileDir","."),
-            filetypes=[(_("Component file .xml"), "*.xml")],
-            defaultextension=".xml")
+            filetypes=[(_("XBRL formula file .xf"), "*.xf")],
+            defaultextension=".xf")
     if not xbrlFormulaFile:
         return False
     import os

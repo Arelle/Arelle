@@ -505,8 +505,8 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 action = None # keep same action for all of same concept's changes
                 if fromConcept.id != toConcept.id:
                     action = self.createConceptEvent(vercd, "vercd:conceptIDChange", fromConcept, toConcept, action, fromValue=fromConcept.id, toValue=toConcept.id)
-                if fromConcept.substitutionGroupQname != self.fromDTSqname(toConcept.substitutionGroupQname):
-                    action = self.createConceptEvent(vercd, "vercd:conceptSubstitutionGroupChange", fromConcept, toConcept, action, fromValue=fromConcept.substitutionGroupQname, toValue=self.toDTSqname(toConcept.substitutionGroupQname))
+                if fromConcept.substitutionGroupQName != self.fromDTSqname(toConcept.substitutionGroupQName):
+                    action = self.createConceptEvent(vercd, "vercd:conceptSubstitutionGroupChange", fromConcept, toConcept, action, fromValue=fromConcept.substitutionGroupQName, toValue=self.toDTSqname(toConcept.substitutionGroupQName))
                 if fromConcept.isItem and toConcept.isItem:
                     if fromConcept.typeQname != self.fromDTSqname(toConcept.typeQname):
                         action = self.createConceptEvent(vercd, "vercd:conceptTypeChange", fromConcept, toConcept, action, fromValue=fromConcept.typeQname, toValue=toConcept.typeQname)

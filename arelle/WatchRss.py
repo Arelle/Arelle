@@ -32,11 +32,22 @@ class WatchRss:
         self.thread = None
         self.stopRequested = False
         rssModelXbrl.watchRss = self
+        # cache modelManager options which dialog overrides
+        self.priorValidateCalcLB = self.priorFormulaRunIDs = None
             
     def start(self):
         import threading
         if not self.thread or not self.thread.is_alive():
             self.stopRequested = False
+            self.priorValidateCalcLB = self.priorFormulaRunIDs = None
+            rssWatchOptions = self.rssModelXbrl.modelManager.rssWatchOptions
+            if rssWatchOptions.get("validateCalcLinkbase") != self.rssModelXbrl.modelManager.validateCalcLB:
+                self.priorValidateCalcLB = self.rssModelXbrl.modelManager.validateCalcLB
+                self.rssModelXbrl.modelManager.validateCalcLB = rssWatchOptions.get("validateCalcLinkbase")
+            if (rssWatchOptions.get("validateFormulaAssertions") in (False,True) and 
+                self.rssModelXbrl.modelManager.formulaOptions is not None):
+                self.priorFormulaRunIDs = self.rssModelXbrl.modelManager.formulaOptions.runIDs
+                self.rssModelXbrl.modelManager.formulaOptions.runIDs = "" if rssWatchOptions.get("validateFormulaAssertions") else "**FakeIdToBlockFormulas**"
             self.thread = threading.Thread(target=lambda: self.watchCycle())
             self.thread.daemon = True
             self.thread.start()
@@ -71,10 +82,9 @@ class WatchRss:
             if self.stopRequested: break
             # setup validator
             postLoadActions = []
-            if rssWatchOptions.get("validateDisclosureSystemRules"):
-                self.instValidator = ValidateFiling.ValidateFiling(self.rssModelXbrl)
-                postLoadActions.append(_("validating"))
-            elif rssWatchOptions.get("validateXbrlRules") or rssWatchOptions.get("validateFormulaAssertions"):
+            if (rssWatchOptions.get("validateDisclosureSystemRules") or
+                rssWatchOptions.get("validateXbrlRules") or 
+                rssWatchOptions.get("validateFormulaAssertions")):
                 self.instValidator = ValidateXbrl.ValidateXbrl(self.rssModelXbrl)
                 postLoadActions.append(_("validating"))
                 if (rssWatchOptions.get("validateFormulaAssertions")):
@@ -139,7 +149,7 @@ class WatchRss:
                                 modelXbrl.close()
                                 break
                             if self.instValidator:
-                                self.instValidator.validate(modelXbrl)
+                                self.instValidator.validate(modelXbrl, modelXbrl.modelManager.formulaOptions.typedParameters(modelXbrl.prefixedNamespaces))
                                 if modelXbrl.errors and rssWatchOptions.get("alertValiditionError"):
                                     emailAlert = True
                             for pluginXbrlMethod in pluginClassMethods("RssWatch.DoWatchAction"):  
@@ -225,6 +235,11 @@ class WatchRss:
                     if self.stopRequested: break
             if self.stopRequested: 
                 self.cntlr.showStatus(_("RSS watch, stop requested"), 10000)
+                # reset prior options for calc and formula running
+                if self.priorValidateCalcLB is not None:
+                    self.rssModelXbrl.modelManager.validateCalcLB = self.priorValidateCalcLB
+                if self.priorFormulaRunIDs is not None:
+                    self.rssModelXbrl.modelManager.formulaOptions.runIDs = self.priorFormulaRunIDs
             else:
                 import time
                 time.sleep(600)

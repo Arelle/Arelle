@@ -307,7 +307,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                     (ns not in (XbrlConst.link, XbrlConst.xbrli)))):
                     self.beforeInstanceStream = False
                     if _streamingExtensionsValidate:
-                        instValidator.validate(modelXbrl, modelXbrl.modelManager.formulaOptions.typedParameters())
+                        instValidator.validate(modelXbrl, modelXbrl.modelManager.formulaOptions.typedParameters(modelXbrl.prefixedNamespaces))
                     else: # need default dimensions
                         ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
                 elif not self.beforeInstanceStream and self.beforeStartStreamingPlugin:
@@ -564,7 +564,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                         (ns not in (XbrlConst.link, XbrlConst.xbrli))):
                         beforeInstanceStream = False
                         if _streamingExtensionsValidate:
-                            instValidator.validate(modelXbrl, modelXbrl.modelManager.formulaOptions.typedParameters())
+                            instValidator.validate(modelXbrl, modelXbrl.modelManager.formulaOptions.typedParameters(modelXbrl.prefixedNamespaces))
                         else: # need default dimensions
                             ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
                 elif not beforeInstanceStream and beforeStartStreamingPlugin:

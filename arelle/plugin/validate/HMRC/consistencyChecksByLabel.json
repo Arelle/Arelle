@@ -1,0 +1,422 @@
+{
+"Inventories": {
+    "summation": [
+    ["Total inventories", [
+        "Raw materials and consumables",
+        "Merchandise",
+        "Production supplies",
+        "Spare parts",
+        "Work in progress",
+        "Long term contract work in progress",
+        "Finished goods and goods for resale",
+        "Payments on account, inventories",
+        "Further item of inventories [component of total inventories]",
+        "Other inventories"
+	]],
+    ["Raw materials and consumables", [
+        "Raw materials",
+        "Consumables"]
+        ],
+    ["Finished goods and goods for resale", [
+        "Finished goods",
+        "Goods for resale"
+	]],
+    ["Cost of inventories recognised as expense, net of write downs and reversals", ["Cost of inventories recognised as expense, gross",
+        "Loss (gain) from write-downs and reversals of inventories"]
+	],
+    ["Loss (gain) from write-downs and reversals of inventories", ["Inventory write-down expense, gross",
+        "Reversal of inventory write-down, gross"
+        ]]
+    ],
+        "aggregation" : [
+    ["Total current and non-current inventories [default]", ["Current inventories",
+        "Non-current inventories"
+    ]]
+]
+},
+"Property, plant and equipment - update 07-09-15": {"summation": [
+    ["Property, plant and equipment", ["Property, plant and equipment, gross / at cost",
+        "Accumulated depreciation and impairment, property, plant and equipment"
+	]],
+    ["Property, plant and equipment, gross / at cost", ["Property, plant and equipment, gross / at cost (prior period)",
+        "Increase (decrease) in property, plant and equipment"
+	]],
+    ["Accumulated depreciation and impairment, property, plant and equipment", ["Accumulated depreciation and impairment, property, plant and equipment (prior period)",
+        "Increase (decrease) in depreciation and impairment, property, plant and equipment"
+	]],
+    ["Increase (decrease) in property, plant and equipment", ["Total additions including from business combinations, property, plant and equipment",
+        "Disposals, property, plant and equipment",
+        "Decrease through discontinued operations, property, plant and equipment",
+        "Total increase (decrease) from revaluations, property, plant and equipment",
+        "Increase (decrease) from foreign exchange differences, property, plant and equipment",
+        "Increase (decrease) due to transfers into or out of property, plant and equipment",
+        "Increase (decrease) due to transfers between classes of property, plant and equipment",
+        "Further item of increase (decrease) in PPE [component of total change in PPE]",
+        "Increase (decrease) through other changes, property, plant and equipment"
+	]],
+    ["Increase (decrease) in depreciation and impairment, property, plant and equipment", ["Increase from depreciation charge for the year, property, plant and equipment",
+        "Increase (decrease) from total impairment loss recognised or reversed, property, plant and equipment",
+        "Disposals, decrease in depreciation and impairment, property, plant and equipment",
+        "Acquisitions, increase (decrease) in depreciation and impairment, property, plant and equipment",
+        "Revaluations, increase (decrease) in depreciation and impairment, property, plant and equipment",
+        "Foreign exchange differences, increase (decrease) in depreciation and impairment, property, plant and equipment",
+        "Transfers into or out of property, plant and equipment, increase (decrease) in depreciation and impairment",
+        "Transfers between PPE classes, increase (decrease) in depreciation and impairment",
+        "Further item of increase (decrease) in depreciation and impairment, PPE [component of corresponding total]",
+        "Other increase (decrease) in depreciation and impairment, property, plant and equipment"
+	]],
+    ["Total additions including from business combinations, property, plant and equipment", ["Acquired through business combinations, property, plant and equipment",
+        "Additions other than through business combinations, property, plant and equipment"
+	]],
+    ["Disposals, property, plant and equipment", ["Transfers to (from) non-current assets or disposal groups held for sale, property, plant and equipment",
+        "Disposals through business divestiture, property, plant and equipment",
+        "Retirements, property, plant and equipment",
+        "Other disposals, property, plant and equipment"
+	]],
+    ["Total increase (decrease) from revaluations, property, plant and equipment", ["Increase (decrease) from revaluations recognised or reversed in other comprehensive income, property, plant and equipment",
+        "Increase (decrease) from revaluations recognised or reversed in profit or loss, property, plant and equipment"
+	]],
+    ["Accumulated depreciation and impairment, property, plant and equipment", ["Accumulated depreciation, not including impairment, property, plant and equipment",
+        "Accumulated impairment, not including depreciation, property, plant and equipment"
+	]],
+    ["Increase (decrease) from total impairment loss recognised or reversed, property, plant and equipment", ["Increase (decrease) from impairment loss recognised or reversed in other comprehensive income, property, plant and equipment",
+        "Increase (decrease) from impairment loss recognised or reversed in profit or loss, property, plant and equipment"
+	]],
+    ["Disposals, decrease in depreciation and impairment, property, plant and equipment", ["Transfer to non-current assets or disposal groups held for sale, decrease in depreciation and impairment, property, plant and equipment",
+        "Business divestiture, decrease in depreciation and impairment, property, plant and equipment",
+        "Retirements, decrease in depreciation and impairment, property, plant and equipment",
+        "Other disposals, decrease in depreciation and impairment, property, plant and equipment"
+    ]],
+    ["Increase (decrease) from impairment loss recognised or reversed in other comprehensive income, property, plant and equipment", ["Increase from impairment loss recognised in other comprehensive income, property, plant and equipment",
+        "Decrease from reversal of impairment loss recognised in other comprehensive income, property, plant and equipment"
+    ]],
+    ["Increase (decrease) from impairment loss recognised or reversed in profit or loss, property, plant and equipment", ["Increase from impairment loss recognised in profit or loss, property, plant and equipment",
+        "Decrease from reversal of impairment loss recognised in profit or loss, property, plant and equipment"
+    ]],
+    ["Total revaluation surplus (deficit), property, plant and equipment", ["Total revaluation surplus (deficit), property, plant and equipment (prior period)",
+        "Total increase (decrease) in revaluation surplus, property, plant and equipment"]
+	],
+    ["Total increase (decrease) in revaluation surplus, property, plant and equipment", ["Total increase (decrease) in revaluation surplus recognised or reversed in other comprehensive income, property, plant and equipment",
+        "Total increase (decrease) in revaluation surplus recognised or reversed in profit or loss, property, plant and equipment"
+    ]],
+    ["Total revaluation surplus (deficit), property, plant and equipment", ["Revaluation surplus (deficit) recognised in other comprehensive income, property, plant and equipment",
+        "Revaluation surplus (deficit) recognised in profit or loss, property, plant and equipment"
+    ]],
+    ["Revaluation surplus (deficit) recognised in other comprehensive income, property, plant and equipment (current period)", ["Revaluation surplus (deficit) recognised in other comprehensive income, property, plant and equipment (prior period)",
+        "Total increase (decrease) in revaluation surplus recognised or reversed in other comprehensive income, property, plant and equipment"
+    ]],
+    ["Revaluation surplus (deficit) recognised in profit or loss, property, plant and equipment (current period)", ["Revaluation surplus (deficit) recognised in profit or loss, property, plant and equipment (prior period)",
+        "Total increase (decrease) in revaluation surplus recognised or reversed in profit or loss, property, plant and equipment"
+    ]]
+    ],
+    "aggregation": [
+    ["Total property, plant and equipment", ["Total property, plant and equipment other than exploration and evaluation assets",
+        "Tangible exploration and evaluation assets"
+    ]],
+    ["Total property, plant and equipment other than exploration and evaluation assets", ["Land and buildings",
+        "Leasehold improvements",
+        "Investment property included within PPE",
+        "Construction in progress / assets under construction",
+        "Vehicles, plant and machinery",
+        "Furniture, fittings, tools and equipment",
+        "Network assets",
+        "Assets not yet available for use, PPE",
+        "Oil and gas properties",
+        "Oil and gas production assets",
+        "Oil depots, storage tanks and service stations",
+        "Total mine properties",
+        "Producing mines",
+        "Mining assets under construction",
+        "Deferred stripping expenditures for mine properties",
+        "Other mining assets",
+        "Non-standard PPE class 1 [component of total property, plant and equipment]",
+        "Non-standard PPE class 2 [component of total property, plant and equipment]",
+        "Non-standard PPE class 3 [component of total property, plant and equipment]",
+        "Non-standard PPE class 4 [component of total property, plant and equipment]",
+        "Other property, plant and equipment"
+    ]],
+    ["Land and buildings", ["Land",
+        "Buildings"
+    ]],
+    ["Vehicles, plant and machinery", ["Plant and machinery",
+        "Vehicles"
+    ]],
+    ["Furniture, fittings, tools and equipment", ["Furniture and fittings",
+        "Tools and equipment",
+        "Office equipment"
+    ]],
+    ["Vehicles", ["Aircraft",
+        "Ships and boats",
+        "Motor vehicles",
+        "Other vehicles"
+    ]],
+    ["Office equipment", ["Computer equipment",
+        "Communication and network equipment"
+    ]],
+    ["Motor vehicles", ["Commercial motor vehicles",
+        "Motor cars"
+    ]],
+    ["Total owned and leased PPE assets", ["Owned or freehold assets",
+        "Leased assets, held as lessee",
+        "Assets held for use under leases, lessor"
+    ]],
+    ["Leased assets, held as lessee", ["Short leasehold assets",
+        "Long leasehold assets"
+    ]]
+    ]
+},
+"Inventories": {"summation": [
+    ["Total inventories", ["Raw materials and consumables",
+        "Merchandise",
+        "Production supplies",
+        "Spare parts",
+        "Work in progress",
+        "Long term contract work in progress",
+        "Finished goods and goods for resale",
+        "Payments on account, inventories",
+        "Further item of inventories [component of total inventories]",
+        "Other inventories"
+    ]],
+    ["Raw materials and consumables", ["Raw materials",
+        "Consumables"
+    ]],
+    ["Finished goods and goods for resale", ["Finished goods",
+        "Goods for resale"
+    ]],
+    ["Cost of inventories recognised as expense, net of write downs and reversals", ["Cost of inventories recognised as expense, gross",
+        "Loss (gain) from write-downs and reversals of inventories"
+    ]],
+    ["Loss (gain) from write-downs and reversals of inventories", ["Inventory write-down expense, gross",
+        "Reversal of inventory write-down, gross"
+        ]]
+    ],
+        "aggregation": [
+    ["Total current and non-current inventories [default]", ["Current inventories",
+        "Non-current inventories"]]]
+},
+"Intangibles": {"summation": [
+    ["Intangible assets", ["Intangible assets, gross / at cost",
+        "Accumulated amortisation and impairment, intangible assets"
+    ]],
+    ["Intangible assets, gross / at cost", ["Intangible assets, gross / at cost (prior period)",
+        "Increase (decrease) in intangible assets"
+    ]],
+    ["Increase (decrease) in intangible assets", ["Total additions including from business combinations, intangible assets",
+        "Disposals, intangible assets",
+        "Decrease through discontinued operations, intangible assets",
+        "Total increase (decrease) from revaluations, intangible assets",
+        "Increase (decrease) from foreign exchange differences, intangible assets",
+        "Increase (decrease) due to transfers into or out of intangible assets",
+        "Increase (decrease) due to transfers between classes of intangible assets",
+        "Further item of increase (decrease) in intangible assets [component of total change in intangible assets]",
+        "Increase (decrease) through other changes, intangible assets"
+    ]],
+    ["Total additions including from business combinations, intangible assets", ["Additions other than through business combinations, intangible assets",
+        "Acquired through business combinations, intangible assets"
+    ]],
+    ["Disposals, intangible assets", ["Transfers to (from) non-current assets or disposal groups held for sale, intangible assets",
+        "Disposals through business divestiture, intangible assets",
+        "Retirements, intangible assets",
+        "Other disposals, intangible assets"
+    ]],
+    ["Total increase (decrease) from revaluations, intangible assets", ["Increase (decrease) from revaluations recognised or reversed in other comprehensive income, intangible assets",
+        "Increase (decrease) from revaluations recognised or reversed in profit or loss, intangible assets"
+    ]],
+    ["Accumulated amortisation and impairment, intangible assets", ["Accumulated impairment, not including amortisation, intangible assets",
+        "Accumulated amortisation, not including impairment, intangible assets"
+    ]],
+    ["Accumulated amortisation and impairment, intangible assets", ["Accumulated amortisation and impairment, intangible assets (prior period)",
+        "Increase (decrease) in amortisation and impairment, intangible assets"
+    ]],
+    ["Increase (decrease) in amortisation and impairment, intangible assets", ["Increase from amortisation charge for the year, intangible assets",
+        "Increase (decrease) from impairment loss recognised or reversed in other comprehensive income, intangible assets",
+        "Increase (decrease) from impairment loss recognised or reversed in profit or loss, intangible assets",
+        "Disposals, decrease in amortisation and impairment, intangible assets",
+        "Acquisitions, increase (decrease) in amortisation and impairment, intangible assets",
+        "Revaluations, increase (decrease) in amortisation and impairment, intangible assets",
+        "Foreign exchange differences, increase (decrease) in amortisation and impairment, intangible assets",
+        "Transfers into or out of intangible assets, increase (decrease) in amortisation and impairment",
+        "Transfers between intangible classes, increase (decrease) in amortisation and impairment",
+        "Further item of increase (decrease) in amortisation and impairment, intangible assets [component of corresponding total]",
+        "Other increase (decrease) in amortisation and impairment, intangible assets"
+    ]],
+    ["Increase (decrease) from impairment loss recognised or reversed in other comprehensive income, intangible assets", ["Increase from impairment loss recognised in other comprehensive income, intangible assets",
+        "Decrease from reversal of impairment loss recognised in other comprehensive income, intangible assets"
+    ]],
+    ["Increase (decrease) from impairment loss recognised or reversed in profit or loss, intangible assets", ["Increase from impairment loss recognised in profit or loss, intangible assets",
+        "Decrease from reversal of impairment loss recognised in profit or loss, intangible assets"
+    ]],
+    ["Disposals, decrease in amortisation and impairment, intangible assets", ["Transfer to non-current assets or disposal groups held for sale, decrease in amortisation and impairment, intangible assets",
+        "Business divestiture, decrease in amortisation and impairment, intangible assets",
+        "Retirements, decrease in amortisation and impairment, intangible assets",
+        "Other disposals, decrease in amortisation and impairment, intangible assets"
+    ]],
+    ["Total revaluation surplus (deficit), intangible assets", ["Revaluation surplus (deficit) recognised in other comprehensive income, intangible assets",
+        "Revaluation surplus (deficit) recognised in profit or loss, intangible assets"
+    ]],
+    ["Total revaluation surplus (deficit), intangible assets", ["Total revaluation surplus (deficit), intangible assets (prior period)",
+        "Total increase (decrease) in revaluation surplus, intangible assets"
+    ]],
+    ["Revaluation surplus (deficit) recognised in other comprehensive income, intangible assets", ["Revaluation surplus (deficit) recognised in other comprehensive income, intangible assets (prior period)",
+        "Increase (decrease) in revaluation surplus recognised or reversed in other comprehensive income, intangible assets"
+    ]],
+    ["Revaluation surplus (deficit) recognised in profit or loss, intangible assets", ["Revaluation surplus (deficit) recognised in profit or loss, intangible assets (prior period)",
+        "Increase (decrease) in revaluation surplus recognised or reversed in profit or loss, intangible assets"
+    ]],
+    ["Total increase (decrease) in revaluation surplus, intangible assets", ["Increase (decrease) in revaluation surplus recognised or reversed in other comprehensive income, intangible assets",
+        "Increase (decrease) in revaluation surplus recognised or reversed in profit or loss, intangible assets"
+    ]],
+    ["Intangible assets held as a lessee under a finance lease", ["Accumulated amortisation and impairment on intangible assets held as a lessee under a finance lease",
+        "Intangible assets held as a lessee under a finance lease, gross / at cost"
+        ]]
+    ],
+        "aggregation": [
+    ["Total intangible assets including goodwill [default]", ["Net goodwill",
+        "Intangible assets other than goodwill"
+    ]],
+    ["Net goodwill", ["Goodwill",
+        "Negative goodwill"
+    ]],
+    ["Intangible assets other than goodwill", ["Brand names",
+        "Mastheads and publishing titles",
+        "Computer software",
+        "Patents, trademarks, licences, concessions and similar",
+        "Recipes, formulae, models, designs and prototypes",
+        "Development costs / capitalised development expenditure",
+        "Customer relationships",
+        "Payments on account",
+        "Assets not yet available for use, intangibles",
+        "Intangible exploration and evaluation assets",
+        "Exploration licenses",
+        "Mining rights",
+        "Other miscellaneous intangible exploration and evaluation assets",
+        "Non-standard intangible asset class 1 [component of intangible assets other than goodwill]",
+        "Non-standard intangible asset class 2 [component of intangible assets other than goodwill]",
+        "Non-standard intangible asset class 3 [component of intangible assets other than goodwill]",
+        "Non-standard intangible asset class 4 [component of intangible assets other than goodwill]",
+        "Other / residual intangible assets"
+    ]],
+    ["Patents, trademarks, licences, concessions and similar", ["Licences and franchises",
+        "Copyrights, patents, trademarks, service and operating rights"
+    ]],
+    ["Total internally and externally acquired intangible assets [default]", ["Internally generated intangible assets",
+        "Externally acquired intangible assets"
+    ]],
+    ["Total intangible assets with finite and with indefinite lives [default]", ["Intangible assets with finite lives",
+        "Intangible assets with indefinite lives"
+    ]]
+    ]
+},
+"Biological Assets": {"summation": [
+    ["Biological assets", ["Biological assets, fair value model",
+        "Biological assets, cost model"
+    ]],
+    ["Biological assets, fair value model", ["Biological assets, fair value model (prior period)",
+        "Increase (decrease) in biological assets, fair value model"
+    ]],
+    ["Increase (decrease) in biological assets, fair value model", ["Total purchases / additions including from business combinations, biological assets, fair value model",
+        "Sales / disposals, biological assets, fair value model",
+        "Decrease through discontinued operations, biological assets, fair value model",
+        "Increase (decrease) from fair value adjustment, biological assets, fair value model",
+        "Decrease due to harvest, biological assets, fair value model",
+        "Increase (decrease) from foreign exchange differences, biological assets, fair value model",
+        "Increase (decrease) due to transfers into or out of biological assets, fair value model",
+        "Increase (decrease) due to transfers between classes of biological asset, fair value model",
+        "Further item of increase (decrease) in biological assets, fair value model [component of corresponding total]",
+        "Increase (decrease) through other changes, biological assets, fair value model"
+    ]],
+    ["Total purchases / additions including from business combinations, biological assets, fair value model", ["Purchases / additions other than through business combinations, biological assets, fair value model",
+        "Acquired through business combinations, biological assets, fair value model",
+        "Increase in biological assets from development / cultivation costs capitalised, fair value model"
+    ]],
+    ["Sales / disposals, biological assets, fair value model", ["Transfers to (from) non-current assets or disposal groups held for sale, biological assets, fair value model",
+        "Disposals through business divestiture, biological assets, fair value model",
+        "Retirements, biological assets, fair value model",
+        "Other disposals, biological assets, fair value model"
+    ]],
+    ["Increase (decrease) from fair value adjustment, biological assets, fair value model", ["Increase (decrease) in fair value adjustment attributable to physical changes, biological assets, fair value model",
+        "Increase (decrease) in biological assets due to births and deaths, fair value model",
+        "Increase (decrease) on initial recognition of biological assets and agricultural produce for current period",
+        "Increase (decrease) in fair value adjustment attributable to price changes, biological assets, fair value model",
+        "Increase (decrease) in fair value adjustment through other changes, biological assets, fair value model"
+    ]],
+    ["Biological assets, cost model", ["Biological assets, cost model, gross",
+        "Accumulated depreciation and impairment, biological assets, cost model"
+    ]],
+    ["Biological assets, cost model, gross", ["Biological assets, cost model, gross (prior period)",
+        "Increase (decrease) in biological assets, cost model"
+    ]],
+    ["Increase (decrease) in biological assets, cost model", ["Total purchases / additions including from business combinations, biological assets, cost model",
+        "Sales / disposals, biological assets, cost model",
+        "Decrease through discontinued operations, biological assets, cost model",
+        "Decrease due to harvest, biological assets, cost model",
+        "Total increase (decrease) from revaluations, biological assets, cost model",
+        "Increase (decrease) from foreign exchange differences, biological assets, cost model",
+        "Increase (decrease) due to transfers into or out of biological assets, cost model",
+        "Increase (decrease) due to transfers between classes of biological assets, cost model",
+        "Further item of increase (decrease) in biological assets, cost model [component of corresponding total]",
+        "Increase (decrease) through other changes, biological assets, cost model"
+    ]],
+    ["Total purchases / additions including from business combinations, biological assets, cost model", ["Purchases / additions other than through business combinations, biological assets, cost model",
+        "Acquired through business combinations, biological assets, cost model"
+    ]],
+    ["Sales / disposals, biological assets, cost model", ["Transfers to (from) non-current assets or disposal groups held for sale, biological assets, cost model",
+        "Disposals through business divestiture, biological assets, cost model",
+        "Retirements, biological assets, cost model",
+        "Other disposals, biological assets, cost model"
+    ]],
+    ["Total increase (decrease) from revaluations, biological assets, cost model", ["Increase (decrease) from revaluations recognised or reversed in other comprehensive income, biological assets, cost model",
+        "Increase (decrease) from revaluations recognised or reversed in profit or loss, biological assets, cost model"
+    ]],
+    ["Accumulated depreciation and impairment, biological assets, cost model", ["Accumulated depreciation, not including impairment, biological assets, cost model",
+        "Accumulated impairment, not including depreciation, biological assets, cost model"
+    ]],
+    ["Accumulated depreciation and impairment, biological assets, cost model", ["Accumulated depreciation and impairment, biological assets, cost model (prior period)",
+        "Increase (decrease) in depreciation and impairment, biological assets, cost model"
+    ]],
+    ["Increase (decrease) in depreciation and impairment, biological assets, cost model", ["Increase from depreciation charge for the year, biological assets, cost model",
+        "Increase (decrease) from impairment loss recognised or reversed in other comprehensive income, biological assets, cost model",
+        "Increase (decrease) from impairment loss recognised or reversed in profit or loss, biological assets, cost model",
+        "Sales / disposals, decrease in depreciation and impairment, biological assets, cost model",
+        "Acquisitions, increase (decrease) in depreciation and impairment, biological assets, cost model",
+        "Revaluations, increase (decrease) in depreciation and impairment, biological assets, cost model",
+        "Foreign exchange differences, increase (decrease) in depreciation and impairment, biological assets, cost model",
+        "Transfers into or out of biological assets, increase (decrease) in depreciation and impairment, cost model",
+        "Transfers between classes of biological assets, increase (decrease) in depreciation and impairment, cost model",
+        "Further item of increase (decrease) in depreciation and impairment, biological assets, cost model [component of corresponding total]",
+        "Other increase (decrease) in depreciation and impairment, biological assets, cost model"
+    ]],
+    ["Increase (decrease) from impairment loss recognised or reversed in other comprehensive income, biological assets, cost model", ["Increase from impairment loss recognised in other comprehensive income, biological assets, cost model",
+        "Decrease from reversal of impairment loss recognised in other comprehensive income, biological assets, cost model"
+    ]],
+    ["Increase (decrease) from impairment loss recognised or reversed in profit or loss, biological assets, cost model", ["Increase from impairment loss recognised in profit or loss, biological assets, cost model",
+        "Decrease from reversal of impairment loss recognised in profit or loss, biological assets, cost model"
+    ]],
+    ["Sales / disposals, decrease in depreciation and impairment, biological assets, cost model", ["Transfer to non-current assets or disposal groups held for sale, decrease in depreciation and impairment, biological assets, cost model",
+        "Business divestiture, decrease in depreciation and impairment, biological assets, cost model",
+        "Retirements, decrease in depreciation and impairment, biological assets, cost model",
+        "Disposals, decrease in depreciation and impairment, biological assets, cost model"
+        ]]
+    ],
+        "aggregation": [
+    ["Total biological assets [default]", ["Consumable biological assets",
+        "Bearer biological assets"
+    ]],
+    ["Consumable biological assets", ["Consumable biological asset class 1",
+        "Consumable biological asset class 2",
+        "Consumable biological asset class 3",
+        "Consumable biological asset class 4",
+        "Consumable biological asset class 5"
+    ]],
+    ["Bearer biological assets", ["Bearer biological asset class 1",
+        "Bearer biological asset class 2",
+        "Bearer biological asset class 3",
+        "Bearer biological asset class 4",
+        "Bearer biological asset class 5"
+    ]],
+    ["All biological assets [default]", ["Mature biological assets",
+        "Immature biological assets"
+        ]]
+        ]
+}
+}

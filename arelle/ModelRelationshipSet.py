@@ -7,14 +7,14 @@ Created on Oct 5, 2010
 
 # initialize object from loaded linkbases
 from collections import defaultdict
-from arelle import ModelDtsObject, XbrlConst, XmlUtil, ModelValue
-from arelle.ModelObject import ModelObject
-from arelle.ModelDtsObject import ModelResource
-from arelle.PrototypeDtsObject import LocPrototype, PrototypeObject
+from arelle import XbrlConst, XmlUtil, ModelValue
+from arelle.arelle_c import ModelObject, ModelXlinkResource, ModelXlinkLocator, ModelRelationship, ModelXlinkArc
+from arelle.PrototypeDtsObject import LocPrototype, XlinkObjectPrototype
 from arelle.XbrlConst import consecutiveArcrole
 import os, sys
 
 USING_EQUIVALENCE_KEY = sys.intern(_STR_8BIT("using_equivalence_key")) # indicates hash entry replaced with keyed entry
+NoneType = type(None)
 
 def create(modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
     return ModelRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname, includeProhibits)
@@ -23,15 +23,15 @@ def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
     hashEquivalentRels = defaultdict(list)
     for modelLink in baseSetModelLinks:
         for linkChild in modelLink:
-            if (isinstance(linkChild,(ModelObject,PrototypeObject)) and 
-                linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and 
-                arcrole == linkChild.get("{http://www.w3.org/1999/xlink}arcrole") and
+            if (isinstance(linkChild,(ModelObject,XlinkObjectPrototype)) and 
+                linkChild.xlinkType == "arc" and 
+                arcrole == linkChild.arcrole and
                 (arcqname is None or arcqname == linkChild)):
-                fromLabel = linkChild.get("{http://www.w3.org/1999/xlink}from")
-                toLabel = linkChild.get("{http://www.w3.org/1999/xlink}to")
+                fromLabel = linkChild.fromLabel
+                toLabel = linkChild.toLabel
                 for fromResource in modelLink.labeledResources[fromLabel]:
                     for toResource in modelLink.labeledResources[toLabel]:
-                        modelRel = ModelDtsObject.ModelRelationship(modelLink.modelDocument, linkChild, fromResource.dereference(), toResource.dereference())
+                        modelRel = ModelRelationship(modelLink.modelDocument, linkChild, fromResource.dereference(), toResource.dereference())
                         hashEquivalentRels[modelRel.equivalenceHash].append(modelRel)
     # determine ineffective relationships
     ineffectives = []
@@ -91,8 +91,8 @@ def labelroles(modelXbrl, includeConceptName=False):
     
 def baseSetRelationship(arcElement):
     modelXbrl = arcElement.modelXbrl
-    arcrole = arcElement.get("{http://www.w3.org/1999/xlink}arcrole")
-    ELR = arcElement.getparent().get("{http://www.w3.org/1999/xlink}role")
+    arcrole = arcElement.arcrole
+    ELR = arcElement.getparent().role
     for rel in modelXbrl.relationshipSet(arcrole, ELR).modelRelationships:
         if rel.arcElement == arcElement:
             return rel
@@ -107,26 +107,27 @@ class ModelRelationshipSet:
     def __init__(self, modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
         self.isChanged = False
         self.modelXbrl = modelXbrl
-        self.arcrole = arcrole
-        self.linkrole = linkrole
+        self.arcrole = arcrole # may be str, tuple or frozenset
+        self.linkrole = linkrole # may be str, tuple or frozenset
         self.linkqname = linkqname
         self.arcqname = arcqname
 
         relationshipSetKey = (arcrole, linkrole, linkqname, arcqname, includeProhibits) 
             
         # base sets does not care about the #includeProhibits
-        if not isinstance(arcrole,(tuple,frozenset)):
+        if isinstance(arcrole, (str, NoneType)) and isinstance(linkrole, (str, NoneType)):
             modelLinks = self.modelXbrl.baseSets.get((arcrole, linkrole, linkqname, arcqname), [])
         else: # arcrole is a set of arcroles
             modelLinks = []
-            for ar in arcrole:
-                modelLinks.extend(self.modelXbrl.baseSets.get((ar, linkrole, linkqname, arcqname), []))
+            for ar in (arcrole,) if isinstance(arcrole, (str, NoneType)) else arcrole:
+                for lr in (linkrole,) if isinstance(linkrole, (str, NoneType)) else linkrole:
+                    modelLinks.extend(self.modelXbrl.baseSets.get((ar, lr, linkqname, arcqname), []))
             
         # gather arcs
         relationships = {}
         isDimensionRel =  self.arcrole == "XBRL-dimensions" # all dimensional relationship arcroles
         isFormulaRel =  self.arcrole == "XBRL-formulae" # all formula relationship arcroles
-        isTableRenderingRel = self.arcrole == "Table-rendering"
+        isTableRenderingRel = self.arcrole == "XBRL-table-rendering"
         isFootnoteRel =  self.arcrole == "XBRL-footnotes" # all footnote relationship arcroles
         if not isinstance(arcrole,(tuple,frozenset)):
             arcrole = (arcrole,)
@@ -134,33 +135,34 @@ class ModelRelationshipSet:
         for modelLink in modelLinks:
             arcs = []
             linkEltQname = modelLink.qname
-            for linkChild in modelLink:
-                linkChildArcrole = linkChild.get("{http://www.w3.org/1999/xlink}arcrole")
-                if linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and linkChildArcrole:
-                    if isFootnoteRel: # arcrole is fact-footnote or other custom footnote relationship
-                        arcs.append(linkChild)
-                    elif isDimensionRel: 
-                        if XbrlConst.isDimensionArcrole(linkChildArcrole):
+            for linkChild in modelLink.iterchildren():
+                if isinstance(linkChild, ModelXlinkArc):
+                    linkChildArcrole = linkChild.arcrole
+                    if linkChildArcrole:
+                        if isFootnoteRel: # arcrole is fact-footnote or other custom footnote relationship
                             arcs.append(linkChild)
-                    elif isFormulaRel:
-                        if XbrlConst.isFormulaArcrole(linkChildArcrole):
+                        elif isDimensionRel: 
+                            if XbrlConst.isDimensionArcrole(linkChildArcrole):
+                                arcs.append(linkChild)
+                        elif isFormulaRel:
+                            if XbrlConst.isFormulaArcrole(linkChildArcrole):
+                                arcs.append(linkChild)
+                        elif isTableRenderingRel:
+                            if XbrlConst.isTableRenderingArcrole(linkChildArcrole):
+                                arcs.append(linkChild)
+                        elif (linkChildArcrole in arcrole and 
+                              (arcqname is None or arcqname == linkChild.qname) and 
+                              (linkqname is None or linkqname == linkEltQname)):
                             arcs.append(linkChild)
-                    elif isTableRenderingRel:
-                        if XbrlConst.isTableRenderingArcrole(linkChildArcrole):
-                            arcs.append(linkChild)
-                    elif (linkChildArcrole in arcrole and 
-                          (arcqname is None or arcqname == linkChild.qname) and 
-                          (linkqname is None or linkqname == linkEltQname)):
-                        arcs.append(linkChild)
                         
             # build network
             for arcElement in arcs:
-                fromLabel = arcElement.get("{http://www.w3.org/1999/xlink}from")
-                toLabel = arcElement.get("{http://www.w3.org/1999/xlink}to")
+                fromLabel = arcElement.fromLabel
+                toLabel = arcElement.toLabel
                 for fromResource in modelLink.labeledResources[fromLabel]:
                     for toResource in modelLink.labeledResources[toLabel]:
-                        if isinstance(fromResource,(ModelResource,LocPrototype)) and isinstance(toResource,(ModelResource,LocPrototype)):
-                            modelRel = ModelDtsObject.ModelRelationship(modelLink.modelDocument, arcElement, fromResource.dereference(), toResource.dereference())
+                        if isinstance(fromResource,(ModelXlinkResource,LocPrototype)) and isinstance(toResource,(ModelXlinkResource,LocPrototype)):
+                            modelRel = ModelRelationship(modelLink.modelDocument, arcElement, fromResource.dereference(), toResource.dereference())
                             modelRelEquivalenceHash = modelRel.equivalenceHash
                             if modelRelEquivalenceHash not in relationships:
                                 relationships[modelRelEquivalenceHash] = modelRel
@@ -218,7 +220,7 @@ class ModelRelationshipSet:
             for modelRel in self.modelRelationships:
                 fromModelObject = modelRel.fromModelObject
                 if fromModelObject is not None: # none if concepts failed to load
-                    self.modelRelationshipsFrom[fromModelObject].append(modelRel)
+                    self.modelRelationshipsFrom[fromModelObject.objectIndex].append(modelRel)
     
     def loadModelRelationshipsTo(self):
         if self.modelRelationshipsTo is None:
@@ -226,25 +228,27 @@ class ModelRelationshipSet:
             for modelRel in self.modelRelationships:
                 toModelObject = modelRel.toModelObject
                 if toModelObject is not None:   # none if concepts failed to load
-                    self.modelRelationshipsTo[toModelObject].append(modelRel)
+                    self.modelRelationshipsTo[toModelObject.objectIndex].append(modelRel)
                 
     def fromModelObjects(self):
         self.loadModelRelationshipsFrom()
         return self.modelRelationshipsFrom
 
     def fromModelObject(self, modelFrom):
+        if modelFrom is None: return []
         if self.modelRelationshipsFrom is None:
             self.loadModelRelationshipsFrom()
-        return self.modelRelationshipsFrom.get(modelFrom, [])
+        return self.modelRelationshipsFrom.get(modelFrom.objectIndex, [])
     
     def toModelObjects(self):
         self.loadModelRelationshipsTo()
         return self.modelRelationshipsTo
 
     def toModelObject(self, modelTo):
+        if modelTo is None: return []
         if self.modelRelationshipsTo is None:
             self.loadModelRelationshipsTo()
-        return self.modelRelationshipsTo.get(modelTo, [])
+        return self.modelRelationshipsTo.get(modelTo.objectIndex, [])
         
     def fromToModelObjects(self, modelFrom, modelTo, checkBothDirections=False):
         self.loadModelRelationshipsFrom()
@@ -258,9 +262,9 @@ class ModelRelationshipSet:
         if self.modelConceptRoots is None:
             self.loadModelRelationshipsFrom()
             self.loadModelRelationshipsTo()
-            self.modelConceptRoots = [modelRelFrom
-                                      for modelRelFrom in self.modelRelationshipsFrom.keys()
-                                      if modelRelFrom not in self.modelRelationshipsTo]
+            self.modelConceptRoots = [self.modelXbrl.modelObjects[modelRelFromIndex]
+                                      for modelRelFromIndex in self.modelRelationshipsFrom.keys()
+                                      if modelRelFromIndex not in self.modelRelationshipsTo]
         return self.modelConceptRoots
     
     # if modelFrom and modelTo are provided determine that they have specified relationship

@@ -9,24 +9,52 @@ from collections import defaultdict
 
 # ((year, ugtNamespace, ugtDocLB, ugtEntryPoint) ...)
 ugtDocs = ({"year": 2012, 
+            "name": "us-gaap",
             "namespace": "http://fasb.org/us-gaap/2012-01-31",
             "docLB": "http://xbrl.fasb.org/us-gaap/2012/us-gaap-2012-01-31.zip/us-gaap-2012-01-31/elts/us-gaap-doc-2012-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/us-gaap/2012/us-gaap-2012-01-31.zip/us-gaap-2012-01-31/entire/us-gaap-entryPoint-std-2012-01-31.xsd",
             },
            {"year": 2013, 
+            "name": "us-gaap",
             "namespace": "http://fasb.org/us-gaap/2013-01-31",
             "docLB": "http://xbrl.fasb.org/us-gaap/2013/us-gaap-2013-01-31.zip/us-gaap-2013-01-31/elts/us-gaap-doc-2013-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/us-gaap/2013/us-gaap-2013-01-31.zip/us-gaap-2013-01-31/entire/us-gaap-entryPoint-std-2013-01-31.xsd",
             },
            {"year": 2014, 
+            "name": "us-gaap",
             "namespace": "http://fasb.org/us-gaap/2014-01-31",
             "docLB": "http://xbrl.fasb.org/us-gaap/2014/us-gaap-2014-01-31.zip/us-gaap-2014-01-31/elts/us-gaap-doc-2014-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/us-gaap/2014/us-gaap-2014-01-31.zip/us-gaap-2014-01-31/entire/us-gaap-entryPoint-std-2014-01-31.xsd",
             },
            {"year": 2015, 
+            "name": "us-gaap",
             "namespace": "http://fasb.org/us-gaap/2015-01-31",
             "docLB": "http://xbrl.fasb.org/us-gaap/2015/us-gaap-2015-01-31.zip/us-gaap-2015-01-31/elts/us-gaap-doc-2015-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/us-gaap/2015/us-gaap-2015-01-31.zip/us-gaap-2015-01-31/entire/us-gaap-entryPoint-std-2015-01-31.xsd",
+            },
+           {"year": 2016, 
+            "name": "us-gaap",
+            "namespace": "http://fasb.org/us-gaap/2016-01-31",
+            "docLB": "http://xbrl.fasb.org/us-gaap/2016/us-gaap-2016-01-31.zip/us-gaap-2016-01-31/elts/us-gaap-doc-2016-01-31.xml",
+            "entryXsd": "http://xbrl.fasb.org/us-gaap/2016/us-gaap-2016-01-31.zip/us-gaap-2016-01-31/entire/us-gaap-entryPoint-std-2016-01-31.xsd",
+            },
+           {"year": 2017, 
+            "namespace": "http://fasb.org/us-gaap/2017-01-31",
+            "name": "us-gaap",
+            "docLB": "http://xbrl.fasb.org/us-gaap/2017/us-gaap-2017-01-31.zip/us-gaap-2017-01-31/elts/us-gaap-doc-2017-01-31.xml",
+            "entryXsd": "http://xbrl.fasb.org/us-gaap/2017/us-gaap-2017-01-31.zip/us-gaap-2017-01-31/entire/us-gaap-entryPoint-std-2017-01-31.xsd",
+            },
+           {"year": 2018, 
+            "name": "us-gaap",
+            "namespace": "http://fasb.org/us-gaap/2018-01-31",
+            "docLB": "http://xbrl.fasb.org/us-gaap/2018/us-gaap-2018-01-31.zip/us-gaap-2018-01-31/elts/us-gaap-doc-2018-01-31.xml",
+            "entryXsd": "http://xbrl.fasb.org/us-gaap/2018/us-gaap-2018-01-31.zip/us-gaap-2018-01-31/entire/us-gaap-entryPoint-std-2018-01-31.xsd",
+            },
+           {"year": 2018, 
+            "name": "srt",
+            "namespace": "http://fasb.org/srt/2018-01-31",
+            "docLB": "http://xbrl.fasb.org/srt/2018/srt-2018-01-31.zip/srt-2018-01-31/elts/srt-doc-2018-01-31.xml",
+            "entryXsd": "http://xbrl.fasb.org/srt/2018/srt-2018-01-31.zip/srt-2018-01-31/entire/srt-entryPoint-std-2018-01-31.xsd",
             },
            )
 
@@ -55,7 +83,7 @@ def setup(val, *args, **kwargs):
             except Exception:
                 if file:
                     file.close()
-                val.modelXbrl.modelManager.addToLog(_("loading us-gaap {0} deprecated concepts into cache").format(ugt["year"]))
+                val.modelXbrl.modelManager.addToLog(_("loading {} {} deprecated concepts into cache").format(ugt["name"], ugt["year"]))
                 startedAt = time.time()
                 ugtDocLB = ugt["docLB"]
                 val.usgaapDeprecations = {}
@@ -70,8 +98,8 @@ def setup(val, *args, **kwargs):
                 val.modelXbrl.modelManager.validateDisclosureSystem = priorValidateDisclosureSystem
                 if deprecationsInstance is None:
                     val.modelXbrl.error("arelle:notLoaded",
-                        _("US-GAAP documentation not loaded: %(file)s"),
-                        modelXbrl=val, file=os.path.basename(ugtDocLB))
+                        _("%(name)s documentation not loaded: %(file)s"),
+                        modelXbrl=val, file=os.path.basename(ugtDocLB), name=ugt["name"])
                 else:   
                     # load deprecations
                     for labelRel in deprecationsInstance.relationshipSet(XbrlConst.conceptLabel).modelRelationships:
@@ -99,7 +127,7 @@ def setup(val, *args, **kwargs):
             except Exception:
                 if file:
                     file.close()
-                val.modelXbrl.modelManager.addToLog(_("loading us-gaap {0} calculations and default dimensions into cache").format(ugt["year"]))
+                val.modelXbrl.modelManager.addToLog(_("loading {} {} calculations and default dimensions into cache").format(ugt["name"], ugt["year"]))
                 startedAt = time.time()
                 ugtEntryXsd = ugt["entryXsd"]
                 val.usgaapCalculations = {}

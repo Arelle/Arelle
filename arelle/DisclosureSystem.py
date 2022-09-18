@@ -61,6 +61,7 @@ class DisclosureSystem:
                 setattr(self, typeTestVariable, False)
                 self.pluginTypes.add(typeName)
         self.validateFileText = False
+        self.allowedExternalHrefPattern = None
         self.schemaValidateSchema = None
         self.blockDisallowedReferences = False
         self.maxSubmissionSubdirectoryEntryNesting = 0
@@ -93,6 +94,7 @@ class DisclosureSystem:
         self.logCodeFilter = None
         self.standardTaxonomyDatabase = None
         self.standardTaxonomyUrlPattern = None
+        self.warnInlineSelfClosingTags = None
         self.version = (0,0,0)
 
     @property
@@ -172,6 +174,8 @@ class DisclosureSystem:
                                     for typeName, typeTestVariable in pluginXbrlMethod(self):
                                         setattr(self, typeTestVariable, self.validationType == typeName)
                                 self.validateFileText = dsElt.get("validateFileText") == "true"
+                                if dsElt.get("allowedExternalHrefPattern"):
+                                    self.allowedExternalHrefPattern = re.compile(dsElt.get("allowedExternalHrefPattern"))
                                 self.blockDisallowedReferences = dsElt.get("blockDisallowedReferences") == "true"
                                 try:
                                     self.maxSubmissionSubdirectoryEntryNesting = int(dsElt.get("maxSubmissionSubdirectoryEntryNesting"))
@@ -182,7 +186,8 @@ class DisclosureSystem:
                                     self.defaultXmlEncoding = dsElt.get("defaultXmlEncoding") # may be an empty string
                                 self.xmlLangPattern = compileAttrPattern(dsElt,"xmlLangPattern")
                                 self.defaultLanguage = dsElt.get("defaultLanguage")
-                                self.standardTaxonomiesUrl = self.modelManager.cntlr.webCache.normalizeUrl(
+                                if dsElt.get("standardTaxonomiesUrl"):
+                                    self.standardTaxonomiesUrl = self.modelManager.cntlr.webCache.normalizeUrl(
                                                  dsElt.get("standardTaxonomiesUrl"),
                                                  url)
                                 if dsElt.get("mappingsUrl"):
@@ -211,6 +216,7 @@ class DisclosureSystem:
                                 self.logCodeFilter = dsElt.get("logCodeFilter")
                                 self.standardTaxonomyDatabase = dsElt.get("standardTaxonomyDatabase")
                                 self.standardTaxonomyUrlPattern = compileAttrPattern(dsElt, "standardTaxonomyUrlPattern")
+                                self.warnInlineSelfClosingTags = dsElt.get("warnInlineSelfClosingTags") == "true"
 
                                 self.selection = self.name
                                 isSelected = True

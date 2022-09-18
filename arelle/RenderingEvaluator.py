@@ -19,15 +19,19 @@ def init(modelXbrl):
     # setup modelXbrl for rendering evaluation
 
     # dimension defaults required in advance of validation
-    from arelle import ValidateXbrlDimensions, ValidateFormula, ModelDocument
+    from arelle import ValidateXbrlDimensions, ValidateFormula, FormulaEvaluator, ModelDocument
     ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
     
     hasXbrlTables = False
     
     # validate table linkbase dimensions
-    for baseSetKey in modelXbrl.baseSets.keys():
-        arcrole, ELR, linkqname, arcqname = baseSetKey
-        if ELR and linkqname and arcqname and XbrlConst.isTableRenderingArcrole(arcrole):
+    for (hArcrole, hELR, hLinkqname, hArcqname), linkElts in modelXbrl.baseSets.items():
+        linkElt = linkElts[0]
+        arcrole = linkElt.baseSetArcrole
+        ELR = linkElt.role
+        linkqname = linkElt.qname
+        arcqname = linkElt.baseSetArcQName
+        if hELR != hNone and hLinkqname != hNone and hArcqname in XbrlConst.tableRenderingArcroleHashes:
             ValidateFormula.checkBaseSet(modelXbrl, arcrole, ELR, modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname))
             if arcrole in (XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011):
                 hasXbrlTables = True
@@ -42,12 +46,13 @@ def init(modelXbrl):
         
     if hasXbrlTables:
         # formula processor is needed for 2011 XBRL tables but not for 2010 Eurofiling tables
+        FormulaEvaluator.init()
         modelXbrl.rendrCntx = XPathContext.create(modelXbrl, instance)
         
         modelXbrl.profileStat(None)
         
         # setup fresh parameters from formula options
-        modelXbrl.parameters = modelXbrl.modelManager.formulaOptions.typedParameters()
+        modelXbrl.parameters = modelXbrl.modelManager.formulaOptions.typedParameters(modelXbrl.prefixedNamespaces)
         
         # validate parameters and custom function signatures
         ValidateFormula.validate(modelXbrl, xpathContext=modelXbrl.rendrCntx, parametersOnly=True, statusMsg=_("compiling rendering tables"))
@@ -175,7 +180,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDispo
                     _("%(definitionNode)s %(xlinkLabel)s constraint set mismatches between %(tag1)s and %(tag2)s in constraints %(aspects)s"),
                     modelObject=(modelTable, definitionNode, otherConstraintSet, constraintSet), 
                     definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel, 
-                    tag1=otherConstraintSet.tagName, tag2=constraintSet.tagName,
+                    tag1=getattr(otherConstraintSet,"tagName","(no tag)"), tag2=getattr(constraintSet, "tagName", "(no tag)"),
                     aspects=", ".join(aspectStr(aspect) 
                                       for aspect in otherConstraintSet.aspectsCovered() ^ constraintSet.aspectsCovered()
                                       if aspect != Aspect.DIMENSIONS))

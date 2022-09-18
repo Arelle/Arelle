@@ -39,7 +39,7 @@ windows
 
 '''
 
-import time, datetime
+import os, time, datetime
 from arelle.ModelDocument import Type
 from arelle.ModelDtsObject import ModelConcept, ModelResource
 from arelle.ModelObject import ModelObject
@@ -106,7 +106,7 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
         missingTables = XBRLDBTABLES - self.tablesInDB()
         # if no tables, initialize database
         if missingTables == XBRLDBTABLES:
-            self.create("xbrlPublicPostgresDB.ddl")
+            self.create(os.path.join("sql", "public", "xbrlPublicPostgresDB.ddl"))
             
             # load fixed tables
             self.getTable('enumeration_arcrole_cycles_allowed', 'enumeration_arcrole_cycles_allowed_id', 

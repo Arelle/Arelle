@@ -265,10 +265,10 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                                   "presentationLink": "-pre.xml",
                                   "definitionLink": "-def.xml"}.get(extLinkElt.localName, None)
             if expectedSuffix:
-                if not modelDocument.url.endswith(expectedSuffix):
+                if not modelDocument.uri.endswith(expectedSuffix):
                     modelXbrl.error("SBR.NL.3.2.1.09",
                         "Linkbase filename expected to end with %(expectedSuffix)s: %(filename)s",
-                        modelObject=modelDocument, expectedSuffix=expectedSuffix, filename=modelDocument.url)
+                        modelObject=modelDocument, expectedSuffix=expectedSuffix, filename=modelDocument.uri)
             elif extLinkElt.qname == XbrlConst.qnGenLink:
                 anyLabel = XmlUtil.descendant(modelDocument.xmlRootElement, XbrlConst.link, "label", "{http://www.w3.org/XML/1998/namespace}lang", "*")
                 if anyLabel is not None:
@@ -276,10 +276,10 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                     expectedSuffix = "-generic-lab-{0}.xml".format(xmlLang)
                 elif XmlUtil.descendant(modelDocument.xmlRootElement, XbrlConst.link, "reference") is not None:
                     expectedSuffix = "-generic-ref.xml"
-                if expectedSuffix and not modelDocument.url.endswith(expectedSuffix):
+                if expectedSuffix and not modelDocument.uri.endswith(expectedSuffix):
                     modelXbrl.error("SBR.NL.3.2.1.10",
                         "Generic linkbase filename expected to end with %(expectedSuffix)s: %(filename)s",
-                        modelObject=modelDocument, expectedSuffix=expectedSuffix, filename=modelDocument.url)
+                        modelObject=modelDocument, expectedSuffix=expectedSuffix, filename=modelDocument.uri)
         # label checks
         for qnLabel in (XbrlConst.qnLinkLabel, XbrlConst.qnGenLabel):
             for modelLabel in modelDocument.xmlRootElement.iterdescendants(tag=qnLabel.clarkNotation):
@@ -624,7 +624,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
         if partnerPrefix and not modelDocument.basename.startswith(partnerPrefix):
             modelXbrl.error("SBR.NL.3.2.1.14",
                 "NT Partner DTS files MUST start with %(partnerPrefix)s consistently: %(filename)s",
-                modelObject=modelDocument, partnerPrefix=partnerPrefix, filename=modelDocument.url)
+                modelObject=modelDocument, partnerPrefix=partnerPrefix, filename=modelDocument.uri)
         if modelDocument.type == ModelDocument.Type.SCHEMA:
             if modelDocument.targetNamespace:
                 nsParts = modelDocument.targetNamespace.split("/")

@@ -6,6 +6,7 @@ Created on Oct 9, 2010
 '''
 import csv, io, json, re, sys
 from lxml import etree
+from decimal import Decimal
 from arelle.FileSource import FileNamedStringIO
 if sys.version[0] >= '3':
     csvOpenMode = 'w'
@@ -13,12 +14,16 @@ if sys.version[0] >= '3':
 else:
     csvOpenMode = 'wb' # for 2.7
     csvOpenNewline = None
+from openpyxl import Workbook, cell, utils
+from openpyxl.styles import Font, PatternFill, Border, Alignment, Color, fills, Side
 
-CSV = 0
-HTML = 1
-XML = 2
-JSON = 3
-TYPENAMES = ["CSV", "HTML", "XML", "JSON"]
+NOOUT = 0
+CSV   = 1
+XLSX  = 2
+HTML  = 3
+XML   = 4
+JSON  = 5
+TYPENAMES = ["NOOUT", "CSV", "XLSX", "HTML", "XML", "JSON"] # null means no output
 nonNameCharPattern =  re.compile(r"[^\w\-\.:]")
 
 class View:
@@ -26,7 +31,9 @@ class View:
     def __init__(self, modelXbrl, outfile, rootElementName, lang=None, style="table", cssExtras=""):
         self.modelXbrl = modelXbrl
         self.lang = lang
-        if isinstance(outfile, FileNamedStringIO):
+        if outfile is None:
+            self.type = NOOUT
+        elif isinstance(outfile, FileNamedStringIO):
             if outfile.fileName in ("html", "xhtml"):
                 self.type = HTML
             elif outfile.fileName == "csv":
@@ -41,6 +48,8 @@ class View:
             self.type = XML
         elif outfile.endswith(".json"):
             self.type = JSON
+        elif outfile.endswith(".xlsx"):
+            self.type = XLSX
         else:
             self.type = CSV
         self.outfile = outfile
@@ -53,13 +62,24 @@ class View:
         if modelXbrl:
             if not lang: 
                 self.lang = modelXbrl.modelManager.defaultLang
-        if self.type == CSV:
+        if self.type == NOOUT:
+            self.xmlDoc = None
+            self.tblElt = None
+        elif self.type == CSV:
             if isinstance(self.outfile, FileNamedStringIO):
                 self.csvFile = self.outfile
             else:
                 # note: BOM signature required for Excel to open properly with characters > 0x7f 
                 self.csvFile = open(outfile, csvOpenMode, newline=csvOpenNewline, encoding='utf-8-sig')
             self.csvWriter = csv.writer(self.csvFile, dialect="excel")
+        elif self.type == XLSX:
+            self.xlsxWb = Workbook()
+            # remove pre-existing worksheets
+            while len(self.xlsxWb.worksheets)>0:
+                self.xlsxWb.remove(self.xlsxWb.worksheets[0])
+            self.xlsxWs = self.xlsxWb.create_sheet(title=rootElementName)
+            self.xlsxRow = 0
+            self.xlsxColWrapText = [] # bool true if col is always wrap text
         elif self.type == HTML:
             if style == "rendering":
                 html = io.StringIO(
@@ -134,8 +154,20 @@ class View:
             self.entries = []
             self.entryLevels = [self.entries]
             self.jsonObject = {self.rootElementName: self.entries}
+            
+    def setColWidths(self, colWidths):
+        # widths in monospace character counts (as with xlsx files)
+        if self.type == XLSX:
+            for iCol, colWidth in enumerate(colWidths):
+                colLetter = chr( ord("A") + iCol )
+                self.xlsxWs.column_dimensions[colLetter].width = colWidth  
         
-    def addRow(self, cols, asHeader=False, treeIndent=0, colSpan=1, xmlRowElementName=None, xmlRowEltAttr=None, xmlRowText=None, xmlCol0skipElt=False, xmlColElementNames=None, lastColSpan=None):
+    def setColWrapText(self, colColWrapText):
+        # list with True for columns to be word wrapped in every row including heading
+        if self.type == XLSX:
+            self.xlsxColWrapText = colColWrapText
+        
+    def addRow(self, cols, asHeader=False, treeIndent=0, colSpan=1, xmlRowElementName=None, xmlRowEltAttr=None, xmlRowText=None, xmlCol0skipElt=False, xmlColElementNames=None, lastColSpan=None, arcRole=None):
         if asHeader and len(cols) > self.numHdrCols:
             self.numHdrCols = len(cols)
         if self.type == CSV:
@@ -144,6 +176,28 @@ class View:
                                      cols[0:1] + 
                                      [None for i in range(treeIndent, self.treeCols - 1)] +
                                      cols[1:]))
+        elif self.type == XLSX:
+            cell = None
+            for iCol, col in enumerate(cols):
+                cell = self.xlsxWs.cell(row=self.xlsxRow+1, column=iCol+1)
+                if asHeader:
+                    cell.value = col.replace('\u00AD','') # remove soft-breaks
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
+                    cell.fill = PatternFill(patternType=fills.FILL_SOLID, fgColor=Color("00FFBF5F"))
+                else:
+                    cell.value = col if isinstance(col,(str,int,float,Decimal)) else str(col)
+                    if iCol == 0 and self.treeCols and treeIndent > 0:
+                        cell.alignment = Alignment(indent=treeIndent)
+                if self.xlsxColWrapText and iCol < len(self.xlsxColWrapText) and self.xlsxColWrapText[iCol]:
+                    cell.alignment = Alignment(wrap_text=True)
+            if lastColSpan and cell is not None:
+                self.xlsxWs.merge_cells(range_string='%s%s:%s%s' % (utils.get_column_letter(iCol+1),
+                                                                    self.xlsxRow+1,
+                                                                    utils.get_column_letter(iCol+lastColSpan),
+                                                                    self.xlsxRow+1))
+            if asHeader and self.xlsxRow == 0:
+                self.xlsxWs.freeze_panes = self.xlsxWs["A2"] # freezes row 1 and no columns
+            self.xlsxRow += 1
         elif self.type == HTML:
             tr = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")
             td = None
@@ -261,7 +315,11 @@ class View:
         if self.type == CSV:
             if not isinstance(self.outfile, FileNamedStringIO):
                 self.csvFile.close()
-        elif not noWrite:
+        elif self.type == XLSX:
+            # add filtering
+            self.xlsxWs.auto_filter.ref = 'A1:{}{}'.format(utils.get_column_letter(self.xlsxWs.max_column), len(self.xlsxWs['A']))
+            self.xlsxWb.save(self.outfile)
+        elif self.type != NOOUT and not noWrite:
             fileType = TYPENAMES[self.type]
             try:
                 from arelle import XmlUtil
@@ -284,5 +342,6 @@ class View:
             self.tblElt = None
         elif self.type == XML:
             self.docEltLevels = None
+
         self.__dict__.clear() # dereference everything after closing document
 

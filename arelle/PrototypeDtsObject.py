@@ -5,7 +5,7 @@ from collections import defaultdict
 import decimal, os
 ModelDocument = None
 
-class PrototypeObject():
+class XlinkObjectPrototype():
     def __init__(self, modelDocument, sourceElement=None):
         self.modelDocument = modelDocument
         self.sourceElement = sourceElement
@@ -26,7 +26,7 @@ class PrototypeObject():
         """(_ElementBase) -- Method proxy for getparent() of lxml arc element"""
         return self.sourceElement.getparent() if self.sourceElement is not None else None
         
-class LinkPrototype(PrototypeObject):      # behaves like a ModelLink for relationship prototyping
+class LinkPrototype(XlinkObjectPrototype):      # behaves like a ModelLink for relationship prototyping
     def __init__(self, modelDocument, parent, qname, role, sourceElement=None):
         super(LinkPrototype, self).__init__(modelDocument, sourceElement)
         self._parent = parent
@@ -42,6 +42,7 @@ class LinkPrototype(PrototypeObject):      # behaves like a ModelLink for relati
         if role:
             self.attributes["{http://www.w3.org/1999/xlink}role"] = role 
         self.labeledResources = defaultdict(list)
+        self._baseSetArcQName = None
         
     def clear(self):
         self.__dict__.clear() # dereference here, not an lxml object, don't use superclass clear()
@@ -52,13 +53,32 @@ class LinkPrototype(PrototypeObject):      # behaves like a ModelLink for relati
     def getparent(self):
         return self._parent
     
-    def iterchildren(self):
-        return iter(self.childElements)
+    def iterchildren(self, *tags):
+        if not tags:
+            return iter(self.childElements)
+        for child in self.childElements:
+            for tag in tags:
+                if isinstance(tag, type):
+                    if isinstance(child, tag):
+                        yield child
+                        break
+                elif isinstance(tag, str):
+                    if child.qname.clarkName == str:
+                        yield child
+                        break
         
     def __getitem(self, key):
         return self.attributes[key]
     
-class LocPrototype(PrototypeObject):
+    @property
+    def baseSetArcQName(self):
+        if self._baseSetArcQName is None:
+            for child in self.childElements:
+                self._baseSetArcQName = child.qname
+                break
+        return self._baseSetArcQName
+    
+class LocPrototype(XlinkObjectPrototype):
     def __init__(self, modelDocument, parent, label, locObject, role=None, sourceElement=None):
         super(LocPrototype, self).__init__(modelDocument, sourceElement)
         self._parent = parent
@@ -99,7 +119,7 @@ class LocPrototype(PrototypeObject):
     def __getitem(self, key):
         return self.attributes[key]
     
-class ArcPrototype(PrototypeObject):
+class ArcPrototype(XlinkObjectPrototype):
     def __init__(self, modelDocument, parent, qname, fromLabel, toLabel, linkrole, arcrole, order="1", sourceElement=None):
         super(ArcPrototype, self).__init__(modelDocument, sourceElement)
         self._parent = parent

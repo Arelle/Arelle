@@ -10,6 +10,7 @@ try:
 except ImportError:
     from ttk import Frame, Button, Treeview, Scrollbar
 import os, sys
+from collections import defaultdict
 try:
     import regex as re
 except ImportError:
@@ -29,8 +30,11 @@ ARCHIVE = 1
 ENTRY_POINTS = 2
 DISCLOSURE_SYSTEM = 3
 PLUGIN = 4
+PACKAGE = 5
 
-def askArchiveFile(parent, filesource):
+reportIxdsPattern = re.compile(r"^([^/]+/reports/[^/]+)/[^/]+$")
+
+def askArchiveFile(parent, filesource, multiselect=False):
     filenames = filesource.dir
     if filenames is not None:   # an IO or other error can return None
         
@@ -41,14 +45,16 @@ def askArchiveFile(parent, filesource):
                                        filenames,
                                        _("Select Entry Point"), 
                                        _("File"),
-                                       showAltViewButton=True)
+                                       showAltViewButton=True,
+                                       multiselect=multiselect)
         else:
             dialog = DialogOpenArchive(parent, 
                                        ARCHIVE, 
                                        filesource, 
                                        filenames,
                                        _("Select Archive File"), 
-                                       _("File"))
+                                       _("File"),
+                                       multiselect=multiselect)
         if dialog.accepted:
             return filesource.url
     return None
@@ -89,9 +95,22 @@ def selectPlugin(parent, pluginChoices):
         return filesource.selection
     return None
 
+def selectPackage(parent, packageChoices):
+    
+    filesource = attrdict(isRss=False, url="Packages", selection="") # emulates a filesource object for the selection return
+    dialog = DialogOpenArchive(parent, 
+                               PACKAGE, 
+                               filesource, 
+                               packageChoices, 
+                               _("Name"), 
+                               _("Select Package"))
+    if dialog and dialog.accepted:
+        return filesource.selection
+    return None
+
 
 class DialogOpenArchive(Toplevel):
-    def __init__(self, parent, openType, filesource, filenames, title, colHeader, showAltViewButton=False):
+    def __init__(self, parent, openType, filesource, filenames, title, colHeader, showAltViewButton=False, multiselect=False):
         if isinstance(parent, Cntlr):
             cntlr = parent
             parent = parent.parent # parent is cntlrWinMain
@@ -114,6 +133,7 @@ class DialogOpenArchive(Toplevel):
         hScrollbar = Scrollbar(treeFrame, orient=HORIZONTAL)
         self.treeView = Treeview(treeFrame, xscrollcommand=hScrollbar.set, yscrollcommand=vScrollbar.set)
         self.treeView.grid(row=0, column=0, sticky=(N, S, E, W))
+        self.treeView.config(selectmode="extended" if multiselect else "browse")
         hScrollbar["command"] = self.treeView.xview
         hScrollbar.grid(row=1, column=0, sticky=(E,W))
         vScrollbar["command"] = self.treeView.yview
@@ -123,12 +143,13 @@ class DialogOpenArchive(Toplevel):
         treeFrame.grid(row=0, column=0, columnspan=4, sticky=(N, S, E, W), padx=3, pady=3)
         self.treeView.focus_set()
         
-        if openType != PLUGIN:
+        if openType not in (PLUGIN, PACKAGE):
             cntlr.showStatus(_("loading archive {0}").format(filesource.url))
         self.filesource = filesource
         self.filenames = filenames
         self.selection = filesource.selection
         self.hasToolTip = False
+        self.multiselect = multiselect
         selectedNode = None
 
         if openType == ENTRY_POINTS:
@@ -151,8 +172,49 @@ class DialogOpenArchive(Toplevel):
                 self.taxonomyPackage = parsePackage(cntlr, filesource, metadata,
                                                     os.sep.join(os.path.split(metadata)[:-1]) + os.sep)
                 
-                # may be a catalog file with no entry oint names
-                if not self.taxonomyPackage["entryPoints"]:
+                
+                if self.taxonomyPackage["entryPoints"]:
+                    # may have instance documents too
+                    self.packageContainedInstances = []
+                    self.packageContainedIXDSes = defaultdict(list)
+                    packageContentInstanceCounts = {}
+                    packageContentTypeCounts = {}
+                    for suffix in (".xhtml", ".htm", ".html"):
+                        # try for suffixes in order of likelihood to have instance
+                        for potentialInstance in filesource.dir:
+                            if potentialInstance.endswith(suffix):
+                                m = reportIxdsPattern.match(potentialInstance) # IXDS
+                                if multiselect and m: # only in ixds multiselect mode
+                                    _type = "Inline Doc Set"
+                                    self.packageContainedIXDSes[m.group(1)].append(potentialInstance)
+                                    potentialInstance = m.group(1) # use package name only
+                                else:
+                                    _type = "Inline Instance"
+                                if not self.packageContainedInstances or self.packageContainedInstances[-1][0] != potentialInstance:
+                                    self.packageContainedInstances.append([potentialInstance, _type])
+                                    packageContentInstanceCounts[potentialInstance] = packageContentInstanceCounts.get(potentialInstance, 0) + 1
+                                    packageContentTypeCounts[_type] = packageContentTypeCounts.get(_type, 0) + 1
+                        if self.packageContainedInstances:
+                            break 
+                    if self.packageContainedInstances: # add sequences to any duplicated entry types
+                        for _type, count in packageContentTypeCounts.items():
+                            if count > 1:
+                                _dupNo = 0
+                                for i in range(len(self.packageContainedInstances)):
+                                    if self.packageContainedInstances[i][1] == _type:
+                                        _dupNo += 1
+                                        self.packageContainedInstances[i][1] = "{} {}".format(_type, _dupNo)
+                                    
+                        for _instance, count in packageContentInstanceCounts.items():
+                            if count > 1:
+                                _dupNo = 0
+                                for i in range(len(self.packageContainedInstances)):
+                                    if self.packageContainedInstances[i][0] == _instance:
+                                        _dupNo += 1
+                                        self.packageContainedInstances[i][0] = "{} {}".format(_instance, _dupNo)
+                                    
+                else:
+                    # may be a catalog file with no entry oint names
                     openType = ARCHIVE  # no entry points to show, just archive
                     self.showAltViewButton = False
             except Exception as e:
@@ -162,10 +224,10 @@ class DialogOpenArchive(Toplevel):
                 cntlr.addToLog(err)
                 return
     
-        if openType != PLUGIN:
+        if openType not in (PLUGIN, PACKAGE):
             cntlr.showStatus(None)
         
-        if openType in (DISCLOSURE_SYSTEM, PLUGIN):
+        if openType in (DISCLOSURE_SYSTEM, PLUGIN, PACKAGE):
             y = 3
         else:
             y = 1
@@ -222,8 +284,8 @@ class DialogOpenArchive(Toplevel):
             self.treeView.delete(previousNode)
 
         # set up treeView widget and tabbed pane
-        if openType in (ARCHIVE, DISCLOSURE_SYSTEM, PLUGIN):
-            if openType == PLUGIN: width = 770
+        if openType in (ARCHIVE, DISCLOSURE_SYSTEM, PLUGIN, PACKAGE):
+            if openType in (PLUGIN, PACKAGE): width = 770
             else: width = 500
             self.treeView.column("#0", width=width, anchor="w")
             self.treeView.heading("#0", text=colHeader)
@@ -248,6 +310,15 @@ class DialogOpenArchive(Toplevel):
                 self.treeView.heading("descr", text="Description")
                 self.treeView.column("license", width=60, anchor="w", stretch=False)
                 self.treeView.heading("license", text="License")
+            elif openType == PACKAGE:
+                self.treeView.column("#0", width=200, anchor="w")
+                self.treeView["columns"] = ("vers", "descr", "license")
+                self.treeView.column("vers", width=100, anchor="w", stretch=False)
+                self.treeView.heading("vers", text="Version")
+                self.treeView.column("descr", width=400, anchor="w", stretch=False)
+                self.treeView.heading("descr", text="Description")
+                self.treeView.column("license", width=70, anchor="w", stretch=False)
+                self.treeView.heading("license", text="License")
             else:
                 self.treeView["columns"] = tuple()
         
@@ -258,6 +329,8 @@ class DialogOpenArchive(Toplevel):
                         form, date, instDoc = filename[2:5]
                     elif openType == PLUGIN:
                         name, vers, descr, license = filename[3:7]
+                    elif openType == PACKAGE:
+                        vers, descr, license = filename[3:6]
                     filename = filename[0] # ignore tooltip
                     self.hasToolTip = True
                 if filename.endswith("/"):
@@ -277,20 +350,30 @@ class DialogOpenArchive(Toplevel):
                     self.treeView.set(node, "vers", vers)
                     self.treeView.set(node, "descr", descr)
                     self.treeView.set(node, "license", license)
+                elif openType == PACKAGE:
+                    self.treeView.set(node, "vers", vers)
+                    self.treeView.set(node, "descr", descr)
+                    self.treeView.set(node, "license", license)
                 if self.selection == filename:
                     selectedNode = node
                 loadedPaths.append(path)
 
         elif openType == ENTRY_POINTS:
-            self.treeView.column("#0", width=150, anchor="w")
+            self.treeView.column("#0", width=200, anchor="w")
             self.treeView.heading("#0", text="Name")
     
             self.treeView["columns"] = ("url",)
-            self.treeView.column("url", width=350, anchor="w")
+            self.treeView.column("url", width=300, anchor="w")
             self.treeView.heading("url", text="URL")
             
-            for name, urls in sorted(self.taxonomyPackage["entryPoints"].items(), key=lambda i:i[1][2]):
-                self.treeView.insert("", "end", name, values=[urls[1]], text=urls[2])
+            for fileType, fileUrl in getattr(self, "packageContainedInstances", ()):
+                self.treeView.insert("", "end", fileUrl, 
+                                     values=fileType, 
+                                     text=fileUrl or urls[0][2])
+            for name, urls in sorted(self.taxonomyPackage["entryPoints"].items(), key=lambda i:i[0][2]):
+                self.treeView.insert("", "end", name, 
+                                     values="\n".join(url[1] for url in urls), 
+                                     text=name or urls[0][2])
                 
             self.hasToolTip = True
         else: # unknown openType
@@ -306,30 +389,54 @@ class DialogOpenArchive(Toplevel):
     def ok(self, event=None):
         selection = self.treeView.selection()
         if len(selection) > 0:
-            if hasattr(self, "taxonomyPackage"):
-                # load file source remappings
-                self.filesource.mappedPaths = self.taxonomyPackage["remappings"]
             filename = None
             if self.openType in (ARCHIVE, DISCLOSURE_SYSTEM):
-                filename = self.filenames[int(selection[0][4:])]
-                if isinstance(filename,tuple):
-                    if self.isRss:
-                        filename = filename[4]
+                if self.multiselect:
+                    filenames = []
+                for _selection in selection:
+                    filename = self.filenames[int(_selection[4:])]
+                    if isinstance(filename,tuple):
+                        if self.isRss:
+                            filename = filename[4]
+                        else:
+                            filename = filename[0]
+                    if self.multiselect:
+                        filenames.append(filename)
                     else:
-                        filename = filename[0]
+                        break
+                if self.multiselect and filenames:
+                    self.filesource.select(filenames) # array of file names
+                    self.accepted = True
+                    self.close()
             elif self.openType == ENTRY_POINTS:
                 epName = selection[0]
                 #index 0 is the remapped Url, as opposed to the canonical one used for display
                 # Greg Acsone reports [0] does not work for Corep 1.6 pkgs, need [1], old style packages
-                filename = self.taxonomyPackage["entryPoints"][epName][0]
-                if not filename.endswith("/"):
-                    # check if it's an absolute URL rather than a path into the archive
-                    if not isHttpUrl(filename) and self.metadataFilePrefix != self.taxonomyPkgMetaInf:
-                        # assume it's a path inside the archive:
-                        filename = self.metadataFilePrefix + filename
-            elif self.openType == PLUGIN:
+                filenames = []
+                for _url, _type in self.packageContainedInstances: # check if selection was an inline instance
+                    if _type in selection:
+                        if _url in self.packageContainedIXDSes: # taxonomy package
+                            filenames.extend(self.packageContainedIXDSes[_url])
+                        else: # single instance
+                            filenames.append(_url)
+                if not filenames: # else if it's a named taxonomy entry point of an installed package
+                    for url in self.taxonomyPackage["entryPoints"][epName]:
+                        filename = url[1]
+                        # use unmapped file name 
+                        if not filename.endswith("/"):
+                            # check if it's an absolute URL rather than a path into the archive
+                            if not isHttpUrl(filename) and self.metadataFilePrefix != self.taxonomyPkgMetaInf:
+                                # assume it's a path inside the archive:
+                                filename = self.metadataFilePrefix + filename
+                        filenames.append(filename)
+                if filenames:
+                    self.filesource.select(filenames)
+                    self.accepted = True
+                    self.close()
+                return
+            elif self.openType in (PLUGIN, PACKAGE):
                 filename = self.filenames[int(selection[0][4:])][2]
-            if filename is not None and not filename.endswith("/"):
+            if filename is not None and not self.multiselect and not filename.endswith("/"):
                 if hasattr(self, "taxonomyPackage"):
                     # attempt to unmap the filename to original file
                     # will be mapped again in loading, but this allows schemaLocation to be unmapped
@@ -342,7 +449,12 @@ class DialogOpenArchive(Toplevel):
                             # set unmmapped file
                             filename = prefix + filename[len(remapStart):]
                             break
-                if self.openType == PLUGIN:
+                        if (self.metadataFilePrefix.endswith("/META-INF/") and isHttpUrl(prefix) and
+                            filename.startswith(self.metadataFilePrefix[:-10]) and
+                            filename.startswith(remapping[len(self.filesource.url)+1:])):
+                            # recover unmapped file name for chosen in-archive relative file
+                            filename = prefix + filename[len(remapping) - len(self.filesource.url) - 1:]
+                if self.openType in (PLUGIN, PACKAGE):
                     self.filesource.selection = filename
                 else:
                     self.filesource.select(filename)
@@ -367,7 +479,7 @@ class DialogOpenArchive(Toplevel):
         tvRowId = self.treeView.identify_row(args[0].y)
         if tvRowId != self.toolTipRowId:
             text = None
-            if self.openType in (ARCHIVE, DISCLOSURE_SYSTEM, PLUGIN):
+            if self.openType in (ARCHIVE, DISCLOSURE_SYSTEM, PLUGIN, PACKAGE):
                 self.toolTipRowId = tvRowId
                 if tvRowId and len(tvRowId) > 4:
                     try:
@@ -378,8 +490,8 @@ class DialogOpenArchive(Toplevel):
                         pass
             elif self.openType == ENTRY_POINTS:
                 try:
-                    epUrl = self.taxonomyPackage["entryPoints"][tvRowId][1]
-                    text = "{0}\n{1}".format(tvRowId, epUrl)
+                    text = "{0}\n{1}".format(tvRowId, 
+                             "\n".join(url[1] for url in self.taxonomyPackage["entryPoints"][tvRowId]))
                 except KeyError:
                     pass
             self.setToolTip(text)

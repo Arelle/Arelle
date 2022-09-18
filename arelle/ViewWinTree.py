@@ -380,6 +380,7 @@ class ViewTree:
 
     def tabLines(self, parentNode, indent, cols, lines): 
         for node in self.treeView.get_children(parentNode):
-            lines.append('\t'.join([indent + self.treeView.item(node)['text']] +
-                                   [self.treeView.set(node,c) for c in cols]))
+            lines.append('\t'.join('"{}"'.format(c.replace('"','""')) if (isinstance(c, str) and "\n" in c) else c
+                                   for c in ([indent + self.treeView.item(node)['text']] +
+                                             [self.treeView.set(node,c) for c in cols])))
             self.tabLines(node, indent+'    ', cols, lines)

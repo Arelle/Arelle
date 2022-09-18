@@ -31,12 +31,12 @@ linux
    
 windows
    rem be sure plugin is installed
-   arelleCmdLine --plugin "+xbrlDB|show"
+   arelleCmdLine --plugin "xbrlDB"
    arelleCmdLine -f http://sec.org/somewhere/some.rss -v --store-to-XBRL-DB "myserver.com,portnumber,pguser,pgpasswd,database,timeoutseconds"
 
 '''
 
-import time, datetime, logging
+import os, time, datetime, logging
 from arelle.ModelDocument import Type
 from arelle.ModelDtsObject import ModelConcept, ModelType, ModelResource, ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
@@ -58,7 +58,7 @@ from collections import defaultdict
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
-                 product=None, rssItem=None, **kwargs):
+                 product=None, entrypoint=None, rssItem=None, **kwargs):
     xbrlDbConn = None
     try:
         xbrlDbConn = XbrlSqlDatabaseConnection(modelXbrl, user, password, host, port, database, timeout, product)
@@ -66,7 +66,7 @@ def insertIntoDB(modelXbrl,
             xbrlDbConn.initializeBatch(kwargs["rssObject"])
         else:
             xbrlDbConn.verifyTables()
-            xbrlDbConn.insertXbrl(rssItem=rssItem)
+            xbrlDbConn.insertXbrl(entrypoint, rssItem)
         xbrlDbConn.close()
     except Exception as ex:
         if xbrlDbConn is not None:
@@ -96,18 +96,18 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         missingTables = XBRLDBTABLES - self.tablesInDB()
         # if no tables, initialize database
         if missingTables == XBRLDBTABLES:
-            self.create({"mssql": "xbrlSemanticMSSqlDB.sql",
-                         "mysql": "xbrlSemanticMySqlDB.ddl",
-                         "sqlite": "xbrlSemanticSQLiteDB.ddl",
-                         "orcl": "xbrlSemanticOracleDB.sql",
-                         "postgres": "xbrlSemanticPostgresDB.ddl"}[self.product])
+            self.create(os.path.join("sql", "semantic", {"mssql": "xbrlSemanticMSSqlDB.sql",
+                                                         "mysql": "xbrlSemanticMySqlDB.ddl",
+                                                         "sqlite": "xbrlSemanticSQLiteDB.ddl",
+                                                         "orcl": "xbrlSemanticOracleDB.sql",
+                                                         "postgres": "xbrlSemanticPostgresDB.ddl"}[self.product]))
             missingTables = XBRLDBTABLES - self.tablesInDB()
         if missingTables and missingTables != {"sequences"}:
             raise XPDBException("sqlDB:MissingTables",
                                 _("The following tables are missing: %(missingTableNames)s"),
                                 missingTableNames=', '.join(t for t in sorted(missingTables))) 
             
-    def insertXbrl(self, rssItem):
+    def insertXbrl(self, entrypoint, rssItem):
         try:
             # must also have default dimensions loaded
             from arelle import ValidateXbrlDimensions
@@ -126,7 +126,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                     _("No XBRL instance or schema loaded for this filing.")) 
             
             # obtain supplementaion entity information
-            self.entityInformation = loadEntityInformation(self.modelXbrl, rssItem)
+            self.entityInformation = loadEntityInformation(self.modelXbrl, entrypoint, rssItem)
             # identify table facts (table datapoints) (prior to locked database transaction
             self.tableFacts = tableFacts(self.modelXbrl)  # for EFM & HMRC this is ( (roleType, table_code, fact) )
             loadPrimaryDocumentFacts(self.modelXbrl, rssItem, self.entityInformation) # load primary document facts for SEC filing
@@ -370,7 +370,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             results = self.execute("SELECT document_id, document_url FROM {} WHERE document_url IN ({})"
                                    .format(self.dbTableName("document"),
                                            ', '.join(docUris)))
-            self.existingDocumentIds = dict((self.urlDocs[docUrl],docId) 
+            self.existingDocumentIds = dict((self.urlDocs[self.pyStrFromDbStr(docUrl)],docId) 
                                             for docId, docUrl in results)
             
             # identify whether taxonomyRelsSetsOwner is existing
@@ -466,7 +466,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                   if mdlDoc not in self.existingDocumentIds and 
                                      self.isSemanticDocument(mdlDoc)),
                               checkIfExisting=True)
-        self.documentIds = dict((self.urlDocs[url], id)
+        self.documentIds = dict((self.urlDocs[self.pyStrFromDbStr(url)], id) 
                                 for id, url in table)
         self.documentIds.update(self.existingDocumentIds)
 

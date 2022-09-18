@@ -8,8 +8,7 @@ from collections import defaultdict
 import datetime, re
 from arelle import XmlUtil, XbrlConst, XPathParser, XPathContext
 from arelle.ModelValue import qname, QName
-from arelle.ModelObject import ModelObject
-from arelle.ModelDtsObject import ModelResource
+from arelle.arelle_c import ModelXlinkResource, ModelObject
 from arelle.ModelInstanceObject import ModelFact
 from arelle.XbrlUtil import typedValue
 
@@ -125,6 +124,8 @@ class FormulaOptions():
     def __init__(self, savedValues=None):
         self.parameterValues = {} # index is QName, value is typed value
         self.runIDs = None # formula and assertion/assertionset IDs to execute
+        self.compileOnly = False # compile but don't execute formulas
+        self.formulaAction = None # none, validate, run
         self.traceParameterExpressionResult = False
         self.traceParameterInputValue = False
         self.traceCallExpressionSource = False
@@ -140,6 +141,7 @@ class FormulaOptions():
         self.traceSatisfiedAssertions = False
         self.errorUnsatisfiedAssertions = False
         self.traceUnsatisfiedAssertions = False
+        self.traceUnmessagedUnsatisfiedAssertions = False
         self.traceFormulaRules = False
         self.traceVariablesDependencies = False
         self.traceVariablesOrder = False
@@ -149,11 +151,13 @@ class FormulaOptions():
         self.traceVariableExpressionCode = False
         self.traceVariableExpressionEvaluation = False
         self.traceVariableExpressionResult = False
+        self.testcaseResultsCaptureWarnings = False
+        self.testcaseResultOptions = None
         if isinstance(savedValues, dict):
             self.__dict__.update(savedValues)
             
-    def typedParameters(self):
-        return dict((qname(paramName), paramValue)
+    def typedParameters(self, prefixedNamespaces=None):
+        return dict((qname(paramName, prefixedNamespaces), paramValue)
                     for paramName, paramValue in self.parameterValues.items())
         
         # Note: if adding to this list keep DialogFormulaParameters in sync
@@ -183,7 +187,7 @@ class Trace():
     CALL = 7 #such as testcase call or API formula call
     TEST = 8 #such as testcase test or API formula test
     
-class ModelFormulaResource(ModelResource):
+class ModelFormulaResource(ModelXlinkResource):
     def init(self, modelDocument):
         super(ModelFormulaResource, self).init(modelDocument)
         
@@ -442,8 +446,8 @@ class ModelFormulaRules:
             type = 'xs:string'
         if aspect in (Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY): # return list of results
             if aspect in self.aspectProgs:
-                return [xpCtx.evaluateAtomicValue(prog, type) for prog in self.aspectProgs[aspect]]
-            return []
+                return tuple(xpCtx.evaluateAtomicValue(prog, type) for prog in self.aspectProgs[aspect])
+            return ()
         elif xpCtx: # return single result
             if aspect in self.aspectProgs: # defaultDict, for loop would add an empty list even if not there
                 for prog in self.aspectProgs[aspect]:
@@ -542,6 +546,13 @@ class ModelVariableSetAssertion(ModelVariableSet):
         if msgsRelationshipSet:
             return msgsRelationshipSet.label(self, preferredMessage, lang, returnText=False)
         return None
+    
+    def unsatisfiedSeverity(self):
+        msgsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.assertionUnsatisfiedSeverity)
+        if msgsRelationshipSet:
+            for rel in msgsRelationshipSet.fromModelObject(self):
+                return rel.toModelObject.id # OK, WARNING or ERROR
+        return "ERROR"
     
     @property
     def propertyView(self):
@@ -1350,7 +1361,7 @@ class ModelConceptSubstitutionGroup(ModelConceptFilterWithQnameExpression):
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         if self.strict == "true":
             return set(fact for fact in facts 
-                       if cmplmt ^ (fact.concept.substitutionGroupQname == self.evalQname(xpCtx,fact)))
+                       if cmplmt ^ (fact.concept.substitutionGroupQName == self.evalQname(xpCtx,fact)))
         return set(fact for fact in facts 
                    if cmplmt ^ fact.concept.substitutesForQname(self.evalQname(xpCtx,fact)))
     
@@ -1814,7 +1825,7 @@ class ModelMatchFilter(ModelFilter):
         return (("label", self.xlinkLabel),
                 ("aspect", self.aspectName),
                 ("dimension", self.dimension) if self.dimension else (),
-                ("matchAny", self.matchAny.lower())
+                ("matchAny", self.matchAny.lower()),
                 ("variable", self.variable),
                  )
         
@@ -2125,7 +2136,7 @@ class ModelExplicitDimension(ModelFilter):
                                         fromRels = relSet.fromModelObject(memConcept)
                                         if fromRels:
                                             from arelle.FunctionXfi import filter_member_network_members
-                                            filter_member_network_members(relSet, fromRels, memberModel.axis.startswith("descendant"), set(), linkQnames, arcQnames)
+                                            filter_member_network_members(relSet, fromRels, memberModel.axis.startswith("descendant"), set(), None, linkQnames, arcQnames)
                                             if len(linkQnames) > 1 or len(arcQnames) > 1:
                                                 self.modelXbrl.error(_('Network of linkrole {0} and arcrole {1} dimension {2} contains ambiguous links {3} or arcs {4}').format(
                                                                      memberModel.linkrole, memberModel.arcrole, self.dimQname, linkQnames, arcQnames) ,
@@ -2700,7 +2711,7 @@ class ModelMessage(ModelFormulaResource):
     def viewExpression(self):
         return XmlUtil.text(self)
     
-class ModelAssertionSeverity(ModelResource):
+class ModelAssertionSeverity(ModelXlinkResource):
     def init(self, modelDocument):
         super(ModelAssertionSeverity, self).init(modelDocument)
         
@@ -2846,9 +2857,8 @@ class ModelCustomFunctionImplementation(ModelFormulaResource):
         return ' \n'.join([_("step ${0}: \n{1}").format(str(qname),expr) for qname,expr in self.stepExpressions] +
                           [_("output: \n{0}").format(self.outputExpression)])
     
-
-from arelle.ModelObjectFactory import elementSubstitutionModelClass
-elementSubstitutionModelClass.update((
+from arelle.ModelObjectFactory import registerModelObjectClass
+for _qn, _class in ((
      (XbrlConst.qnAssertionSet, ModelAssertionSet),
      (XbrlConst.qnConsistencyAssertion, ModelConsistencyAssertion),
      (XbrlConst.qnExistenceAssertion, ModelExistenceAssertion),
@@ -2912,7 +2922,8 @@ elementSubstitutionModelClass.update((
      (XbrlConst.qnAssertionSeverityError, ModelAssertionSeverity),
      (XbrlConst.qnAssertionSeverityWarning, ModelAssertionSeverity),
      (XbrlConst.qnAssertionSeverityOk, ModelAssertionSeverity),
-     ))
+     )):
+    registerModelObjectClass(_qn, _class)
 
 # import after other modules resolved to prevent circular references
 from arelle.FormulaEvaluator import filterFacts, aspectsMatch, aspectMatches

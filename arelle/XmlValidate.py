@@ -12,7 +12,7 @@ except ImportError:
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
 from arelle import XbrlConst, XmlUtil
-from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, 
+from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, qnameHref,
                                dateTime, DATE, DATETIME, DATEUNION, 
                                anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay, isoDuration)
 from arelle.ModelObject import ModelObject, ModelAttribute
@@ -31,8 +31,9 @@ VALID = 4 # values >= VALID are valid
 VALID_ID = 5
 VALID_NO_CONTENT = 6 # may be a complex type with children, must be last (after VALID with content enums)
 
-normalizeWhitespacePattern = re_compile(r"\s")
-collapseWhitespacePattern = re_compile(r"\s+")
+normalizeWhitespacePattern = re_compile(r"[\t\n\r]") # replace tab, line feed, return with space (XML Schema Rules, note: does not include NBSP)
+collapseWhitespacePattern = re_compile(r"[ \t\n\r]+") # collapse multiple spaces, tabs, line feeds and returns to single space
+entirelyWhitespacePattern = re_compile(r"^[ \t\n\r]+$") # collapse multiple spaces, tabs, line feeds and returns to single space
 languagePattern = re_compile("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$")
 NCNamePattern = re_compile("^[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
                             r"[_\-\." 
@@ -62,6 +63,9 @@ lexicalPatterns = {
     "gDay": re_compile(r"---(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "gMonth": re_compile(r"--(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"), 
     "language": re_compile(r"[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$"),   
+    "XBRLI_DATEUNION": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*$"),
+    "dateTime": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*$"),
+    "date": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(Z|[+-][0-9]{2}:[0-9]{2})?\s*$"),
     }
 
 # patterns difficult to compile into python
@@ -98,11 +102,11 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
         from arelle.ModelInstanceObject import ModelInlineValueObject
         from arelle.XhtmlValidate import ixMsgCode
     isIxFact = isinstance(elt, ModelInlineValueObject)
-    facets = None
+    facets = None   
 
     # attrQname can be provided for attributes that are global and LAX
-    if (getattr(elt,"xValid", UNVALIDATED) == UNVALIDATED) and (not isIxFact or ixFacts):
-        qnElt = elt.qname if ixFacts and isIxFact else elt.elementQname
+    if (elt.xValid == UNVALIDATED) and (not isIxFact or ixFacts):
+        qnElt = elt.qname if ixFacts and isIxFact else elt.elementQName
         modelConcept = modelXbrl.qnameConcepts.get(qnElt)
         isAbstract = False
         if modelConcept is not None:
@@ -128,13 +132,13 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
             baseXsdType = None
             type = None
             isNillable = True # allow nil if no schema definition
-        isNil = elt.get("{http://www.w3.org/2001/XMLSchema-instance}nil") in ("true", "1")
+        isNil = elt.isNil
         if attrQname is None:
             if isNil and not isNillable:
                 if ModelInlineValueObject is not None and isinstance(elt, ModelInlineValueObject):
-                    errElt = "{0} fact {1}".format(elt.elementQname, elt.qname)
+                    errElt = "{0} fact {1}".format(elt.elementQName, elt.qname)
                 else:
-                    errElt = elt.elementQname
+                    errElt = elt.elementQName
                 modelXbrl.error("xmlSchema:nilNonNillableElement",
                     _("Element %(element)s fact %(fact)s type %(typeName)s is nil but element has not been defined nillable"),
                     modelObject=elt, element=errElt, fact=elt.qname, 
@@ -147,7 +151,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                 elif baseXsdType == "noContent":
                     text = elt.textValue # no descendant text nodes
                 else:
-                    text = elt.stringValue # include descendant text nodes
+                    text = elt.stringValue # include descendant text nodes and ix:continuation text
                     if modelConcept is not None:
                         if len(text) == 0:
                             if modelConcept.default is not None:
@@ -155,12 +159,15 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                             elif modelConcept.fixed is not None:
                                 text = modelConcept.fixed
                         if baseXsdType == "token" and modelConcept.isEnumeration:
-                            baseXsdType = "enumerationQNames"
+                            if modelConcept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes):
+                                baseXsdType = "enumerationHrefs"
+                            else:
+                                baseXsdType = "enumerationQNames"
             except Exception as err:
                 if ModelInlineValueObject is not None and isinstance(elt, ModelInlineValueObject):
-                    errElt = "{0} fact {1}".format(elt.elementQname, elt.qname)
+                    errElt = "{0} fact {1}".format(elt.elementQName, elt.qname)
                 else:
-                    errElt = elt.elementQname
+                    errElt = elt.elementQName
                 if isIxFact and err.__class__.__name__ == "FunctionArgType":
                     modelXbrl.error(ixMsgCode("transformValueError", elt),
                         _("Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform)s value error: %(value)s"),
@@ -181,10 +188,13 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                     modelXbrl.error("xmlSchema:valueError",
                         _("Element %(element)s error %(error)s value: %(value)s"),
                         modelObject=elt, element=errElt, error=str(err), value=elt.text)
-                elt.sValue = elt.xValue = text = INVALIDixVALUE
-                elt.xValid = INVALID
+                elt.setInlineFactValue(INVALID, INVALIDixVALUE)
+                text = INVALIDixVALUE
+                #elt.sValue = elt.xValue = text = INVALIDixVALUE
+                #elt.xValid = INVALID
             if text is not INVALIDixVALUE:
                 validateValue(modelXbrl, elt, None, baseXsdType, text, isNillable, isNil, facets)
+        ''' Handled by ModelDocument.pxi
                 # note that elt.sValue and elt.xValue are not innerText but only text elements on specific element (or attribute)
             if type is not None:
                 definedAttributes = type.attributes
@@ -303,6 +313,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                 except AttributeError as ex:
                     raise ex
                     #pass  # HF Why is this here????
+        '''
     if recurse: # if there is no complex or simple type (such as xbrli:measure) then this code is used
         for child in (elt.modelTupleFacts if ixFacts and isIxFact else elt):
             if isinstance(child, ModelObject):     
@@ -322,19 +333,26 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
             isList = baseXsdType in {"IDREFS", "ENTITIES", "NMTOKENS"}
             if isList:
                 baseXsdType = baseXsdType[:-1] # remove plural
+                if facets:
+                    if "minLength" not in facets:
+                        facets = facets.copy()
+                        facets["minLength"] = 1
+                else:
+                    facets = {"minLength": 1}
             pattern = baseXsdTypePatterns.get(baseXsdType)
             if facets:
                 if "pattern" in facets:
-                    pattern = facets["pattern"]
+                    pattern = re_compile(facets["pattern"])
                     # note multiple patterns are or'ed togetner, which isn't yet implemented!
                 if "whiteSpace" in facets:
                     whitespaceReplace, whitespaceCollapse = {"preserve":(False,False), "replace":(True,False), "collapse":(False,True)}[facets["whiteSpace"]]
             if whitespaceReplace:
-                value = normalizeWhitespacePattern.sub(' ', value)
+                value = normalizeWhitespacePattern.sub(' ', value) # replace tab, line feed, return with space
             elif whitespaceCollapse:
-                value = collapseWhitespacePattern.sub(' ', value.strip())
+                value = collapseWhitespacePattern.sub(' ', value).strip(' ') # collapse multiple spaces, tabs, line feeds and returns to single space
             if baseXsdType == "noContent":
-                if len(value) > 0 and not value.isspace():
+                if len(value) > 0 and not entirelyWhitespacePattern.match(value):
+                    # only xml schema pattern whitespaces removed
                     raise ValueError("value content not permitted")
                 # note that sValue and xValue are not innerText but only text elements on specific element (or attribute)
                 xValue = sValue = None
@@ -367,12 +385,14 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     # encode PSVI xValue similarly to Xerces and other implementations
                     xValue = anyURI(UrlUtil.anyUriQuoteForPSVI(value))
                     sValue = value
-                elif baseXsdType in ("decimal", "float", "double"):
-                    if baseXsdType == "decimal":
+                elif baseXsdType in ("decimal", "float", "double", "XBRLI_NONZERODECIMAL"):
+                    if baseXsdType in ("decimal", "XBRLI_NONZERODECIMAL"):
                         if decimalPattern.match(value) is None:
                             raise ValueError("lexical pattern mismatch")
                         xValue = Decimal(value)
                         sValue = float(value) # s-value uses Number (float) representation
+                        if sValue == 0 and baseXsdType == "XBRLI_NONZERODECIMAL":
+                            raise ValueError("zero is not allowed")
                     else:
                         if floatPattern.match(value) is None:
                             raise ValueError("lexical pattern mismatch")
@@ -440,6 +460,9 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                             xValue not in modelXbrl.qnameAttributeGroups):
                             raise ValueError("qname not defined " + str(xValue))
                     '''
+                elif baseXsdType == "enumerationHrefs":
+                    xValue = [qnameHref(href) for href in value.split()]
+                    sValue = value
                 elif baseXsdType == "enumerationQNames":
                     xValue = [qnameEltPfxName(elt, qn, prefixException=ValueError) for qn in value.split()]
                     sValue = value
@@ -449,15 +472,6 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     xValue = sValue = _INT(value)
                     if xValue == 0:
                         raise ValueError("invalid value")
-                elif baseXsdType == "XBRLI_DATEUNION":
-                    xValue = dateTime(value, type=DATEUNION, castException=ValueError)
-                    sValue = value
-                elif baseXsdType == "dateTime":
-                    xValue = dateTime(value, type=DATETIME, castException=ValueError)
-                    sValue = value
-                elif baseXsdType == "date":
-                    xValue = dateTime(value, type=DATE, castException=ValueError)
-                    sValue = value
                 elif baseXsdType == "regex-pattern":
                     # for facet compiling
                     try:
@@ -472,30 +486,45 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     except Exception as err:
                         raise ValueError(err)
                 elif baseXsdType == "fraction":
-                    sValue = value
-                    xValue = Fraction("/".join(elt.fractionValue))
+                    numeratorStr, denominatorStr = elt.fractionValue
+                    if numeratorStr == INVALIDixVALUE or denominatorStr == INVALIDixVALUE:
+                        sValue = xValue = INVALIDixVALUE
+                        xValid = INVALID
+                    else:
+                        sValue = value
+                        numeratorNum = float(numeratorStr)
+                        denominatorNum = float(denominatorStr)
+                        if numeratorNum.is_integer() and denominatorNum.is_integer():
+                            xValue = Fraction(int(numeratorNum), int(denominatorNum))
+                        else:
+                            xValue = Fraction(numeratorNum / denominatorNum)
                 else:
                     if baseXsdType in lexicalPatterns:
                         match = lexicalPatterns[baseXsdType].match(value)
                         if match is None:
                             raise ValueError("lexical pattern mismatch")
-                        if baseXsdType == "gMonthDay":
+                        if baseXsdType == "XBRLI_DATEUNION":
+                            xValue = dateTime(value, type=DATEUNION, castException=ValueError)
+                            sValue = value
+                        elif baseXsdType == "dateTime":
+                            xValue = dateTime(value, type=DATETIME, castException=ValueError)
+                            sValue = value
+                        elif baseXsdType == "date":
+                            xValue = dateTime(value, type=DATE, castException=ValueError)
+                            sValue = value
+                        elif baseXsdType == "gMonthDay":
                             month, day, zSign, zHrMin, zHr, zMin = match.groups()
                             if int(day) > {2:29, 4:30, 6:30, 9:30, 11:30, 1:31, 3:31, 5:31, 7:31, 8:31, 10:31, 12:31}[int(month)]:
                                 raise ValueError("invalid day {0} for month {1}".format(day, month))
-                            xValue = gMonthDay(month, day)
+                            xValue = gMonthDay(value)
                         elif baseXsdType == "gYearMonth":
-                            year, month, zSign, zHrMin, zHr, zMin = match.groups()
-                            xValue = gYearMonth(year, month)
+                            xValue = gYearMonth(value)
                         elif baseXsdType == "gYear":
-                            year, zSign, zHrMin, zHr, zMin = match.groups()
-                            xValue = gYear(year)
+                            xValue = gYear(value)
                         elif baseXsdType == "gMonth":
-                            month, zSign, zHrMin, zHr, zMin = match.groups()
-                            xValue = gMonth(month)
+                            xValue = gMonth(value)
                         elif baseXsdType == "gDay":
-                            day, zSign, zHrMin, zHr, zMin = match.groups()
-                            xValue = gDay(day)
+                            xValue = gDay(value)
                         elif baseXsdType == "duration":
                             xValue = isoDuration(value)
                         else:
@@ -505,9 +534,9 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     sValue = value
         except (ValueError, InvalidOperation) as err:
             if ModelInlineValueObject is not None and isinstance(elt, ModelInlineValueObject):
-                errElt = "{0} fact {1}".format(elt.elementQname, elt.qname)
+                errElt = "{0} fact {1}".format(elt.elementQName, elt.qname)
             else:
-                errElt = elt.elementQname
+                errElt = elt.elementQName
             if attrTag:
                 modelXbrl.error("xmlSchema:valueError",
                     _("Element %(element)s attribute %(attribute)s type %(typeName)s value error: %(value)s, %(error)s"),
@@ -538,9 +567,10 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
             elt.xAttributes = xAttributes = {}
         xAttributes[attrTag] = ModelAttribute(elt, attrTag, xValid, xValue, sValue, value)
     else:
-        elt.xValid = xValid
-        elt.xValue = xValue
-        elt.sValue = sValue
+        elt.setInlineFactValue(xValid, xValue)
+        #elt.xValid = xValid
+        #elt.xValue = xValue
+        #elt.sValue = sValue
 
 def validateFacet(typeElt, facetElt):
     facetName = facetElt.localName

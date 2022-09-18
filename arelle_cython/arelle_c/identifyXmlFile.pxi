@@ -7,7 +7,6 @@ from libcpp cimport bool
 from arelle_c.xerces_sax cimport InputSource, DocumentHandler, ErrorHandler, SAXParseException, Locator
 from arelle_c.xerces_sax2 cimport Attributes
 from arelle_c.xerces_uni cimport fgXercesLoadSchema
-from libc.stdlib cimport malloc, free
 #from arelle_c.utils cimport templateSAX2Handler
 
         

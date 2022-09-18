@@ -7,6 +7,7 @@ Created on Dec 20, 2010
 import sys
 
 from arelle import PythonUtil # define 2.x or 3.x string types (only needed when running as unit test from __main__
+from arelle.PluginManager import pluginClassMethods
 
 if sys.version[0] >= '3':
     # python 3 requires modified parser to allow release of global objects when closing DTS
@@ -34,6 +35,7 @@ exprStack = []
 xmlElement = None
 modelXbrl = None
 xbrlResource = None
+pluginCustomFunctions = None
 
 class ProgHeader:
     def __init__(self, modelObject, name, element, sourceStr, traceType):
@@ -267,7 +269,7 @@ def pushFunction( sourceStr, loc, toks ):
             ns not in {XbrlConst.fn, XbrlConst.xfi, XbrlConst.xff, XbrlConst.xsd} and
             ns not in FunctionIxt.ixtNamespaceFunctions and
             name not in modelXbrl.modelManager.customTransforms):
-            if name not in modelXbrl.modelCustomFunctionSignatures: # indexed by both [qname] and [qname,arity]
+            if name not in modelXbrl.modelCustomFunctionSignatures and name not in pluginCustomFunctions: # indexed by both [qname] and [qname,arity]
                 modelXbrl.error("xbrlve:noCustomFunctionSignature",
                     _("No custom function signature for %(custFunction)s in %(resource)s"),
                     modelObject=xmlElement,
@@ -542,8 +544,8 @@ atom = (
            (thenOp + expr).setParseAction(pushOperation) - 
            (elseOp + expr).setParseAction(pushOperation) ).setParseAction(pushOperation) |
          ( qName + Suppress(lParen) + Optional(delimitedList(expr)) + Suppress(rParen) ).setParseAction(pushFunction) |
-         ( decimalLiteral ).setParseAction(pushDecimal) |
          ( floatLiteral ).setParseAction(pushFloat) |
+         ( decimalLiteral ).setParseAction(pushDecimal) |
          ( integerLiteral ).setParseAction(pushInt) |
          ( quotedString ).setParseAction(pushQuotedString) |
          ( variableRef ).setParseAction(pushVarRef)  |
@@ -711,13 +713,18 @@ def staticExpressionFunctionContext():
     
 def parse(modelObject, xpathExpression, element, name, traceType):
     from arelle.ModelFormulaObject import Trace
-    global modelXbrl
+    global modelXbrl, pluginCustomFunctions
     modelXbrl = modelObject.modelXbrl
     global exprStack
     exprStack = []
     global xmlElement
     xmlElement = element
     returnProg = None
+    pluginCustomFunctions = {}
+    
+    for pluginXbrlMethod in pluginClassMethods("Formula.CustomFunctions"):
+        pluginCustomFunctions.update(pluginXbrlMethod())
+
 
     # throws ParseException
     if xpathExpression and len(xpathExpression) > 0:
@@ -762,6 +769,13 @@ def parse(modelObject, xpathExpression, element, name, traceType):
                 name=name,
                 error=err, 
                 source=exceptionErrorIndication(err))
+            # insert after ProgHeader before ordinary executable expression that may have successfully compiled
+            exprStack.insert(1, OperationDef(normalizedExpr, 0, 
+                                             QNameDef(0, "fn", XbrlConst.fn, "error"), 
+                                             (OperationDef(normalizedExpr, 0, 
+                                                           QNameDef(0, "fn", XbrlConst.fn, "QName"),
+                                                           (XbrlConst.xpath2err, "err:XPST0003"),False),
+                                              str(err)), False))
         except (ValueError) as err:
             modelXbrl.error("parser:unableToParse",
                 _("Parsing terminated in %(name)s due to error: %(error)s \n%(source)s"),
@@ -819,6 +833,30 @@ def variableReferences(exprStack, varRefSet, element, rangeVars=None):
     for localRangeVar in localRangeVars:
         if localRangeVar in rangeVars:
             rangeVars.remove(localRangeVar)
+            
+def prefixDeclarations(exprStack, xmlnsDict, element):
+    from arelle.ModelValue import qname
+    for p in exprStack:
+        if isinstance(p, ProgHeader):
+            element = p.element
+        elif isinstance(p,VariableRef):
+            var = qname(element, p.name, noPrefixIsNoNamespace=True)
+            if var.prefix:
+                xmlnsDict[var.prefix] = var.namespaceURI
+        elif isinstance(p,OperationDef):
+            op = p.name
+            if isinstance(op, QNameDef) and op.prefix:
+                xmlnsDict[op.prefix] = op.namespaceURI
+            prefixDeclarations(p.args, xmlnsDict, element)
+        elif isinstance(p,Expr):
+            prefixDeclarations(p.expr, xmlnsDict, element)
+        elif isinstance(p,RangeDecl):
+            var = p.rangeVar.name
+            if var.prefix:
+                xmlnsDict[var.prefix] = var.namespaceURI
+            prefixDeclarations(p.bindingSeq, xmlnsDict, element)
+        elif hasattr(p, '__iter__') and not isinstance(p, _STR_BASE):
+            prefixDeclarations(p, xmlnsDict, element)
 
 def clearProg(exprStack):
     if exprStack:

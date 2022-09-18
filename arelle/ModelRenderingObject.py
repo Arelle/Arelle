@@ -6,7 +6,7 @@ Created on Mar 7, 2011
 '''
 import inspect, os
 from arelle import XmlUtil, XbrlConst, XPathParser, Locale, XPathContext
-from arelle.ModelDtsObject import ModelResource
+from arelle.arelle_c import ModelXlinkResource
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import qname, QName
 from arelle.ModelObject import ModelObject
@@ -261,7 +261,7 @@ class StructuralNode:
             return self.parentStructuralNode.header(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
         return None
     
-    def evaluate(self, evalObject, evalMethod, otherAxisStructuralNode=None, evalArgs=()):
+    def evaluate(self, evalObject, evalMethod, otherAxisStructuralNode=None, evalArgs=(), handleXPathException=True, **kwargs):
         xc = self._rendrCntx
         if self.contextItemBinding and not isinstance(xc.contextItem, ModelFact):
             previousContextItem = xc.contextItem # xbrli.xbrl
@@ -289,6 +289,8 @@ class StructuralNode:
             try:
                 result = evalMethod(xc, *evalArgs)
             except XPathContext.XPathException as err:
+                if not handleXPathException:
+                    raise
                 xc.modelXbrl.error(err.code,
                          _("%(element)s set %(xlinkLabel)s \nException: %(error)s"), 
                          modelObject=evalObject, element=evalObject.localName, 
@@ -419,7 +421,7 @@ class StructuralNode:
 def definitionModelLabelsView(mdlObj):
     return tuple(sorted([("{} {} {} {}".format(label.localName,
                                             str(rel.order).rstrip("0").rstrip("."),
-                                            os.path.basename(label.role),
+                                            os.path.basename(label.role or ""),
                                             label.xmlLang), 
                           label.stringValue)
                          for rel in mdlObj.modelXbrl.relationshipSet((XbrlConst.elementLabel,XbrlConst.elementReference)).fromModelObject(mdlObj)
@@ -427,7 +429,7 @@ def definitionModelLabelsView(mdlObj):
                         [("xlink:label", mdlObj.xlinkLabel)]))
 
 # 2010 EU Table linkbase
-class ModelEuTable(ModelResource):
+class ModelEuTable(ModelXlinkResource):
     def init(self, modelDocument):
         super(ModelEuTable, self).init(modelDocument)
         self.aspectsInTaggedConstraintSets = set()
@@ -464,7 +466,7 @@ class ModelEuTable(ModelResource):
     def __repr__(self):
         return ("table[{0}]{1})".format(self.objectId(),self.propertyView))
 
-class ModelEuAxisCoord(ModelResource):
+class ModelEuAxisCoord(ModelXlinkResource):
     def init(self, modelDocument):
         super(ModelEuAxisCoord, self).init(modelDocument)
         
@@ -582,7 +584,7 @@ class ModelEuAxisCoord(ModelResource):
                                      addOneDay=True)
     '''
 
-    def cardinalityAndDepth(self, structuralNode):
+    def cardinalityAndDepth(self, structuralNode, **kwargs):
         return (1, 1)
         
     ''' now only accessed from structural node    
@@ -776,7 +778,7 @@ class ModelDefinitionNode(ModelFormulaResource):
     def isRollUp(self):
         return self.get("rollUp") == 'true'
     
-    def cardinalityAndDepth(self, structuralNode):
+    def cardinalityAndDepth(self, structuralNode, **kwargs):
         return (1, 
                 1 if (structuralNode.header(evaluate=False) is not None) else 0)
         
@@ -924,7 +926,7 @@ class ModelConstraintSet(ModelFormulaRules):
                                   "duration": Aspect.END}[periodType])
     '''
     
-    def cardinalityAndDepth(self, structuralNode):
+    def cardinalityAndDepth(self, structuralNode, **kwargs):
         if self.aspectValues or self.aspectProgs or structuralNode.header(evaluate=False) is not None:
             return (1, 1)
         else:
@@ -1134,8 +1136,8 @@ class ModelRelationshipDefinitionNode(ModelClosedDefinitionNode):
             return self.generations
         return xpCtx.evaluateAtomicValue(self.generationsExpressionProg, 'xs:integer', fact)
 
-    def cardinalityAndDepth(self, structuralNode):
-        return self.lenDepth(self.relationships(structuralNode), 
+    def cardinalityAndDepth(self, structuralNode, **kwargs):
+        return self.lenDepth(self.relationships(structuralNode, **kwargs), 
                              self.axis.endswith('-or-self'))
     
     def lenDepth(self, nestedRelationships, includeSelf):
@@ -1235,8 +1237,8 @@ class ModelConceptRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
     def coveredAspect(self, ordCntx=None):
         return Aspect.CONCEPT
 
-    def relationships(self, structuralNode):
-        self._sourceQname = structuralNode.evaluate(self, self.evalRrelationshipSourceQname) or XbrlConst.qnXfiRoot
+    def relationships(self, structuralNode, **kwargs):
+        self._sourceQname = structuralNode.evaluate(self, self.evalRrelationshipSourceQname, **kwargs) or XbrlConst.qnXfiRoot
         linkrole = structuralNode.evaluate(self, self.evalLinkrole)
         if not linkrole:
             linkrole = "XBRL-all-linkroles"
@@ -1500,8 +1502,8 @@ class ModelFilterDefinitionNode(ModelOpenDefinitionNode):
         
         
 
-from arelle.ModelObjectFactory import elementSubstitutionModelClass
-elementSubstitutionModelClass.update((
+from arelle.ModelObjectFactory import registerModelObjectClass
+for _qn, _class in ((
     # IWD
     (XbrlConst.qnTableTableMMDD, ModelTable),
     (XbrlConst.qnTableBreakdownMMDD, ModelBreakdown),
@@ -1546,7 +1548,8 @@ elementSubstitutionModelClass.update((
     # Eurofiling
     (XbrlConst.qnEuTable, ModelEuTable),
     (XbrlConst.qnEuAxisCoord, ModelEuAxisCoord),
-     ))
+     )):
+    registerModelObjectClass(_qn, _class)
 
 # import after other modules resolved to prevent circular references
 from arelle.FunctionXfi import concept_relationships

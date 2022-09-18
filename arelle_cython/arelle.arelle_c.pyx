@@ -9,6 +9,8 @@
 #
 # source programs for this library are in the lxbrl subdirectory
 #
+# to build, see setup_arelle_C.py
+#
 
 include 'arelle_c/consts.pxi'
 include 'arelle_c/utils.pxi'
@@ -16,9 +18,13 @@ include 'arelle_c/utils.pxi'
 
 include 'arelle_c/Cntlr.pxi'
 include 'arelle_c/ModelValue.pxi'
+include 'arelle_c/ModelObject.pxi'
+include 'arelle_c/ModelObjectFactory.pxi'
+include 'arelle_c/ModelDtsObject.pxi'
+include 'arelle_c/ModelInstanceObject.pxi'
 include 'arelle_c/ModelXbrl.pxi'
 include 'arelle_c/ModelDocument.pxi'
 
 # for testing only
-include 'arelle_c/xerces.pxi'
+#include 'arelle_c/xerces.pxi'
 
