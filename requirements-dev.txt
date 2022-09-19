@@ -12,7 +12,7 @@ lxml-stubs==0.4.0
 types-PyMySQL==1.0.19
 types-pytz==2022.2.1.0
 types-simplejson==3.17.7
-types-ujson==5.4.0
+types-ujson==5.5.0
 types-regex==2022.8.17.0
 types-waitress==2.1.4
 
