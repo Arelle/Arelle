@@ -43,6 +43,7 @@ from arelle.ModelObject import ModelObject
 from decimal import Decimal, InvalidOperation
 from hashlib import md5
 from arelle.HashUtil import md5hash, Md5Sum
+from arelle.PythonUtil import type_defns
 
 Aspect = None
 Type = None
@@ -405,7 +406,7 @@ class ModelFact(ModelObject):
                         if dec is None or dec == "INF":  # show using decimals or reported format
                             dec = len(val.partition(".")[2])
                         else: # max decimals at 28
-                            dec = max( min(int(dec), 28), -28) # 2.7 wants short int, 3.2 takes regular int, don't use _INT here
+                            dec = max( min(int(dec), 28), -28)
                         # return Locale.format(self.modelXbrl.locale, "%.*f", (dec, num), True)
                         # switch to new formatting so long-precision decimal numbers are correct
                         if dec < 0:
@@ -1083,8 +1084,8 @@ class ModelContext(ModelObject):
     def dimAspects(self, defaultDimensionAspects=None):
         """(set) -- For formula and instance aspects processing, set of all dimensions reported or defaulted."""
         if defaultDimensionAspects:
-            return _DICT_SET(self.qnameDims.keys()) | defaultDimensionAspects
-        return _DICT_SET(self.qnameDims.keys())
+            return type_defns.DICT_SET(self.qnameDims.keys()) | defaultDimensionAspects
+        return type_defns.DICT_SET(self.qnameDims.keys())
 
     @property
     def dimsHash(self):
@@ -1235,7 +1236,7 @@ class ModelContext(ModelObject):
         if self.periodHash != cntx2.periodHash or not self.isPeriodEqualTo(cntx2) or not self.isEntityIdentifierEqualTo(cntx2):
             return False
         if dimensionalAspectModel:
-            if _DICT_SET(self.qnameDims.keys()) != _DICT_SET(cntx2.qnameDims.keys()):
+            if type_defns.DICT_SET(self.qnameDims.keys()) != type_defns.DICT_SET(cntx2.qnameDims.keys()):
                 return False
             for dimQname, ctx1Dim in self.qnameDims.items():
                 if not ctx1Dim.isEqualTo(cntx2.qnameDims[dimQname]):

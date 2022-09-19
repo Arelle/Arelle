@@ -20,6 +20,7 @@ from arelle.ValidateXbrlDimensions import priItemElrHcRels
 from arelle.Locale import format_picture
 from lxml import etree
 from math import isnan, isinf
+from arelle.PythonUtil import type_defns
 
 class xfiFunctionNotAvailable(Exception):
     def __init__(self):
@@ -921,7 +922,7 @@ def fact_explicit_dimensions(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     context = item_context(xc, args)
     if context is not None:
-        return set(qn for qn, dim in context.qnameDims.items() if dim.isExplicit) | _DICT_SET(xc.modelXbrl.qnameDimensionDefaults.keys())
+        return set(qn for qn, dim in context.qnameDims.items() if dim.isExplicit) | type_defns.DICT_SET(xc.modelXbrl.qnameDimensionDefaults.keys())
     return set()
 
 def fact_typed_dimensions(xc, p, args):
@@ -1242,8 +1243,8 @@ def  create_element(xc, p, args):
     # attributes have to be pairs
     if attrArg:
         if (len(attrArg) & 1 or
-            any((not isinstance(arg, (QName, _STR_BASE))) or
-                (isinstance(arg,_STR_BASE) and NCNamePattern.match(arg) is None)
+            any((not isinstance(arg, (QName, str))) or
+                (isinstance(arg,str) and NCNamePattern.match(arg) is None)
                 for i in range(0, len(attrArg),2)
                 for arg in (attrArg[i],))):
             raise XPathContext.FunctionArgType(1,"((xs:qname|xs:string),xs:anyAtomicValue)", errCode="xfie:AttributesNotNameValuePairs")

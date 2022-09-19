@@ -8,12 +8,10 @@ import csv, io, json, re, sys
 from lxml import etree
 from decimal import Decimal
 from arelle.FileSource import FileNamedStringIO
-if sys.version[0] >= '3':
-    csvOpenMode = 'w'
-    csvOpenNewline = ''
-else:
-    csvOpenMode = 'wb' # for 2.7
-    csvOpenNewline = None
+
+csvOpenMode = 'w'
+csvOpenNewline = ''
+
 
 NoneType = type(None) # for isinstance testing
 

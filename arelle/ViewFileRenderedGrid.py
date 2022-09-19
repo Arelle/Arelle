@@ -19,6 +19,7 @@ from arelle.ModelXbrl import DEFAULT
 from arelle.ModelRenderingObject import (ModelClosedDefinitionNode, ModelEuAxisCoord, ModelFilterDefinitionNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.PrototypeInstanceObject import FactPrototype
+from arelle.PythonUtil import type_defns
 # change tableModel for namespace needed for consistency suite
 '''
 from arelle.XbrlConst import (tableModelMMDD as tableModelNamespace,
@@ -682,17 +683,17 @@ class ViewRenderedGrid(ViewFile.View):
                         cellTagSelectors = yTagSelectors | xStructuralNode.tagSelectors
                         cellAspectValues = {}
                         matchableAspects = set()
-                        for aspect in _DICT_SET(xAspectStructuralNodes.keys()) | _DICT_SET(yAspectStructuralNodes.keys()) | _DICT_SET(zAspectStructuralNodes.keys()):
+                        for aspect in type_defns.DICT_SET(xAspectStructuralNodes.keys()) | type_defns.DICT_SET(yAspectStructuralNodes.keys()) | type_defns.DICT_SET(zAspectStructuralNodes.keys()):
                             aspectValue = xStructuralNode.inheritedAspectValue(yStructuralNode,
                                                self, aspect, cellTagSelectors,
                                                xAspectStructuralNodes, yAspectStructuralNodes, zAspectStructuralNodes)
                             # value is None for a dimension whose value is to be not reported in this slice
-                            if (isinstance(aspect, _INT) or  # not a dimension
+                            if (isinstance(aspect, int) or  # not a dimension
                                 dimDefaults.get(aspect) != aspectValue or # explicit dim defaulted will equal the value
                                 aspectValue is not None): # typed dim absent will be none
                                 cellAspectValues[aspect] = aspectValue
                             matchableAspects.add(aspectModelAspect.get(aspect,aspect)) #filterable aspect from rule aspect
-                        cellDefaultedDims = _DICT_SET(dimDefaults) - _DICT_SET(cellAspectValues.keys())
+                        cellDefaultedDims = type_defns.DICT_SET(dimDefaults) - type_defns.DICT_SET(cellAspectValues.keys())
                         priItemQname = cellAspectValues.get(Aspect.CONCEPT)
 
                         concept = self.modelXbrl.qnameConcepts.get(priItemQname)

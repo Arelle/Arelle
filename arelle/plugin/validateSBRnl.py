@@ -16,6 +16,8 @@ from arelle.ModelValue import qname
 import regex as re
 from lxml import etree
 from collections import defaultdict
+from arelle.PythonUtil import type_defns
+
 
 def setup(val, modelXbrl, *args, **kwargs):
     cntlr = modelXbrl.modelManager.cntlr
@@ -41,7 +43,7 @@ def final(val, conceptsUsed, *args, **kwargs):
         if qname.namespaceURI not in val.disclosureSystem.baseTaxonomyNamespaces:
             facets = modelType.facets
             if facets:
-                lengthFacets = _DICT_SET(facets.keys()) & {"minLength", "maxLength", "length"}
+                lengthFacets = type_defns.DICT_SET(facets.keys()) & {"minLength", "maxLength", "length"}
                 if lengthFacets:
                     modelXbrl.error("SBR.NL.2.2.7.02",
                         _("Type %(typename)s has length restriction facets %(facets)s"),
@@ -138,7 +140,7 @@ def final(val, conceptsUsed, *args, **kwargs):
 
     # check non-concept elements that can appear in elements for labels (concepts checked by
     labelsRelationshipSet = modelXbrl.relationshipSet((XbrlConst.conceptLabel, XbrlConst.elementLabel))
-    standardXbrlSchmas = _DICT_SET(XbrlConst.standardNamespaceSchemaLocations.values())
+    standardXbrlSchmas = type_defns.DICT_SET(XbrlConst.standardNamespaceSchemaLocations.values())
     baseTaxonomyNamespaces = val.disclosureSystem.baseTaxonomyNamespaces
     for eltDef in modelXbrl.qnameConcepts.values():
         if (not (eltDef.isItem or eltDef.isTuple or eltDef.isLinkPart) and

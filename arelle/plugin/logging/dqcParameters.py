@@ -133,17 +133,17 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs, *args
                     propVal = modelConceptOrQname.label(labelrole,
                                                         lang=lang,
                                                         linkroleHint=XbrlConst.defaultLinkRole)
-                elif isinstance(modelConceptOrQname, _STR_BASE):
+                elif isinstance(modelConceptOrQname, str):
                     propVal = modelConceptOrQname
             elif property == "name":
                 if isinstance(modelConceptOrQname, ModelConcept):
                     propVal = str(modelConceptOrQname.qname)
-                elif isinstance(modelConceptOrQname, _STR_BASE):
+                elif isinstance(modelConceptOrQname, str):
                     propVal = modelConceptOrQname
             elif property == "localName":
                 if isinstance(modelConcept, ModelConcept):
                     propVal = modelConcept.qname.localName
-                elif isinstance(modelConcept, _STR_BASE):
+                elif isinstance(modelConcept, str):
                     propVal = modelConcept.rpartition(':')[2]
             if propVal is not None:
                 fmtArgs[param] = propVal

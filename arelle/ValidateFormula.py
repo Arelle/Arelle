@@ -21,8 +21,8 @@ from arelle.ModelValue import (qname,QName)
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import normalizeSpace
 from arelle.XmlValidate import validate as xml_validate
-from arelle import (XbrlConst, XmlUtil, ModelXbrl, ModelDocument, XPathParser, XPathContext, FunctionXs,
-                    ValidateXbrlDimensions)
+from arelle import (XbrlConst, XmlUtil, ModelXbrl, ModelDocument, XPathParser, XPathContext, FunctionXs, ValidateXbrlDimensions)
+from arelle.PythonUtil import type_defns
 
 formulaIdWhitespacesSeparatedPattern = re.compile(r"(\w+\s)*(\w+)$") # prenormalized IDs list
 
@@ -740,7 +740,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                 orderedInstancesSet.add(instqname)
                 orderedAnInstance = True
     # add instances with variable sets with no variables or other dependencies
-    for independentInstance in _DICT_SET(instanceProducingVariableSets.keys()) - _DICT_SET(orderedInstancesList): # must be set for 2.7 compatibility
+    for independentInstance in type_defns.DICT_SET(instanceProducingVariableSets.keys()) - type_defns.DICT_SET(orderedInstancesList): # must be set for 2.7 compatibility
         orderedInstancesList.append(independentInstance)
         orderedInstancesSet.add(independentInstance)
     if None not in orderedInstancesList:
@@ -751,7 +751,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
         if instqname not in orderedInstancesSet:
             # can also be satisfied from an input DTS
             missingDependentInstances = depInsts - stdInpInst
-            if val.parameters: missingDependentInstances -= _DICT_SET(val.parameters.keys())
+            if val.parameters: missingDependentInstances -= type_defns.DICT_SET(val.parameters.keys())
             if instqname:
                 if missingDependentInstances:
                     val.modelXbrl.error("xbrlvarinste:instanceVariableRecursionCycle",
@@ -765,7 +765,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
             else:
                 val.modelXbrl.error("xbrlvarinste:instanceVariableRecursionCycle",
                     _("Unresolved dependencies of an assertion's variables on instances %(dependencies)s"),
-                    dependencies=str(_DICT_SET(depInsts) - stdInpInst) )
+                    dependencies=str(type_defns.DICT_SET(depInsts) - stdInpInst) )
             '''
         elif instqname in depInsts: # check for direct cycle
             val.modelXbrl.error("xbrlvarinste:instanceVariableRecursionCycle",
@@ -810,7 +810,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     xpathContext.defaultDimensionAspects = set(val.modelXbrl.qnameDimensionDefaults.keys())
     xpathContext.dimensionsAspectUniverse = xpathContext.defaultDimensionAspects
     for cntx in val.modelXbrl.contexts.values(): # note that this maybe should not include unreferenced contexts
-        xpathContext.dimensionsAspectUniverse |= _DICT_SET(cntx.qnameDims.keys())
+        xpathContext.dimensionsAspectUniverse |= type_defns.DICT_SET(cntx.qnameDims.keys())
 
     #xpathContext.reportedDimensionAspects = set()
     #_evaluatedContexts = set()
@@ -819,14 +819,14 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
             val.parameters and instanceQname in val.parameters):
             for namedInstance in val.parameters[instanceQname][1]:
                 ValidateXbrlDimensions.loadDimensionDefaults(namedInstance)
-                xpathContext.defaultDimensionAspects |= _DICT_SET(namedInstance.qnameDimensionDefaults.keys())
-                xpathContext.dimensionsAspectUniverse |= _DICT_SET(namedInstance.qnameDimensionDefaults.keys())
+                xpathContext.defaultDimensionAspects |= type_defns.DICT_SET(namedInstance.qnameDimensionDefaults.keys())
+                xpathContext.dimensionsAspectUniverse |= type_defns.DICT_SET(namedInstance.qnameDimensionDefaults.keys())
                 for cntx in namedInstance.contexts.values():
-                    xpathContext.dimensionsAspectUniverse |= _DICT_SET(cntx.qnameDims.keys())
+                    xpathContext.dimensionsAspectUniverse |= type_defns.DICT_SET(cntx.qnameDims.keys())
                 #for fact in namedInstance.factsInInstance:
                 #    _cntx = fact.context
                 #    if fact.isItem and _cntx is not None and _cntx not in _evaluatedContexts:
-                #        xpathContext.reportedDimensionAspects |= _DICT_SET(_cntx.qnameDims.keys())
+                #        xpathContext.reportedDimensionAspects |= type_defns.DICT_SET(_cntx.qnameDims.keys())
     #del _evaluatedContexts # dereference
     #xpathContext.reportedDefaultDimensionAspects = xpathContext.defaultDimensionAspects & xpathContext.reportedDimensionAspects
 
@@ -1022,7 +1022,7 @@ def checkFilterAspectModel(val, variableSet, filterRelationships, xpathContext, 
     result = set() # all of the aspects found to be covered
     if uncoverableAspects is None:
         # protect 2.7 conversion
-        oppositeAspectModel = (_DICT_SET({'dimensional','non-dimensional'}) - _DICT_SET({variableSet.aspectModel})).pop()
+        oppositeAspectModel = (type_defns.DICT_SET({'dimensional', 'non-dimensional'}) - type_defns.DICT_SET({variableSet.aspectModel})).pop()
         try:
             uncoverableAspects = aspectModels[oppositeAspectModel] - aspectModels[variableSet.aspectModel]
         except KeyError:    # bad aspect model, not an issue for this test

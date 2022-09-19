@@ -27,6 +27,7 @@ osPrcs = None
 LOG_TEXT_MAX_LENGTH = 32767
 cxFrozen = getattr(sys, 'frozen', False)
 
+
 def resourcesDir() -> str:
     if cxFrozen: # Check if frozen by cx_Freeze
         _resourcesDir = os.path.dirname(sys.executable)
@@ -362,7 +363,7 @@ class Cntlr:
                 self.addToLog(_("Unknown log level name: {0}, please choose from {1}").format(
                     logLevel, ', '.join(logging.getLevelName(l).lower()
                                         for l in sorted([i for i in logging._levelToName.keys()
-                                                         if isinstance(i,_INT_TYPES) and i > 0]))),  # type: ignore[name-defined]
+                                                         if isinstance(i, int) and i > 0]))),  # type: ignore[name-defined]
                               level=logging.ERROR, messageCode="arelle:logLevel")
             setattr(self.logger, "messageCodeFilter", None)
             setattr(self.logger, "messageLevelFilter", None)
@@ -407,9 +408,9 @@ class Cntlr:
             if isinstance(file, (tuple,list,set)):
                 for _file in file:
                     refs.append( {"href": _file} )
-            elif isinstance(file, _STR_BASE):  # type: ignore[name-defined]
+            elif isinstance(file, str):  # type: ignore[name-defined]
                 refs.append( {"href": file} )
-            if isinstance(level, _STR_BASE):  # type: ignore[name-defined]
+            if isinstance(level, str):  # type: ignore[name-defined]
                 # given level is str at this point, level_int will always
                 # be an int but logging.getLevelName returns Any (int if
                 # input is str, and str if input is int)
@@ -459,7 +460,7 @@ class Cntlr:
         if self.hasFileSystem:
             with io.open(self.configJsonFile, 'wt', encoding='utf-8') as f:
                 # might not be unicode in 2.7
-                jsonStr = _STR_UNICODE(json.dumps(self.config, ensure_ascii=False, indent=2)) # type: ignore[name-defined]
+                jsonStr = str(json.dumps(self.config, ensure_ascii=False, indent=2)) # type: ignore[name-defined]
                 f.write(jsonStr)  # 2.7 getss unicode this way
 
     # default non-threaded viewModelObject

@@ -33,6 +33,7 @@ from arelle.ModelValue import QName
 from lxml.etree import _Element
 from arelle.ModelInstanceObject import ModelUnit
 from collections.abc import Iterable
+from arelle.PythonUtil import type_defns
 
 _: TypeGetText  # Handle gettext
 
@@ -119,7 +120,7 @@ class ValidateXbrl:
                              any((concept.qname.namespaceURI in self.disclosureSystem.standardTaxonomiesDict and concept.modelDocument.inDTS)
                                  for concept in self.modelXbrl.nameConcepts.get("UTR",()))))
         self.validateIXDS = False # set when any inline document found
-        self.validateEnum = bool(XbrlConst.enums & _DICT_SET(modelXbrl.namespaceDocs.keys())) # type: ignore[name-defined]
+        self.validateEnum = bool(XbrlConst.enums & type_defns.DICT_SET(modelXbrl.namespaceDocs.keys())) # type: ignore[name-defined]
 
         for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Start"):
             pluginXbrlMethod(self, parameters)
@@ -767,7 +768,7 @@ class ValidateXbrl:
                                 self.modelXbrl.error("xbrl.5.1.1:fractionPrecisionDecimals",
                                     _("Fact %(fact)s context %(contextID)s is a fraction with invalid numerator %(numerator)s"),
                                     modelObject=f, fact=f.qname, contextID=f.contextID, numerator=numerator)
-                            if not denominator.isnumeric() or _INT(denominator) == 0: # type: ignore[name-defined]
+                            if not denominator.isnumeric() or int(denominator) == 0: # type: ignore[name-defined]
                                 self.modelXbrl.error("xbrl.5.1.1:fractionPrecisionDecimals",
                                     _("Fact %(fact)s context %(contextID)s is a fraction with invalid denominator %(denominator)"),
                                     modelObject=f, fact=f.qname, contextID=f.contextID, denominator=denominator)

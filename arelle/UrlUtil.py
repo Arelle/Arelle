@@ -48,12 +48,12 @@ relativeUrlPattern = re.compile(r"^(urn:|(([a-zA-Z][a-zA-Z0-9.+-]+):)?(//([^/\?#
 
 def splitDecodeFragment(url):
     if url is None: # urldefrag returns byte strings for none, instead of unicode strings
-        return _STR_UNICODE(""), _STR_UNICODE("")
+        return str(""), str("")
     urlPart, fragPart = urldefrag(url)
     if isPy3:
         return (urlPart, unquote(fragPart, "utf-8", errors=None))
     else:
-        return _STR_UNICODE(urlPart), unquote(_STR_UNICODE(fragPart), "utf-8", errors=None)
+        return str(urlPart), unquote(str(fragPart), "utf-8", errors=None)
 
 def anyUriQuoteForPSVI(uri):
     # only quote if quotable character found

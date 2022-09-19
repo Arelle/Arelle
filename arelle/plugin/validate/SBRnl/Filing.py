@@ -14,6 +14,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
+from arelle.PythonUtil import type_defns
 
 def validateFiling(val, modelXbrl):
 
@@ -297,7 +298,7 @@ def validateFiling(val, modelXbrl):
         if qname.namespaceURI not in val.disclosureSystem.baseTaxonomyNamespaces:
             facets = modelType.facets
             if facets:
-                lengthFacets = _DICT_SET(facets.keys()) & {"minLength", "maxLength", "length"}
+                lengthFacets = type_defns.DICT_SET(facets.keys()) & {"minLength", "maxLength", "length"}
                 if lengthFacets:
                     modelXbrl.error("SBR.NL.2.2.7.02",
                         _("Type %(typename)s has length restriction facets %(facets)s"),

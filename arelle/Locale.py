@@ -13,6 +13,7 @@ system-wide settings.  (The system settings can remain in 'C' locale.)
 from __future__ import annotations
 import sys, subprocess
 import regex as re
+from arelle.PythonUtil import type_defns
 try:
     from collections.abc import Mapping
 except:
@@ -42,7 +43,7 @@ def getUserLocale(localeCode=''):
         if localeQueryResult[0] == 0 and '_' in localeQueryResult[1]: # successful
             localeCode = localeQueryResult[1]
     try:
-        locale.setlocale(locale.LC_ALL, _STR_8BIT(localeCode))  # str needed for 3to2 2.7 python to work
+        locale.setlocale(locale.LC_ALL, str(localeCode))  # str needed for 3to2 2.7 python to work
         conv = locale.localeconv()
     except locale.Error:
         if sys.platform == "darwin":
@@ -59,7 +60,7 @@ def getUserLocale(localeCode=''):
                         break
                     except locale.Error:
                         pass # this one didn't work
-    locale.setlocale(locale.LC_ALL, _STR_8BIT('C'))  # str needed for 3to2 2.7 python to work
+    locale.setlocale(locale.LC_ALL, str('C'))  # str needed for 3to2 2.7 python to work
     if conv is None: # some other issue prevents getting culture code, use 'C' defaults (no thousands sep, no currency, etc)
         conv = locale.localeconv() # use 'C' environment, e.g., en_US
     if C_LOCALE is None: # load culture-invariant C locale
@@ -499,7 +500,7 @@ def atof(conv, string, func=float):
 
 def atoi(conv, str):
     "Converts a string to an integer according to the locale settings."
-    return atof(conv, str, _INT)
+    return atof(conv, str, int)
 
 # decimal formatting
 from decimal import getcontext, Decimal
@@ -515,7 +516,7 @@ def format_picture(conv, value, picture):
 
     if isinstance(value, float):
         value = Decimal.from_float(value)
-    elif isinstance(value, _STR_NUM_TYPES):
+    elif isinstance(value, type_defns.STR_NUM_TYPES):
         value = Decimal(value)
     elif not isinstance(value, Decimal):
         raise ValueError(_('Picture requires a number convertable to decimal or float').format(picture))

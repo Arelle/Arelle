@@ -8,31 +8,18 @@ from decimal import Decimal
 from fractions import Fraction
 from collections import OrderedDict
 from collections.abc import MappingView, MutableSet
-
-if sys.version[0] >= '3':
-    import builtins
-    builtins.__dict__['_STR_8BIT'] = str
-    builtins.__dict__['_STR_BASE'] = str
-    builtins.__dict__['_STR_UNICODE'] = str
-    builtins.__dict__['_INT'] = int
-    builtins.__dict__['_INT_TYPES'] = int
-    builtins.__dict__['_NUM_TYPES'] = (int,float,Decimal,Fraction)
-    builtins.__dict__['_STR_NUM_TYPES'] = (str,int,float,Decimal,Fraction)
-    builtins.__dict__['_RANGE'] = range
-    def noop(x): return x
-    builtins.__dict__['_DICT_SET'] = noop
-else:
-    __builtins__['_STR_8BIT'] = str
-    __builtins__['_STR_BASE'] = basestring
-    __builtins__['_STR_UNICODE'] = unicode
-    __builtins__['_INT'] = long
-    __builtins__['_INT_TYPES'] = (int,long)
-    __builtins__['_NUM_TYPES'] = (int,long,float,Decimal,Fraction)
-    __builtins__['_STR_NUM_TYPES'] = (basestring,int,long,float,Decimal,Fraction)
-    __builtins__['_RANGE'] = xrange
-    __builtins__['_DICT_SET'] = set
-
 import math
+def noop(x): return x
+
+
+class AttrDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(AttrDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
+
+
+type_defns=AttrDict()
+type_defns.update({'STR_NUM_TYPES': (str, int, float, Decimal, Fraction), 'DICT_SET': noop})
 if sys.version >= "3.2":
     __builtins__['_ISFINITE'] = math.isfinite
 else:
@@ -68,7 +55,7 @@ def py3unquote(string, encoding='utf-8', errors='replace'):
         try:
             if not item:
                 raise ValueError
-            pct_sequence += _STR_8BIT(bytearray.fromhex(item[:2]))
+            pct_sequence += str(bytearray.fromhex(item[:2]))
             rest = item[2:]
             if not rest:
                 # This segment was just a single percent-encoded character.
@@ -91,12 +78,8 @@ def pyTypeName(object):
         objectClass = object.__class__
         classModule = objectClass.__module__
         className = objectClass.__name__
-        if sys.version[0] >= '3':
-            if classModule == 'builtins':
-                return className
-        else:
-            if classModule == '__builtin__':
-                return className
+        if classModule == 'builtins':
+            return className
         fullname = classModule + '.' + className
         if fullname == 'arelle.ModelValue.DateTime':
             if object.dateOnly:
@@ -109,12 +92,8 @@ def pyTypeName(object):
 
 def pyNamedObject(name, *args, **kwargs):
     try:
-        if sys.version[0] >= '3':
-            import builtins
-            objectConstructor = builtins.__dict__[name]
-        else:
-            import __builtin__
-            objectConstructor =  __builtin__.__dict__[name]
+        import builtins
+        objectConstructor = builtins.__dict__[name]
         return objectConstructor(*args, **kwargs)
     except:
         return None
@@ -256,7 +235,7 @@ class OrderedSet(MutableSet):
 
 def Fraction(numerator,denominator=None):
     if denominator is None:
-        if isinstance(numerator, (Fraction,_STR_UNICODE,Decimal)):
+        if isinstance(numerator, (Fraction,str,Decimal)):
             return Fraction(numerator)
     elif isinstance(numerator, Decimal) and isinstance(denominator, Decimal):
         return Fraction(int(numerator), int(denominator))

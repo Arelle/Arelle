@@ -734,7 +734,7 @@ def gaeGet(key):
     if chunk_keys is None:
         return None
     chunks = []
-    if isinstance(chunk_keys, _STR_BASE):
+    if isinstance(chunk_keys, str):
         chunks.append(chunk_keys)  # only one shard
     else:
         for chunk_key in chunk_keys:
@@ -754,7 +754,7 @@ def gaeDelete(key):
     chunk_keys = gaeMemcache.get(key)
     if chunk_keys is None:
         return False
-    if isinstance(chunk_keys, _STR_BASE):
+    if isinstance(chunk_keys, str):
         chunk_keys = []
     chunk_keys.append(key)
     gaeMemcache.delete_multi(chunk_keys)

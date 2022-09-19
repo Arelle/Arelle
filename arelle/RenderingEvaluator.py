@@ -14,6 +14,8 @@ from arelle.ModelRenderingObject import (CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST,
                                          ModelFilterDefinitionNode,
                                          ModelDimensionRelationshipDefinitionNode)
 from arelle.ModelValue import (QName)
+from arelle.PythonUtil import type_defns
+
 
 def init(modelXbrl):
     # setup modelXbrl for rendering evaluation
@@ -75,7 +77,7 @@ def init(modelXbrl):
             else:
                 modelTable.priorAspectAxisDisposition = {}
                 # check ordinate aspects against aspectModel
-                oppositeAspectModel = (_DICT_SET({'dimensional','non-dimensional'}) - _DICT_SET({modelTable.aspectModel})).pop()
+                oppositeAspectModel = (type_defns.DICT_SET({'dimensional','non-dimensional'}) - type_defns.DICT_SET({modelTable.aspectModel})).pop()
                 if hasNsWithAspectModel:
                     uncoverableAspects = aspectModels[oppositeAspectModel] - aspectModels[modelTable.aspectModel]
                 else:

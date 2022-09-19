@@ -20,6 +20,7 @@ from decimal import Decimal
 from math import log10, isnan, isinf, fabs
 from arelle.Locale import format_string
 from collections import defaultdict
+from arelle.PythonUtil import type_defns
 ModelDimensionValue = None
 ModelFact = None
 
@@ -651,7 +652,7 @@ def isVbTupleWithOnlyAnUncoveredDimension(xpCtx, vb, facts):
 
 def implicitFilter(xpCtx, vb, facts, uncoveredAspectFacts):
     # determine matchable aspects
-    aspects = (vb.aspectsDefined | _DICT_SET(uncoveredAspectFacts.keys())) - vb.aspectsCovered - {Aspect.DIMENSIONS}
+    aspects = (vb.aspectsDefined | type_defns.DICT_SET(uncoveredAspectFacts.keys())) - vb.aspectsCovered - {Aspect.DIMENSIONS}
     if not aspects:
         if isVbTupleWithOnlyAnUncoveredDimension(xpCtx, vb, facts):
             return [] # matching a tuple with an existing uncovered dimension to items
