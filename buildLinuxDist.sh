@@ -20,7 +20,7 @@ if [ ! -d dist ]
 fi
 
 # run cx_Freeze setup
-python3.2 setup.py build_exe
+python3.2 distro.py build_exe
 cp arelle/scripts-unix/* build/${BUILT64}
 
 cd build/${BUILT64}
