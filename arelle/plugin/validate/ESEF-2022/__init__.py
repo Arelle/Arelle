@@ -1,5 +1,6 @@
 '''
 Created on June 6, 2018
+Version 2022 created on September 19, 2022
 
 Filer Guidelines:
   RTS: https://eur-lex.europa.eu/legal-content/EN/TXT/?qid=1563538104990&uri=CELEX:32019R0815
@@ -14,13 +15,13 @@ Taxonomy package expected to be installed:
 
 GUI operation
 
-   install plugin validate/ESEF and optionally applicable taxonomy packages
+   install plugin validate/ESEF-2022 and optionally applicable taxonomy packages
 
    Under tools->formula add parameters eps_threshold and optionally authority
 
 Command line operation:
 
-   arelleCmdLine.exe --plugins validate/ESEF --packages {my-package-directory}/esef_taxonomy_2019.zip
+   arelleCmdLine.exe --plugins validate/ESEF-2022 --packages {my-package-directory}/esef_taxonomy_2019.zip
      --disclosureSystem esef -v -f {my-report-package-zip-file}
    Adding checks for formulas not automatically included:
      --parameters "eps_threshold=.01"
@@ -35,7 +36,7 @@ Authority specific validations are enabled by formula parameter authority, e.g. 
 
 Using arelle as a web server:
 
-   arelleCmdLine.exe --webserver localhost:8080:cheroot --plugins validate/ESEF --packages {my-package-directory}/esef_taxonomy_2019.zip
+   arelleCmdLine.exe --webserver localhost:8080:cheroot --plugins validate/ESEF-2022 --packages {my-package-directory}/esef_taxonomy_2019.zip
 
 Client with curl:
 
@@ -51,25 +52,24 @@ from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, EntityBas
 from arelle import LeiUtil, ModelDocument, XbrlConst, XhtmlValidate
 from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelDtsObject import ModelResource
-from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
-from arelle.ModelObject import ModelObject
+from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import qname
 from arelle.PackageManager import validateTaxonomyPackage
-from arelle.PythonUtil import strTruncate
+from arelle.PythonUtil import strTruncate, normalizeSpace
 from arelle.UrlUtil import isHttpUrl, scheme
-from arelle.XmlValidate import VALID, lexicalPatterns
+from arelle.XmlValidate import lexicalPatterns
 
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import (ixbrl11, xhtml, parentChild, summationItem, standardLabel,
                               all as hc_all, notAll as hc_notAll, dimensionDomain, domainMember,
-                              qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote, iso17442)
+                              qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote, iso17442, widerNarrower)
 from arelle.XmlValidate import VALID
 from arelle.ValidateUtr import ValidateUtr
 from .Const import (mandatory, untransformableTypes,
                     esefPrimaryStatementPlaceholderNames, esefStatementsOfMonetaryDeclarationNames, esefMandatoryElementNames2020)
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
-from .Util import isExtension, checkImageContents, loadAuthorityValidations
+from .Util import isExtension, checkImageContents, loadAuthorityValidations, checkForMultiLangDuplicates
 from arelle.typing import TypeGetText
 from arelle.ModelObject import ModelObject
 from arelle.DisclosureSystem import DisclosureSystem
@@ -425,8 +425,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                     reportXmlLang = xmlLang
                                     firstRootmostXmlLangDepth = depth
                         if ((eltTag in ("object", "script")) or
-                            (eltTag == "a" and "javascript:" in elt.get("href","")) or
-                            (eltTag == "img" and "javascript:" in elt.get("src",""))):
+                            (eltTag == "a" and "javascript:" in elt.get("href", "")) or
+                            (eltTag == "img" and "javascript:" in elt.get("src", "")) or
+                            (eltTag == "a" and "mailto" in elt.get("href", ""))):
                             modelXbrl.error("ESEF.2.5.1.executableCodePresent",
                                 _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
                                 modelObject=elt, element=eltTag)
@@ -544,6 +545,19 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             _("Target attribute %(severityVerb)s not be used unless explicitly required by local jurisdictions: element %(localName)s, target attribute %(target)s."),
                             modelObject=elt, localName=elt.elementQname, target=elt.get("target"),
                             severityVerb={"warning":"SHOULD","error":"MUST"}[ixTargetUsage])
+
+                    if hasattr(elt, "concept") and elt.concept.isTextBlock:
+                        normalized_str = normalizeSpace(elt.value)
+                        if not normalized_str or normalized_str.isspace():
+                            modelXbrl.warning("ESEF.1.3.3.emptyTextBlock",
+                                    _("The text block element SHOULD not be empty: %(qname)s."),
+                                    modelObject=elt, qname=elt.qname)
+                        elif any(character in elt.stringValue for character in ['&lt;', '&amp;', '&', '<']):
+                            if not (hasattr(elt, 'attrib')) or ('escape' not in elt.attrib or elt.attrib.get('escape').lower() != 'true'):
+                                modelXbrl.error("ESEF.2.2.6.escapedHTMLUsedInBlockTagWithSpecialCharacters",
+                                        _("A text block containing '&' or '<' character MUST have an 'escape' attribute: %(qname)s."),
+                                        modelObject=elt, qname=elt.qname)
+
                     if eltTag == ixTupleTag:
                         modelXbrl.error("ESEF.2.4.1.tupleElementUsed",
                             _("The ix:tuple element MUST not be used in the Inline XBRL document: %(qname)s."),
@@ -696,11 +710,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         if contextsWithPeriodTime:
             modelXbrl.error("ESEF.2.1.2.periodWithTimeContent",
                 _("The xbrli:startDate, xbrli:endDate and xbrli:instant elements MUST identify periods using whole days (i.e. specified without a time content): %(contextIds)s"),
-                modelObject=contextsWithPeriodTime, contextIds=", ".join(c.id for c in contextsWithPeriodTime if c.id))
+                modelObject=contextsWithPeriodTime, contextIds=", ".join(c.id for c in contextsWithPeriodTime))
         if contextsWithPeriodTimeZone:
             modelXbrl.error("ESEF.2.1.2.periodWithTimeZone",
                 _("The xbrli:startDate, xbrli:endDate and xbrli:instant elements MUST identify periods using whole days (i.e. specified without a time zone): %(contextIds)s"),
-                modelObject=contextsWithPeriodTimeZone, contextIds=", ".join(c.id for c in contextsWithPeriodTimeZone if c.id))
+                modelObject=contextsWithPeriodTimeZone, contextIds=", ".join(c.id for c in contextsWithPeriodTimeZone))
 
         # identify unique contexts and units
         mapContext = {}
@@ -762,6 +776,10 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         modelXbrl.warning("ESEF.2.2.2.percentGreaterThan100",
                             _("A percent fact should have value <= 100: %(element)s in context %(context)s value %(value)s"),
                             modelObject=f, element=f.qname, context=f.context.id, value=f.xValue)
+                    elif f.concept.balance is not None and f.xValue < 0:
+                        modelXbrl.warning("ESEF.1.6.1.negativeAmountWithBalance",
+                            _("A fact with balance should be a positive number: %(element)s in context %(context)s value %(value)s"),
+                            modelObject=f, element=f.qname, context=f.context.id, value=f.xValue)
                 elif f.concept is not None and f.concept.type is not None:
                     if f.concept.type.isOimTextFactType:
                         lang = f.xmlLang
@@ -796,8 +814,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         _("Each tagged text fact MUST have the 'xml:lang' provided in at least the language of the report: %(element)s"),
                         modelObject=fList, element=fList[0].qname)
 
-
         # 2.2.4 test
+        checkForMultiLangDuplicates(modelXbrl)
+
         decVals = {}
         for fList in numFactsByConceptContextUnit.values():
             if len(fList) > 1:
@@ -958,13 +977,29 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     nsExclPat = re.compile(nsExcl)
                     reportedEltsNotInLb -= set(c for c in reportedEltsNotInLb if nsExclPat.match(c.qname.namespaceURI))
             if reportedEltsNotInLb and lbType != "calculation":
-                modelXbrl.error("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
-                    _("All concepts used by tagged facts MUST be in extension taxonomy %(linkbaseType)s relationships: %(elements)s."),
+                modelXbrl.warning("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
+                    _("All concepts used by tagged facts SHOULD be in extension taxonomy %(linkbaseType)s relationships: %(elements)s."),
                     modelObject=reportedEltsNotInLb, elements=", ".join(sorted((str(c.qname) for c in reportedEltsNotInLb))), linkbaseType=lbType)
         if unreportedLbElts:
-            modelXbrl.error("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
-                _("All usable concepts in extension taxonomy relationships MUST be applied by tagged facts: %(elements)s."),
+            modelXbrl.warning("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
+                _("All usable concepts in extension taxonomy relationships SHOULD be applied by tagged facts: %(elements)s."),
                 modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))))
+
+        anchoringToAbstractConcept = set()
+        for rel in modelXbrl.relationshipSet(widerNarrower).modelRelationships:
+            fr = rel.fromModelObject
+            to = rel.toModelObject
+
+            if fr is not None and to is not None:
+                if to.isAbstract and isExtension(val, fr):
+                    anchoringToAbstractConcept.add(fr)
+                if fr.isAbstract and isExtension(val, to):
+                    anchoringToAbstractConcept.add(to)
+
+        for _elem in anchoringToAbstractConcept:
+            modelXbrl.warning("ESEF.3.3.1.ExtensionConceptAnchoredToAbstractConcept",
+                _("A concept from extension SHOULD NOT be anchored to an abstract concept: %(qname)s."),
+                modelObject=_elem, qname=_elem.qname)
 
         # 3.4.4 check for presentation preferred labels
         missingConceptLabels = defaultdict(set) # by role
@@ -975,7 +1010,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         def checkLabels(parent: ModelConcept, relSet: ModelRelationshipSet, labelrole: str | None, visited: set[ModelConcept]) -> None:
             if not parent.label(labelrole,lang=reportXmlLang,fallbackToQname=False):
-                if (not labelrole or labelrole == standardLabel) and isExtension(val, parent):
+                if not labelrole or labelrole == standardLabel:
                     missingConceptLabels[labelrole].add(parent)
             visited.add(parent)
             conceptRels = defaultdict(list) # counts for concepts without preferred label role
@@ -1169,9 +1204,9 @@ def testcaseVariationReportPackageIxdsOptions(validate: ValidateXbrl, rptPkgIxds
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Validate ESMA ESEF',
-    'version': '1.2020.03',
-    'description': '''ESMA ESEF Filer Manual and RTS Validations.''',
+    'name': 'Validate ESMA ESEF-2022',
+    'version': '1.2022.00',
+    'description': '''ESMA ESEF-2022 Filer Manual and RTS Validations.''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',
     'copyright': '(c) Copyright 2018-20 Mark V Systems Limited, All rights reserved.',

@@ -1,5 +1,6 @@
 '''
-Created on January 5, 2020
+Created on June 6, 2018
+Version 2022 created on September 19, 2022
 
 Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 
@@ -17,9 +18,13 @@ from arelle.UrlUtil import scheme
 from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from typing import Any, Union, cast
 from arelle.ModelDocument import ModelDocument
 from arelle.typing import TypeGetText
+from collections import defaultdict
+from math import isnan
+
 
 _: TypeGetText  # Handle gettext
 
@@ -39,10 +44,7 @@ def isExtension(val: ValidateXbrl, modelObject: ModelObject | ModelDocument | st
 def isInEsefTaxonomy(val: ValidateXbrl, modelObject: ModelObject | None) -> bool:
     if modelObject is None:
         return False
-
-    assert modelObject.qname is not None
     ns = modelObject.qname.namespaceURI
-    assert ns is not None
     return (any(ns.startswith(esefNsPrefix) for esefNsPrefix in esefTaxonomyNamespaceURIs))
 
 supportedImgTypes: dict[bool, tuple[str, ...]] = {
@@ -126,3 +128,41 @@ def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]
     validations = json.load(_file) # {localName: date, ...}
     _file.close()
     return cast(Union[dict[Any, Any], list[Any]], validations)
+
+
+def checkForMultiLangDuplicates(modelXbrl):
+
+    _factConceptContextUnitHash = defaultdict(list)
+
+    for f in modelXbrl.factsInInstance:
+        if (f.isNil or getattr(f, "xValid", 0) >= 4) and f.context is not None and f.concept is not None \
+                and f.concept.type is not None and f.concept.type.isWgnStringFactType:
+            _factConceptContextUnitHash[f.conceptContextUnitHash].append(f)
+
+    for k, v in list(_factConceptContextUnitHash.items()):
+        if len(v) <= 1:
+            del _factConceptContextUnitHash[k]
+
+    _aspectEqualFacts = defaultdict(dict)  # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact]
+
+    for hashEquivalentFacts in _factConceptContextUnitHash.values():
+        for f in hashEquivalentFacts:  # check for hash collision by value checks on context and unit
+            cuDict = _aspectEqualFacts[(f.qname, (f.xmlLang or "").lower())]
+            _matched = False
+            for (_cntx, _unit), fList in cuDict.items():
+                if (((_cntx is None and f.context is None) or (f.context is not None and f.context.isEqualTo(_cntx)))
+                        and ((_unit is None and f.unit is None) or (f.unit is not None and f.unit.isEqualTo(_unit)))):
+                    _matched = True
+                    fList.append(f)
+                    break
+            if not _matched:
+                cuDict[(f.context, f.unit)] = [f]
+        for cuDict in _aspectEqualFacts.values():
+            for fList in cuDict.values():
+                if len(fList) > 1 and not all(f.xValue == fList[0].xValue for f in fList):
+                    modelXbrl.warning("ESEF.2.2.4.inconsistentDuplicateNonnumericFactInInlineXbrlDocument",
+                        "Inconsistent duplicate non-numeric facts SHOULD NOT appear in the content of an inline XBRL document. "
+                        "%(fact)s that was used more than once in contexts equivalent to %(contextID)s, with different values but same language (%(language)s).",
+                        modelObject=fList, fact=fList[0].qname, contextID=fList[0].contextID, language=fList[0].xmlLang)
+        _aspectEqualFacts.clear()
+
