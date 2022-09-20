@@ -1,5 +1,6 @@
 '''
-Created on September 19, 2022
+Created on June 6, 2018
+Version 2022 created on September 19, 2022
 
 Filer Guidelines:
   RTS: https://eur-lex.europa.eu/legal-content/EN/TXT/?qid=1563538104990&uri=CELEX:32019R0815
@@ -20,7 +21,7 @@ GUI operation
 
 Command line operation:
 
-   arelleCmdLine.exe --plugins validate/ESEF --packages {my-package-directory}/esef_taxonomy_2019.zip
+   arelleCmdLine.exe --plugins validate/ESEF-2022 --packages {my-package-directory}/esef_taxonomy_2019.zip
      --disclosureSystem esef -v -f {my-report-package-zip-file}
    Adding checks for formulas not automatically included:
      --parameters "eps_threshold=.01"
@@ -35,7 +36,7 @@ Authority specific validations are enabled by formula parameter authority, e.g. 
 
 Using arelle as a web server:
 
-   arelleCmdLine.exe --webserver localhost:8080:cheroot --plugins validate/ESEF --packages {my-package-directory}/esef_taxonomy_2019.zip
+   arelleCmdLine.exe --webserver localhost:8080:cheroot --plugins validate/ESEF-2022 --packages {my-package-directory}/esef_taxonomy_2019.zip
 
 Client with curl:
 
