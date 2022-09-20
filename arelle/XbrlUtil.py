@@ -63,7 +63,8 @@ def equalityHash(
                 return cast(int, getattr(elt, '_hashXpathEqual'))
         except AttributeError:
             dts = elt.modelXbrl
-            assert isinstance(dts, ModelXbrl)
+            from arelle.ModelXbrl import ModelXbrl
+            assert isinstance(dts, ModelXbrl), 'dts is not an instance of ModelXbrl'
             if not hasattr(elt,"xValid"):
                 xmlValidate(dts, elt)  # type: ignore[no-untyped-call]
             hashableValue = getattr(elt, 'sValue') if equalMode == S_EQUAL else getattr(elt, 'xValue')
