@@ -15,7 +15,7 @@ Taxonomy package expected to be installed:
 
 GUI operation
 
-   install plugin validate/ESEF and optionally applicable taxonomy packages
+   install plugin validate/ESEF-2022 and optionally applicable taxonomy packages
 
    Under tools->formula add parameters eps_threshold and optionally authority
 
