@@ -16,7 +16,6 @@ from arelle.ModelInstanceObject import ModelFact
 from arelle.FormulaEvaluator import (filterFacts as formulaEvaluatorFilterFacts,
                                      aspectsMatch, factsPartitions, VariableBinding)
 from arelle.PrototypeInstanceObject import FactPrototype
-from arelle.PythonUtil import type_defns
 
 ROLLUP_NOT_ANALYZED = 0
 CHILD_ROLLUP_FIRST = 1
@@ -128,7 +127,7 @@ class StructuralNode:
         return definitionNode.constraintSets.get(None) # returns None if no default constraint set
 
     def aspectsCovered(self, inherit=False):
-        aspectsCovered = type_defns.DICT_SET(self.aspects.keys()) | self.definitionNode.aspectsCovered()
+        aspectsCovered = self.aspects.keys() | self.definitionNode.aspectsCovered()
         if inherit and self.parentStructuralNode is not None:
             aspectsCovered.update(self.parentStructuralNode.aspectsCovered(inherit=inherit))
         return aspectsCovered
@@ -887,10 +886,10 @@ class ModelConstraintSet(ModelFormulaRules):
             return '(unavailable)'  # table defective or not initialized
 
     def aspectValueDependsOnVars(self, aspect):
-        return aspect in type_defns.DICT_SET(self.aspectProgs.keys()) or aspect in self._locationAspectCovered
+        return aspect in self.aspectProgs.keys() or aspect in self._locationAspectCovered
 
     def aspectsCovered(self):
-        return type_defns.DICT_SET(self.aspectValues.keys()) | type_defns.DICT_SET(self.aspectProgs.keys()) | self._locationAspectCovered
+        return self.aspectValues.keys() | self.aspectProgs.keys() | self._locationAspectCovered
 
     # provide model table's aspect model to compile() method of ModelFormulaRules
     @property
@@ -1021,7 +1020,7 @@ class ModelTupleDefinitionNode(ModelRuleDefinitionNode):
         return {Aspect.LOCATION}  # tuple's aspects don't leak to ordinates
 
     def tupleAspectsCovered(self):
-        return type_defns.DICT_SET(self.aspectValues.keys()) | type_defns.DICT_SET(self.aspectProgs.keys()) | {Aspect.LOCATION}
+        return self.aspectValues.keys() | self.aspectProgs.keys() | {Aspect.LOCATION}
 
     def filteredFacts(self, xpCtx, facts):
         aspects = self.aspectsCovered()

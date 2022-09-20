@@ -20,7 +20,6 @@ from arelle.ValidateXbrlDimensions import priItemElrHcRels
 from arelle.Locale import format_picture
 from lxml import etree
 from math import isnan, isinf
-from arelle.PythonUtil import type_defns
 
 class xfiFunctionNotAvailable(Exception):
     def __init__(self):
@@ -922,7 +921,7 @@ def fact_explicit_dimensions(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     context = item_context(xc, args)
     if context is not None:
-        return set(qn for qn, dim in context.qnameDims.items() if dim.isExplicit) | type_defns.DICT_SET(xc.modelXbrl.qnameDimensionDefaults.keys())
+        return set(qn for qn, dim in context.qnameDims.items() if dim.isExplicit) | xc.modelXbrl.qnameDimensionDefaults.keys()
     return set()
 
 def fact_typed_dimensions(xc, p, args):

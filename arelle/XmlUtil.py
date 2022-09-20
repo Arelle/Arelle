@@ -14,7 +14,6 @@ from arelle.ModelValue import qname, QName, tzinfoStr
 from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
 from typing import TYPE_CHECKING, Any
 from arelle.ModelObject import ModelObject
-from arelle.PythonUtil import type_defns
 
 if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelContext
@@ -938,7 +937,7 @@ def writexml(writer, node, encoding=None, indent='', xmlcharrefreplace=False, pa
         attrs = {}
         for prefix, ns in sorted((k if k is not None else '', v)
                                  # items wrapped in set for 2.7 compatibility
-                                 for k, v in (type_defns.DICT_SET(node.nsmap.items()) - type_defns.DICT_SET(parentNsmap.items()))):
+                                 for k, v in (node.nsmap.items() - parentNsmap.items())):
             if prefix:
                 attrs["xmlns:" + prefix] = ns
             else:

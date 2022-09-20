@@ -13,7 +13,7 @@ system-wide settings.  (The system settings can remain in 'C' locale.)
 from __future__ import annotations
 import sys, subprocess
 import regex as re
-from arelle.PythonUtil import type_defns
+from arelle.PythonUtil import STR_NUM_TYPES
 try:
     from collections.abc import Mapping
 except:
@@ -516,7 +516,7 @@ def format_picture(conv, value, picture):
 
     if isinstance(value, float):
         value = Decimal.from_float(value)
-    elif isinstance(value, type_defns.STR_NUM_TYPES):
+    elif isinstance(value, STR_NUM_TYPES):
         value = Decimal(value)
     elif not isinstance(value, Decimal):
         raise ValueError(_('Picture requires a number convertable to decimal or float').format(picture))

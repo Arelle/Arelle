@@ -31,7 +31,6 @@ EXPECTED_EMPTY_TESTCASES = frozenset([
     'conf/624-rendering/18-numeric/gd/18-numeric-gd-testcase.xml',
     'conf/624-rendering/15-equity-changes/gw/15-equity-changes-gw-testcase.xml',
 ])
-'''
 TEST_DATA = get_test_data(ARGS, expected_empty_testcases=EXPECTED_EMPTY_TESTCASES)
 
 
@@ -44,4 +43,3 @@ def test_efm_ixbrl_conformance_suite(result):
         'Expected these validation suffixes: {}, but received these validations: {}'.format(
             result.get('expected'), result.get('actual')
         )
-'''

@@ -9,17 +9,9 @@ from fractions import Fraction
 from collections import OrderedDict
 from collections.abc import MappingView, MutableSet
 import math
-def noop(x): return x
 
 
-class AttrDict(dict):
-    def __init__(self, *args, **kwargs):
-        super(AttrDict, self).__init__(*args, **kwargs)
-        self.__dict__ = self
-
-
-type_defns=AttrDict()
-type_defns.update({'STR_NUM_TYPES': (str, int, float, Decimal, Fraction), 'DICT_SET': noop})
+STR_NUM_TYPES = (str, int, float, Decimal, Fraction)
 if sys.version >= "3.2":
     __builtins__['_ISFINITE'] = math.isfinite
 else:

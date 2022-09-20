@@ -359,7 +359,7 @@ def isFactDimensionallyValid(val, f, setPrototypeContextElements=False, otherFac
                                                 for priItem in relevantPriItems]) & otherFacts
             relevantFactsByDims = set.instersection(relevantFactsByPriItems,
                                                     *[val.factsByDimMemQname(dimQname, NONDEFAULT)
-                                                      for dimQname in f.context.dimAspects(type_defns.DICT_SET(val.modelXbrl.qnameDimensionDefaults.keys()))])
+                                                      for dimQname in f.context.dimAspects(val.modelXbrl.qnameDimensionDefaults.keys())])
         else:
             relevantFactsByDims = None
         '''

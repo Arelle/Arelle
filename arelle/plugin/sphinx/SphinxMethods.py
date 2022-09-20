@@ -21,11 +21,11 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrlCalcs import inferredDecimals, inferredPrecision, roundValue
 from arelle import XbrlConst, XmlUtil
 from numbers import Number
-from arelle.PythonUtil import type_defns
 evaluate = None # initialized at end
 SphinxException = None
 UNBOUND = None
 NONE = None
+
 
 def moduleInit():
     global evaluate, SphinxException, UNBOUND, NONE
@@ -312,7 +312,7 @@ def _concepts(node, sphinxContext, args):
                    if concept.isItem or concept.isTuple)
     # otherwise must be network concepts
     network = networkArg(node, sphinxContext, args)
-    return type_defns.DICT_SET(network.toModelObjects.keys()) | type_defns.DICT_SET(network.fromModelObjects.keys())
+    return network.toModelObjects.keys() |network.fromModelObjects.keys()
 
 
 def _contains(node, sphinxContext, args):
@@ -995,11 +995,11 @@ def _linkRole(node, sphinxContext, args):
 
 def _sourceConcepts(node, sphinxContext, args):
     network = networkArg(node, sphinxContext, args)
-    return type_defns.DICT_SET(network.fromModelObjects().keys())
+    return network.fromModelObjects().keys()
 
 def _targetConcepts(node, sphinxContext, args):
     network = networkArg(node, sphinxContext, args)
-    return type_defns.DICT_SET(network.toModelObjects().keys())
+    return network.toModelObjects().keys()
 
 # relationship methods
 

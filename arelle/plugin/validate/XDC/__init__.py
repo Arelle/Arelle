@@ -8,7 +8,6 @@ Created on Dec 20, 2017
 '''
 import os
 from arelle import ModelDocument, XbrlConst
-from arelle.PythonUtil import type_defns
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
@@ -55,7 +54,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                if refPart.localName == "RequiredInDocument"
                                if refPart.textValue.strip().lower() == "true")
 
-        missingConcepts = requiredConcepts - type_defns.DICT_SET(modelXbrl.factsByQname.keys())
+        missingConcepts = requiredConcepts - modelXbrl.factsByQname.keys()
         if missingConcepts:
             modelXbrl.error("XDC:missingRequiredFacts",
                             _("Required facts missing from document: %(concepts)s."),

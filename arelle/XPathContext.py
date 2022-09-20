@@ -17,7 +17,7 @@ from arelle.PrototypeDtsObject import PrototypeObject, PrototypeElementTree
 from decimal import Decimal, InvalidOperation
 from lxml import etree
 from numbers import Number
-from arelle.PythonUtil import type_defns
+from arelle.PythonUtil import STR_NUM_TYPES
 from types import LambdaType
 
 # deferred types initialization
@@ -161,7 +161,7 @@ class XPathContext:
                 if len(resultStack) == 0 or not self.isNodeSequence(resultStack[-1]):
                     resultStack.append( [ contextItem, ] )
                 result = self.stepAxis(parentOp, p, resultStack.pop() )
-            elif isinstance(p, type_defns.STR_NUM_TYPES):
+            elif isinstance(p, STR_NUM_TYPES):
                 result = p
             elif isinstance(p,VariableRef):
                 if p.name in self.inScopeVars:

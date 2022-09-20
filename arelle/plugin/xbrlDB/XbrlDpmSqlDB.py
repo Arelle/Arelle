@@ -63,7 +63,6 @@ from arelle.XmlValidate import UNKNOWN, NONE as xmlValidateNONE, INVALID, VALID
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
 from decimal import Decimal, InvalidOperation
 from numbers import Number
-from arelle.PythonUtil import type_defns
 from _ctypes import _memset_addr
 
 qnFindFilingIndicators = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:fIndicators")
@@ -587,7 +586,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                             #print ("successful match {}".format(_dimSig))   # debug successful match
                             break
                     if _difference < _closestMatch:
-                        _extraDims = type_defns.DICT_SET(_dimVals.keys()) - type_defns.DICT_SET(_dimSig.keys())
+                        _extraDims = dimVals.keys() - _dimSig.keys()
                         _missingDims = set(_dim
                                            for _dim, _val in _dimSig.items()
                                            if _dim not in _dimVals and _val != "*?")
@@ -1280,7 +1279,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         dec = abs(Decimal(str(numVal)).as_tuple().exponent)
                     else: # max decimals at 28
                         try:
-                            dec = max( min(int(float(dec)), 28), -28) 
+                            dec = max( min(int(float(dec)), 28), -28)
                         except ValueError:
                             dec = 0
                     text = Locale.format(Locale.C_LOCALE, "%.*f", (dec, num)) # culture-invariant locale

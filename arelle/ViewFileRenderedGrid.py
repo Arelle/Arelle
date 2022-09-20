@@ -19,7 +19,6 @@ from arelle.ModelXbrl import DEFAULT
 from arelle.ModelRenderingObject import (ModelClosedDefinitionNode, ModelEuAxisCoord, ModelFilterDefinitionNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.PrototypeInstanceObject import FactPrototype
-from arelle.PythonUtil import type_defns
 # change tableModel for namespace needed for consistency suite
 '''
 from arelle.XbrlConst import (tableModelMMDD as tableModelNamespace,
@@ -683,7 +682,7 @@ class ViewRenderedGrid(ViewFile.View):
                         cellTagSelectors = yTagSelectors | xStructuralNode.tagSelectors
                         cellAspectValues = {}
                         matchableAspects = set()
-                        for aspect in type_defns.DICT_SET(xAspectStructuralNodes.keys()) | type_defns.DICT_SET(yAspectStructuralNodes.keys()) | type_defns.DICT_SET(zAspectStructuralNodes.keys()):
+                        for aspect in xAspectStructuralNodes.keys() | yAspectStructuralNodes.keys() |zAspectStructuralNodes.keys():
                             aspectValue = xStructuralNode.inheritedAspectValue(yStructuralNode,
                                                self, aspect, cellTagSelectors,
                                                xAspectStructuralNodes, yAspectStructuralNodes, zAspectStructuralNodes)
@@ -693,7 +692,7 @@ class ViewRenderedGrid(ViewFile.View):
                                 aspectValue is not None): # typed dim absent will be none
                                 cellAspectValues[aspect] = aspectValue
                             matchableAspects.add(aspectModelAspect.get(aspect,aspect)) #filterable aspect from rule aspect
-                        cellDefaultedDims = type_defns.DICT_SET(dimDefaults) - type_defns.DICT_SET(cellAspectValues.keys())
+                        cellDefaultedDims = dimDefaults - cellAspectValues.keys()
                         priItemQname = cellAspectValues.get(Aspect.CONCEPT)
 
                         concept = self.modelXbrl.qnameConcepts.get(priItemQname)

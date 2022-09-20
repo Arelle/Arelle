@@ -244,7 +244,7 @@ class Cntlr:
                     self.userAppDir = os.path.join( os.path.expanduser("~/.config"), "arelle")
             if hasGui:
                 try:
-                    import gtk  # type: ignore[import]
+                    import gtk
                     self.hasClipboard = True
                 except ImportError:
                     self.hasClipboard = False
@@ -363,7 +363,7 @@ class Cntlr:
                 self.addToLog(_("Unknown log level name: {0}, please choose from {1}").format(
                     logLevel, ', '.join(logging.getLevelName(l).lower()
                                         for l in sorted([i for i in logging._levelToName.keys()
-                                                         if isinstance(i, int) and i > 0]))),  # type: ignore[name-defined]
+                                                         if isinstance(i, int) and i > 0]))),
                               level=logging.ERROR, messageCode="arelle:logLevel")
             setattr(self.logger, "messageCodeFilter", None)
             setattr(self.logger, "messageLevelFilter", None)
@@ -408,9 +408,9 @@ class Cntlr:
             if isinstance(file, (tuple,list,set)):
                 for _file in file:
                     refs.append( {"href": _file} )
-            elif isinstance(file, str):  # type: ignore[name-defined]
+            elif isinstance(file, str):
                 refs.append( {"href": file} )
-            if isinstance(level, str):  # type: ignore[name-defined]
+            if isinstance(level, str):
                 # given level is str at this point, level_int will always
                 # be an int but logging.getLevelName returns Any (int if
                 # input is str, and str if input is int)
@@ -460,7 +460,7 @@ class Cntlr:
         if self.hasFileSystem:
             with io.open(self.configJsonFile, 'wt', encoding='utf-8') as f:
                 # might not be unicode in 2.7
-                jsonStr = str(json.dumps(self.config, ensure_ascii=False, indent=2)) # type: ignore[name-defined]
+                jsonStr = str(json.dumps(self.config, ensure_ascii=False, indent=2))
                 f.write(jsonStr)  # 2.7 getss unicode this way
 
     # default non-threaded viewModelObject
@@ -546,10 +546,12 @@ class Cntlr:
                     if text is None:
                         p = subprocess.Popen(['pbpaste'], stdout=subprocess.PIPE)
                         retcode = p.wait()
-                        text = p.stdout.read().decode('utf-8')  # default utf8 may not be right for mac
+                        assert p.stdout is not None
+                        text = p.stdout.read().decode('utf-8')  # default utf8 may not be right for mac type:ignore[union-attr]
                         return text
                     else:
                         p = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
+                        assert p.stdin is not None
                         p.stdin.write(text.encode('utf-8'))  # default utf8 may not be right for mac
                         p.stdin.close()
                         retcode = p.wait()

@@ -27,7 +27,6 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import eurofilingModelNamespace, eurofilingModelPrefix
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 from arelle.XmlValidate import UNVALIDATED, validate as xmlValidate
-from arelle.PythonUtil import type_defns
 
 try:
     from tkinter import ttk
@@ -627,7 +626,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         cellTagSelectors = yTagSelectors | xStructuralNode.tagSelectors
                         cellAspectValues = {}
                         matchableAspects = set()
-                        for aspect in type_defns.DICT_SET(xAspectStructuralNodes.keys()) | type_defns.DICT_SET(yAspectStructuralNodes.keys()) | type_defns.DICT_SET(zAspectStructuralNodes.keys()):
+                        for aspect in xAspectStructuralNodes.keys() | yAspectStructuralNodes.keys() | zAspectStructuralNodes.keys():
                             aspectValue = xStructuralNode.inheritedAspectValue(yStructuralNode,
                                                self, aspect, cellTagSelectors,
                                                xAspectStructuralNodes, yAspectStructuralNodes, zAspectStructuralNodes)
@@ -637,7 +636,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 aspectValue is not None): # typed dim absent will be none
                                 cellAspectValues[aspect] = aspectValue
                             matchableAspects.add(aspectModelAspect.get(aspect,aspect)) #filterable aspect from rule aspect
-                        cellDefaultedDims = type_defns.DICT_SET(dimDefaults) - type_defns.DICT_SET(cellAspectValues.keys())
+                        cellDefaultedDims = dimDefaults -cellAspectValues.keys()
                         priItemQname = cellAspectValues.get(Aspect.CONCEPT)
 
                         concept = self.modelXbrl.qnameConcepts.get(priItemQname)
@@ -931,7 +930,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             tbl = self.table
             # check user keyed changes to aspects
             aspectEntryChanges = {}  # index = widget ID,  value = widget contents
-            aspectEntryChangeIds = type_defns.DICT_SET(aspectEntryChanges.keys())
+            aspectEntryChangeIds = aspectEntryChanges.keys()
             for modifiedCell in tbl.getCoordinatesOfModifiedCells():
                 objId = tbl.getObjectId(modifiedCell)
                 if objId is not None and len(objId)>0:

@@ -43,7 +43,6 @@ from arelle.ModelObject import ModelObject
 from decimal import Decimal, InvalidOperation
 from hashlib import md5
 from arelle.HashUtil import md5hash, Md5Sum
-from arelle.PythonUtil import type_defns
 
 Aspect = None
 Type = None
@@ -1084,8 +1083,8 @@ class ModelContext(ModelObject):
     def dimAspects(self, defaultDimensionAspects=None):
         """(set) -- For formula and instance aspects processing, set of all dimensions reported or defaulted."""
         if defaultDimensionAspects:
-            return type_defns.DICT_SET(self.qnameDims.keys()) | defaultDimensionAspects
-        return type_defns.DICT_SET(self.qnameDims.keys())
+            return self.qnameDims.keys() | defaultDimensionAspects
+        return self.qnameDims.keys()
 
     @property
     def dimsHash(self):
@@ -1236,7 +1235,7 @@ class ModelContext(ModelObject):
         if self.periodHash != cntx2.periodHash or not self.isPeriodEqualTo(cntx2) or not self.isEntityIdentifierEqualTo(cntx2):
             return False
         if dimensionalAspectModel:
-            if type_defns.DICT_SET(self.qnameDims.keys()) != type_defns.DICT_SET(cntx2.qnameDims.keys()):
+            if self.qnameDims.keys() != cntx2.qnameDims.keys():
                 return False
             for dimQname, ctx1Dim in self.qnameDims.items():
                 if not ctx1Dim.isEqualTo(cntx2.qnameDims[dimQname]):

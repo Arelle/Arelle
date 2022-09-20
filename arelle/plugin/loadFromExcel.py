@@ -17,7 +17,6 @@ from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, 
                               qnLinkPart, gen, link, defaultLinkRole,
                               conceptLabel, elementLabel, conceptReference, summationItem
                               )
-from arelle.PythonUtil import type_defns
 qnXbrldtClosed = qname("{http://xbrl.org/2005/xbrldt}xbrldt:closed")
 
 importColHeaderMap = defaultdict(list)
@@ -566,7 +565,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 isELRrow = hasLinkroleSeparateRow and (iRow + 2) in headerRows
                 if isHeaderRow:
                     setHeaderCols(row)
-                    headerColsAllElrs |= type_defns.DICT_SET(headerCols.keys()) # accumulate all header cols for role checks
+                    headerColsAllElrs |= headerCols.keys() # accumulate all header cols for role checks
                 elif isELRrow:
                     currentELR = currentELRdefinition = None
                     for colCell in row:

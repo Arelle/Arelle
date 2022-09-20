@@ -7,16 +7,11 @@ Created on Oct 05, 2012
 Deprecated Nov 15, 2015.  Use plugin/validate/SBRnl
 '''
 
-from arelle import PluginManager
 from arelle import ModelDocument, XbrlConst, XmlUtil
 from arelle.ModelDtsObject import ModelConcept, ModelType, ModelLocator, ModelResource
-from arelle.ModelFormulaObject import Aspect
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import qname
 import regex as re
 from lxml import etree
-from collections import defaultdict
-from arelle.PythonUtil import type_defns
 
 
 def setup(val, modelXbrl, *args, **kwargs):
@@ -43,7 +38,7 @@ def final(val, conceptsUsed, *args, **kwargs):
         if qname.namespaceURI not in val.disclosureSystem.baseTaxonomyNamespaces:
             facets = modelType.facets
             if facets:
-                lengthFacets = type_defns.DICT_SET(facets.keys()) & {"minLength", "maxLength", "length"}
+                lengthFacets = tfacets.keys() & {"minLength", "maxLength", "length"}
                 if lengthFacets:
                     modelXbrl.error("SBR.NL.2.2.7.02",
                         _("Type %(typename)s has length restriction facets %(facets)s"),
@@ -140,7 +135,7 @@ def final(val, conceptsUsed, *args, **kwargs):
 
     # check non-concept elements that can appear in elements for labels (concepts checked by
     labelsRelationshipSet = modelXbrl.relationshipSet((XbrlConst.conceptLabel, XbrlConst.elementLabel))
-    standardXbrlSchmas = type_defns.DICT_SET(XbrlConst.standardNamespaceSchemaLocations.values())
+    standardXbrlSchmas = XbrlConst.standardNamespaceSchemaLocations.values()
     baseTaxonomyNamespaces = val.disclosureSystem.baseTaxonomyNamespaces
     for eltDef in modelXbrl.qnameConcepts.values():
         if (not (eltDef.isItem or eltDef.isTuple or eltDef.isLinkPart) and

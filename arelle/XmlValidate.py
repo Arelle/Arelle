@@ -19,7 +19,6 @@ from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, qnameHref
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.PythonUtil import strTruncate
 from arelle import UrlUtil
-from arelle.PythonUtil import type_defns
 validateElementSequence = None  #dynamic import to break dependency loops
 modelGroupCompositorTitle = None
 ModelInlineValueObject = None
@@ -260,7 +259,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                         element=qnElt,
                         typeName=baseXsdType,
                         attributes=','.join(str(a) for a in missingAttributes))
-                extraAttributes = presentAttributes - type_defns.DICT_SET(definedAttributes.keys()) - XbrlConst.builtinAttributes
+                extraAttributes = presentAttributes - definedAttributes.keys() - XbrlConst.builtinAttributes
                 if extraAttributes:
                     attributeWildcards = type.attributeWildcards
                     extraAttributes -= set(a
