@@ -111,7 +111,7 @@ def modelGroupCompositorTitle(compositor):
         return str(compositor.qname).replace(anonymousTypeSuffix, " complexType")
     return compositor.localName.title()
 
-def validateUniqueParticleAttribution(modelXbrl, particles, compositor):
+def validateUniqueParticleAttribution(modelXbrl, particles, compositor) -> None:
     priorElementParticles = {}
     priorAnyParticles = []
     for i, particle in enumerate(particles):

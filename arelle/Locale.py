@@ -10,6 +10,7 @@ system-wide settings.  (The system settings can remain in 'C' locale.)
 
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
+from __future__ import annotations
 import sys, subprocess
 import regex as re
 try:
@@ -78,7 +79,7 @@ def getLanguageCode():
     except (AttributeError, ValueError): #language code and encoding may be None if their values cannot be determined.
         return "en"
 
-def getLanguageCodes(lang=None):
+def getLanguageCodes(lang: str | None = None) -> list[str]:
     if lang is None:
         lang = getLanguageCode()
     # allow searching on the lang with country part, either python or standard form, or just language
@@ -253,8 +254,8 @@ def languageCodes():  # dynamically initialize after gettext is loaded
         }
         return _languageCodes
 
-_disableRtl = False # disable for implementations where tkinter supports rtl
-def setDisableRTL(disableRTL):
+_disableRtl: bool = False # disable for implementations where tkinter supports rtl
+def setDisableRTL(disableRTL: bool) -> None:
     global _disableRTL
     _disableRTL = disableRTL
 
