@@ -100,7 +100,7 @@ jobs:
     - name: Build version.py
       run: python buildVersion.py
     - name: Build exe
-      run: python setup.py build_exe
+      run: python distro.py build_exe
     - name: Copy Tktable2.11
       run: xcopy libs\win64\Tktable2.11 build\exe.win-amd64-${{ matrix.python-version }}\lib\tkinter\tk8.6 /y
     - name: Delete .git
