@@ -1,5 +1,5 @@
 '''
-Created on June 6, 2018
+Created on September 19, 2022
 
 Filer Guidelines:
   RTS: https://eur-lex.europa.eu/legal-content/EN/TXT/?qid=1563538104990&uri=CELEX:32019R0815
@@ -1203,9 +1203,9 @@ def testcaseVariationReportPackageIxdsOptions(validate: ValidateXbrl, rptPkgIxds
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Validate ESMA ESEF',
-    'version': '1.2020.03',
-    'description': '''ESMA ESEF Filer Manual and RTS Validations.''',
+    'name': 'Validate ESMA ESEF-2022',
+    'version': '1.2022.00',
+    'description': '''ESMA ESEF-2022 Filer Manual and RTS Validations.''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',
     'copyright': '(c) Copyright 2018-20 Mark V Systems Limited, All rights reserved.',
