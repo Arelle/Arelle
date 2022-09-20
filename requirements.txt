@@ -1,7 +1,7 @@
 # core modules
 lxml==4.9.1
 OpenPyXL==3.0.10
-regex==2022.8.17
+regex==2022.9.13
 isodate==0.6.1
 aniso8601==9.0.1
 CherryPy==18.8.0
@@ -10,9 +10,9 @@ Cheroot==8.6.0
 pycountry==22.3.5
 # plugins
 # EdgarRenderer plugin
-NumPy==1.23.2
-Matplotlib==3.5.3
-holidays==0.15
+NumPy==1.23.3
+Matplotlib==3.6.0
+holidays==0.16
 Tornado==6.2
 # security plugin
 PyCryptodome==3.15.0

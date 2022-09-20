@@ -101,7 +101,7 @@ def loadUtr(modelXbrl, statusFilters=None): # Build a dictionary of item types t
     if file:
         file.close()
 
-def validateFacts(modelXbrl):
+def validateFacts(modelXbrl) -> None:
     ValidateUtr(modelXbrl).validateFacts()
 
 def utrEntries(modelType, modelUnit):

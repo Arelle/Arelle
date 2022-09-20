@@ -83,7 +83,7 @@ jobs:
       - name: Build version.py
         run: python buildVersion.py
       - name: Build app
-        run: python setup.py bdist_mac
+        run: python distro.py bdist_mac
       - name: Remove git directories
         run: find build/Arelle.app/Contents/Resources -name .git -exec rm -fR {} \;
       - name: Build DMG

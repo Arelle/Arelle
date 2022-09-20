@@ -183,7 +183,7 @@ arcroleChecks = {
                                       XbrlConst.qnTableRuleAxis2011),
                                      "xbrlte:info"),
     }
-def checkBaseSet(val, arcrole, ELR, relsSet):
+def checkBaseSet(val, arcrole, ELR, relsSet) -> None:
     # check hypercube-dimension relationships
 
     if arcrole in arcroleChecks:
@@ -249,7 +249,7 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                     _("Target of assertion-unsatisfied-severity relationship must be a severity element in the published severities linkbase."),
                      modelObject=[relTo] + rels)
 
-def executeCallTest(val, name, callTuple, testTuple):
+def executeCallTest(val, name, callTuple, testTuple) -> None:
     if callTuple:
         XPathParser.initializeParser(val.modelXbrl.modelManager)
 
@@ -286,7 +286,7 @@ def executeCallTest(val, name, callTuple, testTuple):
 
         val.modelXbrl.modelManager.showStatus(_("ready"), 2000)
 
-def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compileOnly=False):
+def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compileOnly=False) -> None:
     for e in ("xbrl.5.1.4.3:cycles", "xbrlgene:violatedCyclesConstraint"):
         if e in val.modelXbrl.errors:
             val.modelXbrl.info("info", _("Formula validation skipped due to %(error)s error"),

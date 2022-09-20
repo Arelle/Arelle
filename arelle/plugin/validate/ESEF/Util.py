@@ -43,7 +43,10 @@ def isExtension(val: ValidateXbrl, modelObject: ModelObject | ModelDocument | st
 def isInEsefTaxonomy(val: ValidateXbrl, modelObject: ModelObject | None) -> bool:
     if modelObject is None:
         return False
+
+    assert modelObject.qname is not None
     ns = modelObject.qname.namespaceURI
+    assert ns is not None
     return (any(ns.startswith(esefNsPrefix) for esefNsPrefix in esefTaxonomyNamespaceURIs))
 
 supportedImgTypes: dict[bool, tuple[str, ...]] = {

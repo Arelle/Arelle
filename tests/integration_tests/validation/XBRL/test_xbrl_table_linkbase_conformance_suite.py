@@ -3,7 +3,7 @@ import pytest
 from tests.integration_tests.validation.validation_util import get_test_data
 
 
-CONFORMANCE_SUITE = 'tests/resources/conformance_suites/table-linkbase-conf-2014-03-18.zip/conf'
+CONFORMANCE_SUITE = 'tests/resources/conformance_suites/table-linkbase-conf-2015-08-12.zip/table-linkbase-conf-2015-08-12/conf'
 ARGS = [
     '--file', os.path.abspath(os.path.join(CONFORMANCE_SUITE, 'testcases-index.xml')),
     '--formula', 'run',
@@ -98,9 +98,6 @@ EXPECTED_FAILURE_IDS = frozenset([
     '1200-merged-rule-node/1200-merged-rule-node-testcase.xml/v-12i',
     '1300-rule-node-rule-sets/1300-rule-node-rule-sets-testcase.xml/v-01',
     '1300-rule-node-rule-sets/1300-rule-node-rule-sets-testcase.xml/v-01i',
-    '1300-rule-node-rule-sets/1300-rule-node-rule-sets-testcase.xml/v-04',
-    '1300-rule-node-rule-sets/1300-rule-node-rule-sets-testcase.xml/v-04a',
-    '1300-rule-node-rule-sets/1300-rule-node-rule-sets-testcase.xml/v-04b',
     '1300-rule-node-rule-sets/1300-rule-node-rule-sets-testcase.xml/v-06',
     '1300-rule-node-rule-sets/1300-rule-node-rule-sets-testcase.xml/v-06i',
     '1300-rule-node-rule-sets/1300-rule-node-rule-sets-testcase.xml/v-07',
@@ -205,8 +202,6 @@ EXPECTED_FAILURE_IDS = frozenset([
     '3180-concept-relationship-node-tag-selectors/3180-concept-relationship-node-tag-selectors-testcase.xml/v-01',
     '3180-concept-relationship-node-tag-selectors/3180-concept-relationship-node-tag-selectors-testcase.xml/v-02',
     '3180-concept-relationship-node-tag-selectors/3180-concept-relationship-node-tag-selectors-testcase.xml/v-03',
-    '3190-concept-relationship-node-tag-selectors-generic-preferred-label/3190-concept-relationship-node-tag-selectors-generic-preferred-label-testcase.xml/v-01',
-    '3190-concept-relationship-node-tag-selectors-generic-preferred-label/3190-concept-relationship-node-tag-selectors-generic-preferred-label-testcase.xml/v-02',
     '3200-dimension-relationship-node/3200-dimension-relationship-node-testcase.xml/v-01',
     '3200-dimension-relationship-node/3200-dimension-relationship-node-testcase.xml/v-01i',
     '3200-dimension-relationship-node/3200-dimension-relationship-node-testcase.xml/v-02',
@@ -302,21 +297,6 @@ EXPECTED_FAILURE_IDS = frozenset([
     '6650-aspect-node-typed-dimension-filter/6650-aspect-node-typed-dimension-filter-testcase.xml/v-04',
     '6650-aspect-node-typed-dimension-filter/6650-aspect-node-typed-dimension-filter-testcase.xml/v-04i',
     '6660-aspect-node-aspect-cover-filter/6660-aspect-node-aspect-cover-filter-testcase.xml/v-01',
-    '7010-table-region-arc/7010-table-region-arc-testcase.xml/v-01',
-    '7010-table-region-arc/7010-table-region-arc-testcase.xml/v-02',
-    '7010-table-region-arc/7010-table-region-arc-testcase.xml/v-03',
-    '7010-table-region-arc/7010-table-region-arc-testcase.xml/v-04',
-    '7020-region-definition-node-arc/7020-region-definition-node-arc-testcase.xml/v-01',
-    '7020-region-definition-node-arc/7020-region-definition-node-arc-testcase.xml/v-02',
-    '7030-simple/7030-simple-testcase.xml/v-01',
-    '7040-intersection/7040-intersection-testcase.xml/v-01',
-    '7040-intersection/7040-intersection-testcase.xml/v-02',
-    '7040-intersection/7040-intersection-testcase.xml/v-03',
-    '7040-intersection/7040-intersection-testcase.xml/v-03i',
-    '7050-rollup/7050-rollup-testcase.xml/v-01',
-    '7050-rollup/7050-rollup-testcase.xml/v-02',
-    '7050-rollup/7050-rollup-testcase.xml/v-03',
-    '7060-cross-link-role/7060-cross-link-role-testcase.xml/v-01',
 ])
 
 TEST_DATA = get_test_data(ARGS, expected_failure_ids=EXPECTED_FAILURE_IDS)

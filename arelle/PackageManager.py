@@ -4,6 +4,8 @@ Separated on Jul 28, 2013 from DialogOpenArchive.py
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+from __future__ import annotations
+from typing import TYPE_CHECKING
 import sys, os, io, re, time, json, logging
 from collections import defaultdict
 from fnmatch import fnmatch
@@ -25,6 +27,8 @@ except ImportError:
 TP_XSD = "http://www.xbrl.org/2016/taxonomy-package.xsd"
 CAT_XSD = "http://www.xbrl.org/2016/taxonomy-package-catalog.xsd"
 
+if TYPE_CHECKING:
+    from arelle.Cntlr import Cntlr
 
 EMPTYDICT = {}
 
@@ -286,7 +290,7 @@ packagesConfigChanged = False
 packagesMappings = {}
 _cntlr = None
 
-def init(cntlr, loadPackagesConfig=True):
+def init(cntlr: Cntlr, loadPackagesConfig: bool = True) -> None:
     global packagesJsonFile, packagesConfig, packagesMappings, _cntlr
     if loadPackagesConfig:
         try:
@@ -330,7 +334,7 @@ def orderedPackagesConfig():
                        for _packageInfo in packagesConfig['packages']]),
          ('remappings',OrderedDict(sorted(packagesConfig['remappings'].items())))))
 
-def save(cntlr):
+def save(cntlr: Cntlr) -> None:
     global packagesConfigChanged
     if packagesConfigChanged and cntlr.hasFileSystem:
         with io.open(packagesJsonFile, 'wt', encoding='utf-8') as f:

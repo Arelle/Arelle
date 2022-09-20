@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools~=62.3", "wheel~=0.37.1"]
+requires = ["setuptools~=65.3", "wheel~=0.37"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -32,9 +32,6 @@ dependencies = [
     'regex==2022.*',
 ]
 
-[tool.setuptools.dynamic]
-version = {attr = "arelle.Version.__version__"}
-
 [project.optional-dependencies]
 Crypto = [
     'pycryptodome==3.*',
@@ -57,6 +54,12 @@ WebServer = [
     'tornado==6.*',
 ]
 
+[project.scripts]
+arelleCmdLine = "arelle.CntlrCmdLine:main"
+
+[project.gui-scripts]
+arelleGUI = "arelle.CntlrWinMain:main"
+
 [project.urls]
 "Homepage" = "https://arelle.org/"
 "Downloads" = "https://arelle.org/arelle/pub/"
@@ -68,6 +71,12 @@ WebServer = [
 
 [tool.setuptools]
 platforms = ["any"]
+
+[tool.setuptools.dynamic]
+version = {attr = "arelle.Version.__version__"}
+
+[tool.setuptools.packages.find]
+namespaces = false
 
 [tool.pytest.ini_options]
 xfail_strict = true
@@ -94,7 +103,11 @@ ignore_errors = true
 [[tool.mypy.overrides]]
 module = [
     'arelle.plugin.validate.ESEF.*',
+    'arelle.Cntlr',
+    'arelle.ModelObject',
     'arelle.Updater',
+    'arelle.UrlUtil',
+    'arelle.ValidateXbrl',
 ]
 ignore_errors = false
 strict = true

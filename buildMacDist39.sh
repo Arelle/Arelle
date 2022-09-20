@@ -25,7 +25,7 @@ $PYTHON buildVersion.py
 $PYTHON generateMessagesCatalog.py
 
 # create new app
-$PYTHON setup.py bdist_mac
+$PYTHON distro.py bdist_mac
 
 # 3.9 patches
 #cp -r /Library/Frameworks/Python.framework/Versions/3.9/lib/$PYTHON/site-packages/pycountry-20.7.3-py3.9.egg-info build/Arelle.app/Contents/MacOS/lib

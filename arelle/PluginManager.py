@@ -13,7 +13,7 @@ import importlib.util
 import logging
 
 from types import ModuleType
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Iterator, Callable
 from arelle.Locale import getLanguageCodes
 from arelle.FileSource import openFileStream
 from arelle.UrlUtil import isAbsolute
@@ -22,6 +22,8 @@ try:
     from collections import OrderedDict
 except ImportError:
     OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order
+from collections.abc import Generator, Callable
+
 
 if TYPE_CHECKING:
     # Prevent potential circular import error
@@ -41,7 +43,7 @@ _pluginBase = None
 EMPTYLIST = []
 _ERROR_MESSAGE_IMPORT_TEMPLATE = "Unable to load module {}"
 
-def init(cntlr, loadPluginConfig=True):
+def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
     global pluginJsonFile, pluginConfig, modulePluginInfos, pluginMethodsForClasses, pluginConfigChanged, _cntlr, _pluginBase
     pluginConfigChanged = False
     _cntlr = cntlr
@@ -86,7 +88,7 @@ def orderedPluginConfig():
                                 for moduleName, moduleInfo in sorted(pluginConfig['modules'].items()))),
          ('classes',OrderedDict(sorted(pluginConfig['classes'].items())))))
 
-def save(cntlr):
+def save(cntlr: Cntlr) -> None:
     global pluginConfigChanged
     if pluginConfigChanged and cntlr.hasFileSystem:
         pluginJsonFile = cntlr.userAppDir + os.sep + "plugins.json"
@@ -456,7 +458,7 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
             else:
                 print(_msg, file=sys.stderr)
 
-def pluginClassMethods(className):
+def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
     if pluginConfig:
         try:
             pluginMethodsForClass = pluginMethodsForClasses[className]

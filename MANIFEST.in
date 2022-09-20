@@ -1,8 +1,0 @@
-graft arelle
-include arelleCmdLine.py
-include arelleGUI.pyw
-include CONTRIBUTING.md
-include INSTALLATION.md
-include LICENSE.md
-include README.md
-include requirements.txt
