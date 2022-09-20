@@ -566,7 +566,7 @@ class Cntlr:
                         win32clipboard.SetClipboardData(win32clipboard.CF_TEXT, text.encode("utf8"))
                     win32clipboard.CloseClipboard()
                 else: # Unix/Linux
-                    import gtk # type: ignore[import]
+                    import gtk
                     clipbd = gtk.Clipboard(display=gtk.gdk.display_get_default(), selection="CLIPBOARD")
                     if text is None:
                         return clipbd.wait_for_text().decode("utf8")
