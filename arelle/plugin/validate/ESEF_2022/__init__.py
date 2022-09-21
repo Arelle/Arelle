@@ -15,13 +15,13 @@ Taxonomy package expected to be installed:
 
 GUI operation
 
-   install plugin validate/ESEF-2022 and optionally applicable taxonomy packages
+   install plugin validate/ESEF_2022 and optionally applicable taxonomy packages
 
    Under tools->formula add parameters eps_threshold and optionally authority
 
 Command line operation:
 
-   arelleCmdLine.exe --plugins validate/ESEF-2022 --packages {my-package-directory}/esef_taxonomy_2019.zip
+   arelleCmdLine.exe --plugins validate/ESEF_2022 --packages {my-package-directory}/esef_taxonomy_2019.zip
      --disclosureSystem esef -v -f {my-report-package-zip-file}
    Adding checks for formulas not automatically included:
      --parameters "eps_threshold=.01"
@@ -36,7 +36,7 @@ Authority specific validations are enabled by formula parameter authority, e.g. 
 
 Using arelle as a web server:
 
-   arelleCmdLine.exe --webserver localhost:8080:cheroot --plugins validate/ESEF-2022 --packages {my-package-directory}/esef_taxonomy_2019.zip
+   arelleCmdLine.exe --webserver localhost:8080:cheroot --plugins validate/ESEF_2022 --packages {my-package-directory}/esef_taxonomy_2019.zip
 
 Client with curl:
 
