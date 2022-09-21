@@ -143,11 +143,10 @@ def checkForMultiLangDuplicates(modelXbrl):
         ):
             _factConceptContextUnitHash[f.conceptContextUnitHash].append(f)
 
-    _aspectEqualFacts = defaultdict(dict)  # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact]
-
     for hashEquivalentFacts in _factConceptContextUnitHash.values():
         if len(hashEquivalentFacts) <= 1: # skip facts present only once
             continue;
+        _aspectEqualFacts = defaultdict(dict)  # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact]
         for f in hashEquivalentFacts:  # check for hash collision by value checks on context and unit
             cuDict = _aspectEqualFacts[(f.qname, (f.xmlLang or "").lower())]
             _matched = False
@@ -166,4 +165,3 @@ def checkForMultiLangDuplicates(modelXbrl):
                         "Inconsistent duplicate non-numeric facts SHOULD NOT appear in the content of an inline XBRL document. "
                         "%(fact)s that was used more than once in contexts equivalent to %(contextID)s, with different values but same language (%(language)s).",
                         modelObject=fList, fact=fList[0].qname, contextID=fList[0].contextID, language=fList[0].xmlLang)
-        _aspectEqualFacts.clear()
