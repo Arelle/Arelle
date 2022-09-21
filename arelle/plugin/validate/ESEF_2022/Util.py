@@ -163,4 +163,3 @@ def checkForMultiLangDuplicates(modelXbrl):
                         "%(fact)s that was used more than once in contexts equivalent to %(contextID)s, with different values but same language (%(language)s).",
                         modelObject=fList, fact=fList[0].qname, contextID=fList[0].contextID, language=fList[0].xmlLang)
         _aspectEqualFacts.clear()
-
