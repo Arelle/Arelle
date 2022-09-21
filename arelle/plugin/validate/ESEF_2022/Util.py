@@ -135,8 +135,13 @@ def checkForMultiLangDuplicates(modelXbrl):
     _factConceptContextUnitHash = defaultdict(list)
 
     for f in modelXbrl.factsInInstance:
-        if (f.isNil or getattr(f, "xValid", 0) >= 4) and f.context is not None and f.concept is not None \
-                and f.concept.type is not None and f.concept.type.isWgnStringFactType:
+        if (
+            (f.isNil or getattr(f, "xValid", 0) >= 4)
+            and f.context is not None
+            and f.concept is not None
+            and f.concept.type is not None
+            and f.concept.type.isWgnStringFactType
+        ):
             _factConceptContextUnitHash[f.conceptContextUnitHash].append(f)
 
     _aspectEqualFacts = defaultdict(dict)  # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact]
