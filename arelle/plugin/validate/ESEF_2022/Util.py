@@ -11,6 +11,7 @@ from __future__ import annotations
 import os, json
 
 from arelle.ModelObject import ModelObject
+from arelle.XmlValidate import VALID
 from .Const import esefTaxonomyNamespaceURIs
 from lxml.etree import XML, XMLSyntaxError
 from arelle.FileSource import openFileStream
@@ -18,12 +19,10 @@ from arelle.UrlUtil import scheme
 from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
-from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from typing import Any, Union, cast
 from arelle.ModelDocument import ModelDocument
 from arelle.typing import TypeGetText
 from collections import defaultdict
-from math import isnan
 
 
 _: TypeGetText  # Handle gettext
@@ -136,7 +135,7 @@ def checkForMultiLangDuplicates(modelXbrl):
 
     for f in modelXbrl.factsInInstance:
         if (
-            (f.isNil or getattr(f, "xValid", 0) >= 4)
+            (f.isNil or getattr(f, "xValid", 0) >= VALID)
             and f.context is not None
             and f.concept is not None
             and f.concept.type is not None
