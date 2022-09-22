@@ -248,6 +248,7 @@ def dateTime(
     type: int | None = None,
     castException: Type[Exception] | None = None,
 ) -> DateTime | None:
+    from arelle.ModelObject import ModelObject
 
     if value == "MinDate":
         return DateTime(datetime.MINYEAR,1,1)
