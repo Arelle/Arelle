@@ -160,8 +160,6 @@ def _default_to_empty(string: Optional[str]) -> str:
 @total_ordering
 class QName:
 
-    localName: str
-
     __slots__ = ("prefix", "namespaceURI", "localName", "qnameValueHash")
 
     def __init__(self, prefix: str | None, namespaceURI: str | None, localName: str) -> None:
@@ -178,7 +176,7 @@ class QName:
         return isinstance(other, QName) or (hasattr(other, 'namespaceURI') and hasattr(other, 'localName'))
 
     @property
-    def clarkNotation(self) -> str | None:
+    def clarkNotation(self) -> str:
         if self.namespaceURI:
             return '{{{0}}}{1}'.format(self.namespaceURI, self.localName)
         else:
@@ -371,45 +369,40 @@ class DateTime(datetime.datetime):
         dt = super(DateTime, self).__add__(td)
         return DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo, self.dateOnly)
 
-    def __sub__( # type: ignore[override]
-        self, other: YearMonthDuration | datetime.timedelta | datetime.datetime
-    ) -> DateTime | DayTimeDuration:
+    def __sub__(self, other: Any) -> DateTime | DayTimeDuration:  # type: ignore[override]
         if isinstance(other, YearMonthDuration):
             return self.addYearMonthDuration(other, -1)
-        else:
-            dt = super(DateTime, self).__sub__(other) # type: ignore[operator]
-            if isinstance(dt, datetime.timedelta):
-                return DayTimeDuration(dt.days, 0, 0, dt.seconds)
-
-            if isinstance(dt, datetime.datetime):
-                return DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo, self.dateOnly)
+        dt = super(DateTime, self).__sub__(other)
+        if isinstance(dt, datetime.timedelta):
+            return DayTimeDuration(dt.days, 0, 0, dt.seconds)
+        if isinstance(dt, datetime.datetime):
+            return DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo, self.dateOnly)
+        return NotImplemented
 
 def dateUnionEqual(
     dateUnion1: DateTime | datetime.date,
     dateUnion2: DateTime | datetime.date,
     instantEndDate: bool = False,
 ) -> bool:
-    if isinstance(dateUnion1,DateTime):
+    if isinstance(dateUnion1, DateTime):
         if instantEndDate and dateUnion1.dateOnly:
-            dateUnion1 = dateUnion1
             dateUnion1 += datetime.timedelta(1)
     elif isinstance(dateUnion1,datetime.date):
         dateUnion1 = cast(DateTime, dateTime(dateUnion1, addOneDay=instantEndDate))
-    if isinstance(dateUnion2,DateTime):
+    if isinstance(dateUnion2, DateTime):
         if instantEndDate and dateUnion2.dateOnly:
-            dateUnion2 = dateUnion2
             dateUnion2 += datetime.timedelta(1)
     elif isinstance(dateUnion2,datetime.date):
         dateUnion2 = cast(DateTime, dateTime(dateUnion2, addOneDay=instantEndDate))
     return dateUnion1 == dateUnion2
 
-def dateunionDate(datetimeValue: DateTime, subtractOneDay: bool = False) -> datetime.date:
-    isDate = (hasattr(datetimeValue,'dateOnly') and datetimeValue.dateOnly) or not hasattr(datetimeValue, 'hour')
-    d: DateTime | datetime.timedelta = datetimeValue
-    if isDate or (cast(DateTime, d).hour == 0 and cast(DateTime, d).minute == 0 and cast(DateTime, d).second == 0):
-        if subtractOneDay and not isDate:
+def dateunionDate(datetimeValue: datetime.date, subtractOneDay: bool = False) -> datetime.date:
+    isDate = getattr(datetimeValue, 'dateOnly', False) or not hasattr(datetimeValue, 'hour')
+    d = datetimeValue
+    if subtractOneDay and not isDate:
+        dt = cast(datetime.datetime, d)
+        if dt.hour == 0 and dt.minute == 0 and dt.second == 0:
             d -= datetime.timedelta(1)
-    assert isinstance(d, DateTime)
     return datetime.date(d.year, d.month, d.day)
 
 def yearMonthDuration(value: str) -> YearMonthDuration:
@@ -476,7 +469,7 @@ class DayTimeDuration(datetime.timedelta):
         x = self.dayHrsMinsSecs()
         return "P{0}DT{1}H{2}M{3}S".format(x[0], x[1], x[2], x[3])
 
-def yearMonthDayTimeDuration(value: datetime.datetime, value2: datetime.datetime | None = None) -> YearMonthDayTimeDuration:
+def yearMonthDayTimeDuration(value: datetime.datetime | str, value2: datetime.datetime | None = None) -> YearMonthDayTimeDuration:
     if isinstance(value, datetime.datetime) and isinstance(value2, datetime.datetime):
         years = value2.year - value.year
         months = value2.month - value.month
@@ -502,8 +495,6 @@ def yearMonthDayTimeDuration(value: datetime.datetime, value2: datetime.datetime
             seconds += 60
         return YearMonthDayTimeDuration(years, months, days, hours, minutes, seconds)
 
-    # Note 2022-09-10:
-    # Value is a datetime here but match expects a str. Thus ignoring.
     durationPatternMatch = durationPattern.match(value) # type: ignore[arg-type]
     assert durationPatternMatch is not None
 
@@ -577,15 +568,21 @@ class YearMonthDayTimeDuration():
 
 def time(value: str, castException: Type[Exception] | None = None) -> Time | None:
     if value == "MinTime":
-        # Note 2022-09-10
-        # Note sure what this does but don't want to alter code when adding type hints
-        # Ignoring for now
-        return Time(datetime.time.min)
+        return Time(
+            hour=datetime.time.min.hour,
+            minute=datetime.time.min.minute,
+            second=datetime.time.min.second,
+            microsecond=datetime.time.min.microsecond,
+            tzinfo=datetime.time.min.tzinfo,
+        )
     elif value == "MaxTime":
-        # Note 2022-09-10
-        # Note sure what this does but don't want to alter code when adding type hints
-        # Ignoring for now
-        return Time(datetime.time.max)
+        return Time(
+            hour=datetime.time.max.hour,
+            minute=datetime.time.max.minute,
+            second=datetime.time.max.second,
+            microsecond=datetime.time.max.microsecond,
+            tzinfo=datetime.time.max.tzinfo,
+        )
     elif isinstance(value, ModelObject):
         value = value.text
     elif isinstance(value, datetime.time):
@@ -609,7 +606,7 @@ class Time(datetime.time):
 
     hour24: bool
 
-    def __new__(cls, hour: int | datetime.time = 0, minute: int = 0, second: int = 0, microsecond: int = 0, tzinfo: datetime.timezone | None = None) -> Time:
+    def __new__(cls, hour: int = 0, minute: int = 0, second: int = 0, microsecond: int = 0, tzinfo: datetime.tzinfo | None = None) -> Time:
         hour24 = (hour == 24 and minute == 0 and second == 0 and microsecond == 0)
         if hour24: hour = 0
         time = datetime.time.__new__(cls, hour, minute, second, microsecond, tzinfo)
@@ -661,7 +658,7 @@ class gMonthDay():
     def __eq__(self,other: Any) -> bool:
         if not isinstance(other, gMonthDay):
             return NotImplemented
-        return type(other) == gMonthDay and self.month == other.month and self.day == other.day
+        return self.month == other.month and self.day == other.day
     def __ne__(self,other: Any) -> bool:
         if not isinstance(other, gMonthDay):
             return NotImplemented
@@ -695,7 +692,7 @@ class gYear():
     def __eq__(self,other: Any) -> bool:
         if not isinstance(other, gYear):
             return NotImplemented
-        return type(other) == gYear and self.year == other.year
+        return self.year == other.year
     def __ne__(self,other: Any) -> bool:
         if not isinstance(other, gYear):
             return NotImplemented
@@ -729,7 +726,7 @@ class gMonth():
     def __eq__(self,other: Any) -> bool:
         if not isinstance(other, gMonth):
             return NotImplemented
-        return type(other) == gMonth and self.month == other.month
+        return self.month == other.month
     def __ne__(self,other: Any) -> bool:
         if not isinstance(other, gMonth):
             return NotImplemented
