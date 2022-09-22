@@ -124,7 +124,8 @@ def qnameEltPfxName(
     | ModelAttribute
     | ModelCustomFunctionSignature
     | ModelType
-    | ModelInlineFact,
+    | ModelInlineFact
+    | ModelObject,
     prefixedName: str,
     prefixException: Exception | None = None,
 ) -> QName | None:
