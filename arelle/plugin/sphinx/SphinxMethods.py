@@ -303,6 +303,7 @@ def _concept(node, sphinxContext, args):
     fact = factArg(node, sphinxContext, args, 0)
     return fact.concept
 
+
 def _concepts(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
     if isinstance(args[0], ModelXbrl):  # taxonomy concepts
@@ -312,7 +313,7 @@ def _concepts(node, sphinxContext, args):
                    if concept.isItem or concept.isTuple)
     # otherwise must be network concepts
     network = networkArg(node, sphinxContext, args)
-    return network.toModelObjects.keys() |network.fromModelObjects.keys()
+    return network.toModelObjects.keys() | network.fromModelObjects.keys()
 
 
 def _contains(node, sphinxContext, args):

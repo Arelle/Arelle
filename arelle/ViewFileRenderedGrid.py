@@ -682,7 +682,7 @@ class ViewRenderedGrid(ViewFile.View):
                         cellTagSelectors = yTagSelectors | xStructuralNode.tagSelectors
                         cellAspectValues = {}
                         matchableAspects = set()
-                        for aspect in xAspectStructuralNodes.keys() | yAspectStructuralNodes.keys() |zAspectStructuralNodes.keys():
+                        for aspect in xAspectStructuralNodes.keys() | yAspectStructuralNodes.keys() | zAspectStructuralNodes.keys():
                             aspectValue = xStructuralNode.inheritedAspectValue(yStructuralNode,
                                                self, aspect, cellTagSelectors,
                                                xAspectStructuralNodes, yAspectStructuralNodes, zAspectStructuralNodes)

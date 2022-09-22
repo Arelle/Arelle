@@ -171,8 +171,7 @@ class WebCache:
     def saveUrlCheckTimes(self):
         if self.cachedUrlCheckTimesModified:
             with io.open(self.urlCheckJsonFile, 'wt', encoding='utf-8') as f:
-                jsonStr = str(json.dumps(self.cachedUrlCheckTimes, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
-                f.write(jsonStr)  # 2.7 gets unicode this way
+                f.write(json.dumps(self.cachedUrlCheckTimes, ensure_ascii=False, indent=0))
         self.cachedUrlCheckTimesModified = False
 
     @property

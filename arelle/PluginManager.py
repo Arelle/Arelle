@@ -318,13 +318,15 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
             f.close()
     return None
 
+
 def moduleInfo(pluginInfo):
     moduleInfo = {}
     for name, value in pluginInfo.items():
-        if isinstance(value, 'str'):
+        if isinstance(value, str):
             moduleInfo[name] = value
         elif isinstance(value, types.FunctionType):
-            moduleInfo.getdefault('classes',[]).append(name)
+            moduleInfo.getdefault('classes', []).append(name)
+
 
 def _get_name_dir_prefix(
     controller: Cntlr,

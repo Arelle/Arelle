@@ -773,8 +773,8 @@ def compileSphinxGrammar( cntlr ):
     cntlr.showStatus(_("Compiling Sphinx Grammar"))
     # python 3 requires modified parser to allow release of global objects when closing DTS
     from arelle.pyparsing.pyparsing_py3 import (
-        Word, Keyword, alphas, Literal, CaselessLiteral, Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums, ParserElement, quotedString, delimitedList, Suppress, Regex,
-        FollowedBy, lineno
+        Word, Keyword, Literal, CaselessLiteral, Combine, Optional, nums, Forward, ZeroOrMore,
+        StringEnd, ParserElement, quotedString, delimitedList, Suppress, Regex
     )
 
     ParserElement.enablePackrat()

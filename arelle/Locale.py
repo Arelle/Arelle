@@ -43,7 +43,7 @@ def getUserLocale(localeCode=''):
         if localeQueryResult[0] == 0 and '_' in localeQueryResult[1]: # successful
             localeCode = localeQueryResult[1]
     try:
-        locale.setlocale(locale.LC_ALL, str(localeCode))  # str needed for 3to2 2.7 python to work
+        locale.setlocale(locale.LC_ALL, localeCode)
         conv = locale.localeconv()
     except locale.Error:
         if sys.platform == "darwin":

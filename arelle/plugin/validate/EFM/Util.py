@@ -288,10 +288,10 @@ def deprecatedConceptDatesFile(modelManager, abbrNs, latestTaxonomyDoc):
                         if date:
                             deprecatedConceptDates[conceptName] = date
 
-            jsonStr = str(json.dumps(
-                OrderedDict(((k,v) for k,v in sorted(deprecatedConceptDates.items()))), # sort in json file
-                ensure_ascii=False, indent=0)) # might not be unicode in 2.7
-            saveFile(cntlr, _fileName, jsonStr)  # 2.7 gets unicode this way
+            jsonStr = json.dumps(
+                OrderedDict(((k, v) for k, v in sorted(deprecatedConceptDates.items())),  # sort in json file
+                            ensure_ascii=False, indent=0))
+            saveFile(cntlr, _fileName, jsonStr)
             deprecationsInstance.close()
             del deprecationsInstance # dereference closed modelXbrl
 
@@ -555,7 +555,7 @@ def buildUgtFullRelsFiles(modelXbrl, dqcRules):
                         for objVal in obj.values():
                             sortDqcLists(objVal)
                 sortDqcLists(dqc0015)
-            jsonStr = str(json.dumps(ugtRels, ensure_ascii=False, indent=2)) # might not be unicode in 2.7
+            jsonStr = json.dumps(ugtRels, ensure_ascii=False, indent=2)
             _ugtRelsFileName = resourcesFilePath(modelManager, "us-gaap-rels-{}.json".format(ugtAbbr.rpartition("/")[2]))
             saveFile(cntlr, _ugtRelsFileName, jsonStr)  # 2.7 gets unicode this way
 

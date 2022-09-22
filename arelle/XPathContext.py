@@ -478,7 +478,7 @@ class XPathContext:
             if len(r) == 1: # should be an expr single
                 r = r[0]
                 if isinstance(r, (tuple,list,set)):
-                    if len(r) == 1 and isinstance(r[0],_RANGE):
+                    if len(r) == 1 and isinstance(r[0], range):
                         r = r[0]
                     rvQname = p.rangeVar.name
                     hasPrevValue = rvQname in self.inScopeVars

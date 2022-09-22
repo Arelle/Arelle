@@ -636,7 +636,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 aspectValue is not None): # typed dim absent will be none
                                 cellAspectValues[aspect] = aspectValue
                             matchableAspects.add(aspectModelAspect.get(aspect,aspect)) #filterable aspect from rule aspect
-                        cellDefaultedDims = dimDefaults -cellAspectValues.keys()
+                        cellDefaultedDims = dimDefaults - cellAspectValues.keys()
                         priItemQname = cellAspectValues.get(Aspect.CONCEPT)
 
                         concept = self.modelXbrl.qnameConcepts.get(priItemQname)

@@ -759,14 +759,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                         name=instqname, dependencies=missingDependentInstances )
                 elif instqname == XbrlConst.qnStandardOutputInstance:
                     orderedInstancesSet.add(instqname)
-                    orderedInstancesList.append(instqname) # standard output formula, all input dependencies in parameters
-            ''' future check?  if instance has no external input or producing formula
-            else:
-                val.modelXbrl.error("xbrlvarinste:instanceVariableRecursionCycle",
-                    _("Unresolved dependencies of an assertion's variables on instances %(dependencies)s"),
-                    dependencies=str(depInsts) - stdInpInst)
-            '''
-        elif instqname in depInsts: # check for direct cycle
+                    orderedInstancesList.append(instqname)  # standard output formula, all input dependencies in parameters
+        elif instqname in depInsts:  # check for direct cycle
             val.modelXbrl.error("xbrlvarinste:instanceVariableRecursionCycle",
                 _("Cyclic dependencies of instance %(name)s produced by its own variables"),
                 modelObject=val.modelXbrl, name=instqname )
