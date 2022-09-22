@@ -25,7 +25,7 @@ fi
 rm -f dist/arelle-redhat*
 
 # run cx_Freeze setup
-$PYTHON setup.py build_exe
+$PYTHON distro.py build_exe
 cp arelle/scripts-unix/* build/${BUILT64}
 
 # remove .git subdirectories

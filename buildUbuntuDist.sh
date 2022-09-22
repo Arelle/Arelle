@@ -28,7 +28,7 @@ fi
 rm -f dist/arelle-ubuntu*
 
 # run cx_Freeze setup
-python3.9 setup.py build_exe
+python3.9 distro.py build_exe
 cp arelle/scripts-unix/* build/${BUILT64}
 cp -pR ${LIBDIR}/Tktable2.11 build/${BUILT64}/lib
 cp -pR ${LIBDIR}/python3.9/site-packages/mpl_toolkits build/${BUILT64}/lib
