@@ -89,14 +89,14 @@ def test_plugin_manager_reset():
             # Test data
             ("tests/unit_tests/arelle", "functionsMaths", "xyz"),
             # Expected result
-            ("functionsMaths", f"tests{os.sep}unit_tests", "xyz")
+            ("functionsMaths", f"tests/unit_tests", "xyz")
         ),
         # Test case 2
         (
             # Test data
             ("arelle/plugin/", "sphinx/__init__.py", "xyz"),
             # Expected result
-            ("sphinx", f"arelle{os.sep}plugin", "sphinx.")
+            ("sphinx", f"arelle/plugin", "sphinx.")
         ),
         # Test case 3
         (
@@ -131,7 +131,7 @@ def test_function_get_name_dir_prefix(
     )
 
     assert moduleName == expected_result[0]
-    assert moduleDir == expected_result[1]
+    assert moduleDir == (None if expected_result[1] is None else os.path.normcase(expected_result[1]))
     assert packageImportPrefix == expected_result[2]
 
     PluginManager.close()
