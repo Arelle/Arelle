@@ -1367,7 +1367,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         elif file:
             if isinstance(file, (tuple,list,set)):
                 message += " - " + ", ".join(file)
-            elif isinstance(file, _STR_BASE):
+            elif isinstance(file, str):
                 message += " - " + file
         if isinstance(messageArgs, dict):
             try:

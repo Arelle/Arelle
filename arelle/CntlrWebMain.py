@@ -13,6 +13,7 @@ import os, io, sys, time, threading, uuid, zipfile
 from arelle import Version
 from arelle.FileSource import FileNamedStringIO
 from arelle.PluginManager import pluginClassMethods
+from arelle.PythonUtil import STR_NUM_TYPES
 _os_pid = os.getpid()
 
 GETorPOST = ('GET', 'POST')
@@ -29,8 +30,8 @@ def startWebserver(_cntlr, options):
     global imagesDir, cntlr, optionsPrototype
     cntlr = _cntlr
     imagesDir = cntlr.imagesDir
-    optionValuesTypes = _STR_NUM_TYPES + (type(None),)
-    optionsPrototype = dict((option,value if isinstance(value,_STR_NUM_TYPES) else None)
+    optionValuesTypes = STR_NUM_TYPES + (type(None),)
+    optionsPrototype = dict((option,value if isinstance(value, STR_NUM_TYPES) else None)
                             for option in dir(options)
                             for value in (getattr(options, option),)
                             if isinstance(value,optionValuesTypes) and not option.startswith('_'))

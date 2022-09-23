@@ -20,10 +20,12 @@ from arelle.ModelValue import QName, dayTimeDuration, DayTimeDuration
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrlCalcs import inferredDecimals, inferredPrecision, roundValue
 from arelle import XbrlConst, XmlUtil
+from numbers import Number
 evaluate = None # initialized at end
 SphinxException = None
 UNBOUND = None
 NONE = None
+
 
 def moduleInit():
     global evaluate, SphinxException, UNBOUND, NONE
@@ -125,7 +127,7 @@ def hasArg(node, sphinxContext, args, i):
 def numericArg(node, sphinxContext, args, i):
     hasArg(node, sphinxContext, args, i)
     arg = args[i]
-    if isinstance(arg, _NUM_TYPES):
+    if isinstance(arg, Number):
         return arg
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                           _("Function %(name)s numeric parameter %(num)s is not a number: %(value)s"),
@@ -141,7 +143,7 @@ def numericArgs(node, sphinxContext, args, expectedArgsLen):
         if i >= expectedArgsLen:
             break
         value = evaluate(arg, sphinxContext, args, value=True)
-        if not isinstance(value, _NUM_TYPES):
+        if not isinstance(value, Number):
             raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                                   _("Function %(name)s numeric parameters but %(num)s is not numeric: %(value)s"),
                                   num=i, value=value)
@@ -170,7 +172,7 @@ def strArgs(node, sphinxContext, args, expectedArgsLen):
         if i >= expectedArgsLen:
             break
         value = evaluate(arg, sphinxContext, value=True)
-        if not isinstance(value, _STR_BASE):
+        if not isinstance(value, str):
             raise SphinxException(node, "sphinx.functionArgumentsMismatch",
                                   _("Function %(name)s string parameters but %(num)s is not numeric: %(value)s"),
                                   name=node.name, num=i, value=value)
@@ -301,6 +303,7 @@ def _concept(node, sphinxContext, args):
     fact = factArg(node, sphinxContext, args, 0)
     return fact.concept
 
+
 def _concepts(node, sphinxContext, args):
     hasArg(node, sphinxContext, args, 0)
     if isinstance(args[0], ModelXbrl):  # taxonomy concepts
@@ -310,7 +313,7 @@ def _concepts(node, sphinxContext, args):
                    if concept.isItem or concept.isTuple)
     # otherwise must be network concepts
     network = networkArg(node, sphinxContext, args)
-    return _DICT_SET(network.toModelObjects.keys()) | _DICT_SET(network.fromModelObjects.keys())
+    return network.toModelObjects.keys() | network.fromModelObjects.keys()
 
 
 def _contains(node, sphinxContext, args):
@@ -993,11 +996,11 @@ def _linkRole(node, sphinxContext, args):
 
 def _sourceConcepts(node, sphinxContext, args):
     network = networkArg(node, sphinxContext, args)
-    return _DICT_SET(network.fromModelObjects().keys())
+    return network.fromModelObjects().keys()
 
 def _targetConcepts(node, sphinxContext, args):
     network = networkArg(node, sphinxContext, args)
-    return _DICT_SET(network.toModelObjects().keys())
+    return network.toModelObjects().keys()
 
 # relationship methods
 

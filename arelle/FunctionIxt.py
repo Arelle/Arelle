@@ -306,7 +306,7 @@ sakaMonthOffset = ((3,22,0),(4,21,0),(5,22,0),(6,22,0),(7,23,0),(8,23,0),(9,23,0
 # common helper functions
 def checkDate(y,m,d):
     try:
-        datetime(_INT(y), _INT(m), _INT(d))
+        datetime(int(y), int(m), int(d))
         return True
     except (ValueError):
         return False
@@ -382,7 +382,7 @@ eraStart = {'令和': 2018,
             }
 
 def eraYear(era,yr):
-    return eraStart[era] + (1 if yr == '元' else _INT(yr))
+    return eraStart[era] + (1 if yr == '元' else int(yr))
 
 def canonicalNumber(n):
     m = numCanonicalizationPattern.match(n)
@@ -865,11 +865,11 @@ def calindaymonthyear(arg):
     m = daymonthyearInIndPattern.match(arg)
     try:
         # Transformation registry 3 requires use of pattern comparisons instead of exact transliterations
-        #_mo = _INT(sakaMonthNumber[m.group(2)])
+        #_mo = int(sakaMonthNumber[m.group(2)])
         # pattern approach
         _mo = sakaMonthPattern.search(m.group(2)).lastindex
-        _day = _INT(devanagariDigitsToNormal(m.group(1)))
-        _yr = _INT(devanagariDigitsToNormal(yrin(m.group(15), _mo, _day)))
+        _day = int(devanagariDigitsToNormal(m.group(1)))
+        _yr = int(devanagariDigitsToNormal(yrin(m.group(15), _mo, _day)))
         #sakaDate = [_yr, _mo, _day]
         #for pluginMethod in pluginClassMethods("SakaCalendar.ToGregorian"):  # LGPLv3 plugin (moved to examples/plugin)
         #    gregorianDate = pluginMethod(sakaDate)
