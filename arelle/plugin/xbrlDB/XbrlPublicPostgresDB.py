@@ -48,6 +48,7 @@ from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlUtil import elementFragmentIdentifier
 from arelle import XbrlConst
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
+from arelle.PythonUtil import STR_NUM_TYPES
 
 
 def insertIntoDB(modelXbrl,
@@ -202,10 +203,10 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
             break
 
     def insertUris(self):
-        uris = (_DICT_SET(self.modelXbrl.namespaceDocs.keys()) |
-                _DICT_SET(self.modelXbrl.arcroleTypes.keys()) |
-                _DICT_SET(XbrlConst.standardArcroleCyclesAllowed.keys()) |
-                _DICT_SET(self.modelXbrl.roleTypes.keys()) |
+        uris = (self.modelXbrl.namespaceDocs.keys() |
+                self.modelXbrl.arcroleTypes.keys() |
+                XbrlConst.standardArcroleCyclesAllowed.keys() |
+                self.modelXbrl.roleTypes.keys() |
                 XbrlConst.standardRoles)
         self.showStatus("insert uris")
         table = self.getTable('uri', 'uri_id',
@@ -218,9 +219,9 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                           for id, uri in table)
 
     def insertQnames(self):
-        qnames = (_DICT_SET(self.modelXbrl.qnameConcepts.keys()) |
-                  _DICT_SET(self.modelXbrl.qnameAttributes.keys()) |
-                  _DICT_SET(self.modelXbrl.qnameTypes.keys()) |
+        qnames = (self.modelXbrl.qnameConcepts.keys() |
+                  self.modelXbrl.qnameAttributes.keys() |
+                  self.modelXbrl.qnameTypes.keys() |
                   set(measure
                       for unit in self.modelXbrl.units.values()
                       for measures in unit.measures

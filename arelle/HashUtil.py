@@ -15,7 +15,7 @@ class Md5Sum:
     def __init__(self, initialValue=0):
         if isinstance(initialValue, int):
             self.value = initialValue & Md5Sum.MAXMd5SUM
-        elif isinstance(initialValue, _STR_BASE): # includes Md5HexValue, unicode string, py2.7 string
+        elif isinstance(initialValue, str): # includes Md5HexValue, unicode string, py2.7 string
             self.value = int(initialValue, 16) & Md5Sum.MAXMd5SUM
         else:
             raise ValueError("MD5Sum called with {} but must be an MD5Sum or hex number"
@@ -62,7 +62,7 @@ def md5hash(argList):
                     _md5.update(_arg.namespaceURI.encode('utf-8','replace'))
                     _md5.update(b'\x1F')
                 _md5.update(_arg.localName.encode('utf-8','replace'))
-            elif isinstance(_arg, _STR_UNICODE):
+            elif isinstance(_arg, str):
                 _md5.update(_arg.encode('utf-8','replace'))
             elif isinstance(_arg, datetime): # always in isodate format
                 _md5.update("{0.year:04}-{0.month:02}-{0.day:02}T{0.hour:02}:{0.minute:02}:{0.second:02}".format(_arg).encode('utf-8','replace'))

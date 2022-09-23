@@ -93,7 +93,7 @@ def save(cntlr: Cntlr) -> None:
     if pluginConfigChanged and cntlr.hasFileSystem:
         pluginJsonFile = cntlr.userAppDir + os.sep + "plugins.json"
         with io.open(pluginJsonFile, 'wt', encoding='utf-8') as f:
-            jsonStr = _STR_UNICODE(json.dumps(orderedPluginConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
+            jsonStr = str(json.dumps(orderedPluginConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
             f.write(jsonStr)
         pluginConfigChanged = False
 
@@ -318,13 +318,15 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
             f.close()
     return None
 
+
 def moduleInfo(pluginInfo):
     moduleInfo = {}
     for name, value in pluginInfo.items():
-        if isinstance(value, '_STR_UNICODE'):
+        if isinstance(value, str):
             moduleInfo[name] = value
         elif isinstance(value, types.FunctionType):
-            moduleInfo.getdefault('classes',[]).append(name)
+            moduleInfo.getdefault('classes', []).append(name)
+
 
 def _get_name_dir_prefix(
     controller: Cntlr,
