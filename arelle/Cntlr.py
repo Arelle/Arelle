@@ -9,7 +9,7 @@
    :synopsis: Common controller class to initialize for platform and setup common logger functions
 """
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING, TextIO, Mapping
+from typing import Any, TYPE_CHECKING, TextIO, Mapping, cast
 from arelle.typing import TypeGetText
 import tempfile, os, io, sys, logging, gettext, json, re, subprocess, math
 from arelle import ModelManager
@@ -243,7 +243,7 @@ class Cntlr:
                     self.userAppDir = os.path.join( os.path.expanduser("~/.config"), "arelle")
             if hasGui:
                 try:
-                    import gtk  # type: ignore[import]
+                    import gtk
                     self.hasClipboard = True
                 except ImportError:
                     self.hasClipboard = False
@@ -590,8 +590,9 @@ class Cntlr:
                 return int(subprocess.getoutput("ps -p {0} -o rss".format(os.getpid())).rpartition('\n')[2])
             else: # unix or linux where ru_maxrss works
                 import resource as osPrcs  # is this needed?
+                castOsPrcs = cast(Any, osPrcs)
                 # in KB
-                return float(osPrcs.getrusage(osPrcs.RUSAGE_SELF).ru_maxrss)  # type: ignore[attr-defined]
+                return float(castOsPrcs.getrusage(castOsPrcs.RUSAGE_SELF).ru_maxrss)
         except Exception:
             pass
         return 0
