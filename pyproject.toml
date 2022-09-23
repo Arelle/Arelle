@@ -119,6 +119,10 @@ strict = true
 # the py.typed marker here
 [[tool.mypy.overrides]]
 module = [
+    'gtk',
     'isodate.*',
+    'win32clipboard',
+    'win32gui',
+    'win32process',
 ]
 ignore_missing_imports = true

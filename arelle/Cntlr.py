@@ -9,7 +9,7 @@
    :synopsis: Common controller class to initialize for platform and setup common logger functions
 """
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING, TextIO, Mapping
+from typing import Any, TYPE_CHECKING, TextIO, Mapping, cast
 from arelle.typing import TypeGetText
 import tempfile, os, io, sys, logging, gettext, json, re, subprocess, math
 from arelle import ModelManager
@@ -23,7 +23,7 @@ _: TypeGetText
 if TYPE_CHECKING:
     from arelle.ModelXbrl import ModelXbrl
 
-osPrcs = None
+osPrcs: Any = None
 LOG_TEXT_MAX_LENGTH = 32767
 cxFrozen = getattr(sys, 'frozen', False)
 
@@ -244,7 +244,7 @@ class Cntlr:
                     self.userAppDir = os.path.join( os.path.expanduser("~/.config"), "arelle")
             if hasGui:
                 try:
-                    import gtk  # type: ignore[import]
+                    import gtk
                     self.hasClipboard = True
                 except ImportError:
                     self.hasClipboard = False
@@ -584,6 +584,7 @@ class Cntlr:
             if sys.platform.startswith("win"):
                 if osPrcs is None:
                     import win32process as osPrcs
+
                 process_memory = osPrcs.GetProcessMemoryInfo(osPrcs.GetCurrentProcess())['WorkingSetSize']
                 if isinstance(process_memory, int):
                     return process_memory / 1024
@@ -594,7 +595,7 @@ class Cntlr:
             else: # unix or linux where ru_maxrss works
                 import resource as osPrcs  # is this needed?
                 # in KB
-                return float(osPrcs.getrusage(osPrcs.RUSAGE_SELF).ru_maxrss)  # type: ignore[attr-defined]
+                return float(osPrcs.getrusage(osPrcs.RUSAGE_SELF).ru_maxrss)
         except Exception:
             pass
         return 0
