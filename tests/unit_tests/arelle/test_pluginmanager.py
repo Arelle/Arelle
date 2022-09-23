@@ -1,6 +1,6 @@
 """Tests for the PluginManager module."""
 from __future__ import annotations
-
+import os
 import sys
 
 import pytest
@@ -89,14 +89,14 @@ def test_plugin_manager_reset():
             # Test data
             ("tests/unit_tests/arelle", "functionsMaths", "xyz"),
             # Expected result
-            ("functionsMaths", "tests/unit_tests", "xyz")
+            ("functionsMaths", f"tests{os.sep}unit_tests", "xyz")
         ),
         # Test case 2
         (
             # Test data
             ("arelle/plugin/", "sphinx/__init__.py", "xyz"),
             # Expected result
-            ("sphinx", "arelle/plugin", "sphinx.")
+            ("sphinx", f"arelle{os.sep}plugin", "sphinx.")
         ),
         # Test case 3
         (
