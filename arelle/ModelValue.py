@@ -35,7 +35,7 @@ def qname(value: ModelObject | str | QName | Any | None, name: str | ModelObject
         element = None
     if isinstance(value,QName):
         return value
-    elif not isinstance(value,_STR_BASE):
+    elif not isinstance(value,str):
         if castException: raise castException
         return None
     if value and value[0] == '{': # clark notation (with optional prefix)
@@ -234,7 +234,7 @@ def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
         return DateTime(value.year, value.month, value.day, value.hour, value.minute, value.second, value.microsecond, tzinfo=value.tzinfo, dateOnly=dateOnly, addOneDay=addOneDay)
     elif isinstance(value, datetime.date):
         return DateTime(value.year, value.month, value.day,dateOnly=True,addOneDay=addOneDay)
-    elif castException and not isinstance(value, _STR_BASE):
+    elif castException and not isinstance(value, str):
         raise castException("not a string value")
     if value is None:
         return None
@@ -470,7 +470,7 @@ def time(value, castException=None):
         return Time(value.hour, value.minute, value.second, value.microsecond, value.tzinfo)
     elif isinstance(value, datetime.datetime):
         return Time(value.hour, value.minute, value.second, value.microsecond, value.tzinfo)
-    elif castException and not isinstance(value, _STR_BASE):
+    elif castException and not isinstance(value, str):
         raise castException
     if value is None:
         return None

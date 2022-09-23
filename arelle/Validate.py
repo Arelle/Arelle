@@ -541,7 +541,7 @@ class Validate:
             _errors = [e for e in errors if isinstance(e,str) and not _blockPattern.match(e)]
         else:
             _errors = errors
-        numErrors = sum(isinstance(e,(QName,_STR_BASE)) for e in _errors) # does not include asserton dict results
+        numErrors = sum(isinstance(e,(QName,str)) for e in _errors) # does not include asserton dict results
         hasAssertionResult = any(isinstance(e,dict) for e in _errors)
         expected = modelTestcaseVariation.expected
         expectedCount = modelTestcaseVariation.expectedCount
@@ -563,7 +563,7 @@ class Validate:
                 status = "pass"
         elif expected in (None, []) and numErrors == 0:
             status = "pass"
-        elif isinstance(expected,(QName,_STR_BASE,dict,list)): # string or assertion id counts dict
+        elif isinstance(expected,(QName,str,dict,list)): # string or assertion id counts dict
             status = "fail"
             _passCount = 0
             if isinstance(expected, list):
@@ -572,11 +572,11 @@ class Validate:
                 _expectedList = [expected]
             if not isinstance(expected, list): expected = [expected]
             for testErr in _errors:
-                if isinstance(testErr,_STR_BASE) and testErr.startswith("ESEF."): # compared as list of strings to QName localname
+                if isinstance(testErr,str) and testErr.startswith("ESEF."): # compared as list of strings to QName localname
                     testErr = testErr.rpartition(".")[2]
                 for _exp in _expectedList:
                     _expMatched = False
-                    if isinstance(_exp,QName) and isinstance(testErr,_STR_BASE):
+                    if isinstance(_exp,QName) and isinstance(testErr,str):
                         errPrefix, sep, errLocalName = testErr.rpartition(":")
                         if ((not sep and errLocalName in commaSpaceSplitPattern.split(_exp.localName.strip())) or # ESEF has comma separated list of localnames of errors
                             (_exp == qname(XbrlConst.errMsgPrefixNS.get(errPrefix) or
@@ -592,7 +592,7 @@ class Validate:
                                 for k, counts in _exp.items()):
                                 _expMatched = True
                         elif (testErr == _exp or
-                            (isinstance(_exp, _STR_BASE) and (
+                            (isinstance(_exp, str) and (
                              (_exp == "EFM.6.03.04" and testErr.startswith("xmlSchema:")) or
                              (_exp == "EFM.6.03.05" and (testErr.startswith("xmlSchema:") or testErr == "EFM.5.02.01.01")) or
                              (_exp == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
@@ -615,7 +615,7 @@ class Validate:
             #if expected == "EFM.6.03.02" or expected == "EFM.6.03.08": # 6.03.02 is not testable
             #    status = "pass"
             # check if expected is a whitespace separated list of error tokens
-            if status == "fail" and isinstance(expected,_STR_BASE) and ' ' in expected:
+            if status == "fail" and isinstance(expected,str) and ' ' in expected:
                 if all(any(testErr == e for testErr in _errors)
                        for e in expected.split()):
                         status = "pass"

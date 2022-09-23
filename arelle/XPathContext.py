@@ -16,6 +16,8 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeDtsObject import PrototypeObject, PrototypeElementTree
 from decimal import Decimal, InvalidOperation
 from lxml import etree
+from numbers import Number
+from arelle.PythonUtil import STR_NUM_TYPES
 from types import LambdaType
 
 # deferred types initialization
@@ -60,7 +62,7 @@ class FunctionNumArgs(Exception):
 class FunctionArgType(Exception):
     def __init__(self, argIndex, expectedType, foundObject='', errCode='err:XPTY0004'):
         self.errCode = errCode
-        self.argNum = (argIndex + 1) if isinstance(argIndex, _NUM_TYPES) else argIndex # may be string
+        self.argNum = (argIndex + 1) if isinstance(argIndex, Number) else argIndex # may be string
         self.expectedType = expectedType
         self.foundObject = foundObject
         self.args = ( self.__repr__(), )
@@ -159,7 +161,7 @@ class XPathContext:
                 if len(resultStack) == 0 or not self.isNodeSequence(resultStack[-1]):
                     resultStack.append( [ contextItem, ] )
                 result = self.stepAxis(parentOp, p, resultStack.pop() )
-            elif isinstance(p,_STR_NUM_TYPES):
+            elif isinstance(p, STR_NUM_TYPES):
                 result = p
             elif isinstance(p,VariableRef):
                 if p.name in self.inScopeVars:
@@ -257,7 +259,7 @@ class XPathContext:
                         elif op == 'ne':
                             result = op1 != op2
                         elif op == 'to':
-                            result = _RANGE( _INT(op1), _INT(op2) + 1 )
+                            result = range(int(op1), int(op2) + 1)
                 elif op in GENERALCOMPARISON_OPS:
                     # general comparisons
                     s1 = self.atomize( p, resultStack.pop() ) if len(resultStack) > 0 else []
@@ -367,8 +369,8 @@ class XPathContext:
                             if isinstance(t, QNameDef):
                                 if t.namespaceURI == XbrlConst.xsd:
                                     tType = {
-                                           "integer": _INT_TYPES,
-                                           "string": _STR_BASE,
+                                           "integer": int,
+                                           "string": str,
                                            "decimal": Decimal,
                                            "double": float,
                                            "float": float,
@@ -476,7 +478,7 @@ class XPathContext:
             if len(r) == 1: # should be an expr single
                 r = r[0]
                 if isinstance(r, (tuple,list,set)):
-                    if len(r) == 1 and isinstance(r[0],_RANGE):
+                    if len(r) == 1 and isinstance(r[0], range):
                         r = r[0]
                     rvQname = p.rangeVar.name
                     hasPrevValue = rvQname in self.inScopeVars
@@ -624,7 +626,7 @@ class XPathContext:
             sourcePosition += 1
             predicateResult = self.evaluate(p.args, contextItem=item)
             if len(predicateResult) == 1: predicateResult = predicateResult[0] # first result
-            if len(predicateResult) == 1 and isinstance(predicateResult[0],_NUM_TYPES):
+            if len(predicateResult) == 1 and isinstance(predicateResult[0], Number):
                 result = predicateResult[0]
                 if isinstance(result, bool):  # note that bool is subclass of int
                     if result:
@@ -645,7 +647,7 @@ class XPathContext:
                     sequence.append(atomizedItem)
             return sequence
         # individual items
-        if isinstance(x, _RANGE):
+        if isinstance(x, range):
             return x
         baseXsdType = None
         e = None
@@ -698,7 +700,7 @@ class XPathContext:
                              "short","unsignedShort",
                              "byte","unsignedByte"):
             try:
-                x = _INT(v)
+                x = int(v)
             except ValueError:
                 raise XPathException(p, 'err:FORG0001', _('Atomizing {0} to an integer does not have a proper value').format(x))
         elif baseXsdType == "boolean":

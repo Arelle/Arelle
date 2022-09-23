@@ -945,9 +945,7 @@ def datetimeValue(
         elif none == "maxyear":
             return DATETIME_MAXYEAR
         return None
-    match = datetimePattern.match(
-        element if isinstance(
-            element,_STR_BASE) else text(element).strip())  # type: ignore[name-defined]  # builtins
+    match = datetimePattern.match(element if isinstance(element,str) else text(element).strip())
     if match is None:
         return None
     hour24 = False
@@ -1127,7 +1125,9 @@ def xmlstring(
         return _text + ('\n' if prettyPrint else '').join(
             xmlstring(child, stripXmlns, prettyPrint)
             for child in elt.iterchildren()) + _tail
-    xml: str = etree.tostring(elt, encoding=_STR_UNICODE, pretty_print=prettyPrint)  # type: ignore[name-defined] # builtins
+
+    xml = etree.tostring(elt, encoding=str, pretty_print=prettyPrint)
+    
     if not prettyPrint:
         xml = xml.strip()
     if stripXmlns:
@@ -1196,8 +1196,7 @@ def writexml(
         attrs = {}
         for prefix, ns in sorted((k if k is not None else '', v)
                                  # items wrapped in set for 2.7 compatibility
-                                 for k, v in (
-                                    _DICT_SET(node.nsmap.items()) - _DICT_SET(parentNsmap.items()))):  # type: ignore[name-defined] # builtins
+                                 for k, v in (node.nsmap.items() - parentNsmap.items())):
             if prefix:
                 attrs["xmlns:" + prefix] = ns
             else:

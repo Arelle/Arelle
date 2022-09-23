@@ -43,7 +43,7 @@ def  xfxc_element(xc, p, contextItem, args):
     attrArg = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
     # attributes have to be pairs
     if attrArg:
-        if len(attrArg) & 1 or any(not isinstance(attrArg[i], (QName, _STR_BASE))
+        if len(attrArg) & 1 or any(not isinstance(attrArg[i], (QName, str))
                                    for i in range(0, len(attrArg),2)):
             raise XPathContext.FunctionArgType(1,"((xs:qname|xs:string),xs:anyAtomicValue)", errCode="xfxce:AttributesNotNameValuePairs")
         else:

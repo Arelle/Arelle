@@ -593,7 +593,7 @@ class Filing:
     def error(self, messageCode, message, messageArgs=None, file=None):
         if file and len(self.entrypointfiles) > 0:
             # relativize file(s)
-            if isinstance(file, _STR_BASE):
+            if isinstance(file, str):
                 file = (file,)
             if isinstance(self.entrypointfiles[0], dict):
                 _baseFile = self.entrypointfiles[0].get("file", ".")
