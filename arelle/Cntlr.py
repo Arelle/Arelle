@@ -581,7 +581,9 @@ class Cntlr:
             if sys.platform.startswith("win"):
                 if osPrcs is None:
                     import win32process as osPrcs
-                process_memory = osPrcs.GetProcessMemoryInfo(osPrcs.GetCurrentProcess())['WorkingSetSize']
+
+                castOsPrcs = cast(Any, osPrcs)
+                process_memory = castOsPrcs.GetProcessMemoryInfo(castOsPrcs.GetCurrentProcess())['WorkingSetSize']
                 if isinstance(process_memory, int):
                     return process_memory / 1024
             elif sys.platform == "sunos5": # ru_maxrss is broken on sparc
