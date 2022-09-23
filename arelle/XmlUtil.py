@@ -180,7 +180,6 @@ def childText(
 def textNotStripped(element: ModelObject | None) -> str:
     if element is None:
         return ""
-    assert isinstance(element.textValue, str)
     return element.textValue  # allows embedded comment nodes, returns '' if None
 
 # ixEscape can be None, "html" (xhtml namespace becomes default), "xhtml", or "xml"
@@ -213,7 +212,7 @@ def innerTextList(
         return ""
 
 def innerTextNodes(
-    element: ModelObject,
+    element: ModelObject | None,
     ixExclude: bool | str,
     ixEscape: str | None,
     ixContinuation: bool,
@@ -240,7 +239,7 @@ def innerTextNodes(
             if child.tail:
                 yield escapedText(child.tail) if ixEscape else child.tail
         if ixContinuation:
-            element = cast(ModelObject, getattr(element, "_continuationElement", None))
+            element = getattr(element, "_continuationElement", None)
         else:
             break
 
