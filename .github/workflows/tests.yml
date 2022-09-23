@@ -6,7 +6,13 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - macos-12
+          - ubuntu-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3.0.2
       - name: Install Python 3
