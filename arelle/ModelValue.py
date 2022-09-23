@@ -199,7 +199,7 @@ class QName:
     def __eq__(self, other: Any) -> bool:
         if QName._conforms(other):
             return bool(self.localName == other.localName and self.namespaceURI == other.namespaceURI)
-        return NotImplemented
+        return False
 
     def __lt__(self, other: Any) -> bool:
         if QName._conforms(other):
