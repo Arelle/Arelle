@@ -23,7 +23,7 @@ _: TypeGetText
 if TYPE_CHECKING:
     from arelle.ModelXbrl import ModelXbrl
 
-osPrcs = None
+osPrcs: Any = None
 LOG_TEXT_MAX_LENGTH = 32767
 cxFrozen = getattr(sys, 'frozen', False)
 
@@ -582,8 +582,7 @@ class Cntlr:
                 if osPrcs is None:
                     import win32process as osPrcs
 
-                castOsPrcs = cast(Any, osPrcs)
-                process_memory = castOsPrcs.GetProcessMemoryInfo(castOsPrcs.GetCurrentProcess())['WorkingSetSize']
+                process_memory = osPrcs.GetProcessMemoryInfo(osPrcs.GetCurrentProcess())['WorkingSetSize']
                 if isinstance(process_memory, int):
                     return process_memory / 1024
             elif sys.platform == "sunos5": # ru_maxrss is broken on sparc
@@ -592,9 +591,8 @@ class Cntlr:
                 return int(subprocess.getoutput("ps -p {0} -o rss".format(os.getpid())).rpartition('\n')[2])
             else: # unix or linux where ru_maxrss works
                 import resource as osPrcs  # is this needed?
-                castOsPrcs = cast(Any, osPrcs)
                 # in KB
-                return float(castOsPrcs.getrusage(castOsPrcs.RUSAGE_SELF).ru_maxrss)
+                return float(osPrcs.getrusage(osPrcs.RUSAGE_SELF).ru_maxrss)
         except Exception:
             pass
         return 0
