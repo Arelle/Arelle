@@ -1125,9 +1125,7 @@ def xmlstring(
         return _text + ('\n' if prettyPrint else '').join(
             xmlstring(child, stripXmlns, prettyPrint)
             for child in elt.iterchildren()) + _tail
-
     xml = etree.tostring(elt, encoding=str, pretty_print=prettyPrint)
-    
     if not prettyPrint:
         xml = xml.strip()
     if stripXmlns:
