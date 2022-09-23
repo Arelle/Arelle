@@ -20,12 +20,12 @@ from typing import Generator
 from typing import Collection
 from typing import Callable
 from typing import Sequence
+from typing import TextIO
 
 if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelContext
     from arelle.ModelInstanceObject import ModelUnit
     from arelle.ModelDocument import ModelDocument
-    from lxml.etree import _NSMapArg
 
 
 htmlEltUriAttrs: dict[str, Collection[str]] | None = None
@@ -111,7 +111,7 @@ def clarkNotationToPrefixedName(
 def prefixedNameToNamespaceLocalname(
     element: ModelObject,
     prefixedName: str,
-    defaultNsmap: _NSMapArg | None = None
+    defaultNsmap: Mapping[str, str] | None = None
 ) -> tuple[str | None, str, str | None] | None:
     if prefixedName is None or prefixedName == "":
         return None
@@ -177,7 +177,7 @@ def childText(
     child_element = child(element, childNamespaceURIs, childLocalNames)
     return textNotStripped(child_element).strip() if child_element is not None else None
 
-def textNotStripped(element: ModelObject) -> str:
+def textNotStripped(element: ModelObject | None) -> str:
     if element is None:
         return ""
     assert isinstance(element.textValue, str)
@@ -266,7 +266,7 @@ def escapedNode(
     else:
         s.append(str(elt.qname))
     if start or empty:
-        assert callable(resolveHtmlUri)
+        assert resolveHtmlUri is not None
         if elt.localName == "object" and elt.get("codebase"): # resolve codebase before other element names
             # 2022-09-15: not sure about this one, but seems that
             # elt.get("codebase") should be the value arg for resolveHtmlUri
@@ -275,8 +275,8 @@ def escapedNode(
             if n in uriAttrs:
                 v = resolveHtmlUri(elt, n, v).replace(" ", "%20") # %20 replacement needed for conformance test passing
             # 2022-09-15: assuming n, v are always strings
-            s.append(' {0}="{1}"'.format(cast(str, qname(elt,cast(str, n))),
-                cast(str, v).replace("&","&amp;").replace('"','&quot;')))
+            s.append(' {0}="{1}"'.format(qname(elt, cast(str, n)),
+                cast(str, v).replace("&","&amp;").replace('"', '&quot;')))
     if not start and empty:
         s.append('/')
     s.append('>')
@@ -492,12 +492,13 @@ def childrenAttrs(
     childNamespaceURI: str,
     childLocalNames: str | tuple[str, ...],
     attrLocalName: str
-) -> list[str | None]:
+) -> list[str]:
     childrenElts = children(element, childNamespaceURI, childLocalNames)
     childrenAttrs = []
     for childElt in childrenElts:
-        if childElt.get(attrLocalName):
-            childrenAttrs.append(childElt.get(attrLocalName))
+        childAt = childElt.get(attrLocalName)
+        if childAt:
+            childrenAttrs.append(childAt)
     childrenAttrs.sort()
     return childrenAttrs
 
@@ -532,9 +533,11 @@ def descendants(
                       element.iter()):
             _childNamespaceURI = getattr(child, 'elementNamespaceURI', None)
             _childLocalName = getattr(child, 'localName', None)
-            if isinstance(child, ModelObject) and ixTarget:
-                _childNamespaceURI = child.qname.namespaceURI
-                _childLocalName = child.qname.localName
+            if isinstance(child, (ModelObject, PrototypeObject)) and ixTarget:
+                childQname: QName | None = getattr(child, 'qname', None)
+                if childQname:
+                    _childNamespaceURI = childQname.namespaceURI
+                    _childLocalName = childQname.localName
             if (isinstance(child,(ModelObject,PrototypeObject)) and
                 (wildNamespaceURI or _childNamespaceURI == descendantNamespaceURI) and
                 (wildLocalName or _childLocalName in descendantLocalNames)):
@@ -924,7 +927,7 @@ def sortKey(
 
 DATETIME_MINYEAR = datetime.datetime(datetime.MINYEAR,1,1)
 DATETIME_MAXYEAR = datetime.datetime(datetime.MAXYEAR,12,31)
-def tzinfo(tz: str) -> datetime.timezone | None:
+def tzinfo(tz: str | None) -> datetime.timezone | None:
     if tz is None:
         return None
     elif tz == 'Z':
@@ -984,7 +987,7 @@ def dateunionValue(
         return "INVALID"
     tz = tzinfoStr(datetimeValue)  # type: ignore[no-untyped-call]  # ModelValue type hints
     isDate = getattr(
-        datetimeValue,'dateOnly', False) or not getattr(datetimeValue, 'hour', False)
+        datetimeValue, 'dateOnly', False) or not hasattr(datetimeValue, 'hour')
     if isDate or (
         getattr(datetimeValue, 'hour') == 0
         and getattr(datetimeValue, 'minute') == 0
@@ -1134,7 +1137,7 @@ def xmlstring(
         return xml
 
 def writexml(
-    writer: Any,
+    writer: TextIO,
     node: etree._ElementTree | etree._Element | ModelObject,
     encoding: str | None = None,
     indent: str = '',
