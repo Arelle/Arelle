@@ -111,3 +111,15 @@ module = [
 ]
 ignore_errors = false
 strict = true
+
+# --- Modules lacking stubs ---
+# Add any module missing library stubs or not having
+# the py.typed marker here
+[[tool.mypy.overrides]]
+module = [
+    'gtk.*',
+    'win32clipboard.*',
+    'win32gui.*',
+    'win32process.*',
+]
+ignore_missing_imports = true
