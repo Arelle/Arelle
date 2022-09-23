@@ -255,14 +255,14 @@ def escapedNode(
         return ''  # do not yield XML for nested facts
     if ixResolveUris:
         assert isinstance(htmlEltUriAttrs, dict)
-        uriAttrs = htmlEltUriAttrs.get(elt.qname.localName, ())
+        uriAttrs = htmlEltUriAttrs.get(elt.qname.localName, ())  # type: ignore[arg-type]
     else:
         uriAttrs = ()
     s = ['<']
     if not start and not empty:
         s.append('/')
     if ixEscape == "html" and elt.qname.namespaceURI == xhtml:
-        s.append(elt.qname.localName) # force xhtml prefix to be default
+        s.append(elt.qname.localName)   # type: ignore[arg-type] # force xhtml prefix to be default
     else:
         s.append(str(elt.qname))
     if start or empty:
@@ -699,10 +699,10 @@ def addChild(
     if isinstance(childName1, QName):
         addQnameValue(modelDocument, childName1)
         if childName1.prefix:
-            child: ModelObject = modelDocument.parser.makeelement(
+            child: ModelObject = modelDocument.parser.makeelement(  # type: ignore[attr-defined] # ModelDocument type hints
                 childName1.clarkNotation, nsmap={childName1.prefix:childName1.namespaceURI})
         else:
-            child = modelDocument.parser.makeelement(childName1.clarkNotation)
+            child = modelDocument.parser.makeelement(childName1.clarkNotation)  # type: ignore[attr-defined] # ModelDocument type hints
     else:   # called with namespaceURI, localName
         assert isinstance(childName2, str)
         existingPrefix = xmlnsprefix(parent, childName1)
@@ -712,7 +712,7 @@ def addChild(
                 setXmlns(modelDocument, prefix, childName1)
         else:
             localName = prefix
-        child = modelDocument.parser.makeelement("{{{0}}}{1}".format(childName1, localName))
+        child = modelDocument.parser.makeelement("{{{0}}}{1}".format(childName1, localName))  # type: ignore[attr-defined] # ModelDocument type hints
     if afterSibling is not None and afterSibling.getparent() == parent:  # sibling is a hint, parent prevails
         afterSibling.addnext(child)
     elif beforeSibling is not None and beforeSibling.getparent() == parent:  # sibling is a hint, parent prevails
@@ -734,14 +734,14 @@ def addChild(
         # check if the text is a QName and add the namespace if needed!
         if isinstance(text, QName):
             addQnameValue(modelDocument, text)
-    child.init(modelDocument)  # type: ignore[no-untyped-call] # ModelDocument type hints
+    child.init(modelDocument)
     return child
 
 def copyNodes(parent: ModelObject, elts: Sequence[ModelObject] | ModelObject) -> None:
     modelDocument = parent.modelDocument
     for origElt in elts if isinstance(elts, (tuple,list,set)) else (elts,):
         addQnameValue(modelDocument, origElt.elementQname)
-        copyElt = modelDocument.parser.makeelement(origElt.tag)
+        copyElt = modelDocument.parser.makeelement(origElt.tag)  # type: ignore[attr-defined] # ModelDocument type hints
         copyElt.init(modelDocument)
         parent.append(copyElt)
         for attrTag, attrValue in origElt.items():

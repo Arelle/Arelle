@@ -345,7 +345,7 @@ class ModelObject(etree.ElementBase):
             elif id in doc.idObjects:
                 return cast(ModelObject, doc.idObjects[id])
             else:
-                xpointedElement = arelle.XmlUtil.xpointerElement(doc,id) # type: ignore[no-untyped-call]
+                xpointedElement = arelle.XmlUtil.xpointerElement(doc,id)
                 # find element
                 for docModelObject in doc.xmlRootElement.iter():
                     if docModelObject == xpointedElement:
@@ -385,7 +385,7 @@ class ModelObject(etree.ElementBase):
     @property
     def propertyView(self) -> tuple[Any, ...]:
         return (("QName", self.elementQname),) + tuple(
-                (arelle.XmlUtil.clarkNotationToPrefixedName(self, _tag, isAttribute=True), _value) # type: ignore[no-untyped-call, misc]
+                (arelle.XmlUtil.clarkNotationToPrefixedName(self, _tag, isAttribute=True), _value) # type: ignore[arg-type, misc]
                 for _tag, _value in self.items())
 
     def __repr__(self) -> str:
