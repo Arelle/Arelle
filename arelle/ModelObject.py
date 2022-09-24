@@ -110,6 +110,9 @@ class ModelObject(etree.ElementBase):
     _parentQname: QName | None
     _elementSequence: int
     _namespaceURI: str | None
+    _hashSEqual: int
+    _hashXpathEqual: int
+    
     xlinkLabel: str
 
     def _init(self) -> None:

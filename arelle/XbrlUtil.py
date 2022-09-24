@@ -58,9 +58,9 @@ def equalityHash(
     if isinstance(elt, ModelObject):
         try:
             if equalMode == S_EQUAL:
-                return cast(int, getattr(elt, '_hashSEqual'))
+                return elt._hashSEqual
             else:
-                return cast(int, getattr(elt, '_hashXpathEqual'))
+                return elt._hashXpathEqual
         except AttributeError:
             dts = elt.modelXbrl
             from arelle.ModelXbrl import ModelXbrl
@@ -77,9 +77,9 @@ def equalityHash(
                           tuple(equalityHash(child,equalMode,excludeIDs) for child in childElements(elt))
                           ))
             if equalMode == S_EQUAL:
-                setattr(elt, '_hashSEqual', _hash)
+                elt._hashSEqual = _hash
             else:
-                setattr(elt, '_hashXpathEqual', _hash)
+                elt._hashXpathEqual = _hash
             return _hash
     elif isinstance(elt, (tuple,list,set)):
         return hash( tuple(equalityHash(i) for i in elt) )
