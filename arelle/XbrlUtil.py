@@ -5,7 +5,7 @@ Created on Nov 26, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from __future__ import annotations
-from typing import Any, Sequence, TYPE_CHECKING, cast
+from typing import Any, Sequence, TYPE_CHECKING
 import math
 from arelle.ModelValue import QName, DateTime
 from arelle.ModelObject import ModelObject, ModelAttribute
@@ -189,23 +189,23 @@ def xEqual(elt1: ModelObject, elt2: ModelObject, equalMode: int = S_EQUAL) -> bo
     if equalMode == VALIDATE_BY_STRING_VALUE:
         return elt1.stringValue == elt2.stringValue
     elif equalMode == S_EQUAL: # formula WG e-mail 2018-09-06: or (equalMode == S_EQUAL2 and not isinstance(elt1.sValue, QName)):
-        return cast(bool, getattr(elt1, 'sValue') == getattr(elt2, 'sValue'))
+        return elt1.sValue == elt2.sValue
     else: # includes dimension S-equal2, use xpath-2 equality.
-        elt1_xValue = getattr(elt1, 'xValue')
-        elt2_xValue = getattr(elt2, 'xValue')
+        elt1_xValue = elt1.xValue
+        elt2_xValue = elt2.xValue
         if isinstance(elt1_xValue, DateTime) \
             and isinstance(elt2_xValue, DateTime) \
                 and getattr(elt1_xValue, 'dateOnly') \
                     != getattr(elt2_xValue, 'dateOnly'):
             return False
-        return cast(bool, elt1_xValue == elt2_xValue)
+        return elt1_xValue == elt2_xValue
 
 def vEqual(elt1: ModelObject, elt2: ModelObject) -> bool:
     if not hasattr(elt1,"xValid"):
         xmlValidate(elt1.modelXbrl, elt1)  # type: ignore[no-untyped-call]
     if not hasattr(elt2,"xValid"):
         xmlValidate(elt2.modelXbrl, elt2)  # type: ignore[no-untyped-call]
-    return cast(bool, getattr(elt1, 'sValue') == getattr(elt2, 'sValue'))
+    return elt1.sValue == elt2.sValue
 
 def typedValue(
     dts: ModelXbrl | None,
