@@ -51,7 +51,7 @@ def getUserLocale(localeCode: str = '') -> LocaleDict:
     import locale
     global C_LOCALE
     conv = None
-    message = None
+    localeSetupMessage = None
     try:
         locale.setlocale(locale.LC_ALL, localeCode.replace("-", "_"))  # str needed for 3to2 2.7 python to work
         conv = locale.localeconv()
@@ -60,16 +60,16 @@ def getUserLocale(localeCode: str = '') -> LocaleDict:
             try: # default locale code is required, prevent inabiility to continue
                 locale.setlocale(locale.LC_ALL, f"{localeCode}_{defaultLocaleCodes[localeCode]}")
                 conv = locale.localeconv()
-                message = f"locale code \"{localeCode}\" should include a country code, e.g. {localeCode}-{defaultLocaleCodes[localeCode]}"
+                localeSetupMessage = f"locale code \"{localeCode}\" should include a country code, e.g. {localeCode}-{defaultLocaleCodes[localeCode]}"
             except locale.Error:
                 pass
     locale.setlocale(locale.LC_ALL, 'C')
     if conv is None: # some other issue prevents getting culture code, use 'C' defaults (no thousands sep, no currency, etc)
-        message = f"locale code \"{localeCode}\" is not available on this system"
+        localeSetupMessage = f"locale code \"{localeCode}\" is not available on this system"
         conv = locale.localeconv() # use 'C' environment, e.g., en_US
     if C_LOCALE is None: # load culture-invariant C locale
         C_LOCALE = locale.localeconv()
-    return (cast(LocaleDict, conv), message)
+    return (cast(LocaleDict, conv), localeSetupMessage)
 
 def getLanguageCode() -> str:
     if sys.platform == "darwin": # MacOS doesn't provide correct language codes

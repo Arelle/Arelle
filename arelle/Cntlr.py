@@ -292,11 +292,12 @@ class Cntlr:
         PackageManager.init(self, loadPackagesConfig=hasGui)
 
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
-
-    def postLoggingInit(self):
-        message = self.modelManager.setLocale() # set locale after logger started
-        if message:
-            self.addToLog(message, messageCode="arelle:uiLocale", level=logging.WARNING)
+            
+    def postLoggingInit(self, localeSetupMessage=None):
+        if not self.modelManager.isLocaleSet:
+            localeSetupMessage = self.modelManager.setLocale() # set locale after logger started
+        if localeSetupMessage:
+            self.addToLog(localeSetupMessage, messageCode="arelle:uiLocale", level=logging.WARNING)
 
         # Cntlr.Init after logging started
         for pluginMethod in PluginManager.pluginClassMethods("Cntlr.Init"):
