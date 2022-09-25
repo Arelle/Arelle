@@ -3,6 +3,9 @@ Created on Oct 17, 2010
 
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+
+Note XII's Calc 1.1 test suite requires plugins loadFromOIM and ../examples/plugin/testcaseCalc11ValidateSetup.py
+
 '''
 from collections import defaultdict
 from math import (log10, isnan, isinf, fabs, trunc, fmod, floor, pow)
@@ -85,14 +88,15 @@ class ValidateXbrlCalcs:
         self.conceptsInRequiresElement = set()
         
     def validate(self):
-        if not self.modelXbrl.contexts and not self.modelXbrl.facts:
-            return # skip if no contexts or facts
-
         modelXbrl = self.modelXbrl
         xbrl21 = self.xbrl21
         calc11 = self.calc11 # round or truncate
         calc11t = self.calc11t # truncate
+        sumConceptItemRels = defaultdict(dict) # for calc11 dup sum-item detection
           
+        if xbrl21 and (not self.modelXbrl.contexts and not self.modelXbrl.facts):
+            return # skip if no contexts or facts (note that in calc11 mode the dup relationships test is nonetheless required)
+
         if xbrl21 and not self.inferDecimals: # infering precision is now contrary to XBRL REC section 5.2.5.2
             modelXbrl.info("xbrl.5.2.5.2:inferringPrecision","Validating calculations inferring precision.")
             
@@ -152,6 +156,7 @@ class ValidateXbrlCalcs:
             if ELR and linkqname and arcqname:
                 if arcrole in allArcroles:
                     relsSet = modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname)
+                    sumConceptItemRels.clear()
                     if arcrole in summationArcroles:
                         fromRelationships = relsSet.fromModelObjects()
                         for sumConcept, modelRels in fromRelationships.items():
@@ -164,6 +169,14 @@ class ValidateXbrlCalcs:
                                 if itemConcept is not None and itemConcept.qname is not None:
                                     itemBindingKeys = self.itemConceptBindKeys[itemConcept]
                                     boundSumKeys |= sumBindingKeys & itemBindingKeys
+                                    if calc11:
+                                        siRels = sumConceptItemRels[sumConcept]
+                                        if itemConcept in siRels:
+                                            modelXbrl.error("calc11e:duplicateCalculationRelationships",
+                                                _("Duplicate summation-item relationships from total concept %(sumConcept)s to contributing concept %(itemConcept)s in link role %(linkrole)s"),
+                                                modelObject=(siRels[itemConcept], modelRel), linkrole=modelRel.linkrole,
+                                                sumConcept=sumConcept.qname, itemConcept=itemConcept.qname)
+                                        siRels[itemConcept] = modelRel
                             # add up rounded items
                             boundSums = defaultdict(decimal.Decimal) # sum of facts meeting factKey
                             boundIntervals = {} # interval sum of facts meeting factKey

@@ -8,9 +8,10 @@ OUTPUTERRFILE=/users/hermf/temp/Calc11-err.txt
 OUTPUTCSVFILE=/users/hermf/temp/Calc11-report.xlsx
 ARELLEDIR=/users/hermf/Documents/mvsl/projects/arelle/arelleproject/hfdev
 PYTHON=python3.9
+PYTHON=/opt/homebrew/bin/python3.9
 
 rm -f $OUTPUTLOGFILE $OUTPUTERRFILE
 
 PYTHONPATH=$ARELLEDIR
 
-$PYTHON ${ARELLEDIR}/arelleCmdLine.py --file "$TESTCASESINDEXFILE" --calc11 --validate --plugins loadFromOIM --csvTestReport "$OUTPUTCSVFILE"  --logFile "$OUTPUTLOGFILE" --noCertificateCheck 2>  "$OUTPUTERRFILE"
+$PYTHON ${ARELLEDIR}/arelleCmdLine.py --file "$TESTCASESINDEXFILE" --calc c11r --validate --plugins 'loadFromOIM|../examples/plugin/testcaseCalc11ValidateSetup.py' --csvTestReport "$OUTPUTCSVFILE"  --logFile "$OUTPUTLOGFILE" --noCertificateCheck 2>  "$OUTPUTERRFILE"
