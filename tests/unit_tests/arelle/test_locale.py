@@ -15,7 +15,8 @@ d = Decimal('-1234567.8901')
             {
                 'conv': getUserLocale(),
                 'value': d,
-                'curr': '$'
+                'curr': '$',
+                'neg': '-'
             },
             '-$1,234,567.89'
         ),
