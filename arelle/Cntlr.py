@@ -297,7 +297,7 @@ class Cntlr:
         if not self.modelManager.isLocaleSet:
             localeSetupMessage = self.modelManager.setLocale() # set locale after logger started
         if localeSetupMessage:
-            self.addToLog(localeSetupMessage, messageCode="arelle:uiLocale", level=logging.WARNING)
+            Cntlr.addToLog(self, localeSetupMessage, messageCode="arelle:uiLocale", level=logging.WARNING)
 
         # Cntlr.Init after logging started
         for pluginMethod in PluginManager.pluginClassMethods("Cntlr.Init"):
