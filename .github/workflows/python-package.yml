@@ -9,7 +9,10 @@ jobs:
   build-and-publish-package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.0.2
+      - name: Checkout arelle
+        uses: actions/checkout@v3.0.2
+        with:
+          fetch-depth: 0
       - name: Install Python 3
         uses: actions/setup-python@v4.2.0
         with:
