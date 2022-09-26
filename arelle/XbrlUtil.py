@@ -67,7 +67,7 @@ def equalityHash(
             assert isinstance(dts, ModelXbrl), 'dts is not an instance of ModelXbrl'
             if not hasattr(elt,"xValid"):
                 xmlValidate(dts, elt)  # type: ignore[no-untyped-call]
-            hashableValue = getattr(elt, 'sValue') if equalMode == S_EQUAL else getattr(elt, 'xValue')
+            hashableValue = elt.sValue if equalMode == S_EQUAL else elt.xValue
             if isinstance(hashableValue,float) and math.isnan(hashableValue):
                 hashableValue = (hashableValue,elt)    # ensure this NaN only compares to itself and no other NaN
             _hash = hash((elt.elementQname,
@@ -132,7 +132,7 @@ def attributeDict(
     exclusions: set[str] = set(),
     equalMode: int = S_EQUAL,
     excludeIDs: int = NO_IDs_EXCLUDED,
-    ns2ns1Tbl: dict[str, str] | None= None,
+    ns2ns1Tbl: dict[str, str] | None = None,
     keyByTag: bool = False,
     distinguishNaNs: bool = False
 ) -> dict[QName, Any]:  # value can be any element value
@@ -195,8 +195,7 @@ def xEqual(elt1: ModelObject, elt2: ModelObject, equalMode: int = S_EQUAL) -> bo
         elt2_xValue = elt2.xValue
         if isinstance(elt1_xValue, DateTime) \
             and isinstance(elt2_xValue, DateTime) \
-                and getattr(elt1_xValue, 'dateOnly') \
-                    != getattr(elt2_xValue, 'dateOnly'):
+                and elt1_xValue.dateOnly != elt2_xValue.dateOnly:  # type: ignore[attr-defined]
             return False
         return elt1_xValue == elt2_xValue
 
