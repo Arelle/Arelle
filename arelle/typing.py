@@ -1,6 +1,6 @@
 """Type hints for Arelle."""
 from __future__ import annotations
-from collections.abc import Callable
+from typing import Callable
 from typing import TypedDict
 from locale import localeconv
 
