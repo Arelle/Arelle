@@ -8,11 +8,11 @@ TypeGetText = Callable[[str], str]
 
 
 class LocaleDict(TypedDict):
-    '''Helps with typing arelle.Locale Module
-    Structure based on locale.localeconv
-    and
+    """Helps with typing arelle.Locale Module.
+
+    Structure based on locale.localeconv and
     https://peps.python.org/pep-0589/
-    '''
+    """
     # Key -> example
     int_curr_symbol: str # USD
     currency_symbol: str # $
