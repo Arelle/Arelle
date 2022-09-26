@@ -69,7 +69,7 @@ def getUserLocale(localeCode: str = '') -> LocaleDict:
     if conv is None: # some other issue prevents getting culture code, use 'C' defaults (no thousands sep, no currency, etc)
         conv = locale.localeconv() # use 'C' environment, e.g., en_US
     if C_LOCALE is None: # load culture-invariant C locale
-        C_LOCALE =  locale.localeconv()
+        C_LOCALE = locale.localeconv()
     return cast(LocaleDict, conv)
 
 def getLanguageCode() -> str:
@@ -480,7 +480,7 @@ def currency(
         raise ValueError("Currency formatting is not possible using "
                          "the 'C' locale.")
 
-    s = format(conv, '%%.%if' % digits, abs(val), grouping, monetary=True) # code change here (added missing conv arg)
+    s = format(conv, '%%.%if' % digits, abs(val), grouping, monetary=True)
     # '<' and '>' are markers if the sign must be inserted between symbol and value
     s = '<' + s + '>'
 
@@ -633,7 +633,7 @@ def format_decimal(
     curr: str = '',
     sep: str | None = None,
     grouping: int | None = None,
-    dp: str | None= None,
+    dp: str | None = None,
     pos: str | None = None,
     neg: str | None = None,
     trailpos: str | None = None,
@@ -662,8 +662,6 @@ def format_decimal(
     '123 456 789.00'
     >>> format_decimal(getUserLocale(), Decimal('-0.02'), neg='<', trailneg='>')
     '<0.02>'
-
-    2022-09-16: re-ran above tests after changes during typing
     """
     if conv is not None:
         if dp is None:
@@ -711,7 +709,7 @@ def format_decimal(
     result: list[str] = []
     digits = list(map(str, _digits))
     build, next = result.append, digits.pop
-    build(trailneg or '' if sign else trailpos or '')
+    build((trailneg if sign else trailpos) or '')
     if value.is_finite():
         for i in range(fractPlaces):
             build(next() if digits else '0')
@@ -730,5 +728,5 @@ def format_decimal(
     elif value.is_infinite():
         result.append("ytinifnI")
     build(curr)
-    build(neg or '' if sign else pos or '')
+    build((neg if sign else pos) or '')
     return ''.join(reversed(result))
