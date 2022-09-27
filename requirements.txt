@@ -10,8 +10,8 @@ Cheroot==8.6.0
 pycountry==22.3.5
 # plugins
 # EdgarRenderer plugin
-NumPy==1.23.3
-Matplotlib==3.6.0
+NumPy==1.21.6
+Matplotlib==3.5.3
 holidays==0.16
 Tornado==6.2
 # security plugin
