@@ -1,3 +1,4 @@
+from __future__ import annotations
 from collections import Counter
 import os.path
 from pathlib import PurePosixPath
@@ -27,7 +28,7 @@ def get_test_data(args, expected_failure_ids=frozenset(), expected_empty_testcas
         test_cases_with_no_variations = set()
         model_document = cntlr.modelManager.modelXbrl.modelDocument
         if model_document is not None:
-            test_cases = []
+            test_cases: list[ModelDocument.ModelDocument] = []
             if model_document.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
                 test_cases.append(model_document)
             elif model_document.type == ModelDocument.Type.TESTCASESINDEX:

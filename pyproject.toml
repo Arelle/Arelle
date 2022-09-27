@@ -105,6 +105,7 @@ ignore_errors = true
 module = [
     'arelle.plugin.validate.ESEF.*',
     'arelle.Cntlr',
+    'arelle.ModelValue',
     'arelle.ModelObject',
     'arelle.SystemInfo',
     'arelle.Updater',
@@ -122,6 +123,7 @@ strict = true
 [[tool.mypy.overrides]]
 module = [
     'gtk',
+    'isodate.*',
     'win32clipboard',
     'win32gui',
     'win32process',
