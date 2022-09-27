@@ -220,7 +220,7 @@ class ModelObject(etree.ElementBase):
         try:
             return self._elementQname
         except AttributeError:
-            self._elementQname = cast(QName, qname(self))
+            self._elementQname = qname(self)
             return self._elementQname
 
     def vQname(self, validationModelXbrl: ModelXbrl | None = None) -> QName:
