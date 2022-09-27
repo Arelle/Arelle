@@ -254,14 +254,14 @@ def escapedNode(
         return ''  # do not yield XML for nested facts
     if ixResolveUris:
         assert isinstance(htmlEltUriAttrs, dict)
-        uriAttrs = htmlEltUriAttrs.get(elt.qname.localName, ())  # type: ignore[arg-type]
+        uriAttrs = htmlEltUriAttrs.get(elt.qname.localName, ())
     else:
         uriAttrs = ()
     s = ['<']
     if not start and not empty:
         s.append('/')
     if ixEscape == "html" and elt.qname.namespaceURI == xhtml:
-        s.append(elt.qname.localName)   # type: ignore[arg-type] # force xhtml prefix to be default
+        s.append(elt.qname.localName)  # force xhtml prefix to be default
     else:
         s.append(str(elt.qname))
     if start or empty:
@@ -724,7 +724,7 @@ def addChild(
             if isinstance(name,QName):
                 if name.namespaceURI:
                     addQnameValue(modelDocument, name)
-                child.set(name.clarkNotation, str(value))  # type: ignore[arg-type] # ModelValue type hints
+                child.set(name.clarkNotation, str(value)) # ModelValue type hints
             else:
                 assert isinstance(name, str)
                 child.set(name, xsString(None, None, value) )  # type: ignore[no-untyped-call] # FunctionXs type hints
@@ -856,7 +856,7 @@ def addQnameValue(modelDocument: ModelDocument, qnameValue: QName | str) -> str:
     ns = qnameValue.namespaceURI or '' # None can't be used as a no-namespace prefix
     existingPrefix = xmlnsprefix(xmlRootElement, ns)
     if existingPrefix is not None:  # namespace is already declared, use that for qnameValue's prefix
-        return qnameValue.localName if len(existingPrefix) == 0 else existingPrefix + ':' + qnameValue.localName  # type: ignore[return-value, operator] # ModelValue type hints
+        return qnameValue.localName if len(existingPrefix) == 0 else existingPrefix + ':' + qnameValue.localName  # ModelValue type hints
     prefix = qnameValue.prefix
     dupNum = 2 # start with _2 being 'second' use of same prefix, etc.
     while (dupNum < 10000): # check if another namespace has prefix already (but don't die if running away)
@@ -866,7 +866,7 @@ def addQnameValue(modelDocument: ModelDocument, qnameValue: QName | str) -> str:
         dupNum += 1
     setXmlns(modelDocument, prefix, ns)
     assert isinstance(prefix, str)
-    return qnameValue.localName if len(prefix) == 0 else prefix + ':' + qnameValue.localName  # type: ignore[return-value, operator]  # ModelValue type hints
+    return qnameValue.localName if len(prefix) == 0 else prefix + ':' + qnameValue.localName  # ModelValue type hints
 
 
 def setXmlns(modelDocument: etree._ElementTree | ModelDocument, prefix: str | None, namespaceURI: str) -> None:
@@ -982,7 +982,7 @@ def dateunionValue(
 ) -> str:
     if not isinstance(datetimeValue, (datetime.datetime, datetime.date)):
         return "INVALID"
-    tz = tzinfoStr(datetimeValue)  # type: ignore[no-untyped-call]  # ModelValue type hints
+    tz = tzinfoStr(datetimeValue)  # type: ignore[arg-type]  # ModelValue type hints
     isDate = getattr(
         datetimeValue, 'dateOnly', False) or not hasattr(datetimeValue, 'hour')
     if isDate or (

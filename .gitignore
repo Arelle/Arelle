@@ -4,6 +4,7 @@ build
 dist
 buildRenameX64.bat
 buildRenameX86.bat
+arelle/_version.py
 arelle/Version.py
 arelle/plugin/EdgarRenderer
 arelle/plugin/EdgarRendererWithBuiltinHtml

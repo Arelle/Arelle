@@ -110,6 +110,10 @@ class ModelObject(etree.ElementBase):
     _parentQname: QName | None
     _elementSequence: int
     _namespaceURI: str | None
+    _hashSEqual: int
+    _hashXpathEqual: int
+    sValue = str
+    xValue = Any # this can be any thing
     xlinkLabel: str
 
     def _init(self) -> None:
@@ -288,8 +292,7 @@ class ModelObject(etree.ElementBase):
         :returns: QName -- the resolved prefixed name, or None if no prefixed name was provided
         """
         if prefixedName:    # passing None would return element qname, not prefixedName None Qname
-            return_value = qnameEltPfxName(self, prefixedName) # type: ignore[no-untyped-call]
-            return cast(Optional[QName], return_value)
+            return qnameEltPfxName(self, prefixedName)
         else:
             return None
 
