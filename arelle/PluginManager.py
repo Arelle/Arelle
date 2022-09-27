@@ -31,11 +31,13 @@ if TYPE_CHECKING:
 
 PLUGIN_TRACE_FILE = None
 # PLUGIN_TRACE_FILE = "c:/temp/pluginerr.txt"
+PLUGIN_TRACE_LEVEL = logging.WARNING
 
 # plugin control is static to correspond to statically loaded modules
 pluginJsonFile = None
 pluginConfig = None
 pluginConfigChanged = False
+pluginLogger = None
 modulePluginInfos = {}
 pluginMethodsForClasses = {}
 _cntlr = None
@@ -44,7 +46,8 @@ EMPTYLIST = []
 _ERROR_MESSAGE_IMPORT_TEMPLATE = "Unable to load module {}"
 
 def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
-    global pluginJsonFile, pluginConfig, modulePluginInfos, pluginMethodsForClasses, pluginConfigChanged, _cntlr, _pluginBase
+    global pluginJsonFile, pluginConfig, pluginLogger, modulePluginInfos, pluginMethodsForClasses, pluginConfigChanged, _cntlr, _pluginBase
+    pluginLogger = setupLogger(logging.FileHandler(PLUGIN_TRACE_FILE) if PLUGIN_TRACE_FILE else logging.StreamHandler(sys.stdout))
     pluginConfigChanged = False
     _cntlr = cntlr
     _pluginBase = cntlr.pluginDir + os.sep
@@ -104,6 +107,26 @@ def close():  # close all loaded methods
     global webCache
     webCache = None
 
+
+def setupLogger(handler: logging.Handler) -> logging.Logger:
+    """
+    Logs message with given level to the configured plugin logger
+    :param message: Message to be logged
+    :type message: str
+    :param level: Log level of message (e.g. logging.INFO)
+    :type level: Number
+    """
+    logger = logging.getLogger(__name__)
+    # Using the module name for the logger places this beneath the controller logger in the hierarchy
+    # For now, we don't want the controller logger influencing our plugin logging
+    logger.propagate = False
+    formatter = logging.Formatter('%(asctime)s.%(msecs)03d %(name)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
+    handler.setFormatter(formatter)
+    handler.setLevel(PLUGIN_TRACE_LEVEL)
+    logger.addHandler(handler)
+    return logger
+
+
 ''' pluginInfo structure:
 
 __pluginInfo__ = {
@@ -143,16 +166,18 @@ moduleInfo = {
 
 '''
 
-def logPluginTrace(message: str, error: bool=False) -> None:
+
+def logPluginTrace(message: str, level: Number) -> None:
     """
-    If PLUGIN_TRACE_FILE is configured, logs `message` to it.
-    Otherwise, only prints to `stderr` if `error` flag is `True`
+    Logs message with given level to the configured plugin logger
+    :param message: Message to be logged
+    :type message: str
+    :param level: Log level of message (e.g. logging.INFO)
+    :type level: Number
     """
-    if PLUGIN_TRACE_FILE:
-        with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
-            fh.write(message + '\n')
-    elif error:
-        print(message, file=sys.stderr)
+    global pluginLogger
+    pluginLogger.log(level, message)
+
 
 def modulesWithNewerFileDates():
     names = set()
@@ -170,10 +195,10 @@ def modulesWithNewerFileDates():
             else:
                 _msg = _("File not found for '{name}' plug-in when checking for updated module info. Path: '{path}'") \
                     .format(name=moduleName, path=freshenedFilename)
-                logPluginTrace(_msg, error=True)
+                logPluginTrace(_msg, logging.ERROR)
         except Exception as err:
             _msg = _("Exception at plug-in method modulesWithNewerFileDates: {error}").format(error=err)
-            logPluginTrace(_msg, error=True)
+            logPluginTrace(_msg, logging.ERROR)
 
     return names
 
@@ -196,10 +221,10 @@ def freshenModuleInfos():
             else:
                 _msg = _("File not found for '{name}' plug-in when attempting to update module info. Path: '{path}'")\
                     .format(name=moduleName, path=freshenedFilename)
-                logPluginTrace(_msg, error=True)
+                logPluginTrace(_msg, logging.ERROR)
         except Exception as err:
             _msg = _("Exception at plug-in method freshenModuleInfos: {error}").format(error=err)
-            logPluginTrace(_msg, error=True)
+            logPluginTrace(_msg, logging.ERROR)
 
 def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
     #TODO several directories, eg User Application Data
@@ -216,7 +241,7 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
             elif not moduleFilename.endswith(".py") and not os.path.exists(moduleFilename) and os.path.exists(moduleFilename + ".py"):
                 moduleFilename += ".py" # extension module without .py suffix
             moduleDir, moduleName = os.path.split(moduleFilename)
-            logPluginTrace("Scanning module for plug-in info: {}\n".format(moduleFilename))
+            logPluginTrace("Scanning module for plug-in info: {}".format(moduleFilename), logging.INFO)
             f = openFileStream(_cntlr, moduleFilename)
             tree = ast.parse(f.read(), filename=moduleFilename)
             constantStrings = {}
@@ -313,11 +338,11 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
                                         moduleImports.append(_importeePfxName)
                 elif isinstance(item, ast.FunctionDef): # possible functionDef used in plugininfo
                     functionDefNames.add(item.name)
-            logPluginTrace("Successful module plug-in info: " + moduleFilename + '\n')
+            logPluginTrace(f"Successful module plug-in info: {moduleFilename}", logging.INFO)
         except Exception as err:
             _msg = _("Exception obtaining plug-in module info: {moduleFilename}\n{error}\n{traceback}").format(
                     error=err, moduleFilename=moduleFilename, traceback=traceback.format_tb(sys.exc_info()[2]))
-            logPluginTrace(_msg, error=True)
+            logPluginTrace(_msg, logging.ERROR)
 
         if f:
             f.close()
@@ -444,7 +469,7 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
                 except Exception as err:
                     _msg = _("Exception loading plug-in {name}: processing ModelObjectFactory.ElementSubstitutionClasses").format(
                             name=name, error=err)
-                    logPluginTrace(_msg, error=True)
+                    logPluginTrace(_msg, logging.ERROR)
             for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
                 loadModule(importModuleInfo, packageImportPrefix)
         except (AttributeError, ImportError, FileNotFoundError, ModuleNotFoundError, TypeError, SystemError) as err:
@@ -453,7 +478,7 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
 
             _msg = _("Exception loading plug-in {name}: {error}\n{traceback}").format(
                     name=name, error=err, traceback=traceback.format_tb(sys.exc_info()[2]))
-            logPluginTrace(_msg, error=True)
+            logPluginTrace(_msg, logging.ERROR)
 
 def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
     if pluginConfig:
