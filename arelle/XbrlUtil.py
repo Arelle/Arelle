@@ -193,7 +193,7 @@ def xEqual(elt1: ModelObject, elt2: ModelObject, equalMode: int = S_EQUAL) -> bo
     else: # includes dimension S-equal2, use xpath-2 equality.
         if isinstance(elt1.xValue, DateTime) \
             and isinstance(elt2.xValue, DateTime) \
-                and elt1.xValue.dateOnly != elt2.xValue.dateOnly:  # type: ignore[attr-defined]
+                and elt1.xValue.dateOnly != elt2.xValue.dateOnly:
             return False
         return elt1.xValue == elt2.xValue
 
