@@ -6,7 +6,6 @@ Created on May 30, 2010
 """
 from __future__ import annotations
 
-import gettext
 import os
 import subprocess
 import sys
@@ -18,11 +17,12 @@ from datetime import date
 import regex
 
 from arelle import Version
+from arelle.typing import TypeGetText
 
 if typing.TYPE_CHECKING:
     from arelle.CntlrWinMain import CntlrWinMain
 
-_ = gettext.gettext
+_: TypeGetText
 
 _MESSAGE_HEADER = "arelle\u2122 - Updater"
 _ISO_DATE_PATTERN = regex.compile(
