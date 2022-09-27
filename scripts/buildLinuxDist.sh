@@ -30,4 +30,6 @@ cp -p "$(find /lib /usr -name libxml2.so.2)" "${BUILD_DIR}/"
 cp -p "$(find /lib /usr -name libxslt.so.1)" "${BUILD_DIR}/"
 cp -p "$(find /lib /usr -name libz.so.1)" "${BUILD_DIR}/"
 
-tar -czf "${DIST_DIR}/arelle-${DISTRO}-x86_64-$(date +%Y-%m-%d).tgz" --directory "${BUILD_DIR}" .
+VERSION=$(python3 -c "import arelle._version; print(arelle._version.version)")
+
+tar -czf "${DIST_DIR}/arelle-${DISTRO}-${VERSION}.tgz" --directory "${BUILD_DIR}" .

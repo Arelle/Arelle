@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools~=65.3", "wheel~=0.37"]
+requires = ["setuptools~=65.3", "wheel~=0.37", "setuptools_scm[toml]~=7.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -72,11 +72,12 @@ arelleGUI = "arelle.CntlrWinMain:main"
 [tool.setuptools]
 platforms = ["any"]
 
-[tool.setuptools.dynamic]
-version = {attr = "arelle.Version.__version__"}
-
 [tool.setuptools.packages.find]
 namespaces = false
+
+[tool.setuptools_scm]
+tag_regex = "^(?:[\\w-]+-?)?(?P<version>[vV]?\\d+(?:\\.\\d+){0,2}[^\\+]*)(?:\\+.*)?$"
+write_to = "arelle/_version.py"
 
 [tool.pytest.ini_options]
 xfail_strict = true
