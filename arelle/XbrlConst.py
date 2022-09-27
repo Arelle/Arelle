@@ -1,17 +1,13 @@
 from __future__ import annotations
+import os
 from typing import TYPE_CHECKING
 from typing import cast
-from typing import Pattern
-from typing import Tuple # tuple type conflicts with xbrl tuple qname
+from typing import Tuple # tuple type conflicts with xbrl tuple namespace
+from regex import compile as re_compile
 from arelle.ModelValue import qname
-import os
-try:
-    from regex import compile as re_compile
-except ImportError:
-    from re import compile as re_compile  # type: ignore[misc]
 
 if TYPE_CHECKING:
-    from lxml import etree
+    from regex import Pattern
     from arelle.ModelValue import QName
     from arelle.ModelObject import ModelObject
     from arelle.typing import TypeGetText
@@ -53,7 +49,7 @@ qnXbrliPure: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:pure")
 qnXbrliShares: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:shares")
 qnInvalidMeasure: QName = qname("{http://arelle.org}arelle:invalidMeasureQName")
 qnXbrliDateUnion: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:dateUnion")
-qnDateUnionXsdTypes: list[qname] = [qname("{http://www.w3.org/2001/XMLSchema}xsd:date"),qname("{http://www.w3.org/2001/XMLSchema}xsd:dateTime")]
+qnDateUnionXsdTypes: list[QName] = [qname("{http://www.w3.org/2001/XMLSchema}xsd:date"),qname("{http://www.w3.org/2001/XMLSchema}xsd:dateTime")]
 qnXbrliDecimalsUnion: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:decimalsType")
 qnXbrliPrecisionUnion: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:precisionType")
 qnXbrliNonZeroDecimalUnion: QName = qname("{http://www.xbrl.org/2003/instance}xbrli:nonZeroDecimal")
@@ -151,7 +147,7 @@ defaultLinkRole = "http://www.xbrl.org/2003/role/link"
 defaultGenLinkRole = "http://www.xbrl.org/2008/role/link"
 iso4217 = "http://www.xbrl.org/2003/iso4217"
 iso17442 = "http://standards.iso.org/iso/17442"
-def qnIsoCurrency(token: str) -> QName | None:
+def qnIsoCurrency(token: str | None) -> QName | None:
     return qname(iso4217, "iso4217:" + token) if token else None
 standardLabel = "http://www.xbrl.org/2003/role/label"
 genStandardLabel = "http://www.xbrl.org/2008/role/label"
@@ -234,7 +230,8 @@ qnEnumerationItemType2016: QName = qname("{http://xbrl.org/PWD/2016-10-12/extens
 qnEnumerationsItemType2016: QName = qname("{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}enum:enumerationsItemType")
 qnEnumerationListItemTypes: Tuple[QName, ...] = (qnEnumerationListItemType11YYYY, qnEnumerationSetItemType11YYYY, qnEnumerationsItemType2016)
 qnEnumerationSetItemTypes: Tuple[QName, ...] = (qnEnumerationSetItemType11YYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY)
-qnEnumeration2ItemTypes: Tuple[QName, ...] = (qnEnumerationItemType2020, qnEnumerationItemTypeYYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY)
+# Redefined below line 240
+# qnEnumeration2ItemTypes: Tuple[QName, ...] = (qnEnumerationItemType2020, qnEnumerationItemTypeYYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY)
 qnEnumerationItemTypes: Tuple[QName, ...] = (qnEnumerationItemType2014,
                           qnEnumerationItemType2020, qnEnumerationItemTypeYYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY,
                           qnEnumerationItemType11YYYY, qnEnumerationSetItemType11YYYY, qnEnumerationListItemType11YYYY,
@@ -293,13 +290,13 @@ qnVaTestExpression: QName = qname(va,'test-expression')
 # variable = "http://xbrl.org/2008/variable"
 formulaStartsWith = "http://xbrl.org/arcrole/20"
 equalityDefinition = "http://xbrl.org/arcrole/2008/equality-definition"
-# already defined lin 271
+# already defined line 267
 # qnEqualityDefinition: QName = qname("{http://xbrl.org/2008/variable}variable:equalityDefinition")
 variableSet = "http://xbrl.org/arcrole/2008/variable-set"
 variableSetFilter = "http://xbrl.org/arcrole/2008/variable-set-filter"
 variableFilter = "http://xbrl.org/arcrole/2008/variable-filter"
 variableSetPrecondition = "http://xbrl.org/arcrole/2008/variable-set-precondition"
-#  Already defined line 296
+# Already defined line 292
 # equalityDefinition = "http://xbrl.org/arcrole/2008/equality-definition"
 consistencyAssertionFormula = "http://xbrl.org/arcrole/2008/consistency-assertion-formula"
 consistencyAssertionParameter = "http://xbrl.org/arcrole/2008/consistency-assertion-parameter"
