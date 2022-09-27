@@ -81,12 +81,10 @@ def getLanguageCode() -> str:
             return localeQueryResult[1][:5].replace("_","-")
     import locale
 
-    language_code, encoding = locale.getdefaultlocale()
-    if isinstance(language_code, str):
-        language_code = language_code.replace("_","-")
-    else:
-        language_code = "en"
-    return language_code
+    languageCode, encoding = locale.getdefaultlocale()
+    if isinstance(languageCode, str):
+        return languageCode.replace("_","-")
+    return "en"
 
 def getLanguageCodes(lang: str | None = None) -> list[str]:
     if lang is None:
@@ -549,7 +547,7 @@ def format_picture(conv: LocaleDict, value: Any, picture: str) -> str:
 
     if isinstance(value, float):
         value = Decimal.from_float(value)
-    elif isinstance(value, STR_NUM_TYPES) and not isinstance(value, Fraction):
+    elif isinstance(value, (str, int)):
         value = Decimal(value)
     elif isinstance(value, Fraction):
         value = Decimal(float(value))
@@ -563,12 +561,12 @@ def format_picture(conv: LocaleDict, value: Any, picture: str) -> str:
 
     pic, sep, negPic = picture.partition(';')
     if negPic and ';' in negPic:
-        raise ValueError(_('Picture contains multiple picture sepearators {0}').format(picture))
+        raise ValueError(_('Picture contains multiple picture separators {0}').format(picture))
     if isNegative and negPic:
         pic = negPic
 
     if len([c for c in pic if c in (percent, per_mille) ]) > 1:
-        raise ValueError(_('Picture contains multiple percent or per_mille charcters {0}').format(picture))
+        raise ValueError(_('Picture contains multiple percent or per_mille characters {0}').format(picture))
     if percent in pic:
         value *= 100
     elif per_mille in pic:
@@ -583,7 +581,7 @@ def format_picture(conv: LocaleDict, value: Any, picture: str) -> str:
     suffix = ''
     if fractPart:
         if decimal_point in fractPart:
-            raise ValueError(_('Sub-picture contains decimal point sepearators {0}').format(pic))
+            raise ValueError(_('Sub-picture contains decimal point separators {0}').format(pic))
 
         for c in fractPart:
             if c.isdecimal():
