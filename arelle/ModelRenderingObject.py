@@ -648,6 +648,13 @@ class DefnMdlBreakdown(ModelFormulaResource):
     @property
     def isRollUp(self):
         return False
+
+    def hasAspect(self, structuralNode, aspect):
+        return False
+
+    @property
+    def hasValueExpression(self):
+        return False
         
     @property
     def isAbstract(self):

@@ -344,8 +344,8 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                 for rel in defnMdlNode.relationships(strctMdlNode):
                     if not isinstance(rel, list):
                         relChildStructuralNode = addRelationship(defnMdlNode, rel, strctMdlParent, selfStructuralNodes)
-                    else:
-                        addRelationships(defnMdlNode, rel, strctMdlParent)
+                    else: # list is parented by prior rel
+                        addRelationships(defnMdlNode, rel, relChildStructuralNode)
                 # relationship strct mdl nodes were added to strctMdlNode, move them to parent and dereference strctMdlNode
                 del strctMdlParent.strctMdlChildNodes[0] # remove unused strctMdlNode as rel str mdl nodes are owned by parent
                 # set up by defnMdlNode.relationships
