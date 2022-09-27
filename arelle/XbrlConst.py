@@ -230,8 +230,6 @@ qnEnumerationItemType2016: QName = qname("{http://xbrl.org/PWD/2016-10-12/extens
 qnEnumerationsItemType2016: QName = qname("{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}enum:enumerationsItemType")
 qnEnumerationListItemTypes: Tuple[QName, ...] = (qnEnumerationListItemType11YYYY, qnEnumerationSetItemType11YYYY, qnEnumerationsItemType2016)
 qnEnumerationSetItemTypes: Tuple[QName, ...] = (qnEnumerationSetItemType11YYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY)
-# Redefined below line 240
-# qnEnumeration2ItemTypes: Tuple[QName, ...] = (qnEnumerationItemType2020, qnEnumerationItemTypeYYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY)
 qnEnumerationItemTypes: Tuple[QName, ...] = (qnEnumerationItemType2014,
                           qnEnumerationItemType2020, qnEnumerationItemTypeYYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY,
                           qnEnumerationItemType11YYYY, qnEnumerationSetItemType11YYYY, qnEnumerationListItemType11YYYY,
@@ -286,18 +284,12 @@ qnEaTestExpression: QName = qname(ea,'test-expression')
 va = "http://xbrl.org/2008/assertion/value"
 qnValueAssertion: QName = qname("{http://xbrl.org/2008/assertion/value}va:valueAssertion")
 qnVaTestExpression: QName = qname(va,'test-expression')
-# already defined above, just keeping it for record
-# variable = "http://xbrl.org/2008/variable"
 formulaStartsWith = "http://xbrl.org/arcrole/20"
 equalityDefinition = "http://xbrl.org/arcrole/2008/equality-definition"
-# already defined line 267
-# qnEqualityDefinition: QName = qname("{http://xbrl.org/2008/variable}variable:equalityDefinition")
 variableSet = "http://xbrl.org/arcrole/2008/variable-set"
 variableSetFilter = "http://xbrl.org/arcrole/2008/variable-set-filter"
 variableFilter = "http://xbrl.org/arcrole/2008/variable-filter"
 variableSetPrecondition = "http://xbrl.org/arcrole/2008/variable-set-precondition"
-# Already defined line 292
-# equalityDefinition = "http://xbrl.org/arcrole/2008/equality-definition"
 consistencyAssertionFormula = "http://xbrl.org/arcrole/2008/consistency-assertion-formula"
 consistencyAssertionParameter = "http://xbrl.org/arcrole/2008/consistency-assertion-parameter"
 validation = "http://xbrl.org/2008/validation"
