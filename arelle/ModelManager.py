@@ -77,7 +77,7 @@ class ModelManager:
     def shutdown(self):
         self.status = "shutdown"
 
-    def setLocale(self):
+    def setLocale(self) -> str | None:
         from arelle import Locale
         self.locale, localeSetupMessage = Locale.getUserLocale(self.cntlr.uiLocale)
         self.defaultLang = Locale.getLanguageCode()

@@ -121,7 +121,7 @@ class DialogLanguage(Toplevel):
             if newLocale is not None:
                 self.mainWin.modelManager.locale = newLocale
             else:
-                messagebox.showerror(_("User interface locale error"), 
+                messagebox.showerror(_("User interface locale error"),
                                      _("Locale setting {0} is not supported on this system")
                                      .format(langCode),
                                      parent=self)

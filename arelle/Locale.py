@@ -16,7 +16,6 @@ import regex as re
 from typing import Generator, cast, Any, Callable
 from fractions import Fraction
 from arelle.typing import TypeGetText, LocaleDict
-from arelle.PythonUtil import STR_NUM_TYPES
 try:
     from collections.abc import Mapping
 except:
@@ -46,7 +45,7 @@ defaultLocaleCodes = {
     "sk": "SK", "sl": "SI", "sq": "AL", "sr": "RS", "sv": "SE", "th": "TH",
     "tr": "TR", "uk": "UA", "ur": "PK", "vi": "VN", "zh": "CN"}
 
-def getUserLocale(localeCode: str = '') -> LocaleDict:
+def getUserLocale(localeCode: str = '') -> tuple[LocaleDict, str | None]:
     # get system localeconv and reset system back to default
     import locale
     global C_LOCALE

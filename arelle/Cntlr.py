@@ -292,8 +292,8 @@ class Cntlr:
         PackageManager.init(self, loadPackagesConfig=hasGui)
 
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
-            
-    def postLoggingInit(self, localeSetupMessage=None):
+
+    def postLoggingInit(self, localeSetupMessage: str | None = None) -> None:
         if not self.modelManager.isLocaleSet:
             localeSetupMessage = self.modelManager.setLocale() # set locale after logger started
         if localeSetupMessage:
@@ -303,7 +303,7 @@ class Cntlr:
         for pluginMethod in PluginManager.pluginClassMethods("Cntlr.Init"):
             pluginMethod(self)
 
-    def setUiLanguage(self, locale: str, fallbackToDefault: bool = False) -> None:
+    def setUiLanguage(self, locale: str | None, fallbackToDefault: bool = False) -> None:
         try:
             self.uiLocale = locale
             langCodes = getLanguageCodes(locale)
