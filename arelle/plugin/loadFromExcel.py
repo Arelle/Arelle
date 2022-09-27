@@ -565,7 +565,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 isELRrow = hasLinkroleSeparateRow and (iRow + 2) in headerRows
                 if isHeaderRow:
                     setHeaderCols(row)
-                    headerColsAllElrs |= _DICT_SET(headerCols.keys()) # accumulate all header cols for role checks
+                    headerColsAllElrs |= headerCols.keys() # accumulate all header cols for role checks
                 elif isELRrow:
                     currentELR = currentELRdefinition = None
                     for colCell in row:

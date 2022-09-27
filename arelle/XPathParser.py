@@ -5,22 +5,14 @@ Created on Dec 20, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import sys
+from numbers import Number
 
 from arelle import PythonUtil # define 2.x or 3.x string types (only needed when running as unit test from __main__
 from arelle.PluginManager import pluginClassMethods
-
-if sys.version[0] >= '3':
-    # python 3 requires modified parser to allow release of global objects when closing DTS
-    from arelle.pyparsing.pyparsing_py3 import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
-                 Literal, CaselessLiteral,
-                 Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
-                 ParserElement, quotedString, delimitedList, Suppress, Regex)
-else:
-    # installed for python 2.7 and clean packages, otherwise use tweaked version
-    from arelle.pyparsing.pyparsing_py2 import (Word, Keyword, alphas, ParseException, ParseSyntaxException,
-                 Literal, CaselessLiteral,
-                 Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
-                 ParserElement, quotedString, delimitedList, Suppress, Regex)
+from arelle.pyparsing.pyparsing_py3 import (
+    Word, Keyword, alphas, ParseException, ParseSyntaxException,Literal, CaselessLiteral,Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,ParserElement, quotedString,
+    delimitedList, Suppress, Regex
+)
 from arelle.Locale import format_string
 import time, xml.dom, traceback
 from decimal import Decimal
@@ -74,7 +66,7 @@ def pushFloat( sourceStr, loc, toks ):
     return num
 
 def pushInt( sourceStr, loc, toks ):
-    num = _INT(toks[0])
+    num = int(toks[0])
     exprStack.append( num )
     return num
 
@@ -197,7 +189,7 @@ class OperationDef:
         self.name = name
         if skipFirstTok:
             toks1 = toks[1] if len(toks) > 1 else None
-            if (isinstance(toks1,_STR_BASE) and isinstance(name,_STR_BASE) and
+            if (isinstance(toks1,str) and isinstance(name,str) and
                 name in ('/', '//', 'rootChild', 'rootDescendant')):
                 if toks1 == '*':
                     toks1 = QNameDef(loc,None,'*','*')
@@ -228,11 +220,11 @@ class OperationDef:
             return ("{0}{1}".format(self.name, self.args))
 
 def pushOperation( sourceStr, loc, toks ):
-    if isinstance(toks[0], _STR_BASE):
+    if isinstance(toks[0], str):
         name = toks[0]
         removeOp = False
         for tok in toks[1:]:
-            if not isinstance(tok,_STR_BASE) and tok in exprStack:
+            if not isinstance(tok,str) and tok in exprStack:
                 removeOp = True
                 removeFrom = tok
                 break
@@ -250,7 +242,7 @@ def pushOperation( sourceStr, loc, toks ):
     return operation
 
 def pushUnaryOperation( sourceStr, loc, toks ):
-    if isinstance(toks[0], _STR_BASE):
+    if isinstance(toks[0], str):
         operation = OperationDef(sourceStr, loc, 'u' + toks[0], toks, True)
         exprStack.append(operation)
     else:
@@ -600,7 +592,7 @@ opn = { "+" : ( lambda a,b: a + b ),
         "-" : ( lambda a,b: a - b ),
         "*" : ( lambda a,b: a * b ),
         "div" : ( lambda a,b: float(a) / float(b) ),
-        "idiv" : ( lambda a,b: _INT(a) / _INT(b) ),
+        "idiv" : ( lambda a,b: int(a) / int(b) ),
         "^" : ( lambda a,b: a ** b ) }
 
 # Recursive function that evaluates the stack
@@ -828,7 +820,7 @@ def variableReferences(exprStack, varRefSet, element, rangeVars=None):
             rangeVars.append(var)
             localRangeVars.append(var)
             variableReferences(p.bindingSeq, varRefSet, element, rangeVars)
-        elif hasattr(p, '__iter__') and not isinstance(p, _STR_BASE):
+        elif hasattr(p, '__iter__') and not isinstance(p, str):
             variableReferences(p, varRefSet, element, rangeVars)
     for localRangeVar in localRangeVars:
         if localRangeVar in rangeVars:
@@ -855,7 +847,7 @@ def prefixDeclarations(exprStack, xmlnsDict, element):
             if var.prefix:
                 xmlnsDict[var.prefix] = var.namespaceURI
             prefixDeclarations(p.bindingSeq, xmlnsDict, element)
-        elif hasattr(p, '__iter__') and not isinstance(p, _STR_BASE):
+        elif hasattr(p, '__iter__') and not isinstance(p, str):
             prefixDeclarations(p, xmlnsDict, element)
 
 def clearProg(exprStack):
@@ -873,88 +865,6 @@ def clearNamedProgs(ownerObject, progsListName):
     for prog in ownerObject.getattr(progsListName, []):
         clearProg(prog)
 
-'''
-pyOpForXPathOp = {
-    '+': '+', '-':'-', '*':'*', ',':',',
-    'div': '/', 'idiv': '/', 'mod':'%',
-    'gt': '>', 'ge': '>=', 'eq':'==', 'ne':'!=', 'lt':'<', 'le':'<=',
-    '>': '>', '>=': '>=', '=':'==', '!=':'!=', '<':'<', '<=':'<=',
-    }
-pyGeneratorExprOp = { 'for':'flatten(tuple(', 'some':'any(', 'every':'all('}
-pyGeneratorExprEnd = { 'for':'))', 'some':')', 'every':')'}
-
-def compile(exprStack, code, inScopeVars=None):
-    if inScopeVars is None: inScopeVars = []
-    codeStartIndex = len(code)
-    for p in exprStack:
-        if isinstance(p,_STR_BASE):
-            code.append(p.__repr__())
-        elif isinstance(p,_NUM_TYPES):
-            code.append(str(p))
-        elif isinstance(p,VariableRef):
-            code.append((" {0} ","variables.get({0})")[p.name in inScopeVars].format(p.name))
-        elif isinstance(p,QNameDef):
-            code.append(" '{0}' ".format(p.name))
-        elif isinstance(p,OperationDef):
-            op = p.name
-            if isinstance(op, QNameDef):
-                code.append("{0}(".format(op.name))
-                compile(p.args, code)
-                code.append(")")
-            elif op in pyOpForXPathOp:
-                code.append(" {0} ".format(pyOpForXPathOp[p.name]))
-                compile(p.args, code)
-            elif op in ('u+', 'u-'):
-                code.append(" {0}".format(op[1]))
-                compile(p.args, code)
-            elif op == "sequence":
-                code.append('(')
-                compile(p.args, code)
-                code.append(')')
-            elif op == "predicate":
-                code.append('predicate(')
-                compile(p.args, code)
-                code.append(')')
-            elif op == "range":
-                code.insert(codeStartIndex, 'range(')
-                code.append(', ')
-                compile(p.args, code)
-                code.append(' + 1 )')
-            elif op in pyGeneratorExprOp: # for, some, every
-                code.append('{0}'.format(pyGeneratorExprOp[op]))
-                rangeVars = tuple(rv.rangeVar.name for rv in p.args[0:-1])
-                # operation has all in-scope variables
-                for rv in rangeVars: inScopeVars.append(rv)
-                compile(p.args[-1:], code)   # return expression
-                for rv in rangeVars: inScopeVars.remove(rv)
-                # for clauses have prior in-scope variables
-                for i in range(len(p.args) - 1):
-                    if i > 0: inScopeVars.append(rangeVars[i-1])
-                    compile(p.args[i:i+1], code) # for expression
-                for i in range(len(p.args) - 2): inScopeVars.remove(rangeVars[i])
-                code.append(pyGeneratorExprEnd[op])
-            elif op == "pathRoot":
-                code.append(" self.stepAxis(self.inputXbrlInstance.xmlRootElement) ")
-                compile(p.args, code)
-            elif op == "/":
-                code.append(" .stepAxis('child::' ")
-                compile(p.args, code)
-                code.append(" )")
-            elif op == "//":
-                code.append(" .stepAxis('descendant::' ")
-                compile(p.args, code)
-                code.append(" )")
-        elif isinstance(p,OpDef):
-            op = p.name
-            if op in pyOpForXPathOp:
-                code.append("{0}".format(pyOpForXPathOp[p.name]))
-        elif isinstance(p,RangeDecl):
-            code.append(' for {0} in '.format(p.rangeVar.name))
-            compile(p.bindingSeq, code)
-        elif isinstance(p,Expr):
-            if p.name in ("return","satisfies"):
-                compile(p.expr, code)
-'''
 
 def codeModule(code):
     return \

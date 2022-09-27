@@ -72,19 +72,19 @@ def loadEntityInformation(dts, entrypoint, rssItem):
                 elif v:
                     if tag.endswith("-datetime"):
                         try:
-                            v = datetime.datetime(_INT(v[0:4]),_INT(v[4:6]),_INT(v[6:8]),_INT(v[8:10]),_INT(v[10:12]),_INT(v[12:14]))
+                            v = datetime.datetime(int(v[0:4]),int(v[4:6]),int(v[6:8]),int(v[8:10]),int(v[10:12]),int(v[12:14]))
                         except ValueError:
                             pass
                     elif tag.endswith("-date") or tag.startswith("date-of-"):
                         try:
-                            v = datetime.date(_INT(v[0:4]),_INT(v[4:6]),_INT(v[6:8]))
+                            v = datetime.date(int(v[0:4]),int(v[4:6]),int(v[6:8]))
                         except ValueError:
                             pass
                     elif tag.endswith("-year-end") and len(v) == 4:
                         v = "{0}-{1}".format(v[0:2],v[2:4])
                     elif tag in ('assigned-sic',):
                         try:
-                            v = _INT(v)
+                            v = int(v)
                         except ValueError:
                             v = None
 

@@ -30,9 +30,9 @@ ModelFact = None
 profileStatNumber = 0
 
 AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning choose best location for new element
-DEFAULT = sys.intern(_STR_8BIT("default"))
-NONDEFAULT = sys.intern(_STR_8BIT("non-default"))
-DEFAULTorNONDEFAULT = sys.intern(_STR_8BIT("default-or-non-default"))
+DEFAULT = sys.intern(str("default"))
+NONDEFAULT = sys.intern(str("non-default"))
+DEFAULTorNONDEFAULT = sys.intern(str("default-or-non-default"))
 EMPTY_TUPLE = ()
 
 
@@ -976,11 +976,11 @@ class ModelXbrl:
         :type objectId: str or int
         :returns: ModelObject
         """
-        if isinstance(objectId, _INT_TYPES):  # may be long or short in 2.7
+        if isinstance(objectId, int):
             return self.modelObjects[objectId]
         # assume it is a string with ID in a tokenized representation, like xyz_33
         try:
-            return self.modelObjects[_INT(objectId.rpartition("_")[2])]
+            return self.modelObjects[int(objectId.rpartition("_")[2])]
         except (IndexError, ValueError):
             return None
 
@@ -1066,7 +1066,7 @@ class ModelXbrl:
                 modelObjectArgs = flattenSequence(modelObjectArgs)
                 for arg in modelObjectArgs:
                     if arg is not None:
-                        if isinstance(arg, _STR_BASE):
+                        if isinstance(arg, str):
                             objectUrl = arg
                         else:
                             try:
@@ -1146,7 +1146,7 @@ class ModelXbrl:
                     refs.append(ref)
                 extras["refs"] = refs
             elif argName == "sourceLine":
-                if isinstance(argValue, _INT_TYPES):    # must be sortable with int's in logger
+                if isinstance(argValue, int):    # must be sortable with int's in logger
                     extras["sourceLine"] = argValue
             elif argName not in ("exc_info", "messageCodes"):
                 fmtArgs[argName] = self.loggableValue(argValue) # dereference anything not loggable
@@ -1176,7 +1176,7 @@ class ModelXbrl:
             return "(none)"
         elif isinstance(argValue, bool):
             return str(argValue).lower() # show lower case true/false xml values
-        elif isinstance(argValue, _INT_TYPES):
+        elif isinstance(argValue, int):
             # need locale-dependent formatting
             return format_string(self.modelManager.locale, '%i', argValue)
         elif isinstance(argValue,(float,Decimal)):

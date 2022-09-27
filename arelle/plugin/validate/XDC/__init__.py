@@ -54,7 +54,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                if refPart.localName == "RequiredInDocument"
                                if refPart.textValue.strip().lower() == "true")
 
-        missingConcepts = requiredConcepts - _DICT_SET(modelXbrl.factsByQname.keys())
+        missingConcepts = requiredConcepts - modelXbrl.factsByQname.keys()
         if missingConcepts:
             modelXbrl.error("XDC:missingRequiredFacts",
                             _("Required facts missing from document: %(concepts)s."),

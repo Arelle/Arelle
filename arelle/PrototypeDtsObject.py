@@ -80,7 +80,7 @@ class LocPrototype(PrototypeObject):
         self.attributes = {"{http://www.w3.org/1999/xlink}type":"locator",
                            "{http://www.w3.org/1999/xlink}label":label}
         # add an href if it is a 1.1 id
-        if isinstance(locObject,_STR_BASE): # it is an id
+        if isinstance(locObject,str): # it is an id
             self.attributes["{http://www.w3.org/1999/xlink}href"] = "#" + locObject
         if role:
             self.attributes["{http://www.w3.org/1999/xlink}role"] = role
@@ -94,7 +94,7 @@ class LocPrototype(PrototypeObject):
         return self.attributes.get("{http://www.w3.org/1999/xlink}label")
 
     def dereference(self):
-        if isinstance(self.locObject,_STR_BASE): # dereference by ID
+        if isinstance(self.locObject,str): # dereference by ID
             return self.modelDocument.idObjects.get(self.locObject,None) # id may not exist
         else: # it's an object pointer
             return self.locObject

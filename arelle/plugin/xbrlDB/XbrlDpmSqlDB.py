@@ -62,6 +62,7 @@ from arelle import XbrlConst
 from arelle.XmlValidate import UNKNOWN, NONE as xmlValidateNONE, INVALID, VALID
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
 from decimal import Decimal, InvalidOperation
+from numbers import Number
 from _ctypes import _memset_addr
 
 qnFindFilingIndicators = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:fIndicators")
@@ -585,7 +586,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                             #print ("successful match {}".format(_dimSig))   # debug successful match
                             break
                     if _difference < _closestMatch:
-                        _extraDims = _DICT_SET(_dimVals.keys()) - _DICT_SET(_dimSig.keys())
+                        _extraDims = dimVals.keys() - _dimSig.keys()
                         _missingDims = set(_dim
                                            for _dim, _val in _dimSig.items()
                                            if _dim not in _dimVals and _val != "*?")
@@ -1218,7 +1219,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 elif c == 'e':
                     isQName = True
             isText = not (isNumeric or isBool or isDateTime or isQName) # 's' or 'u' type
-            if isinstance(datePerEnd, _STR_BASE):
+            if isinstance(datePerEnd, str):
                 datePerEnd = datetimeValue(datePerEnd, addOneDay=True)
             cntxKey = (dims, entId, datePerEnd)
             if cntxKey in cntxTbl:
@@ -1265,11 +1266,11 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             if isNumeric:
                 if unitId:
                     attrs["unitRef"] = unitId
-                if isinstance(numVal, _NUM_TYPES):
+                if isinstance(numVal, Number):
                     if dec is not None and len(dec) > 0:
                         if isinstance(dec, float): # must be an integer
                             dec = int(dec)
-                        elif isinstance(dec, _STR_BASE) and '.' in dec:
+                        elif isinstance(dec, str) and '.' in dec:
                             dec = dec.partition('.')[0] # drop .0 from any SQLite string
                         attrs["decimals"] = str(dec)  # somehow it is float from the database
                     '''
@@ -1278,7 +1279,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         dec = abs(Decimal(str(numVal)).as_tuple().exponent)
                     else: # max decimals at 28
                         try:
-                            dec = max( min(int(float(dec)), 28), -28) # 2.7 wants short int, 3.2 takes regular int, don't use _INT here
+                            dec = max( min(int(float(dec)), 28), -28)
                         except ValueError:
                             dec = 0
                     text = Locale.format(Locale.C_LOCALE, "%.*f", (dec, num)) # culture-invariant locale
@@ -1303,9 +1304,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     attrs[XbrlConst.qnXsiNil] = "true"
                     text = None
             elif isBool:
-                if isinstance(boolVal, _NUM_TYPES):
+                if isinstance(boolVal, Number):
                     text = 'false' if boolVal == 0 else 'true'
-                elif isinstance(boolVal, _STR_BASE) and len(boolVal) > 0:
+                elif isinstance(boolVal, str) and len(boolVal) > 0:
                     text = 'true' if boolVal.lower() in ('t', 'true', '1') else 'false'
                 else:
                     attrs[XbrlConst.qnXsiNil] = "true"

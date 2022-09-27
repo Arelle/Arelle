@@ -20,6 +20,7 @@ from arelle.ModelRenderingObject import (ModelEuTable, ModelTable, ModelBreakdow
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.XPathContext import XPathException
+from numbers import Number
 
 RENDER_UNITS_PER_CHAR = 16 # nominal screen units per char for wrapLength computation and adjustment
 
@@ -393,7 +394,7 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                                 _("Dimension relationship rule node %(xlinkLabel)s source %(source)s does not refer to an existing domain member."),
                                 modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel, source=definitionNode._sourceQname)
                     if (definitionNode._axis in ("child", "child-or-self", "parent", "parent-or-self", "sibling", "sibling-or-self") and
-                        (not isinstance(definitionNode._generations, _NUM_TYPES) or definitionNode._generations > 1)):
+                        (not isinstance(definitionNode._generations, Number) or definitionNode._generations > 1)):
                         view.modelXbrl.error("xbrlte:relationshipNodeTooManyGenerations ",
                             _("Relationship rule node %(xlinkLabel)s formulaAxis %(axis)s implies a single generation tree walk but generations %(generations)s is greater than one."),
                             modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel, axis=definitionNode._axis, generations=definitionNode._generations)
@@ -532,21 +533,17 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                 if not structuralNode.childStructuralNodes: # childless root ordinate, make a child to iterate in producing table
                     subOrdContext = StructuralNode(structuralNode, breakdownNode, definitionNode)
         except ResolutionException as ex:
-            if sys.version[0] >= '3':
-                #import traceback
-                #traceback.print_tb(ex.__traceback__)
-                raise ex.with_traceback(ex.__traceback__)  # provide original traceback information
-            else:
-                raise ex
+            #import traceback
+            #traceback.print_tb(ex.__traceback__)
+            raise ex.with_traceback(ex.__traceback__)  # provide original traceback information
         except Exception as ex:
             e = ResolutionException("arelle:resolutionException",
                                     _("Exception in resolution of definition node %(node)s: %(error)s"),
                                     modelObject=definitionNode, node=definitionNode.qname, error=str(ex)
                                     )
-            if sys.version[0] >= '3':
-                raise e.with_traceback(ex.__traceback__)  # provide original traceback information
-            else:
-                raise e
+
+            raise e.with_traceback(ex.__traceback__)  # provide original traceback information
+
 
 def cartesianProductExpander(childStructuralNode, view, depth, axisDisposition, facts, tblAxisRels, i):
     if i is not None: # recurse table relationships for cartesian product

@@ -214,21 +214,15 @@ def final(val, conceptsUsed, *args, **kwargs):
     del val.twoWayMemberStdLabelPattern
     del val.schedules
 
+
 def saveDtsMatches(dts, secDtsTagMatchesFile):
     setup(dts, True)
-
     import sys, csv
-    if sys.version[0] >= '3':
-        csvOpenMode = 'w'
-        csvOpenNewline = ''
-    else:
-        csvOpenMode = 'wb' # for 2.7
-        csvOpenNewline = None
-
+    csvOpenMode = 'w'
+    csvOpenNewline = ''
     csvFile = open(secDtsTagMatchesFile, csvOpenMode, newline=csvOpenNewline)
     csvWriter = csv.writer(csvFile, dialect="excel")
     csvWriter.writerow(("Concept", "Rule", "Row", "Pattern", "Label", "Documentation"))
-
     num1wayConcepts = 0
     num2wayConcepts = 0
     num2wayMembers = 0

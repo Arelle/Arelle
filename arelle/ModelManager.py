@@ -12,7 +12,7 @@ from arelle.PluginManager import pluginClassMethods
 
 
 if TYPE_CHECKING:
-    from .Cntlr import Cntlr
+    from arelle.Cntlr import Cntlr
 
 def initialize(cntlr: Cntlr) -> ModelManager:
     modelManager = ModelManager(cntlr)

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools~=62.3", "wheel~=0.37.1"]
+requires = ["setuptools~=65.3", "wheel~=0.37", "setuptools_scm[toml]~=7.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -28,12 +28,9 @@ dependencies = [
     'isodate==0.*',
     'lxml==4.*',
     'numpy==1.*',
-    'openpyxl==2.*',
+    'openpyxl==3.*',
     'regex==2022.*',
 ]
-
-[tool.setuptools.dynamic]
-version = {attr = "arelle.Version.__version__"}
 
 [project.optional-dependencies]
 Crypto = [
@@ -57,6 +54,12 @@ WebServer = [
     'tornado==6.*',
 ]
 
+[project.scripts]
+arelleCmdLine = "arelle.CntlrCmdLine:main"
+
+[project.gui-scripts]
+arelleGUI = "arelle.CntlrWinMain:main"
+
 [project.urls]
 "Homepage" = "https://arelle.org/"
 "Downloads" = "https://arelle.org/arelle/pub/"
@@ -68,6 +71,13 @@ WebServer = [
 
 [tool.setuptools]
 platforms = ["any"]
+
+[tool.setuptools.packages.find]
+namespaces = false
+
+[tool.setuptools_scm]
+tag_regex = "^(?:[\\w-]+-?)?(?P<version>[vV]?\\d+(?:\\.\\d+){0,2}[^\\+]*)(?:\\+.*)?$"
+write_to = "arelle/_version.py"
 
 [tool.pytest.ini_options]
 xfail_strict = true
@@ -96,10 +106,13 @@ module = [
     'arelle.plugin.validate.ESEF.*',
     'arelle.Cntlr',
     'arelle.FileSource',
+    'arelle.ModelValue',
     'arelle.ModelObject',
+    'arelle.SystemInfo',
     'arelle.Updater',
     'arelle.UrlUtil',
     'arelle.ValidateXbrl',
+    'arelle.XmlUtil',
 ]
 ignore_errors = false
 strict = true
@@ -110,5 +123,10 @@ strict = true
 [[tool.mypy.overrides]]
 module = [
     'google.appengine.api.*',
+    'gtk',
+    'isodate.*',
+    'win32clipboard',
+    'win32gui',
+    'win32process',
 ]
 ignore_missing_imports = true
