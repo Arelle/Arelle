@@ -191,13 +191,11 @@ def xEqual(elt1: ModelObject, elt2: ModelObject, equalMode: int = S_EQUAL) -> bo
     elif equalMode == S_EQUAL: # formula WG e-mail 2018-09-06: or (equalMode == S_EQUAL2 and not isinstance(elt1.sValue, QName)):
         return elt1.sValue == elt2.sValue
     else: # includes dimension S-equal2, use xpath-2 equality.
-        elt1_xValue = elt1.xValue
-        elt2_xValue = elt2.xValue
-        if isinstance(elt1_xValue, DateTime) \
-            and isinstance(elt2_xValue, DateTime) \
-                and elt1_xValue.dateOnly != elt2_xValue.dateOnly:  # type: ignore[attr-defined]
+        if isinstance(elt1.xValue, DateTime) \
+            and isinstance(elt2.xValue, DateTime) \
+                and elt1.xValue.dateOnly != elt2.xValue.dateOnly:  # type: ignore[attr-defined]
             return False
-        return elt1_xValue == elt2_xValue
+        return elt1.xValue == elt2.xValue
 
 def vEqual(elt1: ModelObject, elt2: ModelObject) -> bool:
     if not hasattr(elt1,"xValid"):
@@ -218,7 +216,7 @@ def typedValue(
                 return modelAttribute.xValue
         else: # PSVI element value (of text)
             if getattr(element, 'xValid') >= VALID:
-                return getattr(element, 'xValue')
+                return element.xValue
     except (AttributeError, KeyError):
         if dts:
             xmlValidate(dts, element, recurse=False, attrQname=attrQname)  # type: ignore[no-untyped-call]
