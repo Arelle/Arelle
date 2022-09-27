@@ -22,6 +22,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import OrderedDefaultDict, normalizeSpace
 from arelle.XhtmlValidate import ixMsgCode
 from arelle.XmlValidate import VALID, validate as xmlValidate, lxmlSchemaValidate
+from arelle.ModelTestcaseObject import ModelTestcaseVariation
 
 creationSoftwareNames = None
 
@@ -1383,7 +1384,7 @@ class ModelDocument:
         if XmlUtil.xmlnsprefix(testcaseElement, XbrlConst.cfcn) or isTransformTestcase:
             self.type = Type.REGISTRYTESTCASE
         self.outpath = self.xmlRootElement.get("outpath") or self.filepathdir
-        self.testcaseVariations = []
+        self.testcaseVariations: list[ModelTestcaseVariation] = []
         priorTransformName = None
         for modelVariation in XmlUtil.descendants(testcaseElement, testcaseElement.namespaceURI, ("variation", "testGroup")):
             self.testcaseVariations.append(modelVariation)
