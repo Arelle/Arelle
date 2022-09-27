@@ -35,7 +35,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3.0.2
+      - name: Checkout arelle
+        uses: actions/checkout@v3.0.2
+        with:
+          fetch-depth: 0
       - name: Install Python
         uses: actions/setup-python@v4.2.0
         with:
@@ -83,7 +86,7 @@ jobs:
       - name: Build version.py
         run: python buildVersion.py
       - name: Build app
-        run: python setup.py bdist_mac
+        run: python distro.py bdist_mac
       - name: Remove git directories
         run: find build/Arelle.app/Contents/Resources -name .git -exec rm -fR {} \;
       - name: Build DMG

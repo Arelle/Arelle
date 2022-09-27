@@ -176,7 +176,7 @@ class XbrlSemanticJsonDatabaseConnection():
             headers = {'User-agent':   'Arelle/1.0',
                        'Accept':       'application/json',
                        'Content-Type': "text/json; charset='UTF-8'"}
-            data = _STR_UNICODE(json.dumps(graph,
+            data = str(json.dumps(graph,
                                            sort_keys=True,  # allow comparability of json files
                                            ensure_ascii=False,
                                            indent=2,

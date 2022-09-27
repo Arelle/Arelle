@@ -1436,7 +1436,7 @@ class ModelConceptRelation(ModelFilter):
     @property
     def generations(self):
         try:
-            return _INT( XmlUtil.childText(self, XbrlConst.crf, "generations") )
+            return int( XmlUtil.childText(self, XbrlConst.crf, "generations") )
         except (TypeError, ValueError):
             if self.axis in ('sibling', 'child', 'parent'):
                 return 1
@@ -2638,7 +2638,7 @@ class ModelPrecisionFilter(ModelFilter):
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         minimum = self.minimum
-        numMinimum = float('INF') if minimum == 'INF' else _INT(minimum)
+        numMinimum = float('INF') if minimum == 'INF' else int(minimum)
         return set(fact for fact in facts
                    if cmplmt ^ (self.minimum != 'INF' and
                                 not fact.isNil and

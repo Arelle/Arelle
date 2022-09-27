@@ -9,21 +9,13 @@ e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
 
 '''
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional
-
+from typing import TYPE_CHECKING
 import os, posixpath, sys, re, shutil, time, calendar, io, json, logging, shutil, cgi, zlib
-if sys.version[0] >= '3':
-    from urllib.parse import quote, unquote
-    from urllib.error import URLError, HTTPError, ContentTooShortError
-    from http.client import IncompleteRead
-    from urllib import request
-    from urllib import request as proxyhandlers
-else: # python 2.7.2
-    from urllib import quote, unquote
-    from urllib import ContentTooShortError
-    from httplib import IncompleteRead
-    from urllib2 import URLError, HTTPError
-    import urllib2 as proxyhandlers
+from urllib.parse import quote, unquote
+from urllib.error import URLError, HTTPError, ContentTooShortError
+from http.client import IncompleteRead
+from urllib import request as proxyhandlers
+
 try:
     import ssl
 except ImportError:
@@ -34,7 +26,7 @@ from arelle.UrlUtil import isHttpUrl
 from arelle.Version import __version__
 
 if TYPE_CHECKING:
-    from .Cntlr import Cntlr
+    from arelle.Cntlr import Cntlr
 
 addServerWebCache = None
 
@@ -91,7 +83,7 @@ class WebCache:
 
     def __init__(
         self, cntlr: Cntlr,
-        httpProxyTuple: Optional[tuple[bool, str, str, str, str]]
+        httpProxyTuple: tuple[bool, str, str, str, str] | None
     ) -> None:
 
         self.cntlr = cntlr
@@ -179,8 +171,7 @@ class WebCache:
     def saveUrlCheckTimes(self):
         if self.cachedUrlCheckTimesModified:
             with io.open(self.urlCheckJsonFile, 'wt', encoding='utf-8') as f:
-                jsonStr = _STR_UNICODE(json.dumps(self.cachedUrlCheckTimes, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
-                f.write(jsonStr)  # 2.7 gets unicode this way
+                f.write(json.dumps(self.cachedUrlCheckTimes, ensure_ascii=False, indent=0))
         self.cachedUrlCheckTimesModified = False
 
     @property

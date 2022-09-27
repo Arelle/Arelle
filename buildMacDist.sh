@@ -12,7 +12,7 @@ python3.4 buildVersion.py
 python3.4 generateMessagesCatalog.py
 
 # create new app
-python3.4 setup.py bdist_mac
+python3.4 distro.py bdist_mac
 
 # remove .git subdirectories
 find build/Arelle.app/Contents/MacOS -name .git -exec rm -fR {} \;

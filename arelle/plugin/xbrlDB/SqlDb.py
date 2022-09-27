@@ -204,10 +204,8 @@ class SqlDbConnection():
                 self.__dict__.clear() # dereference everything
             except Exception as ex:
                 self.__dict__.clear() # dereference everything
-                if sys.version[0] >= '3':
-                    raise ex.with_traceback(ex.__traceback__)
-                else:
-                    raise ex
+                raise ex.with_traceback(ex.__traceback__)
+
 
     @property
     def isClosed(self):
@@ -629,7 +627,7 @@ class SqlDbConnection():
                     colValues.append("'{:04}-{:02}-{:02}'".format(col.year, col.month, col.day))
                 elif col is None:
                     colValues.append('NULL')
-                elif isinstance(col, _STR_BASE) and len(col) >= 4000 and (isOracle or isMSSql):
+                elif isinstance(col, str) and len(col) >= 4000 and (isOracle or isMSSql):
                     if isOracle:
                         colName = "col{}".format(len(colValues))
                         longColValues[colName] = col

@@ -24,6 +24,8 @@ from arelle import PluginManager
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 from arelle.WebCache import proxyTuple
+from arelle.SystemInfo import get_system_info
+from pprint import pprint
 import logging
 from lxml import etree
 win32file = win32api = win32process = pywintypes = None
@@ -382,6 +384,8 @@ def parseAndRun(args):
     parser.add_option("-a", "--about",
                       action="store_true", dest="about",
                       help=_("Show product version, copyright, and license."))
+    parser.add_option("--diagnostics", action="store_true", dest="diagnostics",
+                      help=_("output system diagnostics information"))
 
     if not args and cntlr.isGAE:
         args = ["--webserver=::gae"]
@@ -435,6 +439,8 @@ def parseAndRun(args):
                 ).format(Version.__version__, cntlr.systemWordSize, Version.copyrightLatestYear,
                          _("\n   Bottle (c) 2011-2013 Marcel Hellkamp") if hasWebServer else "",
                          sys.version_info, etree.LXML_VERSION, platform.machine()))
+    elif options.diagnostics:
+        pprint(get_system_info())
     elif options.disclosureSystemName in ("help", "help-verbose"):
         text = _("Disclosure system choices: \n{0}").format(' \n'.join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName)))
         try:

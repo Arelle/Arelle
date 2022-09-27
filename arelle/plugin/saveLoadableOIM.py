@@ -37,6 +37,7 @@ from arelle.UrlUtil import relativeUri
 from arelle.ValidateXbrlCalcs import inferredDecimals
 from arelle.XmlUtil import dateunionValue, elementIndex, xmlstring
 from collections import defaultdict
+from numbers import Number
 
 nsOim = "https://xbrl.org/2021"
 qnOimConceptAspect = qname("concept", noPrefixIsNoNamespace=True)
@@ -54,13 +55,9 @@ SCHEMA_LB_REFS = {qname("{http://www.xbrl.org/2003/linkbase}schemaRef"),
 ROLE_REFS = {qname("{http://www.xbrl.org/2003/linkbase}roleRef"),
              qname("{http://www.xbrl.org/2003/linkbase}arcroleRef")}
 ENTITY_NA_QNAME = ("https://xbrl.org/entities", "NA")
+csvOpenMode = 'w'
+csvOpenNewline = ''
 
-if sys.version[0] >= '3':
-    csvOpenMode = 'w'
-    csvOpenNewline = ''
-else:
-    csvOpenMode = 'wb' # for 2.7
-    csvOpenNewline = None
 
 def saveLoadableOIM(modelXbrl, oimFile, outputZip=None,
                     # arguments to add extension features to OIM document
@@ -552,7 +549,7 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None,
                         _ws.column_dimensions[colLetter].width = headerWidths.get(v, 40)
 
                     else:
-                        cell.alignment = Alignment(horizontal="right" if isinstance(v, _NUM_TYPES)
+                        cell.alignment = Alignment(horizontal="right" if isinstance(v, Number)
                                                    else "center" if isinstance(v, bool)
                                                    else "left",
                                                    vertical="top",

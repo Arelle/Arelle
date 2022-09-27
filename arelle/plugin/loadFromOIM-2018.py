@@ -264,12 +264,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
         if isCSV:
             errPrefix = "xbrlce"
             currentAction = "compiling metadata"
-            if sys.version[0] >= '3':
-                csvOpenMode = 'w'
-                csvOpenNewline = ''
-            else:
-                csvOpenMode = 'wb' # for 2.7
-                csvOpenNewline = None
+            csvOpenMode = 'w'
+            csvOpenNewline = ''
+
 
             # process CSV metadata
             # mandatory sections of metadata file

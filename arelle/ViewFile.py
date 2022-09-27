@@ -8,12 +8,6 @@ import csv, io, json, re, sys
 from lxml import etree
 from decimal import Decimal
 from arelle.FileSource import FileNamedStringIO
-if sys.version[0] >= '3':
-    csvOpenMode = 'w'
-    csvOpenNewline = ''
-else:
-    csvOpenMode = 'wb' # for 2.7
-    csvOpenNewline = None
 
 NoneType = type(None) # for isinstance testing
 
@@ -83,7 +77,7 @@ class View:
                 self.csvFile = self.outfile
             else:
                 # note: BOM signature required for Excel to open properly with characters > 0x7f
-                self.csvFile = open(outfile, csvOpenMode, newline=csvOpenNewline, encoding='utf-8-sig')
+                self.csvFile = open(outfile, 'w', newline='', encoding='utf-8-sig')
             self.csvWriter = csv.writer(self.csvFile, dialect="excel")
         elif self.type == XLSX:
             self.xlsxWb = Workbook()

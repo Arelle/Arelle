@@ -10,10 +10,7 @@ import sys, os, io, re, time, json, logging
 from collections import defaultdict
 from fnmatch import fnmatch
 from lxml import etree
-if sys.version[0] >= '3':
-    from urllib.parse import urljoin
-else:
-    from urlparse import urljoin
+from urllib.parse import urljoin
 openFileSource = None
 from arelle import Locale, XmlUtil
 from arelle.UrlUtil import isAbsolute
@@ -338,7 +335,7 @@ def save(cntlr: Cntlr) -> None:
     global packagesConfigChanged
     if packagesConfigChanged and cntlr.hasFileSystem:
         with io.open(packagesJsonFile, 'wt', encoding='utf-8') as f:
-            jsonStr = _STR_UNICODE(json.dumps(orderedPackagesConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
+            jsonStr = str(json.dumps(orderedPackagesConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
             f.write(jsonStr)
         packagesConfigChanged = False
 
