@@ -15,7 +15,7 @@ import logging
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Iterator, Callable
 from arelle.Locale import getLanguageCodes
-from arelle.FileSource import openFileStream
+import arelle.FileSource
 from arelle.UrlUtil import isAbsolute
 from pathlib import Path
 try:
@@ -206,7 +206,7 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
             if PLUGIN_TRACE_FILE:
                 with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
                     fh.write("Scanning module for plug-in info: {}\n".format(moduleFilename))
-            f = openFileStream(_cntlr, moduleFilename)
+            f = arelle.FileSource.openFileStream(_cntlr, moduleFilename)
             tree = ast.parse(f.read(), filename=moduleFilename)
             constantStrings = {}
             functionDefNames = set()
