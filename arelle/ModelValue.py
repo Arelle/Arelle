@@ -8,7 +8,7 @@ from __future__ import annotations
 import datetime, isodate
 from decimal import Decimal
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, Optional, Type, cast
+from typing import TYPE_CHECKING, Any, Type, cast, overload
 
 if TYPE_CHECKING:
     from arelle.ModelObject import ModelObject
@@ -20,6 +20,18 @@ if TYPE_CHECKING:
 
 import regex as re
 XmlUtil = None
+
+@overload
+def qname(value: ModelObject | str | QName) -> QName: ...
+
+@overload
+def qname(value: ModelObject | str | QName, name: str | ModelObject) -> QName: ...
+
+@overload
+def qname(value: ModelObject | str | QName, name: str | ModelObject | None = None, noPrefixIsNoNamespace: bool = False) -> QName: ...
+
+@overload
+def qname(value: ModelObject | str | QName | Any | None, name: str | ModelObject | None) -> QName | None : ...
 
 def qname(
     value: ModelObject | str | QName | Any | None,
@@ -154,7 +166,7 @@ def qnameEltPfxName(
     return QName(prefix, namespaceURI, localName)
 
 
-def _default_to_empty(string: Optional[str]) -> str:
+def _default_to_empty(string: str | None) -> str:
     return string or ''
 
 

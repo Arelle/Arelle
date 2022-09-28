@@ -107,11 +107,15 @@ module = [
     'arelle.Cntlr',
     'arelle.FileSource',
     'arelle.ModelValue',
+    'arelle.Locale',
     'arelle.ModelObject',
+    'arelle.ModelValue',
     'arelle.SystemInfo',
     'arelle.Updater',
     'arelle.UrlUtil',
     'arelle.ValidateXbrl',
+    'arelle.XbrlConst',
+    'arelle.XbrlUtil',
     'arelle.XmlUtil',
 ]
 ignore_errors = false

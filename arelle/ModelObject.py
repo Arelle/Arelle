@@ -110,6 +110,10 @@ class ModelObject(etree.ElementBase):
     _parentQname: QName | None
     _elementSequence: int
     _namespaceURI: str | None
+    _hashSEqual: int
+    _hashXpathEqual: int
+    sValue = str
+    xValue = Any # this can be any thing
     xlinkLabel: str
 
     def _init(self) -> None:
@@ -216,7 +220,7 @@ class ModelObject(etree.ElementBase):
         try:
             return self._elementQname
         except AttributeError:
-            self._elementQname = cast(QName, qname(self))
+            self._elementQname = qname(self)
             return self._elementQname
 
     def vQname(self, validationModelXbrl: ModelXbrl | None = None) -> QName:
@@ -370,7 +374,7 @@ class ModelObject(etree.ElementBase):
             label = labelsRelationshipSet.label(self, role, lang) # type: ignore[no-untyped-call]
             if label is not None:
                 if strip: return cast(str, label.strip())
-                return cast(str, Locale.rtlString(label, lang=lang)) # type: ignore[no-untyped-call]
+                return Locale.rtlString(label, lang=lang)
         if fallbackToQname:
             return str(self.qname)
         elif fallbackToXlinkLabel and hasattr(self,"xlinkLabel"):
