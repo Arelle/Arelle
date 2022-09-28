@@ -115,6 +115,7 @@ module = [
     'arelle.XbrlConst',
     'arelle.XbrlUtil',
     'arelle.XmlUtil',
+    'tests.integration_tests.validation.validation_util',
 ]
 ignore_errors = false
 strict = true
