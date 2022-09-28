@@ -37,7 +37,7 @@ PLUGIN_TRACE_LEVEL = logging.WARNING
 pluginJsonFile = None
 pluginConfig = None
 pluginConfigChanged = False
-pluginLogger = None
+pluginTraceFileLogger = None
 modulePluginInfos = {}
 pluginMethodsForClasses = {}
 _cntlr = None
@@ -46,8 +46,15 @@ EMPTYLIST = []
 _ERROR_MESSAGE_IMPORT_TEMPLATE = "Unable to load module {}"
 
 def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
-    global pluginJsonFile, pluginConfig, pluginLogger, modulePluginInfos, pluginMethodsForClasses, pluginConfigChanged, _cntlr, _pluginBase
-    pluginLogger = setupLogger(logging.FileHandler(PLUGIN_TRACE_FILE) if PLUGIN_TRACE_FILE else logging.StreamHandler(sys.stdout))
+    global pluginJsonFile, pluginConfig, pluginTraceFileLogger, modulePluginInfos, pluginMethodsForClasses, pluginConfigChanged, _cntlr, _pluginBase
+    if PLUGIN_TRACE_FILE:
+        pluginTraceFileLogger = logging.getLogger(__name__)
+        pluginTraceFileLogger.propagate = False
+        handler = logging.FileHandler(PLUGIN_TRACE_FILE)
+        formatter = logging.Formatter('%(asctime)s.%(msecs)03dz [%(levelname)s] %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
+        handler.setFormatter(formatter)
+        handler.setLevel(PLUGIN_TRACE_LEVEL)
+        pluginTraceFileLogger.addHandler(handler)
     pluginConfigChanged = False
     _cntlr = cntlr
     _pluginBase = cntlr.pluginDir + os.sep
@@ -107,26 +114,6 @@ def close():  # close all loaded methods
     global webCache
     webCache = None
 
-
-def setupLogger(handler: logging.Handler) -> logging.Logger:
-    """
-    Logs message with given level to the configured plugin logger
-    :param message: Message to be logged
-    :type message: str
-    :param level: Log level of message (e.g. logging.INFO)
-    :type level: Number
-    """
-    logger = logging.getLogger(__name__)
-    # Using the module name for the logger places this beneath the controller logger in the hierarchy
-    # For now, we don't want the controller logger influencing our plugin logging
-    logger.propagate = False
-    formatter = logging.Formatter('%(asctime)s.%(msecs)03d %(name)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
-    handler.setFormatter(formatter)
-    handler.setLevel(PLUGIN_TRACE_LEVEL)
-    logger.addHandler(handler)
-    return logger
-
-
 ''' pluginInfo structure:
 
 __pluginInfo__ = {
@@ -169,14 +156,16 @@ moduleInfo = {
 
 def logPluginTrace(message: str, level: Number) -> None:
     """
-    Logs message with given level to the configured plugin logger
+    If plugin trace file logging is configured, logs `message` to it.
+    Otherwise, only logs to controller logger if log is an error.
     :param message: Message to be logged
-    :type message: str
     :param level: Log level of message (e.g. logging.INFO)
-    :type level: Number
     """
-    global pluginLogger
-    pluginLogger.log(level, message)
+    global pluginTraceFileLogger
+    if pluginTraceFileLogger:
+        pluginTraceFileLogger.log(level, message)
+    elif level >= logging.ERROR:
+        _cntlr.addToLog(message=message, level=level, messageCode='arelle:pluginLoadingError')
 
 
 def modulesWithNewerFileDates():
