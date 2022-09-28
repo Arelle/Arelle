@@ -1,3 +1,5 @@
+"""A helper to extract test data results."""
+
 from __future__ import annotations
 from collections import Counter
 import os.path
