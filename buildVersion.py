@@ -9,52 +9,11 @@ build process to indicate the time that this version was built.
 
 """
 import datetime
-import os
-import subprocess
 import sys
-
-arelleMajorVersion = 1  # major version = 1 (python), 2 (cython)
 
 if __name__ == "__main__":
     timestamp = datetime.datetime.utcnow()
-    date_year = timestamp.strftime("%Y")
     date_dash_ymd = timestamp.strftime("%Y-%m-%d")
-    date_dot_ymd = timestamp.strftime("%Y.%m.%d")
-    date_dash_ymd_hm_utc = timestamp.strftime("%Y-%m-%d %H:%M UTC")
-
-    versionPy = ("'''\n"
-                 "This module represents the time stamp when Arelle was last built\n"
-                 "\n"
-                 "@author: Mark V Systems Limited\n"
-                 "(c) Copyright {0} Mark V Systems Limited, All rights reserved.\n"
-                 "\n"
-                 "'''\n"
-                 "__version__ = '{1}.{2}'  # number version of code base and date compiled\n"
-                 "version = '{3}'  # string version of date compiled\n"
-                 "copyrightLatestYear = '{0}'  # string version of year compiled\n"
-                 ).format(date_year, arelleMajorVersion, date_dot_ymd, date_dash_ymd_hm_utc)
-
-    versionTxt = date_dash_ymd_hm_utc
-
-    try:
-        arelleCommit = subprocess.check_output(["git", "show", "--format='%h'", "--no-patch"]).decode("utf-8").strip()
-        os.chdir("arelle/plugin/EdgarRenderer")
-        edgarRendererCommit = subprocess.check_output(["git", "show", "--format='%h'", "--no-patch"]).decode("utf-8").strip()
-        os.chdir("../../..")
-        versionPy += ("arelleCommit = {0} # git Arelle commit \n"
-                      "edgarRendererCommit = {1} # git EdgarRenderer commit \n"
-                      ).format(arelleCommit, edgarRendererCommit)
-        versionTxt += ("\narelleCommit {0} "
-                       "\nedgarRendererCommit {1}"
-                       ).format(arelleCommit[1:-1], edgarRendererCommit[1:-1])
-    except Exception:
-        pass
-
-    with open("arelle/Version.py", "w") as fh:
-        fh.write(versionPy)
-
-    with open("version.txt", "w") as fh:
-        fh.write(versionTxt)
 
     # add name suffix, like ER3 or TKTABLE
     if len(sys.argv) > 1 and sys.argv[1] and sys.platform not in ("linux",):
