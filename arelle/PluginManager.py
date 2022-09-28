@@ -157,14 +157,14 @@ moduleInfo = {
 def logPluginTrace(message: str, level: Number) -> None:
     """
     If plugin trace file logging is configured, logs `message` to it.
-    Otherwise, only logs to controller logger if log is an error.
+    Only logs to controller logger if log is an error.
     :param message: Message to be logged
     :param level: Log level of message (e.g. logging.INFO)
     """
     global pluginTraceFileLogger
     if pluginTraceFileLogger:
         pluginTraceFileLogger.log(level, message)
-    elif level >= logging.ERROR:
+    if level >= logging.ERROR:
         _cntlr.addToLog(message=message, level=level, messageCode='arelle:pluginLoadingError')
 
 
