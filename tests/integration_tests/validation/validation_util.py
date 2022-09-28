@@ -7,9 +7,14 @@ import pytest
 
 from arelle.CntlrCmdLine import parseAndRun
 from arelle import ModelDocument, PackageManager, PluginManager
+from _pytest.mark.structures import ParameterSet
 
 
-def get_test_data(args, expected_failure_ids=frozenset(), expected_empty_testcases=frozenset()):
+def get_test_data(
+    args: list[str],
+    expected_failure_ids: frozenset[str] = frozenset(),
+    expected_empty_testcases: frozenset[str] = frozenset(),
+) -> list[ParameterSet]:
     """
     Produces a list of Pytest Params that can be fed into a parameterized pytest function
 
@@ -24,7 +29,7 @@ def get_test_data(args, expected_failure_ids=frozenset(), expected_empty_testcas
     """
     cntlr = parseAndRun(args)
     try:
-        results = []
+        results: list[ParameterSet] = []
         test_cases_with_no_variations = set()
         model_document = cntlr.modelManager.modelXbrl.modelDocument
         if model_document is not None:
