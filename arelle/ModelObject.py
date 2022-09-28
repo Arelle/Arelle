@@ -374,7 +374,7 @@ class ModelObject(etree.ElementBase):
             label = labelsRelationshipSet.label(self, role, lang) # type: ignore[no-untyped-call]
             if label is not None:
                 if strip: return cast(str, label.strip())
-                return cast(str, Locale.rtlString(label, lang=lang)) # type: ignore[no-untyped-call]
+                return Locale.rtlString(label, lang=lang)
         if fallbackToQname:
             return str(self.qname)
         elif fallbackToXlinkLabel and hasattr(self,"xlinkLabel"):
