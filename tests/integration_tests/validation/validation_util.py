@@ -19,13 +19,8 @@ def get_test_data(
     Produces a list of Pytest Params that can be fed into a parameterized pytest function
 
     :param args: The args to be parsed by arelle in order to correctly produce the desired result set
-    :type args: list of strings
     :param expected_failure_ids: The set of string test IDs that are expected to fail
-    :type expected_failure_ids: frozenset of strings
     :param expected_empty_testcases: The set of paths of empty testcases, relative to the suite zip
-    :type expected_empty_testcases: frozenset of strings
-    :return: A list of PyTest Params that can be used to run a parameterized pytest function
-    :rtype: list of ::class:: `~pytest.param`
     """
     cntlr = parseAndRun(args)
     try:
