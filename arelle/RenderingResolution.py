@@ -340,7 +340,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
 
             if isinstance(defnMdlNode, DefnMdlRelationshipNode):
                 strctMdlNode.isLabeled = False
-                selfStructuralNodes = {} if defnMdlNode.axis.endswith('-or-self') else None
+                selfStructuralNodes = None # {} if defnMdlNode.axis.endswith('-or-self') else None
                 for rel in defnMdlNode.relationships(strctMdlNode):
                     if not isinstance(rel, list):
                         relChildStructuralNode = addRelationship(defnMdlNode, rel, strctMdlParent, selfStructuralNodes)
@@ -350,22 +350,23 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                 del strctMdlParent.strctMdlChildNodes[0] # remove unused strctMdlNode as rel str mdl nodes are owned by parent
                 # set up by defnMdlNode.relationships
                 if isinstance(defnMdlNode, DefnMdlConceptRelationshipNode):
-                    if (defnMdlNode._sourceQname != XbrlConst.qnXfiRoot and
-                        defnMdlNode._sourceQname not in view.modelXbrl.qnameConcepts):
-                        view.modelXbrl.error("xbrlte:invalidConceptRelationshipSource",
-                            _("Concept relationship rule node %(xlinkLabel)s source %(source)s does not refer to an existing concept."),
-                            modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, source=defnMdlNode._sourceQname)
+                    for qn in defnMdlNode._sourceQnames:
+                        if (qn != XbrlConst.qnXfiRoot and
+                            qn not in view.modelXbrl.qnameConcepts):
+                            view.modelXbrl.error("xbrlte:invalidConceptRelationshipSource",
+                                _("Concept relationship rule node %(xlinkLabel)s source %(source)s does not refer to an existing concept."),
+                                modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, source=qn)
                 elif isinstance(defnMdlNode, DefnMdlDimensionRelationshipNode):
                     dim = view.modelXbrl.qnameConcepts.get(defnMdlNode._dimensionQname)
                     if dim is None or not dim.isExplicitDimension:
                         view.modelXbrl.error("xbrlte:invalidExplicitDimensionQName",
                             _("Dimension relationship rule node %(xlinkLabel)s dimension %(dimension)s does not refer to an existing explicit dimension."),
                             modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, dimension=defnMdlNode._dimensionQname)
-                    domMbr = view.modelXbrl.qnameConcepts.get(defnMdlNode._sourceQname)
-                    if domMbr is None or not domMbr.isDomainMember:
-                        view.modelXbrl.error("xbrlte:invalidDimensionRelationshipSource",
-                            _("Dimension relationship rule node %(xlinkLabel)s source %(source)s does not refer to an existing domain member."),
-                            modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, source=defnMdlNode._sourceQname)
+                    for domMbr in view.modelXbrl.qnameConcepts.get(defnMdlNode._sourceQnames):
+                        if domMbr is None or not domMbr.isDomainMember:
+                            view.modelXbrl.error("xbrlte:invalidDimensionRelationshipSource",
+                                _("Dimension relationship rule node %(xlinkLabel)s source %(source)s does not refer to an existing domain member."),
+                                modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, source=domMbr)
                 if (defnMdlNode._axis in ("child", "child-or-self", "parent", "parent-or-self", "sibling", "sibling-or-self") and
                     (not isinstance(defnMdlNode._generations, _NUM_TYPES) or defnMdlNode._generations > 1)):
                     view.modelXbrl.error("xbrlte:relationshipNodeTooManyGenerations ",
@@ -501,7 +502,7 @@ def addRelationship(relDefinitionNode, rel, strctMdlNode, selfStructuralNodes=No
     coveredAspect = relDefinitionNode.coveredAspect(strctMdlNode)
     if not coveredAspect:
         return None
-    if selfStructuralNodes is not None:
+    if selfStructuralNodes is not None and rel.fromModelObject is not None:
         fromConceptQname = rel.fromModelObject.qname
         # is there an ordinate for this root object?
         if fromConceptQname in selfStructuralNodes:
