@@ -51,24 +51,44 @@ def getUserLocale(localeCode: str = '') -> tuple[LocaleDict, str | None]:
     global C_LOCALE
     conv = None
     localeSetupMessage = None
-    try:
-        locale.setlocale(locale.LC_ALL, localeCode.replace("-", "_"))  # str needed for 3to2 2.7 python to work
-        conv = locale.localeconv()
-    except locale.Error:
-        if len(localeCode) == 2 and localeCode in defaultLocaleCodes:
-            try: # default locale code is required, prevent inabiility to continue
-                locale.setlocale(locale.LC_ALL, f"{localeCode}_{defaultLocaleCodes[localeCode]}")
+    localeCode = localeCode.replace('-', '_')
+    localeCodeWithDefault = (
+        f"{localeCode}_{defaultLocaleCodes[localeCode]}"
+        if localeCode in defaultLocaleCodes else None)
+    candidateLocaleCodes = [localeCode] + ([localeCodeWithDefault] if localeCodeWithDefault else [])
+    for candidateLocaleCode in candidateLocaleCodes:
+        try:
+            locale.setlocale(locale.LC_ALL, candidateLocaleCode)
+            conv = locale.localeconv()
+            if candidateLocaleCode == localeCodeWithDefault:
+                localeSetupMessage = f'locale code "{localeCode}" should include a country code, e.g. {localeCodeWithDefault}'
+            break
+        except locale.Error:
+            pass
+    else:
+        # Like above, but avoids a fork unless the earlier options don't work out.
+        try:
+            localeCodes = getLocaleList()
+            # Don't die because we couldn't find a locale command or parse its output.
+        except:
+            localeCodes = []
+        matchingLocaleCodes = sorted(
+            (c for c in localeCodes if c.startswith(localeCode)),
+            # prioritize localeCodeWithDefault prefix and UTF-8
+            key=lambda c: (localeCodeWithDefault and not c.startswith(localeCodeWithDefault), not re.search(r'utf-?8$', c)))
+        for candidateLocaleCode in matchingLocaleCodes:
+            try:
+                locale.setlocale(locale.LC_ALL, candidateLocaleCode)
                 conv = locale.localeconv()
-                localeSetupMessage = f"locale code \"{localeCode}\" should include a country code, e.g. {localeCode}-{defaultLocaleCodes[localeCode]}"
             except locale.Error:
                 pass
     locale.setlocale(locale.LC_ALL, 'C')
-    if conv is None: # some other issue prevents getting culture code, use 'C' defaults (no thousands sep, no currency, etc)
+    if conv is None:  # some other issue prevents getting culture code, use 'C' defaults (no thousands sep, no currency, etc)
         localeSetupMessage = f"locale code \"{localeCode}\" is not available on this system"
         conv = locale.localeconv() # use 'C' environment, e.g., en_US
-    if C_LOCALE is None: # load culture-invariant C locale
+    if C_LOCALE is None:  # load culture-invariant C locale
         C_LOCALE = locale.localeconv()
-    return (cast(LocaleDict, conv), localeSetupMessage)
+    return cast(LocaleDict, conv), localeSetupMessage
 
 def getLanguageCode() -> str:
     if sys.platform == "darwin": # MacOS doesn't provide correct language codes
@@ -127,18 +147,19 @@ iso3region = {
 "UK": "gbr",
 "US": "usa"}
 
+
+def getLocaleList() -> list[str]:
+    process = subprocess.run(['locale', '-a'], capture_output=True, encoding='iso8859-1', text=True)
+    return process.stdout.splitlines() if process.returncode == 0 else []
+
+
 _availableLocales = None
 def availableLocales() -> set[str]:
     global _availableLocales
     if _availableLocales is not None:
         return _availableLocales
     else:
-        localeQueryResult = subprocess.getstatusoutput("locale -a")  # Mac and Unix only
-        if localeQueryResult[0] == 0: # successful
-            _availableLocales = set(locale.partition(".")[0].replace("_", "-")
-                                    for locale in localeQueryResult[1].split("\n"))
-        else:
-            _availableLocales = set()
+        _availableLocales = {locale.partition(".")[0].replace("_", "-") for locale in getLocaleList()}
         return _availableLocales
 
 _languageCodes = None
