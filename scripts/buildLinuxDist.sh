@@ -11,7 +11,6 @@ mkdir -p "${BUILD_DIR}" "${DIST_DIR}"
 
 cp -p arelleGUI.pyw arelleGUI.py
 
-python3 buildVersion.py
 python3 pygettext.py -v -o arelle/locale/messages.pot arelle/*.pyw arelle/*.py
 python3 generateMessagesCatalog.py
 python3 distro.py build_exe

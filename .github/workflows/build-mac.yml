@@ -83,8 +83,6 @@ jobs:
       - name: Regenerate messages catalog (doc/messagesCatalog.xml)
         run: python generateMessagesCatalog.py
       - run: cp -p arelleGUI.pyw arelleGUI.py
-      - name: Build version.py
-        run: python buildVersion.py
       - name: Build app
         run: python distro.py bdist_mac
       - name: Remove git directories
