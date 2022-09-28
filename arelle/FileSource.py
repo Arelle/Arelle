@@ -249,7 +249,7 @@ class FileSource:
                 if buf.startswith(b"<?xml "):
                     try:
                         # must strip encoding
-                        _str = buf.decode(XmlUtil.encoding(buf))  # type: ignore[no-untyped-call]
+                        _str = buf.decode(XmlUtil.encoding(buf))
                         endEncoding = _str.index("?>", 0, 128)
                         if endEncoding > 0:
                             _str = _str[endEncoding+2:]
@@ -506,7 +506,7 @@ class FileSource:
                     if binary:
                         return (io.BytesIO(b), )
                     if encoding is None:
-                        encoding = XmlUtil.encoding(b) # type: ignore[no-untyped-call]
+                        encoding = XmlUtil.encoding(b)
                     if stripDeclaration:
                         b = stripDeclarationBytes(b)
                     return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding),
@@ -524,7 +524,7 @@ class FileSource:
                     if binary:
                         return (io.BytesIO(b), )
                     if encoding is None:
-                        encoding = XmlUtil.encoding(b) # type: ignore[no-untyped-call]
+                        encoding = XmlUtil.encoding(b)
                     if stripDeclaration:
                         b = stripDeclarationBytes(b)
                     return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding),
@@ -555,7 +555,7 @@ class FileSource:
                             if binary:
                                 return (io.BytesIO(b), )
                             if encoding is None:
-                                encoding = XmlUtil.encoding(b, default="latin-1")  # type: ignore[no-untyped-call]
+                                encoding = XmlUtil.encoding(b, default="latin-1")
                             return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding),
                                     encoding)
                 raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
@@ -578,7 +578,7 @@ class FileSource:
                             if binary:
                                 return (io.BytesIO(b), )
                             if encoding is None:
-                                encoding = XmlUtil.encoding(b, default="latin-1")  # type: ignore[no-untyped-call]
+                                encoding = XmlUtil.encoding(b, default="latin-1")
                             return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding),
                                     encoding)
                 raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
@@ -682,10 +682,13 @@ class FileSource:
             files = []  # return title, descr, pubdate, linst doc
             edgr = "http://www.sec.gov/Archives/edgar"
             try:
-                for dsElt in XmlUtil.descendants(self.rssDocument, None, "item"):  # type: ignore[no-untyped-call]
+                assert self.rssDocument is not None
+                for dsElt in XmlUtil.descendants(self.rssDocument, None, "item"):
                     instDoc = None
-                    for instDocElt in XmlUtil.descendants(dsElt, edgr, "xbrlFile"):  # type: ignore[no-untyped-call]
-                        if instDocElt.get("(http://www.sec.gov/Archives/edgar}description").endswith("INSTANCE DOCUMENT"):
+                    for instDocElt in XmlUtil.descendants(dsElt, edgr, "xbrlFile"):
+                        instDocEltDesc = instDocElt.get("(http://www.sec.gov/Archives/edgar}description")
+                        assert instDocEltDesc is not None
+                        if instDocEltDesc.endswith("INSTANCE DOCUMENT"):
                             instDoc = instDocElt.get("(http://www.sec.gov/Archives/edgar}url")
                             break
                     if not instDoc:
@@ -693,17 +696,33 @@ class FileSource:
                     # Note 2022-09-17
                     # files is a list[str] but here we are appending a tuple here.
                     # I don't wish to alter any code behaviour so ignoring for now.
+                    descendantTitle = XmlUtil.descendant(dsElt, None, "title")
+                    descendantCompanyName = XmlUtil.descendant(dsElt, edgr, "companyName")
+                    descendantFormType = XmlUtil.descendant(dsElt, edgr, "formType")
+                    descendantFilingDate = XmlUtil.descendant(dsElt, edgr, "filingDate")
+                    descendantCikNumber = XmlUtil.descendant(dsElt, edgr, "cikNumber")
+                    descendantPeriod = XmlUtil.descendant(dsElt, edgr, "period")
+                    descendantDescription = XmlUtil.descendant(dsElt, None, "description")
+                    descendantPubDate = XmlUtil.descendant(dsElt, None, "pubDate")
+                    assert descendantTitle is not None
+                    assert descendantCompanyName is not None
+                    assert descendantFormType is not None
+                    assert descendantFilingDate is not None
+                    assert descendantCikNumber is not None
+                    assert descendantPeriod is not None
+                    assert descendantDescription is not None
+                    assert descendantPubDate is not None
                     files.append(( # type: ignore[arg-type]
-                        XmlUtil.text(XmlUtil.descendant(dsElt, None, "title")),  # type: ignore[no-untyped-call]
+                        XmlUtil.text(descendantTitle),
                         # tooltip
                         "{0}\n {1}\n {2}\n {3}\n {4}".format(
-                            XmlUtil.text(XmlUtil.descendant(dsElt, edgr, "companyName")), # type: ignore[no-untyped-call]
-                            XmlUtil.text(XmlUtil.descendant(dsElt, edgr, "formType")), # type: ignore[no-untyped-call]
-                            XmlUtil.text(XmlUtil.descendant(dsElt, edgr, "filingDate")), # type: ignore[no-untyped-call]
-                            XmlUtil.text(XmlUtil.descendant(dsElt, edgr, "cikNumber")), # type: ignore[no-untyped-call]
-                            XmlUtil.text(XmlUtil.descendant(dsElt, edgr, "period"))), # type: ignore[no-untyped-call]
-                        XmlUtil.text(XmlUtil.descendant(dsElt, None, "description")), # type: ignore[no-untyped-call]
-                        XmlUtil.text(XmlUtil.descendant(dsElt, None, "pubDate")), # type: ignore[no-untyped-call]
+                            XmlUtil.text(descendantCompanyName),
+                            XmlUtil.text(descendantFormType),
+                            XmlUtil.text(descendantFilingDate),
+                            XmlUtil.text(descendantCikNumber),
+                            XmlUtil.text(descendantPeriod)),
+                        XmlUtil.text(descendantDescription),
+                        XmlUtil.text(descendantPubDate),
                         instDoc))
                 assert self.filesDir is not None
                 self.filesDir = files
@@ -794,7 +813,7 @@ def openFileStream(
     elif encoding is None and 'b' not in mode:
         openedFileStream = io.open(filepath, mode='rb')
         hdrBytes = openedFileStream.read(512)
-        encoding = XmlUtil.encoding(hdrBytes, default=None)  # type: ignore[no-untyped-call]
+        encoding = XmlUtil.encoding(hdrBytes)
         openedFileStream.close()
         return io.open(filepath, mode=mode, encoding=encoding)
     else:
@@ -809,9 +828,9 @@ def openXmlFileStream(
     assert not isinstance(openedFileStream, FileSource)
     # check encoding
     hdrBytes = openedFileStream.read(512)
-    encoding = cast(str, XmlUtil.encoding(hdrBytes,  # type: ignore[no-untyped-call]
+    encoding = XmlUtil.encoding(hdrBytes,
                                 default=cntlr.modelManager.disclosureSystem.defaultXmlEncoding
-                                        if cntlr else 'utf-8'))
+                                        if cntlr else 'utf-8')
     # encoding default from disclosure system could be None
     if encoding.lower() in ('utf-8','utf8','utf-8-sig') and (cntlr is None or not cntlr.isGAE) and not stripDeclaration:
         text = None
