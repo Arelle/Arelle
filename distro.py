@@ -8,8 +8,6 @@ import sys
 from cx_Freeze import Executable, setup
 from setuptools import find_packages
 
-VERSION_FILE = "version.txt"
-
 LINUX_PLATFORM = "linux"
 MACOS_PLATFORM = "darwin"
 WINDOWS_PLATFORM = "win32"
@@ -70,9 +68,6 @@ options = {
         "packages": packages,
     }
 }
-
-if os.path.exists(VERSION_FILE):
-    includeFiles.append((VERSION_FILE, VERSION_FILE))
 
 if os.path.exists("arelle/plugin/EdgarRenderer"):
     includeLibs.append("cherrypy")
