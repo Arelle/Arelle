@@ -276,10 +276,6 @@ class Cntlr:
                 'windowGeometry': "{0}x{1}+{2}+{3}".format(800, 500, 200, 100),
             }
 
-        # start language translation for domain
-        self.setUiLanguage(uiLang or self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
-        setDisableRTL(self.config.get('disableRtl', False))
-
         self.webCache = WebCache(self, self.config.get("proxySettings"))
 
         # start plug in server (requres web cache initialized, but not logger)
@@ -287,6 +283,10 @@ class Cntlr:
 
         # requires plug ins initialized
         self.modelManager = ModelManager.initialize(self)
+
+        # start language translation for domain
+        self.setUiLanguage(uiLang or self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
+        setDisableRTL(self.config.get('disableRtl', False))
 
         # start taxonomy package server (requres web cache initialized, but not logger)
         PackageManager.init(self, loadPackagesConfig=hasGui)
@@ -328,8 +328,7 @@ class Cntlr:
                 gettext.install("arelle",
                                 self.localeDir)
 
-        if hasattr(self, "modelManager"): # not available on Cntlr __init_ call
-            self.modelManager.setLocale() # reset the modelManager uiLang locale
+        self.modelManager.setLocale() # reset the modelManager uiLang locale
 
     def startLogging(
         self,
