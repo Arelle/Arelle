@@ -345,9 +345,9 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         elif _type == Type.VERSIONINGREPORT:
             modelDocument.versioningReportDiscover(rootNode)
         elif _type == Type.TESTCASESINDEX:
-            modelDocument.testcasesIndexDiscover(xmlDocument)
+            modelDocument.testcasesIndexDiscover(xmlDocument, modelXbrl.modelManager.validateTestcaseSchema)
         elif _type == Type.TESTCASE:
-            modelDocument.testcaseDiscover(rootNode)
+            modelDocument.testcaseDiscover(rootNode, modelXbrl.modelManager.validateTestcaseSchema)
         elif _type == Type.REGISTRY:
             modelDocument.registryDiscover(rootNode)
         elif _type == Type.XPATHTESTSUITE:
@@ -1357,8 +1357,9 @@ class ModelDocument:
         else:
             self.modelXbrl.undefinedFacts.append(modelFact)
 
-    def testcasesIndexDiscover(self, rootNode):
-        lxmlSchemaValidate(self)
+    def testcasesIndexDiscover(self, rootNode, validateTestcaseSchema):
+        if validateTestcaseSchema:
+            lxmlSchemaValidate(self)
         for testcasesElement in rootNode.iter():
             if isinstance(testcasesElement,ModelObject) and testcasesElement.localName in ("testcases", "registries", "testSuite"):
                 rootAttr = testcasesElement.get("root")
@@ -1378,8 +1379,9 @@ class ModelDocument:
                             doc = load(self.modelXbrl, uriAttr, base=base, referringElement=testcaseElement)
                             self.addDocumentReference(doc, "testcaseIndex", testcaseElement)
 
-    def testcaseDiscover(self, testcaseElement):
-        lxmlSchemaValidate(self)
+    def testcaseDiscover(self, testcaseElement, validateTestcaseSchema):
+        if validateTestcaseSchema:
+            lxmlSchemaValidate(self)
         isTransformTestcase = testcaseElement.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms"
         if XmlUtil.xmlnsprefix(testcaseElement, XbrlConst.cfcn) or isTransformTestcase:
             self.type = Type.REGISTRYTESTCASE

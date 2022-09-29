@@ -109,6 +109,9 @@ def parseAndRun(args):
                              "are individually so validated. "
                              "If formulae are present they will be validated and run unless --formula=none is specified. "
                              ))
+    parser.add_option("--noValidateTestcaseSchema", action="store_false", dest="validateTestcaseSchema", default=True,
+                      help=_("Validate testcases against their schemas."))
+    parser.add_option("--novalidatetestcaseschema", action="store_false", dest="validateTestcaseSchema", default=True, help=SUPPRESS_HELP)
     parser.add_option("--calcDecimals", action="store_true", dest="calcDecimals",
                       help=_("Specify calculation linkbase validation inferring decimals."))
     parser.add_option("--calcdecimals", action="store_true", dest="calcDecimals", help=SUPPRESS_HELP)
@@ -797,6 +800,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.modelManager.collectProfileStats = True
         if options.outputAttribution:
             self.modelManager.outputAttribution = options.outputAttribution
+        self.modelManager.validateTestcaseSchema = options.validateTestcaseSchema
         if options.internetConnectivity == "offline":
             self.webCache.workOffline = True
         elif options.internetConnectivity == "online":

@@ -65,6 +65,7 @@ class ModelManager:
         self.validateDedupCalcs = False
         self.validateInfoset = False
         self.validateUtr = False
+        self.validateTestcaseSchema = True
         self.skipDTS = False
         self.skipLoading = None
         self.abortOnMajorError = False

@@ -581,6 +581,8 @@ class YearMonthDayTimeDuration():
         return "P" + ''.join(per)
 
 def time(value: str, castException: Type[Exception] | None = None) -> Time | None:
+    from arelle.ModelObject import ModelObject
+
     if value == "MinTime":
         return Time(
             hour=datetime.time.min.hour,
