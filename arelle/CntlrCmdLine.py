@@ -31,6 +31,7 @@ from lxml import etree
 win32file = win32api = win32process = pywintypes = None
 STILL_ACTIVE = 259 # MS Windows process status constants
 PROCESS_QUERY_INFORMATION = 0x400
+UILANG_OPTION = '--uiLang'
 
 def main():
     """Main program to initiate application from command line or as a separate process (e.g, java Runtime.getRuntime().exec).  May perform
@@ -63,10 +64,10 @@ def parseAndRun(args):
     # Check if there is UI language override to use the selected language
     # for help and error messages...
     for _i, _arg in enumerate(args):
-        if _arg.startswith("--uiLang="):
+        if _arg.startswith((f'{UILANG_OPTION}=', f'{UILANG_OPTION.lower()}=')):
             uiLang = _arg[9:]
             break
-        elif _arg == "--uiLang" and _i + 1 < len(args):
+        elif _arg in (UILANG_OPTION, UILANG_OPTION.lower()) and _i + 1 < len(args):
             uiLang = args[_i+1]
             break
 
@@ -300,9 +301,9 @@ def parseAndRun(args):
     parser.add_option("--formularunids", action="store", dest="formulaRunIDs", help=SUPPRESS_HELP)
     parser.add_option("--formulaCompileOnly", action="store_true", dest="formulaCompileOnly", help=_("Specify formula are to be compiled but not executed."))
     parser.add_option("--formulacompileonly", action="store_true", dest="formulaCompileOnly", help=SUPPRESS_HELP)
-    parser.add_option("--uiLang", action="store", dest="uiLang",
+    parser.add_option(UILANG_OPTION, action="store", dest="uiLang",
                       help=_("Language for user interface (override system settings, such as program messages).  Does not save setting.  Requires locale country code, e.g. en-GB or en-US."))
-    parser.add_option("--uilang", action="store", dest="uiLang", help=SUPPRESS_HELP)
+    parser.add_option(UILANG_OPTION.lower(), action="store", dest="uiLang", help=SUPPRESS_HELP)
     parser.add_option("--proxy", action="store", dest="proxy",
                       help=_("Modify and re-save proxy settings configuration.  "
                              "Enter 'system' to use system proxy setting, 'none' to use no proxy, "
