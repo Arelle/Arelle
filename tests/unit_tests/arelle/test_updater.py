@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import datetime
 import queue
 from unittest.mock import Mock, call, patch
 
 import pytest
 
 from arelle import Updater
+from arelle.Updater import dateVersion, semverVersion
 
 OLD_FILENAME = "arelle-macOS-2021-01-01.dmg"
 NEW_FILENAME = "arelle-macOS-2022-01-01.dmg"
@@ -31,6 +33,64 @@ def _mockCntlrWinMain(
         updateURL=updateUrl,
         webCache=webCache,
     )
+
+
+class TestArelleVersion:
+    @pytest.mark.parametrize(
+        "olderVersion, newerVersion",
+        [
+            (
+                dateVersion(date=datetime.date.min),
+                dateVersion(date=datetime.date.max),
+            ),
+            (
+                dateVersion(date=datetime.date(2021, 12, 31)),
+                dateVersion(date=datetime.date(2022, 1, 1)),
+            ),
+            (
+                dateVersion(date=datetime.date(2022, 2, 9)),
+                dateVersion(date=datetime.date(2022, 3, 1)),
+            ),
+            (
+                dateVersion(date=datetime.date(2022, 2, 9)),
+                dateVersion(date=datetime.date(2022, 2, 11)),
+            ),
+            (
+                dateVersion(date=datetime.date(2022, 2, 9)),
+                dateVersion(date=datetime.date(2022, 10, 1)),
+            ),
+            (
+                dateVersion(date=datetime.date.max),
+                semverVersion(major=0, minor=0, patch=0),
+            ),
+            (
+                semverVersion(major=0, minor=0, patch=0),
+                semverVersion(major=0, minor=0, patch=1),
+            ),
+            (
+                semverVersion(major=0, minor=0, patch=9),
+                semverVersion(major=0, minor=1, patch=0),
+            ),
+            (
+                semverVersion(major=0, minor=9, patch=9),
+                semverVersion(major=1, minor=0, patch=0),
+            ),
+            (
+                semverVersion(major=1, minor=1, patch=3),
+                semverVersion(major=1, minor=1, patch=10),
+            ),
+            (
+                semverVersion(major=1, minor=2, patch=9),
+                semverVersion(major=1, minor=10, patch=1),
+            ),
+            (
+                semverVersion(major=2, minor=9, patch=9),
+                semverVersion(major=10, minor=1, patch=1),
+            ),
+        ],
+    )
+    def test_arelleVersionCompare(self, olderVersion, newerVersion):
+        assert olderVersion < newerVersion
 
 
 class TestUpdater:
