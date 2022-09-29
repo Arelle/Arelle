@@ -32,41 +32,67 @@ def get_test_data(
         test_cases_with_unrecognized_type = {}
         model_document = cntlr.modelManager.modelXbrl.modelDocument
         test_cases: list[ModelDocument.ModelDocument] = []
-        if model_document.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
+        if model_document.type in (
+            ModelDocument.Type.TESTCASE,
+            ModelDocument.Type.REGISTRYTESTCASE,
+        ):
             test_cases.append(model_document)
         elif model_document.type == ModelDocument.Type.TESTCASESINDEX:
             referenced_documents = model_document.referencesDocument.keys()
             child_document_types = {doc.type for doc in referenced_documents}
-            assert len(child_document_types) == 1, f'Multiple child document types found in {model_document.uri}: {child_document_types}.'
+            assert (
+                len(child_document_types) == 1
+            ), f"Multiple child document types found in {model_document.uri}: {child_document_types}."
             [child_document_type] = child_document_types
             # the formula function registry conformance suite points to a list of registries, so we need to search one level deeper.
             if child_document_type == ModelDocument.Type.REGISTRY:
-                referenced_documents = [case for doc in referenced_documents for case in doc.referencesDocument.keys()]
+                referenced_documents = [
+                    case
+                    for doc in referenced_documents
+                    for case in doc.referencesDocument.keys()
+                ]
             test_cases = sorted(referenced_documents, key=lambda doc: doc.uri)
         else:
-            raise Exception('Unhandled model document type: {}'.format(model_document.type))
+            raise Exception(
+                "Unhandled model document type: {}".format(model_document.type)
+            )
         for test_case in test_cases:
             path = PurePosixPath(test_case.uri)
-            test_case_path_tail = path.parts[-3:-1] if path.name == 'index.xml' else path.parts[-2:]
-            if test_case.type not in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
+            test_case_path_tail = (
+                path.parts[-3:-1] if path.name == "index.xml" else path.parts[-2:]
+            )
+            if test_case.type not in (
+                ModelDocument.Type.TESTCASE,
+                ModelDocument.Type.REGISTRYTESTCASE,
+            ):
                 test_cases_with_unrecognized_type[test_case_path_tail] = test_case.type
-            if not getattr(test_case, "testcaseVariations", None) and os.path.relpath(test_case.filepath, model_document.modelXbrl.fileSource.basefile) not in expected_empty_testcases:
+            if (
+                not getattr(test_case, "testcaseVariations", None)
+                and os.path.relpath(
+                    test_case.filepath, model_document.modelXbrl.fileSource.basefile
+                )
+                not in expected_empty_testcases
+            ):
                 test_cases_with_no_variations.add(test_case_path_tail)
             else:
                 for mv in test_case.testcaseVariations:
-                    test_id = '{}/{}'.format('/'.join(test_case_path_tail), mv.id)
+                    test_id = "{}/{}".format("/".join(test_case_path_tail), mv.id)
                     param = pytest.param(
                         {
-                            'status': mv.status,
-                            'expected': mv.expected,
-                            'actual': mv.actual
+                            "status": mv.status,
+                            "expected": mv.expected,
+                            "actual": mv.actual,
                         },
                         id=test_id,
-                        marks=[pytest.mark.xfail()] if test_id in expected_failure_ids else []
+                        marks=[pytest.mark.xfail()]
+                        if test_id in expected_failure_ids
+                        else [],
                     )
                     results.append(param)
         if test_cases_with_unrecognized_type:
-            raise Exception(f"Some test cases have an unrecognized document type: {sorted(test_cases_with_unrecognized_type.items())}.")
+            raise Exception(
+                f"Some test cases have an unrecognized document type: {sorted(test_cases_with_unrecognized_type.items())}."
+            )
         if test_cases_with_no_variations:
             warnings.warn(
                 f"Some test cases don't have any variations: {sorted(test_cases_with_no_variations)}."
