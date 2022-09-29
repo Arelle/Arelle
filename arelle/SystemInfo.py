@@ -17,13 +17,17 @@ from arelle.Version import __version__
 def get_system_info() -> dict[str, Any]:
     """Return info about the system."""
     info_object = {
+        "arelle_version": __version__,
         "arch": platform.machine(),
+        "args": sys.argv,
         "docker": False,
         "os_name": platform.system(),
-        "version_arelle": __version__,
-        "version_os": platform.release(),
-        "version_python": platform.python_version(),
-        "virtualenv": getattr(sys, "base_prefix", sys.prefix) != sys.prefix
+        "os_version": platform.release(),
+        "python_branch": platform.python_branch(),
+        "python_compiler": platform.python_compiler(),
+        "python_implementation": platform.python_implementation(),
+        "python_version": platform.python_version(),
+        "python_virtualenv": getattr(sys, "base_prefix", sys.prefix) != sys.prefix
         or hasattr(sys, "real_prefix"),
     }
 
