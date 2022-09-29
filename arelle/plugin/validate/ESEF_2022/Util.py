@@ -146,8 +146,8 @@ def checkForMultiLangDuplicates(modelXbrl):
             _factConceptContextUnitHash[f.conceptContextUnitHash].append(f)
 
     for hashEquivalentFacts in _factConceptContextUnitHash.values():
-        if len(hashEquivalentFacts) <= 1: # skip facts present only once
-            continue;
+        if len(hashEquivalentFacts) <= 1:  # skip facts present only once
+            continue
         _aspectEqualFacts = defaultdict(dict)  # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact]
         for f in hashEquivalentFacts:  # check for hash collision by value checks on context and unit
             cuDict = _aspectEqualFacts[(f.qname, (f.xmlLang or "").lower())]
