@@ -1,5 +1,4 @@
 '''
-Created on Feb 19, 2011
 
 Use this module to start Arelle in command line modes
 

@@ -1,6 +1,4 @@
 '''
-Created on January 5, 2020
-
 Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 
 @author: Workiva

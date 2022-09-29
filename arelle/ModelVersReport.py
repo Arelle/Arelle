@@ -1,6 +1,4 @@
 '''
-Created on Nov 11, 2010
-
 See COPYRIGHT.md for copyright information.
 '''
 import os, re, datetime

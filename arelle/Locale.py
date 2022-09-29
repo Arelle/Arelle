@@ -1,6 +1,4 @@
 '''
-Created on Jan 26, 2011
-
 This module is a local copy of python locale in order to allow
 passing in localconv as an argument to functions without affecting
 system-wide settings.  (The system settings can remain in 'C' locale.)

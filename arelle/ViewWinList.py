@@ -1,6 +1,4 @@
 '''
-Created on Feb 6, 2011
-
 See COPYRIGHT.md for copyright information.
 '''
 import io

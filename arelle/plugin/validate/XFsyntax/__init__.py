@@ -1,6 +1,4 @@
 '''
-Created on May 19, 2018
-
 XBRL Formula language syntax checker using ebnf parser
 
 for execution of xf formula, please instead use plug-in formulaLoader.py

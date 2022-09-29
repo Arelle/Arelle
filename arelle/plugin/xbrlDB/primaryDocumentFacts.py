@@ -1,6 +1,4 @@
 '''
-Created on Feb 21, 2014
-
 See COPYRIGHT.md for copyright information.
 
 Represents modelFacts in an (SEC) filing primary document

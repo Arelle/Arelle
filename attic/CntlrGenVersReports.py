@@ -1,6 +1,4 @@
 '''
-Created on Dec 14, 2010
-
 Use this module to start Arelle in command line non-interactive mode
 
 (This module can be a pattern for custom use of Arelle in an application.)

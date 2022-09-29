@@ -1,6 +1,4 @@
 '''
-Created on Dec 12, 2013
-
 See COPYRIGHT.md for copyright information.
 '''
 from arelle.ModelDtsObject import ModelConcept

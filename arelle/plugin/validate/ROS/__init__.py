@@ -1,6 +1,4 @@
 '''
-Created on Oct 12, 2020
-
 Filer Guidelines:
     https://www.revenue.ie/en/online-services/support/documents/ixbrl/ixbrl-technical-note.pdf
     https://www.revenue.ie/en/online-services/support/documents/ixbrl/error-messages.pdf

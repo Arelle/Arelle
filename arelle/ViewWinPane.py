@@ -1,6 +1,4 @@
 '''
-Created on Apr 5, 2015
-
 @author: Acsone S. A.
 See COPYRIGHT.md for copyright information.
 '''

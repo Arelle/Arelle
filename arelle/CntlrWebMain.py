@@ -1,6 +1,4 @@
 '''
-Created on Oct 3, 2010
-
 Use this module to start Arelle in web server mode
 
 See COPYRIGHT.md for copyright information.

@@ -1,5 +1,4 @@
 '''
-Created on May 14,2012
 
 Use this module to start Arelle in py.test modes
 

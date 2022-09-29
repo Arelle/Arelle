@@ -1,6 +1,4 @@
 '''
-Created on Oct 17, 2010
-
 See COPYRIGHT.md for copyright information.
 '''
 import os, sys, traceback, re

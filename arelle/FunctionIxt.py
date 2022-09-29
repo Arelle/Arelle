@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Created on July 5, 2011
-
 See COPYRIGHT.md for copyright information.
 '''
 import regex as re

@@ -1,6 +1,4 @@
 '''
-Created on May 12, 2011
-
 See COPYRIGHT.md for copyright information.
 '''
 from arelle import (ViewWinGrid, )

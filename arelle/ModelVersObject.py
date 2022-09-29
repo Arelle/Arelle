@@ -1,6 +1,4 @@
 '''
-Created on Nov 9, 2010
-
 See COPYRIGHT.md for copyright information.
 '''
 from arelle import XmlUtil, XbrlConst

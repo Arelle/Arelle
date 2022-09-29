@@ -1,6 +1,4 @@
 '''
-Created on Apr 5, 2013
-
 See COPYRIGHT.md for copyright information.
 '''
 from arelle import ModelDocument, ViewFile

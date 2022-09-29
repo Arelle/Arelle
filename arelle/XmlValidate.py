@@ -1,6 +1,4 @@
 '''
-Created on Feb 20, 2011
-
 See COPYRIGHT.md for copyright information.
 '''
 import os, logging

@@ -1,6 +1,4 @@
 '''
-Created on Oct 20, 2010
-
 See COPYRIGHT.md for copyright information.
 '''
 from tkinter import Toplevel, StringVar, VERTICAL, HORIZONTAL, N, S, E, W, messagebox

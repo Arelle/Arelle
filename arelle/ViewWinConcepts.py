@@ -1,6 +1,4 @@
 '''
-Created on Oct 5, 2010
-
 See COPYRIGHT.md for copyright information.
 '''
 from arelle import ViewWinTree, XbrlConst

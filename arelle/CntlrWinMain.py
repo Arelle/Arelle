@@ -1,6 +1,4 @@
 '''
-Created on Oct 3, 2010
-
 This module is Arelle's controller in windowing interactive UI mode
 
 See COPYRIGHT.md for copyright information.

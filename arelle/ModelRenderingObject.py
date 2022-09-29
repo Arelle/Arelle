@@ -1,6 +1,4 @@
 '''
-Created on Mar 7, 2011
-
 See COPYRIGHT.md for copyright information.
 '''
 import inspect, os

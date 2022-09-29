@@ -1,7 +1,4 @@
 '''
-Created on Oct 5, 2010
-Refactored on Jun 11, 2011 to ModelDtsObject, ModelInstanceObject, ModelTestcaseObject
-
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations

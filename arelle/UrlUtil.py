@@ -1,6 +1,4 @@
 '''
-Created on Oct 22, 2010
-
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations

@@ -1,6 +1,4 @@
 '''
-Created on Oct 10, 2010
-
 See COPYRIGHT.md for copyright information.
 '''
 from tkinter import Toplevel, PhotoImage, N, S, E, W, EW, NW

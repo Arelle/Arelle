@@ -1,6 +1,4 @@
 '''
-Created on Dec 31, 2010
-
 See COPYRIGHT.md for copyright information.
 '''
 import xml.dom, datetime

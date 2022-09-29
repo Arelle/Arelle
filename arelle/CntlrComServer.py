@@ -1,6 +1,4 @@
 '''
-Created on Nov 28, 2011
-
 This module is Arelle's COM server controller
 
 (This module can be a pattern for custom integration of Arelle into an application.

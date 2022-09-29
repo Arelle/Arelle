@@ -1,6 +1,4 @@
 '''
-Created on June 7, 2018
-
 See COPYRIGHT.md for copyright information.
 
 Template crypt module using AES CBC mode.

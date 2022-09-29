@@ -1,6 +1,4 @@
 '''
-Created on Feb 19, 2011
-
 Use this module to start Arelle in windowing interactive UI or command line modes
 
 If no arguments, start in GUI mode

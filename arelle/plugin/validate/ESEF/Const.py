@@ -1,6 +1,4 @@
 '''
-Created on June 6, 2018
-
 Filer Guidelines: esma32-60-254_esef_reporting_manual.pdf
 
 

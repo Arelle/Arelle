@@ -1,6 +1,4 @@
 '''
-Created on Aug 26, 2012
-
 See COPYRIGHT.md for copyright information.
 '''
 import os, time, io, ast, sys, traceback

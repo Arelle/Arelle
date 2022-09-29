@@ -1,7 +1,4 @@
 """
-Created on May 28, 2011
-
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 
 This module emits the version.py file contents which are used in the

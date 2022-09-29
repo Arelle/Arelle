@@ -1,6 +1,4 @@
 '''
-Created on Feb 15, 2012
-
 See COPYRIGHT.md for copyright information.
 '''
 from collections import defaultdict

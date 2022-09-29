@@ -1,6 +1,4 @@
 '''
-Created on Feb 1, 2019
-
 See COPYRIGHT.md for copyright information.
 
 This plugin allows GUI and command line users to test transforms.

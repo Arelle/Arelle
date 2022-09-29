@@ -1,6 +1,4 @@
 '''
-Created on Jan 8, 2019
-
 See COPYRIGHT.md for copyright information.
 '''
 

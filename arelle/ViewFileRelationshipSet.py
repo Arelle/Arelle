@@ -1,6 +1,4 @@
 '''
-Created on Oct 6, 2010
-
 See COPYRIGHT.md for copyright information.
 '''
 from arelle import ModelObject, ModelDtsObject, XbrlConst, XmlUtil, ViewFile

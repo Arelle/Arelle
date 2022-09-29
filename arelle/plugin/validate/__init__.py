@@ -1,6 +1,4 @@
 '''
-Created on Nov. 14, 2015
-
 See COPYRIGHT.md for copyright information.
 
 This module is provided as a "loader" for all the validation modules, and can be specified

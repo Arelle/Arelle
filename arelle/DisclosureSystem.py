@@ -1,6 +1,4 @@
 '''
-Created on Dec 16, 2010
-
 See COPYRIGHT.md for copyright information.
 '''
 import os, re, logging, json

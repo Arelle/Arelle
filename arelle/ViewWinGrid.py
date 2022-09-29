@@ -1,6 +1,4 @@
 '''
-Created on Oct 9, 2010
-
 See COPYRIGHT.md for copyright information.
 '''
 

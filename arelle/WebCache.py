@@ -1,6 +1,4 @@
 '''
-Created on Oct 5, 2010
-
 See COPYRIGHT.md for copyright information.
 
 For SEC EDGAR data access see: https://www.sec.gov/os/accessing-edgar-data

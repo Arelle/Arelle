@@ -1,6 +1,4 @@
 '''
-Created on June 6, 2018
-
 Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 
 

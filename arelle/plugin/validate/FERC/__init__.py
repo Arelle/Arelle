@@ -1,6 +1,4 @@
 '''
-Created on Jul 5, 2021
-
 Filer Guidelines:
     Basically EFM 5.2.2.1, 5.2.2.6,  5.2.2.10,  5.2.5.4, 5.2.5.5(Inline XBRL), 5.2.5.6(Inline XBRL),
                   5.2.5.7, 5.2.5.8, 5.2.5.9, 5.2.5.10,

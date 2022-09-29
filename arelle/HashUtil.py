@@ -1,6 +1,4 @@
 '''
-Created on Nov 8, 2014
-
 See COPYRIGHT.md for copyright information.
 '''
 from hashlib import md5

@@ -1,6 +1,4 @@
 '''
-Created on Oct 05, 2012
-
 See COPYRIGHT.md for copyright information.
 '''
 import regex as re

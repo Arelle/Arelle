@@ -1,6 +1,4 @@
 '''
-Created on Jan 19, 2012
-
 This module implements Quick Books server mode
 
 See COPYRIGHT.md for copyright information.

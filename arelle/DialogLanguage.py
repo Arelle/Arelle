@@ -1,6 +1,4 @@
 '''
-Created on Apr 7, 2012
-
 See COPYRIGHT.md for copyright information.
 '''
 import os

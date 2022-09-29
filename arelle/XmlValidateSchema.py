@@ -1,6 +1,4 @@
 '''
-Created on Apr 10, 2013
-
 See COPYRIGHT.md for copyright information.
 '''
 import time

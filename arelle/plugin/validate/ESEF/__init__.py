@@ -1,6 +1,4 @@
 '''
-Created on June 6, 2018
-
 Filer Guidelines:
   RTS: https://eur-lex.europa.eu/legal-content/EN/TXT/?qid=1563538104990&uri=CELEX:32019R0815
   ESEF Filer Manual https://www.esma.europa.eu/sites/default/files/library/esma32-60-254_esef_reporting_manual.pdf

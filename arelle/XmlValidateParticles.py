@@ -1,6 +1,4 @@
 '''
-Created on Jan 20, 2012
-
 See COPYRIGHT.md for copyright information.
 '''
 from lxml import etree

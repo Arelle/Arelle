@@ -1,6 +1,4 @@
 '''
-Created on Mar 09, 2011
-
 See COPYRIGHT.md for copyright information.
 '''
 from tkinter import *

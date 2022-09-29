@@ -1,6 +1,4 @@
 """
-Created on Sep 24, 2022
-
 See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations

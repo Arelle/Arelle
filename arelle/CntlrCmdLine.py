@@ -1,6 +1,4 @@
 '''
-Created on Oct 3, 2010
-
 This module is Arelle's controller in command line non-interactive mode
 
 (This module can be a pattern for custom integration of Arelle into an application.)

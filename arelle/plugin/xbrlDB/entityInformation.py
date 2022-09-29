@@ -1,6 +1,4 @@
 '''
-Created on May 18, 2014
-
 See COPYRIGHT.md for copyright information.
 
 Provides entity information for an (SEC) filing including supplemental SGML document

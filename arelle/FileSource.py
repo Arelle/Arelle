@@ -1,6 +1,4 @@
 '''
-Created on Oct 20, 2010
-
 See COPYRIGHT.md for copyright information.
 '''
 import zipfile, tarfile, os, io, errno, base64, gzip, zlib, re, struct, random, time

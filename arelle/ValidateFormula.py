@@ -1,6 +1,4 @@
 '''
-Created on Dec 9, 2010
-
 See COPYRIGHT.md for copyright information.
 '''
 import os, sys, time, logging, re

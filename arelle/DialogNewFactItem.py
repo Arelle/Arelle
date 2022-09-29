@@ -1,6 +1,4 @@
 '''
-Created on Nov 28, 2011
-
 See COPYRIGHT.md for copyright information.
 '''
 from tkinter import Toplevel, N, S, E, W, messagebox
