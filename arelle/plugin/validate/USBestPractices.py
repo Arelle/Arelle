@@ -1,3 +1,7 @@
+'''
+See COPYRIGHT.md for copyright information.
+'''
+
 # changed from reporting locs to reporting relationships: HF 2020-06-23
 
 from arelle import PluginManager

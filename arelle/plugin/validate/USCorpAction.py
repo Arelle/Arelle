@@ -1,3 +1,7 @@
+'''
+See COPYRIGHT.md for copyright information.
+'''
+
 from arelle.ModelValue import qname
 from arelle.XmlValidate import VALID
 import time

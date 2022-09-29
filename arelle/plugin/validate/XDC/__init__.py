@@ -1,7 +1,5 @@
 '''
 See COPYRIGHT.md for copyright information.
-
-
 '''
 import os
 from arelle import ModelDocument, XbrlConst

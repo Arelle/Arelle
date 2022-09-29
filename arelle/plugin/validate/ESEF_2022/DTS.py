@@ -7,8 +7,7 @@ Taxonomy Architecture:
 
 Taxonomy package expected to be installed:
 
-@author: Workiva
-(c) Copyright 2022 Workiva, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import unicodedata

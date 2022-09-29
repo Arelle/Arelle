@@ -1,4 +1,6 @@
-
+'''
+See COPYRIGHT.md for copyright information.
+'''
 import Cntlr, ModelManager, FileSource, time
 from optparse import OptionParser
 import cProfile

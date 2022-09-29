@@ -1,4 +1,7 @@
-"""Type hints for Arelle."""
+"""
+See COPYRIGHT.md for copyright information.
+Type hints for Arelle.
+"""
 from __future__ import annotations
 from collections.abc import Callable
 from typing import TypedDict

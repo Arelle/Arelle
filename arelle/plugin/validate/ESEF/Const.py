@@ -1,10 +1,7 @@
 '''
 Filer Guidelines: esma32-60-254_esef_reporting_manual.pdf
 
-
-
-@author: Workiva
-(c) Copyright 2022 Workiva, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import regex as re

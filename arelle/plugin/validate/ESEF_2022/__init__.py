@@ -9,8 +9,7 @@ Taxonomy Architecture:
 
 Taxonomy package expected to be installed:
 
-@author: Workiva
-(c) Copyright 2022 Workiva, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 GUI operation
 

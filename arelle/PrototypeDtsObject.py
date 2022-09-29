@@ -1,3 +1,6 @@
+'''
+See COPYRIGHT.md for copyright information.
+'''
 from arelle import XmlUtil, XbrlConst
 from arelle.ModelValue import QName
 from arelle.XmlValidate import VALID

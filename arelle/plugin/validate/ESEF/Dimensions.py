@@ -1,7 +1,6 @@
 '''
 Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 
-
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations

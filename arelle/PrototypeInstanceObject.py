@@ -1,4 +1,6 @@
-
+'''
+See COPYRIGHT.md for copyright information.
+'''
 from arelle import XmlUtil
 from arelle.ModelValue import QName
 from arelle.ModelObject import ModelObject

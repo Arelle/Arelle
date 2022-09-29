@@ -1,6 +1,5 @@
 '''
 See COPYRIGHT.md for copyright information.
-
 '''
 import os, threading, time, logging
 from tkinter import Menu, BooleanVar, font as tkFont
