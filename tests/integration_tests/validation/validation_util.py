@@ -5,7 +5,7 @@ from __future__ import annotations
 import os.path
 from collections import Counter
 from pathlib import PurePosixPath
-
+import warnings
 import pytest
 from _pytest.mark.structures import ParameterSet
 
@@ -74,7 +74,7 @@ def get_test_data(
                         )
                         results.append(param)
         if test_cases_with_no_variations:
-            raise Exception(
+            warnings.warn(
                 f"Some test cases don't have any variations: {sorted(test_cases_with_no_variations)}."
             )
         test_id_frequencies = Counter(p.id for p in results)
@@ -84,14 +84,14 @@ def get_test_data(
             if count > 1
         }
         if nonunique_test_ids:
-            raise Exception(
+            warnings.warn(
                 f"Some test IDs are not unique.  Frequencies of nonunique test IDs: {nonunique_test_ids}."
             )
         nonexistent_expected_failure_ids = expected_failure_ids - set(
             test_id_frequencies
         )
         if nonexistent_expected_failure_ids:
-            raise Exception(
+            warnings.warn(
                 f"Some expected failure IDs don't match any test cases: {sorted(nonexistent_expected_failure_ids)}."
             )
         return results
