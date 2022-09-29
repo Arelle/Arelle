@@ -10,7 +10,9 @@ Filer Guidelines: https://www.esma.europa.eu/sites/default/files/library/esma32-
 from __future__ import annotations
 import os, json
 
+from arelle.ModelInstanceObject import ModelContext, ModelInlineFact, ModelUnit
 from arelle.ModelObject import ModelObject
+from arelle.ModelValue import QName
 from arelle.XmlValidate import VALID
 from .Const import esefTaxonomyNamespaceURIs
 from lxml.etree import XML, XMLSyntaxError
@@ -131,9 +133,8 @@ def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]
     return cast(Union[dict[Any, Any], list[Any]], validations)
 
 
-def checkForMultiLangDuplicates(modelXbrl):
-
-    _factConceptContextUnitHash = defaultdict(list)
+def checkForMultiLangDuplicates(modelXbrl: ModelXbrl) -> None:
+    _factConceptContextUnitHash: defaultdict[int, list[ModelInlineFact]] = defaultdict(list)
 
     for f in modelXbrl.factsInInstance:
         if (
@@ -148,7 +149,7 @@ def checkForMultiLangDuplicates(modelXbrl):
     for hashEquivalentFacts in _factConceptContextUnitHash.values():
         if len(hashEquivalentFacts) <= 1:  # skip facts present only once
             continue
-        _aspectEqualFacts = defaultdict(dict)  # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact]
+        _aspectEqualFacts: defaultdict[tuple[QName, str], dict[tuple[ModelContext, ModelUnit | None], list[ModelInlineFact]]] = defaultdict(dict)
         for f in hashEquivalentFacts:  # check for hash collision by value checks on context and unit
             cuDict = _aspectEqualFacts[(f.qname, (f.xmlLang or "").lower())]
             _matched = False
