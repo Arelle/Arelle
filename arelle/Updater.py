@@ -30,6 +30,9 @@ _MESSAGE_HEADER = "arelle\u2122 - Updater"
 _ISO_DATE_PATTERN = regex.compile(
     r"(?P<date>(?P<year>[0-9]{4})-(?P<month>0[1-9]|1[0-2])-(?P<day>0[1-9]|[12][0-9]|3[01]))"
 )
+_SEMVER_PATTERN = regex.compile(
+    r"(?P<semver>(?P<major>[0-9]+)\.(?P<minor>[0-9]+)\.(?P<patch>[0-9]+))"
+)
 
 
 class ArelleVersioningScheme(enum.IntEnum):
@@ -134,11 +137,19 @@ def _checkUpdateUrl(cntlr: CntlrWinMain, attachmentFileName: str) -> None:
         )
 
 
-def _parseVersion(versionStr: str) -> datetime.date:
-    versionDateMatch = _ISO_DATE_PATTERN.search(versionStr)
-    if versionDateMatch is None:
-        raise ValueError(f"Unable to parse version date from {versionStr}")
-    return datetime.date.fromisoformat(versionDateMatch.group("date"))
+def _parseVersion(versionStr: str) -> ArelleVersion:
+    dateMatch = _ISO_DATE_PATTERN.search(versionStr)
+    if dateMatch:
+        versionDate = datetime.date.fromisoformat(dateMatch.group("date"))
+        return dateVersion(date=versionDate)
+    semverMatch = _SEMVER_PATTERN.search(versionStr)
+    if semverMatch:
+        return semverVersion(
+            major=int(semverMatch.group("major")),
+            minor=int(semverMatch.group("minor")),
+            patch=int(semverMatch.group("patch")),
+        )
+    raise ValueError(f"Unable to parse version from {versionStr}")
 
 
 def _backgroundDownload(cntlr: CntlrWinMain, attachmentFileName: str) -> None:

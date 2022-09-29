@@ -9,11 +9,17 @@ import pytest
 from arelle import Updater
 from arelle.Updater import dateVersion, semverVersion
 
-OLD_FILENAME = "arelle-macOS-2021-01-01.dmg"
-NEW_FILENAME = "arelle-macOS-2022-01-01.dmg"
+OLD_DATE_FILENAME = "arelle-macOS-2021-01-01.dmg"
+NEW_DATE_FILENAME = "arelle-macOS-2022-01-01.dmg"
 
-OLD_VERSION = "2021-01-01 12:00 UTC"
-NEW_VERSION = "2022-01-01 12:00 UTC"
+OLD_DATE_VERSION = "2021-01-01 12:00 UTC"
+NEW_DATE_VERSION = "2022-01-01 12:00 UTC"
+
+OLD_SEMVER_FILENAME = "arelle-macOS-2.0.0.dmg"
+NEW_SEMVER_FILENAME = "arelle-macOS-2.1.0.dmg"
+
+OLD_SEMVER_VERSION = "2.0.0"
+NEW_SEMVER_VERSION = "2.1.0"
 
 DOWNLOAD_URL = "https://arelle.org/download/X"
 
@@ -21,7 +27,7 @@ DOWNLOAD_URL = "https://arelle.org/download/X"
 def _mockCntlrWinMain(
     updateUrl: str | None = DOWNLOAD_URL,
     workOffline: bool = False,
-    updateFilename: str | RuntimeError | None = OLD_FILENAME,
+    updateFilename: str | RuntimeError | None = OLD_SEMVER_FILENAME,
 ):
     webCache = Mock(
         getAttachmentFilename=Mock(side_effect=[updateFilename]),
@@ -106,7 +112,7 @@ class TestUpdater:
         assert not cntlr.uiThreadQueue.empty()
         assert cntlr.uiThreadQueue.get_nowait() == (
             Updater._checkUpdateUrl,
-            [cntlr, OLD_FILENAME],
+            [cntlr, OLD_SEMVER_FILENAME],
         )
         assert cntlr.uiThreadQueue.empty()
 
@@ -149,17 +155,31 @@ class TestUpdater:
         assert showWarning.called
         assert cntlr.uiThreadQueue.empty()
 
+    @pytest.mark.parametrize(
+        "currentVersion, newFilename",
+        [
+            (OLD_DATE_VERSION, NEW_DATE_FILENAME),
+            (OLD_SEMVER_VERSION, NEW_SEMVER_FILENAME),
+            (NEW_DATE_VERSION, OLD_SEMVER_FILENAME),
+        ],
+    )
     @patch("tkinter.messagebox.showinfo")
     @patch("tkinter.messagebox.showwarning")
     @patch("tkinter.messagebox.askokcancel")
     @patch("arelle.Updater.Version")
     @patch("arelle.Updater._backgroundDownload")
     def test_check_update_url_update_user_install(
-        self, backgroundDownload, version, askokcancel, showWarning, showInfo
+        self,
+        backgroundDownload,
+        version,
+        askokcancel,
+        showWarning,
+        showInfo,
+        currentVersion,
+        newFilename,
     ):
         cntlr = _mockCntlrWinMain()
-        newFilename = NEW_FILENAME
-        version.version = OLD_VERSION
+        version.version = currentVersion
         askokcancel.return_value = True
 
         Updater._checkUpdateUrl(cntlr, newFilename)
@@ -169,17 +189,31 @@ class TestUpdater:
         assert askokcancel.called
         assert backgroundDownload.called
 
+    @pytest.mark.parametrize(
+        "currentVersion, newFilename",
+        [
+            (OLD_DATE_VERSION, NEW_DATE_FILENAME),
+            (OLD_SEMVER_VERSION, NEW_SEMVER_FILENAME),
+            (NEW_DATE_VERSION, OLD_SEMVER_FILENAME),
+        ],
+    )
     @patch("tkinter.messagebox.showinfo")
     @patch("tkinter.messagebox.showwarning")
     @patch("tkinter.messagebox.askokcancel")
     @patch("arelle.Updater.Version")
     @patch("arelle.Updater._backgroundDownload")
     def test_check_update_url_update_user_no_install(
-        self, backgroundDownload, version, askokcancel, showWarning, showInfo
+        self,
+        backgroundDownload,
+        version,
+        askokcancel,
+        showWarning,
+        showInfo,
+        currentVersion,
+        newFilename,
     ):
         cntlr = _mockCntlrWinMain()
-        newFilename = NEW_FILENAME
-        version.version = OLD_VERSION
+        version.version = currentVersion
         askokcancel.return_value = False
 
         Updater._checkUpdateUrl(cntlr, newFilename)
@@ -189,17 +223,31 @@ class TestUpdater:
         assert askokcancel.called
         assert not backgroundDownload.called
 
+    @pytest.mark.parametrize(
+        "currentVersion, newFilename",
+        [
+            (NEW_DATE_VERSION, OLD_DATE_FILENAME),
+            (NEW_SEMVER_VERSION, OLD_SEMVER_FILENAME),
+            (OLD_SEMVER_VERSION, NEW_DATE_FILENAME),
+        ],
+    )
     @patch("tkinter.messagebox.showinfo")
     @patch("tkinter.messagebox.showwarning")
     @patch("tkinter.messagebox.askokcancel")
     @patch("arelle.Updater.Version")
     @patch("arelle.Updater._backgroundDownload")
     def test_check_update_url_update_older(
-        self, backgroundDownload, version, askokcancel, showWarning, showInfo
+        self,
+        backgroundDownload,
+        version,
+        askokcancel,
+        showWarning,
+        showInfo,
+        currentVersion,
+        newFilename,
     ):
         cntlr = _mockCntlrWinMain()
-        newFilename = OLD_FILENAME
-        version.version = NEW_VERSION
+        version.version = currentVersion
 
         Updater._checkUpdateUrl(cntlr, newFilename)
 
@@ -208,17 +256,32 @@ class TestUpdater:
         assert not askokcancel.called
         assert not backgroundDownload.called
 
+    @pytest.mark.parametrize(
+        "currentVersion, newFilename",
+        [
+            (OLD_DATE_VERSION, OLD_DATE_FILENAME),
+            (OLD_SEMVER_VERSION, OLD_SEMVER_FILENAME),
+            (NEW_DATE_VERSION, NEW_DATE_FILENAME),
+            (NEW_SEMVER_VERSION, NEW_SEMVER_FILENAME),
+        ],
+    )
     @patch("tkinter.messagebox.showinfo")
     @patch("tkinter.messagebox.showwarning")
     @patch("tkinter.messagebox.askokcancel")
     @patch("arelle.Updater.Version")
     @patch("arelle.Updater._backgroundDownload")
     def test_check_update_url_update_same(
-        self, backgroundDownload, version, askokcancel, showWarning, showInfo
+        self,
+        backgroundDownload,
+        version,
+        askokcancel,
+        showWarning,
+        showInfo,
+        currentVersion,
+        newFilename,
     ):
         cntlr = _mockCntlrWinMain()
-        newFilename = NEW_FILENAME
-        version.version = NEW_VERSION
+        version.version = currentVersion
 
         Updater._checkUpdateUrl(cntlr, newFilename)
 
@@ -236,7 +299,7 @@ class TestUpdater:
         self, backgroundDownload, version, askokcancel, showWarning, showInfo
     ):
         cntlr = _mockCntlrWinMain()
-        newFilename = NEW_FILENAME
+        newFilename = NEW_SEMVER_FILENAME
         version.version = "invalid version string"
 
         Updater._checkUpdateUrl(cntlr, newFilename)
@@ -256,7 +319,7 @@ class TestUpdater:
     ):
         cntlr = _mockCntlrWinMain()
         newFilename = "filename-without-version-string"
-        version.version = OLD_VERSION
+        version.version = OLD_SEMVER_VERSION
 
         Updater._checkUpdateUrl(cntlr, newFilename)
 
@@ -269,7 +332,7 @@ class TestUpdater:
     @patch("tkinter.messagebox.showwarning")
     def test_download(self, showWarning, rename):
         cntlr = _mockCntlrWinMain(
-            updateFilename=NEW_FILENAME,
+            updateFilename=NEW_SEMVER_FILENAME,
         )
 
         Updater._download(cntlr, DOWNLOAD_URL)
@@ -298,7 +361,7 @@ class TestUpdater:
     @patch("tkinter.messagebox.showwarning")
     def test_download_process_failed(self, showWarning, rename):
         cntlr = _mockCntlrWinMain(
-            updateFilename=NEW_FILENAME,
+            updateFilename=NEW_SEMVER_FILENAME,
         )
         rename.side_effect = OSError()
 
