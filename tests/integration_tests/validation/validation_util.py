@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os.path
+import pathlib
 from collections import Counter
 from pathlib import PurePosixPath
 import warnings
@@ -53,19 +54,14 @@ def get_test_data(
                 ]
             test_cases = sorted(referenced_documents, key=lambda doc: doc.uri)
         else:
-            raise Exception(
-                "Unhandled model document type: {}".format(model_document.type)
-            )
+            raise Exception(f"Unhandled model document type: {model_document.type}")
         for test_case in test_cases:
-            path = PurePosixPath(test_case.uri)
-            test_case_path_tail = (
-                path.parts[-3:-1] if path.name == "index.xml" else path.parts[-2:]
-            )
+            file_extension = pathlib.Path(test_case.uri).suffix
             if test_case.type not in (
                 ModelDocument.Type.TESTCASE,
                 ModelDocument.Type.REGISTRYTESTCASE,
             ):
-                test_cases_with_unrecognized_type[test_case_path_tail] = test_case.type
+                test_cases_with_unrecognized_type[file_extension] = test_case.type
             if (
                 not getattr(test_case, "testcaseVariations", None)
                 and os.path.relpath(
@@ -73,15 +69,15 @@ def get_test_data(
                 )
                 not in expected_empty_testcases
             ):
-                test_cases_with_no_variations.add(test_case_path_tail)
+                test_cases_with_no_variations.add(file_extension)
             else:
                 for mv in test_case.testcaseVariations:
-                    test_id = "{}/{}".format("/".join(test_case_path_tail), mv.id)
+                    test_id = "{}/{}".format("/".join(file_extension), mv.id)
                     param = pytest.param(
                         {
-                            "status": mv.status,
-                            "expected": mv.expected,
-                            "actual": mv.actual,
+                            'status': mv.status,
+                            'expected': mv.expected,
+                            'actual': mv.actual,
                         },
                         id=test_id,
                         marks=[pytest.mark.xfail()]
@@ -105,7 +101,7 @@ def get_test_data(
         }
         if nonunique_test_ids:
             warnings.warn(
-                f"Some test IDs are not unique.  Frequencies of nonunique test IDs: {nonunique_test_ids}."
+                f"Some test IDs are not unique. Frequencies of nonunique test IDs: {nonunique_test_ids}."
             )
         nonexistent_expected_failure_ids = expected_failure_ids - set(
             test_id_frequencies
