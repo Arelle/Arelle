@@ -4,6 +4,7 @@ that will save the files of a DTS into a zip file.
 
 See COPYRIGHT.md for copyright information.
 '''
+from arelle.Version import authorLabel, copyrightLabel
 
 def package(dts):
     if dts.fileSource.isArchive:
@@ -70,7 +71,7 @@ __pluginInfo__ = {
                    "Python's zlib module is used for compression (if avaliable).",
     'license': 'Apache-2',
     'author': 'R\u00e9gis D\u00e9camps',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveDtsMenuEntender,
     'CntlrCmdLine.Options': saveDtsCommandLineOptionExtender,

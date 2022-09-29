@@ -10,6 +10,7 @@ from lxml import html
 import datetime, re, os
 from arelle import FileSource
 from arelle.ModelRssObject import ModelRssObject
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlValidate import UNVALIDATED, VALID
 
 class CompaniesHouseItem:
@@ -101,8 +102,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in loads UK Companies House XBRL documents.  ",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     # take out for now: 'CntlrCmdLine.Options': streamingOptionsExtender,
     'ModelDocument.PullLoader': companiesHouseLoader,

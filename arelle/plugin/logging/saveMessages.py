@@ -12,6 +12,7 @@ import time, os, io, sys, logging
 from arelle.Locale import format_string
 from arelle.ModelDtsObject import ModelConcept, ModelRelationship, ModelLocator
 from arelle.ModelInstanceObject import ModelFact
+from arelle.Version import authorLabel, copyrightLabel
 
 _saveMessagesFile = None
 
@@ -165,8 +166,8 @@ __pluginInfo__ = {
     'version': '1.2',
     'description': "This plug-in saves logger messages of instances for post processing.  ",
     'license': 'Apache-2 (Arelle plug-in), BSD license (pg8000 library)',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrCmdLine.Options': saveMsgsCommandLineOptionExtender,
     'CntlrCmdLine.Utility.Run': saveMsgsLoaderSetup,

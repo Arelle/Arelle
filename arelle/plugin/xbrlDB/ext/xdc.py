@@ -42,6 +42,7 @@ note that reference parts are needed at least on first "loading" of the DTS
 '''
 import os
 from arelle.UrlUtil import ensureUrl
+from arelle.Version import authorLabel, copyrightLabel
 
 EXT_XDC_TABLES = {
                 "xdc_user",
@@ -166,8 +167,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': "This plug-in implements additional database fields for Changhong XDC.  ",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     'import': ('xbrlDB', ), # import dependent modules
     'xbrlDB.Open.Ext.TableDDLFiles': extXdcTableDdlFiles,
     'xbrlDB.Open.Ext.Metadata': extXdcMetadata,

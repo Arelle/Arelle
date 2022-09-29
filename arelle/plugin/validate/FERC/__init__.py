@@ -12,6 +12,7 @@ from arelle import ModelDocument, ValidateFilingText, XmlUtil
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import xbrli, xhtml
 from arelle.XmlValidate import VALID
 
@@ -208,8 +209,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': '''FERC (US) Validation.''',
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     'import': ('inlineXbrlDocumentSet', ), # import dependent modules
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,

@@ -4,6 +4,7 @@ that will save the concepts a DTS into an RDF file.
 
 See COPYRIGHT.md for copyright information.
 '''
+from arelle.Version import authorLabel, copyrightLabel
 
 def generateSkos(dts, skosFile):
     try:
@@ -217,8 +218,8 @@ __pluginInfo__ = {
     'description': "This plug-in adds a feature to output the taxonomy in a SKOS OWL file. "
                    "This provides a semantic definition of taxonomy contents.",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveSkosMenuEntender,
     'CntlrCmdLine.Options': saveSkosCommandLineOptionExtender,

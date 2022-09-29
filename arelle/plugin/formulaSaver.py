@@ -29,6 +29,7 @@ from arelle.ModelFormulaObject import (ModelValueAssertion, ModelExistenceAssert
                                        ModelPeriod,
                                        ModelAndFilter, ModelOrFilter, ModelMessage, ModelAssertionSeverity)
 from arelle import XbrlConst, XmlUtil, XPathParser
+from arelle.Version import authorLabel, copyrightLabel
 import os, datetime
 
 class NotExportable(Exception):
@@ -513,8 +514,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in adds a feature to output XBRL Formula file from formula linkbase model objects. ",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveXfMenuEntender,
     'CntlrCmdLine.Options': saveXfCommandLineOptionExtender,

@@ -9,6 +9,7 @@ See COPYRIGHT.md for copyright information.
 '''
 
 import os
+from arelle.Version import authorLabel, copyrightLabel
 
 
 # interfaces for Arelle plugin operation
@@ -55,8 +56,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': '''XBRL Formula XF Syntax Validation only, not execution of formulae.''',
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'ModelDocument.IsPullLoadable': isXfLoadable,
     'ModelDocument.PullLoader': xfLoader,

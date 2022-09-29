@@ -4,6 +4,7 @@ that updates a table linkbase from Eurofiling 2010 syntax to XII 2011 PWD syntax
 
 See COPYRIGHT.md for copyright information.
 '''
+from arelle.Version import authorLabel, copyrightLabel
 
 def generateUpdatedTableLB(dts, updatedTableLinkbaseFile):
     import os, io
@@ -232,8 +233,8 @@ __pluginInfo__ = {
                    "The updated linkbase is saved to a local file.  "
                    "Hrefs in the new file are identical the prior hrefs (not offset considering save-to directory).  ",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': updateTableLBMenuEntender,
     'CntlrCmdLine.Options': updateTableLBCommandLineOptionExtender,

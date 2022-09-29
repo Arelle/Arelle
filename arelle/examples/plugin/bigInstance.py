@@ -14,6 +14,7 @@ from arelle.ModelDocument import ModelDocument, Type
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
+from arelle.Version import authorLabel, copyrightLabel
 
 class NotInstanceDocumentException(Exception):
     def __init__(self):
@@ -386,8 +387,8 @@ __pluginInfo__ = {
     'description': "This plug-in loads big XBRL instances without building a DOM in memory.  "
                     "SAX parses XBRL directly into an object model without a DOM.  ",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'ModelDocument.CustomLoader': bigInstLoader,
 }

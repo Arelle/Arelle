@@ -18,6 +18,7 @@ Mark V Systems conveys neither rights nor license for the Sphinx language.
 import time, os, io, sys
 from arelle.ModelValue import qname
 from arelle import XmlUtil
+from arelle.Version import authorLabel, copyrightLabel
 
 logMessage = None
 
@@ -262,8 +263,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in provides a Sphinx 2.0 processor and a compiler (of a limited subset of Sphinx) into formula linkbase.  ",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'ModelObjectFactory.ElementSubstitutionClasses': sphinxModelObjectElementSubstitutionClasses,
     'CntlrWinMain.Menu.File.Open': sphinxFilesOpenMenuEntender,

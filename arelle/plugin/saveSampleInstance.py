@@ -34,6 +34,7 @@ from arelle import Locale, XbrlConst, ModelXbrl, XmlUtil
 from arelle.ModelValue import qname
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ValidateXbrlDimensions import loadDimensionDefaults
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import conceptLabel, conceptReference, qnXsiNil
 from lxml import etree
 try:
@@ -460,8 +461,8 @@ __pluginInfo__ = {
     'description': "This plug-in saves a sample instance from a us-gaap style DTS. "
                    "It uses an ELR's LineItems to control output facts.",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveSampleInstanceMenuEntender,
     'CntlrCmdLine.Options': saveSampleInstanceCommandLineOptionExtender,

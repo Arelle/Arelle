@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 import os
 from arelle import ModelDocument, XbrlConst
+from arelle.Version import authorLabel, copyrightLabel
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
@@ -65,8 +66,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': '''XDC Validation.''',
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,

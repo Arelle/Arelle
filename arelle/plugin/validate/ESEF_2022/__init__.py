@@ -54,6 +54,7 @@ from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import qname
 from arelle.PackageManager import validateTaxonomyPackage
 from arelle.PythonUtil import strTruncate, normalizeSpace
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.UrlUtil import isHttpUrl, scheme
 from arelle.XmlValidate import lexicalPatterns
 
@@ -1206,8 +1207,8 @@ __pluginInfo__ = {
     'version': '1.2022.00',
     'description': '''ESMA ESEF-2022 Filer Manual and RTS Validations.''',
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     'ModelDocument.PullLoader': modelXbrlBeforeLoading,
     'import': ('inlineXbrlDocumentSet', ), # import dependent modules
     # classes of mount points (required)

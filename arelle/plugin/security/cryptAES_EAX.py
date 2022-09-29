@@ -32,6 +32,7 @@ Customize method of detecting an encrypted file.  This example appends "~" to di
 '''
 import os, io, base64
 from arelle import FileSource, XmlUtil
+from arelle.Version import authorLabel, copyrightLabel
 AES = None  # Cipher.Crypto AES is only imported if an encrypted input is noticed
 
 ENCRYPTED_FILE_SUFFIX = "~" # appended to any file which has been encrypted
@@ -113,8 +114,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': '''AES_EAX security encryption''',
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'Security.Crypt.Init': securityInit,
     'Security.Crypt.Filing.Start': securityFilingStart,

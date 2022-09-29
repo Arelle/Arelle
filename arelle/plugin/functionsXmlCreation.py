@@ -9,6 +9,7 @@ from arelle import XPathContext, XbrlUtil
 from arelle.ModelValue import qname, QName
 from arelle.ModelInstanceObject import ModelDimensionValue, XmlUtil
 from arelle.FunctionUtil import qnameArg, nodeArg, atomicArg
+from arelle.Version import authorLabel, copyrightLabel
 from arelle import XmlValidate
 from lxml import etree
 
@@ -97,8 +98,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': "This plug-in adds a custom function to create xml elements, such as for typed dimensions, implemented by a plug-in.  ",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'Formula.CustomFunctions': xfxcFunctions,
 }

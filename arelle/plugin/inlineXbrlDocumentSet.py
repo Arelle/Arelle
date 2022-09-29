@@ -41,6 +41,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import attrdict
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateFilingText import CDATApattern
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence, xmlnsprefix, setXmlns
 import os, zipfile, re
 from optparse import SUPPRESS_HELP
@@ -621,8 +622,8 @@ __pluginInfo__ = {
                     " and to save the embedded XBRL instance document.  "
                     "Support single target instance documents in a single document set.  ",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'InlineDocumentSet.Discovery': inlineDocsetDiscovery,
     'InlineDocumentSet.Url.Separator': inlineDocsetUrlSeparator,

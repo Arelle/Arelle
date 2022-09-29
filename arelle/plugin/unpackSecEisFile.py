@@ -4,6 +4,7 @@ that will save the unpacked contents of an SEC EIS File in a directory.
 
 See COPYRIGHT.md for copyright information.
 '''
+from arelle.Version import authorLabel, copyrightLabel
 
 def unpackEIS(cntlr, eisFile, unpackToDir):
     from arelle.FileSource import openFileSource
@@ -54,8 +55,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in unpacks the contents of an SEC EIS file.",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': unpackSecEisMenuEntender,
 }

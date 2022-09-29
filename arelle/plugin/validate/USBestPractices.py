@@ -7,6 +7,7 @@ See COPYRIGHT.md for copyright information.
 from arelle import PluginManager
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelValue import qname
+from arelle.Version import copyrightLabel
 from arelle.XmlValidate import UNVALIDATED, VALID
 from arelle import Locale, ModelXbrl, XbrlConst
 from arelle.FileSource import openFileSource, openFileStream, saveFile
@@ -559,7 +560,7 @@ __pluginInfo__ = {
     'description': '''XBRL-US Best Practice Guidance Validation.''',
     'license': 'Apache-2',
     'author': 'Ewe S. Gap',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'Validate.EFM.Start': setup,
     'Validate.EFM.Fact': factCheck,

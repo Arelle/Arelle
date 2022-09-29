@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 import os
 from arelle import ModelDocument, ModelValue, XmlUtil
 from arelle.ModelValue import qname
+from arelle.Version import authorLabel, copyrightLabel
 import regex as re
 from collections import defaultdict
 from .CustomLoader import checkForBOMs
@@ -61,8 +62,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': '''SBR NL Validation.''',
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,

@@ -20,6 +20,7 @@ When run from GUI first load the instance/DTS and then import the xf file(s).
 '''
 
 import time, sys, traceback, os, io, os.path, re, zipfile
+from arelle.Version import authorLabel, copyrightLabel
 from lxml import etree
 
 # Debugging flag can be set to either "debug_flag=True" or "debug_flag=False"
@@ -2154,8 +2155,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in loads XBRL formula files into formula linkbase.  ",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'ModelDocument.IsPullLoadable': isXfLoadable,
     'ModelDocument.PullLoader': xfLoader,

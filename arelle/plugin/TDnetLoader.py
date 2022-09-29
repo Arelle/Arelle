@@ -11,6 +11,7 @@ from lxml import html
 import datetime, re, os
 from arelle import FileSource
 from arelle.ModelRssObject import ModelRssObject
+from arelle.Version import authorLabel, copyrightLabel
 
 class TDnetItem:
     def __init__(self, modelXbrl, date, dateTime, filingCode, companyName,
@@ -197,8 +198,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in loads Tokyo Stock Exchange Timely Disclosure Network XBRL documents.  ",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     # take out for now: 'CntlrCmdLine.Options': streamingOptionsExtender,
     'ModelDocument.PullLoader': tdNetLoader,

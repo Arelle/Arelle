@@ -3,6 +3,7 @@ pluginPackages test case
 
 See COPYRIGHT.md for copyright information.
 '''
+from arelle.Version import authorLabel, copyrightLabel
 
 def foo():
     print ("imported unpackaged plug-in child 2")
@@ -12,8 +13,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This is a unpackaged child plugin.",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'Import.Unpackaged.Entry3': foo,
     # import plugins

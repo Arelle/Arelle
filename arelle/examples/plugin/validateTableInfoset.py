@@ -5,6 +5,7 @@ generate vs diff table linkbase infoset files.
 
 See COPYRIGHT.md for copyright information.
 '''
+from arelle.Version import authorLabel, copyrightLabel
 
 def validateTableInfosetMenuEntender(cntlr, validateMenu):
     # Extend menu with an item for the save infoset plugin
@@ -41,8 +42,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in adds a feature modify batch validation of table linkbase to save, versus diff, infoset files.  ",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Validation': validateTableInfosetMenuEntender,
     'CntlrCmdLine.Options': validateTableInfosetCommandLineOptionExtender,

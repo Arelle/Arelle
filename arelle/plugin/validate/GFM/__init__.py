@@ -6,6 +6,7 @@ from arelle import ModelDocument, ModelValue, XmlUtil
 from arelle.ModelValue import qname
 from arelle.plugin.validate.EFM.Document import checkDTSdocument
 from arelle.plugin.validate.EFM.Filing import validateFiling
+from arelle.Version import authorLabel, copyrightLabel
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
@@ -47,8 +48,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': '''GFM Validation.''',
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,

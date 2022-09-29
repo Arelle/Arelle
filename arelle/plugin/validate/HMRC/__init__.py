@@ -14,6 +14,7 @@ from math import isnan
 from arelle import ModelDocument, XmlUtil
 from arelle.ModelValue import qname, dateTime, DATE
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue, insignificantDigits
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import xbrli, qnXbrliXbrl
 import regex as re
 from collections import defaultdict
@@ -469,8 +470,8 @@ __pluginInfo__ = {
     'version': '4.0',
     'description': '''HMRC Validation. JFCVC v4.0 2020-06-09.  Style guide v2.2''',
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,

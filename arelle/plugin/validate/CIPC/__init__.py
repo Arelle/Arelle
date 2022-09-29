@@ -14,6 +14,7 @@ from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import ixbrlAll, xhtml
 from .Const import cpicModules # , mandatoryElements
 
@@ -223,8 +224,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': '''CIPC (South Africa) Validation.''',
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,

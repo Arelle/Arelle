@@ -3,6 +3,8 @@ Crash test is a plug in to cause an uncaught exception to test its recover
 
 See COPYRIGHT.md for copyright information.
 '''
+from arelle.Version import authorLabel, copyrightLabel
+
 def crashMenuEntender(cntlr, menu):
     menu.add_command(label="Crash now!!!", underline=0, command=lambda: crashMenuCommand(cntlr) )
 
@@ -27,8 +29,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "Used to test that uncaught exceptions report their cause to the Arelle user.",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': crashMenuEntender,
     'CntlrCmdLine.Options': crashCommandLineOptionExtender,

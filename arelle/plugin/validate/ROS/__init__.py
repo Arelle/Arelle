@@ -15,6 +15,7 @@ from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelValue import qname
 from arelle.PythonUtil import strTruncate
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import qnXbrliXbrl, xhtml
 from arelle.XmlValidate import VALID
 
@@ -359,8 +360,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': '''ROS (Ireland) Validation.''',
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     'import': ('inlineXbrlDocumentSet', ), # import dependent modules
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,

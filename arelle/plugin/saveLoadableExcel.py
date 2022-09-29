@@ -6,8 +6,9 @@ input and optionally save an (extension) DTS.
 See COPYRIGHT.md for copyright information.
 '''
 import os, io, time, re
-from collections import defaultdict
 from arelle import XbrlConst
+from arelle.Version import authorLabel, copyrightLabel
+from collections import defaultdict
 
 headerWidths = {
         "label": 40,
@@ -450,8 +451,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in saves XBRL in Excel that can be loaded as an extension DTS.",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveLoadableExcelMenuEntender,
     'CntlrCmdLine.Options': saveLoadableExcelCommandLineOptionExtender,

@@ -25,6 +25,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
 from arelle.PluginManager import pluginClassMethods
 from arelle.Validate import Validate
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.HashUtil import md5hash, Md5Sum
 
 _streamingExtensionsCheck = True  # check streaming if enabled except for CmdLine, then only when requested
@@ -840,8 +841,8 @@ __pluginInfo__ = {
     'description': "This plug-in loads big XBRL instances without building a DOM in memory.  "
                     "lxml iterparse parses XBRL directly into an object model without a DOM.  ",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     # take out for now: 'CntlrCmdLine.Options': streamingOptionsExtender,
     'CntlrCmdLine.Utility.Run': streamingExtensionsSetup,

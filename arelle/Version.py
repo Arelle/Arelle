@@ -39,4 +39,5 @@ def getVersion() -> str:
 
 __version__ = getVersion()
 version = __version__
-copyrightLatestYear = datetime.now().year
+authorLabel = 'Workiva, Inc.'
+copyrightLabel = '(c) Copyright 2011-present Workiva, Inc., All rights reserved.'

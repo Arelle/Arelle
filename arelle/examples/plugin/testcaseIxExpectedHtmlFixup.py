@@ -8,6 +8,7 @@ See COPYRIGHT.md for copyright information.
 '''
 import regex as re
 from arelle.ModelDocument import Type
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XhtmlValidate import htmlEltUriAttrs, resolveHtmlUri
 
 def variationInstanceLoaded(testcaseInstance, variationInstance, extraErrors, inputDTSes, *args, **kwargs):
@@ -36,8 +37,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in removes xxx.  ",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'TestcaseVariation.Validated': variationInstanceLoaded,
     'TestcaseVariation.ExpectedInstance.Loaded': expectedInstanceLoaded,

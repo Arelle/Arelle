@@ -5,6 +5,7 @@ are written for Arelle
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import print_function
+from arelle.Version import authorLabel, copyrightLabel
 from random import randint
 
 
@@ -55,7 +56,7 @@ __pluginInfo__ = {
                     "see a lyric from Hello, Dolly.",
     'license': 'Apache-2',
     'author': 'R\xe9gis D\xce9camps',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': helloMenuEntender,
     'CntlrCmdLine.Options': helloCommandLineOptionExtender,

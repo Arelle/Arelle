@@ -40,6 +40,7 @@ from arelle.XPathContext import (XPathException, VALUE_OPS, GENERALCOMPARISON_OP
                                  COMBINING_OPS, LOGICAL_OPS, UNARY_OPS, FORSOMEEVERY_OPS, PATH_OPS,
                                  SEQUENCE_TYPES, GREGORIAN_TYPES)
 from arelle import FileSource, PackageManager, XbrlConst, XmlUtil, XPathParser, ValidateXbrlDimensions, ValidateFormula
+from arelle.Version import authorLabel, copyrightLabel
 import os, datetime, logging
 
 FNs_BLOCKED = ("doc", "doc-available", "collection", "element-with-id")
@@ -312,8 +313,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in checks for restricted XPath in formula expressions. ",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrCmdLine.Options': checkFormulaXPathCommandLineOptionExtender,
     'CntlrCmdLine.Utility.Run': validateUtilityRun,

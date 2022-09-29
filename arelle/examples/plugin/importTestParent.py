@@ -4,6 +4,7 @@ pluginPackages test case
 See COPYRIGHT.md for copyright information.
 '''
 from arelle.PluginManager import pluginClassMethods
+from arelle.Version import authorLabel, copyrightLabel
 # . relative import only works inside a package now, see https://www.python.org/dev/peps/pep-0366/
 # following two imports raise system error due to PEP 366 after python 3.4.3
 # from . import importTestImported1
@@ -35,8 +36,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This is a imports-containing unpackaged parent plugin.",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': parentMenuEntender,
     'CntlrCmdLine.Options': parentCommandLineOptionExtender,

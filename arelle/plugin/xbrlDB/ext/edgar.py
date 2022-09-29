@@ -11,6 +11,7 @@ to use from command line:
 import os, time
 from arelle.ModelDocument import Type
 from arelle.UrlUtil import authority
+from arelle.Version import authorLabel, copyrightLabel
 
 EXT_EDGAR_TABLES = {
                 "filing_edgar", "report_edgar",
@@ -220,8 +221,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': "This plug-in implements additional database fields for U.S. SEC EDGAR.  ",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     'import': ('xbrlDB', ), # import dependent modules
     # classes of mount points (required)
     'xbrlDB.Open.Ext.TableDDLFiles': extEdgarTableDdlFiles,

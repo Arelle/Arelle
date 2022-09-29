@@ -4,6 +4,7 @@ are written for Arelle
 
 See COPYRIGHT.md for copyright information.
 '''
+from arelle.Version import authorLabel, copyrightLabel
 
 def menuEntender(cntlr, menu):
     menu.add_command(label="Hello i18n", underline=0, command=lambda: menuCommand(cntlr) )
@@ -25,7 +26,7 @@ __pluginInfo__ = {
     'localeDomain': 'hello_i18n',
     'license': 'Apache-2',
     'author': 'R\u00e9gis D\u00e9camps',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': menuEntender
 }

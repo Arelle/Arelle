@@ -325,8 +325,8 @@ __pluginInfo__ = {
     'description': "This plug-in loads big XBRL instances without building a DOM in memory.  "
                     "lxml iterparse parses XBRL directly into an object model without a DOM.  ",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrCmdLine.Options': streamingOptionsExtender,
     'CntlrCmdLine.Utility.Run': streamingExtensionsSetup,

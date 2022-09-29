@@ -3,6 +3,7 @@ pluginPackages test case
 
 See COPYRIGHT.md for copyright information.
 '''
+from arelle.Version import authorLabel, copyrightLabel
 from . import importTestImported11
 from .subdir import importTestImported111
 from .subdir.subsubdir import importTestImported1111
@@ -15,8 +16,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This is a packaged relative imported plugin.",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'Import.Packaged.Entry6': foo,
     # imported plugins

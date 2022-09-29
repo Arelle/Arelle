@@ -12,6 +12,7 @@ from collections import defaultdict
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle import ModelDocument
 from arelle.ModelInstanceObject import ModelFact
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import xhtml
 from arelle.XmlUtil import ancestors, xmlstring
 
@@ -295,8 +296,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': "This plug-in displays instance information for sizing and performance issues.",
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     'import': ('inlineXbrlDocumentSet',),
     # classes of mount points (required)
     'CntlrCmdLine.Filing.Start': startup,

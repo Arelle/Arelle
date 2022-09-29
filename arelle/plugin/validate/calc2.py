@@ -9,6 +9,7 @@ from decimal import Decimal
 from arelle import Locale
 from arelle.PythonUtil import OrderedDefaultDict
 from arelle.ValidateXbrlCalcs import ZERO, inferredDecimals, rangeValue
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import link, xbrli, xl, xlink, domainMember
 
 calc2YYYY = "http://xbrl.org/WGWD/YYYY-MM-DD/calculation-2.0"
@@ -532,8 +533,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': '''Calculation 2.0 Validation.''',
     'license': 'Apache-2',
-    'author': 'Workiva, Inc.',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'Validate.XBRL.Finally': checkCalc2
 }
