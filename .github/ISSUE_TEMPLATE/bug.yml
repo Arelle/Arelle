@@ -9,6 +9,7 @@ body:
 
         Arelle is distributed in a few different ways and can be run in a variety of environments.
         Providing details on how you're using Arelle will significantly decrease the amount of time to figure out what's wrong.
+        You can use the `--diagnostic` command line option to output system information for copying and pasting.
 
         When relevant please try to provide a document that reproduces the issue.
         Also please provide a screenshot if reporting a bug in the GUI.
