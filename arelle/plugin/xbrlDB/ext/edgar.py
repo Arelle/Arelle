@@ -2,7 +2,6 @@
 EDGAR.py implements an OpenSql database extension for SEC's EDGAR
 
 See COPYRIGHT.md for copyright information.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 
 to use from command line:

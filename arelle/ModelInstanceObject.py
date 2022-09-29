@@ -3,7 +3,7 @@
 ~~~~~~~~~~~~~~~~~~~
 
 .. module:: arelle.ModelInstanceObject
-   :copyright: See COPYRIGHT.md for copyright info.
+   :copyright: See COPYRIGHT.md for copyright information.
    :license: Apache-2.
    :synopsis: This module contains Instance-specialized ModelObject classes: ModelFact (xbrli:item
    and xbrli:tuple elements of an instance document), ModelInlineFact specializes ModelFact when

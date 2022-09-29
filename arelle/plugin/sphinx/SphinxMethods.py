@@ -2,7 +2,6 @@
 sphinxMethods processes the Sphinx language in the context of an XBRL DTS and instance.
 
 See COPYRIGHT.md for copyright information.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer
 (c) Copyright 2012 CoreFiling, Oxford UK.

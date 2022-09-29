@@ -3,7 +3,7 @@ Created on Feb 19, 2011
 
 Use this module to start Arelle in windowing interactive UI
 
-See COPYRIGHT.md for copyright info.
+See COPYRIGHT.md for copyright information.
 '''
 import sys
 

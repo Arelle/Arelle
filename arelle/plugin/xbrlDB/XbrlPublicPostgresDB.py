@@ -8,8 +8,7 @@ XBRL Public Database Tables.  It may be loaded by Arelle'sRSS feed, or by indivi
 DTS and instances opened by interactive or command line/web service mode.
 
 See COPYRIGHT.md for copyright information.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
-and does not apply to the XBRL US Database schema and description.
+(Does not apply to the XBRL US Database schema and description.)
 
 The XBRL US Database schema and description is (c) Copyright XBRL US 2011, The
 resulting database may contain data from SEC interactive data filings (or any other XBRL

@@ -4,8 +4,7 @@ Save RSS Messages: custom log RSS messages
 Intended to provide csv (or other) file for post-processing and database loading.
 
 See COPYRIGHT.md for copyright information.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
-and does not apply to the XBRL US Database schema and description.
+(Does not apply to the XBRL US Database schema and description.)
 
 '''
 

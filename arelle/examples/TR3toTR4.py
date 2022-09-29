@@ -1,5 +1,5 @@
 '''
-(c) Copyright 2020 Mark V Systems Limited.
+See COPYRIGHT.md for copyright information.
 License: https://www.apache.org/licenses/LICENSE-2.0
 
 usage: python3 {tr2 or tr3 input-file} {tr4 output-file}

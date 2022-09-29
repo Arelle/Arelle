@@ -6,8 +6,7 @@ compiling server versions where Python has no GUI facilities.  The imports of GU
 facilities would cause compilation of the server-related modules to fail, otherwise.
 
 See COPYRIGHT.md for copyright information.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
-and does not apply to the XBRL US Database schema and description.
+(Does not apply to the XBRL US Database schema and description.)
 
 '''
 

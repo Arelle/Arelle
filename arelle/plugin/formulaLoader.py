@@ -2,7 +2,6 @@
 formula loader for XBRL Formula files.
 
 See COPYRIGHT.md for copyright information.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 Loads xbrl formula file syntax into formula linkbase.
 

@@ -19,7 +19,6 @@ Example dialog or command line parameters for operation:
 
 
 See COPYRIGHT.md for copyright information.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 to do:
 

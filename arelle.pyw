@@ -7,7 +7,7 @@ If no arguments, start in GUI mode
 
 If any argument, start in command line mode
 
-See COPYRIGHT.md for copyright info.
+See COPYRIGHT.md for copyright information.
 '''
 import sys
 from arelle import CntlrWinMain, CntlrCmdLine

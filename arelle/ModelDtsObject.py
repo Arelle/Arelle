@@ -3,7 +3,7 @@
 ~~~~~~~~~~~~~~~~~~~
 
 .. module:: arelle.ModelDtsObject
-   :copyright: See COPYRIGHT.md for copyright info.
+   :copyright: See COPYRIGHT.md for copyright information.
    :license: Apache-2.
    :synopsis: This module contains DTS-specialized ModelObject classes: ModelRoleType (role and arcrole types), ModelSchemaObject (parent class for top-level named schema element, attribute, attribute groups, etc), ModelConcept (xs:elements that may be concepts, typed dimension elements, or just plain XML definitions), ModelAttribute (xs:attribute), ModelAttributeGroup, ModelType (both top level named and anonymous simple and complex types), ModelEnumeration, ModelLink (xlink link elements), ModelResource (xlink resource elements), ModelLocator (subclass of ModelResource for xlink locators), and ModelRelationship (not an lxml proxy object, but a resolved relationship that reflects an effective arc between one source and one target).
 

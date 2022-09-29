@@ -4,7 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~
 
 .. py:module:: arelle.cntlr
-   :copyright: See COPYRIGHT.md for copyright info.
+   :copyright: See COPYRIGHT.md for copyright information.
    :license: Apache-2.
    :synopsis: Common controller class to initialize for platform and setup common logger functions
 """

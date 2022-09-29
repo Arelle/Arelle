@@ -2,7 +2,6 @@
 This module provides database interfaces to postgres SQL
 
 See COPYRIGHT.md for copyright information.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 '''
 import sys, os, io, glob, time, re, datetime, socket, string, random
 from math import isnan, isinf

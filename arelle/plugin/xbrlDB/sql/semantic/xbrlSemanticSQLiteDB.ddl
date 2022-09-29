@@ -1,7 +1,5 @@
 -- This DDL (SQL) script initializes a database for the XBRL Abstract Model Postgres
-
--- (c) Copyright 2014 Mark V Systems Limited, California US, All rights reserved.  
--- Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
+-- See COPYRIGHT.md for copyright information.
 
 -- drop tables and sequences
 DROP TABLE IF EXISTS entity;

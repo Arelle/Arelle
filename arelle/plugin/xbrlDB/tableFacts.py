@@ -2,7 +2,6 @@
 This module provides database interfaces to postgres SQL
 
 See COPYRIGHT.md for copyright information.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 '''
 from arelle import XbrlConst
 

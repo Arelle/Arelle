@@ -8,7 +8,6 @@ XBRL Rexter-interfaced graph.  It may be loaded by Arelle's RSS feed, or by indi
 DTS and instances opened by interactive or command line/web service mode.
 
 See COPYRIGHT.md for copyright information.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 to do:
 

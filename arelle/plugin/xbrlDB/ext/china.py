@@ -2,7 +2,6 @@
 china.py implements an OpenSql database extension for CAS (MOF) and SASAC extensions
 
 See COPYRIGHT.md for copyright information.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 
 to use from command line:
