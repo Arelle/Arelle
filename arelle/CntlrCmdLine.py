@@ -420,9 +420,9 @@ def parseAndRun(args):
 
     (options, leftoverArgs) = parser.parse_args(args)
     if options.about:
-        print(_("\narelle(r) {0} ({1}bit {6})\n\n"
+        print(f"\narelle(r) {Version.__version__} ({cntlr.systemWordSize}bit {platform.machine()})\n\n"
                 "An open source XBRL platform\n"
-                "(c) 2010-{2} Mark V Systems Limited\n"
+                "(c) 2011-present Workiva, Inc.\n"
                 "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
                 "Licensed under the Apache License, Version 2.0 (the \"License\"); "
                 "you may not \nuse this file except in compliance with the License.  "
@@ -434,14 +434,11 @@ def parseAndRun(args):
                 "See the License for the specific language governing permissions and \n"
                 "limitations under the License."
                 "\n\nIncludes:"
-                "\n   Python(r) {4[0]}.{4[1]}.{4[2]} (c) 2001-2013 Python Software Foundation"
-                "\n   PyParsing (c) 2003-2013 Paul T. McGuire"
-                "\n   lxml {5[0]}.{5[1]}.{5[2]} (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
-                "{3}"
-                "\n   May include installable plug-in modules with author-specific license terms"
-                ).format(Version.__version__, cntlr.systemWordSize, Version.copyrightLatestYear,
-                         _("\n   Bottle (c) 2011-2013 Marcel Hellkamp") if hasWebServer else "",
-                         sys.version_info, etree.LXML_VERSION, platform.machine()))
+                f"\n   Python(r) {sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]} (c) 2001-2013 Python Software Foundation"
+                f"\n   PyParsing (c) 2003-2013 Paul T. McGuire"
+                f"\n   lxml {etree.LXML_VERSION[0]}.{etree.LXML_VERSION[1]}.{etree.LXML_VERSION[2]} (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
+                f'{f"{chr(10)}   Bottle (c) 2011-2013 Marcel Hellkamp" if hasWebServer else ""}'
+                f"\n   May include installable plug-in modules with author-specific license terms")
     elif options.diagnostics:
         pprint(get_system_info())
     elif options.disclosureSystemName in ("help", "help-verbose"):
