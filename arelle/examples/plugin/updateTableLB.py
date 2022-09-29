@@ -2,7 +2,7 @@
 Update Table Linkbase is an example of a plug-in to both GUI menu and command line/web service
 that updates a table linkbase from Eurofiling 2010 syntax to XII 2011 PWD syntax and saves it.
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 
 def generateUpdatedTableLB(dts, updatedTableLinkbaseFile):

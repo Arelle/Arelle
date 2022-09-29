@@ -1,8 +1,7 @@
 """
 This module represents the time stamp when Arelle was last built
 
-@author: Workiva
-(c) Copyright 2022 Workiva, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 """
 from __future__ import annotations

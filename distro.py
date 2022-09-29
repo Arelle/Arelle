@@ -1,6 +1,6 @@
 """
 @author: Mark V Systems Limited
-(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 """
 import os
 import sys

@@ -2,7 +2,7 @@
 Created on Dec 12, 2013
 
 @author: Mark V Systems Limited
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact

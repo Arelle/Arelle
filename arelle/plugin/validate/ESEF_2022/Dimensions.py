@@ -6,7 +6,7 @@ Filer Guidelines: https://www.esma.europa.eu/sites/default/files/library/esma32-
 
 
 @author: Mark V Systems Limited
-(c) Copyright 2018 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 from collections import defaultdict

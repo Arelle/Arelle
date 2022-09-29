@@ -8,7 +8,7 @@ system-wide settings.  (The system settings can remain in 'C' locale.)
 @author: Mark V Systems Limited (incorporating python locale module code)
 (original python authors: Martin von Loewis, improved by Georg Brandl)
 
-(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import sys, subprocess

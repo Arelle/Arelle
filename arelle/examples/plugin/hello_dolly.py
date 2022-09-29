@@ -2,7 +2,7 @@
 Hello dolly is a simple "Hello world" to demonstrate how plug-ins
 are written for Arelle
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from __future__ import print_function
 from random import randint

@@ -2,7 +2,7 @@
 Created on Nov. 14, 2015
 
 @author: Mark V Systems Limited
-(c) Copyright 2015 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 This module is provided as a "loader" for all the validation modules, and can be specified
 as a plugin to load all the validate subdirectory plugins.

@@ -2,7 +2,7 @@
 Created on Aug 8, 2013
 
 @author: Mark V Systems Limited
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from collections import defaultdict
 from arelle import ViewWinTree, ModelDtsObject, XbrlConst, XmlUtil, Locale

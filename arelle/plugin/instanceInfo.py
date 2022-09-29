@@ -1,7 +1,7 @@
 '''
 instanceInfo.py provides information about an XBRL instance
 
-(c) Copyright 2018 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 Operation with arelleCmdLine: --plugin instanceInfo -f entryUrl
 

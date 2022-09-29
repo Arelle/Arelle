@@ -4,7 +4,7 @@
 Created on July 5, 2011
 
 @author: Mark V Systems Limited
-(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import regex as re
 from arelle.PluginManager import pluginClassMethods

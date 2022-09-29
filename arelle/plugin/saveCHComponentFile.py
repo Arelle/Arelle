@@ -2,7 +2,7 @@
 Save CHComponentFile is an example of a plug-in to both GUI menu and command line/web service
 that will save the presentation tree of concepts in Charlie Hoffman's Component schema.
 
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 
 from arelle.ModelDtsObject import ModelConcept, ModelRelationship

@@ -20,7 +20,7 @@ you also want individual Html R files, reportXslt should be chanted below to Htm
 The resources folder must have InstanceReportTable.xslt (which is just InstanceReport.xslt
 modified to not have an instance html header on the table body in xsl:template match="/").
 
-(c) Copyright 2015 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os
 from lxml import etree

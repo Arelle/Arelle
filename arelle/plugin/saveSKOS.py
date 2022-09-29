@@ -2,7 +2,7 @@
 Save SKOS is an example of a plug-in to both GUI menu and command line/web service
 that will save the concepts a DTS into an RDF file.
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 
 def generateSkos(dts, skosFile):

@@ -2,7 +2,7 @@
 Save Instance Infoset is an example of a plug-in to both GUI menu and command line/web service
 that will save facts decorated with ptv:periodType, ptv:balance, ptv:decimals and ptv:precision (inferred).
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 
 def generateInstanceInfoset(dts, instanceInfosetFile):

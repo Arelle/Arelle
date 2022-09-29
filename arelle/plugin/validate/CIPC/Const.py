@@ -7,7 +7,7 @@ Taxonomy Architecture: http://www.cipc.co.za/files/1715/1325/5802/CIPC_XBRL_Taxo
 
 
 @author: Mark V Systems Limited
-(c) Copyright 2017 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 cpicModules = {
     "ca_fas": "ca_fas",

@@ -2,7 +2,7 @@
 Created on May 18, 2014
 
 @author: Mark V Systems Limited
-(c) Copyright 2014 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 Provides entity information for an (SEC) filing including supplemental SGML document
 

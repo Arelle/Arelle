@@ -2,7 +2,7 @@
 Save Sample Instance is an example of a plug-in to both GUI menu and command line/web service
 that will use a us-gaap style presentation tree to save sample instance facts.
 
-(c) Copyright 2016 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 uses exrex for regular expressions (pip install exrex), note exrex is GPL 3 licensed
 if exrex not installed, pattern facets don't generate valid pattern

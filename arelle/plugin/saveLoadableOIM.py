@@ -21,7 +21,7 @@ Extensions can be added to the results in the following manner:
     extensionFactPropertiesMethod - method to add extension properties to oimFact
     extensionReportFinalizeMethod - (JSON only) method to finalize json object, for example change facts from object to array.
 
-(c) Copyright 2015 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import sys, os, io, time, regex as re, json, csv, zipfile
 from decimal import Decimal

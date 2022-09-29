@@ -2,7 +2,7 @@
 Created on Jun 6, 2012
 
 @author: Mark V Systems Limited
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle import XPathContext, XbrlConst, XmlUtil
 from arelle.ModelFormulaObject import (aspectModels, aspectStr, Aspect)

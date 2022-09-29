@@ -2,7 +2,7 @@
 Created on Apr 7, 2012
 
 @author: Mark V Systems Limited
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os
 from tkinter import Toplevel, StringVar, N, S, E, W, EW, messagebox

@@ -4,7 +4,7 @@
 SECCorrespondenceLoader is a plug-in to both GUI menu and command line/web service
 that loads a Correspondence tar.gz file.
 
-(c) Copyright 2014 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import datetime, re, os, time
 from arelle import FileSource, ModelDocument

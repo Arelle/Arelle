@@ -1,7 +1,7 @@
 '''
 pluginPackages test case
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle.PluginManager import pluginClassMethods
 # . relative import only works inside a package now, see https://www.python.org/dev/peps/pep-0366/

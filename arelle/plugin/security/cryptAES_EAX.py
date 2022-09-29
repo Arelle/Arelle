@@ -2,7 +2,7 @@
 Created on June 7, 2018
 
 @author: Mark V Systems Limited
-(c) Copyright 2018 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 Template crypt module using AES EAX (authenticated) mode.
 

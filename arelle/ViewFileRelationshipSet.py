@@ -2,7 +2,7 @@
 Created on Oct 6, 2010
 
 @author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle import ModelObject, ModelDtsObject, XbrlConst, XmlUtil, ViewFile
 from arelle.ModelDtsObject import ModelRelationship

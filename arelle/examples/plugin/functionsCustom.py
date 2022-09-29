@@ -1,7 +1,7 @@
 '''
 Sample custom functions plugin for formula custom functions
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle import XPathContext, XbrlUtil
 from arelle.ModelValue import qname

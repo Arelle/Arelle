@@ -1,7 +1,7 @@
 '''
 pluginPackages test case
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 # this module would raise system error due to PEP 366 after python 3.4.3
 

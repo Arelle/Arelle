@@ -2,7 +2,7 @@
 Created on Mar, 30 2015
 
 @author: Acsone S. A.
-(c) Copyright 2015 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 
 import numpy

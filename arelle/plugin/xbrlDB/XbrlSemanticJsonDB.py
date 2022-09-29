@@ -18,7 +18,7 @@ Example dialog or command line parameters for operation:
     timeout:
 
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
+See COPYRIGHT.md for copyright information.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 to do:

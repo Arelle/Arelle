@@ -6,7 +6,7 @@ for efficiency and to avoid dependency on an underlying DOM.
 
 (Note that this module is based on a parser target, an alternate based on iterparse is under examples/plugin.)
 
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 Calls these plug-in classes:
    Streaming.BlockingPlugin(modelXbrl):  returns name of plug in blocking streaming if it is being blocked, else None

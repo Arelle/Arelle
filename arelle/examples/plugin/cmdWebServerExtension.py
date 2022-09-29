@@ -1,7 +1,7 @@
 '''
 Example extension plugin to provide custom REST api
 
-(c) Copyright 2019 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 To run test:
     arelleCmdLine.exe --webserver localhost:8080 --plugins ../examples/plugin/cmdWebServerExtension.py

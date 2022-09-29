@@ -8,7 +8,7 @@ Taxonomy Architecture: http://www.cipc.co.za/files/1715/1325/5802/CIPC_XBRL_Taxo
 Taxonomy package expected to be installed: http://xbrl.cipc.co.za/cipc_2017-12-15.zip
 
 @author: Mark V Systems Limited
-(c) Copyright 2017 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os, re
 from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction

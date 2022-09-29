@@ -2,7 +2,7 @@
 Created on Jan 9, 2011
 
 @author: Mark V Systems Limited
-(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle import (XPathContext, XbrlConst, XmlUtil, XbrlUtil, XmlValidate)
 from arelle.FunctionXs import xsString

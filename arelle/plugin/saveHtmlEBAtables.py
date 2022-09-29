@@ -2,7 +2,7 @@
 Save HTML EBA Tables is an example of a plug-in to both GUI menu and command line/web service
 that will save a directory containing HTML Tablesets with an EBA index page.
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 
 def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):

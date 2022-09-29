@@ -4,7 +4,7 @@ Created on Oct 3, 2010
 This module is Arelle's controller in windowing interactive UI mode
 
 @author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 

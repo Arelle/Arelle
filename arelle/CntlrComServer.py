@@ -9,7 +9,7 @@ It cannot be used in cx_freeze or py2app installer-built deployment, but must be
 Future source-code plugins may possibly use this mechanism.)
 
 @author: Mark V Systems Limited
-(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle import PythonUtil # define 2.1 or 3.2 string types
 import gettext, time, datetime, os, shlex, sys, traceback

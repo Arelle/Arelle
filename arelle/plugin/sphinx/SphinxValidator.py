@@ -1,7 +1,7 @@
 '''
 sphinxValidator validates Sphinx language expressions in the context of an XBRL DTS and instance.
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
+See COPYRIGHT.md for copyright information.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer

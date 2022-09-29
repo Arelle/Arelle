@@ -27,7 +27,7 @@ For GUI operation specify a formula parameter named ixdsTarget of type xs:string
 If a ixdsTarget parameter is absent or has a value of an empty string it is the default target document and matches
 ix facts and resources with no @target attribute.
 
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle import FileSource, ModelXbrl, ValidateXbrlDimensions, XbrlConst
 DialogURL = None # dynamically imported when first used

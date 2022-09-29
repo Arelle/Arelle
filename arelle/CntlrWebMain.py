@@ -4,7 +4,7 @@ Created on Oct 3, 2010
 Use this module to start Arelle in web server mode
 
 @author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 '''
 from arelle.webserver.bottle import Bottle, request, response, static_file

@@ -2,7 +2,7 @@
 Created on May 12, 2011
 
 @author: Mark V Systems Limited
-(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from collections import defaultdict
 import os, datetime

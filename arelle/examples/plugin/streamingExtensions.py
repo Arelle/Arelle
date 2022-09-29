@@ -6,7 +6,7 @@ for efficiency and to avoid dependency on an underlying DOM.
 
 (Note that this module is based on iterparse, the module under the installation/plugs is much faster.)
 
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 
 import io, sys, os, time

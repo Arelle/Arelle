@@ -4,7 +4,7 @@ that provides an alternative approach to big instance documents without building
 memory footprint.  SAX is used to parse the big instance.  ModelObjects are specialized by features
 for efficiency and to avoid dependency on an underlying DOM.
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 
 import xml.sax, io, sys

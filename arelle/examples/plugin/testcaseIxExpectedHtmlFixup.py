@@ -4,7 +4,7 @@ escaped html in text content of expected instance facts for inline XBRL text fac
 
 It also provides an error code when a testcase variation does not load any iXBRL document.
 
-(c) Copyright 2019 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import regex as re
 from arelle.ModelDocument import Type

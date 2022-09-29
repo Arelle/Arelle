@@ -1,7 +1,7 @@
 '''
 pluginPackages test case
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from . import importTestImported11
 from .subdir import importTestImported111

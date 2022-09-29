@@ -1,7 +1,7 @@
 '''
 formula loader for XBRL Formula files.
 
-(c) Copyright 2016 Mark V Systems Limited, California US, All rights reserved.
+See COPYRIGHT.md for copyright information.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 Loads xbrl formula file syntax into formula linkbase.

@@ -5,7 +5,7 @@ TDnetLoader is a plug-in to both GUI menu and command line/web service
 that loads a TDnet html index file.  TDnet is Tokyo Stock Exchange's
 Timely Disclosure Network.
 
-(c) Copyright 2014 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from lxml import html
 import datetime, re, os

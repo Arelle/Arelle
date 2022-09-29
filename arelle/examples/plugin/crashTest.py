@@ -1,7 +1,7 @@
 '''
 Crash test is a plug in to cause an uncaught exception to test its recover
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 def crashMenuEntender(cntlr, menu):
     menu.add_command(label="Crash now!!!", underline=0, command=lambda: crashMenuCommand(cntlr) )

@@ -2,7 +2,7 @@
 Created on Nov 8, 2014
 
 @author: Mark V Systems Limited
-(c) Copyright 2014 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from hashlib import md5
 from arelle.ModelObject import ModelObject

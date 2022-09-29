@@ -3,7 +3,7 @@ Sample custom functions plugin for formula XML Element, Attribute creation funct
 
 >>> note that this function has been renamed xfi:create-element and moved to FunctionXfi.py <<<
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle import XPathContext, XbrlUtil
 from arelle.ModelValue import qname, QName

@@ -6,7 +6,7 @@ ObjectMaker(r) is a registered trademark of Mark V Systems Limited
 
 This product uses graphviz, which must be installed separately on the platform.
 
-(c) Copyright 2017 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os, io, time, re
 from tkinter import Menu

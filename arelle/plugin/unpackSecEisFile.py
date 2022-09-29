@@ -2,7 +2,7 @@
 Unpack SEC EIS File is an example of a plug-in to the GUI menu
 that will save the unpacked contents of an SEC EIS File in a directory.
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 
 def unpackEIS(cntlr, eisFile, unpackToDir):

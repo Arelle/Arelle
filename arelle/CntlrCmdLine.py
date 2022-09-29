@@ -6,7 +6,7 @@ This module is Arelle's controller in command line non-interactive mode
 (This module can be a pattern for custom integration of Arelle into an application.)
 
 @author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types
 import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging, platform

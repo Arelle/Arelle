@@ -1,7 +1,7 @@
 '''
 CmdLine Profiler is an example of a plug-in to command line processing that will profile all execution.
 
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os
 

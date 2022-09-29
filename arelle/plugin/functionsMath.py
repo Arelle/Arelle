@@ -1,7 +1,7 @@
 '''
 Formula math functions plugin.
 
-(c) Copyright 2018 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import math
 from arelle.ModelValue import qname

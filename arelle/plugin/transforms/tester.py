@@ -2,7 +2,7 @@
 Created on Feb 1, 2019
 
 @author: Mark V Systems Limited
-(c) Copyright 2019 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 This plugin allows GUI and command line users to test transforms.
 

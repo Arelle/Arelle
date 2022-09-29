@@ -7,7 +7,7 @@ This plug-in is a python package, and can be loaded by referencing the containin
 directory (usually, "sphinx"), and selecting this "__init__.py" file within the sphinx
 directory (such as in a file chooser).
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
+See COPYRIGHT.md for copyright information.
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer

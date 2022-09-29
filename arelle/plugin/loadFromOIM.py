@@ -2,7 +2,7 @@
 loadFromOIM.py is an example of a plug-in that will load an extension taxonomy from OIM
 input (JSON, CSV or Excel bearing CSV) and optionally save an xBRL-XML instance thereof.
 
-(c) Copyright 2016 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 Example to run from web server:
 

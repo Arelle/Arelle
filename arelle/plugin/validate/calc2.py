@@ -2,7 +2,7 @@
 Created on Jan 8, 2019
 
 @author: Mark V Systems Limited
-(c) Copyright 2019 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 
 import time

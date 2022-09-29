@@ -4,7 +4,7 @@
 UKCompaniesHouseLoader is a plug-in to both GUI menu and command line/web service
 that loads a Companies House zip XBRL instances file.
 
-(c) Copyright 2014 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from lxml import html
 import datetime, re, os
