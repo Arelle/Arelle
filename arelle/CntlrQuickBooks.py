@@ -3,7 +3,6 @@ Created on Jan 19, 2012
 
 This module implements Quick Books server mode
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 from lxml import etree

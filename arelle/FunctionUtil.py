@@ -1,7 +1,6 @@
 '''
 Created on Dec 31, 2010
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 import xml.dom, datetime

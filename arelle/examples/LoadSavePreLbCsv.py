@@ -1,7 +1,6 @@
 '''
 This module is an example Arelle controller in non-interactive mode
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 from arelle import Cntlr

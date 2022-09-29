@@ -1,7 +1,6 @@
 '''
 Created on Jan 14, 2020
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 
 Provides infrastructure for local viewers of GUI applications such as inline XBRL viewers

@@ -1,7 +1,6 @@
 '''
 Created on May 1, 2011
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 from tkinter import Toplevel, N, S, E, W, messagebox

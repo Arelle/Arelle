@@ -2,7 +2,6 @@
 This module is an example to convert Html Tables into Xlsx (Excel) tables
 Preconfigured here to use SEC Edgar Rendering R files as input
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 import os, sys, re

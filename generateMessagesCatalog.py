@@ -1,7 +1,6 @@
 '''
 Created on Aug 26, 2012
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 import os, time, io, ast, sys, traceback

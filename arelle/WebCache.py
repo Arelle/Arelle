@@ -1,7 +1,6 @@
 '''
 Created on Oct 5, 2010
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 
 For SEC EDGAR data access see: https://www.sec.gov/os/accessing-edgar-data

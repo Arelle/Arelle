@@ -1,7 +1,6 @@
 '''
 Created on Oct 17, 2010
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 import os, sys

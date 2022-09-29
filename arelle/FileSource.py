@@ -1,7 +1,6 @@
 '''
 Created on Oct 20, 2010
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 import zipfile, tarfile, os, io, errno, base64, gzip, zlib, re, struct, random, time

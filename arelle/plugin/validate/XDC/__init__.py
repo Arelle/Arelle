@@ -1,7 +1,6 @@
 '''
 Created on Dec 20, 2017
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 
 

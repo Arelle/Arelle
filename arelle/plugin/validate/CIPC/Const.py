@@ -6,7 +6,6 @@ Filer Guidelines: http://www.cipc.co.za/files/8615/1333/0514/25082017_Guidelines
 Taxonomy Architecture: http://www.cipc.co.za/files/1715/1325/5802/CIPC_XBRL_Taxonomy_Framework_Architecture_-_2017-12-15.pdf
 
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 cpicModules = {

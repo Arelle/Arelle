@@ -1,7 +1,6 @@
 '''
 Created on Jun 15, 2012
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 from tkinter import Toplevel, N, S, E, W, PhotoImage

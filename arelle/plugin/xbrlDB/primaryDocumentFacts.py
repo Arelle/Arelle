@@ -1,7 +1,6 @@
 '''
 Created on Feb 21, 2014
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 
 Represents modelFacts in an (SEC) filing primary document

@@ -1,7 +1,6 @@
 '''
 Created on Oct 05, 2012
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 
 Deprecated Nov 15, 2015.  Use plugin/validate/SBRnl

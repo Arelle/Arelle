@@ -7,7 +7,6 @@ for execution of xf formula, please instead use plug-in formulaLoader.py
 
 requires xf.py from XII conformance-formula/tf/syntax
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 

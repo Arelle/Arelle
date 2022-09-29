@@ -1,7 +1,6 @@
 """
 Created on Sep 24, 2022
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations

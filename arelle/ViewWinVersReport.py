@@ -1,7 +1,6 @@
 '''
 Created on Nov 9, 2010
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 from collections import defaultdict

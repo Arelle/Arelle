@@ -1,7 +1,6 @@
 '''
 Created on Feb 6, 2011
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 import io

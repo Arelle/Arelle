@@ -7,7 +7,6 @@ If no arguments, start in GUI mode
 
 If any argument, start in command line mode
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright info.
 '''
 import sys

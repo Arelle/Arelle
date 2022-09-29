@@ -3,7 +3,6 @@
 '''
 Created on July 5, 2011
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 import regex as re

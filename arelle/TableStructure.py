@@ -1,7 +1,6 @@
 '''
 Created on Feb 02, 2014
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 import regex as re

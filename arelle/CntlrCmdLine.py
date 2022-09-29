@@ -5,7 +5,6 @@ This module is Arelle's controller in command line non-interactive mode
 
 (This module can be a pattern for custom integration of Arelle into an application.)
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types

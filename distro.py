@@ -1,5 +1,4 @@
 """
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 """
 import os

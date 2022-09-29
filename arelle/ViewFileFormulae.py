@@ -1,7 +1,6 @@
 '''
 Created on Nov 27, 2011
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 from arelle import ModelObject, XbrlConst, ViewFile

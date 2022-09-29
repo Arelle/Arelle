@@ -3,7 +3,6 @@ Created on May 14,2012
 
 Use this module to start Arelle in py.test modes
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 
 This module runs the conformance tests to validate that Arelle is

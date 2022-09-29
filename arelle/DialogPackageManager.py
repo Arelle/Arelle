@@ -1,7 +1,6 @@
 '''
 Created on Oct 6, 2013 (from DialogPluginManager.py)
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 from tkinter import simpledialog, Toplevel, font, messagebox, VERTICAL, HORIZONTAL, N, S, E, W

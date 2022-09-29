@@ -6,7 +6,6 @@ Filer Guidelines:
     https://www.revenue.ie/en/online-services/support/documents/ixbrl/error-messages.pdf
     https://www.revenue.ie/en/online-services/support/documents/ixbrl/ixbrl-style-guide.pdf
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 import os, re

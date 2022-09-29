@@ -8,7 +8,6 @@ It is provided for future referenced but not used in the production code.
 It cannot be used in cx_freeze or py2app installer-built deployment, but must be used as source code.
 Future source-code plugins may possibly use this mechanism.)
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 from arelle import PythonUtil # define 2.1 or 3.2 string types

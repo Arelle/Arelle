@@ -1,7 +1,6 @@
 '''
 Created on Mar 7, 2011
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 import inspect, os

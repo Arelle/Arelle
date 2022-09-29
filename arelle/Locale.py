@@ -5,9 +5,6 @@ This module is a local copy of python locale in order to allow
 passing in localconv as an argument to functions without affecting
 system-wide settings.  (The system settings can remain in 'C' locale.)
 
-@author: Mark V Systems Limited (incorporating python locale module code)
-(original python authors: Martin von Loewis, improved by Georg Brandl)
-
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations

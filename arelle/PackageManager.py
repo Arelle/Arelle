@@ -1,7 +1,6 @@
 '''
 Separated on Jul 28, 2013 from DialogOpenArchive.py
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations

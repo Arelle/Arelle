@@ -1,7 +1,6 @@
 '''
 Created on Aug 15, 2013
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 
 This module encodes a source python file (from utf-8 to ascii with \\u escapes).

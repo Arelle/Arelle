@@ -1,7 +1,6 @@
 '''
 Created on Sep 13, 2011
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 import os, io, sys, json

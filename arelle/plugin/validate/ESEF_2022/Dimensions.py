@@ -5,7 +5,6 @@ Version 2022 created on September 19, 2022
 Filer Guidelines: https://www.esma.europa.eu/sites/default/files/library/esma32-60-254_esef_reporting_manual.pdf
 
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations

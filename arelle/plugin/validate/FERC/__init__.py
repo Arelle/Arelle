@@ -7,7 +7,6 @@ Filer Guidelines:
                   6.5.3, 6.5.4, 6.5.7, 6.5.8, 6.5.14, 6.5.15, 6.5.16, 6.5.17
     Filers can only submit an instance so EFM DTS checks are not needed.
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 import os, re

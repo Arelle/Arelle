@@ -4,7 +4,6 @@ Created on June 6, 2018
 Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations

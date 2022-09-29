@@ -2,7 +2,6 @@
 Created on Jun 10, 2011
 Refactored on Jun 11, 2011 to ModelDtsObject, ModelInstanceObject, ModelTestcaseObject
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 from arelle.ModelObject import ModelObject, init as moduleObject_init

@@ -1,7 +1,6 @@
 '''
 Created on Jun 6, 2012
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 from arelle import XPathContext, XbrlConst, XmlUtil

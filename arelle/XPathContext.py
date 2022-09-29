@@ -1,7 +1,6 @@
 '''
 Created on Dec 30, 2010
 
-@author: Mark V Systems Limited
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import division  # expect 3.2 integer division even in 2.7
