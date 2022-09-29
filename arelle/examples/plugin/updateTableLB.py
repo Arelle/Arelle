@@ -233,7 +233,7 @@ __pluginInfo__ = {
                    "Hrefs in the new file are identical the prior hrefs (not offset considering save-to directory).  ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': updateTableLBMenuEntender,
     'CntlrCmdLine.Options': updateTableLBCommandLineOptionExtender,

@@ -314,7 +314,7 @@ __pluginInfo__ = {
     'description': "This plug-in checks for restricted XPath in formula expressions. ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2020 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrCmdLine.Options': checkFormulaXPathCommandLineOptionExtender,
     'CntlrCmdLine.Utility.Run': validateUtilityRun,

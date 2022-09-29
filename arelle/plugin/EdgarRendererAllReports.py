@@ -98,7 +98,7 @@ __pluginInfo__ = {
     'description': "This plug-in adds an \"Rall.htm\" result to the EdgarRenderer report directory or output zip",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2015 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     # note that this mount point must load after EdgarRenderer's same-named mount point
     'EdgarRenderer.Filing.Start': edgarRendererFilingStartSupplement,

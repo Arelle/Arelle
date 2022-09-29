@@ -212,7 +212,7 @@ __pluginInfo__ = {
     'description': '''FERC (US) Validation.''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2021 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     'import': ('inlineXbrlDocumentSet', ), # import dependent modules
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,

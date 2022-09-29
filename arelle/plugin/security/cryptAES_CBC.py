@@ -116,7 +116,7 @@ __pluginInfo__ = {
     'description': '''AES_CBC security encryption''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2018 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'Security.Crypt.Init': securityInit,
     'Security.Crypt.Filing.Start': securityFilingStart,

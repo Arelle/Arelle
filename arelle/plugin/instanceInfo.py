@@ -296,7 +296,7 @@ __pluginInfo__ = {
     'description': "This plug-in displays instance information for sizing and performance issues.",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2020 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     'import': ('inlineXbrlDocumentSet',),
     # classes of mount points (required)
     'CntlrCmdLine.Filing.Start': startup,

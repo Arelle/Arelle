@@ -227,7 +227,7 @@ __pluginInfo__ = {
     'description': '''CIPC (South Africa) Validation.''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2017 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,

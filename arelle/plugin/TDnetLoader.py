@@ -198,7 +198,7 @@ __pluginInfo__ = {
     'description': "This plug-in loads Tokyo Stock Exchange Timely Disclosure Network XBRL documents.  ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2014 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     # take out for now: 'CntlrCmdLine.Options': streamingOptionsExtender,
     'ModelDocument.PullLoader': tdNetLoader,

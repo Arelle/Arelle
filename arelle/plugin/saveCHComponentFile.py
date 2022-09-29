@@ -163,7 +163,7 @@ __pluginInfo__ = {
                    "This provides a semantic definition of taxonomy contents.",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveCHComponentMenuEntender,
     'CntlrCmdLine.Options': saveCHComponentCommandLineOptionExtender,

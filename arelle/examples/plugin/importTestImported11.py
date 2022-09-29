@@ -14,7 +14,7 @@ __pluginInfo__ = {
     'description': "This is a packages-containing unpackaged imported plugin.",
     'license': 'Apache-2',
     'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2015 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'Import.Unpackaged.Entry7': foo,
     # imported plugins

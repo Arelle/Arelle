@@ -326,7 +326,7 @@ __pluginInfo__ = {
                     "lxml iterparse parses XBRL directly into an object model without a DOM.  ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2014 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrCmdLine.Options': streamingOptionsExtender,
     'CntlrCmdLine.Utility.Run': streamingExtensionsSetup,

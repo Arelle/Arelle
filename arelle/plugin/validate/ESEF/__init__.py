@@ -1174,7 +1174,7 @@ __pluginInfo__ = {
     'description': '''ESMA ESEF Filer Manual and RTS Validations.''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2018-20 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     'ModelDocument.PullLoader': modelXbrlBeforeLoading,
     'import': ('inlineXbrlDocumentSet', ), # import dependent modules
     # classes of mount points (required)

@@ -536,7 +536,7 @@ __pluginInfo__ = {
     'description': '''Calculation 2.0 Validation.''',
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2019 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'Validate.XBRL.Finally': checkCalc2
 }

@@ -14,7 +14,7 @@ __pluginInfo__ = {
     'description': "This is imports plugin modules in the validate subtree.",
     'license': 'Apache-2',
     'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2015 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     # imported plugins
     'import': ("module_subtree",)

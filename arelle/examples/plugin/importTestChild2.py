@@ -13,7 +13,7 @@ __pluginInfo__ = {
     'description': "This is a unpackaged child plugin.",
     'license': 'Apache-2',
     'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2015 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'Import.Unpackaged.Entry3': foo,
     # import plugins

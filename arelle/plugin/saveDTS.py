@@ -70,7 +70,7 @@ __pluginInfo__ = {
                    "Python's zlib module is used for compression (if avaliable).",
     'license': 'Apache-2',
     'author': 'R\u00e9gis D\u00e9camps',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveDtsMenuEntender,
     'CntlrCmdLine.Options': saveDtsCommandLineOptionExtender,

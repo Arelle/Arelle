@@ -167,7 +167,7 @@ __pluginInfo__ = {
     'description': "This plug-in saves logger messages of instances for post processing.  ",
     'license': 'Apache-2 (Arelle plug-in), BSD license (pg8000 library)',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved',
     # classes of mount points (required)
     'CntlrCmdLine.Options': saveMsgsCommandLineOptionExtender,
     'CntlrCmdLine.Utility.Run': saveMsgsLoaderSetup,

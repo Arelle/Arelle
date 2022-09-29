@@ -8,7 +8,7 @@ If no arguments, start in GUI mode
 If any argument, start in command line mode
 
 @author: Mark V Systems Limited
-(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright info.
 '''
 import sys
 from arelle import CntlrWinMain, CntlrCmdLine

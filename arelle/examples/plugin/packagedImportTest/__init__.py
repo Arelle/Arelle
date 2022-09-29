@@ -35,7 +35,7 @@ __pluginInfo__ = {
     'description': "This is a imports-containing packaged (__init__) plugin.",
     'license': 'Apache-2',
     'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2015 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': parentMenuEntender,
     'CntlrCmdLine.Options': parentCommandLineOptionExtender,

@@ -622,7 +622,7 @@ __pluginInfo__ = {
                     "Support single target instance documents in a single document set.  ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'InlineDocumentSet.Discovery': inlineDocsetDiscovery,
     'InlineDocumentSet.Url.Separator': inlineDocsetUrlSeparator,

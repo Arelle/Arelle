@@ -50,7 +50,7 @@ __pluginInfo__ = {
     'description': "This plug-in adds a profiling to command line (and web service) processing.  ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrCmdLine.Options': profilerOptionExtender,
     'CntlrCmdLine.Utility.Run': profilerCommandLineRun,

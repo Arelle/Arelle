@@ -461,7 +461,7 @@ __pluginInfo__ = {
                    "It uses an ELR's LineItems to control output facts.",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2016 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveSampleInstanceMenuEntender,
     'CntlrCmdLine.Options': saveSampleInstanceCommandLineOptionExtender,

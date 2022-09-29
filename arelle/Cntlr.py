@@ -4,7 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~
 
 .. py:module:: arelle.cntlr
-   :copyright: Copyright 2010-2012 Mark V Systems Limited, All rights reserved.
+   :copyright: See COPYRIGHT.md for copyright info.
    :license: Apache-2.
    :synopsis: Common controller class to initialize for platform and setup common logger functions
 """

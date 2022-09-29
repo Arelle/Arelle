@@ -82,7 +82,7 @@ __pluginInfo__ = {
     'description': '''US-GAAP consistency tests.  Includes non-negative rules.''',
     'license': 'Apache-2',
     'author': 'Ewe S. Gap',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'Validate.EFM.Start': setup,
     'Validate.EFM.Fact': factCheck,

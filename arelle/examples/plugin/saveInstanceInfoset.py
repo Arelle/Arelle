@@ -110,7 +110,7 @@ __pluginInfo__ = {
                     "The ptv infoset is the source instance with facts having ptv:periodType, ptv:balance (where applicable), ptv:decimals and ptv:precision (inferred).  ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveInstanceInfosetMenuEntender,
     'CntlrCmdLine.Options': saveInstanceInfosetCommandLineOptionExtender,

@@ -28,7 +28,7 @@ __pluginInfo__ = {
     'description': "Used to test that uncaught exceptions report their cause to the Arelle user.",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': crashMenuEntender,
     'CntlrCmdLine.Options': crashCommandLineOptionExtender,

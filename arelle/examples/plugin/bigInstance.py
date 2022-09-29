@@ -387,7 +387,7 @@ __pluginInfo__ = {
                     "SAX parses XBRL directly into an object model without a DOM.  ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'ModelDocument.CustomLoader': bigInstLoader,
 }

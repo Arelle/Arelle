@@ -210,7 +210,7 @@ provided logging arguments.  Usually uses modelObject arguments to supply parame
 in message text that can be derived from the arguments.''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2014 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrCmdLine.Xbrl.Run': loggingCommandLineXbrlRun,
     'Logging.Message.Parameters': loggingMessageParameters,

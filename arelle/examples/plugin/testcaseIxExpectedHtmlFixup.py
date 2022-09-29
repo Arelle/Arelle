@@ -37,7 +37,7 @@ __pluginInfo__ = {
     'description': "This plug-in removes xxx.  ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2019 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'TestcaseVariation.Validated': variationInstanceLoaded,
     'TestcaseVariation.ExpectedInstance.Loaded': expectedInstanceLoaded,

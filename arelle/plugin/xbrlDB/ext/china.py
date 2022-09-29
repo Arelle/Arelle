@@ -88,7 +88,7 @@ __pluginInfo__ = {
     'description': "This plug-in implements additional database fields for China CAS and SASAC.  ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2017 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     'import': ('xbrlDB', ), # import dependent modules
     'xbrlDB.Open.Ext.TableDDLFiles': extChinaTableDdlFiles,
     'xbrlDB.Open.Ext.Metadata': extChinaMetadata,

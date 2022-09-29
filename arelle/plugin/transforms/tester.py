@@ -264,7 +264,7 @@ __pluginInfo__ = {
     'description': '''Transformation Tester''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2019 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrCmdLine.Options': cmdLineOptionExtender,
     'CntlrCmdLine.Utility.Run': cmdLineRun,

@@ -262,7 +262,7 @@ __pluginInfo__ = {
     'description': "This plug-in adds a feature to a directory containing HTML Tablesets with an EBA index page.  ",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveHtmlEbaTablesMenuEntender,
     'CntlrCmdLine.Options': saveHtmlEbaTablesCommandLineOptionExtender,

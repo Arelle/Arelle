@@ -55,7 +55,7 @@ __pluginInfo__ = {
                     "see a lyric from Hello, Dolly.",
     'license': 'Apache-2',
     'author': 'R\xe9gis D\xce9camps',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': helloMenuEntender,
     'CntlrCmdLine.Options': helloCommandLineOptionExtender,
