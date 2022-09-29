@@ -20,7 +20,7 @@ ARGS = [
 if os.getenv('CONFORMANCE_SUITES_TEST_MODE') == 'OFFLINE':
     ARGS.extend(['--internetConnectivity', 'offline'])
 
-if not os.path.exists(CONFORMANCE_SUITE):
+if not os.path.exists(CONFORMANCE_SUITE) and os.path.exists(CONFORMANCE_SUITE_ZIP):
     unpack_archive(CONFORMANCE_SUITE_ZIP, extract_dir=os.path.dirname(CONFORMANCE_SUITE))
 TEST_DATA = get_test_data(ARGS)
 
