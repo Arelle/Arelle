@@ -35,7 +35,7 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This is a imports-containing unpackaged parent plugin.",
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': parentMenuEntender,

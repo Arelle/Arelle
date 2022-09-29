@@ -97,7 +97,7 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': "This plug-in adds a custom function to create xml elements, such as for typed dimensions, implemented by a plug-in.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'Formula.CustomFunctions': xfxcFunctions,

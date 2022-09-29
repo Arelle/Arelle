@@ -57,7 +57,7 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': '''XBRL Formula XF Syntax Validation only, not execution of formulae.''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'ModelDocument.IsPullLoadable': isXfLoadable,

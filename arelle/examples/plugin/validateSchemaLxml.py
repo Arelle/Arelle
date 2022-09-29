@@ -146,7 +146,7 @@ __pluginInfo__ = {
                     "This is an experimental feature, not suitable for XBRL production use until lxml"
                     " schema validation becomes reliable for XBRL schemas.",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Validation': validateSchemaWithLxmlMenuEntender,

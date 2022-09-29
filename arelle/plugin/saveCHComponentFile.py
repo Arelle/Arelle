@@ -162,7 +162,7 @@ __pluginInfo__ = {
     'description': "This plug-in adds a feature to output a Charlie Hoffman Component file. "
                    "This provides a semantic definition of taxonomy contents.",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveCHComponentMenuEntender,

@@ -513,7 +513,7 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in adds a feature to output XBRL Formula file from formula linkbase model objects. ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveXfMenuEntender,

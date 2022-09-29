@@ -295,7 +295,7 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': "This plug-in displays instance information for sizing and performance issues.",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     'import': ('inlineXbrlDocumentSet',),
     # classes of mount points (required)

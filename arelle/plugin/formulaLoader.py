@@ -2154,7 +2154,7 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in loads XBRL formula files into formula linkbase.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'ModelDocument.IsPullLoadable': isXfLoadable,

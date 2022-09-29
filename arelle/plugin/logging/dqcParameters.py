@@ -208,7 +208,7 @@ __pluginInfo__ = {
 provided logging arguments.  Usually uses modelObject arguments to supply parameters found
 in message text that can be derived from the arguments.''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrCmdLine.Xbrl.Run': loggingCommandLineXbrlRun,

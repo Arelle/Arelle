@@ -27,7 +27,7 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "Used to test that uncaught exceptions report their cause to the Arelle user.",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': crashMenuEntender,

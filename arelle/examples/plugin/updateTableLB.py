@@ -232,7 +232,7 @@ __pluginInfo__ = {
                    "The updated linkbase is saved to a local file.  "
                    "Hrefs in the new file are identical the prior hrefs (not offset considering save-to directory).  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': updateTableLBMenuEntender,

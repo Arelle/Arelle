@@ -101,7 +101,7 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in loads UK Companies House XBRL documents.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     # take out for now: 'CntlrCmdLine.Options': streamingOptionsExtender,

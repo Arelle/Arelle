@@ -460,7 +460,7 @@ __pluginInfo__ = {
     'description': "This plug-in saves a sample instance from a us-gaap style DTS. "
                    "It uses an ELR's LineItems to control output facts.",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveSampleInstanceMenuEntender,

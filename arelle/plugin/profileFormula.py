@@ -123,7 +123,7 @@ __pluginInfo__ = {
                     "to exclude XPath compile statistics, validate first the normal way (e.g., toolbar button) "
                     "and then validate again using this profile formula validation plug-in.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Validation': profileFormulaMenuEntender,

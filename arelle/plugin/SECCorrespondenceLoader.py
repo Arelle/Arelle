@@ -207,7 +207,7 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in loads SEC Correspondence.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2014 Mark V Systems Limited, All rights reserved. \n'
                  'PyPDF (c) Copyright 2012 Jeet Sukumaran',
     # classes of mount points (required)

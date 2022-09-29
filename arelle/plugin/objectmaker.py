@@ -275,7 +275,7 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': "ObjectMaker(r) diagrams XBRL relationship graphs.",
     'license': 'Apache-2 (ObjectMaker), Eclipse (Graphviz)',
-    'author': 'Mark V Systems Limited',
+    'author': 'Workiva, Inc.',
     'copyright': 'ObjectMaker (c) Copyright 2017 Mark V Systems Limited, All rights reserved.'
                   'Graphviz (c) 2011 AT&T',
     # classes of mount points (required)

@@ -2001,7 +2001,7 @@ __pluginInfo__ = {
     'version': '1.02',
     'description': "This plug-in loads XBRL from Excel and saves the resulting XBRL DTS.",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'ModelDocument.IsPullLoadable': isExcelLoadable,

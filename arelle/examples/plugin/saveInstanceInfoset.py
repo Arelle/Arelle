@@ -109,7 +109,7 @@ __pluginInfo__ = {
                     "(Does not offset infoset hrefs and schemaLocations for directory offset from DTS.) "
                     "The ptv infoset is the source instance with facts having ptv:periodType, ptv:balance (where applicable), ptv:decimals and ptv:precision (inferred).  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveInstanceInfosetMenuEntender,

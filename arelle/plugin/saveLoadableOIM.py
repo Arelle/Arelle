@@ -690,7 +690,7 @@ __pluginInfo__ = {
     'version': '1.2',
     'description': "This plug-in saves XBRL in OIM JSON, CSV or XLSX that can be re-loaded per se.",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveLoadableOIMMenuEntender,

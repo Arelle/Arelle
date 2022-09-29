@@ -210,7 +210,7 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': '''FERC (US) Validation.''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     'import': ('inlineXbrlDocumentSet', ), # import dependent modules
     # classes of mount points (required)

@@ -36,7 +36,7 @@ __pluginInfo__ = {
 For a data point (fact): MET(conceptQName)|dimQName(mem)... (does not include period, unit, or entity identifier)
 For a concept, MET(conceptQName).''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
+    'author': 'Workiva, Inc.',
     'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
     # classes of mount points (required)
     'Logging.Ref.Attributes': loggingRefAttributes
