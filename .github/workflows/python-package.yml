@@ -3,10 +3,11 @@ name: Build and publish python package
 on:
   pull_request:
   release:
-    types: [created]
+    types: [released]
 
 jobs:
   build-and-publish-package:
+    environment: release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout arelle
