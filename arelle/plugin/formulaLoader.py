@@ -2184,7 +2184,7 @@ if __name__ == "__main__":
     for arg in sys.argv[1:]:
         if arg in ("-a", "--about"):
             print("\narelle(r) xf formula loader"
-                  "(c) 2017 Mark V Systems Limited\n"
+                  "(c) 2011-present Workiva, Inc.\n"
                   "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
                   "Licensed under the Apache License, Version 2.0 (the \"License\"); "
                   "you may not \nuse this file except in compliance with the License.  "

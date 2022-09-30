@@ -12,7 +12,7 @@ See COPYRIGHT.md for copyright information.
 
 The XBRL US Database schema and description is (c) Copyright XBRL US 2011, The
 resulting database may contain data from SEC interactive data filings (or any other XBRL
-instance documents and DTS) in a relational model. Mark V Systems conveys neither
+instance documents and DTS) in a relational model. Workiva, Inc. conveys neither
 rights nor license for the database schema.
 
 The XBRL US Database and this code is intended for Postgres.  XBRL-US uses Postgres 8.4,

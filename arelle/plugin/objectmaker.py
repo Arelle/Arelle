@@ -2,7 +2,7 @@
 '''
 objectmaker.py is a plug-in that will draw diagrams from linkbases
 
-ObjectMaker(r) is a registered trademark of Mark V Systems Limited
+ObjectMaker(r) is a registered trademark of Workiva, Inc.
 
 This product uses graphviz, which must be installed separately on the platform.
 
@@ -12,6 +12,7 @@ import os, io, time, re
 from tkinter import Menu
 from arelle import ModelDocument, XmlUtil, XbrlConst
 from arelle.ModelDtsObject import ModelConcept
+from arelle.Version import authorLabel, copyrightLabel
 
 diagramNetworks = {
     "uml": ("http://xbrl.us/arcrole/Aggregation", "http://xbrl.us/arcrole/Composition", "http://xbrl.us/arcrole/Inheritance"),
@@ -276,8 +277,7 @@ __pluginInfo__ = {
     'description': "ObjectMaker(r) diagrams XBRL relationship graphs.",
     'license': 'Apache-2 (ObjectMaker), Eclipse (Graphviz)',
     'author': authorLabel,
-    'copyright': 'ObjectMaker (c) Copyright 2017 Mark V Systems Limited, All rights reserved.'
-                  'Graphviz (c) 2011 AT&T',
+    'copyright': copyrightLabel + ' Graphviz (c) 2011 AT&T',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': objectmakerMenuEntender,
     'CntlrCmdLine.Options': objectmakerCommandLineOptionExtender,

@@ -299,7 +299,7 @@ def rtlString(source: str, lang: str | None) -> str:
 
 # Iterate over grouping intervals
 def _grouping_intervals(grouping: list[int]) -> Generator[int, None, None]:
-    last_interval = 3 # added by Mark V to prevent compile error but not necessary semantically
+    last_interval = 3 # added to prevent compile error but not necessary semantically
     for interval in grouping:
         # if grouping is -1, we are done
         if interval == CHAR_MAX:
