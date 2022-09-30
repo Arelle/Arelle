@@ -99,8 +99,6 @@ jobs:
       run: python pygettext.py -v -o arelle\locale\messages.pot arelle\*.pyw arelle\*.py
     - name: Regenerate messages catalog (doc/messagesCatalog.xml)
       run: python generateMessagesCatalog.py
-    - name: Build version.py
-      run: python buildVersion.py
     - name: Build exe
       run: python distro.py build_exe
     - name: Copy Tktable2.11
