@@ -108,14 +108,14 @@ def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, create
                 loadSchemalocatedSchemas(modelXbrl)
     return modelXbrl
 
-def loadSchemalocatedSchemas(modelXbrl):
+def loadSchemalocatedSchemas(modelXbrl) -> None:
     from arelle import ModelDocument
     if modelXbrl.modelDocument and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
         # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
-        modelDocumentsSchemaLocated = set()
+        modelDocumentsSchemaLocated: set[ModelDocument] = set()
         # loadSchemalocatedSchemas sometimes adds to modelXbrl.urlDocs
         while True:
-            modelDocuments = set(modelXbrl.urlDocs.values()) - modelDocumentsSchemaLocated
+            modelDocuments: set[ModelDocument] = set(modelXbrl.urlDocs.values()) - modelDocumentsSchemaLocated
             if not modelDocuments:
                 break
             for modelDocument in modelDocuments:
