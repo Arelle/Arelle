@@ -20,6 +20,7 @@ from arelle.ModelObjectFactory import parser
 from arelle.ModelValue import QName
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
 from arelle.Validate import Validate
+from arelle.Version import authorLabel, copyrightLabel
 
 _streamingExtensionsValidate = False
 _streamingExtensionsCheck = False

@@ -13,6 +13,7 @@ from arelle import PythonUtil, XbrlConst, ModelDocument, UrlUtil
 from arelle.PythonUtil import OrderedDefaultDict, OrderedSet
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelValue import qname, QName
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole,
                               conceptLabel, elementLabel, conceptReference, summationItem

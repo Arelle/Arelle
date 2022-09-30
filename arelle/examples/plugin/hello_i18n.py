@@ -4,7 +4,7 @@ are written for Arelle
 
 See COPYRIGHT.md for copyright information.
 '''
-from arelle.Version import authorLabel, copyrightLabel
+from arelle.Version import copyrightLabel
 
 def menuEntender(cntlr, menu):
     menu.add_command(label="Hello i18n", underline=0, command=lambda: menuCommand(cntlr) )

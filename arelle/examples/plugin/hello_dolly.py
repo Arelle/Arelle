@@ -5,7 +5,7 @@ are written for Arelle
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import print_function
-from arelle.Version import authorLabel, copyrightLabel
+from arelle.Version import copyrightLabel
 from random import randint
 
 
