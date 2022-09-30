@@ -1,8 +1,12 @@
 """Type hints for Arelle."""
 from __future__ import annotations
-from collections.abc import Callable
-from typing import TypedDict
-from locale import localeconv
+import sys
+from typing import Callable
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict  # pylint: disable=no-name-in-module
+else:
+    from typing_extensions import TypedDict
 
 TypeGetText = Callable[[str], str]
 
