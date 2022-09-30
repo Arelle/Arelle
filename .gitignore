@@ -22,6 +22,8 @@ Arelle.egg-info
 .tox
 arelle_release.egg-info
 arelle-release*
+/.mypy_cache/
+/.pytest_cache/
 
 /venv/
 tests/resources/conformance_suites/
