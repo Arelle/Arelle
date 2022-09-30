@@ -8,10 +8,7 @@ Created on Dec 12, 2013
 '''
 import os, io
 from lxml.etree import HTMLParser, parse, DTD, _ElementTree, _Comment, _ProcessingInstruction
-try:
-    from regex import compile as re_compile, match as re_match, DOTALL as re_DOTALL
-except ImportError:
-    from re import compile as re_compile, match as re_match, DOTALL as re_DOTALL
+from regex import compile as re_compile, match as re_match, DOTALL as re_DOTALL
 from arelle import ValidateFilingText
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.UrlUtil import isHttpUrl, scheme

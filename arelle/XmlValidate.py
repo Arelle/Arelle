@@ -6,10 +6,7 @@ Created on Feb 20, 2011
 '''
 import os, logging
 from lxml import etree
-try:
-    from regex import compile as re_compile
-except ImportError:
-    from re import compile as re_compile
+from regex import compile as re_compile
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
 from arelle import XbrlConst, XmlUtil

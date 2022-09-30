@@ -18,10 +18,7 @@ Example to run from web server:
 '''
 import os, sys, io, time, traceback, json, csv, logging, zipfile, datetime, isodate
 from math import isnan, log10
-try:
-    from regex import compile as re_compile, match as re_match, sub as re_sub, DOTALL as re_DOTALL
-except ImportError:
-    from re import compile as re_compile, match as re_match, sub as re_sub, DOTALL as re_DOTALL
+from regex import compile as re_compile, match as re_match, sub as re_sub, DOTALL as re_DOTALL
 from lxml import etree
 from collections import defaultdict, OrderedDict
 from arelle.ModelDocument import Type, create as createModelDocument
