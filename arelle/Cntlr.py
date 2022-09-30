@@ -15,7 +15,7 @@ import tempfile, os, io, sys, logging, gettext, json, re, subprocess, math
 from arelle import ModelManager
 from arelle.WebCache import WebCache
 from arelle.Locale import getLanguageCodes, setDisableRTL
-from arelle import PluginManager, PackageManager
+from arelle import PluginManager, PackageManager, XbrlConst
 from collections import defaultdict
 
 _: TypeGetText
@@ -141,7 +141,8 @@ class Cntlr:
         logFileName: str | None = None,
         logFileMode: str | None = None,
         logFileEncoding: str | None = None,
-        logFormat: str | None = None
+        logFormat: str | None = None,
+        uiLang: str | None = None,
     ) -> None:
         self.hasWin32gui = False
         self.hasGui = hasGui
@@ -275,10 +276,6 @@ class Cntlr:
                 'windowGeometry': "{0}x{1}+{2}+{3}".format(800, 500, 200, 100),
             }
 
-        # start language translation for domain
-        self.setUiLanguage(self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
-        setDisableRTL(self.config.get('disableRtl', False))
-
         self.webCache = WebCache(self, self.config.get("proxySettings"))
 
         # start plug in server (requres web cache initialized, but not logger)
@@ -287,29 +284,51 @@ class Cntlr:
         # requires plug ins initialized
         self.modelManager = ModelManager.initialize(self)
 
+        # start language translation for domain
+        self.setUiLanguage(uiLang or self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
+        setDisableRTL(self.config.get('disableRtl', False))
+
         # start taxonomy package server (requres web cache initialized, but not logger)
         PackageManager.init(self, loadPackagesConfig=hasGui)
 
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
 
+    def postLoggingInit(self, localeSetupMessage: str | None = None) -> None:
+        if not self.modelManager.isLocaleSet:
+            localeSetupMessage = self.modelManager.setLocale() # set locale after logger started
+        if localeSetupMessage:
+            Cntlr.addToLog(self, localeSetupMessage, messageCode="arelle:uiLocale", level=logging.WARNING)
+
         # Cntlr.Init after logging started
         for pluginMethod in PluginManager.pluginClassMethods("Cntlr.Init"):
             pluginMethod(self)
 
-    def setUiLanguage(self, lang: str, fallbackToDefault: bool = False) -> None:
+    def setUiLanguage(self, locale: str | None, fallbackToDefault: bool = False) -> None:
         try:
-            langCodes = getLanguageCodes(lang)
+            self.uiLocale = locale
+            langCodes = getLanguageCodes(locale)
             gettext.translation("arelle",
                                 self.localeDir,
                                 langCodes).install()
-            self.uiLang = langCodes[0].lower()
-            self.uiLangDir = 'rtl' if self.uiLang[0:2] in {"ar","he"} else 'ltr'
-        except Exception:
-            if fallbackToDefault or (lang and lang.lower().startswith("en")):
-                self.uiLang = "en"
+            self.uiLang = langCodes[0]
+            if not locale and self.uiLang:
+                self.uiLocale = self.uiLang
+            self.uiLangDir = 'rtl' if self.uiLang[0:2].lower() in {"ar","he"} else 'ltr'
+        except Exception as ex:
+            if fallbackToDefault and not locale and langCodes:
+                locale = langCodes[0]
+            if fallbackToDefault or (locale and locale.lower().startswith("en")):
+                if locale and len(locale) == 5 and locale.lower().startswith("en"):
+                    self.uiLang = locale # may be en other than defaultLocale
+                else:
+                    self.uiLang = XbrlConst.defaultLocale # must work with gettext or will raise an exception
+                if not self.uiLocale:
+                    self.uiLocale = self.uiLang
                 self.uiLangDir = "ltr"
                 gettext.install("arelle",
                                 self.localeDir)
+
+        self.modelManager.setLocale() # reset the modelManager uiLang locale
 
     def startLogging(
         self,

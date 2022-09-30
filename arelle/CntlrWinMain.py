@@ -70,6 +70,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.filename = None
         self.dirty = False
         overrideLang = self.config.get("labelLangOverride")
+        localeSetupMessage = self.modelManager.setLocale() # set locale before GUI for menu strings, pass any msg to logger after log pane starts up
         self.labelLang = overrideLang if overrideLang else self.modelManager.defaultLang
         self.data = {}
 
@@ -355,6 +356,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         from arelle import ViewWinList
         self.logView = ViewWinList.ViewList(None, self.tabWinBtm, _("messages"), True)
         self.startLogging(logHandler=WinMainLogHandler(self)) # start logger
+        self.postLoggingInit(localeSetupMessage) # Cntlr options after logging is started, logger pane now available for any locale startup messages
         logViewMenu = self.logView.contextMenu(contextMenuClick=self.contextMenuClick)
         logViewMenu.add_command(label=_("Clear"), underline=0, command=self.logClear)
         logViewMenu.add_command(label=_("Save to file"), underline=0, command=self.logSaveToFile)

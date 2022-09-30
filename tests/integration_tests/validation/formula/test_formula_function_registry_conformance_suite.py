@@ -18,10 +18,7 @@ ARGS = [
 if os.getenv('CONFORMANCE_SUITES_TEST_MODE') == 'OFFLINE':
     ARGS.extend(['--internetConnectivity', 'offline'])
 
-EXPECTED_FAILURE_IDS = frozenset([
-    '90701 xfi.format-number/90701 xfi.format-number testcase.xml/V-05',
-])
-TEST_DATA = get_test_data(ARGS, expected_failure_ids=EXPECTED_FAILURE_IDS)
+TEST_DATA = get_test_data(ARGS)
 
 
 @pytest.mark.parametrize("result", TEST_DATA)
