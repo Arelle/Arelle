@@ -417,7 +417,7 @@ def parseAndRun(args):
 
     (options, leftoverArgs) = parser.parse_args(args)
     if options.about:
-        print(f"\narelle(r) {Version.__version__} ({cntlr.systemWordSize}bit {platform.machine()})\n\n"
+        print(_(f"\narelle(r) {Version.__version__} ({cntlr.systemWordSize}bit {platform.machine()})\n\n"
                 "An open source XBRL platform\n"
                 "(c) 2011-present Workiva, Inc.\n"
                 "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
@@ -435,7 +435,7 @@ def parseAndRun(args):
                 f"\n   PyParsing (c) 2003-2013 Paul T. McGuire"
                 f"\n   lxml {etree.LXML_VERSION[0]}.{etree.LXML_VERSION[1]}.{etree.LXML_VERSION[2]} (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
                 f'{f"{chr(10)}   Bottle (c) 2011-2013 Marcel Hellkamp" if hasWebServer else ""}'
-                f"\n   May include installable plug-in modules with author-specific license terms")
+                f"\n   May include installable plug-in modules with author-specific license terms"))
     elif options.diagnostics:
         pprint(get_system_info())
     elif options.disclosureSystemName in ("help", "help-verbose"):

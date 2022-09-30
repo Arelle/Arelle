@@ -1330,7 +1330,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         DialogAbout.about(self.parent,
                           _("About arelle"),
                           os.path.join(self.imagesDir, "arelle32.gif"),
-                          f"arelle\u00ae {Version.__version__} ({self.systemWordSize}bit {platform.machine()})\n"
+                          _(f"arelle\u00ae {Version.__version__} ({self.systemWordSize}bit {platform.machine()})\n"
                               "An open source XBRL platform\n"
                               "\u00a9 2011-present Workiva, Inc.\n"
                               "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
@@ -1349,7 +1349,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                               "\n   PyParsing \u00a9 2003-2013 Paul T. McGuire"
                               f"\n   lxml {etree.LXML_VERSION[0]}.{etree.LXML_VERSION[1]}.{etree.LXML_VERSION[2]} \u00a9 2004 Infrae, ElementTree \u00a9 1999-2004 by Fredrik Lundh"
                               f"{bottleVersionString}"
-                              "\n   May include installable plug-in modules with author-specific license terms"
+                              "\n   May include installable plug-in modules with author-specific license terms")
                           )
 
 
