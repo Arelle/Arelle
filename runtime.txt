@@ -1,0 +1,2 @@
+# https://github.com/dependabot/dependabot-core/blob/8ab4d78efe7cf9a75bef76dd883d7ee3fffffb40/python/lib/dependabot/python/file_parser/python_requirement_parser.rb#L76-L85
+python-3.7.13

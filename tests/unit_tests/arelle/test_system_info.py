@@ -7,13 +7,17 @@ def test_get_system_info() -> None:
     function_result = get_system_info()
 
     expected_keys = {
+        "arelle_version",
         "arch",
+        "args",
         "docker",
         "os_name",
-        "version_arelle",
-        "version_os",
-        "version_python",
-        "virtualenv"
+        "os_version",
+        "python_branch",
+        "python_compiler",
+        "python_implementation",
+        "python_version",
+        "python_virtualenv"
     }
 
     resulting_keys = set(function_result.keys())

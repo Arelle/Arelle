@@ -70,8 +70,13 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.filename = None
         self.dirty = False
         overrideLang = self.config.get("labelLangOverride")
+        localeSetupMessage = self.modelManager.setLocale() # set locale before GUI for menu strings, pass any msg to logger after log pane starts up
         self.labelLang = overrideLang if overrideLang else self.modelManager.defaultLang
         self.data = {}
+
+        # Background processes communicate with UI thread through this queue
+        # Prepare early so messages encountered during initialization can be queued for logging
+        self.uiThreadQueue = queue.Queue()
 
         if self.isMac: # mac Python fonts bigger than other apps (terminal, text edit, Word), and to windows Arelle
             _defaultFont = tkFont.nametofont("TkDefaultFont") # label, status bar, treegrid
@@ -351,6 +356,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         from arelle import ViewWinList
         self.logView = ViewWinList.ViewList(None, self.tabWinBtm, _("messages"), True)
         self.startLogging(logHandler=WinMainLogHandler(self)) # start logger
+        self.postLoggingInit(localeSetupMessage) # Cntlr options after logging is started, logger pane now available for any locale startup messages
         logViewMenu = self.logView.contextMenu(contextMenuClick=self.contextMenuClick)
         logViewMenu.add_command(label=_("Clear"), underline=0, command=self.logClear)
         logViewMenu.add_command(label=_("Save to file"), underline=0, command=self.logSaveToFile)
@@ -429,7 +435,6 @@ class CntlrWinMain (Cntlr.Cntlr):
 
         self.logFile = None
 
-        self.uiThreadQueue = queue.Queue()     # background processes communicate with ui thread
         self.uiThreadChecker(self.statusbar)    # start background queue
 
         self.modelManager.loadCustomTransforms() # load if custom transforms not loaded

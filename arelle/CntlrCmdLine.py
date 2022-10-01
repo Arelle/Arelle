@@ -31,6 +31,7 @@ from lxml import etree
 win32file = win32api = win32process = pywintypes = None
 STILL_ACTIVE = 259 # MS Windows process status constants
 PROCESS_QUERY_INFORMATION = 0x400
+UILANG_OPTION = '--uiLang'
 
 def main():
     """Main program to initiate application from command line or as a separate process (e.g, java Runtime.getRuntime().exec).  May perform
@@ -59,15 +60,18 @@ def parseAndRun(args):
         hasWebServer = True
     except ImportError:
         hasWebServer = False
-    cntlr = CntlrCmdLine()  # need controller for plug ins to be loaded
-
+    uiLang = None
     # Check if there is UI language override to use the selected language
     # for help and error messages...
     for _i, _arg in enumerate(args):
-        if _arg.startswith('--uiLang'):
-            _uiLang = args[_i+1]
-            cntlr.setUiLanguage(_uiLang)
+        if _arg.startswith((f'{UILANG_OPTION}=', f'{UILANG_OPTION.lower()}=')):
+            uiLang = _arg[9:]
             break
+        elif _arg in (UILANG_OPTION, UILANG_OPTION.lower()) and _i + 1 < len(args):
+            uiLang = args[_i+1]
+            break
+
+    cntlr = CntlrCmdLine(uiLang=uiLang)  # need controller for plug ins to be loaded
 
     usage = "usage: %prog [options]"
 
@@ -109,6 +113,9 @@ def parseAndRun(args):
                              "are individually so validated. "
                              "If formulae are present they will be validated and run unless --formula=none is specified. "
                              ))
+    parser.add_option("--noValidateTestcaseSchema", action="store_false", dest="validateTestcaseSchema", default=True,
+                      help=_("Validate testcases against their schemas."))
+    parser.add_option("--novalidatetestcaseschema", action="store_false", dest="validateTestcaseSchema", default=True, help=SUPPRESS_HELP)
     parser.add_option("--calcDecimals", action="store_true", dest="calcDecimals",
                       help=_("Specify calculation linkbase validation inferring decimals."))
     parser.add_option("--calcdecimals", action="store_true", dest="calcDecimals", help=SUPPRESS_HELP)
@@ -294,9 +301,9 @@ def parseAndRun(args):
     parser.add_option("--formularunids", action="store", dest="formulaRunIDs", help=SUPPRESS_HELP)
     parser.add_option("--formulaCompileOnly", action="store_true", dest="formulaCompileOnly", help=_("Specify formula are to be compiled but not executed."))
     parser.add_option("--formulacompileonly", action="store_true", dest="formulaCompileOnly", help=SUPPRESS_HELP)
-    parser.add_option("--uiLang", action="store", dest="uiLang",
-                      help=_("Language for user interface (override system settings, such as program messages).  Does not save setting."))
-    parser.add_option("--uilang", action="store", dest="uiLang", help=SUPPRESS_HELP)
+    parser.add_option(UILANG_OPTION, action="store", dest="uiLang",
+                      help=_("Language for user interface (override system settings, such as program messages).  Does not save setting.  Requires locale country code, e.g. en-GB or en-US."))
+    parser.add_option(UILANG_OPTION.lower(), action="store", dest="uiLang", help=SUPPRESS_HELP)
     parser.add_option("--proxy", action="store", dest="proxy",
                       help=_("Modify and re-save proxy settings configuration.  "
                              "Enter 'system' to use system proxy setting, 'none' to use no proxy, "
@@ -467,6 +474,7 @@ def parseAndRun(args):
             cntlr.startLogging(logFileName='logToBuffer',
                                logTextMaxLength=options.logTextMaxLength,
                                logRefObjectProperties=options.logRefObjectProperties)
+            cntlr.postLoggingInit() # Cntlr options after logging is started
             from arelle import CntlrWebMain
             app = CntlrWebMain.startWebserver(cntlr, options)
             if options.webserver == '::wsgi':
@@ -479,6 +487,7 @@ def parseAndRun(args):
                            logToBuffer=getattr(options, "logToBuffer", False),
                            logTextMaxLength=options.logTextMaxLength, # e.g., used by EdgarRenderer to require buffered logging
                            logRefObjectProperties=options.logRefObjectProperties)
+        cntlr.postLoggingInit() # Cntlr options after logging is started
         cntlr.run(options)
 
         return cntlr
@@ -535,8 +544,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
     Initialization sets up for platform via Cntlr.Cntlr.
     """
 
-    def __init__(self, logFileName=None):
-        super(CntlrCmdLine, self).__init__(hasGui=False)
+    def __init__(self, logFileName=None, uiLang=None):
+        super(CntlrCmdLine, self).__init__(hasGui=False, uiLang=uiLang)
         self.preloadedPlugins =  {}
 
     def run(self, options, sourceZipStream=None, responseZipStream=None):
@@ -587,8 +596,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         setDisableRTL(options.disableRtl) # not saved to config
 
-        if options.uiLang: # set current UI Lang (but not config setting)
-            self.setUiLanguage(options.uiLang)
         if options.proxy:
             if options.proxy != "show":
                 proxySettings = proxyTuple(options.proxy)
@@ -797,6 +804,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.modelManager.collectProfileStats = True
         if options.outputAttribution:
             self.modelManager.outputAttribution = options.outputAttribution
+        self.modelManager.validateTestcaseSchema = options.validateTestcaseSchema
         if options.internetConnectivity == "offline":
             self.webCache.workOffline = True
         elif options.internetConnectivity == "online":

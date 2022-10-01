@@ -83,8 +83,6 @@ jobs:
       - name: Regenerate messages catalog (doc/messagesCatalog.xml)
         run: python generateMessagesCatalog.py
       - run: cp -p arelleGUI.pyw arelleGUI.py
-      - name: Build version.py
-        run: python buildVersion.py
       - name: Build app
         run: python distro.py bdist_mac
       - name: Remove git directories
@@ -133,5 +131,5 @@ jobs:
           hdiutil convert dist_dmg/arelle_tmp.dmg -format UDZO -imagekey zlib-level=9 -o dist_dmg/arelle-${{ matrix.os }}.dmg
       - uses: actions/upload-artifact@v3.1.0
         with:
-          name: arelle-${{ matrix.os }}
+          name: macos distribution
           path: dist_dmg/arelle-${{ matrix.os }}.dmg
