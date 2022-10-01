@@ -21,10 +21,14 @@ from arelle.UrlUtil import scheme
 from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
-from typing import Any, Union, cast
+from typing import TYPE_CHECKING, Any, Union, cast
 from arelle.ModelDocument import ModelDocument
 from arelle.typing import TypeGetText
 from collections import defaultdict
+import io
+
+if TYPE_CHECKING:
+    from _typeshed import SupportsRead
 
 
 _: TypeGetText  # Handle gettext
@@ -127,8 +131,10 @@ def resourcesFilePath(modelManager: ModelManager, fileName: str) -> str:
     return os.path.join(_resourcesDir, fileName)
 
 def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]:
-    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), 'rt', encoding='utf-8')  # type: ignore[no-untyped-call]
+    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), 'rt', encoding='utf-8')
+    _file = cast("SupportsRead[Union[str, bytes]]", _file)
     validations = json.load(_file) # {localName: date, ...}
+    assert isinstance(_file, io.IOBase)
     _file.close()
     return cast(Union[dict[Any, Any], list[Any]], validations)
 
