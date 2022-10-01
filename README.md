@@ -2,8 +2,13 @@
   <img src="http://arelle.org/arelle/wp-content/themes/platform/images/logo-platform.png">
 </div>
 
+- [Arelle](#arelle)
+- [Features](#features)
+- [Installation](#installation)
+- [Contribution guidelines](#contribution-guidelines)
+- [License](#license)
 
-
+## Arelle
 [Arelle](https://arelle.org/arelle/) is an end-to-end open source XBRL platform,
 which provides the XBRL community with an easy to use set of tools.  It supports
 XBRL and its extension features in an extensible manner.  It does this in a
