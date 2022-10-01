@@ -29,13 +29,13 @@ be integrated with other applications and languages utilizing its web service.
 
 ## Installation
 
-Please check out our [Arelle install guide](INSTALLATION.md).
+Please check out our [Arelle install guide](https://github.com/Arelle/Arelle/blob/master/INSTALLATION.md).
 
 
 ## Contribution guidelines
 
 If you want to contribute to Arelle, be sure to review the
-[contribution guidelines](CONTRIBUTING.md).
+[contribution guidelines](https://github.com/Arelle/Arelle/blob/master/CONTRIBUTING.md).
 
 We use [GitHub issues](https://github.com/arelle/arelle/issues) for
 tracking requests and bugs.
@@ -43,4 +43,4 @@ tracking requests and bugs.
 
 ## License
 
-[Apache License 2.0](LICENSE.md)
+[Apache License 2.0](https://github.com/Arelle/Arelle/blob/master/LICENSE.md)
