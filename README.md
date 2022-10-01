@@ -3,12 +3,16 @@
 </div>
 
 - [Arelle](#arelle)
-- [Features](#features)
+  - [Features](#features)
 - [Installation](#installation)
+  - [Install PyPi package](#install-pypi-package)
+  - [Install development version from github](#install-development-version-from-github)
+  - [Install distributions](#install-distributions)
+- [Reporting Issues](#reporting-issues)
 - [Contribution guidelines](#contribution-guidelines)
 - [License](#license)
 
-## Arelle
+# Arelle
 [Arelle](https://arelle.org/arelle/) is an end-to-end open source XBRL platform,
 which provides the XBRL community with an easy to use set of tools.  It supports
 XBRL and its extension features in an extensible manner.  It does this in a
@@ -32,20 +36,48 @@ be integrated with other applications and languages utilizing its web service.
 * QuickBooks is supported by XBRL-GL.
 
 
-## Installation
+# Installation
 
-Please check out our [Arelle install guide](https://github.com/Arelle/Arelle/blob/master/INSTALLATION.md).
+The implementation is in Python 3.10, and is intended for Windows (any recent),
+Mac OS-X 10.9+, Unix or Linux. The standard installation includes both desktop GUI,
+a localhost RESTful web server and CLI.
 
+## Install PyPi package
+```shell
+pip install arelle-release
+```
 
-## Contribution guidelines
+## Install development version from github
+```shell
+pip install git+https://git@github.com/arelle/arelle.git@master#egg=arelle-release
+```
+
+## Install distributions
+Distributions include Python version and resources needed to run Arelle.
+
+Arelle provides distributions for the following operating systems:
+* Windows (x64 and x32 architecture)
+* Mac OS
+* Linux (Ubuntu)
+* Red Hat
+
+Distributions can be downloaded from:
+* [Arelle website](https://arelle.org/arelle/pub/)
+* [github releases](https://github.com/Arelle/Arelle/releases)
+
+# Reporting Issues
+Please report issues to the [issue tracker](https://github.com/arelle/arelle/issues).
+
+* Check that the issue has not already been reported.
+* Check that the issue has not already been fixed in the latest code.
+* Be clear and precise (do not prose, but name functions and commands exactly).
+* Include the version of Arelle.
+
+# Contribution guidelines
 
 If you want to contribute to Arelle, be sure to review the
 [contribution guidelines](https://github.com/Arelle/Arelle/blob/master/CONTRIBUTING.md).
 
-We use [GitHub issues](https://github.com/arelle/arelle/issues) for
-tracking requests and bugs.
-
-
-## License
+# License
 
 [Apache License 2.0](https://github.com/Arelle/Arelle/blob/master/LICENSE.md)
