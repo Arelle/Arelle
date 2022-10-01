@@ -121,7 +121,7 @@ def modelXbrlBeforeLoading(modelXbrl: ModelXbrl, normalizedUri: str, filepath: s
                     modelXbrl.fileSource.selection.endswith(".xml") and
                     # Ignoring for now: Argument 1 to "identify" of "Type" has incompatible type "FileSource"; expected "Type".
                     # It is not entirely clear why self isn't used in the identify-method.
-                    ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url) in (
+                    ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url) in (  # type: ignore[arg-type]
                         ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
                     return None # allow zipped test case to load normally
                 if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):

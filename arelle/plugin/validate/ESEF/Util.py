@@ -22,7 +22,7 @@ from arelle.ModelDocument import ModelDocument
 from arelle.typing import TypeGetText
 
 if TYPE_CHECKING:
-    from arelle.FileSource import FileSource
+    from _typeshed import SupportsRead
 
 _: TypeGetText  # Handle gettext
 
@@ -126,8 +126,7 @@ def resourcesFilePath(modelManager: ModelManager, fileName: str) -> str:
 
 def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]:
     _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), 'rt', encoding='utf-8')
-    assert not isinstance(_file, io.IOBase)
-    assert not isinstance(_file, FileSource)
+    _file = cast("SupportsRead[Union[str, bytes]]", _file)
     validations = json.load(_file) # {localName: date, ...}
     assert isinstance(_file, io.IOBase)
     _file.close()

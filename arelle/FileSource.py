@@ -60,10 +60,9 @@ def openFileSource(
             selection: str | None = archivepathSelection[1]
 
             assert selection is not None
-            assert sourceFileSource is not None
-            assert sourceFileSource.dir is not None
             if (
-                sourceFileSource
+                sourceFileSource is not None
+                and sourceFileSource.dir is not None
                 and sourceFileSource.isArchive
                 and selection in sourceFileSource.dir
                 and selection.endswith(".zip")
@@ -139,6 +138,7 @@ class FileSource:
     fs: zipfile.ZipFile | tarfile.TarFile | io.StringIO | None
     referencedFileSources: dict[Any, Any]
     rssDocument: etree._ElementTree | None
+    selection: str | list[str] | None
     url: str | list[str] | None
     basefile: str | list[str] | None
     xfdDocument: etree._ElementTree | None
@@ -757,8 +757,7 @@ class FileSource:
             assert isinstance(self.baseurl, str)
             return self.baseurl + os.sep + selection.replace("/", os.sep)
 
-    def select(self, selection: str | list[Any] | None) -> None:
-        assert isinstance(self.selection, str)
+    def select(self, selection: str | list[str] | None) -> None:
         self.selection = selection
         if not selection:
             self.url = None
