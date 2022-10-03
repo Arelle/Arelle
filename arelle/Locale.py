@@ -11,10 +11,7 @@ import regex as re
 from typing import Generator, cast, Any, Callable
 from fractions import Fraction
 from arelle.typing import TypeGetText, LocaleDict
-try:
-    from collections.abc import Mapping
-except:
-    from collections import Mapping
+from collections.abc import Mapping
 import unicodedata
 
 _: TypeGetText
