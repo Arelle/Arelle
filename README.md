@@ -2,6 +2,8 @@
   <img src="http://arelle.org/arelle/wp-content/themes/platform/images/logo-platform.png">
 </div>
 
+[![pypi-version](https://img.shields.io/pypi/v/arelle-release.svg)](https://pypi.org/project/arelle-release/)
+[![Python Version](https://img.shields.io/pypi/pyversions/arelle-release.svg)](https://pypi.org/project/arelle-release/)
 
 
 [Arelle](https://arelle.org/arelle/) is an end-to-end open source XBRL platform,
