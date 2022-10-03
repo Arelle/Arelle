@@ -1,8 +1,5 @@
 '''
-Created on Jul 7, 2018
-
-@author: Mark V Systems Limited
-(c) Copyright 2018 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os, json, re
 from collections import defaultdict, OrderedDict

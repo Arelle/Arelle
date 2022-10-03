@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
-Created on Oct 17, 2010
-
-@author: Mark V Systems Limited
-
 This is a collective work.
-Original work (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information for original work.
 Subsequent validations and enhancements created by staff of the U.S. Securities and Exchange Commission.
 Data and content created by government employees within the scope of their employment are not subject
 to domestic copyright protection. 17 U.S.C. 105.

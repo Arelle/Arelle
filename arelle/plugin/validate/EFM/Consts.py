@@ -1,8 +1,5 @@
 '''
-Created on Jun 30, 2018
-
-@author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import regex as re
 from arelle.PythonUtil import attrdict

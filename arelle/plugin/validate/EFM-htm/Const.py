@@ -1,10 +1,5 @@
 '''
-Created on Dec 12, 2013
-
-@author: Mark V Systems Limited
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
-
-
+See COPYRIGHT.md for copyright information.
 '''
 try:
     from regex import compile as re_compile, match as re_match, DOTALL as re_DOTALL
