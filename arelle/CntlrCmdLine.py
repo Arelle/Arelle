@@ -20,6 +20,7 @@ from arelle.ModelFormulaObject import FormulaOptions
 from arelle import PluginManager
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
+from arelle.Version import copyrightLabel
 from arelle.WebCache import proxyTuple
 from arelle.SystemInfo import get_system_info
 from pprint import pprint
@@ -419,8 +420,8 @@ def parseAndRun(args):
     if options.about:
         print(_(f"\narelle(r) {Version.__version__} ({cntlr.systemWordSize}bit {platform.machine()})\n\n"
                 "An open source XBRL platform\n"
-                "(c) 2011-present Workiva, Inc.\n"
-                "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
+                f"{copyrightLabel}\n"
+                "http://www.arelle.org\nsupport@arelle.org\n\n"
                 "Licensed under the Apache License, Version 2.0 (the \"License\"); "
                 "you may not \nuse this file except in compliance with the License.  "
                 "You may obtain a copy \nof the License at "

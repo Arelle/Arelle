@@ -519,7 +519,7 @@ __pluginInfo__ = {
     'description': "SBR-NL Validation.",
     'license': 'Apache-2',
     'author': 'S. Bee Are',
-    'copyright': '(c) Copyright 2011-present Workiva, Inc., All rights reserved.',
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'Validate.SBRNL.Start': setup,
     # 'Validate.SBRNL.Fact': factCheck  (no instances being checked by SBRNL,
