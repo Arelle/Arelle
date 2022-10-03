@@ -5,7 +5,7 @@
 - [Arelle](#arelle)
   - [Features](#features)
 - [Installation](#installation)
-  - [Install PyPi package](#install-pypi-package)
+  - [Install PyPI package](#install-pypi-package)
   - [Install development version from github](#install-development-version-from-github)
   - [Install distributions](#install-distributions)
 - [Reporting Issues](#reporting-issues)
@@ -38,32 +38,37 @@ be integrated with other applications and languages utilizing its web service.
 
 # Installation
 
-The implementation is in Python 3.10, and is intended for Windows (any recent),
-Mac OS-X 10.9+, Unix or Linux. The standard installation includes both desktop GUI,
-a localhost RESTful web server and CLI.
+The implementation is in Python 3.9 and is intended for Windows, macOS, or Linux (tested against Ubuntu and RHEL). The standard desktop installation includes a GUI, a RESTful web server, and CLI. We try to support all operating system versions that still receive security updates from their development teams.
 
-## Install PyPi package
+## Install PyPI package
+The Arelle python package defines optional extra dependencies for various plugins and use cases.
+* Crypto (security plugin dependencies)
+* DB (database plugin dependencies)
+* EFM (EdgarRenderer plugin dependencies - does not include the EdgarRenderer, just the dependencies required to run it)
+* ObjectMaker (ObjectMaker plugin dependencies)
+* WebServer (dependencies for running the Arelle web server)
 ```shell
 pip install arelle-release
+# or for all extra dependencies
+pip install arelle-release[Crypto,DB,EFM,ObjectMaker,WebServer]
 ```
 
 ## Install development version from github
 ```shell
-pip install git+https://git@github.com/arelle/arelle.git@master#egg=arelle-release
+pip install git+https://git@github.com/arelle/arelle.git@master
 ```
 
 ## Install distributions
 Distributions include Python version and resources needed to run Arelle.
 
 Arelle provides distributions for the following operating systems:
-* Windows (x64 and x32 architecture)
-* Mac OS
-* Linux (Ubuntu)
-* Red Hat
+* Windows
+* macOS (Intel)
+* Linux (Ubuntu and Red Hat Enterprise Linux)
 
 Distributions can be downloaded from:
 * [Arelle website](https://arelle.org/arelle/pub/)
-* [github releases](https://github.com/Arelle/Arelle/releases)
+* [GitHub releases](https://github.com/Arelle/Arelle/releases)
 
 # Reporting Issues
 Please report issues to the [issue tracker](https://github.com/arelle/arelle/issues).
