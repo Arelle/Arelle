@@ -32,6 +32,7 @@ from arelle.CntlrWinTooltip import ToolTip
 from arelle import XbrlConst
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
+from arelle.Version import copyrightLabel
 import logging
 
 import threading, queue
@@ -1325,15 +1326,13 @@ class CntlrWinMain (Cntlr.Cntlr):
     def helpAbout(self, event=None):
         from arelle import DialogAbout, Version
         from lxml import etree
-        bottleVersionString = _("\n   Bottle \u00a9 2011-2013 Marcel Hellkamp"
-            "\n   CherryPy \u00a9 2002-2013 CherryPy Team") if self.hasWebServer else ""
         DialogAbout.about(self.parent,
                           _("About arelle"),
                           os.path.join(self.imagesDir, "arelle32.gif"),
-                          _(f"arelle\u00ae {Version.__version__} ({self.systemWordSize}bit {platform.machine()})\n"
+                          _("arelle\u00ae {version} ({wordSize}bit {platform})\n"
                               "An open source XBRL platform\n"
-                              "\u00a9 2011-present Workiva, Inc.\n"
-                              "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
+                              "{copyrightLabel}\n"
+                              "http://www.arelle.org\nsupport@arelle.org\n\n"
                               "Licensed under the Apache License, Version 2.0 (the \"License\"); "
                               "you may not use this file except in compliance with the License.  "
                               "You may obtain a copy of the License at\n\n"
@@ -1344,13 +1343,22 @@ class CntlrWinMain (Cntlr.Cntlr):
                               "See the License for the specific language governing permissions and "
                               "limitations under the License."
                               "\n\nIncludes:"
-                              f"\n   Python\u00ae {sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]} \u00a9 2001-2016 Python Software Foundation"
-                              f"\n   Tcl/Tk {Tcl().eval('info patchlevel')} \u00a9 Univ. of Calif., Sun, Scriptics, ActiveState, and others"
+                              "\n   Python\u00ae {pythonVersion} \u00a9 2001-2016 Python Software Foundation"
+                              "\n   Tcl/Tk {tcltkVersion} \u00a9 Univ. of Calif., Sun, Scriptics, ActiveState, and others"
                               "\n   PyParsing \u00a9 2003-2013 Paul T. McGuire"
-                              f"\n   lxml {etree.LXML_VERSION[0]}.{etree.LXML_VERSION[1]}.{etree.LXML_VERSION[2]} \u00a9 2004 Infrae, ElementTree \u00a9 1999-2004 by Fredrik Lundh"
-                              f"{bottleVersionString}"
-                              "\n   May include installable plug-in modules with author-specific license terms")
-                          )
+                              "\n   lxml {lxmlVersion} \u00a9 2004 Infrae, ElementTree \u00a9 1999-2004 by Fredrik Lundh"
+                              "{bottleCopyright}"
+                              "\n   May include installable plug-in modules with author-specific license terms").format(
+                                  version=Version.__version__,
+                                  wordSize=self.systemWordSize,
+                                  platform=platform.machine(),
+                                  copyrightLabel=copyrightLabel.replace("(c)", "\u00a9"),
+                                  pythonVersion=f'{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}',
+                                  tcltkVersion=Tcl().eval('info patchlevel'),
+                                  lxmlVersion=f'{etree.LXML_VERSION[0]}.{etree.LXML_VERSION[1]}.{etree.LXML_VERSION[2]}',
+                                  bottleCopyright=_("\n   Bottle \u00a9 2011-2013 Marcel Hellkamp"
+                                                    "\n   CherryPy \u00a9 2002-2013 CherryPy Team") if self.hasWebServer else ""
+                          ))
 
 
     # worker threads addToLog
