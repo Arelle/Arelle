@@ -78,9 +78,9 @@ pip install git+https://git@github.com/arelle/arelle.git@master
 
 ### Install distributions
 
-Distributions include Python version and resources needed to run Arelle.
+Distributions are self contained builds that come bundled with their own Python runtime and resources needed to run Arelle.
 
-Arelle provides distributions for the following operating systems:
+Distributions are provided for the following operating systems:
 
 - Windows
 - macOS (Intel)
