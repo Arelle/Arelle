@@ -1,8 +1,7 @@
 '''
 EDGAR.py implements an OpenSql database extension for Seatig's XDC
 
-(c) Copyright 2017 Mark V Systems Limited, California US, All rights reserved.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
+See COPYRIGHT.md for copyright information.
 
 
 to use from command line:
@@ -43,6 +42,7 @@ note that reference parts are needed at least on first "loading" of the DTS
 '''
 import os
 from arelle.UrlUtil import ensureUrl
+from arelle.Version import authorLabel, copyrightLabel
 
 EXT_XDC_TABLES = {
                 "xdc_user",
@@ -167,8 +167,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': "This plug-in implements additional database fields for Changhong XDC.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2017 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     'import': ('xbrlDB', ), # import dependent modules
     'xbrlDB.Open.Ext.TableDDLFiles': extXdcTableDdlFiles,
     'xbrlDB.Open.Ext.Metadata': extXdcMetadata,

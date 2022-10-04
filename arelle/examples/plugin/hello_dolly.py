@@ -2,9 +2,10 @@
 Hello dolly is a simple "Hello world" to demonstrate how plug-ins
 are written for Arelle
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from __future__ import print_function
+from arelle.Version import copyrightLabel
 from random import randint
 
 
@@ -55,7 +56,7 @@ __pluginInfo__ = {
                     "see a lyric from Hello, Dolly.",
     'license': 'Apache-2',
     'author': 'R\xe9gis D\xce9camps',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': helloMenuEntender,
     'CntlrCmdLine.Options': helloCommandLineOptionExtender,

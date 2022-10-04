@@ -1,13 +1,10 @@
 '''
-Created on Oct 12, 2020
-
 Filer Guidelines:
     https://www.revenue.ie/en/online-services/support/documents/ixbrl/ixbrl-technical-note.pdf
     https://www.revenue.ie/en/online-services/support/documents/ixbrl/error-messages.pdf
     https://www.revenue.ie/en/online-services/support/documents/ixbrl/ixbrl-style-guide.pdf
 
-@author: Mark V Systems Limited
-(c) Copyright 2020 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os, re
 from collections import defaultdict
@@ -18,6 +15,7 @@ from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelValue import qname
 from arelle.PythonUtil import strTruncate
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import qnXbrliXbrl, xhtml
 from arelle.XmlValidate import VALID
 
@@ -362,8 +360,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': '''ROS (Ireland) Validation.''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2020 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     'import': ('inlineXbrlDocumentSet', ), # import dependent modules
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,

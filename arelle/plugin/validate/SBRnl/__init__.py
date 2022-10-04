@@ -1,12 +1,10 @@
 '''
-Created on Dec 12, 2013
-
-@author: Mark V Systems Limited
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os
 from arelle import ModelDocument, ModelValue, XmlUtil
 from arelle.ModelValue import qname
+from arelle.Version import authorLabel, copyrightLabel
 import regex as re
 from collections import defaultdict
 from .CustomLoader import checkForBOMs
@@ -64,8 +62,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': '''SBR NL Validation.''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2013-15 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,

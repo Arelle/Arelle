@@ -1,8 +1,5 @@
 '''
-Created on Oct 17, 2010
-
-@author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 #import xml.sax, xml.sax.handler
 from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, XMLSyntaxError, XMLParser

@@ -2,11 +2,12 @@
 Save CHComponentFile is an example of a plug-in to both GUI menu and command line/web service
 that will save the presentation tree of concepts in Charlie Hoffman's Component schema.
 
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 
 from arelle.ModelDtsObject import ModelConcept, ModelRelationship
 from arelle import XbrlConst
+from arelle.Version import authorLabel, copyrightLabel
 from lxml import etree
 
 def generateCHComponent(dts, componentFile):
@@ -162,8 +163,8 @@ __pluginInfo__ = {
     'description': "This plug-in adds a feature to output a Charlie Hoffman Component file. "
                    "This provides a semantic definition of taxonomy contents.",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveCHComponentMenuEntender,
     'CntlrCmdLine.Options': saveCHComponentCommandLineOptionExtender,

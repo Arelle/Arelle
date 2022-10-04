@@ -7,14 +7,14 @@ Two implementations are provided:
 
 (2) an graph database, based on the XBRL Abstract Model PWD 2.
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
-and does not apply to the XBRL US Database schema and description.
+See COPYRIGHT.md for copyright information.
+(Does not apply to the XBRL US Database schema and description.)
 
 '''
 
 import time, os, io, sys, logging
 from arelle.Locale import format_string
+from arelle.Version import authorLabel, copyrightLabel
 from .XbrlPublicPostgresDB import insertIntoDB as insertIntoPostgresDB, isDBPort as isPostgresPort
 from .XbrlSemanticSqlDB import insertIntoDB as insertIntoSemanticSqlDB, isDBPort as isSemanticSqlPort
 from .XbrlOpenSqlDB import insertIntoDB as insertIntoOpenSqlDB
@@ -327,8 +327,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in implements the XBRL Public Postgres, Abstract Model and DPM Databases.  ",
     'license': 'Apache-2 (Arelle plug-in), BSD license (pg8000 library)',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved,\n'
+    'author': authorLabel,
+    'copyright': f'{copyrightLabel} \n'
                 'uses: cx_Oracle Copyright (c) 2007-2012, Anthony Tuininga. All rights reserved (Oracle DB), \n'
                 '           (and)Copyright (c) 2001-2007, Computronix (Canada) Ltd., Edmonton, Alberta, Canada. All rights reserved, \n'
                 '      pg8000, Copyright (c) 2007-2009, Mathieu Fenniak (Postgres DB), \n'

@@ -2,7 +2,7 @@
 loadFromExcel.py is an example of a plug-in that will load an extension taxonomy from Excel
 input and optionally save an (extension) DTS.
 
-(c) Copyright 2016 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 Example to run from web server:
 
@@ -25,6 +25,7 @@ from arelle.ModelValue import qname, dateTime, DATETIME
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict
 from arelle.UrlUtil import isHttpUrl
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole,
                               conceptLabel, elementLabel, conceptReference
@@ -1268,8 +1269,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in loads XBRL instance data from OIM (JSON, CSV or Excel) and saves the resulting XBRL Instance.",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2016 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'ModelDocument.IsPullLoadable': isOimLoadable,
     'ModelDocument.PullLoader': oimLoader,

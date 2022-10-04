@@ -1,8 +1,5 @@
 '''
-Created on Jan 24, 2011
-
-@author: Mark V Systems Limited
-(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle import ViewFile, ModelDtsObject, XbrlConst, XmlUtil
 from arelle.XbrlConst import conceptNameLabelRole, standardLabel, terseLabel, documentationLabel

@@ -4,10 +4,11 @@ escaped html in text content of expected instance facts for inline XBRL text fac
 
 It also provides an error code when a testcase variation does not load any iXBRL document.
 
-(c) Copyright 2019 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import regex as re
 from arelle.ModelDocument import Type
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XhtmlValidate import htmlEltUriAttrs, resolveHtmlUri
 
 def variationInstanceLoaded(testcaseInstance, variationInstance, extraErrors, inputDTSes, *args, **kwargs):
@@ -36,8 +37,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in removes xxx.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2019 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'TestcaseVariation.Validated': variationInstanceLoaded,
     'TestcaseVariation.ExpectedInstance.Loaded': expectedInstanceLoaded,

@@ -1,8 +1,5 @@
 '''
-Created on Nov 9, 2010
-
-@author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from collections import defaultdict
 import os

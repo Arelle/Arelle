@@ -1,20 +1,18 @@
 '''
-Created on Jul 5, 2021
-
 Filer Guidelines:
     Basically EFM 5.2.2.1, 5.2.2.6,  5.2.2.10,  5.2.5.4, 5.2.5.5(Inline XBRL), 5.2.5.6(Inline XBRL),
                   5.2.5.7, 5.2.5.8, 5.2.5.9, 5.2.5.10,
                   6.5.3, 6.5.4, 6.5.7, 6.5.8, 6.5.14, 6.5.15, 6.5.16, 6.5.17
     Filers can only submit an instance so EFM DTS checks are not needed.
 
-@author: Mark V Systems Limited
-(c) Copyright 2021 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os, re
 from arelle import ModelDocument, ValidateFilingText, XmlUtil
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import xbrli, xhtml
 from arelle.XmlValidate import VALID
 
@@ -211,8 +209,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': '''FERC (US) Validation.''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2021 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     'import': ('inlineXbrlDocumentSet', ), # import dependent modules
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,

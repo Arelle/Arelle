@@ -5,12 +5,13 @@ TDnetLoader is a plug-in to both GUI menu and command line/web service
 that loads a TDnet html index file.  TDnet is Tokyo Stock Exchange's
 Timely Disclosure Network.
 
-(c) Copyright 2014 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from lxml import html
 import datetime, re, os
 from arelle import FileSource
 from arelle.ModelRssObject import ModelRssObject
+from arelle.Version import authorLabel, copyrightLabel
 
 class TDnetItem:
     def __init__(self, modelXbrl, date, dateTime, filingCode, companyName,
@@ -197,8 +198,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in loads Tokyo Stock Exchange Timely Disclosure Network XBRL documents.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2014 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     # take out for now: 'CntlrCmdLine.Options': streamingOptionsExtender,
     'ModelDocument.PullLoader': tdNetLoader,

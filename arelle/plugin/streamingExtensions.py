@@ -6,7 +6,7 @@ for efficiency and to avoid dependency on an underlying DOM.
 
 (Note that this module is based on a parser target, an alternate based on iterparse is under examples/plugin.)
 
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 Calls these plug-in classes:
    Streaming.BlockingPlugin(modelXbrl):  returns name of plug in blocking streaming if it is being blocked, else None
@@ -25,6 +25,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
 from arelle.PluginManager import pluginClassMethods
 from arelle.Validate import Validate
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.HashUtil import md5hash, Md5Sum
 
 _streamingExtensionsCheck = True  # check streaming if enabled except for CmdLine, then only when requested
@@ -840,8 +841,8 @@ __pluginInfo__ = {
     'description': "This plug-in loads big XBRL instances without building a DOM in memory.  "
                     "lxml iterparse parses XBRL directly into an object model without a DOM.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2014 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     # take out for now: 'CntlrCmdLine.Options': streamingOptionsExtender,
     'CntlrCmdLine.Utility.Run': streamingExtensionsSetup,

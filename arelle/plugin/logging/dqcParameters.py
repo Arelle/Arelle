@@ -1,13 +1,11 @@
 '''
-Created on Dec 12, 2013
-
-@author: Mark V Systems Limited
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObject import ModelObject
 from arelle.PythonUtil import flattenSequence
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlUtil import xmlstring, descendantAttr
 from arelle import XbrlConst, XmlUtil
 import regex as re
@@ -209,8 +207,8 @@ __pluginInfo__ = {
 provided logging arguments.  Usually uses modelObject arguments to supply parameters found
 in message text that can be derived from the arguments.''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2014 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrCmdLine.Xbrl.Run': loggingCommandLineXbrlRun,
     'Logging.Message.Parameters': loggingMessageParameters,

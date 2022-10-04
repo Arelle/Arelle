@@ -1,8 +1,5 @@
 '''
-Created on Nov 27, 2011
-
-@author: Mark V Systems Limited
-(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle import ModelObject, XbrlConst, ViewFile
 from arelle.ModelDtsObject import ModelRelationship

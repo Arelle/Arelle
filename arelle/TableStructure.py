@@ -1,8 +1,5 @@
 '''
-Created on Feb 02, 2014
-
-@author: Mark V Systems Limited
-(c) Copyright 2014 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import regex as re
 from collections import defaultdict

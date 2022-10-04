@@ -1,14 +1,11 @@
 '''
-Created on Dec 21, 2017
-
 Filer Guidelines: http://www.cipc.co.za/files/8615/1333/0514/25082017_Guidelines_for_Filing__AFSs_in_XBRL_by_Client_Companies_Technical_Aspects_v1-7_HVMZ.pdf
 
 Taxonomy Architecture: http://www.cipc.co.za/files/1715/1325/5802/CIPC_XBRL_Taxonomy_Framework_Architecture_-_2017-12-15.pdf
 
 Taxonomy package expected to be installed: http://xbrl.cipc.co.za/cipc_2017-12-15.zip
 
-@author: Mark V Systems Limited
-(c) Copyright 2017 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os, re
 from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction
@@ -17,6 +14,7 @@ from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import ixbrlAll, xhtml
 from .Const import cpicModules # , mandatoryElements
 
@@ -226,8 +224,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': '''CIPC (South Africa) Validation.''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2017 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,

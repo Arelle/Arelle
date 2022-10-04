@@ -1,7 +1,7 @@
 '''
 Example extension plugin to provide custom REST api
 
-(c) Copyright 2019 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 To run test:
     arelleCmdLine.exe --webserver localhost:8080 --plugins ../examples/plugin/cmdWebServerExtension.py
@@ -9,6 +9,7 @@ To run test:
 '''
 
 from arelle.CntlrWebMain import GET, Options, runOptionsAndGetResult
+from arelle.Version import copyrightLabel
 
 def my_test():
     return _("<html><body><h1>Test</h1><p>It works!</p></body></html>")
@@ -35,7 +36,7 @@ __pluginInfo__ = {
     'description': "Sample REST API extensions (or replacements).",
     'license': 'Apache-2',
     'author': 'R\xe9gis D\xce9camps',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWebMain.StartWebServer': startWebServer,
 }

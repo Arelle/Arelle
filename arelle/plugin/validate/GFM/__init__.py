@@ -1,14 +1,12 @@
 '''
-Created on Dec 12, 2013
-
-@author: Mark V Systems Limited
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os
 from arelle import ModelDocument, ModelValue, XmlUtil
 from arelle.ModelValue import qname
 from arelle.plugin.validate.EFM.Document import checkDTSdocument
 from arelle.plugin.validate.EFM.Filing import validateFiling
+from arelle.Version import authorLabel, copyrightLabel
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
@@ -50,8 +48,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': '''GFM Validation.''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2013-15 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,

@@ -1,8 +1,5 @@
 '''
-Created on Sept 1, 2013
-
-@author: Mark V Systems Limited
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 (originally part of XmlValidate, moved to separate module)
 '''

@@ -1,8 +1,6 @@
 '''
-@author: Mark V Systems Limited
-
 This is a collective work.
-Original work (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information for original work.
 Subsequent validations and enhancements created by staff of the U.S. Securities and Exchange Commission.
 Data and content created by government employees within the scope of their employment are not subject
 to domestic copyright protection. 17 U.S.C. 105.
@@ -107,6 +105,7 @@ from arelle.PluginManager import pluginClassMethods  # , pluginMethodsForClasses
 from arelle.PythonUtil import flattenSequence
 from arelle.UrlUtil import authority, relativeUri
 from arelle.ValidateFilingText import referencedFiles
+from arelle.Version import authorLabel, copyrightLabel
 from .Document import checkDTSdocument
 from .Filing import validateFiling
 import regex as re
@@ -691,8 +690,8 @@ __pluginInfo__ = {
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'import': ('transforms/SEC',), # SEC inline can use SEC transformations
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2010-21 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,

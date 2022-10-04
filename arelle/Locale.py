@@ -1,14 +1,9 @@
 '''
-Created on Jan 26, 2011
-
 This module is a local copy of python locale in order to allow
 passing in localconv as an argument to functions without affecting
 system-wide settings.  (The system settings can remain in 'C' locale.)
 
-@author: Mark V Systems Limited (incorporating python locale module code)
-(original python authors: Martin von Loewis, improved by Georg Brandl)
-
-(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import sys, subprocess
@@ -322,7 +317,7 @@ def rtlString(source: str, lang: str | None) -> str:
 
 # Iterate over grouping intervals
 def _grouping_intervals(grouping: list[int]) -> Generator[int, None, None]:
-    last_interval = 3 # added by Mark V to prevent compile error but not necessary semantically
+    last_interval = 3 # added to prevent compile error but not necessary semantically
     for interval in grouping:
         # if grouping is -1, we are done
         if interval == CHAR_MAX:

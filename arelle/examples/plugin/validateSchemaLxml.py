@@ -2,10 +2,11 @@
 Save DTS is an example of a plug-in to both GUI menu and command line/web service
 that will save the files of a DTS into a zip file.
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 
 import threading
+from arelle.Version import authorLabel, copyrightLabel
 from lxml import etree
 
 def validateSchemaWithLxml(modelXbrl, cntlr=None):
@@ -146,8 +147,8 @@ __pluginInfo__ = {
                     "This is an experimental feature, not suitable for XBRL production use until lxml"
                     " schema validation becomes reliable for XBRL schemas.",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Validation': validateSchemaWithLxmlMenuEntender,
     'CntlrCmdLine.Options': validateSchemaWithLxmlCommandLineOptionExtender,

@@ -1,13 +1,10 @@
 '''
-Created on Dec 21, 2017
-
 Filer Guidelines: http://www.cipc.co.za/files/8615/1333/0514/25082017_Guidelines_for_Filing__AFSs_in_XBRL_by_Client_Companies_Technical_Aspects_v1-7_HVMZ.pdf
 
 Taxonomy Architecture: http://www.cipc.co.za/files/1715/1325/5802/CIPC_XBRL_Taxonomy_Framework_Architecture_-_2017-12-15.pdf
 
 
-@author: Mark V Systems Limited
-(c) Copyright 2017 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 cpicModules = {
     "ca_fas": "ca_fas",

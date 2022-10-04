@@ -2,8 +2,9 @@
 Save HTML EBA Tables is an example of a plug-in to both GUI menu and command line/web service
 that will save a directory containing HTML Tablesets with an EBA index page.
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
+from arelle.Version import authorLabel, copyrightLabel
 
 def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
     try:
@@ -261,8 +262,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in adds a feature to a directory containing HTML Tablesets with an EBA index page.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveHtmlEbaTablesMenuEntender,
     'CntlrCmdLine.Options': saveHtmlEbaTablesCommandLineOptionExtender,

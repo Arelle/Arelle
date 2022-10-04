@@ -1,8 +1,5 @@
 '''
-Created on Dec 30, 2010
-
-@author: Mark V Systems Limited
-(c) Copyright 2010-2017 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from lxml import etree
 from arelle import ModelDocument

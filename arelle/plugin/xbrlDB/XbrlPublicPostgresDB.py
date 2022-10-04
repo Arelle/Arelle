@@ -7,13 +7,12 @@ This module provides the execution context for saving a dts and assession in
 XBRL Public Database Tables.  It may be loaded by Arelle'sRSS feed, or by individual
 DTS and instances opened by interactive or command line/web service mode.
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
-and does not apply to the XBRL US Database schema and description.
+See COPYRIGHT.md for copyright information.
+(Does not apply to the XBRL US Database schema and description.)
 
 The XBRL US Database schema and description is (c) Copyright XBRL US 2011, The
 resulting database may contain data from SEC interactive data filings (or any other XBRL
-instance documents and DTS) in a relational model. Mark V Systems conveys neither
+instance documents and DTS) in a relational model. Workiva, Inc. conveys neither
 rights nor license for the database schema.
 
 The XBRL US Database and this code is intended for Postgres.  XBRL-US uses Postgres 8.4,

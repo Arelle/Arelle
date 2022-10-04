@@ -1,7 +1,5 @@
 -- This SQL script initializes a database for the XBRL Abstract Model using Microsoft SQL Server (MSSQL)
-
--- (c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
--- Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
+-- See COPYRIGHT.md for copyright information.
 
 -- note that MS SQL Server index limit is 900 characters (450 nchars, 441 together with a bigint)
 -- all index nvarchar fields reduced to 450 (sufficient for SEC filings)

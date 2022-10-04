@@ -1,10 +1,7 @@
 '''
-Created on Jan 19, 2012
-
 This module implements Quick Books server mode
 
-@author: Mark V Systems Limited
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from lxml import etree
 import uuid, io, datetime

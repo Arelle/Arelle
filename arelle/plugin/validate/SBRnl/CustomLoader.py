@@ -1,8 +1,5 @@
 '''
-Created on Oct 05, 2012
-
-@author: Mark V Systems Limited
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import regex as re
 

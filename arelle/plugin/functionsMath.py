@@ -1,12 +1,13 @@
 '''
 Formula math functions plugin.
 
-(c) Copyright 2018 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import math
 from arelle.ModelValue import qname
 from arelle import XPathContext, XbrlUtil
 from arelle.FunctionUtil import numericArg
+from arelle.Version import authorLabel, copyrightLabel
 
 INF = float('inf')
 MINUSINF = float('-inf')
@@ -183,8 +184,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': "This plug-in adds formula math functions.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2018 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'Formula.CustomFunctions': xfmMathFunctions,
 }

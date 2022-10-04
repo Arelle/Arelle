@@ -1,8 +1,5 @@
 '''
-Created on Jan 9, 2011
-
-@author: Mark V Systems Limited
-(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle import XbrlConst
 from arelle.XbrlUtil import xEqual, S_EQUAL2

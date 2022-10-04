@@ -4,11 +4,12 @@
 SECCorrespondenceLoader is a plug-in to both GUI menu and command line/web service
 that loads a Correspondence tar.gz file.
 
-(c) Copyright 2014 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import datetime, re, os, time
 from arelle import FileSource, ModelDocument
 from arelle.ModelRssObject import ModelRssObject
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlValidate import UNVALIDATED, VALID
 
 class SECCorrespondenceItem:
@@ -207,9 +208,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in loads SEC Correspondence.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2014 Mark V Systems Limited, All rights reserved. \n'
-                 'PyPDF (c) Copyright 2012 Jeet Sukumaran',
+    'author': authorLabel,
+    'copyright': f'{copyrightLabel} \nPyPDF (c) Copyright 2012 Jeet Sukumaran',
     # classes of mount points (required)
     'ModelDocument.PullLoader': secCorrespondenceLoader,
     'ModelDocument.CustomCloser': secCorrespondenceCloser,

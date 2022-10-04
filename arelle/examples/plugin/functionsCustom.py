@@ -1,11 +1,12 @@
 '''
 Sample custom functions plugin for formula custom functions
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle import XPathContext, XbrlUtil
 from arelle.ModelValue import qname
 from arelle.ModelInstanceObject import ModelDimensionValue
+from arelle.Version import authorLabel, copyrightLabel
 from decimal import Decimal
 
 # custom function for test case 22015 v01, same as in FunctionCustom.py
@@ -50,8 +51,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': "This plug-in adds a custom function implemented by a plug-in.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'Formula.CustomFunctions': customFunctions,
 }

@@ -1,8 +1,7 @@
 '''
 EDGAR.py implements an OpenSql database extension for SEC's EDGAR
 
-(c) Copyright 2017 Mark V Systems Limited, California US, All rights reserved.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
+See COPYRIGHT.md for copyright information.
 
 
 to use from command line:
@@ -12,6 +11,7 @@ to use from command line:
 import os, time
 from arelle.ModelDocument import Type
 from arelle.UrlUtil import authority
+from arelle.Version import authorLabel, copyrightLabel
 
 EXT_EDGAR_TABLES = {
                 "filing_edgar", "report_edgar",
@@ -221,8 +221,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': "This plug-in implements additional database fields for U.S. SEC EDGAR.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2017 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     'import': ('xbrlDB', ), # import dependent modules
     # classes of mount points (required)
     'xbrlDB.Open.Ext.TableDDLFiles': extEdgarTableDdlFiles,

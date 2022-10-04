@@ -20,9 +20,10 @@ you also want individual Html R files, reportXslt should be chanted below to Htm
 The resources folder must have InstanceReportTable.xslt (which is just InstanceReport.xslt
 modified to not have an instance html header on the table body in xsl:template match="/").
 
-(c) Copyright 2015 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os
+from arelle.Version import authorLabel, copyrightLabel
 from lxml import etree
 from lxml.etree import tostring as treeToString
 
@@ -97,8 +98,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in adds an \"Rall.htm\" result to the EdgarRenderer report directory or output zip",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2015 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     # note that this mount point must load after EdgarRenderer's same-named mount point
     'EdgarRenderer.Filing.Start': edgarRendererFilingStartSupplement,

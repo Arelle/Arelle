@@ -1,8 +1,5 @@
 '''
-Created on March 1, 2012
-
-@author: Mark V Systems Limited
-(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 based on pull request 4
 

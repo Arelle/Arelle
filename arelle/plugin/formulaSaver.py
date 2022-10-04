@@ -1,8 +1,7 @@
 '''
 Save formula linkbase into XBRL Formula (syntax) files.
 
-(c) Copyright 2016 Mark V Systems Limited, California US, All rights reserved.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
+See COPYRIGHT.md for copyright information.
 
 Loads xbrl formula file syntax into formula linkbase.
 
@@ -30,6 +29,7 @@ from arelle.ModelFormulaObject import (ModelValueAssertion, ModelExistenceAssert
                                        ModelPeriod,
                                        ModelAndFilter, ModelOrFilter, ModelMessage, ModelAssertionSeverity)
 from arelle import XbrlConst, XmlUtil, XPathParser
+from arelle.Version import authorLabel, copyrightLabel
 import os, datetime
 
 class NotExportable(Exception):
@@ -514,8 +514,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in adds a feature to output XBRL Formula file from formula linkbase model objects. ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2016 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveXfMenuEntender,
     'CntlrCmdLine.Options': saveXfCommandLineOptionExtender,

@@ -1,8 +1,5 @@
 '''
-Created on June 7, 2018
-
-@author: Mark V Systems Limited
-(c) Copyright 2018 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 Template crypt module using AES CBC mode.
 
@@ -37,6 +34,7 @@ Customize method of detecting an encrypted file.  This example appends "~" to di
 '''
 import os, io, base64
 from arelle import FileSource, XmlUtil
+from arelle.Version import authorLabel, copyrightLabel
 AES = None  # Cipher.Crypto AES is only imported if an encrypted input is noticed
 
 ENCRYPTED_FILE_SUFFIX = "~" # appended to any file which has been encrypted
@@ -115,8 +113,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': '''AES_CBC security encryption''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2018 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'Security.Crypt.Init': securityInit,
     'Security.Crypt.Filing.Start': securityFilingStart,

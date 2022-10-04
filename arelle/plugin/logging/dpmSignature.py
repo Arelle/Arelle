@@ -1,11 +1,9 @@
 '''
-Created on Dec 12, 2013
-
-@author: Mark V Systems Limited
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlUtil import xmlstring
 
 # key for use in dFact only when there's a dim that behaves as or is typed
@@ -37,8 +35,8 @@ __pluginInfo__ = {
 For a data point (fact): MET(conceptQName)|dimQName(mem)... (does not include period, unit, or entity identifier)
 For a concept, MET(conceptQName).''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2014 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'Logging.Ref.Attributes': loggingRefAttributes
 }

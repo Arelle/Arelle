@@ -1,6 +1,4 @@
 '''
-Created on Dec 14, 2010
-
 Use this module to start Arelle in command line non-interactive mode
 
 (This module can be a pattern for custom use of Arelle in an application.)
@@ -8,8 +6,7 @@ Use this module to start Arelle in command line non-interactive mode
 In this example a versioning report production file is read and used to generate
 versioning reports, per Roland Hommes 2010-12-10
 
-@author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types

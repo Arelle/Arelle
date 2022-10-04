@@ -1,4 +1,9 @@
+'''
+See COPYRIGHT.md for copyright information.
+'''
+
 from arelle.ModelValue import qname
+from arelle.Version import copyrightLabel
 from arelle.XmlValidate import VALID
 import time
 from collections import defaultdict
@@ -546,7 +551,7 @@ __pluginInfo__ = {
     'description': '''XBRL-US Corporate Actions Validation.''',
     'license': 'Apache-2',
     'author': 'Ewe S. Gap',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'Validate.XBRL.Finally': checkCorporateActions
 }

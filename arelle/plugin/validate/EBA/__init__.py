@@ -1,8 +1,5 @@
 '''
-Created on Dec 12, 2013
-
-@author: Mark V Systems Limited
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os, sys, re
 from arelle import PluginManager
@@ -14,6 +11,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import qname, qnameEltPfxName
 from arelle.ValidateUtr import ValidateUtr
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import qnEnumerationItemTypes
 from arelle.ModelInstanceObject import ModelFact
 import regex as re
@@ -744,8 +742,8 @@ __pluginInfo__ = {
     'version': '1.2',
     'description': 'EBA (2.3), EIOPA (2.0.0) Filing Rules Validation.',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2015 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,

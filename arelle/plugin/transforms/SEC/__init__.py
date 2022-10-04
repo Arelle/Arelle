@@ -6,13 +6,14 @@ Created by staff of the U.S. Securities and Exchange Commission.
 Data and content created by government employees within the scope of their employment
 are not subject to domestic copyright protection. 17 U.S.C. 105.
 
-(c) Copyright 2015 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 Local copy of text2num.py was obtained from https://github.com/ghewgill/text2num
 
 '''
 import datetime
 from arelle.ModelValue import qname, lastDayOfMonth
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XPathContext import FunctionArgType
 
 #local copy of text2num.py from https://github.com/ghewgill/text2num
@@ -303,9 +304,8 @@ __pluginInfo__ = {
     'version': '19.2', # SEC version
     'description': "This plug-in adds custom transforms SEC inline filing with durations.  ",
     'license': 'Apache-2',
-    'author': 'SEC employees (integrated by Mark V Systems Limited)',
-    'copyright': '(c) Copyright 2015 Mark V Systems Limited, All rights reserved. \n'
-                 'Utilizes text2num.py (c) 2008 Greg Hewgill',
+    'author': f'SEC employees (integrated by {authorLabel})',
+    'copyright': f'{copyrightLabel} \nUtilizes text2num.py (c) 2008 Greg Hewgill',
     # classes of mount points (required)
     'ModelManager.LoadCustomTransforms': loadSECtransforms,
 }

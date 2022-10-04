@@ -1,12 +1,9 @@
 '''
-Created on Oct 3, 2010
-
 This module is Arelle's controller in command line non-interactive mode
 
 (This module can be a pattern for custom integration of Arelle into an application.)
 
-@author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types
 import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging, platform
@@ -23,6 +20,7 @@ from arelle.ModelFormulaObject import FormulaOptions
 from arelle import PluginManager
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
+from arelle.Version import copyrightLabel
 from arelle.WebCache import proxyTuple
 from arelle.SystemInfo import get_system_info
 from pprint import pprint
@@ -424,10 +422,10 @@ def parseAndRun(args):
 
     (options, leftoverArgs) = parser.parse_args(args)
     if options.about:
-        print(_("\narelle(r) {0} ({1}bit {6})\n\n"
+        print(_("\narelle(r) {version} ({wordSize}bit {platform})\n\n"
                 "An open source XBRL platform\n"
-                "(c) 2010-{2} Mark V Systems Limited\n"
-                "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
+                "{copyrightLabel}\n"
+                "http://www.arelle.org\nsupport@arelle.org\n\n"
                 "Licensed under the Apache License, Version 2.0 (the \"License\"); "
                 "you may not \nuse this file except in compliance with the License.  "
                 "You may obtain a copy \nof the License at "
@@ -438,14 +436,19 @@ def parseAndRun(args):
                 "See the License for the specific language governing permissions and \n"
                 "limitations under the License."
                 "\n\nIncludes:"
-                "\n   Python(r) {4[0]}.{4[1]}.{4[2]} (c) 2001-2013 Python Software Foundation"
+                "\n   Python(r) {pythonVersion} (c) 2001-2013 Python Software Foundation"
                 "\n   PyParsing (c) 2003-2013 Paul T. McGuire"
-                "\n   lxml {5[0]}.{5[1]}.{5[2]} (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
-                "{3}"
-                "\n   May include installable plug-in modules with author-specific license terms"
-                ).format(Version.__version__, cntlr.systemWordSize, Version.copyrightLatestYear,
-                         _("\n   Bottle (c) 2011-2013 Marcel Hellkamp") if hasWebServer else "",
-                         sys.version_info, etree.LXML_VERSION, platform.machine()))
+                "\n   lxml {lxmlVersion} (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
+                "{bottleCopyright}"
+                "\n   May include installable plug-in modules with author-specific license terms").format(
+                    version=Version.__version__,
+                    wordSize=cntlr.systemWordSize,
+                    platform=platform.machine(),
+                    copyrightLabel=copyrightLabel,
+                    pythonVersion=f'{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}',
+                    lxmlVersion=f'{etree.LXML_VERSION[0]}.{etree.LXML_VERSION[1]}.{etree.LXML_VERSION[2]}',
+                    bottleCopyright="\n   Bottle (c) 2011-2013 Marcel Hellkamp" if hasWebServer else ""
+        ))
     elif options.diagnostics:
         pprint(get_system_info())
     elif options.disclosureSystemName in ("help", "help-verbose"):

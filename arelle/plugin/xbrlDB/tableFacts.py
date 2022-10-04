@@ -1,8 +1,7 @@
 '''
 This module provides database interfaces to postgres SQL
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
+See COPYRIGHT.md for copyright information.
 '''
 from arelle import XbrlConst
 

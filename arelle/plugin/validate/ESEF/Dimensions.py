@@ -1,11 +1,7 @@
 '''
-Created on June 6, 2018
-
 Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 
-
-@author: Mark V Systems Limited
-(c) Copyright 2018 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 from collections import defaultdict

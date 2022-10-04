@@ -1,9 +1,5 @@
 '''
-Created on Oct 5, 2010
-
-@author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
-
+See COPYRIGHT.md for copyright information.
 '''
 import os, threading, time, logging
 from tkinter import Menu, BooleanVar, font as tkFont

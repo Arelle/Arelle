@@ -1,8 +1,5 @@
 '''
-Created on May 1, 2011
-
-@author: Mark V Systems Limited
-(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from tkinter import Toplevel, N, S, E, W, messagebox
 try:

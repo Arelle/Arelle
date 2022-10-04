@@ -1,8 +1,5 @@
 '''
-Created on Dec 12, 2013
-
-@author: Mark V Systems Limited
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 References:
   https://xbrl.frc.org.uk (taxonomies, filing requirements, consistency checks)
@@ -17,6 +14,7 @@ from math import isnan
 from arelle import ModelDocument, XmlUtil
 from arelle.ModelValue import qname, dateTime, DATE
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue, insignificantDigits
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import xbrli, qnXbrliXbrl
 import regex as re
 from collections import defaultdict
@@ -472,8 +470,8 @@ __pluginInfo__ = {
     'version': '4.0',
     'description': '''HMRC Validation. JFCVC v4.0 2020-06-09.  Style guide v2.2''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2013-15 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,

@@ -1,6 +1,11 @@
+'''
+See COPYRIGHT.md for copyright information.
+'''
+
 from arelle import PluginManager
 from arelle.ModelValue import qname
 from arelle import XbrlConst
+from arelle.Version import copyrightLabel
 import regex as re
 from collections import defaultdict
 
@@ -321,7 +326,7 @@ __pluginInfo__ = {
     'description': '''US SEC Tagging Validation.  Includes non-negative rules.''',
     'license': 'Apache-2',
     'author': 'Ewe S. Gap',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'Validate.EFM.Start': setup,
     'Validate.EFM.Fact': factCheck,

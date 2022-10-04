@@ -3,8 +3,9 @@ This is an example of a plug-in to both GUI menu and command line/web service
 that will provide an option to replace behavior of table linkbase validation to
 generate vs diff table linkbase infoset files.
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
+from arelle.Version import authorLabel, copyrightLabel
 
 def validateTableInfosetMenuEntender(cntlr, validateMenu):
     # Extend menu with an item for the save infoset plugin
@@ -41,8 +42,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in adds a feature modify batch validation of table linkbase to save, versus diff, infoset files.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Validation': validateTableInfosetMenuEntender,
     'CntlrCmdLine.Options': validateTableInfosetCommandLineOptionExtender,

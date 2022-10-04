@@ -1,8 +1,5 @@
 """
-Created on May 28, 2011
-
-@author: Mark V Systems Limited
-(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 This module emits the version.py file contents which are used in the
 build process to indicate the time that this version was built.

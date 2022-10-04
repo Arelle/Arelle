@@ -1,7 +1,7 @@
 '''
 instanceInfo.py provides information about an XBRL instance
 
-(c) Copyright 2018 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 Operation with arelleCmdLine: --plugin instanceInfo -f entryUrl
 
@@ -12,6 +12,7 @@ from collections import defaultdict
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle import ModelDocument
 from arelle.ModelInstanceObject import ModelFact
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import xhtml
 from arelle.XmlUtil import ancestors, xmlstring
 
@@ -295,8 +296,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': "This plug-in displays instance information for sizing and performance issues.",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2020 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     'import': ('inlineXbrlDocumentSet',),
     # classes of mount points (required)
     'CntlrCmdLine.Filing.Start': startup,

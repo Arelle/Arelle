@@ -2,8 +2,9 @@
 Save Instance Infoset is an example of a plug-in to both GUI menu and command line/web service
 that will save facts decorated with ptv:periodType, ptv:balance, ptv:decimals and ptv:precision (inferred).
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
+from arelle.Version import authorLabel, copyrightLabel
 
 def generateInstanceInfoset(dts, instanceInfosetFile):
     if dts.fileSource.isArchive:
@@ -109,8 +110,8 @@ __pluginInfo__ = {
                     "(Does not offset infoset hrefs and schemaLocations for directory offset from DTS.) "
                     "The ptv infoset is the source instance with facts having ptv:periodType, ptv:balance (where applicable), ptv:decimals and ptv:precision (inferred).  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveInstanceInfosetMenuEntender,
     'CntlrCmdLine.Options': saveInstanceInfosetCommandLineOptionExtender,

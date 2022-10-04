@@ -1,4 +1,5 @@
 '''
+See COPYRIGHT.md for copyright information.
 Python version specific utilities
 
 do not convert 3 to 2

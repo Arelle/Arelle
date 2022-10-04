@@ -1,9 +1,10 @@
 '''
 CmdLine Profiler is an example of a plug-in to command line processing that will profile all execution.
 
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os
+from arelle.Version import authorLabel, copyrightLabel
 
 def profilerOptionExtender(parser, *args, **kwargs):
     parser.add_option("--saveProfilerReport",
@@ -49,8 +50,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': "This plug-in adds a profiling to command line (and web service) processing.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrCmdLine.Options': profilerOptionExtender,
     'CntlrCmdLine.Utility.Run': profilerCommandLineRun,

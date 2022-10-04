@@ -6,7 +6,7 @@ for efficiency and to avoid dependency on an underlying DOM.
 
 (Note that this module is based on iterparse, the module under the installation/plugs is much faster.)
 
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 
 import io, sys, os, time
@@ -20,6 +20,7 @@ from arelle.ModelObjectFactory import parser
 from arelle.ModelValue import QName
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
 from arelle.Validate import Validate
+from arelle.Version import authorLabel, copyrightLabel
 
 _streamingExtensionsValidate = False
 _streamingExtensionsCheck = False
@@ -325,8 +326,8 @@ __pluginInfo__ = {
     'description': "This plug-in loads big XBRL instances without building a DOM in memory.  "
                     "lxml iterparse parses XBRL directly into an object model without a DOM.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2014 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrCmdLine.Options': streamingOptionsExtender,
     'CntlrCmdLine.Utility.Run': streamingExtensionsSetup,

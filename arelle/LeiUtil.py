@@ -1,8 +1,5 @@
 '''
-Created on Apr 25, 2015
-
-@author: Mark V Systems Limited
-(c) Copyright 2015 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 Implementation of ISO 17442:2012(E) Appendix A
 

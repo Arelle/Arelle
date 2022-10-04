@@ -1,10 +1,11 @@
 '''
 pluginPackages test case
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from os import path
 from arelle.PluginManager import pluginClassMethods
+from arelle.Version import authorLabel, copyrightLabel
 from . import importTestImported1
 from .importTestImported1 import foo
 
@@ -34,8 +35,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This is a imports-containing packaged (__init__) plugin.",
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2015 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': parentMenuEntender,
     'CntlrCmdLine.Options': parentCommandLineOptionExtender,

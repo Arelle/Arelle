@@ -1,10 +1,7 @@
 '''
-Created on January 5, 2020
-
 Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 
-@author: Workiva
-(c) Copyright 2022 Workiva, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import os, json

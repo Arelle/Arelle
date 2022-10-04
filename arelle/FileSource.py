@@ -1,8 +1,5 @@
 '''
-Created on Oct 20, 2010
-
-@author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import zipfile, tarfile, os, io, errno, base64, gzip, zlib, re, struct, random, time
 from lxml import etree

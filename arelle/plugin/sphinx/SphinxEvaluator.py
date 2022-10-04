@@ -1,13 +1,12 @@
 '''
 sphinxEvaluator processes the Sphinx language in the context of an XBRL DTS and instance.
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
+See COPYRIGHT.md for copyright information.
 
 Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer
 (c) Copyright 2012 CoreFiling, Oxford UK.
 Sphinx copyright applies to the Sphinx language, not to this software.
-Mark V Systems conveys neither rights nor license for the Sphinx language.
+Workiva, Inc. conveys neither rights nor license for the Sphinx language.
 '''
 
 import operator

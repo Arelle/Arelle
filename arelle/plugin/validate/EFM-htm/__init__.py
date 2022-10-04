@@ -1,10 +1,5 @@
 '''
-Created on Dec 12, 2013
-
-@author: Mark V Systems Limited
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
-
-
+See COPYRIGHT.md for copyright information.
 '''
 import os, io
 from lxml.etree import HTMLParser, parse, DTD, _ElementTree, _Comment, _ProcessingInstruction
@@ -15,6 +10,7 @@ except ImportError:
 from arelle import ValidateFilingText
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.UrlUtil import isHttpUrl, scheme
+from arelle.Version import authorLabel, copyrightLabel
 from .Const import edgarAdditionalTags, disallowedElements, disallowedElementAttrs, recognizedElements
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
@@ -207,8 +203,8 @@ __pluginInfo__ = {
     'version': '1.20.3', # SEC EDGAR release 20.3
     'description': '''EFM non-XBRL HTM Validation.''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2020 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'ModelDocument.IsPullLoadable': isLoadableHtml,
     'ModelDocument.PullLoader': htmlLoader,

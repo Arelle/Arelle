@@ -1,8 +1,5 @@
 '''
-Created on Jan 20, 2012
-
-@author: Mark V Systems Limited
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from lxml import etree
 from arelle.ModelDtsObject import (ModelConcept, ModelType, ModelGroupDefinition,

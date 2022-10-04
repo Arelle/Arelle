@@ -5,9 +5,8 @@ It is separate from the xbrlDB __init__.py module so that it can be removed when
 compiling server versions where Python has no GUI facilities.  The imports of GUI
 facilities would cause compilation of the server-related modules to fail, otherwise.
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
-and does not apply to the XBRL US Database schema and description.
+See COPYRIGHT.md for copyright information.
+(Does not apply to the XBRL US Database schema and description.)
 
 '''
 

@@ -27,7 +27,7 @@ For GUI operation specify a formula parameter named ixdsTarget of type xs:string
 If a ixdsTarget parameter is absent or has a value of an empty string it is the default target document and matches
 ix facts and resources with no @target attribute.
 
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle import FileSource, ModelXbrl, ValidateXbrlDimensions, XbrlConst
 DialogURL = None # dynamically imported when first used
@@ -41,6 +41,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import attrdict
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateFilingText import CDATApattern
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence, xmlnsprefix, setXmlns
 import os, zipfile, re
 from optparse import SUPPRESS_HELP
@@ -621,8 +622,8 @@ __pluginInfo__ = {
                     " and to save the embedded XBRL instance document.  "
                     "Support single target instance documents in a single document set.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'InlineDocumentSet.Discovery': inlineDocsetDiscovery,
     'InlineDocumentSet.Url.Separator': inlineDocsetUrlSeparator,

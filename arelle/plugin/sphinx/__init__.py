@@ -7,18 +7,18 @@ This plug-in is a python package, and can be loaded by referencing the containin
 directory (usually, "sphinx"), and selecting this "__init__.py" file within the sphinx
 directory (such as in a file chooser).
 
-(c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
+See COPYRIGHT.md for copyright information.
 
 Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer
 (c) Copyright 2012 CoreFiling, Oxford UK.
 Sphinx copyright applies to the Sphinx language, not to this software.
-Mark V Systems conveys neither rights nor license for the Sphinx language.
+Workiva, Inc. conveys neither rights nor license for the Sphinx language.
 '''
 
 import time, os, io, sys
 from arelle.ModelValue import qname
 from arelle import XmlUtil
+from arelle.Version import authorLabel, copyrightLabel
 
 logMessage = None
 
@@ -263,8 +263,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in provides a Sphinx 2.0 processor and a compiler (of a limited subset of Sphinx) into formula linkbase.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'ModelObjectFactory.ElementSubstitutionClasses': sphinxModelObjectElementSubstitutionClasses,
     'CntlrWinMain.Menu.File.Open': sphinxFilesOpenMenuEntender,

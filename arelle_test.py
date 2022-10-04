@@ -1,10 +1,8 @@
 '''
-Created on May 14,2012
 
 Use this module to start Arelle in py.test modes
 
-@author: Mark V Systems Limited
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 This module runs the conformance tests to validate that Arelle is
 working properly.  It needs to be run through the package pytest which

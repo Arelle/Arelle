@@ -1,5 +1,4 @@
 '''
-Created on June 6, 2018
 Version 2022 created on September 19, 2022
 
 Filer Guidelines:
@@ -10,8 +9,7 @@ Taxonomy Architecture:
 
 Taxonomy package expected to be installed:
 
-@author: Workiva
-(c) Copyright 2022 Workiva, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 GUI operation
 
@@ -56,6 +54,7 @@ from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import qname
 from arelle.PackageManager import validateTaxonomyPackage
 from arelle.PythonUtil import strTruncate, normalizeSpace
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.UrlUtil import isHttpUrl, scheme
 from arelle.XmlValidate import lexicalPatterns
 
@@ -1208,8 +1207,8 @@ __pluginInfo__ = {
     'version': '1.2022.00',
     'description': '''ESMA ESEF-2022 Filer Manual and RTS Validations.''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2018-20 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     'ModelDocument.PullLoader': modelXbrlBeforeLoading,
     'import': ('inlineXbrlDocumentSet', ), # import dependent modules
     # classes of mount points (required)

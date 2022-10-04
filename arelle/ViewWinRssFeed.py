@@ -1,8 +1,5 @@
 '''
-Created on Mar 09, 2011
-
-@author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from tkinter import *
 try:

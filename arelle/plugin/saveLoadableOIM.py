@@ -21,7 +21,7 @@ Extensions can be added to the results in the following manner:
     extensionFactPropertiesMethod - method to add extension properties to oimFact
     extensionReportFinalizeMethod - (JSON only) method to finalize json object, for example change facts from object to array.
 
-(c) Copyright 2015 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import sys, os, io, time, regex as re, json, csv, zipfile
 from decimal import Decimal
@@ -35,6 +35,7 @@ from arelle.ModelValue import (qname, QName, DateTime, YearMonthDuration, tzinfo
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.UrlUtil import relativeUri
 from arelle.ValidateXbrlCalcs import inferredDecimals
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlUtil import dateunionValue, elementIndex, xmlstring
 from collections import defaultdict
 from numbers import Number
@@ -690,8 +691,8 @@ __pluginInfo__ = {
     'version': '1.2',
     'description': "This plug-in saves XBRL in OIM JSON, CSV or XLSX that can be re-loaded per se.",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2015 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveLoadableOIMMenuEntender,
     'CntlrCmdLine.Options': saveLoadableOIMCommandLineOptionExtender,

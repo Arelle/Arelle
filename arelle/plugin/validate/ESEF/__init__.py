@@ -1,6 +1,4 @@
 '''
-Created on June 6, 2018
-
 Filer Guidelines:
   RTS: https://eur-lex.europa.eu/legal-content/EN/TXT/?qid=1563538104990&uri=CELEX:32019R0815
   ESEF Filer Manual https://www.esma.europa.eu/sites/default/files/library/esma32-60-254_esef_reporting_manual.pdf
@@ -9,8 +7,7 @@ Taxonomy Architecture:
 
 Taxonomy package expected to be installed:
 
-@author: Workiva
-(c) Copyright 2022 Workiva, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 GUI operation
 
@@ -57,6 +54,7 @@ from arelle.ModelValue import qname
 from arelle.PackageManager import validateTaxonomyPackage
 from arelle.PythonUtil import strTruncate
 from arelle.UrlUtil import isHttpUrl, scheme
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlValidate import VALID, lexicalPatterns
 
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
@@ -1173,8 +1171,8 @@ __pluginInfo__ = {
     'version': '1.2020.03',
     'description': '''ESMA ESEF Filer Manual and RTS Validations.''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2018-20 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     'ModelDocument.PullLoader': modelXbrlBeforeLoading,
     'import': ('inlineXbrlDocumentSet', ), # import dependent modules
     # classes of mount points (required)

@@ -1,8 +1,5 @@
 '''
-Created on Jan 8, 2019
-
-@author: Mark V Systems Limited
-(c) Copyright 2019 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 
 import time
@@ -12,6 +9,7 @@ from decimal import Decimal
 from arelle import Locale
 from arelle.PythonUtil import OrderedDefaultDict
 from arelle.ValidateXbrlCalcs import ZERO, inferredDecimals, rangeValue
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import link, xbrli, xl, xlink, domainMember
 
 calc2YYYY = "http://xbrl.org/WGWD/YYYY-MM-DD/calculation-2.0"
@@ -535,8 +533,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': '''Calculation 2.0 Validation.''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2019 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'Validate.XBRL.Finally': checkCalc2
 }

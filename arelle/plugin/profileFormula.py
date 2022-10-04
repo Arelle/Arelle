@@ -1,9 +1,10 @@
 '''
 Profile Formula Validation is an example of a plug-in to GUI menu that will profile formula execution.
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os
+from arelle.Version import authorLabel, copyrightLabel
 from tkinter import simpledialog, messagebox
 
 def profileFormulaMenuEntender(cntlr, menu, *args, **kwargs):
@@ -123,8 +124,8 @@ __pluginInfo__ = {
                     "to exclude XPath compile statistics, validate first the normal way (e.g., toolbar button) "
                     "and then validate again using this profile formula validation plug-in.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Validation': profileFormulaMenuEntender,
 }

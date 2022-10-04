@@ -1,8 +1,5 @@
 '''
-Created on Oct 17, 2010
-
-@author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os, re
 from arelle import (ModelDocument, XmlUtil, XbrlConst)

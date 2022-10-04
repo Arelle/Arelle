@@ -1,8 +1,7 @@
 '''
 formula loader for XBRL Formula files.
 
-(c) Copyright 2016 Mark V Systems Limited, California US, All rights reserved.
-Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
+See COPYRIGHT.md for copyright information.
 
 Loads xbrl formula file syntax into formula linkbase.
 
@@ -21,6 +20,7 @@ When run from GUI first load the instance/DTS and then import the xf file(s).
 '''
 
 import time, sys, traceback, os, io, os.path, re, zipfile
+from arelle.Version import authorLabel, copyrightLabel
 from lxml import etree
 
 # Debugging flag can be set to either "debug_flag=True" or "debug_flag=False"
@@ -2155,8 +2155,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in loads XBRL formula files into formula linkbase.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2016 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'ModelDocument.IsPullLoadable': isXfLoadable,
     'ModelDocument.PullLoader': xfLoader,
@@ -2184,7 +2184,7 @@ if __name__ == "__main__":
     for arg in sys.argv[1:]:
         if arg in ("-a", "--about"):
             print("\narelle(r) xf formula loader"
-                  "(c) 2017 Mark V Systems Limited\n"
+                  f"{copyrightLabel}\n"
                   "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
                   "Licensed under the Apache License, Version 2.0 (the \"License\"); "
                   "you may not \nuse this file except in compliance with the License.  "

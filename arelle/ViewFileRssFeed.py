@@ -1,8 +1,5 @@
 '''
-Created on Apr 5, 2013
-
-@author: Mark V Systems Limited
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from arelle import ModelDocument, ViewFile
 import os

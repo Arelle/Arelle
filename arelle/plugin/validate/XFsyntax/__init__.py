@@ -1,17 +1,15 @@
 '''
-Created on May 19, 2018
-
 XBRL Formula language syntax checker using ebnf parser
 
 for execution of xf formula, please instead use plug-in formulaLoader.py
 
 requires xf.py from XII conformance-formula/tf/syntax
 
-@author: Mark V Systems Limited
-(c) Copyright 2018 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 
 import os
+from arelle.Version import authorLabel, copyrightLabel
 
 
 # interfaces for Arelle plugin operation
@@ -58,8 +56,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': '''XBRL Formula XF Syntax Validation only, not execution of formulae.''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2018 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'ModelDocument.IsPullLoadable': isXfLoadable,
     'ModelDocument.PullLoader': xfLoader,

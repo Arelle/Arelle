@@ -1,8 +1,5 @@
 '''
-Created on Mar 7, 2011
-
-@author: Mark V Systems Limited
-(c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import inspect, os
 from arelle import XmlUtil, XbrlConst, XPathParser, Locale, XPathContext

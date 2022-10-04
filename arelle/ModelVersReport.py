@@ -1,8 +1,5 @@
 '''
-Created on Nov 11, 2010
-
-@author: Mark V Systems Limited
-(c) Copyright 2010-2013 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 import os, re, datetime
 from collections import defaultdict

@@ -1,8 +1,5 @@
 '''
-Created on Feb 15, 2012
-
-@author: Mark V Systems Limited
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from collections import defaultdict
 from arelle.ModelDocument import Type

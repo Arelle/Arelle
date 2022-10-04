@@ -1,8 +1,5 @@
 '''
-Created on Oct 10, 2010
-
-@author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from tkinter import Toplevel, StringVar, N, S, E, W, EW
 try:

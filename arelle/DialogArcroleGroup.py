@@ -1,8 +1,5 @@
 '''
-Created on Jun 15, 2012
-
-@author: Mark V Systems Limited
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from tkinter import Toplevel, N, S, E, W, PhotoImage
 try:

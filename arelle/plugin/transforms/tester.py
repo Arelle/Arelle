@@ -1,8 +1,5 @@
 '''
-Created on Feb 1, 2019
-
-@author: Mark V Systems Limited
-(c) Copyright 2019 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 
 This plugin allows GUI and command line users to test transforms.
 
@@ -46,6 +43,7 @@ import os, re, logging
 from optparse import SUPPRESS_HELP
 from arelle.FunctionIxt import ixtNamespaces, ixtNamespaceFunctions
 from arelle.ModelFormulaObject import Trace
+from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlUtil import setXmlns
 from arelle import ModelDocument, ModelXbrl, ValidateXbrl, XbrlConst, XPathParser, XPathContext
 
@@ -263,8 +261,8 @@ __pluginInfo__ = {
     'version': '1.0',
     'description': '''Transformation Tester''',
     'license': 'Apache-2',
-    'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2019 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'CntlrCmdLine.Options': cmdLineOptionExtender,
     'CntlrCmdLine.Utility.Run': cmdLineRun,

@@ -4,7 +4,7 @@ that provides an alternative approach to big instance documents without building
 memory footprint.  SAX is used to parse the big instance.  ModelObjects are specialized by features
 for efficiency and to avoid dependency on an underlying DOM.
 
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 
 import xml.sax, io, sys
@@ -14,6 +14,7 @@ from arelle.ModelDocument import ModelDocument, Type
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
+from arelle.Version import authorLabel, copyrightLabel
 
 class NotInstanceDocumentException(Exception):
     def __init__(self):
@@ -386,8 +387,8 @@ __pluginInfo__ = {
     'description': "This plug-in loads big XBRL instances without building a DOM in memory.  "
                     "SAX parses XBRL directly into an object model without a DOM.  ",
     'license': 'Apache-2',
-    'author': 'Mark V Systems Limited',
-    'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
+    'author': authorLabel,
+    'copyright': copyrightLabel,
     # classes of mount points (required)
     'ModelDocument.CustomLoader': bigInstLoader,
 }
