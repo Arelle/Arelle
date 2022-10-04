@@ -9,17 +9,8 @@ from decimal import Decimal
 from fractions import Fraction
 from collections import OrderedDict
 from collections.abc import MappingView, MutableSet
-import math
-
 
 STR_NUM_TYPES = (str, int, float, Decimal, Fraction)
-if sys.version >= "3.2":
-    __builtins__['_ISFINITE'] = math.isfinite
-else:
-    def simulatedIsFinite(num):
-        return not math.isinf(num) and not math.isnan(num)
-    __builtins__['_ISFINITE'] = simulatedIsFinite
-
 
 # python 3 unquote, because py2 unquote doesn't do utf-8 correctly
 def py3unquote(string, encoding='utf-8', errors='replace'):

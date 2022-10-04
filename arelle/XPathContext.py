@@ -1,7 +1,6 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from __future__ import division  # expect 3.2 integer division even in 2.7
 from arelle.XPathParser import (VariableRef, QNameDef, OperationDef, RangeDecl, Expr, ProgHeader,
                           exceptionErrorIndication)
 from arelle import (ModelXbrl, XbrlConst, XmlUtil)
