@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, Generator, Optional, cast
 from lxml import etree
 from arelle import Locale
 from arelle.ModelValue import qname, qnameEltPfxName, QName
-import arelle.XmlUtil
 
 if TYPE_CHECKING:
     from arelle.ModelDocument import ModelDocument
@@ -21,13 +20,16 @@ if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelInlineFact
     from arelle.ModelInstanceObject import ModelDimensionValue
 
+XmlUtil: Any = None
 VALID_NO_CONTENT = None
 
 emptySet: set[Any] = set()
 
 def init() -> None: # init globals
-    global VALID_NO_CONTENT
-    from arelle.XmlValidate import VALID_NO_CONTENT # type: ignore[misc]
+    global XmlUtil, VALID_NO_CONTENT
+    if XmlUtil is None:
+        from arelle import XmlUtil
+        from arelle.XmlValidate import VALID_NO_CONTENT  # type: ignore[misc]
 
 class ModelObject(etree.ElementBase):
     """ModelObjects represent the XML elements within a document, and are implemented as custom
@@ -344,7 +346,7 @@ class ModelObject(etree.ElementBase):
             elif id in doc.idObjects:
                 return cast(ModelObject, doc.idObjects[id])
             else:
-                xpointedElement = arelle.XmlUtil.xpointerElement(doc,id)
+                xpointedElement = XmlUtil.xpointerElement(doc,id)
                 # find element
                 for docModelObject in doc.xmlRootElement.iter():
                     if docModelObject == xpointedElement:
@@ -384,7 +386,7 @@ class ModelObject(etree.ElementBase):
     @property
     def propertyView(self) -> tuple[Any, ...]:
         return (("QName", self.elementQname),) + tuple(
-                (arelle.XmlUtil.clarkNotationToPrefixedName(self, _tag, isAttribute=True), _value) # type: ignore[arg-type, misc]
+                (XmlUtil.clarkNotationToPrefixedName(self, _tag, isAttribute=True), _value)
                 for _tag, _value in self.items())
 
     def __repr__(self) -> str:
