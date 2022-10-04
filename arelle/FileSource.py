@@ -136,6 +136,7 @@ class FileSource:
 
     eisDocument: etree._ElementTree | None
     fs: zipfile.ZipFile | tarfile.TarFile | io.StringIO | None
+    filesDir: list[str]
     referencedFileSources: dict[Any, Any]
     rssDocument: etree._ElementTree | None
     selection: str | list[str] | None
@@ -160,7 +161,7 @@ class FileSource:
         self.isOpen = False
         self.fs = None
         self.selection = None
-        self.filesDir = None
+        self.filesDir = []
         self.referencedFileSources = {}  # archive file name, fileSource object
         self.taxonomyPackage = None # taxonomy package
         self.mappedPaths = None  # remappings of path segments may be loaded by taxonomyPackage manifest
@@ -397,7 +398,7 @@ class FileSource:
         if self.isInstalledTaxonomyPackage:
             self.isInstalledTaxonomyPackage = False
             self.isOpen = False
-        self.filesDir = None
+        self.filesDir = []
 
     @property
     def isArchive(self) -> bool:
@@ -638,7 +639,7 @@ class FileSource:
         if not self.isOpen:
             return None
         elif self.filesDir is not None:
-            return cast(list[str], self.filesDir)
+            return self.filesDir
         elif self.isZip:
             files: list[str] = []
 
@@ -650,12 +651,10 @@ class FileSource:
                     self.isZipBackslashed = True
                     f = f.replace("\\", "/")
                 files.append(f)
-            assert self.filesDir is not None
             self.filesDir = files
         elif self.isTarGz:
             assert self.fs is not None
             assert isinstance(self.fs, tarfile.TarFile)
-            assert self.filesDir is not None
             self.filesDir = self.fs.getnames()
         elif self.isEis:
             files = []
@@ -664,7 +663,6 @@ class FileSource:
                 outfn = docElt.findtext("{http://www.sec.gov/edgar/common}conformedName")
                 if outfn:
                     files.append(outfn)
-            assert self.filesDir is not None
             self.filesDir = files
         elif self.isXfd:
             files = []
@@ -676,7 +674,6 @@ class FileSource:
                         outfn[1] == ':' and outfn[2] == '\\':
                         continue
                     files.append(outfn)
-            assert self.filesDir is not None
             self.filesDir = files
         elif self.isRss:
             files = []  # return title, descr, pubdate, linst doc
@@ -712,7 +709,7 @@ class FileSource:
                     assert descendantPeriod is not None
                     assert descendantDescription is not None
                     assert descendantPubDate is not None
-                    files.append(( # type: ignore[arg-type]
+                    files.append((
                         XmlUtil.text(descendantTitle),
                         # tooltip
                         "{0}\n {1}\n {2}\n {3}\n {4}".format(
@@ -724,7 +721,6 @@ class FileSource:
                         XmlUtil.text(descendantDescription),
                         XmlUtil.text(descendantPubDate),
                         instDoc))
-                assert self.filesDir is not None
                 self.filesDir = files
             except (EnvironmentError,
                     etree.LxmlError) as err:
@@ -740,7 +736,6 @@ class FileSource:
                     if os.path.isdir(path):
                         packageDirsFiles(path)
             packageDirsFiles(self.baseurl[0:baseurlPathLen - 1])
-            assert self.filesDir is not None
             self.filesDir = files
 
         return self.filesDir
