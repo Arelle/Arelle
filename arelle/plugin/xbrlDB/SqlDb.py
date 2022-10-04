@@ -5,7 +5,7 @@ This module provides database interfaces to postgres SQL
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 '''
 import sys, os, io, glob, time, re, datetime, socket, string, random
-from math import isnan, isinf
+from math import isnan, isinf, isfinite
 from decimal import Decimal
 from arelle.ModelValue import dateTime
 from arelle.PythonUtil import flattenSequence
@@ -610,7 +610,7 @@ class SqlDbConnection():
                 elif isinstance(col, int):
                     colValues.append(str(col))
                 elif isinstance(col, float):
-                    if _ISFINITE(col):
+                    if isfinite(col):
                         colValues.append(str(col))
                     else:  # no NaN, INF, in SQL implementations (Postgres has it but not IEEE implementation)
                         colValues.append('NULL')

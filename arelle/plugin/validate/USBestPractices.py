@@ -7,6 +7,7 @@ from arelle.XmlValidate import UNVALIDATED, VALID
 from arelle import Locale, ModelXbrl, XbrlConst
 from arelle.FileSource import openFileSource, openFileStream, saveFile
 import os, io, re, json, time
+from math import isfinite
 from collections import defaultdict
 
 # ((year, ugtNamespace, ugtDocLB, ugtEntryPoint) ...)
@@ -227,7 +228,7 @@ def factCheck(val, fact, *args, **kwargs):
                 # 2.4.1 decimal disagreement
                 if fact.decimals and fact.decimals != "INF":
                     vf = float(fact.value)
-                    if _ISFINITE(vf):
+                    if isfinite(vf):
                         dec = int(fact.decimals)
                         vround = round(vf, dec)
                         if vf != vround:

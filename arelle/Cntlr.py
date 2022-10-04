@@ -41,9 +41,7 @@ def resourcesDir() -> str:
     # for python 3.2 remove __pycache__
     if _moduleDir.endswith("__pycache__"):
         _moduleDir = os.path.dirname(_moduleDir)
-    if _moduleDir.endswith("python32.zip/arelle"): # older cx_Freezes use this
-        _resourcesDir = os.path.dirname(os.path.dirname(os.path.dirname(_moduleDir)))
-    elif (re.match(r".*[\\/](library|python{0.major}{0.minor}).zip[\\/]arelle$".format(sys.version_info),
+    if (re.match(r".*[\\/](library|python{0.major}{0.minor}).zip[\\/]arelle$".format(sys.version_info),
                    _moduleDir)): # cx_Freexe uses library up to 3.4 and python35 after 3.5
         _resourcesDir = os.path.dirname(os.path.dirname(_moduleDir))
     else:
