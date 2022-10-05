@@ -136,7 +136,7 @@ class FileSource:
 
     eisDocument: etree._ElementTree | None
     fs: zipfile.ZipFile | tarfile.TarFile | io.StringIO | None
-    filesDir: list[str]
+    filesDir: list[str] | None
     referencedFileSources: dict[Any, Any]
     rssDocument: etree._ElementTree | None
     selection: str | list[str] | None
@@ -161,7 +161,7 @@ class FileSource:
         self.isOpen = False
         self.fs = None
         self.selection = None
-        self.filesDir = []
+        self.filesDir = None
         self.referencedFileSources = {}  # archive file name, fileSource object
         self.taxonomyPackage = None # taxonomy package
         self.mappedPaths = None  # remappings of path segments may be loaded by taxonomyPackage manifest
