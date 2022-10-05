@@ -70,6 +70,7 @@ class ModelManager:
         self.loadedModelXbrls = []
         self.customTransforms = None
         self.isLocaleSet = False
+        self.setLocale()
 
     def shutdown(self):
         self.status = "shutdown"
