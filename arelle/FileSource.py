@@ -398,7 +398,7 @@ class FileSource:
         if self.isInstalledTaxonomyPackage:
             self.isInstalledTaxonomyPackage = False
             self.isOpen = False
-        self.filesDir = []
+        self.filesDir = None
 
     @property
     def isArchive(self) -> bool:
