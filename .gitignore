@@ -18,6 +18,7 @@ arelle/plugin/xule
 Arelle.egg-info
 arelleGUI.py
 .eggs
+.python-version
 *.iml
 
 .tox
