@@ -534,10 +534,10 @@ def descendants(
         for child in (
             getattr(element, "ixIter")()
             if ixTarget and hasattr(element, "ixIter")
-            else element.iterdescendants()  # type: ignore[no-untyped-call]
-            if isinstance(element, PrototypeObject)
-            # Note 2022-09-27 ModelObject has no iter(), PrototypeObject however has.
-            else element.iter()
+            else element.iterdescendants()
+            if isinstance(element, ModelObject)
+            # Note 2022-09-27 PrototypeObject has no iter(), ModelObject however has.
+            else element.iter()  # type: ignore[union-attr]
         ):
             _childNamespaceURI = getattr(child, 'elementNamespaceURI', None)
             _childLocalName = getattr(child, 'localName', None)
