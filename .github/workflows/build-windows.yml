@@ -93,6 +93,8 @@ jobs:
         pip install wheel
         pip install -r requirements-dev.txt
         pip install -r requirements-windows-build.txt
+    - name: Capture version before localization
+      run: echo ("SETUPTOOLS_SCM_PRETEND_VERSION=" + (python -W ignore distro.py --version)) >> $env:GITHUB_ENV
     - name: Make directories
       run: mkdir build,dist
     - name: Rebuild messages.pot internationalization file
