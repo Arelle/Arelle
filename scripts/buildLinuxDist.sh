@@ -5,6 +5,10 @@ set -xeu
 DISTRO="${1:-linux}"
 BUILD_DIR=build/exe.linux-x86_64-3.9
 DIST_DIR=dist
+# setuptools_scm detects the current version based on the distance from latest
+# git tag and if there are uncommitted changes. Capture version prior to
+# localization build scripts which will create uncommitted changes.
+VERSION=$(python3 -W ignore distro.py --version)
 
 rm -rf "${BUILD_DIR}" "${DIST_DIR}"
 mkdir -p "${BUILD_DIR}" "${DIST_DIR}"
@@ -13,7 +17,7 @@ cp -p arelleGUI.pyw arelleGUI.py
 
 python3 pygettext.py -v -o arelle/locale/messages.pot arelle/*.pyw arelle/*.py
 python3 generateMessagesCatalog.py
-python3 distro.py build_exe
+SETUPTOOLS_SCM_PRETEND_VERSION=${VERSION} python3 distro.py build_exe
 
 cp -p arelle/scripts-unix/* "${BUILD_DIR}/"
 cp -pR libs/linux/Tktable2.11 "${BUILD_DIR}/lib/"
