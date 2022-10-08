@@ -341,7 +341,6 @@ class FileSource:
     def loadTaxonomyPackageMappings(self, errors: list[str] = [], expectTaxonomyPackage: bool = False) -> None:
         if not self.mappedPaths and (self.taxonomyPackageMetadataFiles or expectTaxonomyPackage):
             if PackageManager.validateTaxonomyPackage(self.cntlr, self, errors=errors):
-                assert self.baseurl is not None
                 assert isinstance(self.baseurl, str)
                 metadata = self.baseurl + os.sep + self.taxonomyPackageMetadataFiles[0]
                 self.taxonomyPackage = PackageManager.parsePackage(self.cntlr, self, metadata,  # type: ignore[no-untyped-call]
@@ -353,11 +352,9 @@ class FileSource:
 
     def openZipStream(self, sourceZipStream: str) -> None:
         if not self.isOpen:
-            assert self.url is not None
             assert isinstance(self.url, str)
             self.basefile = self.url
             self.baseurl = self.url # url gets changed by selection
-            assert self.fs is not None
             self.fs = zipfile.ZipFile(sourceZipStream, mode="r")
             self.isOpen = True
 
@@ -420,7 +417,7 @@ class FileSource:
         if archiveFileSource is None:
             return False
         if checkExistence:
-            assert isinstance(archiveFileSource.basefile, list)
+            assert isinstance(archiveFileSource.basefile, str)
             assert archiveFileSource.dir is not None
             archiveFileName = filepath[len(archiveFileSource.basefile) + 1:].replace("\\", "/") # must be / file separators
             return archiveFileName in archiveFileSource.dir
@@ -501,7 +498,6 @@ class FileSource:
                     else:
                         f = archiveFileName.replace("\\","/")
 
-                    assert archiveFileSource.fs is not None
                     assert isinstance(archiveFileSource.fs, zipfile.ZipFile)
                     b = archiveFileSource.fs.read(f)
                     if binary:
@@ -516,7 +512,6 @@ class FileSource:
                     raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
             elif archiveFileSource.isTarGz:
                 try:
-                    assert archiveFileSource.fs is not None
                     assert isinstance(archiveFileSource.fs, tarfile.TarFile)
                     fh = archiveFileSource.fs.extractfile(archiveFileName)
                     assert fh is not None
@@ -643,7 +638,6 @@ class FileSource:
         elif self.isZip:
             files: list[str] = []
 
-            assert self.fs is not None
             assert isinstance(self.fs, zipfile.ZipFile)
             for zipinfo in self.fs.infolist():
                 f = zipinfo.filename
@@ -653,7 +647,6 @@ class FileSource:
                 files.append(f)
             self.filesDir = files
         elif self.isTarGz:
-            assert self.fs is not None
             assert isinstance(self.fs, tarfile.TarFile)
             self.filesDir = self.fs.getnames()
         elif self.isEis:
@@ -744,11 +737,9 @@ class FileSource:
         if isHttpUrl(selection) or os.path.isabs(selection):
             return selection
         elif self.baseIsHttp or os.sep == '/':
-            assert self.baseurl is not None
             assert isinstance(self.baseurl, str)
             return self.baseurl + "/" + selection
         else: # MSFT os.sep == '\\'
-            assert self.baseurl is not None
             assert isinstance(self.baseurl, str)
             return self.baseurl + os.sep + selection.replace("/", os.sep)
 
@@ -826,12 +817,11 @@ def openXmlFileStream(
                                 default=cntlr.modelManager.disclosureSystem.defaultXmlEncoding
                                         if cntlr else 'utf-8')
     # encoding default from disclosure system could be None
+    assert isinstance(openedFileStream, io.IOBase)
     if encoding.lower() in ('utf-8','utf8','utf-8-sig') and (cntlr is None or not cntlr.isGAE) and not stripDeclaration:
         text = None
-        assert isinstance(openedFileStream, io.IOBase)
         openedFileStream.close()
     else:
-        assert isinstance(openedFileStream, io.IOBase)
         openedFileStream.seek(0)
         text = openedFileStream.read().decode(encoding or 'utf-8')
         openedFileStream.close()
