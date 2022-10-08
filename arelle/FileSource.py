@@ -581,7 +581,7 @@ class FileSource:
             elif archiveFileSource.isInstalledTaxonomyPackage:
                 # remove TAXONOMY_PACKAGE_FILE_NAME from file path
                 if filepath.startswith(archiveFileSource.basefile):
-                    assert isinstance(archiveFileSource.basefile, list)
+                    assert archiveFileSource.basefile is not None
                     l = len(archiveFileSource.basefile)
                     for f in TAXONOMY_PACKAGE_FILE_NAMES:
                         if filepath[l - len(f):l] == f:
