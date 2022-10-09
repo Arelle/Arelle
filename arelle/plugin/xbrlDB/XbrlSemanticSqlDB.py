@@ -355,7 +355,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if modelDocument.type == Type.SCHEMA:
             # must include document items taxonomy even if not in DTS
             return modelDocument.inDTS or modelDocument.targetNamespace == "http://arelle.org/doc/2014-01-31"
-        return modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL, Type.LINKBASE)
+        return modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL, Type.LINKBASE, Type.INLINEXBRLDOCUMENTSET)
 
     def identifyPreexistingDocuments(self):
         self.existingDocumentIds = {}
@@ -459,10 +459,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         table = self.getTable('document', 'document_id',
                               ('document_url', 'document_type', 'namespace'),
                               ('document_url',),
-                              set((ensureUrl(docUrl),
+                              set((ensureUrl(mdlDoc.uri),
                                    Type.typeName[mdlDoc.type],
                                    mdlDoc.targetNamespace)
-                                  for docUrl, mdlDoc in self.modelXbrl.urlDocs.items()
+                                  for mdlDoc in self.modelXbrl.urlDocs.values()
                                   if mdlDoc not in self.existingDocumentIds and
                                      self.isSemanticDocument(mdlDoc)),
                               checkIfExisting=True)
