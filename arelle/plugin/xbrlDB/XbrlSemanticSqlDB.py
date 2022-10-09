@@ -35,7 +35,7 @@ windows
 
 '''
 
-import os, time, datetime, logging
+import os, time, datetime, logging, re
 from arelle.ModelDocument import Type
 from arelle.ModelDtsObject import ModelConcept, ModelType, ModelResource, ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
@@ -361,17 +361,37 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.existingDocumentIds = {}
         self.urlDocs = {}
         docUris = set()
+        shortUrlToFullUrl = {}
         for modelDocument in self.modelXbrl.urlDocs.values():
             url = ensureUrl(modelDocument.uri)
             self.urlDocs[url] = modelDocument
             if self.isSemanticDocument(modelDocument):
-                docUris.add(self.dbStr(url))
+                shortUrl = re.sub('^https?://', '', url)
+                shortUrlToFullUrl[shortUrl] = url
+                docUris.add(self.dbStr(shortUrl))
+
         if docUris:
-            results = self.execute("SELECT document_id, document_url FROM {} WHERE document_url IN ({})"
-                                   .format(self.dbTableName("document"),
-                                           ', '.join(docUris)))
-            self.existingDocumentIds = dict((self.urlDocs[self.pyStrFromDbStr(docUrl)],docId)
-                                            for docId, docUrl in results)
+            col = """
+                    CASE
+                        WHEN document_url like 'http://%' THEN replace(document_url, 'http://', '')
+                        WHEN document_url like 'https://%' THEN replace(document_url, 'https://', '')
+                        ELSE document_url
+                    END
+            """
+            docsQuery = f"""
+                SELECT
+                    document_id,
+                    {col}
+                FROM {self.dbTableName("document")}
+                WHERE {col} IN ({', '.join(docUris)})
+                """
+            results = self.execute(docsQuery)
+            existingDocsResults = tuple(
+                (shortUrlToFullUrl[self.pyStrFromDbStr(docUrl)], docId)
+                for docId, docUrl in results
+            )
+            self.existingDocumentIds = dict((self.urlDocs[docUrl],docId)
+                                            for docUrl, docId in existingDocsResults)
 
             # identify whether taxonomyRelsSetsOwner is existing
             self.isExistingTaxonomyRelSetsOwner = (
