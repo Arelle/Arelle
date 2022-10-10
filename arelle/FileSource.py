@@ -473,10 +473,9 @@ class FileSource:
         stripDeclaration: bool = False,
         encoding: str | None = None,
     ) -> (
-            tuple[io.BytesIO]
+            tuple[io.BytesIO | IO[Any]]
             | tuple[FileNamedTextIOWrapper, str | None]
             | tuple[io.TextIOWrapper, str | None]
-            | tuple[io.BytesIO | IO[Any]]
         ):
         '''
             for text, return a tuple of (open file handle, encoding)
