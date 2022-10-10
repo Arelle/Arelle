@@ -111,10 +111,12 @@ class ContextPrototype():  # behaves like a context
             elif isinstance(aspect, QName):
                 try: # if a DimVal, then it has a suggested context element
                     contextElement = aspectValue.contextElement
+                    isTyped = aspectValue.isTyped
                     aspectValue = (aspectValue.memberQname or aspectValue.typedMember)
                 except AttributeError: # probably is a QName, not a dim value or dim prototype
                     contextElement = v.modelXbrl.qnameDimensionContextElement.get(aspect)
-                if v.modelXbrl.qnameDimensionDefaults.get(aspect) != aspectValue: # not a default
+                    isTyped = False
+                if v.modelXbrl.qnameDimensionDefaults.get(aspect) != aspectValue or isTyped: # not a default
                     try:
                         dimConcept = v.modelXbrl.qnameConcepts[aspect]
                         dimValPrototype = DimValuePrototype(v, dimConcept, aspect, aspectValue, contextElement)

@@ -146,7 +146,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblAxisDisp
         for tag, constraintSet in definitionNode.constraintSets.items():
             if otherConstraintSet is None:
                 otherConstraintSet = constraintSet
-            elif otherConstraintSet.aspectsCovered() != constraintSet.aspectsCovered():
+            elif otherConstraintSet.aspectsModelCovered() != constraintSet.aspectsModelCovered():
                 modelXbrl.error("xbrlte:constraintSetAspectMismatch",
                     _("%(definitionNode)s %(xlinkLabel)s constraint set mismatches between %(tag1)s and %(tag2)s in constraints %(aspects)s"),
                     modelObject=(modelTable, definitionNode, otherConstraintSet, constraintSet), 

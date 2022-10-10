@@ -697,6 +697,21 @@ def implicitFilter(xpCtx, vb, facts, uncoveredAspectFacts):
 
     return _facts
 
+def orderByAspects(xpCtx, facts, aspects):
+    for aspect in aspects:
+        facts = orderByAspect(xpCtx, facts, aspect)
+    return facts
+
+def orderByAspect(xpCtx, facts, aspect):
+    # TODO: for now only some concept
+    if aspect == Aspect.CONCEPT:
+        return sorted(facts, key=lambda f: f.qname)
+    elif aspect in (Aspect.ENTITY_IDENTIFIER, Aspect.PERIOD) or isinstance(aspect, QName):
+        return sorted(facts, key=lambda f: f.context.id)
+    elif aspect == Aspect.UNIT:
+        return sorted(facts, key=lambda f: f.unit.id)
+    return facts
+
 def aspectsMatch(xpCtx, fact1, fact2, aspects):
     return all(aspectMatches(xpCtx, fact1, fact2, aspect) for aspect in aspects)
 
@@ -817,7 +832,7 @@ def aspectMatches(xpCtx, fact1, fact2, aspect):
 
 def factsPartitions(xpCtx, facts, aspects):
     factsPartitions = []
-    for fact in facts:
+    for fact in orderByAspects(xpCtx, facts, aspects):
         matched = False
         for partition in factsPartitions:
             if aspectsMatch(xpCtx, fact, partition[0], aspects):
