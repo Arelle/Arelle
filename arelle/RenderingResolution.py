@@ -326,18 +326,32 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                 # note: reduced set of facts should always be passed to subsequent open nodes
                 for subtreeRel in subtreeRels:
                     childDefnMdlNode = subtreeRel.toModelObject
-                    childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels)
-                    if childDefnMdlNode.isRollUp:
-                        rollUpStrctNode = StrctMdlStructuralNode(childStrctNode, childDefnMdlNode)
-                        rollUpStrctNode.rollup = True
-                        childStrctNode.hasChildRollup = True
-                        strctMdlNode.rollUpChildStrctMdlNode = rollUpStrctNode
-                        if childDefnMdlNode.parentChildOrder == "parent-first":
-                            childStrctNode.strctMdlChildNodes = childStrctNode.strctMdlChildNodes[-1:] + childStrctNode.strctMdlChildNodes[0:-1]
-                        cartesianProductExpander(rollUpStrctNode, *cartesianProductNestedArgs)
-                    if not childContainsOpenNodes(childStrctNode) and not childDefnMdlNode.isRollUp:
-                        # To be computed only if the structural node does not contain an open node
-                        cartesianProductExpander(childStrctNode, *cartesianProductNestedArgs)
+
+                    if getattr(childDefnMdlNode, "isMerged", False):
+                        childSubtreeRels = view.defnSubtreeRelSet.fromModelObject(childDefnMdlNode)
+                        for childSubtreeRel in childSubtreeRels:
+                            mergedChildDefnMdlNode = childSubtreeRel.toModelObject
+                            childStrctNode = resolveDefinition(view, strctMdlNode, mergedChildDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels)
+                            for mergedAspect in childDefnMdlNode.aspectsCovered():
+                                aspect = childDefnMdlNode.aspectValue(view.rendrCntx, mergedAspect)
+                                if mergedAspect not in childStrctNode.aspects:
+                                    if isinstance(aspect, list):
+                                        aspect = set(aspect)
+                                    childStrctNode.aspects[mergedAspect] = aspect
+                            print(childStrctNode.aspectsCovered())
+                    else:
+                        childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels)
+                        if childDefnMdlNode.isRollUp:
+                            rollUpStrctNode = StrctMdlStructuralNode(childStrctNode, childDefnMdlNode)
+                            rollUpStrctNode.rollup = True
+                            childStrctNode.hasChildRollup = True
+                            strctMdlNode.rollUpChildStrctMdlNode = rollUpStrctNode
+                            if childDefnMdlNode.parentChildOrder == "parent-first":
+                                childStrctNode.strctMdlChildNodes = childStrctNode.strctMdlChildNodes[-1:] + childStrctNode.strctMdlChildNodes[0:-1]
+                            cartesianProductExpander(rollUpStrctNode, *cartesianProductNestedArgs)
+                        if not childContainsOpenNodes(childStrctNode) and not childDefnMdlNode.isRollUp:
+                            # To be computed only if the structural node does not contain an open node
+                            cartesianProductExpander(childStrctNode, *cartesianProductNestedArgs)
 
             if isinstance(defnMdlNode, DefnMdlRelationshipNode):
                 strctMdlNode.isLabeled = False

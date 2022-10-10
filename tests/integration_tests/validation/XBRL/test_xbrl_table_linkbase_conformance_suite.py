@@ -44,7 +44,6 @@ EXPECTED_FAILURE_IDS = frozenset([
     '1070-rule-node-occ-rule/1070-rule-node-occ-rule-testcase.xml/v-06i',
     '1070-rule-node-occ-rule/1070-rule-node-occ-rule-testcase.xml/v-07',
     '1070-rule-node-occ-rule/1070-rule-node-occ-rule-testcase.xml/v-07i',
-    '1200-merged-rule-node/1200-merged-rule-node-testcase.xml/v-01',
     '1200-merged-rule-node/1200-merged-rule-node-testcase.xml/v-01i',
     '1200-merged-rule-node/1200-merged-rule-node-testcase.xml/v-02',
     '1200-merged-rule-node/1200-merged-rule-node-testcase.xml/v-02i',
