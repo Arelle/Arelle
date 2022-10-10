@@ -476,7 +476,7 @@ class FileSource:
             tuple[io.BytesIO]
             | tuple[FileNamedTextIOWrapper, str | None]
             | tuple[io.TextIOWrapper, str | None]
-            | tuple[FileSource | io.IOBase | SupportsRead[str | bytes]]
+            | tuple[io.BytesIO | IO[Any]]
         ):
         '''
             for text, return a tuple of (open file handle, encoding)
@@ -756,7 +756,7 @@ class FileSource:
 
 def openFileStream(
     cntlr: Cntlr, filepath: str, mode: str = "r", encoding: str | None = None
-) -> FileSource | io.IOBase | SupportsRead[str | bytes]:
+) -> io.BytesIO | IO[Any]:
     filestream: io.IOBase | FileNamedStringIO | None
     if PackageManager.isMappedUrl(filepath):  # type: ignore[no-untyped-call]
         filepath = PackageManager.mappedUrl(filepath)  # type: ignore[no-untyped-call]
@@ -767,7 +767,7 @@ def openFileStream(
         ): # may be called early in initialization for PluginManager
         filepath = cntlr.modelManager.disclosureSystem.mappedUrl(filepath)  # type: ignore[no-untyped-call]
     if archiveFilenameParts(filepath): # file is in an archive
-        return cast(FileSource, openFileSource(filepath, cntlr).file(filepath, binary='b' in mode, encoding=encoding)[0])
+        return openFileSource(filepath, cntlr).file(filepath, binary='b' in mode, encoding=encoding)[0]
     if isHttpUrl(filepath) and cntlr:
         _cacheFilepath = cntlr.webCache.getfilename(filepath, normalize=True) # normalize is separate step in ModelDocument retrieval, combined here
         if _cacheFilepath is None:

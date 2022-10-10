@@ -132,9 +132,7 @@ def resourcesFilePath(modelManager: ModelManager, fileName: str) -> str:
 
 def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]:
     _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), 'rt', encoding='utf-8')
-    _file = cast("SupportsRead[Union[str, bytes]]", _file)
     validations = json.load(_file) # {localName: date, ...}
-    assert isinstance(_file, io.IOBase)
     _file.close()
     return cast(Union[dict[Any, Any], list[Any]], validations)
 
