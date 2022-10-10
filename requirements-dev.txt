@@ -1,6 +1,6 @@
 cx_Oracle==8.3.0
 # https://github.com/sphinx-doc/sphinx/issues/10241
-Sphinx==5.2.1; python_version >= "3.8"
+Sphinx==5.2.3; python_version >= "3.8"
 Sphinx<4.4; python_version < "3.8"
 
 flake8==5.0.4
