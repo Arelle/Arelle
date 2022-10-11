@@ -1,12 +1,9 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import os, logging
+import logging
 from lxml import etree
-try:
-    from regex import compile as re_compile
-except ImportError:
-    from re import compile as re_compile
+from regex import compile as re_compile
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
 from arelle import XbrlConst, XmlUtil
@@ -16,6 +13,8 @@ from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, qnameHref
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.PythonUtil import strTruncate
 from arelle import UrlUtil
+
+
 validateElementSequence = None  #dynamic import to break dependency loops
 modelGroupCompositorTitle = None
 ModelInlineValueObject = None
