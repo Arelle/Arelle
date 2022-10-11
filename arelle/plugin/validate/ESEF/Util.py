@@ -5,7 +5,6 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import os, json
-
 from arelle.ModelObject import ModelObject
 from .Const import esefTaxonomyNamespaceURIs
 from lxml.etree import XML, XMLSyntaxError
@@ -17,6 +16,7 @@ from arelle.ValidateXbrl import ValidateXbrl
 from typing import Any, Union, cast
 from arelle.ModelDocument import ModelDocument
 from arelle.typing import TypeGetText
+
 
 _: TypeGetText  # Handle gettext
 
@@ -119,7 +119,7 @@ def resourcesFilePath(modelManager: ModelManager, fileName: str) -> str:
     return os.path.join(_resourcesDir, fileName)
 
 def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]:
-    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), 'rt', encoding='utf-8')  # type: ignore[no-untyped-call]
+    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), 'rt', encoding='utf-8')
     validations = json.load(_file) # {localName: date, ...}
     _file.close()
     return cast(Union[dict[Any, Any], list[Any]], validations)

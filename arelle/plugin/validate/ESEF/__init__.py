@@ -80,6 +80,7 @@ from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelInstanceObject import ModelContext
 from typing import Any, cast
 from collections.abc import Generator
+import zipfile
 
 _: TypeGetText  # Handle gettext
 
@@ -118,7 +119,7 @@ def modelXbrlBeforeLoading(modelXbrl: ModelXbrl, normalizedUri: str, filepath: s
                     modelXbrl.fileSource.selection.endswith(".xml") and
                     # Ignoring for now: Argument 1 to "identify" of "Type" has incompatible type "FileSource"; expected "Type".
                     # It is not entirely clear why self isn't used in the identify-method.
-                    ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url) in ( # type: ignore[arg-type]
+                    ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url) in (  # type: ignore[arg-type]
                         ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
                     return None # allow zipped test case to load normally
                 if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
@@ -221,6 +222,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
     reportPackageMaxMB = val.authParam["reportPackageMaxMB"]
     if reportPackageMaxMB is not None and modelXbrl.fileSource.fs: # must be a zip to be a report package
+        assert isinstance(modelXbrl.fileSource.fs, zipfile.ZipFile)
         maxMB = float(reportPackageMaxMB)
         if val.authParam["reportPackageMeasurement"] == "unzipped":
             _size = sum(zi.file_size for zi in modelXbrl.fileSource.fs.infolist())

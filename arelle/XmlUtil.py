@@ -163,7 +163,7 @@ def encoding(xml: str | bytes, default: str = "utf-8") -> str:
         return match.group(1)
     return default
 
-def text(element: ModelObject) -> str:
+def text(element: ModelObject | PrototypeObject) -> str:
     return textNotStripped(element).strip()
 
 def childText(
@@ -174,8 +174,10 @@ def childText(
     child_element = child(element, childNamespaceURIs, childLocalNames)
     return textNotStripped(child_element).strip() if child_element is not None else None
 
-def textNotStripped(element: ModelObject | None) -> str:
-    if element is None:
+def textNotStripped(element: ModelObject | PrototypeObject | None) -> str:
+    # Note 2022-09-27
+    # PrototypeObject has no textValue property
+    if element is None or isinstance(element, PrototypeObject):
         return ""
     return element.textValue  # allows embedded comment nodes, returns '' if None
 
@@ -499,8 +501,8 @@ def childrenAttrs(
     return childrenAttrs
 
 def descendant(
-    element: ModelObject,
-    descendantNamespaceURI: str,
+    element: ModelObject | PrototypeObject,
+    descendantNamespaceURI: str | None,
     descendantLocalNames: str | tuple[str, ...],
     attrName: str | None = None,
     attrValue: str | None = None
@@ -511,8 +513,8 @@ def descendant(
     return None
 
 def descendants(
-    element: ModelObject,
-    descendantNamespaceURI: str,
+    element: ModelObject | PrototypeObject | etree._ElementTree,
+    descendantNamespaceURI: str | None,
     descendantLocalNames: str | tuple[str, ...],
     attrName: str | None = None,
     attrValue: str | None = None,
@@ -523,10 +525,17 @@ def descendants(
     if not isinstance(descendantLocalNames,tuple): descendantLocalNames = (descendantLocalNames ,)
     wildLocalName = descendantLocalNames == ('*',)
     wildNamespaceURI = not descendantNamespaceURI or descendantNamespaceURI == '*'
-    if isinstance(element,(ModelObject,etree._ElementTree,PrototypeElementTree,PrototypeObject)):
-        for child in (getattr(element, 'ixIter')() if ixTarget and hasattr(element, "ixIter") else
-                      element.iterdescendants() if isinstance(element,ModelObject) else
-                      element.iter()):
+    if isinstance(
+        element, (ModelObject, etree._ElementTree, PrototypeElementTree, PrototypeObject)
+    ):
+        for child in (
+            getattr(element, "ixIter")()
+            if ixTarget and hasattr(element, "ixIter")
+            else element.iterdescendants()
+            if isinstance(element, ModelObject)
+            # Note 2022-09-27 PrototypeObject has no iter(), ModelObject however has.
+            else element.iter()  # type: ignore[union-attr]
+        ):
             _childNamespaceURI = getattr(child, 'elementNamespaceURI', None)
             _childLocalName = getattr(child, 'localName', None)
             if isinstance(child, (ModelObject, PrototypeObject)) and ixTarget:

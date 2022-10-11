@@ -43,6 +43,7 @@ Client with curl:
 '''
 from __future__ import annotations
 import os, base64
+import zipfile
 import regex as re
 from collections import defaultdict
 from math import isnan
@@ -222,6 +223,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
     reportPackageMaxMB = val.authParam["reportPackageMaxMB"]
     if reportPackageMaxMB is not None and modelXbrl.fileSource.fs: # must be a zip to be a report package
+        assert isinstance(modelXbrl.fileSource.fs, zipfile.ZipFile)
+
         maxMB = float(reportPackageMaxMB)
         if val.authParam["reportPackageMeasurement"] == "unzipped":
             _size = sum(zi.file_size for zi in modelXbrl.fileSource.fs.infolist())
