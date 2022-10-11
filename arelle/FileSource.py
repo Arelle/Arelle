@@ -137,7 +137,7 @@ class FileSource:
     eisDocument: etree._ElementTree | None
     fs: zipfile.ZipFile | tarfile.TarFile | io.StringIO | None
     filesDir: list[str] | None
-    referencedFileSources: dict[Any, Any]
+    referencedFileSources: dict[str, FileSource]
     rssDocument: etree._ElementTree | None
     selection: str | list[str] | None
     url: str | list[str] | None
@@ -205,7 +205,7 @@ class FileSource:
                 try:
                     assert self.cntlr is not None
                     assert isinstance(self.basefile, str)
-                    fileStream = cast(Union[Union[str, os.PathLike[str]], IO[bytes]], openFileStream(self.cntlr, self.basefile, 'rb'))
+                    fileStream = openFileStream(self.cntlr, self.basefile, 'rb')
                     self.fs = zipfile.ZipFile(fileStream, mode="r")
                     self.isOpen = True
                 except EnvironmentError as err:
@@ -360,8 +360,7 @@ class FileSource:
 
     def close(self) -> None:
         if self.referencedFileSources:
-            for uncastReferencedFileSource in self.referencedFileSources.values():
-                referencedFileSource = cast(FileSource, uncastReferencedFileSource)
+            for referencedFileSource in self.referencedFileSources.values():
                 referencedFileSource.close()
         self.referencedFileSources.clear()
         if self.isZip and self.isOpen:
@@ -458,7 +457,7 @@ class FileSource:
             if referencedArchiveFile in self.referencedFileSources:
                 referencedFileSource = self.referencedFileSources[referencedArchiveFile]
                 if referencedFileSource.isInArchive(filepath):
-                    return cast(FileSource, referencedFileSource)
+                    return referencedFileSource
             elif (not self.isOpen or
                   (referencedArchiveFile != self.basefile and referencedArchiveFile != self.baseurl)):
                 referencedFileSource = openFileSource(filepath, self.cntlr)
@@ -809,14 +808,13 @@ def openXmlFileStream(
 ) -> tuple[io.TextIOWrapper, str]:
     # returns tuple: (fileStream, encoding)
     openedFileStream = openFileStream(cntlr, filepath, 'rb')
-    assert not isinstance(openedFileStream, FileSource)
+
     # check encoding
     hdrBytes = openedFileStream.read(512)
     encoding = XmlUtil.encoding(hdrBytes,
                                 default=cntlr.modelManager.disclosureSystem.defaultXmlEncoding
                                         if cntlr else 'utf-8')
     # encoding default from disclosure system could be None
-    assert isinstance(openedFileStream, io.IOBase)
     if encoding.lower() in ('utf-8','utf8','utf-8-sig') and (cntlr is None or not cntlr.isGAE) and not stripDeclaration:
         text = None
         openedFileStream.close()
