@@ -21,14 +21,10 @@ from arelle.UrlUtil import scheme
 from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
-from typing import TYPE_CHECKING, Any, Union, cast
+from typing import Any, Union, cast
 from arelle.ModelDocument import ModelDocument
 from arelle.typing import TypeGetText
 from collections import defaultdict
-import io
-
-if TYPE_CHECKING:
-    from _typeshed import SupportsRead
 
 
 _: TypeGetText  # Handle gettext

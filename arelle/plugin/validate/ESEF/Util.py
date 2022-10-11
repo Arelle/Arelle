@@ -8,7 +8,6 @@ Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 '''
 from __future__ import annotations
 import os, json
-import io
 from arelle.ModelObject import ModelObject
 from .Const import esefTaxonomyNamespaceURIs
 from lxml.etree import XML, XMLSyntaxError
@@ -17,12 +16,10 @@ from arelle.UrlUtil import scheme
 from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
-from typing import TYPE_CHECKING, Any, Union, cast
+from typing import Any, Union, cast
 from arelle.ModelDocument import ModelDocument
 from arelle.typing import TypeGetText
 
-if TYPE_CHECKING:
-    from _typeshed import SupportsRead
 
 _: TypeGetText  # Handle gettext
 
