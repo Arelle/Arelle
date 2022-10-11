@@ -157,7 +157,7 @@ class SqlDbConnection():
                                     _("MySQL interface is not installed"))
             self.conn = mysqlConnect(user=user, passwd=password, host=host,
                                      port=int(port or 3306),
-                                     db=database,  # pymysql takes database or db but MySQLdb only takes db 
+                                     db=database,  # pymysql takes database or db but MySQLdb only takes db
                                      connect_timeout=timeout or 60,
                                      charset='utf8')
             self.product = product
@@ -326,10 +326,11 @@ class SqlDbConnection():
     def unlockAllTables(self):
         if self.product in ("mysql",):
             result = self.execute('UNLOCK TABLES',
-                                  close=False, commit=False, fetch=False, action="locking table")
-        elif self.product in ("sqlite",):
-            result = self.execute('COMMIT TRANSACTION',
-                                  close=False, commit=False, fetch=False, action="locking table")
+                                  close=False, commit=False, fetch=False, action="unlocking tables")
+        ## Not needed for sqlite
+        # elif self.product in ("sqlite",):
+        #     result = self.execute('COMMIT TRANSACTION',
+        #                           close=False, commit=False, fetch=False, action="locking table")
 
     def execute(self, sql, commit=False, close=True, fetch=True, params=None, action="execute"):
         cursor = self.cursor

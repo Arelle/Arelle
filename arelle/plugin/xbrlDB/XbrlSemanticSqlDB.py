@@ -86,6 +86,8 @@ XBRLDBTABLES = {
                 "data_point", "entity", "period", "unit", "unit_measure", "aspect_value_selection",
                 "message", "message_reference",
                 "industry", "industry_level", "industry_structure",
+                'used_on', 'former_entity', 'table_data_points',
+                'aspect_value_selection_set', 'entity_identifier'
                 }
 
 
@@ -174,6 +176,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             startedAt = time.time()
             self.showStatus("Committing entries")
             self.commit()
+            self.unlockAllTables() # needed for MySql
             self.modelXbrl.profileStat(_("XbrlSqlDB: insertion committed"), time.time() - startedAt)
             self.showStatus("DB insertion completed", clearAfter=5000)
         except Exception as ex:
