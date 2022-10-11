@@ -186,7 +186,7 @@ def concept_relationships_wrapper(modelXbrl, *args):
     result = concept_relationships(xc, None, args)
     return result
 
-def load_filing_wrapper(f: str, validate=False) -> ModelXbrl:
+def load_filing_wrapper(url: str, validate=False) -> ModelXbrl:
     """Load and validate xbrl filing"""
     gettext.install('arelle')
     cntlr = Cntlr(logFileName='logToPrint')
@@ -199,6 +199,7 @@ def load_filing_wrapper(f: str, validate=False) -> ModelXbrl:
     _inline_doc_set = PluginManager.addPluginModule("inlineXbrlDocumentSet")
     cntlr.modelManager.loadCustomTransforms()
 
+    f = cntlr.webCache.getfilename(url)
     fs = FileSource.openFileSource(f, cntlr)
     entry_point_files = [{'file': f}]
     filesourceEntrypointFiles(fs, entry_point_files)
