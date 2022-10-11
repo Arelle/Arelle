@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, cast
 import logging
 from decimal import Decimal
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
-from arelle.FileSource import FileNamedStringIO
+import arelle.FileSource
 from arelle.ModelObject import ModelObject, ObjectPropertyViewWrapper
 from arelle.Locale import format_string
 from arelle.PluginManager import pluginClassMethods
@@ -1166,7 +1166,7 @@ class ModelXbrl:
                 extras)
 
     def loggableValue(self, argValue): # must be dereferenced and not related to object lifetimes
-        if isinstance(argValue, (ModelValue.QName, ModelObject, FileNamedStringIO,
+        if isinstance(argValue, (ModelValue.QName, ModelObject, arelle.FileSource.FileNamedStringIO,
                                  # might be a set of lxml objects not dereferencable at shutdown
                                  tuple, list, set)):
             return str(argValue)
