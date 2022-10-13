@@ -934,7 +934,9 @@ TypeSValue = Union[
 TypeXValue = Union[
     datetime.datetime,
     Decimal,
-    Dict[str, Pattern[str]],
+    # Note 2022-10-13:
+    # Replace with Dict[str, Pattern[str]] when dropping support for Python 3.8
+    Dict[str, Pattern],
     float,
     gDay,
     gMonth,
@@ -944,7 +946,9 @@ TypeXValue = Union[
     Fraction,
     List[Optional[QName]],
     None,
-    Pattern[str],
+    # Note 2022-10-13:
+    # Replace with Pattern[str] when dropping support for Python 3.8
+    Pattern,
     str,
     datetime.time,
     QName,
