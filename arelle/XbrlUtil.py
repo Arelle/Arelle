@@ -63,10 +63,10 @@ def equalityHash(
             from arelle.ModelXbrl import ModelXbrl
             assert isinstance(dts, ModelXbrl), 'dts is not an instance of ModelXbrl'
             if not hasattr(elt,"xValid"):
-                xmlValidate(dts, elt)  # type: ignore[no-untyped-call]
+                xmlValidate(dts, elt)
             hashableValue = elt.sValue if equalMode == S_EQUAL else elt.xValue
             if isinstance(hashableValue,float) and math.isnan(hashableValue):
-                hashableValue = (hashableValue,elt)    # ensure this NaN only compares to itself and no other NaN
+                hashableValue = (hashableValue,elt)  # type: ignore[assignment]    # ensure this NaN only compares to itself and no other NaN
             _hash = hash((elt.elementQname,
                           hashableValue,
                           tuple(sorted(attributeDict(dts, elt, set(), equalMode, excludeIDs, distinguishNaNs=True).items(),
@@ -101,9 +101,9 @@ def sEqual(
     elif elt1.namespaceURI != elt2.namespaceURI:
         return False
     if not hasattr(elt1,"xValid"):
-        xmlValidate(dts1, elt1)  # type: ignore[no-untyped-call]
+        xmlValidate(dts1, elt1)
     if not hasattr(elt2,"xValid"):
-        xmlValidate(dts2, elt2)  # type: ignore[no-untyped-call]
+        xmlValidate(dts2, elt2)
     children1 = childElements(elt1)
     children2 = childElements(elt2)
     if len(children1) != len(children2):
@@ -134,7 +134,7 @@ def attributeDict(
     distinguishNaNs: bool = False
 ) -> dict[QName, Any]:  # value can be any element value
     if not hasattr(elt,"xValid"):
-        xmlValidate(modelXbrl, elt)  # type: ignore[no-untyped-call]
+        xmlValidate(modelXbrl, elt)
     attrs = {}
     # TBD: replace with validated attributes
     for modelAttribute in getattr(elt, 'xAttributes', {}).values():
@@ -180,9 +180,9 @@ def childElements(elt: ModelObject) -> list[ModelObject]:
 
 def xEqual(elt1: ModelObject, elt2: ModelObject, equalMode: int = S_EQUAL) -> bool:
     if not hasattr(elt1,"xValid"):
-        xmlValidate(elt1.modelXbrl, elt1)  # type: ignore[no-untyped-call]
+        xmlValidate(elt1.modelXbrl, elt1)
     if not hasattr(elt2,"xValid"):
-        xmlValidate(elt2.modelXbrl, elt2)  # type: ignore[no-untyped-call]
+        xmlValidate(elt2.modelXbrl, elt2)
     if equalMode == VALIDATE_BY_STRING_VALUE:
         return elt1.stringValue == elt2.stringValue
     elif equalMode == S_EQUAL: # formula WG e-mail 2018-09-06: or (equalMode == S_EQUAL2 and not isinstance(elt1.sValue, QName)):
@@ -196,9 +196,9 @@ def xEqual(elt1: ModelObject, elt2: ModelObject, equalMode: int = S_EQUAL) -> bo
 
 def vEqual(elt1: ModelObject, elt2: ModelObject) -> bool:
     if not hasattr(elt1,"xValid"):
-        xmlValidate(elt1.modelXbrl, elt1)  # type: ignore[no-untyped-call]
+        xmlValidate(elt1.modelXbrl, elt1)
     if not hasattr(elt2,"xValid"):
-        xmlValidate(elt2.modelXbrl, elt2)  # type: ignore[no-untyped-call]
+        xmlValidate(elt2.modelXbrl, elt2)
     return elt1.sValue == elt2.sValue
 
 def typedValue(
@@ -216,6 +216,6 @@ def typedValue(
                 return element.xValue
     except (AttributeError, KeyError):
         if dts:
-            xmlValidate(dts, element, recurse=False, attrQname=attrQname)  # type: ignore[no-untyped-call]
+            xmlValidate(dts, element, recurse=False, attrQname=attrQname)
             return typedValue(None, element, attrQname=attrQname)
     return None
