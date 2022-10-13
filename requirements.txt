@@ -1,4 +1,5 @@
 # core modules
+certifi==2022.9.24
 lxml==4.9.1
 OpenPyXL==3.0.10
 regex==2022.9.13

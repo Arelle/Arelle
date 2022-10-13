@@ -13,6 +13,8 @@ from urllib.error import URLError, HTTPError, ContentTooShortError
 from http.client import IncompleteRead
 from urllib import request as proxyhandlers
 
+import certifi
+
 try:
     import ssl
 except ImportError:
@@ -237,10 +239,12 @@ class WebCache:
             self.proxy_auth_handler = proxyhandlers.ProxyBasicAuthHandler()
             self.http_auth_handler = proxyhandlers.HTTPBasicAuthHandler()
             proxyHandlers = [self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler]
-        if ssl and self.noCertificateCheck: # this is required in some Akamai environments, such as sec.gov
+        if ssl:
             context = ssl.create_default_context()
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
+            context.load_verify_locations(cafile=certifi.where())
+            if self.noCertificateCheck:  # this is required in some Akamai environments, such as sec.gov
+                context.check_hostname = False
+                context.verify_mode = ssl.CERT_NONE
             proxyHandlers.append(proxyhandlers.HTTPSHandler(context=context))
         self.opener = proxyhandlers.build_opener(*proxyHandlers)
         self.opener.addheaders = [
