@@ -9,7 +9,7 @@ from re import Match, compile as re_compile
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
 from arelle import XbrlConst, XmlUtil
-from arelle.ModelValue import (QName, qname, qnameEltPfxName, qnameClarkName, qnameHref,
+from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, qnameHref,
                                dateTime, DATE, DATETIME, DATEUNION, time,
                                anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay, isoDuration)
 from arelle.ModelObject import ModelObject, ModelAttribute
@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from arelle.typing import TypeGetText
     from arelle.ModelValue import TypeXValue, TypeSValue
     from arelle.ModelDtsObject import ModelType
+    from arelle.ModelValue import QName
 
 _: TypeGetText
 
