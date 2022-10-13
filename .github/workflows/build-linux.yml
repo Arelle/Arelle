@@ -11,6 +11,11 @@ on:
         description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
+      openssl_version:
+        default: 1.1.1q
+        description: 'OpenSSL version to use'
+        required: true
+        type: string
       node_version:
         default: lts/*
         description: 'Node.js version to use'
@@ -111,6 +116,7 @@ jobs:
         uses: docker/build-push-action@v3.1.1
         with:
           build-args: |
+            "OPENSSL_VERSION=${{ inputs.openssl_version }}"
             "PYTHON_VERSION=${{ env.PYTHON_VERSION }}"
             "TCLTK_VERSION=${{ inputs.tcltk_version }}"
           context: .
