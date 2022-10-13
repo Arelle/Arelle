@@ -45,8 +45,7 @@ jobs:
           cache: 'pip' # caching pip dependencies
           check-latest: true
           python-version: ${{ inputs.python_version }}
-      - run: pip install -r requirements-dev.txt
-      - run: pip install -r requirements-mac-build.txt
+      - run: pip install -r requirements-build.txt
       - uses: actions/checkout@v3.1.0
         with:
           repository: Arelle/EdgarRenderer
