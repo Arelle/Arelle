@@ -21,14 +21,9 @@ on:
         description: 'Node.js version to use'
         required: true
         type: string
-      python_version_rhel:
-        default: 3.9.14
-        description: 'RHEL Python version to use'
-        required: true
-        type: string
-      python_version_ubuntu:
-        default: 3.10.7
-        description: 'Ubuntu Python version to use'
+      python_version:
+        default: 3.10.8
+        description: 'Python version to use'
         required: true
         type: string
       tcltk_version:
@@ -105,19 +100,12 @@ jobs:
           password: ${{ secrets.REDHAT_PASSWORD }}
       - name: Docker setup buildx
         uses: docker/setup-buildx-action@v2.0.0
-      - name: Set distro Python version
-        run: |
-          if [[ ${{ matrix.distro }} == "ubuntu" ]]; then
-            echo "PYTHON_VERSION=${{ inputs.python_version_ubuntu }}" >> $GITHUB_ENV
-          else
-            echo "PYTHON_VERSION=${{ inputs.python_version_rhel }}" >> $GITHUB_ENV
-          fi
       - name: Docker build
         uses: docker/build-push-action@v3.1.1
         with:
           build-args: |
             "OPENSSL_VERSION=${{ inputs.openssl_version }}"
-            "PYTHON_VERSION=${{ env.PYTHON_VERSION }}"
+            "PYTHON_VERSION=${{ inputs.python_version }}"
             "TCLTK_VERSION=${{ inputs.tcltk_version }}"
           context: .
           file: docker/${{ matrix.distro }}.Dockerfile
