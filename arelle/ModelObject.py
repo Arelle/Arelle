@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Generator, Optional, cast
+from typing import TYPE_CHECKING, Any, Generator, cast
 from lxml import etree
 from arelle import Locale
 from arelle.ModelValue import qname, qnameEltPfxName, QName
@@ -11,7 +11,6 @@ if TYPE_CHECKING:
     from arelle.ModelDocument import ModelDocument
     from arelle.ModelXbrl import ModelXbrl
     from arelle.ModelDtsObject import ModelConcept
-    from arelle.ModelValue import AnyURI
     from arelle.ModelDtsObject import ModelLink
     from arelle.ModelDtsObject import ModelLocator
     from arelle.ModelDtsObject import ModelResource
@@ -19,6 +18,7 @@ if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelInlineFootnote
     from arelle.ModelInstanceObject import ModelInlineFact
     from arelle.ModelInstanceObject import ModelDimensionValue
+    from arelle.ModelValue import TypeSValue, TypeXValue
 
 XmlUtil: Any = None
 VALID_NO_CONTENT = None
@@ -110,8 +110,8 @@ class ModelObject(etree.ElementBase):
     _namespaceURI: str | None
     _hashSEqual: int
     _hashXpathEqual: int
-    sValue = str
-    xValue = Any # this can be any thing
+    sValue: TypeSValue
+    xValue: TypeXValue
     xlinkLabel: str
 
     def _init(self) -> None:
@@ -438,8 +438,8 @@ class ModelAttribute:
         | ModelInlineFootnote,
         attrTag: str,
         xValid: int,
-        xValue: QName | AnyURI | int | str | None,
-        sValue: str | None,
+        xValue: TypeXValue,
+        sValue: TypeSValue,
         text: str,
     ):
         self.modelElement = modelElement
