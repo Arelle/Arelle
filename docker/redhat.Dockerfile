@@ -74,7 +74,6 @@ RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VER
             --enable-shared \
             --with-computed-gotos \
             --with-openssl=/usr/local \
-            --with-openssl-rpath=auto \
             --with-lto \
             --with-system-ffi \
         && make install --jobs "$(nproc)") \

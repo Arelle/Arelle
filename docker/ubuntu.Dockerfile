@@ -59,7 +59,6 @@ RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VER
             --with-computed-gotos \
             --with-lto \
             --with-openssl=/usr/local \
-            --with-openssl-rpath=auto \
             --with-system-ffi \
         && make install --jobs "$(nproc)") \
     && rm -r ./Python-${PYTHON_VERSION} \
