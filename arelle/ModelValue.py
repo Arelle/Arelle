@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from arelle.ModelFormulaObject import ModelCustomFunctionSignature
     from arelle.ModelDtsObject import ModelType
     from arelle.ModelInstanceObject import ModelInlineFact
+    from arelle.XmlValidate import XsdPattern
 
 import regex as re
 XmlUtil = None
@@ -947,6 +948,5 @@ TypeXValue = Union[
     Pattern[str],
     str,
     QName,
-    # Note 2022-10-14
-    # We would also want to have XsdPattern here
+    'XsdPattern',
 ]

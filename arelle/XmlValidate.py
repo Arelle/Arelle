@@ -504,9 +504,7 @@ def validateValue(
                         if value in xmlSchemaPatterns:
                             xValue = xmlSchemaPatterns[value]
                         else:
-                            # Adding XsdPattern to TypeXValue causes a circular import
-                            # thus ignoring this error
-                            xValue = XsdPattern().compile(value)  # type: ignore[assignment]
+                            xValue = XsdPattern().compile(value)
                     except Exception as err:
                         raise ValueError(err)
                 elif baseXsdType == "fraction":
