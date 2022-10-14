@@ -240,7 +240,12 @@ class WebCache:
             self.http_auth_handler = proxyhandlers.HTTPBasicAuthHandler()
             proxyHandlers = [self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler]
         if ssl:
+            # Attempts to load the default CA certificates from the OS.
             context = ssl.create_default_context()
+            # Include certifi certificates (Mozilla’s carefully curated
+            # collection) for systems with outdated certs and for platforms
+            # that we're unable to load certs from (macOS and some Linux
+            # distros.)
             context.load_verify_locations(cafile=certifi.where())
             if self.noCertificateCheck:  # this is required in some Akamai environments, such as sec.gov
                 context.check_hostname = False
