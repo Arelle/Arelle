@@ -640,13 +640,7 @@ class lxmlSchemaResolver(etree.Resolver):
         self.cntlr = cntlr
         self.modelXbrl = modelXbrl
 
-    @overload
-    def resolve(self, url: str | None, id: str, context: Any) -> Any: ...
-
-    @overload
-    def resolve(self, system_url: str, public_id: str) -> Any: ...
-
-    def resolve(self, url: str | None, id: str, context: Any) -> Any: #  type: ignore[misc]
+    def resolve(self, url: str | None, id: str, context: Any) -> Any: #  type: ignore[override]
         if self.modelXbrl is None or not self.modelXbrl.fileSource.isInArchive(url):  # type: ignore[has-type]
             url = self.cntlr.webCache.getfilename(url)
         if url: # may be None if file doesn't exist

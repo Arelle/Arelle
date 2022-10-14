@@ -5,9 +5,8 @@ from __future__ import annotations
 import datetime, isodate
 from decimal import Decimal
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, Type, cast, overload, Dict, Optional, Union, List
+from typing import TYPE_CHECKING, Any, Type, cast, overload, Dict, Optional, Union, List, Pattern
 from decimal import Decimal
-from re import Pattern
 from fractions import Fraction
 
 if TYPE_CHECKING:
@@ -933,10 +932,9 @@ TypeSValue = Union[
 ]
 TypeXValue = Union[
     datetime.datetime,
+    datetime.time,
     Decimal,
-    # Note 2022-10-13:
-    # Replace with Dict[str, Pattern[str]] when dropping support for Python 3.8
-    Dict[str, Pattern],
+    Dict[str, Pattern[str]],
     float,
     gDay,
     gMonth,
@@ -946,10 +944,9 @@ TypeXValue = Union[
     Fraction,
     List[Optional[QName]],
     None,
-    # Note 2022-10-13:
-    # Replace with Pattern[str] when dropping support for Python 3.8
-    Pattern,
+    Pattern[str],
     str,
-    datetime.time,
     QName,
+    # Note 2022-10-14
+    # We would also want to have XsdPattern here
 ]
