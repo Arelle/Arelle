@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import logging
-from typing import TYPE_CHECKING, Any, cast, overload
+from typing import TYPE_CHECKING, Any, cast
 from lxml import etree
 from re import Match, compile as re_compile
 from decimal import Decimal, InvalidOperation
