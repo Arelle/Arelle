@@ -14,8 +14,8 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - id: build-test-matrix
         run: |
-          printf '::set-output name=matrix::'
-          find tests/integration_tests -name 'test_*.py' -not -name test_efm_conformance_suite.py | jq -Rsc 'split("\n") | map(select(length > 0) | capture("(?<path>.*/test_(?<name>.*)[.]py)"))'
+          printf matrix= >> $GITHUB_OUTPUT
+          find tests/integration_tests -name 'test_*.py' -not -name test_efm_conformance_suite.py | jq -Rsc 'split("\n") | map(select(length > 0) | capture("(?<path>.*/test_(?<name>.*)[.]py)"))' >> $GITHUB_OUTPUT
 
   run-conformance-suite:
     name: ${{ matrix.test.name }}
