@@ -91,8 +91,7 @@ jobs:
     - name: Install requirements
       run: |
         pip install wheel
-        pip install -r requirements-dev.txt
-        pip install -r requirements-windows-build.txt
+        pip install -r requirements-build.txt
     - name: Capture version before localization
       run: echo ("SETUPTOOLS_SCM_PRETEND_VERSION=" + (python -W ignore distro.py --version)) >> $env:GITHUB_ENV
     - name: Make directories
@@ -104,7 +103,7 @@ jobs:
     - name: Build exe
       run: python distro.py build_exe
     - name: Copy Tktable2.11
-      run: xcopy libs\win64\Tktable2.11 build\exe.win-amd64-${{ matrix.python-version }}\lib\tkinter\tk8.6 /y
+      run: xcopy libs\win64\Tktable2.11 build\exe.win-amd64-${{ matrix.python-version }}\lib\tcltk\tk8.6 /y
     - name: Delete .git
       shell: cmd
       run: if exist "build\exe.win-amd64-${{ matrix.python-version }}\.git" rmdir /s /q build\exe.win-amd64-${{ matrix.python-version }}\.git

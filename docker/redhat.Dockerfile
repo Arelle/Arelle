@@ -1,6 +1,7 @@
 # Use oldest LTS release for linked glibc compatibility
 FROM registry.redhat.io/rhel7:7.9
 
+ARG OPENSSL_VERSION
 ARG PYTHON_VERSION
 ARG TCLTK_VERSION
 ENV LD_LIBRARY_PATH=/usr/local/lib
@@ -24,7 +25,6 @@ RUN --mount=type=secret,id=redhat_username \
         libxml2-devel \
         libxslt-devel \
         ncurses-devel \
-        openssl-devel \
         readline-devel \
         sqlite-devel \
         unixODBC-devel \
@@ -35,6 +35,20 @@ RUN --mount=type=secret,id=redhat_username \
     ; subscription-manager unregister
 
 WORKDIR /tmp
+
+RUN wget https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+    && tar xzf openssl-${OPENSSL_VERSION}.tar.gz \
+    && (cd openssl-${OPENSSL_VERSION} \
+        && ./config \
+            -fPIC \
+            --openssldir=/usr/local/ssl \
+            --prefix=/usr/local \
+            no-shared \
+            no-ssl2 \
+        && make \
+        && make install --jobs "$(nproc)") \
+    && rm -r ./openssl-${OPENSSL_VERSION} \
+    && rm ./openssl-${OPENSSL_VERSION}.tar.gz
 
 RUN wget https://sourceforge.net/projects/tcl/files/Tcl/${TCLTK_VERSION}/tcl${TCLTK_VERSION}-src.tar.gz \
     && tar xzf tcl${TCLTK_VERSION}-src.tar.gz \
@@ -59,6 +73,7 @@ RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VER
             --enable-optimizations \
             --enable-shared \
             --with-computed-gotos \
+            --with-openssl=/usr/local \
             --with-lto \
             --with-system-ffi \
         && make install --jobs "$(nproc)") \
@@ -71,8 +86,7 @@ WORKDIR /build
 
 ADD ../requirements*.txt .
 
-RUN pip3 install -r requirements-dev.txt
-RUN pip3 install -r requirements-linux-build.txt
+RUN pip3 install -r requirements-build.txt
 
 ADD ../ /build
 

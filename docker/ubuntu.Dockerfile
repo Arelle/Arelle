@@ -1,6 +1,7 @@
 # Use oldest release with standard support for linked glibc compatibility
 FROM ubuntu:18.04
 
+ARG OPENSSL_VERSION
 ARG PYTHON_VERSION
 ENV LD_LIBRARY_PATH=/usr/local/lib
 ENV DEBIAN_FRONTEND=noninteractive
@@ -21,7 +22,6 @@ RUN apt-get update -y && \
         libnss3-dev \
         libreadline-dev \
         libsqlite3-dev \
-        libssl-dev \
         libtk8.6 \
         libxml2-dev \
         libxmlsec1-dev \
@@ -36,6 +36,20 @@ RUN apt-get update -y && \
 
 WORKDIR /tmp
 
+RUN wget https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+    && tar xzf openssl-${OPENSSL_VERSION}.tar.gz \
+    && (cd openssl-${OPENSSL_VERSION} \
+        && ./config \
+            -fPIC \
+            --openssldir=/usr/local/ssl \
+            --prefix=/usr/local \
+            no-shared \
+            no-ssl2 \
+        && make \
+        && make install --jobs "$(nproc)") \
+    && rm -r ./openssl-${OPENSSL_VERSION} \
+    && rm ./openssl-${OPENSSL_VERSION}.tar.gz
+
 RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
     && tar xzf Python-${PYTHON_VERSION}.tgz \
     && (cd Python-${PYTHON_VERSION} \
@@ -44,6 +58,7 @@ RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VER
             --enable-shared \
             --with-computed-gotos \
             --with-lto \
+            --with-openssl=/usr/local \
             --with-system-ffi \
         && make install --jobs "$(nproc)") \
     && rm -r ./Python-${PYTHON_VERSION} \
@@ -55,8 +70,7 @@ WORKDIR /build
 
 ADD ../requirements*.txt .
 
-RUN pip3 install -r requirements-dev.txt
-RUN pip3 install -r requirements-linux-build.txt
+RUN pip3 install -r requirements-build.txt
 
 ADD ../ /build
 

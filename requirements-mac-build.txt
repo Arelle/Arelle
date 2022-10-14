@@ -1,3 +1,0 @@
-# https://github.com/marcelotduarte/cx_Freeze/issues/849
---extra-index-url https://marcelotduarte.github.io/packages/
-cx_Freeze==6.12.0dev2
