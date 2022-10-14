@@ -138,6 +138,7 @@ jobs:
           # Create symlinks 
           ln -s ../../Resources/lib/tcltk build/Arelle.app/Contents/MacOS/lib/tcltk
           ln -s ../../Resources/lib/tkinter build/Arelle.app/Contents/MacOS/lib/tkinter
+          ln -s ../Resources/plugin build/Arelle.app/Contents/MacOS/plugin
           
           codesign --options runtime --force --deep --timestamp -s "$MAC_BUILD_CERTIFICATE_NAME" build/Arelle.app/Contents/MacOS/arelleCmdLine
           codesign --options runtime --force --deep --timestamp -s "$MAC_BUILD_CERTIFICATE_NAME" build/Arelle.app/Contents/MacOS/arelleGUI
