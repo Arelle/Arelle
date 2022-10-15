@@ -1,13 +1,9 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import time
-from arelle import ModelXbrl, XbrlConst, XmlValidate
+from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelAttribute, ModelConcept, ModelType
-from arelle.ModelValue import qname
-from arelle.Locale import format_string
-from lxml import etree
 
 XMLSchemaURI = "http://www.w3.org/2001/XMLSchema.xsd"
 
