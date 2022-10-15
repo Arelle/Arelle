@@ -22,8 +22,8 @@ jobs:
     needs: find-tests
     permissions: read-all
     runs-on: ubuntu-latest
-    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         test: ${{ fromJson(needs.find-tests.outputs.matrix) }}
     environment: integration-tests
