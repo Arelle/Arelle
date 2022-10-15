@@ -763,7 +763,7 @@ class gYear:
 
 
 class gMonth:
-    def __init__(self, month: int | str):
+    def __init__(self, month: int | str) -> None:
         self.month = int(month)
 
     def __repr__(self) -> str:
