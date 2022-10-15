@@ -121,6 +121,7 @@ module = [
     'arelle.XbrlConst',
     'arelle.XbrlUtil',
     'arelle.XmlUtil',
+    'arelle.XmlValidate',
 ]
 ignore_errors = false
 strict = true

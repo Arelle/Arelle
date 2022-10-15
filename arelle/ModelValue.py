@@ -5,7 +5,9 @@ from __future__ import annotations
 import datetime, isodate
 from decimal import Decimal
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, Type, cast, overload
+from typing import TYPE_CHECKING, Any, Type, cast, overload, Dict, Optional, Union, List, Pattern
+from decimal import Decimal
+from fractions import Fraction
 
 if TYPE_CHECKING:
     from arelle.ModelObject import ModelObject
@@ -14,6 +16,7 @@ if TYPE_CHECKING:
     from arelle.ModelFormulaObject import ModelCustomFunctionSignature
     from arelle.ModelDtsObject import ModelType
     from arelle.ModelInstanceObject import ModelInlineFact
+    from arelle.XmlValidate import XsdPattern
 
 import regex as re
 XmlUtil = None
@@ -136,7 +139,7 @@ def qnameEltPfxName(
     | ModelInlineFact
     | ModelObject,
     prefixedName: str,
-    prefixException: Exception | None = None,
+    prefixException: type[Exception] | None = None,
 ) -> QName | None:
     prefix: str | None
     namespaceURI: str | None
@@ -919,3 +922,31 @@ class InvalidValue(str):
         return str.__new__(cls, value)
 
 INVALIDixVALUE = InvalidValue("(ixTransformValueError)")
+
+TypeSValue = Union[
+    bool,
+    float,
+    int,
+    InvalidValue,
+    None,
+    str,
+]
+TypeXValue = Union[
+    datetime.datetime,
+    datetime.time,
+    Decimal,
+    Dict[str, Pattern[str]],
+    float,
+    gDay,
+    gMonth,
+    gMonthDay,
+    gYearMonth,
+    gYear,
+    Fraction,
+    List[Optional[QName]],
+    None,
+    Pattern[str],
+    str,
+    QName,
+    'XsdPattern',
+]
