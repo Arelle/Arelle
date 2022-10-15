@@ -85,9 +85,8 @@ def validate(modelDocument: ModelDocument, schemaElement: ModelObject, targetNam
             attr = elt.get(attrName)
             if attr is not None:
                 try:
-                    assert not isinstance(elt, ModelObject)
-                    qnValue = elt.schemaNameQname(attr,
-                                                  isQualifiedForm=isQualifiedForm or elt.isQualifiedForm,
+                    qnValue = elt.schemaNameQname(attr,  # type: ignore[union-attr]
+                                                  isQualifiedForm=isQualifiedForm or elt.isQualifiedForm,  # type: ignore[union-attr]
                                                   prefixException=ValueError)
                     if qnValue.namespaceURI == XbrlConst.xsd:
                         if attrType != ModelType:
