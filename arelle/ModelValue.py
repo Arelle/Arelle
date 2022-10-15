@@ -719,7 +719,7 @@ class gMonthDay:
 
 
 class gYear:
-    def __init__(self, year: int | str):
+    def __init__(self, year: int | str) -> None:
         self.year = int(year)  # may be negative
 
     def __repr__(self) -> str:
