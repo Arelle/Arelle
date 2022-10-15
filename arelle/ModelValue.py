@@ -631,7 +631,7 @@ class Time(datetime.time):
 
 
 class gYearMonth:
-    def __init__(self, year: int, month: int) -> None:
+    def __init__(self, year: int | str, month: int | str) -> None:
         self.year = int(year)  # may be negative
         self.month = int(month)
 
@@ -674,7 +674,7 @@ class gYearMonth:
 
 
 class gMonthDay:
-    def __init__(self, month: int, day: int) -> None:
+    def __init__(self, month: int | str, day: int | str) -> None:
         self.month = int(month)
         self.day = int(day)
 
@@ -719,7 +719,7 @@ class gMonthDay:
 
 
 class gYear:
-    def __init__(self, year: int):
+    def __init__(self, year: int | str):
         self.year = int(year)  # may be negative
 
     def __repr__(self) -> str:
@@ -763,7 +763,7 @@ class gYear:
 
 
 class gMonth:
-    def __init__(self, month: int):
+    def __init__(self, month: int | str):
         self.month = int(month)
 
     def __repr__(self) -> str:
@@ -807,7 +807,7 @@ class gMonth:
 
 
 class gDay:
-    def __init__(self, day: int) -> None:
+    def __init__(self, day: int | str) -> None:
         self.day = int(day)
 
     def __repr__(self) -> str:

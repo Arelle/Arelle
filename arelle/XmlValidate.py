@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import logging
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 from lxml import etree
 from re import Match, compile as re_compile
 from decimal import Decimal, InvalidOperation
@@ -541,19 +541,19 @@ def validateValue(
                             month, day, zSign, zHrMin, zHr, zMin = match.groups()
                             if int(day) > {2:29, 4:30, 6:30, 9:30, 11:30, 1:31, 3:31, 5:31, 7:31, 8:31, 10:31, 12:31}[int(month)]:
                                 raise ValueError("invalid day {0} for month {1}".format(day, month))
-                            xValue = gMonthDay(cast(int, month), cast(int, day))
+                            xValue = gMonthDay(month, day)
                         elif baseXsdType == "gYearMonth":
                             year, month, zSign, zHrMin, zHr, zMin = match.groups()
-                            xValue = gYearMonth(cast(int, year), cast(int, month))
+                            xValue = gYearMonth(year, month)
                         elif baseXsdType == "gYear":
                             year, zSign, zHrMin, zHr, zMin = match.groups()
-                            xValue = gYear(cast(int, year))
+                            xValue = gYear(year)
                         elif baseXsdType == "gMonth":
                             month, zSign, zHrMin, zHr, zMin = match.groups()
-                            xValue = gMonth(cast(int, month))
+                            xValue = gMonth(month)
                         elif baseXsdType == "gDay":
                             day, zSign, zHrMin, zHr, zMin = match.groups()
-                            xValue = gDay(cast(int, day))
+                            xValue = gDay(day)
                         elif baseXsdType == "duration":
                             xValue = isoDuration(value)
                         else:
