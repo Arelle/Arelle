@@ -18,21 +18,48 @@ jobs:
           find tests/integration_tests -name 'test_*.py' -not -name test_efm_conformance_suite.py | jq -Rsc 'split("\n") | map(select(length > 0) | capture("(?<path>.*/test_(?<name>.*)[.]py)"))' >> $GITHUB_OUTPUT
 
   run-conformance-suite:
-    name: ${{ matrix.test.name }}
+    name: ${{ matrix.test.name }} - ${{ matrix.os }}
     needs: find-tests
     permissions: read-all
-    runs-on: ubuntu-latest
-    continue-on-error: true
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        os:
+          - ubuntu-latest
         test: ${{ fromJson(needs.find-tests.outputs.matrix) }}
+        include:
+          - os: windows-latest
+            test:
+              name: xbrl_conformance_suite
+              path: tests/integration_tests/validation/XBRL/test_xbrl_conformance_suite.py
+          - os: macos-latest
+            test:
+              name: xbrl_conformance_suite
+              path: tests/integration_tests/validation/XBRL/test_xbrl_conformance_suite.py
+
     environment: integration-tests
     steps:
       - name: Download XBRL validation config
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           mkdir -p "$XDG_CONFIG_HOME/arelle/cache"
           curl -L "${{ secrets.XBRL_VALIDATION_CONFIG_URL }}" -o config.zip
           unzip -d "$XDG_CONFIG_HOME/arelle/cache" config.zip 'http/*' 'https/*'
+          rm config.zip
+      - name: Download XBRL validation config
+        if: ${{ startsWith(matrix.os, 'macos') }}
+        run: |
+          mkdir -p ~/Library/Caches/Arelle
+          curl -L "${{ secrets.XBRL_VALIDATION_CONFIG_URL }}" -o config.zip
+          unzip -d ~/Library/Caches/Arelle config.zip 'http/*' 'https/*'
+          rm config.zip
+      - name: Download XBRL validation config
+        if: ${{ startsWith(matrix.os, 'windows') }}
+        run: |
+          mkdir -p $env:LOCALAPPDATA\Arelle\cache
+          curl "${{ secrets.XBRL_VALIDATION_CONFIG_URL }}" -o config.zip
+          7z x config.zip -o"$env:LOCALAPPDATA\Arelle\cache" 'http/*' 'https/*'
           rm config.zip
       - uses: actions/checkout@v3.1.0
         with:
@@ -40,6 +67,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Checkout EdgarRenderer
+        if: ${{ matrix.test.name == 'efm_conformance_suite' }}
         uses: actions/checkout@v3.1.0
         with:
           repository: Arelle/EdgarRenderer

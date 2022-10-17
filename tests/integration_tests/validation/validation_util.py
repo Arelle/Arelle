@@ -1,7 +1,7 @@
 from __future__ import annotations
 from collections import Counter
 import os.path
-from pathlib import PurePosixPath
+from pathlib import PurePath
 
 import pytest
 
@@ -43,7 +43,7 @@ def get_test_data(args, expected_failure_ids=frozenset(), expected_empty_testcas
         else:
             raise Exception('Unhandled model document type: {}'.format(model_document.type))
         for test_case in test_cases:
-            path = PurePosixPath(test_case.uri)
+            path = PurePath(test_case.uri)
             test_case_path_tail = path.parts[-3:-1] if path.name == 'index.xml' else path.parts[-2:]
             if test_case.type not in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
                 test_cases_with_unrecognized_type[test_case_path_tail] = test_case.type
