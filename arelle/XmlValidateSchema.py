@@ -1,19 +1,27 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import time
-from arelle import ModelXbrl, XbrlConst, XmlValidate
+from __future__ import annotations
+from typing import TYPE_CHECKING, Any, cast
+from arelle import XbrlConst
+from arelle.ModelXbrl import ModelXbrl
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelAttribute, ModelConcept, ModelType
-from arelle.ModelValue import qname
-from arelle.Locale import format_string
-from lxml import etree
+from lxml.etree import _Element
+
+
+if TYPE_CHECKING:
+    from arelle.ModelDocument import ModelDocument
+    from arelle.typing import TypeGetText
+    from arelle.ModelValue import QName
+
+
+_: TypeGetText
 
 XMLSchemaURI = "http://www.w3.org/2001/XMLSchema.xsd"
 
-def validate(modelDocument, schemaElement, targetNamespace):
-    modelXbrl = modelDocument.modelXbrl
-    modelManager = modelXbrl.modelManager
+def validate(modelDocument: ModelDocument, schemaElement: ModelObject, targetNamespace: str) -> None:
+    modelXbrl = cast(ModelXbrl, modelDocument.modelXbrl)
     """
     if not hasattr(modelManager, "xmlSchemaSchema"):
         if getattr(modelManager, "modelXmlSchemaIsLoading", False):
@@ -67,13 +75,18 @@ def validate(modelDocument, schemaElement, targetNamespace):
         return # don't validate w3c schemas
 
     # check schema semantics
-    def resolvedQnames(elt, qnDefs):
+    def resolvedQnames(elt: ModelAttribute | ModelConcept | ModelObject, qnDefs: tuple[Any, ...]) -> None:
+        attrName: str
+        attrType: type
+        mdlObjects: dict[QName, ModelConcept]
+        isQualifiedForm: bool
+
         for attrName, attrType, mdlObjects, isQualifiedForm in qnDefs:
             attr = elt.get(attrName)
             if attr is not None:
                 try:
-                    qnValue = elt.schemaNameQname(attr,
-                                                  isQualifiedForm=isQualifiedForm or elt.isQualifiedForm,
+                    qnValue = elt.schemaNameQname(attr,  # type: ignore[union-attr]
+                                                  isQualifiedForm=isQualifiedForm or elt.isQualifiedForm,  # type: ignore[union-attr]
                                                   prefixException=ValueError)
                     if qnValue.namespaceURI == XbrlConst.xsd:
                         if attrType != ModelType:
@@ -108,7 +121,7 @@ def validate(modelDocument, schemaElement, targetNamespace):
                         value=attr,
                         error=err)
 
-    def checkSchemaElements(parentElement):
+    def checkSchemaElements(parentElement: ModelObject | _Element) -> None:
         for elt in parentElement.iterchildren():
             if isinstance(elt,ModelObject) and elt.namespaceURI == XbrlConst.xsd:
                 ln = elt.localName

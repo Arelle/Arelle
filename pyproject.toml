@@ -117,6 +117,7 @@ module = [
     'arelle.SystemInfo',
     'arelle.Updater',
     'arelle.UrlUtil',
+    'arelle.XmlValidateSchema',
     'arelle.ValidateXbrl',
     'arelle.XbrlConst',
     'arelle.XbrlUtil',
