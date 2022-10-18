@@ -21,6 +21,7 @@ on:
         type: string
         default: TEST
 
+
 jobs:
   test-inputs:
     runs-on: ubuntu-latest
