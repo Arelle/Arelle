@@ -1,6 +1,8 @@
 name: Build for Mac
 
 on:
+  release:
+    types: [released]
   workflow_dispatch:
     inputs:
       edgar_renderer_ref:
