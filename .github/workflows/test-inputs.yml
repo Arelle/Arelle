@@ -32,9 +32,9 @@ jobs:
           echo required_input_with_default: "${{ github.event.inputs.required_input_with_default }}"
       - name: Log inputs after parameter expansion
         run: |
-          value_input_without_default=${{ github.event.inputs.input_without_default }}" 
-          value_input_with_default=${{ github.event.inputs.input_with_default }}" 
-          value_required_input_with_default=${{ github.event.inputs.required_input_with_default }}" 
+          value_input_without_default=${{ github.event.inputs.input_without_default }}
+          value_input_with_default=${{ github.event.inputs.input_with_default }}
+          value_required_input_with_default=${{ github.event.inputs.required_input_with_default }}
           
           exp_input_without_default=${value_input_without_default:-"EXP_VALUE1"}
           exp_input_with_default=${value_input_with_default:-"EXP_VALUE2"}
