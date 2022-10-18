@@ -4,6 +4,13 @@ on:
   pull_request:
   release:
     types: [released]
+  workflow_dispatch:
+    inputs:
+      python_version:
+        default: 3.10
+        description: 'Python version to use'
+        required: true
+        type: string
 
 jobs:
   build-package:
@@ -13,12 +20,12 @@ jobs:
         uses: actions/checkout@v3.1.0
         with:
           fetch-depth: 0
-      - name: Install Python 3
+      - name: Install Python
         uses: actions/setup-python@v4.3.0
         with:
           cache: 'pip' # caching pip dependencies
           check-latest: true
-          python-version: '3.10'
+          python-version: ${{ inputs.python_version }}
       - name: Build python package
         run: |
           pip install -U setuptools wheel
