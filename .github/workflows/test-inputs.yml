@@ -23,6 +23,7 @@ on:
 
 jobs:
   test-inputs:
+    runs-on: ubuntu-latest
     steps:
       - name: Log inputs
         run: |
