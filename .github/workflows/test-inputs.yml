@@ -1,0 +1,44 @@
+name: Test inputs
+
+on:
+  pull_request:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      input_without_default:
+        description: 'This does not have a default value.'
+        required: false
+        type: string
+      input_with_default:
+        description: 'This has a default value of "TEST"'
+        required: false
+        type: string
+        default: TEST
+      required_input_with_default:
+        description: 'This is required and has a default value of "TEST"'
+        required: true
+        type: string
+        default: TEST
+
+jobs:
+  test-inputs:
+    steps:
+      - name: Log inputs
+        run: |
+          echo input_without_default: "${{ github.event.inputs.input_without_default }}" 
+          echo input_with_default: "${{ github.event.inputs.input_with_default }}" 
+          echo required_input_with_default: "${{ github.event.inputs.required_input_with_default }}"
+      - name: Log inputs after parameter expansion
+        run: |
+          value_input_without_default=${{ github.event.inputs.input_without_default }}" 
+          value_input_with_default=${{ github.event.inputs.input_with_default }}" 
+          value_required_input_with_default=${{ github.event.inputs.required_input_with_default }}" 
+          
+          exp_input_without_default=${value_input_without_default:-"EXP_VALUE1"}
+          exp_input_with_default=${value_input_with_default:-"EXP_VALUE2"}
+          exp_required_input_with_default=${value_required_input_with_default:-"EXP_VALUE3"}
+          
+          echo exp_input_without_default: "$exp_input_without_default"
+          echo exp_input_with_default: "$exp_input_with_default"
+          echo exp_required_input_with_default: "$exp_required_input_with_default"
