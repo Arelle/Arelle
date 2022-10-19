@@ -30,10 +30,6 @@ jobs:
   build-windows:
     environment: release
     runs-on: windows-latest
-    strategy:
-      matrix:
-        python-version: ['${{ inputs.python_version }}']
-
     permissions:
       contents: write
 
@@ -80,12 +76,12 @@ jobs:
         npm run prod
     - shell: cmd
       run: move ixbrl-viewer\iXBRLViewerPlugin arelle\plugin\iXBRLViewerPlugin && rmdir /s /q ixbrl-viewer
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python ${{ inputs.python_version }}
       uses: actions/setup-python@v4.3.0
       with:
         cache: 'pip' # caching pip dependencies
         check-latest: true
-        python-version: ${{ matrix.python-version }}
+        python-version: ${{ inputs.python_version }}
     - name: Install NSIS
       run: choco install nsis
     - name: Install requirements
@@ -103,10 +99,10 @@ jobs:
     - name: Build exe
       run: python distro.py build_exe
     - name: Copy Tktable2.11
-      run: xcopy libs\win64\Tktable2.11 build\exe.win-amd64-${{ matrix.python-version }}\lib\tcltk\tk8.6 /y
+      run: xcopy libs\win64\Tktable2.11 build\exe.win-amd64-${{ inputs.python_version }}\lib\tcltk\tk8.6 /y
     - name: Delete .git
       shell: cmd
-      run: if exist "build\exe.win-amd64-${{ matrix.python-version }}\.git" rmdir /s /q build\exe.win-amd64-${{ matrix.python-version }}\.git
+      run: if exist "build\exe.win-amd64-${{ inputs.python_version }}\.git" rmdir /s /q build\exe.win-amd64-${{ inputs.python_version }}\.git
     - name: Make installer
       run: makensis installWin64.nsi
     - name: Zip distribution
