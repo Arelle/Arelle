@@ -33,7 +33,7 @@ dependencies = [
     'lxml==4.*',
     'numpy==1.*',
     'openpyxl==3.*',
-    'regex==2022.*',
+    'regex',
 ]
 
 [project.optional-dependencies]
