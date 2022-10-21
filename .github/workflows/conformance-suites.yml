@@ -3,7 +3,7 @@ on: pull_request_target
 
 jobs:
   find-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       matrix: ${{ steps.build-test-matrix.outputs.matrix }}
     steps:
@@ -26,14 +26,14 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-latest
+          - ubuntu-22.04
         test: ${{ fromJson(needs.find-tests.outputs.matrix) }}
         include:
-          - os: windows-latest
+          - os: windows-2022
             test:
               name: xbrl_conformance_suite
               path: tests/integration_tests/validation/XBRL/test_xbrl_conformance_suite.py
-          - os: macos-latest
+          - os: macos-12
             test:
               name: xbrl_conformance_suite
               path: tests/integration_tests/validation/XBRL/test_xbrl_conformance_suite.py
