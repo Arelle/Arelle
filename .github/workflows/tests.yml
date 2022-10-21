@@ -11,8 +11,8 @@ jobs:
       matrix:
         os:
           - macos-11
-          - ubuntu-latest
-          - windows-latest
+          - ubuntu-22.04
+          - windows-2022
         python-version:
           - '3.7'
           - '3.8'

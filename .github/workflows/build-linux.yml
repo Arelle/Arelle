@@ -39,7 +39,7 @@ on:
 jobs:
   build-linux:
     environment: release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         distro: [
