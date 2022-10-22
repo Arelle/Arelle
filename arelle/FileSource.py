@@ -607,7 +607,7 @@ class FileSource:
             if isinstance(archiveFileSource.basefile, str) and filepath.startswith(archiveFileSource.basefile):
                 archiveFileName = filepath[len(archiveFileSource.basefile) + 1:]
             else: # filepath.startswith(self.baseurl)
-                assert isinstance(archiveFileSource.baseurl, list)
+                assert isinstance(archiveFileSource.baseurl, str)
                 archiveFileName = filepath[len(archiveFileSource.baseurl) + 1:]
             if (archiveFileSource.isZip or archiveFileSource.isTarGz or
                 archiveFileSource.isEis or archiveFileSource.isXfd or
