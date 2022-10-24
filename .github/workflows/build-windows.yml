@@ -108,7 +108,7 @@ jobs:
     - name: Zip distribution
       run: 7z a -tzip ..\..\dist\arelle-win-x64.zip *
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3.1.0
+      uses: actions/upload-artifact@v3.1.1
       with:
         name: windows distribution
         path: dist

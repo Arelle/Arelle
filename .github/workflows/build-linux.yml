@@ -120,7 +120,7 @@ jobs:
           docker cp arelle:/build/dist/ dist/
           docker rm -v arelle
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3.1.0
+        uses: actions/upload-artifact@v3.1.1
         with:
           name: ${{ matrix.distro }} distribution
           path: dist/*.tgz
