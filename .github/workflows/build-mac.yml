@@ -208,7 +208,7 @@ jobs:
           sync
           hdiutil detach "${DEVICE}"
           hdiutil convert dist_dmg/arelle_tmp.dmg -format UDZO -imagekey zlib-level=9 -o dist_dmg/arelle-${{ matrix.os }}.dmg
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v3.1.1
         with:
           name: macos distribution
           path: dist_dmg/arelle-${{ matrix.os }}.dmg
