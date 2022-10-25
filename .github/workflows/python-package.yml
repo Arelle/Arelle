@@ -54,3 +54,8 @@ jobs:
           TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: twine upload */*
+      - name: Upload release artifact
+        uses: softprops/action-gh-release@v0.1.14
+        with:
+          fail_on_unmatched_files: true
+          files: '*/*'
