@@ -57,6 +57,5 @@ jobs:
       - name: Upload release artifact
         uses: softprops/action-gh-release@v0.1.14
         with:
-          files: |
-            *.tar.gz
-            *.whl
+          fail_on_unmatched_files: true
+          files: '*/*'
