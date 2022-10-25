@@ -203,7 +203,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: lis
         #        _("Line items that do not require any dimensional information to tag data MUST be linked to \"Line items not dimensionally qualified\" hypercube in http://www.esma.europa.eu/xbrl/esef/role/esef_role-999999 declared in esef_cor.xsd: concept %(concepts)s."),
         #        modelObject=extLineItemsWithoutHypercube, concepts=", ".join(str(c.qname) for c in extLineItemsWithoutHypercube))
         if extLineItemsNotAnchored:
-            val.modelXbrl.error("ESEF.3.3.1.extensionConceptsNotAnchored",
+            val.modelXbrl.warning("ESEF.3.3.1.extensionConceptsNotAnchored",
                 _("Extension concepts SHALL be anchored to concepts in the ESEF taxonomy:  %(concepts)s."),
                 modelObject=extLineItemsNotAnchored, concepts=", ".join(str(c.qname) for c in extLineItemsNotAnchored))
         if extLineItemsWronglyAnchored:
