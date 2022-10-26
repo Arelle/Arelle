@@ -39,7 +39,7 @@ class ValidateCalcsMode:
         TRUNCATION: "Calculations 1.1 truncation mode"
         }
     
-
+oimErrorCodePattern = re_compile("xbrl[cjx]e:|oimc?e:")
 numberPattern = re_compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
 ZERO = decimal.Decimal(0)
 ONE = decimal.Decimal(1)
@@ -94,11 +94,22 @@ class ValidateXbrlCalcs:
         calc11t = self.calc11t # truncate
         sumConceptItemRels = defaultdict(dict) # for calc11 dup sum-item detection
           
-        if xbrl21 and (not self.modelXbrl.contexts and not self.modelXbrl.facts):
-            return # skip if no contexts or facts (note that in calc11 mode the dup relationships test is nonetheless required)
-
-        if xbrl21 and not self.inferDecimals: # infering precision is now contrary to XBRL REC section 5.2.5.2
-            modelXbrl.info("xbrl.5.2.5.2:inferringPrecision","Validating calculations inferring precision.")
+        if xbrl21:
+            if not self.modelXbrl.contexts and not self.modelXbrl.facts:
+                return # skip if no contexts or facts (note that in calc11 mode the dup relationships test is nonetheless required)
+            if not self.inferDecimals: # infering precision is now contrary to XBRL REC section 5.2.5.2
+                modelXbrl.info("xbrl.5.2.5.2:inferringPrecision","Validating calculations inferring precision.")
+        if calc11:
+            oimErrs = set(e for e in modelXbrl.errors if oimErrorCodePattern.match(e))
+            if len(oimErrs) == 1 and "xbrlxe:unsupportedTuple" in oimErrs:
+                # ignore this error and change to warning
+                for i in range(len(modelXbrl.errors) - 1, -1, -1):
+                    if modelXbrl.errors[i] == "xbrlxe:unsupportedTuple":
+                        del modelXbrl.errors[i]
+                modelXbrl.warning("calc11e:tuplesInReportWarning","Validating of calculations ignores tuples.")
+            elif len(oimErrs) > 0:
+                modelXbrl.warning("calc11e:oimIncompatibleReportWarning","Validating of calculations is skipped due to OIM errors.")
+                return;
             
         # identify equal contexts
         modelXbrl.profileActivity()
@@ -361,7 +372,7 @@ class ValidateXbrlCalcs:
                         self.duplicateKeyFacts[calcKey] = f
                     if self.calc11:
                         self.calc11KeyFacts[calcKey].append(f)
-                elif concept.isTuple and not f.isNil:
+                elif concept.isTuple and not f.isNil and not self.calc11:
                     self.bindFacts(f.modelTupleFacts, ancestors + [f])
 
                 # index facts by their essence alias relationship set
