@@ -100,12 +100,14 @@ class ValidateXbrlCalcs:
             if not self.inferDecimals: # infering precision is now contrary to XBRL REC section 5.2.5.2
                 modelXbrl.info("xbrl.5.2.5.2:inferringPrecision","Validating calculations inferring precision.")
         if calc11:
-            oimErrs = set(e for e in modelXbrl.errors if oimErrorCodePattern.match(e))
+            oimErrs = set()
+            for i in range(len(modelXbrl.errors) - 1, -1, -1):
+                e = modelXbrl.errors[i]
+                if oimErrorCodePattern.match(e):                    
+                    del modelXbrl.errors[i] # remove the oim errors from modelXbrl.errors
+                oimErrs.add(e)
             if len(oimErrs) == 1 and "xbrlxe:unsupportedTuple" in oimErrs:
                 # ignore this error and change to warning
-                for i in range(len(modelXbrl.errors) - 1, -1, -1):
-                    if modelXbrl.errors[i] == "xbrlxe:unsupportedTuple":
-                        del modelXbrl.errors[i]
                 modelXbrl.warning("calc11e:tuplesInReportWarning","Validating of calculations ignores tuples.")
             elif len(oimErrs) > 0:
                 modelXbrl.warning("calc11e:oimIncompatibleReportWarning","Validating of calculations is skipped due to OIM errors.")
