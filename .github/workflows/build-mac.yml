@@ -80,13 +80,10 @@ jobs:
           rm -rf tmp
       - name: Capture version before localization
         run: echo "SETUPTOOLS_SCM_PRETEND_VERSION=$(python -W ignore distro.py --version)" >> $GITHUB_ENV
-      - name: Rebuild messages.pot internationalization file
-        run: python pygettext.py -v -o arelle/locale/messages.pot arelle/*.pyw arelle/*.py
-      - name: Regenerate messages catalog (doc/messagesCatalog.xml)
-        run: python generateMessagesCatalog.py
-      - run: cp -p arelleGUI.pyw arelleGUI.py
       - name: Build app
-        run: python distro.py bdist_mac
+        run: |
+          chmod 755 buildMacDist.sh
+          ./buildMacDist.sh
       - name: Remove git directories
         run: find build/Arelle.app/Contents -name .git -exec rm -fR {} \;
       - name: Install certificate and sign code
