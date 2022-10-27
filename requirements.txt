@@ -11,8 +11,10 @@ Cheroot==8.6.0
 pycountry==22.3.5
 # plugins
 # EdgarRenderer plugin
-NumPy==1.21.6
-Matplotlib==3.5.3
+NumPy==1.21.6; python_version < "3.8"
+NumPy==1.23.4; python_version >= "3.8"
+Matplotlib==3.5.3; python_version < "3.8"
+Matplotlib==3.6.1; python_version >= "3.8"
 holidays==0.16
 Tornado==6.2
 # security plugin
