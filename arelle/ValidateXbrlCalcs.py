@@ -67,8 +67,8 @@ class ValidateXbrlCalcs:
         self.modelXbrl = modelXbrl
         self.inferDecimals = validateCalcs == ValidateCalcsMode.XBRL_v2_1
         self.deDuplicate = validateCalcs == ValidateCalcsMode.XBRL_v2_1_DEDUPLICATE
-        self.xbrl21 = ValidateCalcsMode.XBRL_v2_1_INFER_PRECISION <= validateCalcs <= ValidateCalcsMode.XBRL_v2_1_DEDUPLICATE
-        self.calc11 = ValidateCalcsMode.ROUND_TO_NEAREST <= validateCalcs <= ValidateCalcsMode.TRUNCATION
+        self.xbrl21 = validateCalcs in (ValidateCalcsMode.XBRL_v2_1_INFER_PRECISION, ValidateCalcsMode.XBRL_v2_1, ValidateCalcsMode.XBRL_v2_1_DEDUPLICATE)
+        self.calc11 = validateCalcs in (ValidateCalcsMode.ROUND_TO_NEAREST, ValidateCalcsMode.TRUNCATION)
         self.calc11t = validateCalcs == ValidateCalcsMode.TRUNCATION
         self.calc11suffix = "Truncation" if self.calc11t else "Rounding"
         self.mapContext = {}
@@ -99,7 +99,7 @@ class ValidateXbrlCalcs:
                 return # skip if no contexts or facts (note that in calc11 mode the dup relationships test is nonetheless required)
             if not self.inferDecimals: # infering precision is now contrary to XBRL REC section 5.2.5.2
                 modelXbrl.info("xbrl.5.2.5.2:inferringPrecision","Validating calculations inferring precision.")
-        if calc11:
+        elif calc11:
             oimErrs = set()
             for i in range(len(modelXbrl.errors) - 1, -1, -1):
                 e = modelXbrl.errors[i]
