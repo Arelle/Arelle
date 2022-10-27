@@ -12,7 +12,7 @@ from lxml import etree
 from urllib.parse import urljoin
 openFileSource = None
 from arelle import Locale, XmlUtil
-from arelle.UrlUtil import isAbsolute
+from arelle.UrlUtil import isAbsolute, isHttpUrl
 from arelle.XmlValidate import lxmlResolvingParser
 ArchiveFileIOError = None
 try:
@@ -195,7 +195,8 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                         if not isAbsolute(replaceValue):
                             if not os.path.isabs(replaceValue):
                                 replaceValue = fileBase + replaceValue
-                            replaceValue = replaceValue.replace("/", os.sep)
+                            if not isHttpUrl(replaceValue):
+                                replaceValue = replaceValue.replace("/", os.sep)
                     _normedValue = cntlr.webCache.normalizeUrl(replaceValue)
                     if replaceValue.endswith(os.sep) and not _normedValue.endswith(os.sep):
                         _normedValue += os.sep
