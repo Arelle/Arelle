@@ -9,22 +9,22 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Build and publish python package
-        uses: benc-uk/workflow-dispatch@v1.1.0
+        uses: benc-uk/workflow-dispatch@v1.2.1
         with:
           workflow: Build and publish python package
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build for Linux
-        uses: benc-uk/workflow-dispatch@v1.1.0
+        uses: benc-uk/workflow-dispatch@v1.2.1
         with:
           workflow: Build for Linux
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build for Mac
-        uses: benc-uk/workflow-dispatch@v1.1.0
+        uses: benc-uk/workflow-dispatch@v1.2.1
         with:
           workflow: Build for Mac
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build for Windows
-        uses: benc-uk/workflow-dispatch@v1.1.0
+        uses: benc-uk/workflow-dispatch@v1.2.1
         with:
           workflow: Build for Windows
           token: ${{ secrets.GITHUB_TOKEN }}
