@@ -19,10 +19,7 @@ from arelle.XPathContext import FunctionArgType
 #local copy of text2num.py from https://github.com/ghewgill/text2num
 from .text2num import text2num, NumberException
 
-try:
-    from regex import compile as re_compile
-except ImportError:
-    from re import compile as re_compile
+from regex import compile as re_compile
 
 # these five transformations take as input a number and output either an exception, or a value in xs:duration type
 # they handle zero values and also negative values

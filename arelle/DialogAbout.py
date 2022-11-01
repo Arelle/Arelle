@@ -6,10 +6,7 @@ try:
     from tkinter.ttk import Label, Button, Frame
 except ImportError:
     from ttk import Label, Button, Frame
-try:
-    from regex import match as re_match
-except ImportError:
-    from re import match as re_match
+from regex import match as re_match
 '''
 caller checks accepted, if True, caller retrieves url
 '''

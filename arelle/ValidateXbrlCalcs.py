@@ -6,10 +6,7 @@ from collections import defaultdict
 from math import (log10, isnan, isinf, fabs, floor, pow)
 import decimal
 from typing import TYPE_CHECKING
-try:
-    from regex import compile as re_compile
-except ImportError:
-    from re import compile as re_compile
+from regex import compile as re_compile
 import hashlib
 from arelle import Locale, XbrlConst, XbrlUtil
 from arelle.ModelObject import ObjectPropertyViewWrapper

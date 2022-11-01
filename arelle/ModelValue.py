@@ -5,8 +5,7 @@ from __future__ import annotations
 import datetime, isodate
 from decimal import Decimal
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, Type, cast, overload, Dict, Optional, Union, List, Pattern
-from decimal import Decimal
+from typing import TYPE_CHECKING, Any, cast, overload, Optional, Union
 from fractions import Fraction
 
 if TYPE_CHECKING:
@@ -258,7 +257,7 @@ def dateTime(
     addOneDay: bool = False,
     # TODO: type is a reserved name in Python, we should rename this
     type: int | None = None,
-    castException: Type[Exception] | None = None,
+    castException: type[Exception] | None = None,
 ) -> DateTime | None:
     from arelle.ModelObject import ModelObject
 
@@ -580,7 +579,7 @@ class YearMonthDayTimeDuration():
             return "PT0S"
         return "P" + ''.join(per)
 
-def time(value: str, castException: Type[Exception] | None = None) -> Time | None:
+def time(value: str, castException: type[Exception] | None = None) -> Time | None:
     from arelle.ModelObject import ModelObject
 
     if value == "MinTime":
@@ -973,30 +972,31 @@ class InvalidValue(str):
 
 INVALIDixVALUE = InvalidValue("(ixTransformValueError)")
 
-TypeSValue = Union[
-    bool,
-    float,
-    int,
-    InvalidValue,
-    None,
-    str,
-]
-TypeXValue = Union[
-    datetime.datetime,
-    datetime.time,
-    Decimal,
-    Dict[str, Pattern[str]],
-    float,
-    gDay,
-    gMonth,
-    gMonthDay,
-    gYearMonth,
-    gYear,
-    Fraction,
-    List[Optional[QName]],
-    None,
-    Pattern[str],
-    str,
-    QName,
-    'XsdPattern',
-]
+if TYPE_CHECKING:
+    TypeSValue = Union[
+        bool,
+        float,
+        int,
+        InvalidValue,
+        None,
+        str,
+    ]
+    TypeXValue = Union[
+        datetime.datetime,
+        datetime.time,
+        Decimal,
+        dict[str, re.Pattern[str]],
+        float,
+        gDay,
+        gMonth,
+        gMonthDay,
+        gYearMonth,
+        gYear,
+        Fraction,
+        list[Optional[QName]],
+        None,
+        re.Pattern[str],
+        str,
+        QName,
+        'XsdPattern',
+    ]
