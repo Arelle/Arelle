@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -xeu
+
 # Rebuild messages.pot internationalization file
 python pygettext.py -v -o arelle/locale/messages.pot arelle/*.pyw arelle/*.py
 # Regenerate messages catalog (doc/messagesCatalog.xml)

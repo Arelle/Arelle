@@ -81,9 +81,7 @@ jobs:
       - name: Capture version before localization
         run: echo "SETUPTOOLS_SCM_PRETEND_VERSION=$(python -W ignore distro.py --version)" >> $GITHUB_ENV
       - name: Build app
-        run: |
-          chmod 755 buildMacDist.sh
-          ./buildMacDist.sh
+        run: ./scripts/buildMacDist.sh
       - name: Remove git directories
         run: find build/Arelle.app/Contents -name .git -exec rm -fR {} \;
       - name: Install certificate and sign code

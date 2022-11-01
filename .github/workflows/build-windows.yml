@@ -91,7 +91,7 @@ jobs:
     - name: Capture version before localization
       run: echo ("SETUPTOOLS_SCM_PRETEND_VERSION=" + (python -W ignore distro.py --version)) >> $env:GITHUB_ENV
     - name: Build exe
-      run: ./buildWinDist.bat
+      run: ./scripts/buildWinDist.bat
     - name: Copy Tktable2.11
       run: xcopy libs\win64\Tktable2.11 build\exe.win-amd64-${{ inputs.python_version }}\lib\tcltk\tk8.6 /y
     - name: Delete .git
