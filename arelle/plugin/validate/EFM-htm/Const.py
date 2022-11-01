@@ -1,10 +1,7 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-try:
-    from regex import compile as re_compile, match as re_match, DOTALL as re_DOTALL
-except ImportError:
-    from re import compile as re_compile, match as re_match, DOTALL as re_DOTALL
+from regex import compile as re_compile, match as re_match, DOTALL as re_DOTALL
 
 edgarAdditionalTags = {
     "listing",
