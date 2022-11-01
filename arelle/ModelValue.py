@@ -972,30 +972,31 @@ class InvalidValue(str):
 
 INVALIDixVALUE = InvalidValue("(ixTransformValueError)")
 
-TypeSValue = Union[
-    bool,
-    float,
-    int,
-    InvalidValue,
-    None,
-    str,
-]
-TypeXValue = Union[
-    datetime.datetime,
-    datetime.time,
-    Decimal,
-    dict[str, re.Pattern[str]],
-    float,
-    gDay,
-    gMonth,
-    gMonthDay,
-    gYearMonth,
-    gYear,
-    Fraction,
-    list[Optional[QName]],
-    None,
-    re.Pattern[str],
-    str,
-    QName,
-    'XsdPattern',
-]
+if TYPE_CHECKING:
+    TypeSValue = Union[
+        bool,
+        float,
+        int,
+        InvalidValue,
+        None,
+        str,
+    ]
+    TypeXValue = Union[
+        datetime.datetime,
+        datetime.time,
+        Decimal,
+        dict[str, re.Pattern[str]],
+        float,
+        gDay,
+        gMonth,
+        gMonthDay,
+        gYearMonth,
+        gYear,
+        Fraction,
+        list[Optional[QName]],
+        None,
+        re.Pattern[str],
+        str,
+        QName,
+        'XsdPattern',
+    ]
