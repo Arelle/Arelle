@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 from lxml import etree
-from re import Match, compile as re_compile
+from regex import Match, compile as re_compile
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
 from arelle import XbrlConst, XmlUtil
