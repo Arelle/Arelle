@@ -78,8 +78,6 @@ jobs:
           cd ../..
           mv tmp/ixbrl-viewer/iXBRLViewerPlugin arelle/plugin/
           rm -rf tmp
-      - name: Capture version before localization
-        run: echo "SETUPTOOLS_SCM_PRETEND_VERSION=$(python -W ignore distro.py --version)" >> $GITHUB_ENV
       - name: Build app
         run: ./scripts/buildMacDist.sh
       - name: Remove git directories

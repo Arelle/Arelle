@@ -1,3 +1,9 @@
+rem setuptools_scm detects the current version based on the distance from latest
+rem git tag and if there are uncommitted changes. Capture version prior to
+rem localization build scripts which will create uncommitted changes.
+python -W ignore distro.py --version > versionTmpFile
+set /p SETUPTOOLS_SCM_PRETEND_VERSION= < versionTmpFile
+del versionTmpFile
 rem Make directories
 mkdir build,dist
 rem Rebuild messages.pot internationalization file

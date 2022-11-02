@@ -88,8 +88,6 @@ jobs:
       run: |
         pip install wheel
         pip install -r requirements-build.txt
-    - name: Capture version before localization
-      run: echo ("SETUPTOOLS_SCM_PRETEND_VERSION=" + (python -W ignore distro.py --version)) >> $env:GITHUB_ENV
     - name: Build exe
       run: ./scripts/buildWinDist.bat
     - name: Copy Tktable2.11
