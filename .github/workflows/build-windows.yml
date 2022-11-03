@@ -88,16 +88,8 @@ jobs:
       run: |
         pip install wheel
         pip install -r requirements-build.txt
-    - name: Capture version before localization
-      run: echo ("SETUPTOOLS_SCM_PRETEND_VERSION=" + (python -W ignore distro.py --version)) >> $env:GITHUB_ENV
-    - name: Make directories
-      run: mkdir build,dist
-    - name: Rebuild messages.pot internationalization file
-      run: python pygettext.py -v -o arelle\locale\messages.pot arelle\*.pyw arelle\*.py
-    - name: Regenerate messages catalog (doc/messagesCatalog.xml)
-      run: python generateMessagesCatalog.py
     - name: Build exe
-      run: python distro.py build_exe
+      run: ./scripts/buildWinDist.bat
     - name: Copy Tktable2.11
       run: xcopy libs\win64\Tktable2.11 build\exe.win-amd64-${{ inputs.python_version }}\lib\tcltk\tk8.6 /y
     - name: Delete .git

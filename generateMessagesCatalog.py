@@ -20,6 +20,8 @@ if __name__ == "__main__":
                          arelleSrcPath + os.sep + "plugin" + os.sep + "EdgarRenderer"
                          # arelleSrcPath + os.sep + "plugin" + os.sep + "validate" + os.sep + "GL"
                          ):
+        if not os.path.exists(arelleSrcDir):
+            continue
         for moduleFilename in os.listdir(arelleSrcDir):
             if moduleFilename.endswith(".py"):
                 numArelleSrcFiles += 1
