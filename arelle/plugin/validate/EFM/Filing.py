@@ -1289,6 +1289,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             (fr is None and f is not None)):
                             sevMessage(sev, subType=submissionType, modelObject=sevFacts(sev), tag=name, otherTag=referenceTag, value=referenceValue,
                                        contextID=f.contextID if f is not None else fr.contextID if fr is not None else "N/A")
+                elif validation in ("rt",):
+                    for name in names:
+                        f = sevFact(sev, name)
+                        if f is not None and f.xValue == value:
+                            fr = sevFact(sev, referenceTag, f) # dependent fact is of context of f or for "c" inherited context (less disaggregatedd)
+                            if fr is None:
+                                sevMessage(sev, subType=submissionType, modelObject=sevFacts(sev), tag=name, otherTag=referenceTag, value=value, contextID=f.contextID )
                 elif validation in ("n2e",):
                     for name in names:
                         f = sevFact(sev, name)

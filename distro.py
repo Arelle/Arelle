@@ -44,21 +44,26 @@ includeLibs = [
     "PIL",
     "pycountry",
     "pymysql",
-    "rdflib.extras",
-    "rdflib.plugins.memory",
-    "rdflib.plugins.parsers",
-    "rdflib.plugins.serializers.rdfxml",
-    "rdflib.plugins.serializers.turtle",
-    "rdflib.plugins.serializers.xmlwriter",
-    "rdflib.plugins.serializers",
-    "rdflib.plugins.sparql",
-    "rdflib.plugins.stores",
-    "rdflib.plugins",
-    "rdflib.tools",
-    "rdflib",
+    # for now won't cx_freeze right on red hat
+    #"rdflib.extras",
+    #"rdflib.plugins.memory",
+    #"rdflib.plugins.parsers",
+    #"rdflib.plugins.serializers.rdfxml",
+    #"rdflib.plugins.serializers.turtle",
+    #"rdflib.plugins.serializers.xmlwriter",
+    #"rdflib.plugins.serializers",
+    #"rdflib.plugins.sparql",
+    #"rdflib.plugins.stores",
+    #"rdflib.plugins",
+    #"rdflib.tools",
+    #"rdflib",
     "regex",
     "sqlite3",
     "zlib",
+    # for plugin/security modules only
+    'Crypto',  # install pycrypto not another crypto module
+    'Crypto.Cipher', 
+    'Crypto.Cipher.AES'
 ]
 options = {
     "build_exe": {

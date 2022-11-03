@@ -87,6 +87,8 @@
         "N-6": ["N-6", "N-6/A", "485POS§N-6", "485APOS§N-6", "485BPOS§N-6", "485BXT§N-6", "497§N-6"],
         "N-346": ["@N-3", "@N-4", "@N-6"],
 		"POS": ["POS AM", "POS EX"],
+		"PvP": ["PRE 14A", "PREM14A", "PREC14A", "PRER14A", "PRE 14C", "PREM14C", "PREC14C", "PRER14C", 
+				"DEF 14A", "DEFM14A", "DEFC14A", "DEFR14A", "DEFA14A", "DEF 14C", "DEFM14C", "DEFC14C", "DEFR14C", "DEFA14C"],
 		"RR": ["485APOS", "485BPOS", "485BXT", "497", "N-1A", "N-1A/A"],
 		"SP 15D2": ["SP 15D2", "SP 15D2/A"],
 		"S-n": ["S-1", "S-1/A", "S-3", "S-3/A", "S-4", "S-4/A", "S-11", "S-11/A"],
@@ -218,6 +220,14 @@
 	{"sub-types": ["POSASR"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["F-3", "POSASR", "S-3"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["POS462B"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-2"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["POS462C"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-2"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["PRE 14A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["PRE 14A"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["PREM14A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["PREM14A"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["PREC14A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["PREC14A"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["PRER14A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["PRER14A"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["PRE 14C"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["PRE 14C"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["PREM14C"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["PREM14C"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["PREC14C"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["PREC14C"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["PRER14C"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["PRER14C"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["S-1"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["S-1"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["S-1/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["S-1/A"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["S-11"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["S-11"], "source": "both", "dei/cover": "dei"},
@@ -424,7 +434,7 @@
     {
         "sub-types": ["@all"],
         "xbrl-names": [],
-        "elo-name": "entityRegistration.fyEnd",
+        "elo-name": "entityRegistration.fyEnd",	
         "efm": "6.5.21",
         "validation": "o",
         "source": "both",
@@ -1233,6 +1243,59 @@
         "efm": "6.5.49",
         "validation": "n",
         "value": false,
+        "source": "inline",
+        "dei/cover": "cover"
+    },
+    {
+        "sub-types": ["@10-K", "@10-KT", "@20-F", "@40-F"],
+        "xbrl-names": "DocumentFinStmtErrorCorrectionFlag",
+        "efm": "6.5.49",
+        "validation": "y",
+        "value": true,
+        "source": "inline",
+        "dei/cover": "cover"
+    },
+    {
+        "sub-types": ["@10-K", "@10-KT", "@20-F", "@40-F"],
+        "xbrl-names": "DocumentFinStmtErrorCorrectionFlag",
+        "value": true,
+        "efm": "6.5.49",
+        "validation": "y",
+        "value": true,
+        "source": "inline",
+        "dei/cover": "cover"
+    },
+    {
+        "sub-types": ["@10-K", "@10-KT", "@20-F", "@40-F"],
+        "xbrl-names": "DocumentFinStmtErrorCorrectionFlag",
+        "value": true,
+        "efm": "6.5.49",
+        "validation": "rt",
+        "value": true,
+        "references": "DocumentFinStmtRestatementRecoveryAnalysisFlag",
+        "source": "inline",
+        "dei/cover": "cover"
+    },
+    {
+        "sub-types": ["@10-K", "@10-KT", "@20-F", "@40-F"],
+        "xbrl-names": "DocumentFinStmtErrorCorrectionFlag",
+        "value": true,
+        "efm": "6.5.49",
+        "validation": "rt",
+        "value": true,
+        "references": "DocumentFinStmtRestatementRecoveryAnalysisFlag",
+        "source": "inline",
+        "dei/cover": "cover"
+    },
+    {
+        "sub-types": ["@40-F"],
+        "xbrl-names": [
+        	"AnnualInformationForm",
+        	"AuditedAnnualFinancialStatements"
+        ],
+        "value": true,
+        "efm": "6.5.49",
+        "validation": "r",
         "source": "inline",
         "dei/cover": "cover"
     },
@@ -2517,6 +2580,10 @@
 			"severity": "warning",
 			"validation": "When this fact is non-empty, referenced fact must have reference-value (filerCategory accelerated filer codes)."
 		},
+		"rt": {
+			"message": "dq-{efmSection}-{tag}-Value-{otherTag}-Dependency",
+			"severity": "warning"
+		},
 		"sb": {
 			"message": "dq-{efmSection}-{tag}-{otherTag}-Dependent-Value",
 			"severity": "warning",
@@ -2622,6 +2689,7 @@
 		"dq-{efmSection}-{tags}-Both": "In submission type {subType}, both or neither of {tags} {severityVerb} have a value.",
         "dq-{efmSection}-{tag}-{otherTag}-Dependency": "In submission type {subType}, {tag} {severityVerb} have a value if and only if {otherTag} has a value in context {contextID}.",
         "dq-{efmSection}-{tag}-{otherTag}-Value-Dependency": "In submission type {subType}, {tag} {severityVerb} have the value \"{value}\"  if and only if {otherTag} has the value \"{value}\"  in context {contextID}.",
+        "dq-{efmSection}-{tag}-Value-{otherTag}-Dependency": "In submission type {subType}, when {tag} has the value \"{value}\" {otherTag} {severityVerb} have a value in context {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTags}-Dependency": "In submission type {subType}, {tag} {severityVerb} have a value if one of {otherTags} has a value in context {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTag}-Dependent-Value": "In submission type {subType}, {tag} {severityVerb} be provided if and only if {otherTag} has value \"{value}\" in context {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTag}-Inclusive": "In submission type {subType}, either {tag} or {otherTag} should have a value, or both.",
