@@ -2236,7 +2236,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     if isEFM:
         t = set(conflictClassFromNamespace(d.targetNamespace) for d in modelXbrl.urlDocs.values())
         t &= compatibleTaxonomies["checked-taxonomies"] # only consider checked taxonomy classes
-        tCompatTxKeys = t
         conflictClass = None
         for ti, ts in compatibleTaxonomies["compatible-classes"].items(): # OrderedDict
             if ti in t:
