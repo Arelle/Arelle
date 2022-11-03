@@ -6,8 +6,8 @@ from numbers import Number
 
 from arelle import PythonUtil # define 2.x or 3.x string types (only needed when running as unit test from __main__
 from arelle.PluginManager import pluginClassMethods
-from arelle.pyparsing.pyparsing_py3 import (
-    Word, Keyword, alphas, ParseException, ParseSyntaxException,Literal, CaselessLiteral,Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,ParserElement, quotedString,
+from pyparsing import (
+    Word, Keyword, alphas, ParseException, ParseSyntaxException,Literal, CaselessLiteral,Combine, Optional, nums, Forward, Group, ZeroOrMore, StringEnd, alphanums,ParserElement, quotedString,
     delimitedList, Suppress, Regex
 )
 from arelle.Locale import format_string
