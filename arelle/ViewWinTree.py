@@ -21,9 +21,18 @@ class ViewTree:
         hScrollbar = Scrollbar(self.viewFrame, orient=HORIZONTAL)
         self.treeView = Treeview(self.viewFrame, xscrollcommand=hScrollbar.set, yscrollcommand=vScrollbar.set)
         self.treeView.grid(row=0, column=0, sticky=(N, S, E, W))
-        self.treeView.tag_configure("ELR", background="#E0F0FF")
-        self.treeView.tag_configure("even", background="#F0F0F0")
-        self.treeView.tag_configure("odd", background="#FFFFFF")
+        try:
+            _isDarkTheme = bool(self.viewFrame.tk.call("tk::unsupported::MacWindowStyle", "isdark", "."))
+        except TclError:
+            _isDarkTheme = False
+        if _isDarkTheme:
+            self.treeView.tag_configure("ELR", background="#2D3033")
+            self.treeView.tag_configure("even", background="#303030")
+            self.treeView.tag_configure("odd", background="#212121")
+        else:
+            self.treeView.tag_configure("ELR", background="#E0F0FF")
+            self.treeView.tag_configure("even", background="#F0F0F0")
+            self.treeView.tag_configure("odd", background="#FFFFFF")
         if modelXbrl.modelManager.cntlr.isMac or modelXbrl.modelManager.cntlr.isMSW:
             highlightColor = "#%04x%04x%04x" % self.treeView.winfo_rgb("SystemHighlight")
         else:
