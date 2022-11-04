@@ -770,10 +770,9 @@ def compileSphinxGrammar( cntlr ):
     debugParsing = True
 
     cntlr.showStatus(_("Compiling Sphinx Grammar"))
-    # python 3 requires modified parser to allow release of global objects when closing DTS
-    from arelle.pyparsing.pyparsing_py3 import (
+    from pyparsing import (
         Word, Keyword, Literal, CaselessLiteral, Combine, Optional, nums, Forward, ZeroOrMore,
-        StringEnd, ParserElement, quotedString, delimitedList, Suppress, Regex
+        StringEnd, ParserElement, quotedString, delimitedList, Suppress, Regex, lineno
     )
 
     ParserElement.enablePackrat()
@@ -1000,11 +999,7 @@ def compileSphinxGrammar( cntlr ):
     return sphinxProg
 
 def parse(cntlr, _logMessage, sphinxFiles):
-    if sys.version[0] >= '3':
-        # python 3 requires modified parser to allow release of global objects when closing DTS
-        from arelle.pyparsing.pyparsing_py3 import ParseException, ParseSyntaxException
-    else:
-        from pyparsing import ParseException, ParseSyntaxException
+    from pyparsing import ParseException, ParseSyntaxException
 
     global logMessage
     logMessage = _logMessage

@@ -33,6 +33,7 @@ dependencies = [
     'lxml==4.*',
     'numpy==1.*',
     'openpyxl==3.*',
+    'pyparsing==3.*',
     'regex',
 ]
 

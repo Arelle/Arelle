@@ -19,7 +19,6 @@ from .SphinxMethods import aggreateFunctionImplementation
 
 
 def generateFormulaLB(cntlr, sphinxFiles, generatedSphinxFormulasDirectory):
-    from arelle.pyparsing.pyparsing_py3 import lineno
     from .SphinxContext import SphinxContext
     from .SphinxValidator import validate
 
