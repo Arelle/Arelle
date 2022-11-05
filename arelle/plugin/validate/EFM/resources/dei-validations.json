@@ -1288,18 +1288,6 @@
         "dei/cover": "cover"
     },
     {
-        "sub-types": ["@40-F"],
-        "xbrl-names": [
-        	"AnnualInformationForm",
-        	"AuditedAnnualFinancialStatements"
-        ],
-        "value": true,
-        "efm": "6.5.49",
-        "validation": "r",
-        "source": "inline",
-        "dei/cover": "cover"
-    },
-    {
         "sub-types": ["@10-KT"],
         "xbrl-names": "DocumentAnnualReport",
         "efm": "6.5.49",

@@ -224,15 +224,27 @@ linkbaseValidations = {
         elrPre = re.compile("http://xbrl.sec.gov/cef/role/N2"),
         elrDefInNs = re.compile("http://xbrl.sec.gov/cef/role/N2"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/cef/role/(Security|Risk)Only"),
-        preSources = ("AllSecuritiesMember", "AllRisksMember")
+        preSources = ("AllSecuritiesMember", "AllRisksMember"),
+        preCustELRs = False
     ),
     "vip": attrdict(
         efmPre = "6.12.11",
         efmCal = "6.14.07",
         efmDef = "6.16.11",
         elrPre = re.compile("http://xbrl.sec.gov/vip/role/N[346]"),
-        elrDefInNs = re.compile("http://xbrl.sec.gov/vip/role/.*Only"),
-        elrDefExNs = re.compile("http://xbrl.sec.gov/vip/role/.*Only"),
-        preSources = ()
+        elrDefInNs = re.compile("http://xbrl.sec.gov/vip/role/[^/]*Only"),
+        elrDefExNs = re.compile("http://xbrl.sec.gov/vip/role/[^/]*Only"),
+        preSources = (),
+        preCustELRs = False
+    ),
+    "ecd": attrdict(
+        efmPre = "6.12.10",
+        efmCal = "6.14.07",
+        efmDef = "6.16.11",
+        elrPre = re.compile("http://xbrl.sec.gov/ecd"),
+        elrDefInNs = re.compile("http://xbrl.sec.gov/ecd/role/"),
+        elrDefExNs = re.compile("http://xbrl.sec.gov/ecd/role/[^/]*Only"),
+        preSources = "nsDomainConcepts",
+        preCustELRs = True
     )
 }
