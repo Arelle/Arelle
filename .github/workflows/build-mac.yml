@@ -29,11 +29,7 @@ on:
 jobs:
   build-distribution:
     environment: release
-    strategy:
-      matrix:
-        os: [ macos-12 ]
-
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-12
 
     steps:
       - name: Checkout arelle
@@ -78,6 +74,8 @@ jobs:
           cd ../..
           mv tmp/ixbrl-viewer/iXBRLViewerPlugin arelle/plugin/
           rm -rf tmp
+      - name: Capture build version
+        run: echo "BUILD_VERSION=$(python -W ignore distro.py --version)" >> $GITHUB_ENV
       - name: Build app
         run: ./scripts/buildMacDist.sh
       - name: Remove git directories
@@ -200,14 +198,14 @@ jobs:
           ' | osascript
           sync
           hdiutil detach "${DEVICE}"
-          hdiutil convert dist_dmg/arelle_tmp.dmg -format UDZO -imagekey zlib-level=9 -o dist_dmg/arelle-${{ matrix.os }}.dmg
+          hdiutil convert dist_dmg/arelle_tmp.dmg -format UDZO -imagekey zlib-level=9 -o dist_dmg/arelle-macos-${{ env.BUILD_VERSION }}.dmg
       - uses: actions/upload-artifact@v3.1.1
         with:
           name: macos distribution
-          path: dist_dmg/arelle-${{ matrix.os }}.dmg
+          path: dist_dmg/arelle-macos-${{ env.BUILD_VERSION }}.dmg
       - name: Upload release artifact
         uses: softprops/action-gh-release@v0.1.14
         if: startsWith(github.ref, 'refs/tags/')
         with:
           fail_on_unmatched_files: true
-          files: dist_dmg/*.dmg
+          files: dist_dmg/arelle-macos-${{ env.BUILD_VERSION }}.dmg

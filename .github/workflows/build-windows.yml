@@ -88,6 +88,8 @@ jobs:
       run: |
         pip install wheel
         pip install -r requirements-build.txt
+    - name: Capture build version
+      run: echo ("BUILD_VERSION=" + (python -W ignore distro.py --version)) >> $env:GITHUB_ENV
     - name: Build exe
       run: ./scripts/buildWinDist.bat
     - name: Copy Tktable2.11
@@ -97,6 +99,8 @@ jobs:
       run: if exist "build\exe.win-amd64-${{ inputs.python_version }}\.git" rmdir /s /q build\exe.win-amd64-${{ inputs.python_version }}\.git
     - name: Make installer
       run: makensis installWin64.nsi
+    - name: Version installer
+      run: mv dist\arelle-win-x64.exe dist\arelle-win-${{ env.BUILD_VERSION }}.exe
     - name: Zip distribution
       run: 7z a -tzip ..\..\dist\arelle-win-x64.zip *
     - name: Upload artifacts
@@ -109,4 +113,4 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       with:
         fail_on_unmatched_files: true
-        files: dist\*
+        files: dist\arelle-win-${{ env.BUILD_VERSION }}.exe
