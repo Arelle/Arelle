@@ -75,12 +75,12 @@ jobs:
       - name: Install Python 3
         uses: actions/setup-python@v4.3.0
         with:
-          cache: 'pip' # caching pip dependencies
+          cache: 'pip'
           check-latest: true
           python-version: '3.10'
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          pip install --upgrade pip setuptools wheel
           pip install -r requirements-dev.txt
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1.7.0

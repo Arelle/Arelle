@@ -79,14 +79,14 @@ jobs:
     - name: Set up Python ${{ inputs.python_version }}
       uses: actions/setup-python@v4.3.0
       with:
-        cache: 'pip' # caching pip dependencies
+        cache: 'pip'
         check-latest: true
         python-version: ${{ inputs.python_version }}
     - name: Install NSIS
       run: choco install nsis
     - name: Install requirements
       run: |
-        pip install wheel
+        pip install --upgrade pip setuptools wheel
         pip install -r requirements-build.txt
     - name: Capture build version
       run: echo ("BUILD_VERSION=" + (python -W ignore distro.py --version)) >> $env:GITHUB_ENV

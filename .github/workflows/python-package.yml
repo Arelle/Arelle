@@ -20,12 +20,12 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v4.3.0
         with:
-          cache: 'pip' # caching pip dependencies
+          cache: 'pip'
           check-latest: true
           python-version: ${{ inputs.python_version }}
       - name: Build python package
         run: |
-          pip install -U setuptools wheel
+          pip install --upgrade pip setuptools wheel
           pip install build
           python -m build
       - name: Upload tar artifact
