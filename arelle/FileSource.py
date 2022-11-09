@@ -200,7 +200,6 @@ class FileSource:
                 return  # an error should have been logged
             if self.isZip:
                 try:
-                    assert self.cntlr is not None
                     assert isinstance(self.basefile, str)
                     fileStream = openFileStream(self.cntlr, self.basefile, 'rb')
                     self.fs = zipfile.ZipFile(fileStream, mode="r")
@@ -589,13 +588,10 @@ class FileSource:
             if fileResult is not None:
                 return fileResult # type: ignore[no-any-return]
         if binary:
-            assert self.cntlr is not None
             return (openFileStream(self.cntlr, filepath, 'rb'), )
         elif encoding:
-            assert self.cntlr is not None
             return (openFileStream(self.cntlr, filepath, 'rt', encoding=encoding), )
         else:
-            assert self.cntlr is not None
             return openXmlFileStream(self.cntlr, filepath, stripDeclaration)
 
     def exists(self, filepath: str) -> bool:
@@ -750,7 +746,7 @@ class FileSource:
                 self.url = self.basedUrl(selection)
 
 def openFileStream(
-    cntlr: Cntlr, filepath: str, mode: str = "r", encoding: str | None = None
+    cntlr: Cntlr | None, filepath: str, mode: str = "r", encoding: str | None = None
 ) -> io.BytesIO | IO[Any]:
     filestream: io.IOBase | FileNamedStringIO | None
     if PackageManager.isMappedUrl(filepath):  # type: ignore[no-untyped-call]
@@ -801,7 +797,7 @@ def openFileStream(
         return io.open(filepath, mode=mode, encoding=encoding)
 
 def openXmlFileStream(
-    cntlr: Cntlr, filepath: str, stripDeclaration: bool = False
+    cntlr: Cntlr | None, filepath: str, stripDeclaration: bool = False
 ) -> tuple[io.TextIOWrapper, str]:
     # returns tuple: (fileStream, encoding)
     openedFileStream = openFileStream(cntlr, filepath, 'rb')
