@@ -2,8 +2,8 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Generator, cast
-from lxml import etree
+from typing import TYPE_CHECKING, Any, Generator, Optional, cast
+from lxml import etree  # type: ignore[import]
 from arelle import Locale
 from arelle.ModelValue import qname, qnameEltPfxName, QName
 
@@ -149,7 +149,7 @@ class ModelObject(etree.ElementBase):
         except AttributeError:
             return None
 
-    def attr(self, attrname: str) -> str | None:
+    def attr(self, attrname: str) -> Any:
         return self.get(attrname)
 
     @property
@@ -167,7 +167,7 @@ class ModelObject(etree.ElementBase):
         else:
             self._prefixedName = self.localName
 
-    def getStripped(self, attrName: str) -> str | None:
+    def getStripped(self, attrName: str) -> Any:
         attrValue = self.get(attrName)
         if attrValue is not None:
             return attrValue.strip()
@@ -254,7 +254,7 @@ class ModelObject(etree.ElementBase):
             return self._parentQname
         except AttributeError:
             parentObj = self.getparent()
-            self._parentQname = parentObj.elementQname if parentObj is not None else None # type: ignore[attr-defined]
+            self._parentQname = parentObj.elementQname if parentObj is not None else None
             return self._parentQname
 
 

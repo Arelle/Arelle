@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelInlineFact
     from arelle.XmlValidate import XsdPattern
 
-import regex as re
+import regex as re # type: ignore[import]
 XmlUtil = None
 
 @overload
@@ -508,7 +508,7 @@ def yearMonthDayTimeDuration(value: datetime.datetime | str, value2: datetime.da
             seconds += 60
         return YearMonthDayTimeDuration(years, months, days, hours, minutes, seconds)
 
-    durationPatternMatch = durationPattern.match(value) # type: ignore[arg-type]
+    durationPatternMatch = durationPattern.match(value)
     assert durationPatternMatch is not None
 
     minus: str
@@ -541,7 +541,7 @@ def yearMonthDayTimeDuration(value: datetime.datetime | str, value2: datetime.da
         mins,
         hasSec,
         secs,
-    ) = durationPatternMatch.groups() # type: ignore[assignment]
+    ) = durationPatternMatch.groups()
 
     sign = -1 if minus else 1
     # TBD implement

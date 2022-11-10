@@ -6,7 +6,7 @@ import os
 from typing import TYPE_CHECKING
 from typing import cast
 from typing import Tuple  # tuple type conflicts with xbrl tuple namespace
-from regex import compile as re_compile
+from regex import compile as re_compile  # type: ignore[import]
 from arelle.ModelValue import qname
 
 if TYPE_CHECKING:

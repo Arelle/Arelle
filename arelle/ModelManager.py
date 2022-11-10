@@ -95,7 +95,7 @@ class ModelManager:
         """
         self.cntlr.addToLog(message, messageCode=messageCode, file=file, refs=refs, level=level)
 
-    def showStatus(self, message, clearAfter=None):
+    def showStatus(self, message, clearAfter=None) ->str:
         """Provide user feedback on status line of GUI or web page according to type of controller.
 
         :param message: Message to display on status widget.
