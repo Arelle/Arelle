@@ -19,6 +19,7 @@ from arelle.XbrlConst import xbrli, qnXbrliXbrl
 import regex as re
 from collections import defaultdict
 
+FRC_2022_NAMESPACE = re.compile('^http://xbrl.frc.org.uk/.+/2022')
 memNameNumPattern = re.compile(r"^([A-Za-z-]+)([0-9]+)$")
 compTxmyNamespacePattern = re.compile(r"http://www.govtalk.gov.uk/uk/fr/tax/uk-hmrc-ct/[0-9-]{10}")
 # capture background-image or list-style-image with URL function
@@ -29,6 +30,13 @@ _6_APR_2008 = dateTime("2008-04-06", type=DATE)
 commonMandatoryItems = {
     "EntityCurrentLegalOrRegisteredName", "StartDateForPeriodCoveredByReport",
     "EndDateForPeriodCoveredByReport", "BalanceSheetDate"}
+
+COMMON_MANDATORY_FRS_ITEMS = commonMandatoryItems | {
+    "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements",
+    "EntityDormantTruefalse", "EntityTradingStatus", "EntityTradingStatus",
+    "AccountingStandardsApplied", "AccountsStatusAuditedOrUnaudited",
+    "LegalFormEntity", "DescriptionPrincipalActivities"
+}
 mandatoryItems = {
     "ukGAAP": commonMandatoryItems | {
         "DateApprovalAccounts", "NameDirectorSigningAccounts", "EntityDormant", "EntityTrading",
@@ -41,12 +49,9 @@ mandatoryItems = {
     "ukIFRS": commonMandatoryItems | {
         "DateAuthorisationFinancialStatementsForIssue", "ExplanationOfBodyOfAuthorisation",
         "EntityDormant", "EntityTrading", "DateSigningDirectorsReport", "DirectorSigningReport"},
-    "FRS": commonMandatoryItems | {
-        "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements",
-        "EntityDormantTruefalse", "EntityTradingStatus", "EntityTradingStatus",
-        "AccountingStandardsApplied", "AccountsStatusAuditedOrUnaudited", "AccountsTypeFullOrAbbreviated",
-        "LegalFormEntity", "DescriptionPrincipalActivities"}
-    }
+    "FRS": COMMON_MANDATORY_FRS_ITEMS | {"AccountsTypeFullOrAbbreviated"},
+    "FRS-2022": COMMON_MANDATORY_FRS_ITEMS | {"AccountsType"}
+}
 
 genericDimensionValidation = {
     # "taxonomyType": { "LocalName": (range of numbers if any, first item name, 2nd choice item name if any)
@@ -167,6 +172,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
             if ns.startswith("http://www.xbrl.org/uk/char/"): val.txmyType = "charities"
             elif ns.startswith("http://www.xbrl.org/uk/gaap/"): val.txmyType = "ukGAAP"
             elif ns.startswith("http://www.xbrl.org/uk/ifrs/"): val.txmyType = "ukIFRS"
+            elif FRC_2022_NAMESPACE.search(ns): val.txmyType = "FRS-2022"
             elif ns.startswith("http://xbrl.frc.org.uk/"): val.txmyType = "FRS"
             else: continue
             break
