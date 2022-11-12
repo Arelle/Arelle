@@ -530,6 +530,7 @@ class Type:
         file, = filesource.file(filepath, stripDeclaration=True, binary=True)
         try:
             _rootElt = True
+            _maybeHtml = False
             for _event, elt in etree.iterparse(file, events=("start",), recover=True, huge_tree=True):
                 if _rootElt:
                     _rootElt = False
@@ -549,16 +550,14 @@ class Type:
                              "{http://xbrl.org/2008/registry}registry": Type.REGISTRY
                              }.get(elt.tag, Type.UnknownXML)
                     if _type == Type.UnknownXML and elt.tag.endswith("html"):
-                        pass # following is not a valid test:
-                        # if XbrlConst.ixbrl in elt.nsmap.values():
-                        #    _type = Type.INLINEXBRL
-                        #    break # stop parsing
-                        # else fall through to element scan for ix11 element
+                        _maybeHtml = True
                     else:
                         break # stop parsing
                 if XbrlConst.ixbrlTagPattern.match(elt.tag):
                     _type = Type.INLINEXBRL
                     break
+            if _type == Type.UnknownXML and _maybeHtml:
+                _type = Type.HTML
         except Exception as err:
             if not _rootElt: # if _rootElt is false then a root element was found and it's some kind of xml
                 _type = Type.UnknownXML

@@ -135,7 +135,10 @@ def modelXbrlLoadComplete(modelXbrl: ModelXbrl) -> None:
         (modelXbrl.modelDocument is None or modelXbrl.modelDocument.type not in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRY, ModelDocument.Type.RSSFEED))):
         if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
 
-            assert modelXbrl.modelDocument is not None
+            if modelXbrl.modelDocument is None:
+                modelXbrl.error("arelle-ESEF.InvalidSubmissionFormat",
+                    _("Unable to identify submission."))
+                return
 
             htmlElement = modelXbrl.modelDocument.xmlRootElement
             if htmlElement.namespaceURI == xhtml:
