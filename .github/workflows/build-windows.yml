@@ -93,7 +93,7 @@ jobs:
     - name: Define build artifact names
       run: |
         echo "EXE_BUILD_ARTIFACT_PATH=dist\arelle-win-${{ env.BUILD_VERSION }}.exe" >> $env:GITHUB_ENV
-        echo "ZIP_BUILD_ARTIFACT_PATH=..\..\dist\arelle-win-x64.zip" >> $env:GITHUB_ENV
+        echo "ZIP_BUILD_ARTIFACT_PATH=dist\arelle-win-${{ env.BUILD_VERSION }}.zip" >> $env:GITHUB_ENV
     - name: Build exe
       run: ./scripts/buildWinDist.bat
     - name: Copy Tktable2.11
@@ -106,15 +106,23 @@ jobs:
     - name: Version installer
       run: mv dist\arelle-win-x64.exe ${{ env.EXE_BUILD_ARTIFACT_PATH }} 
     - name: Zip distribution
-      run: 7z a -tzip ${{ env.ZIP_BUILD_ARTIFACT_PATH }} *
-    - name: Upload artifact
+      working-directory: ${{ env.BUILD_PATH }}
+      run: 7z a -tzip ..\..\${{ env.ZIP_BUILD_ARTIFACT_PATH }} *
+    - name: Upload installer artifact
       uses: actions/upload-artifact@v3.1.1
       with:
-        name: windows distribution
+        name: windows installer distribution
         path: ${{ env.EXE_BUILD_ARTIFACT_PATH }}
+    - name: Upload zip artifact
+      uses: actions/upload-artifact@v3.1.1
+      with:
+        name: windows zip distribution
+        path: ${{ env.ZIP_BUILD_ARTIFACT_PATH }}
     - name: Upload release artifact
       uses: softprops/action-gh-release@v0.1.14
       if: startsWith(github.ref, 'refs/tags/')
       with:
         fail_on_unmatched_files: true
-        files: ${{ env.EXE_BUILD_ARTIFACT_PATH }}
+        files: |
+          ${{ env.EXE_BUILD_ARTIFACT_PATH }}
+          ${{ env.ZIP_BUILD_ARTIFACT_PATH }}
