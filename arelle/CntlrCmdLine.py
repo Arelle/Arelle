@@ -502,7 +502,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[]):
         del entrypointFiles[:] # clear out archive from entrypointFiles
         # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
         for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
-            if _archiveFile.endswith(".xhtml"):
+            if _archiveFile.endswith(".xhtml") or _archiveFile.endswith(".html"):
                 filesource.select(_archiveFile)
                 if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                     entrypointFiles.append({"file":filesource.url})

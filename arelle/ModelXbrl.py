@@ -71,6 +71,7 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
     else:
         modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr)
         modelXbrl.closeFileSource= True
+    modelXbrl.modelDocument = None
     if kwargs.get("isLoadable",True): # used for test cases to block taxonomy packages without discoverable contents
         modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True, **kwargs)
         if supplementalUrls:
@@ -79,8 +80,6 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
         if hasattr(modelXbrl, "entryLoadingUrl"):
             del modelXbrl.entryLoadingUrl
         loadSchemalocatedSchemas(modelXbrl)
-    else:
-        modelXbrl.modelDocument = None
 
     #from arelle import XmlValidate
     #uncomment for trial use of lxml xml schema validation of entry document

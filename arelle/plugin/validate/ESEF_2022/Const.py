@@ -15,7 +15,7 @@ browserMaxBase64ImageLength = 5242880 # 5MB
 
 esefTaxonomyNamespaceURIs = {
     "http://xbrl.ifrs.org/taxonomy/20",
-    "http://xbrl.ifrs.org/taxonomy/20",
+    "https://xbrl.ifrs.org/taxonomy/20",
     }
 
 disallowedURIsPattern = re.compile(

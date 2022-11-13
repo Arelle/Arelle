@@ -48,6 +48,7 @@ import regex as re
 from collections import defaultdict
 from math import isnan
 from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, EntityBase, _Element
+from urllib.parse import unquote
 from arelle import LeiUtil, ModelDocument, XbrlConst, XhtmlValidate
 from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelDtsObject import ModelResource
@@ -87,7 +88,7 @@ _: TypeGetText  # Handle gettext
 
 styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*")
 styleCssHiddenPattern = re.compile(r"(.*[^\w]|^)display\s*:\s*none([^\w].*|$)")
-ifrsNsPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full")
+ifrsNsPattern = re.compile(r"https?://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full")
 datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
 imgDataMediaBase64Pattern = re.compile(r"data:image([^,;]*)(;base64)?,(.*)$", re.S)
 ixErrorPattern = re.compile(r"ix11[.]|xmlSchema[:]|(?!xbrl.5.2.5.2|xbrl.5.2.6.2)xbrl[.]|xbrld[ti]e[:]|utre[:]")
@@ -113,21 +114,28 @@ def disclosureSystemConfigURL(disclosureSystem: DisclosureSystem, *args: Any, **
 
 def modelXbrlBeforeLoading(modelXbrl: ModelXbrl, normalizedUri: str, filepath: str, isEntry: bool=False, **kwargs: Any) -> ModelDocument.LoadingException | None:
     if getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
-        if isEntry and not any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
-            if modelXbrl.fileSource.isArchive:
-                if (not isinstance(modelXbrl.fileSource.selection, list) and
-                    modelXbrl.fileSource.selection is not None and
-                    modelXbrl.fileSource.selection.endswith(".xml") and
-                    # Ignoring for now: Argument 1 to "identify" of "Type" has incompatible type "FileSource"; expected "Type".
-                    # It is not entirely clear why self isn't used in the identify-method.
-                    ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url) in ( # type: ignore[arg-type]
-                        ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
-                    return None # allow zipped test case to load normally
-                if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
-                    modelXbrl.error("ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage",
-                        _("Single reporting package with issuer's XBRL extension taxonomy files and Inline XBRL instance document must be compliant with the latest recommended version of the Taxonomy Packages specification (1.0)"),
-                        modelObject=modelXbrl)
-                    return ModelDocument.LoadingException("Invalid taxonomy package")
+        if isEntry:
+            if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
+                if re.match(".*[.](7z|rar|tar)", normalizedUri):
+                    modelXbrl.error("ESEF.Arelle.InvalidSubmissionFormat",
+                                    _("Unrecognized submission format."),
+                                    modelObject=modelXbrl)
+                    return ModelDocument.LoadingException("Invalid submission format") 
+            else:
+                if modelXbrl.fileSource.isArchive:
+                    if (not isinstance(modelXbrl.fileSource.selection, list) and
+                        modelXbrl.fileSource.selection is not None and
+                        modelXbrl.fileSource.selection.endswith(".xml") and
+                        # Ignoring for now: Argument 1 to "identify" of "Type" has incompatible type "FileSource"; expected "Type".
+                        # It is not entirely clear why self isn't used in the identify-method.
+                        ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url) in ( # type: ignore[arg-type]
+                            ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
+                        return None # allow zipped test case to load normally
+                    if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
+                        modelXbrl.error("ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage",
+                            _("Single reporting package with issuer's XBRL extension taxonomy files and Inline XBRL instance document must be compliant with the latest recommended version of the Taxonomy Packages specification (1.0)"),
+                            modelObject=modelXbrl)
+                        return ModelDocument.LoadingException("Invalid taxonomy package")
     return None
 
 def modelXbrlLoadComplete(modelXbrl: ModelXbrl) -> None:
@@ -486,7 +494,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                         _("Images included in the XHTML document SHOULD be base64 encoded: %(src)s."),
                                         modelObject=elt, src=src[:128])
                                     if m and m.group(1) and m.group(3):
-                                        checkImageContents(modelXbrl, elt, m.group(1), False, m.group(3))
+                                        checkImageContents(modelXbrl, elt, m.group(1), False, unquote(m.group(3)))
                                 else:
                                     if not m.group(1):
                                         modelXbrl.error("ESEF.2.5.1.MIMETypeNotSpecified",
@@ -551,7 +559,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             modelObject=elt, localName=elt.elementQname, target=elt.get("target"),
                             severityVerb={"warning":"SHOULD","error":"MUST"}[ixTargetUsage])
 
-                    if hasattr(elt, "concept") and elt.concept.isTextBlock:
+                    if hasattr(elt, "concept") and elt.concept is not None and elt.concept.isTextBlock:
                         normalized_str = normalizeSpace(elt.value)
                         if not normalized_str or normalized_str.isspace():
                             modelXbrl.warning("ESEF.1.3.3.emptyTextBlock",
@@ -978,7 +986,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     nsExclPat = re.compile(nsExcl)
                     reportedEltsNotInLb -= set(c for c in reportedEltsNotInLb if nsExclPat.match(c.qname.namespaceURI))
             if reportedEltsNotInLb and lbType != "calculation":
-                modelXbrl.warning("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
+                modelXbrl.warning(f"ESEF.3.4.6.UsableConceptsNotIncludedIn{lbType.title()}Link",
                     _("All concepts used by tagged facts SHOULD be in extension taxonomy %(linkbaseType)s relationships: %(elements)s."),
                     modelObject=reportedEltsNotInLb, elements=", ".join(sorted((str(c.qname) for c in reportedEltsNotInLb))), linkbaseType=lbType)
         if unreportedLbElts:
