@@ -112,11 +112,13 @@ jobs:
       uses: actions/upload-artifact@v3.1.1
       with:
         name: windows installer distribution
+        if-no-files-found: error
         path: ${{ env.EXE_BUILD_ARTIFACT_PATH }}
     - name: Upload zip artifact
       uses: actions/upload-artifact@v3.1.1
       with:
         name: windows zip distribution
+        if-no-files-found: error
         path: ${{ env.ZIP_BUILD_ARTIFACT_PATH }}
     - name: Upload release artifact
       uses: softprops/action-gh-release@v0.1.14

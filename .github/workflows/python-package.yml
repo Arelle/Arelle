@@ -32,11 +32,13 @@ jobs:
         uses: actions/upload-artifact@v3.1.1
         with:
           name: arelle.tar.gz
+          if-no-files-found: error
           path: dist/*.tar.gz
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v3.1.1
         with:
           name: arelle.whl
+          if-no-files-found: error
           path: dist/*.whl
 
   publish-package:
