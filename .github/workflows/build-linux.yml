@@ -123,6 +123,7 @@ jobs:
         uses: actions/upload-artifact@v3.1.1
         with:
           name: ${{ matrix.distro }} distribution
+          if-no-files-found: error
           path: dist/*.tgz
       - name: Upload release artifact
         uses: softprops/action-gh-release@v0.1.14

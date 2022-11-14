@@ -78,6 +78,8 @@ jobs:
           rm -rf tmp
       - name: Capture build version
         run: echo "BUILD_VERSION=$(python -W ignore distro.py --version)" >> $GITHUB_ENV
+      - name: Define DMG build artifact name
+        run: echo "DMG_BUILD_ARTIFACT_PATH=dist_dmg/arelle-macos-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_ENV
       - name: Build app
         run: ./scripts/buildMacDist.sh
       - name: Remove git directories
@@ -200,14 +202,15 @@ jobs:
           ' | osascript
           sync
           hdiutil detach "${DEVICE}"
-          hdiutil convert dist_dmg/arelle_tmp.dmg -format UDZO -imagekey zlib-level=9 -o dist_dmg/arelle-macos-${{ env.BUILD_VERSION }}.dmg
+          hdiutil convert dist_dmg/arelle_tmp.dmg -format UDZO -imagekey zlib-level=9 -o ${{ env.DMG_BUILD_ARTIFACT_PATH }}
       - uses: actions/upload-artifact@v3.1.1
         with:
           name: macos distribution
-          path: dist_dmg/arelle-macos-${{ env.BUILD_VERSION }}.dmg
+          if-no-files-found: error
+          path: ${{ env.DMG_BUILD_ARTIFACT_PATH }}
       - name: Upload release artifact
         uses: softprops/action-gh-release@v0.1.14
         if: startsWith(github.ref, 'refs/tags/')
         with:
           fail_on_unmatched_files: true
-          files: dist_dmg/arelle-macos-${{ env.BUILD_VERSION }}.dmg
+          files: ${{ env.DMG_BUILD_ARTIFACT_PATH }}
