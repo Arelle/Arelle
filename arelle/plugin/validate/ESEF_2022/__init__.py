@@ -570,6 +570,18 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 modelXbrl.error("ESEF.2.2.6.escapedHTMLUsedInBlockTagWithSpecialCharacters",
                                         _("A text block containing '&' or '<' character MUST have an 'escape' attribute: %(qname)s."),
                                         modelObject=elt, qname=elt.qname)
+                        # Check that continuation elements are in the order of html text as rendered to user
+                        continuationChain = []
+                        e = elt # continuation chain
+                        while e is not None:
+                            continuationChain.append(e)
+                            e = getattr(e, "_continuationElement", None)
+                        if continuationChain != sorted(continuationChain, key=lambda e:e.objectIndex):
+                            modelXbrl.warning("ESEF.2.2.6.textContentOrdering",
+                                    _("The text content of tagged fact should have same order as human-readable report, ix:continuation elements out of order:  %(qname)s"),
+                                    modelObject=continuationChain, qname=elt.qname)
+                        del continuationChain[:] # dereference elements
+
 
                     if eltTag == ixTupleTag:
                         modelXbrl.error("ESEF.2.4.1.tupleElementUsed",
