@@ -421,6 +421,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 ixExcludeTag = ixNStag + "exclude"
                 ixTupleTag = ixNStag + "tuple"
                 ixFractionTag = ixNStag + "fraction"
+                hasAbsolutePositioning = False
 
                 for uncast_elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
                     elt = cast(Any, uncast_elt)
@@ -550,7 +551,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 modelXbrl.warning("ESEF.2.5.4.embeddedCssForMultiHtmlIXbrlDocumentSets",
                                     _("Where an Inline XBRL document set contains multiple documents, the CSS SHOULD be defined in a separate file."),
                                     modelObject=elt, element=eltTag)
-
+                            if "position:absolute" in elt.stringValue:
+                                # detect absolute positioning such as from Adobe Indesign producing pdf from whic html is extracted
+                                hasAbsolutePositioning = True 
 
                     if eltTag in ixTags and elt.get("target") and ixTargetUsage != "allowed":
                         modelXbrl.log(ixTargetUsage.upper(),
@@ -571,16 +574,17 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                         _("A text block containing '&' or '<' character MUST have an 'escape' attribute: %(qname)s."),
                                         modelObject=elt, qname=elt.qname)
                         # Check that continuation elements are in the order of html text as rendered to user
-                        continuationChain = []
-                        e = elt # continuation chain
-                        while e is not None:
-                            continuationChain.append(e)
-                            e = getattr(e, "_continuationElement", None)
-                        if continuationChain != sorted(continuationChain, key=lambda e:e.objectIndex):
-                            modelXbrl.warning("ESEF.2.2.6.textContentOrdering",
-                                    _("The text content of tagged fact should have same order as human-readable report, ix:continuation elements out of order:  %(qname)s"),
-                                    modelObject=continuationChain, qname=elt.qname)
-                        del continuationChain[:] # dereference elements
+                        if not hasAbsolutePositioning:
+                            continuationChain = []
+                            e = elt # continuation chain
+                            while e is not None:
+                                continuationChain.append(e)
+                                e = getattr(e, "_continuationElement", None)
+                            if continuationChain != sorted(continuationChain, key=lambda e:e.objectIndex):
+                                modelXbrl.warning("ESEF.2.2.6.textContentOrdering",
+                                        _("The text content of tagged fact should have same order as human-readable report, ix:continuation elements out of order:  %(qname)s"),
+                                        modelObject=continuationChain, qname=elt.qname)
+                            del continuationChain[:] # dereference elements
 
 
                     if eltTag == ixTupleTag:
