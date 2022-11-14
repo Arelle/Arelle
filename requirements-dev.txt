@@ -16,6 +16,6 @@ types-pytz==2022.6.0.1
 types-simplejson==3.17.7.2
 types-ujson==5.5.0
 types-regex==2022.10.31.0
-types-waitress==2.1.4.1
+types-waitress==2.1.4.2
 
 -r requirements.txt
