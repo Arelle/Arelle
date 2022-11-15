@@ -1,19 +1,12 @@
 from __future__ import annotations
 
-import datetime
 import queue
 from unittest.mock import Mock, call, patch
 
 import pytest
 
 from arelle import Updater
-from arelle.Updater import dateVersion, semverVersion
-
-OLD_DATE_FILENAME = "arelle-macOS-2021-01-01.dmg"
-NEW_DATE_FILENAME = "arelle-macOS-2022-01-01.dmg"
-
-OLD_DATE_VERSION = "2021-01-01 12:00 UTC"
-NEW_DATE_VERSION = "2022-01-01 12:00 UTC"
+from arelle.Updater import ArelleVersion
 
 OLD_SEMVER_FILENAME = "arelle-macOS-2.0.0.dmg"
 NEW_SEMVER_FILENAME = "arelle-macOS-2.1.0.dmg"
@@ -46,52 +39,28 @@ class TestArelleVersion:
         "olderVersion, newerVersion",
         [
             (
-                dateVersion(date=datetime.date.min),
-                dateVersion(date=datetime.date.max),
+                ArelleVersion(major=0, minor=0, patch=0),
+                ArelleVersion(major=0, minor=0, patch=1),
             ),
             (
-                dateVersion(date=datetime.date(2021, 12, 31)),
-                dateVersion(date=datetime.date(2022, 1, 1)),
+                ArelleVersion(major=0, minor=0, patch=9),
+                ArelleVersion(major=0, minor=1, patch=0),
             ),
             (
-                dateVersion(date=datetime.date(2022, 2, 9)),
-                dateVersion(date=datetime.date(2022, 3, 1)),
+                ArelleVersion(major=0, minor=9, patch=9),
+                ArelleVersion(major=1, minor=0, patch=0),
             ),
             (
-                dateVersion(date=datetime.date(2022, 2, 9)),
-                dateVersion(date=datetime.date(2022, 2, 11)),
+                ArelleVersion(major=1, minor=1, patch=3),
+                ArelleVersion(major=1, minor=1, patch=10),
             ),
             (
-                dateVersion(date=datetime.date(2022, 2, 9)),
-                dateVersion(date=datetime.date(2022, 10, 1)),
+                ArelleVersion(major=1, minor=2, patch=9),
+                ArelleVersion(major=1, minor=10, patch=1),
             ),
             (
-                dateVersion(date=datetime.date.max),
-                semverVersion(major=0, minor=0, patch=0),
-            ),
-            (
-                semverVersion(major=0, minor=0, patch=0),
-                semverVersion(major=0, minor=0, patch=1),
-            ),
-            (
-                semverVersion(major=0, minor=0, patch=9),
-                semverVersion(major=0, minor=1, patch=0),
-            ),
-            (
-                semverVersion(major=0, minor=9, patch=9),
-                semverVersion(major=1, minor=0, patch=0),
-            ),
-            (
-                semverVersion(major=1, minor=1, patch=3),
-                semverVersion(major=1, minor=1, patch=10),
-            ),
-            (
-                semverVersion(major=1, minor=2, patch=9),
-                semverVersion(major=1, minor=10, patch=1),
-            ),
-            (
-                semverVersion(major=2, minor=9, patch=9),
-                semverVersion(major=10, minor=1, patch=1),
+                ArelleVersion(major=2, minor=9, patch=9),
+                ArelleVersion(major=10, minor=1, patch=1),
             ),
         ],
     )
@@ -155,14 +124,6 @@ class TestUpdater:
         assert showWarning.called
         assert cntlr.uiThreadQueue.empty()
 
-    @pytest.mark.parametrize(
-        "currentVersion, newFilename",
-        [
-            (OLD_DATE_VERSION, NEW_DATE_FILENAME),
-            (OLD_SEMVER_VERSION, NEW_SEMVER_FILENAME),
-            (NEW_DATE_VERSION, OLD_SEMVER_FILENAME),
-        ],
-    )
     @patch("tkinter.messagebox.showinfo")
     @patch("tkinter.messagebox.showwarning")
     @patch("tkinter.messagebox.askokcancel")
@@ -175,28 +136,18 @@ class TestUpdater:
         askokcancel,
         showWarning,
         showInfo,
-        currentVersion,
-        newFilename,
     ):
         cntlr = _mockCntlrWinMain()
-        version.version = currentVersion
+        version.version = OLD_SEMVER_VERSION
         askokcancel.return_value = True
 
-        Updater._checkUpdateUrl(cntlr, newFilename)
+        Updater._checkUpdateUrl(cntlr, NEW_SEMVER_FILENAME)
 
         assert not showInfo.called
         assert not showWarning.called
         assert askokcancel.called
         assert backgroundDownload.called
 
-    @pytest.mark.parametrize(
-        "currentVersion, newFilename",
-        [
-            (OLD_DATE_VERSION, NEW_DATE_FILENAME),
-            (OLD_SEMVER_VERSION, NEW_SEMVER_FILENAME),
-            (NEW_DATE_VERSION, OLD_SEMVER_FILENAME),
-        ],
-    )
     @patch("tkinter.messagebox.showinfo")
     @patch("tkinter.messagebox.showwarning")
     @patch("tkinter.messagebox.askokcancel")
@@ -209,28 +160,18 @@ class TestUpdater:
         askokcancel,
         showWarning,
         showInfo,
-        currentVersion,
-        newFilename,
     ):
         cntlr = _mockCntlrWinMain()
-        version.version = currentVersion
+        version.version = OLD_SEMVER_VERSION
         askokcancel.return_value = False
 
-        Updater._checkUpdateUrl(cntlr, newFilename)
+        Updater._checkUpdateUrl(cntlr, NEW_SEMVER_FILENAME)
 
         assert not showInfo.called
         assert not showWarning.called
         assert askokcancel.called
         assert not backgroundDownload.called
 
-    @pytest.mark.parametrize(
-        "currentVersion, newFilename",
-        [
-            (NEW_DATE_VERSION, OLD_DATE_FILENAME),
-            (NEW_SEMVER_VERSION, OLD_SEMVER_FILENAME),
-            (OLD_SEMVER_VERSION, NEW_DATE_FILENAME),
-        ],
-    )
     @patch("tkinter.messagebox.showinfo")
     @patch("tkinter.messagebox.showwarning")
     @patch("tkinter.messagebox.askokcancel")
@@ -243,13 +184,11 @@ class TestUpdater:
         askokcancel,
         showWarning,
         showInfo,
-        currentVersion,
-        newFilename,
     ):
         cntlr = _mockCntlrWinMain()
-        version.version = currentVersion
+        version.version = NEW_SEMVER_VERSION
 
-        Updater._checkUpdateUrl(cntlr, newFilename)
+        Updater._checkUpdateUrl(cntlr, OLD_SEMVER_FILENAME)
 
         assert showInfo.called
         assert not showWarning.called
@@ -259,9 +198,7 @@ class TestUpdater:
     @pytest.mark.parametrize(
         "currentVersion, newFilename",
         [
-            (OLD_DATE_VERSION, OLD_DATE_FILENAME),
             (OLD_SEMVER_VERSION, OLD_SEMVER_FILENAME),
-            (NEW_DATE_VERSION, NEW_DATE_FILENAME),
             (NEW_SEMVER_VERSION, NEW_SEMVER_FILENAME),
         ],
     )

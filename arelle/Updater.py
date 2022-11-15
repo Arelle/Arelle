@@ -3,8 +3,6 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import datetime
-import enum
 import os
 import subprocess
 import sys
@@ -24,36 +22,19 @@ if TYPE_CHECKING:
 _: TypeGetText
 
 _MESSAGE_HEADER = "arelle\u2122 - Updater"
-_ISO_DATE_PATTERN = regex.compile(
-    r"(?P<date>(?P<year>[0-9]{4})-(?P<month>0[1-9]|1[0-2])-(?P<day>0[1-9]|[12][0-9]|3[01]))"
-)
 _SEMVER_PATTERN = regex.compile(
     r"(?P<semver>(?P<major>[0-9]+)\.(?P<minor>[0-9]+)\.(?P<patch>[0-9]+))"
 )
 
 
-class ArelleVersioningScheme(enum.IntEnum):
-    DATE = 1
-    SEMVER = 2
-
-
 @dataclass(eq=True, frozen=True, order=True)
 class ArelleVersion:
-    versioningScheme: ArelleVersioningScheme
     major: int
     minor: int
     patch: int
 
     def __str__(self) -> str:
         return f"{self.major}.{self.minor}.{self.patch}"
-
-
-def dateVersion(date: datetime.date) -> ArelleVersion:
-    return ArelleVersion(ArelleVersioningScheme.DATE, date.year, date.month, date.day)
-
-
-def semverVersion(major: int, minor: int, patch: int) -> ArelleVersion:
-    return ArelleVersion(ArelleVersioningScheme.SEMVER, major, minor, patch)
 
 
 def checkForUpdates(cntlr: CntlrWinMain) -> None:
@@ -135,13 +116,9 @@ def _checkUpdateUrl(cntlr: CntlrWinMain, attachmentFileName: str) -> None:
 
 
 def _parseVersion(versionStr: str) -> ArelleVersion:
-    dateMatch = _ISO_DATE_PATTERN.search(versionStr)
-    if dateMatch:
-        versionDate = datetime.date.fromisoformat(dateMatch.group("date"))
-        return dateVersion(date=versionDate)
     semverMatch = _SEMVER_PATTERN.search(versionStr)
     if semverMatch:
-        return semverVersion(
+        return ArelleVersion(
             major=int(semverMatch.group("major")),
             minor=int(semverMatch.group("minor")),
             patch=int(semverMatch.group("patch")),
