@@ -339,7 +339,7 @@ def validate(
                     raise ex
                     #pass  # HF Why is this here????
     if recurse: # if there is no complex or simple type (such as xbrli:measure) then this code is used
-        for child in (cast(ModelFact, elt).modelTupleFacts if ixFacts and isIxFact else elt):
+        for child in (cast('ModelFact', elt).modelTupleFacts if ixFacts and isIxFact else elt):
             if isinstance(child, ModelObject):
                 validate(modelXbrl, child, recurse, attrQname, ixFacts)
 
