@@ -19,6 +19,7 @@ from arelle.XbrlConst import xbrli, qnXbrliXbrl
 import regex as re
 from collections import defaultdict
 
+FRC_URL_DOMAIN = "http://xbrl.frc.org.uk/"
 memNameNumPattern = re.compile(r"^([A-Za-z-]+)([0-9]+)$")
 compTxmyNamespacePattern = re.compile(r"http://www.govtalk.gov.uk/uk/fr/tax/uk-hmrc-ct/[0-9-]{10}")
 # capture background-image or list-style-image with URL function
@@ -29,6 +30,13 @@ _6_APR_2008 = dateTime("2008-04-06", type=DATE)
 commonMandatoryItems = {
     "EntityCurrentLegalOrRegisteredName", "StartDateForPeriodCoveredByReport",
     "EndDateForPeriodCoveredByReport", "BalanceSheetDate"}
+
+COMMON_MANDATORY_FRS_ITEMS = commonMandatoryItems | {
+    "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements",
+    "EntityDormantTruefalse", "EntityTradingStatus",
+    "AccountingStandardsApplied", "AccountsStatusAuditedOrUnaudited",
+    "LegalFormEntity", "DescriptionPrincipalActivities"
+}
 mandatoryItems = {
     "ukGAAP": commonMandatoryItems | {
         "DateApprovalAccounts", "NameDirectorSigningAccounts", "EntityDormant", "EntityTrading",
@@ -41,12 +49,9 @@ mandatoryItems = {
     "ukIFRS": commonMandatoryItems | {
         "DateAuthorisationFinancialStatementsForIssue", "ExplanationOfBodyOfAuthorisation",
         "EntityDormant", "EntityTrading", "DateSigningDirectorsReport", "DirectorSigningReport"},
-    "FRS": commonMandatoryItems | {
-        "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements",
-        "EntityDormantTruefalse", "EntityTradingStatus", "EntityTradingStatus",
-        "AccountingStandardsApplied", "AccountsStatusAuditedOrUnaudited", "AccountsTypeFullOrAbbreviated",
-        "LegalFormEntity", "DescriptionPrincipalActivities"}
-    }
+    "FRS": COMMON_MANDATORY_FRS_ITEMS | {"AccountsTypeFullOrAbbreviated"},
+    "FRS-2022": COMMON_MANDATORY_FRS_ITEMS | {"AccountsType"}
+}
 
 genericDimensionValidation = {
     # "taxonomyType": { "LocalName": (range of numbers if any, first item name, 2nd choice item name if any)
@@ -163,13 +168,23 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.txmyType = None
     for doc in val.modelXbrl.modelDocument.referencesDocument:
         ns = doc.targetNamespace
-        if ns:
-            if ns.startswith("http://www.xbrl.org/uk/char/"): val.txmyType = "charities"
-            elif ns.startswith("http://www.xbrl.org/uk/gaap/"): val.txmyType = "ukGAAP"
-            elif ns.startswith("http://www.xbrl.org/uk/ifrs/"): val.txmyType = "ukIFRS"
-            elif ns.startswith("http://xbrl.frc.org.uk/"): val.txmyType = "FRS"
-            else: continue
-            break
+        if not ns:
+            continue
+        if ns.startswith("http://www.xbrl.org/uk/char/"):
+            val.txmyType = "charities"
+        elif ns.startswith("http://www.xbrl.org/uk/gaap/"):
+            val.txmyType = "ukGAAP"
+        elif ns.startswith("http://www.xbrl.org/uk/ifrs/"):
+            val.txmyType = "ukIFRS"
+        elif ns.startswith(FRC_URL_DOMAIN):
+            val.txmyType = "FRS"
+            for concept in val.modelXbrl.nameConcepts.get("AccountsType", ()):
+                if concept.qname.namespaceURI.startswith(FRC_URL_DOMAIN) and concept.modelDocument.inDTS:
+                    val.txmyType = "FRS-2022"
+                    break
+        else:
+            continue
+        break
     if val.txmyType:
         val.modelXbrl.debug("debug",
                             "HMRC taxonomy type %(taxonomyType)s",
