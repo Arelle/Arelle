@@ -31,6 +31,7 @@
     Model unit objects represent algebraically usable set objects for the numerator and denominator
     measure sets.
 """
+from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 from lxml import etree
@@ -135,6 +136,8 @@ class ModelFact(ModelObject):
 
         ([ModelFact]) - List of child facts in source document order
     """
+    modelTupleFacts: list['ModelFact']
+
     def init(self, modelDocument):
         super(ModelFact, self).init(modelDocument)
         self.modelTupleFacts = []
@@ -712,6 +715,8 @@ class ModelInlineFact(ModelInlineValueObject, ModelFact):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
+    modelTupleFacts: list['ModelInlineFact']
+
     def init(self, modelDocument):
         super(ModelInlineFact, self).init(modelDocument)
 
