@@ -33,7 +33,7 @@ commonMandatoryItems = {
 
 COMMON_MANDATORY_FRS_ITEMS = commonMandatoryItems | {
     "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements",
-    "EntityDormantTruefalse", "EntityTradingStatus", "EntityTradingStatus",
+    "EntityDormantTruefalse", "EntityTradingStatus",
     "AccountingStandardsApplied", "AccountsStatusAuditedOrUnaudited",
     "LegalFormEntity", "DescriptionPrincipalActivities"
 }
@@ -168,18 +168,23 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.txmyType = None
     for doc in val.modelXbrl.modelDocument.referencesDocument:
         ns = doc.targetNamespace
-        if ns:
-            if ns.startswith("http://www.xbrl.org/uk/char/"): val.txmyType = "charities"
-            elif ns.startswith("http://www.xbrl.org/uk/gaap/"): val.txmyType = "ukGAAP"
-            elif ns.startswith("http://www.xbrl.org/uk/ifrs/"): val.txmyType = "ukIFRS"
-            elif ns.startswith(FRC_URL_DOMAIN):
-                if any((concept.qname.namespaceURI.startswith(FRC_URL_DOMAIN) and concept.modelDocument.inDTS)
-                       for concept in val.modelXbrl.nameConcepts.get("AccountsType", ())):
+        if not ns:
+            continue
+        if ns.startswith("http://www.xbrl.org/uk/char/"):
+            val.txmyType = "charities"
+        elif ns.startswith("http://www.xbrl.org/uk/gaap/"):
+            val.txmyType = "ukGAAP"
+        elif ns.startswith("http://www.xbrl.org/uk/ifrs/"):
+            val.txmyType = "ukIFRS"
+        elif ns.startswith(FRC_URL_DOMAIN):
+            val.txmyType = "FRS"
+            for concept in val.modelXbrl.nameConcepts.get("AccountsType", ()):
+                if concept.qname.namespaceURI.startswith(FRC_URL_DOMAIN) and concept.modelDocument.inDTS:
                     val.txmyType = "FRS-2022"
-                else:
-                    val.txmyType = "FRS"
-            else: continue
-            break
+                    break
+        else:
+            continue
+        break
     if val.txmyType:
         val.modelXbrl.debug("debug",
                             "HMRC taxonomy type %(taxonomyType)s",
