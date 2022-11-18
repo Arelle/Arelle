@@ -19,7 +19,7 @@ from arelle.XbrlConst import xbrli, qnXbrliXbrl
 import regex as re
 from collections import defaultdict
 
-FRC_2022_NAMESPACE = re.compile('^http://xbrl.frc.org.uk/.+/2022')
+FRC_URL_DOMAIN = "http://xbrl.frc.org.uk/"
 memNameNumPattern = re.compile(r"^([A-Za-z-]+)([0-9]+)$")
 compTxmyNamespacePattern = re.compile(r"http://www.govtalk.gov.uk/uk/fr/tax/uk-hmrc-ct/[0-9-]{10}")
 # capture background-image or list-style-image with URL function
@@ -166,16 +166,19 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         val.isAccounts = not val.isComputation
 
     val.txmyType = None
-    for doc in val.modelXbrl.modelDocument.referencesDocument:
-        ns = doc.targetNamespace
-        if ns:
-            if ns.startswith("http://www.xbrl.org/uk/char/"): val.txmyType = "charities"
-            elif ns.startswith("http://www.xbrl.org/uk/gaap/"): val.txmyType = "ukGAAP"
-            elif ns.startswith("http://www.xbrl.org/uk/ifrs/"): val.txmyType = "ukIFRS"
-            elif FRC_2022_NAMESPACE.search(ns): val.txmyType = "FRS-2022"
-            elif ns.startswith("http://xbrl.frc.org.uk/"): val.txmyType = "FRS"
-            else: continue
-            break
+    if any((concept.qname.namespaceURI.startswith(FRC_URL_DOMAIN) and concept.modelDocument.inDTS)
+           for concept in val.modelXbrl.nameConcepts.get("AccountsType", ())):
+        val.txmyType = "FRS-2022"
+    else:
+        for doc in val.modelXbrl.modelDocument.referencesDocument:
+            ns = doc.targetNamespace
+            if ns:
+                if ns.startswith("http://www.xbrl.org/uk/char/"): val.txmyType = "charities"
+                elif ns.startswith("http://www.xbrl.org/uk/gaap/"): val.txmyType = "ukGAAP"
+                elif ns.startswith("http://www.xbrl.org/uk/ifrs/"): val.txmyType = "ukIFRS"
+                elif ns.startswith(FRC_URL_DOMAIN): val.txmyType = "FRS"
+                else: continue
+                break
     if val.txmyType:
         val.modelXbrl.debug("debug",
                             "HMRC taxonomy type %(taxonomyType)s",
