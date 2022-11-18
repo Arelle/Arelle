@@ -222,7 +222,7 @@ class FileSource:
                     assert isinstance(self.basefile, str)
                     file: io.BufferedReader | io.BytesIO | io.StringIO | None = open(self.basefile, 'rb')
                     assert file is not None
-                    assert isinstance(file, io.BytesIO)
+                    assert isinstance(file, (io.BufferedReader, io.BytesIO, io.StringIO))
                     more = True
                     while more:
                         l = file.read(8)
