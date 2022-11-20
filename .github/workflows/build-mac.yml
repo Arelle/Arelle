@@ -79,7 +79,10 @@ jobs:
       - name: Capture build version
         run: echo "BUILD_VERSION=$(python -W ignore distro.py --version)" >> $GITHUB_ENV
       - name: Define DMG build artifact name
-        run: echo "DMG_BUILD_ARTIFACT_PATH=dist_dmg/arelle-macos-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_ENV
+        run: |
+          echo "ARTIFACT_VERSIONED_NAME=arelle-macos-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=arelle-macos.dmg" >> $GITHUB_ENV
+          echo "DMG_BUILD_ARTIFACT_PATH=dist_dmg/arelle-macos-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_ENV
       - name: Build app
         run: ./scripts/buildMacDist.sh
       - name: Remove git directories
@@ -203,14 +206,39 @@ jobs:
           sync
           hdiutil detach "${DEVICE}"
           hdiutil convert dist_dmg/arelle_tmp.dmg -format UDZO -imagekey zlib-level=9 -o ${{ env.DMG_BUILD_ARTIFACT_PATH }}
-      - uses: actions/upload-artifact@v3.1.1
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3.1.1
         with:
           name: macos distribution
           if-no-files-found: error
           path: ${{ env.DMG_BUILD_ARTIFACT_PATH }}
       - name: Upload release artifact
-        uses: softprops/action-gh-release@v0.1.14
         if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v0.1.14
         with:
           fail_on_unmatched_files: true
           files: ${{ env.DMG_BUILD_ARTIFACT_PATH }}
+      - name: Configure AWS Credentials
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          aws-region: us-west-1
+      - name: Upload release artifacts to S3
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          aws s3 cp --acl public-read ${{ env.DMG_BUILD_ARTIFACT_PATH }} s3://arelle-us/${{ env.ARTIFACT_VERSIONED_NAME }}
+          aws s3 cp --acl public-read s3://arelle-us/${{ env.ARTIFACT_VERSIONED_NAME }} s3://arelle-us/${{ env.ARTIFACT_NAME }}
+      - name: Configure Ali Cloud Credentials
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: yizhoumo/setup-ossutil@v1.1.3
+        with:
+          endpoint: oss-cn-shenzhen.aliyuncs.com
+          access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+      - name: Upload release artifacts to Ali Cloud
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          ossutil cp -f ${{ env.DMG_BUILD_ARTIFACT_PATH }} oss://arelle-cn/${{ env.ARTIFACT_VERSIONED_NAME }}
+          ossutil create-symlink oss://arelle-cn/${{ env.ARTIFACT_NAME }} oss://arelle-cn/${{ env.ARTIFACT_VERSIONED_NAME }}
