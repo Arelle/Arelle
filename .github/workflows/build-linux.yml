@@ -121,9 +121,9 @@ jobs:
           docker rm -v arelle
       - name: Capture build env
         run: |
-          [[ $(ls dist/*) =~ ^.*-([0-9]+\.[0-9]+\.[0-9]+).tgz$ ]] && echo "ARTIFACT_VERSIONED_NAME=arelle-${{ matrix.distro }}-${BASH_REMATCH[1]}.tgz" >> $GITHUB_ENV
+          [[ $(echo dist/*.tgz) =~ -([0-9]+\.[0-9]+\.[0-9]+)\.tgz$ ]] && echo "ARTIFACT_VERSIONED_NAME=arelle-${{ matrix.distro }}-${BASH_REMATCH[1]}.tgz" >> $GITHUB_ENV
           echo "ARTIFACT_NAME=arelle-${{ matrix.distro }}.tgz" >> $GITHUB_ENV
-          echo "BUILD_ARTIFACT_PATH=$(ls dist/*.tgz)" >> $GITHUB_ENV
+          echo "BUILD_ARTIFACT_PATH=$(echo dist/*.tgz)" >> $GITHUB_ENV
       - name: Upload build artifact
         uses: actions/upload-artifact@v3.1.1
         with:
