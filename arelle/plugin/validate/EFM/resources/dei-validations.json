@@ -1260,27 +1260,6 @@
         "xbrl-names": "DocumentFinStmtErrorCorrectionFlag",
         "value": true,
         "efm": "6.5.49",
-        "validation": "y",
-        "value": true,
-        "source": "inline",
-        "dei/cover": "cover"
-    },
-    {
-        "sub-types": ["@10-K", "@10-KT", "@20-F", "@40-F"],
-        "xbrl-names": "DocumentFinStmtErrorCorrectionFlag",
-        "value": true,
-        "efm": "6.5.49",
-        "validation": "rt",
-        "value": true,
-        "references": "DocumentFinStmtRestatementRecoveryAnalysisFlag",
-        "source": "inline",
-        "dei/cover": "cover"
-    },
-    {
-        "sub-types": ["@10-K", "@10-KT", "@20-F", "@40-F"],
-        "xbrl-names": "DocumentFinStmtErrorCorrectionFlag",
-        "value": true,
-        "efm": "6.5.49",
         "validation": "rt",
         "value": true,
         "references": "DocumentFinStmtRestatementRecoveryAnalysisFlag",
