@@ -58,7 +58,7 @@ jobs:
           TWINE_REPOSITORY: ${{ github.repository == 'Arelle/Arelle' && 'pypi' || 'testpypi' }}
         run: twine upload */*
       - name: Upload release artifact
-        uses: softprops/action-gh-release@v0.1.14
+        uses: softprops/action-gh-release@v0.1.15
         with:
           fail_on_unmatched_files: true
           files: '*/*'
