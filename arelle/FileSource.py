@@ -190,7 +190,6 @@ class FileSource:
     def open(self, reloadCache: bool = False) -> None:
         if not self.isOpen:
             if (self.isZip or self.isTarGz or self.isEis or self.isXfd or self.isRss or self.isInstalledTaxonomyPackage) and self.cntlr:
-                assert self.url is not None
                 assert isinstance(self.url, str)
                 self.basefile = self.cntlr.webCache.getfilename(self.url, reload=reloadCache)
             else:
@@ -221,8 +220,7 @@ class FileSource:
                 try:
                     assert isinstance(self.basefile, str)
                     file: io.BufferedReader | io.BytesIO | io.StringIO | None = open(self.basefile, 'rb')
-                    assert file is not None
-                    assert isinstance(file, (io.BufferedReader, io.BytesIO, io.StringIO))
+                    assert isinstance(file, (io.BufferedReader, io.BytesIO))
                     more = True
                     while more:
                         l = file.read(8)
