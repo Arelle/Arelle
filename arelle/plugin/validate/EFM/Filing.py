@@ -2524,7 +2524,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             lbVal = linkbaseValidations.get(abbreviatedNamespace(d.targetNamespace, NOYEAR))
             if d.type == ModelDocument.Type.SCHEMA and lbVal:
                 if lbVal.preSources == "nsDomainConcepts":
-                    preSrcConcepts = set(c for c in modelXbrl.qnameConcepts.values() 
+                    preSrcConcepts = set(c for c in modelXbrl.qnameConcepts.values()
                                          if c.qname.namespaceURI == ns and c.type is not None and c.type.isDomainItemType)
                 else:
                     preSrcConcepts = set(modelXbrl.qnameConcepts.get(qname(ns,c)) for c in lbVal.preSources)
