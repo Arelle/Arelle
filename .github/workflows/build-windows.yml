@@ -130,8 +130,8 @@ jobs:
       with:
         fail_on_unmatched_files: true
         files: |
-          ${{ env.EXE_BUILD_ARTIFACT_PATH }}
-          ${{ env.ZIP_BUILD_ARTIFACT_PATH }}
+          dist/${{ env.EXE_ARTIFACT_VERSIONED_NAME }}
+          dist/${{ env.ZIP_ARTIFACT_VERSIONED_NAME }}
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1.7.0
       if: startsWith(github.ref, 'refs/tags/')
