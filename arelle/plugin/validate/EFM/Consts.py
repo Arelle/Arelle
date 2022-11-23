@@ -238,13 +238,13 @@ linkbaseValidations = {
         preCustELRs = False
     ),
     "ecd": attrdict(
-        efmPre = "6.12.10",
-        efmCal = "6.14.07",
-        efmDef = "6.16.11",
-        elrPre = re.compile("http://xbrl.sec.gov/ecd"),
+        efmPre = None,
+        efmCal = "6.14.08",
+        efmDef = "6.16.12",
+        elrPre = None,
         elrDefInNs = re.compile("http://xbrl.sec.gov/ecd/role/"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/ecd/role/[^/]*Only"),
-        preSources = "nsDomainConcepts",
+        preSources = (),
         preCustELRs = True
     )
 }

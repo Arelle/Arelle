@@ -2518,34 +2518,31 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
     # 6.9.10 checks on custom arcs
     if isEFM:
-        # find CEF or VIP
+        # find CEF,  VIP or ECD
         for d in modelXbrl.urlDocs.values():
             ns = d.targetNamespace
             lbVal = linkbaseValidations.get(abbreviatedNamespace(d.targetNamespace, NOYEAR))
             if d.type == ModelDocument.Type.SCHEMA and lbVal:
-                if lbVal.preSources == "nsDomainConcepts":
-                    preSrcConcepts = set(c for c in modelXbrl.qnameConcepts.values()
-                                         if c.qname.namespaceURI == ns and c.type is not None and c.type.isDomainItemType)
-                else:
-                    preSrcConcepts = set(modelXbrl.qnameConcepts.get(qname(ns,c)) for c in lbVal.preSources)
-                for rel in modelXbrl.relationshipSet(XbrlConst.parentChild).modelRelationships:
-                    if not isStandardUri(val, rel.modelDocument.uri) and rel.modelDocument.targetNamespace not in val.otherStandardTaxonomies:
-                        relFrom = rel.fromModelObject
-                        relTo = rel.toModelObject
-                        if relFrom is not None and relTo is not None:
-                            relset = modelXbrl.relationshipSet(XbrlConst.parentChild, rel.linkrole)
-                            roleMatch = lbVal.elrPre.match(rel.linkrole)
-                            if ((roleMatch and relTo.qname.namespaceURI != ns and (
-                                         not relTo.type.isDomainItemType or (lbVal.preSources and not
-                                         any(relset.isRelated(c, "descendant-or-self", relFrom) for c in preSrcConcepts))))
-                                or
-                                (not roleMatch and not lbVal.preCustELRs and  (relFrom.qname.namespaceURI == ns or relTo.qname.namespaceURI == ns))):
-                                modelXbrl.error(f"EFM.{lbVal.efmPre}.relationshipNotPermitted",
-                                    _("The %(arcrole)s relationship from %(conceptFrom)s to %(conceptTo)s, link role %(linkroleDefinition)s, is not permitted."),
-                                    edgarCode=f"du-{lbVal.efmPre[2:4]}{lbVal.efmPre[5:]}-Relationship-Not-Permitted",
-                                    modelObject=(rel,relFrom,relTo), arc=rel.qname, arcrole=rel.arcrole,
-                                    linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole),
-                                    conceptFrom=relFrom.qname, conceptTo=relTo.qname)
+                preSrcConcepts = set(modelXbrl.qnameConcepts.get(qname(ns,c)) for c in lbVal.preSources)
+                if lbVal.efmPre:
+                    for rel in modelXbrl.relationshipSet(XbrlConst.parentChild).modelRelationships:
+                        if not isStandardUri(val, rel.modelDocument.uri) and rel.modelDocument.targetNamespace not in val.otherStandardTaxonomies:
+                            relFrom = rel.fromModelObject
+                            relTo = rel.toModelObject
+                            if relFrom is not None and relTo is not None:
+                                relset = modelXbrl.relationshipSet(XbrlConst.parentChild, rel.linkrole)
+                                roleMatch = lbVal.elrPre.match(rel.linkrole)
+                                if ((roleMatch and relTo.qname.namespaceURI != ns and (
+                                             not relTo.type.isDomainItemType or (lbVal.preSources and not
+                                             any(relset.isRelated(c, "descendant-or-self", relFrom) for c in preSrcConcepts))))
+                                    or
+                                    (not roleMatch and not lbVal.preCustELRs and  (relFrom.qname.namespaceURI == ns or relTo.qname.namespaceURI == ns))):
+                                    modelXbrl.error(f"EFM.{lbVal.efmPre}.relationshipNotPermitted",
+                                        _("The %(arcrole)s relationship from %(conceptFrom)s to %(conceptTo)s, link role %(linkroleDefinition)s, is not permitted."),
+                                        edgarCode=f"du-{lbVal.efmPre[2:4]}{lbVal.efmPre[5:]}-Relationship-Not-Permitted",
+                                        modelObject=(rel,relFrom,relTo), arc=rel.qname, arcrole=rel.arcrole,
+                                        linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole),
+                                        conceptFrom=relFrom.qname, conceptTo=relTo.qname)
                 for rel in modelXbrl.relationshipSet(XbrlConst.summationItem).modelRelationships:
                     if not isStandardUri(val, rel.modelDocument.uri) and rel.modelDocument.targetNamespace not in val.otherStandardTaxonomies:
                         relFrom = rel.fromModelObject
