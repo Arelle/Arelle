@@ -210,7 +210,7 @@ def loadTaxonomyCompatibility(modelXbrl):
     def refTx(txAbbrs):
         return [refTx(tc[txAbbr[1:]]) if txAbbr.startswith("@") else txAbbr
                 for txAbbr in txAbbrs
-                if isinstance(txAbbrs, list)]
+                ] if isinstance(txAbbrs, list) else []
     for k in cc.keys():
         cc[k] = set(flattenSequence(refTx(cc[k])))
     compat["checked-taxonomies"] = set(flattenSequence([t for t in cc.items()]))
