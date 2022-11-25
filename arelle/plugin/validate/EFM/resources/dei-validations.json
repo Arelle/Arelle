@@ -2547,7 +2547,7 @@
 			"validation": "When this fact is non-empty, referenced fact must have reference-value (filerCategory accelerated filer codes)."
 		},
 		"rt": {
-			"message": "dq-{efmSection}-{tag}-Value-{otherTag}-Dependency",
+			"message": "dq-{efmSection}-{tag}-{otherTag}-Dependent-Value",
 			"severity": "warning"
 		},
 		"sb": {
