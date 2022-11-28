@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Generator, Optional, cast
-from lxml import etree  # type: ignore[import]
+from lxml import etree
 from arelle import Locale
 from arelle.ModelValue import qname, qnameEltPfxName, QName
 
@@ -174,7 +174,7 @@ class ModelObject(etree.ElementBase):
         return attrValue
 
     @property
-    def localName(self) -> str:
+    def localName(self) -> Any:
         try:
             return self._localName
         except AttributeError:
@@ -182,7 +182,7 @@ class ModelObject(etree.ElementBase):
             return self._localName
 
     @property
-    def prefixedName(self) -> str:
+    def prefixedName(self) -> Any:
         try:
             return self._prefixedName
         except AttributeError:
@@ -190,7 +190,7 @@ class ModelObject(etree.ElementBase):
             return self._prefixedName
 
     @property
-    def namespaceURI(self) -> str | None:
+    def namespaceURI(self) -> Any | None:
         try:
             return self._namespaceURI
         except AttributeError:
@@ -249,12 +249,12 @@ class ModelObject(etree.ElementBase):
             return self._elementSequence
 
     @property
-    def parentQname(self) -> QName | None:
+    def parentQname(self: ModelObject) -> QName | None:
         try:
             return self._parentQname
         except AttributeError:
             parentObj = self.getparent()
-            self._parentQname = parentObj.elementQname if parentObj is not None else None
+            self._parentQname = parentObj.elementQname if parentObj is not None else None  # type: ignore[attr-defined]
             return self._parentQname
 
 
@@ -453,6 +453,7 @@ class ModelAttribute:
 
 class ObjectPropertyViewWrapper:  # extraProperties = ( (p1, v1), (p2, v2), ... )
     __slots__ = ("modelObject", "extraProperties")
+    modelObject: ModelObject
     def __init__(self, modelObject: ModelObject, extraProperties: tuple[Any, ...] = ()) -> None:
         self.modelObject = modelObject
         self.extraProperties = extraProperties

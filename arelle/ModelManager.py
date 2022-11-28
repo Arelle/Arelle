@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 import gc, sys, traceback, logging
 from arelle import ModelXbrl, Validate, DisclosureSystem, PackageManager
 from arelle.PluginManager import pluginClassMethods
@@ -71,6 +71,7 @@ class ModelManager:
         self.customTransforms = None
         self.isLocaleSet = False
         self.setLocale()
+        self.formulaOptions: Any
 
     def shutdown(self):
         self.status = "shutdown"
@@ -82,7 +83,7 @@ class ModelManager:
         self.isLocaleSet = True
         return localeSetupMessage
 
-    def addToLog(self, message, messageCode="", file="", refs=[], level=logging.INFO):
+    def addToLog(self, message, messageCode="", file="", refs=[], level=logging.INFO) -> None:
         """Add a simple info message to the default logger
 
         :param message: Text of message to add to log.
@@ -117,13 +118,12 @@ class ModelManager:
         """
         self.cntlr.viewModelObject(modelXbrl, objectId)
 
-    def reloadViews(self, modelXbrl):
+    def reloadViews(self, modelXbrl: ModelXbrl) -> None:
         """Notify all active views to reload and redisplay their entire contents.  May be used
         when loaded model is changed significantly, or when individual object change notifications
         (by viewModelObject) would be difficult to identify or too numerous.
 
         :param modelXbrl: ModelXbrl (DTS) whose views are to be reloaded
-        :type modelXbrl: ModelXbrl
         """
         self.cntlr.reloadViews(modelXbrl)
 
@@ -176,7 +176,7 @@ class ModelManager:
         elif self.modelXbrl is not None:
             self.modelXbrl.saveDTSpackage()
 
-    def create(self, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True, isEntry=False, errorCaptureLevel=None, initialXml=None, base=None):
+    def create(self, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True, isEntry=False, errorCaptureLevel=None, initialXml=None, base=None) -> ModelXbrl:
         self.modelXbrl = ModelXbrl.create(self, newDocumentType=newDocumentType, url=url, schemaRefs=schemaRefs, createModelDocument=createModelDocument,
                                           isEntry=isEntry, errorCaptureLevel=errorCaptureLevel, initialXml=initialXml, base=base)
         self.loadedModelXbrls.append(self.modelXbrl)

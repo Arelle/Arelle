@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelInlineFact
     from arelle.XmlValidate import XsdPattern
 
-import regex as re # type: ignore[import]
+import regex as re
 XmlUtil = None
 
 @overload
@@ -30,11 +30,11 @@ def qname(value: ModelObject | str | QName, name: str | ModelObject) -> QName: .
 def qname(value: ModelObject | str | QName, name: str | ModelObject | None = None, noPrefixIsNoNamespace: bool = False) -> QName: ...
 
 @overload
-def qname(value: ModelObject | str | QName | Any | None, name: str | ModelObject | None) -> QName | None : ...
+def qname(value: ModelObject | str | QName | Any | None, name: str | ModelObject | dict[str,  str] | None) -> QName | None : ...
 
 def qname(
     value: ModelObject | str | QName | Any | None,
-    name: str | ModelObject | None = None,
+    name: str | ModelObject | dict[str,  str] | None = None,
     noPrefixIsNoNamespace: bool = False,
     castException: Exception | None = None,
     prefixException: Exception | None = None,
@@ -508,16 +508,16 @@ def yearMonthDayTimeDuration(value: datetime.datetime | str, value2: datetime.da
             seconds += 60
         return YearMonthDayTimeDuration(years, months, days, hours, minutes, seconds)
 
-    durationPatternMatch = durationPattern.match(value)
+    durationPatternMatch: Any = durationPattern.match(cast(str, value))
     assert durationPatternMatch is not None
 
     minus: str
     hasYr: str
-    yrs: str
+    yrs: int
     hasMo: str
-    mos: str
+    mos: int
     hasDay: str
-    days: str # type: ignore[no-redef]
+    days: str  # type: ignore[no-redef]
     hasTime: str
     hasHr: str
     hrs: str

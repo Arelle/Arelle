@@ -344,7 +344,7 @@ def checkFact(val, f, otherFacts=None) -> None:
             _("Fact %(fact)s context %(contextID)s dimensionally not valid"),
             modelObject=f, fact=f.qname, contextID=f.context.id)
 
-def isFactDimensionallyValid(val, f, setPrototypeContextElements=False, otherFacts=None):
+def isFactDimensionallyValid(val, f, setPrototypeContextElements=False, otherFacts=None) -> bool:
     hasElrHc = False
     for ELR, hcRels in priItemElrHcRels(val, f.concept).items():
         hasElrHc = True

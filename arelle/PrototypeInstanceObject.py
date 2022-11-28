@@ -4,10 +4,11 @@ See COPYRIGHT.md for copyright information.
 from arelle import XmlUtil
 from arelle.ModelValue import QName
 from arelle.ModelObject import ModelObject
+from typing import Any
 Aspect = None
 
 class FactPrototype():      # behaves like a fact for dimensional validity testing
-    def __init__(self, v, aspectValues=None):
+    def __init__(self, v, aspectValues=None) -> Any:
         global Aspect
         if Aspect is None:
             from arelle.ModelFormulaObject import Aspect

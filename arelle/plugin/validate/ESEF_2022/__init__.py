@@ -80,8 +80,11 @@ from arelle.XPathContext import XPathContext
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelInstanceObject import ModelContext
-from typing import Any, cast
+from typing import Any, cast, TYPE_CHECKING
 from collections.abc import Generator
+
+if TYPE_CHECKING:
+    from arelle.ModelValue import QName
 
 _: TypeGetText  # Handle gettext
 
@@ -118,9 +121,7 @@ def modelXbrlBeforeLoading(modelXbrl: ModelXbrl, normalizedUri: str, filepath: s
                 if (not isinstance(modelXbrl.fileSource.selection, list) and
                     modelXbrl.fileSource.selection is not None and
                     modelXbrl.fileSource.selection.endswith(".xml") and
-                    # Ignoring for now: Argument 1 to "identify" of "Type" has incompatible type "FileSource"; expected "Type".
-                    # It is not entirely clear why self isn't used in the identify-method.
-                    ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url) in ( # type: ignore[arg-type]
+                    ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url) in (
                         ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
                     return None # allow zipped test case to load normally
                 if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
@@ -766,18 +767,25 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         hasNoFacts = True
         for qn, facts in modelXbrl.factsByQname.items():
             hasNoFacts = False
-            if qn in mandatory:
+            if qn in cast(list[QName], mandatory):
                 reportedMandatory.add(qn)
             for f in facts:
                 if f.precision is not None:
                     precisionFacts.add(f)
                 if f.isNumeric and f.concept is not None and getattr(f, "xValid", 0) >= VALID:
                     numFactsByConceptContextUnit[(f.qname, mapContext.get(f.context,f.context), mapUnit.get(f.unit, f.unit))].append(f)
-                    if not f.isNil and f.xValue > 1 and f.concept.type is not None and (
+                    if not f.isNil and cast(int, f.xValue) > 1 and f.concept.type is not None and (
                         f.concept.type.qname == PERCENT_TYPE or f.concept.type.isDerivedFrom(PERCENT_TYPE)):
                         modelXbrl.warning("ESEF.2.2.2.percentGreaterThan100",
                             _("A percent fact should have value <= 100: %(element)s in context %(context)s value %(value)s"),
                             modelObject=f, element=f.qname, context=f.context.id, value=f.xValue)
+<<<<<<< HEAD
+=======
+                    elif f.concept.balance is not None and cast(float, f.xValue) < 0:
+                        modelXbrl.warning("ESEF.1.6.1.negativeAmountWithBalance",
+                            _("A fact with balance should be a positive number: %(element)s in context %(context)s value %(value)s"),
+                            modelObject=f, element=f.qname, context=f.context.id, value=f.xValue)
+>>>>>>> 03e7d08f (Continued work in progress)
                 elif f.concept is not None and f.concept.type is not None:
                     if f.concept.type.isOimTextFactType:
                         lang = f.xmlLang
@@ -818,19 +826,19 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         decVals = {}
         for fList in numFactsByConceptContextUnit.values():
             if len(fList) > 1:
-                f0 = fList[0]
+                f0: ModelInlineFact = fList[0]
                 if any(f.isNil for f in fList):
                     _inConsistent = not all(f.isNil for f in fList)
                 else: # not all have same decimals
                     _d = inferredDecimals(f0)
                     _v = f0.xValue
-                    _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
+                    _inConsistent = isnan(cast(int, _v)) # NaN is incomparable, always makes dups inconsistent
                     decVals[_d] = _v
                     aMax, bMin = rangeValue(_v, _d)
                     for f in fList[1:]:
                         _d = inferredDecimals(f)
                         _v = f.xValue
-                        if isnan(_v):
+                        if isnan(cast(int, _v)):
                             _inConsistent = True
                             break
                         if _d in decVals:
@@ -853,7 +861,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             _("The accuracy of numeric facts MUST be defined with the 'decimals' attribute rather than the 'precision' attribute: %(elements)s."),
                             modelObject=precisionFacts, elements=", ".join(sorted(str(e.qname) for e in precisionFacts)))
 
-        missingElements = (mandatory - reportedMandatory)
+        missingElements = (cast(set[ModelFact], mandatory) - cast(set[ModelFact], reportedMandatory))
         if missingElements:
             modelXbrl.error("ESEF.???.missingRequiredElements",
                             _("Required elements missing from document: %(elements)s."),

@@ -389,7 +389,7 @@ def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl)
             doc.inDTS = False
     return doc
 
-def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None, initialComment=None, base=None, discover=True, documentEncoding="utf-8"):
+def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None, initialComment=None, base=None, discover=True, documentEncoding="utf-8") -> ModelDocument:
     """Returns a new modelDocument, created from scratch, with any necessary header elements
 
     (such as the schema, instance, or RSS feed top level elements)
@@ -759,7 +759,7 @@ class ModelDocument:
             except AttributeError:
                 pass
 
-    def save(self, overrideFilepath=None, outputZip=None, outputFile=None, updateFileHistory=True, encoding="utf-8", **kwargs):
+    def save(self, overrideFilepath=None, outputZip=None, outputFile=None, updateFileHistory=True, encoding="utf-8", **kwargs) -> None:
         """Saves current document file.
 
         :param overrideFilepath: specify to override saving in instance's modelDocument.filepath
@@ -783,7 +783,7 @@ class ModelDocument:
             self.updateFileHistoryIfNeeded()
         self.isModified = False
 
-    def close(self, visited=None, urlDocs=None):
+    def close(self, visited=None, urlDocs=None) -> None:
         try:
             if self.modelXbrl is not None:
                 self.modelXbrl = None
@@ -1061,7 +1061,7 @@ class ModelDocument:
                     self.schemaLocationElements.add(schemaLocationElement)
                     self.referencedNamespaces.add(eltNamespace)
 
-    def loadSchemalocatedSchemas(self):
+    def loadSchemalocatedSchemas(self) -> None:
         # schemaLocation requires loaded schemas for validation
         if self.skipDTS:
             return
@@ -1258,7 +1258,7 @@ class ModelDocument:
                     modelObject=undefFacts,
                     elements=", ".join(sorted(set(str(f.prefixedName) for f in undefFacts))))
 
-    def contextDiscover(self, modelContext):
+    def contextDiscover(self, modelContext) -> None:
         if not self.skipDTS:
             xmlValidate(self.modelXbrl, modelContext) # validation may have not completed due to errors elsewhere
         id = modelContext.id
@@ -1283,7 +1283,7 @@ class ModelDocument:
                         else:
                             containerNonDimValues.append(sElt)
 
-    def unitDiscover(self, unitElement):
+    def unitDiscover(self, unitElement) -> None:
         if not self.skipDTS:
             xmlValidate(self.modelXbrl, unitElement) # validation may have not completed due to errors elsewhere
         self.modelXbrl.units[unitElement.id] = unitElement
@@ -1335,7 +1335,7 @@ class ModelDocument:
         self.modelXbrl.ixdsHtmlElements.append(htmlElement)
 
 
-    def factDiscover(self, modelFact, parentModelFacts=None, parentElement=None):
+    def factDiscover(self, modelFact, parentModelFacts=None, parentElement=None) -> None:
         if parentModelFacts is None: # may be called with parentElement instead of parentModelFacts list
             if isinstance(parentElement, ModelFact) and parentElement.isTuple:
                 parentModelFacts = parentElement.modelTupleFacts

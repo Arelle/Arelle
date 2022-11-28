@@ -7,7 +7,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import sys, subprocess
-import regex as re # type: ignore[import]
+import regex as re
 from typing import Generator, cast, Any, Callable
 from fractions import Fraction
 from arelle.typing import TypeGetText, LocaleDict

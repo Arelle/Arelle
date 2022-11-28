@@ -750,14 +750,14 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         hasNoFacts = True
         for qn, facts in modelXbrl.factsByQname.items():
             hasNoFacts = False
-            if qn in mandatory:
+            if qn in mandatory:  # type: ignore[comparison-overlap]
                 reportedMandatory.add(qn)
             for f in facts:
                 if f.precision is not None:
                     precisionFacts.add(f)
                 if f.isNumeric and f.concept is not None and getattr(f, "xValid", 0) >= VALID:
                     numFactsByConceptContextUnit[(f.qname, mapContext.get(f.context,f.context), mapUnit.get(f.unit, f.unit))].append(f)
-                    if not f.isNil and f.xValue > 1 and f.concept.type is not None and (
+                    if not f.isNil and cast(int, f.xValue) > 1 and f.concept.type is not None and (
                         f.concept.type.qname == PERCENT_TYPE or f.concept.type.isDerivedFrom(PERCENT_TYPE)):
                         modelXbrl.warning("ESEF.2.2.2.percentGreaterThan100",
                             _("A percent fact should have value <= 100: %(element)s in context %(context)s value %(value)s"),
@@ -807,13 +807,13 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 else: # not all have same decimals
                     _d = inferredDecimals(f0)
                     _v = f0.xValue
-                    _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
+                    _inConsistent = isnan(cast(int,_v)) # NaN is incomparable, always makes dups inconsistent
                     decVals[_d] = _v
                     aMax, bMin = rangeValue(_v, _d)
                     for f in fList[1:]:
                         _d = inferredDecimals(f)
                         _v = f.xValue
-                        if isnan(_v):
+                        if isnan(cast(int, _v)):
                             _inConsistent = True
                             break
                         if _d in decVals:
@@ -836,7 +836,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             _("The accuracy of numeric facts MUST be defined with the 'decimals' attribute rather than the 'precision' attribute: %(elements)s."),
                             modelObject=precisionFacts, elements=", ".join(sorted(str(e.qname) for e in precisionFacts)))
 
-        missingElements = (mandatory - reportedMandatory)
+        missingElements = (cast(set[ModelFact], mandatory) - cast(set[ModelFact], reportedMandatory))
         if missingElements:
             modelXbrl.error("ESEF.???.missingRequiredElements",
                             _("Required elements missing from document: %(elements)s."),

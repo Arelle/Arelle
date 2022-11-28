@@ -9,6 +9,8 @@ from decimal import Decimal
 from fractions import Fraction
 from collections import OrderedDict
 from collections.abc import MappingView, MutableSet
+import math
+from typing import Any
 
 STR_NUM_TYPES = (str, int, float, Decimal, Fraction)
 
@@ -93,13 +95,14 @@ def strTruncate(value, length) -> str:
         return _s
     return _s[0:length-3] + "..."
 
-def normalizeSpace(s):
+
+def normalizeSpace(s) -> str:
     if isinstance(s, str):
         return " ".join(s.split())
     return s
 
 SEQUENCE_TYPES = (tuple,list,set,frozenset,MappingView)
-def flattenSequence(x, sequence=None):
+def flattenSequence(x, sequence=None) -> list[Any]:
     if sequence is None:
         if not isinstance(x, SEQUENCE_TYPES):
             if x is None:

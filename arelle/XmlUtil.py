@@ -3,8 +3,8 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import datetime
-import regex as re  # type: ignore[import]
-from lxml import etree  # type: ignore[import]
+import regex as re
+from lxml import etree
 from arelle.XbrlConst import ixbrlAll, qnLinkFootnote, xhtml, xml, xsd, xhtml
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, QName, tzinfoStr
@@ -35,11 +35,11 @@ xmlnsStripPattern = re.compile(r'\s*xmlns(:[\w.-]+)?="[^"]*"')
 nonSpacePattern = re.compile(r"\S+")
 
 def xmlns(element: ModelObject, prefix: str | None) -> str | None:
-    ns: str = element.nsmap.get(prefix)
+    ns: str | None = element.nsmap.get(prefix)
     if ns:
         return ns
     if prefix == 'xml': # not normally declared explicitly
-        return cast(xml, str)
+        return xml
     return ns # return results of get (which may be no namespace
 
 def xmlnsprefix(element: etree._Element | ModelObject, ns: str | None) -> str | None:
@@ -692,7 +692,7 @@ def addChild(
     parent: ModelObject,
     childName1: str | QName,
     childName2: str | None = None,
-    attributes: Sequence[tuple[str | QName, str]] | dict[str | QName, str] | None = None,
+    attributes: Any | None = None,
     text: str | None = None,
     afterSibling: ModelObject | None = None,
     beforeSibling: ModelObject | None = None,

@@ -28,9 +28,10 @@ if TYPE_CHECKING:
     from datetime import date, datetime
     from arelle import ModelDocument
     from arelle.ModelManager import ModelManager
-    from arelle.typing import TypeGetText
+    from arelle.typing import TypeGetText, LocaleDict
     from arelle.ModelDtsObject import ModelConcept, ModelType, ModelRoleType
     from arelle.ModelObject import ModelObject
+    from arelle.PrototypeInstanceObject import DimValuePrototype
     _: TypeGetText  # Handle gettext
 else:
     ModelFact = None
@@ -199,6 +200,9 @@ class ModelXbrl:
     uriDir: str
     targetRelationships: Any
     qnameDimensionContextElement: dict[str, str]
+    _factsByDimQname: dict[str, dict[QName | str | None, set[ModelFact]]]
+    _factsByQname: dict[QName, set[ModelInlineFact]]
+    _factsByDatatype: dict[bool | tuple[bool, QName], set[ModelFact]] | set[ModelFact]
 
     def __init__(self,  modelManager: ModelManager, errorCaptureLevel: str | None = None) -> None:
         self.modelManager = modelManager
@@ -260,7 +264,7 @@ class ModelXbrl:
         self.modelXbrl = self  # for consistency in addressing modelXbrl
         self.arelleUnitTests: dict[str, str] = {}  # unit test entries (usually from processing instructions
         self.uri: str
-        self.locale: str | None
+        self.locale: LocaleDict | None
         for pluginXbrlMethod in pluginClassMethods("ModelXbrl.Init"):
             pluginXbrlMethod(self)
 
@@ -495,9 +499,9 @@ class ModelXbrl:
         return None
 
     def createContext(
-            self, entityIdentScheme: str, entityIdentValue: str, periodType: str, periodStart: datetime | date, periodEndInstant: datetime | date, priItem: ModelDimensionValue | None,
-            dims: ModelDimensionValue | QName, segOCCs: ModelObject, scenOCCs: ModelObject, afterSibling: ModelObject | None = None, beforeSibling: ModelObject | None = None, id: str | None = None
-    ) -> ModelContext:
+            self, entityIdentScheme: str, entityIdentValue: str, periodType: str, periodStart: datetime | date, periodEndInstant: datetime | date, priItem: QName | None,
+            dims: dict[int | QName, QName | DimValuePrototype], segOCCs: ModelObject, scenOCCs: ModelObject, afterSibling: ModelObject | None = None, beforeSibling: ModelObject | None = None, id: str | None = None
+    ) -> ModelObject:
         """Creates a new ModelContext and validates (integrates into modelDocument object model).
 
         :param entityIdentScheme: Scheme to match
@@ -514,7 +518,7 @@ class ModelXbrl:
         """
         assert self.modelDocument is not None
         xbrlElt = self.modelDocument.xmlRootElement
-        if afterSibling == AUTO_LOCATE_ELEMENT:
+        if afterSibling == cast(ModelObject, AUTO_LOCATE_ELEMENT):
             afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context"))
         cntxId = id if id else 'c-{0:02n}'.format( len(self.contexts) + 1)
         newCntxElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "context", attributes=("id", cntxId),
@@ -571,7 +575,7 @@ class ModelXbrl:
                         scenarioElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "scenario")
                     contextElt = scenarioElt
                 else:
-                    self.info("arelleLinfo",
+                    self.info("arelleLinfo",  #type: ignore[func-returns-value]
                         _("Create context, %(dimension)s, cannot determine context element, either no all relationship or validation issue"),
                         modelObject=self, dimension=dimQname),
                     continue
@@ -611,7 +615,7 @@ class ModelXbrl:
                 return u
         return None
 
-    def createUnit(self, multiplyBy: list[QName], divideBy: list[QName], afterSibling: ModelObject | None = None, beforeSibling: ModelObject | None = None, id: str | None = None) -> ModelUnit:
+    def createUnit(self, multiplyBy: list[QName], divideBy: list[QName], afterSibling: ModelObject | None = None, beforeSibling: ModelObject | None = None, id: str | None = None) -> ModelObject:
         """Creates new unit, by measures, as in formula usage, if any
 
         :param multiplyBy: List of multiply-by measure QNames (or top level measures if no divideBy)
@@ -622,7 +626,7 @@ class ModelXbrl:
         """
         assert self.modelDocument is not None
         xbrlElt = self.modelDocument.xmlRootElement
-        if afterSibling == AUTO_LOCATE_ELEMENT:
+        if afterSibling == cast(ModelObject, AUTO_LOCATE_ELEMENT):
             afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context", "unit"))
         unitId = id if id else 'u-{0:02n}'.format( len(self.units) + 1)
         newUnitElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "unit", attributes=("id", unitId),
@@ -646,6 +650,7 @@ class ModelXbrl:
     def nonNilFactsInInstance(self) -> set[ModelInlineFact]:  # indexed by fact (concept) qname
         """Facts in the instance which are not nil, cached
         """
+        self._nonNilFactsInInstance: set[ModelInlineFact]
         try:
             return self._nonNilFactsInInstance
         except AttributeError:
@@ -653,10 +658,10 @@ class ModelXbrl:
             return self._nonNilFactsInInstance
 
     @property
-    def factsByQname(self) -> dict[QName, set[ModelFact]]:  # indexed by fact (concept) qname
+    def factsByQname(self) -> dict[QName, set[ModelInlineFact]]:  # indexed by fact (concept) qname
         """Facts in the instance indexed by their QName, cached
         """
-        _factsByQname: dict[QName, set[ModelFact]]
+
         try:
             return self._factsByQname
         except AttributeError:
@@ -667,19 +672,21 @@ class ModelXbrl:
             return fbqn
 
     @property
-    def factsByLocalName(self) -> dict[QName.localName, set[ModelFact]]:  # indexed by fact (concept) localName
+    def factsByLocalName(self) -> dict[QName, set[ModelInlineFact]]:  # indexed by fact (concept) localName
         """Facts in the instance indexed by their LocalName, cached
         """
+        self._factsByLocalName: dict[QName, set[ModelInlineFact]]
         try:
             return self._factsByLocalName
         except AttributeError:
+            fbln: dict[QName, set[ModelInlineFact]]
             self._factsByLocalName = fbln = defaultdict(set)
             for f in self.factsInInstance:
                 if f.qname is not None:
                     fbln[f.qname.localName].add(f)
             return fbln
 
-    def factsByDatatype(self, notStrict: bool, typeQname) -> Set[ModelFact]:  # indexed by fact (concept) qname
+    def factsByDatatype(self, notStrict: bool, typeQname: QName) -> set[ModelFact] | None:  # indexed by fact (concept) qname
         """Facts in the instance indexed by data type QName, cached as types are requested
 
         :param notSctrict: if True, fact may be derived
@@ -716,7 +723,7 @@ class ModelXbrl:
         except KeyError:
             return set()  # no facts for this period type
 
-    def factsByDimMemQname(self, dimQname: QName, memQname: QName | None = None) -> dict[QName, ModelFact]:  # indexed by fact (concept) qname
+    def factsByDimMemQname(self, dimQname: str, memQname: QName | None = None) -> set[ModelFact]:  # indexed by fact (concept) qname
         """Facts in the instance indexed by their Dimension  and Member QName, cached
         If Member is None, returns facts that have the dimension (explicit or typed)
         If Member is NONDEFAULT, returns facts that have the dimension (explicit non-default or typed)
@@ -757,11 +764,12 @@ class ModelXbrl:
                 cntx = fact.context
                 if cntx is not None:
                     cntx._inUse = True
-            self._contextsInUseMarked = True
+            self._contextsInUseMarked: bool = True
             return self.contextsInUse
 
     @property
-    def dimensionsInUse(self) -> Set:
+    def dimensionsInUse(self) -> set[Any]:
+        self._dimensionsInUse: set[Any]
         try:
             return self._dimensionsInUse
         except AttributeError:
@@ -809,12 +817,13 @@ class ModelXbrl:
         :param afterSibling: lxml element in instance to insert new concept after
         :param validate: specify False to block XML Validation (required when constructing a tuple which is invalid until after it's contents are created)
         """
-        if parent is None: parent = self.modelDocument.xmlRootElement
+        if parent is None:
+            assert self.modelDocument is not None
+            parent = self.modelDocument.xmlRootElement
         self.makeelementParentModelObject = parent
-        newFact:ModelObject = XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
-                                   afterSibling=afterSibling, beforeSibling=beforeSibling)
+        newFact: ModelInlineFact = cast(ModelInlineFact, XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
+                                   afterSibling=afterSibling, beforeSibling=beforeSibling))
         global ModelFact
-        newFact: ModelObject
         if ModelFact is None:
             from arelle.ModelInstanceObject import ModelFact
         if hasattr(self, "_factsByQname"):
@@ -824,6 +833,7 @@ class ModelXbrl:
         del self.makeelementParentModelObject
         if validate:
             XmlValidate.validate(self, newFact)
+        assert self.modelDocument is not None
         self.modelDocument.factDiscover(newFact, parentElement=parent)
         # update cached sets
         if not newFact.isNil and hasattr(self, "_nonNilFactsInInstance"):
@@ -841,6 +851,7 @@ class ModelXbrl:
     def setIsModified(self) -> None:
         """Records that the underlying document has been modified.
         """
+        assert self.modelDocument is not None
         self.modelDocument.isModified = True
 
     def isModified(self) -> bool:
@@ -875,7 +886,7 @@ class ModelXbrl:
             if isinstance(objectId, (ModelObject,FactPrototype)):
                 modelObject = objectId
             elif isinstance(objectId, str) and objectId.startswith("_"):
-                modelObject = self.modelObject(objectId)
+                modelObject = cast(ModelObject, self.modelObject(objectId))
             if modelObject is not None:
                 for view in self.views:
                     view.viewModelObject(modelObject)
@@ -902,7 +913,7 @@ class ModelXbrl:
         return effectiveMessageCode
 
     # isLoggingEffectiveFor( messageCodes= messageCode= level= )
-    def isLoggingEffectiveFor(self, **kwargs: Any) -> QName | bool | None:  # args can be messageCode(s) and level
+    def isLoggingEffectiveFor(self, **kwargs: Any) -> QName | str | bool | None:  # args can be messageCode(s) and level
         logger = self.logger
         if "messageCodes" in kwargs or "messageCode" in kwargs:
             if "messageCodes" in kwargs:
@@ -929,19 +940,19 @@ class ModelXbrl:
                     for p in properties if 2 <= len(p) <= 3]
         # determine message and extra arguments
         fmtArgs = {}
-        extras: dict[str, str] = {"messageCode":messageCode}
+        extras: dict[str, Any] = {"messageCode":messageCode}
         modelObjectArgs: tuple[Any, ...] | list[Any] = ()
 
         for argName, argValue in codedArgs.items():
             if argName in ("modelObject", "modelXbrl", "modelDocument"):
                 try:
-                    entryUrl = self.modelDocument.uri
+                    entryUrl = self.modelDocument.uri  # type: ignore[union-attr]
                 except AttributeError:
                     try:
                         entryUrl = self.entryLoadingUrl
                     except AttributeError:
                         entryUrl = self.fileSource.url
-                refs: list[dict[str], Any] = []
+                refs: list[dict[str, Any]] = []
                 modelObjectArgs_complex = argValue if isinstance(argValue, (tuple,list,set)) else (argValue,)
                 modelObjectArgs = flattenSequence(modelObjectArgs_complex)
                 for arg in modelObjectArgs:
@@ -956,7 +967,7 @@ class ModelXbrl:
                                     objectUrl = arg.displayUri
                                 except AttributeError:
                                     try:
-                                        objectUrl = self.modelDocument.displayUri
+                                        objectUrl = self.modelDocument.displayUri  # type: ignore[union-attr]
                                     except AttributeError:
                                         objectUrl = getattr(self, "entryLoadingUrl", "")
                         try:
@@ -969,12 +980,12 @@ class ModelXbrl:
                                 self.logRefFileRelUris[entryUrl][objectUrl] = file
                         except:
                             file = ""
-                        ref = {}
+                        ref: dict[str, Any] = {}
                         if isinstance(arg,(ModelObject, ObjectPropertyViewWrapper)):
-                            _arg = arg.modelObject if isinstance(arg, ObjectPropertyViewWrapper) else arg
+                            _arg:ModelObject = arg.modelObject if isinstance(arg, ObjectPropertyViewWrapper) else arg
                             if len(modelObjectArgs) > 1 and getattr(arg,"tag",None) == "instance":
                                 continue # skip IXDS top level element
-                            ref["href"] = file + "#" + XmlUtil.elementFragmentIdentifier(_arg)
+                            ref["href"] = file + "#" + cast(str, XmlUtil.elementFragmentIdentifier(_arg))
                             ref["sourceLine"] = _arg.sourceline
                             ref["objectId"] = _arg.objectId()
                             if self.logRefObjectProperties:
@@ -995,7 +1006,7 @@ class ModelXbrl:
                             except AttributeError:
                                 pass # arg may not have sourceline, ignore if so
                         if self.logRefHasPluginAttrs:
-                            refAttributes = {}
+                            refAttributes: dict[str, str] = {}
                             for pluginXbrlMethod in pluginClassMethods("Logging.Ref.Attributes"):
                                 pluginXbrlMethod(arg, refAttributes, codedArgs)
                             if refAttributes:
@@ -1049,7 +1060,7 @@ class ModelXbrl:
                 (msg, fmtArgs) if fmtArgs else (msg,),
                 extras)
 
-    def loggableValue(self, argValue: Any) -> str | dict[str, str]:  # must be dereferenced and not related to object lifetimes
+    def loggableValue(self, argValue: Any) -> str | dict[Any, Any]:  # must be dereferenced and not related to object lifetimes
         if isinstance(argValue, (ModelValue.QName, ModelObject, FileNamedStringIO, tuple, list, set)):  # might be a set of lxml objects not dereferencable at shutdown
             return str(argValue)
         elif argValue is None:
@@ -1085,7 +1096,7 @@ class ModelXbrl:
         """@messageCatalog=[]"""
         self.log('WARNING', codes, msg, **args)
 
-    def log(self, level: str, codes: str | tuple[str, ...], msg: str, **args: Any) -> None:
+    def log(self, level: str, codes: Any, msg: str, **args: Any) -> None:
         """Same as error(), but level passed in as argument
         """
         logger = self.logger
@@ -1233,7 +1244,7 @@ def load(modelManager: ModelManager, url: str, nextaction: str | None = None, ba
     from arelle import (ModelDocument, FileSource)
     modelXbrl = create(modelManager, errorCaptureLevel=errorCaptureLevel)
     if "errors" in kwargs: # pre-load errors, such as from taxonomy package validation
-        modelXbrl.errors.extend(kwargs.get("errors"))
+        modelXbrl.errors.extend(cast(str, kwargs.get("errors")))
     supplementalUrls = None
     if useFileSource is not None:
         modelXbrl.fileSource = useFileSource

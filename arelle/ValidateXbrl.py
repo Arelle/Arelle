@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-import regex as re  # type: ignore[import]
+import regex as re
 from typing import Any, cast
 from arelle import (XmlUtil, XbrlUtil, XbrlConst,
                 ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateFormula, ValidateUtr)
@@ -305,7 +305,7 @@ class ValidateXbrl:
 
             if concept.isTuple:
                 # must be global
-                if not concept.getparent().localName == "schema":
+                if not cast(ModelObject, concept.getparent()).localName == "schema":
                     self.modelXbrl.error("xbrl.4.9:tupleGloballyDeclared",
                         _("Tuple %(concept)s must be declared globally"),
                         modelObject=concept, concept=concept.qname)
@@ -644,8 +644,8 @@ class ValidateXbrl:
                             linkrole=modelLink.role, xlinkLabelFrom=fromLabel, xlinkLabelTo=toLabel)
                     if not((toLabel in resourceLabels and resourceLabels[toLabel] is not None
                               and resourceLabels[toLabel].qname == XbrlConst.qnLinkFootnote) or
-                           (toLabel in locLabels and locLabels[toLabel].dereference() is not None # type: ignore[attr-defined]
-                              and locLabels[toLabel].dereference().qname == XbrlConst.qnLinkFootnote)): # type: ignore[attr-defined]
+                           (toLabel in locLabels and locLabels[toLabel].dereference() is not None  # type: ignore[attr-defined]
+                              and locLabels[toLabel].dereference().qname == XbrlConst.qnLinkFootnote)):  # type: ignore[attr-defined]
                         self.modelXbrl.error("xbrl.4.11.1.3.1:factFootnoteArcTo",
                             _("Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s \"to\" is not a footnote resource"),
                             modelObject=arcElt,
@@ -1085,8 +1085,10 @@ class ValidateXbrl:
         # 2022-08-28: note for type ignore: _Element, which is passed by isGenericResource below, has no qname.
         # isGenericResource is currently used in ValidateXbrlDTS. We should revisit this when adding type hints for
         # ValidateXbrlDTS.
-        return self.modelXbrl.isInSubstitutionGroup(elt.qname, genQname)  # type: ignore[union-attr]
-
+        if elt:
+            return self.modelXbrl.isInSubstitutionGroup(elt.qname, genQname)  # type: ignore[attr-defined, return-value]
+        else:
+            return False
     def isGenericLink(self, elt: ModelObject) -> bool:
         return self.isGenericObject(elt, XbrlConst.qnGenLink)
 

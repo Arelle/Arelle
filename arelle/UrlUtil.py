@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 import os
 from typing import Any
-import regex as re # type: ignore[import]
+import regex as re
 from urllib.request import pathname2url
 from urllib.parse import urldefrag, unquote, quote, urljoin
 from email.utils import parsedate
