@@ -202,7 +202,7 @@ class ModelXbrl:
     qnameDimensionContextElement: dict[str, str]
     _factsByDimQname: dict[str, dict[QName | str | None, set[ModelFact]]]
     _factsByQname: dict[QName, set[ModelInlineFact]]
-    _factsByDatatype: dict[bool | tuple[bool, QName], set[ModelFact]] | set[ModelFact]
+    _factsByDatatype: dict[bool | tuple[bool, QName], set[ModelFact]]
 
     def __init__(self,  modelManager: ModelManager, errorCaptureLevel: str | None = None) -> None:
         self.modelManager = modelManager
@@ -546,6 +546,7 @@ class ModelXbrl:
                 context element, but for shortcut will see if each dimension is already reported in an
                 unambiguous valid contextElement
             '''
+            fpDims: dict[int | QName, QName | DimValuePrototype]
             if priItem is not None: # creating concept for a specific fact
                 dims[2] = priItem # Aspect.CONCEPT: prototype needs primary item as an aspect
                 fp = FactPrototype(self, dims)
@@ -555,11 +556,12 @@ class ModelXbrl:
                     self.info("arelle:info",
                         _("Create context for %(priItem)s, cannot determine valid context elements, no suitable hypercubes"),
                         modelObject=self, priItem=priItem)
-                fpDims = fp.context.qnameDims
+                    # fp.context.qnameDims is actually of type Dict[QName, DimValuePrototype]
+                fpDims = cast(dict[int | QName, QName | DimValuePrototype], fp.context.qnameDims)
             else:
                 fpDims = dims # dims known to be valid (such as for inline extraction)
             for dimQname in sorted(fpDims.keys()):
-                dimValue = fpDims[dimQname]
+                dimValue:DimValuePrototype | ModelDimensionValue | QName = fpDims[dimQname]
                 if isinstance(dimValue, (DimValuePrototype,ModelDimensionValue)):
                     dimMemberQname = dimValue.memberQname  # None if typed dimension
                     contextEltName = dimValue.contextElement
@@ -579,8 +581,8 @@ class ModelXbrl:
                         _("Create context, %(dimension)s, cannot determine context element, either no all relationship or validation issue"),
                         modelObject=self, dimension=dimQname),
                     continue
-                dimAttr = ("dimension", XmlUtil.addQnameValue(xbrlElt, dimQname))
-                if dimValue.isTyped:
+                dimAttr = ("dimension", XmlUtil.addQnameValue(xbrlElt, cast(QName, dimQname)))  #Typing thinks dimQname might still be an integer
+                if cast(DimValuePrototype | ModelDimensionValue, dimValue).isTyped:  #Typing thinks that this can also be a QName
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:typedMember",
                                               attributes=dimAttr)
                     if isinstance(dimValue, (ModelDimensionValue, DimValuePrototype)) and dimValue.isTyped:
@@ -661,7 +663,7 @@ class ModelXbrl:
     def factsByQname(self) -> dict[QName, set[ModelInlineFact]]:  # indexed by fact (concept) qname
         """Facts in the instance indexed by their QName, cached
         """
-
+        fbqn: dict[QName, Set[ModelInlineFact]]
         try:
             return self._factsByQname
         except AttributeError:
@@ -1258,7 +1260,7 @@ def load(modelManager: ModelManager, url: str, nextaction: str | None = None, ba
             supplementalUrls = modelXbrl.fileSource.url[1:]
         #elif isinstance(modelXbrl.fileSource.url, dict): # json object
         else:
-            url = modelXbrl.fileSource.url
+            url = cast(str, modelXbrl.fileSource.url)
     else:
         modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr)
         modelXbrl.closeFileSource= True
@@ -1291,7 +1293,7 @@ def create(
     modelXbrl = ModelXbrl(modelManager, errorCaptureLevel=errorCaptureLevel)
     modelXbrl.locale = modelManager.locale
     if newDocumentType:
-        modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr)  # url may be an open file handle, use str(url) below
+        modelXbrl.fileSource = FileSource.FileSource(cast(str, url), modelManager.cntlr)  # url may be an open file handle, use str(url) below
         modelXbrl.closeFileSource= True
         if createModelDocument:
             modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry, initialXml=initialXml, initialComment=initialComment, base=base, discover=discover)

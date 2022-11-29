@@ -779,13 +779,10 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         modelXbrl.warning("ESEF.2.2.2.percentGreaterThan100",
                             _("A percent fact should have value <= 100: %(element)s in context %(context)s value %(value)s"),
                             modelObject=f, element=f.qname, context=f.context.id, value=f.xValue)
-<<<<<<< HEAD
-=======
                     elif f.concept.balance is not None and cast(float, f.xValue) < 0:
                         modelXbrl.warning("ESEF.1.6.1.negativeAmountWithBalance",
                             _("A fact with balance should be a positive number: %(element)s in context %(context)s value %(value)s"),
                             modelObject=f, element=f.qname, context=f.context.id, value=f.xValue)
->>>>>>> 03e7d08f (Continued work in progress)
                 elif f.concept is not None and f.concept.type is not None:
                     if f.concept.type.isOimTextFactType:
                         lang = f.xmlLang

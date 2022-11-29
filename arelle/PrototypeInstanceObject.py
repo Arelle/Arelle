@@ -172,6 +172,7 @@ class ContextPrototype():  # behaves like a context
             return False
 
 class DimValuePrototype():
+    typedMember: Any
     def __init__(self, v, dimConcept, dimQname, mem, contextElement):
         from arelle.ModelValue import QName
         if dimConcept is None: # note no concepts if modelXbrl.skipDTS:

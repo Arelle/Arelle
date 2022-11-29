@@ -650,11 +650,11 @@ class lxmlSchemaResolver(etree.Resolver):
         self.modelXbrl = modelXbrl
 
     def resolve(self, url: str | None, id: str, context: Any) -> Any: #  type: ignore[override]
-        if self.modelXbrl is None or not self.modelXbrl.fileSource.isInArchive(url):  # type: ignore[has-type]
+        if self.modelXbrl is None or not self.modelXbrl.fileSource.isInArchive(url):
             url = self.cntlr.webCache.getfilename(url)
         if url: # may be None if file doesn't exist
             if self.modelXbrl is not None: # use fileSource
-                fh = self.modelXbrl.fileSource.file(url,binary=True)[0]  # type: ignore[has-type]
+                fh = self.modelXbrl.fileSource.file(url,binary=True)[0]
                 return self.resolve_file(fh, context, base_url=None, close=True)
             else: # probably no active modelXbrl yet, such as when loading packages, use url
                 return self.resolve_filename(url, context)  # type: ignore[attr-defined]
