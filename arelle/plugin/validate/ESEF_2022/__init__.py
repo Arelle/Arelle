@@ -1071,7 +1071,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     _("Separate Extended Link Roles are required by %(elr)s for hierarchies: %(roots)s."),
                     modelObject=roots, elr=modelXbrl.roleTypeDefinition(ELR), roots=", ".join(sorted((str(c.qname) for c in roots))))
 
-        concepts: set[ModelConcept]
         for labelrole, concepts in missingConceptLabels.items():
             modelXbrl.warning("ESEF.3.4.5.missingLabelForRoleInReportLanguage",
                 _("Label for %(role)s role SHOULD be available in report language for concepts: %(qnames)s."),
@@ -1128,17 +1127,17 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 modelObject=missingAuthorityElements, qnames=", ".join(sorted(str(qn) for qn in missingAuthorityElements)))
 
         # duplicated core taxonomy elements
-        for name, concepts in modelXbrl.nameConcepts.items():
-            if len(concepts) > 1:
+        for name, conceptlist in modelXbrl.nameConcepts.items():
+            if len(conceptlist) > 1:
                 # Note 2022-08-12: i was being used as an int somewhere else, causing mypy some confusion.
                 # I renamed i to _i to handle that.
                 _i = None # ifrs Concept
-                for c in concepts:
+                for c in conceptlist:
                     if c.qname.namespaceURI == _ifrsNs:
                         _i = c
                         break
                 if _i is not None:
-                    for c in concepts:
+                    for c in conceptlist:
                         if (c.qname.namespaceURI not in _ifrsNses
                             and isExtension(val, c.qname.namespaceURI) # may be a authority-specific duplication such as UK-FRC
                             and c.balance == _i.balance and c.periodType == _i.periodType):

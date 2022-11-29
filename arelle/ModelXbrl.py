@@ -203,6 +203,7 @@ class ModelXbrl:
     _factsByDimQname: dict[str, dict[QName | str | None, set[ModelFact]]]
     _factsByQname: dict[QName, set[ModelInlineFact]]
     _factsByDatatype: dict[bool | tuple[bool, QName], set[ModelFact]]
+    _nonNilFactsInInstance: set[ModelInlineFact]
 
     def __init__(self,  modelManager: ModelManager, errorCaptureLevel: str | None = None) -> None:
         self.modelManager = modelManager
@@ -211,21 +212,21 @@ class ModelXbrl:
 
     def init(self, keepViews: bool = False, errorCaptureLevel: str | None = None) -> None:
         self.uuid: str = uuid.uuid1().urn
-        self.namespaceDocs: DefaultDict[str, list[ModelDocument.ModelDocument]] = defaultdict(list)
+        self.namespaceDocs: defaultdict[str, list[ModelDocument.ModelDocument]] = defaultdict(list)
         self.urlDocs: dict[str, ModelDocument.ModelDocument] = {}
         self.urlUnloadableDocs: dict[bool, str] = {}  # if entry is True, entry is blocked and unloadable, False means loadable but warned
         self.errorCaptureLevel: str = (errorCaptureLevel or logging._checkLevel("INCONSISTENCY"))  # type: ignore[attr-defined]
         self.errors: list[str | None] = []
         self.logCount: dict[str, int] = {}
-        self.arcroleTypes: DefaultDict[str, list[ModelRoleType]] = defaultdict(list)
-        self.roleTypes: DefaultDict[str, list[ModelRoleType]] = defaultdict(list)
+        self.arcroleTypes: defaultdict[str, list[ModelRoleType]] = defaultdict(list)
+        self.roleTypes: defaultdict[str, list[ModelRoleType]] = defaultdict(list)
         self.qnameConcepts: dict[QName, ModelConcept] = {}  # indexed by qname of element
-        self.nameConcepts: DefaultDict[str, set[ModelConcept]] = defaultdict(set)  # contains ModelConcepts by name
+        self.nameConcepts: defaultdict[str, list[ModelConcept]] = defaultdict(list)  # contains ModelConcepts by name
         self.qnameAttributes: dict[QName, Any] = {}
-        self.qnameAttributeGroups: dict[QName, Any]
-        self.qnameGroupDefinitions: dict[QName, Any]
-        self.qnameTypes: dict[QName, ModelType]  # contains ModelTypes by qname key of type
-        self.baseSets: DefaultDict[Any, Any] = defaultdict(list)  # contains ModelLinks for keys arcrole, arcrole#linkrole
+        self.qnameAttributeGroups: dict[QName, Any] = {}
+        self.qnameGroupDefinitions: dict[QName, Any] = {}
+        self.qnameTypes: dict[QName, ModelType] = {}  # contains ModelTypes by qname key of type
+        self.baseSets: defaultdict[Any, Any] = defaultdict(list)  # contains ModelLinks for keys arcrole, arcrole#linkrole
         self.relationshipSets: dict[tuple[str] | tuple[str, tuple[str] | str | None, QName | None, QName | None, bool], ModelRelationshipSetClass] = {}  # contains ModelRelationshipSets by bas set keys
         self.qnameDimensionDefaults: dict[str, str] = {}  # contains qname of dimension (index) and default member(value)
         self.facts: list[ModelInlineFact] = []
@@ -652,7 +653,6 @@ class ModelXbrl:
     def nonNilFactsInInstance(self) -> set[ModelInlineFact]:  # indexed by fact (concept) qname
         """Facts in the instance which are not nil, cached
         """
-        self._nonNilFactsInInstance: set[ModelInlineFact]
         try:
             return self._nonNilFactsInInstance
         except AttributeError:
@@ -1316,4 +1316,3 @@ def loadSchemalocatedSchemas(modelXbrl: ModelXbrl) -> None:
             for modelDocument in modelDocuments:
                 modelDocument.loadSchemalocatedSchemas()
             modelDocumentsSchemaLocated |= modelDocuments
-
