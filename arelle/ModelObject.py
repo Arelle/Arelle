@@ -120,7 +120,7 @@ class ModelObject(etree.ElementBase):
         self.isChanged = False
         parent = self.getparent()
         if parent is not None and hasattr(parent, "modelDocument"):
-            self.init(parent.modelDocument)  # type: ignore[attr-defined]
+            self.init(parent.modelDocument)
 
     def clear(self) -> None:
         self.__dict__.clear()  # delete local attributes
