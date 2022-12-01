@@ -17,18 +17,18 @@ from arelle.PythonUtil import flattenSequence
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 
-
 if TYPE_CHECKING:
-    from arelle.ModelRelationshipSet import ModelRelationshipSet as ModelRelationshipSetClass
-    from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelInlineFact, ModelDimensionValue
-    from arelle.ModelValue import QName
-    from datetime import date, datetime
     from arelle.ModelDocument import ModelDocument as modeldoc
-    from arelle.ModelManager import ModelManager
-    from arelle.typing import TypeGetText, LocaleDict
     from arelle.ModelDtsObject import ModelConcept, ModelType, ModelRoleType
+    from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelInlineFact, ModelDimensionValue
+    from arelle.ModelManager import ModelManager
     from arelle.ModelObject import ModelObject
+    from arelle.ModelRelationshipSet import ModelRelationshipSet as ModelRelationshipSetClass
+    from arelle.ModelValue import QName
+    from arelle.typing import TypeGetText, LocaleDict
     from arelle.PrototypeInstanceObject import DimValuePrototype
+    from datetime import date, datetime
+
     _: TypeGetText  # Handle gettext
 else:
     ModelFact = None
@@ -390,8 +390,8 @@ class ModelXbrl:
         if isinstance(subsGrpQnames, list):
             qnames = subsGrpQnames
         else:
-            qnames = [cast(QName, subsGrpQnames)]
-        return cast(Optional[bool], self.matchSubstitutionGroup(elementQname, {
+            qnames = [cast('QName', subsGrpQnames)]
+        return cast('Optional[bool]', self.matchSubstitutionGroup(elementQname, {
                   qn: (qn is not None) for qn in qnames}))
 
     def createInstance(self, url: str) -> None:
@@ -493,7 +493,7 @@ class ModelXbrl:
                         for cOCCs,mOCCs in ((c.nonDimValues(segAspect),segOCCs),
                                             (c.nonDimValues(scenAspect),scenOCCs)))
                 ):
-                    return cast(ModelContext, c)
+                    return cast('ModelContext', c)
         return None
 
     def createContext(
@@ -516,7 +516,7 @@ class ModelXbrl:
         """
         assert self.modelDocument is not None
         xbrlElt = self.modelDocument.xmlRootElement
-        if afterSibling == cast(ModelObject, AUTO_LOCATE_ELEMENT):
+        if afterSibling == cast('ModelObject', AUTO_LOCATE_ELEMENT):
             afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context"))
         cntxId = id if id else 'c-{0:02n}'.format( len(self.contexts) + 1)
         newCntxElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "context", attributes=("id", cntxId),
@@ -555,7 +555,7 @@ class ModelXbrl:
                         _("Create context for %(priItem)s, cannot determine valid context elements, no suitable hypercubes"),
                         modelObject=self, priItem=priItem)
                     # fp.context.qnameDims is actually of type Dict[QName, DimValuePrototype]
-                fpDims = cast(dict[int | QName, QName | DimValuePrototype], fp.context.qnameDims)
+                fpDims = cast('dict[int | QName, QName | DimValuePrototype]', fp.context.qnameDims)
             else:
                 fpDims = dims # dims known to be valid (such as for inline extraction)
             for dimQname in sorted(fpDims.keys()):
@@ -579,8 +579,8 @@ class ModelXbrl:
                         _("Create context, %(dimension)s, cannot determine context element, either no all relationship or validation issue"),
                         modelObject=self, dimension=dimQname),
                     continue
-                dimAttr = ("dimension", XmlUtil.addQnameValue(xbrlElt, cast(QName, dimQname)))  #Typing thinks dimQname might still be an integer
-                if cast(DimValuePrototype | ModelDimensionValue, dimValue).isTyped:  #Typing thinks that this can also be a QName
+                dimAttr = ("dimension", XmlUtil.addQnameValue(xbrlElt, cast('QName', dimQname)))  #Typing thinks dimQname might still be an integer
+                if cast('DimValuePrototype | ModelDimensionValue', dimValue).isTyped:  #Typing thinks that this can also be a QName
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:typedMember",
                                               attributes=dimAttr)
                     if isinstance(dimValue, (ModelDimensionValue, DimValuePrototype)) and dimValue.isTyped:
@@ -626,7 +626,7 @@ class ModelXbrl:
         """
         assert self.modelDocument is not None
         xbrlElt = self.modelDocument.xmlRootElement
-        if afterSibling == cast(ModelObject, AUTO_LOCATE_ELEMENT):
+        if afterSibling == cast('ModelObject', AUTO_LOCATE_ELEMENT):
             afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context", "unit"))
         unitId = id if id else 'u-{0:02n}'.format( len(self.units) + 1)
         newUnitElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "unit", attributes=("id", unitId),
@@ -820,8 +820,10 @@ class ModelXbrl:
             assert self.modelDocument is not None
             parent = self.modelDocument.xmlRootElement
         self.makeelementParentModelObject = parent
-        newFact: ModelInlineFact = cast(ModelInlineFact, XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
-                                   afterSibling=afterSibling, beforeSibling=beforeSibling))
+        newFact: ModelInlineFact = cast(
+            'ModelInlineFact', XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
+                                                afterSibling=afterSibling, beforeSibling=beforeSibling)
+        )
         global ModelFact
         if ModelFact is None:
             from arelle.ModelInstanceObject import ModelFact
@@ -885,7 +887,7 @@ class ModelXbrl:
             if isinstance(objectId, (ModelObject,FactPrototype)):
                 modelObject = objectId
             elif isinstance(objectId, str) and objectId.startswith("_"):
-                modelObject = cast(ModelObject, self.modelObject(objectId))
+                modelObject = cast('ModelObject', self.modelObject(objectId))
             if modelObject is not None:
                 for view in self.views:
                     view.viewModelObject(modelObject)
@@ -1045,7 +1047,7 @@ class ModelXbrl:
 
         if "refs" not in extras:
             try:
-                file = os.path.basename(self.modelDocument.displayUri)  # type: ignore[union-attr]
+                file = os.path.basename(cast('modeldoc', self.modelDocument).displayUri)
             except AttributeError:
                 try:
                     file = os.path.basename(self.entryLoadingUrl)
