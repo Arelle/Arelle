@@ -110,9 +110,6 @@ jobs:
           context: .
           file: docker/${{ matrix.distro }}.Dockerfile
           load: true
-          secrets: |
-            "redhat_username=${{ secrets.REDHAT_USERNAME }}"
-            "redhat_password=${{ secrets.REDHAT_PASSWORD }}"
           tags: arelle:arelle
       - name: Docker copy build artifact
         run: |

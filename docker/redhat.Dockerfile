@@ -1,22 +1,16 @@
 # Use oldest LTS release for linked glibc compatibility
-FROM registry.redhat.io/rhel7:7.9
+FROM registry.access.redhat.com/ubi7:7.9
 
 ARG OPENSSL_VERSION
 ARG PYTHON_VERSION
 ARG TCLTK_VERSION
 ENV LD_LIBRARY_PATH=/usr/local/lib
 
-RUN --mount=type=secret,id=redhat_username \
-    --mount=type=secret,id=redhat_password \
-    subscription-manager register \
-    --username $(cat /run/secrets/redhat_username) \
-    --password $(cat /run/secrets/redhat_password) \
-    --auto-attach \
-    && yum -y update \
-    && yum -y groupinstall "Development Tools" \
+RUN yum -y update \
     && yum -y install \
         bzip2-devel \
         gcc \
+    	gcc-c++ \
         gdbm-devel \
         git \
         libffi-devel \
@@ -24,6 +18,7 @@ RUN --mount=type=secret,id=redhat_username \
         libX11-devel \
         libxml2-devel \
         libxslt-devel \
+    	make \
         ncurses-devel \
         readline-devel \
         sqlite-devel \
@@ -31,8 +26,7 @@ RUN --mount=type=secret,id=redhat_username \
         wget \
     && yum autoremove -y \
     && yum clean all \
-    && rm -rf /var/cache/yum \
-    ; subscription-manager unregister
+    && rm -rf /var/cache/yum
 
 WORKDIR /tmp
 
