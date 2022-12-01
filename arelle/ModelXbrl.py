@@ -1,8 +1,5 @@
 '''
-Created on Oct 3, 2010
-
-@author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 from collections import defaultdict
@@ -26,7 +23,7 @@ if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelInlineFact, ModelDimensionValue
     from arelle.ModelValue import QName
     from datetime import date, datetime
-    from arelle import ModelDocument
+    from arelle.ModelDocument import ModelDocument as modeldoc
     from arelle.ModelManager import ModelManager
     from arelle.typing import TypeGetText, LocaleDict
     from arelle.ModelDtsObject import ModelConcept, ModelType, ModelRoleType
@@ -212,8 +209,8 @@ class ModelXbrl:
 
     def init(self, keepViews: bool = False, errorCaptureLevel: str | None = None) -> None:
         self.uuid: str = uuid.uuid1().urn
-        self.namespaceDocs: defaultdict[str, list[ModelDocument.ModelDocument]] = defaultdict(list)
-        self.urlDocs: dict[str, ModelDocument.ModelDocument] = {}
+        self.namespaceDocs: defaultdict[str, list[modeldoc]] = defaultdict(list)
+        self.urlDocs: dict[str, modeldoc] = {}
         self.urlUnloadableDocs: dict[bool, str] = {}  # if entry is True, entry is blocked and unloadable, False means loadable but warned
         self.errorCaptureLevel: str = (errorCaptureLevel or logging._checkLevel("INCONSISTENCY"))  # type: ignore[attr-defined]
         self.errors: list[str | None] = []
@@ -232,14 +229,14 @@ class ModelXbrl:
         self.facts: list[ModelInlineFact] = []
         self.factsInInstance: set[ModelInlineFact] = set()
         self.undefinedFacts: list[ModelFact] = []  # elements presumed to be facts but not defined
-        self.contexts: dict[str, ModelDocument.ModelDocument.xmlRootElement] = {}
+        self.contexts: dict[str, modeldoc.xmlRootElement] = {}
         self.units: dict[str, ModelUnit] = {}
         self.modelObjects: list[ModelObject] = []
         self.qnameParameters: dict[QName, Any] = {}
         self.modelVariableSets: set[Any] = set()
         self.modelConsistencyAssertions: set[Any] = set()
         self.modelCustomFunctionSignatures: dict[QName, Any] = {}
-        self.modelCustomFunctionImplementations: set[ModelDocument.ModelDocument] = set()
+        self.modelCustomFunctionImplementations: set[modeldoc] = set()
         self.modelRenderingTables: Set[Any] = set()
         if not keepViews:
             self.views: list[Any] = []
@@ -257,7 +254,7 @@ class ModelXbrl:
         self.logRefHasPluginProperties: bool = any(True for m in pluginClassMethods("Logging.Ref.Properties"))
         self.logRefFileRelUris: DefaultDict[Any, dict[str, str]] = defaultdict(dict)
         self.profileStats: dict[str, tuple[int, Any, Any]] = {}
-        self.schemaDocsToValidate: set[ModelDocument.ModelDocument] = set()
+        self.schemaDocsToValidate: set[modeldoc] = set()
         self.closeFileSource: bool
         self.fileSource: Any
         self.entryLoadingUrl: Any
@@ -1048,7 +1045,7 @@ class ModelXbrl:
 
         if "refs" not in extras:
             try:
-                file = os.path.basename(cast(ModelDocument.ModelDocument, self.modelDocument).displayUri)
+                file = os.path.basename(self.modelDocument.displayUri)  # type: ignore[union-attr]
             except AttributeError:
                 try:
                     file = os.path.basename(self.entryLoadingUrl)
