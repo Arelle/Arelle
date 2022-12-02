@@ -149,7 +149,7 @@ class ModelObject(etree.ElementBase):
         except AttributeError:
             return None
 
-    def attr(self, attrname: str) -> Any:
+    def attr(self, attrname: str) -> str | None:
         return self.get(attrname)
 
     @property
@@ -167,14 +167,14 @@ class ModelObject(etree.ElementBase):
         else:
             self._prefixedName = self.localName
 
-    def getStripped(self, attrName: str) -> Any:
+    def getStripped(self, attrName: str) -> str | None:
         attrValue = self.get(attrName)
         if attrValue is not None:
             return attrValue.strip()
         return attrValue
 
     @property
-    def localName(self) -> Any:
+    def localName(self) -> str:
         try:
             return self._localName
         except AttributeError:
@@ -182,7 +182,7 @@ class ModelObject(etree.ElementBase):
             return self._localName
 
     @property
-    def prefixedName(self) -> Any:
+    def prefixedName(self) -> str:
         try:
             return self._prefixedName
         except AttributeError:
@@ -190,7 +190,7 @@ class ModelObject(etree.ElementBase):
             return self._prefixedName
 
     @property
-    def namespaceURI(self) -> Any | None:
+    def namespaceURI(self) -> str | None:
         try:
             return self._namespaceURI
         except AttributeError:

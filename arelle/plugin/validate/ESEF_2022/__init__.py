@@ -82,9 +82,8 @@ from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelInstanceObject import ModelContext
 from typing import Any, cast, TYPE_CHECKING
 from collections.abc import Generator
+from arelle.ModelValue import QName
 
-if TYPE_CHECKING:
-    from arelle.ModelValue import QName
 
 _: TypeGetText  # Handle gettext
 
@@ -779,10 +778,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         modelXbrl.warning("ESEF.2.2.2.percentGreaterThan100",
                             _("A percent fact should have value <= 100: %(element)s in context %(context)s value %(value)s"),
                             modelObject=f, element=f.qname, context=f.context.id, value=f.xValue)
-                    elif f.concept.balance is not None and cast(float, f.xValue) < 0:
-                        modelXbrl.warning("ESEF.1.6.1.negativeAmountWithBalance",
-                            _("A fact with balance should be a positive number: %(element)s in context %(context)s value %(value)s"),
-                            modelObject=f, element=f.qname, context=f.context.id, value=f.xValue)
                 elif f.concept is not None and f.concept.type is not None:
                     if f.concept.type.isOimTextFactType:
                         lang = f.xmlLang
@@ -829,13 +824,13 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 else: # not all have same decimals
                     _d = inferredDecimals(f0)
                     _v = f0.xValue
-                    _inConsistent = isnan(cast(int, _v)) # NaN is incomparable, always makes dups inconsistent
+                    _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
                     decVals[_d] = _v
                     aMax, bMin = rangeValue(_v, _d)
                     for f in fList[1:]:
                         _d = inferredDecimals(f)
                         _v = f.xValue
-                        if isnan(cast(int, _v)):
+                        if isnan( _v):
                             _inConsistent = True
                             break
                         if _d in decVals:

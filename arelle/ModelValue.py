@@ -508,40 +508,10 @@ def yearMonthDayTimeDuration(value: datetime.datetime | str, value2: datetime.da
             seconds += 60
         return YearMonthDayTimeDuration(years, months, days, hours, minutes, seconds)
 
-    durationPatternMatch: Any = durationPattern.match(cast(str, value))
+    durationPatternMatch = durationPattern.match(cast(str, value))
     assert durationPatternMatch is not None
 
-    minus: str
-    hasYr: str
-    yrs: int
-    hasMo: str
-    mos: int
-    hasDay: str
-    days: str  # type: ignore[no-redef]
-    hasTime: str
-    hasHr: str
-    hrs: str
-    hasMin: str
-    mins: str
-    hasSec: str
-    secs: str
-
-    (
-        minus,
-        hasYr,
-        yrs,
-        hasMo,
-        mos,
-        hasDay,
-        days,
-        hasTime,
-        hasHr,
-        hrs,
-        hasMin,
-        mins,
-        hasSec,
-        secs,
-    ) = durationPatternMatch.groups()
+    (minus, yrs, mos) = durationPatternMatch.group(1, 3, 5)
 
     sign = -1 if minus else 1
     # TBD implement

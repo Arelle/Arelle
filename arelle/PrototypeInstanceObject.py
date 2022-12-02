@@ -8,7 +8,7 @@ from typing import Any
 Aspect = None
 
 class FactPrototype():      # behaves like a fact for dimensional validity testing
-    def __init__(self, v, aspectValues=None) -> Any:
+    def __init__(self, v, aspectValues=None) -> None:
         global Aspect
         if Aspect is None:
             from arelle.ModelFormulaObject import Aspect

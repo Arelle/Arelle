@@ -37,10 +37,10 @@ else:
 profileStatNumber = 0
 
 AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning choose best location for new element
-DEFAULT: str = sys.intern(str("default"))
-NONDEFAULT: str = sys.intern(str("non-default"))
-DEFAULTorNONDEFAULT: str = sys.intern(str("default-or-non-default"))
-EMPTY_TUPLE: tuple[()] = ()
+DEFAULT = sys.intern(str("default"))
+NONDEFAULT = sys.intern(str("non-default"))
+DEFAULTorNONDEFAULT = sys.intern(str("default-or-non-default"))
+EMPTY_TUPLE = ()
 
 
 
