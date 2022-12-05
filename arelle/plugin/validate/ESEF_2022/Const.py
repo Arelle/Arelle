@@ -7,8 +7,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import regex as re
-from typing import Any, Callable
-from arelle.ModelValue import qname
+from arelle.ModelValue import QName, qname
 from arelle.XbrlConst import all, notAll, hypercubeDimension, dimensionDomain, domainMember, dimensionDefault, widerNarrower
 
 browserMaxBase64ImageLength = 5242880 # 5MB
@@ -55,7 +54,7 @@ filenameRegexes = {
     "ref": r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_ref[.]xml$"
     }
 
-mandatory: set[Callable[..., Any]] = set() # mandatory element qnames
+mandatory: set[QName] = set() # mandatory element qnames
 
 # hidden references
 untransformableTypes = {"anyURI", "base64Binary", "hexBinary", "NOTATION", "QName", "time",
