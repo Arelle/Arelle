@@ -1,10 +1,12 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+from __future__ import annotations
+
 from arelle import XmlUtil
+from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelValue import QName
 from arelle.ModelObject import ModelObject
-from typing import Any
 Aspect = None
 
 class FactPrototype():      # behaves like a fact for dimensional validity testing
@@ -172,7 +174,7 @@ class ContextPrototype():  # behaves like a context
             return False
 
 class DimValuePrototype():
-    typedMember: Any
+    typedMember: ModelConcept | None
     def __init__(self, v, dimConcept, dimQname, mem, contextElement):
         from arelle.ModelValue import QName
         if dimConcept is None: # note no concepts if modelXbrl.skipDTS:

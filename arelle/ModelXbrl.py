@@ -590,7 +590,7 @@ class ModelXbrl:
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:typedMember",
                                               attributes=dimAttr)
                     if isinstance(dimValue, (ModelDimensionValue, DimValuePrototype)) and dimValue.isTyped:
-                        XmlUtil.copyNodes(dimElt, dimValue.typedMember)
+                        XmlUtil.copyNodes(dimElt, cast(ModelObject, dimValue.typedMember))
                 elif dimMemberQname:
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:explicitMember",
                                               attributes=dimAttr,

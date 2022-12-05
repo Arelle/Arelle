@@ -1343,7 +1343,7 @@ class ModelDimensionValue(ModelObject):
         return self.localName == "explicitMember"
 
     @property
-    def typedMember(self):
+    def typedMember(self) -> ModelObject | None:
         """(ModelConcept) -- Child ModelObject that is the dimension member element
 
         (To get <typedMember> element use 'self').
