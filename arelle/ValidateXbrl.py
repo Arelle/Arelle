@@ -1086,9 +1086,10 @@ class ValidateXbrl:
         # isGenericResource is currently used in ValidateXbrlDTS. We should revisit this when adding type hints for
         # ValidateXbrlDTS.
         if elt:
-            return self.modelXbrl.isInSubstitutionGroup(elt.qname, genQname)  # type: ignore[attr-defined, return-value]
+            return self.modelXbrl.isInSubstitutionGroup(elt.qname, genQname)  # type: ignore[attr-defined]
         else:
             return False
+
     def isGenericLink(self, elt: ModelObject) -> bool:
         return self.isGenericObject(elt, XbrlConst.qnGenLink)
 

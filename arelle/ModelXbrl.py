@@ -2,8 +2,10 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from collections import defaultdict
+
 import os, sys, re, traceback, uuid
+from collections import defaultdict
+from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, cast, DefaultDict, Set, Optional
 import logging
 from decimal import Decimal
@@ -380,20 +382,23 @@ class ModelXbrl:
                 subsGrpMdlObj = subsGrpMdlObj.substitutionGroup
         return subsGrpMatchTable.get(None)
 
-    def isInSubstitutionGroup(self, elementQname: QName, subsGrpQnames: QName | list[QName] | None) -> bool | None:
+    def isInSubstitutionGroup(self, elementQname: QName, subsGrpQnames: QName | Iterable[QName] | None) -> bool:
         """Determine if element is in substitution group(s)
         Used by ModelObjectFactory to return Class type for new ModelObject subclass creation, and isInSubstitutionGroup
 
         :param elementQname: Element/Concept QName to determine if in substitution group(s)
-        :param subsGrpQnames: QName or list of QNames
+        :param subsGrpQnames: QName or iterable of QNames
         """
-
-        if isinstance(subsGrpQnames, list):
+        qnames: Iterable[QName | None]
+        if isinstance(subsGrpQnames, Iterable):
             qnames = subsGrpQnames
         else:
-            qnames = [cast('QName', subsGrpQnames)]
-        return cast('Optional[bool]', self.matchSubstitutionGroup(elementQname, {
-                  qn: (qn is not None) for qn in qnames}))
+            qnames = [subsGrpQnames]
+        matchingSubstitutionGroup = cast(
+            Optional[bool],
+            self.matchSubstitutionGroup(elementQname, {qn: (qn is not None) for qn in qnames})
+        )
+        return matchingSubstitutionGroup is not None and matchingSubstitutionGroup
 
     def createInstance(self, url: str) -> None:
         """ Creates an instance document for a DTS which didn't have an instance document, such as
