@@ -20,6 +20,7 @@ from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 
 if TYPE_CHECKING:
+    from arelle.CntlrWinMain import CntlrWinMain
     from arelle.ModelDocument import ModelDocument as modeldoc
     from arelle.ModelDtsObject import ModelConcept, ModelType, ModelRoleType
     from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelInlineFact, ModelDimensionValue
@@ -439,7 +440,7 @@ class ModelXbrl:
             from arelle import ViewWinDTS
             for view in self.views:
                 if isinstance(view, ViewWinDTS.ViewDTS):
-                    self.modelManager.cntlr.uiThreadQueue.put((view.view, []))
+                    cast('CntlrWinMain', self.modelManager.cntlr).uiThreadQueue.put((view.view, []))
 
     def saveInstance(self, **kwargs: Any) -> Any:
         """Saves current instance document file.

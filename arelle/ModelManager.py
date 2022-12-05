@@ -2,11 +2,13 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+
+from typing import TYPE_CHECKING
 import gc, sys, traceback, logging
 from arelle import ModelXbrl, Validate, DisclosureSystem, PackageManager
+from arelle.ModelFormulaObject import FormulaOptions
 from arelle.PluginManager import pluginClassMethods
-
+from arelle.typing import LocaleDict
 
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
@@ -52,8 +54,11 @@ class ModelManager:
 
         The default language code for labels selection and views (e.g. 'en-US'), set from the operating system defaults on startup.
     """
+    defaultLang: str
+    formulaOptions: FormulaOptions
+    locale: LocaleDict
 
-    def __init__(self, cntlr):
+    def __init__(self, cntlr: Cntlr):
         self.cntlr = cntlr
         self.validateDisclosureSystem = False
         self.disclosureSystem = DisclosureSystem.DisclosureSystem(self)
@@ -71,7 +76,6 @@ class ModelManager:
         self.customTransforms = None
         self.isLocaleSet = False
         self.setLocale()
-        self.formulaOptions: Any
 
     def shutdown(self):
         self.status = "shutdown"
@@ -96,7 +100,7 @@ class ModelManager:
         """
         self.cntlr.addToLog(message, messageCode=messageCode, file=file, refs=refs, level=level)
 
-    def showStatus(self, message, clearAfter=None) ->str:
+    def showStatus(self, message, clearAfter=None) -> str:
         """Provide user feedback on status line of GUI or web page according to type of controller.
 
         :param message: Message to display on status widget.

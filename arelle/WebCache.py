@@ -113,7 +113,7 @@ class WebCache:
             else:
                 self.encodeFileChars = re.compile(r'[:^]')
         self.decodeFileChars = re.compile(r'\^[0-9]{3}')
-        self.workOffline = False
+        self.workOffline: bool = False
         self._logDownloads = False
         self.maxAgeSeconds = 60.0 * 60.0 * 24.0 * 7.0 # seconds before checking again for file
         if cntlr.hasFileSystem:
@@ -167,7 +167,7 @@ class WebCache:
     def logDownloads(self, _logDownloads):
         self._logDownloads = _logDownloads
 
-    def saveUrlCheckTimes(self):
+    def saveUrlCheckTimes(self) -> None:
         if self.cachedUrlCheckTimesModified:
             with io.open(self.urlCheckJsonFile, 'wt', encoding='utf-8') as f:
                 f.write(json.dumps(self.cachedUrlCheckTimes, ensure_ascii=False, indent=0))
