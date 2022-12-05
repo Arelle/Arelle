@@ -44,6 +44,91 @@ DEFAULTorNONDEFAULT = sys.intern("default-or-non-default")
 EMPTY_TUPLE = ()
 
 
+def load(modelManager: ModelManager, url: str, nextaction: str | None = None, base: str | None = None, useFileSource: str | None = None, errorCaptureLevel: str | None = None, **kwargs: str) -> ModelXbrl:
+    """Each loaded instance, DTS, testcase, testsuite, versioning report, or RSS feed, is represented by an
+    instance of a ModelXbrl object. The ModelXbrl object has a collection of ModelDocument objects, each
+    representing an XML document (for now, with SQL whenever its time comes). One of the modelDocuments of
+    the ModelXbrl is the entry point (of discovery or of the test suite).
+
+    :param url: may be a filename or FileSource object
+    :param nextaction: text to use as status line prompt on conclusion of loading and discovery
+    :param base: the base URL if any (such as a versioning report's URL when loading to/from DTS modelXbrl).
+    :param useFileSource: for internal use (when an entry point is in a FileSource archive and discovered files expected to also be in the entry point's archive.
+   """
+    if nextaction is None: nextaction = _("loading")
+    from arelle import (ModelDocument, FileSource)
+    modelXbrl = create(modelManager, errorCaptureLevel=errorCaptureLevel)
+    if "errors" in kwargs: # pre-load errors, such as from taxonomy package validation
+        modelXbrl.errors.extend(cast(str, kwargs.get("errors")))
+    supplementalUrls = None
+    if useFileSource is not None:
+        modelXbrl.fileSource = useFileSource
+        modelXbrl.closeFileSource = False
+        url = url
+    elif isinstance(url,FileSource.FileSource):
+        modelXbrl.fileSource = url
+        modelXbrl.closeFileSource= True
+        if isinstance(modelXbrl.fileSource.url, list): # json list
+            url = modelXbrl.fileSource.url[0]
+            supplementalUrls = modelXbrl.fileSource.url[1:]
+        #elif isinstance(modelXbrl.fileSource.url, dict): # json object
+        else:
+            url = cast(str, modelXbrl.fileSource.url)
+    else:
+        modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr)
+        modelXbrl.closeFileSource= True
+    if kwargs.get("isLoadable",True): # used for test cases to block taxonomy packages without discoverable contents
+        modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True, **kwargs)
+        if supplementalUrls:
+            for url in supplementalUrls:
+                ModelDocument.load(modelXbrl, url, base, isEntry=False, isDiscovered=True, **kwargs)
+        if hasattr(modelXbrl, "entryLoadingUrl"):
+            del modelXbrl.entryLoadingUrl
+        loadSchemalocatedSchemas(modelXbrl)
+    else:
+        modelXbrl.modelDocument = None
+
+    #from arelle import XmlValidate
+    #uncomment for trial use of lxml xml schema validation of entry document
+    #XmlValidate.xmlValidate(modelXbrl.modelDocument)
+    modelManager.cntlr.webCache.saveUrlCheckTimes()
+    for pluginXbrlMethod in pluginClassMethods("ModelXbrl.LoadComplete"):
+        pluginXbrlMethod(modelXbrl)
+    modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction))
+    return modelXbrl
+
+def create(
+        modelManager: ModelManager, newDocumentType: int | None = None, url: str | None = None, schemaRefs: str|None = None, createModelDocument: bool = True, isEntry: bool = False,
+        errorCaptureLevel: str | None = None, initialXml: str | None = None, initialComment: str | None = None, base: str | None = None, discover: bool = True
+) -> ModelXbrl:
+    from arelle import (ModelDocument, FileSource)
+    modelXbrl = ModelXbrl(modelManager, errorCaptureLevel=errorCaptureLevel)
+    modelXbrl.locale = modelManager.locale
+    if newDocumentType:
+        modelXbrl.fileSource = FileSource.FileSource(cast(str, url), modelManager.cntlr)  # url may be an open file handle, use str(url) below
+        modelXbrl.closeFileSource= True
+        if createModelDocument:
+            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry, initialXml=initialXml, initialComment=initialComment, base=base, discover=discover)
+            if isEntry:
+                del modelXbrl.entryLoadingUrl
+                loadSchemalocatedSchemas(modelXbrl)
+    return modelXbrl
+
+def loadSchemalocatedSchemas(modelXbrl: ModelXbrl) -> None:
+    from arelle import ModelDocument
+    if modelXbrl.modelDocument and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
+        # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
+        modelDocumentsSchemaLocated: set[ModelDocument.ModelDocument] = set()
+        # loadSchemalocatedSchemas sometimes adds to modelXbrl.urlDocs
+        while True:
+            modelDocuments: set[ModelDocument.ModelDocument] = set(modelXbrl.urlDocs.values()) - modelDocumentsSchemaLocated
+            if not modelDocuments:
+                break
+            for modelDocument in modelDocuments:
+                modelDocument.loadSchemalocatedSchemas()
+            modelDocumentsSchemaLocated |= modelDocuments
+
+
 class ModelXbrl:
     """
     .. class:: ModelXbrl(modelManager)
@@ -1233,90 +1318,3 @@ class ModelXbrl:
                   _("DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s"),
                 modelObject=self,
                 entryFile=os.path.basename(entryFilename), packageOutputFile=pkgFilename, numberOfFiles=numFiles)
-
-
-def load(modelManager: ModelManager, url: str, nextaction: str | None = None, base: str | None = None, useFileSource: str | None = None, errorCaptureLevel: str | None = None, **kwargs: str) -> ModelXbrl:
-    """Each loaded instance, DTS, testcase, testsuite, versioning report, or RSS feed, is represented by an
-    instance of a ModelXbrl object. The ModelXbrl object has a collection of ModelDocument objects, each
-    representing an XML document (for now, with SQL whenever its time comes). One of the modelDocuments of
-    the ModelXbrl is the entry point (of discovery or of the test suite).
-
-    :param url: may be a filename or FileSource object
-    :param nextaction: text to use as status line prompt on conclusion of loading and discovery
-    :param base: the base URL if any (such as a versioning report's URL when loading to/from DTS modelXbrl).
-    :param useFileSource: for internal use (when an entry point is in a FileSource archive and discovered files expected to also be in the entry point's archive.
-   """
-    if nextaction is None: nextaction = _("loading")
-    from arelle import (ModelDocument, FileSource)
-    modelXbrl = create(modelManager, errorCaptureLevel=errorCaptureLevel)
-    if "errors" in kwargs: # pre-load errors, such as from taxonomy package validation
-        modelXbrl.errors.extend(cast(str, kwargs.get("errors")))
-    supplementalUrls = None
-    if useFileSource is not None:
-        modelXbrl.fileSource = useFileSource
-        modelXbrl.closeFileSource = False
-        url = url
-    elif isinstance(url,FileSource.FileSource):
-        modelXbrl.fileSource = url
-        modelXbrl.closeFileSource= True
-        if isinstance(modelXbrl.fileSource.url, list): # json list
-            url = modelXbrl.fileSource.url[0]
-            supplementalUrls = modelXbrl.fileSource.url[1:]
-        #elif isinstance(modelXbrl.fileSource.url, dict): # json object
-        else:
-            url = cast(str, modelXbrl.fileSource.url)
-    else:
-        modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr)
-        modelXbrl.closeFileSource= True
-    if kwargs.get("isLoadable",True): # used for test cases to block taxonomy packages without discoverable contents
-        modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True, **kwargs)
-        if supplementalUrls:
-            for url in supplementalUrls:
-                ModelDocument.load(modelXbrl, url, base, isEntry=False, isDiscovered=True, **kwargs)
-        if hasattr(modelXbrl, "entryLoadingUrl"):
-            del modelXbrl.entryLoadingUrl
-        loadSchemalocatedSchemas(modelXbrl)
-    else:
-        modelXbrl.modelDocument = None
-
-    #from arelle import XmlValidate
-    #uncomment for trial use of lxml xml schema validation of entry document
-    #XmlValidate.xmlValidate(modelXbrl.modelDocument)
-    modelManager.cntlr.webCache.saveUrlCheckTimes()
-    for pluginXbrlMethod in pluginClassMethods("ModelXbrl.LoadComplete"):
-        pluginXbrlMethod(modelXbrl)
-    modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction))
-    return modelXbrl
-
-
-def create(
-        modelManager: ModelManager, newDocumentType: int | None = None, url: str | None = None, schemaRefs: str|None = None, createModelDocument: bool = True, isEntry: bool = False,
-        errorCaptureLevel: str | None = None, initialXml: str | None = None, initialComment: str | None = None, base: str | None = None, discover: bool = True
-) -> ModelXbrl:
-    from arelle import (ModelDocument, FileSource)
-    modelXbrl = ModelXbrl(modelManager, errorCaptureLevel=errorCaptureLevel)
-    modelXbrl.locale = modelManager.locale
-    if newDocumentType:
-        modelXbrl.fileSource = FileSource.FileSource(cast(str, url), modelManager.cntlr)  # url may be an open file handle, use str(url) below
-        modelXbrl.closeFileSource= True
-        if createModelDocument:
-            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry, initialXml=initialXml, initialComment=initialComment, base=base, discover=discover)
-            if isEntry:
-                del modelXbrl.entryLoadingUrl
-                loadSchemalocatedSchemas(modelXbrl)
-    return modelXbrl
-
-
-def loadSchemalocatedSchemas(modelXbrl: ModelXbrl) -> None:
-    from arelle import ModelDocument
-    if modelXbrl.modelDocument and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
-        # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
-        modelDocumentsSchemaLocated: set[ModelDocument.ModelDocument] = set()
-        # loadSchemalocatedSchemas sometimes adds to modelXbrl.urlDocs
-        while True:
-            modelDocuments: set[ModelDocument.ModelDocument] = set(modelXbrl.urlDocs.values()) - modelDocumentsSchemaLocated
-            if not modelDocuments:
-                break
-            for modelDocument in modelDocuments:
-                modelDocument.loadSchemalocatedSchemas()
-            modelDocumentsSchemaLocated |= modelDocuments
