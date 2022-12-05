@@ -22,7 +22,7 @@ from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 if TYPE_CHECKING:
     from datetime import date, datetime
     from arelle.CntlrWinMain import CntlrWinMain
-    from arelle.ModelDocument import ModelDocument as modeldoc
+    from arelle.ModelDocument import ModelDocument as ModelDocumentClass
     from arelle.ModelDtsObject import ModelConcept, ModelType, ModelRoleType
     from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelInlineFact, ModelDimensionValue
     from arelle.ModelManager import ModelManager
@@ -118,10 +118,10 @@ def loadSchemalocatedSchemas(modelXbrl: ModelXbrl) -> None:
     from arelle import ModelDocument
     if modelXbrl.modelDocument and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
         # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
-        modelDocumentsSchemaLocated: set[ModelDocument.ModelDocument] = set()
+        modelDocumentsSchemaLocated: set[ModelDocumentClass] = set()
         # loadSchemalocatedSchemas sometimes adds to modelXbrl.urlDocs
         while True:
-            modelDocuments: set[ModelDocument.ModelDocument] = set(modelXbrl.urlDocs.values()) - modelDocumentsSchemaLocated
+            modelDocuments: set[ModelDocumentClass] = set(modelXbrl.urlDocs.values()) - modelDocumentsSchemaLocated
             if not modelDocuments:
                 break
             for modelDocument in modelDocuments:
@@ -294,8 +294,8 @@ class ModelXbrl:
 
     def init(self, keepViews: bool = False, errorCaptureLevel: str | None = None) -> None:
         self.uuid: str = uuid.uuid1().urn
-        self.namespaceDocs: defaultdict[str, list[modeldoc]] = defaultdict(list)
-        self.urlDocs: dict[str, modeldoc] = {}
+        self.namespaceDocs: defaultdict[str, list[ModelDocumentClass]] = defaultdict(list)
+        self.urlDocs: dict[str, ModelDocumentClass] = {}
         self.urlUnloadableDocs: dict[bool, str] = {}  # if entry is True, entry is blocked and unloadable, False means loadable but warned
         self.errorCaptureLevel: str = (errorCaptureLevel or logging._checkLevel("INCONSISTENCY"))  # type: ignore[attr-defined]
         self.errors: list[str | None] = []
@@ -314,14 +314,14 @@ class ModelXbrl:
         self.facts: list[ModelInlineFact] = []
         self.factsInInstance: set[ModelInlineFact] = set()
         self.undefinedFacts: list[ModelFact] = []  # elements presumed to be facts but not defined
-        self.contexts: dict[str, modeldoc.xmlRootElement] = {}
+        self.contexts: dict[str, ModelDocumentClass.xmlRootElement] = {}
         self.units: dict[str, ModelUnit] = {}
         self.modelObjects: list[ModelObject] = []
         self.qnameParameters: dict[QName, Any] = {}
         self.modelVariableSets: set[Any] = set()
         self.modelConsistencyAssertions: set[Any] = set()
         self.modelCustomFunctionSignatures: dict[QName, Any] = {}
-        self.modelCustomFunctionImplementations: set[modeldoc] = set()
+        self.modelCustomFunctionImplementations: set[ModelDocumentClass] = set()
         self.modelRenderingTables: set[Any] = set()
         if not keepViews:
             self.views: list[Any] = []
@@ -339,7 +339,7 @@ class ModelXbrl:
         self.logRefHasPluginProperties: bool = any(True for m in pluginClassMethods("Logging.Ref.Properties"))
         self.logRefFileRelUris: defaultdict[Any, dict[str, str]] = defaultdict(dict)
         self.profileStats: dict[str, tuple[int, Any, Any]] = {}
-        self.schemaDocsToValidate: set[modeldoc] = set()
+        self.schemaDocsToValidate: set[ModelDocumentClass] = set()
         self.closeFileSource: bool
         self.fileSource: Any
         self.entryLoadingUrl: Any
@@ -1137,7 +1137,7 @@ class ModelXbrl:
 
         if "refs" not in extras:
             try:
-                file = os.path.basename(cast('modeldoc', self.modelDocument).displayUri)
+                file = os.path.basename(cast('ModelDocumentClass', self.modelDocument).displayUri)
             except AttributeError:
                 try:
                     file = os.path.basename(self.entryLoadingUrl)
