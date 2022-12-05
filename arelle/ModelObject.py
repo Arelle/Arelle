@@ -249,12 +249,12 @@ class ModelObject(etree.ElementBase):
             return self._elementSequence
 
     @property
-    def parentQname(self) -> QName | None:
+    def parentQname(self: ModelObject) -> QName | None:
         try:
             return self._parentQname
         except AttributeError:
             parentObj = self.getparent()
-            self._parentQname = parentObj.elementQname if parentObj is not None else None # type: ignore[attr-defined]
+            self._parentQname = parentObj.elementQname if parentObj is not None else None  # type: ignore[attr-defined]
             return self._parentQname
 
 
@@ -453,6 +453,7 @@ class ModelAttribute:
 
 class ObjectPropertyViewWrapper:  # extraProperties = ( (p1, v1), (p2, v2), ... )
     __slots__ = ("modelObject", "extraProperties")
+    modelObject: ModelObject
     def __init__(self, modelObject: ModelObject, extraProperties: tuple[Any, ...] = ()) -> None:
         self.modelObject = modelObject
         self.extraProperties = extraProperties

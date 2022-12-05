@@ -30,11 +30,11 @@ def qname(value: ModelObject | str | QName, name: str | ModelObject) -> QName: .
 def qname(value: ModelObject | str | QName, name: str | ModelObject | None = None, noPrefixIsNoNamespace: bool = False) -> QName: ...
 
 @overload
-def qname(value: ModelObject | str | QName | Any | None, name: str | ModelObject | None) -> QName | None : ...
+def qname(value: ModelObject | str | QName | Any | None, name: str | ModelObject | dict[str, str] | None) -> QName | None : ...
 
 def qname(
     value: ModelObject | str | QName | Any | None,
-    name: str | ModelObject | None = None,
+    name: str | ModelObject | dict[str, str] | None = None,
     noPrefixIsNoNamespace: bool = False,
     castException: Exception | None = None,
     prefixException: Exception | None = None,
@@ -508,40 +508,10 @@ def yearMonthDayTimeDuration(value: datetime.datetime | str, value2: datetime.da
             seconds += 60
         return YearMonthDayTimeDuration(years, months, days, hours, minutes, seconds)
 
-    durationPatternMatch = durationPattern.match(value) # type: ignore[arg-type]
+    durationPatternMatch = durationPattern.match(cast(str, value))
     assert durationPatternMatch is not None
 
-    minus: str
-    hasYr: str
-    yrs: str
-    hasMo: str
-    mos: str
-    hasDay: str
-    days: str # type: ignore[no-redef]
-    hasTime: str
-    hasHr: str
-    hrs: str
-    hasMin: str
-    mins: str
-    hasSec: str
-    secs: str
-
-    (
-        minus,
-        hasYr,
-        yrs,
-        hasMo,
-        mos,
-        hasDay,
-        days,
-        hasTime,
-        hasHr,
-        hrs,
-        hasMin,
-        mins,
-        hasSec,
-        secs,
-    ) = durationPatternMatch.groups() # type: ignore[assignment]
+    (minus, yrs, mos) = durationPatternMatch.group(1, 3, 5)
 
     sign = -1 if minus else 1
     # TBD implement

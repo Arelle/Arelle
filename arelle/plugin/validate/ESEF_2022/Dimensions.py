@@ -7,8 +7,8 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 from collections import defaultdict
-from typing import Any
-from arelle.ModelDtsObject import ModelConcept
+from typing import Any, cast
+from arelle.ModelDtsObject import ModelConcept, ModelLink
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle import XbrlConst
@@ -16,9 +16,7 @@ from .Const import LineItemsNotQualifiedLinkrole, DefaultDimensionLinkroles
 from .Util import isExtension, isInEsefTaxonomy
 import regex as re
 from arelle.ValidateXbrl import ValidateXbrl
-from arelle.ModelDtsObject import ModelConcept
 from arelle.typing import TypeGetText
-
 _: TypeGetText  # Handle gettext
 
 
@@ -107,7 +105,7 @@ def checkFilingDimensions(val: ValidateXbrl) -> None:
             if concept is not None and
                concept not in elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set()) and
                concept not in elrPrimaryItems.get("*", set()) and
-               (not nsExcl or not nsExclPat.match(qn.namespaceURI)))
+               (not nsExcl or not nsExclPat.match(cast(str, qn.namespaceURI))))
     if i:
         val.modelXbrl.error("ESEF.3.4.2.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
             _("Line items that do not require any dimensional information to tag data MUST be linked to the dedicated \"Line items not dimensionally qualified\" hypercube in %(linkrole)s declared in esef_cor.xsd, primary item %(qnames)s"),
@@ -157,7 +155,7 @@ def checkFilingDimensions(val: ValidateXbrl) -> None:
                 modelObject=rels, anchoringDimensionalELR=ELR)
 
     # check base set dimension default overrides in extension taxonomies
-    for modelLink in val.modelXbrl.baseSets[XbrlConst.dimensionDefault, None, None, None]:
+    for modelLink in cast(list[ModelLink], val.modelXbrl.baseSets[XbrlConst.dimensionDefault, None, None, None]):
         if isExtension(val, modelLink):
             for linkChild in modelLink:
                 if (isinstance(linkChild,(ModelObject,PrototypeObject)) and

@@ -76,7 +76,7 @@ def openFileSource(
         # not archived content
         return FileSource(filename, cntlr, checkIfXmlIsEis)
 
-def archiveFilenameParts(filename: str, checkIfXmlIsEis: bool = False) -> tuple[str, str] | None:
+def archiveFilenameParts(filename: str | None, checkIfXmlIsEis: bool = False) -> tuple[str, str] | None:
     # check if path has an archive file plus appended in-archive content reference
     for archiveSep in archivePathSeparators:
         if (filename and
@@ -405,11 +405,12 @@ class FileSource:
                 return [f]  # standard package
         return [f for f in (self.dir or []) if os.path.split(f)[-1] in TAXONOMY_PACKAGE_FILE_NAMES]
 
-    def isInArchive(self, filepath: str, checkExistence: bool = False) -> bool:
+    def isInArchive(self, filepath: str | None, checkExistence: bool = False) -> bool:
         archiveFileSource = self.fileSourceContainingFilepath(filepath)
         if archiveFileSource is None:
             return False
         if checkExistence:
+            assert isinstance(filepath, str)
             assert isinstance(archiveFileSource.basefile, str)
             assert archiveFileSource.dir is not None
             archiveFileName = filepath[len(archiveFileSource.basefile) + 1:].replace("\\", "/") # must be / file separators
@@ -430,7 +431,7 @@ class FileSource:
                     break
         return url
 
-    def fileSourceContainingFilepath(self, filepath: str) -> FileSource | None:
+    def fileSourceContainingFilepath(self, filepath: str | None) -> FileSource | None:
         if self.isOpen:
             # archiveFiles = self.dir
             ''' change to return file source if archive would be in there (vs actually is in archive)
@@ -440,6 +441,7 @@ class FileSource:
                  filepath[len(self.baseurl) + 1:] in archiveFiles)):
                 return self
             '''
+            assert isinstance(filepath, str)
             assert isinstance(self.basefile, str)
             assert isinstance(self.baseurl, str)
             if (filepath.startswith(self.basefile) or

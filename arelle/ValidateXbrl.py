@@ -3,14 +3,14 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import regex as re
-from typing import Any, cast
+from typing import Any, Union, cast
 from arelle import (XmlUtil, XbrlUtil, XbrlConst,
                 ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateFormula, ValidateUtr)
 from arelle.ModelDocument import ModelDocument, Type as ModelDocumentType
 from arelle import FunctionIxt
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelConcept
-from arelle.ModelInstanceObject import ModelContext, ModelDimensionValue, ModelInlineFact
+from arelle.ModelInstanceObject import ModelContext, ModelDimensionValue, ModelFact, ModelInlineFact
 from arelle.ModelValue import qname
 from arelle.ModelXbrl import ModelXbrl
 from arelle.PluginManager import pluginClassMethods
@@ -73,7 +73,7 @@ class ValidateXbrl:
     ixdsFootnotes: dict[str, Any]
     ixdsHeaderCount: int
     ixdsReferences: dict[str, Any]
-    ixdsRelationships: list[dict[Any, Any]]
+    ixdsRelationships: list[ModelObject]
     ixdsRoleRefURIs: dict[Any, Any]
     ixdsArcroleRefURIs: dict[Any, Any]
     unconsolidated: bool
@@ -129,7 +129,7 @@ class ValidateXbrl:
         self.genericArcArcroles = set()
         for baseSetExtLinks in modelXbrl.baseSets.values():
             for baseSetExtLink in baseSetExtLinks:
-                modelLinks.add(baseSetExtLink)    # ext links are unique (no dups)
+                modelLinks.add(cast(ModelLink, baseSetExtLink))    # ext links are unique (no dups)
         self.checkLinks(modelLinks)
         modelXbrl.profileStat(_("validateLinks"))
 
@@ -305,7 +305,7 @@ class ValidateXbrl:
 
             if concept.isTuple:
                 # must be global
-                if not concept.getparent().localName == "schema":
+                if not cast(ModelObject, concept.getparent()).localName == "schema":
                     self.modelXbrl.error("xbrl.4.9:tupleGloballyDeclared",
                         _("Tuple %(concept)s must be declared globally"),
                         modelObject=concept, concept=concept.qname)
@@ -445,7 +445,7 @@ class ValidateXbrl:
             self.factsWithDeprecatedIxNamespace = []
             factFootnoteRefs = set()
             undefinedFacts = []
-            for f in modelXbrl.factsInInstance:
+            for f in cast(set[ModelInlineFact], modelXbrl.factsInInstance):
                 for footnoteID in f.footnoteRefs:
                     if footnoteID not in self.ixdsFootnotes:
                         modelXbrl.error(ixMsgCode("footnoteRef", f, name="footnote", sect="validation"),
@@ -644,8 +644,8 @@ class ValidateXbrl:
                             linkrole=modelLink.role, xlinkLabelFrom=fromLabel, xlinkLabelTo=toLabel)
                     if not((toLabel in resourceLabels and resourceLabels[toLabel] is not None
                               and resourceLabels[toLabel].qname == XbrlConst.qnLinkFootnote) or
-                           (toLabel in locLabels and locLabels[toLabel].dereference() is not None # type: ignore[attr-defined]
-                              and locLabels[toLabel].dereference().qname == XbrlConst.qnLinkFootnote)): # type: ignore[attr-defined]
+                           (toLabel in locLabels and locLabels[toLabel].dereference() is not None  # type: ignore[attr-defined]
+                              and locLabels[toLabel].dereference().qname == XbrlConst.qnLinkFootnote)):  # type: ignore[attr-defined]
                         self.modelXbrl.error("xbrl.4.11.1.3.1:factFootnoteArcTo",
                             _("Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s \"to\" is not a footnote resource"),
                             modelObject=arcElt,
@@ -682,7 +682,7 @@ class ValidateXbrl:
                                 linkrole=modelLink.role,
                                 xlinkLabel=resourceArcToLabel)
 
-    def checkFacts(self, facts: list[ModelInlineFact], inTuple: dict[Any, Any] | None = None) -> None:  # do in document order
+    def checkFacts(self, facts: list[ModelFact], inTuple: dict[Any, Any] | None = None) -> None:  # do in document order
         for f in facts:
             concept = f.concept
             if concept is not None:
@@ -793,19 +793,19 @@ class ValidateXbrl:
                                     modelObject=f, fact=f.qname, contextID=f.contextID)
                             if getattr(f,"xValid", 0) == 4:
                                 if f.concept.instanceOfType(dtrSQNameItemTypes):
-                                    if not f.nsmap.get(f.xValue.rpartition(":")[0]):
+                                    if not f.nsmap.get(cast(str, f.xValue).rpartition(":")[0]):
                                         self.modelXbrl.error("dtre:SQNameItemType",
                                             _("Fact %(fact)s context %(contextID)s must have an in-scope prefix: %(value)s"),
-                                            modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue[:200])
+                                            modelObject=f, fact=f.qname, contextID=f.contextID, value=cast(str, f.xValue)[:200])
                                 elif f.concept.instanceOfType(dtrSQNamesItemTypes):
-                                    if not all(f.nsmap.get(n.rpartition(":")[0]) for n in f.xValue.split()):
+                                    if not all(f.nsmap.get(n.rpartition(":")[0]) for n in cast(str, f.xValue).split()):
                                         self.modelXbrl.error("dtre:SQNamesItemType",
                                             _("Fact %(fact)s context %(contextID)s must have an in-scope prefix: %(value)s"),
-                                            modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue[:200])
+                                            modelObject=f, fact=f.qname, contextID=f.contextID, value=cast(str, f.xValue)[:200])
                                 elif f.concept.instanceOfType(dtrPrefixedContentItemTypes):
                                     self.modelXbrl.error("dtre:prefixedContentItemType",
                                         _("Fact %(fact)s context %(contextID)s must not have an unrecognized subtype of dtr:prefixedContentItemType"),
-                                        modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue[:200])
+                                        modelObject=f, fact=f.qname, contextID=f.contextID, value=cast(str, f.xValue)[:200])
                         # not a real check
                         #if f.isNumeric and not f.isNil and f.precision :
                         #    try:
@@ -815,8 +815,8 @@ class ValidateXbrl:
                         #            _("Fact %(fact)s value %(value)s context %(contextID)s rounding exception %(error)s"),
                         #            modelObject=f, fact=f.qname, value=f.value, contextID=f.contextID, error = err)
                     if self.validateEnum and concept.isEnumeration and getattr(f,"xValid", 0) == 4 and not f.isNil:
-                        qnEnums = f.xValue
-                        if not isinstance(qnEnums, list): qnEnums = (qnEnums,)
+                        _qnEnums = cast(Union[list[QName], QName], f.xValue)
+                        qnEnums = _qnEnums if isinstance(_qnEnums, list) else [_qnEnums]
                         if not all(ValidateXbrlDimensions.enumerationMemberUsable(self, concept, self.modelXbrl.qnameConcepts.get(qnEnum))
                                    for qnEnum in qnEnums):
                             self.modelXbrl.error(
@@ -881,7 +881,7 @@ class ValidateXbrl:
             #for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Fact"):
             #    pluginXbrlMethod(self, f)
 
-    def checkFactsDimensions(self, facts: list[ModelInlineFact]) -> None: # check fact dimensions in document order
+    def checkFactsDimensions(self, facts: list[ModelFact]) -> None: # check fact dimensions in document order
         for f in facts:
             if f.concept is not None and (f.concept.isItem and f.context is not None):
                 ValidateXbrlDimensions.checkFact(self, f)
@@ -1085,7 +1085,10 @@ class ValidateXbrl:
         # 2022-08-28: note for type ignore: _Element, which is passed by isGenericResource below, has no qname.
         # isGenericResource is currently used in ValidateXbrlDTS. We should revisit this when adding type hints for
         # ValidateXbrlDTS.
-        return self.modelXbrl.isInSubstitutionGroup(elt.qname, genQname)  # type: ignore[union-attr]
+        if elt:
+            return self.modelXbrl.isInSubstitutionGroup(elt.qname, genQname)  # type: ignore[attr-defined]
+        else:
+            return False
 
     def isGenericLink(self, elt: ModelObject) -> bool:
         return self.isGenericObject(elt, XbrlConst.qnGenLink)

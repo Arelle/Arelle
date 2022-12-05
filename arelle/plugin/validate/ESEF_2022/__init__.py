@@ -82,6 +82,7 @@ from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelInstanceObject import ModelContext
 from typing import Any, cast
 from collections.abc import Generator
+from arelle.ModelValue import QName
 
 _: TypeGetText  # Handle gettext
 
@@ -118,9 +119,7 @@ def modelXbrlBeforeLoading(modelXbrl: ModelXbrl, normalizedUri: str, filepath: s
                 if (not isinstance(modelXbrl.fileSource.selection, list) and
                     modelXbrl.fileSource.selection is not None and
                     modelXbrl.fileSource.selection.endswith(".xml") and
-                    # Ignoring for now: Argument 1 to "identify" of "Type" has incompatible type "FileSource"; expected "Type".
-                    # It is not entirely clear why self isn't used in the identify-method.
-                    ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url) in ( # type: ignore[arg-type]
+                    ModelDocument.Type.identify(modelXbrl.fileSource, cast(str, modelXbrl.fileSource.url)) in (
                         ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
                     return None # allow zipped test case to load normally
                 if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
@@ -753,7 +752,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 modelObject=unit, measure=measure)
         del uniqueUnitHashes
 
-        reportedMandatory = set()
+        reportedMandatory: set[QName] = set()
         precisionFacts = set()
         numFactsByConceptContextUnit = defaultdict(list)
         textFactsByConceptContext = defaultdict(list)
@@ -773,7 +772,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     precisionFacts.add(f)
                 if f.isNumeric and f.concept is not None and getattr(f, "xValid", 0) >= VALID:
                     numFactsByConceptContextUnit[(f.qname, mapContext.get(f.context,f.context), mapUnit.get(f.unit, f.unit))].append(f)
-                    if not f.isNil and f.xValue > 1 and f.concept.type is not None and (
+                    if not f.isNil and cast(int, f.xValue) > 1 and f.concept.type is not None and (
                         f.concept.type.qname == PERCENT_TYPE or f.concept.type.isDerivedFrom(PERCENT_TYPE)):
                         modelXbrl.warning("ESEF.2.2.2.percentGreaterThan100",
                             _("A percent fact should have value <= 100: %(element)s in context %(context)s value %(value)s"),
@@ -818,18 +817,18 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         decVals = {}
         for fList in numFactsByConceptContextUnit.values():
             if len(fList) > 1:
-                f0 = fList[0]
+                f0: ModelFact = fList[0]
                 if any(f.isNil for f in fList):
                     _inConsistent = not all(f.isNil for f in fList)
                 else: # not all have same decimals
                     _d = inferredDecimals(f0)
-                    _v = f0.xValue
+                    _v = cast(float, f0.xValue)
                     _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
                     decVals[_d] = _v
                     aMax, bMin = rangeValue(_v, _d)
                     for f in fList[1:]:
                         _d = inferredDecimals(f)
-                        _v = f.xValue
+                        _v = cast(float, f.xValue)
                         if isnan(_v):
                             _inConsistent = True
                             break
@@ -1066,7 +1065,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     _("Separate Extended Link Roles are required by %(elr)s for hierarchies: %(roots)s."),
                     modelObject=roots, elr=modelXbrl.roleTypeDefinition(ELR), roots=", ".join(sorted((str(c.qname) for c in roots))))
 
-        concepts: set[ModelConcept]
         for labelrole, concepts in missingConceptLabels.items():
             modelXbrl.warning("ESEF.3.4.5.missingLabelForRoleInReportLanguage",
                 _("Label for %(role)s role SHOULD be available in report language for concepts: %(qnames)s."),
@@ -1123,17 +1121,17 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 modelObject=missingAuthorityElements, qnames=", ".join(sorted(str(qn) for qn in missingAuthorityElements)))
 
         # duplicated core taxonomy elements
-        for name, concepts in modelXbrl.nameConcepts.items():
-            if len(concepts) > 1:
+        for name, conceptlist in modelXbrl.nameConcepts.items():
+            if len(conceptlist) > 1:
                 # Note 2022-08-12: i was being used as an int somewhere else, causing mypy some confusion.
                 # I renamed i to _i to handle that.
                 _i = None # ifrs Concept
-                for c in concepts:
+                for c in conceptlist:
                     if c.qname.namespaceURI == _ifrsNs:
                         _i = c
                         break
                 if _i is not None:
-                    for c in concepts:
+                    for c in conceptlist:
                         if (c.qname.namespaceURI not in _ifrsNses
                             and isExtension(val, c.qname.namespaceURI) # may be a authority-specific duplication such as UK-FRC
                             and c.balance == _i.balance and c.periodType == _i.periodType):

@@ -692,7 +692,7 @@ def addChild(
     parent: ModelObject,
     childName1: str | QName,
     childName2: str | None = None,
-    attributes: Sequence[tuple[str | QName, str]] | dict[str | QName, str] | None = None,
+    attributes: Sequence[tuple[str | QName, str]] | dict[str | QName, str] | tuple[str, str] | None = None,
     text: str | None = None,
     afterSibling: ModelObject | None = None,
     beforeSibling: ModelObject | None = None,
@@ -725,7 +725,7 @@ def addChild(
     elif appendChild:
         parent.append(child)
     if attributes:
-        for name, value in (attributes.items() if isinstance(attributes, dict) else
+        for name, value in (attributes.items() if isinstance(attributes, dict) else  # type: ignore[misc]
                             attributes if len(attributes) > 0 and isinstance(attributes[0],(tuple,list)) else (attributes,)):
             if isinstance(name,QName):
                 if name.namespaceURI:
