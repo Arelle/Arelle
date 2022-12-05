@@ -6,7 +6,7 @@ from __future__ import annotations
 import os, sys, re, traceback, uuid
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, cast, DefaultDict, Set, Optional
+from typing import TYPE_CHECKING, Any, cast, Optional
 import logging
 from decimal import Decimal
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
@@ -20,17 +20,15 @@ from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 
 if TYPE_CHECKING:
+    from datetime import date, datetime
     from arelle.CntlrWinMain import CntlrWinMain
     from arelle.ModelDocument import ModelDocument as modeldoc
     from arelle.ModelDtsObject import ModelConcept, ModelType, ModelRoleType
     from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelInlineFact, ModelDimensionValue
     from arelle.ModelManager import ModelManager
-    from arelle.ModelObject import ModelObject
     from arelle.ModelRelationshipSet import ModelRelationshipSet as ModelRelationshipSetClass
     from arelle.ModelValue import QName
     from arelle.typing import TypeGetText, LocaleDict
-    from arelle.PrototypeInstanceObject import DimValuePrototype
-    from datetime import date, datetime
 
     _: TypeGetText  # Handle gettext
 else:
@@ -40,12 +38,10 @@ else:
 profileStatNumber = 0
 
 AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning choose best location for new element
-DEFAULT = sys.intern(str("default"))
-NONDEFAULT = sys.intern(str("non-default"))
-DEFAULTorNONDEFAULT = sys.intern(str("default-or-non-default"))
+DEFAULT = sys.intern("default")
+NONDEFAULT = sys.intern("non-default")
+DEFAULTorNONDEFAULT = sys.intern("default-or-non-default")
 EMPTY_TUPLE = ()
-
-
 
 
 class ModelXbrl:
@@ -241,7 +237,7 @@ class ModelXbrl:
         self.modelConsistencyAssertions: set[Any] = set()
         self.modelCustomFunctionSignatures: dict[QName, Any] = {}
         self.modelCustomFunctionImplementations: set[modeldoc] = set()
-        self.modelRenderingTables: Set[Any] = set()
+        self.modelRenderingTables: set[Any] = set()
         if not keepViews:
             self.views: list[Any] = []
         self.langs: set[str] = {self.modelManager.defaultLang}
@@ -256,7 +252,7 @@ class ModelXbrl:
         self.logRefObjectProperties: Any = getattr(self.logger, "logRefObjectProperties", False)
         self.logRefHasPluginAttrs: bool = any(True for m in pluginClassMethods("Logging.Ref.Attributes"))
         self.logRefHasPluginProperties: bool = any(True for m in pluginClassMethods("Logging.Ref.Properties"))
-        self.logRefFileRelUris: DefaultDict[Any, dict[str, str]] = defaultdict(dict)
+        self.logRefFileRelUris: defaultdict[Any, dict[str, str]] = defaultdict(dict)
         self.profileStats: dict[str, tuple[int, Any, Any]] = {}
         self.schemaDocsToValidate: set[modeldoc] = set()
         self.closeFileSource: bool
@@ -334,7 +330,7 @@ class ModelXbrl:
         :param includeProhibits: True to include prohibiting arc elements as relationships
         """
         from arelle import ModelRelationshipSet
-        key: tuple[str, tuple[str] | str | None, QName | None, QName | None, bool] = (arcrole, linkrole, linkqname, arcqname, includeProhibits)
+        key = (arcrole, linkrole, linkqname, arcqname, includeProhibits)
         if key not in self.relationshipSets:
             ModelRelationshipSet.create(self, arcrole, linkrole, linkqname, arcqname, includeProhibits)
         return self.relationshipSets[key]
@@ -482,8 +478,10 @@ class ModelXbrl:
         from arelle.ModelFormulaObject import Aspect
         from arelle.ModelValue import dateUnionEqual
         from arelle.XbrlUtil import sEqual
-        if dims: segAspect, scenAspect = (Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO)
-        else: segAspect, scenAspect = (Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO)
+        if dims:
+            segAspect, scenAspect = (Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO)
+        else:
+            segAspect, scenAspect = (Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO)
         for c in self.contexts.values():
             if (c.entityIdentifier == (entityIdentScheme, entityIdentValue) and
                 ((c.isInstantPeriod and periodType == "instant" and dateUnionEqual(c.instantDatetime, periodEndInstant, instantEndDate=True)) or
@@ -667,10 +665,10 @@ class ModelXbrl:
     def factsByQname(self) -> dict[QName, set[ModelInlineFact]]:  # indexed by fact (concept) qname
         """Facts in the instance indexed by their QName, cached
         """
-        fbqn: dict[QName, Set[ModelInlineFact]]
         try:
             return self._factsByQname
         except AttributeError:
+            fbqn: dict[QName, set[ModelInlineFact]]
             self._factsByQname = fbqn = defaultdict(set)
             for f in self.factsInInstance:
                 if f.qname is not None:
@@ -711,7 +709,7 @@ class ModelXbrl:
                     fbdt.add(f)
             return fbdt
 
-    def factsByPeriodType(self, periodType: str) -> Set[ModelFact]:  # indexed by fact (concept) qname
+    def factsByPeriodType(self, periodType: str) -> set[ModelFact]:  # indexed by fact (concept) qname
         """Facts in the instance indexed by periodType, cached
 
         :param periodType: Period type to match ("instant", "duration", or "forever")
