@@ -274,18 +274,27 @@ class ModelXbrl:
 
     """
 
+    closeFileSource: bool
     contexts: dict[Any, Any]
     dimensionDefaultConcepts: dict[ModelConcept, ModelConcept]
+    entryLoadingUrl: Any
+    fileSource: Any
+    ixdsDocUrls: list[str]
     ixdsHtmlElements: list[str]
     isDimensionsValidated: bool
+    locale: LocaleDict | None
+    uri: str
     uriDir: str
     targetRelationships: Any
     qnameDimensionContextElement: dict[str, str]
     _factsByDimQname: dict[str, dict[QName | str | None, set[ModelFact]]]
     _factsByQname: dict[QName, set[ModelInlineFact]]
     _factsByDatatype: dict[bool | tuple[bool, QName], set[ModelFact]]
-    _factsByPeriodType: defaultdict[str, set[ModelFact]]
+    _factsByLocalName: dict[QName, set[ModelInlineFact]]
+    _factsByPeriodType: dict[str, set[ModelFact]]
     _nonNilFactsInInstance: set[ModelInlineFact]
+    _startedProfiledActivity: float
+    _startedTimeStat: float
 
     def __init__(self,  modelManager: ModelManager, errorCaptureLevel: str | None = None) -> None:
         self.modelManager = modelManager
@@ -338,16 +347,10 @@ class ModelXbrl:
         self.logRefHasPluginAttrs: bool = any(True for m in pluginClassMethods("Logging.Ref.Attributes"))
         self.logRefHasPluginProperties: bool = any(True for m in pluginClassMethods("Logging.Ref.Properties"))
         self.logRefFileRelUris: defaultdict[Any, dict[str, str]] = defaultdict(dict)
-        self.profileStats: dict[str, tuple[int, Any, Any]] = {}
+        self.profileStats: dict[str, tuple[int, float, float | int]] = {}
         self.schemaDocsToValidate: set[ModelDocumentClass] = set()
-        self.closeFileSource: bool
-        self.fileSource: Any
-        self.entryLoadingUrl: Any
-        self.ixdsDocUrls: list[str]
         self.modelXbrl = self  # for consistency in addressing modelXbrl
         self.arelleUnitTests: dict[str, str] = {}  # unit test entries (usually from processing instructions
-        self.uri: str
-        self.locale: LocaleDict | None
         for pluginXbrlMethod in pluginClassMethods("ModelXbrl.Init"):
             pluginXbrlMethod(self)
 
@@ -764,7 +767,6 @@ class ModelXbrl:
     def factsByLocalName(self) -> dict[QName, set[ModelInlineFact]]:  # indexed by fact (concept) localName
         """Facts in the instance indexed by their LocalName, cached
         """
-        self._factsByLocalName: dict[QName, set[ModelInlineFact]]
         try:
             return self._factsByLocalName
         except AttributeError:
@@ -1252,7 +1254,7 @@ class ModelXbrl:
                 modelObject=self.modelXbrl.modelDocument, profileStats=self.profileStats,
                 timeTotal=timeTotal, timeEFM=timeEFM)
 
-    def profileStat(self, name: str | None = None, stat: str | None = None) -> None:
+    def profileStat(self, name: str | None = None, stat: float | None = None) -> None:
         '''
         order 1xx - load, import, setup, etc
         order 2xx - views, 26x - table lb
@@ -1273,7 +1275,7 @@ class ModelXbrl:
             except AttributeError:
                 pass
             if stat is None:
-                self._startedTimeStat: float = time.time()
+                self._startedTimeStat = time.time()
 
     def profileActivity(self, activityCompleted: str | None = None, minTimeToShow: float = 0) -> None:
         """Used to provide interactive GUI messages of long-running processes.
@@ -1296,7 +1298,7 @@ class ModelXbrl:
                             time=format_string(self.modelManager.locale, "%.3f", timeTaken, grouping=True))
         except AttributeError:
             pass
-        self._startedProfiledActivity: float = time.time()
+        self._startedProfiledActivity = time.time()
 
     def saveDTSpackage(self) -> None:
         """Contributed program to save DTS package as a zip file.  Refactored into a plug-in (and may be removed from main code).
