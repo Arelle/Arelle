@@ -42,7 +42,7 @@ The files needed to run conformance suite tests can be downloaded by running wit
 ```
 python -m tests.integration_tests.validation.run_conformance_suites --download-overwrite --test --name xbrl_2_1
 ```
-Download options can be provided alongside `--test` to download before running tets, or alone to download without running tests.
+Download options can be provided alongside `--test` to download before running tests, or alone to download without running tests.
 
 This example attempts to download all configured conformance suites and will output messages for those without public downloads available:
 ```
