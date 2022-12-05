@@ -7,7 +7,9 @@ from tests.integration_tests.validation.conformance_suite_configs import (
     ALL_CONFORMANCE_SUITE_CONFIGS,
     PUBLIC_CONFORMANCE_SUITE_CONFIGS
 )
-from tests.integration_tests.validation.download_conformance_suites import download_conformance_suite
+from tests.integration_tests.validation.download_conformance_suites import (
+    download_conformance_suite, extract_conformance_suite
+)
 
 ARGUMENTS = [
     {
@@ -91,6 +93,8 @@ def run_conformance_suites(
         overwrite = download_option == DOWNLOAD_OVERWRITE
         for conformance_suite_config in conformance_suite_configs:
             download_conformance_suite(conformance_suite_config, overwrite=overwrite)
+    for conformance_suite_config in conformance_suite_configs:
+        extract_conformance_suite(conformance_suite_config)
     all_results = []
     if test_option:
         for config in conformance_suite_configs:

@@ -31,6 +31,13 @@ def download_conformance_suite(config: ConformanceSuiteConfig, overwrite: bool =
             membership_messages.append(f"\tMembership required (Join here: {config.membership_url}).")
         membership_messages.append(f"\tMore info: {config.info_url}")
         logger.warning("\n".join(membership_messages))
+    if config.additional_downloads:
+        for source, destination in config.additional_downloads.items():
+            _download_file(source, destination, overwrite)
+
+
+def extract_conformance_suite(config: ConformanceSuiteConfig) -> None:
+    destination_path = config.prefixed_local_filepath
     extract_path = config.prefixed_extract_filepath
     if extract_path:
         assert os.path.exists(destination_path), 'Can not extract conformance suite file: ZIP file does not exist.'
@@ -38,6 +45,3 @@ def download_conformance_suite(config: ConformanceSuiteConfig, overwrite: bool =
             logger.info(f"[{config.name}] Extracting conformance suite file.\n\tFrom: {destination_path}\n\tTo: {extract_path}")
             with zipfile.ZipFile(destination_path, 'r') as zip_ref:
                 zip_ref.extractall(extract_path)
-    if config.additional_downloads:
-        for source, destination in config.additional_downloads.items():
-            _download_file(source, destination, overwrite)
