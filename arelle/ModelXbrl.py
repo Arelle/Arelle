@@ -200,6 +200,7 @@ class ModelXbrl:
     _factsByDimQname: dict[str, dict[QName | str | None, set[ModelFact]]]
     _factsByQname: dict[QName, set[ModelInlineFact]]
     _factsByDatatype: dict[bool | tuple[bool, QName], set[ModelFact]]
+    _factsByPeriodType: defaultdict[str, set[ModelFact]]
     _nonNilFactsInInstance: set[ModelInlineFact]
 
     def __init__(self,  modelManager: ModelManager, errorCaptureLevel: str | None = None) -> None:
@@ -712,8 +713,8 @@ class ModelXbrl:
         try:
             return self._factsByPeriodType[periodType]
         except AttributeError:
-            self._factsByPeriodType: defaultdict[str, set[ModelFact]] = defaultdict(set)
-            fbpt: defaultdict[str,set[ModelFact]] = defaultdict(set)
+            fbpt: defaultdict[str, set[ModelFact]]
+            self._factsByPeriodType = fbpt = defaultdict(set)
             for f in self.factsInInstance:
                 p = f.concept.periodType
                 if p:
