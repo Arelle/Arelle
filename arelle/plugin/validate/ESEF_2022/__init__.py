@@ -119,7 +119,7 @@ def modelXbrlBeforeLoading(modelXbrl: ModelXbrl, normalizedUri: str, filepath: s
                 if (not isinstance(modelXbrl.fileSource.selection, list) and
                     modelXbrl.fileSource.selection is not None and
                     modelXbrl.fileSource.selection.endswith(".xml") and
-                    ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url) in (
+                    ModelDocument.Type.identify(modelXbrl.fileSource, cast(str, modelXbrl.fileSource.url)) in (
                         ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
                     return None # allow zipped test case to load normally
                 if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):

@@ -22,12 +22,15 @@ from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 if TYPE_CHECKING:
     from datetime import date, datetime
     from arelle.CntlrWinMain import CntlrWinMain
+    from arelle.FileSource import FileSource as FileSourceClass
     from arelle.ModelDocument import ModelDocument as ModelDocumentClass
     from arelle.ModelDtsObject import ModelConcept, ModelType, ModelRoleType
+    from arelle.ModelFormulaObject import ModelConsistencyAssertion, ModelCustomFunctionSignature, ModelVariableSet
     from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelInlineFact, ModelDimensionValue
     from arelle.ModelManager import ModelManager
     from arelle.ModelRelationshipSet import ModelRelationshipSet as ModelRelationshipSetClass
     from arelle.ModelValue import QName
+    from arelle.PrototypeDtsObject import LinkPrototype
     from arelle.typing import TypeGetText, LocaleDict
 
     _: TypeGetText  # Handle gettext
@@ -44,7 +47,7 @@ DEFAULTorNONDEFAULT = sys.intern("default-or-non-default")
 EMPTY_TUPLE = ()
 
 
-def load(modelManager: ModelManager, url: str, nextaction: str | None = None, base: str | None = None, useFileSource: str | None = None, errorCaptureLevel: str | None = None, **kwargs: str) -> ModelXbrl:
+def load(modelManager: ModelManager, url: str, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: str | None = None, **kwargs: str) -> ModelXbrl:
     """Each loaded instance, DTS, testcase, testsuite, versioning report, or RSS feed, is represented by an
     instance of a ModelXbrl object. The ModelXbrl object has a collection of ModelDocument objects, each
     representing an XML document (for now, with SQL whenever its time comes). One of the modelDocuments of
@@ -275,22 +278,22 @@ class ModelXbrl:
     """
 
     closeFileSource: bool
-    contexts: dict[Any, Any]
     dimensionDefaultConcepts: dict[ModelConcept, ModelConcept]
-    entryLoadingUrl: Any
-    fileSource: Any
+    entryLoadingUrl: str
+    fileSource: FileSourceClass
     ixdsDocUrls: list[str]
     ixdsHtmlElements: list[str]
     isDimensionsValidated: bool
     locale: LocaleDict | None
+    modelDocument: ModelDocumentClass | None
     uri: str
     uriDir: str
-    targetRelationships: Any
-    qnameDimensionContextElement: dict[str, str]
-    _factsByDimQname: dict[str, dict[QName | str | None, set[ModelFact]]]
+    targetRelationships: set[ModelObject]
+    qnameDimensionContextElement: dict[QName, str]
+    _factsByDimQname: dict[QName, dict[QName | str | None, set[ModelFact]]]
     _factsByQname: dict[QName, set[ModelInlineFact]]
     _factsByDatatype: dict[bool | tuple[bool, QName], set[ModelFact]]
-    _factsByLocalName: dict[QName, set[ModelInlineFact]]
+    _factsByLocalName: dict[str, set[ModelInlineFact]]
     _factsByPeriodType: dict[str, set[ModelFact]]
     _nonNilFactsInInstance: set[ModelInlineFact]
     _startedProfiledActivity: float
@@ -317,9 +320,9 @@ class ModelXbrl:
         self.qnameAttributeGroups: dict[QName, Any] = {}
         self.qnameGroupDefinitions: dict[QName, Any] = {}
         self.qnameTypes: dict[QName, ModelType] = {}  # contains ModelTypes by qname key of type
-        self.baseSets: defaultdict[Any, Any] = defaultdict(list)  # contains ModelLinks for keys arcrole, arcrole#linkrole
+        self.baseSets: defaultdict[tuple[str, str | None, QName | None, QName | None], list[ModelObject | LinkPrototype]] = defaultdict(list)  # contains ModelLinks for keys arcrole, arcrole#linkrole
         self.relationshipSets: dict[tuple[str] | tuple[str, tuple[str] | str | None, QName | None, QName | None, bool], ModelRelationshipSetClass] = {}  # contains ModelRelationshipSets by bas set keys
-        self.qnameDimensionDefaults: dict[str, str] = {}  # contains qname of dimension (index) and default member(value)
+        self.qnameDimensionDefaults: dict[QName, QName] = {}  # contains qname of dimension (index) and default member(value)
         self.facts: list[ModelInlineFact] = []
         self.factsInInstance: set[ModelInlineFact] = set()
         self.undefinedFacts: list[ModelFact] = []  # elements presumed to be facts but not defined
@@ -327,9 +330,9 @@ class ModelXbrl:
         self.units: dict[str, ModelUnit] = {}
         self.modelObjects: list[ModelObject] = []
         self.qnameParameters: dict[QName, Any] = {}
-        self.modelVariableSets: set[Any] = set()
-        self.modelConsistencyAssertions: set[Any] = set()
-        self.modelCustomFunctionSignatures: dict[QName, Any] = {}
+        self.modelVariableSets: set[ModelVariableSet] = set()
+        self.modelConsistencyAssertions: set[ModelConsistencyAssertion] = set()
+        self.modelCustomFunctionSignatures: dict[QName | tuple[QName | None, int], ModelCustomFunctionSignature] = {}
         self.modelCustomFunctionImplementations: set[ModelDocumentClass] = set()
         self.modelRenderingTables: set[Any] = set()
         if not keepViews:
@@ -341,9 +344,9 @@ class ModelXbrl:
         self.hasTableRendering: bool = False
         self.hasTableIndexing: bool = False
         self.hasFormulae: bool = False
-        self.formulaOutputInstance = None
+        self.formulaOutputInstance: ModelXbrl | None = None
         self.logger: Any = logging.getLogger("arelle")
-        self.logRefObjectProperties: Any = getattr(self.logger, "logRefObjectProperties", False)
+        self.logRefObjectProperties: bool = getattr(self.logger, "logRefObjectProperties", False)
         self.logRefHasPluginAttrs: bool = any(True for m in pluginClassMethods("Logging.Ref.Attributes"))
         self.logRefHasPluginProperties: bool = any(True for m in pluginClassMethods("Logging.Ref.Properties"))
         self.logRefFileRelUris: defaultdict[Any, dict[str, str]] = defaultdict(dict)
@@ -591,7 +594,7 @@ class ModelXbrl:
 
     def createContext(
             self, entityIdentScheme: str, entityIdentValue: str, periodType: str, periodStart: datetime | date, periodEndInstant: datetime | date, priItem: QName | None,
-            dims: dict[int | QName, QName | DimValuePrototype], segOCCs: ModelObject, scenOCCs: ModelObject, afterSibling: ModelObject | None = None, beforeSibling: ModelObject | None = None, id: str | None = None
+            dims: dict[int | QName, QName | DimValuePrototype], segOCCs: ModelObject, scenOCCs: ModelObject, afterSibling: ModelObject | str | None = None, beforeSibling: ModelObject | None = None, id: str | None = None
     ) -> ModelObject:
         """Creates a new ModelContext and validates (integrates into modelDocument object model).
 
@@ -609,11 +612,11 @@ class ModelXbrl:
         """
         assert self.modelDocument is not None
         xbrlElt = self.modelDocument.xmlRootElement
-        if afterSibling == cast('ModelObject', AUTO_LOCATE_ELEMENT):
+        if cast(str, afterSibling) == AUTO_LOCATE_ELEMENT:
             afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context"))
         cntxId = id if id else 'c-{0:02n}'.format( len(self.contexts) + 1)
         newCntxElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "context", attributes=("id", cntxId),
-                                      afterSibling=afterSibling, beforeSibling=beforeSibling)
+                                      afterSibling=cast(Optional[ModelObject], afterSibling), beforeSibling=beforeSibling)
         entityElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "entity")
         XmlUtil.addChild(entityElt, XbrlConst.xbrli, "identifier",
                             attributes=("scheme", entityIdentScheme),
@@ -764,13 +767,13 @@ class ModelXbrl:
             return fbqn
 
     @property
-    def factsByLocalName(self) -> dict[QName, set[ModelInlineFact]]:  # indexed by fact (concept) localName
+    def factsByLocalName(self) -> dict[str, set[ModelInlineFact]]:  # indexed by fact (concept) localName
         """Facts in the instance indexed by their LocalName, cached
         """
         try:
             return self._factsByLocalName
         except AttributeError:
-            fbln: dict[QName, set[ModelInlineFact]]
+            fbln: dict[str, set[ModelInlineFact]]
             self._factsByLocalName = fbln = defaultdict(set)
             for f in self.factsInInstance:
                 if f.qname is not None:
@@ -814,7 +817,7 @@ class ModelXbrl:
         except KeyError:
             return set()  # no facts for this period type
 
-    def factsByDimMemQname(self, dimQname: str, memQname: QName | None = None) -> set[ModelFact]:  # indexed by fact (concept) qname
+    def factsByDimMemQname(self, dimQname: QName, memQname: QName | None = None) -> set[ModelFact]:  # indexed by fact (concept) qname
         """Facts in the instance indexed by their Dimension  and Member QName, cached
         If Member is None, returns facts that have the dimension (explicit or typed)
         If Member is NONDEFAULT, returns facts that have the dimension (explicit non-default or typed)
@@ -913,7 +916,7 @@ class ModelXbrl:
             parent = self.modelDocument.xmlRootElement
         self.makeelementParentModelObject = parent
         newFact: ModelInlineFact = cast(
-            'ModelInlineFact', XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
+            ModelInlineFact, XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
                                                 afterSibling=afterSibling, beforeSibling=beforeSibling)
         )
         global ModelFact
@@ -1307,7 +1310,7 @@ class ModelXbrl:
             return
         from zipfile import ZipFile
         import os
-        entryFilename = self.fileSource.url
+        entryFilename = cast(str, self.fileSource.url)
         pkgFilename = entryFilename + ".zip"
         with ZipFile(pkgFilename, 'w') as zip:
             numFiles = 0

@@ -73,7 +73,7 @@ class ValidateXbrl:
     ixdsFootnotes: dict[str, Any]
     ixdsHeaderCount: int
     ixdsReferences: dict[str, Any]
-    ixdsRelationships: list[dict[Any, Any]]
+    ixdsRelationships: list[ModelObject]
     ixdsRoleRefURIs: dict[Any, Any]
     ixdsArcroleRefURIs: dict[Any, Any]
     unconsolidated: bool
@@ -129,7 +129,7 @@ class ValidateXbrl:
         self.genericArcArcroles = set()
         for baseSetExtLinks in modelXbrl.baseSets.values():
             for baseSetExtLink in baseSetExtLinks:
-                modelLinks.add(baseSetExtLink)    # ext links are unique (no dups)
+                modelLinks.add(cast(ModelLink, baseSetExtLink))    # ext links are unique (no dups)
         self.checkLinks(modelLinks)
         modelXbrl.profileStat(_("validateLinks"))
 
