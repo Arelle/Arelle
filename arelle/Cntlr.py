@@ -582,7 +582,7 @@ class Cntlr:
         return None
 
     @property
-    def memoryUsed(self) -> float | None:
+    def memoryUsed(self) -> float | int:
         try:
             global osPrcs # is this needed?
             # to tell mypy this is for windows
