@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from arelle.ModelDocument import ModelDocument as ModelDocumentClass
     from arelle.ModelDtsObject import ModelConcept, ModelType, ModelRoleType
     from arelle.ModelFormulaObject import ModelConsistencyAssertion, ModelCustomFunctionSignature, ModelVariableSet
-    from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelInlineFact, ModelDimensionValue
+    from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelDimensionValue
     from arelle.ModelManager import ModelManager
     from arelle.ModelRelationshipSet import ModelRelationshipSet as ModelRelationshipSetClass
     from arelle.ModelValue import QName
@@ -291,11 +291,11 @@ class ModelXbrl:
     targetRelationships: set[ModelObject]
     qnameDimensionContextElement: dict[QName, str]
     _factsByDimQname: dict[QName, dict[QName | str | None, set[ModelFact]]]
-    _factsByQname: dict[QName, set[ModelInlineFact]]
+    _factsByQname: dict[QName, set[ModelFact]]
     _factsByDatatype: dict[bool | tuple[bool, QName], set[ModelFact]]
-    _factsByLocalName: dict[str, set[ModelInlineFact]]
+    _factsByLocalName: dict[str, set[ModelFact]]
     _factsByPeriodType: dict[str, set[ModelFact]]
-    _nonNilFactsInInstance: set[ModelInlineFact]
+    _nonNilFactsInInstance: set[ModelFact]
     _startedProfiledActivity: float
     _startedTimeStat: float
 
@@ -323,8 +323,8 @@ class ModelXbrl:
         self.baseSets: defaultdict[tuple[str, str | None, QName | None, QName | None], list[ModelObject | LinkPrototype]] = defaultdict(list)  # contains ModelLinks for keys arcrole, arcrole#linkrole
         self.relationshipSets: dict[tuple[str] | tuple[str, tuple[str] | str | None, QName | None, QName | None, bool], ModelRelationshipSetClass] = {}  # contains ModelRelationshipSets by bas set keys
         self.qnameDimensionDefaults: dict[QName, QName] = {}  # contains qname of dimension (index) and default member(value)
-        self.facts: list[ModelInlineFact] = []
-        self.factsInInstance: set[ModelInlineFact] = set()
+        self.facts: list[ModelFact] = []
+        self.factsInInstance: set[ModelFact] = set()
         self.undefinedFacts: list[ModelFact] = []  # elements presumed to be facts but not defined
         self.contexts: dict[str, ModelDocumentClass.xmlRootElement] = {}
         self.units: dict[str, ModelUnit] = {}
@@ -743,7 +743,7 @@ class ModelXbrl:
         return newUnitElt
 
     @property
-    def nonNilFactsInInstance(self) -> set[ModelInlineFact]:  # indexed by fact (concept) qname
+    def nonNilFactsInInstance(self) -> set[ModelFact]:  # indexed by fact (concept) qname
         """Facts in the instance which are not nil, cached
         """
         try:
@@ -753,13 +753,13 @@ class ModelXbrl:
             return self._nonNilFactsInInstance
 
     @property
-    def factsByQname(self) -> dict[QName, set[ModelInlineFact]]:  # indexed by fact (concept) qname
+    def factsByQname(self) -> dict[QName, set[ModelFact]]:  # indexed by fact (concept) qname
         """Facts in the instance indexed by their QName, cached
         """
         try:
             return self._factsByQname
         except AttributeError:
-            fbqn: dict[QName, set[ModelInlineFact]]
+            fbqn: dict[QName, set[ModelFact]]
             self._factsByQname = fbqn = defaultdict(set)
             for f in self.factsInInstance:
                 if f.qname is not None:
@@ -767,13 +767,13 @@ class ModelXbrl:
             return fbqn
 
     @property
-    def factsByLocalName(self) -> dict[str, set[ModelInlineFact]]:  # indexed by fact (concept) localName
+    def factsByLocalName(self) -> dict[str, set[ModelFact]]:  # indexed by fact (concept) localName
         """Facts in the instance indexed by their LocalName, cached
         """
         try:
             return self._factsByLocalName
         except AttributeError:
-            fbln: dict[str, set[ModelInlineFact]]
+            fbln: dict[str, set[ModelFact]]
             self._factsByLocalName = fbln = defaultdict(set)
             for f in self.factsInInstance:
                 if f.qname is not None:
@@ -915,13 +915,13 @@ class ModelXbrl:
             assert self.modelDocument is not None
             parent = self.modelDocument.xmlRootElement
         self.makeelementParentModelObject = parent
-        newFact: ModelInlineFact = cast(
-            ModelInlineFact, XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
-                                                afterSibling=afterSibling, beforeSibling=beforeSibling)
-        )
         global ModelFact
         if ModelFact is None:
             from arelle.ModelInstanceObject import ModelFact
+        newFact = cast(
+            ModelFact, XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
+                                        afterSibling=afterSibling, beforeSibling=beforeSibling)
+        )
         if hasattr(self, "_factsByQname"):
             self._factsByQname[newFact.qname].add(newFact)
         if not isinstance(newFact, ModelFact):

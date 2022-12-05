@@ -804,13 +804,13 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     _inConsistent = not all(f.isNil for f in fList)
                 else: # not all have same decimals
                     _d = inferredDecimals(f0)
-                    _v = f0.xValue
+                    _v = cast(float, f0.xValue)
                     _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
                     decVals[_d] = _v
                     aMax, bMin = rangeValue(_v, _d)
                     for f in fList[1:]:
                         _d = inferredDecimals(f)
-                        _v = f.xValue
+                        _v = cast(float, f.xValue)
                         if isnan(_v):
                             _inConsistent = True
                             break
