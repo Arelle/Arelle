@@ -10,8 +10,9 @@ from decimal import Decimal
 from fractions import Fraction
 from collections import OrderedDict
 from collections.abc import MappingView, MutableSet
-import math
 from typing import Any
+
+from arelle.typing import OptionalString
 
 STR_NUM_TYPES = (str, int, float, Decimal, Fraction)
 
@@ -97,7 +98,7 @@ def strTruncate(value, length) -> str:
     return _s[0:length-3] + "..."
 
 
-def normalizeSpace(s) -> str:
+def normalizeSpace(s: OptionalString) -> OptionalString:
     if isinstance(s, str):
         return " ".join(s.split())
     return s
