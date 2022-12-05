@@ -2,9 +2,11 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from collections import defaultdict
+
 import os, sys, re, traceback, uuid
-from typing import TYPE_CHECKING, Any, cast, DefaultDict, Set, Optional
+from collections import defaultdict
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any, cast, Optional
 import logging
 from decimal import Decimal
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
@@ -18,16 +20,18 @@ from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 
 if TYPE_CHECKING:
-    from arelle.ModelDocument import ModelDocument as modeldoc
+    from datetime import date, datetime
+    from arelle.CntlrWinMain import CntlrWinMain
+    from arelle.FileSource import FileSource as FileSourceClass
+    from arelle.ModelDocument import ModelDocument as ModelDocumentClass
     from arelle.ModelDtsObject import ModelConcept, ModelType, ModelRoleType
-    from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelInlineFact, ModelDimensionValue
+    from arelle.ModelFormulaObject import ModelConsistencyAssertion, ModelCustomFunctionSignature, ModelVariableSet
+    from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelDimensionValue
     from arelle.ModelManager import ModelManager
-    from arelle.ModelObject import ModelObject
     from arelle.ModelRelationshipSet import ModelRelationshipSet as ModelRelationshipSetClass
     from arelle.ModelValue import QName
+    from arelle.PrototypeDtsObject import LinkPrototype
     from arelle.typing import TypeGetText, LocaleDict
-    from arelle.PrototypeInstanceObject import DimValuePrototype
-    from datetime import date, datetime
 
     _: TypeGetText  # Handle gettext
 else:
@@ -37,12 +41,95 @@ else:
 profileStatNumber = 0
 
 AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning choose best location for new element
-DEFAULT = sys.intern(str("default"))
-NONDEFAULT = sys.intern(str("non-default"))
-DEFAULTorNONDEFAULT = sys.intern(str("default-or-non-default"))
+DEFAULT = sys.intern("default")
+NONDEFAULT = sys.intern("non-default")
+DEFAULTorNONDEFAULT = sys.intern("default-or-non-default")
 EMPTY_TUPLE = ()
 
 
+def load(modelManager: ModelManager, url: str, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: str | None = None, **kwargs: str) -> ModelXbrl:
+    """Each loaded instance, DTS, testcase, testsuite, versioning report, or RSS feed, is represented by an
+    instance of a ModelXbrl object. The ModelXbrl object has a collection of ModelDocument objects, each
+    representing an XML document (for now, with SQL whenever its time comes). One of the modelDocuments of
+    the ModelXbrl is the entry point (of discovery or of the test suite).
+
+    :param url: may be a filename or FileSource object
+    :param nextaction: text to use as status line prompt on conclusion of loading and discovery
+    :param base: the base URL if any (such as a versioning report's URL when loading to/from DTS modelXbrl).
+    :param useFileSource: for internal use (when an entry point is in a FileSource archive and discovered files expected to also be in the entry point's archive.
+   """
+    if nextaction is None: nextaction = _("loading")
+    from arelle import (ModelDocument, FileSource)
+    modelXbrl = create(modelManager, errorCaptureLevel=errorCaptureLevel)
+    if "errors" in kwargs: # pre-load errors, such as from taxonomy package validation
+        modelXbrl.errors.extend(cast(str, kwargs.get("errors")))
+    supplementalUrls = None
+    if useFileSource is not None:
+        modelXbrl.fileSource = useFileSource
+        modelXbrl.closeFileSource = False
+        url = url
+    elif isinstance(url,FileSource.FileSource):
+        modelXbrl.fileSource = url
+        modelXbrl.closeFileSource= True
+        if isinstance(modelXbrl.fileSource.url, list): # json list
+            url = modelXbrl.fileSource.url[0]
+            supplementalUrls = modelXbrl.fileSource.url[1:]
+        #elif isinstance(modelXbrl.fileSource.url, dict): # json object
+        else:
+            url = cast(str, modelXbrl.fileSource.url)
+    else:
+        modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr)
+        modelXbrl.closeFileSource= True
+    if kwargs.get("isLoadable",True): # used for test cases to block taxonomy packages without discoverable contents
+        modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True, **kwargs)
+        if supplementalUrls:
+            for url in supplementalUrls:
+                ModelDocument.load(modelXbrl, url, base, isEntry=False, isDiscovered=True, **kwargs)
+        if hasattr(modelXbrl, "entryLoadingUrl"):
+            del modelXbrl.entryLoadingUrl
+        loadSchemalocatedSchemas(modelXbrl)
+    else:
+        modelXbrl.modelDocument = None
+
+    #from arelle import XmlValidate
+    #uncomment for trial use of lxml xml schema validation of entry document
+    #XmlValidate.xmlValidate(modelXbrl.modelDocument)
+    modelManager.cntlr.webCache.saveUrlCheckTimes()
+    for pluginXbrlMethod in pluginClassMethods("ModelXbrl.LoadComplete"):
+        pluginXbrlMethod(modelXbrl)
+    modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction))
+    return modelXbrl
+
+def create(
+        modelManager: ModelManager, newDocumentType: int | None = None, url: str | None = None, schemaRefs: str|None = None, createModelDocument: bool = True, isEntry: bool = False,
+        errorCaptureLevel: str | None = None, initialXml: str | None = None, initialComment: str | None = None, base: str | None = None, discover: bool = True
+) -> ModelXbrl:
+    from arelle import (ModelDocument, FileSource)
+    modelXbrl = ModelXbrl(modelManager, errorCaptureLevel=errorCaptureLevel)
+    modelXbrl.locale = modelManager.locale
+    if newDocumentType:
+        modelXbrl.fileSource = FileSource.FileSource(cast(str, url), modelManager.cntlr)  # url may be an open file handle, use str(url) below
+        modelXbrl.closeFileSource= True
+        if createModelDocument:
+            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry, initialXml=initialXml, initialComment=initialComment, base=base, discover=discover)
+            if isEntry:
+                del modelXbrl.entryLoadingUrl
+                loadSchemalocatedSchemas(modelXbrl)
+    return modelXbrl
+
+def loadSchemalocatedSchemas(modelXbrl: ModelXbrl) -> None:
+    from arelle import ModelDocument
+    if modelXbrl.modelDocument and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
+        # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
+        modelDocumentsSchemaLocated: set[ModelDocumentClass] = set()
+        # loadSchemalocatedSchemas sometimes adds to modelXbrl.urlDocs
+        while True:
+            modelDocuments: set[ModelDocumentClass] = set(modelXbrl.urlDocs.values()) - modelDocumentsSchemaLocated
+            if not modelDocuments:
+                break
+            for modelDocument in modelDocuments:
+                modelDocument.loadSchemalocatedSchemas()
+            modelDocumentsSchemaLocated |= modelDocuments
 
 
 class ModelXbrl:
@@ -190,17 +277,27 @@ class ModelXbrl:
 
     """
 
-    contexts: dict[Any, Any]
+    closeFileSource: bool
     dimensionDefaultConcepts: dict[ModelConcept, ModelConcept]
+    entryLoadingUrl: str
+    fileSource: FileSourceClass
+    ixdsDocUrls: list[str]
     ixdsHtmlElements: list[str]
     isDimensionsValidated: bool
+    locale: LocaleDict | None
+    modelDocument: ModelDocumentClass | None
+    uri: str
     uriDir: str
-    targetRelationships: Any
-    qnameDimensionContextElement: dict[str, str]
-    _factsByDimQname: dict[str, dict[QName | str | None, set[ModelFact]]]
-    _factsByQname: dict[QName, set[ModelInlineFact]]
+    targetRelationships: set[ModelObject]
+    qnameDimensionContextElement: dict[QName, str]
+    _factsByDimQname: dict[QName, dict[QName | str | None, set[ModelFact]]]
+    _factsByQname: dict[QName, set[ModelFact]]
     _factsByDatatype: dict[bool | tuple[bool, QName], set[ModelFact]]
-    _nonNilFactsInInstance: set[ModelInlineFact]
+    _factsByLocalName: dict[str, set[ModelFact]]
+    _factsByPeriodType: dict[str, set[ModelFact]]
+    _nonNilFactsInInstance: set[ModelFact]
+    _startedProfiledActivity: float
+    _startedTimeStat: float
 
     def __init__(self,  modelManager: ModelManager, errorCaptureLevel: str | None = None) -> None:
         self.modelManager = modelManager
@@ -209,8 +306,8 @@ class ModelXbrl:
 
     def init(self, keepViews: bool = False, errorCaptureLevel: str | None = None) -> None:
         self.uuid: str = uuid.uuid1().urn
-        self.namespaceDocs: defaultdict[str, list[modeldoc]] = defaultdict(list)
-        self.urlDocs: dict[str, modeldoc] = {}
+        self.namespaceDocs: defaultdict[str, list[ModelDocumentClass]] = defaultdict(list)
+        self.urlDocs: dict[str, ModelDocumentClass] = {}
         self.urlUnloadableDocs: dict[bool, str] = {}  # if entry is True, entry is blocked and unloadable, False means loadable but warned
         self.errorCaptureLevel: str = (errorCaptureLevel or logging._checkLevel("INCONSISTENCY"))  # type: ignore[attr-defined]
         self.errors: list[str | None] = []
@@ -223,21 +320,21 @@ class ModelXbrl:
         self.qnameAttributeGroups: dict[QName, Any] = {}
         self.qnameGroupDefinitions: dict[QName, Any] = {}
         self.qnameTypes: dict[QName, ModelType] = {}  # contains ModelTypes by qname key of type
-        self.baseSets: defaultdict[Any, Any] = defaultdict(list)  # contains ModelLinks for keys arcrole, arcrole#linkrole
+        self.baseSets: defaultdict[tuple[str, str | None, QName | None, QName | None], list[ModelObject | LinkPrototype]] = defaultdict(list)  # contains ModelLinks for keys arcrole, arcrole#linkrole
         self.relationshipSets: dict[tuple[str] | tuple[str, tuple[str] | str | None, QName | None, QName | None, bool], ModelRelationshipSetClass] = {}  # contains ModelRelationshipSets by bas set keys
-        self.qnameDimensionDefaults: dict[str, str] = {}  # contains qname of dimension (index) and default member(value)
-        self.facts: list[ModelInlineFact] = []
-        self.factsInInstance: set[ModelInlineFact] = set()
+        self.qnameDimensionDefaults: dict[QName, QName] = {}  # contains qname of dimension (index) and default member(value)
+        self.facts: list[ModelFact] = []
+        self.factsInInstance: set[ModelFact] = set()
         self.undefinedFacts: list[ModelFact] = []  # elements presumed to be facts but not defined
-        self.contexts: dict[str, modeldoc.xmlRootElement] = {}
+        self.contexts: dict[str, ModelDocumentClass.xmlRootElement] = {}
         self.units: dict[str, ModelUnit] = {}
         self.modelObjects: list[ModelObject] = []
         self.qnameParameters: dict[QName, Any] = {}
-        self.modelVariableSets: set[Any] = set()
-        self.modelConsistencyAssertions: set[Any] = set()
-        self.modelCustomFunctionSignatures: dict[QName, Any] = {}
-        self.modelCustomFunctionImplementations: set[modeldoc] = set()
-        self.modelRenderingTables: Set[Any] = set()
+        self.modelVariableSets: set[ModelVariableSet] = set()
+        self.modelConsistencyAssertions: set[ModelConsistencyAssertion] = set()
+        self.modelCustomFunctionSignatures: dict[QName | tuple[QName | None, int], ModelCustomFunctionSignature] = {}
+        self.modelCustomFunctionImplementations: set[ModelDocumentClass] = set()
+        self.modelRenderingTables: set[Any] = set()
         if not keepViews:
             self.views: list[Any] = []
         self.langs: set[str] = {self.modelManager.defaultLang}
@@ -247,22 +344,16 @@ class ModelXbrl:
         self.hasTableRendering: bool = False
         self.hasTableIndexing: bool = False
         self.hasFormulae: bool = False
-        self.formulaOutputInstance = None
+        self.formulaOutputInstance: ModelXbrl | None = None
         self.logger: Any = logging.getLogger("arelle")
-        self.logRefObjectProperties: Any = getattr(self.logger, "logRefObjectProperties", False)
+        self.logRefObjectProperties: bool = getattr(self.logger, "logRefObjectProperties", False)
         self.logRefHasPluginAttrs: bool = any(True for m in pluginClassMethods("Logging.Ref.Attributes"))
         self.logRefHasPluginProperties: bool = any(True for m in pluginClassMethods("Logging.Ref.Properties"))
-        self.logRefFileRelUris: DefaultDict[Any, dict[str, str]] = defaultdict(dict)
-        self.profileStats: dict[str, tuple[int, Any, Any]] = {}
-        self.schemaDocsToValidate: set[modeldoc] = set()
-        self.closeFileSource: bool
-        self.fileSource: Any
-        self.entryLoadingUrl: Any
-        self.ixdsDocUrls: list[str]
+        self.logRefFileRelUris: defaultdict[Any, dict[str, str]] = defaultdict(dict)
+        self.profileStats: dict[str, tuple[int, float, float | int]] = {}
+        self.schemaDocsToValidate: set[ModelDocumentClass] = set()
         self.modelXbrl = self  # for consistency in addressing modelXbrl
         self.arelleUnitTests: dict[str, str] = {}  # unit test entries (usually from processing instructions
-        self.uri: str
-        self.locale: LocaleDict | None
         for pluginXbrlMethod in pluginClassMethods("ModelXbrl.Init"):
             pluginXbrlMethod(self)
 
@@ -330,7 +421,7 @@ class ModelXbrl:
         :param includeProhibits: True to include prohibiting arc elements as relationships
         """
         from arelle import ModelRelationshipSet
-        key: tuple[str, tuple[str] | str | None, QName | None, QName | None, bool] = (arcrole, linkrole, linkqname, arcqname, includeProhibits)
+        key = (arcrole, linkrole, linkqname, arcqname, includeProhibits)
         if key not in self.relationshipSets:
             ModelRelationshipSet.create(self, arcrole, linkrole, linkqname, arcqname, includeProhibits)
         return self.relationshipSets[key]
@@ -379,20 +470,23 @@ class ModelXbrl:
                 subsGrpMdlObj = subsGrpMdlObj.substitutionGroup
         return subsGrpMatchTable.get(None)
 
-    def isInSubstitutionGroup(self, elementQname: QName, subsGrpQnames: QName | list[QName] | None) -> bool | None:
+    def isInSubstitutionGroup(self, elementQname: QName, subsGrpQnames: QName | Iterable[QName] | None) -> bool:
         """Determine if element is in substitution group(s)
         Used by ModelObjectFactory to return Class type for new ModelObject subclass creation, and isInSubstitutionGroup
 
         :param elementQname: Element/Concept QName to determine if in substitution group(s)
-        :param subsGrpQnames: QName or list of QNames
+        :param subsGrpQnames: QName or iterable of QNames
         """
-
-        if isinstance(subsGrpQnames, list):
+        qnames: Iterable[QName | None]
+        if isinstance(subsGrpQnames, Iterable):
             qnames = subsGrpQnames
         else:
-            qnames = [cast('QName', subsGrpQnames)]
-        return cast('Optional[bool]', self.matchSubstitutionGroup(elementQname, {
-                  qn: (qn is not None) for qn in qnames}))
+            qnames = [subsGrpQnames]
+        matchingSubstitutionGroup = cast(
+            Optional[bool],
+            self.matchSubstitutionGroup(elementQname, {qn: (qn is not None) for qn in qnames})
+        )
+        return matchingSubstitutionGroup is not None and matchingSubstitutionGroup
 
     def createInstance(self, url: str) -> None:
         """ Creates an instance document for a DTS which didn't have an instance document, such as
@@ -433,7 +527,7 @@ class ModelXbrl:
             from arelle import ViewWinDTS
             for view in self.views:
                 if isinstance(view, ViewWinDTS.ViewDTS):
-                    self.modelManager.cntlr.uiThreadQueue.put((view.view, []))
+                    cast('CntlrWinMain', self.modelManager.cntlr).uiThreadQueue.put((view.view, []))
 
     def saveInstance(self, **kwargs: Any) -> Any:
         """Saves current instance document file.
@@ -475,8 +569,10 @@ class ModelXbrl:
         from arelle.ModelFormulaObject import Aspect
         from arelle.ModelValue import dateUnionEqual
         from arelle.XbrlUtil import sEqual
-        if dims: segAspect, scenAspect = (Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO)
-        else: segAspect, scenAspect = (Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO)
+        if dims:
+            segAspect, scenAspect = (Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO)
+        else:
+            segAspect, scenAspect = (Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO)
         for c in self.contexts.values():
             if (c.entityIdentifier == (entityIdentScheme, entityIdentValue) and
                 ((c.isInstantPeriod and periodType == "instant" and dateUnionEqual(c.instantDatetime, periodEndInstant, instantEndDate=True)) or
@@ -498,7 +594,7 @@ class ModelXbrl:
 
     def createContext(
             self, entityIdentScheme: str, entityIdentValue: str, periodType: str, periodStart: datetime | date, periodEndInstant: datetime | date, priItem: QName | None,
-            dims: dict[int | QName, QName | DimValuePrototype], segOCCs: ModelObject, scenOCCs: ModelObject, afterSibling: ModelObject | None = None, beforeSibling: ModelObject | None = None, id: str | None = None
+            dims: dict[int | QName, QName | DimValuePrototype], segOCCs: ModelObject, scenOCCs: ModelObject, afterSibling: ModelObject | str | None = None, beforeSibling: ModelObject | None = None, id: str | None = None
     ) -> ModelObject:
         """Creates a new ModelContext and validates (integrates into modelDocument object model).
 
@@ -516,11 +612,11 @@ class ModelXbrl:
         """
         assert self.modelDocument is not None
         xbrlElt = self.modelDocument.xmlRootElement
-        if afterSibling == cast('ModelObject', AUTO_LOCATE_ELEMENT):
+        if cast(str, afterSibling) == AUTO_LOCATE_ELEMENT:
             afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context"))
         cntxId = id if id else 'c-{0:02n}'.format( len(self.contexts) + 1)
         newCntxElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "context", attributes=("id", cntxId),
-                                      afterSibling=afterSibling, beforeSibling=beforeSibling)
+                                      afterSibling=cast(Optional[ModelObject], afterSibling), beforeSibling=beforeSibling)
         entityElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "entity")
         XmlUtil.addChild(entityElt, XbrlConst.xbrli, "identifier",
                             attributes=("scheme", entityIdentScheme),
@@ -584,7 +680,7 @@ class ModelXbrl:
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:typedMember",
                                               attributes=dimAttr)
                     if isinstance(dimValue, (ModelDimensionValue, DimValuePrototype)) and dimValue.isTyped:
-                        XmlUtil.copyNodes(dimElt, dimValue.typedMember)
+                        XmlUtil.copyNodes(dimElt, cast(ModelObject, dimValue.typedMember))
                 elif dimMemberQname:
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:explicitMember",
                                               attributes=dimAttr,
@@ -647,7 +743,7 @@ class ModelXbrl:
         return newUnitElt
 
     @property
-    def nonNilFactsInInstance(self) -> set[ModelInlineFact]:  # indexed by fact (concept) qname
+    def nonNilFactsInInstance(self) -> set[ModelFact]:  # indexed by fact (concept) qname
         """Facts in the instance which are not nil, cached
         """
         try:
@@ -657,13 +753,13 @@ class ModelXbrl:
             return self._nonNilFactsInInstance
 
     @property
-    def factsByQname(self) -> dict[QName, set[ModelInlineFact]]:  # indexed by fact (concept) qname
+    def factsByQname(self) -> dict[QName, set[ModelFact]]:  # indexed by fact (concept) qname
         """Facts in the instance indexed by their QName, cached
         """
-        fbqn: dict[QName, Set[ModelInlineFact]]
         try:
             return self._factsByQname
         except AttributeError:
+            fbqn: dict[QName, set[ModelFact]]
             self._factsByQname = fbqn = defaultdict(set)
             for f in self.factsInInstance:
                 if f.qname is not None:
@@ -671,14 +767,13 @@ class ModelXbrl:
             return fbqn
 
     @property
-    def factsByLocalName(self) -> dict[QName, set[ModelInlineFact]]:  # indexed by fact (concept) localName
+    def factsByLocalName(self) -> dict[str, set[ModelFact]]:  # indexed by fact (concept) localName
         """Facts in the instance indexed by their LocalName, cached
         """
-        self._factsByLocalName: dict[QName, set[ModelInlineFact]]
         try:
             return self._factsByLocalName
         except AttributeError:
-            fbln: dict[QName, set[ModelInlineFact]]
+            fbln: dict[str, set[ModelFact]]
             self._factsByLocalName = fbln = defaultdict(set)
             for f in self.factsInInstance:
                 if f.qname is not None:
@@ -704,7 +799,7 @@ class ModelXbrl:
                     fbdt.add(f)
             return fbdt
 
-    def factsByPeriodType(self, periodType: str) -> Set[ModelFact]:  # indexed by fact (concept) qname
+    def factsByPeriodType(self, periodType: str) -> set[ModelFact]:  # indexed by fact (concept) qname
         """Facts in the instance indexed by periodType, cached
 
         :param periodType: Period type to match ("instant", "duration", or "forever")
@@ -712,8 +807,8 @@ class ModelXbrl:
         try:
             return self._factsByPeriodType[periodType]
         except AttributeError:
-            self._factsByPeriodType: defaultdict[str, set[ModelFact]] = defaultdict(set)
-            fbpt: defaultdict[str,set[ModelFact]] = defaultdict(set)
+            fbpt: defaultdict[str, set[ModelFact]]
+            self._factsByPeriodType = fbpt = defaultdict(set)
             for f in self.factsInInstance:
                 p = f.concept.periodType
                 if p:
@@ -722,7 +817,7 @@ class ModelXbrl:
         except KeyError:
             return set()  # no facts for this period type
 
-    def factsByDimMemQname(self, dimQname: str, memQname: QName | None = None) -> set[ModelFact]:  # indexed by fact (concept) qname
+    def factsByDimMemQname(self, dimQname: QName, memQname: QName | None = None) -> set[ModelFact]:  # indexed by fact (concept) qname
         """Facts in the instance indexed by their Dimension  and Member QName, cached
         If Member is None, returns facts that have the dimension (explicit or typed)
         If Member is NONDEFAULT, returns facts that have the dimension (explicit non-default or typed)
@@ -820,13 +915,13 @@ class ModelXbrl:
             assert self.modelDocument is not None
             parent = self.modelDocument.xmlRootElement
         self.makeelementParentModelObject = parent
-        newFact: ModelInlineFact = cast(
-            'ModelInlineFact', XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
-                                                afterSibling=afterSibling, beforeSibling=beforeSibling)
-        )
         global ModelFact
         if ModelFact is None:
             from arelle.ModelInstanceObject import ModelFact
+        newFact = cast(
+            ModelFact, XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
+                                        afterSibling=afterSibling, beforeSibling=beforeSibling)
+        )
         if hasattr(self, "_factsByQname"):
             self._factsByQname[newFact.qname].add(newFact)
         if not isinstance(newFact, ModelFact):
@@ -1047,7 +1142,7 @@ class ModelXbrl:
 
         if "refs" not in extras:
             try:
-                file = os.path.basename(cast('modeldoc', self.modelDocument).displayUri)
+                file = os.path.basename(cast('ModelDocumentClass', self.modelDocument).displayUri)
             except AttributeError:
                 try:
                     file = os.path.basename(self.entryLoadingUrl)
@@ -1162,7 +1257,7 @@ class ModelXbrl:
                 modelObject=self.modelXbrl.modelDocument, profileStats=self.profileStats,
                 timeTotal=timeTotal, timeEFM=timeEFM)
 
-    def profileStat(self, name: str | None = None, stat: str | None = None) -> None:
+    def profileStat(self, name: str | None = None, stat: float | None = None) -> None:
         '''
         order 1xx - load, import, setup, etc
         order 2xx - views, 26x - table lb
@@ -1183,7 +1278,7 @@ class ModelXbrl:
             except AttributeError:
                 pass
             if stat is None:
-                self._startedTimeStat: float = time.time()
+                self._startedTimeStat = time.time()
 
     def profileActivity(self, activityCompleted: str | None = None, minTimeToShow: float = 0) -> None:
         """Used to provide interactive GUI messages of long-running processes.
@@ -1206,7 +1301,7 @@ class ModelXbrl:
                             time=format_string(self.modelManager.locale, "%.3f", timeTaken, grouping=True))
         except AttributeError:
             pass
-        self._startedProfiledActivity: float = time.time()
+        self._startedProfiledActivity = time.time()
 
     def saveDTSpackage(self) -> None:
         """Contributed program to save DTS package as a zip file.  Refactored into a plug-in (and may be removed from main code).
@@ -1215,7 +1310,7 @@ class ModelXbrl:
             return
         from zipfile import ZipFile
         import os
-        entryFilename = self.fileSource.url
+        entryFilename = cast(str, self.fileSource.url)
         pkgFilename = entryFilename + ".zip"
         with ZipFile(pkgFilename, 'w') as zip:
             numFiles = 0
@@ -1228,90 +1323,3 @@ class ModelXbrl:
                   _("DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s"),
                 modelObject=self,
                 entryFile=os.path.basename(entryFilename), packageOutputFile=pkgFilename, numberOfFiles=numFiles)
-
-
-def load(modelManager: ModelManager, url: str, nextaction: str | None = None, base: str | None = None, useFileSource: str | None = None, errorCaptureLevel: str | None = None, **kwargs: str) -> ModelXbrl:
-    """Each loaded instance, DTS, testcase, testsuite, versioning report, or RSS feed, is represented by an
-    instance of a ModelXbrl object. The ModelXbrl object has a collection of ModelDocument objects, each
-    representing an XML document (for now, with SQL whenever its time comes). One of the modelDocuments of
-    the ModelXbrl is the entry point (of discovery or of the test suite).
-
-    :param url: may be a filename or FileSource object
-    :param nextaction: text to use as status line prompt on conclusion of loading and discovery
-    :param base: the base URL if any (such as a versioning report's URL when loading to/from DTS modelXbrl).
-    :param useFileSource: for internal use (when an entry point is in a FileSource archive and discovered files expected to also be in the entry point's archive.
-   """
-    if nextaction is None: nextaction = _("loading")
-    from arelle import (ModelDocument, FileSource)
-    modelXbrl = create(modelManager, errorCaptureLevel=errorCaptureLevel)
-    if "errors" in kwargs: # pre-load errors, such as from taxonomy package validation
-        modelXbrl.errors.extend(cast(str, kwargs.get("errors")))
-    supplementalUrls = None
-    if useFileSource is not None:
-        modelXbrl.fileSource = useFileSource
-        modelXbrl.closeFileSource = False
-        url = url
-    elif isinstance(url,FileSource.FileSource):
-        modelXbrl.fileSource = url
-        modelXbrl.closeFileSource= True
-        if isinstance(modelXbrl.fileSource.url, list): # json list
-            url = modelXbrl.fileSource.url[0]
-            supplementalUrls = modelXbrl.fileSource.url[1:]
-        #elif isinstance(modelXbrl.fileSource.url, dict): # json object
-        else:
-            url = cast(str, modelXbrl.fileSource.url)
-    else:
-        modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr)
-        modelXbrl.closeFileSource= True
-    if kwargs.get("isLoadable",True): # used for test cases to block taxonomy packages without discoverable contents
-        modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True, **kwargs)
-        if supplementalUrls:
-            for url in supplementalUrls:
-                ModelDocument.load(modelXbrl, url, base, isEntry=False, isDiscovered=True, **kwargs)
-        if hasattr(modelXbrl, "entryLoadingUrl"):
-            del modelXbrl.entryLoadingUrl
-        loadSchemalocatedSchemas(modelXbrl)
-    else:
-        modelXbrl.modelDocument = None
-
-    #from arelle import XmlValidate
-    #uncomment for trial use of lxml xml schema validation of entry document
-    #XmlValidate.xmlValidate(modelXbrl.modelDocument)
-    modelManager.cntlr.webCache.saveUrlCheckTimes()
-    for pluginXbrlMethod in pluginClassMethods("ModelXbrl.LoadComplete"):
-        pluginXbrlMethod(modelXbrl)
-    modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction))
-    return modelXbrl
-
-
-def create(
-        modelManager: ModelManager, newDocumentType: int | None = None, url: str | None = None, schemaRefs: str|None = None, createModelDocument: bool = True, isEntry: bool = False,
-        errorCaptureLevel: str | None = None, initialXml: str | None = None, initialComment: str | None = None, base: str | None = None, discover: bool = True
-) -> ModelXbrl:
-    from arelle import (ModelDocument, FileSource)
-    modelXbrl = ModelXbrl(modelManager, errorCaptureLevel=errorCaptureLevel)
-    modelXbrl.locale = modelManager.locale
-    if newDocumentType:
-        modelXbrl.fileSource = FileSource.FileSource(cast(str, url), modelManager.cntlr)  # url may be an open file handle, use str(url) below
-        modelXbrl.closeFileSource= True
-        if createModelDocument:
-            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry, initialXml=initialXml, initialComment=initialComment, base=base, discover=discover)
-            if isEntry:
-                del modelXbrl.entryLoadingUrl
-                loadSchemalocatedSchemas(modelXbrl)
-    return modelXbrl
-
-
-def loadSchemalocatedSchemas(modelXbrl: ModelXbrl) -> None:
-    from arelle import ModelDocument
-    if modelXbrl.modelDocument and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
-        # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
-        modelDocumentsSchemaLocated: set[ModelDocument.ModelDocument] = set()
-        # loadSchemalocatedSchemas sometimes adds to modelXbrl.urlDocs
-        while True:
-            modelDocuments: set[ModelDocument.ModelDocument] = set(modelXbrl.urlDocs.values()) - modelDocumentsSchemaLocated
-            if not modelDocuments:
-                break
-            for modelDocument in modelDocuments:
-                modelDocument.loadSchemalocatedSchemas()
-            modelDocumentsSchemaLocated |= modelDocuments

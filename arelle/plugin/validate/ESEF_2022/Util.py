@@ -8,7 +8,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 import os, json
 
-from arelle.ModelInstanceObject import ModelContext, ModelInlineFact, ModelUnit
+from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName
 from arelle.XmlValidate import VALID
@@ -132,7 +132,7 @@ def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]
 
 
 def checkForMultiLangDuplicates(modelXbrl: ModelXbrl) -> None:
-    _factConceptContextUnitHash: defaultdict[int, list[ModelInlineFact]] = defaultdict(list)
+    _factConceptContextUnitHash: defaultdict[int, list[ModelFact]] = defaultdict(list)
 
     for f in modelXbrl.factsInInstance:
         if (
@@ -147,7 +147,7 @@ def checkForMultiLangDuplicates(modelXbrl: ModelXbrl) -> None:
     for hashEquivalentFacts in _factConceptContextUnitHash.values():
         if len(hashEquivalentFacts) <= 1:  # skip facts present only once
             continue
-        _aspectEqualFacts: defaultdict[tuple[QName, str], dict[tuple[ModelContext, ModelUnit | None], list[ModelInlineFact]]] = defaultdict(dict)
+        _aspectEqualFacts: defaultdict[tuple[QName, str], dict[tuple[ModelContext, ModelUnit | None], list[ModelFact]]] = defaultdict(dict)
         for f in hashEquivalentFacts:  # check for hash collision by value checks on context and unit
             cuDict = _aspectEqualFacts[(f.qname, (f.xmlLang or "").lower())]
             _matched = False

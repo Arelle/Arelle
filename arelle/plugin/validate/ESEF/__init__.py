@@ -50,7 +50,7 @@ from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import qname
+from arelle.ModelValue import QName, qname
 from arelle.PackageManager import validateTaxonomyPackage
 from arelle.PythonUtil import strTruncate
 from arelle.UrlUtil import isHttpUrl, scheme
@@ -117,9 +117,7 @@ def modelXbrlBeforeLoading(modelXbrl: ModelXbrl, normalizedUri: str, filepath: s
                 if (not isinstance(modelXbrl.fileSource.selection, list) and
                     modelXbrl.fileSource.selection is not None and
                     modelXbrl.fileSource.selection.endswith(".xml") and
-                    # Ignoring for now: Argument 1 to "identify" of "Type" has incompatible type "FileSource"; expected "Type".
-                    # It is not entirely clear why self isn't used in the identify-method.
-                    ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url) in (
+                    ModelDocument.Type.identify(modelXbrl.fileSource, cast(str, modelXbrl.fileSource.url)) in (
                         ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
                     return None # allow zipped test case to load normally
                 if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
@@ -737,7 +735,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 modelObject=unit, measure=measure)
         del uniqueUnitHashes
 
-        reportedMandatory = set()
+        reportedMandatory: set[QName] = set()
         precisionFacts = set()
         numFactsByConceptContextUnit = defaultdict(list)
         textFactsByConceptContext = defaultdict(list)
@@ -750,7 +748,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         hasNoFacts = True
         for qn, facts in modelXbrl.factsByQname.items():
             hasNoFacts = False
-            if qn in mandatory:  # type: ignore[comparison-overlap]
+            if qn in mandatory:
                 reportedMandatory.add(qn)
             for f in facts:
                 if f.precision is not None:
@@ -806,13 +804,13 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     _inConsistent = not all(f.isNil for f in fList)
                 else: # not all have same decimals
                     _d = inferredDecimals(f0)
-                    _v = f0.xValue
+                    _v = cast(float, f0.xValue)
                     _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
                     decVals[_d] = _v
                     aMax, bMin = rangeValue(_v, _d)
                     for f in fList[1:]:
                         _d = inferredDecimals(f)
-                        _v = f.xValue
+                        _v = cast(float, f.xValue)
                         if isnan(_v):
                             _inConsistent = True
                             break
@@ -836,7 +834,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             _("The accuracy of numeric facts MUST be defined with the 'decimals' attribute rather than the 'precision' attribute: %(elements)s."),
                             modelObject=precisionFacts, elements=", ".join(sorted(str(e.qname) for e in precisionFacts)))
 
-        missingElements = (cast(set[ModelFact], mandatory) - cast(set[ModelFact], reportedMandatory))
+        missingElements = (mandatory - reportedMandatory)
         if missingElements:
             modelXbrl.error("ESEF.???.missingRequiredElements",
                             _("Required elements missing from document: %(elements)s."),

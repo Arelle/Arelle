@@ -9,6 +9,7 @@ from lxml import etree
 from xml.sax import SAXParseException
 from arelle import (PackageManager, XbrlConst, XmlUtil, UrlUtil, ValidateFilingText,
                     XhtmlValidate, XmlValidateSchema)
+from arelle.FileSource import FileSource
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
 from arelle.ModelDtsObject import ModelLink
@@ -525,12 +526,13 @@ class Type:
                 "fact dimensions infoset",
                 "html non-XBRL")
 
-    def identify(filesource, filepath) -> int:
+    @staticmethod
+    def identify(filesource: FileSource, filepath: str) -> int:
         _type = Type.UnknownNonXML
-        file, = filesource.file(filepath, stripDeclaration=True, binary=True)
+        _file, = filesource.file(filepath, stripDeclaration=True, binary=True)
         try:
             _rootElt = True
-            for _event, elt in etree.iterparse(file, events=("start",), recover=True, huge_tree=True):
+            for _event, elt in etree.iterparse(_file, events=("start",), recover=True, huge_tree=True):
                 if _rootElt:
                     _rootElt = False
                     _type = {"testcases": Type.TESTCASESINDEX,
@@ -566,7 +568,7 @@ class Type:
                     filesource.cntlr.addToLog("%(error)s",
                                               messageCode="arelle:fileIdentificationError",
                                               messageArgs={"error":err}, file=filepath)
-        file.close()
+        _file.close()
         return _type
 
 # schema elements which end the include/import scah

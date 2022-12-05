@@ -30,11 +30,11 @@ def qname(value: ModelObject | str | QName, name: str | ModelObject) -> QName: .
 def qname(value: ModelObject | str | QName, name: str | ModelObject | None = None, noPrefixIsNoNamespace: bool = False) -> QName: ...
 
 @overload
-def qname(value: ModelObject | str | QName | Any | None, name: str | ModelObject | dict[str,  str] | None) -> QName | None : ...
+def qname(value: ModelObject | str | QName | Any | None, name: str | ModelObject | dict[str, str] | None) -> QName | None : ...
 
 def qname(
     value: ModelObject | str | QName | Any | None,
-    name: str | ModelObject | dict[str,  str] | None = None,
+    name: str | ModelObject | dict[str, str] | None = None,
     noPrefixIsNoNamespace: bool = False,
     castException: Exception | None = None,
     prefixException: Exception | None = None,
