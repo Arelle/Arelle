@@ -3,7 +3,7 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 
 config = ConformanceSuiteConfig(
     args=[
-        '--disclosureSystem', 'efm-pragmatic',
+        '--disclosureSystem', 'efm-pragmatic-preview',
         '--formula', 'run',
         '--plugins', 'validate/EFM|inlineXbrlDocumentSet|EdgarRenderer',
     ],
@@ -19,5 +19,5 @@ config = ConformanceSuiteConfig(
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     local_filepath='efm_conformance_suite_2022.zip',
     name=PurePath(__file__).stem,
-    public_download_url='https://www.sec.gov/info/edgar/ednews/efmtest/efm-62-220621.zip'
+    public_download_url='https://www.sec.gov/info/edgar/ednews/efmtest/efm-64d-221128.zip'
 )
