@@ -1248,6 +1248,21 @@
     },
     {
         "sub-types": ["@10-K", "@10-KT", "@20-F", "@40-F"],
+        "xbrl-names": [
+            "DocumentFinStmtErrorCorrectionFlag",
+            "DocumentFinStmtRestatementRecoveryAnalysisFlag"
+            ],
+        "efm": "6.5.40",
+        "validation": "taxonomy-version-required",
+        "value": 2,
+        "earliest-taxonomy": "dei/2022q4",
+        "check-after": "2024-01-27",
+        "source": "both",
+        "dei/cover": "dei",
+        "comment": "value is number of name elements required in taxonomy"
+    },
+    {
+        "sub-types": ["@10-K", "@10-KT", "@20-F", "@40-F"],
         "xbrl-names": "DocumentFinStmtErrorCorrectionFlag",
         "efm": "6.5.49",
         "validation": "r",
@@ -1256,12 +1271,11 @@
     },
     {
         "sub-types": ["@10-K", "@10-KT", "@20-F", "@40-F"],
-        "xbrl-names": "DocumentFinStmtErrorCorrectionFlag",
-        "value": true,
+        "xbrl-names": "DocumentFinStmtRestatementRecoveryAnalysisFlag",
         "efm": "6.5.49",
         "validation": "rt",
-        "value": true,
-        "references": "DocumentFinStmtRestatementRecoveryAnalysisFlag",
+        "references": "DocumentFinStmtErrorCorrectionFlag",
+        "reference-value": true,
         "source": "inline",
         "dei/cover": "cover"
     },
