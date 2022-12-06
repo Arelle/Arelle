@@ -206,7 +206,8 @@ def evaluateTableIndex(modelXbrl, lang=None):
                               "(Polic" in tblName and NOTES or "(Table" in tblName and TABLES or
                               "(Detail" in tblName and DETAILS or COVER)
             elif tableGroup == COVER:
-                tableGroup = (tblType == "Statement" and STMTS or "Paren" in tblName and COVER or
+                tableGroup = (tblType == "Statement" and STMTS or
+                              ("Paren" in tblName or tblType == "Document") and COVER or
                               "(Polic" in tblName and NOTES or "(Table" in tblName and TABLES or
                               "(Detail" in tblName and DETAILS or NOTES)
             elif tableGroup == STMTS:

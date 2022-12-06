@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable, Type, cast
 from lxml import etree
 from regex import Match, compile as re_compile
 from decimal import Decimal, InvalidOperation
@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from arelle.ModelXbrl import ModelXbrl
     from arelle.ModelDtsObject import ModelAny
     from arelle.ModelDocument import ModelDocument
+    from arelle.ModelInstanceObject import ModelFact
     from arelle.typing import TypeGetText
     from arelle.ModelValue import TypeXValue, TypeSValue
     from arelle.ModelDtsObject import ModelType
@@ -28,10 +29,10 @@ if TYPE_CHECKING:
 
 _: TypeGetText
 
-validateElementSequence = None  #dynamic import to break dependency loops
-modelGroupCompositorTitle = None
-ModelInlineValueObject = None
-ixMsgCode = None
+validateElementSequence: Callable[..., Any] | None = None  #dynamic import to break dependency loops
+modelGroupCompositorTitle: Callable[[Any], str] | None = None
+ModelInlineValueObject: Type[Any] | None = None
+ixMsgCode: Callable[..., str] | None = None
 
 UNVALIDATED = 0 # note that these values may be used a constants in code for better efficiency
 UNKNOWN = 1
@@ -105,7 +106,7 @@ baseXsdTypePatterns = {
 predefinedAttributeTypes = {
     qname("{http://www.w3.org/XML/1998/namespace}xml:lang"):("languageOrEmpty",None),
     qname("{http://www.w3.org/XML/1998/namespace}xml:space"):("NCName",{"enumeration":{"default","preserve"}})}
-xAttributesSharedEmptyDict: dict[Any, Any] = {}
+xAttributesSharedEmptyDict: dict[str, ModelAttribute] = {}
 
 def validate(
     modelXbrl: ModelXbrl | None,
@@ -116,14 +117,16 @@ def validate(
 ) -> None:
     global ModelInlineValueObject, ixMsgCode
     if ModelInlineValueObject is None:
-        from arelle.ModelInstanceObject import ModelInlineValueObject  # type: ignore[misc]
-        from arelle.XhtmlValidate import ixMsgCode  # type: ignore[misc]
+        from arelle.ModelInstanceObject import ModelInlineValueObject
+        from arelle.XhtmlValidate import ixMsgCode
     assert ModelInlineValueObject is not None
+    assert ixMsgCode is not None
     isIxFact = isinstance(elt, ModelInlineValueObject)
     facets = None
 
     # attrQname can be provided for attributes that are global and LAX
     if (getattr(elt,"xValid", UNVALIDATED) == UNVALIDATED) and (not isIxFact or ixFacts):
+        assert modelXbrl is not None
         qnElt = elt.qname if ixFacts and isIxFact else elt.elementQname
         modelConcept = modelXbrl.qnameConcepts.get(qnElt)
         isAbstract = False
@@ -153,6 +156,7 @@ def validate(
         isNil = elt.get("{http://www.w3.org/2001/XMLSchema-instance}nil") in ("true", "1")
         if attrQname is None:
             if isNil and not isNillable:
+                errElt: str | QName
                 if ModelInlineValueObject is not None and isinstance(elt, ModelInlineValueObject):
                     errElt = "{0} fact {1}".format(elt.elementQname, elt.qname)
                 else:
@@ -187,12 +191,14 @@ def validate(
                 else:
                     errElt = elt.elementQname
                 if isIxFact and err.__class__.__name__ == "FunctionArgType":
+                    assert isinstance(elt, ModelInlineValueObject)
                     modelXbrl.error(ixMsgCode("transformValueError", elt),
                         _("Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform)s value error: %(value)s"),
                         modelObject=elt, element=errElt, fact=elt.qname, transform=elt.format,
                         typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown",
                         value=XmlUtil.innerText(elt, ixExclude=True, ixContinuation=elt.namespaceURI==XbrlConst.ixbrl11))
                 elif isIxFact and err.__class__.__name__ == "ixtFunctionNotAvailable":
+                    assert isinstance(elt, ModelInlineValueObject)
                     modelXbrl.error(ixMsgCode("invalidTransformation", elt, sect="validation"),
                         _("Fact %(fact)s has unrecognized transformation %(transform)s, value: %(value)s"),
                         modelObject=elt, element=errElt, fact=elt.qname, transform=elt.format,
@@ -218,7 +224,9 @@ def validate(
             presentAttributes = set()
         # validate attributes
         # find missing attributes for default values
-        for attrTag, attrValue in elt.items():
+        for attrTag_, attrValue_ in elt.items():
+            attrTag: str = cast(str, attrTag_)
+            attrValue: str = cast(str, attrValue_)
             qn = qnameClarkName(attrTag)
             #qn = qname(attrTag, noPrefixIsNoNamespace=True)
             baseXsdAttrType = None
@@ -298,6 +306,8 @@ def validate(
                 global validateElementSequence, modelGroupCompositorTitle
                 if validateElementSequence is None:
                     from arelle.XmlValidateParticles import validateElementSequence, modelGroupCompositorTitle
+                assert validateElementSequence is not None
+                assert modelGroupCompositorTitle is not None
                 try:
                     #childElts = list(elt) # uses __iter__ for inline facts
                     childElts = [e for e in elt if isinstance(e, ModelObject)]
@@ -311,9 +321,9 @@ def validate(
                         errResult = validateElementSequence(modelXbrl, type, childElts, ixFacts)
                         if errResult is not None and errResult[2]:
                             iElt, occured, errDesc, errArgs = errResult
-                            errElt = childElts[iElt] if iElt < len(childElts) else elt
-                            errArgs["modelObject"] = errElt
-                            errArgs["element"] = errElt.qname
+                            errElt1 = childElts[iElt] if iElt < len(childElts) else elt
+                            errArgs["modelObject"] = errElt1
+                            errArgs["element"] = errElt1.qname
                             errArgs["parentElement"] = elt.qname
                             if "compositor" in errArgs:  # compositor is an object, provide friendly string
                                 errArgs["compositor"] = modelGroupCompositorTitle(errArgs["compositor"])
@@ -329,7 +339,7 @@ def validate(
                     raise ex
                     #pass  # HF Why is this here????
     if recurse: # if there is no complex or simple type (such as xbrli:measure) then this code is used
-        for child in (elt.modelTupleFacts if ixFacts and isIxFact else elt):
+        for child in (cast('ModelFact', elt).modelTupleFacts if ixFacts and isIxFact else elt):
             if isinstance(child, ModelObject):
                 validate(modelXbrl, child, recurse, attrQname, ixFacts)
 
@@ -337,7 +347,7 @@ def validateValue(
     modelXbrl: ModelXbrl | None,
     elt: ModelObject,
     attrTag: str | None,
-    baseXsdType: str,
+    baseXsdType: str | None,
     value: str,
     isNillable: bool = False,
     isNil: bool = False,
@@ -562,6 +572,7 @@ def validateValue(
                         xValue = value
                     sValue = value
         except (ValueError, InvalidOperation) as err:
+            errElt: str | QName
             if ModelInlineValueObject is not None and isinstance(elt, ModelInlineValueObject):
                 errElt = "{0} fact {1}".format(elt.elementQname, elt.qname)
             else:
@@ -592,12 +603,12 @@ def validateValue(
         xValid = UNKNOWN
     if attrTag:
         try:  # dynamically allocate attributes (otherwise given shared empty set)
-            xAttributes = elt.xAttributes  # type: ignore[attr-defined]
+            xAttributes = elt.xAttributes
         except AttributeError:
-            elt.xAttributes = xAttributes = {}  # type: ignore[attr-defined]
+            elt.xAttributes = xAttributes = {}
         xAttributes[attrTag] = ModelAttribute(elt, attrTag, xValid, xValue, sValue, value)
     else:
-        elt.xValid = xValid  # type: ignore[attr-defined]
+        elt.xValid = xValid
         elt.xValue = xValue
         elt.sValue = sValue
 
@@ -621,7 +632,7 @@ def validateFacet(typeElt: ModelType, facetElt: ModelObject) -> TypeXValue | Non
         facets = None
     assert value is not None
     validateValue(typeElt.modelXbrl, facetElt, None, baseXsdType, value, facets=facets)
-    if facetElt.xValid == VALID:  # type: ignore[attr-defined]
+    if facetElt.xValid == VALID:
         return facetElt.xValue
     return None
 
@@ -639,11 +650,11 @@ class lxmlSchemaResolver(etree.Resolver):
         self.modelXbrl = modelXbrl
 
     def resolve(self, url: str | None, id: str, context: Any) -> Any: #  type: ignore[override]
-        if self.modelXbrl is None or not self.modelXbrl.fileSource.isInArchive(url):  # type: ignore[has-type]
+        if self.modelXbrl is None or not self.modelXbrl.fileSource.isInArchive(url):
             url = self.cntlr.webCache.getfilename(url)
         if url: # may be None if file doesn't exist
             if self.modelXbrl is not None: # use fileSource
-                fh = self.modelXbrl.fileSource.file(url,binary=True)[0]  # type: ignore[has-type]
+                fh = self.modelXbrl.fileSource.file(url,binary=True)[0]
                 return self.resolve_file(fh, context, base_url=None, close=True)
             else: # probably no active modelXbrl yet, such as when loading packages, use url
                 return self.resolve_filename(url, context)  # type: ignore[attr-defined]

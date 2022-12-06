@@ -92,12 +92,6 @@ jobs:
         run: mv ixbrl-viewer/iXBRLViewerPlugin arelle/plugin/
       - name: Cleanup ixbrl-viewer
         run: rm -rf ixbrl-viewer
-      - name: Docker registry login
-        uses: docker/login-action@v2.1.0
-        with:
-          registry: registry.redhat.io
-          username: ${{ secrets.REDHAT_USERNAME }}
-          password: ${{ secrets.REDHAT_PASSWORD }}
       - name: Docker setup buildx
         uses: docker/setup-buildx-action@v2.2.1
       - name: Docker build
@@ -110,23 +104,50 @@ jobs:
           context: .
           file: docker/${{ matrix.distro }}.Dockerfile
           load: true
-          secrets: |
-            "redhat_username=${{ secrets.REDHAT_USERNAME }}"
-            "redhat_password=${{ secrets.REDHAT_PASSWORD }}"
           tags: arelle:arelle
       - name: Docker copy build artifact
         run: |
           docker create --name arelle arelle:arelle
           docker cp arelle:/build/dist/ dist/
           docker rm -v arelle
+      - name: Capture build env
+        run: |
+          [[ $(echo dist/*.tgz) =~ -([0-9]+\.[0-9]+\.[0-9]+)\.tgz$ ]] && echo "ARTIFACT_VERSIONED_NAME=arelle-${{ matrix.distro }}-${BASH_REMATCH[1]}.tgz" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=arelle-${{ matrix.distro }}.tgz" >> $GITHUB_ENV
+          echo "BUILD_ARTIFACT_PATH=$(echo dist/*.tgz)" >> $GITHUB_ENV
       - name: Upload build artifact
         uses: actions/upload-artifact@v3.1.1
         with:
           name: ${{ matrix.distro }} distribution
-          path: dist/*.tgz
+          if-no-files-found: error
+          path: ${{ env.BUILD_ARTIFACT_PATH }}
       - name: Upload release artifact
-        uses: softprops/action-gh-release@v0.1.14
         if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v0.1.15
         with:
           fail_on_unmatched_files: true
-          files: dist/*.tgz
+          files: ${{ env.BUILD_ARTIFACT_PATH }}
+      - name: Configure AWS Credentials
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          aws-region: us-west-1
+      - name: Upload release artifacts to S3
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          aws s3 cp --acl public-read ${{ env.BUILD_ARTIFACT_PATH }} s3://arelle-us/${{ env.ARTIFACT_VERSIONED_NAME }}
+          aws s3 cp --acl public-read s3://arelle-us/${{ env.ARTIFACT_VERSIONED_NAME }} s3://arelle-us/${{ env.ARTIFACT_NAME }}
+      - name: Configure Ali Cloud Credentials
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: yizhoumo/setup-ossutil@v1.1.3
+        with:
+          endpoint: oss-cn-shenzhen.aliyuncs.com
+          access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+      - name: Upload release artifacts to Ali Cloud
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          ossutil cp -f ${{ env.BUILD_ARTIFACT_PATH }} oss://arelle-cn/${{ env.ARTIFACT_VERSIONED_NAME }}
+          ossutil create-symlink oss://arelle-cn/${{ env.ARTIFACT_NAME }} oss://arelle-cn/${{ env.ARTIFACT_VERSIONED_NAME }}

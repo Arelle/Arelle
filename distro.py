@@ -44,18 +44,6 @@ includeLibs = [
     "PIL",
     "pycountry",
     "pymysql",
-    "rdflib.extras",
-    "rdflib.plugins.memory",
-    "rdflib.plugins.parsers",
-    "rdflib.plugins.serializers.rdfxml",
-    "rdflib.plugins.serializers.turtle",
-    "rdflib.plugins.serializers.xmlwriter",
-    "rdflib.plugins.serializers",
-    "rdflib.plugins.sparql",
-    "rdflib.plugins.stores",
-    "rdflib.plugins",
-    "rdflib.tools",
-    "rdflib",
     "regex",
     "sqlite3",
     "zlib",
@@ -81,6 +69,9 @@ if os.path.exists("arelle/plugin/EdgarRenderer"):
 
 if sys.platform == LINUX_PLATFORM:
     guiExecutable = Executable(script="arelleGUI.py", target_name="arelleGUI")
+    includeLibs.append("Crypto")
+    includeLibs.append("Crypto.Cipher")
+    includeLibs.append("Crypto.Cipher.AES")
     includeFiles.append(("arelle/scripts-unix", "scripts"))
     if os.path.exists("/etc/redhat-release"):
         includeFiles.append(("/usr/lib64/libexslt.so.0", "libexslt.so"))

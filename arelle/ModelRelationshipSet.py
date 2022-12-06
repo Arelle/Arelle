@@ -16,7 +16,7 @@ import sys
 USING_EQUIVALENCE_KEY = sys.intern(str("using_equivalence_key")) # indicates hash entry replaced with keyed entry
 NoneType = type(None)
 
-def create(modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
+def create(modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False) -> ModelRelationshipSet:
     return ModelRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname, includeProhibits)
 
 def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
@@ -192,7 +192,7 @@ class ModelRelationshipSet:
                                    for modelRel in orderRels[order]]
         modelXbrl.relationshipSets[relationshipSetKey] = self
 
-    def clear(self):
+    def clear(self) -> None:
         # this object is slotted, clear slotted variables
         self.modelXbrl = None
         del self.modelRelationships[:]

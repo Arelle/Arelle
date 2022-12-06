@@ -101,7 +101,10 @@ exclude = "arelle/plugin/validate/EFM-htm"
 
 # --- per-module options ---
 [[tool.mypy.overrides]]
-module = 'arelle.*'
+module = [
+    'arelle.*',
+    'tests.*',
+]
 ignore_errors = true
 
 # --- strict typing ---
@@ -115,6 +118,7 @@ module = [
     'arelle.FileSource',
     'arelle.Locale',
     'arelle.ModelObject',
+    'arelle.ModelXbrl',
     'arelle.ModelValue',
     'arelle.SystemInfo',
     'arelle.Updater',
@@ -125,6 +129,7 @@ module = [
     'arelle.XbrlUtil',
     'arelle.XmlUtil',
     'arelle.XmlValidate',
+    'tests.integration_tests',
 ]
 ignore_errors = false
 strict = true

@@ -65,6 +65,7 @@ import decimal
 from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue, XmlValidate)
 from arelle.XmlValidate import UNVALIDATED, VALID
 from arelle.ModelObject import ModelObject
+from arelle.ModelValue import QName
 
 ModelFact = None
 
@@ -442,7 +443,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
                 self._baseXbrliTypeQname = self.type.baseXbrliTypeQname if self.type is not None else None
             return self._baseXbrliTypeQname
 
-    def instanceOfType(self, typeqname):
+    def instanceOfType(self, typeqname) -> bool:
         """(bool) -- True if element is declared by, or derived from type of given qname or list of qnames"""
         if isinstance(typeqname, (tuple,list,set)): # union
             if self.typeQname in typeqname:
@@ -805,7 +806,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             subNext = subs.substitutionGroup
         return subs.qname
 
-    def dereference(self):
+    def dereference(self) -> ModelConcept:
         """(ModelConcept) -- If element is a ref (instead of name), provides referenced modelConcept object, else self"""
         ref = self.get("ref")
         if ref:
@@ -1767,7 +1768,7 @@ class ModelRelationship(ModelObject):
         """Method proxy for itersiblings() of lxml arc element"""
         return self.arcElement.itersiblings(**kwargs)
 
-    def getparent(self):
+    def getparent(self) -> ModelObject:
         """(_ElementBase) -- Method proxy for getparent() of lxml arc element"""
         return self.arcElement.getparent()
 

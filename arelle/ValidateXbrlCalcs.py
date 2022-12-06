@@ -12,7 +12,7 @@ from arelle import Locale, XbrlConst, XbrlUtil
 from arelle.ModelObject import ObjectPropertyViewWrapper
 
 if TYPE_CHECKING:
-    from arelle.ModelInstanceObject import ModelInlineFact
+    from arelle.ModelInstanceObject import ModelFact
 
 numberPattern = re_compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
 ZERO = decimal.Decimal(0)
@@ -391,7 +391,7 @@ def inferredPrecision(fact):
     else:
         return p
 
-def inferredDecimals(fact: ModelInlineFact) -> float | int:
+def inferredDecimals(fact: ModelFact) -> float | int:
     vStr = fact.value
     dStr = fact.decimals
     pStr = fact.precision

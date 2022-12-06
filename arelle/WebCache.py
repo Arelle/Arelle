@@ -7,7 +7,7 @@ e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
 '''
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import os, posixpath, sys, re, shutil, time, calendar, io, json, logging, shutil, cgi, zlib
+import os, posixpath, sys, re, time, calendar, io, json, logging, shutil, zlib
 from urllib.parse import quote, unquote
 from urllib.error import URLError, HTTPError, ContentTooShortError
 from http.client import IncompleteRead
@@ -113,7 +113,7 @@ class WebCache:
             else:
                 self.encodeFileChars = re.compile(r'[:^]')
         self.decodeFileChars = re.compile(r'\^[0-9]{3}')
-        self.workOffline = False
+        self.workOffline: bool = False
         self._logDownloads = False
         self.maxAgeSeconds = 60.0 * 60.0 * 24.0 * 7.0 # seconds before checking again for file
         if cntlr.hasFileSystem:
@@ -167,7 +167,7 @@ class WebCache:
     def logDownloads(self, _logDownloads):
         self._logDownloads = _logDownloads
 
-    def saveUrlCheckTimes(self):
+    def saveUrlCheckTimes(self) -> None:
         if self.cachedUrlCheckTimesModified:
             with io.open(self.urlCheckJsonFile, 'wt', encoding='utf-8') as f:
                 f.write(json.dumps(self.cachedUrlCheckTimes, ensure_ascii=False, indent=0))
@@ -651,13 +651,6 @@ class WebCache:
             except Exception:
                 pass
         return None
-
-    def getAttachmentFilename(self, url: str) -> str:  # get the filename attachment from the header
-        try:
-            fp = self.opener.open(url, timeout=self.timeout)
-            return cgi.parse_header(fp.headers.get("Content-Disposition"))[1]["filename"]
-        except (URLError, IndexError, KeyError) as e:
-            raise RuntimeError(f"Unable to to retrieve filename from headers for {url}") from e
 
     def retrieve(self, url, filename=None, filestream=None, reporthook=None, data=None):
         # return filename, headers (in dict), initial file bytes (to detect logon requests)

@@ -102,9 +102,6 @@ class Cntlr:
         .. attribute:: hasClipboard
         True if a system platform clipboard is implemented on current platform
 
-        .. attribute:: updateURL
-        URL string of application download file (on arelle.org) or None if update installs not supported by platform.
-
     """
     __version__ = "1.6.0"
     hasWin32gui: bool
@@ -115,7 +112,6 @@ class Cntlr:
     systemWordSize: int
     uiLang: str
     uiLangDir: str
-    updateURL: str | None
     configDir: str
     imagesDir: str
     localeDir: str
@@ -149,7 +145,6 @@ class Cntlr:
         self.isCGI = False
         self.systemWordSize = int(round(math.log(sys.maxsize, 2)) + 1) # e.g., 32 or 64
         self.uiLangDir = "ltr"
-        self.updateURL = None
 
         # sys.setrecursionlimit(10000) # 1000 default exceeded in some inline documents
 
@@ -207,7 +202,6 @@ class Cntlr:
             # note that cache is in ~/Library/Caches/Arelle
             self.contextMenuClick = "<Button-2>"
             self.hasClipboard = hasGui  # clipboard always only if Gui (not command line mode)
-            self.updateURL = "https://arelle.org/download/1005"
         elif sys.platform.startswith("win"):
             self.isMac = False
             self.isMSW = True
@@ -232,10 +226,6 @@ class Cntlr:
             else:
                 self.hasClipboard = False
             self.contextMenuClick = "<Button-3>"
-            if "64 bit" in sys.version:
-                self.updateURL = "https://arelle.org/download/1008"
-            else: # 32 bit
-                self.updateURL = "https://arelle.org/download/1011"
         else: # Unix/Linux
             self.isMac = False
             self.isMSW = False
@@ -592,7 +582,7 @@ class Cntlr:
         return None
 
     @property
-    def memoryUsed(self) -> float | None:
+    def memoryUsed(self) -> float | int:
         try:
             global osPrcs # is this needed?
             # to tell mypy this is for windows

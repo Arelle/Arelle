@@ -31,6 +31,7 @@
     Model unit objects represent algebraically usable set objects for the numerator and denominator
     measure sets.
 """
+from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 from lxml import etree
@@ -135,6 +136,8 @@ class ModelFact(ModelObject):
 
         ([ModelFact]) - List of child facts in source document order
     """
+    modelTupleFacts: list['ModelFact']
+
     def init(self, modelDocument):
         super(ModelFact, self).init(modelDocument)
         self.modelTupleFacts = []
@@ -426,7 +429,7 @@ class ModelFact(ModelObject):
             return float(self.value)
         return self.value
 
-    def isVEqualTo(self, other, deemP0Equal=False, deemP0inf=False, normalizeSpace=True, numericIntervalConsistency=False):
+    def isVEqualTo(self, other, deemP0Equal=False, deemP0inf=False, normalizeSpace=True, numericIntervalConsistency=False) -> bool:
         """(bool) -- v-equality of two facts
 
         Note that facts may be in different instances
@@ -479,7 +482,7 @@ class ModelFact(ModelObject):
         else:
             return selfValue == otherValue
 
-    def isDuplicateOf(self, other, topLevel=True, deemP0Equal=False, unmatchedFactsStack=None):
+    def isDuplicateOf(self, other, topLevel=True, deemP0Equal=False, unmatchedFactsStack=None) -> bool:
         """(bool) -- fact is duplicate of other fact
 
         Note that facts may be in different instances
@@ -712,6 +715,8 @@ class ModelInlineFact(ModelInlineValueObject, ModelFact):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
+    modelTupleFacts: list['ModelInlineFact']
+
     def init(self, modelDocument):
         super(ModelInlineFact, self).init(modelDocument)
 
@@ -1338,7 +1343,7 @@ class ModelDimensionValue(ModelObject):
         return self.localName == "explicitMember"
 
     @property
-    def typedMember(self):
+    def typedMember(self) -> ModelObject | None:
         """(ModelConcept) -- Child ModelObject that is the dimension member element
 
         (To get <typedMember> element use 'self').
@@ -1491,7 +1496,7 @@ class ModelUnit(ModelObject):
         measures = self.measures
         return len(measures[0]) == 1 and len(measures[1]) == 0
 
-    def isEqualTo(self, unit2):
+    def isEqualTo(self, unit2) -> bool:
         """(bool) -- True if measures are equal"""
         if unit2 is None or unit2.hash != self.hash:
             return False

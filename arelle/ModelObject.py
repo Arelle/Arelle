@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from arelle.ModelValue import TypeSValue, TypeXValue
 
 XmlUtil: Any = None
-VALID_NO_CONTENT = None
+VALID_NO_CONTENT: int | None = None
 
 emptySet: set[Any] = set()
 
@@ -29,7 +29,7 @@ def init() -> None: # init globals
     global XmlUtil, VALID_NO_CONTENT
     if XmlUtil is None:
         from arelle import XmlUtil
-        from arelle.XmlValidate import VALID_NO_CONTENT  # type: ignore[misc]
+        from arelle.XmlValidate import VALID_NO_CONTENT
 
 class ModelObject(etree.ElementBase):
     """ModelObjects represent the XML elements within a document, and are implemented as custom
@@ -111,14 +111,16 @@ class ModelObject(etree.ElementBase):
     _hashSEqual: int
     _hashXpathEqual: int
     sValue: TypeSValue
+    xAttributes: dict[str, ModelAttribute]
     xValue: TypeXValue
+    xValid: int
     xlinkLabel: str
 
     def _init(self) -> None:
         self.isChanged = False
         parent = self.getparent()
         if parent is not None and hasattr(parent, "modelDocument"):
-            self.init(parent.modelDocument) # type: ignore[attr-defined]
+            self.init(parent.modelDocument)
 
     def clear(self) -> None:
         self.__dict__.clear()  # delete local attributes
@@ -247,12 +249,12 @@ class ModelObject(etree.ElementBase):
             return self._elementSequence
 
     @property
-    def parentQname(self) -> QName | None:
+    def parentQname(self: ModelObject) -> QName | None:
         try:
             return self._parentQname
         except AttributeError:
             parentObj = self.getparent()
-            self._parentQname = parentObj.elementQname if parentObj is not None else None # type: ignore[attr-defined]
+            self._parentQname = parentObj.elementQname if parentObj is not None else None  # type: ignore[attr-defined]
             return self._parentQname
 
 
@@ -451,6 +453,7 @@ class ModelAttribute:
 
 class ObjectPropertyViewWrapper:  # extraProperties = ( (p1, v1), (p2, v2), ... )
     __slots__ = ("modelObject", "extraProperties")
+    modelObject: ModelObject
     def __init__(self, modelObject: ModelObject, extraProperties: tuple[Any, ...] = ()) -> None:
         self.modelObject = modelObject
         self.extraProperties = extraProperties
