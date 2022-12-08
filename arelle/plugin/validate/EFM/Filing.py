@@ -1293,10 +1293,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     for name in names:
                         f = sevFact(sev, name)
                         fr = sevFact(sev, referenceTag, f) # dependent fact is of context of f or for "c" inherited context (less disaggregatedd)
-                        if ((f is not None and ((f.xValue == value) ^ (fr is not None))) or
-                            (f is None and fr is not None)):
+                        if ((fr is not None and ((fr.xValue == referenceValue) ^ (f is not None))) or
+                            (fr is None and f is not None)):
                             _facts = [_f for _f in (f, fr) if _f is not None]
-                            sevMessage(sev, subType=submissionType, modelObject=_facts, tag=name, otherTag=referenceTag, value=value, contextID=_facts[0].contextID )
+                            sevMessage(sev, subType=submissionType, modelObject=_facts, tag=name, otherTag=referenceTag, value=referenceValue, contextID=_facts[0].contextID )
                 elif validation in ("n2e",):
                     for name in names:
                         f = sevFact(sev, name)
