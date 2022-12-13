@@ -118,7 +118,7 @@ def create(
 
 def loadSchemalocatedSchemas(modelXbrl: ModelXbrl) -> None:
     from arelle import ModelDocument
-    if modelXbrl.modelDocument and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
+    if modelXbrl.modelDocument and modelXbrl.modelDocument.type <= ModelDocument.Type.INLINEXBRLDOCUMENTSET:
         # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
         modelDocumentsSchemaLocated: set[ModelDocumentClass] = set()
         # loadSchemalocatedSchemas sometimes adds to modelXbrl.urlDocs
