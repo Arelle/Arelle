@@ -1071,6 +1071,32 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         checkMonetaryUnits(child, relSet, visited)
             visited.remove(parent)
 
+        labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+        for modelConcept in val.modelXbrl.qnameConcepts.values():
+            conceptlangRoleLabels = defaultdict(list)
+            labelRels = labelsRelationshipSet.fromModelObject(modelConcept)
+            for labelRel in labelRels:
+                conceptlangRoleLabels[(labelRel.toModelObject.xmlLang, labelRel.toModelObject.role)].append(labelRel.toModelObject)
+            for (lang, labelrole), labels in conceptlangRoleLabels.items():
+                if isExtension(val, modelConcept) and len(labels) > 1:
+                    val.modelXbrl.error(
+                        "ESEF.3.4.5.taxonomyElementDuplicateLabels",
+                        _("Extension taxonomy element name SHALL not have multiple labels for lang %(lang)s and role %(labelrole)s: %(concept)s"),
+                        modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole)
+                elif labelrole == XbrlConst.standardLabel:
+                    has_core_label = False
+                    has_extension_label = False
+                    for label in labels:
+                        if isExtension(val, label):
+                            has_extension_label = True
+                        else:
+                            has_core_label = True
+                    if has_core_label and has_extension_label:
+                        val.modelXbrl.error(
+                            "ESEF.3.4.5.taxonomyElementDuplicateLabels",
+                            _("Issuer extension taxonomy with core taxonomy element: %(concept)s is assigned 2 labels using standard label role"),
+                            modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole)
+
         for ELR in modelXbrl.relationshipSet(parentChild).linkRoleUris:
             relSet = modelXbrl.relationshipSet(parentChild, ELR)
             pfsConceptsRootInELR = set()
