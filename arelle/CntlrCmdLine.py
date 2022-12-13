@@ -526,7 +526,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[]):
         if not entrypointFiles:
             for url in urlsByType.get(ModelDocument.Type.HTML, []):
                 entrypointFiles.append({"file":url})
-            
+
 
     elif os.path.isdir(filesource.url):
         del entrypointFiles[:] # clear list

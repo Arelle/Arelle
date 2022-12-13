@@ -121,7 +121,7 @@ def modelXbrlBeforeLoading(modelXbrl: ModelXbrl, normalizedUri: str, filepath: s
                     modelXbrl.error("ESEF.Arelle.InvalidSubmissionFormat",
                                     _("Unrecognized submission format."),
                                     modelObject=modelXbrl)
-                    return ModelDocument.LoadingException("Invalid submission format") 
+                    return ModelDocument.LoadingException("Invalid submission format")
             else:
                 if modelXbrl.fileSource.isArchive:
                     if (not isinstance(modelXbrl.fileSource.selection, list) and
@@ -554,7 +554,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                     modelObject=elt, element=eltTag)
                             if "position:absolute" in elt.stringValue:
                                 # detect absolute positioning such as from Adobe Indesign producing pdf from whic html is extracted
-                                hasAbsolutePositioning = True 
+                                hasAbsolutePositioning = True
 
                     if eltTag in ixTags and elt.get("target") and ixTargetUsage != "allowed":
                         modelXbrl.log(ixTargetUsage.upper(),
