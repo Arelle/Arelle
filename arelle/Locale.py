@@ -25,8 +25,6 @@ LC_MONETARY = 4
 LC_NUMERIC = 1
 LC_TIME = 2
 
-C_LOCALE = None # culture-invariant locale
-
 defaultLocaleCodes = {
     "af": "ZA", "ar": "AE", "be": "BY", "bg": "BG", "ca": "ES", "cs": "CZ",
     "da": "DK", "de": "DE", "el": "GR", "en": "GB", "es": "ES", "et": "EE",
@@ -40,7 +38,6 @@ defaultLocaleCodes = {
 def getUserLocale(localeCode: str = '') -> tuple[LocaleDict, str | None]:
     # get system localeconv and reset system back to default
     import locale
-    global C_LOCALE
     conv = None
     localeSetupMessage = None
     localeCode = localeCode.replace('-', '_')
@@ -78,8 +75,6 @@ def getUserLocale(localeCode: str = '') -> tuple[LocaleDict, str | None]:
     if conv is None:  # some other issue prevents getting culture code, use 'C' defaults (no thousands sep, no currency, etc)
         localeSetupMessage = f"locale code \"{localeCode}\" is not available on this system"
         conv = locale.localeconv() # use 'C' environment, e.g., en_US
-    if C_LOCALE is None:  # load culture-invariant C locale
-        C_LOCALE = locale.localeconv()
     return cast(LocaleDict, conv), localeSetupMessage
 
 def getLanguageCode() -> str:

@@ -1272,17 +1272,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         elif isinstance(dec, str) and '.' in dec:
                             dec = dec.partition('.')[0] # drop .0 from any SQLite string
                         attrs["decimals"] = str(dec)  # somehow it is float from the database
-                    '''
-                    num = roundValue(numVal, None, dec) # round using reported decimals
-                    if dec is None or dec == "INF":  # show using decimals or reported format
-                        dec = abs(Decimal(str(numVal)).as_tuple().exponent)
-                    else: # max decimals at 28
-                        try:
-                            dec = max( min(int(float(dec)), 28), -28)
-                        except ValueError:
-                            dec = 0
-                    text = Locale.format(Locale.C_LOCALE, "%.*f", (dec, num)) # culture-invariant locale
-                    '''
                     try:
                         text = str(numVal)
                         if c == 'm':
