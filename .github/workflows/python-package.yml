@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       python_version:
-        default: '3.10'
+        default: '3.11'
         description: 'Python version to use'
         required: true
         type: string
