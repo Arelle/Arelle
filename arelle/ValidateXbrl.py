@@ -1085,7 +1085,7 @@ class ValidateXbrl:
         # 2022-08-28: note for type ignore: _Element, which is passed by isGenericResource below, has no qname.
         # isGenericResource is currently used in ValidateXbrlDTS. We should revisit this when adding type hints for
         # ValidateXbrlDTS.
-        if elt:
+        if elt is not None:
             return self.modelXbrl.isInSubstitutionGroup(elt.qname, genQname)  # type: ignore[attr-defined]
         else:
             return False

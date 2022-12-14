@@ -14,7 +14,7 @@ browserMaxBase64ImageLength = 5242880 # 5MB
 
 esefTaxonomyNamespaceURIs = {
     "http://xbrl.ifrs.org/taxonomy/20",
-    "http://xbrl.ifrs.org/taxonomy/20",
+    "https://xbrl.ifrs.org/taxonomy/20",
     }
 
 disallowedURIsPattern = re.compile(
@@ -23,8 +23,10 @@ disallowedURIsPattern = re.compile(
     )
 
 
-DefaultDimensionLinkroles = ("http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000",)
-LineItemsNotQualifiedLinkrole = "http://www.esma.europa.eu/xbrl/role/cor/esef_role-999999"
+DefaultDimensionLinkroles = ("https://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000", # preferred, new spec
+                             "http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000")
+LineItemsNotQualifiedLinkroles = ("https://www.esma.europa.eu/xbrl/role/cor/esef_role-999999", # preferred, new spec
+                                  "http://www.esma.europa.eu/xbrl/role/cor/esef_role-999999")
 
 qnDomainItemTypes = {qname("{http://www.xbrl.org/dtr/type/non-numeric}nonnum:domainItemType"),
                      qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonnum:domainItemType")}

@@ -12,7 +12,7 @@ from arelle.ModelDtsObject import ModelConcept, ModelLink
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle import XbrlConst
-from .Const import LineItemsNotQualifiedLinkrole, DefaultDimensionLinkroles
+from .Const import LineItemsNotQualifiedLinkroles, DefaultDimensionLinkroles
 from .Util import isExtension, isInEsefTaxonomy
 import regex as re
 from arelle.ValidateXbrl import ValidateXbrl
@@ -74,7 +74,7 @@ def checkFilingDimensions(val: ValidateXbrl) -> None:
                             if isinstance(dom, ModelConcept):
                                  addDomMbrs(dom, dimDomRel.consecutiveLinkrole, hcMembers)
                 val.domainMembers.update(hcMembers)
-                if hasHcRel.linkrole == LineItemsNotQualifiedLinkrole or hcMembers:
+                if hasHcRel.linkrole in LineItemsNotQualifiedLinkroles or hcMembers:
                     for hcPrimaryItem in hcPrimaryItems:
                         if not hcPrimaryItem.isAbstract:
                             elrPrimaryItems[hasHcRel.linkrole].add(hcPrimaryItem)
@@ -84,7 +84,7 @@ def checkFilingDimensions(val: ValidateXbrl) -> None:
 
     # find primary items with other dimensions in
     #for ELR, priItems in elrPrimaryItems.items():
-    #    if ELR != LineItemsNotQualifiedLinkrole:
+    #    if ELR in LineItemsNotQualifiedLinkroles:
     #        # consider any pri item in not reported non-dimensionally
     #        i = set(hcPrimaryItem
     #                for hcPrimaryItem in (priItems & elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set()))
@@ -103,13 +103,13 @@ def checkFilingDimensions(val: ValidateXbrl) -> None:
             if any(not f.context.qnameDims for f in facts if f.context is not None)
             for concept in (val.modelXbrl.qnameConcepts.get(qn),)
             if concept is not None and
-               concept not in elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set()) and
+               not any(concept in elrPrimaryItems.get(lr, set()) for lr in LineItemsNotQualifiedLinkroles) and
                concept not in elrPrimaryItems.get("*", set()) and
                (not nsExcl or not nsExclPat.match(cast(str, qn.namespaceURI))))
     if i:
         val.modelXbrl.error("ESEF.3.4.2.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
             _("Line items that do not require any dimensional information to tag data MUST be linked to the dedicated \"Line items not dimensionally qualified\" hypercube in %(linkrole)s declared in esef_cor.xsd, primary item %(qnames)s"),
-            modelObject=i, linkrole=LineItemsNotQualifiedLinkrole, qnames=", ".join(sorted(str(c.qname) for c in i)))
+            modelObject=i, linkrole=LineItemsNotQualifiedLinkroles[0], qnames=", ".join(sorted(str(c.qname) for c in i)))
     # pri items in LineItemsNotQualifiedLinkrole which are not used in report non-dimensionally
     # check no longer in Filer Manual as of 2021
     #i = set(hcPrimaryItem

@@ -502,7 +502,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[]):
         del entrypointFiles[:] # clear out archive from entrypointFiles
         # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
         for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
-            if _archiveFile.endswith(".xhtml"):
+            if _archiveFile.endswith(".xhtml") or _archiveFile.endswith(".html"):
                 filesource.select(_archiveFile)
                 if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                     entrypointFiles.append({"file":filesource.url})
@@ -511,7 +511,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[]):
             for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
                 filesource.select(_archiveFile)
                 identifiedType = ModelDocument.Type.identify(filesource, filesource.url)
-                if identifiedType in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+                if identifiedType in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.HTML):
                     urlsByType.setdefault(identifiedType, []).append(filesource.url)
         # use inline instances, if any, else non-inline instances
         for identifiedType in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE):
@@ -522,6 +522,11 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[]):
                     for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
                         pluginXbrlMethod(filesource, entrypointFiles) # group into IXDS if plugin feature is available
                 break # found inline (or non-inline) entrypoint files, don't look for any other type
+        # for ESEF non-consolidated xhtml documents accept an xhtml entry point
+        if not entrypointFiles:
+            for url in urlsByType.get(ModelDocument.Type.HTML, []):
+                entrypointFiles.append({"file":url})
+
 
     elif os.path.isdir(filesource.url):
         del entrypointFiles[:] # clear list

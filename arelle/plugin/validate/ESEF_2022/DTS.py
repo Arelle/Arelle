@@ -79,7 +79,6 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: lis
         extLineItemsWronglyAnchored = []
         extAbstractConcepts = []
         extMonetaryConceptsWithoutBalance = []
-        langRoleLabels = defaultdict(list)
         conceptsWithoutStandardLabel = []
         conceptsWithNoLabel = []
         widerNarrowerRelSet = val.modelXbrl.relationshipSet(XbrlConst.widerNarrower)
@@ -156,10 +155,9 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: lis
                                         hasLc3Match = True
                                 else:
                                     hasNonStandardLabel = True
-                            langRoleLabels[(label.xmlLang,label.role)].append(label)
                             if label.role not in standardLabelRoles and not ( #not in LRR
                                 label.role in val.modelXbrl.roleTypes and val.modelXbrl.roleTypes[label.role][0].modelDocument.uri.startswith("http://www.xbrl.org/lrr")):
-                                val.modelXbrl.warning("ESEF.3.4.5.extensionTaxonomyElementLabelCustomRole",
+                                val.modelXbrl.warning("ESEF.3.4.5.taxonomyElementLabelCustomRole",
                                     _("Extension taxonomy element label SHOULD not be custom: %(concept)s role %(labelrole)s"),
                                     modelObject=(modelConcept,label), concept=modelConcept.qname, labelrole=label.role)
                     if modelConcept.isItem or modelConcept.isTuple or modelConcept.isHypercubeItem or modelConcept.isDimensionItem:
@@ -168,12 +166,6 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: lis
                                 conceptsWithoutStandardLabel.append(modelConcept)
                             else:
                                 conceptsWithNoLabel.append(modelConcept)
-                        for (lang,labelrole),labels in langRoleLabels.items():
-                            if len(labels) > 1:
-                                val.modelXbrl.error("ESEF.3.4.5.extensionTaxonomyElementDuplicateLabels",
-                                    _("Extension taxonomy element name SHALL not have multiple labels for lang %(lang)s and role %(labelrole)s: %(concept)s"),
-                                    modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole)
-                    langRoleLabels.clear()
             for modelType in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}complexType"):
                 if (isinstance(modelType,ModelType) and isExtension(val, modelType) and
                     modelType.typeDerivedFrom is not None and modelType.typeDerivedFrom.qname.namespaceURI == xbrli and
@@ -234,7 +226,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: lis
 
         del (tuplesInExtTxmy, fractionsInExtTxmy, typedDimsInExtTxmy, domainMembersWrongType, generalSpecialRelSet,
              extLineItemsWithoutHypercube, extLineItemsNotAnchored, extLineItemsWronglyAnchored, extAbstractConcepts,
-             extMonetaryConceptsWithoutBalance, langRoleLabels, conceptsWithNoLabel, conceptsWithoutStandardLabel)
+             extMonetaryConceptsWithoutBalance, conceptsWithNoLabel, conceptsWithoutStandardLabel)
 
     elif modelDocument.type == ModelDocumentFile.Type.LINKBASE:
 

@@ -48,6 +48,7 @@ import regex as re
 from collections import defaultdict
 from math import isnan
 from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, EntityBase, _Element
+from urllib.parse import unquote
 from arelle import LeiUtil, ModelDocument, XbrlConst, XhtmlValidate
 from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelDtsObject import ModelResource
@@ -88,7 +89,7 @@ _: TypeGetText  # Handle gettext
 
 styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*")
 styleCssHiddenPattern = re.compile(r"(.*[^\w]|^)display\s*:\s*none([^\w].*|$)")
-ifrsNsPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full")
+ifrsNsPattern = re.compile(r"https?://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full")
 datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
 imgDataMediaBase64Pattern = re.compile(r"data:image([^,;]*)(;base64)?,(.*)$", re.S)
 ixErrorPattern = re.compile(r"ix11[.]|xmlSchema[:]|(?!xbrl.5.2.5.2|xbrl.5.2.6.2)xbrl[.]|xbrld[ti]e[:]|utre[:]")
@@ -114,19 +115,28 @@ def disclosureSystemConfigURL(disclosureSystem: DisclosureSystem, *args: Any, **
 
 def modelXbrlBeforeLoading(modelXbrl: ModelXbrl, normalizedUri: str, filepath: str, isEntry: bool=False, **kwargs: Any) -> ModelDocument.LoadingException | None:
     if getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
-        if isEntry and not any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
-            if modelXbrl.fileSource.isArchive:
-                if (not isinstance(modelXbrl.fileSource.selection, list) and
-                    modelXbrl.fileSource.selection is not None and
-                    modelXbrl.fileSource.selection.endswith(".xml") and
-                    ModelDocument.Type.identify(modelXbrl.fileSource, cast(str, modelXbrl.fileSource.url)) in (
-                        ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
-                    return None # allow zipped test case to load normally
-                if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
-                    modelXbrl.error("ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage",
-                        _("Single reporting package with issuer's XBRL extension taxonomy files and Inline XBRL instance document must be compliant with the latest recommended version of the Taxonomy Packages specification (1.0)"),
-                        modelObject=modelXbrl)
-                    return ModelDocument.LoadingException("Invalid taxonomy package")
+        if isEntry:
+            if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
+                if re.match(".*[.](7z|rar|tar)", normalizedUri):
+                    modelXbrl.error("ESEF.Arelle.InvalidSubmissionFormat",
+                                    _("Unrecognized submission format."),
+                                    modelObject=modelXbrl)
+                    return ModelDocument.LoadingException("Invalid submission format")
+            else:
+                if modelXbrl.fileSource.isArchive:
+                    if (not isinstance(modelXbrl.fileSource.selection, list) and
+                        modelXbrl.fileSource.selection is not None and
+                        modelXbrl.fileSource.selection.endswith(".xml") and
+                        # Ignoring for now: Argument 1 to "identify" of "Type" has incompatible type "FileSource"; expected "Type".
+                        # It is not entirely clear why self isn't used in the identify-method.
+                        ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url) in ( # type: ignore[arg-type]
+                            ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
+                        return None # allow zipped test case to load normally
+                    if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
+                        modelXbrl.error("ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage",
+                            _("Single reporting package with issuer's XBRL extension taxonomy files and Inline XBRL instance document must be compliant with the latest recommended version of the Taxonomy Packages specification (1.0)"),
+                            modelObject=modelXbrl)
+                        return ModelDocument.LoadingException("Invalid taxonomy package")
     return None
 
 def modelXbrlLoadComplete(modelXbrl: ModelXbrl) -> None:
@@ -134,7 +144,10 @@ def modelXbrlLoadComplete(modelXbrl: ModelXbrl) -> None:
         (modelXbrl.modelDocument is None or modelXbrl.modelDocument.type not in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRY, ModelDocument.Type.RSSFEED))):
         if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
 
-            assert modelXbrl.modelDocument is not None
+            if modelXbrl.modelDocument is None:
+                modelXbrl.error("arelle-ESEF.InvalidSubmissionFormat",
+                    _("Unable to identify submission."))
+                return
 
             htmlElement = modelXbrl.modelDocument.xmlRootElement
             if htmlElement.namespaceURI == xhtml:
@@ -409,6 +422,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 ixExcludeTag = ixNStag + "exclude"
                 ixTupleTag = ixNStag + "tuple"
                 ixFractionTag = ixNStag + "fraction"
+                hasAbsolutePositioning = False
 
                 for uncast_elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
                     elt = cast(Any, uncast_elt)
@@ -482,7 +496,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                         _("Images included in the XHTML document SHOULD be base64 encoded: %(src)s."),
                                         modelObject=elt, src=src[:128])
                                     if m and m.group(1) and m.group(3):
-                                        checkImageContents(modelXbrl, elt, m.group(1), False, m.group(3))
+                                        checkImageContents(modelXbrl, elt, m.group(1), False, unquote(m.group(3)))
                                 else:
                                     if not m.group(1):
                                         modelXbrl.error("ESEF.2.5.1.MIMETypeNotSpecified",
@@ -538,7 +552,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 modelXbrl.warning("ESEF.2.5.4.embeddedCssForMultiHtmlIXbrlDocumentSets",
                                     _("Where an Inline XBRL document set contains multiple documents, the CSS SHOULD be defined in a separate file."),
                                     modelObject=elt, element=eltTag)
-
+                            if "position:absolute" in elt.stringValue:
+                                # detect absolute positioning such as from Adobe Indesign producing pdf from whic html is extracted
+                                hasAbsolutePositioning = True
 
                     if eltTag in ixTags and elt.get("target") and ixTargetUsage != "allowed":
                         modelXbrl.log(ixTargetUsage.upper(),
@@ -547,7 +563,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             modelObject=elt, localName=elt.elementQname, target=elt.get("target"),
                             severityVerb={"warning":"SHOULD","error":"MUST"}[ixTargetUsage])
 
-                    if hasattr(elt, "concept") and elt.concept.isTextBlock:
+                    if hasattr(elt, "concept") and elt.concept is not None and elt.concept.isTextBlock:
                         normalized_str = normalizeSpace(elt.value)
                         if not normalized_str or normalized_str.isspace():
                             modelXbrl.warning("ESEF.1.3.3.emptyTextBlock",
@@ -558,6 +574,19 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 modelXbrl.error("ESEF.2.2.6.escapedHTMLUsedInBlockTagWithSpecialCharacters",
                                         _("A text block containing '&' or '<' character MUST have an 'escape' attribute: %(qname)s."),
                                         modelObject=elt, qname=elt.qname)
+                        # Check that continuation elements are in the order of html text as rendered to user
+                        if not hasAbsolutePositioning:
+                            continuationChain = []
+                            e = elt # continuation chain
+                            while e is not None:
+                                continuationChain.append(e)
+                                e = getattr(e, "_continuationElement", None)
+                            if continuationChain != sorted(continuationChain, key=lambda e:e.objectIndex):
+                                modelXbrl.warning("ESEF.2.2.6.textContentOrdering",
+                                        _("The text content of tagged fact should have same order as human-readable report, ix:continuation elements out of order:  %(qname)s"),
+                                        modelObject=continuationChain, qname=elt.qname)
+                            del continuationChain[:] # dereference elements
+
 
                     if eltTag == ixTupleTag:
                         modelXbrl.error("ESEF.2.4.1.tupleElementUsed",
@@ -974,7 +1003,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     nsExclPat = re.compile(nsExcl)
                     reportedEltsNotInLb -= set(c for c in reportedEltsNotInLb if nsExclPat.match(c.qname.namespaceURI))
             if reportedEltsNotInLb and lbType != "calculation":
-                modelXbrl.warning("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
+                modelXbrl.warning(f"ESEF.3.4.6.UsableConceptsNotIncludedIn{lbType.title()}Link",
                     _("All concepts used by tagged facts SHOULD be in extension taxonomy %(linkbaseType)s relationships: %(elements)s."),
                     modelObject=reportedEltsNotInLb, elements=", ".join(sorted((str(c.qname) for c in reportedEltsNotInLb))), linkbaseType=lbType)
         if unreportedLbElts:
@@ -1041,6 +1070,32 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     if child not in visited:
                         checkMonetaryUnits(child, relSet, visited)
             visited.remove(parent)
+
+        labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+        for modelConcept in val.modelXbrl.qnameConcepts.values():
+            conceptlangRoleLabels = defaultdict(list)
+            labelRels = labelsRelationshipSet.fromModelObject(modelConcept)
+            for labelRel in labelRels:
+                conceptlangRoleLabels[(labelRel.toModelObject.xmlLang, labelRel.toModelObject.role)].append(labelRel.toModelObject)
+            for (lang, labelrole), labels in conceptlangRoleLabels.items():
+                if isExtension(val, modelConcept) and len(labels) > 1:
+                    val.modelXbrl.error(
+                        "ESEF.3.4.5.taxonomyElementDuplicateLabels",
+                        _("Extension taxonomy element name SHALL not have multiple labels for lang %(lang)s and role %(labelrole)s: %(concept)s"),
+                        modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole)
+                elif labelrole == XbrlConst.standardLabel:
+                    has_core_label = False
+                    has_extension_label = False
+                    for label in labels:
+                        if isExtension(val, label):
+                            has_extension_label = True
+                        else:
+                            has_core_label = True
+                    if has_core_label and has_extension_label:
+                        val.modelXbrl.error(
+                            "ESEF.3.4.5.taxonomyElementDuplicateLabels",
+                            _("Issuer extension taxonomy with core taxonomy element: %(concept)s is assigned 2 labels using standard label role"),
+                            modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole)
 
         for ELR in modelXbrl.relationshipSet(parentChild).linkRoleUris:
             relSet = modelXbrl.relationshipSet(parentChild, ELR)

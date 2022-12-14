@@ -32,6 +32,6 @@ def rootFormulaObjects(view):
 
 def formulaObjSortKey(obj):
     try:
-        return obj.xlinkLabel
+        return obj.xlinkLabel or ""
     except AttributeError:
         return None
