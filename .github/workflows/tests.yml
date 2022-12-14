@@ -19,10 +19,6 @@ jobs:
           - '3.9'
           - '3.10'
           - '3.11'
-        exclude:
-          # lxml doesn't have Windows wheels yet: https://bugs.launchpad.net/lxml/+bug/1977998
-          - os: windows-2022
-            python-version: 3.11
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3.1.0
