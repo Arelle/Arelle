@@ -999,12 +999,12 @@ def dateunionValue(
         d = datetimeValue
         if subtractOneDay and not isDate: d -= datetime.timedelta(1)
         if dateOnlyHour is None:
-            return "{0:04n}-{1:02n}-{2:02n}{3}".format(d.year, d.month, d.day, tz)
+            return "{0:04}-{1:02}-{2:02}{3}".format(d.year, d.month, d.day, tz)
         else: # show explicit hour on date-only value (e.g., 24:00:00 for end date)
-            return "{0:04n}-{1:02n}-{2:02n}T{3:02n}:00:00{4}".format(
+            return "{0:04}-{1:02}-{2:02}T{3:02}:00:00{4}".format(
                 d.year, d.month, d.day, dateOnlyHour, tz)
     else:
-        return "{0:04n}-{1:02n}-{2:02n}T{3:02n}:{4:02n}:{5:02n}{6}".format(
+        return "{0:04}-{1:02}-{2:02}T{3:02}:{4:02}:{5:02}{6}".format(
             datetimeValue.year,
             datetimeValue.month,
             datetimeValue.day,

@@ -613,7 +613,7 @@ class ModelXbrl:
         xbrlElt = self.modelDocument.xmlRootElement
         if cast(str, afterSibling) == AUTO_LOCATE_ELEMENT:
             afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context"))
-        cntxId = id if id else 'c-{0:02n}'.format( len(self.contexts) + 1)
+        cntxId = id if id else 'c-{0:02}'.format( len(self.contexts) + 1)
         newCntxElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "context", attributes=("id", cntxId),
                                       afterSibling=cast(Optional[ModelObject], afterSibling), beforeSibling=beforeSibling)
         entityElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "entity")
@@ -723,7 +723,7 @@ class ModelXbrl:
         xbrlElt = self.modelDocument.xmlRootElement
         if afterSibling == cast('ModelObject', AUTO_LOCATE_ELEMENT):
             afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context", "unit"))
-        unitId = id if id else 'u-{0:02n}'.format( len(self.units) + 1)
+        unitId = id if id else 'u-{0:02}'.format( len(self.units) + 1)
         newUnitElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "unit", attributes=("id", unitId),
                                       afterSibling=afterSibling, beforeSibling=beforeSibling)
         if len(divideBy) == 0:
