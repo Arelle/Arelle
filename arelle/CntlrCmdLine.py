@@ -15,7 +15,7 @@ from arelle import (Cntlr, FileSource, ModelDocument, RenderingEvaluator, XmlUti
                     ViewFileRoleTypes,
                     ModelManager)
 from arelle.ModelValue import qname
-from arelle.Locale import format_string, setDisableRTL
+from arelle.Locale import format_string, setApplicationLocale, setDisableRTL
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle import PluginManager
 from arelle.PluginManager import pluginClassMethods
@@ -45,6 +45,7 @@ def main():
         args = sys.argv[1:]
 
     gettext.install("arelle") # needed for options messages
+    setApplicationLocale()
     parseAndRun(args)
 
 def wsgiApplication(extraArgs=[]): # for example call wsgiApplication(["--plugins=EdgarRenderer"])

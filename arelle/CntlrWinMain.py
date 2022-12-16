@@ -26,8 +26,7 @@ import tkinter.tix
 import tkinter.filedialog
 import tkinter.messagebox, traceback
 import tkinter.simpledialog
-from arelle.FileSource import saveFile as writeToFile
-from arelle.Locale import format_string
+from arelle.Locale import format_string, setApplicationLocale
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import XbrlConst
 from arelle.PluginManager import pluginClassMethods
@@ -1605,6 +1604,7 @@ def main():
         restartMain = False
         try:
             application = Tk()
+            setApplicationLocale()
             cntlrWinMain = CntlrWinMain(application)
             application.protocol("WM_DELETE_WINDOW", cntlrWinMain.quit)
             if sys.platform == "darwin" and not __file__.endswith(".app/Contents/MacOS/arelleGUI"):
