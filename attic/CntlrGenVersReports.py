@@ -232,7 +232,7 @@ class CntlrGenVersReports(Cntlr.Cntlr):
                         if len(uriFromParts) >= 2:
                             variationId = uriFromParts[1]
                         else:
-                            variationId = "_{0:02n}".format(variationSeq)
+                            variationId = "_{0:02}".format(variationSeq)
                         for i,testcaseElt in enumerate(testcaseElements):
                             variationElement = etree.SubElement(testcaseElt, "{http://xbrl.org/2008/conformance}variation", 
                                                                 attrib={"id": variationId})

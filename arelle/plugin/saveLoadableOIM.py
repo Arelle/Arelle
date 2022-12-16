@@ -131,10 +131,10 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None,
         else: # instant
             s = e = cntx.instantDatetime
         return({str(qnOimPeriodAspect):
-                ("{0:04n}-{1:02n}-{2:02n}T{3:02n}:{4:02n}:{5:02n}{6}/".format(
+                ("{0:04}-{1:02}-{2:02}T{3:02}:{4:02}:{5:02}{6}/".format(
                          s.year, s.month, s.day, s.hour, s.minute, s.second, tzinfoStr(s))
                     if cntx.isStartEndPeriod else "") +
-                "{0:04n}-{1:02n}-{2:02n}T{3:02n}:{4:02n}:{5:02n}{6}".format(
+                "{0:04}-{1:02}-{2:02}T{3:02}:{4:02}:{5:02}{6}".format(
                          e.year, e.month, e.day, e.hour, e.minute, e.second, tzinfoStr(e))
                 })
 
