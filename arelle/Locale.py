@@ -35,8 +35,13 @@ defaultLocaleCodes = {
     "sk": "SK", "sl": "SI", "sq": "AL", "sr": "RS", "sv": "SE", "th": "TH",
     "tr": "TR", "uk": "UA", "ur": "PK", "vi": "VN", "zh": "CN"}
 
-def getUserLocale(localeCode: str = '') -> tuple[LocaleDict, str | None]:
-    # get system localeconv and reset system back to default
+
+def _getUserLocaleUnsafe(localeCode: str = '') -> tuple[LocaleDict, str | None]:
+    """
+    Get locale conventions dictionary. May change the global locale if called directly.
+    :param localeCode: The locale code to use to retrieve conventions. Defaults to system default.
+    :return: Tuple of local conventions dictionary and a user-directed setup message
+    """
     import locale
     conv = None
     localeSetupMessage = None
@@ -71,11 +76,26 @@ def getUserLocale(localeCode: str = '') -> tuple[LocaleDict, str | None]:
                 conv = locale.localeconv()
             except locale.Error:
                 pass
-    locale.setlocale(locale.LC_ALL, 'C')
     if conv is None:  # some other issue prevents getting culture code, use 'C' defaults (no thousands sep, no currency, etc)
+        locale.setlocale(locale.LC_ALL, 'C')
         localeSetupMessage = f"locale code \"{localeCode}\" is not available on this system"
         conv = locale.localeconv() # use 'C' environment, e.g., en_US
     return cast(LocaleDict, conv), localeSetupMessage
+
+
+def getUserLocale(localeCode: str = '') -> tuple[LocaleDict, str | None]:
+    """
+    Get locale conventions dictionary. Ensures that the locale (global to the process) is reset afterwards.
+    :param localeCode: The locale code to use to retrieve conventions. Defaults to system default.
+    :return: Tuple of local conventions dictionary and a user-directed setup message
+    """
+    import locale
+    currentLocale = locale.getlocale()
+    try:
+        return _getUserLocaleUnsafe(localeCode)
+    finally:
+        locale.setlocale(locale.LC_ALL, currentLocale)
+
 
 def getLanguageCode() -> str:
     if sys.platform == "darwin": # MacOS doesn't provide correct language codes

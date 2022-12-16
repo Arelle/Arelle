@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any
+import locale
 import pytest
 from decimal import Decimal
 from arelle.Locale import format_decimal
@@ -62,3 +63,11 @@ d = Decimal('-1234567.8901')
 )
 def test_format_decimal(params: dict[str, Any], result: str) -> None:
     assert format_decimal(**params) == result
+
+
+@pytest.mark.parametrize('locale_code', ['', 'C', 'invalid'])
+def test_get_user_locale_reset(locale_code) -> None:
+    before_locale = locale.getlocale()[0]
+    getUserLocale(locale_code)
+    after_locale = locale.getlocale()[0]
+    assert after_locale == before_locale
