@@ -111,8 +111,8 @@ def parseAndRun(args):
                       help=_("Specify calculations validations: "
                              "none - default, "
                              #"xbrl21precision - pre-2010 xbrl v2.1 calculations linkbase inferring precision, "
-                             "v21 - XBRL 2.1 calculations, "
-                             "v21-dedup - XBRL 2.1 calculations with de-duplication, "
+                             "xbrl21 or c10 - XBRL 2.1 calculations, "
+                             "xbrl21-dedup or c10d - XBRL 2.1 calculations with de-duplication, "
                              "round-to-nearest or c11r - Calc 1.1 round-to-nearest mode, "
                              "truncation or c11t - Calc 1.1 truncation mode"
                              ))
@@ -787,8 +787,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
             try:
                 self.modelManager.validateCalcs = {
                      "xbrl21precision": CalcsMode.XBRL_v2_1_INFER_PRECISION,
-                     "v21": CalcsMode.XBRL_v2_1,
-                     "v21-dedup": CalcsMode.XBRL_v2_1_DEDUPLICATE,
+                     "xbrl21": CalcsMode.XBRL_v2_1,
+                     "c10": CalcsMode.XBRL_v2_1,
+                     "xbrl21-dedup": CalcsMode.XBRL_v2_1_DEDUPLICATE,
+                     "c10d": CalcsMode.XBRL_v2_1_DEDUPLICATE,
                      "round-to-nearest": CalcsMode.ROUND_TO_NEAREST,
                      "c11r": CalcsMode.ROUND_TO_NEAREST,
                      "truncation": CalcsMode.TRUNCATION,
