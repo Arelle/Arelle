@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from arelle import XmlUtil, XbrlConst
 from arelle.ModelValue import QName
-from arelle.XmlValidate import VALID
+import arelle.XmlValidate
 from collections import defaultdict
 import decimal, os
 ModelDocument = None
@@ -129,7 +129,7 @@ class ArcPrototype(PrototypeObject):
                            "{http://www.w3.org/1999/xlink}to": toLabel,
                            "{http://www.w3.org/1999/xlink}arcrole": arcrole}
         # must look validated (because it can't really be validated)
-        self.xValid = VALID
+        self.xValid = arelle.XmlValidate.VALID
         self.xValue = self.sValue = None
         self.xAttributes = {}
 

@@ -7,29 +7,10 @@ import pytest
 
 KNOWN_FAILURES = frozenset([
     'CntlrProfiler.py',
-    'FormulaConsisAsser.py',
     'FormulaEvaluator.py',
-    'FunctionCustom.py',
-    'FunctionFn.py',
-    'FunctionIxt.py',
-    'FunctionUtil.py',
     'FunctionXfi.py',
-    'FunctionXs.py',
-    'ModelFormulaObject.py',
-    'ModelRenderingObject.py',
-    'ModelVersReport.py',
     'PrototypeDtsObject.py',
-    'RenderingEvaluator.py',
-    'RenderingResolver.py',
-    'ValidateFormula.py',
-    'ValidateXbrlCalcs.py',
-    'ViewFileFormulae.py',
-    'ViewFileRelationshipSet.py',
-    'ViewFileRenderedGrid.py',
-    'ViewWinFormulae.py',
-    'XbrlUtil.py',
-    'XmlValidate.py',
-    'XPathContext.py',
+    'ViewWinRenderedGrid.py',
 ])
 FILE_NAMES = list(map(os.path.basename, glob.glob('arelle/*.py')))
 TEST_PARAMS = [

@@ -36,6 +36,7 @@ from collections import defaultdict
 from typing import Any
 from lxml import etree
 from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
+from arelle.Aspect import Aspect
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue, rangeValue
 from arelle.XmlValidate import UNVALIDATED, INVALID, VALID, validate as xmlValidate
 from arelle.PrototypeInstanceObject import DimValuePrototype
@@ -45,7 +46,6 @@ from decimal import Decimal, InvalidOperation
 from hashlib import md5
 from arelle.HashUtil import md5hash, Md5Sum
 
-Aspect = None
 Type = None
 utrEntries = None
 utrSymbol = None
@@ -1711,7 +1711,6 @@ class ModelInlineXbrliXbrl(ModelObject):
                 for e in linkPrototype.iterdescendants():
                     yield e
 
-from arelle.ModelFormulaObject import Aspect
 from arelle import FunctionIxt
 
 from arelle.ModelObjectFactory import elementSubstitutionModelClass
