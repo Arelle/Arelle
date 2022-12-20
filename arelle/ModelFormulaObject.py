@@ -648,7 +648,7 @@ class ModelConsistencyAssertion(ModelFormulaResource):
         return (("id", self.id),
                 ("label", self.xlinkLabel),
                 ("proportional radius", self.get("proportionalAcceptanceRadius")) if self.get("proportionalAcceptanceRadius") else (),
-                ("absolute radius", self.get("absoluteAcceptanceRadius")) if self.get("absoulteAcceptanceRadius") else () ,
+                ("absolute radius", self.get("absoluteAcceptanceRadius")) if self.get("absoluteAcceptanceRadius") else () ,
                 ("strict", str(self.isStrict).lower()))
 
     def __repr__(self):
