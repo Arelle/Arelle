@@ -90,7 +90,7 @@ def getUserLocale(localeCode: str = '') -> tuple[LocaleDict, str | None]:
     :return: Tuple of local conventions dictionary and a user-directed setup message
     """
     import locale
-    currentLocale = locale.getlocale()
+    currentLocale = locale.setlocale(locale.LC_ALL)
     try:
         return _getUserLocaleUnsafe(localeCode)
     finally:
