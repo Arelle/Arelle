@@ -67,7 +67,7 @@ def test_format_decimal(params: dict[str, Any], result: str) -> None:
 
 @pytest.mark.parametrize('locale_code', ['', 'C', 'invalid'])
 def test_get_user_locale_reset(locale_code) -> None:
-    before_locale = locale.getlocale()[0]
+    before_locale = locale.setlocale(locale.LC_ALL)
     getUserLocale(locale_code)
-    after_locale = locale.getlocale()[0]
+    after_locale = locale.setlocale(locale.LC_ALL)
     assert after_locale == before_locale
