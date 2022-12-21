@@ -86,6 +86,10 @@ esefStatementsOfMonetaryDeclarationNames = {
     "StatementOfCashFlowsAbstract",
     }
 
+esefNotesStatementConcepts = {
+    "esef_cor:NotesAccountingPoliciesAndMandatoryTags",
+}
+
 esefMandatoryElementNames2020 = (
     "NameOfReportingEntityOrOtherMeansOfIdentification",
     "ExplanationOfChangeInNameOfReportingEntityOrOtherMeansOfIdentificationFromEndOfPrecedingReportingPeriod",

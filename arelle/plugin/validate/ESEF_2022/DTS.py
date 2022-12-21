@@ -20,7 +20,7 @@ from arelle.ModelObject import ModelObject
 from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault
 from .Const import (qnDomainItemTypes, esefDefinitionArcroles, DefaultDimensionLinkroles,
                     linkbaseRefTypes, filenamePatterns, filenameRegexes)
-from .Util import isExtension
+from .Util import isExtension, isAnchoredToNotes
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 
@@ -81,6 +81,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: lis
         extMonetaryConceptsWithoutBalance = []
         conceptsWithoutStandardLabel = []
         conceptsWithNoLabel = []
+        parentChildRelSet = val.modelXbrl.relationshipSet(XbrlConst.parentChild)
         widerNarrowerRelSet = val.modelXbrl.relationshipSet(XbrlConst.widerNarrower)
         generalSpecialRelSet = val.modelXbrl.relationshipSet(XbrlConst.generalSpecial)
         calcRelSet = val.modelXbrl.relationshipSet(XbrlConst.summationItem)
@@ -112,7 +113,12 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: lis
                         elif not widerNarrowerRelSet.fromModelObject(modelConcept) and not widerNarrowerRelSet.toModelObject(modelConcept):
                             if not calcRelSet.fromModelObject(modelConcept): # exclude subtotals
                                 # Conformance suite RTS_Annex_IV_Par_9_Par_10_G1-4-1_G1-4-2_G3-3-1_G3-3-2/TC6_invalid: look for other arcroles
-                                if not generalSpecialRelSet.fromModelObject(modelConcept) and not generalSpecialRelSet.toModelObject(modelConcept):
+                                # ----
+                                # Reporting manual - 1.4 Anchoring -> RTS on ESEF does not set an anchoring requirement for the Notes
+                                # to the financial statements
+                                if not isAnchoredToNotes(modelConcept, parentChildRelSet, set()) \
+                                        and not generalSpecialRelSet.fromModelObject(modelConcept) \
+                                        and not generalSpecialRelSet.toModelObject(modelConcept):
                                     extLineItemsNotAnchored.append(modelConcept)
                                 else:
                                     extLineItemsWronglyAnchored.append(modelConcept)

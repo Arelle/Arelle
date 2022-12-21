@@ -8,11 +8,13 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 import os, json
 
+from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
 from arelle.ModelObject import ModelObject
+from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import QName
 from arelle.XmlValidate import VALID
-from .Const import esefTaxonomyNamespaceURIs
+from .Const import esefTaxonomyNamespaceURIs, esefNotesStatementConcepts
 from lxml.etree import XML, XMLSyntaxError
 from arelle.FileSource import openFileStream
 from arelle.UrlUtil import scheme
@@ -167,3 +169,17 @@ def checkForMultiLangDuplicates(modelXbrl: ModelXbrl) -> None:
                         "Inconsistent duplicate non-numeric facts SHOULD NOT appear in the content of an inline XBRL document. "
                         "%(fact)s that was used more than once in contexts equivalent to %(contextID)s, with different values but same language (%(language)s).",
                         modelObject=fList, fact=fList[0].qname, contextID=fList[0].contextID, language=fList[0].xmlLang)
+
+def isAnchoredToNotes(child: ModelConcept, relSet: ModelRelationshipSet, _visited: set[ModelConcept]) -> bool:
+    relations_to = relSet.toModelObject(child)
+    if not relations_to and str(child.qname) in esefNotesStatementConcepts:
+        return True
+
+    _visited.add(child)
+    for rel in relations_to:
+        parent = rel.fromModelObject
+        if parent is not None and parent not in _visited:
+            if isAnchoredToNotes(parent, relSet, _visited):
+                return True
+    _visited.remove(child)
+    return False
