@@ -1252,13 +1252,13 @@
             "DocumentFinStmtErrorCorrectionFlag",
             "DocumentFinStmtRestatementRecoveryAnalysisFlag"
             ],
-        "efm": "6.5.40",
+        "efm": "6.5.49",
         "validation": "taxonomy-version-required",
         "value": 2,
         "earliest-taxonomy": "dei/2022q4",
         "check-after": "2024-01-27",
-        "source": "both",
-        "dei/cover": "dei",
+        "source": "inline",
+        "dei/cover": "cover",
         "comment": "value is number of name elements required in taxonomy"
     },
     {
