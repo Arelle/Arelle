@@ -111,14 +111,11 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: lis
                         if modelConcept not in val.primaryItems:
                             extLineItemsWithoutHypercube.append(modelConcept)
                         elif not widerNarrowerRelSet.fromModelObject(modelConcept) and not widerNarrowerRelSet.toModelObject(modelConcept):
-                            if not calcRelSet.fromModelObject(modelConcept): # exclude subtotals
+                            # Reporting manual - 1.4 Anchoring -> RTS on ESEF does not set an anchoring requirement for the Notes
+                            # to the financial statements
+                            if not calcRelSet.fromModelObject(modelConcept) and not isAnchoredToNotes(modelConcept, parentChildRelSet, set()): # exclude subtotals
                                 # Conformance suite RTS_Annex_IV_Par_9_Par_10_G1-4-1_G1-4-2_G3-3-1_G3-3-2/TC6_invalid: look for other arcroles
-                                # ----
-                                # Reporting manual - 1.4 Anchoring -> RTS on ESEF does not set an anchoring requirement for the Notes
-                                # to the financial statements
-                                if not isAnchoredToNotes(modelConcept, parentChildRelSet, set()) \
-                                        and not generalSpecialRelSet.fromModelObject(modelConcept) \
-                                        and not generalSpecialRelSet.toModelObject(modelConcept):
+                                if not generalSpecialRelSet.fromModelObject(modelConcept) and not generalSpecialRelSet.toModelObject(modelConcept):
                                     extLineItemsNotAnchored.append(modelConcept)
                                 else:
                                     extLineItemsWronglyAnchored.append(modelConcept)
