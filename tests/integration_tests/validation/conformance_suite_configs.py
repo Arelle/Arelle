@@ -1,7 +1,9 @@
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 from tests.integration_tests.validation.conformance_suite_configurations.efm_current import config as efm_current
 from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2021 import config as esef_ixbrl_2021
+from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2022 import config as esef_ixbrl_2022
 from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2021 import config as esef_xhtml_2021
+from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2022 import config as esef_xhtml_2022
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_2_1 import config as xbrl_2_1
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_dimensions_1_0 import config as xbrl_dimensions_1_0
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_extensible_enumerations_1_0 import config as xbrl_extensible_enumerations_1_0
@@ -25,7 +27,9 @@ from tests.integration_tests.validation.conformance_suite_configurations.xbrl_ut
 ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     efm_current,
     esef_ixbrl_2021,
+    esef_ixbrl_2022,
     esef_xhtml_2021,
+    esef_xhtml_2022,
     xbrl_2_1,
     xbrl_dimensions_1_0,
     xbrl_extensible_enumerations_1_0,
