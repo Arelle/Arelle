@@ -4,7 +4,6 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 import datetime, isodate
 from decimal import Decimal
-from functools import total_ordering
 from typing import TYPE_CHECKING, Any, cast, overload, Optional, Union
 from fractions import Fraction
 
@@ -165,16 +164,15 @@ def qnameEltPfxName(
     return QName(prefix, namespaceURI, localName)
 
 
-def _default_to_empty(string: str | None) -> str:
-    return string or ''
-
-
 def _conformsQname(possibleQname: Any) -> bool:
     return (hasattr(possibleQname, 'namespaceURI') and
             hasattr(possibleQname, 'localName'))
 
 
-@total_ordering
+def _qnameCompareValue(namespaceURI: str | None, localName: str | None) -> tuple[str, str]:
+    return namespaceURI or '', localName or ''
+
+
 class QName:
 
     __slots__ = ("prefix", "namespaceURI", "localName", "qnameValueHash")
@@ -220,7 +218,22 @@ class QName:
 
     def __lt__(self, other: Any) -> bool:
         if _conformsQname(other):
-            return (_default_to_empty(self.namespaceURI), _default_to_empty(self.localName)) < (_default_to_empty(other.namespaceURI), _default_to_empty(other.localName))
+            return _qnameCompareValue(self.namespaceURI, self.localName) < _qnameCompareValue(other.namespaceURI, other.localName)
+        return NotImplemented
+
+    def __le__(self, other: Any) -> bool:
+        if _conformsQname(other):
+            return _qnameCompareValue(self.namespaceURI, self.localName) <= _qnameCompareValue(other.namespaceURI, other.localName)
+        return NotImplemented
+
+    def __gt__(self, other: Any) -> bool:
+        if _conformsQname(other):
+            return _qnameCompareValue(self.namespaceURI, self.localName) > _qnameCompareValue(other.namespaceURI, other.localName)
+        return NotImplemented
+
+    def __ge__(self, other: Any) -> bool:
+        if _conformsQname(other):
+            return _qnameCompareValue(self.namespaceURI, self.localName) >= _qnameCompareValue(other.namespaceURI, other.localName)
         return NotImplemented
 
     def __bool__(self) -> bool:
