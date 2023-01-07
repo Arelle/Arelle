@@ -209,6 +209,11 @@ class QName:
             return self.localName
 
     def __eq__(self, other: Any) -> bool:
+        # This method previously used a try except and returned False on AttributeErrors. While this was efficient for
+        # QName == QName, it had significant overhead for QName == int, which is common during validations (can occur
+        # 100,000+ times). This will be revisited once the mixed type dicts in the validation impl are no more.
+        # Additionally `QName == otherValue` historically returns False if the other value doesn't have matching attrs.
+        # This is bad practice, but returning NotImplemented breaks conformance suites. Requires further investigation.
         return (_conformsQname(other) and
                 self.localName == other.localName and
                 self.namespaceURI == other.namespaceURI)
