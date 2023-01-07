@@ -4,7 +4,8 @@ Preconfigured here to use SEC Edgar Rendering R files as input
 
 See COPYRIGHT.md for copyright information.
 '''
-import os, sys, re
+import os, sys
+import regex as re
 from lxml import etree, html
 from openpyxl.workbook import Workbook
 from openpyxl.worksheet import ColumnDimension

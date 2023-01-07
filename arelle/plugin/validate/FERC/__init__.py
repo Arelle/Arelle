@@ -7,7 +7,8 @@ Filer Guidelines:
 
 See COPYRIGHT.md for copyright information.
 '''
-import os, re
+import os
+import regex as re
 from arelle import ModelDocument, ValidateFilingText, XmlUtil
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject

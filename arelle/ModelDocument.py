@@ -858,7 +858,8 @@ class ModelDocument:
     def creationSoftware(self):
         global creationSoftwareNames
         if creationSoftwareNames is None:
-            import json, re
+            import json
+            import regex as re
             creationSoftwareNames = []
             try:
                 with io.open(os.path.join(self.modelXbrl.modelManager.cntlr.configDir, "creationSoftwareNames.json"),

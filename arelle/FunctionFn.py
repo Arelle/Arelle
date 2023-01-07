@@ -1,7 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import math, re, sre_constants
+import math, sre_constants
+import regex as re
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTimeDuration,
                          YearMonthDuration, DayTimeDuration, time, Time)

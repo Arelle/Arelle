@@ -1,7 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import os, re, datetime
+import os, datetime
+import regex as re
 from collections import defaultdict
 from arelle import (XbrlConst, XbrlUtil, XmlUtil, UrlUtil, ModelXbrl, ModelDocument, ModelVersObject,
                     Version, XmlValidate)

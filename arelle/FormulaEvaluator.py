@@ -12,7 +12,8 @@ from arelle.ModelFormulaObject import (aspectModels, Aspect, aspectModelAspect,
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import OrderedSet
 from arelle.ModelValue import (QName)
-import datetime, time, logging, re
+import datetime, time, logging
+import regex as re
 from decimal import Decimal
 from math import log10, isnan, isinf, fabs
 from arelle.Locale import format_string

@@ -1,7 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import csv, io, json, re, sys
+import csv, io, json, sys
+import regex as re
 from lxml import etree
 from decimal import Decimal
 from arelle.FileSource import FileNamedStringIO

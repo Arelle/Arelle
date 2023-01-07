@@ -6,7 +6,8 @@ input and optionally save an (extension) DTS.
 
 See COPYRIGHT.md for copyright information.
 '''
-import os, io, sys, time, re, traceback, json, posixpath
+import os, io, sys, time, traceback, json, posixpath
+import regex as re
 from fnmatch import fnmatch
 from collections import defaultdict, OrderedDict
 from arelle import PythonUtil, XbrlConst, ModelDocument, UrlUtil

@@ -5,7 +5,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import sys, os, io, re, time, json, logging
+import sys, os, io, time, json, logging
 from collections import defaultdict
 from fnmatch import fnmatch
 from lxml import etree

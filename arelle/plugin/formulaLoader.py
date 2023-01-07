@@ -19,7 +19,8 @@ When run from GUI first load the instance/DTS and then import the xf file(s).
 
 '''
 
-import time, sys, traceback, os, io, os.path, re, zipfile
+import time, sys, traceback, os, io, os.path, zipfile
+import regex as re
 from arelle.Version import authorLabel, copyrightLabel
 from lxml import etree
 

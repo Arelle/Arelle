@@ -2,7 +2,8 @@
 See COPYRIGHT.md for copyright information.
 '''
 from collections import defaultdict
-import os, datetime, re
+import os, datetime
+import regex as re
 from tkinter import Menu, constants, BooleanVar
 from arelle import ViewWinTree, ModelDtsObject, ModelInstanceObject, XbrlConst, XmlUtil
 from arelle.XbrlConst import conceptNameLabelRole

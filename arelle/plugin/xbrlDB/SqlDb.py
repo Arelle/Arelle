@@ -3,7 +3,8 @@ This module provides database interfaces to postgres SQL
 
 See COPYRIGHT.md for copyright information.
 '''
-import sys, os, io, glob, time, re, datetime, socket, string, random
+import sys, os, io, glob, time, datetime, socket, string, random
+import regex as re
 from math import isnan, isinf, isfinite
 from decimal import Decimal
 from arelle.ModelValue import dateTime

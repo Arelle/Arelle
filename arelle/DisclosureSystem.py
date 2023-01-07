@@ -1,7 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import os, re, logging, json
+import os, logging, json
+import regex as re
 from collections import defaultdict
 from lxml import etree
 from arelle import UrlUtil

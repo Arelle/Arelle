@@ -6,7 +6,8 @@ that loads a Correspondence tar.gz file.
 
 See COPYRIGHT.md for copyright information.
 '''
-import datetime, re, os, time
+import datetime, os, time
+import regex as re
 from arelle import FileSource, ModelDocument
 from arelle.ModelRssObject import ModelRssObject
 from arelle.Version import authorLabel, copyrightLabel

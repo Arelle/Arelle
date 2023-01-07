@@ -6,7 +6,8 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from arelle import PythonUtil # define 2.x or 3.x string types
-import os, sys, subprocess, pickle, time, locale, re, fnmatch, platform
+import os, sys, subprocess, pickle, time, locale, fnmatch, platform
+import regex as re
 
 if sys.platform == 'win32' and getattr(sys, 'frozen', False):
     # need the .dll directory in path to be able to access Tk and Tcl DLLs efore importinng Tk, etc.

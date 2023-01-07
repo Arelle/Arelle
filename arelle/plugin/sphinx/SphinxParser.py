@@ -9,7 +9,8 @@ Sphinx copyright applies to the Sphinx language, not to this software.
 Workiva, Inc. conveys neither rights nor license for the Sphinx language.
 '''
 
-import time, sys, os, os.path, re, zipfile
+import time, sys, os, os.path, zipfile
+import regex as re
 from arelle.ModelValue import qname
 from arelle.ModelFormulaObject import Aspect, aspectStr
 from arelle.ModelXbrl import DEFAULT, NONDEFAULT, DEFAULTorNONDEFAULT

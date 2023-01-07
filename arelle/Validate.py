@@ -1,7 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import os, sys, traceback, re, logging
+import os, sys, traceback, logging
+import regex as re
 from collections import defaultdict, OrderedDict
 from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlConst,
                ValidateXbrl, ValidateVersReport, ValidateFormula,

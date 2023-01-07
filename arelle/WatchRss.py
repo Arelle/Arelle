@@ -1,7 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import os, sys, traceback, re
+import os, sys, traceback
+import regex as re
 from arelle import (ModelXbrl, XmlUtil, ModelVersReport, XbrlConst, ModelDocument,
                ValidateXbrl, ValidateFormula)
 from arelle.FileSource import openFileSource

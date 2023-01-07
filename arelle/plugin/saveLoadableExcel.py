@@ -5,7 +5,8 @@ input and optionally save an (extension) DTS.
 
 See COPYRIGHT.md for copyright information.
 '''
-import os, io, time, re
+import os, io, time
+import regex as re
 from arelle import XbrlConst
 from arelle.Version import authorLabel, copyrightLabel
 from collections import defaultdict
