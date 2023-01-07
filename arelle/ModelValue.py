@@ -169,6 +169,11 @@ def _default_to_empty(string: str | None) -> str:
     return string or ''
 
 
+def _conformsQname(possibleQname: Any) -> bool:
+    return (hasattr(possibleQname, 'namespaceURI') and
+            hasattr(possibleQname, 'localName'))
+
+
 @total_ordering
 class QName:
 
@@ -182,10 +187,6 @@ class QName:
 
     def __hash__(self) -> int:
         return self.qnameValueHash
-
-    @staticmethod
-    def _conforms(other: Any) -> bool:
-        return isinstance(other, QName) or (hasattr(other, 'namespaceURI') and hasattr(other, 'localName'))
 
     @property
     def clarkNotation(self) -> str:
@@ -208,12 +209,12 @@ class QName:
             return self.localName
 
     def __eq__(self, other: Any) -> bool:
-        if QName._conforms(other):
-            return bool(self.localName == other.localName and self.namespaceURI == other.namespaceURI)
-        return False
+        return (_conformsQname(other) and
+                self.localName == other.localName and
+                self.namespaceURI == other.namespaceURI)
 
     def __lt__(self, other: Any) -> bool:
-        if QName._conforms(other):
+        if _conformsQname(other):
             return (_default_to_empty(self.namespaceURI), _default_to_empty(self.localName)) < (_default_to_empty(other.namespaceURI), _default_to_empty(other.localName))
         return NotImplemented
 
