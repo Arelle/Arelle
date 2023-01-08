@@ -6,7 +6,7 @@ RUN apt update;\
     pip3 install -r requirements.txt; \
     pip3 install isodate; \
     apt install -y ruby ruby-dev;
-RUN gem install bundler
+RUN gem install bundler -v 2.3.26
 RUN gem install shoryuken
 RUN gem install aws-sdk-sqs
 EXPOSE 8099
