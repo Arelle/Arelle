@@ -113,13 +113,13 @@ jobs:
       working-directory: ${{ env.BUILD_PATH }}
       run: 7z a -tzip ..\..\${{ env.ZIP_BUILD_ARTIFACT_PATH }} *
     - name: Upload installer artifact
-      uses: actions/upload-artifact@v3.1.1
+      uses: actions/upload-artifact@v3.1.2
       with:
         name: windows installer distribution
         if-no-files-found: error
         path: ${{ env.EXE_BUILD_ARTIFACT_PATH }}
     - name: Upload zip artifact
-      uses: actions/upload-artifact@v3.1.1
+      uses: actions/upload-artifact@v3.1.2
       with:
         name: windows zip distribution
         if-no-files-found: error
