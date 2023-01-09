@@ -23,7 +23,8 @@ Extensions can be added to the results in the following manner:
 
 See COPYRIGHT.md for copyright information.
 '''
-import sys, os, io, time, regex as re, json, csv, zipfile
+import sys, os, io, time, json, csv, zipfile
+import regex as re
 from decimal import Decimal
 from math import isinf, isnan
 from collections import defaultdict, OrderedDict

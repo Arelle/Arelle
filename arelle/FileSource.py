@@ -3,7 +3,8 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 from typing import IO, TYPE_CHECKING, Any, Union, cast
-import zipfile, tarfile, os, io, errno, base64, gzip, zlib, re, struct, random
+import zipfile, tarfile, os, io, errno, base64, gzip, zlib, struct, random
+import regex as re
 from lxml import etree
 from arelle import XmlUtil
 from arelle import PackageManager

@@ -22,7 +22,7 @@ to do:
 
 '''
 
-import os, io, re, time, json, socket, logging, zlib
+import os, io, time, json, socket, logging, zlib
 from math import isnan, isinf
 from arelle.ModelDtsObject import ModelConcept, ModelResource, ModelRelationship
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact

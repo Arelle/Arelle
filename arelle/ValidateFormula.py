@@ -1,7 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import os, sys, time, logging, re
+import os, sys, time, logging
+import regex as re
 from collections import defaultdict
 from threading import Timer
 

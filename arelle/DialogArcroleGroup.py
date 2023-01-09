@@ -6,7 +6,8 @@ try:
     from tkinter.ttk import Frame, Button
 except ImportError:
     from ttk import Frame, Button
-import os, re
+import os
+import regex as re
 from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import XbrlConst

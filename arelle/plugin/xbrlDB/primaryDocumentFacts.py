@@ -3,7 +3,8 @@ See COPYRIGHT.md for copyright information.
 
 Represents modelFacts in an (SEC) filing primary document
 '''
-import os, re
+import os
+import regex as re
 from lxml import html, etree
 from arelle import ModelDocument
 from arelle.ModelValue import qname

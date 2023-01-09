@@ -11,7 +11,8 @@
 from __future__ import annotations
 from typing import Any, TYPE_CHECKING, TextIO, Mapping, cast
 from arelle.typing import TypeGetText
-import tempfile, os, io, sys, logging, gettext, json, re, subprocess, math
+import tempfile, os, io, sys, logging, gettext, json, subprocess, math
+import regex as re
 from arelle import ModelManager
 from arelle.WebCache import WebCache
 from arelle.Locale import getLanguageCodes, setDisableRTL

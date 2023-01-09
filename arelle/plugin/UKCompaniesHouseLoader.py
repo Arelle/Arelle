@@ -7,7 +7,7 @@ that loads a Companies House zip XBRL instances file.
 See COPYRIGHT.md for copyright information.
 '''
 from lxml import html
-import datetime, re, os
+import datetime, os
 from arelle import FileSource
 from arelle.ModelRssObject import ModelRssObject
 from arelle.Version import authorLabel, copyrightLabel

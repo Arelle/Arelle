@@ -47,7 +47,8 @@ concrete example:
 
 '''
 
-import time, datetime, os, re
+import time, datetime, os
+import regex as re
 from collections import defaultdict
 from arelle.HashUtil import Md5Sum
 from arelle.ModelDocument import Type, create as createModelDocument

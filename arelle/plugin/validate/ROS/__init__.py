@@ -6,7 +6,8 @@ Filer Guidelines:
 
 See COPYRIGHT.md for copyright information.
 '''
-import os, re
+import os
+import regex as re
 from collections import defaultdict
 from math import isnan
 from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction

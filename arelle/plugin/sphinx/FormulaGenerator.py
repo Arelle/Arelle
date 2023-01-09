@@ -9,7 +9,8 @@ Sphinx copyright applies to the Sphinx language, not to this software.
 Workiva, Inc. conveys neither rights nor license for the Sphinx language.
 '''
 
-import time, sys, io, os.path, re
+import time, sys, io, os.path
+import regex as re
 from lxml import etree
 from arelle.ModelValue import QName
 from .SphinxParser import (parse, astNode, astNamespaceDeclaration,

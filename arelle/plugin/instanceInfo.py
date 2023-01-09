@@ -6,7 +6,8 @@ See COPYRIGHT.md for copyright information.
 Operation with arelleCmdLine: --plugin instanceInfo -f entryUrl
 
 '''
-import sys, os, time, math, re, logging
+import sys, os, time, math, logging
+import regex as re
 from math import isnan
 from collections import defaultdict
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue

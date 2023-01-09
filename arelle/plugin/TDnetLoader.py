@@ -8,7 +8,8 @@ Timely Disclosure Network.
 See COPYRIGHT.md for copyright information.
 '''
 from lxml import html
-import datetime, re, os
+import datetime, os
+import regex as re
 from arelle import FileSource
 from arelle.ModelRssObject import ModelRssObject
 from arelle.Version import authorLabel, copyrightLabel

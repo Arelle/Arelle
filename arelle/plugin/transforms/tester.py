@@ -39,7 +39,8 @@ For REST API operation:
     cmd line: curl 'http://localhost:8080/rest/xbrl/validation?plugins=transforms/tester&testTransform=ixt%20v3%20datedaymonthen%2029th%20February'
 
 '''
-import os, re, logging
+import os, logging
+import regex as re
 from optparse import SUPPRESS_HELP
 from arelle.FunctionIxt import ixtNamespaces, ixtNamespaceFunctions
 from arelle.ModelFormulaObject import Trace

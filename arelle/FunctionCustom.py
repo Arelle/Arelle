@@ -1,7 +1,7 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import xml.dom, math, re
+import xml.dom, math
 from arelle.ModelValue import qname
 from arelle import XPathContext, XbrlUtil
 from arelle.ModelInstanceObject import ModelDimensionValue

@@ -1,7 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import math, re, sre_constants
+import math
+import regex as re
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTimeDuration,
                          YearMonthDuration, DayTimeDuration, time, Time)
@@ -278,7 +279,7 @@ def matches(xc, p, contextItem, args):
     pattern = stringArg(xc, args, 1, "xs:string", emptyFallback="")
     try:
         return bool(re.search(pattern,input,flags=regexFlags(xc, p, args, 2)))
-    except sre_constants.error as err:
+    except re.error as err:
         raise XPathContext.XPathException(p, 'err:FORX0002', _('fn:matches regular expression pattern error: {0}').format(err))
 
 
@@ -293,7 +294,7 @@ def replace(xc, p, contextItem, args):
                          re.sub(r"(^|[^\\])[$]([1-9])", r"\\\2", fnReplacement))
     try:
         return re.sub(pattern,reReplacement,input,flags=regexFlags(xc, p, args, 3))
-    except sre_constants.error as err:
+    except re.error as err:
         raise XPathContext.XPathException(p, 'err:FORX0002', _('fn:replace regular expression pattern error: {0}').format(err))
 
 def tokenize(xc, p, contextItem, args):

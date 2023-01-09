@@ -1,7 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import os, re
+import os
+import regex as re
 from arelle import (ModelDocument, XmlUtil, XbrlConst)
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelConcept

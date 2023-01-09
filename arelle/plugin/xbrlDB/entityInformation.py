@@ -12,7 +12,8 @@ former-name-{1..}.{former-conformed-name,date-changed}
 
 filer-category, public-float, trading-symbol, fiscal-year-focus, fiscal-period-focus
 '''
-import os, re, datetime
+import os, datetime
+import regex as re
 from lxml import html, etree
 from arelle import ModelDocument
 from arelle.ModelValue import qname

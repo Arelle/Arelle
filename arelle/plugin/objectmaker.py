@@ -8,7 +8,7 @@ This product uses graphviz, which must be installed separately on the platform.
 
 See COPYRIGHT.md for copyright information.
 '''
-import os, io, time, re
+import os, io, time
 from tkinter import Menu
 from arelle import ModelDocument, XmlUtil, XbrlConst
 from arelle.ModelDtsObject import ModelConcept

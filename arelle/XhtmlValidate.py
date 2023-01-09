@@ -9,7 +9,8 @@ from arelle.PythonUtil import normalizeSpace
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ModelObject import ModelObject
 from lxml import etree
-import os, re, posixpath
+import os, posixpath
+import regex as re
 
 EMPTYDICT = {}
 

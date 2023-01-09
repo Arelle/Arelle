@@ -1,7 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import os, sys, re
+import os, sys
+import regex as re
 from arelle import PluginManager
 from arelle import ModelDocument, XbrlConst, XmlUtil, UrlUtil, LeiUtil
 from arelle.HashUtil import md5hash, Md5Sum

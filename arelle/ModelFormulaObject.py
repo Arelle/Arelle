@@ -2,7 +2,8 @@
 See COPYRIGHT.md for copyright information.
 '''
 from collections import defaultdict
-import datetime, re
+import datetime
+import regex as re
 from arelle import XmlUtil, XbrlConst, XPathParser, XPathContext
 # Aspect used to be in this file, so allow others to import its attributes from here.
 from arelle.Aspect import (

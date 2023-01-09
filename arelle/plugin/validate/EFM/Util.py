@@ -1,7 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import os, json, re
+import os, json
+import regex as re
 from collections import defaultdict, OrderedDict
 from arelle.FileSource import openFileStream, openFileSource, saveFile # only needed if building a cached file
 from arelle.ModelValue import qname

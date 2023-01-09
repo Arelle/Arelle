@@ -4,7 +4,8 @@ See COPYRIGHT.md for copyright information.
 from arelle import ViewFile, ModelDtsObject, XbrlConst, XmlUtil
 from arelle.XbrlConst import conceptNameLabelRole, standardLabel, terseLabel, documentationLabel
 from arelle.ViewFile import CSV, XLSX, HTML, XML, JSON
-import datetime, re
+import datetime
+import regex as re
 from collections import defaultdict
 
 stripXmlPattern = re.compile(r"<.*?>")

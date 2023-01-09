@@ -7,7 +7,8 @@ e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
 '''
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import os, posixpath, sys, re, time, calendar, io, json, logging, shutil, zlib
+import os, posixpath, sys, time, calendar, io, json, logging, shutil, zlib
+import regex as re
 from urllib.parse import quote, unquote
 from urllib.error import URLError, HTTPError, ContentTooShortError
 from http.client import IncompleteRead

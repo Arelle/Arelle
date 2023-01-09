@@ -16,7 +16,8 @@ Example to run from web server:
 
 
 '''
-import os, sys, io, time, re, traceback, json, csv, logging, math, zipfile
+import os, sys, io, time, traceback, json, csv, logging, math, zipfile
+import regex as re
 from collections import defaultdict, OrderedDict
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle import XbrlConst, ModelDocument, ModelXbrl, ValidateXbrlDimensions

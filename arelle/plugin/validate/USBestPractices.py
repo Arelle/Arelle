@@ -11,7 +11,8 @@ from arelle.Version import copyrightLabel
 from arelle.XmlValidate import UNVALIDATED, VALID
 from arelle import Locale, ModelXbrl, XbrlConst
 from arelle.FileSource import openFileSource, openFileStream, saveFile
-import os, io, re, json, time
+import os, io, json, time
+import regex as re
 from math import isfinite
 from collections import defaultdict
 

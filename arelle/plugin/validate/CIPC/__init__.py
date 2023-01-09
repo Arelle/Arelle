@@ -7,7 +7,8 @@ Taxonomy package expected to be installed: http://xbrl.cipc.co.za/cipc_2017-12-1
 
 See COPYRIGHT.md for copyright information.
 '''
-import os, re
+import os
+import regex as re
 from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction
 from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelResource

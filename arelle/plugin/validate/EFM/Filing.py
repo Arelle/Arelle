@@ -8,7 +8,8 @@ to domestic copyright protection. 17 U.S.C. 105.
 Implementation of DQC rules invokes https://xbrl.us/dqc-license and https://xbrl.us/dqc-patent
 
 '''
-import re, datetime, decimal, json, unicodedata, holidays, fnmatch
+import datetime, decimal, json, unicodedata, holidays, fnmatch
+import regex as re
 from math import isnan, pow
 from collections import defaultdict, OrderedDict
 from pytz import timezone

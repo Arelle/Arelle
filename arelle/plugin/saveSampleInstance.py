@@ -28,7 +28,8 @@ To specify entity identifier scheme:
   --sample-entity-scheme http://foo.com/scheme
 '''
 
-import os, io, re
+import os, io
+import regex as re
 from arelle.ModelDtsObject import ModelConcept, ModelRelationship
 from arelle import Locale, XbrlConst, ModelXbrl, XmlUtil
 from arelle.ModelValue import qname

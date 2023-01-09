@@ -15,7 +15,8 @@ Calls these plug-in classes:
    Streaming.Finish(modelXbrl): notifies that streaming is finished
 '''
 
-import io, os, time, sys, re, gc
+import io, os, time, sys, gc
+import regex as re
 from decimal import Decimal, InvalidOperation
 from lxml import etree
 from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateXbrlDimensions

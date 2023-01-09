@@ -3,7 +3,8 @@ See COPYRIGHT.md for copyright information.
 '''
 #import xml.sax, xml.sax.handler
 from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, XMLSyntaxError, XMLParser
-import os, re, io, base64
+import os, io, base64
+import regex as re
 from arelle.XbrlConst import ixbrlAll, xhtml
 from arelle.XmlUtil import setXmlns, xmlstring
 from arelle.ModelObject import ModelObject

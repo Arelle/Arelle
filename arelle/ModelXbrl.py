@@ -3,7 +3,8 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
-import os, sys, re, traceback, uuid
+import os, sys, traceback, uuid
+import regex as re
 from collections import defaultdict
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, cast, Optional
