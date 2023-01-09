@@ -35,11 +35,11 @@ jobs:
 
     steps:
     - name: Checkout arelle
-      uses: actions/checkout@v3.2.0
+      uses: actions/checkout@v3.3.0
       with:
         fetch-depth: 0
     - name: Checkout EdgarRenderer
-      uses: actions/checkout@v3.2.0
+      uses: actions/checkout@v3.3.0
       with:
         repository: Arelle/EdgarRenderer
         path: arelle/plugin/EdgarRenderer
@@ -47,7 +47,7 @@ jobs:
     - shell: cmd
       run: rmdir /s /q arelle\plugin\EdgarRenderer\.git
     - name: Checkout xule
-      uses: actions/checkout@v3.2.0
+      uses: actions/checkout@v3.3.0
       with:
         repository: xbrlus/xule
         path: xule
@@ -60,7 +60,7 @@ jobs:
     - shell: cmd
       run: rmdir /s /q xule
     - name: Checkout ixbrl-viewer
-      uses: actions/checkout@v3.2.0
+      uses: actions/checkout@v3.3.0
       with:
         repository: Workiva/ixbrl-viewer
         path: ixbrl-viewer
