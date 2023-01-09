@@ -116,7 +116,7 @@ jobs:
           echo "ARTIFACT_NAME=arelle-${{ matrix.distro }}.tgz" >> $GITHUB_ENV
           echo "BUILD_ARTIFACT_PATH=$(echo dist/*.tgz)" >> $GITHUB_ENV
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: ${{ matrix.distro }} distribution
           if-no-files-found: error
