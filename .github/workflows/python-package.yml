@@ -50,7 +50,7 @@ jobs:
       - name: Install twine
         run: pip install -U twine
       - name: Download artifacts
-        uses: actions/download-artifact@v3.0.1
+        uses: actions/download-artifact@v3.0.2
       - name: Publish package on release
         env:
           TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
