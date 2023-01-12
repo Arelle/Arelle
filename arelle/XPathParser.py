@@ -2,18 +2,38 @@
 See COPYRIGHT.md for copyright information.
 '''
 import sys
-from numbers import Number
-
-from arelle import PythonUtil # define 2.x or 3.x string types (only needed when running as unit test from __main__
-from arelle.PluginManager import pluginClassMethods
-from pyparsing import (
-    Word, Keyword, alphas, ParseException, ParseSyntaxException,Literal, CaselessLiteral,Combine, Optional, nums, Forward, Group, ZeroOrMore, StringEnd, alphanums,ParserElement, quotedString,
-    delimitedList, Suppress, Regex
-)
-from arelle.Locale import format_string
-import time, xml.dom, traceback
+import time
+import traceback
+import xml.dom
 from decimal import Decimal
-from arelle import (XmlUtil, ModelValue, XbrlConst)
+
+from pyparsing import (
+    CaselessLiteral,
+    Combine,
+    Forward,
+    Group,
+    Keyword,
+    Literal,
+    Optional,
+    ParseException,
+    ParseSyntaxException,
+    ParserElement,
+    Regex,
+    StringEnd,
+    Suppress,
+    Word,
+    ZeroOrMore,
+    alphanums,
+    alphas,
+    delimitedList,
+    nums,
+    quotedString,
+)
+
+from arelle import ModelValue, XbrlConst, XmlUtil
+from arelle.Locale import format_string
+from arelle.PluginManager import pluginClassMethods
+
 FunctionIxt = None
 
 
