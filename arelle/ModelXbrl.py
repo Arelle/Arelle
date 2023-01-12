@@ -37,6 +37,7 @@ if TYPE_CHECKING:
     _: TypeGetText  # Handle gettext
 else:
     ModelFact = None
+    ModelContext = None
 
 
 profileStatNumber = 0
@@ -615,8 +616,8 @@ class ModelXbrl:
         if cast(str, afterSibling) == AUTO_LOCATE_ELEMENT:
             afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context"))
         cntxId = id if id else 'c-{0:02}'.format( len(self.contexts) + 1)
-        newCntxElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "context", attributes=("id", cntxId),
-                                      afterSibling=cast(Optional[ModelObject], afterSibling), beforeSibling=beforeSibling)
+        newCntxElt = cast(ModelContext, XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "context", attributes=("id", cntxId),
+                                      afterSibling=cast(Optional[ModelObject], afterSibling), beforeSibling=beforeSibling))
         entityElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "entity")
         XmlUtil.addChild(entityElt, XbrlConst.xbrli, "identifier",
                             attributes=("scheme", entityIdentScheme),
@@ -696,6 +697,9 @@ class ModelXbrl:
 
         XmlValidate.validate(self, newCntxElt)
         self.modelDocument.contextDiscover(newCntxElt)
+        if hasattr(self, "_dimensionsInUse"):
+            for dim in newCntxElt.qnameDims.values():
+                self._dimensionsInUse.add(dim.dimension)
         return newCntxElt
 
     def matchUnit(self, multiplyBy: list[QName], divideBy: list[QName]) -> ModelUnit | None:
