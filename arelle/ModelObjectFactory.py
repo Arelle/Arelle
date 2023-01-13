@@ -131,6 +131,8 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
             return etree.PIBase
         elif node_type == "entity":
             return etree.EntityBase
+        # returning None delegates to fallback lookup classes
+        return None
 
 
 class DiscoveringClassLookup(etree.PythonElementClassLookup):
