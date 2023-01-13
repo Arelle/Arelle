@@ -118,7 +118,7 @@ def qnameHref(href: str) -> QName: # namespaceUri#localname
     return QName(None, namespaceURI or None, localName)
 
 
-def qnameNsLocalName(namespaceURI: str, localName: str) -> QName:  # does not handle localNames with prefix
+def qnameNsLocalName(namespaceURI: str | None, localName: str) -> QName:  # does not handle localNames with prefix
     return QName(None, namespaceURI or None, localName)
 
 

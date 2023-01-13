@@ -63,8 +63,8 @@ def targetNamespace(element: ModelObject) -> str | None:
         treeElt = cast(ModelObject, treeElt.getparent())
     return None
 
-def schemaLocation(element: ModelObject, namespace: str, returnElement: bool = False) -> ModelObject | str | None:
-    treeElt = element
+def schemaLocation(element: etree._Element, namespace: str, returnElement: bool = False) -> etree._Element | str | None:
+    treeElt: etree._Element | None = element
     while treeElt is not None:
         sl = treeElt.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
         if sl:
@@ -78,7 +78,7 @@ def schemaLocation(element: ModelObject, namespace: str, returnElement: bool = F
                     if not returnElement and ns == namespace:
                         return entry
                     ns = None
-        treeElt = cast(ModelObject, treeElt.getparent())
+        treeElt = treeElt.getparent()
     return None
 
 def clarkNotationToPrefixNsLocalname(

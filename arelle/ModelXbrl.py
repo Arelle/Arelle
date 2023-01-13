@@ -7,7 +7,7 @@ import os, sys, traceback, uuid
 import regex as re
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, cast, Optional
+from typing import TYPE_CHECKING, Any, Type, TypeVar, cast, Optional
 import logging
 from decimal import Decimal
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
@@ -131,6 +131,9 @@ def loadSchemalocatedSchemas(modelXbrl: ModelXbrl) -> None:
             for modelDocument in modelDocuments:
                 modelDocument.loadSchemalocatedSchemas()
             modelDocumentsSchemaLocated |= modelDocuments
+
+
+MatchSubstitutionGroupValueType = TypeVar('MatchSubstitutionGroupValueType', Type[ModelObject], bool)
 
 
 class ModelXbrl:
@@ -302,7 +305,7 @@ class ModelXbrl:
 
     def __init__(self,  modelManager: ModelManager, errorCaptureLevel: str | None = None) -> None:
         self.modelManager = modelManager
-        self.skipDTS = modelManager.skipDTS
+        self.skipDTS: bool = modelManager.skipDTS
         self.init(errorCaptureLevel=errorCaptureLevel)
 
     def init(self, keepViews: bool = False, errorCaptureLevel: str | None = None) -> None:
@@ -451,7 +454,7 @@ class ModelXbrl:
                 return cast(str, _roleTypeName)
         return self.roleTypeDefinition(roleURI, lang)
 
-    def matchSubstitutionGroup(self, elementQname: QName, subsGrpMatchTable: dict[QName | None, bool | ModelObject]) -> bool | ModelObject | None:
+    def matchSubstitutionGroup(self, elementQname: QName, subsGrpMatchTable: dict[QName | None, MatchSubstitutionGroupValueType]) -> MatchSubstitutionGroupValueType | None:
         """Resolve a subsitutionGroup for the elementQname from the match table
 
         Used by ModelObjectFactory to return Class type for new ModelObject subclass creation, and isInSubstitutionGroup

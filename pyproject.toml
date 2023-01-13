@@ -117,6 +117,7 @@ module = [
     'arelle.FileSource',
     'arelle.Locale',
     'arelle.ModelObject',
+    'arelle.ModelObjectFactory',
     'arelle.ModelValue',
     'arelle.ModelXbrl',
     'arelle.SystemInfo',
