@@ -8,33 +8,50 @@ elementSubstitutionModelClass = {}
 from lxml import etree
 from arelle import XbrlConst, XmlUtil
 from arelle.ModelValue import qnameNsLocalName
-from arelle.ModelDtsObject import (ModelConcept, ModelAttribute, ModelAttributeGroup, ModelType,
-                                   ModelGroupDefinition, ModelAll, ModelChoice, ModelSequence,
-                                   ModelAny, ModelAnyAttribute, ModelEnumeration,
-                                   ModelRoleType, ModelLocator, ModelLink, ModelResource)
-ModelDocument = ModelFact = None # would be circular imports, resolve at first use after static loading
+from arelle.ModelDtsObject import (
+    ModelConcept,
+    ModelAttribute,
+    ModelAttributeGroup,
+    ModelType,
+    ModelGroupDefinition,
+    ModelAll,
+    ModelChoice,
+    ModelSequence,
+    ModelAny,
+    ModelAnyAttribute,
+    ModelEnumeration,
+    ModelRoleType,
+    ModelLocator,
+    ModelLink,
+    ModelResource,
+)
+
 from arelle.ModelRssItem import ModelRssItem
 from arelle.ModelTestcaseObject import ModelTestcaseVariation
-from arelle.ModelVersObject import (ModelAssignment, ModelAction, ModelNamespaceRename,
-                                    ModelRoleChange, ModelVersObject, ModelConceptUseChange,
-                                    ModelConceptDetailsChange, ModelRelationshipSetChange,
-                                    ModelRelationshipSet, ModelRelationships)
+
+# would be circular imports, resolve at first use after static loading
+ModelDocument = None
+ModelFact = None
+
 
 def parser(modelXbrl, baseUrl, target=None):
-    moduleObject_init() # init ModelObject globals
+    moduleObject_init()  # init ModelObject globals
     parser = etree.XMLParser(recover=True, huge_tree=True, target=target)
     return setParserElementClassLookup(parser, modelXbrl, baseUrl)
+
 
 def setParserElementClassLookup(parser, modelXbrl, baseUrl=None):
     classLookup = DiscoveringClassLookup(modelXbrl, baseUrl)
     nsNameLookup = KnownNamespacesModelObjectClassLookup(modelXbrl, fallback=classLookup)
     parser.set_element_class_lookup(nsNameLookup)
-    return (parser, nsNameLookup, classLookup)
+    return parser, nsNameLookup, classLookup
+
 
 SCHEMA = 1
 LINKBASE = 2
 VERSIONINGREPORT = 3
 RSSFEED = 4
+
 
 class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
     def __init__(self, modelXbrl, fallback=None):
@@ -105,16 +122,16 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
                     return ModelObject
 
             # match specific element types or substitution groups for types
-            return self.modelXbrl.matchSubstitutionGroup(
-                                        qnameNsLocalName(ns, ln),
-                                        elementSubstitutionModelClass)
+            return self.modelXbrl.matchSubstitutionGroup(qnameNsLocalName(ns, ln), elementSubstitutionModelClass)
         elif node_type == "comment":
             from arelle.ModelObject import ModelComment
+
             return ModelComment
         elif node_type == "PI":
             return etree.PIBase
         elif node_type == "entity":
             return etree.EntityBase
+
 
 class DiscoveringClassLookup(etree.PythonElementClassLookup):
     def __init__(self, modelXbrl, baseUrl, fallback=None):
@@ -147,27 +164,29 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
                 doc = ModelDocument.loadSchemalocatedSchema(self.modelXbrl, proxyElement, relativeUrl, ns, self.baseUrl)
 
         modelObjectClass = self.modelXbrl.matchSubstitutionGroup(
-            qnameNsLocalName(ns, ln),
-            elementSubstitutionModelClass)
+            qnameNsLocalName(ns, ln), elementSubstitutionModelClass
+        )
 
         if modelObjectClass is not None:
             return modelObjectClass
-        elif (self.streamingOrSkipDTS and
-              ns not in (XbrlConst.xbrli, XbrlConst.link)):
+        elif self.streamingOrSkipDTS and ns not in (XbrlConst.xbrli, XbrlConst.link):
             # self.makeelementParentModelObject is set in streamingExtensions.py and ModelXbrl.createFact
             ancestor = proxyElement.getparent() or getattr(self.modelXbrl, "makeelementParentModelObject", None)
             while ancestor is not None:
-                tag = ancestor.tag # not a modelObject yet, just parser prototype
+                tag = ancestor.tag  # not a modelObject yet, just parser prototype
                 if tag.startswith("{http://www.xbrl.org/2003/instance}") or tag.startswith("{http://www.xbrl.org/2003/linkbase}"):
                     if tag == "{http://www.xbrl.org/2003/instance}xbrl":
-                        return ModelFact # element not parented by context or footnoteLink
+                        return ModelFact  # element not parented by context or footnoteLink
                     else:
-                        break # cannot be a fact
+                        break  # cannot be a fact
                 ancestor = ancestor.getparent()
 
         xlinkType = proxyElement.get("{http://www.w3.org/1999/xlink}type")
-        if xlinkType == "extended": return ModelLink
-        elif xlinkType == "locator": return ModelLocator
-        elif xlinkType == "resource": return ModelResource
+        if xlinkType == "extended":
+            return ModelLink
+        elif xlinkType == "locator":
+            return ModelLocator
+        elif xlinkType == "resource":
+            return ModelResource
 
         return ModelObject
