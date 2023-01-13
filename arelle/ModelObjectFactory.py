@@ -163,7 +163,7 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
             relativeUrl = XmlUtil.schemaLocation(proxyElement, ns)
             self.discoveryAttempts.add(ns)
             if relativeUrl:
-                doc = ModelDocument.loadSchemalocatedSchema(self.modelXbrl, proxyElement, relativeUrl, ns, self.baseUrl)
+                ModelDocument.loadSchemalocatedSchema(self.modelXbrl, proxyElement, relativeUrl, ns, self.baseUrl)
 
         modelObjectClass = self.modelXbrl.matchSubstitutionGroup(
             qnameNsLocalName(ns, ln), elementSubstitutionModelClass
