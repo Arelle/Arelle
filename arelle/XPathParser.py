@@ -1189,6 +1189,7 @@ def parser_unit_test():
         "//*[@id eq 'context-for-xpath-rule']//xbrldi:explicitMember[2]",
     ):
         # Start with a blank exprStack and a blank varStack
+        global exprStack, xmlElement
         exprStack = []
         xmlElement = None
 
