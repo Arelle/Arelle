@@ -5,6 +5,7 @@ import sys
 import time
 import traceback
 import xml.dom
+from collections.abc import Iterable
 from decimal import Decimal
 
 from pyparsing import (
@@ -988,7 +989,7 @@ def variableReferences(exprStack, varRefSet, element, rangeVars=None):
             rangeVars.append(var)
             localRangeVars.append(var)
             variableReferences(p.bindingSeq, varRefSet, element, rangeVars)
-        elif hasattr(p, '__iter__') and not isinstance(p, str):
+        elif isinstance(p, Iterable) and not isinstance(p, str):
             variableReferences(p, varRefSet, element, rangeVars)
     for localRangeVar in localRangeVars:
         if localRangeVar in rangeVars:
@@ -1017,7 +1018,7 @@ def prefixDeclarations(exprStack, xmlnsDict, element):
             if var.prefix:
                 xmlnsDict[var.prefix] = var.namespaceURI
             prefixDeclarations(p.bindingSeq, xmlnsDict, element)
-        elif hasattr(p, '__iter__') and not isinstance(p, str):
+        elif isinstance(p, Iterable) and not isinstance(p, str):
             prefixDeclarations(p, xmlnsDict, element)
 
 
