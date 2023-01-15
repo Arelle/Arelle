@@ -206,8 +206,9 @@ def pushAttr(sourceStr, loc, toks):
         attr = toks[1]
         attr.isAttribute = True
     else:
-        ##### BUG this won't work, wrong arguments !!!!
-        attr = QNameDef(loc, toks[1], isAttribute=True)
+        # BUG this won't work, wrong arguments !!!!
+        # attr = QNameDef(loc, tok[1], isAttribute=True)
+        raise ValueError(f"Unable to create QNameDef from attr: loc {loc} sourceStr {sourceStr}")
     exprStack.append(attr)
     return attr
 
