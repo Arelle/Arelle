@@ -102,9 +102,9 @@ def pushDecimal(sourceStr, loc, toks):
 
 
 def pushQuotedString(sourceStr, loc, toks):
-    str = toks[0]
-    q = str[0]
-    dequotedStr = str[1:-1].replace(q + q, q)
+    _str = toks[0]
+    q = _str[0]
+    dequotedStr = _str[1:-1].replace(q + q, q)
     exprStack.append(dequotedStr)
     return dequotedStr
 
