@@ -164,7 +164,7 @@ def pushQName(sourceStr, loc, toks):
             _("Axis %(axis)s is not supported in %(step)s"),
             modelObject=xmlElement,
             axis=axis, step=step)
-        return
+        return None
     if xmlElement is not None:
         if qname == '*':  # prevent simple wildcard from taking the default namespace
             nsLocalname = (None, '*', None)
@@ -181,7 +181,7 @@ def pushQName(sourceStr, loc, toks):
                     _("QName prefix not defined for %(name)s"),
                     modelObject=xmlElement,
                     name=qname)
-                return
+                return None
 
         if (nsLocalname == (XbrlConst.xff, "uncovered-aspect", "xff") and
             xmlElement.localName not in ("formula", "consistencyAssertion", "valueAssertion", "message")):
@@ -361,7 +361,7 @@ def pushRootStep(sourceStr, loc, toks):
     elif toks[0] == '..':
         op = 'contextItemParent'
     else:
-        return
+        return None
     rootStep = OperationDef(sourceStr, loc, op, toks[1:], False)
     # tok[1] or tok[2] is in exprStack (the predicate or next step), replace with composite rootStep
     for tok in toks:
