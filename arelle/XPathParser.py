@@ -264,7 +264,7 @@ class OperationDef:
             self.args = toks[1:]
             '''
         else:  # for others first token is just op code, no expression
-            self.args = toks
+            self.args = toks[:]
 
     def __repr__(self):
         if isinstance(self.name, QNameDef):
