@@ -3,8 +3,9 @@ See COPYRIGHT.md for copyright information.
 Type hints for Arelle.
 """
 from __future__ import annotations
+
 import sys
-from typing import Callable, TypeVar
+from typing import Callable, Tuple, TypeVar
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict  # pylint: disable=no-name-in-module
@@ -14,6 +15,8 @@ else:
 TypeGetText = Callable[[str], str]
 
 OptionalString = TypeVar("OptionalString", str, None)
+
+EmptyTuple = Tuple[()]
 
 
 class LocaleDict(TypedDict):

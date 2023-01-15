@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from arelle.ModelRelationshipSet import ModelRelationshipSet as ModelRelationshipSetClass
     from arelle.ModelValue import QName
     from arelle.PrototypeDtsObject import LinkPrototype
-    from arelle.typing import TypeGetText, LocaleDict
+    from arelle.typing import EmptyTuple, TypeGetText, LocaleDict
 
     _: TypeGetText  # Handle gettext
 else:
@@ -46,7 +46,7 @@ AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning
 DEFAULT = sys.intern("default")
 NONDEFAULT = sys.intern("non-default")
 DEFAULTorNONDEFAULT = sys.intern("default-or-non-default")
-EMPTY_TUPLE = ()
+EMPTY_TUPLE: EmptyTuple = ()
 
 
 def load(modelManager: ModelManager, url: str, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: str | None = None, **kwargs: str) -> ModelXbrl:

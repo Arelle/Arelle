@@ -129,6 +129,7 @@ module = [
     'arelle.XmlUtil',
     'arelle.XmlValidate',
     'arelle.XmlValidateSchema',
+    'arelle.plugin.functionsMath',
     'arelle.plugin.validate.ESEF.*',
     'arelle.plugin.validate.ESEF_2022.*',
     'tests.integration_tests',
