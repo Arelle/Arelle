@@ -190,7 +190,7 @@ def pushQName(sourceStr, loc, toks):
                     modelObject=xmlElement,
                     name=qname, name2=xmlElement.localName)
     else:
-        nsLocalname = (None, qname)
+        nsLocalname = (None, qname, None)
     q = QNameDef(loc, nsLocalname[2], nsLocalname[0], nsLocalname[1], axis=axis)
     if (qname not in ("INF", "NaN", "for", "some", "every", "return") and
         len(exprStack) == 0 or exprStack[-1] != q):
