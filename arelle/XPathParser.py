@@ -840,7 +840,7 @@ def exceptionErrorIndication(exception):
     for line in exception.line.split('\n'):
         if len(source) > 0:
             source += '\n'
-        if errorAt >= 0 and errorAt <= len(line):
+        if 0 <= errorAt <= len(line):
             source += line[:errorAt] + '\u274b' + line[errorAt:]
             source += '\n' + ' ' * (errorAt - 1) + '^ \n'
         else:
