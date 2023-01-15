@@ -1032,11 +1032,11 @@ def clearProg(exprStack):
 
 
 def clearNamedProg(ownerObject, progName):
-    clearProg(ownerObject.getattr(progName, []))
+    clearProg(getattr(ownerObject, progName, []))
 
 
 def clearNamedProgs(ownerObject, progsListName):
-    for prog in ownerObject.getattr(progsListName, []):
+    for prog in getattr(ownerObject, progsListName, []):
         clearProg(prog)
 
 
