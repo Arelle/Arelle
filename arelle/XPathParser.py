@@ -34,7 +34,7 @@ from arelle import ModelValue, XbrlConst, XmlUtil
 from arelle.Locale import format_string
 from arelle.PluginManager import pluginClassMethods
 
-FunctionIxt = None
+ixtNamespaceFunctions = None
 
 
 # Debugging flag can be set to either "debug_flag=True" or "debug_flag=False"
@@ -317,7 +317,7 @@ def pushFunction(sourceStr, loc, toks):
         if (
             not name.unprefixed
             and ns not in {XbrlConst.fn, XbrlConst.xfi, XbrlConst.xff, XbrlConst.xsd}
-            and ns not in FunctionIxt.ixtNamespaceFunctions
+            and ns not in ixtNamespaceFunctions
             and name not in modelXbrl.modelManager.customTransforms
         ):
             # indexed by both [qname] and [qname,arity]
@@ -818,9 +818,9 @@ isInitialized = False
 
 
 def initializeParser(modelManager):
-    global isInitialized, FunctionIxt
+    global isInitialized, ixtNamespaceFunctions
     if not isInitialized:
-        from arelle import FunctionIxt
+        from arelle.FunctionIxt import ixtNamespaceFunctions
 
         modelManager.showStatus(_("initializing formula xpath2 grammar"))
         startedAt = time.time()
