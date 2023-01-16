@@ -55,7 +55,7 @@ class XPathException(Exception):
         elif isinstance(progStep, ProgHeader):
             self.line = progStep.sourceStr
         elif isinstance(progStep, XPathContext) and progStep.progHeader:
-            self.line = progStep.sourceStr
+            self.line = progStep.progHeader.sourceStr
         else:
             self.line = "(not available)"
         self.code = str(code)  # called with qname or string, qname -> prefixed name string
