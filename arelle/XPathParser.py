@@ -677,7 +677,7 @@ atom = (
         - (satisfiesOp + expr).setParseAction(pushExpr)
     ).setParseAction(pushOperation)
     | (
-        (ifOp - Suppress(lParen) + Group(expr) + Suppress(rParen)).setParseAction(pushExpr)
+        (ifOp - Suppress(lParen) + Group(expr, aslist=True) + Suppress(rParen)).setParseAction(pushExpr)
         - (thenOp + expr).setParseAction(pushOperation)
         - (elseOp + expr).setParseAction(pushOperation)
     ).setParseAction(pushOperation)
