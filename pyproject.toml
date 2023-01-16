@@ -124,6 +124,7 @@ module = [
     'arelle.Updater',
     'arelle.UrlUtil',
     'arelle.ValidateXbrl',
+    'arelle.XPathContext',
     'arelle.XPathParser',
     'arelle.XbrlConst',
     'arelle.XbrlUtil',
