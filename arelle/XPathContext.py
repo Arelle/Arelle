@@ -1,20 +1,43 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from arelle.XPathParser import (VariableRef, QNameDef, OperationDef, RangeDecl, Expr, ProgHeader,
-                          exceptionErrorIndication)
-from arelle import (ModelXbrl, XbrlConst, XmlUtil)
-from arelle.ModelObject import ModelObject, ModelAttribute
-from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
-from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI, gYearMonth, gYear, gMonthDay, gDay, gMonth)
-from arelle.XmlValidate import UNKNOWN, VALID, VALID_NO_CONTENT, validate as xmlValidate
-from arelle.PluginManager import pluginClassMethods
-from arelle.PrototypeDtsObject import PrototypeObject, PrototypeElementTree
 from decimal import Decimal, InvalidOperation
-from lxml import etree
 from numbers import Number
+
+from lxml import etree
+
+from arelle import ModelXbrl, XbrlConst, XmlUtil
+from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
+from arelle.ModelObject import ModelAttribute, ModelObject
+from arelle.ModelValue import (
+    AnyURI,
+    DATE,
+    DATETIME,
+    DATEUNION,
+    DateTime,
+    QName,
+    anyURI,
+    dateTime,
+    gDay,
+    gMonth,
+    gMonthDay,
+    gYear,
+    gYearMonth,
+    qname,
+)
+from arelle.PluginManager import pluginClassMethods
+from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
 from arelle.PythonUtil import STR_NUM_TYPES
-from types import LambdaType
+from arelle.XPathParser import (
+    Expr,
+    OperationDef,
+    ProgHeader,
+    QNameDef,
+    RangeDecl,
+    VariableRef,
+    exceptionErrorIndication,
+)
+from arelle.XmlValidate import UNKNOWN, VALID, VALID_NO_CONTENT, validate as xmlValidate
 
 # deferred types initialization
 boolean = None
