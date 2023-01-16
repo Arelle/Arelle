@@ -733,7 +733,7 @@ comparisonExpr = rangeExpr + ZeroOrMore((comparisonOp + rangeExpr).setParseActio
 andExpr = comparisonExpr + ZeroOrMore((andOp + comparisonExpr).setParseAction(pushOperation))
 orExpr = andExpr + ZeroOrMore((orOp + andExpr).setParseAction(pushOperation))
 
-expr << orExpr
+expr <<= orExpr
 # The Forward expression streamline implementation (expr.streamline())
 # streamlines the wrapped expression (self.expr.streamline()). However, the
 # wrapped expression is reassigned by the left shift bitwise operator, but
