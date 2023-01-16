@@ -18,7 +18,7 @@ from pyparsing import (
     Group,
     Keyword,
     Literal,
-    Optional,
+    Opt,
     ParseBaseException,
     ParseException,
     ParseResults,
@@ -31,9 +31,9 @@ from pyparsing import (
     ZeroOrMore,
     alphanums,
     alphas,
-    delimitedList,
+    delimited_list,
     nums,
-    quotedString,
+    quoted_string,
 )
 
 from arelle import ModelValue, XbrlConst, XmlUtil
@@ -531,20 +531,20 @@ decimalPoint = Literal('.')
 exponentLiteral = CaselessLiteral('e')
 plusorminusLiteral = Literal('+') | Literal('-')
 digits = Word(nums)
-integerLiteral = Combine(Optional(plusorminusLiteral) + digits)
-decimalFractionLiteral = Combine(Optional(plusorminusLiteral) + decimalPoint + digits)
-infLiteral = Combine(Optional(plusorminusLiteral) + Literal("INF"))
+integerLiteral = Combine(Opt(plusorminusLiteral) + digits)
+decimalFractionLiteral = Combine(Opt(plusorminusLiteral) + decimalPoint + digits)
+infLiteral = Combine(Opt(plusorminusLiteral) + Literal("INF"))
 nanLiteral = Literal("NaN")
 floatLiteral = (
     Combine(
         integerLiteral
-        + ((decimalPoint + Optional(digits) + exponentLiteral + integerLiteral) | (exponentLiteral + integerLiteral))
+        + ((decimalPoint + Opt(digits) + exponentLiteral + integerLiteral) | (exponentLiteral + integerLiteral))
     )
     | Combine(decimalFractionLiteral + exponentLiteral + integerLiteral)
     | infLiteral
     | nanLiteral
 )
-decimalLiteral = Combine(integerLiteral + decimalPoint + Optional(digits)) | decimalFractionLiteral
+decimalLiteral = Combine(integerLiteral + decimalPoint + Opt(digits)) | decimalFractionLiteral
 
 
 # emptySequence = Literal( "(" ) + Literal( ")" )
@@ -627,12 +627,12 @@ elementNameOrWildcard = elementName | wildOp
 elementTest = (
     Keyword("element")
     + Suppress(lParen)
-    + Optional(
+    + Opt(
         elementNameOrWildcard
-        + Optional(
+        + Opt(
             Suppress(commaOp)
             + typeName
-            + Optional(Literal("?"))
+            + Opt(Literal("?"))
         )
     )
     + Suppress(rParen)
@@ -648,13 +648,13 @@ attribNameOrWildcard = attributeName | wildOp
 attributeTest = (
     Keyword("attribute")
     + Suppress(lParen)
-    + Optional(attribNameOrWildcard + Optional(commaOp + typeName))
+    + Opt(attribNameOrWildcard + Opt(commaOp + typeName))
     + Suppress(rParen)
 ).setParseAction(pushOperation)
 PITest = (
     Keyword("processing-instruction")
     + Suppress(lParen)
-    + Optional(ncName | quotedString)
+    + Opt(ncName | quoted_string)
     + Suppress(rParen)
 ).setParseAction(pushOperation)
 commentTest = (
@@ -670,7 +670,7 @@ textTest = (
 documentTest = (
     Keyword("document-node")
     + Suppress(lParen)
-    + Optional(elementTest | schemaElementTest)
+    + Opt(elementTest | schemaElementTest)
     + Suppress(rParen)
 ).setParseAction(pushOperation)
 anyKindTest = (
@@ -696,8 +696,8 @@ abbrevForwardStep = (Literal("@") + nodeTest).setParseAction(pushAttr) | (nodeTe
 atomicType = qName
 itemType = kindTest | Keyword("item") + lParen + rParen | atomicType
 occurrenceIndicator = occurOptionalOp | multOp | plusOp  # oneOf("? * +")
-sequenceType = (Keyword("empty-sequence") + lParen + rParen) | (itemType + Optional(occurrenceIndicator))
-singleType = atomicType + Optional(occurOptionalOp)
+sequenceType = (Keyword("empty-sequence") + lParen + rParen) | (itemType + Opt(occurrenceIndicator))
+singleType = atomicType + Opt(occurOptionalOp)
 contextItem = decimalPoint
 pathDescOp = Literal("//")
 pathStepOp = Literal("/")
@@ -745,17 +745,17 @@ atom = (
         - (thenOp + expr).setParseAction(pushOperation)
         - (elseOp + expr).setParseAction(pushOperation)
     ).setParseAction(pushOperation)
-    | (qName + Suppress(lParen) + Optional(delimitedList(expr)) + Suppress(rParen)).setParseAction(pushFunction)
+    | (qName + Suppress(lParen) + Opt(delimited_list(expr)) + Suppress(rParen)).setParseAction(pushFunction)
     | floatLiteral.setParseAction(pushFloat)
     | decimalLiteral.setParseAction(pushDecimal)
     | integerLiteral.setParseAction(pushInt)
-    | quotedString.setParseAction(pushQuotedString)
+    | quoted_string.setParseAction(pushQuotedString)
     | variableRef.setParseAction(pushVarRef)
     | abbrevReverseStep.setParseAction(pushOperation)
     | contextItem.setParseAction(pushOperation)
     | qName.setParseAction(pushQName)
     | (
-        Suppress(lParen) - Optional(expr) - ZeroOrMore(commaOp.setParseAction(pushOp) - expr) - Suppress(rParen)
+        Suppress(lParen) - Opt(expr) - ZeroOrMore(commaOp.setParseAction(pushOp) - expr) - Suppress(rParen)
     ).setParseAction(pushSequence)
 )
 # stepExpr = ( ( atom + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) |
