@@ -440,7 +440,7 @@ class ModelXbrl:
         modelRoles  = self.roleTypes.get(roleURI, ())
         if modelRoles:
             _roleType: ModelRoleType = modelRoles[0]
-            return cast(str, _roleType.genLabel(lang=lang, strip=True) or _roleType.definition or self.roleUriTitle(roleURI))
+            return _roleType.genLabel(lang=lang, strip=True) or _roleType.definition or self.roleUriTitle(roleURI)
         return self.roleUriTitle(roleURI)
 
     def roleTypeName(self, roleURI: str, lang: str | None = None) -> str:
