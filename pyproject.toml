@@ -118,6 +118,7 @@ module = [
     'arelle.Cntlr',
     'arelle.FileSource',
     'arelle.Locale',
+    'arelle.ModelDtsObject',
     'arelle.ModelObject',
     'arelle.ModelXbrl',
     'arelle.ModelValue',
