@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 import gc, sys, traceback, logging
 from arelle import ModelXbrl, Validate, DisclosureSystem, PackageManager
@@ -12,6 +13,7 @@ from arelle.typing import LocaleDict
 
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
+    from arelle.ModelValue import QName
 
 def initialize(cntlr: Cntlr) -> ModelManager:
     modelManager = ModelManager(cntlr)
@@ -73,7 +75,7 @@ class ModelManager:
         self.abortOnMajorError = False
         self.collectProfileStats = False
         self.loadedModelXbrls = []
-        self.customTransforms = None
+        self.customTransforms: dict[QName, Callable[[str], str]] | None = None
         self.isLocaleSet = False
         self.setLocale()
 
@@ -100,13 +102,11 @@ class ModelManager:
         """
         self.cntlr.addToLog(message, messageCode=messageCode, file=file, refs=refs, level=level)
 
-    def showStatus(self, message, clearAfter=None) -> str:
+    def showStatus(self, message: str | None, clearAfter: int | None = None) -> None:
         """Provide user feedback on status line of GUI or web page according to type of controller.
 
         :param message: Message to display on status widget.
-        :type message: str
         :param clearAfter: Time, in ms., after which to clear the message (e.g., 5000 for 5 sec.)
-        :type clearAfter: int
         """
         self.cntlr.showStatus(message, clearAfter)
 

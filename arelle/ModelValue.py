@@ -29,11 +29,14 @@ def qname(value: ModelObject | str | QName, name: str | ModelObject) -> QName: .
 def qname(value: ModelObject | str | QName, name: str | ModelObject | None = None, noPrefixIsNoNamespace: bool = False) -> QName: ...
 
 @overload
+def qname(value: ModelObject, name: QName, noPrefixIsNoNamespace: bool) -> QName: ...
+
+@overload
 def qname(value: ModelObject | str | QName | Any | None, name: str | ModelObject | dict[str, str] | None) -> QName | None : ...
 
 def qname(
     value: ModelObject | str | QName | Any | None,
-    name: str | ModelObject | dict[str, str] | None = None,
+    name: str | QName | ModelObject | dict[str, str] | None = None,
     noPrefixIsNoNamespace: bool = False,
     castException: Exception | None = None,
     prefixException: Exception | None = None,
@@ -91,6 +94,7 @@ def qname(
         else:
             namespaceURI = None
             namespaceDict = None
+        assert isinstance(value, str)
         prefix,sep,localName = value.strip().partition(":")  # must be whitespace collapsed
         if not sep:
             localName = prefix
@@ -118,7 +122,7 @@ def qnameHref(href: str) -> QName: # namespaceUri#localname
     return QName(None, namespaceURI or None, localName)
 
 
-def qnameNsLocalName(namespaceURI: str, localName: str) -> QName:  # does not handle localNames with prefix
+def qnameNsLocalName(namespaceURI: str | None, localName: str) -> QName:  # does not handle localNames with prefix
     return QName(None, namespaceURI or None, localName)
 
 

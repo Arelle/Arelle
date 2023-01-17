@@ -772,8 +772,8 @@ def compileSphinxGrammar( cntlr ):
 
     cntlr.showStatus(_("Compiling Sphinx Grammar"))
     from pyparsing import (
-        Word, Keyword, Literal, CaselessLiteral, Combine, Optional, nums, Forward, ZeroOrMore,
-        StringEnd, ParserElement, quotedString, delimitedList, Suppress, Regex, lineno
+        Word, Keyword, Literal, CaselessLiteral, Combine, Opt, nums, Forward, ZeroOrMore,
+        StringEnd, ParserElement, quoted_string, delimited_list, Suppress, Regex, lineno
     )
 
     ParserElement.enablePackrat()
@@ -817,14 +817,14 @@ def compileSphinxGrammar( cntlr ):
     exponentLiteral = CaselessLiteral('e')
     plusorminusLiteral = Literal('+') | Literal('-')
     digits = Word(nums)
-    integerLiteral = Combine( Optional(plusorminusLiteral) + digits )
-    decimalFractionLiteral = Combine( Optional(plusorminusLiteral) + decimalPoint + digits )
-    infLiteral = Combine( Optional(plusorminusLiteral) + Literal("INF") )
+    integerLiteral = Combine( Opt(plusorminusLiteral) + digits )
+    decimalFractionLiteral = Combine( Opt(plusorminusLiteral) + decimalPoint + digits )
+    infLiteral = Combine( Opt(plusorminusLiteral) + Literal("INF") )
     nanLiteral = Literal("NaN")
     floatLiteral = ( Combine( integerLiteral +
-                         ( ( decimalPoint + Optional(digits) + exponentLiteral + integerLiteral ) |
+                         ( ( decimalPoint + Opt(digits) + exponentLiteral + integerLiteral ) |
                            ( exponentLiteral + integerLiteral ) |
-                           ( decimalPoint + Optional(digits) ) )
+                           ( decimalPoint + Opt(digits) ) )
                          ) |
                      Combine( decimalFractionLiteral + exponentLiteral + integerLiteral ) |
                      decimalFractionLiteral |
@@ -867,8 +867,8 @@ def compileSphinxGrammar( cntlr ):
     methodOp = Literal("::")
     formulaOp = Literal(":=")
 
-    namespaceDeclaration = (Literal("xmlns") + Optional( Suppress(Literal(":")) + ncName ) + Suppress(Literal("=")) + quotedString ).setParseAction(compileNamespaceDeclaration).ignore(sphinxComment)
-    annotationDeclaration = (Suppress(Keyword("annotation")) + ncName + Optional( Suppress(Keyword("as")) + ncName )).setParseAction(compileAnnotationDeclaration).ignore(sphinxComment)
+    namespaceDeclaration = (Literal("xmlns") + Opt( Suppress(Literal(":")) + ncName ) + Suppress(Literal("=")) + quoted_string ).setParseAction(compileNamespaceDeclaration).ignore(sphinxComment)
+    annotationDeclaration = (Suppress(Keyword("annotation")) + ncName + Opt( Suppress(Keyword("as")) + ncName )).setParseAction(compileAnnotationDeclaration).ignore(sphinxComment)
 
     packageDeclaration = (Suppress(Keyword("package")) + ncName ).setParseAction(compilePackageDeclaration).ignore(sphinxComment)
 
@@ -879,46 +879,46 @@ def compileSphinxGrammar( cntlr ):
     atom = (
              ( forOp - Suppress(lParen) - ncName - Suppress(inOp) - expr - Suppress(rParen) - expr ).setParseAction(compileFor) |
              ( ifOp - Suppress(lParen) - expr - Suppress(rParen) -  expr - Suppress(elseOp) - expr ).setParseAction(compileIf) |
-             ( ncName + Suppress(lParen) + Optional(delimitedList( ZeroOrMore( ( ncName + Optional( tagOp + Optional(ncName) ) + varAssign + expr + Suppress(Literal(";")) ).setParseAction(compileVariableAssignment) ) +
-                                                                   Optional( ncName + varAssign ) + expr
+             ( ncName + Suppress(lParen) + Opt(delimited_list( ZeroOrMore( ( ncName + Opt( tagOp + Opt(ncName) ) + varAssign + expr + Suppress(Literal(";")) ).setParseAction(compileVariableAssignment) ) +
+                                                                   Opt( ncName + varAssign ) + expr
                                                                    )) + Suppress(rParen) ).setParseAction(compileFunctionReference) |
              ( floatLiteral ).setParseAction(compileFloatLiteral) |
              ( integerLiteral ).setParseAction(compileIntegerLiteral) |
-             ( quotedString ).setParseAction(compileStringLiteral) |
-             ( Optional(qName) + lPred + Optional(delimitedList( ((whereOp + expr) |
-                                                                  ((qName | variableRef) + Optional( tagOp + Optional(ncName) ) +
-                                                                   Optional( (varAssign + (wildOp | expr) |
+             ( quoted_string ).setParseAction(compileStringLiteral) |
+             ( Opt(qName) + lPred + Opt(delimited_list( ((whereOp + expr) |
+                                                                  ((qName | variableRef) + Opt( tagOp + Opt(ncName) ) +
+                                                                   Opt( (varAssign + (wildOp | expr) |
                                                                              (inOp + expr) |
-                                                                             (asOp + ncName + varAssign + wildOp + Optional( whereOp + expr ) ) ) ) )
+                                                                             (asOp + ncName + varAssign + wildOp + Opt( whereOp + expr ) ) ) ) )
                                                                   ).setParseAction(compileHyperspaceAxis),
                                                                 delim=';')) + rPred).setParseAction(compileHyperspaceExpression) |
              ( variableRef ).setParseAction(compileVariableReference)  |
              ( qName ).setParseAction(compileQname) |
-             ( Suppress(lParen) - expr - Optional( commaOp - Optional( expr - ZeroOrMore( commaOp - expr ) ) ) - Suppress(rParen) ).setParseAction(compileBrackets)
+             ( Suppress(lParen) - expr - Opt( commaOp - Opt( expr - ZeroOrMore( commaOp - expr ) ) ) - Suppress(rParen) ).setParseAction(compileBrackets)
            ).ignore(sphinxComment)
 
     atom.setName("atom").setDebug(debugParsing)
 
     valueExpr = atom
-    taggedExpr = ( valueExpr - Optional(tagOp - ncName) ).setParseAction(compileTagAssignment).ignore(sphinxComment)
+    taggedExpr = ( valueExpr - Opt(tagOp - ncName) ).setParseAction(compileTagAssignment).ignore(sphinxComment)
     methodExpr = ( ( methodOp + ncName + ZeroOrMore(methodOp + taggedExpr) ).setParseAction(compileMethodReference) |
                    ( ZeroOrMore(taggedExpr + methodOp) + taggedExpr )).setParseAction(compileMethodReference).ignore(sphinxComment)
-    unaryExpr = ( Optional(plusMinusOp) + methodExpr ).setParseAction(compileUnaryOperation).ignore(sphinxComment)
-    negateExpr = ( Optional(notOp) + unaryExpr ).setParseAction(compileUnaryOperation).ignore(sphinxComment)
-    valuesExpr = ( Optional(valuesOp) + negateExpr ).setParseAction(compileValuesIteration).ignore(sphinxComment)
-    method2Expr = ( valuesExpr + Optional( methodOp + methodExpr ) ).setParseAction(compileMethodReference).ignore(sphinxComment)
-    multiplyExpr = ( method2Expr + Optional( multOp + method2Expr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
-    divideExpr = ( multiplyExpr + Optional( divOp + multiplyExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
-    addExpr = ( divideExpr + Optional( plusOp + divideExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
-    subtractExpr = ( addExpr + Optional( minusOp + addExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
-    equalityExpr = ( subtractExpr + Optional( eqOp + subtractExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
-    inequalityExpr = ( equalityExpr + Optional( neOp + equalityExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
-    comparisonExpr = ( inequalityExpr + Optional( compOp + inequalityExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
-    andExpr = ( comparisonExpr + Optional( andOp + comparisonExpr ) ).setParseAction(compileBinaryOperation ).ignore(sphinxComment)
-    orExpr = ( andExpr + Optional( orOp + andExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
-    formulaExpr = ( orExpr + Optional( formulaOp + orExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
-    withExpr = ( Optional( withOp + Suppress(lParen) + expr + Suppress(rParen) ) +
-                 ZeroOrMore( ( ncName + Optional( tagOp + Optional(ncName) ) + varAssign + expr + Suppress(Literal(";")) ).setParseAction(compileVariableAssignment).ignore(sphinxComment) ) +
+    unaryExpr = ( Opt(plusMinusOp) + methodExpr ).setParseAction(compileUnaryOperation).ignore(sphinxComment)
+    negateExpr = ( Opt(notOp) + unaryExpr ).setParseAction(compileUnaryOperation).ignore(sphinxComment)
+    valuesExpr = ( Opt(valuesOp) + negateExpr ).setParseAction(compileValuesIteration).ignore(sphinxComment)
+    method2Expr = ( valuesExpr + Opt( methodOp + methodExpr ) ).setParseAction(compileMethodReference).ignore(sphinxComment)
+    multiplyExpr = ( method2Expr + Opt( multOp + method2Expr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
+    divideExpr = ( multiplyExpr + Opt( divOp + multiplyExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
+    addExpr = ( divideExpr + Opt( plusOp + divideExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
+    subtractExpr = ( addExpr + Opt( minusOp + addExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
+    equalityExpr = ( subtractExpr + Opt( eqOp + subtractExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
+    inequalityExpr = ( equalityExpr + Opt( neOp + equalityExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
+    comparisonExpr = ( inequalityExpr + Opt( compOp + inequalityExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
+    andExpr = ( comparisonExpr + Opt( andOp + comparisonExpr ) ).setParseAction(compileBinaryOperation ).ignore(sphinxComment)
+    orExpr = ( andExpr + Opt( orOp + andExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
+    formulaExpr = ( orExpr + Opt( formulaOp + orExpr ) ).setParseAction(compileBinaryOperation).ignore(sphinxComment)
+    withExpr = ( Opt( withOp + Suppress(lParen) + expr + Suppress(rParen) ) +
+                 ZeroOrMore( ( ncName + Opt( tagOp + Opt(ncName) ) + varAssign + expr + Suppress(Literal(";")) ).setParseAction(compileVariableAssignment).ignore(sphinxComment) ) +
                  formulaExpr ).setParseAction(compileWith)
     #parsedExpr = withExpr
     #parsedExpr.setName("parsedExpr").setDebug(debugParsing)
@@ -927,43 +927,43 @@ def compileSphinxGrammar( cntlr ):
     expr << withExpr
     expr.setName("expr").setDebug(debugParsing)
 
-    annotation = ( annotationName + Optional( Suppress(lParen) + Optional(delimitedList(expr)) + Suppress(rParen) ) ).setParseAction(compileAnnotation).ignore(sphinxComment).setName("annotation").setDebug(debugParsing)
+    annotation = ( annotationName + Opt( Suppress(lParen) + Opt(delimited_list(expr)) + Suppress(rParen) ) ).setParseAction(compileAnnotation).ignore(sphinxComment).setName("annotation").setDebug(debugParsing)
 
-    constant = ( Suppress(Keyword("constant")) + ncName + Optional( tagOp + Optional(ncName) ) + varAssign + expr ).setParseAction(compileConstant).ignore(sphinxComment)
+    constant = ( Suppress(Keyword("constant")) + ncName + Opt( tagOp + Opt(ncName) ) + varAssign + expr ).setParseAction(compileConstant).ignore(sphinxComment)
 
-    functionDeclaration = ( (Keyword("function") | Keyword("macro")) + ncName + lParen + Optional(delimitedList(ncName)) + rParen + expr ).setParseAction(compileFunctionDeclaration).ignore(sphinxComment)
+    functionDeclaration = ( (Keyword("function") | Keyword("macro")) + ncName + lParen + Opt(delimited_list(ncName)) + rParen + expr ).setParseAction(compileFunctionDeclaration).ignore(sphinxComment)
 
     message = ( Suppress(Keyword("message")) + expr ).setParseAction(compileMessage)
 
     preconditionDeclaration = ( Suppress(Keyword("precondition")) + ncName + expr +
-                                Optional(Keyword("otherwise") + Keyword("raise") + ncName + Optional( severity ) + Optional( message ) )
+                                Opt(Keyword("otherwise") + Keyword("raise") + ncName + Opt( severity ) + Opt( message ) )
                                 ).setParseAction(compilePreconditionDeclaration).ignore(sphinxComment)
 
-    assignedExpr = ( ncName + Optional( tagOp + Optional(ncName) ) + varAssign + expr + Suppress(Literal(";")) ).setParseAction(compileVariableAssignment).ignore(sphinxComment)
+    assignedExpr = ( ncName + Opt( tagOp + Opt(ncName) ) + varAssign + expr + Suppress(Literal(";")) ).setParseAction(compileVariableAssignment).ignore(sphinxComment)
 
-    precondition = ( Suppress(Keyword("require")) + delimitedList(ncName) ).setParseAction(compilePrecondition).ignore(sphinxComment).setName("precondition").setDebug(debugParsing)
+    precondition = ( Suppress(Keyword("require")) + delimited_list(ncName) ).setParseAction(compilePrecondition).ignore(sphinxComment).setName("precondition").setDebug(debugParsing)
 
-    formulaRule = ( Optional( precondition ) +
+    formulaRule = ( Opt( precondition ) +
                     Keyword("formula") + ncName +
-                    Optional( severity ) +
-                    Optional( ( Keyword("bind") + expr ) ) +
+                    Opt( severity ) +
+                    Opt( ( Keyword("bind") + expr ) ) +
                     ZeroOrMore( assignedExpr ) +
                     expr +
-                    Optional( message )).setParseAction(compileFormulaRule).ignore(sphinxComment)
-    reportRule = ( Optional( precondition ) +
+                    Opt( message )).setParseAction(compileFormulaRule).ignore(sphinxComment)
+    reportRule = ( Opt( precondition ) +
                    Keyword("report") + ncName +
-                   Optional( severity ) +
+                   Opt( severity ) +
                    ZeroOrMore( assignedExpr ) +
                    expr +
-                   Optional( message )).setParseAction( compileReportRule).ignore(sphinxComment)
-    validationRule = ( Optional( precondition ) +
+                   Opt( message )).setParseAction( compileReportRule).ignore(sphinxComment)
+    validationRule = ( Opt( precondition ) +
                        Keyword("raise") + ncName +
-                       Optional( severity ) +
+                       Opt( severity ) +
                        ZeroOrMore( assignedExpr ) +
                        expr +
-                       Optional( message )).setParseAction(compileValidationRule).ignore(sphinxComment)
+                       Opt( message )).setParseAction(compileValidationRule).ignore(sphinxComment)
 
-    ruleBase = (Optional( precondition ) +
+    ruleBase = (Opt( precondition ) +
                 Suppress(Keyword("rule-base")) +
                 ZeroOrMore( (Suppress(Keyword("transform")) +
                              (Keyword("namespace") + expr + Suppress(Keyword("to")) + expr) |

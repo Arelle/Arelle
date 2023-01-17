@@ -1283,9 +1283,9 @@ def compileXfsGrammar( cntlr, debugParsing ):
     cntlr.showStatus(_("Compiling Formula Grammar"))
     from pyparsing import (Word, Keyword, alphas,
                  Literal, CaselessLiteral,
-                 Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, OneOrMore, StringEnd, alphanums,
-                 ParserElement, quotedString, dblQuotedString, sglQuotedString, QuotedString,
-                 delimitedList, Suppress, Regex, FollowedBy,
+                 Combine, Opt, nums, Or, Forward, Group, ZeroOrMore, OneOrMore, StringEnd, alphanums,
+                 ParserElement, quoted_string, dbl_quoted_string, sgl_quoted_string, QuotedString,
+                 delimited_list, Suppress, Regex, FollowedBy,
                  lineno, line, col)
 
     ParserElement.enablePackrat()
@@ -1326,17 +1326,17 @@ def compileXfsGrammar( cntlr, debugParsing ):
     exponentLiteral = CaselessLiteral('e')
     plusorminusLiteral = Literal('+') | Literal('-')
     digits = Word(nums)
-    integerLiteral = Combine( Optional(plusorminusLiteral) + digits )
-    decimalFractionLiteral = Combine( Optional(plusorminusLiteral) + decimalPoint + digits )
-    infLiteral = Combine( Optional(plusorminusLiteral) + Keyword("INF") )
+    integerLiteral = Combine( Opt(plusorminusLiteral) + digits )
+    decimalFractionLiteral = Combine( Opt(plusorminusLiteral) + decimalPoint + digits )
+    infLiteral = Combine( Opt(plusorminusLiteral) + Keyword("INF") )
     nanLiteral = Keyword("NaN")
     floatLiteral = ( Combine( integerLiteral +
-                         ( ( decimalPoint + Optional(digits) + exponentLiteral + integerLiteral ) |
+                         ( ( decimalPoint + Opt(digits) + exponentLiteral + integerLiteral ) |
                            ( exponentLiteral + integerLiteral ) )
                          ) |
                      Combine( decimalFractionLiteral + exponentLiteral + integerLiteral ) |
                      infLiteral | nanLiteral )
-    decimalLiteral =  ( Combine( integerLiteral + decimalPoint + Optional(digits) ) |
+    decimalLiteral =  ( Combine( integerLiteral + decimalPoint + Opt(digits) ) |
                         decimalFractionLiteral )
     numberLiteral = (decimalLiteral | floatLiteral | integerLiteral)
 
@@ -1349,27 +1349,27 @@ def compileXfsGrammar( cntlr, debugParsing ):
                Literal("@") | Literal("//") | Literal("/") | Literal("::") | Literal("."))
 
     xpathExpression = (Suppress(Literal("{")) +
-                       ZeroOrMore( (dblQuotedString | sglQuotedString | numberLiteral |
+                       ZeroOrMore( (dbl_quoted_string | sgl_quoted_string | numberLiteral |
                                     xPathFunctionCall | variableRef | qName | xPathOp ) ) +
                        Suppress(Literal("}"))).setParseAction(compileXPathExpression)
     separator = Suppress( Literal(";") )
 
-    namespaceDeclaration = (Suppress(Keyword("namespace")) + ncName + Suppress(Literal("=")) + quotedString + separator
+    namespaceDeclaration = (Suppress(Keyword("namespace")) + ncName + Suppress(Literal("=")) + quoted_string + separator
                             ).setParseAction(compileNamespaceDeclaration).ignore(xfsComment)
     defaultDeclaration = (Suppress(Keyword("unsatisfied-severity") | Keyword("default-language")) + ncName + separator
                          ).setParseAction(compileDefaults).ignore(xfsComment)
 
     parameterDeclaration = (Suppress(Keyword("parameter")) + qName  +
                             Suppress(Literal("{")) +
-                            Optional(Keyword("required")) +
-                            Optional(Keyword("select") + xpathExpression) +
-                            Optional(Keyword("as") + qName) +
+                            Opt(Keyword("required")) +
+                            Opt(Keyword("select") + xpathExpression) +
+                            Opt(Keyword("as") + qName) +
                             Suppress(Literal("}")) + separator
                            ).setParseAction(compileParameterDeclaration).ignore(xfsComment)
 
     occurenceIndicator = Literal("?") | Literal("*") | Literal("+")
 
-    functionParameter = (qName + Suppress(Keyword("as")) + Combine(qName + Optional(occurenceIndicator))
+    functionParameter = (qName + Suppress(Keyword("as")) + Combine(qName + Opt(occurenceIndicator))
                          ).setParseAction(compileFunctionParameter).ignore(xfsComment)
 
     functionStep = (Suppress(Keyword("step")) + variableRef + xpathExpression +
@@ -1381,9 +1381,9 @@ def compileXfsGrammar( cntlr, debugParsing ):
                               Suppress(Literal("}"))).ignore(xfsComment)
 
     functionDeclaration = (Suppress(Keyword("function")) + qName  +
-                           Suppress(Literal("(")) + Optional(delimitedList(functionParameter)) + Suppress(Literal(")")) +
-                              Keyword("as") + Combine(qName + Optional(occurenceIndicator)) +
-                           Optional(functionImplementation) + separator
+                           Suppress(Literal("(")) + Opt(delimited_list(functionParameter)) + Suppress(Literal(")")) +
+                              Keyword("as") + Combine(qName + Opt(occurenceIndicator)) +
+                           Opt(functionImplementation) + separator
                            ).setParseAction(compileFunctionDeclaration).ignore(xfsComment)
 
     packageDeclaration = (Suppress(Keyword("package")) + ncName + separator ).setParseAction(compilePackageDeclaration).ignore(xfsComment)
@@ -1391,7 +1391,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
     severity = ( Suppress(Keyword("unsatisfied-severity")) + ( ncName ) + separator ).setParseAction(compileSeverity).ignore(xfsComment)
 
     label = ( (Keyword("label") | Keyword("unsatisfied-message") | Keyword("satisfied-message")) +
-              Optional( Combine(Literal("(") + Regex("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*") + Literal(")")) ) +
+              Opt( Combine(Literal("(") + Regex("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*") + Literal(")")) ) +
               (QuotedString('"',multiline=True,escQuote='""') | QuotedString("'",multiline=True,escQuote="''")) +
               separator).setParseAction(compileLabel).ignore(xfsComment)
 
@@ -1399,24 +1399,24 @@ def compileXfsGrammar( cntlr, debugParsing ):
                         ).setParseAction(compileAspectRuleConcept).ignore(xfsComment)
 
     aspectRuleEntityIdentifier = (Suppress(Keyword("entity-identifier")) +
-                                  Optional( Keyword("scheme") + xpathExpression) +
-                                  Optional( Keyword("identifier") + xpathExpression) + separator
+                                  Opt( Keyword("scheme") + xpathExpression) +
+                                  Opt( Keyword("identifier") + xpathExpression) + separator
                         ).setParseAction(compileAspectRuleEntityIdentifier).ignore(xfsComment)
 
     aspectRulePeriod = (Suppress(Keyword("period")) +
                         ( Keyword("forever") |
                           Keyword("instant") +  xpathExpression |
                           Keyword("duration") +
-                                  Optional( Keyword("start") + xpathExpression) +
-                                  Optional( Keyword("end") + xpathExpression) ) + separator
+                                  Opt( Keyword("start") + xpathExpression) +
+                                  Opt( Keyword("end") + xpathExpression) ) + separator
                         ).setParseAction(compileAspectRulePeriod).ignore(xfsComment)
 
     aspectRuleUnitTerm = ((Keyword("multiply-by") | Keyword("divide-by")) +
-                          Optional( Keyword("source") + qName ) +
-                          Optional( Keyword("measure") + xpathExpression ) + separator
+                          Opt( Keyword("source") + qName ) +
+                          Opt( Keyword("measure") + xpathExpression ) + separator
                         ).setParseAction(compileAspectRuleUnitTerm).ignore(xfsComment)
 
-    aspectRuleUnit = (Suppress(Keyword("unit")) + Optional(Keyword("augment")) + Suppress(Literal("{")) +
+    aspectRuleUnit = (Suppress(Keyword("unit")) + Opt(Keyword("augment")) + Suppress(Literal("{")) +
                       ZeroOrMore( aspectRuleUnitTerm ) + Suppress(Literal("}")) + separator
                         ).setParseAction(compileAspectRuleUnit).ignore(xfsComment)
 
@@ -1431,7 +1431,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
     aspectRuleTypedDimensionTerm = (
                          (Keyword("xpath") + xpathExpression |
-                          Keyword("value") + dblQuotedString |
+                          Keyword("value") + dbl_quoted_string |
                           Keyword("omit")) + separator
                         ).setParseAction(compileAspectRuleTypedDimensionTerm).ignore(xfsComment)
 
@@ -1440,7 +1440,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                         ).setParseAction(compileAspectRuleTypedDimension).ignore(xfsComment)
 
     aspectRules = ( Suppress(Keyword("aspect-rules")) +
-                    Optional( Keyword("source") + qName ) +
+                    Opt( Keyword("source") + qName ) +
                     Suppress(Literal("{")) +
                     ZeroOrMore( aspectRuleConcept |
                                 aspectRuleEntityIdentifier |
@@ -1464,7 +1464,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
 
     generalFilter = (
-        Optional( Keyword("complemented") ) +
+        Opt( Keyword("complemented") ) +
         Keyword("general") + xpathExpression + separator
         ).setParseAction(compileGeneralFilter).ignore(xfsComment).setName("general-filter").setDebug(debugParsing)
 
@@ -1473,7 +1473,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
         ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) +
         (Keyword("period") + xpathExpression |
          (Keyword("period-start") | Keyword("period-end") | Keyword("period-instant")) +
-           (dateTime | Keyword("date") + xpathExpression + Optional(Keyword("time") + xpathExpression)) |
+           (dateTime | Keyword("date") + xpathExpression + Opt(Keyword("time") + xpathExpression)) |
          Keyword("instant-duration") + (Keyword("start") | Keyword("end")) + variableRef
          ) + separator
         ).setParseAction(compilePeriodFilter).ignore(xfsComment).setName("period-filter").setDebug(debugParsing)
@@ -1486,11 +1486,11 @@ def compileXfsGrammar( cntlr, debugParsing ):
                 (Keyword("explicit-dimension") + (qName | xpathExpression) +
                     ZeroOrMore( Keyword("default-member") |
                        (Keyword("member") + (variableRef | qName | xpathExpression) +
-                        Optional(Keyword("linkrole") + quotedString) +
-                        Optional(Keyword("arcrole") + quotedString) +
-                        Optional(Keyword("axis") + dimensionAxis))) + separator) |
+                        Opt(Keyword("linkrole") + quoted_string) +
+                        Opt(Keyword("arcrole") + quoted_string) +
+                        Opt(Keyword("axis") + dimensionAxis))) + separator) |
                 (Keyword("typed-dimension") + (variableRef | qName | xpathExpression) +
-                    Optional( Keyword("test") + xpathExpression )  + separator)
+                    Opt( Keyword("test") + xpathExpression )  + separator)
             )
         ).setParseAction(compileDimensionFilter).ignore(xfsComment).setName("dimension-filter").setDebug(debugParsing)
 
@@ -1505,8 +1505,8 @@ def compileXfsGrammar( cntlr, debugParsing ):
         ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) +
         (Keyword("entity") + Keyword("scheme") + xpathExpression + Keyword("value") + xpathExpression |
          Keyword("entity-scheme") + xpathExpression |
-         Keyword("entity-scheme-pattern") + quotedString |
-         Keyword("entity-identifier-pattern") + quotedString) + separator
+         Keyword("entity-scheme-pattern") + quoted_string |
+         Keyword("entity-identifier-pattern") + quoted_string) + separator
         ).setParseAction(compileEntityFilter).ignore(xfsComment).setName("entity-filter").setDebug(debugParsing)
 
     matchFilter = (
@@ -1517,11 +1517,11 @@ def compileXfsGrammar( cntlr, debugParsing ):
          Keyword("match-period") + variableRef |
          Keyword("match-unit") + variableRef |
          Keyword("match-dimension") + variableRef + Keyword("dimension") + (qName | xpathExpression)
-        ) + Optional( Keyword("match-any") ) + separator
+        ) + Opt( Keyword("match-any") ) + separator
         ).setParseAction(compileMatchFilter).ignore(xfsComment).setName("match-filter").setDebug(debugParsing)
 
     relativeFilter = (
-        Optional( Keyword("complemented") ) +
+        Opt( Keyword("complemented") ) +
         Keyword("relative") + variableRef + separator
         ).setParseAction(compileRelativeFilter).ignore(xfsComment).setName("relative-filter").setDebug(debugParsing)
 
@@ -1535,12 +1535,12 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
 
     valueFilter = (
-        Optional( Keyword("complemented") ) +
+        Opt( Keyword("complemented") ) +
         Keyword("nilled")
         ).setParseAction(compileValueFilter).ignore(xfsComment).setName("value-filter").setDebug(debugParsing)
 
     aspectCoverFilter = (
-        Optional( Keyword("complemented") ) +
+        Opt( Keyword("complemented") ) +
         Keyword("aspect-cover") +
         OneOrMore( Keyword("all") | Keyword("concept") | Keyword("entity-identifier") | Keyword("location") |
                    Keyword("period") | Keyword("unit") | Keyword("dimensions") |
@@ -1555,19 +1555,19 @@ def compileXfsGrammar( cntlr, debugParsing ):
                     Keyword("sibling-or-self") | Keyword("sibling-or-descendant") | Keyword("sibling") )
 
     conceptRelationFilter = (
-        Optional( Keyword("complemented") ) +
+        Opt( Keyword("complemented") ) +
         Keyword("concept-relation") + (
             (variableRef | qName | xpathExpression) +
-            Optional(Keyword("linkrole") + (quotedString | xpathExpression)) +
-            Optional(Keyword("arcrole") + (quotedString | xpathExpression)) +
-            Optional(Keyword("axis") + relationAxis) +
-            Optional(Keyword("generations") + nonNegativeInteger) +
-            Optional(Keyword("test") + xpathExpression)
+            Opt(Keyword("linkrole") + (quoted_string | xpathExpression)) +
+            Opt(Keyword("arcrole") + (quoted_string | xpathExpression)) +
+            Opt(Keyword("axis") + relationAxis) +
+            Opt(Keyword("generations") + nonNegativeInteger) +
+            Opt(Keyword("test") + xpathExpression)
         ) + separator
         ).setParseAction(compileConceptRelationFilter).ignore(xfsComment).setName("concept-relation-filter").setDebug(debugParsing)
 
     booleanFilter = (
-        Optional( Keyword("complemented") ) +
+        Opt( Keyword("complemented") ) +
         (Keyword("and") | Keyword("or")) + Suppress(Literal("{")) +
          OneOrMore(filter) +
         Suppress(Literal("}")) +
@@ -1606,7 +1606,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
 
     generalVariable = (Suppress(Keyword("variable")) + variableRef + Suppress(Literal("{")) +
-                       Optional( Keyword("bind-as-sequence") ) +
+                       Opt( Keyword("bind-as-sequence") ) +
                        Keyword("select") + xpathExpression + separator +
                        Suppress(Literal("}")) + separator).setParseAction(compileGeneralVariable).ignore(xfsComment).setName("general-variable").setDebug(debugParsing)
 
@@ -1638,7 +1638,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                   ZeroOrMore( filter ) +
                   ZeroOrMore( generalVariable | factVariable | referencedParameter) +
                   ZeroOrMore( precondition ) +
-                  Optional( ( Keyword("test") | Keyword("evaluation-count") ) + xpathExpression + separator) +
+                  Opt( ( Keyword("test") | Keyword("evaluation-count") ) + xpathExpression + separator) +
                   Suppress(Literal("}") + separator)).setParseAction(compileAssertion).ignore(xfsComment).setName("assertion").setDebug(debugParsing)
 
     consistencyAssertion = ( Suppress(Keyword("consistency-assertion")) + ncName + Suppress(Literal("{")) +

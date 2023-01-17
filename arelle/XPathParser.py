@@ -1,227 +1,343 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import sys
-from numbers import Number
+from __future__ import annotations
 
-from arelle import PythonUtil # define 2.x or 3.x string types (only needed when running as unit test from __main__
-from arelle.PluginManager import pluginClassMethods
-from pyparsing import (
-    Word, Keyword, alphas, ParseException, ParseSyntaxException,Literal, CaselessLiteral,Combine, Optional, nums, Forward, Group, ZeroOrMore, StringEnd, alphanums,ParserElement, quotedString,
-    delimitedList, Suppress, Regex
-)
-from arelle.Locale import format_string
-import time, xml.dom, traceback
+import sys
+import time
+import traceback
+from collections.abc import Callable, Iterable, Sequence
 from decimal import Decimal
-from arelle import (XmlUtil, ModelValue, XbrlConst)
-FunctionIxt = None
+from typing import Any, TYPE_CHECKING, Union
+from xml.dom import minidom
+
+from pyparsing import (
+    CaselessLiteral,
+    Combine,
+    Forward,
+    Group,
+    Keyword,
+    Literal,
+    Opt,
+    ParseBaseException,
+    ParseException,
+    ParseResults,
+    ParseSyntaxException,
+    ParserElement,
+    Regex,
+    StringEnd,
+    Suppress,
+    Word,
+    ZeroOrMore,
+    alphanums,
+    alphas,
+    delimited_list,
+    nums,
+    quoted_string,
+)
+
+from arelle import ModelValue, XbrlConst, XmlUtil
+from arelle.Locale import format_string
+from arelle.PluginManager import pluginClassMethods
+
+if TYPE_CHECKING:
+    from arelle.ModelFormulaObject import ModelFormulaResource
+    from arelle.ModelXbrl import ModelXbrl
+    from arelle.ModelManager import ModelManager
+    from arelle.ModelObject import ModelObject
+    from arelle.ModelValue import QName
+    from arelle.XPathContext import XPathContext, XPathException
+    from arelle.typing import TypeGetText
+
+    _: TypeGetText  # Handle gettext
+
+    FormulaToken = Union[
+        float,
+        int,
+        str,
+        Decimal,
+        'Expr',
+        'OpDef',
+        'OperationDef',
+        'ProgHeader',
+        'QNameDef',
+        'RangeDecl',
+        'VariableRef',
+    ]
+
+    RecursiveFormulaTokens = Sequence[Union[FormulaToken, 'RecursiveFormulaTokens']]
+
+    ExpressionStack = list[FormulaToken]
+
+ixtNamespaceFunctions: dict[str, dict[str, Callable[[str], str]]] | None = None
 
 
 # Debugging flag can be set to either "debug_flag=True" or "debug_flag=False"
-debug_flag=True
+debug_flag = True
 
-exprStack = []
-xmlElement = None
-modelXbrl = None
-xbrlResource = None
-pluginCustomFunctions = None
+exprStack: ExpressionStack = []
+xmlElement: ModelObject | None = None
+modelXbrl: ModelXbrl | None = None
+pluginCustomFunctions: dict[QName, Callable[[XPathContext, OperationDef, ModelObject, list[list[FormulaToken]]], Any]] | None = None
+
 
 class ProgHeader:
-    def __init__(self, modelObject, name, element, sourceStr, traceType):
+    def __init__(
+            self,
+            modelObject: ModelFormulaResource,
+            name: str,
+            element: ModelObject,
+            sourceStr: str,
+            traceType: int,
+    ) -> None:
         self.modelObject = modelObject
         self.name = name
-        self.element = element
+        self.element: ModelObject | None = element
         self.sourceStr = sourceStr
         self.traceType = traceType
-    def __repr__(self):
-        return ("ProgHeader({0},{1})".format(self.name,self.modelObject))
 
-def exprStackToksRIndex( toks ):
-    toksList = toks.asList()
+    def __repr__(self) -> str:
+        return "ProgHeader({0},{1})".format(self.name, self.modelObject)
+
+
+def exprStackToksRIndex(toks: ParseResults) -> int:
+    toksList: list[FormulaToken] = toks.asList()
     lenToks = len(toksList)
-    if exprStack[-lenToks:] == toksList: # attempt to match from right side
+    if exprStack[-lenToks:] == toksList:  # attempt to match from right side
         return -lenToks
     # toks could need flattening to be comparable to exprStack, for now just check tok
     _tok0 = toks[0]
-    for i in range(len(exprStack)-1,0,-1):
+    for i in range(len(exprStack) - 1, 0, -1):
         if exprStack[i] == _tok0:
             return i
     raise Exception("Unable to determine replacement index of ParseResults {} in expression stack {}".format(toks, exprStack))
 
-def exprStackTokRIndex( tok ):
-    for i in range(len(exprStack)-1,0,-1):
+
+def exprStackTokRIndex(tok: FormulaToken) -> int:
+    for i in range(len(exprStack) - 1, 0, -1):
         if exprStack[i] == tok:
             return i
     raise Exception("Unable to determine replacement index of ParseResult token {} in expression stack {}".format(tok, exprStack))
 
-def pushFirst( sourceStr, loc, toks ):
-    exprStack.append( toks[0] )
 
-def pushFloat( sourceStr, loc, toks ):
+def pushFirst(sourceStr: str, loc: int, toks: ParseResults) -> None:
+    exprStack.append(toks[0])
+
+
+def pushFloat(sourceStr: str, loc: int, toks: ParseResults) -> float:
     num = float(toks[0])
-    exprStack.append( num )
+    exprStack.append(num)
     return num
 
-def pushInt( sourceStr, loc, toks ):
+
+def pushInt(sourceStr: str, loc: int, toks: ParseResults) -> int:
     num = int(toks[0])
-    exprStack.append( num )
+    exprStack.append(num)
     return num
 
-def pushDecimal( sourceStr, loc, toks ):
+
+def pushDecimal(sourceStr: str, loc: int, toks: ParseResults) -> Decimal:
     num = Decimal(toks[0])
-    exprStack.append( num )
+    exprStack.append(num)
     return num
 
-def pushQuotedString( sourceStr, loc, toks ):
-    str = toks[0]
-    q = str[0]
-    dequotedStr = str[1:-1].replace(q+q,q)
-    exprStack.append( dequotedStr )
+
+def pushQuotedString(sourceStr: str, loc: int, toks: ParseResults) -> str:
+    _str: str = toks[0]
+    q = _str[0]
+    dequotedStr = _str[1:-1].replace(q + q, q)
+    exprStack.append(dequotedStr)
     return dequotedStr
 
+
 class QNameDef(ModelValue.QName):
-    def __init__(self, loc, prefix, namespaceURI, localName, isAttribute=False, axis=None):
+    def __init__(
+            self,
+            loc: int,
+            prefix: str | None,
+            namespaceURI: str | None,
+            localName: str,
+            isAttribute: bool = False,
+            axis: str | None = None
+    ) -> None:
         super(QNameDef, self).__init__(prefix, namespaceURI, localName)
         self.unprefixed = prefix is None
         self.isAttribute = isAttribute or axis == "attribute"
         self.loc = loc
-        self.axis = (axis or None) # store "" from rpartition of step as None
-    def __hash__(self):
+        self.axis = axis or None  # store "" from rpartition of step as None
+
+    def __hash__(self) -> int:
         return self.qnameValueHash
-    def __repr__(self):
-        return ("{0}QName({1})".format('@' if self.isAttribute else '',str(self)))
-    def __eq__(self,other):
-        if isinstance(other,QNameDef):
+
+    def __repr__(self) -> str:
+        return "{0}QName({1})".format('@' if self.isAttribute else '', str(self))
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, QNameDef):
             return other.loc == self.loc and super(QNameDef, self).__eq__(other) and other.axis == self.axis
         else:
             return super(QNameDef, self).__eq__(other)
-    def __ne__(self,other):
+
+    def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
+
 defaultNsmap = {
-    "fn":"http://www.w3.org/2005/xpath-functions",
-    "xml":"http://www.w3.org/XML/1998/namespace",
-    }
+    "fn": "http://www.w3.org/2005/xpath-functions",
+    "xml": "http://www.w3.org/XML/1998/namespace",
+}
 
-axesSupported = {"", "child", "descendant", "attribute", "self", "descendant-or-self",
-                 "following-sibling", "following", "namespace", "parent", "ancestor",
-                 "preceding-sibling", "preceding", "ancestor-or-self"}
+axesSupported = {
+    "",
+    "child",
+    "descendant",
+    "attribute",
+    "self",
+    "descendant-or-self",
+    "following-sibling",
+    "following",
+    "namespace",
+    "parent",
+    "ancestor",
+    "preceding-sibling",
+    "preceding",
+    "ancestor-or-self",
+}
 
-def pushQName( sourceStr, loc, toks ):
+
+def pushQName(sourceStr: str, loc: int, toks: ParseResults) -> QNameDef | None:
+    assert modelXbrl is not None
     step = toks[0]
-    axis, sep, qname = step.rpartition("::") # axes are not splitting correctly
+    axis, sep, qname = step.rpartition("::")  # axes are not splitting correctly
     if axis not in axesSupported:
         modelXbrl.error("err:XPST0010",
             _("Axis %(axis)s is not supported in %(step)s"),
             modelObject=xmlElement,
             axis=axis, step=step)
-        return
+        return None
     if xmlElement is not None:
-        if qname == '*': # prevent simple wildcard from taking the default namespace
+        nsLocalname: tuple[str | None, str, str | None]
+        if qname == '*':  # prevent simple wildcard from taking the default namespace
             nsLocalname = (None, '*', None)
         else:
-            nsLocalname = XmlUtil.prefixedNameToNamespaceLocalname(xmlElement, qname, defaultNsmap=defaultNsmap)
-            if nsLocalname is None:
-                if qname.startswith("*:"): # wildcad QName special case
-                    prefix,sep,localName = qname.partition(":")
+            prefixedNameToNamespaceLocalname = XmlUtil.prefixedNameToNamespaceLocalname(xmlElement, qname, defaultNsmap=defaultNsmap)
+            if prefixedNameToNamespaceLocalname is None:
+                if qname.startswith("*:"):  # wildcad QName special case
+                    prefix, sep, localName = qname.partition(":")
                     q = QNameDef(loc, prefix, prefix, localName, axis=axis)
                     if len(exprStack) == 0 or exprStack[-1] != q:
-                        exprStack.append( q )
+                        exprStack.append(q)
                     return q
                 modelXbrl.error("err:XPST0081",
                     _("QName prefix not defined for %(name)s"),
                     modelObject=xmlElement,
                     name=qname)
-                return
+                return None
+            nsLocalname = prefixedNameToNamespaceLocalname
 
-        if (nsLocalname == (XbrlConst.xff,"uncovered-aspect","xff") and
+        if (nsLocalname == (XbrlConst.xff, "uncovered-aspect", "xff") and
             xmlElement.localName not in ("formula", "consistencyAssertion", "valueAssertion", "message")):
                 modelXbrl.error("xffe:invalidFunctionUse",
                     _("Function %(name)s cannot be used on an XPath expression associated with a %(name2)s"),
                     modelObject=xmlElement,
                     name=qname, name2=xmlElement.localName)
     else:
-        nsLocalname = (None,qname)
+        nsLocalname = (None, qname, None)
     q = QNameDef(loc, nsLocalname[2], nsLocalname[0], nsLocalname[1], axis=axis)
-    if qname not in ("INF", "NaN", "for", "some", "every", "return") and \
-        len(exprStack) == 0 or exprStack[-1] != q:
-        exprStack.append( q )
+    if (qname not in ("INF", "NaN", "for", "some", "every", "return") and
+        len(exprStack) == 0 or exprStack[-1] != q):
+        exprStack.append(q)
     return q
 
-def pushAttr( sourceStr, loc, toks ):
+
+def pushAttr(sourceStr: str, loc: int, toks: ParseResults) -> QNameDef:
     # usually has QName of attr already on exprstack, get rid of it
     if toks[0] == '@' and len(exprStack) > 0 and len(toks) > 1 and exprStack[-1] == toks[1]:
         exprStack.remove(toks[1])
-    if isinstance(toks[1],QNameDef):
+    if isinstance(toks[1], QNameDef):
         attr = toks[1]
         attr.isAttribute = True
     else:
-        ##### BUG this won't work, wrong arguments !!!!
-        attr = QNameDef(loc, toks[1], isAttribute=True)
-    exprStack.append( attr )
+        # BUG this won't work, wrong arguments !!!!
+        # attr = QNameDef(loc, tok[1], isAttribute=True)
+        raise ValueError(f"Unable to create QNameDef from attr: loc {loc} sourceStr {sourceStr}")
+    exprStack.append(attr)
     return attr
 
+
 class OpDef:
-    def __init__(self, loc, toks):
-        self.name = toks[0]
+    def __init__(self, loc: int, toks: ParseResults) -> None:
+        self.name: str = toks[0]
         self.loc = loc
-    def __repr__(self):
-        return ("op({0})".format(self.name))
-    def __eq__(self,other):
-        return isinstance(other,OpDef) and other.name == self.name and other.loc == self.loc
-    def __ne__(self,other):
+
+    def __repr__(self) -> str:
+        return "op({0})".format(self.name)
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, OpDef) and other.name == self.name and other.loc == self.loc
+
+    def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
-def pushOp( sourceStr, loc, toks ):
+
+def pushOp(sourceStr: str, loc: int, toks: ParseResults) -> OpDef:
     op = OpDef(loc, toks)
     # assure this operand not already on stack
     if len(exprStack) == 0 or exprStack[-1] != op:
-        exprStack.append( op )
+        exprStack.append(op)
     return op
 
+
 class OperationDef:
-    def __init__(self, sourceStr, loc, name, toks, skipFirstTok):
+
+    args: list[FormulaToken]
+
+    def __init__(self, sourceStr: str, loc: int, name: str | QNameDef, toks: ParseResults | list[FormulaToken], skipFirstTok: bool) -> None:
         self.sourceStr = sourceStr
         self.loc = loc
         self.name = name
         if skipFirstTok:
             toks1 = toks[1] if len(toks) > 1 else None
-            if (isinstance(toks1,str) and isinstance(name,str) and
-                name in ('/', '//', 'rootChild', 'rootDescendant')):
+            if isinstance(toks1, str) and isinstance(name, str) and name in ('/', '//', 'rootChild', 'rootDescendant'):
                 if toks1 == '*':
-                    toks1 = QNameDef(loc,None,'*','*')
+                    toks1 = QNameDef(loc, None, '*', '*')
                 elif toks1.startswith('*:'):
-                    toks1 = QNameDef(loc,None,'*',toks1[2:])
+                    toks1 = QNameDef(loc, None, '*', toks1[2:])
                 elif toks1.endswith(':*'):
                     prefix = toks1[:-2]
+                    assert xmlElement is not None
                     ns = XmlUtil.xmlns(xmlElement, prefix)
                     if ns is None:
+                        assert modelXbrl is not None
                         modelXbrl.error("err:XPST0081",
                             _("wildcard prefix not defined for %(token)s"),
                             modelObject=xmlElement,
                             token=toks1)
-                    toks1 = QNameDef(loc,prefix,ns,'*')
-                self.args = [toks1] + toks[2:] # special case for wildcard path segment
+                    toks1 = QNameDef(loc, prefix, ns, '*')
+                self.args = [toks1] + toks[2:]  # special case for wildcard path segment
             else:
                 self.args = toks[1:]
             '''
             self.args = toks[1:]
             '''
-        else:               # for others first token is just op code, no expression
-            self.args = toks
-    def __repr__(self):
-        if isinstance(self.name,QNameDef):
-            return ("{0}{1}".format(str(self.name), self.args))
-        else:
-            #return ("{1} {0}".format(self.name, self.args))
-            return ("{0}{1}".format(self.name, self.args))
+        else:  # for others first token is just op code, no expression
+            self.args = toks[:]
 
-def pushOperation( sourceStr, loc, toks ):
+    def __repr__(self) -> str:
+        if isinstance(self.name, QNameDef):
+            return "{0}{1}".format(str(self.name), self.args)
+        else:
+            # return ("{1} {0}".format(self.name, self.args))
+            return "{0}{1}".format(self.name, self.args)
+
+
+def pushOperation(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef:
     if isinstance(toks[0], str):
         name = toks[0]
         removeOp = False
+        tok: FormulaToken
         for tok in toks[1:]:
-            if not isinstance(tok,str) and tok in exprStack:
+            if not isinstance(tok, str) and tok in exprStack:
                 removeOp = True
                 removeFrom = tok
                 break
@@ -238,7 +354,8 @@ def pushOperation( sourceStr, loc, toks ):
         exprStack.append(operation)
     return operation
 
-def pushUnaryOperation( sourceStr, loc, toks ):
+
+def pushUnaryOperation(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef:
     if isinstance(toks[0], str):
         operation = OperationDef(sourceStr, loc, 'u' + toks[0], toks, True)
         exprStack.append(operation)
@@ -248,17 +365,26 @@ def pushUnaryOperation( sourceStr, loc, toks ):
         exprStack[exprStackToksRIndex(toks):] = [operation]  # replace tokens with production
     return operation
 
-def pushFunction( sourceStr, loc, toks ):
+
+def pushFunction(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef:
     name = toks[0]
     operation = OperationDef(sourceStr, loc, name, toks, True)
     exprStack[exprStack.index(toks[0]):] = [operation]  # replace tokens with production
-    if isinstance(name, QNameDef): # function call
+    if isinstance(name, QNameDef):  # function call
         ns = name.namespaceURI
-        if (not name.unprefixed and
-            ns not in {XbrlConst.fn, XbrlConst.xfi, XbrlConst.xff, XbrlConst.xsd} and
-            ns not in FunctionIxt.ixtNamespaceFunctions and
-            name not in modelXbrl.modelManager.customTransforms):
-            if name not in modelXbrl.modelCustomFunctionSignatures and name not in pluginCustomFunctions: # indexed by both [qname] and [qname,arity]
+        assert modelXbrl is not None
+        assert ixtNamespaceFunctions is not None
+        assert modelXbrl.modelManager.customTransforms is not None
+        if (
+            not name.unprefixed
+            and ns not in {XbrlConst.fn, XbrlConst.xfi, XbrlConst.xff, XbrlConst.xsd}
+            and ns not in ixtNamespaceFunctions
+            and name not in modelXbrl.modelManager.customTransforms
+        ):
+            assert pluginCustomFunctions is not None
+            # indexed by both [qname] and [qname,arity]
+            if name not in modelXbrl.modelCustomFunctionSignatures and name not in pluginCustomFunctions:
+                assert xmlElement is not None
                 modelXbrl.error("xbrlve:noCustomFunctionSignature",
                     _("No custom function signature for %(custFunction)s in %(resource)s"),
                     modelObject=xmlElement,
@@ -266,7 +392,8 @@ def pushFunction( sourceStr, loc, toks ):
                     custFunction=name)
     return operation
 
-def pushSequence( sourceStr, loc, toks ):
+
+def pushSequence(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef:
     operation = OperationDef(sourceStr, loc, 'sequence', toks, False)
     # print ("push seq toks={} \n  op={}\n  exprStk1={}".format(toks, operation, exprStack))
     if len(toks) == 0:  # empty sequence
@@ -274,17 +401,19 @@ def pushSequence( sourceStr, loc, toks ):
     else:
         # exprStack[exprStack.index(toks[0]):] = [operation]  # replace tokens with production
         exprStack[exprStackToksRIndex(toks):] = [operation]  # replace tokens with production
-    #print ("  exprStk2={}".format(exprStack))
+    # print ("  exprStk2={}".format(exprStack))
     return operation
 
-def pushPredicate( sourceStr, loc, toks ):
+
+def pushPredicate(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef:
     # drop the predicate op, used to clean expression stack
     predicate = OperationDef(sourceStr, loc, 'predicate', toks[1:], False)
     # exprStack[exprStack.index(toks[0]):] = [predicate]  # replace tokens with production
     exprStack[exprStackToksRIndex(toks):] = [predicate]  # replace tokens with production
     return predicate
 
-def pushRootStep( sourceStr, loc, toks ):
+
+def pushRootStep(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef | None:
     # drop the predicate op, used to clean expression stack
     if toks[0] == '/':
         op = 'rootChild'
@@ -295,84 +424,98 @@ def pushRootStep( sourceStr, loc, toks ):
     elif toks[0] == '..':
         op = 'contextItemParent'
     else:
-        return
+        return None
     rootStep = OperationDef(sourceStr, loc, op, toks[1:], False)
     # tok[1] or tok[2] is in exprStack (the predicate or next step), replace with composite rootStep
+    tok: FormulaToken
     for tok in toks:
         if tok in exprStack:
             exprStack[exprStack.index(tok):] = [rootStep]
             break
     return rootStep
 
+
 class VariableRef:
-    def __init__(self, loc, qname):
+    def __init__(self, loc: int, qname: QName) -> None:
         self.name = qname
         self.loc = loc
-    def __repr__(self):
-        return ("variableRef('{0}')".format(self.name))
 
-def pushVarRef( sourceStr, loc, toks ):
-    qname = ModelValue.qname(xmlElement, toks[0][1:], noPrefixIsNoNamespace=True)
+    def __repr__(self) -> str:
+        return "variableRef('{0}')".format(self.name)
+
+
+def pushVarRef(sourceStr: str, loc: int, toks: ParseResults) -> VariableRef:
+    qname = ModelValue.qname(xmlElement, toks[0][1:], noPrefixIsNoNamespace=True)  # type: ignore[arg-type]
     if qname is None:
+        assert modelXbrl is not None
         modelXbrl.error("err:XPST0081",
             _("QName prefix not defined for variable reference $%(variable)s"),
             modelObject=xmlElement,
             variable=toks[0][1:])
-        qname = ModelValue.qname(XbrlConst.xpath2err,"XPST0081") # use as qname to allow parsing to complete
+        qname = ModelValue.qname(XbrlConst.xpath2err, "XPST0081")  # use as qname to allow parsing to complete
     varRef = VariableRef(loc, qname)
-    exprStack.append( varRef )
+    exprStack.append(varRef)
     return varRef
 
-class RangeDecl:
-    def __init__(self, loc, toks):
-        self.rangeVar = toks[0]
-        self.bindingSeq = toks[2:]
-        self.loc = loc
-    def __repr__(self):
-        return _("rangeVar('{0}' in {1})").format(self.rangeVar.name,self.bindingSeq)
 
-def pushRangeVar( sourceStr, loc, toks ):
+class RangeDecl:
+    def __init__(self, loc: int, toks: ParseResults) -> None:
+        self.rangeVar: VariableRef = toks[0]
+        self.bindingSeq: list[FormulaToken] = toks[2:]
+        self.loc = loc
+
+    def __repr__(self) -> str:
+        return _("rangeVar('{0}' in {1})").format(self.rangeVar.name, self.bindingSeq)
+
+
+def pushRangeVar(sourceStr: str, loc: int, toks: ParseResults) -> RangeDecl:
     rangeDecl = RangeDecl(loc, toks)
-    exprStack[exprStack.index(rangeDecl.rangeVar):] = [rangeDecl]  # replace tokens with production
+    exprStack[exprStack.index(rangeDecl.rangeVar) :] = [rangeDecl]  # replace tokens with production
     return rangeDecl
 
-class Expr:
-    def __init__(self, loc, toks):
-        self.name = toks[0].name
-        self.expr = toks[1:]
-        self.loc = loc
-    def __repr__(self):
-        return "{0}{1}".format(self.name,self.expr)
 
-def pushExpr( sourceStr, loc, toks ):
+class Expr:
+    def __init__(self, loc: int, toks: ParseResults) -> None:
+        self.name: str = toks[0].name
+        self.expr: RecursiveFormulaTokens = toks[1:]
+        self.loc = loc
+
+    def __repr__(self) -> str:
+        return "{0}{1}".format(self.name, self.expr)
+
+
+def pushExpr(sourceStr: str, loc: int, toks: ParseResults) -> Expr:
     expr = Expr(loc, toks)
     # exprStack[exprStack.index(toks[0]):] = [expr]  # replace tokens with production
     exprStack[exprStackToksRIndex(toks):] = [expr]  # replace tokens with production
     return expr
 
+
 ParserElement.enablePackrat()
 # define grammar
-variableRef = Regex("[$]"  # variable prefix
-                    # optional prefix part
-                    "([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
-                    "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*:)?"
-                    # localname part
-                    "([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
-                    "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*)"
-                    )
+variableRef = Regex(
+    "[$]"  # variable prefix
+    # optional prefix part
+    "([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
+    "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*:)?"
+    # localname part
+    "([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
+    "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*)"
+)
 # for now :: axis step is expected in QName production (processed in parser's QName structure)
-#qName = Word(alphas + '_',alphanums + ':_-.*') # note: this will pick up forward and reverse axes and handle by pushQName
+# qName = Word(alphas + '_',alphanums + ':_-.*') # note: this will pick up forward and reverse axes and handle by pushQName
 
 # try to match axis step, prefix, and localname, allowin wildcard prefix or localname
 # don't grab occurence indicator if on qname, e.g., not * of xs:string*
-qName = Regex("([A-Za-z-]+::)?"  # axis step part (just ansi characters)
-              # prefix or wildcard-prefix part
-              "([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
-              "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*:|[*]:)?"
-              # localname or wildcard-localname part
-              "([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
-              "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*|[*])"
-              )
+qName = Regex(
+    "([A-Za-z-]+::)?"  # axis step part (just ansi characters)
+    # prefix or wildcard-prefix part
+    "([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
+    "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*:|[*]:)?"
+    # localname or wildcard-localname part
+    "([A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]"
+    "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*|[*])"
+)
 # above qName definition allows double :: and excludes non-ascii letters
 # qName = Regex("[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
 #               r"[_\-\."
@@ -381,39 +524,41 @@ qName = Regex("([A-Za-z-]+::)?"  # axis step part (just ansi characters)
 #               r"[_\-\."
 #               "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*")
 
-ncName = Word(alphas + '_',alphanums + '_-.')
+ncName = Word(alphas + '_', alphanums + '_-.')
 prefixOp = Literal(":")
 
 decimalPoint = Literal('.')
 exponentLiteral = CaselessLiteral('e')
 plusorminusLiteral = Literal('+') | Literal('-')
 digits = Word(nums)
-integerLiteral = Combine( Optional(plusorminusLiteral) + digits )
-decimalFractionLiteral = Combine( Optional(plusorminusLiteral) + decimalPoint + digits )
-infLiteral = Combine( Optional(plusorminusLiteral) + Literal("INF") )
+integerLiteral = Combine(Opt(plusorminusLiteral) + digits)
+decimalFractionLiteral = Combine(Opt(plusorminusLiteral) + decimalPoint + digits)
+infLiteral = Combine(Opt(plusorminusLiteral) + Literal("INF"))
 nanLiteral = Literal("NaN")
-floatLiteral = ( Combine( integerLiteral +
-                     ( ( decimalPoint + Optional(digits) + exponentLiteral + integerLiteral ) |
-                       ( exponentLiteral + integerLiteral ) )
-                     ) |
-                 Combine( decimalFractionLiteral + exponentLiteral + integerLiteral ) |
-                 infLiteral | nanLiteral )
-decimalLiteral =  ( Combine( integerLiteral + decimalPoint + Optional(digits) ) |
-                    decimalFractionLiteral )
+floatLiteral = (
+    Combine(
+        integerLiteral
+        + ((decimalPoint + Opt(digits) + exponentLiteral + integerLiteral) | (exponentLiteral + integerLiteral))
+    )
+    | Combine(decimalFractionLiteral + exponentLiteral + integerLiteral)
+    | infLiteral
+    | nanLiteral
+)
+decimalLiteral = Combine(integerLiteral + decimalPoint + Opt(digits)) | decimalFractionLiteral
 
 
-#emptySequence = Literal( "(" ) + Literal( ")" )
-lParen  = Literal( "(" )
-rParen  = Literal( ")" )
-lPred  = Literal( "[" )
-rPred  = Literal( "]" )
-expOp = Literal( "^" )
+# emptySequence = Literal( "(" ) + Literal( ")" )
+lParen = Literal("(")
+rParen = Literal(")")
+lPred = Literal("[")
+rPred = Literal("]")
+expOp = Literal("^")
 
 commaOp = Literal(",")
 forOp = Keyword("for").setParseAction(pushOp)
 someOp = Keyword("some")
 everyOp = Keyword("every")
-quantifiedOp = ( someOp | everyOp ).setParseAction(pushOp)
+quantifiedOp = (someOp | everyOp).setParseAction(pushOp)
 inOp = Keyword("in")
 returnOp = Keyword("return").setParseAction(pushOp)
 satisfiesOp = Keyword("satisfies").setParseAction(pushOp)
@@ -440,16 +585,16 @@ geGeneralOp = Literal(">=")
 gtGeneralOp = Literal(">")
 eqGeneralOp = Literal("=")
 generalCompOp = neGeneralOp | leGeneralOp | ltGeneralOp | geGeneralOp | gtGeneralOp | eqGeneralOp
-comparisonOp = ( nodeCompOp | valueCompOp | generalCompOp ).setParseAction(pushOp)
+comparisonOp = (nodeCompOp | valueCompOp | generalCompOp).setParseAction(pushOp)
 toOp = Keyword("to").setParseAction(pushOp)
-plusOp  = Literal("+")
+plusOp = Literal("+")
 minusOp = Literal("-")
-plusMinusOp  = ( plusOp | minusOp ).setParseAction(pushOp)
-multOp  = Literal("*")
-divOp   = Keyword("div")
-idivOp  = Keyword("idiv")
-modOp  = Keyword("mod")
-multDivOp = ( multOp | divOp | idivOp | modOp ).setParseAction(pushOp)
+plusMinusOp = (plusOp | minusOp).setParseAction(pushOp)
+multOp = Literal("*")
+divOp = Keyword("div")
+idivOp = Keyword("idiv")
+modOp = Keyword("mod")
+multDivOp = (multOp | divOp | idivOp | modOp).setParseAction(pushOp)
 unionWordOp = Keyword("union")
 unionSymbOp = Literal("|")
 unionOp = unionWordOp | unionSymbOp
@@ -462,7 +607,7 @@ treatOp = Keyword("treat")
 asOp = Keyword("as")
 castableOp = Keyword("castable")
 castOp = Keyword("cast")
-unaryOp  = plusOp | minusOp
+unaryOp = plusOp | minusOp
 occurOptionalOp = Literal("?")
 occurAnyOp = multOp
 occurAtLeastOnceOp = plusOp
@@ -472,130 +617,205 @@ typeName = qName
 elementName = qName
 attributeName = qName
 elementDeclaration = elementName
-schemaElementTest = ( Keyword("schema-element") + Suppress(lParen) + elementDeclaration + Suppress(rParen) ).setParseAction(pushOperation)
-elementNameOrWildcard = ( elementName | wildOp )
-elementTest = ( Keyword("element") + Suppress(lParen) + Optional( elementNameOrWildcard + Optional( Suppress(commaOp) + typeName + Optional( Literal("?") ) ) ) + Suppress(rParen) ).setParseAction(pushOperation)
-attributeDeclaration = ( attributeName )
-schemaAttributeTest = ( Keyword("schema-attribute") + Suppress(lParen) + attributeDeclaration + Suppress(rParen) ).setParseAction(pushOperation)
-attribNameOrWildcard = ( attributeName | wildOp )
-attributeTest = ( Keyword("attribute") + Suppress(lParen) + Optional( attribNameOrWildcard + Optional( commaOp + typeName ) ) + Suppress(rParen) ).setParseAction(pushOperation)
-PITest = ( Keyword("processing-instruction") + Suppress(lParen) + Optional( ncName | quotedString ) + Suppress(rParen) ).setParseAction(pushOperation)
-commentTest = ( Keyword("comment") + Suppress(lParen) + Suppress(rParen) ).setParseAction(pushOperation)
-textTest = ( Keyword("text") + Suppress(lParen) + Suppress(rParen) ).setParseAction(pushOperation)
-documentTest = ( Keyword("document-node") + Suppress(lParen) + Optional(elementTest | schemaElementTest) + Suppress(rParen) ).setParseAction(pushOperation)
-anyKindTest = ( Keyword("node") + Suppress(lParen) + Suppress(rParen) ).setParseAction(pushOperation)
-kindTest = ( documentTest | elementTest | attributeTest | schemaElementTest |
-             schemaAttributeTest | PITest | commentTest | textTest | anyKindTest )
-wildcard = ( Combine( ncName + prefixOp + wildOp ) | Combine( wildOp + prefixOp + ncName ) | wildOp )
-nameTest = ( qName | wildcard )
-nodeTest = ( kindTest | nameTest )
-abbrevForwardStep = ( ( Literal("@") + nodeTest).setParseAction(pushAttr) |
-                      ( nodeTest ) )
+schemaElementTest = (
+    Keyword("schema-element")
+    + Suppress(lParen)
+    + elementDeclaration
+    + Suppress(rParen)
+).setParseAction(pushOperation)
+elementNameOrWildcard = elementName | wildOp
+elementTest = (
+    Keyword("element")
+    + Suppress(lParen)
+    + Opt(
+        elementNameOrWildcard
+        + Opt(
+            Suppress(commaOp)
+            + typeName
+            + Opt(Literal("?"))
+        )
+    )
+    + Suppress(rParen)
+).setParseAction(pushOperation)
+attributeDeclaration = attributeName
+schemaAttributeTest = (
+    Keyword("schema-attribute")
+    + Suppress(lParen)
+    + attributeDeclaration
+    + Suppress(rParen)
+).setParseAction(pushOperation)
+attribNameOrWildcard = attributeName | wildOp
+attributeTest = (
+    Keyword("attribute")
+    + Suppress(lParen)
+    + Opt(attribNameOrWildcard + Opt(commaOp + typeName))
+    + Suppress(rParen)
+).setParseAction(pushOperation)
+PITest = (
+    Keyword("processing-instruction")
+    + Suppress(lParen)
+    + Opt(ncName | quoted_string)
+    + Suppress(rParen)
+).setParseAction(pushOperation)
+commentTest = (
+        Keyword("comment")
+        + Suppress(lParen)
+        + Suppress(rParen)
+).setParseAction(pushOperation)
+textTest = (
+        Keyword("text")
+        + Suppress(lParen)
+        + Suppress(rParen)
+).setParseAction(pushOperation)
+documentTest = (
+    Keyword("document-node")
+    + Suppress(lParen)
+    + Opt(elementTest | schemaElementTest)
+    + Suppress(rParen)
+).setParseAction(pushOperation)
+anyKindTest = (
+        Keyword("node")
+        + Suppress(lParen)
+        + Suppress(rParen)
+).setParseAction(pushOperation)
+kindTest = (
+    documentTest
+    | elementTest
+    | attributeTest
+    | schemaElementTest
+    | schemaAttributeTest
+    | PITest
+    | commentTest
+    | textTest
+    | anyKindTest
+)
+wildcard = Combine(ncName + prefixOp + wildOp) | Combine(wildOp + prefixOp + ncName) | wildOp
+nameTest = qName | wildcard
+nodeTest = kindTest | nameTest
+abbrevForwardStep = (Literal("@") + nodeTest).setParseAction(pushAttr) | (nodeTest)
 atomicType = qName
-itemType = ( kindTest | Keyword("item") + lParen + rParen | atomicType )
-occurrenceIndicator = ( occurOptionalOp | multOp | plusOp ) # oneOf("? * +")
-sequenceType = ( ( Keyword("empty-sequence") + lParen + rParen ) |
-                 ( itemType + Optional(occurrenceIndicator) ) )
-singleType  = ( atomicType + Optional( occurOptionalOp ) )
+itemType = kindTest | Keyword("item") + lParen + rParen | atomicType
+occurrenceIndicator = occurOptionalOp | multOp | plusOp  # oneOf("? * +")
+sequenceType = (Keyword("empty-sequence") + lParen + rParen) | (itemType + Opt(occurrenceIndicator))
+singleType = atomicType + Opt(occurOptionalOp)
 contextItem = decimalPoint
 pathDescOp = Literal("//")
 pathStepOp = Literal("/")
 pathOp = pathStepOp | pathDescOp
 pathRootOp = Regex(r"(/$|/[^/])")
 axisOp = Literal("::")
-forwardAxis = ((Keyword("child") + axisOp) |
-               (Keyword("descendant") + axisOp) |
-               (Keyword("attribute") + axisOp) |
-               (Keyword("self") + axisOp) |
-               (Keyword("descendant-or-self") + axisOp) |
-               (Keyword("following-sibling") + axisOp) |
-               (Keyword("following") + axisOp) |
-               (Keyword("namespace") + axisOp))
-forwardStep = ( ( forwardAxis + nodeTest) | abbrevForwardStep )
-reverseAxis = ((Keyword("parent") + axisOp) |
-               (Keyword("ancestor") + axisOp) |
-               (Keyword("preceding-sibling") + axisOp) |
-               (Keyword("preceding") + axisOp) |
-               (Keyword("ancestor-or-self") + axisOp))
+forwardAxis = (
+    (Keyword("child") + axisOp)
+    | (Keyword("descendant") + axisOp)
+    | (Keyword("attribute") + axisOp)
+    | (Keyword("self") + axisOp)
+    | (Keyword("descendant-or-self") + axisOp)
+    | (Keyword("following-sibling") + axisOp)
+    | (Keyword("following") + axisOp)
+    | (Keyword("namespace") + axisOp)
+)
+forwardStep = (forwardAxis + nodeTest) | abbrevForwardStep
+reverseAxis = (
+    (Keyword("parent") + axisOp)
+    | (Keyword("ancestor") + axisOp)
+    | (Keyword("preceding-sibling") + axisOp)
+    | (Keyword("preceding") + axisOp)
+    | (Keyword("ancestor-or-self") + axisOp)
+)
 abbrevReverseStep = Literal("..")
-reverseStep = ( ( reverseAxis + nodeTest ) | abbrevReverseStep )
-step = ( forwardStep | reverseStep )
+reverseStep = (reverseAxis + nodeTest) | abbrevReverseStep
+step = forwardStep | reverseStep
 
 expr = Forward()
 atom = (
-         ( forOp - (variableRef + inOp + expr).setParseAction(pushRangeVar) +
-                 ZeroOrMore( Suppress(commaOp) + (variableRef + inOp + expr).setParseAction(pushRangeVar) ) -
-                 (returnOp + expr).setParseAction(pushExpr) ).setParseAction(pushOperation) |
-         ( quantifiedOp - (variableRef + inOp + expr).setParseAction(pushRangeVar) +
-                 ZeroOrMore( Suppress(commaOp) + (variableRef + inOp + expr ).setParseAction(pushRangeVar) ) -
-                 (satisfiesOp + expr).setParseAction(pushExpr) ).setParseAction(pushOperation) |
-         ( (ifOp - Suppress(lParen) + Group(expr) + Suppress(rParen)).setParseAction(pushExpr) -
-           (thenOp + expr).setParseAction(pushOperation) -
-           (elseOp + expr).setParseAction(pushOperation) ).setParseAction(pushOperation) |
-         ( qName + Suppress(lParen) + Optional(delimitedList(expr)) + Suppress(rParen) ).setParseAction(pushFunction) |
-         ( floatLiteral ).setParseAction(pushFloat) |
-         ( decimalLiteral ).setParseAction(pushDecimal) |
-         ( integerLiteral ).setParseAction(pushInt) |
-         ( quotedString ).setParseAction(pushQuotedString) |
-         ( variableRef ).setParseAction(pushVarRef)  |
-         ( abbrevReverseStep ).setParseAction(pushOperation)  |
-         ( contextItem ).setParseAction(pushOperation)  |
-         ( qName ).setParseAction(pushQName) |
-         ( Suppress(lParen) - Optional(expr) - ZeroOrMore( commaOp.setParseAction(pushOp) - expr ) - Suppress(rParen) ).setParseAction(pushSequence)
-       )
-#stepExpr = ( ( atom + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) |
+    (
+        forOp
+        - (variableRef + inOp + expr).setParseAction(pushRangeVar)
+        + ZeroOrMore(Suppress(commaOp) + (variableRef + inOp + expr).setParseAction(pushRangeVar))
+        - (returnOp + expr).setParseAction(pushExpr)
+    ).setParseAction(pushOperation)
+    | (
+        quantifiedOp
+        - (variableRef + inOp + expr).setParseAction(pushRangeVar)
+        + ZeroOrMore(Suppress(commaOp) + (variableRef + inOp + expr).setParseAction(pushRangeVar))
+        - (satisfiesOp + expr).setParseAction(pushExpr)
+    ).setParseAction(pushOperation)
+    | (
+        (ifOp - Suppress(lParen) + Group(expr, aslist=True) + Suppress(rParen)).setParseAction(pushExpr)
+        - (thenOp + expr).setParseAction(pushOperation)
+        - (elseOp + expr).setParseAction(pushOperation)
+    ).setParseAction(pushOperation)
+    | (qName + Suppress(lParen) + Opt(delimited_list(expr)) + Suppress(rParen)).setParseAction(pushFunction)
+    | floatLiteral.setParseAction(pushFloat)
+    | decimalLiteral.setParseAction(pushDecimal)
+    | integerLiteral.setParseAction(pushInt)
+    | quoted_string.setParseAction(pushQuotedString)
+    | variableRef.setParseAction(pushVarRef)
+    | abbrevReverseStep.setParseAction(pushOperation)
+    | contextItem.setParseAction(pushOperation)
+    | qName.setParseAction(pushQName)
+    | (
+        Suppress(lParen) - Opt(expr) - ZeroOrMore(commaOp.setParseAction(pushOp) - expr) - Suppress(rParen)
+    ).setParseAction(pushSequence)
+)
+# stepExpr = ( ( atom + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) |
 #             ( (reverseStep | forwardStep) + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) )
-stepExpr = ( ( atom + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) |
-             ( step + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) )
-relativePathExpr = stepExpr + ZeroOrMore( ( ( pathDescOp | pathStepOp ) + stepExpr ).setParseAction( pushOperation ) )
-pathExpr = ( ( pathDescOp + relativePathExpr ).setParseAction( pushRootStep ) |
-             ( pathStepOp + relativePathExpr ).setParseAction( pushRootStep ) |
-             ( relativePathExpr ) |
-             ( ( pathRootOp ).setParseAction( pushRootStep ) )
-           )
+stepExpr = (
+    atom + ZeroOrMore((lPred.setParseAction(pushOp) - expr - Suppress(rPred)).setParseAction(pushPredicate))
+) | (step + ZeroOrMore((lPred.setParseAction(pushOp) - expr - Suppress(rPred)).setParseAction(pushPredicate)))
+relativePathExpr = stepExpr + ZeroOrMore(((pathDescOp | pathStepOp) + stepExpr).setParseAction(pushOperation))
+pathExpr = (
+    (pathDescOp + relativePathExpr).setParseAction(pushRootStep)
+    | (pathStepOp + relativePathExpr).setParseAction(pushRootStep)
+    | (relativePathExpr)
+    | ((pathRootOp).setParseAction(pushRootStep))
+)
 
 
 valueExpr = pathExpr
 
-#filterExpr = ( atom + ZeroOrMore( (Suppress(lPred) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) )
-#axisStep = ( (reverseStep | forwardStep) + ZeroOrMore( (Suppress(lPred) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) )
-#stepExpr = filterExpr | axisStep
-#relativePathExpr = ( stepExpr + ZeroOrMore( ( pathStepOp | pathDescOp ) + stepExpr ).setParseAction( pushOperation ) )
-#pathExpr = ( ( pathDescOp + relativePathExpr ) |
+# filterExpr = ( atom + ZeroOrMore( (Suppress(lPred) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) )
+# axisStep = ( (reverseStep | forwardStep) + ZeroOrMore( (Suppress(lPred) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) )
+# stepExpr = filterExpr | axisStep
+# relativePathExpr = ( stepExpr + ZeroOrMore( ( pathStepOp | pathDescOp ) + stepExpr ).setParseAction( pushOperation ) )
+# pathExpr = ( ( pathDescOp + relativePathExpr ) |
 #             ( pathStepOp + relativePathExpr ) |
 #             ( relativePathExpr ) |
 #             ( pathStepOp ) )
-#valueExpr = pathExpr
-unaryExpr = ( plusMinusOp + valueExpr ).setParseAction( pushUnaryOperation ) | valueExpr
-castExpr = unaryExpr + ZeroOrMore( ( castOp + asOp + singleType ).setParseAction( pushOperation ) )
-castableExpr = castExpr + ZeroOrMore( ( castableOp + asOp + singleType ).setParseAction( pushOperation ) )
-treatExpr = castableExpr + ZeroOrMore( ( treatOp + asOp + sequenceType ).setParseAction( pushOperation ) )
-instanceOfExpr = treatExpr + ZeroOrMore( ( instanceOp + Suppress(ofOp) + sequenceType ).setParseAction( pushOperation ) )
-intersectExceptExpr = instanceOfExpr + ZeroOrMore( ( intersectExceptOp + instanceOfExpr ).setParseAction( pushOperation ) )
-unionExpr = intersectExceptExpr + ZeroOrMore( ( unionOp + intersectExceptExpr ).setParseAction( pushOperation ) )
-multiplicitaveExpr = unionExpr + ZeroOrMore( ( multDivOp + unionExpr ).setParseAction( pushOperation ) )
-additiveExpr = multiplicitaveExpr + ZeroOrMore( ( plusMinusOp + multiplicitaveExpr ).setParseAction( pushOperation ) )
-rangeExpr = additiveExpr + ZeroOrMore( ( toOp + additiveExpr ).setParseAction( pushOperation ) )
-comparisonExpr = rangeExpr + ZeroOrMore( ( comparisonOp + rangeExpr ).setParseAction( pushOperation ) )
-andExpr = comparisonExpr + ZeroOrMore( ( andOp + comparisonExpr ).setParseAction( pushOperation ) )
-orExpr = andExpr + ZeroOrMore( ( orOp + andExpr ).setParseAction( pushOperation ) )
+# valueExpr = pathExpr
+unaryExpr = (plusMinusOp + valueExpr).setParseAction(pushUnaryOperation) | valueExpr
+castExpr = unaryExpr + ZeroOrMore((castOp + asOp + singleType).setParseAction(pushOperation))
+castableExpr = castExpr + ZeroOrMore((castableOp + asOp + singleType).setParseAction(pushOperation))
+treatExpr = castableExpr + ZeroOrMore((treatOp + asOp + sequenceType).setParseAction(pushOperation))
+instanceOfExpr = treatExpr + ZeroOrMore((instanceOp + Suppress(ofOp) + sequenceType).setParseAction(pushOperation))
+intersectExceptExpr = instanceOfExpr + ZeroOrMore((intersectExceptOp + instanceOfExpr).setParseAction(pushOperation))
+unionExpr = intersectExceptExpr + ZeroOrMore((unionOp + intersectExceptExpr).setParseAction(pushOperation))
+multiplicitaveExpr = unionExpr + ZeroOrMore((multDivOp + unionExpr).setParseAction(pushOperation))
+additiveExpr = multiplicitaveExpr + ZeroOrMore((plusMinusOp + multiplicitaveExpr).setParseAction(pushOperation))
+rangeExpr = additiveExpr + ZeroOrMore((toOp + additiveExpr).setParseAction(pushOperation))
+comparisonExpr = rangeExpr + ZeroOrMore((comparisonOp + rangeExpr).setParseAction(pushOperation))
+andExpr = comparisonExpr + ZeroOrMore((andOp + comparisonExpr).setParseAction(pushOperation))
+orExpr = andExpr + ZeroOrMore((orOp + andExpr).setParseAction(pushOperation))
 
-expr << orExpr
+expr <<= orExpr
 # The Forward expression streamline implementation (expr.streamline())
 # streamlines the wrapped expression (self.expr.streamline()). However, the
 # wrapped expression is reassigned by the left shift bitwise operator, but
 # doesn't reset the streamlined setting of the Forward expression instance.
+assert isinstance(expr.expr, ParserElement)
 expr.streamlined = expr.expr.streamlined
-xpathExpr = expr + StringEnd()
+xpathExpr = expr + StringEnd()  # type: ignore[no-untyped-call]
 
 
 # map operator symbols to corresponding arithmetic operations
-opn = { "+" : ( lambda a,b: a + b ),
-        "-" : ( lambda a,b: a - b ),
-        "*" : ( lambda a,b: a * b ),
-        "div" : ( lambda a,b: float(a) / float(b) ),
-        "idiv" : ( lambda a,b: int(a) / int(b) ),
-        "^" : ( lambda a,b: a ** b ) }
+opn = {
+    "+": (lambda a, b: a + b),
+    "-": (lambda a, b: a - b),
+    "*": (lambda a, b: a * b),
+    "div": (lambda a, b: float(a) / float(b)),
+    "idiv": (lambda a, b: int(a) / int(b)),
+    "^": (lambda a, b: a**b),
+}
 
 # Recursive function that evaluates the stack
 '''
@@ -630,10 +850,12 @@ def evaluateStack( self, s ):
             return op
 '''
 
-def normalizeExpr(expr):
+
+def normalizeExpr(expr: str) -> str:
     result = []
     prior = None
     commentNesting = 0
+    c: str | None
     for c in expr:
         if prior == '\r':
             if c == '\n' or c == '\x85':
@@ -658,41 +880,50 @@ def normalizeExpr(expr):
         result.append(prior)
     return ''.join(result)
 
+
 isInitialized = False
 
-def initializeParser(modelManager):
-    global isInitialized, FunctionIxt
+
+def initializeParser(modelManager: ModelManager) -> bool:
+    global isInitialized, ixtNamespaceFunctions
     if not isInitialized:
-        from arelle import FunctionIxt
+        from arelle.FunctionIxt import ixtNamespaceFunctions
+
         modelManager.showStatus(_("initializing formula xpath2 grammar"))
         startedAt = time.time()
-        xpathExpr.parseString( "0", parseAll=True )
+        xpathExpr.parseString("0", parseAll=True)
         modelManager.addToLog(format_string(modelManager.locale,
                                     _("Formula xpath2 grammar initialized in %.2f secs"),
                                     time.time() - startedAt))
         modelManager.showStatus(None)
         isInitialized = True
-        return True # was initialized on this call
-    return False # had already been initialized
+        return True  # was initialized on this call
+    return False  # had already been initialized
 
-def exceptionErrorIndication(exception):
+
+def exceptionErrorIndication(exception: XPathException | ParseBaseException) -> str:
     errorAt = exception.column
     source = ''
     for line in exception.line.split('\n'):
-        if len(source) > 0: source += '\n'
-        if errorAt >= 0 and errorAt <= len(line):
+        if len(source) > 0:
+            source += '\n'
+        assert errorAt is not None
+        if 0 <= errorAt <= len(line):
             source += line[:errorAt] + '\u274b' + line[errorAt:]
-            source += '\n' + ' '*(errorAt-1) + '^ \n'
+            source += '\n' + ' ' * (errorAt - 1) + '^ \n'
         else:
             source += line
         errorAt -= len(line) + 1
     return source
 
-_staticExpressionFunctionContext = None
-def staticExpressionFunctionContext():
+
+_staticExpressionFunctionContext: minidom.Element | None = None
+
+
+def staticExpressionFunctionContext() -> minidom.Element:
     global _staticExpressionFunctionContext
     if _staticExpressionFunctionContext is None:
-        _staticExpressionFunctionContext = xml.dom.minidom.parseString(
+        _staticExpressionFunctionContext = minidom.parseString(
             '<?xml version="1.0" encoding="UTF-8"?>'
             '<randomRootElement'
             ' xmlns:xlink="http://www.w3.org/1999/xlink"'
@@ -702,13 +933,22 @@ def staticExpressionFunctionContext():
             ' xmlns:xs="http://www.w3.org/2001/XMLSchema"'
             ' xmlns:fn="http://www.w3.org/2005/xpath-functions"'
             '/>'
-             ).documentElement
+        ).documentElement
     return _staticExpressionFunctionContext
 
-def parse(modelObject, xpathExpression, element, name, traceType):
+
+def parse(
+        modelObject: ModelFormulaResource,
+        xpathExpression: str | None,
+        element: ModelObject | None,
+        name: str,
+        traceType: int
+) -> ExpressionStack | None:
     from arelle.ModelFormulaObject import Trace
+
     global modelXbrl, pluginCustomFunctions
     modelXbrl = modelObject.modelXbrl
+    assert modelXbrl is not None
     global exprStack
     exprStack = []
     global xmlElement
@@ -719,42 +959,40 @@ def parse(modelObject, xpathExpression, element, name, traceType):
     for pluginXbrlMethod in pluginClassMethods("Formula.CustomFunctions"):
         pluginCustomFunctions.update(pluginXbrlMethod())
 
-
     # throws ParseException
     if xpathExpression and len(xpathExpression) > 0:
         # normalize End of Line
         try:
             formulaOptions = modelXbrl.modelManager.formulaOptions
 
-            normalizedExpr = normalizeExpr( xpathExpression )
+            normalizedExpr = normalizeExpr(xpathExpression)
 
             # for debugging parser looping or stack recursion, uncomment this:
             # modelObject.modelXbrl.modelManager.showStatus(_("Parsing file {0} line {1} expr {2}").format(element.modelDocument.basename,element.sourceline,normalizedExpr))
 
             # should be option "compiled code"
 
-            if ((formulaOptions.traceVariableSetExpressionSource and traceType == Trace.VARIABLE_SET) or
-                (formulaOptions.traceVariableExpressionSource and traceType == Trace.VARIABLE) or
-                (formulaOptions.traceCallExpressionSource and traceType == Trace.CALL)):
+            if ((formulaOptions.traceVariableSetExpressionSource and traceType == Trace.VARIABLE_SET)
+                or (formulaOptions.traceVariableExpressionSource and traceType == Trace.VARIABLE)
+                or (formulaOptions.traceCallExpressionSource and traceType == Trace.CALL)
+            ):
                 modelXbrl.info("formula:trace", "Source %(name)s %(source)s",
-                modelObject=element,
-                name=name,
-                source=normalizedExpr)
-            exprStack.append( ProgHeader(modelObject,name,element,normalizedExpr,traceType) )
+                               modelObject=element, name=name, source=normalizedExpr)
+            assert element is not None
+            exprStack.append(ProgHeader(modelObject, name, element, normalizedExpr, traceType))
 
-            L = xpathExpr.parseString( normalizedExpr, parseAll=True )
+            L = xpathExpr.parseString(normalizedExpr, parseAll=True)
 
-            #modelXbrl.error( _("AST {0} {1}").format(name, L),
+            # modelXbrl.error( _("AST {0} {1}").format(name, L),
             #    "info", "formula:trace")
 
             # should be option "compiled code"
-            if ((formulaOptions.traceVariableSetExpressionCode and traceType == Trace.VARIABLE_SET) or
-                (formulaOptions.traceVariableExpressionCode and traceType == Trace.VARIABLE) or
-                (formulaOptions.traceCallExpressionCode and traceType == Trace.CALL)):
+            if ((formulaOptions.traceVariableSetExpressionCode and traceType == Trace.VARIABLE_SET)
+                or (formulaOptions.traceVariableExpressionCode and traceType == Trace.VARIABLE)
+                or (formulaOptions.traceCallExpressionCode and traceType == Trace.CALL)
+            ):
                 modelXbrl.info("formula:trace", _("Code %(name)s %(source)s"),
-                modelObject=element,
-                name=name,
-                source=exprStack)
+                               modelObject=element, name=name, source=exprStack)
 
         except (ParseException, ParseSyntaxException) as err:
             modelXbrl.error("err:XPST0003",
@@ -766,11 +1004,11 @@ def parse(modelObject, xpathExpression, element, name, traceType):
             # insert after ProgHeader before ordinary executable expression that may have successfully compiled
             exprStack.insert(1, OperationDef(normalizedExpr, 0,
                                              QNameDef(0, "fn", XbrlConst.fn, "error"),
-                                             (OperationDef(normalizedExpr, 0,
+                                             [OperationDef(normalizedExpr, 0,
                                                            QNameDef(0, "fn", XbrlConst.fn, "QName"),
-                                                           (XbrlConst.xpath2err, "err:XPST0003"),False),
-                                              str(err)), False))
-        except (ValueError) as err:
+                                                           [XbrlConst.xpath2err, "err:XPST0003"], False),
+                                              str(err)], False))
+        except ValueError as err:
             modelXbrl.error("parser:unableToParse",
                 _("Parsing terminated in %(name)s due to error: %(error)s \n%(source)s"),
                 modelObject=element,
@@ -791,68 +1029,89 @@ def parse(modelObject, xpathExpression, element, name, traceType):
         return pyCode
         '''
         returnProg = exprStack
-    exprStack = [] # dereference
+    exprStack = []  # dereference
     xmlElement = None
     modelXbrl = None
     return returnProg
 
-def variableReferencesSet(exprStack, element):
-    varRefSet = set()
+
+def variableReferencesSet(
+        exprStack: ExpressionStack | None,
+        element: ModelFormulaResource,
+) -> set[QName]:
+    varRefSet: set[QName] = set()
     if exprStack:
         variableReferences(exprStack, varRefSet, element)
     return varRefSet
 
-def variableReferences(exprStack, varRefSet, element, rangeVars=None):
+
+def variableReferences(
+        exprStack: RecursiveFormulaTokens,
+        varRefSet: set[QName],
+        element: ModelObject,
+        rangeVars: list[QName] | None = None,
+) -> None:
     localRangeVars = []
-    if rangeVars is None: rangeVars = []
+    if rangeVars is None:
+        rangeVars = []
     from arelle.ModelValue import qname
+
     for p in exprStack:
         if isinstance(p, ProgHeader):
+            assert p.element is not None
             element = p.element
-        elif isinstance(p,VariableRef):
+        elif isinstance(p, VariableRef):
             var = qname(element, p.name, noPrefixIsNoNamespace=True)
             if var not in rangeVars:
                 varRefSet.add(var)
-        elif isinstance(p,OperationDef):
+        elif isinstance(p, OperationDef):
             variableReferences(p.args, varRefSet, element, rangeVars)
-        elif isinstance(p,Expr):
+        elif isinstance(p, Expr):
             variableReferences(p.expr, varRefSet, element, rangeVars)
-        elif isinstance(p,RangeDecl):
+        elif isinstance(p, RangeDecl):
             var = p.rangeVar.name
             rangeVars.append(var)
             localRangeVars.append(var)
             variableReferences(p.bindingSeq, varRefSet, element, rangeVars)
-        elif hasattr(p, '__iter__') and not isinstance(p, str):
+        elif isinstance(p, Iterable) and not isinstance(p, str):
             variableReferences(p, varRefSet, element, rangeVars)
     for localRangeVar in localRangeVars:
         if localRangeVar in rangeVars:
             rangeVars.remove(localRangeVar)
 
-def prefixDeclarations(exprStack, xmlnsDict, element):
+
+def prefixDeclarations(
+        exprStack: RecursiveFormulaTokens,
+        xmlnsDict: dict[str, str | None],
+        element: ModelObject,
+) -> None:
     from arelle.ModelValue import qname
+
     for p in exprStack:
         if isinstance(p, ProgHeader):
+            assert p.element is not None
             element = p.element
-        elif isinstance(p,VariableRef):
+        elif isinstance(p, VariableRef):
             var = qname(element, p.name, noPrefixIsNoNamespace=True)
             if var.prefix:
                 xmlnsDict[var.prefix] = var.namespaceURI
-        elif isinstance(p,OperationDef):
+        elif isinstance(p, OperationDef):
             op = p.name
             if isinstance(op, QNameDef) and op.prefix:
                 xmlnsDict[op.prefix] = op.namespaceURI
             prefixDeclarations(p.args, xmlnsDict, element)
-        elif isinstance(p,Expr):
+        elif isinstance(p, Expr):
             prefixDeclarations(p.expr, xmlnsDict, element)
-        elif isinstance(p,RangeDecl):
+        elif isinstance(p, RangeDecl):
             var = p.rangeVar.name
             if var.prefix:
                 xmlnsDict[var.prefix] = var.namespaceURI
             prefixDeclarations(p.bindingSeq, xmlnsDict, element)
-        elif hasattr(p, '__iter__') and not isinstance(p, str):
+        elif isinstance(p, Iterable) and not isinstance(p, str):
             prefixDeclarations(p, xmlnsDict, element)
 
-def clearProg(exprStack):
+
+def clearProg(exprStack: ExpressionStack | None) -> None:
     if exprStack:
         for p in exprStack:
             if isinstance(p, ProgHeader):
@@ -860,15 +1119,17 @@ def clearProg(exprStack):
                 break
         del exprStack[:]
 
-def clearNamedProg(ownerObject, progName):
-    clearProg(ownerObject.getattr(progName, []))
 
-def clearNamedProgs(ownerObject, progsListName):
-    for prog in ownerObject.getattr(progsListName, []):
+def clearNamedProg(ownerObject: ModelFormulaResource, progName: str) -> None:
+    clearProg(getattr(ownerObject, progName, []))
+
+
+def clearNamedProgs(ownerObject: ModelFormulaResource, progsListName: str) -> None:
+    for prog in getattr(ownerObject, progsListName, []):
         clearProg(prog)
 
 
-def codeModule(code):
+def codeModule(code: Iterable[Any]) -> str:
     return \
         '''
         def flatten(x):
@@ -882,15 +1143,16 @@ def codeModule(code):
         ''' + \
         ''.join(code)
 
-def parser_unit_test():
-    #initialize
-    xpathExpr.parseString( "0", parseAll=True )
+
+def parser_unit_test() -> None:
+    # initialize
+    xpathExpr.parseString("0", parseAll=True)
 
     test1 = "3*7+5"
     test1a = "5+3*7"
     test1b = "(5+3)*7"
-    test2a ="concat('abc','def')"
-    test2b ="'abc'"
+    test2a = "concat('abc','def')"
+    test2b = "'abc'"
     test3 = "if (sum(1,2,3) gt 123) then 33 else 44"
     test3a = "sum(1,2,3,min(4,5,6))"
 
@@ -997,37 +1259,40 @@ def parser_unit_test():
                  "()", "(1)",
                  "empty( () )",
     '''
-    #tests = [locals()[t] for t in locals().keys() if t.startswith("test")]
+    # tests = [locals()[t] for t in locals().keys() if t.startswith("test")]
     tests = [test1, test1a, test1b, test2a, test2b, test3, test3a]
 
     log = []
     for test in (
-                 "concat('abc','def')",
-                 "a/b",
-                 "123",
-                 "0.005",
-                 ".005",
-                 "./*[local-name() eq 'a']",
-                 ".",
-                 "..",
-                 "a/*[1]",
-                 "a/*:z[1]",
-                 "a/z:*[1]",
-                 "//*[@id eq 'context-for-xpath-rule']//xbrldi:explicitMember[2]",
-                 ):
+        "concat('abc','def')",
+        "a/b",
+        "123",
+        "0.005",
+        ".005",
+        "./*[local-name() eq 'a']",
+        ".",
+        "..",
+        "a/*[1]",
+        "a/*:z[1]",
+        "a/z:*[1]",
+        "//*[@id eq 'context-for-xpath-rule']//xbrldi:explicitMember[2]",
+    ):
         # Start with a blank exprStack and a blank varStack
+        global exprStack, xmlElement
         exprStack = []
         xmlElement = None
 
         # try parsing the input string
+        L: ParseResults | list[Any]
         try:
-            L=xpathExpr.parseString( normalizeExpr( test ), parseAll=True )
+            L = xpathExpr.parseString(normalizeExpr(test), parseAll=True)
         except (ParseException, ParseSyntaxException) as err:
-            L=['Parse Failure',test,err]
+            L = ['Parse Failure', test, err]
 
         # show result of parsing the input string
-        if debug_flag: log.append("{0}->{1}".format(test, L))
-        if len(L)==0 or L[0] != 'Parse Failure':
+        if debug_flag:
+            log.append("{0}->{1}".format(test, L))
+        if len(L) == 0 or L[0] != 'Parse Failure':
             if debug_flag:
                 log.append("exprStack={0}".format(exprStack))
                 '''
@@ -1050,13 +1315,15 @@ def parser_unit_test():
         else:
             log.append('Parse Failure')
             log.append(L[2].line)
-            log.append(" "*(L[2].column-1) + "^")
+            log.append(" " * (L[2].column - 1) + "^")
             log.append(L[2])
 
-    print ("see log in c:\\temp\\testLog.txt")
+    print("see log in c:\\temp\\testLog.txt")
     import io
+
     with io.open("c:\\temp\\testLog.txt", 'wt', encoding='utf-8') as f:
         f.write('\n'.join(str(l) for l in log))
+
 
 if __name__ == "__main__":
     parser_unit_test()
