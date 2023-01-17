@@ -6,29 +6,28 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import math
-from decimal import Decimal
-from typing import Callable, TypeAlias, Union
+from typing import Callable, TYPE_CHECKING
 
 from arelle import XPathContext
 from arelle.FunctionUtil import numericArg
-from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName, qname
 from arelle.Version import authorLabel, copyrightLabel
-from arelle.XPathParser import OperationDef
-from arelle.typing import EmptyTuple
+
+if TYPE_CHECKING:
+    from arelle.ModelObject import ModelObject
+    from arelle.XPathParser import FormulaToken, OperationDef
+    from arelle.typing import EmptyTuple
 
 INF = float('inf')
 MINUSINF = float('-inf')
 NaN = float('nan')
-
-MATH_FUNCTION_ARGS: TypeAlias = list[list[Union[float, int, Decimal]]]
 
 
 def xfm_pi(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: ModelObject,
-    args: MATH_FUNCTION_ARGS,
+    args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 0:
         raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
@@ -39,7 +38,7 @@ def xfm_exp(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: ModelObject,
-    args: MATH_FUNCTION_ARGS,
+    args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
@@ -53,7 +52,7 @@ def xfm_exp10(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: ModelObject,
-    args: MATH_FUNCTION_ARGS,
+    args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
@@ -67,7 +66,7 @@ def xfm_log(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: ModelObject,
-    args: MATH_FUNCTION_ARGS,
+    args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
@@ -87,7 +86,7 @@ def xfm_log10(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: ModelObject,
-    args: MATH_FUNCTION_ARGS,
+    args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
@@ -107,7 +106,7 @@ def xfm_pow(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: ModelObject,
-    args: MATH_FUNCTION_ARGS,
+    args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 2:
         raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
@@ -144,7 +143,7 @@ def xfm_sqrt(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: ModelObject,
-    args: MATH_FUNCTION_ARGS,
+    args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
@@ -162,7 +161,7 @@ def xfm_sin(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: ModelObject,
-    args: MATH_FUNCTION_ARGS,
+    args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
@@ -178,7 +177,7 @@ def xfm_cos(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: ModelObject,
-    args: MATH_FUNCTION_ARGS,
+    args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
@@ -194,7 +193,7 @@ def xfm_tan(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: ModelObject,
-    args: MATH_FUNCTION_ARGS,
+    args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
@@ -210,7 +209,7 @@ def xfm_asin(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: ModelObject,
-    args: MATH_FUNCTION_ARGS,
+    args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
@@ -227,7 +226,7 @@ def xfm_acos(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: ModelObject,
-    args: MATH_FUNCTION_ARGS,
+    args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
@@ -244,7 +243,7 @@ def xfm_atan(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: ModelObject,
-    args: MATH_FUNCTION_ARGS,
+    args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
@@ -261,7 +260,7 @@ def xfm_atan2(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: ModelObject,
-    args: MATH_FUNCTION_ARGS,
+    args: list[list[FormulaToken]],
 ) -> float:
     if len(args) != 2:
         raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
@@ -271,7 +270,7 @@ def xfm_atan2(
 
 
 def xfmMathFunctions() -> dict[
-    QName, Callable[[XPathContext.XPathContext, OperationDef, ModelObject, MATH_FUNCTION_ARGS], float | EmptyTuple]
+    QName, Callable[[XPathContext.XPathContext, OperationDef, ModelObject, list[list[FormulaToken]]], float | EmptyTuple]
 ]:
     return {
         qname("{http://www.xbrl.org/2008/function/math}xfm:pi"): xfm_pi,
