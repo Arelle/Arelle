@@ -126,6 +126,8 @@ def parseAndRun(args):
     parser.add_option("--calcdeduplicate", action="store_true", dest="calcDeduplicate", help=SUPPRESS_HELP)
     parser.add_option("--efm", action="store_true", dest="validateEFM",
                       help=_("Select Edgar Filer Manual (U.S. SEC) disclosure system validation (strict)."))
+    parser.add_option("--efm-skip-calc-tree", action="store_false", default=True, dest="validateEFMCalcTree",
+                      help=_("Skip walking of calculation tree during EFM validation."))
     parser.add_option("--gfm", action="store", dest="disclosureSystemName", help=SUPPRESS_HELP)
     parser.add_option("--disclosureSystem", action="store", dest="disclosureSystemName",
                       help=_("Specify a disclosure system name and"
