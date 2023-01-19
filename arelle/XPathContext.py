@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from decimal import Decimal, InvalidOperation
-from numbers import Number
+from numbers import Complex, Number
 
 from lxml import etree
 
@@ -86,7 +86,7 @@ class FunctionNumArgs(Exception):
 class FunctionArgType(Exception):
     def __init__(self, argIndex, expectedType, foundObject='', errCode='err:XPTY0004'):
         self.errCode = errCode
-        self.argNum = (argIndex + 1) if isinstance(argIndex, Number) else argIndex  # may be string
+        self.argNum = (argIndex + 1) if isinstance(argIndex, Complex) else argIndex  # may be string
         self.expectedType = expectedType
         self.foundObject = foundObject
         self.args = (self.__repr__(),)
