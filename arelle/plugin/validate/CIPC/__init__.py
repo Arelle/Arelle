@@ -17,7 +17,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import ixbrlAll, xhtml
-from .Const import cpicModules # , mandatoryElements
+from .Const import cipcModules # , mandatoryElements
 
 cipcBlockedInlineHtmlElements = {
     'object', 'script'}
@@ -62,7 +62,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         footnotesRelationshipSet = modelXbrl.relationshipSet("XBRL-footnotes")
         orphanedFootnotes = set()
         nonEnglishFootnotes = set()
-        foonoteRoleErrors = set()
+        footnoteRoleErrors = set()
         transformRegistryErrors = set()
         def checkFootnote(elt, text):
             if text: # non-empty footnote must be linked to a fact if not empty
@@ -131,13 +131,13 @@ def validateXbrlFinally(val, *args, **kwargs):
                             if referencedDoc.type == ModelDocument.Type.SCHEMA
                             if reportingModulePattern.match(referencedDoc.uri)]
 
-        if len(reportingModules) != 1 or reportingModules[0] not in cpicModules:
+        if len(reportingModules) != 1 or reportingModules[0] not in cipcModules:
             modelXbrl.error("cipc:reportingModuleAmbiguous",
                 _("Reporting module must specify namespace for FAS, IFRS-FULL or IFRS-SMES"),
                 modelObject=elt)
             reportingModule = None
         else:
-            reportingModule = cpicModules[reportingModules[0]]
+            reportingModule = cipcModules[reportingModules[0]]
 
         # build namespace maps
         nsMap = {}
@@ -183,19 +183,19 @@ def validateXbrlFinally(val, *args, **kwargs):
 
         missingElements = (mandatory - reportedMandatory) # | (reportedFootnoteIfNil - reportedFootnoteIfNil)
         if missingElements:
-            modelXbrl.error("cpic:missingRequiredElements",
+            modelXbrl.error("cipc:missingRequiredElements",
                             _("Required elements missing from document: %(elements)s."),
                             modelObject=modelXbrl, elements=", ".join(sorted(str(qn) for qn in missingElements)))
 
         if factsMandatoryNilWithoutFootnote:
-            modelXbrl.error("cpic:missingExplanatoryFootnote",
+            modelXbrl.error("cipc:missingExplanatoryFootnote",
                             _("Required nil facts missing explanatory footnote: %(elements)s."),
                             modelObject=factsMandatoryNilWithoutFootnote,
                             elements=", ".join(sorted(str(fact.qname) for fact in factsMandatoryNilWithoutFootnote)))
         '''
 
         if transformRegistryErrors:
-            modelXbrl.warning("cpic:transformRegistry",
+            modelXbrl.warning("cipc:transformRegistry",
                               _("Transformation Registry 3 should be for facts: %(elements)s."),
                               modelObject=transformRegistryErrors,
                               elements=", ".join(sorted(str(fact.qname) for fact in transformRegistryErrors)))
@@ -210,10 +210,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                 _("Footnotes must use English language."),
                 modelObject=nonEnglishFootnotes)
 
-        if foonoteRoleErrors:
+        if footnoteRoleErrors:
             modelXbrl.error("cipc:footnoteRoleErrors",
                 _("Footnotes must the default link, resource and arc roles."),
-                modelObject=foonoteRoleErrors)
+                modelObject=footnoteRoleErrors)
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)

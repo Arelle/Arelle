@@ -6,7 +6,7 @@ Taxonomy Architecture: http://www.cipc.co.za/files/1715/1325/5802/CIPC_XBRL_Taxo
 
 See COPYRIGHT.md for copyright information.
 '''
-cpicModules = {
+cipcModules = {
     "ca_fas": "ca_fas",
     "full_ifrs": "full-ifrs",
     "ifrs_for_smes": "ifrs-smes"
