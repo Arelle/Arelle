@@ -30,7 +30,7 @@ def xfm_pi(
     args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 0:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     return math.pi
 
 
@@ -41,7 +41,7 @@ def xfm_exp(
     args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         return math.exp(x)
@@ -55,7 +55,7 @@ def xfm_exp10(
     args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         return math.pow(10.0, x)
@@ -69,7 +69,7 @@ def xfm_log(
     args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         if x == 0:
@@ -89,7 +89,7 @@ def xfm_log10(
     args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         if x == 0:
@@ -109,7 +109,7 @@ def xfm_pow(
     args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 2:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         y = numericArg(xc, p, args, 1)  # type: ignore[no-untyped-call]
@@ -146,7 +146,7 @@ def xfm_sqrt(
     args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         if x == MINUSINF:
@@ -164,7 +164,7 @@ def xfm_sin(
     args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         if math.isinf(x):
@@ -180,7 +180,7 @@ def xfm_cos(
     args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         if math.isinf(x):
@@ -196,7 +196,7 @@ def xfm_tan(
     args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         if math.isinf(x):
@@ -212,7 +212,7 @@ def xfm_asin(
     args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         try:
@@ -229,7 +229,7 @@ def xfm_acos(
     args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         try:
@@ -246,7 +246,7 @@ def xfm_atan(
     args: list[list[FormulaToken]],
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         try:
@@ -263,7 +263,7 @@ def xfm_atan2(
     args: list[list[FormulaToken]],
 ) -> float:
     if len(args) != 2:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     y = numericArg(xc, p, args, 0)  # type: ignore[no-untyped-call]
     x = numericArg(xc, p, args, 1)  # type: ignore[no-untyped-call]
     return math.atan2(y, x)
