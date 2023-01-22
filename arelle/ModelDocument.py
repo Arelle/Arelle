@@ -663,6 +663,7 @@ class ModelDocument:
 
     documentEncoding: str
     xmlRootElement: Any
+    targetXbrlRootElement: ModelObject
 
     def __init__(self, modelXbrl, type, uri, filepath, xmlDocument):
         self.modelXbrl = modelXbrl
