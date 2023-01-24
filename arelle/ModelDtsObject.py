@@ -83,6 +83,13 @@ class ModelRoleType(ModelObject):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
+
+    _definition: str | None
+    _maxOccurs: int
+    _minOccurs: int
+    _typeQname: QName
+    _usedOns: set[TypeXValue]
+
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelRoleType, self).init(modelDocument)
 
@@ -110,7 +117,7 @@ class ModelRoleType(ModelObject):
     def definition(self) -> str | None:
         """(str) -- Text of child definition element (stripped)"""
         try:
-            return self._definition
+            return cast(str, self._definition)
         except AttributeError:
             definition = XmlUtil.child(self, XbrlConst.link, "definition")
             self._definition = definition.textValue.strip() if definition is not None else None
@@ -180,6 +187,11 @@ class ModelNamableTerm(ModelObject):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
+
+    _attributeWildcards: list[_Element]
+    _defaultAttributeQnames: set[QName]
+    _xsdQname: QName | None
+
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelNamableTerm, self).init(modelDocument)
 
@@ -190,7 +202,7 @@ class ModelNamableTerm(ModelObject):
     @property
     def qname(self) -> QName:
         try:
-            return self._xsdQname
+            return cast(QName, self._xsdQname)
         except AttributeError:
             name = self.name
             if self.name:
@@ -245,6 +257,10 @@ class ParticlesList(list):
         return ", ".join(particlesList)
 
 class ModelParticle():
+
+    _maxOccurs: int
+    _minOccurs: int
+
     """Represents a particle (for multi-inheritance subclasses of particles)"""
     def addToParticles(self) -> None:
         """Finds particle parent (in xml element ancestry) and appends self to parent particlesList"""
@@ -312,6 +328,31 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
+
+    _baseXbrliType: str | None
+    _baseXbrliTypeQname: QName | None
+    _baseXsdType: str
+    _enumDomain: ModelConcept | None
+    _isDimensionItem: bool
+    _isEnum: bool
+    _isEnumDomainUsable: bool
+    _isFraction: bool
+    _isHypercubeItem: bool
+    _isInteger: bool
+    _isItem: bool
+    _isLanguage: bool
+    _isMonetary: bool
+    _isNumeric: bool
+    _typedDomainElement: bool
+    _isLinkPart: bool
+    _isPrimaryItem: bool
+    _isShares: bool
+    _isTuple: bool
+    _isTypedDimension: bool
+    _type: ModelType | None
+    _substitutionGroupQname: QName | None
+    _typeQname: QName | None
+
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelConcept, self).init(modelDocument)
         if self.name:  # don't index elements with ref and no name
@@ -424,7 +465,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         is derived from.  If not determinable anyType is returned.  E.g., for monetaryItemType,
         decimal is returned."""
         try:
-            return self._baseXbrliType
+            return cast(str, self._baseXbrliType)
         except AttributeError:
             typeqname = self.typeQname
             if typeqname is not None and typeqname.namespaceURI == XbrlConst.xbrli:
@@ -439,7 +480,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         is derived from.  If not determinable anyType is returned.  E.g., for monetaryItemType,
         decimal is returned."""
         try:
-            return self._baseXbrliTypeQname
+            return cast(QName, self._baseXbrliTypeQname)
         except AttributeError:
             typeqname = self.typeQname
             if typeqname is not None and typeqname.namespaceURI == XbrlConst.xbrli:
@@ -888,6 +929,12 @@ class ModelAttribute(ModelNamableTerm):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
+
+    _baseXsdType: str | None
+    _isNumeric: bool
+    _facets: dict[str, Any] | None
+    _type: ModelType | None
+
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelAttribute, self).init(modelDocument)
         if self.isGlobalDeclaration:
@@ -1000,6 +1047,9 @@ class ModelAttributeGroup(ModelNamableTerm):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
+
+    _attributes: dict[QName, ModelAttribute]
+
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelAttributeGroup, self).init(modelDocument)
         if self.isGlobalDeclaration:
@@ -1058,6 +1108,15 @@ class ModelType(ModelNamableTerm):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
+
+    _attributes: dict[QName, ModelAttribute]
+    _baseXbrliType: str | None
+    _baseXbrliTypeQname: Any
+    _baseXsdType: str
+    _facets: dict[str, TypeXValue] | None
+    _elements: set[QName | None]
+    _requiredAttributeQnames: set[QName]
+
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelType, self).init(modelDocument)
         self.modelXbrl.qnameTypes.setdefault(self.qname, self) # don't redefine types nested in anonymous types
@@ -1512,6 +1571,10 @@ class ModelAny(ModelObject, ModelParticle):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
+
+    _isAny: bool
+    _namespaces: list[str]
+
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelAny, self).init(modelDocument)
         self.addToParticles()
@@ -1548,6 +1611,10 @@ class ModelAnyAttribute(ModelObject):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
+
+    _isAny: bool
+    _namespaces: list[str]
+
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelAnyAttribute, self).init(modelDocument)
 
@@ -1726,6 +1793,12 @@ class ModelRelationship(ModelObject):
 
         ModelObject of the xlink:to (dereferenced if via xlink:locator)
     """
+
+    _isComplemented: bool
+    _isCovered: bool
+    _isClosed: bool
+    _usable: str | None
+
     def __init__(self, modelDocument: ModelDocument, arcElement: ModelDocument, fromModelObject: ModelDocument, toModelObject: ModelDocument) -> None:
         # copy model object properties from arcElement
         self.arcElement: ModelDocument = arcElement
@@ -1987,7 +2060,7 @@ class ModelRelationship(ModelObject):
             return self._usable
         except AttributeError:
             if self.arcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
-                self._usable = self.get("{http://xbrl.org/2005/xbrldt}usable") or "true"
+                self._usable = cast(str, self.get("{http://xbrl.org/2005/xbrldt}usable")) or "true"
             else:
                 self._usable = None
             return self._usable
