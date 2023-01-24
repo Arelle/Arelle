@@ -6,9 +6,9 @@ from __future__ import annotations
 import sys
 import time
 import traceback
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable
 from decimal import Decimal
-from typing import Any, TYPE_CHECKING, Union
+from typing import Any, List, Sequence, TYPE_CHECKING, Union
 from xml.dom import minidom
 
 from pyparsing import (
@@ -49,25 +49,25 @@ if TYPE_CHECKING:
     from arelle.XPathContext import XPathContext, XPathException
     from arelle.typing import TypeGetText
 
-    _: TypeGetText  # Handle gettext
+_: TypeGetText  # Handle gettext
 
-    FormulaToken = Union[
-        float,
-        int,
-        str,
-        Decimal,
-        'Expr',
-        'OpDef',
-        'OperationDef',
-        'ProgHeader',
-        'QNameDef',
-        'RangeDecl',
-        'VariableRef',
-    ]
+FormulaToken = Union[
+    float,
+    int,
+    str,
+    Decimal,
+    'Expr',
+    'OpDef',
+    'OperationDef',
+    'ProgHeader',
+    'QNameDef',
+    'RangeDecl',
+    'VariableRef',
+]
 
-    RecursiveFormulaTokens = Sequence[Union[FormulaToken, 'RecursiveFormulaTokens']]
+RecursiveFormulaTokens = Sequence[Union[FormulaToken, 'RecursiveFormulaTokens']]
 
-    ExpressionStack = list[FormulaToken]
+ExpressionStack = List[FormulaToken]
 
 ixtNamespaceFunctions: dict[str, dict[str, Callable[[str], str]]] | None = None
 

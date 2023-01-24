@@ -12,11 +12,11 @@ from arelle import XPathContext
 from arelle.FunctionUtil import numericArg
 from arelle.ModelValue import QName, qname
 from arelle.Version import authorLabel, copyrightLabel
+from arelle.XPathParser import FormulaToken, OperationDef
+from arelle.typing import EmptyTuple
 
 if TYPE_CHECKING:
     from arelle.ModelObject import ModelObject
-    from arelle.XPathParser import FormulaToken, OperationDef
-    from arelle.typing import EmptyTuple
 
 INF = float('inf')
 MINUSINF = float('-inf')
