@@ -46,7 +46,7 @@ if TYPE_CHECKING:
     from arelle.ModelManager import ModelManager
     from arelle.ModelObject import ModelObject
     from arelle.ModelValue import QName
-    from arelle.XPathContext import XPathContext, XPathException
+    from arelle.XPathContext import XPathException
     from arelle.typing import TypeGetText
 
 _: TypeGetText  # Handle gettext
@@ -78,7 +78,7 @@ debug_flag = True
 exprStack: ExpressionStack = []
 xmlElement: ModelObject | None = None
 modelXbrl: ModelXbrl | None = None
-pluginCustomFunctions: dict[QName, Callable[[XPathContext, OperationDef, ModelObject, list[list[FormulaToken]]], Any]] | None = None
+pluginCustomFunctionQNames: set[QName] | None = None
 
 
 class ProgHeader:
@@ -381,9 +381,9 @@ def pushFunction(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef:
             and ns not in ixtNamespaceFunctions
             and name not in modelXbrl.modelManager.customTransforms
         ):
-            assert pluginCustomFunctions is not None
+            assert pluginCustomFunctionQNames is not None
             # indexed by both [qname] and [qname,arity]
-            if name not in modelXbrl.modelCustomFunctionSignatures and name not in pluginCustomFunctions:
+            if name not in modelXbrl.modelCustomFunctionSignatures and name not in pluginCustomFunctionQNames:
                 assert xmlElement is not None
                 modelXbrl.error("xbrlve:noCustomFunctionSignature",
                     _("No custom function signature for %(custFunction)s in %(resource)s"),
@@ -946,7 +946,7 @@ def parse(
 ) -> ExpressionStack | None:
     from arelle.ModelFormulaObject import Trace
 
-    global modelXbrl, pluginCustomFunctions
+    global modelXbrl, pluginCustomFunctionQNames
     modelXbrl = modelObject.modelXbrl
     assert modelXbrl is not None
     global exprStack
@@ -954,10 +954,10 @@ def parse(
     global xmlElement
     xmlElement = element
     returnProg = None
-    pluginCustomFunctions = {}
+    pluginCustomFunctionQNames = set()
 
     for pluginXbrlMethod in pluginClassMethods("Formula.CustomFunctions"):
-        pluginCustomFunctions.update(pluginXbrlMethod())
+        pluginCustomFunctionQNames.update(pluginXbrlMethod().keys())
 
     # throws ParseException
     if xpathExpression and len(xpathExpression) > 0:
