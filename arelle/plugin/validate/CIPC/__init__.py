@@ -64,6 +64,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         nonEnglishFootnotes = set()
         footnoteRoleErrors = set()
         transformRegistryErrors = set()
+        booleanFactsWithEmptyContent = set()
         def checkFootnote(elt, text):
             if text: # non-empty footnote must be linked to a fact if not empty
                 if not any(isinstance(rel.fromModelObject, ModelFact)
@@ -117,8 +118,12 @@ def validateXbrlFinally(val, *args, **kwargs):
                 elif isinstance(elt, ModelResource) and elt.qname == XbrlConst.qnLinkFootnote:
                     checkFootnote(elt, elt.value)
                 elif isinstance(elt, ModelInlineFact):
-                    if elt.format is not None and elt.format.namespaceURI != 'http://www.xbrl.org/inlineXBRL/transformation/2015-02-26':
-                        transformRegistryErrors.add(elt)
+                    if elt.format is not None:
+                        if elt.format.namespaceURI == 'http://www.xbrl.org/inlineXBRL/transformation/2015-02-26':
+                            if elt.format.localName in {'booleanfalse', 'booleantrue'} and not elt.text:
+                                booleanFactsWithEmptyContent.add(elt)
+                        else:
+                            transformRegistryErrors.add(elt)
         elif modelDocument.type == ModelDocument.Type.INSTANCE:
             for elt in modelDocument.xmlRootElement.iter():
                 if elt.qname == XbrlConst.qnLinkFootnote: # for now assume no private elements extend link:footnote
@@ -199,6 +204,11 @@ def validateXbrlFinally(val, *args, **kwargs):
                               _("Transformation Registry 3 should be for facts: %(elements)s."),
                               modelObject=transformRegistryErrors,
                               elements=", ".join(sorted(str(fact.qname) for fact in transformRegistryErrors)))
+
+        if booleanFactsWithEmptyContent:
+            modelXbrl.error("cipc:booleanFactsWithEmptyContent",
+                            _("Boolean facts must have content."),
+                            modelObject=booleanFactsWithEmptyContent)
 
         if orphanedFootnotes:
             modelXbrl.error("cipc:orphanedFootnote",
