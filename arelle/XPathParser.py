@@ -6,7 +6,7 @@ from __future__ import annotations
 import sys
 import time
 import traceback
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from decimal import Decimal
 from typing import Any, List, Sequence, TYPE_CHECKING, Union
 from xml.dom import minidom
@@ -69,7 +69,7 @@ RecursiveFormulaTokens = Sequence[Union[FormulaToken, 'RecursiveFormulaTokens']]
 
 ExpressionStack = List[FormulaToken]
 
-ixtNamespaceFunctions: dict[str, dict[str, Callable[[str], str]]] | None = None
+ixtFunctionNamespaces: set[str] = set()
 
 
 # Debugging flag can be set to either "debug_flag=True" or "debug_flag=False"
@@ -373,12 +373,11 @@ def pushFunction(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef:
     if isinstance(name, QNameDef):  # function call
         ns = name.namespaceURI
         assert modelXbrl is not None
-        assert ixtNamespaceFunctions is not None
         assert modelXbrl.modelManager.customTransforms is not None
         if (
             not name.unprefixed
             and ns not in {XbrlConst.fn, XbrlConst.xfi, XbrlConst.xff, XbrlConst.xsd}
-            and ns not in ixtNamespaceFunctions
+            and ns not in ixtFunctionNamespaces
             and name not in modelXbrl.modelManager.customTransforms
         ):
             assert pluginCustomFunctionQNames is not None
@@ -885,9 +884,10 @@ isInitialized = False
 
 
 def initializeParser(modelManager: ModelManager) -> bool:
-    global isInitialized, ixtNamespaceFunctions
+    global isInitialized, ixtFunctionNamespaces
     if not isInitialized:
-        from arelle.FunctionIxt import ixtNamespaceFunctions
+        from arelle import FunctionIxt
+        ixtFunctionNamespaces.update(FunctionIxt.ixtNamespaceFunctions.keys())
 
         modelManager.showStatus(_("initializing formula xpath2 grammar"))
         startedAt = time.time()
