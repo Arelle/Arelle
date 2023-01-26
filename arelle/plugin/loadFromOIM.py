@@ -1883,7 +1883,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 base=documentBase)
             _return = modelXbrl.modelDocument
         if len(modelXbrl.errors) > prevErrLen:
-            error("oime:unresolvableTaxonomy",
+            error("oime:invalidTaxonomy",
                   _("Unable to obtain a valid taxonomy from URLs provided"),
                   modelObject=modelXbrl)
 
@@ -2951,7 +2951,7 @@ def validateFinally(val, *args, **kwargs):
     modelXbrl = val.modelXbrl
     if getattr(modelXbrl, "loadedFromOIM", False):
         if modelXbrl.loadedFromOimErrorCount < len(modelXbrl.errors):
-            modelXbrl.error("oime:invalidXBRL",
+            modelXbrl.error("oime:invalidTaxonomy",
                                 _("XBRL validation errors were logged for this instance."),
                                 modelObject=modelXbrl)
     else:
