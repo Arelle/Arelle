@@ -68,8 +68,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     if not modelXbrl.modelDocument or not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
         return
 
-    options = modelXbrl.modelManager.efmFiling.options
-
     datePattern = re.compile(r"([12][0-9]{3})-([01][0-9])-([0-3][0-9])")
     GFMcontextDatePattern = re.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
     # note \u20zc = euro, \u00a3 = pound, \u00a5 = yen
@@ -2414,8 +2412,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             usedCalcPairingsOfConcept = usedCalcsPresented[conceptPresented]
                             if len(usedCalcPairingsOfConcept & conceptsPresented) > 0:
                                 usedCalcPairingsOfConcept -= conceptsPresented
+                    _validateEFMCalcTree = (
+                        # If `efmFiling` is undefined (GUI and potentially the Python library) calc tree walk should be performed.
+                        not hasattr(modelXbrl.modelManager, 'efmFiling')
+                        # `validateEFMCalcTree` can be set to False from the CLI (`--efm-skip-calc-tree`).
+                        or getattr(modelXbrl.modelManager.efmFiling.options, 'validateEFMCalcTree', True)
+                    )
                     # 6.15.02, 6.15.03 semantics checks for totals and calc arcs (by tree walk)
-                    if validateLoggingSemantic and options.validateEFMCalcTree:
+                    if validateLoggingSemantic and _validateEFMCalcTree:
                         for rootConcept in parentChildRels.rootConcepts:
                             checkCalcsTreeWalk(val, parentChildRels, rootConcept, isStatementSheet, False, conceptsUsed, set())
                     # 6.12.6
