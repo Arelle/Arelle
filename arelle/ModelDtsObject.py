@@ -2070,7 +2070,7 @@ class ModelRelationship(ModelObject):
     def variableQname(self) -> QName:
         """(QName) -- resolved name for a formula (or other arc) having a QName name attribute"""
         varName = self.variablename
-        return ModelValue.qname(self.arcElement, varName, noPrefixIsNoNamespace=True) if varName else None  # type: ignore[no-any-return]
+        return ModelValue.qname(self.arcElement, varName, noPrefixIsNoNamespace=True) if varName else None  # type: ignore[no-any-return, call-overload]
 
     @property
     def linkrole(self) -> str:
