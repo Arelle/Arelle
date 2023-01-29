@@ -87,6 +87,7 @@ class ModelRoleType(ModelObject):
     _definition: str | None
     _maxOccurs: int
     _minOccurs: int
+    _tableCode: str | None
     _typeQname: QName
     _usedOns: set[TypeXValue]
 
@@ -191,6 +192,8 @@ class ModelNamableTerm(ModelObject):
     _attributeWildcards: list[_Element]
     _defaultAttributeQnames: set[QName]
     _xsdQname: QName | None
+    isQualifiedForm: bool
+    namespaceURI: str
 
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelNamableTerm, self).init(modelDocument)
@@ -219,7 +222,8 @@ class ModelNamableTerm(ModelObject):
     @property
     def isGlobalDeclaration(self) -> bool:
         parent = self.getparent()
-        return parent.namespaceURI == XbrlConst.xsd and parent.localName == "schema"
+        assert parent is not None
+        return parent.namespaceURI == XbrlConst.xsd and parent.localName == "schema"  # type: ignore[attr-defined]
 
     def schemaNameQname(self, prefixedName: str, isQualifiedForm: bool = True, prefixException: type[Exception] | None = None) -> QName | None:
         """Returns ModelValue.QName of prefixedName using this element and its ancestors' xmlns.
@@ -264,7 +268,7 @@ class ModelParticle():
     """Represents a particle (for multi-inheritance subclasses of particles)"""
     def addToParticles(self) -> None:
         """Finds particle parent (in xml element ancestry) and appends self to parent particlesList"""
-        parent = self.getparent()
+        parent = self.getparent()  # type: ignore[attr-defined]
         while parent is not None:  # find a parent with particles list
             try:
                 parent.particlesList.append(self)
@@ -278,7 +282,7 @@ class ModelParticle():
         try:
             return self._maxOccurs
         except AttributeError:
-            m = self.get("maxOccurs")
+            m = self.get("maxOccurs")  # type: ignore[attr-defined]
             if m:
                 if m == "unbounded":
                     self._maxOccurs = sys.maxsize
@@ -303,7 +307,7 @@ class ModelParticle():
         try:
             return self._minOccurs
         except AttributeError:
-            m = self.get("minOccurs")
+            m = self.get("minOccurs")  # type: ignore[attr-defined]
             if m:
                 self._minOccurs = int(m)
                 if self._minOccurs < 0:
@@ -355,6 +359,9 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
 
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelConcept, self).init(modelDocument)
+
+        assert self.modelXbrl is not None
+
         if self.name:  # don't index elements with ref and no name
             self.modelXbrl.qnameConcepts[self.qname] = self
             if not self.isQualifiedForm:
@@ -402,6 +409,9 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
                     typeQname = ModelValue.QName(qn.prefix, qn.namespaceURI, qn.localName + anonymousTypeSuffix)
                 else:
                     typeQname = None
+
+                assert self.modelXbrl is not None
+
                 if typeQname in self.modelXbrl.qnameTypes:
                     self._typeQname = typeQname
                 else:
@@ -570,6 +580,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         try:
             return self._type
         except AttributeError:
+            assert self.modelXbrl is not None
             self._type = self.modelXbrl.qnameTypes.get(self.typeQname)
             return self._type
 
@@ -578,6 +589,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         """modelConcept object for substitution group (or None)"""
         subsgroupqname = self.substitutionGroupQname
         if subsgroupqname is not None:
+            assert self.modelXbrl is not None
             return self.modelXbrl.qnameConcepts.get(subsgroupqname)
         return None
 
@@ -644,7 +656,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def isRoot(self) -> bool:
         """(bool) -- True if parent of element definition is xsd schema element"""
-        return self.getparent().localName == "schema"
+        return self.getparent().localName == "schema"  # type: ignore[union-attr]
 
     def label(
         self,
@@ -674,6 +686,9 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         """
         if preferredLabel is None: preferredLabel = XbrlConst.standardLabel
         if preferredLabel == XbrlConst.conceptNameLabelRole: return str(self.qname)
+
+        assert self.modelXbrl is not None
+
         labelsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.conceptLabel,linkrole)
         if labelsRelationshipSet:
             for _lang in (lang if isinstance(lang, (tuple,list)) else (lang,)):
@@ -693,6 +708,8 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         :type arcrole: str
         :returns: ModelRelationship
         """
+        assert self.modelXbrl is not None
+
         relationshipSet = self.modelXbrl.relationshipSet(arcrole)
         if relationshipSet:
             for modelRel in relationshipSet.fromModelObject(self):
@@ -817,6 +834,8 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         try:
             return self._enumDomain
         except AttributeError:
+            assert self.modelXbrl is not None
+
             self._enumDomain = self.modelXbrl.qnameConcepts.get(self.enumDomainQname)
             return self._enumDomain
 
@@ -865,12 +884,16 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         ref = self.get("ref")
         if ref:
             qn = self.schemaNameQname(ref, isQualifiedForm=self.isQualifiedForm)
+
+            assert self.modelXbrl is not None
+
             return self.modelXbrl.qnameConcepts.get(qn)
         return self
 
     @property
     def propertyView(self) -> tuple[Any, ...]:
         # find default and other labels
+        assert self.modelXbrl is not None
         _lang = self.modelXbrl.modelManager.defaultLang
         _labelDefault = self.label(lang=_lang)
         _labels = tuple(("{} ({})".format(os.path.basename(label.role or "no-role"), label.xmlLang), label.stringValue)
@@ -938,6 +961,7 @@ class ModelAttribute(ModelNamableTerm):
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelAttribute, self).init(modelDocument)
         if self.isGlobalDeclaration:
+            assert self.modelXbrl is not None
             self.modelXbrl.qnameAttributes[self.qname] = self
             if not self.isQualifiedForm:
                 self.modelXbrl.qnameAttributes[ModelValue.QName(None, None, self.name)] = self
@@ -954,6 +978,7 @@ class ModelAttribute(ModelNamableTerm):
         if getattr(self,"xValid", 0) >= 4:
             # check if anonymous type exists
             typeqname = ModelValue.qname(self.qname.clarkNotation +  anonymousTypeSuffix)
+            assert self.modelXbrl is not None
             if typeqname in self.modelXbrl.qnameTypes:
                 return typeqname
             # try substitution group for type
@@ -970,6 +995,7 @@ class ModelAttribute(ModelNamableTerm):
         try:
             return self._type
         except AttributeError:
+            assert self.modelXbrl is not None
             self._type = self.modelXbrl.qnameTypes.get(self.typeQname)
             return self._type
 
@@ -1035,6 +1061,7 @@ class ModelAttribute(ModelNamableTerm):
         ref = self.get("ref")
         if ref:
             qn = self.schemaNameQname(ref, isQualifiedForm=self.isQualifiedForm)
+            assert self.modelXbrl is not None
             return self.modelXbrl.qnameAttributes.get(qn)
         return self
 
@@ -1053,6 +1080,7 @@ class ModelAttributeGroup(ModelNamableTerm):
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelAttributeGroup, self).init(modelDocument)
         if self.isGlobalDeclaration:
+            assert self.modelXbrl is not None
             self.modelXbrl.qnameAttributeGroups[self.qname] = self
 
     @property
@@ -1096,6 +1124,7 @@ class ModelAttributeGroup(ModelNamableTerm):
         ref = self.get("ref")
         if ref:
             qn = self.schemaNameQname(ref)
+            assert self.modelXbrl is not None
             return self.modelXbrl.qnameAttributeGroups.get(ModelValue.qname(self, ref))
         return self
 
@@ -1119,6 +1148,7 @@ class ModelType(ModelNamableTerm):
 
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelType, self).init(modelDocument)
+        assert self.modelXbrl is not None
         self.modelXbrl.qnameTypes.setdefault(self.qname, self) # don't redefine types nested in anonymous types
         self.particlesList = ParticlesList()
 
@@ -1153,6 +1183,7 @@ class ModelType(ModelNamableTerm):
     def typeDerivedFrom(self) -> ModelType:
         """(ModelType) -- type that this type is derived from"""
         qnameDerivedFrom = self.qnameDerivedFrom
+        assert self.modelXbrl is not None
         if isinstance(qnameDerivedFrom, list):
             return [self.modelXbrl.qnameTypes.get(qn) for qn in qnameDerivedFrom]
         elif isinstance(qnameDerivedFrom, ModelValue.QName):
@@ -1189,6 +1220,8 @@ class ModelType(ModelNamableTerm):
             elif self.qname == XbrlConst.qnXbrliNonZeroDecimalUnion:
                 self._baseXsdType = "XBRLI_NONZERODECIMAL"
             else:
+                assert self.modelXbrl is not None
+
                 qnameDerivedFrom = self.qnameDerivedFrom
                 if qnameDerivedFrom is None:
                     # want None if base type has no content (not mixed content, TBD)
@@ -1227,6 +1260,8 @@ class ModelType(ModelNamableTerm):
             if self.qname == XbrlConst.qnXbrliDateUnion:
                 self._baseXbrliTypeQname = self.qname
             else:
+                assert self.modelXbrl is not None
+
                 qnameDerivedFrom = self.qnameDerivedFrom
                 if isinstance(qnameDerivedFrom,list): # union
                     if qnameDerivedFrom == XbrlConst.qnDateUnionXsdTypes:
@@ -1281,6 +1316,8 @@ class ModelType(ModelNamableTerm):
         if (not isinstance(qnameDerivedFrom, ModelValue.QName) or # textblock not a union type
             (qnameDerivedFrom.namespaceURI in(XbrlConst.xsd,XbrlConst.xbrli))):
             return False
+
+        assert self.modelXbrl is not None
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return typeDerivedFrom.isTextBlock if typeDerivedFrom is not None else False
 
@@ -1294,6 +1331,8 @@ class ModelType(ModelNamableTerm):
         qnameDerivedFrom = self.qnameDerivedFrom
         if not isinstance(qnameDerivedFrom, ModelValue.QName): # textblock not a union type
             return False
+
+        assert self.modelXbrl is not None
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return typeDerivedFrom.isOimTextFactType if typeDerivedFrom is not None else False
 
@@ -1305,6 +1344,8 @@ class ModelType(ModelNamableTerm):
         qnameDerivedFrom = self.qnameDerivedFrom
         if not isinstance(qnameDerivedFrom, ModelValue.QName): # textblock not a union type
             return False
+
+        assert self.modelXbrl is not None
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return typeDerivedFrom.isWgnStringFactType if typeDerivedFrom is not None else False
 
@@ -1319,6 +1360,8 @@ class ModelType(ModelNamableTerm):
         if (not isinstance(qnameDerivedFrom, ModelValue.QName) or # domainItemType not a union type
             (qnameDerivedFrom.namespaceURI in(XbrlConst.xsd,XbrlConst.xbrli))):
             return False
+
+        assert self.modelXbrl is not None
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return typeDerivedFrom.isDomainItemType if typeDerivedFrom is not None else False
 
@@ -1348,6 +1391,7 @@ class ModelType(ModelNamableTerm):
                     return True
             qnamesDerivedFrom = (qnamesDerivedFrom,)
         for qnameDerivedFrom in qnamesDerivedFrom:
+            assert self.modelXbrl is not None
             typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
             if typeDerivedFrom is not None and typeDerivedFrom.isDerivedFrom(typeqname):
                 return True
@@ -1490,6 +1534,7 @@ class ModelGroupDefinition(ModelNamableTerm, ModelParticle):
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelGroupDefinition, self).init(modelDocument)
         if self.isGlobalDeclaration:
+            assert self.modelXbrl is not None
             self.modelXbrl.qnameGroupDefinitions[self.qname] = self
         else:
             self.addToParticles()
@@ -1500,6 +1545,7 @@ class ModelGroupDefinition(ModelNamableTerm, ModelParticle):
         ref = self.get("ref")
         if ref:
             qn = self.schemaNameQname(ref)
+            assert self.modelXbrl is not None
             return self.modelXbrl.qnameGroupDefinitions.get(qn)
         return self
 
@@ -1682,6 +1728,7 @@ class ModelResource(ModelObject):
     """
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelResource, self).init(modelDocument)
+        assert self.modelXbrl is not None
         if self.xmlLang:
             self.modelXbrl.langs.add(self.xmlLang)
         if self.localName == "label":
@@ -2113,6 +2160,7 @@ class ModelRelationship(ModelObject):
     def equivalenceKey(self) -> tuple[Any, ...]:
         """(tuple) -- Key to determine relationship equivalence per 2.1 spec"""
         # cannot be cached because this is unique per relationship
+        assert self.modelXbrl is not None
         return (self.qname,
                 self.linkQname,
                 self.linkrole,  # needed when linkrole=None merges multiple links
