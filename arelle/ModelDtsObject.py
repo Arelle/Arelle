@@ -189,7 +189,7 @@ class ModelNamableTerm(ModelObject):
     :type modelDocument: ModelDocument
     """
 
-    _attributeWildcards: list[_Element]
+    _attributeWildcards: set[_Element]
     _defaultAttributeQnames: set[QName]
     _xsdQname: QName | None
     isQualifiedForm: bool
@@ -915,7 +915,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         _refProperty = ("references", _refsStrung, _refT) if _refT else ()
         _facets = ("facets", ", ".join(sorted(self.facets.keys())), tuple(
                     (_name, sorted(_value.keys()),
-                     tuple((eVal,eElt.genLabel())
+                     tuple((eVal,eElt.genLabel())  # type: ignore[attr-defined]
                            for eVal, eElt in sorted(_value.items(), key=lambda i:i[0]))
                      ) if isinstance(_value,dict)
                     else (_name, _value)
@@ -1098,7 +1098,7 @@ class ModelAttributeGroup(ModelNamableTerm):
             attrs, attrWildcardElts, attrGroups = XmlUtil.schemaAttributesGroups(self)
             self._attributeWildcards = set(attrWildcardElts)
             for attrGroupRef in attrGroups:
-                attrGroupDecl = attrGroupRef.dereference()
+                attrGroupDecl = attrGroupRef.dereference()  # type: ignore[attr-defined]
                 if attrGroupDecl is not None:
                     for attrRef in attrGroupDecl.attributes.values():
                         attrDecl = attrRef.dereference()
@@ -1139,6 +1139,7 @@ class ModelType(ModelNamableTerm):
     """
 
     _attributes: dict[QName, ModelAttribute]
+    _attributeWildcards: list[str]
     _baseXbrliType: str | None
     _baseXbrliTypeQname: Any
     _baseXsdType: str
@@ -1160,7 +1161,7 @@ class ModelType(ModelNamableTerm):
         # may be anonymous type of parent
         element = self.getparent()
         while element is not None:
-            nameAttr = element.getStripped("name")
+            nameAttr = element.getStripped("name")  # type: ignore[attr-defined]
             if nameAttr:
                 return nameAttr + anonymousTypeSuffix
             element = element.getparent()
@@ -1308,6 +1309,7 @@ class ModelType(ModelNamableTerm):
     @property
     def isTextBlock(self) -> bool:
         """(str) -- True if type is, or is derived from, us-types:textBlockItemType or dtr-types:escapedItemType"""
+        assert self.modelDocument.targetNamespace is not None
         if self.name == "textBlockItemType" and "/us-types/" in self.modelDocument.targetNamespace:
             return True
         if self.name == "escapedItemType" and self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith):
@@ -1324,6 +1326,7 @@ class ModelType(ModelNamableTerm):
     @property
     def isOimTextFactType(self) -> bool:
         """(str) -- True if type meets OIM requirements to be a text fact"""
+        assert self.modelDocument.targetNamespace is not None
         if self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith):
             return self.name not in XbrlConst.dtrNoLangItemTypeNames and self.baseXsdType in XbrlConst.xsdStringTypeNames
         if self.modelDocument.targetNamespace == XbrlConst.xbrli:
@@ -1339,6 +1342,7 @@ class ModelType(ModelNamableTerm):
     @property
     def isWgnStringFactType(self) -> bool:
         """(str) -- True if type meets WGN String Fact Type requirements"""
+        assert self.modelDocument.targetNamespace is not None
         if self.modelDocument.targetNamespace == XbrlConst.xbrli:
             return self.name in XbrlConst.wgnStringItemTypeNames
         qnameDerivedFrom = self.qnameDerivedFrom
@@ -1352,6 +1356,7 @@ class ModelType(ModelNamableTerm):
     @property
     def isDomainItemType(self) -> bool:
         """(bool) -- True if type is, or is derived from, domainItemType in either a us-types or a dtr-types namespace."""
+        assert self.modelDocument.targetNamespace is not None
         if self.name == "domainItemType" and \
            ("/us-types/" in self.modelDocument.targetNamespace or
             self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith)):
@@ -1390,7 +1395,7 @@ class ModelType(ModelNamableTerm):
                 if qnamesDerivedFrom == typeqname:
                     return True
             qnamesDerivedFrom = (qnamesDerivedFrom,)
-        for qnameDerivedFrom in qnamesDerivedFrom:
+        for qnameDerivedFrom in qnamesDerivedFrom:  # type: ignore[attr-defined]
             assert self.modelXbrl is not None
             typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
             if typeDerivedFrom is not None and typeDerivedFrom.isDerivedFrom(typeqname):
@@ -1408,14 +1413,14 @@ class ModelType(ModelNamableTerm):
             attrs, attrWildcardElts, attrGroups = XmlUtil.schemaAttributesGroups(self)
             self._attributeWildcards = attrWildcardElts
             for attrRef in attrs:
-                attrDecl = attrRef.dereference()
+                attrDecl = attrRef.dereference()  # type: ignore[attr-defined]
                 if attrDecl is not None:
                     self._attributes[attrDecl.qname] = attrDecl
             for attrGroupRef in attrGroups:
-                attrGroupDecl = attrGroupRef.dereference()
+                attrGroupDecl = attrGroupRef.dereference()  # type: ignore[attr-defined]
                 if attrGroupDecl is not None:
                     for attrRef in attrGroupDecl.attributes.values():
-                        attrDecl = attrRef.dereference()
+                        attrDecl = attrRef.dereference()  # type: ignore[attr-defined]
                         if attrDecl is not None:
                             self._attributes[attrDecl.qname] = attrDecl
                     self._attributeWildcards.extend(attrGroupDecl.attributeWildcards)
@@ -1483,12 +1488,17 @@ class ModelType(ModelNamableTerm):
                     "{http://www.w3.org/2001/XMLSchema}maxExclusive", "{http://www.w3.org/2001/XMLSchema}minExclusive",
                     "{http://www.w3.org/2001/XMLSchema}totalDigits", "{http://www.w3.org/2001/XMLSchema}fractionDigits")):
             facetValue = XmlValidate.validateFacet(self, facetElt)
-            facetName = facetElt.localName
+            assert facetElt is not None
+            facetName = facetElt.localName  # type: ignore[attr-defined]
             if facetName not in facetValues and facetValue is not None:  # facetValue can be zero but not None
                 facetValues[facetName] = facetValue
         if "enumeration" not in facetValues:
             for facetElt in XmlUtil.schemaFacets(self, ("{http://www.w3.org/2001/XMLSchema}enumeration",)):
-                facetValues.setdefault("enumeration",{})[facetElt.get("value")] = facetElt
+                # Note 2023-01-29:
+                # Not sure about this one. facetElt must not be None for there to be a
+                # get-method. Should we assert instead?
+                if facetElt is not None:
+                    facetValues.setdefault("enumeration",{})[facetElt.get("value")] = facetElt
         typeDerivedFrom = self.typeDerivedFrom
         if isinstance(typeDerivedFrom, ModelType):
             typeDerivedFrom.constrainingFacets(facetValues)
@@ -1764,7 +1774,7 @@ class ModelResource(ModelObject):
 
     def roleRefPartSortKey(self) -> str:
         return "{} {}".format(self.role,
-                              " ".join("{} {}".format(_refPart.localName, _refPart.stringValue.strip())
+                              " ".join("{} {}".format(_refPart.localName, _refPart.stringValue.strip())  # type: ignore[attr-defined]
                                        for _refPart in self.iterchildren()))[:200] # limit length of sort
 
     def dereference(self) -> ModelResource:
@@ -1779,6 +1789,9 @@ class ModelLocator(ModelResource):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
+
+    modelHref: tuple[str, ModelDocument, str]
+
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelLocator, self).init(modelDocument)
 
@@ -1844,6 +1857,7 @@ class ModelRelationship(ModelObject):
     _isComplemented: bool
     _isCovered: bool
     _isClosed: bool
+    _tableAxis: str
     _usable: str | None
 
     def __init__(self, modelDocument: ModelDocument, arcElement: ModelDocument, fromModelObject: ModelDocument, toModelObject: ModelDocument) -> None:
@@ -1860,37 +1874,37 @@ class ModelRelationship(ModelObject):
     def get(self, attrname: str) -> Any:
         """Method proxy for the arc element of the effective relationship so that the non-proxy
         """
-        return self.arcElement.get(attrname)
+        return self.arcElement.get(attrname) # type: ignore[attr-defined]
 
     @property
     def localName(self) -> str:
         """(str) -- Property proxy for localName of arc element"""
-        return cast(str, self.arcElement.localName)
+        return cast(str, self.arcElement.localName) # type: ignore[attr-defined]
 
     @property
     def namespaceURI(self) -> str:
         """(str) -- Property proxy for namespaceURI of arc element"""
-        return cast(str, self.arcElement.namespaceURI)
+        return cast(str, self.arcElement.namespaceURI) # type: ignore[attr-defined]
 
     @property
     def prefixedName(self) -> str:
         """(str) -- Property proxy for prefixedName of arc element"""
-        return cast(str, self.arcElement.prefixedName)
+        return cast(str, self.arcElement.prefixedName) # type: ignore[attr-defined]
 
     @property
     def sourceline(self) -> int:
         """(int) -- Property proxy for sourceline of arc element"""
-        return self.arcElement.sourceline
+        return self.arcElement.sourceline # type: ignore[attr-defined]
 
     @property
     def tag(self) -> str:
         """(str) -- Property proxy for tag of arc element (clark notation)"""
-        return self.arcElement.tag
+        return self.arcElement.tag # type: ignore[attr-defined]
 
     @property
     def elementQname(self) -> QName:
         """(QName) -- Property proxy for elementQName of arc element"""
-        return self.arcElement.elementQname
+        return self.arcElement.elementQname # type: ignore[attr-defined]
 
     @property
     def qname(self) -> QName:
@@ -1899,26 +1913,26 @@ class ModelRelationship(ModelObject):
 
     def itersiblings(self, **kwargs: Any) -> Any:
         """Method proxy for itersiblings() of lxml arc element"""
-        return self.arcElement.itersiblings(**kwargs)
+        return self.arcElement.itersiblings(**kwargs) # type: ignore[attr-defined]
 
     def getparent(self) -> ModelObject:
         """(_ElementBase) -- Method proxy for getparent() of lxml arc element"""
-        return self.arcElement.getparent()
+        return self.arcElement.getparent() # type: ignore[attr-defined]
 
     @property
     def fromLabel(self) -> str | None:
         """(str) -- Value of xlink:from attribute"""
-        return self.arcElement.get("{http://www.w3.org/1999/xlink}from")
+        return self.arcElement.get("{http://www.w3.org/1999/xlink}from") # type: ignore[attr-defined]
 
     @property
     def toLabel(self) -> str | None:
         """(str) -- Value of xlink:to attribute"""
-        return self.arcElement.get("{http://www.w3.org/1999/xlink}to")
+        return self.arcElement.get("{http://www.w3.org/1999/xlink}to") # type: ignore[attr-defined]
 
     @property
     def fromLocator(self) -> ModelLocator | None:
         """(ModelLocator) -- Value of locator surrogate of relationship source, if any"""
-        for fromResource in self.arcElement.getparent().labeledResources[self.fromLabel]:
+        for fromResource in self.arcElement.getparent().labeledResources[self.fromLabel]: # type: ignore[attr-defined]
             if isinstance(fromResource, ModelLocator) and self.fromModelObject is fromResource.dereference():
                 return fromResource
         return None
@@ -1926,7 +1940,7 @@ class ModelRelationship(ModelObject):
     @property
     def toLocator(self) -> ModelLocator | None:
         """(ModelLocator) -- Value of locator surrogate of relationship target, if any"""
-        for toResource in self.arcElement.getparent().labeledResources[self.toLabel]:
+        for toResource in self.arcElement.getparent().labeledResources[self.toLabel]: # type: ignore[attr-defined]
             if isinstance(toResource, ModelLocator) and self.toModelObject is toResource.dereference():
                 return toResource
         return None
@@ -1944,15 +1958,15 @@ class ModelRelationship(ModelObject):
     @property
     def arcrole(self) -> str:
         """(str) -- Value of xlink:arcrole attribute"""
-        return self.arcElement.get("{http://www.w3.org/1999/xlink}arcrole")
+        return self.arcElement.get("{http://www.w3.org/1999/xlink}arcrole")  # type: ignore[attr-defined]
 
     @property
     def order(self) -> float:
         """(float) -- Value of xlink:order attribute, or 1.0 if not specified"""
         try:
-            return self.arcElement._order
+            return self.arcElement._order # type: ignore[attr-defined]
         except AttributeError:
-            o = self.arcElement.get("order")
+            o = self.arcElement.get("order") # type: ignore[attr-defined]
             if o is None:
                 order = 1.0
             else:
@@ -1960,7 +1974,7 @@ class ModelRelationship(ModelObject):
                     order = float(o)
                 except (TypeError,ValueError) :
                     order = float("nan")
-            self.arcElement._order = order
+            self.arcElement._order = order # type: ignore[attr-defined]
             return order
 
     @property
@@ -1975,9 +1989,9 @@ class ModelRelationship(ModelObject):
     def priority(self) -> int:
         """(int) -- Value of xlink:order attribute, or 0 if not specified"""
         try:
-            return self.arcElement._priority
+            return self.arcElement._priority # type: ignore[attr-defined]
         except AttributeError:
-            p = self.arcElement.get("priority")
+            p = self.arcElement.get("priority") # type: ignore[attr-defined]
             if p is None:
                 priority = 0
             else:
@@ -1986,16 +2000,16 @@ class ModelRelationship(ModelObject):
                 except (TypeError,ValueError) :
                     # XBRL validation error needed
                     priority = 0
-            self.arcElement._priority = priority
+            self.arcElement._priority = priority # type: ignore[attr-defined]
             return priority
 
     @property
     def weight(self) -> float | None:
         """(float) -- Value of xlink:weight attribute, NaN if not convertable to float, or None if not specified"""
         try:
-            return self.arcElement._weight
+            return self.arcElement._weight # type: ignore[attr-defined]
         except AttributeError:
-            w = self.arcElement.get("weight")
+            w = self.arcElement.get("weight") # type: ignore[attr-defined]
             if w is None:
                 weight = None
             else:
@@ -2004,16 +2018,16 @@ class ModelRelationship(ModelObject):
                 except (TypeError,ValueError) :
                     # XBRL validation error needed
                     weight = float("nan")
-            self.arcElement._weight = weight
+            self.arcElement._weight = weight # type: ignore[attr-defined]
             return weight
 
     @property
     def weightDecimal(self) -> decimal.Decimal | None:
         """(decimal) -- Value of xlink:weight attribute, NaN if not convertable to float, or None if not specified"""
         try:
-            return self.arcElement._weightDecimal
+            return self.arcElement._weightDecimal # type: ignore[attr-defined]
         except AttributeError:
-            w = self.arcElement.get("weight")
+            w = self.arcElement.get("weight") # type: ignore[attr-defined]
             if w is None:
                 weight = None
             else:
@@ -2022,7 +2036,7 @@ class ModelRelationship(ModelObject):
                 except (TypeError,ValueError,decimal.InvalidOperation) :
                     # XBRL validation error needed
                     weight = decimal.Decimal("nan")
-            self.arcElement._weightDecimal = weight
+            self.arcElement._weightDecimal = weight # type: ignore[attr-defined]
             return weight
 
     @property
@@ -2059,12 +2073,12 @@ class ModelRelationship(ModelObject):
     @property
     def linkrole(self) -> str:
         """(str) -- Value of xlink:role attribute of parent extended link element"""
-        return self.arcElement.getparent().get("{http://www.w3.org/1999/xlink}role")
+        return self.arcElement.getparent().get("{http://www.w3.org/1999/xlink}role") # type: ignore[attr-defined]
 
     @property
     def linkQname(self) -> QName:
         """(QName) -- qname of the parent extended link element"""
-        return self.arcElement.getparent().elementQname
+        return self.arcElement.getparent().elementQname # type: ignore[attr-defined]
 
     @property
     def contextElement(self) -> str:
@@ -2202,7 +2216,7 @@ class ModelRelationship(ModelObject):
                 ("weight", self.weight) if self.arcrole == XbrlConst.summationItem else (),
                 ("preferredLabel", self.preferredLabel)  if self.arcrole == XbrlConst.parentChild and self.preferredLabel else (),
                 ("contextElement", self.contextElement)  if self.arcrole in (XbrlConst.all, XbrlConst.notAll)  else (),
-                ("typedDomain", self.toModelObject.typedDomainElement.qname)
+                ("typedDomain", self.toModelObject.typedDomainElement.qname)  # type: ignore[attr-defined]
                   if self.arcrole == XbrlConst.hypercubeDimension and
                      isinstance(self.toModelObject,ModelConcept) and
                      self.toModelObject.isTypedDimension and
