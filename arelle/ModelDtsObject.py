@@ -68,9 +68,11 @@ from arelle.XmlValidate import UNVALIDATED, VALID
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import AnyURI, QName, TypeXValue
 from lxml.etree import _Element
+from arelle.typing import TypeGetText
 
 if TYPE_CHECKING:
     from arelle.ModelDocument import ModelDocument
+    _: TypeGetText
 
 ModelFact = None
 
