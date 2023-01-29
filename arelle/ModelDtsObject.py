@@ -223,7 +223,7 @@ class ModelNamableTerm(ModelObject):
     def isGlobalDeclaration(self) -> bool:
         parent = self.getparent()
         assert parent is not None
-        return parent.namespaceURI == XbrlConst.xsd and parent.localName == "schema"  # type: ignore[attr-defined]
+        return parent.namespaceURI == XbrlConst.xsd and parent.localName == "schema"  # type: ignore[attr-defined, no-any-return]
 
     def schemaNameQname(self, prefixedName: str, isQualifiedForm: bool = True, prefixException: type[Exception] | None = None) -> QName | None:
         """Returns ModelValue.QName of prefixedName using this element and its ancestors' xmlns.
@@ -656,7 +656,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def isRoot(self) -> bool:
         """(bool) -- True if parent of element definition is xsd schema element"""
-        return self.getparent().localName == "schema"  # type: ignore[union-attr]
+        return self.getparent().localName == "schema"  # type: ignore[union-attr, no-any-return]
 
     def label(
         self,
@@ -694,7 +694,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             for _lang in (lang if isinstance(lang, (tuple,list)) else (lang,)):
                 label = labelsRelationshipSet.label(self, preferredLabel, _lang, linkroleHint=linkroleHint)
                 if label is not None:
-                    if strip: return label.strip()
+                    if strip: return label.strip()  # type: ignore[no-any-return]
                     return Locale.rtlString(label, lang=_lang)
         return str(self.qname) if fallbackToQname else None
 
@@ -714,7 +714,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         if relationshipSet:
             for modelRel in relationshipSet.fromModelObject(self):
                 if modelRel.toModelObject == resourceObject:
-                    return modelRel
+                    return modelRel  # type: ignore[no-any-return]
         return None
 
     @property
@@ -907,7 +907,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
                        tuple((_refPart.localName, _refPart.stringValue.strip())
                              for _refPart in _ref.iterchildren()))
                       for _refRel in sorted(self.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(self),
-                                            key=lambda r:r.toModelObject.roleRefPartSortKey())
+                                            key=lambda r:r.toModelObject.roleRefPartSortKey())  # type: ignore[no-any-return]
                       for _ref in (_refRel.toModelObject,))
         _refsStrung = " ".join(_refPart.stringValue.strip()
                                for _refRel in self.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(self)
@@ -1039,7 +1039,7 @@ class ModelAttribute(ModelNamableTerm):
         """(bool) -- True if attribute has form attribute qualified or its document default"""
         if self.get("form") is not None: # form is almost never used
             return self.get("form") == "qualified"
-        return self.modelDocument.isQualifiedAttributeFormDefault
+        return self.modelDocument.isQualifiedAttributeFormDefault  # type: ignore[no-any-return]
 
     @property
     def isRequired(self) -> bool:
@@ -1141,7 +1141,7 @@ class ModelType(ModelNamableTerm):
     _attributes: dict[QName, ModelAttribute]
     _attributeWildcards: list[str]
     _baseXbrliType: str | None
-    _baseXbrliTypeQname: Any
+    _baseXbrliTypeQname: QName | None
     _baseXsdType: str
     _facets: dict[str, TypeXValue] | None
     _elements: set[QName | None]
@@ -1252,7 +1252,7 @@ class ModelType(ModelNamableTerm):
             return self._baseXsdType
 
     @property
-    def baseXbrliTypeQname(self) -> QName:
+    def baseXbrliTypeQname(self) -> QName | None:
         """(qname) -- The qname of the parent type in the xbrli namespace, if any, otherwise the localName of the parent in the xsd namespace."""
         try:
             return self._baseXbrliTypeQname
@@ -1894,22 +1894,22 @@ class ModelRelationship(ModelObject):
     @property
     def sourceline(self) -> int:
         """(int) -- Property proxy for sourceline of arc element"""
-        return self.arcElement.sourceline # type: ignore[attr-defined]
+        return self.arcElement.sourceline # type: ignore[attr-defined, no-any-return]
 
     @property
     def tag(self) -> str:
         """(str) -- Property proxy for tag of arc element (clark notation)"""
-        return self.arcElement.tag # type: ignore[attr-defined]
+        return self.arcElement.tag # type: ignore[attr-defined, no-any-return]
 
     @property
     def elementQname(self) -> QName:
         """(QName) -- Property proxy for elementQName of arc element"""
-        return self.arcElement.elementQname # type: ignore[attr-defined]
+        return self.arcElement.elementQname # type: ignore[attr-defined, no-any-return]
 
     @property
     def qname(self) -> QName:
         """(QName) -- Property proxy for qname of arc element"""
-        return self.arcElement.qname
+        return self.arcElement.qname  # type: ignore[no-any-return]
 
     def itersiblings(self, **kwargs: Any) -> Any:
         """Method proxy for itersiblings() of lxml arc element"""
@@ -1917,17 +1917,17 @@ class ModelRelationship(ModelObject):
 
     def getparent(self) -> ModelObject:
         """(_ElementBase) -- Method proxy for getparent() of lxml arc element"""
-        return self.arcElement.getparent() # type: ignore[attr-defined]
+        return self.arcElement.getparent() # type: ignore[attr-defined, no-any-return]
 
     @property
     def fromLabel(self) -> str | None:
         """(str) -- Value of xlink:from attribute"""
-        return self.arcElement.get("{http://www.w3.org/1999/xlink}from") # type: ignore[attr-defined]
+        return self.arcElement.get("{http://www.w3.org/1999/xlink}from") # type: ignore[attr-defined, no-any-return]
 
     @property
     def toLabel(self) -> str | None:
         """(str) -- Value of xlink:to attribute"""
-        return self.arcElement.get("{http://www.w3.org/1999/xlink}to") # type: ignore[attr-defined]
+        return self.arcElement.get("{http://www.w3.org/1999/xlink}to") # type: ignore[attr-defined, no-any-return]
 
     @property
     def fromLocator(self) -> ModelLocator | None:
@@ -1958,13 +1958,13 @@ class ModelRelationship(ModelObject):
     @property
     def arcrole(self) -> str:
         """(str) -- Value of xlink:arcrole attribute"""
-        return self.arcElement.get("{http://www.w3.org/1999/xlink}arcrole")  # type: ignore[attr-defined]
+        return self.arcElement.get("{http://www.w3.org/1999/xlink}arcrole")  # type: ignore[attr-defined, no-any-return]
 
     @property
     def order(self) -> float:
         """(float) -- Value of xlink:order attribute, or 1.0 if not specified"""
         try:
-            return self.arcElement._order # type: ignore[attr-defined]
+            return self.arcElement._order # type: ignore[attr-defined, no-any-return]
         except AttributeError:
             o = self.arcElement.get("order") # type: ignore[attr-defined]
             if o is None:
@@ -1989,7 +1989,7 @@ class ModelRelationship(ModelObject):
     def priority(self) -> int:
         """(int) -- Value of xlink:order attribute, or 0 if not specified"""
         try:
-            return self.arcElement._priority # type: ignore[attr-defined]
+            return self.arcElement._priority # type: ignore[attr-defined, no-any-return]
         except AttributeError:
             p = self.arcElement.get("priority") # type: ignore[attr-defined]
             if p is None:
@@ -2007,7 +2007,7 @@ class ModelRelationship(ModelObject):
     def weight(self) -> float | None:
         """(float) -- Value of xlink:weight attribute, NaN if not convertable to float, or None if not specified"""
         try:
-            return self.arcElement._weight # type: ignore[attr-defined]
+            return self.arcElement._weight # type: ignore[attr-defined, no-any-return]
         except AttributeError:
             w = self.arcElement.get("weight") # type: ignore[attr-defined]
             if w is None:
@@ -2025,7 +2025,7 @@ class ModelRelationship(ModelObject):
     def weightDecimal(self) -> decimal.Decimal | None:
         """(decimal) -- Value of xlink:weight attribute, NaN if not convertable to float, or None if not specified"""
         try:
-            return self.arcElement._weightDecimal # type: ignore[attr-defined]
+            return self.arcElement._weightDecimal # type: ignore[attr-defined, no-any-return]
         except AttributeError:
             w = self.arcElement.get("weight") # type: ignore[attr-defined]
             if w is None:
@@ -2042,7 +2042,7 @@ class ModelRelationship(ModelObject):
     @property
     def use(self) -> str | None:
         """(str) -- Value of use attribute"""
-        return self.get("use")
+        return self.get("use")  # type: ignore[no-any-return]
 
     @property
     def isProhibited(self) -> bool:
@@ -2057,7 +2057,7 @@ class ModelRelationship(ModelObject):
     @property
     def preferredLabel(self) -> str | None:
         """(str) -- preferredLabel attribute or None if absent"""
-        return self.get("preferredLabel")
+        return self.get("preferredLabel")  # type: ignore[no-any-return]
 
     @property
     def variablename(self) -> str | None:
@@ -2068,27 +2068,27 @@ class ModelRelationship(ModelObject):
     def variableQname(self) -> QName:
         """(QName) -- resolved name for a formula (or other arc) having a QName name attribute"""
         varName = self.variablename
-        return ModelValue.qname(self.arcElement, varName, noPrefixIsNoNamespace=True) if varName else None
+        return ModelValue.qname(self.arcElement, varName, noPrefixIsNoNamespace=True) if varName else None  # type: ignore[no-any-return]
 
     @property
     def linkrole(self) -> str:
         """(str) -- Value of xlink:role attribute of parent extended link element"""
-        return self.arcElement.getparent().get("{http://www.w3.org/1999/xlink}role") # type: ignore[attr-defined]
+        return self.arcElement.getparent().get("{http://www.w3.org/1999/xlink}role") # type: ignore[attr-defined, no-any-return]
 
     @property
     def linkQname(self) -> QName:
         """(QName) -- qname of the parent extended link element"""
-        return self.arcElement.getparent().elementQname # type: ignore[attr-defined]
+        return self.arcElement.getparent().elementQname # type: ignore[attr-defined, no-any-return]
 
     @property
     def contextElement(self) -> str:
         """(str) -- Value of xbrldt:contextElement attribute (on applicable XDT arcs)"""
-        return self.get("{http://xbrl.org/2005/xbrldt}contextElement")
+        return self.get("{http://xbrl.org/2005/xbrldt}contextElement")  # type: ignore[no-any-return]
 
     @property
     def targetRole(self) -> str:
         """(str) -- Value of xbrldt:targetRole attribute (on applicable XDT arcs)"""
-        return self.get("{http://xbrl.org/2005/xbrldt}targetRole")
+        return self.get("{http://xbrl.org/2005/xbrldt}targetRole")  # type: ignore[no-any-return]
 
     @property
     def consecutiveLinkrole(self) -> str:
