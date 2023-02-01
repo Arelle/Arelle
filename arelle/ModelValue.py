@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 import datetime, isodate
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, cast, overload, Optional, Union
+from typing import Dict, List, TYPE_CHECKING, Any, cast, overload, Optional, Union
 from fractions import Fraction
 
 if TYPE_CHECKING:
@@ -965,31 +965,30 @@ class InvalidValue(str):
 
 INVALIDixVALUE = InvalidValue("(ixTransformValueError)")
 
-if TYPE_CHECKING:
-    TypeSValue = Union[
-        bool,
-        float,
-        int,
-        InvalidValue,
-        None,
-        str,
-    ]
-    TypeXValue = Union[
-        datetime.datetime,
-        datetime.time,
-        Decimal,
-        dict[str, re.Pattern[str]],
-        float,
-        gDay,
-        gMonth,
-        gMonthDay,
-        gYearMonth,
-        gYear,
-        Fraction,
-        list[Optional[QName]],
-        None,
-        re.Pattern[str],
-        str,
-        QName,
-        'XsdPattern',
-    ]
+TypeSValue = Union[
+    bool,
+    float,
+    int,
+    InvalidValue,
+    None,
+    str,
+]
+TypeXValue = Union[
+    datetime.datetime,
+    datetime.time,
+    Decimal,
+    Dict[str, 're.Pattern[str]'],
+    float,
+    gDay,
+    gMonth,
+    gMonthDay,
+    gYearMonth,
+    gYear,
+    Fraction,
+    List[Optional[QName]],
+    None,
+    're.Pattern[str]',
+    str,
+    QName,
+    'XsdPattern',
+]
