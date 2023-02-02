@@ -2531,10 +2531,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             ns = d.targetNamespace
             lbVal = linkbaseValidations.get(abbreviatedNamespace(d.targetNamespace, NOYEAR))
             if d.type == ModelDocument.Type.SCHEMA and lbVal:
-                preSrcConcepts = set(modelXbrl.nameConcepts[c][0] for c in lbVal.preSources)
-                # instead of [0] this should check standardNamespacesPattern
+                preSrcConcepts = set(concept
+                                     for name in lbVal.preSources
+                                     for concept in modelXbrl.nameConcepts.get(name, ())
+                                     if isStandardUri(val, concept.modelDocument.uri)) # want concept from std namespace not extension
                 if lbVal.efmPre and not (lbVal.efmPre in ("6.12.10") and documentType not in ("N-2", "N-2/A")):
-                    # CEF-2023 update to EFM to be in release 23.1
                     for rel in modelXbrl.relationshipSet(XbrlConst.parentChild).modelRelationships:
                         if not isStandardUri(val, rel.modelDocument.uri) and rel.modelDocument.targetNamespace not in val.otherStandardTaxonomies:
                             relFrom = rel.fromModelObject
