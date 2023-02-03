@@ -127,7 +127,7 @@ jobs:
       run: choco install nsis
     - name: Install requirements
       run: |
-        pip install --upgrade pip setuptools wheel
+        python -m pip install --upgrade pip setuptools wheel
         pip install -r requirements-build.txt
     - name: Capture build version
       run: echo ("BUILD_VERSION=" + (python -W ignore distro.py --version)) >> $env:GITHUB_ENV
