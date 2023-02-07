@@ -614,8 +614,11 @@ def factBindings(modelXbrl, localNames, nils=False, noAdditionalDims=False):
             addMostAccurateFactToBinding(f)
     return bindings
 
-def leastDecimals(binding, localNames):
-    nonNilFacts = [binding[ln] for ln in localNames if not binding[ln].isNil]
+def leastDecimals(binding, localNames=None):
+    if localNames:
+        nonNilFacts = [binding[ln] for ln in localNames if not binding[ln].isNil]
+    else:
+        nonNilFacts = [f for f in binding if f is not None and not f.isNil] # just plain sequence of facts not in bindings
     if nonNilFacts:
         return min((inferredDecimals(f) for f in nonNilFacts))
     return floatINF

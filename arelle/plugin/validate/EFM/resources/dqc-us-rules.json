@@ -486,7 +486,16 @@
             "",
             "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0013/DQC_0013.md"
         ],
-        "message": "It is expected that {name} with a value of {value} will be reported with a value equal to or greater than zero if net income before tax is positive. In this case net income before tax is {incomeBeforeTax}. The value reported for the tax rate reconciliation item is less than zero. The preparer should consider if the value is input correctly for this assertion and, after considering the appropriateness of the input, if incorrect, input the amount as a positive (i.e., absolute) value and provide a negated label, if desired, for rendering purposes.  \nThe properties of this {name} fact are:\nContext: {contextID} \nUnit: {unitID}"
+        "message": "It is expected that {name} with a value of {value} will be reported with a value equal to or greater than zero if net income before tax is positive. In this case net income before tax is {incomeBeforeTax}. The value reported for the tax rate reconciliation item is less than zero. The preparer should consider if the value is input correctly for this assertion and, after considering the appropriateness of the input, if incorrect, input the amount as a positive (i.e., absolute) value and provide a negated label, if desired, for rendering purposes.  \nThe properties of this {name} fact are:\nContext: {contextID} \nUnit: {unitID}",
+        "precondition": [
+        	["IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest"],
+			["IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments", 
+			 "IncomeLossFromEquityMethodInvestments"],
+			["IncomeLossFromContinuingOperationsBeforeIncomeTaxesDomestic",
+			 "IncomeLossFromContinuingOperationsBeforeIncomeTaxesForeign", "IncomeLossFromEquityMethodInvestments"],
+			["IncomeLossFromContinuingOperationsBeforeIncomeTaxesForeign",
+			 "IncomeLossFromContinuingOperationsBeforeIncomeTaxesDomestic", "IncomeLossFromEquityMethodInvestments"]
+		],
         "concepts": {
 			"2774": "EffectiveIncomeTaxRateReconciliationTaxCredits",
 			"2776": "EffectiveIncomeTaxRateReconciliationDeductionsQualifiedProductionActivities",
@@ -507,6 +516,7 @@
 			"3439": "EffectiveIncomeTaxRateReconciliationDeductionsExtraterritorialIncomeExclusion",
 			"3440": "EffectiveIncomeTaxRateReconciliationNondeductibleExpenseCharitableContributions",
 			"3441": "EffectiveIncomeTaxRateReconciliationRepatriationForeignEarningsJobsCreationActOf2004"
+		}
     },
     "DQC.US.0015": {
     	"name": "Negative Values",
@@ -524,12 +534,13 @@
             "",
             "Precondition emulates xule precondition expression, first entry ",
             "where first fact binds returns sum of all bound facts ",
-            ""
+            "",
             "A JSON object with key that is the rule id and value object as follows:",
             "names: local name of DEI facts to test",
             "",
             "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0033/DQC_0033.md"
         ],
+        "message": "The ending date of {endDate} used for {name} must be the same as the Document Period End Date, {documentPeriodEndDate}.  \nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}",
         "precondition": [
         	["IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest"],
         	["IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments",
@@ -540,9 +551,7 @@
         	["IncomeLossFromContinuingOperationsBeforeIncomeTaxesForeign",
         	 "IncomeLossFromContinuingOperationsBeforeIncomeTaxesDomestic",
         	 "IncomeLossFromEquityMethodInvestments"]
-        	]
         ],
-        "message": "The ending date of {endDate} used for {name} must be the same as the Document Period End Date, {documentPeriodEndDate}.  \nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}",
         "rules": {
         	"2": { 
         	    "names": [
@@ -914,7 +923,7 @@
                 "message": "One of the following elements {elementNames} should appear as the opening and closing balance in the cash flow statement using the group {role}. Instead the following balance items have been used in this statement {balanceElements}. Depending if ASU-2016-18 has been adopted at least one of the opening and closing balance items listed must be used in the cash flow statement."
             },
             "9728": {
-                "must-be-present-elements : [
+                "must-be-present-elements": [
 					"CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
 					"CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsIncludingDisposalGroupAndDiscontinuedOperations"
                 ],
@@ -1354,12 +1363,15 @@
             "",
             "A JSON object with key that is the rule id and value object as follows:",
             "   axis, array of allowable-primary-item names",
+            "tolerance: integer representing 10**-leastDecimals*tolerance for equality margin)",
             "",
             "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0084/DQC_0084.md"
         ],
-        "message": "The concept {name} with a value of {value} is used with the DefinedBenefitPlanByPlanAssetCategoriesAxis. This element cannot be used with this axis.   \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}.  \n\nThe allowable list of elements that can be used are as follows: {allowableNames}",
+        "message": "Sum of the cumulative periods of {sumPeriods} for {name} does not match the reported total of {value}, a difference of {difference}.  \n\nPeriod values are:\n{periods}\n\nThis rule takes into account possible rounding of values across periods and the decimals associated with each fact. This rule used a tolerance of {tolerance} which is calculated by taking the lowest decimal value used in the calculation of {minDecimals}. If there is a difference between the sum of the periods and the aggregate value reported the difference may be due to incorrect decimals associated with the individual fact values. The filer should check that the fact values do not have a decimal value that implies a higher level of accuracy than intended.\n\nIn those rare cases where there are small immaterial differences that are less than 1% of the total and decimals are zero the rule can be overidden. This is performed by creating an extension element called ImmaterialDifferenceFlag.  If this element has any value in any context in the instance then the immaterial difference will not result in an error.  \n\nThe rule excludes elements in the base taxonomy that cannot be aggregated such as an average, maximum or minimum value.   \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}.  \n\nThe allowable list of elements that can be used are as follows: {allowableNames}",
         "rules": {
-        	"7648": []
+        	"7648": {
+        		"tolerance": 3
+        	}
         }
 	}
 }

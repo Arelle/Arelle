@@ -2873,18 +2873,18 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 contextID=lesserFact.context.id, unitID=lesserFact.unit.id if lesserFact.unit is not None else "(none)",
                                 edgarCode=ruleEdgarCode, ruleElementId=id)
         elif dqcRuleName in ("DQC.US.0013","DQC.US.0015") and "DQC.US.0015" in ugtRels:
-            incomeBeforeTax = None # reported for 0013
+            incomeBeforeTax = 0 # reported for 0013
             if dqcRuleName == "DQC.US.0013": # 0013 has a precondition
                 incomeBeforeTax = None # precondition, must be positive
-                for pre in rule["precondition"]: # array of facts to bind and condition on if first is present
+                for pre in dqcRule["precondition"]: # array of facts to bind and condition on if first is present
                     for b in factBindings(val.modelXbrl, pre):
                         if pre[0] in b:
                             incomeBeforeTax = sum(f.xValue for f in b.values())
-                        if incomeBeforeTax > 0: break
+                            if incomeBeforeTax > 0: break
                     if incomeBeforeTax > 0: break
                 if incomeBeforeTax <= 0:
                     continue # precondition fails, skip rule
-                concepts = rule["concepts"]
+                concepts = dqcRule["concepts"]
             else:
                 concepts = dqc0015.concepts
             dqc0015 = ugtRels["DQC.US.0015"]
@@ -3054,7 +3054,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if name not in visited:
                             visited.add(name)
                             for childRel in modelXbrl.relationshipSet(XbrlConst.domainMember, rel.consecutiveLinkrole).fromModelObject(rel.toModelObject):
-                                mRel= checkMember(axis, childRel, excludedMemNames, visited):
+                                mRel= checkMember(axis, childRel, excludedMemNames, visited)
                                 if mRel is not None:
                                     return mRel
                             visited.discard(name)
@@ -3063,7 +3063,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     for dimConcept in modelXbrl.nameConcepts.get(dimName, ()):
                         for rel in modelXbrl.relationshipSet(XbrlConst.dimensionDomain).modelRelationships.fromModelObject(dimConcept):
                             mRel = checkMember(rel.fromModelObject, rel, excludedMemNames, set())
-                            if mRel is no None: # look for any facts
+                            if mRel is not None: # look for any facts
                                 factsFound = False
                                 for memName in excludedMemNames:
                                     for memConcept in modelXbrl.nameConcepts.get(memName, ()):
@@ -3096,13 +3096,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     balanceEltNames.add(toConcept.name)
                                     balanceElts.add(toConcept)
                                 visited.add(toConcept)
-                                checkConcept(relSet, toConcept, visited):
+                                checkConcept(relSet, toConcept, visited)
                                 visited.discard(toConcept)
                     for c in preRoots:
                         checkConcept(relSet, c, set())
                     for id, rule in dqcRule["rules"].items():
                         mustBePresentElements = rule["must-be-present-elements"]
-                        if not any balanceEltNames & set(mustBePresentElements):
+                        if not balanceEltNames & set(mustBePresentElements):
                             modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(rule["message"])),
                                 modelObject=balanceElts, role=linkroleUri, elementNames=", ".join(mustBePresentElements), 
                                 balanceEltments=", ".join(sorted(balanceEltNames)),
@@ -3140,7 +3140,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         descendants.add(toConcept)
                     if toConcept is not None and toConcept not in visited:
                         visited.add(toConcept)
-                        getDescendants(toConcept, rel.consecutiveLinkrole, startAtObj, visited):
+                        getDescendants(toConcept, rel.consecutiveLinkrole, startAtObj, visited)
                         visited.discard(toConcept)
 
             for linkroleUri in OrderedSet(modelLink.role for modelLink in val.modelXbrl.baseSets[(XbrlConst.all,None,None,None)]): # role ELRs may be repeated in dim LB
@@ -3150,7 +3150,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if (relSet.isRelated(cubeRoot, "descendant", dimToSkipIfPresent, isDRS=True) or
                         not relSet.isRelated(cubeRoot, "descendant", dimConcept, isDRS=True) or not any(
                             relSet.isRelated(cubeRoot, "descendant", dimConcept, isDRS=True)
-                            for priItemConcept in priItemConcepts))
+                            for priItemConcept in priItemConcepts)):
                         continue
                     if len(getDescendants(cubeRoot, linkroleUri, dimConcept, set())) == 1: # 
                         factsWithDim = set()
@@ -3165,7 +3165,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             f = factsWithDim.pop()
                             modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                 modelObject=f, name=f.qname,value=f.xValue, role=linkroleUri, table=cubeRoot.qname,
-                                member=f.qnameDims[dimConcept].memberQname
+                                member=f.qnameDims[dimConcept].memberQname,
                                 replacement=replacementMembers[name.lower()],
                                 contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
                                 edgarCode=edgarCode, ruleElementId=id)
@@ -3206,8 +3206,61 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         elif dqcRuleName == "DQC.US.0084":
             # 0084 has only one id, rule
             id, rule = next(iter(dqcRule["rules"].items()))
-
-
+            tolerance = rule["tolerance"]
+            if "ImmaterialDifferenceFlag" in modelXbrl.factsByLocalName:
+                continue
+            durationFactNames = set(f.concept.name
+                                    for durationFacts in modelXbrl.factsByPeriodType["duration"]
+                                    for f in durationFacts
+                                    if isStandardUri(val, f.concept.modelDocument.uri) and "average" not in f.concept.name.lower())
+            # aggreate bound facts by local name & dims for period sleuthing
+            def checkPerFacts(*facts):
+                minDec = leastDecimals(facts)
+                itemValues = [f.xValue for f in facts[1:]]
+                difference = abs(sumValue - sum(itemValues))
+                if math.isinf(minDec):
+                    maxDiff = difference > 0
+                else:
+                    maxDiff = pow(10, -minDec) * tolerance * len(facts) - 2
+                if difference > maxDiff:
+                    modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
+                        modelObject=facts, name=facts[0].concept.name, value=facts[0].xValue,
+                        difference=difference, minDecimals=minDec,tolerance=tolerance,
+                        periods=", ".join(f"{f.context.startDate}/{f.context.endDate}" for f in facts[1:]),                        
+                        contextID=sumFact.context.id, unitID=sumFact.unit.id if sumFact.unit is not None else "(none)",
+                        edgarCode=edgarCode, ruleElementId=id)
+                
+            periodCoveredFacts = defaultdict(set)
+            for binding in factBindings(durationFactNames, coverPeriod=True).values():
+                for ln, f in binding:
+                    periodCoveredFacts[ln, f.context.dimsHash].add(f)
+            for (ln, _dh), facts in periodCoveredFacts.items():
+                startPerFacts = defaultdict(set)
+                for f in facts:
+                    startPerFacts[f.context.startDatetime].add(f)
+                for s1, facts in startPerFacts.items(): # s1 is period holding subperiod facts
+                    for f1 in facts:
+                        # find any fact other facts with f1's duration
+                        e1 = f1.context.endDatetime
+                        for s2, facts2 in startPerFacts.items():
+                            if s2 >= s1:
+                                for f2 in facts2:
+                                    e2 = f2.context.endDatetime
+                                    if e2 < e1: # f2 is with f1 duration
+                                        for f3 in startPerFacts.get(e2,()):
+                                            e3 = f3.context.endDatetime
+                                            if e3 == e1:
+                                                checkPerFacts(f1, f2, f3)
+                                            elif e3 < e1:
+                                                for f4 in startPerFacts.get(e3,()):
+                                                    e4 = f4.context.endDatetime
+                                                    if e4 == e1:
+                                                        checkPerFacts(f1, f2, f3, f4)
+                                                    elif e4 < e1:
+                                                        for f5 in startPerFacts.get(e3,()):
+                                                            e5 = f5.context.endDatetime
+                                                            if e5 == e1:
+                                                                checkPerFacts(f1, f2, f3, f4, f5)
 
     del val.summationItemRelsSetAllELRs
 
