@@ -598,17 +598,31 @@ def loadDqcRules(modelXbrl): # returns match expression, standard patterns
         return dqcRules
     return {}
 
-def factBindings(modelXbrl, localNames, nils=False, noAdditionalDims=False):
+def factBindings(modelXbrl, localNames, nils=False, noAdditionalDims=False, coverPeriod=False, coverDimQnames=None):
     bindings = defaultdict(dict)
     def addMostAccurateFactToBinding(f):
+        cntx = f.context
         if (f.xValid >= VALID
             and (nils or not f.isNil)
-            and f.context is not None
-            and (not noAdditionalDims or not f.context.qnameDims)):
-            binding = bindings[f.context.contextDimAwareHash, f.unit.hash if f.unit is not None else None]
+            and cntx is not None
+            and (not noAdditionalDims or not cntx.qnameDims)):
+            if coverPeriod:
+                h = cntx.dimsHash
+                hper = cntx.periodHash
+            elif coverDimQnames:
+                h = hash( (cntx.periodHash, frozenset(din for qn,dim in cntx.qnameDims.items() if qn not in coverDimQnames)) )
+            else:
+                h = cntx.contextDimAwareHash
+            binding = bindings[h, f.unit.hash if f.unit is not None else None]
             ln = f.qname.localName
-            if ln not in binding or inferredDecimals(f) > inferredDecimals(binding[ln]):
-                binding[ln] = f
+            if coverPeriod:
+                if ln not in binding:
+                    binding[ln] = defaultdict(dict)
+                if hper not in binding[ln] or inferredDecimals(f) > inferredDecimals(binding[ln][hper]):
+                    binding[ln][hper] = f
+            else:
+                if ln not in binding or inferredDecimals(f) > inferredDecimals(binding[ln]):
+                    binding[ln] = f
     for ln in localNames:
         for f in modelXbrl.factsByLocalName.get(ln,()):
             addMostAccurateFactToBinding(f)

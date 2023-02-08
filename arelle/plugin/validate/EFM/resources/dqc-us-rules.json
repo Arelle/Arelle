@@ -562,7 +562,10 @@
 					"AmendmentFlag", 
 					"AnnualInformationForm", 
 					"ApproximateDateOfCommencementOfProposedSaleToThePublic", 
-					"AuditedAnnualFinancialStatements", 
+					"AuditedAnnualFinancialStatements",
+					"AuditorFirmId",
+					"AuditorLocation",
+					"AuditorName", 
 					"CityAreaCode", 
 					"ContactPersonnelEmailAddress", 
 					"ContactPersonnelFaxNumber", 
@@ -983,6 +986,7 @@
         "rules": {
         	"7646": {
         		"axis": "srt:ProductOrServiceAxis",
+        		"domain": "srt:ProductsAndServicesDomain",
         		"skip-if-axis-present": "InitialApplicationPeriodCumulativeEffectTransitionAxis",
         		"primary-items": [
         			"RevenueFromContractWithCustomerIncludingAssessedTax", 
@@ -1367,9 +1371,9 @@
             "",
             "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0084/DQC_0084.md"
         ],
-        "message": "Sum of the cumulative periods of {sumPeriods} for {name} does not match the reported total of {value}, a difference of {difference}.  \n\nPeriod values are:\n{periods}\n\nThis rule takes into account possible rounding of values across periods and the decimals associated with each fact. This rule used a tolerance of {tolerance} which is calculated by taking the lowest decimal value used in the calculation of {minDecimals}. If there is a difference between the sum of the periods and the aggregate value reported the difference may be due to incorrect decimals associated with the individual fact values. The filer should check that the fact values do not have a decimal value that implies a higher level of accuracy than intended.\n\nIn those rare cases where there are small immaterial differences that are less than 1% of the total and decimals are zero the rule can be overidden. This is performed by creating an extension element called ImmaterialDifferenceFlag.  If this element has any value in any context in the instance then the immaterial difference will not result in an error.  \n\nThe rule excludes elements in the base taxonomy that cannot be aggregated such as an average, maximum or minimum value.   \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}.  \n\nThe allowable list of elements that can be used are as follows: {allowableNames}",
+        "message": "Sum of the cumulative periods of {sumPeriods} for {name} does not match the reported total of {value}, a difference of {difference}.  \n\nPeriod values are:\n{periods}\n\nThis rule takes into account possible rounding of values across periods and the decimals associated with each fact. This rule used a tolerance of {tolerance} which is calculated by taking the lowest decimal value used in the calculation of {minDecimals}. If there is a difference between the sum of the periods and the aggregate value reported the difference may be due to incorrect decimals associated with the individual fact values. The filer should check that the fact values do not have a decimal value that implies a higher level of accuracy than intended.\n\nIn those rare cases where there are small immaterial differences that are less than 1% of the total and decimals are zero the rule can be overidden. This is performed by creating an extension element called ImmaterialDifferenceFlag.  If this element has any value in any context in the instance then the immaterial difference will not result in an error.  \n\nThe rule excludes elements in the base taxonomy that cannot be aggregated such as an average, maximum or minimum value.   \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}.",
         "rules": {
-        	"7648": {
+        	"9298": {
         		"tolerance": 3
         	}
         }
