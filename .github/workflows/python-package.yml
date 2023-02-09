@@ -25,7 +25,7 @@ jobs:
           python-version: ${{ inputs.python_version }}
       - name: Build python package
         run: |
-          pip install --upgrade pip setuptools wheel
+          python -m pip install --upgrade pip setuptools wheel
           pip install build
           python -m build
       - name: Upload tar artifact
