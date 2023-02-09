@@ -6,6 +6,7 @@ based on pull request 4
 '''
 from __future__ import annotations
 import os, sys, types, time, ast, importlib, io, json, gettext, traceback
+from importlib.metadata import entry_points
 import importlib.util
 import logging
 
@@ -71,6 +72,11 @@ def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
         pluginConfigChanged = False # don't save until something is added to pluginConfig
     modulePluginInfos = {}  # dict of loaded module pluginInfo objects by module names
     pluginMethodsForClasses = {} # dict by class of list of ordered callable function objects
+    unloaded_arelle_plugins = entry_points(group='arelle.plugin')
+    if unloaded_arelle_plugins:
+        for unloaded_plugin in unloaded_arelle_plugins:
+            plugin_url = unloaded_plugin.load()
+            addPluginModule(plugin_url())
 
 def reset():  # force reloading modules and plugin infos
     modulePluginInfos.clear()  # dict of loaded module pluginInfo objects by module names
