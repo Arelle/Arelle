@@ -610,7 +610,7 @@ def factBindings(modelXbrl, localNames, nils=False, noAdditionalDims=False, cove
                 h = cntx.dimsHash
                 hper = cntx.periodHash
             elif coverDimQnames:
-                h = hash( (cntx.periodHash, frozenset(din for qn,dim in cntx.qnameDims.items() if qn not in coverDimQnames)) )
+                h = hash( (cntx.periodHash, frozenset(dim for qn,dim in cntx.qnameDims.items() if qn not in coverDimQnames)) )
             else:
                 h = cntx.contextDimAwareHash
             binding = bindings[h, f.unit.hash if f.unit is not None else None]

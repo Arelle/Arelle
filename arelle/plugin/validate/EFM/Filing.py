@@ -2940,7 +2940,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                       contextID=documentPeriodEndDateFact.context.id,
                                       edgarCode=edgarCode, ruleElementId=id)
         elif dqcRuleName == "DQC.US.0041":
-            continue # TODO REMOVE
             ugtAxisDefaults = ugtRels["axis-defaults"]
             for id, rule in dqcRule["rules"].items():
                 for rel in modelXbrl.relationshipSet(XbrlConst.dimensionDefault).modelRelationships:
@@ -2980,7 +2979,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                               edgarCode=f"{edgarCode}-{bottom.balance}", ruleElementId=id)
 
         elif dqcRuleName == "DQC.US.0044":
-            continue # TODO REMOVE
             ugtAccrualItems = ugtRels["accrual-items"]
             for id, rule in dqcRule["rules"].items():
                 def checkAccrualDescendants(rel, visited):
@@ -3247,49 +3245,55 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 itemValues = [f.xValue for f in facts[1:]]
                 difference = abs(facts[0].xValue - sum(itemValues))
                 if isinf(minDec):
-                    maxDiff = difference > 0
+                    maxDiff = 0
                 else:
-                    maxDiff = pow(10, -minDec) * tolerance * len(facts) - 2
+                    maxDiff = pow(10, -minDec) * tolerance * (len(facts) - 2)
                 if difference > maxDiff:
+                    sumFact = facts[0]
                     modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
-                        modelObject=facts, name=facts[0].concept.name, value=facts[0].xValue,
+                        modelObject=facts, name=sumFact.concept.name, value=sumFact.xValue,
                         sumPeriods=sum(itemValues),
                         difference=difference, minDecimals=minDec, tolerance=tolerance,
                         periods=", \n".join(f"{XmlUtil.dateunionValue(f.context.startDatetime)}/{XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True)} {f.xValue}" for f in facts[1:]),                        
                         contextID=sumFact.context.id, unitID=sumFact.unit.id if sumFact.unit is not None else "(none)",
                         edgarCode=edgarCode, ruleElementId=id)
                 
-            periodCoveredFacts = defaultdict(set)
-            for binding in factBindings(modelXbrl, durationFactNames, coverPeriod=True).values():
+             # dict by dimHash by localName of set of facts
+            dimBoundFactsByPeriod = defaultdict(dict) # emulate defaultdict(defaultdict(set))
+            for dimHash, binding in factBindings(modelXbrl, durationFactNames, coverPeriod=True).items():
+                periodCoveredFacts = dimBoundFactsByPeriod[dimHash]
                 for ln, perFacts in binding.items():
+                    if ln not in periodCoveredFacts:
+                        periodCoveredFacts[ln] = set()
                     for f in perFacts.values():
-                        periodCoveredFacts[ln, f.context.dimsHash].add(f)
-            for (ln, _dh), facts in periodCoveredFacts.items():
-                startPerFacts = defaultdict(set)
-                for f in facts:
-                    startPerFacts[f.context.startDatetime].add(f)
-                for s1, facts in startPerFacts.items(): # s1 is period holding subperiod facts
-                    if len(facts) > 1: # needs longer and shorter duration of same start
-                        for f1 in facts:
-                            # find any fact other facts with f1's duration
-                            e1 = f1.context.endDatetime
-                            for f2 in facts:
-                                e2 = f2.context.endDatetime
-                                if e2 < e1 and f2 != f1: # f2 is with f1 duration
-                                    for f3 in startPerFacts.get(e2,()):
-                                        e3 = f3.context.endDatetime
-                                        if e3 == e1:
-                                            checkPerFacts(f1, f2, f3)
-                                        elif e3 < e1:
-                                            for f4 in startPerFacts.get(e3,()):
-                                                e4 = f4.context.endDatetime
-                                                if e4 == e1:
-                                                    checkPerFacts(f1, f2, f3, f4)
-                                                elif e4 < e1:
-                                                    for f5 in startPerFacts.get(e4,()):
-                                                        e5 = f5.context.endDatetime
-                                                        if e5 == e1:
-                                                            checkPerFacts(f1, f2, f3, f4, f5)
+                        periodCoveredFacts[ln].add(f)
+            for periodCoveredFacts in dimBoundFactsByPeriod.values():
+                for ln, facts in periodCoveredFacts.items():
+                    startPerFacts = defaultdict(set)
+                    for f in facts:
+                        startPerFacts[f.context.startDatetime].add(f)
+                    for s1, facts in startPerFacts.items(): # s1 is period holding subperiod facts
+                        if len(facts) > 1: # needs longer and shorter duration of same start
+                            for f1 in facts:
+                                # find any fact other facts with f1's duration
+                                e1 = f1.context.endDatetime
+                                for f2 in facts:
+                                    e2 = f2.context.endDatetime
+                                    if e2 < e1 and f2 != f1: # f2 is with f1 duration
+                                        for f3 in startPerFacts.get(e2,()):
+                                            e3 = f3.context.endDatetime
+                                            if e3 == e1:
+                                                checkPerFacts(f1, f2, f3)
+                                            elif e3 < e1:
+                                                for f4 in startPerFacts.get(e3,()):
+                                                    e4 = f4.context.endDatetime
+                                                    if e4 == e1:
+                                                        checkPerFacts(f1, f2, f3, f4)
+                                                    elif e4 < e1:
+                                                        for f5 in startPerFacts.get(e4,()):
+                                                            e5 = f5.context.endDatetime
+                                                            if e5 == e1:
+                                                                checkPerFacts(f1, f2, f3, f4, f5)
 
     del val.summationItemRelsSetAllELRs
 
