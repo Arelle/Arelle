@@ -153,7 +153,7 @@ class ModelRoleType(ModelObject):
             return self._tableCode
         except AttributeError:
             from arelle import TableStructure
-            TableStructure.evaluateRoleTypesTableCodes(self.modelXbrl)
+            TableStructure.evaluateRoleTypesTableCodes(self.modelXbrl)  # type: ignore[no-untyped-call]
             return self._tableCode
 
     @property
@@ -694,7 +694,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         labelsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.conceptLabel,linkrole)
         if labelsRelationshipSet:
             for _lang in (lang if isinstance(lang, (tuple,list)) else (lang,)):
-                label = labelsRelationshipSet.label(self, preferredLabel, _lang, linkroleHint=linkroleHint)
+                label = labelsRelationshipSet.label(self, preferredLabel, _lang, linkroleHint=linkroleHint)  # type: ignore[no-untyped-call]
                 if label is not None:
                     if strip: return label.strip()  # type: ignore[no-any-return]
                     return Locale.rtlString(label, lang=_lang)
