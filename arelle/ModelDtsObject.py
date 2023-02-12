@@ -205,7 +205,7 @@ class ModelNamableTerm(ModelObject):
         return self.getStripped("name")
 
     @property
-    def qname(self) -> QName:
+    def qname(self) -> QName | None:
         try:
             return cast(QName, self._xsdQname)
         except AttributeError:
@@ -349,13 +349,13 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     _isLanguage: bool
     _isMonetary: bool
     _isNumeric: bool
-    _typedDomainElement: bool
     _isLinkPart: bool
     _isPrimaryItem: bool
     _isShares: bool
     _isTuple: bool
     _isTypedDimension: bool
     _type: ModelType | None
+    _typedDomainElement: ModelObject
     _substitutionGroupQname: QName | None
     _typeQname: QName | None
 
@@ -454,7 +454,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             return self._baseXsdType
 
     @property
-    def facets(self) -> dict[str, TypeXValue]:
+    def facets(self) -> dict[str, TypeXValue] | None:
         """(dict) -- Facets declared for element type"""
         return self.type.facets if self.type is not None else None
 
@@ -472,7 +472,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     '''
 
     @property
-    def baseXbrliType(self) -> str:
+    def baseXbrliType(self) -> str | None:
         """(str) -- Attempts to return the base xsd type localName that this concept's type
         is derived from.  If not determinable anyType is returned.  E.g., for monetaryItemType,
         decimal is returned."""
@@ -487,7 +487,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             return self._baseXbrliType
 
     @property
-    def baseXbrliTypeQname(self) -> QName:
+    def baseXbrliTypeQname(self) -> QName | None:
         """(qname) -- Attempts to return the base xsd type QName that this concept's type
         is derived from.  If not determinable anyType is returned.  E.g., for monetaryItemType,
         decimal is returned."""
@@ -607,7 +607,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             return self._substitutionGroupQname
 
     @property
-    def substitutionGroupQnames(self) -> list[QName]:   # ordered list of all substitution group qnames
+    def substitutionGroupQnames(self) -> list[QName | None]:   # ordered list of all substitution group qnames
         """([QName]) -- Ordered list of QNames of substitution groups (recursively)"""
         qnames = []
         subs = self
@@ -700,7 +700,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
                     return Locale.rtlString(label, lang=_lang)
         return str(self.qname) if fallbackToQname else None
 
-    def relationshipToResource(self, resourceObject: ModelObject, arcrole: str) -> ModelRelationship:
+    def relationshipToResource(self, resourceObject: ModelObject, arcrole: str) -> ModelRelationship | None:
         """For specified object and resource (all link roles), returns first
         modelRelationshipObject that relates from this element to specified resourceObject.
 
@@ -872,7 +872,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         return False
 
     @property
-    def subGroupHeadQname(self) -> QName:
+    def subGroupHeadQname(self) -> QName | None:
         """(QName) -- Head of substitution lineage of element (e.g., xbrli:item)"""
         subs = self
         subNext = subs.substitutionGroup
@@ -969,7 +969,7 @@ class ModelAttribute(ModelNamableTerm):
                 self.modelXbrl.qnameAttributes[ModelValue.QName(None, None, self.name)] = self
 
     @property
-    def typeQname(self) -> QName:
+    def typeQname(self) -> QName | None:
         """(QName) -- QName of type of attribute"""
         if self.get("type"):
             return self.schemaNameQname(self.get("type"))
@@ -992,7 +992,7 @@ class ModelAttribute(ModelNamableTerm):
         return None
 
     @property
-    def type(self) -> ModelType:
+    def type(self) -> ModelType | None:
         """(ModelType) -- Attribute's modelType object (if any)"""
         try:
             return self._type
@@ -1002,7 +1002,7 @@ class ModelAttribute(ModelNamableTerm):
             return self._type
 
     @property
-    def baseXsdType(self) -> str:
+    def baseXsdType(self) -> str | None:
         """(str) -- Attempts to return the base xsd type localName that this attribute's type
         is derived from.  If not determinable *anyType* is returned"""
         try:
@@ -1064,7 +1064,7 @@ class ModelAttribute(ModelNamableTerm):
         if ref:
             qn = self.schemaNameQname(ref, isQualifiedForm=self.isQualifiedForm)
             assert self.modelXbrl is not None
-            return self.modelXbrl.qnameAttributes.get(qn)
+            return cast(ModelAttribute, self.modelXbrl.qnameAttributes.get(qn))
         return self
 
 class ModelAttributeGroup(ModelNamableTerm):
@@ -1127,7 +1127,7 @@ class ModelAttributeGroup(ModelNamableTerm):
         if ref:
             qn = self.schemaNameQname(ref)
             assert self.modelXbrl is not None
-            return self.modelXbrl.qnameAttributeGroups.get(ModelValue.qname(self, ref))
+            return cast(ModelAttributeGroup, self.modelXbrl.qnameAttributeGroups.get(ModelValue.qname(self, ref)))
         return self
 
 class ModelType(ModelNamableTerm):
@@ -1175,7 +1175,7 @@ class ModelType(ModelNamableTerm):
         return True
 
     @property
-    def qnameDerivedFrom(self) -> QName:
+    def qnameDerivedFrom(self) -> list[QName | None] | QName | None:
         """(QName) -- the type that this type is derived from"""
         typeOrUnion = XmlUtil.schemaBaseTypeDerivedFrom(self)
         if isinstance(typeOrUnion,list): # union
@@ -1183,7 +1183,7 @@ class ModelType(ModelNamableTerm):
         return self.schemaNameQname(typeOrUnion)
 
     @property
-    def typeDerivedFrom(self) -> ModelType:
+    def typeDerivedFrom(self) -> list[ModelType | None] | ModelType | None:
         """(ModelType) -- type that this type is derived from"""
         qnameDerivedFrom = self.qnameDerivedFrom
         assert self.modelXbrl is not None
@@ -1290,7 +1290,7 @@ class ModelType(ModelNamableTerm):
             return self._baseXbrliTypeQname
 
     @property
-    def baseXbrliType(self) -> str:
+    def baseXbrliType(self) -> str | None:
         """(str) -- The localName of the parent type in the xbrli namespace, if any, otherwise the localName of the parent in the xsd namespace."""
         try:
             return self._baseXbrliType
@@ -1434,7 +1434,7 @@ class ModelType(ModelNamableTerm):
             return self._attributes
 
     @property
-    def attributeWildcards(self) -> dict[str, str]:
+    def attributeWildcards(self) -> list[str]:
         """(dict) -- List of wildcard namespace strings (e.g., ##other)"""
         try:
             return self._attributeWildcards
@@ -1461,7 +1461,7 @@ class ModelType(ModelNamableTerm):
             return self._defaultAttributeQnames
 
     @property
-    def elements(self) -> list[QName]:
+    def elements(self) -> set[QName | None]:
         """([QName]) -- List of element QNames that are descendants (content elements)"""
         try:
             return self._elements
@@ -1470,7 +1470,7 @@ class ModelType(ModelNamableTerm):
             return self._elements
 
     @property
-    def facets(self) -> dict[str, Any]:
+    def facets(self) -> dict[str, TypeXValue] | None:
         """(dict) -- Dict of facets by their facet name, all are strings except enumeration, which is a set of enumeration values."""
         try:
             return self._facets
@@ -1506,7 +1506,7 @@ class ModelType(ModelNamableTerm):
             typeDerivedFrom.constrainingFacets(facetValues)
         return facetValues
 
-    def fixedOrDefaultAttrValue(self, attrName: str) -> str:
+    def fixedOrDefaultAttrValue(self, attrName: str) -> str | None:
         """(str) -- Descendant attribute declaration value if fixed or default, argument is attribute name (string), e.g., 'precision'."""
         attr = XmlUtil.schemaDescendant(self, XbrlConst.xsd, "attribute", attrName)
         if attr is not None:
@@ -1558,7 +1558,7 @@ class ModelGroupDefinition(ModelNamableTerm, ModelParticle):
         if ref:
             qn = self.schemaNameQname(ref)
             assert self.modelXbrl is not None
-            return self.modelXbrl.qnameGroupDefinitions.get(qn)
+            return cast(ModelGroupDefinition, self.modelXbrl.qnameGroupDefinitions.get(qn))
         return self
 
     @property
@@ -1757,7 +1757,7 @@ class ModelResource(ModelObject):
         return self.get("{http://www.w3.org/1999/xlink}label")
 
     @property
-    def xmlLang(self) -> str:
+    def xmlLang(self) -> str | None:
         """(str) -- xml:lang attribute
         Note that xml.xsd specifies that an empty string xml:lang attribute is an un-declaration of the
         attribute, as if the attribute were not present.  When absent or un-declared, returns None."""
@@ -1797,7 +1797,7 @@ class ModelLocator(ModelResource):
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelLocator, self).init(modelDocument)
 
-    def dereference(self) -> ModelObject:
+    def dereference(self) -> ModelObject | None:
         """(ModelObject) -- Resolve loc's href if resource is a loc with href document and id modelHref a tuple with
         href's element, modelDocument, id"""
         return self.resolveUri(self.modelHref)
@@ -2117,7 +2117,7 @@ class ModelRelationship(ModelObject):
             return self._isClosed
 
     @property
-    def usable(self) -> str:
+    def usable(self) -> str | None:
         """(str) -- Value of xbrldt:usable (on applicable XDT arcs, defaults to 'true' if absent)"""
         try:
             return self._usable
