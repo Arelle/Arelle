@@ -1,7 +1,7 @@
 # core modules
 certifi==2022.12.7
 lxml==4.9.2
-OpenPyXL==3.0.10
+OpenPyXL==3.1.0
 pyparsing==3.0.9
 regex==2022.10.31
 isodate==0.6.1
