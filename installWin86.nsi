@@ -71,7 +71,7 @@ Section "Arelle" SecArelle
   RMDir /r "$INSTDIR\plugin\validate\ESMA"
   
   ;ADD YOUR OWN FILES HERE...
-  File /r build\exe.win32-3.10\*.*
+  File /r $%BUILD_PATH%\*.*
   
   ;Store installation folder
   WriteRegStr HKLM "Software\Arelle" "" $INSTDIR
