@@ -7,7 +7,7 @@ regex==2022.10.31
 isodate==0.6.1
 aniso8601==9.0.1
 CherryPy==18.8.0
-Cheroot==8.6.0
+Cheroot==9.0.0
 # special note: pip install --no-cache --use-pep517 pycountry
 pycountry==22.3.5
 # plugins
