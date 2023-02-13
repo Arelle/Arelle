@@ -46,21 +46,27 @@ RUN wget https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
             no-shared \
             no-ssl2 \
         && make \
-        && make install --jobs "$(nproc)") \
+        && make install_sw --jobs "$(nproc)") \
     && rm -r ./openssl-${OPENSSL_VERSION} \
     && rm ./openssl-${OPENSSL_VERSION}.tar.gz
+
+ENV TCLTK_CFLAGS="-I/usr/include/tcl8.6"
+ENV TCLTK_LIBS="-ltcl8.6 -ltk8.6"
 
 RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
     && tar xzf Python-${PYTHON_VERSION}.tgz \
     && (cd Python-${PYTHON_VERSION} \
+        && sed -ri 's/^( *LIBS)="(\$LIBS) (\$(OPENSSL|LIBCRYPTO)_LIBS)"/\1="\3 \2"/' configure \
         && ./configure \
             --enable-optimizations \
             --enable-shared \
             --with-computed-gotos \
             --with-lto \
             --with-openssl=/usr/local \
+            --with-openssl-rpath=auto \
             --with-system-ffi \
-        && make install --jobs "$(nproc)") \
+        && make --jobs "$(nproc)" \
+        && make install) \
     && rm -r ./Python-${PYTHON_VERSION} \
     && rm ./Python-${PYTHON_VERSION}.tgz
 
