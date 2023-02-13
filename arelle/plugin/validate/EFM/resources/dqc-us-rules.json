@@ -789,7 +789,7 @@
             "",
             "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0044/DQC_0044.md"
         ],
-        "message": "The concept {name} with a value of {value} is an accrual-based item in the US GAAP taxonomy that is included in the sum of cash provided by (used in) investing activities in the cash flows of the extension taxonomy.  \n\nAccrual-based concepts do not belong and should not be included in the investing section of the cash flows statement of the extension taxonomy.  \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}",
+        "message": "The concept {name} with a value of {value} is an accrual-based item in the US GAAP taxonomy that is included in the sum of cash provided by (used in) {activity} activities in the cash flows of the extension taxonomy.  \n\nAccrual-based concepts do not belong and should not be included in the {activity} section of the cash flows statement of the extension taxonomy.  \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}",
         "rules": {
         	"6834": {
         		"activity": "financing",
@@ -889,8 +889,8 @@
             "",
             "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0053/DQC_0053.md"
         ],
-		"message": "The member, {member} is used on the {axis} with element {factName} with a value of ${value}. The  {member} member should not be used with the {axis}.",
-		"message-no-facts": "The member, {member} is used on the {axis}.  There are no facts associated with this member and axis. {member} members should not be used with the {axis}.",
+		"message": "The member, {member} is used on the {axis} with element {factName} with a value of ${value}. The  {member} member should not be used with the {axis} in linkrole {linkRole}.",
+		"message-no-facts": "The member, {member} is used on the {axis}.  There are no facts associated with this member and axis. {member} members should not be used with the {axis} in linkrole {linkRole}.",
         "rules": {
             "7489": {
                 "excluded-dimension-members" : {

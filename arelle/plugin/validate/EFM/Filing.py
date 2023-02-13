@@ -2989,6 +2989,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 if f.xValue != 0:
                                     modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                         modelObject=f, name=name, contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)", value=f.xValue,
+                                        activity=rule["activity"],
                                         edgarCode=edgarCode, ruleElementId=id)
                         if name not in visited:
                             visited.add(name)
@@ -3060,16 +3061,16 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 def checkMember(axis, rel, excludedMemNames, visited):
                     if rel.toModelObject is not None:
                         name = rel.toModelObject.name
-                        if name.lower() in excludedMemNames:
+                        if name in excludedMemNames:
                             return rel
                         if name not in visited:
                             visited.add(name)
                             for childRel in modelXbrl.relationshipSet(XbrlConst.domainMember, rel.consecutiveLinkrole).fromModelObject(rel.toModelObject):
-                                mRel= checkMember(axis, childRel, excludedMemNames, visited)
+                                mRel = checkMember(axis, childRel, excludedMemNames, visited)
                                 if mRel is not None:
                                     return mRel
                             visited.discard(name)
-                    return False
+                    return None
                 for dimName, excludedMemNames in rule["excluded-dimension-members"].items():
                     for dimConcept in modelXbrl.nameConcepts.get(dimName, ()):
                         for rel in modelXbrl.relationshipSet(XbrlConst.dimensionDomain).fromModelObject(dimConcept):
@@ -3081,11 +3082,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         for f in modelXbrl.factsByDimMemQname(dimConcept.qname, memConcept.qname):
                                             factsFound = True
                                             modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
-                                                modelObject=(f, mRel), member=memName, axis=dimName, factName=f.qname, value=f.xValue,
+                                                modelObject=(f, mRel), member=memName, axis=dimName, linkRole=rel.linkrole,
+                                                factName=f.qname, value=f.xValue,
                                                 edgarCode=edgarCode, ruleElementId=id)
                                 if not factsFound:
                                     modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(dqcRule["message-no-facts"])),
-                                        modelObject=mRel, member=memName, axis=dimName,
+                                        modelObject=mRel, member=memName, axis=dimName, linkRole=rel.linkrole,
                                         edgarCode=edgarCode, ruleElementId=id)
         elif dqcRuleName == "DQC.US.0057":
             linkroleUris = OrderedSet(modelLink.role for modelLink in val.modelXbrl.baseSets[(XbrlConst.parentChild,None,None,None)])
