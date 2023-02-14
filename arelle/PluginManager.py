@@ -6,7 +6,10 @@ based on pull request 4
 '''
 from __future__ import annotations
 import os, sys, types, time, ast, importlib, io, json, gettext, traceback
-from importlib.metadata import entry_points
+if sys.version_info < (3, 8):
+    from importlib_metadata import entry_points
+else:
+    from importlib.metadata import entry_points
 import importlib.util
 import logging
 

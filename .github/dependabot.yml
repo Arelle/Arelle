@@ -16,3 +16,4 @@ updates:
           - ">=6"
       - dependency-name: "cx_Freeze"
       - dependency-name: "packaging"
+      - dependency-name: "importlib_metadata"
