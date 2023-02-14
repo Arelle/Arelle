@@ -72,11 +72,6 @@ def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
         pluginConfigChanged = False # don't save until something is added to pluginConfig
     modulePluginInfos = {}  # dict of loaded module pluginInfo objects by module names
     pluginMethodsForClasses = {} # dict by class of list of ordered callable function objects
-    unloaded_arelle_plugins = entry_points(group='arelle.plugin')
-    if unloaded_arelle_plugins:
-        for unloaded_plugin in unloaded_arelle_plugins:
-            plugin_url = unloaded_plugin.load()
-            addPluginModule(plugin_url())
 
 def reset():  # force reloading modules and plugin infos
     modulePluginInfos.clear()  # dict of loaded module pluginInfo objects by module names
@@ -499,7 +494,13 @@ def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
             yield method
 
 def addPluginModule(url):
-    moduleInfo = moduleModuleInfo(url)
+    moduleInfo = None
+    unloaded_arelle_plugins = entry_points(group='arelle.plugin', name=url)
+    if unloaded_arelle_plugins and len(unloaded_arelle_plugins) == 1:
+        pluginUrl = unloaded_arelle_plugins[0].load()
+        moduleInfo = moduleModuleInfo(pluginUrl())
+    if not moduleInfo or not moduleInfo.get("name"):
+        moduleInfo = moduleModuleInfo(url)
     if moduleInfo and moduleInfo.get("name"):
         name = moduleInfo["name"]
         removePluginModule(name)  # remove any prior entry for this module
