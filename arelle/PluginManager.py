@@ -496,7 +496,9 @@ def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
 def addPluginModule(url):
     moduleInfo = None
     unloaded_arelle_plugins = entry_points(group='arelle.plugin', name=url)
-    if unloaded_arelle_plugins and len(unloaded_arelle_plugins) == 1:
+    if unloaded_arelle_plugins:
+        if len(unloaded_arelle_plugins) != 1:
+            raise Exception(f'multiple pip installed plugins with name {url} in group arelle.plugin')
         pluginUrl = unloaded_arelle_plugins[0].load()
         moduleInfo = moduleModuleInfo(pluginUrl())
     if not moduleInfo or not moduleInfo.get("name"):
