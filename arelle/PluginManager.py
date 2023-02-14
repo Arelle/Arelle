@@ -498,7 +498,8 @@ def addPluginModule(url):
     unloaded_arelle_plugins = entry_points(group='arelle.plugin', name=url)
     if unloaded_arelle_plugins:
         if len(unloaded_arelle_plugins) != 1:
-            raise Exception(f'multiple pip installed plugins with name {url} in group arelle.plugin')
+            error_msg = f'Multiple pip installed plugins with name {url} in group arelle.plugin'
+            logPluginTrace(error_msg, logging.ERROR)
         pluginUrl = unloaded_arelle_plugins[0].load()
         moduleInfo = moduleModuleInfo(pluginUrl())
     if not moduleInfo or not moduleInfo.get("name"):
