@@ -2535,7 +2535,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                      for name in lbVal.preSources
                                      for concept in modelXbrl.nameConcepts.get(name, ())
                                      if isStandardUri(val, concept.modelDocument.uri)) # want concept from std namespace not extension
-                if lbVal.efmPre and not (lbVal.efmPre in ("6.12.10") and documentType not in ("N-2", "N-2/A")):
+                if lbVal.efmPre and (not lbVal.elrPreDocTypes or documentType in lbVal.elrPreDocTypes):
                     for rel in modelXbrl.relationshipSet(XbrlConst.parentChild).modelRelationships:
                         if not isStandardUri(val, rel.modelDocument.uri) and rel.modelDocument.targetNamespace not in val.otherStandardTaxonomies:
                             relFrom = rel.fromModelObject
