@@ -9,7 +9,7 @@ mock==5.0.1
 mypy==1.0.0
 pytest==7.2.1
 
-typing-extensions==4.4.0
+typing-extensions==4.5.0
 lxml-stubs==0.4.0
 types-PyMySQL==1.0.19.3
 types-pytz==2022.7.1.0
