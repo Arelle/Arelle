@@ -2,6 +2,9 @@ FROM python:3.11
 
 WORKDIR /usr/src/app
 
+RUN apt update -y
+RUN apt-get install unixodbc-dev -y
+
 ADD requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 ADD arelleCmdLine.py /usr/src/app
