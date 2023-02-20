@@ -181,6 +181,12 @@ def textNotStripped(element: ModelObject | PrototypeObject | None) -> str:
         return ""
     return element.textValue  # allows embedded comment nodes, returns '' if None
 
+def selfClosable(elt):
+    return elt.qname.localName in (
+        'area', 'base', 'basefont', 'br', 'col', 'frame', 'hr', 'img',
+        'input', 'isindex', 'link', 'meta', 'param'
+    )
+
 # ixEscape can be None, "html" (xhtml namespace becomes default), "xhtml", or "xml"
 def innerText(
     element: ModelObject,
@@ -260,9 +266,10 @@ def escapedNode(
     if not start and not empty:
         s.append('/')
     if ixEscape == "html" and elt.qname.namespaceURI == xhtml:
-        s.append(elt.qname.localName)  # force xhtml prefix to be default
+        tagName = elt.qname.localName # force xhtml prefix to be default
     else:
-        s.append(str(elt.qname))
+        tagName = str(elt.qname)
+    s.append(tagName)
     if start or empty:
         assert resolveHtmlUri is not None
         if elt.localName == "object" and elt.get("codebase"): # resolve codebase before other element names
@@ -276,7 +283,10 @@ def escapedNode(
             s.append(' {0}="{1}"'.format(qname(elt, cast(str, n)),
                 cast(str, v).replace("&","&amp;").replace('"', '&quot;')))
     if not start and empty:
-        s.append('/')
+        if selfClosable(elt):
+            s.append('/')
+        else:
+            s.append('></' + tagName)
     s.append('>')
     return ''.join(s)
 
