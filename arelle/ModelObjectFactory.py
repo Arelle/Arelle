@@ -47,7 +47,7 @@ def parser(
         target: None = None,
 ) -> tuple[etree.XMLParser, KnownNamespacesModelObjectClassLookup, DiscoveringClassLookup]:
     moduleObject_init()  # init ModelObject globals
-    _parser = etree.XMLParser(recover=True, huge_tree=True, target=target)
+    _parser = etree.XMLParser(recover=True, huge_tree=True, target=target, resolve_entities=False)
     return setParserElementClassLookup(_parser, modelXbrl, baseUrl)
 
 
