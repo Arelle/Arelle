@@ -498,7 +498,10 @@ def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
 
 def addPluginModule(url):
     moduleInfo = None
-    unloaded_arelle_plugins = entry_points(group='arelle.plugin', name=url)
+    if sys.version_info < (3, 10):
+        unloaded_arelle_plugins = [e for e in entry_points().get('arelle.plugin', []) if e.name == url]
+    else:
+        unloaded_arelle_plugins = entry_points(group='arelle.plugin', name=url)
     if unloaded_arelle_plugins:
         if len(unloaded_arelle_plugins) != 1:
             error_msg = f'Multiple pip installed plugins with name {url} in group arelle.plugin'
