@@ -181,7 +181,7 @@ def textNotStripped(element: ModelObject | PrototypeObject | None) -> str:
         return ""
     return element.textValue  # allows embedded comment nodes, returns '' if None
 
-def selfClosable(elt):
+def selfClosable(elt: ModelObject) -> bool:
     return elt.qname.localName in (
         'area', 'base', 'basefont', 'br', 'col', 'frame', 'hr', 'img',
         'input', 'isindex', 'link', 'meta', 'param'
