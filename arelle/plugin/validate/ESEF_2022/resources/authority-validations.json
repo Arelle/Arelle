@@ -93,7 +93,8 @@
             "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd":
                 ["https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor-gen-en.xml"]
         },
-        "formulaRunIDs": null
+        "formulaRunIDs": null,
+        "minExternalResourceSize": -1
     },
     "AT": {
         "name": "Austria",
@@ -168,7 +169,8 @@
         "name": "Lithuania"
     },
     "LU": {
-        "name": "Luxembourg"
+        "name": "Luxembourg",
+        "minExternalResourceSize": 10000
     },
     "LV": {
         "name": "Latvia"
