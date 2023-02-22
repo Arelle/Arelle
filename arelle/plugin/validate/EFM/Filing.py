@@ -91,6 +91,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     datetimeNowAtSEC = ModelValue.dateTime(
         val.params.get("datetimeForTesting",
         datetime.datetime.now(tz=timezone("US/Eastern")).isoformat()[:19])) # re-strip time zone
+    dqcRuleFilter = re.compile(val.params.get("dqcRuleFilter",""))
     upcomingSECHolidays = holidays.US(state=None, years=[datetimeNowAtSEC.year, datetimeNowAtSEC.year+1])
 
 
@@ -1200,7 +1201,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         et = sev["earliest-taxonomy"]
                         sevMessage(sev, subType=submissionType, efmSection=efmSection, taxonomy=et.partition('/')[0], earliestTaxonomy=et)
                 elif validation == "taxonomy-url-required-in-dts":
-                    if not any(fnmatch.fnmatch(url, value) for url in modelXbrl.urlDocs.keys()):
+                    et = sev.get("earliest-taxonomy", "")
+                    foundVersion = abbreviatedNamespace(deiDefaultPrefixedNamespaces.get(et.partition("/")[0]))
+                    if (not foundVersion or foundVersion >= et) and (
+                        not any(fnmatch.fnmatch(url, value) for url in modelXbrl.urlDocs.keys())):
                         sevMessage(sev, subType=submissionType, efmSection=efmSection, taxonomy=value, docType=documentType)
                 # type-specific validations
                 elif len(names) == 0:
@@ -1477,6 +1481,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
 
             del unexpectedDeiNameEfmSects, expectedDeiNames # dereference
+            val.modelXbrl.profileActivity("... submission type element validations", minTimeToShow=0.1)
 
             if documentType in ("SD", "SD/A"): # SD documentType
                 val.modelXbrl.profileActivity("... filer required facts checks (other than SD)", minTimeToShow=1.0)
@@ -2662,6 +2667,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             else:
                 maxEndDate = documentPeriodEndDate # note that this may be None if there is no documentPeriodEndDate
             continue
+        elif not dqcRuleFilter.match(dqcRuleName):
+            continue
         elif not dqcRuleName.startswith("DQC.US."):
             continue # skip description and any other non-rule entries
         msg = dqcRule.get("message")
@@ -2897,6 +2904,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             else:
                 concepts = dqc0015.concepts
                 conceptRuleIDs = dqc0015.conceptRuleIDs
+            additionalExcludedNames = set(dqcRule["additional-excluded-names"])
             warnedFactsByQn = defaultdict(list)
             for f in modelXbrl.facts:
                 if (f.qname in concepts and f.isNumeric and not f.isNil and f.xValid >= VALID and f.xValue < 0 and (
@@ -2908,7 +2916,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                          d.memberQname not in dqc0015.excludedMembers and
                          (dqc0015.excludedMemberNamesPattern is None or
                           not dqc0015.excludedMemberNamesPattern.search(d.memberQname.localName)))
-                        for d in f.context.qnameDims.values()))):
+                        for d in f.context.qnameDims.values())) and (
+                    f.qname.localName not in additionalExcludedNames)):
                     if not any(f.isDuplicateOf(warnedFact) for warnedFact in warnedFactsByQn[f.qname]):
                         id = conceptRuleIDs.get(f.qname, 9999)
                         warnedFactsByQn[f.qname].append(f)
@@ -3236,11 +3245,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             # 0084 has only one id, rule
             id, rule = next(iter(dqcRule["rules"].items()))
             tolerance = rule["tolerance"]
-            if "ImmaterialDifferenceFlag" in modelXbrl.factsByLocalName:
-                continue
+            immaterialDifferenceFlag = "ImmaterialDifferenceFlag" in modelXbrl.factsByLocalName
             durationFactNames = set(f.concept.name
                                     for f in modelXbrl.factsByPeriodType("duration")
-                                    if isStandardUri(val, f.concept.modelDocument.uri) and "average" not in f.concept.name.lower())
+                                    if f.xValid >= VALID and f.concept.isMonetary and isStandardUri(val, f.concept.modelDocument.uri) and "average" not in f.concept.name.lower())
             # aggreate bound facts by local name & dims for period sleuthing
             def checkPerFacts(*facts):
                 minDec = leastDecimals(facts)
@@ -3248,6 +3256,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 difference = abs(facts[0].xValue - sum(itemValues))
                 if isinf(minDec):
                     maxDiff = 0
+                elif minDec == 0 and immaterialDifferenceFlag:
+                    maxDiff == Decimal(abs(facts[0].xValue)) * Decimal("0.01")
                 else:
                     maxDiff = pow(10, -minDec) * tolerance * (len(facts) - 2)
                 if difference > maxDiff:
@@ -3297,6 +3307,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                                             if e5 == e1:
                                                                 checkPerFacts(f1, f2, f3, f4, f5)
 
+    val.modelXbrl.profileActivity("... DQCRT checks", minTimeToShow=0.1)
     del val.summationItemRelsSetAllELRs
 
     if "EFM/Filing.py#validateFiling_end" in val.modelXbrl.arelleUnitTests:

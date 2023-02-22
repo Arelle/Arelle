@@ -40,6 +40,8 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
    "filerNewRegistrantFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    # Test/debug fields
    datetimeForTesting: xml-syntax datetime to override clock time for test/debug purposes
+   dqcRuleFilter: null or absent for all DQC rules, else regular expression to filter which rules run 
+       (e.g. "DQC.US.00(04|15)" ), but not including the id suffix (which is not filterable)
    },
  {"file": "file 2"...
 ]
@@ -132,7 +134,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                       "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "invCompanyType",
                       "rptIncludeAllSeriesFlag", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds",
                       "eligibleFundFlag", "pursuantGeneralInstructionFlag", "filerNewRegistrantFlag",
-                      "datetimeForTesting")
+                      "datetimeForTesting", "dqcRuleFilter")
     parameterEisFileTags = {
         "cik":["depositorId", "cik", "filerId"],
         "submissionType": "submissionType",

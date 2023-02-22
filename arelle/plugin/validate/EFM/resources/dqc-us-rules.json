@@ -516,7 +516,9 @@
 			"3439": "EffectiveIncomeTaxRateReconciliationDeductionsExtraterritorialIncomeExclusion",
 			"3440": "EffectiveIncomeTaxRateReconciliationNondeductibleExpenseCharitableContributions",
 			"3441": "EffectiveIncomeTaxRateReconciliationRepatriationForeignEarningsJobsCreationActOf2004"
-		}
+		},
+		"additional-excluded-names": [
+		]
     },
     "DQC.US.0015": {
     	"name": "Negative Values",
@@ -525,7 +527,12 @@
             "",
             "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0015/DQC_0015.md"
         ],
-        "message": "Fact {name} has a value of {value} which is less than zero. This element should not have a negative value. The preparer should consider if the value is input correctly for this assertion and, after considering the appropriateness of the input, if incorrect, input the amount as a positive (i.e., absolute) value and provide a negated label.  \nThe properties of this {name} fact are:\nContext: {contextID} \nUnit: {unitID}"
+        "message": "Fact {name} has a value of {value} which is less than zero. This element should not have a negative value. The preparer should consider if the value is input correctly for this assertion and, after considering the appropriateness of the input, if incorrect, input the amount as a positive (i.e., absolute) value and provide a negated label.  \nThe properties of this {name} fact are:\nContext: {contextID} \nUnit: {unitID}",
+        "additional-excluded-names": [
+        	"SupplementalInformationForPropertyCasualtyInsuranceUnderwritersNetInvestmentIncome",
+        	"SupplementaryInsuranceInformationNetInvestmentIncome",
+        	"LeveragedLeasesIncomeStatementNetIncomeFromLeveragedLeases"
+        ] 
     },
     "DQC.US.0033": {
     	"name": "Document Period End Date Context",
