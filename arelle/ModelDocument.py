@@ -683,6 +683,7 @@ class ModelDocument:
         self.inDTS = False
         self.definesUTR = False
         self.isModified = False
+        self.targetXbrlRootElement = None
 
 
     def objectId(self,refId=""):

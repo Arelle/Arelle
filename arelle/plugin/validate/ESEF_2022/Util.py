@@ -170,7 +170,7 @@ def checkForMultiLangDuplicates(modelXbrl: ModelXbrl) -> None:
                         "%(fact)s that was used more than once in contexts equivalent to %(contextID)s, with different values but same language (%(language)s).",
                         modelObject=fList, fact=fList[0].qname, contextID=fList[0].contextID, language=fList[0].xmlLang)
 
-def getEsefNotesStatementConcepts(modelXbrl: ModelXbrl) -> set(str):
+def getEsefNotesStatementConcepts(modelXbrl: ModelXbrl) -> set[str]:
     document_name_spaces = modelXbrl.namespaceDocs
     esef_notes_statement_concepts:set[str] = set()
     esef_cor_Nses = []
@@ -191,7 +191,7 @@ def getEsefNotesStatementConcepts(modelXbrl: ModelXbrl) -> set(str):
     elif len(esef_cor_Nses) > 1:
         modelXbrl.warning("Arelle.ESEF.multipleEsefTaxonomies",
                         _("Multiple ESEF taxonomies were imported %(esefNamespaces)s."),
-                        modelObject=modelXbrl, esefNamespaces=", ".join(esef_cor_Nses))
+                        modelObject=modelXbrl, esefNamespaces=", ".join(ns[1] for ns in esef_cor_Nses))
     else:
         esef_notes_statement_concepts = set(str(QName(esef_cor_Nses[0][0], esef_cor_Nses[0][1], n)) for n in esefNotesStatementConcepts)
     return esef_notes_statement_concepts
