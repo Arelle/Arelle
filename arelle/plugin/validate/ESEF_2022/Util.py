@@ -170,7 +170,7 @@ def checkForMultiLangDuplicates(modelXbrl: ModelXbrl) -> None:
                         "%(fact)s that was used more than once in contexts equivalent to %(contextID)s, with different values but same language (%(language)s).",
                         modelObject=fList, fact=fList[0].qname, contextID=fList[0].contextID, language=fList[0].xmlLang)
 
-def isAnchoredToNotes(child: ModelConcept, relSet: ModelRelationshipSet, _visited: set[ModelConcept]) -> bool:
+def isChildOfNotes(child: ModelConcept, relSet: ModelRelationshipSet, _visited: set[ModelConcept]) -> bool:
     relations_to = relSet.toModelObject(child)
     if not relations_to and str(child.qname) in esefNotesStatementConcepts:
         return True
@@ -179,7 +179,7 @@ def isAnchoredToNotes(child: ModelConcept, relSet: ModelRelationshipSet, _visite
     for rel in relations_to:
         parent = rel.fromModelObject
         if parent is not None and parent not in _visited:
-            if isAnchoredToNotes(parent, relSet, _visited):
+            if isChildOfNotes(parent, relSet, _visited):
                 return True
     _visited.remove(child)
     return False
