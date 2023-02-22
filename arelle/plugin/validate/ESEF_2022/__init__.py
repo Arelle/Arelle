@@ -70,7 +70,7 @@ from .Const import (mandatory, untransformableTypes,
                     esefPrimaryStatementPlaceholderNames, esefStatementsOfMonetaryDeclarationNames, esefMandatoryElementNames2020)
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
-from .Util import isExtension, checkImageContents, loadAuthorityValidations, checkForMultiLangDuplicates
+from .Util import isExtension, checkImageContents, loadAuthorityValidations, checkForMultiLangDuplicates, getEsefNotesStatementConcepts
 from arelle.typing import TypeGetText
 from arelle.ModelObject import ModelObject
 from arelle.DisclosureSystem import DisclosureSystem
@@ -289,7 +289,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
     # ModelDocument.load has None as a return type. For typing reasons, we need to guard against that here.
     assert modelXbrl.modelDocument is not None
-    checkFilingDTS(val, modelXbrl.modelDocument, [])
+    esefNotesConcepts = getEsefNotesStatementConcepts(val.modelXbrl)
+    checkFilingDTS(val, modelXbrl.modelDocument, esefNotesConcepts, [])
     modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
 
     if val.consolidated and not (val.hasExtensionSchema and val.hasExtensionPre and val.hasExtensionCal and val.hasExtensionDef and val.hasExtensionLbl):

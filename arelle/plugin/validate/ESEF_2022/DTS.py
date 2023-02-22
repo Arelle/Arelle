@@ -27,11 +27,13 @@ from arelle.typing import TypeGetText
 _: TypeGetText  # Handle gettext
 
 
-def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: list[ModelDocument], hrefXlinkRole: str | None =None) -> None:
+def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesConcepts: set[str],
+                   visited: list[ModelDocument], hrefXlinkRole: str | None =None) -> None:
     visited.append(modelDocument)
     for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
         if referencedDocument not in visited and referencedDocument.inDTS: # ignore non-DTS documents
-            checkFilingDTS(val, referencedDocument, visited, modelDocumentReference.referringXlinkRole)
+            checkFilingDTS(val, referencedDocument, esefNotesConcepts,
+                           visited, modelDocumentReference.referringXlinkRole)
 
     isExtensionDoc = isExtension(val, modelDocument)
     filenamePattern = filenameRegex = None
@@ -113,7 +115,10 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: lis
                         elif not widerNarrowerRelSet.fromModelObject(modelConcept) and not widerNarrowerRelSet.toModelObject(modelConcept):
                             # Reporting manual - 1.4 Anchoring -> RTS on ESEF does not set an anchoring requirement for the Notes
                             # to the financial statements
-                            if not calcRelSet.fromModelObject(modelConcept) and not isChildOfNotes(modelConcept, parentChildRelSet, set()): # exclude subtotals
+                            if not calcRelSet.fromModelObject(modelConcept) and not isChildOfNotes(modelConcept,
+                                                                                                   parentChildRelSet,
+                                                                                                   esefNotesConcepts,
+                                                                                                   set()): # exclude subtotals
                                 # Conformance suite RTS_Annex_IV_Par_9_Par_10_G1-4-1_G1-4-2_G3-3-1_G3-3-2/TC6_invalid: look for other arcroles
                                 if not generalSpecialRelSet.fromModelObject(modelConcept) and not generalSpecialRelSet.toModelObject(modelConcept):
                                     extLineItemsNotAnchored.append(modelConcept)

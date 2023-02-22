@@ -14,7 +14,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import QName
 from arelle.XmlValidate import VALID
-from .Const import esefTaxonomyNamespaceURIs, esefNotesStatementConcepts
+from .Const import esefTaxonomyNamespaceURIs, esefNotesStatementConcepts, esefCorNsPattern
 from lxml.etree import XML, XMLSyntaxError
 from arelle.FileSource import openFileStream
 from arelle.UrlUtil import scheme
@@ -170,16 +170,45 @@ def checkForMultiLangDuplicates(modelXbrl: ModelXbrl) -> None:
                         "%(fact)s that was used more than once in contexts equivalent to %(contextID)s, with different values but same language (%(language)s).",
                         modelObject=fList, fact=fList[0].qname, contextID=fList[0].contextID, language=fList[0].xmlLang)
 
-def isChildOfNotes(child: ModelConcept, relSet: ModelRelationshipSet, _visited: set[ModelConcept]) -> bool:
+def getEsefNotesStatementConcepts(modelXbrl: ModelXbrl) -> set(str):
+    document_name_spaces = modelXbrl.namespaceDocs
+    esef_notes_statement_concepts:set[str] = set()
+    esef_cor_Nses = []
+    for targetNs, models in document_name_spaces.items():
+        if esefCorNsPattern.match(targetNs):
+            found_prefix = ''
+            found_namespace = ''
+            for prefix, namespace in models[0].targetXbrlRootElement.nsmap.items():
+                if targetNs == namespace:
+                    found_namespace = targetNs
+                    found_prefix = prefix
+                    break
+            esef_cor_Nses.append((found_prefix, found_namespace))
+    if len(esef_cor_Nses) == 0:
+        modelXbrl.error("ESEF.RTS.efrsCoreRequired",
+                          _("RTS on ESEF requires EFRS core taxonomy."),
+                          modelObject=modelXbrl)
+    elif len(esef_cor_Nses) > 1:
+        modelXbrl.warning("Arelle.ESEF.multipleEsefTaxonomies",
+                        _("Multiple ESEF taxonomies were imported %(esefNamespaces)s."),
+                        modelObject=modelXbrl, esefNamespaces=", ".join(esef_cor_Nses))
+    else:
+        esef_notes_statement_concepts = set(str(QName(esef_cor_Nses[0][0], esef_cor_Nses[0][1], n)) for n in esefNotesStatementConcepts)
+    return esef_notes_statement_concepts
+
+def isChildOfNotes(child: ModelConcept, relSet: ModelRelationshipSet,
+                   esefNotesConcepts: set[str], _visited: set[ModelConcept]) -> bool:
+    if len(esefNotesConcepts) == 0:
+        return False
     relations_to = relSet.toModelObject(child)
-    if not relations_to and str(child.qname) in esefNotesStatementConcepts:
+    if not relations_to and str(child.qname) in esefNotesConcepts:
         return True
 
     _visited.add(child)
     for rel in relations_to:
         parent = rel.fromModelObject
         if parent is not None and parent not in _visited:
-            if isChildOfNotes(parent, relSet, _visited):
+            if isChildOfNotes(parent, relSet, esefNotesConcepts, _visited):
                 return True
     _visited.remove(child)
     return False
