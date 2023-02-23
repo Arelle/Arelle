@@ -262,6 +262,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     for targetNs in modelXbrl.namespaceDocs.keys():
         if ifrsNsPattern.match(targetNs):
             _ifrsNses.append(targetNs)
+    esefNotesConcepts = set()
     if val.consolidated:
         if not _ifrsNses:
             modelXbrl.warning("ESEF.RTS.ifrsRequired",
@@ -274,6 +275,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             modelObject=modelXbrl, ifrsNamespaces=", ".join(_ifrsNses))
         if _ifrsNses:
             _ifrsNs = _ifrsNses[0]
+        esefNotesConcepts = getEsefNotesStatementConcepts(val.modelXbrl)
 
     esefPrimaryStatementPlaceholders = set(qname(_ifrsNs, n) for n in esefPrimaryStatementPlaceholderNames)
     esefStatementsOfMonetaryDeclaration = set(qname(_ifrsNs, n) for n in esefStatementsOfMonetaryDeclarationNames)
@@ -289,7 +291,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
     # ModelDocument.load has None as a return type. For typing reasons, we need to guard against that here.
     assert modelXbrl.modelDocument is not None
-    esefNotesConcepts = getEsefNotesStatementConcepts(val.modelXbrl)
     checkFilingDTS(val, modelXbrl.modelDocument, esefNotesConcepts, [])
     modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
 
