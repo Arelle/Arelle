@@ -191,6 +191,18 @@ def validateXbrlStart(val: ValidateXbrl, parameters: dict[Any, Any] | None=None,
 
     val.authParam = authorityValidations["default"]
     val.authParam.update(authorityValidations.get(val.authority, {}))
+    if parameters:
+        overwiteParams = {}
+        for key, value in parameters.items():
+            if str(key) in val.authParam and len(value) == 2 and value[1] not in ("null", "None", None):
+                if isinstance(val.authParam[str(key)], int):
+                    try:
+                        overwiteParams[str(key)] = int(value[1])
+                    except ValueError:
+                        modelXbrl.error("Invalid Parameter", _("%(key)s should be a int, got (value)"), key=key, value=value)
+                else:
+                    overwiteParams[str(key)] = value[1]
+        val.authParam.update(overwiteParams)
     for convertListIntoSet in ("outdatedTaxonomyURLs", "effectiveTaxonomyURLs", "standardTaxonomyURIs", "additionalMandatoryTags"):
         if convertListIntoSet in val.authParam:
             val.authParam[convertListIntoSet] = set(val.authParam[convertListIntoSet])
