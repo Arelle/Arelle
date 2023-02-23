@@ -33,7 +33,9 @@
         
         "Each below rule contains a description of syntax used herein, message and rules. ",
         "",
-        "This json must load with OrderedDict's to ensure consistent processing order"
+        "This json must load with OrderedDict's to ensure consistent processing order",
+        "",
+        "The filters represent dqcRuleFilter regexes which can be referenced from config.xml options"
     ],
     "DQC.US.0001": {
     	"name": "Axis with Inappropriate Members",

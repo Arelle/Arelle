@@ -92,6 +92,7 @@
      Disallowed references are blocked and not loaded (same as SEC production system)\n
      No content (semantic) tests are reported"
      validationType="EFM"
+     options="dqc-rule-filter=DQC.US.00(01|04|05|06|08|09|15|33|36|41|43|44|48|60|79)"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|FERC"
      blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
@@ -178,6 +179,7 @@
       Disallowed references are processed\n
       No content (semantic) tests are reported"
       validationType="EFM"
+      options="dqc-rule-filter=DQC.US.00(01|04|05|06|08|09|15|33|36|41|43|44|48|60|79)"
       exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|FERC"
       blockDisallowedReferences="false" 
       defaultXmlLang="en-US" 
@@ -218,6 +220,7 @@
      Disallowed references are processed\n
      Includes content (semantic) tests"
      validationType="EFM"
+     options="dqc-rule-filter=DQC.US.00(01|04|05|06|08|09|15|33|36|41|43|44|48|60|79)"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|FERC"
      blockDisallowedReferences="false" 
      defaultXmlLang="en-US" 
@@ -258,6 +261,7 @@
      Disallowed references are blocked and not loaded (same as SEC production system)\n
      No content (semantic) tests are reported"
      validationType="EFM"
+     options="dqc-rule-filter=DQC.US.00(01|04|05|06|08|09|15|33|36|41|43|44|48|60|79)"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|FERC"
      blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
@@ -300,6 +304,7 @@
      Disallowed references are blocked and not loaded (same as SEC production system)\n
      No content (semantic) tests are reported"
      validationType="EFM"
+     options="dqc-rule-filter=DQC.US.00(01|04|05|06|08|09|15|33|36|41|43|44|48|60|79)"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|FERC"
      blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
@@ -341,6 +346,7 @@
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
      Disallowed references are processed"
      validationType="GFM"
+     options="dqc-rule-filter=DQC.US.00(01|04|05|06|08|09|15|33|36|41|43|44|48|60|79)"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|FERC"
      defaultXmlLang="en"
      defaultLanguage="English" 
