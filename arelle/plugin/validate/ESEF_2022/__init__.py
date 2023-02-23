@@ -477,7 +477,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
                             with elt.modelXbrl.fileSource.file(normalizedUri, binary=True)[0] as fh:
                                 cssContents = fh.read()
-                                validateCssUrl(cssContents, normalizedUri, modelXbrl, val, elt, contentOtherThanXHTMLGuidance)
+                                validateCssUrl(cssContents.decode(), normalizedUri, modelXbrl, val, elt, contentOtherThanXHTMLGuidance)
                                 cssContents = None
                             if val.unconsolidated:
                                 modelXbrl.warning("ESEF.4.1.4.externalCssFileForXhtmlDocument",
@@ -1152,7 +1152,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     modelXbrl.modelManager.showStatus(None)
 
 def validateCssUrl(cssContent:str, normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, contentOtherThanXHTMLGuidance: str):
-    css_elements = tinycss2.parse_stylesheet(cssContent.decode())
+    css_elements = tinycss2.parse_stylesheet(cssContent)
     for css_element in css_elements:
         if not isinstance(css_element, tinycss2.ast.QualifiedRule):
             continue
@@ -1171,9 +1171,9 @@ def validateCssUrlContent(cssRules: list, normalizedUri:str, modelXbrl: ModelXbr
 
 def validateImage(baseUrl:str, image: str, modelXbrl: ModelXbrl, val:ValidateXbrl, elt:ModelObject, evaluatedMsg:str, contentOtherThanXHTMLGuidance=str):
     """
-    image: eather a url or base64 in data:image style
+    image: either an url or base64 in data:image style
     """
-    minExternalRessourceSize = val.authParam["minExternalResourceSize"]
+    minExternalRessourceSize = val.authParam["minExternalResourceSizekB"]
     if scheme(image) in ("http", "https", "ftp"):
         modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
                         else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
@@ -1202,7 +1202,7 @@ def validateImage(baseUrl:str, image: str, modelXbrl: ModelXbrl, val:ValidateXbr
                     modelObject=elt, maxImageSize=minExternalRessourceSize, file=os.path.basename(normalizedUri), evaluatedMsg=evaluatedMsg)
         except IOError as err:
             modelXbrl.error(f"ESEF.{contentOtherThanXHTMLGuidance}.imageFileCannotBeLoaded",
-                            _("Image file which isn't openable '%(src)s', error: %(error)s"),
+                            _("Error opening the file '%(src)s': %(error)s"),
                             modelObject=elt, src=image, error=err, evaluatedMsg=evaluatedMsg)
     else:
         m = imgDataMediaBase64Pattern.match(image)
