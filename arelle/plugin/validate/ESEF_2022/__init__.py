@@ -1176,7 +1176,7 @@ def validateImage(baseUrl:str, image: str, modelXbrl: ModelXbrl, val:ValidateXbr
     minExternalRessourceSize = val.authParam["minExternalResourceSizekB"]
     if minExternalRessourceSize != -1:
         # transform kb to b
-        minExternalRessourceSize = minExternalRessourceSize * 1000
+        minExternalRessourceSize = minExternalRessourceSize * 1024
     if scheme(image) in ("http", "https", "ftp"):
         modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
                         else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
