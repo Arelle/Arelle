@@ -28,14 +28,10 @@
         "DQC.US rule 0073 is implemented below (new for 2023)",
         "DQC.US rule 0079 is implemented below (2022)",
         "DQC.US rule 0084 is implemented below (new for 2023)",
-
         "",
-        
         "Each below rule contains a description of syntax used herein, message and rules. ",
         "",
-        "This json must load with OrderedDict's to ensure consistent processing order",
-        "",
-        "The filters represent dqcRuleFilter regexes which can be referenced from config.xml options"
+        "This json must load with OrderedDict's to ensure consistent processing order"
     ],
     "DQC.US.0001": {
     	"name": "Axis with Inappropriate Members",
