@@ -936,15 +936,15 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     fr = rel.fromModelObject
                     to = rel.toModelObject
                     if arcrole in (parentChild, summationItem):
-                        if fr is not None and not fr.isAbstract and fr not in conceptsUsed and isExtension(val, rel):
+                        if fr is not None and not fr.isAbstract and fr not in conceptsUsed and isExtension(val, rel): # type: ignore[attr-defined]
                             unreportedLbElts.add(fr)
-                        if to is not None and not to.isAbstract and to not in conceptsUsed and isExtension(val, rel):
+                        if to is not None and not to.isAbstract and to not in conceptsUsed and isExtension(val, rel): # type: ignore[attr-defined]
                             unreportedLbElts.add(to)
                     elif arcrole in (hc_all, domainMember, dimensionDomain):
                         # all primary items
-                        if fr is not None and not fr.isAbstract and rel.isUsable and fr not in conceptsUsed and isExtension(val, rel) and not fr.type.isDomainItemType:
+                        if fr is not None and not fr.isAbstract and rel.isUsable and fr not in conceptsUsed and isExtension(val, rel) and not fr.type.isDomainItemType: # type: ignore[attr-defined]
                             unreportedLbElts.add(to)
-                        if to is not None and not to.isAbstract and rel.isUsable and to not in conceptsUsed and isExtension(val, rel) and not to.type.isDomainItemType:
+                        if to is not None and not to.isAbstract and rel.isUsable and to not in conceptsUsed and isExtension(val, rel) and not to.type.isDomainItemType: # type: ignore[attr-defined]
                             unreportedLbElts.add(to)
                     reportedEltsNotInLb.discard(fr)
                     reportedEltsNotInLb.discard(to)

@@ -141,7 +141,7 @@ def checkFilingDimensions(val: ValidateXbrl) -> None:
                 val.modelXbrl.error("ESEF.3.3.1.anchoringRelationshipsForDomainMembersDefinedUsingWiderNarrowerArcrole",
                     _("Anchoring relationships MUST be from and to concepts, from %(qname1)s to %(qname2)s"),
                     modelObject=(anchoringRel, fromObj, toObj), qname1=fromObj.qname, qname2=toObj.qname)
-            elif fromObj.isDimensionItem or toObj.isDimensionItem:
+            elif fromObj.isDimensionItem or toObj.isDimensionItem: # type: ignore[attr-defined]
                 val.modelXbrl.error("ESEF.3.3.1.anchoringRelationshipsForDimensionsDefinedUsingWiderNarrowerArcrole",
                     _("Anchoring relationships MUST be from and to concepts, from %(qname1)s to %(qname2)s"),
                     modelObject=(anchoringRel, fromObj, toObj), qname1=fromObj.qname, qname2=toObj.qname)

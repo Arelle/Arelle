@@ -203,8 +203,8 @@ class ValidateXbrl:
                                 _("Calculation relationship has zero weight from %(source)s to %(target)s in link role %(linkrole)s"),
                                 modelObject=modelRel,
                                 source=fromConcept.qname, target=toConcept.qname, linkrole=ELR),
-                        fromBalance = fromConcept.balance
-                        toBalance = toConcept.balance
+                        fromBalance = fromConcept.balance # type: ignore[attr-defined]
+                        toBalance = toConcept.balance # type: ignore[attr-defined]
                         if fromBalance and toBalance:
                             if (fromBalance == toBalance and weight < 0) or \
                                (fromBalance != toBalance and weight > 0):
@@ -215,13 +215,13 @@ class ValidateXbrl:
                                     source=fromConcept.qname, target=toConcept.qname, linkrole=ELR,
                                     sourceBalance=fromBalance, targetBalance=toBalance,
                                     messageCodes=("xbrl.5.1.1.2:balanceCalcWeightIllegalNegative", "xbrl.5.1.1.2:balanceCalcWeightIllegalPositive"))
-                        if not fromConcept.isNumeric or not toConcept.isNumeric:
+                        if not fromConcept.isNumeric or not toConcept.isNumeric: # type: ignore[attr-defined]
                             modelXbrl.error("xbrl.5.2.5.2:nonNumericCalc",
                                 _("Calculation relationship has illegal concept from %(source)s%(sourceNumericDecorator)s to %(target)s%(targetNumericDecorator)s in link role %(linkrole)s"),
                                 modelObject=modelRel,
                                 source=fromConcept.qname, target=toConcept.qname, linkrole=ELR,
-                                sourceNumericDecorator="" if fromConcept.isNumeric else _(" (non-numeric)"),
-                                targetNumericDecorator="" if toConcept.isNumeric else _(" (non-numeric)"))
+                                sourceNumericDecorator="" if fromConcept.isNumeric else _(" (non-numeric)"), # type: ignore[attr-defined]
+                                targetNumericDecorator="" if toConcept.isNumeric else _(" (non-numeric)")) # type: ignore[attr-defined]
             # check presentation relationships for preferredLabel issues
             elif arcrole == XbrlConst.parentChild:
                 for modelRel in relsSet.modelRelationships:
@@ -248,13 +248,13 @@ class ValidateXbrl:
                     fromConcept = modelRel.fromModelObject
                     toConcept = modelRel.toModelObject
                     if fromConcept is not None and toConcept is not None:
-                        if fromConcept.type != toConcept.type or fromConcept.periodType != toConcept.periodType:
+                        if fromConcept.type != toConcept.type or fromConcept.periodType != toConcept.periodType: # type: ignore[attr-defined]
                             modelXbrl.error("xbrl.5.2.6.2.2:essenceAliasTypes",
                                 _("Essence-alias relationship from %(source)s to %(target)s in link role %(linkrole)s has different types or periodTypes"),
                                 modelObject=modelRel,
                                 source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
-                        fromBalance = fromConcept.balance
-                        toBalance = toConcept.balance
+                        fromBalance = fromConcept.balance # type: ignore[attr-defined]
+                        toBalance = toConcept.balance # type: ignore[attr-defined]
                         if fromBalance and toBalance:
                             if fromBalance and toBalance and fromBalance != toBalance:
                                 modelXbrl.error("xbrl.5.2.6.2.2:essenceAliasBalance",  # type: ignore[func-returns-value]
