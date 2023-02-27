@@ -4,9 +4,11 @@ Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
+from lxml.etree import _Element
+from urllib.parse import unquote
 import os, json
 from arelle.ModelObject import ModelObject
-from .Const import esefTaxonomyNamespaceURIs
+from .Const import esefTaxonomyNamespaceURIs, htmlEventHandlerAttributes, svgEventAttributes
 from lxml.etree import XML, XMLSyntaxError
 from arelle.FileSource import openFileStream
 from arelle.UrlUtil import scheme
@@ -47,41 +49,32 @@ supportedImgTypes: dict[bool, tuple[str, ...]] = {
     False: ("gif", "jpeg", "png") # mime types: jpg is not a valid mime type
     }
 # check image contents against mime/file ext and for Steganography
-def checkImageContents(modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, isFile: bool, data: bytes) -> None:
+
+def checkImageContents(modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, isFile: bool, data: bytes, consolidated: bool) -> None:
+    guidance = '2.5.1' if consolidated else '4.1.3'
     if "svg" in imgType:
         try:
-            rootElement = True
-            for elt in XML(data).iter():
-                if rootElement:
-                    if elt.tag != "{http://www.w3.org/2000/svg}svg":
-                        modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
-                            _("Image SVG has root element which is not svg"),
-                            modelObject=imgElt)
-                    rootElement = False
-                eltTag = elt.tag.rpartition("}")[2] # strip namespace
-                if ((eltTag in ("object", "script")) or
-                    (eltTag in ("audio", "foreignObject", "iframe", "image", "use", "video"))):
-                    href = elt.get("href","")
-                    if eltTag in ("object", "script") or "javascript:" in href:
-                        modelXbrl.error("ESEF.2.5.1.executableCodePresent",
-                            _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
-                            modelObject=imgElt, element=eltTag)
-                    elif scheme(href) in ("http", "https", "ftp"):
-                        modelXbrl.error("ESEF.2.5.1.referencesPointingOutsideOfTheReportingPackagePresent",
-                            _("Inline XBRL instance document [image] MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
-                            modelObject=imgElt, element=eltTag)
-        except (XMLSyntaxError, UnicodeDecodeError) as err:
-            modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
+            checkSVGContent(modelXbrl, imgElt, data, guidance)
+        except XMLSyntaxError as err:
+            try:
+                checkSVGContent(modelXbrl, imgElt, unquote(data), guidance)  # Try with utf-8 decoded data as in conformance suite G4-1-3_2/TC2
+            except XMLSyntaxError:
+                modelXbrl.error(f"ESEF.{guidance}.imageFileCannotBeLoaded",
+                                _("Image SVG has XML error %(error)s"),
+                                modelObject=imgElt, error=err)
+        except UnicodeDecodeError as err:
+            modelXbrl.error(f"ESEF.{guidance}.imageFileCannotBeLoaded",
                 _("Image SVG has XML error %(error)s"),
                 modelObject=imgElt, error=err)
     elif not any(it in imgType for it in supportedImgTypes[isFile]):
-        modelXbrl.error("ESEF.2.5.1.imageFormatNotSupported",
+        modelXbrl.error(f"ESEF.{guidance}.imageFormatNotSupported",
             _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPEG formats: %(imgType)s is not supported"),
             modelObject=imgElt, imgType=imgType)
     else:
         if data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):
             headerType = "gif"
-        elif data[:2] == b"\xff\xd8":
+        elif ((data[:4] == b'\xff\xd8\xff\xe0' and data[6:11] == b'JFIF\x00') or
+              (data[:4] == b'\xff\xd8\xff\xe1' and data[6:11] == b'Exif\x00')):
             headerType = "jpg"
         elif data[:8] == b"\x89PNG\r\n\x1a\n":
             headerType = "png"
@@ -100,11 +93,39 @@ def checkImageContents(modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, 
         if (("gif" in imgType and headerType != "gif") or
             (("jpg" in imgType or "jpeg" in imgType) and headerType != "jpg") or
             ("png" in imgType and headerType != "png")):
-            modelXbrl.error("ESEF.2.5.1.imageDoesNotMatchItsFileExtension" if isFile
-                            else "ESEF.2.5.1.incorrectMIMETypeSpecified",
+            imageDoesNotMatchItsFileExtension = f"ESEF.{guidance}.imageDoesNotMatchItsFileExtension"
+            incorrectMIMETypeSpecified = f"ESEF.{guidance}.incorrectMIMETypeSpecified"
+            modelXbrl.error(imageDoesNotMatchItsFileExtension if isFile else incorrectMIMETypeSpecified,
                 _("Image type %(imgType)s has wrong header type: %(headerType)s"),
                 modelObject=imgElt, imgType=imgType, headerType=headerType,
-                messageCodes=("ESEF.2.5.1.imageDoesNotMatchItsFileExtension", "ESEF.2.5.1.incorrectMIMETypeSpecified"))
+                messageCodes=(imageDoesNotMatchItsFileExtension, incorrectMIMETypeSpecified))
+
+
+def checkSVGContent(modelXbrl, imgElt, data, guidance):
+    rootElement = True
+    for elt in XML(data).iter():
+        if rootElement:
+            if elt.tag != "{http://www.w3.org/2000/svg}svg":
+                modelXbrl.error(f"ESEF.{guidance}.imageFileCannotBeLoaded",
+                                _("Image SVG has root element which is not svg"),
+                                modelObject=imgElt)
+            rootElement = False
+        eltTag = elt.tag.rpartition("}")[2] # strip namespace
+        if ((eltTag in ("object", "script")) or
+                (eltTag in ("audio", "foreignObject", "iframe", "image", "use", "video"))):
+            href = elt.get("href","")
+            if eltTag in ("object", "script") or "javascript:" in href:
+                modelXbrl.error(f"ESEF.{guidance}.executableCodePresent",
+                                _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
+                                modelObject=imgElt, element=eltTag)
+            elif scheme(href) in ("http", "https", "ftp"):
+                modelXbrl.error(f"ESEF.{guidance}.referencesPointingOutsideOfTheReportingPackagePresent",
+                                _("Inline XBRL instance document [image] MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
+                                modelObject=imgElt, element=eltTag)
+        if hasSvgEventAttributes(elt):
+            modelXbrl.error(f"ESEF.{guidance}.executableCodePresent",
+                            _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
+                            modelObject=imgElt, element=eltTag)
 
 def resourcesFilePath(modelManager: ModelManager, fileName: str) -> str:
     # resourcesDir can be in cache dir (production) or in validate/EFM/resources (for development)
@@ -122,3 +143,14 @@ def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]
     validations = json.load(_file) # {localName: date, ...}
     _file.close()
     return cast(Union[dict[Any, Any], list[Any]], validations)
+
+def hasEventHandlerAttributes(elt: Any) -> bool:
+    return _hasEventAttributes(elt, htmlEventHandlerAttributes)
+
+def hasSvgEventAttributes(elt: Any) -> bool:
+    return _hasEventAttributes(elt, svgEventAttributes)
+
+def _hasEventAttributes(elt: Any, attributes: set) -> bool:
+    if isinstance(elt, _Element):
+        return any(a.lower() in attributes for a in elt.keys())
+    return False

@@ -43,7 +43,6 @@ Client with curl:
 '''
 from __future__ import annotations
 import os, base64
-import zipfile
 import regex as re
 from collections import defaultdict
 from math import isnan
@@ -56,8 +55,9 @@ from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import qname
 from arelle.PackageManager import validateTaxonomyPackage
-from arelle.PythonUtil import strTruncate, normalizeSpace
+from arelle.PythonUtil import normalizeSpace
 from arelle.Version import authorLabel, copyrightLabel
+from arelle.PythonUtil import strTruncate
 from arelle.UrlUtil import isHttpUrl, scheme
 from arelle.XmlValidate import lexicalPatterns
 
@@ -71,7 +71,8 @@ from .Const import (mandatory, untransformableTypes,
                     esefPrimaryStatementPlaceholderNames, esefStatementsOfMonetaryDeclarationNames, esefMandatoryElementNames2020)
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
-from .Util import isExtension, checkImageContents, loadAuthorityValidations, checkForMultiLangDuplicates, getEsefNotesStatementConcepts
+from .Util import isExtension, checkImageContents, loadAuthorityValidations, checkForMultiLangDuplicates,\
+    getEsefNotesStatementConcepts, hasEventHandlerAttributes
 from arelle.typing import TypeGetText
 from arelle.ModelObject import ModelObject
 from arelle.DisclosureSystem import DisclosureSystem
@@ -85,6 +86,7 @@ from arelle.ModelInstanceObject import ModelContext
 from typing import Any, cast
 from collections.abc import Generator
 from arelle.ModelValue import QName
+import zipfile
 
 _: TypeGetText  # Handle gettext
 
@@ -118,7 +120,7 @@ def modelXbrlBeforeLoading(modelXbrl: ModelXbrl, normalizedUri: str, filepath: s
     if getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
         if isEntry:
             if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
-                if re.match(".*[.](7z|rar|tar)", normalizedUri):
+                if re.match(r'.*[.](7z|rar|tar|jar)', normalizedUri):
                     modelXbrl.error("ESEF.Arelle.InvalidSubmissionFormat",
                                     _("Unrecognized submission format."),
                                     modelObject=modelXbrl)
@@ -284,7 +286,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             return
         if len(_ifrsNses) > 1:
             modelXbrl.error("Arelle.ESEF.multipleIfrsTaxonomies",
-                            _("Multuple IFRS taxonomies were imported %(ifrsNamespaces)s."),
+                            _("Multiple IFRS taxonomies were imported %(ifrsNamespaces)s."),
                             modelObject=modelXbrl, ifrsNamespaces=", ".join(_ifrsNses))
         if _ifrsNses:
             _ifrsNs = _ifrsNses[0]
@@ -394,13 +396,13 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 ixdsDocDirs.add("/".join(docDirPath[i+1:len(docDirPath)-1])) # needed for error msg on orphaned instance docs
                     if not reportIsInZipFile:
                         modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
-                            _("Inline XBRL document MUST be included within an ESEF report package as defined in"
+                            _("Inline XBRL document MUST be included within an ESEF report package as defined in "
                                "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
                                ".html: %(fileName)s (Document is not in a zip archive)"),
                             modelObject=doc, fileName=doc.basename)
                     elif not reportCorrectlyPlacedInPackage:
                         modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
-                             _("Inline XBRL document MUST be included within an ESEF report package as defined in"
+                             _("Inline XBRL document MUST be included within an ESEF report package as defined in "
                                "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
                                ".html: %(fileName)s (Document file not in correct place in package)"),
                             modelObject=doc, fileName=doc.basename)
@@ -455,7 +457,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         if ((eltTag in ("object", "script")) or
                             (eltTag == "a" and "javascript:" in elt.get("href", "")) or
                             (eltTag == "img" and "javascript:" in elt.get("src", "")) or
-                            (eltTag == "a" and "mailto" in elt.get("href", ""))):
+                            (eltTag == "a" and "mailto" in elt.get("href", "")) or
+                            (hasEventHandlerAttributes(elt))):
                             modelXbrl.error(f"ESEF.{contentOtherThanXHTMLGuidance}.executableCodePresent",
                                 _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
                                 modelObject=elt, element=eltTag)
