@@ -932,7 +932,7 @@
             },
             "9728": {
                 "must-be-present-elements": [
-					"CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
+					"CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
 					"CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsIncludingDisposalGroupAndDiscontinuedOperations"
                 ],
                 "message": "One of the following elements {elementNames} should appear as the opening and closing balance in the cash flow statement using the group {role}. Instead the following balance items have been used in this statement {balanceElements}. Due to the implementaion of ASU-2016-18 at least one of the opening and closing balance items listed must be used in the cash flow statement. "
