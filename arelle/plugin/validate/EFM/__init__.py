@@ -40,7 +40,7 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
    "filerNewRegistrantFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    # Test/debug fields
    datetimeForTesting: xml-syntax datetime to override clock time for test/debug purposes
-   dqcRuleFilter: null or absent for all DQC rules, else regular expression to filter which rules run 
+   dqcRuleFilter: null or absent for all DQC rules, else regular expression to filter which rules run
        (e.g. "DQC.US.00(04|15)" ), but not including the id suffix (which is not filterable)
        If parameter is absent and config.xml for disclosureSystem options specifies a dqc-rule-filter, it will be in effect
    },
@@ -235,7 +235,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     if any((concept.qname.namespaceURI in val.disclosureSystem.standardTaxonomiesDict and concept.modelDocument.inDTS)
            for concept in val.modelXbrl.nameConcepts.get("UTR",())):
         val.validateUTR = True
-        
+
     if "dqcRuleFilter" not in val.params and val.disclosureSystem.options and "dqc-rule-filter=" in val.disclosureSystem.options:
         val.params["dqcRuleFilter"] = val.disclosureSystem.options.partition("dqc-rule-filter=")[2]
 

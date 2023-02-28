@@ -9,15 +9,15 @@ The test cases are in the standard XBRL International transformation test case f
 For display purposes, a simple XSLT 1.0 stylesheet is also included:
   tests.xsl
 
-* Two stylesheets, with accompanying bash wrapper scripts are provided:
+ * Two stylesheets, with accompanying bash wrapper scripts are provided:
 
-** extract.sh (extractVariations.xsl) creates an XML file containing all valid
+     * extract.sh (extractVariations.xsl) creates an XML file containing all valid
    or all invalid test inputs with an xsi:type attribute indicating the input type.
 
-** extractTestcase.sh (extractTestcase.xsl) extracts all test inputs and
+     * extractTestcase.sh (extractTestcase.xsl) extracts all test inputs and
    expected outputs into an XBRL conformance suite test case.
 
-** run
+  * run
 
 ## Testcase file format
 

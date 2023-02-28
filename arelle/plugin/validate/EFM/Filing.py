@@ -3126,7 +3126,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         mustBePresentElements = rule["must-be-present-elements"]
                         if not balanceEltNames & set(mustBePresentElements):
                             modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(rule["message"])),
-                                modelObject=balanceElts, role=linkroleUri, elementNames=", ".join(mustBePresentElements), 
+                                modelObject=balanceElts, role=linkroleUri, elementNames=", ".join(mustBePresentElements),
                                 balanceElements=", ".join(sorted(balanceEltNames)),
                                 edgarCode=edgarCode, ruleElementId=id)
                     balanceElts.clear() # deref
@@ -3156,7 +3156,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             priItemQnames = sorted(concept.qname for concept in priItemConcepts)
             if dimToSkipIfPresent:
                 dimToSkipIfPresent = dimToSkipIfPresent[0] # first nameConcept
-                
+
             def getDescendants(arcRoles, fromConcept, elr, startAtObj=None, descendants=None, visited=None, cubeOnly=False):
                 if descendants is None:
                     descendants = set()
@@ -3189,7 +3189,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 for priItemConcept in priItemConcepts)):
                             continue
                         domDescendants = getDescendants((XbrlConst.dimensionDomain, XbrlConst.domainMember),domConcept, linkroleUri)
-                        if len(domDescendants) == 1: 
+                        if len(domDescendants) == 1:
                             for boundFacts in factBindings(modelXbrl, priItemNames, coverDimQnames=(dimConcept.qname,)).values():
                                 factsWithDim = set()
                                 factsWithoutDim = set()
@@ -3217,7 +3217,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             for f in modelXbrl.factsByDimMemQname(dimConcept.qname, NONDEFAULT):
                 if isStandardUri(val, f.concept.modelDocument.uri) and f.concept.name not in allowablePrimaryItemSet:
                     modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
-                        modelObject=f, name=f.qname,value=f.xValue, 
+                        modelObject=f, name=f.qname,value=f.xValue,
                         allowableNames=", ".join(allowablePrimaryItems),
                         contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
                         edgarCode=edgarCode, ruleElementId=id)
@@ -3266,10 +3266,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         modelObject=facts, name=sumFact.concept.name, value=sumFact.xValue,
                         sumPeriods=sum(itemValues),
                         difference=difference, minDecimals=minDec, tolerance=tolerance,
-                        periods=", \n".join(f"{XmlUtil.dateunionValue(f.context.startDatetime)}/{XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True)} {f.xValue}" for f in facts[1:]),                        
+                        periods=", \n".join(f"{XmlUtil.dateunionValue(f.context.startDatetime)}/{XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True)} {f.xValue}" for f in facts[1:]),
                         contextID=sumFact.context.id, unitID=sumFact.unit.id if sumFact.unit is not None else "(none)",
                         edgarCode=edgarCode, ruleElementId=id)
-                
+
              # dict by dimHash by localName of set of facts
             dimBoundFactsByPeriod = defaultdict(dict) # emulate defaultdict(defaultdict(set))
             for dimHash, binding in factBindings(modelXbrl, durationFactNames, coverPeriod=True).items():
