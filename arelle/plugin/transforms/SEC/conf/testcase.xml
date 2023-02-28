@@ -3301,6 +3301,24 @@
       </outputs>
    </variation>
    <variation id="V-4-2">
+      <name>ixt-sec:datequarterend("33rd quarter, 1999")</name>
+      <inputs>
+         <cfcn:call>ixt-sec:datequarterend("33rd quarter, 1999")</cfcn:call>
+      </inputs>
+      <outputs>
+         <error>xqt-err:XPTY0004</error>
+      </outputs>
+   </variation>
+   <variation id="V-4-3">
+      <name>ixt-sec:datequarterend("33 1999")</name>
+      <inputs>
+         <cfcn:call>ixt-sec:datequarterend("33 1999")</cfcn:call>
+      </inputs>
+      <outputs>
+         <error>xqt-err:XPTY0004</error>
+      </outputs>
+   </variation>
+   <variation id="V-4-4">
       <name>ixt-sec:datequarterend("Last quarter 1999")</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend("Last quarter 1999")</cfcn:call>
@@ -3309,7 +3327,7 @@
          <cfcn:test>$result eq "1999-12-31"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-4-3">
+   <variation id="V-4-5">
       <name>ixt-sec:datequarterend("The 3rd quarter, 1999")</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend("The 3rd quarter, 1999")</cfcn:call>
@@ -3318,7 +3336,7 @@
          <cfcn:test>$result eq "1999-09-30"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-4-4">
+   <variation id="V-4-6">
       <name>ixt-sec:datequarterend("The Last quarter, 1999")</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend("The Last quarter, 1999")</cfcn:call>
@@ -3327,7 +3345,7 @@
          <cfcn:test>$result eq "1999-12-31"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-4-5">
+   <variation id="V-4-7">
       <name>ixt-sec:datequarterend("Q3 1999")</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend("Q3 1999")</cfcn:call>
@@ -3336,7 +3354,7 @@
          <cfcn:test>$result eq "1999-09-30"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-4-6">
+   <variation id="V-4-8">
       <name>ixt-sec:datequarterend("Q3 1999")</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend("Q3 1999")</cfcn:call>
@@ -3345,7 +3363,7 @@
          <cfcn:test>$result eq "1999-09-30"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-4-7">
+   <variation id="V-4-9">
       <name>ixt-sec:datequarterend("Quarter 3, 1999")</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend("Quarter 3, 1999")</cfcn:call>
@@ -3354,7 +3372,7 @@
          <cfcn:test>$result eq "1999-09-30"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-4-8">
+   <variation id="V-4-10">
       <name>ixt-sec:datequarterend("Q3'1999")</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend("Q3'1999")</cfcn:call>
@@ -3363,7 +3381,7 @@
          <cfcn:test>$result eq "1999-09-30"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-4-9">
+   <variation id="V-4-11">
       <name>ixt-sec:datequarterend("1999, Q5")</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend("1999, Q5")</cfcn:call>
@@ -3372,7 +3390,7 @@
          <error>xqt-err:XPTY0004</error>
       </outputs>
    </variation>
-   <variation id="V-4-10">
+   <variation id="V-4-12">
       <name>ixt-sec:datequarterend("1999, Q4")</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend("1999, Q4")</cfcn:call>
@@ -3381,7 +3399,25 @@
          <cfcn:test>$result eq "1999-12-31"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-4-11">
+   <variation id="V-4-13">
+      <name>ixt-sec:datequarterend("1999, Q44")</name>
+      <inputs>
+         <cfcn:call>ixt-sec:datequarterend("1999, Q44")</cfcn:call>
+      </inputs>
+      <outputs>
+         <error>xqt-err:XPTY0004</error>
+      </outputs>
+   </variation>
+   <variation id="V-4-14">
+      <name>ixt-sec:datequarterend("1999, 44")</name>
+      <inputs>
+         <cfcn:call>ixt-sec:datequarterend("1999, 44")</cfcn:call>
+      </inputs>
+      <outputs>
+         <error>xqt-err:XPTY0004</error>
+      </outputs>
+   </variation>
+   <variation id="V-4-15">
       <name>ixt-sec:datequarterend("1999 1st Quarter")</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend("1999 1st Quarter")</cfcn:call>
@@ -3390,7 +3426,7 @@
          <cfcn:test>$result eq "1999-03-31"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-4-12">
+   <variation id="V-4-16">
       <name>ixt-sec:datequarterend("1999 1st Quarter End")</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend("1999 1st Quarter End")</cfcn:call>
@@ -3399,7 +3435,7 @@
          <cfcn:test>$result eq "1999-03-31"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-4-13">
+   <variation id="V-4-17">
       <name>ixt-sec:datequarterend("1999 1st quarter-end")</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend("1999 1st quarter-end")</cfcn:call>
@@ -3408,7 +3444,7 @@
          <cfcn:test>$result eq "1999-03-31"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-4-14">
+   <variation id="V-4-18">
       <name>Non-breaking space supported within expression</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend("1999 1st Quarter")</cfcn:call>
@@ -3417,7 +3453,7 @@
          <cfcn:test>$result eq "1999-03-31"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-4-15">
+   <variation id="V-4-19">
       <name>Schema whitespace is trimmed.</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend(" 1999 1st Quarter ")</cfcn:call>
@@ -3426,7 +3462,7 @@
          <cfcn:test>$result eq "1999-03-31"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-4-16">
+   <variation id="V-4-20">
       <name>Leading non-breaking space not supported by xml whitespace trimming.</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend(" 1999 1st Quarter")</cfcn:call>
@@ -3435,7 +3471,7 @@
          <error>xqt-err:XPTY0004</error>
       </outputs>
    </variation>
-   <variation id="V-4-17">
+   <variation id="V-4-21">
       <name>Leading non-breaking space not supported by xml whitespace trimming.</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend(" Q3 1999")</cfcn:call>
@@ -3444,7 +3480,7 @@
          <error>xqt-err:XPTY0004</error>
       </outputs>
    </variation>
-   <variation id="V-4-18">
+   <variation id="V-4-22">
       <name>Trailing non-breaking space not supported by xml whitespace trimming</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend("1999 1st Quarter ")</cfcn:call>
@@ -3453,7 +3489,7 @@
          <error>xqt-err:XPTY0004</error>
       </outputs>
    </variation>
-   <variation id="V-4-19">
+   <variation id="V-4-23">
       <name>ixt-sec:datequarterend("1999 1st Quarter End")</name>
       <inputs>
          <cfcn:call>ixt-sec:datequarterend("1999 1st Quarter End")</cfcn:call>
@@ -7036,7 +7072,7 @@
       </outputs>
    </variation>
    <revisions>
-      <revision by="Makefile" on="2021-12-02T08:58:41.865-08:00">
+      <revision by="Makefile" on="2023-02-28T13:44:43.682-08:00">
          <xhtml:p>
 	        Created the test case by xslt extraction from tests.xml.
 	      </xhtml:p>
