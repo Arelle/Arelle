@@ -289,8 +289,8 @@ def deprecatedConceptDatesFile(modelManager, abbrNs, latestTaxonomyDoc):
                             deprecatedConceptDates[conceptName] = date
 
             jsonStr = json.dumps(
-                OrderedDict(((k, v) for k, v in sorted(deprecatedConceptDates.items())),  # sort in json file
-                            ensure_ascii=False, indent=0))
+                OrderedDict(((k, v) for k, v in sorted(deprecatedConceptDates.items()))),  # sort in json file
+                            ensure_ascii=False, indent=0)
             saveFile(cntlr, _fileName, jsonStr)
             deprecationsInstance.close()
             del deprecationsInstance # dereference closed modelXbrl
