@@ -14,8 +14,8 @@ label documentation and references linkbases for EdgarRenderer to be aware of.
 
 ### axiswarnings.json, signwarnings.json
 
-These files were used prior to 2020 for axis and sign warnings and have been replaced by DQCRT rules implementing the same
-functionality.  This file was hand-maintained by SEC staff but is provided now only to process pre-2020 filings.
+These files are used for axis and sign warnings except for US-GAAP filings after 2020, where they are replaced 
+by DQCRT rules implementing the same functionality.  This file is hand-maintained by SEC staff.
 
 ### *-deprecated-concepts.json
 
