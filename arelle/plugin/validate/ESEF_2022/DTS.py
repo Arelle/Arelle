@@ -119,6 +119,9 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                             conceptLinkroles = tuple(set(rel.linkrole for rel in conceptRels))
                             conceptLinkroleRestrictedRelSet = val.modelXbrl.relationshipSet(XbrlConst.parentChild,
                                                                                             conceptLinkroles)
+                            # Globally, this has O(extensions*presentation) running time,
+                            # which could be slow if there are many unanchored extensions.
+                            # This could be improved by precomputing childrenOfNotes
                             if not calcRelSet.fromModelObject(modelConcept) and not isChildOfNotes(modelConcept,
                                                                                                    conceptLinkroleRestrictedRelSet,
                                                                                                    esefNotesConcepts,
