@@ -390,6 +390,8 @@
 
   <transform name="ixt-sec:datequarterend" outputType="xs:date">
       <variation input="3rd quarter, 1999" output="1999-09-30" result="valid" />
+      <variation input="33rd quarter, 1999" output="1999-09-30" result="invalid" />
+      <variation input="33 1999" output="1999-09-30" result="invalid" />
       <variation input="Last quarter 1999" output="1999-12-31" result="valid" />
       <variation input="The 3rd quarter, 1999" output="1999-09-30" result="valid" />
       <variation input="The Last quarter, 1999" output="1999-12-31" result="valid" />
@@ -399,6 +401,8 @@
       <variation input="Q3'1999" output="1999-09-30" result="valid" />
       <variation input="1999, Q5" output="" result="invalid" />
       <variation input="1999, Q4" output="1999-12-31" result="valid" />
+      <variation input="1999, Q44" output="1999-12-31" result="invalid" />
+      <variation input="1999, 44" output="1999-12-31" result="invalid" />
       <variation input="1999 1st Quarter" output="1999-03-31" result="valid" />
       <variation input="1999 1st Quarter End" output="1999-03-31" result="valid" />
       <variation input="1999 1st quarter-end" output="1999-03-31" result="valid" />

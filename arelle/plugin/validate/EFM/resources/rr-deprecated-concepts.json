@@ -1,4 +1,14 @@
 {
 "ExpenseExchangeTradedFundCommissions": "2021-01-31",
-"RiskMoneyMarketFund": "2018-01-31"
+"Risk": "2023-01-31",
+"RiskLoseMoney": "2023-01-31",
+"RiskMoneyMarketFund": "2018-01-31",
+"RiskMoneyMarketFundMayImposeFeesOrSuspendSales": "2023-01-31",
+"RiskMoneyMarketFundMayNotPreserveDollar": "2023-01-31",
+"RiskMoneyMarketFundPriceFluctuates": "2023-01-31",
+"RiskMoneyMarketFundSponsorMayNotProvideSupport": "2023-01-31",
+"RiskNarrativeTextBlock": "2023-01-31",
+"RiskNondiversifiedStatus": "2023-01-31",
+"RiskNotInsured": "2023-01-31",
+"RiskNotInsuredDepositoryInstitution": "2023-01-31"
 }
