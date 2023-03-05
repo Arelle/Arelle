@@ -21,11 +21,13 @@ If the file source is a zip, CmdLine will discover the inline files in the zip a
 
 If the file source is a local directory, CmdLine will discover the inline files in the directory as thus:
     --file '[{"ixds":[{"file":dir1}]}]'
+    
+If there is a JSON structure in --file without ixdsTarget the default target is assumed.
 
-For GUI operation specify a formula parameter named ixdsTarget of type xs:string (in formula tools->formula parameters).
+If no JSON structure then formula parameter ixdsTarget may be used to specify a non-default target or the
+special value "(default)" for the default target (e.g., resources with no @target attribute).
 
-If a ixdsTarget parameter is absent or has a value of an empty string it is the default target document and matches
-ix facts and resources with no @target attribute.
+For GUI instance loading a pop up selection dialog is provided when there is no formula parameter and there are multiple targets.
 
 See COPYRIGHT.md for copyright information.
 '''
@@ -86,14 +88,14 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
     if isEntry:
         try:
             if "entrypoint" in kwargs:
-                _target = kwargs["entrypoint"]["ixdsTarget"]
+                _target = kwargs["entrypoint"].get("ixdsTarget") # assume None if not specified in entrypoint
             elif "ixdsTarget" in kwargs: # passed from validate (multio test cases)
                 _target = kwargs["ixdsTarget"]
             else:
-                _target = modelXbrl.modelManager.formulaOptions.parameterValues.get("ixdsTarget")[1]
+                _target = modelXbrl.modelManager.formulaOptions.parameterValues["ixdsTarget"][1]
+            modelXbrl.ixdsTarget = None if _target == "(default)" else _target or None
         except (KeyError, AttributeError, IndexError, TypeError):
-            _target = None
-        modelXbrl.ixdsTarget = _target or None # None if an empty string specified
+            pass # set later in selectTargetDocument plugin method
     if IXDS_SURROGATE in normalizedUri:
         # create surrogate entry object for inline document set which references ix documents
         xml = ["<instances>\n"]
@@ -616,6 +618,48 @@ def inlineDocsetDiscovery(filesource, entrypointFiles): # [{"file":"url1"}, ...]
 def inlineDocsetUrlSeparator():
     return IXDS_DOC_SEPARATOR
 
+class TargetChoiceDialog:
+    def __init__(self,parent, choices):
+        from tkinter import Toplevel, Label, Listbox, StringVar
+        parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
+        dialogX = int(parentGeometry.group(3))
+        dialogY = int(parentGeometry.group(4))
+        self.parent = parent
+        self.t = Toplevel()
+        self.t.transient(self.parent)
+        self.t.geometry("+{0}+{1}".format(dialogX+200,dialogY+200))
+        self.t.title(_("Select Target"))
+        self.selection = choices[0] # default choice in case dialog is closed without selecting an entry
+        self.lb = Listbox(self.t, height=10, width=30, listvariable=StringVar(value=choices))
+        self.lb.grid(row=0, column=0)
+        self.lb.focus_set()
+        self.lb.bind("<<ListboxSelect>>", self.select)
+        self.t.grab_set()
+        self.t.wait_window(self.t)
+
+    def select(self,event):
+        self.parent.focus_set()
+        self.selection = self.lb.selection_get()
+        self.t.destroy()
+        
+def selectTargetDocument(modelXbrl):
+    if not hasattr(modelXbrl, "ixdsTarget"): # not specified by inlineXbrlDocumentSetLoader from parameter etc
+        # find target attributes
+        _targets = sorted(set(elt.get("target", "(default)")
+                              for htmlElt in modelXbrl.ixdsHtmlElements
+                              for elt in htmlElt.iterfind(f".//{{{htmlElt.modelDocument.ixNS}}}references")))
+        if len(_targets) == 1:
+            _target = _targets[0]
+        elif modelXbrl.modelManager.cntlr.hasGui:
+            dlg = TargetChoiceDialog(modelXbrl.modelManager.cntlr.parent, _targets)
+            _target = dlg.selection
+        else:
+            _target = _targets[0]
+            modelXbrl.warning("arelle:unspecifiedTargetDocument",
+                              _("Target document not specified, loading %(target)s, found targets %(targets)s"),
+                              modelObject=modelXbrl, target=_target, targets=_targets)                        
+        modelXbrl.ixdsTarget = None if _target == "(default)" else _target or None
+
 __pluginInfo__ = {
     'name': 'Inline XBRL Document Set',
     'version': '1.1',
@@ -637,6 +681,7 @@ __pluginInfo__ = {
     'ModelDocument.PullLoader': inlineXbrlDocumentSetLoader,
     'ModelDocument.IdentifyType': identifyInlineXbrlDocumentSet,
     'ModelDocument.Discover': discoverInlineXbrlDocumentSet,
+    'ModelDocument.SelectIxdsTarget': selectTargetDocument,
     'ModelTestcaseVariation.ReadMeFirstUris': testcaseVariationReadMeFirstUris,
     'ModelTestcaseVariation.ArchiveIxds': testcaseVariationArchiveIxds,
     'ModelTestcaseVariation.ReportPackageIxds': testcaseVariationReportPackageIxds,
