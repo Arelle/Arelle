@@ -45,6 +45,7 @@ from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateFilingText import CDATApattern
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence, xmlnsprefix, setXmlns
+from arelle.XmlValidate import validate as xmlValidate
 import os, zipfile
 import regex as re
 from optparse import SUPPRESS_HELP
@@ -618,6 +619,9 @@ def inlineDocsetDiscovery(filesource, entrypointFiles): # [{"file":"url1"}, ...]
 def inlineDocsetUrlSeparator():
     return IXDS_DOC_SEPARATOR
 
+def discoverIxdsDts(modelXbrl):
+    return hasattr(modelXbrl, "ixdsTarget") # if no target specified, block ixds discovery until all IX docs are loaded
+
 class TargetChoiceDialog:
     def __init__(self,parent, choices):
         from tkinter import Toplevel, Label, Listbox, StringVar
@@ -643,7 +647,7 @@ class TargetChoiceDialog:
         self.t.destroy()
         
 def selectTargetDocument(modelXbrl):
-    if not hasattr(modelXbrl, "ixdsTarget"): # not specified by inlineXbrlDocumentSetLoader from parameter etc
+    if not hasattr(modelXbrl, "ixdsTarget"): # DTS discoverey deferred until all ix docs loaded
         # find target attributes
         _targets = sorted(set(elt.get("target", "(default)")
                               for htmlElt in modelXbrl.ixdsHtmlElements
@@ -659,6 +663,14 @@ def selectTargetDocument(modelXbrl):
                               _("Target document not specified, loading %(target)s, found targets %(targets)s"),
                               modelObject=modelXbrl, target=_target, targets=_targets)                        
         modelXbrl.ixdsTarget = None if _target == "(default)" else _target or None
+        # load referenced schemas and linkbases (before validating inline HTML
+        for htmlElt in modelXbrl.ixdsHtmlElements:
+            modelDoc = htmlElt.modelDocument
+            for ixRefElt in htmlElt.iterdescendants(tag=modelDoc.ixNStag + "references"):
+                if ixRefElt.get("target") == modelXbrl.ixdsTarget:
+                    modelDoc.schemaLinkbaseRefsDiscover(ixRefElt)
+                    xmlValidate(modelXbrl, ixRefElt) # validate instance elements
+
 
 __pluginInfo__ = {
     'name': 'Inline XBRL Document Set',
@@ -681,6 +693,7 @@ __pluginInfo__ = {
     'ModelDocument.PullLoader': inlineXbrlDocumentSetLoader,
     'ModelDocument.IdentifyType': identifyInlineXbrlDocumentSet,
     'ModelDocument.Discover': discoverInlineXbrlDocumentSet,
+    'ModelDocument.DiscoverIxdsDts': discoverIxdsDts,
     'ModelDocument.SelectIxdsTarget': selectTargetDocument,
     'ModelTestcaseVariation.ReadMeFirstUris': testcaseVariationReadMeFirstUris,
     'ModelTestcaseVariation.ArchiveIxds': testcaseVariationArchiveIxds,
