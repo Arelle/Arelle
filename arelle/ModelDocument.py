@@ -1436,6 +1436,8 @@ class ModelDocument:
 # inline document set level compilation
 # modelIxdsDocument is an inlineDocumentSet or entry inline document (if not a document set)
 def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
+    for pluginMethod in pluginClassMethods("ModelDocument.SelectIxdsTarget"):
+        pluginMethod(modelXbrl)
     # extract for a single target document
     ixdsTarget = getattr(modelXbrl, "ixdsTarget", None)
     # compile inline result set
