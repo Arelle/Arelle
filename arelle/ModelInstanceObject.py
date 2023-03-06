@@ -360,7 +360,7 @@ class ModelFact(ModelObject):
             self.attrib.pop("{http://www.w3.org/2001/XMLSchema-instance}nil", "false")
 
     @property
-    def value(self):
+    def value(self) -> str:
         """(str) -- Text value of fact or default or fixed if any, otherwise None"""
         v = self.textValue
         if not v and self.concept is not None:
@@ -381,7 +381,7 @@ class ModelFact(ModelObject):
             return self._fractionValue
 
     @property
-    def effectiveValue(self):
+    def effectiveValue(self) -> str | None:
         """(str) -- Effective value for views, (nil) if isNil, None if no value,
         locale-formatted string of decimal value (if decimals specified) , otherwise string value"""
         concept = self.concept
