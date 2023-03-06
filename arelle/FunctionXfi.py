@@ -12,6 +12,7 @@ from arelle.ModelDtsObject import anonymousTypeSuffix, ModelConcept
 from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact, ModelInlineFact
 from arelle.ModelFormulaObject import ModelFormulaResource
 from arelle.PythonUtil import flattenSequence
+from arelle.XPathParser import OperationDef
 from arelle.XmlValidate import UNKNOWN, VALID, VALID_NO_CONTENT, validate as xmlValidate, NCNamePattern
 from arelle.ValidateXbrlCalcs import inferredDecimals, inferredPrecision
 from arelle.ValidateXbrlDimensions import priItemElrHcRels
@@ -25,7 +26,12 @@ class xfiFunctionNotAvailable(Exception):
     def __repr__(self):
         return self.args[0]
 
-def call(xc, p, localname, args):
+def call(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        localname: str,
+        args: XPathContext.ResultStack,
+) -> XPathContext.RecursiveContextItem:
     try:
         if localname not in xfiFunctions: raise xfiFunctionNotAvailable
         return xfiFunctions[localname](xc, p, args)
