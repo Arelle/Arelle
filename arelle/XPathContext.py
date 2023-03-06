@@ -1,8 +1,13 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+from __future__ import annotations
+
+import datetime
 from decimal import Decimal, InvalidOperation
-from numbers import Complex, Number
+from fractions import Fraction
+from numbers import Number
+from typing import Any, Callable, Iterable, MutableSequence, Sequence, TYPE_CHECKING, Type, Union, cast
 
 from lxml import etree
 
@@ -15,7 +20,11 @@ from arelle.ModelValue import (
     DATETIME,
     DATEUNION,
     DateTime,
+    DayTimeDuration,
     QName,
+    Time,
+    TypeXValue,
+    YearMonthDuration,
     anyURI,
     dateTime,
     gDay,
@@ -25,11 +34,13 @@ from arelle.ModelValue import (
     gYearMonth,
     qname,
 )
+from arelle.ModelXbrl import ModelXbrl
 from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
 from arelle.PythonUtil import STR_NUM_TYPES
 from arelle.XPathParser import (
     Expr,
+    FormulaToken,
     OperationDef,
     ProgHeader,
     QNameDef,
@@ -38,11 +49,58 @@ from arelle.XPathParser import (
     exceptionErrorIndication,
 )
 from arelle.XmlValidate import UNKNOWN, VALID, VALID_NO_CONTENT, validate as xmlValidate
+from arelle.typing import TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.ModelDocument import ModelDocument
+    from arelle.ModelFormulaObject import FormulaOptions, ModelGeneral, Trace as TraceClass
+
+_: TypeGetText
+
+ContextItem = Union[
+    DayTimeDuration,
+    Decimal,
+    Fraction,
+    ModelAttribute,
+    ModelObject,
+    ModelXbrl,
+    QName,
+    Time,
+    YearMonthDuration,
+    bool,
+    datetime.datetime,
+    etree._ElementTree,
+    float,
+    int,
+    range,
+    str,
+]
+
+AtomizedValue = Union[
+    TypeXValue,
+    bool,
+    int,
+    range,
+]
+
+RecursiveContextItem = Union[ContextItem, Iterable['RecursiveContextItem']]
+ResultStack = MutableSequence[Sequence[ContextItem]]
 
 # deferred types initialization
-boolean = None
-testTypeCompatiblity = None
-Trace = None
+boolean: Callable[[
+    XPathContext,
+    FormulaToken | None,
+    ContextItem | None,
+    ResultStack,
+], bool] | None = None
+testTypeCompatiblity: Callable[[
+    XPathContext,
+    FormulaToken,
+    str,
+    ContextItem,
+    ContextItem,
+], None] | None = None
+Trace: Type[TraceClass] | None = None
 qnWild = qname("*")  # "*"
 
 
