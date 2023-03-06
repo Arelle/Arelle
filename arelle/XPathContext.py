@@ -177,11 +177,10 @@ def create(modelXbrl, inputXbrlInstance=None, sourceElement=None):
         from arelle.ModelFormulaObject import Trace
         from arelle.FunctionFn import boolean
 
-    return XPathContext(
-        modelXbrl,
-        inputXbrlInstance if inputXbrlInstance else modelXbrl.modelDocument,
-        sourceElement,
-    )
+    if inputXbrlInstance is None:
+        inputXbrlInstance = modelXbrl.modelDocument
+    assert inputXbrlInstance is not None
+    return XPathContext(modelXbrl, inputXbrlInstance, sourceElement)
 
 
 # note: 2.2% execution time savings by having these sets/lists as constant instead of in expression where used
@@ -303,8 +302,11 @@ class XPathContext:
                             result = FunctionXs.call(self, p, localname, args)
                         elif ns in FunctionIxt.ixtNamespaceFunctions:
                             result = FunctionIxt.call(self, p, op, args)
-                        elif op in self.modelXbrl.modelManager.customTransforms:
-                            result = self.modelXbrl.modelManager.customTransforms[op](args[0][0])
+                        elif (
+                                self.modelXbrl.modelManager.customTransforms is not None
+                                and op in self.modelXbrl.modelManager.customTransforms
+                        ):
+                            result = self.modelXbrl.modelManager.customTransforms[op](cast(str, args[0][0]))
                         else:
                             raise XPathException(p, 'err:XPST0017', _('Function call not identified: {0}.').format(op))
                     except FunctionNumArgs as err:
@@ -326,6 +328,7 @@ class XPathContext:
                     else:
                         op1 = s1[0]
                         op2 = s2[0]
+                        assert testTypeCompatiblity is not None
                         testTypeCompatiblity(self, p, op, op1, op2)
                         if type(op1) != type(op2) and op in (
                             '+',
@@ -381,6 +384,7 @@ class XPathContext:
                     s1 = self.atomize(p, resultStack.pop()) if len(resultStack) > 0 else []
                     s2 = self.atomize(p, self.evaluate(p.args, contextItem=contextItem))
                     result = []
+                    assert testTypeCompatiblity is not None
                     for op1 in s1:
                         for op2 in s2:
                             testTypeCompatiblity(self, p, op, op1, op2)
@@ -551,6 +555,7 @@ class XPathContext:
                     result = self.documentOrderedNodes(self.flattenSequence(navSequence))
             elif isinstance(p, ProgHeader):
                 self.progHeader = p
+                assert Trace is not None
                 if p.traceType not in (Trace.MESSAGE, Trace.CUSTOM_FUNCTION):
                     self.traceType = p.traceType
                 setProgHeader = True
@@ -822,8 +827,10 @@ class XPathContext:
                         return e.xValue
                 except AttributeError:
                     pass
-                modelXbrl = x.modelXbrl
-                modelConcept = modelXbrl.qnameConcepts.get(x.qname)
+                xModelObject = cast(ModelObject, x)
+                modelXbrl = xModelObject.modelXbrl
+                assert modelXbrl is not None
+                modelConcept = modelXbrl.qnameConcepts.get(xModelObject.qname)
                 if modelConcept is not None:
                     baseXsdType = modelConcept.baseXsdType
                 else:
@@ -883,8 +890,9 @@ class XPathContext:
             x = str(v)
         return x
 
-    def effectiveBooleanValue(self, p, x):
-        return boolean(self, p, None, (self.flattenSequence(x),))
+    def effectiveBooleanValue(self, p: FormulaToken | None, x: ResultStack | Sequence[ContextItem] | None) -> bool:
+        assert boolean is not None
+        return boolean(self, p, None, [self.flattenSequence(x)])
 
     def traceEffectiveVariableValue(self, elt, varname):
         # used for tracing variable value
