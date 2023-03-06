@@ -21,7 +21,7 @@ If the file source is a zip, CmdLine will discover the inline files in the zip a
 
 If the file source is a local directory, CmdLine will discover the inline files in the directory as thus:
     --file '[{"ixds":[{"file":dir1}]}]'
-    
+
 If there is a JSON structure in --file without ixdsTarget the default target is assumed.
 
 If no JSON structure then formula parameter ixdsTarget may be used to specify a non-default target or the
@@ -645,7 +645,7 @@ class TargetChoiceDialog:
         self.parent.focus_set()
         self.selection = self.lb.selection_get()
         self.t.destroy()
-        
+
 def selectTargetDocument(modelXbrl):
     if not hasattr(modelXbrl, "ixdsTarget"): # DTS discoverey deferred until all ix docs loaded
         # find target attributes
@@ -661,7 +661,7 @@ def selectTargetDocument(modelXbrl):
             _target = _targets[0]
             modelXbrl.warning("arelle:unspecifiedTargetDocument",
                               _("Target document not specified, loading %(target)s, found targets %(targets)s"),
-                              modelObject=modelXbrl, target=_target, targets=_targets)                        
+                              modelObject=modelXbrl, target=_target, targets=_targets)
         modelXbrl.ixdsTarget = None if _target == "(default)" else _target or None
         # load referenced schemas and linkbases (before validating inline HTML
         for htmlElt in modelXbrl.ixdsHtmlElements:
