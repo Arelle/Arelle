@@ -11,8 +11,8 @@ from typing import Any, Callable, Iterable, MutableSequence, Sequence, TYPE_CHEC
 
 from lxml import etree
 
-from arelle import ModelXbrl, XbrlConst, XmlUtil
-from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
+from arelle import XbrlConst, XmlUtil
+from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelInlineFact, ModelUnit
 from arelle.ModelObject import ModelAttribute, ModelObject
 from arelle.ModelValue import (
     AnyURI,
@@ -105,7 +105,7 @@ qnWild = qname("*")  # "*"
 
 
 class XPathException(Exception):
-    def __init__(self, progStep, code, message):
+    def __init__(self, progStep: FormulaToken | None, code: QName | str, message: str) -> None:
         self.column = None
         if isinstance(progStep, OperationDef):
             self.line = progStep.sourceStr
@@ -120,57 +120,67 @@ class XPathException(Exception):
         self.message = message
         self.args = (self.__repr__(),)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.column:
             return _('[{0}] exception at {1} in {2}').format(self.code, self.column, self.message)
         else:
             return _('[{0}] exception {1}').format(self.code, self.message)
 
     @property
-    def sourceErrorIndication(self):
+    def sourceErrorIndication(self) -> str:
         return exceptionErrorIndication(self)
 
 
 class FunctionNumArgs(Exception):
-    def __init__(self, errCode='err:XPST0017', errText=None):
+    def __init__(self, errCode: str = 'err:XPST0017', errText: str | None = None) -> None:
         self.errCode = errCode
         self.errText = errText or _('Number of arguments do not match signature arity')
         self.args = (self.__repr__(),)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return _("Exception: Number of arguments mismatch")
 
 
 class FunctionArgType(Exception):
-    def __init__(self, argIndex, expectedType, foundObject='', errCode='err:XPTY0004'):
+    def __init__(
+            self,
+            argIndex: int | str,
+            expectedType: str,
+            foundObject: str | QName | Sequence[FormulaToken] | None = '',
+            errCode: str = 'err:XPTY0004',
+    ) -> None:
         self.errCode = errCode
-        self.argNum = (argIndex + 1) if isinstance(argIndex, Complex) else argIndex  # may be string
+        self.argNum = (argIndex + 1) if isinstance(argIndex, int) else argIndex
         self.expectedType = expectedType
         self.foundObject = foundObject
         self.args = (self.__repr__(),)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return _("[{0}]: Arg {1} expected type {2}").format(self.errCode, self.argNum, self.expectedType)
 
 
 class FunctionNotAvailable(Exception):
-    def __init__(self, name=None):
+    def __init__(self, name: str | None = None) -> None:
         self.name = name
         self.args = (self.__repr__(),)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return _("Exception, function implementation not available: {0}").format(self.name)
 
 
 class RunTimeExceededException(Exception):
-    def __init__(self):
+    def __init__(self) -> None:
         self.args = (self.__repr__(),)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return _("Formula run time exceeded")
 
 
-def create(modelXbrl, inputXbrlInstance=None, sourceElement=None):
+def create(
+        modelXbrl: ModelXbrl,
+        inputXbrlInstance: ModelDocument | None = None,
+        sourceElement: ModelObject | None = None,
+) -> XPathContext:
     global boolean, testTypeCompatiblity, Trace
     if boolean is None:
         from arelle.FunctionUtil import testTypeCompatiblity
@@ -197,33 +207,42 @@ GREGORIAN_TYPES = (gYearMonth, gYear, gMonthDay, gDay, gMonth)
 
 
 class XPathContext:
-    def __init__(self, modelXbrl, inputXbrlInstance, sourceElement, inScopeVars=None):
+    def __init__(
+            self,
+            modelXbrl: ModelXbrl,
+            inputXbrlInstance: ModelDocument,
+            sourceElement: ModelObject | None,
+            inScopeVars: dict[QName, ModelXbrl | ModelObject | int | str] | None = None,
+    ) -> None:
         self.modelXbrl = modelXbrl
         self.isRunTimeExceeded = False
         self.inputXbrlInstance = inputXbrlInstance
-        self.outputLastContext = {}  # last context element output per output instance
-        self.outputLastUnit = {}
-        self.outputLastFact = {}
-        self.outputFirstFact = {}
-        self.sourceElement = sourceElement
+        self.outputLastContext: dict[QName, ModelContext] = {}  # last context element output per output instance
+        self.outputLastUnit: dict[QName, ModelUnit] = {}
+        self.outputLastFact: dict[QName, ModelFact] = {}
+        self.outputFirstFact: dict[QName, ModelFact] = {}
+        self.sourceElement: ModelObject | None = sourceElement
         self.contextItem = self.inputXbrlInstance.targetXbrlRootElement
-        self.progHeader = None
-        self.traceType = None
+        self.progHeader: ProgHeader | None = None
+        self.traceType: int | None = None
         self.variableSet = None
-        self.inScopeVars = {} if inScopeVars is None else inScopeVars
-        self.cachedFilterResults = {}
+        self.inScopeVars: dict[QName, ModelXbrl | ModelObject | int | str] = {} if inScopeVars is None else inScopeVars
+        self.cachedFilterResults: dict[ModelGeneral, set[ModelFact]] = {}
         if inputXbrlInstance:
             self.inScopeVars[XbrlConst.qnStandardInputInstance] = inputXbrlInstance.modelXbrl
-        self.customFunctions = {}
+        self.customFunctions: dict[
+            QName,
+            Callable[[XPathContext, OperationDef, ContextItem, ResultStack], ContextItem]
+        ] = {}
         for pluginXbrlMethod in pluginClassMethods("Formula.CustomFunctions"):
             self.customFunctions.update(pluginXbrlMethod())
 
-    def copy(self):  # shallow copy (for such as for Table LB table processiong
+    def copy(self) -> XPathContext:  # shallow copy (for such as for Table LB table processiong
         xpCtxCpy = XPathContext(self.modelXbrl, self.inputXbrlInstance, self.sourceElement, self.inScopeVars.copy())
         # note: not currently duplicating cachedFilterResults
         return xpCtxCpy
 
-    def close(self):
+    def close(self) -> None:
         self.outputLastContext.clear()  # dereference
         self.outputLastUnit.clear()
         self.outputLastFact.clear()
@@ -232,21 +251,27 @@ class XPathContext:
         self.cachedFilterResults.clear()
         self.__dict__.clear()  # dereference everything
 
-    def runTimeExceededCallback(self):
+    def runTimeExceededCallback(self) -> None:
         self.isRunTimeExceeded = True
 
     @property
-    def formulaOptions(self):
+    def formulaOptions(self) -> FormulaOptions:
         return self.modelXbrl.modelManager.formulaOptions
 
-    def evaluate(self, exprStack, contextItem=None, resultStack=None, parentOp=None):
+    def evaluate(
+            self,
+            exprStack: Iterable[FormulaToken],
+            contextItem: ContextItem | None = None,
+            resultStack: ResultStack | None = None,
+            parentOp: str | None = None,
+    ) -> ResultStack:
         if resultStack is None:
             resultStack = []
         if contextItem is None:
             contextItem = self.contextItem
         setProgHeader = False
         for p in exprStack:
-            result = None
+            result: RecursiveContextItem | None = None
             if isinstance(p, QNameDef) or (p == '*' and parentOp in ('/', '//')):  # path step QName or wildcard
                 # step axis operation
                 if len(resultStack) == 0 or not self.isNodeSequence(resultStack[-1]):
@@ -530,29 +555,35 @@ class XPathContext:
                 elif op == 'predicate':
                     result = self.predicate(p, resultStack.pop()) if len(resultStack) > 0 else []
                 elif op in FORSOMEEVERY_OPS:  # for, some, every
-                    result = []
-                    self.evaluateRangeVars(op, p.args[0], p.args[1:], contextItem, result)
+                    _result: ResultStack = []
+                    self.evaluateRangeVars(op, p.args[0], p.args[1:], contextItem, _result)
+                    result = _result
                 elif op == 'if':
-                    test = self.effectiveBooleanValue(p, self.evaluate(p.args[0].expr[0], contextItem=contextItem))
-                    result = self.evaluate(p.args[1 if test else 2].args, contextItem=contextItem)
+                    exprArg = cast(Expr, p.args[0])
+                    exprArgStack = cast(Iterable[FormulaToken], exprArg.expr[0])
+                    test = self.effectiveBooleanValue(p, self.evaluate(exprArgStack, contextItem=contextItem))
+                    opDef = cast(OperationDef, p.args[1 if test else 2])
+                    result = self.evaluate(opDef.args, contextItem=contextItem)
                 elif op == '.':
                     result = contextItem
                 elif op == '..':
-                    result = XmlUtil.parent(contextItem)
+                    result = XmlUtil.parent(cast(ModelObject, contextItem))
                 elif op in PATH_OPS:
                     if op in ('rootChild', 'rootDescendant'):
                         # fix up for multi-instance
                         resultStack.append([self.inputXbrlInstance.targetXbrlElementTree, ])
                         op = '/' if op == 'rootChild' else '//'
                     # contains QNameDefs and predicates
+                    innerFocusNodes: Sequence[ContextItem] | ContextItem
                     if len(resultStack) > 0:
                         innerFocusNodes = resultStack.pop()
                     else:
                         innerFocusNodes = contextItem
-                    navSequence = []
+                    navSequence: ResultStack = []
+                    innerFocusNode: ContextItem
                     for innerFocusNode in self.flattenSequence(innerFocusNodes):
                         navSequence += self.evaluate(p.args, contextItem=innerFocusNode, parentOp=op)
-                    result = self.documentOrderedNodes(self.flattenSequence(navSequence))
+                    result = self.documentOrderedNodes(cast(Iterable[ContextItem], self.flattenSequence(navSequence)))
             elif isinstance(p, ProgHeader):
                 self.progHeader = p
                 assert Trace is not None
@@ -565,30 +596,35 @@ class XPathContext:
             self.progHeader = None
         return resultStack
 
-    def evaluateBooleanValue(self, exprStack, contextItem=None):
+    def evaluateBooleanValue(self, exprStack: Sequence[FormulaToken], contextItem: ContextItem | None = None) -> bool:
         if len(exprStack) > 0 and isinstance(exprStack[0], ProgHeader):
             progHeader = exprStack[0]
             return self.effectiveBooleanValue(progHeader, self.evaluate(exprStack, contextItem))
         return False
 
-    def evaluateAtomicValue(self, exprStack, type, contextItem=None):
+    def evaluateAtomicValue(
+            self,
+            exprStack: Sequence[FormulaToken],
+            _type: QName | str | None,
+            contextItem: ContextItem | None = None,
+    ) -> Any:
         if exprStack and len(exprStack) > 0 and isinstance(exprStack[0], ProgHeader):
             progHeader = exprStack[0]
             result = self.atomize(progHeader, self.evaluate(exprStack, contextItem=contextItem))
-            if isinstance(type, QName) and type.namespaceURI == XbrlConst.xsd:
-                type = "xs:" + type.localName
-            if isinstance(type, str):
-                prefix, sep, localName = type.rpartition(':')
+            if isinstance(_type, QName) and _type.namespaceURI == XbrlConst.xsd:
+                _type = "xs:" + _type.localName
+            if isinstance(_type, str):
+                prefix, sep, localName = _type.rpartition(':')
                 if prefix == 'xs':
                     if localName.endswith('*'):
                         localName = localName[:-1]
                     if isinstance(result, (tuple, list, set)):
                         from arelle import FunctionXs
 
-                        if type.endswith('*'):
-                            return [FunctionXs.call(self, progHeader, localName, (r,)) for r in result]
+                        if _type.endswith('*'):
+                            return [FunctionXs.call(self, progHeader, localName, [r, ]) for r in result]
                         elif len(result) > 0:
-                            return FunctionXs.call(self, progHeader, localName, (result[0],))
+                            return FunctionXs.call(self, progHeader, localName, [cast(Sequence[str], result)[0], ])
                 elif localName.startswith("item()"):
                     return result  # can be any type
             else:  # no conversion
@@ -600,11 +636,18 @@ class XPathContext:
                     return result
         return None
 
-    def evaluateRangeVars(self, op, p, args, contextItem, result):
+    def evaluateRangeVars(
+            self,
+            op: str,
+            p: FormulaToken,
+            args: Sequence[FormulaToken],
+            contextItem: ContextItem,
+            result: Any,
+    ) -> None:
         if isinstance(p, RangeDecl):
-            r = self.evaluate(p.bindingSeq, contextItem=contextItem)
-            if len(r) == 1:  # should be an expr single
-                r = r[0]
+            evaluatedRangeDecl = self.evaluate(p.bindingSeq, contextItem=contextItem)
+            if len(evaluatedRangeDecl) == 1:  # should be an expr single
+                r = evaluatedRangeDecl[0]
                 if isinstance(r, (tuple, list, set)):
                     if len(r) == 1 and isinstance(r[0], range):
                         r = r[0]
@@ -613,7 +656,7 @@ class XPathContext:
                     if hasPrevValue:
                         prevValue = self.inScopeVars[rvQname]
                     for rv in r:
-                        self.inScopeVars[rvQname] = rv
+                        self.inScopeVars[rvQname] = rv  # type: ignore[assignment]
                         self.evaluateRangeVars(op, args[0], args[1:], contextItem, result)
                         if op != 'for' and len(result) > 0:
                             break  # short circuit evaluation
@@ -623,25 +666,30 @@ class XPathContext:
                         self.inScopeVars[rvQname] = prevValue
         elif isinstance(p, Expr):
             if p.name == 'return':
-                result.append(self.evaluate(p.expr, contextItem=contextItem))
+                result.append(self.evaluate(cast(Iterable[FormulaToken], p.expr), contextItem=contextItem))
             elif p.name == 'satisfies':
-                boolresult = self.effectiveBooleanValue(p, self.evaluate(p.expr, contextItem=contextItem))
+                boolresult = self.effectiveBooleanValue(p, self.evaluate(cast(Iterable[FormulaToken], p.expr), contextItem=contextItem))
                 if (op == 'every') != boolresult:
                     # stop short circuit eval
                     result.append(boolresult)
 
-    def isNodeSequence(self, x):
+    def isNodeSequence(self, x: Iterable[ContextItem]) -> bool:
         for el in x:
             if not isinstance(el, ModelObject):
                 return False
         return True
 
-    def stepAxis(self, op, p, sourceSequence):
-        targetSequence = []
+    def stepAxis(
+            self,
+            op: str | None,
+            p: FormulaToken,
+            sourceSequence: Iterable[ContextItem],
+    ) -> Sequence[str | ModelAttribute | ModelObject]:
+        targetSequence: list[str | ModelObject | ModelAttribute] = []
         for node in sourceSequence:
             if not isinstance(node, (ModelObject, etree._ElementTree, PrototypeElementTree, PrototypeObject, ModelAttribute)):
                 raise XPathException(self.progHeader, 'err:XPTY0020', _('Axis step {0} context item is not a node: {1}').format(op, node))
-            targetNodes = []
+            targetNodes: MutableSequence[str | ModelObject | ModelAttribute] = []
             if isinstance(p, QNameDef):
                 ns = p.namespaceURI
                 localname = p.localName
@@ -655,7 +703,7 @@ class XPathContext:
                         except (AttributeError, TypeError, IndexError, KeyError):
                             # may be lax or deferred validated
                             try:
-                                xmlValidate(node.modelXbrl, node, p)
+                                xmlValidate(node.modelXbrl, node, attrQname=p)
                                 modelAttribute = node.xAttributes[attrTag]
                             except (AttributeError, TypeError, IndexError, KeyError):
                                 pass
@@ -668,18 +716,19 @@ class XPathContext:
                 elif op == '/' or op is None:
                     if axis is None or axis == "child":
                         if isinstance(node, (ModelObject, etree._ElementTree, PrototypeElementTree, PrototypeObject)):
-                            targetNodes = XmlUtil.children(node, ns, localname, ixTarget=True)
+                            targetNodes = XmlUtil.children(cast(ModelObject, node), ns, localname, ixTarget=True)  # type: ignore[assignment]
                     elif axis == "parent":
+                        parentNode: list[ModelObject | None]
                         if isinstance(node, ModelAttribute):
                             parentNode = [node.modelElement]
                         else:
-                            parentNode = [XmlUtil.parent(node)]
+                            parentNode = [XmlUtil.parent(cast(ModelObject, node))]
                         if (
                             isinstance(node, ModelObject)
-                            and (not ns or ns == parentNode.namespaceURI or ns == "*")
-                            and (localname == parentNode.localName or localname == "*")
+                            and (not ns or ns == parentNode.namespaceURI or ns == "*")  # type: ignore[attr-defined]
+                            and (localname == parentNode.localName or localname == "*")  # type: ignore[attr-defined]
                         ):
-                            targetNodes = [parentNode]
+                            targetNodes = [parentNode]  # type: ignore[list-item]
                     elif axis == "self":
                         if (
                             isinstance(node, (ModelObject, PrototypeObject))
@@ -689,7 +738,7 @@ class XPathContext:
                             targetNodes = [node]
                     elif axis.startswith("descendant"):
                         if isinstance(node, (ModelObject, etree._ElementTree, PrototypeElementTree, PrototypeObject)):
-                            targetNodes = XmlUtil.descendants(node, ns, localname)
+                            targetNodes = XmlUtil.descendants(node, ns, localname)  # type: ignore[assignment]
                             if (
                                 axis.endswith("-or-self")
                                 and isinstance(node, ModelObject)
@@ -717,16 +766,16 @@ class XPathContext:
                     elif axis.endswith("-sibling"):
                         if isinstance(node, ModelObject):
                             targetNodes = [
-                                sibling
+                                sibling  # type: ignore[misc]
                                 for sibling in node.itersiblings(preceding=axis.startswith("preceding"))
                                 if (
-                                    (not ns or ns == sibling.namespaceURI or ns == "*")
-                                    and (localname == sibling.localName or localname == "*")
+                                    (not ns or ns == sibling.namespaceURI or ns == "*")  # type: ignore[attr-defined]
+                                    and (localname == sibling.localName or localname == "*")  # type: ignore[attr-defined]
                                 )
                             ]
                     elif axis == "preceding":
                         if isinstance(node, ModelObject):
-                            for preceding in node.getroottree().iter():
+                            for preceding in cast(Iterable[ModelObject], node.getroottree().iter()):
                                 if preceding == node:
                                     break
                                 elif (
@@ -734,61 +783,60 @@ class XPathContext:
                                         and (localname == preceding.localName or localname == "*")
                                 ):
                                     targetNodes.append(preceding)
-                    elif axis == "following":
-                        if isinstance(node, ModelObject):
-                            foundNode = False
-                            for following in node.getroottree().iter():
-                                if following == node:
-                                    foundNode = True
-                                elif (
-                                    foundNode
-                                    and (not ns or ns == following.namespaceURI or ns == "*")
-                                    and (localname == following.localName or localname == "*")
-                                ):
-                                    targetNodes.append(following)
+                    elif axis == "following" and isinstance(node, ModelObject):
+                        foundNode = False
+                        for following in cast(Iterable[ModelObject], node.getroottree().iter()):
+                            if following == node:
+                                foundNode = True
+                            elif (
+                                foundNode
+                                and (not ns or ns == following.namespaceURI or ns == "*")
+                                and (localname == following.localName or localname == "*")
+                            ):
+                                targetNodes.append(following)
                 elif op == '//':
                     if isinstance(node, (ModelObject, etree._ElementTree, PrototypeElementTree, PrototypeObject)):
-                        targetNodes = XmlUtil.descendants(node, ns, localname, ixTarget=True)
+                        targetNodes = XmlUtil.descendants(node, ns, localname, ixTarget=True)  # type: ignore[assignment]
                 elif op == '..':
                     if isinstance(node, ModelAttribute):
                         targetNodes = [node.modelElement]
                     else:
-                        targetNodes = [XmlUtil.parent(node, ixTarget=True)]
+                        targetNodes = [XmlUtil.parent(cast(ModelObject, node), ixTarget=True)]  # type: ignore[list-item]
             elif isinstance(p, OperationDef) and isinstance(p.name, QNameDef):
-                if isinstance(node, ModelObject):
-                    if p.name.localName == "text":  # note this is not string value, just child text
-                        targetNodes = [node.textValue]
+                if isinstance(node, ModelObject) and p.name.localName == "text":
+                    # note this is not string value, just child text
+                    targetNodes = [node.textValue]
                     # todo: add element, attribute, node, etc...
             elif p == '*':  # wildcard
                 if op == '/' or op is None:
                     if isinstance(node, (ModelObject, etree._ElementTree, PrototypeElementTree)):
-                        targetNodes = XmlUtil.children(node, '*', '*', ixTarget=True)
+                        targetNodes = XmlUtil.children(node, '*', '*', ixTarget=True)  # type: ignore[assignment]
                 elif op == '//':
                     if isinstance(node, (ModelObject, etree._ElementTree, PrototypeElementTree)):
-                        targetNodes = XmlUtil.descendants(node, '*', '*', ixTarget=True)
+                        targetNodes = XmlUtil.descendants(node, '*', '*', ixTarget=True)  # type: ignore[assignment]
             targetSequence.extend(targetNodes)
         return targetSequence
 
-    def predicate(self, p, sourceSequence):
+    def predicate(self, p: OperationDef, sourceSequence: Iterable[ContextItem]) -> Sequence[ContextItem]:
         targetSequence = []
         sourcePosition = 0
         for item in sourceSequence:
             sourcePosition += 1
             predicateResult = self.evaluate(p.args, contextItem=item)
             if len(predicateResult) == 1:
-                predicateResult = predicateResult[0]  # first result
+                predicateResult = predicateResult[0]  # type: ignore[assignment]
             if len(predicateResult) == 1 and isinstance(predicateResult[0], Number):
                 result = predicateResult[0]
                 if isinstance(result, bool):  # note that bool is subclass of int
                     if result:
                         targetSequence.append(item)
-                elif sourcePosition == result:
+                elif sourcePosition == result:  # type: ignore[comparison-overlap]
                     targetSequence.append(item)
             elif self.effectiveBooleanValue(p, predicateResult):
                 targetSequence.append(item)
         return targetSequence
 
-    def atomize(self, p, x):
+    def atomize(self, p: FormulaToken | None, x: RecursiveContextItem | None) -> Any:
         # sequence
         if isinstance(x, SEQUENCE_TYPES):
             sequence = []
@@ -801,7 +849,7 @@ class XPathContext:
         if isinstance(x, range):
             return x
         baseXsdType = None
-        e = None
+        e: ModelObject | None = None
         if isinstance(x, ModelFact):
             if x.isTuple:
                 raise XPathException(p, 'err:FOTY0012', _('Atomizing tuple {0} that does not have a typed value').format(x))
@@ -835,7 +883,7 @@ class XPathContext:
                     baseXsdType = modelConcept.baseXsdType
                 else:
                     baseXsdType = "string"
-                v = x.stringValue
+                v = xModelObject.stringValue
         if baseXsdType in ("float", "double"):
             try:
                 x = float(v)
@@ -894,7 +942,7 @@ class XPathContext:
         assert boolean is not None
         return boolean(self, p, None, [self.flattenSequence(x)])
 
-    def traceEffectiveVariableValue(self, elt, varname):
+    def traceEffectiveVariableValue(self, elt: ModelObject, varname: str) -> str | None:
         # used for tracing variable value
         if varname.startswith('$'):
             varQname = qname(elt, varname[1:])
@@ -910,7 +958,7 @@ class XPathContext:
             return varname
 
     # flatten into a sequence
-    def flattenSequence(self, x, sequence=None):
+    def flattenSequence(self, x: Any, sequence: list[Any] | None = None) -> list[Any]:
         if sequence is None:
             if not isinstance(x, SEQUENCE_TYPES):
                 if x is None:
@@ -945,25 +993,25 @@ class XPathContext:
     '''
 
     # order nodes
-    def documentOrderedNodes(self, x):
+    def documentOrderedNodes(self, x: Iterable[ContextItem]) -> Sequence[ContextItem]:
         l = set()  # must have unique nodes only
         for e in x:
             if isinstance(e, ModelObject):
-                h = e.sourceline
+                h = cast(int, e.sourceline)
             elif isinstance(e, ModelAttribute):
-                h = e.modelElement.sourceline
+                h = cast(int, e.modelElement.sourceline)
             else:
                 h = 0
             l.add((h, e))
-        return [e for h, e in sorted(l, key=lambda h: h[0] or 0)]  # or 0 in case sourceline is None
+        return [e for h, e in sorted(l, key=lambda _h: _h[0] or 0)]  # or 0 in case sourceline is None
 
-    def modelItem(self, x):
+    def modelItem(self, x: ModelObject) -> ModelFact | None:
         if isinstance(x, (ModelFact, ModelInlineFact)) and x.isItem:
             return x
         return None
 
-    def modelInstance(self, x):
-        if isinstance(x, ModelXbrl.ModelXbrl):
+    def modelInstance(self, x: ModelXbrl | ModelObject | None) -> ModelXbrl | None:
+        if isinstance(x, ModelXbrl):
             return x
         if isinstance(x, ModelObject):
             return x.modelXbrl
