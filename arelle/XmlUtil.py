@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime
 import regex as re
 from lxml import etree
+
 from arelle.XbrlConst import ixbrlAll, qnLinkFootnote, xhtml, xml, xsd, xhtml
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, QName, tzinfoStr
@@ -433,13 +434,13 @@ def descendantAttr(
     return descendantElt.get(attrClarkName) if (descendantElt is not None) else None
 
 def children(
-    element: ModelObject,
+    element: ModelObject | etree._ElementTree | PrototypeElementTree,
     childNamespaceURIs: str | tuple[str, ...] | None,
     childLocalNames: str | tuple[str, ...],
     ixTarget: bool = False
     # 2022-09-15 ModelUnit/Context are model objects,
     # the check in line ~444 below if for ModelObject base class
-) -> list[ModelObject]:
+) -> Sequence[ModelObject]:
     children = []
     if not isinstance(childLocalNames,tuple): childLocalNames = (childLocalNames ,)
     wildLocalName = childLocalNames == ('*',)
@@ -530,7 +531,7 @@ def descendants(
     attrValue: str | None = None,
     breakOnFirst: bool = False,
     ixTarget: bool = False
-) -> list[ModelObject | PrototypeObject]:
+) -> Sequence[ModelObject | PrototypeObject]:
     descendants = []
     if not isinstance(descendantLocalNames,tuple): descendantLocalNames = (descendantLocalNames ,)
     wildLocalName = descendantLocalNames == ('*',)
