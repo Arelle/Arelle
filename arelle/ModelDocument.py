@@ -1321,8 +1321,8 @@ class ModelDocument:
         self.ixNStag = ixNStag = "{" + ixNS + "}" if ixNS else ""
         self.htmlBase = htmlBase
         ixdsTarget = getattr(self.modelXbrl, "ixdsTarget", None)
-        if not any(pluginMethod(self.modelXbrl) == False
-                   for pluginMethod in pluginClassMethods("ModelDocument.DiscoverIxdsDts")):
+        if all(pluginMethod(self.modelXbrl)
+               for pluginMethod in pluginClassMethods("ModelDocument.DiscoverIxdsDts")):
             # load referenced schemas and linkbases (before validating inline HTML
             for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "references"):
                 if inlineElement.get("target") == ixdsTarget:
