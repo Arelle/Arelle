@@ -38,6 +38,7 @@ create_contents() : creates the contents of the tooltip window (by default a Tki
 # Ideas gleaned from PySol
 
 import tkinter
+from tkhtmlview import HTMLLabel
 
 class ToolTip:
     def __init__(self, master, text='Your text here', delay=500, **opts):
@@ -153,7 +154,8 @@ class ToolTip:
         opts = self._opts.copy()
         for opt in ('delay', 'follow_mouse', 'state'):
             del opts[opt]
-        label = tkinter.Label(self._tipwindow, **opts)
+        #label = tkinter.Label(self._tipwindow, **opts)
+        label = HTMLLabel(self._tipwindow, html=opts["textvariable"].get() if opts["textvariable"] else opts["text"])
         label.pack()
 
 ##---------demo code-----------------------------------##
@@ -163,7 +165,9 @@ def demo():
     l = tkinter.Listbox(root)
     l.insert('end', "I'm a listbox")
     l.pack(side='top')
-    t1 = ToolTip(l, follow_mouse=1, text="I'm a tooltip with follow_mouse set to 1, so I won't be placed outside my parent")
+    t1 = ToolTip(l, follow_mouse=1, 
+                 text="<html><h1>title</h1><p>para</p><p>para2</p></html>")
+                 #text="I'm a tooltip with follow_mouse set to 1, so I won't be placed outside my parent")
     b = tkinter.Button(root, text='Quit', command=root.quit)
     b.pack(side='bottom')
     t2 = ToolTip(b, text='Enough of this')
