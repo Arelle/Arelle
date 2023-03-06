@@ -6,9 +6,9 @@ from __future__ import annotations
 import sys
 import time
 import traceback
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import Any, TYPE_CHECKING, Union
+from typing import Any, List, Sequence, TYPE_CHECKING, Union
 from xml.dom import minidom
 
 from pyparsing import (
@@ -46,30 +46,30 @@ if TYPE_CHECKING:
     from arelle.ModelManager import ModelManager
     from arelle.ModelObject import ModelObject
     from arelle.ModelValue import QName
-    from arelle.XPathContext import XPathContext, XPathException
+    from arelle.XPathContext import XPathException
     from arelle.typing import TypeGetText
 
-    _: TypeGetText  # Handle gettext
+_: TypeGetText  # Handle gettext
 
-    FormulaToken = Union[
-        float,
-        int,
-        str,
-        Decimal,
-        'Expr',
-        'OpDef',
-        'OperationDef',
-        'ProgHeader',
-        'QNameDef',
-        'RangeDecl',
-        'VariableRef',
-    ]
+FormulaToken = Union[
+    float,
+    int,
+    str,
+    Decimal,
+    'Expr',
+    'OpDef',
+    'OperationDef',
+    'ProgHeader',
+    'QNameDef',
+    'RangeDecl',
+    'VariableRef',
+]
 
-    RecursiveFormulaTokens = Sequence[Union[FormulaToken, 'RecursiveFormulaTokens']]
+RecursiveFormulaTokens = Sequence[Union[FormulaToken, 'RecursiveFormulaTokens']]
 
-    ExpressionStack = list[FormulaToken]
+ExpressionStack = List[FormulaToken]
 
-ixtNamespaceFunctions: dict[str, dict[str, Callable[[str], str]]] | None = None
+ixtFunctionNamespaces: set[str] = set()
 
 
 # Debugging flag can be set to either "debug_flag=True" or "debug_flag=False"
@@ -78,7 +78,7 @@ debug_flag = True
 exprStack: ExpressionStack = []
 xmlElement: ModelObject | None = None
 modelXbrl: ModelXbrl | None = None
-pluginCustomFunctions: dict[QName, Callable[[XPathContext, OperationDef, ModelObject, list[list[FormulaToken]]], Any]] | None = None
+pluginCustomFunctionQNames: set[QName] | None = None
 
 
 class ProgHeader:
@@ -373,17 +373,16 @@ def pushFunction(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef:
     if isinstance(name, QNameDef):  # function call
         ns = name.namespaceURI
         assert modelXbrl is not None
-        assert ixtNamespaceFunctions is not None
         assert modelXbrl.modelManager.customTransforms is not None
         if (
             not name.unprefixed
             and ns not in {XbrlConst.fn, XbrlConst.xfi, XbrlConst.xff, XbrlConst.xsd}
-            and ns not in ixtNamespaceFunctions
+            and ns not in ixtFunctionNamespaces
             and name not in modelXbrl.modelManager.customTransforms
         ):
-            assert pluginCustomFunctions is not None
+            assert pluginCustomFunctionQNames is not None
             # indexed by both [qname] and [qname,arity]
-            if name not in modelXbrl.modelCustomFunctionSignatures and name not in pluginCustomFunctions:
+            if name not in modelXbrl.modelCustomFunctionSignatures and name not in pluginCustomFunctionQNames:
                 assert xmlElement is not None
                 modelXbrl.error("xbrlve:noCustomFunctionSignature",
                     _("No custom function signature for %(custFunction)s in %(resource)s"),
@@ -885,9 +884,10 @@ isInitialized = False
 
 
 def initializeParser(modelManager: ModelManager) -> bool:
-    global isInitialized, ixtNamespaceFunctions
+    global isInitialized, ixtFunctionNamespaces
     if not isInitialized:
-        from arelle.FunctionIxt import ixtNamespaceFunctions
+        from arelle import FunctionIxt
+        ixtFunctionNamespaces.update(FunctionIxt.ixtNamespaceFunctions.keys())
 
         modelManager.showStatus(_("initializing formula xpath2 grammar"))
         startedAt = time.time()
@@ -946,7 +946,7 @@ def parse(
 ) -> ExpressionStack | None:
     from arelle.ModelFormulaObject import Trace
 
-    global modelXbrl, pluginCustomFunctions
+    global modelXbrl, pluginCustomFunctionQNames
     modelXbrl = modelObject.modelXbrl
     assert modelXbrl is not None
     global exprStack
@@ -954,10 +954,10 @@ def parse(
     global xmlElement
     xmlElement = element
     returnProg = None
-    pluginCustomFunctions = {}
+    pluginCustomFunctionQNames = set()
 
     for pluginXbrlMethod in pluginClassMethods("Formula.CustomFunctions"):
-        pluginCustomFunctions.update(pluginXbrlMethod())
+        pluginCustomFunctionQNames.update(pluginXbrlMethod().keys())
 
     # throws ParseException
     if xpathExpression and len(xpathExpression) > 0:

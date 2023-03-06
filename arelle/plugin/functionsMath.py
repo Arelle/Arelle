@@ -6,17 +6,14 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import math
-from typing import Callable, TYPE_CHECKING
+from collections.abc import Callable
 
 from arelle import XPathContext
 from arelle.FunctionUtil import numericArg
 from arelle.ModelValue import QName, qname
 from arelle.Version import authorLabel, copyrightLabel
-
-if TYPE_CHECKING:
-    from arelle.ModelObject import ModelObject
-    from arelle.XPathParser import FormulaToken, OperationDef
-    from arelle.typing import EmptyTuple
+from arelle.XPathParser import OperationDef
+from arelle.typing import EmptyTuple
 
 INF = float('inf')
 MINUSINF = float('-inf')
@@ -26,22 +23,22 @@ NaN = float('nan')
 def xfm_pi(
     xc: XPathContext.XPathContext,
     p: OperationDef,
-    contextItem: ModelObject,
-    args: list[list[FormulaToken]],
+    contextItem: XPathContext.ContextItem,
+    args: XPathContext.ResultStack,
 ) -> float | EmptyTuple:
     if len(args) != 0:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     return math.pi
 
 
 def xfm_exp(
     xc: XPathContext.XPathContext,
     p: OperationDef,
-    contextItem: ModelObject,
-    args: list[list[FormulaToken]],
+    contextItem: XPathContext.ContextItem,
+    args: XPathContext.ResultStack,
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         return math.exp(x)
@@ -51,11 +48,11 @@ def xfm_exp(
 def xfm_exp10(
     xc: XPathContext.XPathContext,
     p: OperationDef,
-    contextItem: ModelObject,
-    args: list[list[FormulaToken]],
+    contextItem: XPathContext.ContextItem,
+    args: XPathContext.ResultStack,
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         return math.pow(10.0, x)
@@ -65,11 +62,11 @@ def xfm_exp10(
 def xfm_log(
     xc: XPathContext.XPathContext,
     p: OperationDef,
-    contextItem: ModelObject,
-    args: list[list[FormulaToken]],
+    contextItem: XPathContext.ContextItem,
+    args: XPathContext.ResultStack,
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         if x == 0:
@@ -85,11 +82,11 @@ def xfm_log(
 def xfm_log10(
     xc: XPathContext.XPathContext,
     p: OperationDef,
-    contextItem: ModelObject,
-    args: list[list[FormulaToken]],
+    contextItem: XPathContext.ContextItem,
+    args: XPathContext.ResultStack,
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         if x == 0:
@@ -105,11 +102,11 @@ def xfm_log10(
 def xfm_pow(
     xc: XPathContext.XPathContext,
     p: OperationDef,
-    contextItem: ModelObject,
-    args: list[list[FormulaToken]],
+    contextItem: XPathContext.ContextItem,
+    args: XPathContext.ResultStack,
 ) -> float | EmptyTuple:
     if len(args) != 2:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         y = numericArg(xc, p, args, 1)  # type: ignore[no-untyped-call]
@@ -142,11 +139,11 @@ def xfm_pow(
 def xfm_sqrt(
     xc: XPathContext.XPathContext,
     p: OperationDef,
-    contextItem: ModelObject,
-    args: list[list[FormulaToken]],
+    contextItem: XPathContext.ContextItem,
+    args: XPathContext.ResultStack,
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         if x == MINUSINF:
@@ -160,11 +157,11 @@ def xfm_sqrt(
 def xfm_sin(
     xc: XPathContext.XPathContext,
     p: OperationDef,
-    contextItem: ModelObject,
-    args: list[list[FormulaToken]],
+    contextItem: XPathContext.ContextItem,
+    args: XPathContext.ResultStack,
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         if math.isinf(x):
@@ -176,11 +173,11 @@ def xfm_sin(
 def xfm_cos(
     xc: XPathContext.XPathContext,
     p: OperationDef,
-    contextItem: ModelObject,
-    args: list[list[FormulaToken]],
+    contextItem: XPathContext.ContextItem,
+    args: XPathContext.ResultStack,
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         if math.isinf(x):
@@ -192,11 +189,11 @@ def xfm_cos(
 def xfm_tan(
     xc: XPathContext.XPathContext,
     p: OperationDef,
-    contextItem: ModelObject,
-    args: list[list[FormulaToken]],
+    contextItem: XPathContext.ContextItem,
+    args: XPathContext.ResultStack,
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         if math.isinf(x):
@@ -208,11 +205,11 @@ def xfm_tan(
 def xfm_asin(
     xc: XPathContext.XPathContext,
     p: OperationDef,
-    contextItem: ModelObject,
-    args: list[list[FormulaToken]],
+    contextItem: XPathContext.ContextItem,
+    args: XPathContext.ResultStack,
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         try:
@@ -225,11 +222,11 @@ def xfm_asin(
 def xfm_acos(
     xc: XPathContext.XPathContext,
     p: OperationDef,
-    contextItem: ModelObject,
-    args: list[list[FormulaToken]],
+    contextItem: XPathContext.ContextItem,
+    args: XPathContext.ResultStack,
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         try:
@@ -242,11 +239,11 @@ def xfm_acos(
 def xfm_atan(
     xc: XPathContext.XPathContext,
     p: OperationDef,
-    contextItem: ModelObject,
-    args: list[list[FormulaToken]],
+    contextItem: XPathContext.ContextItem,
+    args: XPathContext.ResultStack,
 ) -> float | EmptyTuple:
     if len(args) != 1:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
     if x != ():
         try:
@@ -259,18 +256,23 @@ def xfm_atan(
 def xfm_atan2(
     xc: XPathContext.XPathContext,
     p: OperationDef,
-    contextItem: ModelObject,
-    args: list[list[FormulaToken]],
+    contextItem: XPathContext.ContextItem,
+    args: XPathContext.ResultStack,
 ) -> float:
     if len(args) != 2:
-        raise XPathContext.FunctionNumArgs()  # type: ignore[no-untyped-call]
+        raise XPathContext.FunctionNumArgs()
     y = numericArg(xc, p, args, 0)  # type: ignore[no-untyped-call]
     x = numericArg(xc, p, args, 1)  # type: ignore[no-untyped-call]
     return math.atan2(y, x)
 
 
 def xfmMathFunctions() -> dict[
-    QName, Callable[[XPathContext.XPathContext, OperationDef, ModelObject, list[list[FormulaToken]]], float | EmptyTuple]
+    QName, Callable[[
+        XPathContext.XPathContext,
+        OperationDef,
+        XPathContext.ContextItem,
+        XPathContext.ResultStack,
+    ], float | EmptyTuple]
 ]:
     return {
         qname("{http://www.xbrl.org/2008/function/math}xfm:pi"): xfm_pi,
