@@ -181,7 +181,7 @@ def getEsefNotesStatementConcepts(modelXbrl: ModelXbrl) -> set[str]:
             for prefix, namespace in models[0].targetXbrlRootElement.nsmap.items():
                 if targetNs == namespace:
                     found_namespace = targetNs
-                    found_prefix = prefix
+                    found_prefix = '' if prefix is None else prefix
                     break
             esef_cor_Nses.append((found_prefix, found_namespace))
     if len(esef_cor_Nses) == 0:
