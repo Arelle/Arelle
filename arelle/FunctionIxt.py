@@ -4,7 +4,10 @@
 See COPYRIGHT.md for copyright information.
 '''
 import regex as re
+
+from arelle.ModelValue import QName
 from arelle.PluginManager import pluginClassMethods
+from arelle.XPathParser import OperationDef
 from arelle.XmlValidate import decimalPattern
 from arelle import XPathContext
 from datetime import datetime
@@ -15,7 +18,12 @@ class ixtFunctionNotAvailable(Exception):
     def __repr__(self):
         return self.args[0]
 
-def call(xc, p, qn, args):
+def call(
+        xc: 'XPathContext.XPathContext',
+        p: OperationDef,
+        qn: QName,
+        args: 'XPathContext.ResultStack',
+) -> 'XPathContext.RecursiveContextItem':
     try:
         _ixtFunction = ixtNamespaceFunctions[qn.namespaceURI][qn.localName]
     except KeyError:

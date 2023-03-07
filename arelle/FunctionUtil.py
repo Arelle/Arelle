@@ -1,10 +1,12 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import xml.dom, datetime
-from arelle import (ModelValue, XmlUtil)
-from arelle.ModelObject import ModelObject, ModelAttribute
-from arelle.XPathContext import (XPathException, FunctionArgType)
+import datetime
+
+from arelle import ModelValue
+from arelle.ModelObject import ModelAttribute, ModelObject
+from arelle.XPathContext import ContextItem, FunctionArgType, XPathContext, XPathException
+from arelle.XPathParser import FormulaToken
 from arelle.PythonUtil import pyTypeName
 from numbers import Number
 
@@ -70,7 +72,14 @@ def nodeArg(xc, args, i, type, missingArgFallback=None, emptyFallback=None):
     if not isinstance(item, (ModelObject,ModelAttribute)): raise FunctionArgType(i,type,item)
     return item
 
-def testTypeCompatiblity(xc, p, op, a1, a2):
+
+def testTypeCompatiblity(
+        xc: XPathContext,
+        p: FormulaToken,
+        op: str,
+        a1: ContextItem,
+        a2: ContextItem,
+) -> None:
     if (isinstance(a1,ModelValue.DateTime) and isinstance(a2,ModelValue.DateTime)):
         if a1.dateOnly == a2.dateOnly:
             return # can't interoperate between date and datetime

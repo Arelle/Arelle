@@ -76,7 +76,7 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: |
-          pip install --upgrade pip setuptools wheel
+          python -m pip install --upgrade pip setuptools wheel
           pip install -r requirements-dev.txt
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1.7.0

@@ -420,8 +420,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                     (modelXbrl.modelDocument.xmlRootElement,)): # plain xhtml filing
                 ixNStag = getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11)
                 ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
-                ixTextTags = set(ixNStag + ln for ln in ("nonFraction", "continuation", "footnote"))
-                ixExcludeTag = ixNStag + "exclude"
                 ixTupleTag = ixNStag + "tuple"
                 ixFractionTag = ixNStag + "fraction"
                 hasAbsolutePositioning = False
@@ -450,15 +448,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 modelObject=elt, element=eltTag)
                         elif eltTag == "img":
                             src = elt.get("src","").strip()
-                            hasParentIxTextTag = False # check if image is in an ix text-bearing element
-                            _ancestorElt = elt
-                            while (_ancestorElt is not None):
-                                if _ancestorElt.tag == ixExcludeTag: # excluded from any parent text-bearing ix element
-                                    break
-                                if _ancestorElt.tag in ixTextTags:
-                                    hasParentIxTextTag = True
-                                    break
-                                _ancestorElt = _ancestorElt.getparent()
                             if scheme(src) in ("http", "https", "ftp"):
                                 modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
                                                 else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
@@ -466,31 +455,26 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                     modelObject=elt, element=eltTag,
                                     messageCodes=("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences", "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
                             elif not src.startswith("data:image"):
-                                if hasParentIxTextTag:
-                                    modelXbrl.error("ESEF.2.5.1.imageInIXbrlElementNotEmbedded",
-                                        _("Images appearing within an inline XBRL element MUST be embedded regardless of their size."),
-                                        modelObject=elt)
-                                else:
-                                    # presume it to be an image file, check image contents
-                                    try:
-                                        base = elt.modelDocument.baseForElement(elt)
-                                        normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(src, base)
-                                        if not elt.modelXbrl.fileSource.isInArchive(normalizedUri):
-                                            normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
-                                        imglen = 0
-                                        with elt.modelXbrl.fileSource.file(normalizedUri,binary=True)[0] as fh:
-                                            imgContents = fh.read()
-                                            imglen += len(imgContents)
-                                            checkImageContents(modelXbrl, elt, os.path.splitext(src)[1], True, imgContents)
-                                            imgContents = None # deref, may be very large
-                                        #if imglen < browserMaxBase64ImageLength:
-                                        #    modelXbrl.error("ESEF.2.5.1.imageIncludedAndNotEmbeddedAsBase64EncodedString",
-                                        #        _("Images MUST be included in the XHTML document as a base64 encoded string unless their size exceeds support of browsers (%(maxImageSize)s): %(file)s."),
-                                        #        modelObject=elt, maxImageSize=browserMaxBase64ImageLength, file=os.path.basename(normalizedUri))
-                                    except IOError as err:
-                                        modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
-                                            _("Image file which isn't openable '%(src)s', error: %(error)s"),
-                                            modelObject=elt, src=src, error=err)
+                                # presume it to be an image file, check image contents
+                                try:
+                                    base = elt.modelDocument.baseForElement(elt)
+                                    normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(src, base)
+                                    if not elt.modelXbrl.fileSource.isInArchive(normalizedUri):
+                                        normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
+                                    imglen = 0
+                                    with elt.modelXbrl.fileSource.file(normalizedUri,binary=True)[0] as fh:
+                                        imgContents = fh.read()
+                                        imglen += len(imgContents)
+                                        checkImageContents(modelXbrl, elt, os.path.splitext(src)[1], True, imgContents)
+                                        imgContents = None # deref, may be very large
+                                    #if imglen < browserMaxBase64ImageLength:
+                                    #    modelXbrl.error("ESEF.2.5.1.imageIncludedAndNotEmbeddedAsBase64EncodedString",
+                                    #        _("Images MUST be included in the XHTML document as a base64 encoded string unless their size exceeds support of browsers (%(maxImageSize)s): %(file)s."),
+                                    #        modelObject=elt, maxImageSize=browserMaxBase64ImageLength, file=os.path.basename(normalizedUri))
+                                except IOError as err:
+                                    modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
+                                        _("Image file which isn't openable '%(src)s', error: %(error)s"),
+                                        modelObject=elt, src=src, error=err)
                             else:
                                 m = imgDataMediaBase64Pattern.match(src)
                                 if not m or not m.group(2):

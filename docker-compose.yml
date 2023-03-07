@@ -1,0 +1,7 @@
+version: '2.1'
+
+services:
+  arelle:
+    build: .
+    ports:
+      - "8080:8080"

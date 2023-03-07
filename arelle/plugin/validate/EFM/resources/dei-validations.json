@@ -2303,6 +2303,16 @@
         "source": "both"
     },
     {
+        "sub-types": ["@N-2"],
+        "xbrl-names": [],
+        "efm": "6.5.55",
+        "validation": "taxonomy-url-required-in-dts",
+        "earliest-taxonomy": "dei/2023",
+        "value": "https://xbrl.sec.gov/cef/*/cef-*_pre.xsd",
+        "source": "both",
+        "comment": "check not applied to submissions with dei before 2023"
+    },
+    {
         "sub-types": ["@N-3"],
         "xbrl-names": [],
         "efm": "6.5.56",

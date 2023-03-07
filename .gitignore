@@ -39,6 +39,12 @@ tests/resources/conformance_suites/
 .devcontainer
 .vscode
 
+# Visual Studio
+.vs/
+
+bin/
+obj/
+
 Pipfile.lock
 Pipfile
 

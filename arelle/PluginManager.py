@@ -6,6 +6,10 @@ based on pull request 4
 '''
 from __future__ import annotations
 import os, sys, types, time, ast, importlib, io, json, gettext, traceback
+if sys.version_info < (3, 8):
+    from importlib_metadata import entry_points
+else:
+    from importlib.metadata import entry_points
 import importlib.util
 import logging
 
@@ -493,7 +497,19 @@ def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
             yield method
 
 def addPluginModule(url):
-    moduleInfo = moduleModuleInfo(url)
+    moduleInfo = None
+    if sys.version_info < (3, 10):
+        unloaded_arelle_plugins = [e for e in entry_points().get('arelle.plugin', []) if e.name == url]
+    else:
+        unloaded_arelle_plugins = entry_points(group='arelle.plugin', name=url)
+    if unloaded_arelle_plugins:
+        if len(unloaded_arelle_plugins) != 1:
+            error_msg = f'Multiple pip installed plugins with name {url} in group arelle.plugin'
+            logPluginTrace(error_msg, logging.ERROR)
+        pluginUrl = unloaded_arelle_plugins[0].load()
+        moduleInfo = moduleModuleInfo(pluginUrl())
+    if not moduleInfo or not moduleInfo.get("name"):
+        moduleInfo = moduleModuleInfo(url)
     if moduleInfo and moduleInfo.get("name"):
         name = moduleInfo["name"]
         removePluginModule(name)  # remove any prior entry for this module

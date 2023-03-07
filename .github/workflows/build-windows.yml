@@ -1,6 +1,43 @@
 name: Build for Windows
 
 on:
+  workflow_call:
+    inputs:
+      edgar_renderer_ref:
+        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+      ixbrl_viewer_ref:
+        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+      node_version:
+        default: '19'
+        description: 'Node.js version to use'
+        required: false
+        type: string
+      python_version:
+        default: '3.10'
+        description: 'Python version to use'
+        required: false
+        type: string
+      xule_ref:
+        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+    outputs:
+      exe_artifact_versioned_name:
+        description: 'The file name of the installer including the version, e.g. "arelle-win-1.0.0.exe".'
+        value: ${{ jobs.build-windows.outputs.exe_artifact_versioned_name }}
+      zip_artifact_versioned_name:
+        description: 'The file name of the ZIP build including the version, e.g. "arelle-win-1.0.0.zip".'
+        value: ${{ jobs.build-windows.outputs.zip_artifact_versioned_name }}
+      exe_uploaded_artifact_name:
+        description: 'The name of the GitHub Actions artifact for the installer.'
+        value: ${{ jobs.build-windows.outputs.exe_uploaded_artifact_name }}
+      zip_uploaded_artifact_name:
+        description: 'The name of the GitHub Actions artifact for the ZIP build.'
+        value: ${{ jobs.build-windows.outputs.zip_uploaded_artifact_name }}
   workflow_dispatch:
     inputs:
       edgar_renderer_ref:
@@ -28,10 +65,14 @@ on:
 
 jobs:
   build-windows:
-    environment: release
     env:
       BUILD_PATH: build\exe.win-amd64-${{ inputs.python_version }}
     runs-on: windows-2022
+    outputs:
+      exe_artifact_versioned_name: ${{ steps.define-artifact-names.outputs.exe_artifact_versioned_name }}
+      zip_artifact_versioned_name: ${{ steps.define-artifact-names.outputs.zip_artifact_versioned_name }}
+      exe_uploaded_artifact_name: ${{ steps.define-artifact-names.outputs.exe_uploaded_artifact_name }}
+      zip_uploaded_artifact_name: ${{ steps.define-artifact-names.outputs.zip_uploaded_artifact_name }}
 
     steps:
     - name: Checkout arelle
@@ -86,18 +127,19 @@ jobs:
       run: choco install nsis
     - name: Install requirements
       run: |
-        pip install --upgrade pip setuptools wheel
+        python -m pip install --upgrade pip setuptools wheel
         pip install -r requirements-build.txt
     - name: Capture build version
       run: echo ("BUILD_VERSION=" + (python -W ignore distro.py --version)) >> $env:GITHUB_ENV
-    - name: Define build artifact names
+    - name: Define artifact names
+      id: define-artifact-names
       run: |
-        echo "EXE_ARTIFACT_VERSIONED_NAME=arelle-win-${{ env.BUILD_VERSION }}.exe" >> $env:GITHUB_ENV
-        echo "ZIP_ARTIFACT_VERSIONED_NAME=arelle-win-${{ env.BUILD_VERSION }}.zip" >> $env:GITHUB_ENV
-        echo "EXE_ARTIFACT_NAME=arelle-win.exe" >> $env:GITHUB_ENV
-        echo "ZIP_ARTIFACT_NAME=arelle-win.zip" >> $env:GITHUB_ENV
-        echo "EXE_BUILD_ARTIFACT_PATH=dist\arelle-win-${{ env.BUILD_VERSION }}.exe" >> $env:GITHUB_ENV
-        echo "ZIP_BUILD_ARTIFACT_PATH=dist\arelle-win-${{ env.BUILD_VERSION }}.zip" >> $env:GITHUB_ENV
+        echo "exe_artifact_versioned_name=arelle-win-${{ env.BUILD_VERSION }}.exe" >> $env:GITHUB_OUTPUT
+        echo "zip_artifact_versioned_name=arelle-win-${{ env.BUILD_VERSION }}.zip" >> $env:GITHUB_OUTPUT
+        echo "exe_build_artifact_path=dist\arelle-win-${{ env.BUILD_VERSION }}.exe" >> $env:GITHUB_OUTPUT
+        echo "zip_build_artifact_path=dist\arelle-win-${{ env.BUILD_VERSION }}.zip" >> $env:GITHUB_OUTPUT
+        echo "exe_uploaded_artifact_name=windows installer distribution" >> $env:GITHUB_OUTPUT
+        echo "zip_uploaded_artifact_name=windows zip distribution" >> $env:GITHUB_OUTPUT
     - name: Build exe
       run: ./scripts/buildWinDist.bat
     - name: Copy Tktable2.11
@@ -108,55 +150,21 @@ jobs:
     - name: Make installer
       run: makensis installWin64.nsi
     - name: Version installer
-      run: mv dist\arelle-win-x64.exe ${{ env.EXE_BUILD_ARTIFACT_PATH }} 
+      run: mv dist\arelle-win-x64.exe ${{ steps.define-artifact-names.outputs.exe_build_artifact_path }}
     - name: Zip distribution
       working-directory: ${{ env.BUILD_PATH }}
-      run: 7z a -tzip ..\..\${{ env.ZIP_BUILD_ARTIFACT_PATH }} *
+      run: 7z a -tzip ..\..\${{ steps.define-artifact-names.outputs.zip_build_artifact_path }} *
     - name: Upload installer artifact
+      id: upload-installer-artifact
       uses: actions/upload-artifact@v3.1.2
       with:
-        name: windows installer distribution
+        name: ${{ steps.define-artifact-names.outputs.exe_uploaded_artifact_name }}
         if-no-files-found: error
-        path: ${{ env.EXE_BUILD_ARTIFACT_PATH }}
+        path: ${{ steps.define-artifact-names.outputs.exe_build_artifact_path }}
     - name: Upload zip artifact
+      id: upload-zip-artifact
       uses: actions/upload-artifact@v3.1.2
       with:
-        name: windows zip distribution
+        name: ${{ steps.define-artifact-names.outputs.zip_uploaded_artifact_name }}
         if-no-files-found: error
-        path: ${{ env.ZIP_BUILD_ARTIFACT_PATH }}
-    - name: Upload release artifacts
-      uses: softprops/action-gh-release@v0.1.15
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        fail_on_unmatched_files: true
-        files: |
-          dist/${{ env.EXE_ARTIFACT_VERSIONED_NAME }}
-          dist/${{ env.ZIP_ARTIFACT_VERSIONED_NAME }}
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v1.7.0
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
-        aws-region: us-west-1
-    - name: Upload release artifacts to S3
-      if: startsWith(github.ref, 'refs/tags/')
-      run: |
-        aws s3 cp --acl public-read ${{ env.EXE_BUILD_ARTIFACT_PATH }} s3://arelle-us/${{ env.EXE_ARTIFACT_VERSIONED_NAME }}
-        aws s3 cp --acl public-read ${{ env.ZIP_BUILD_ARTIFACT_PATH }} s3://arelle-us/${{ env.ZIP_ARTIFACT_VERSIONED_NAME }}
-        aws s3 cp --acl public-read s3://arelle-us/${{ env.EXE_ARTIFACT_VERSIONED_NAME }} s3://arelle-us/${{ env.EXE_ARTIFACT_NAME }}
-        aws s3 cp --acl public-read s3://arelle-us/${{ env.ZIP_ARTIFACT_VERSIONED_NAME }} s3://arelle-us/${{ env.ZIP_ARTIFACT_NAME }}
-    - name: Configure Ali Cloud Credentials
-      uses: yizhoumo/setup-ossutil@v1.1.3
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        endpoint: oss-cn-shenzhen.aliyuncs.com
-        access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
-        access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
-    - name: Upload release artifacts to Ali Cloud
-      if: startsWith(github.ref, 'refs/tags/')
-      run: |
-        ossutil cp -f ${{ env.EXE_BUILD_ARTIFACT_PATH }} oss://arelle-cn/${{ env.EXE_ARTIFACT_VERSIONED_NAME }}
-        ossutil cp -f ${{ env.ZIP_BUILD_ARTIFACT_PATH }} oss://arelle-cn/${{ env.ZIP_ARTIFACT_VERSIONED_NAME }}
-        ossutil create-symlink oss://arelle-cn/${{ env.EXE_ARTIFACT_NAME }} oss://arelle-cn/${{ env.EXE_ARTIFACT_VERSIONED_NAME }}
-        ossutil create-symlink oss://arelle-cn/${{ env.ZIP_ARTIFACT_NAME }} oss://arelle-cn/${{ env.ZIP_ARTIFACT_VERSIONED_NAME }}
+        path: ${{ steps.define-artifact-names.outputs.zip_build_artifact_path }}

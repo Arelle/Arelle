@@ -289,8 +289,8 @@ def deprecatedConceptDatesFile(modelManager, abbrNs, latestTaxonomyDoc):
                             deprecatedConceptDates[conceptName] = date
 
             jsonStr = json.dumps(
-                OrderedDict(((k, v) for k, v in sorted(deprecatedConceptDates.items())),  # sort in json file
-                            ensure_ascii=False, indent=0))
+                OrderedDict(((k, v) for k, v in sorted(deprecatedConceptDates.items()))),  # sort in json file
+                            ensure_ascii=False, indent=0)
             saveFile(cntlr, _fileName, jsonStr)
             deprecationsInstance.close()
             del deprecationsInstance # dereference closed modelXbrl
@@ -598,24 +598,41 @@ def loadDqcRules(modelXbrl): # returns match expression, standard patterns
         return dqcRules
     return {}
 
-def factBindings(modelXbrl, localNames, nils=False, noAdditionalDims=False):
+def factBindings(modelXbrl, localNames, nils=False, noAdditionalDims=False, coverPeriod=False, coverDimQnames=None):
     bindings = defaultdict(dict)
     def addMostAccurateFactToBinding(f):
+        cntx = f.context
         if (f.xValid >= VALID
             and (nils or not f.isNil)
-            and f.context is not None
-            and (not noAdditionalDims or not f.context.qnameDims)):
-            binding = bindings[f.context.contextDimAwareHash, f.unit.hash if f.unit is not None else None]
+            and cntx is not None
+            and (not noAdditionalDims or not cntx.qnameDims)):
+            if coverPeriod:
+                h = cntx.dimsHash
+                hper = cntx.periodHash
+            elif coverDimQnames:
+                h = hash( (cntx.periodHash, frozenset(dim for qn,dim in cntx.qnameDims.items() if qn not in coverDimQnames)) )
+            else:
+                h = cntx.contextDimAwareHash
+            binding = bindings[h, f.unit.hash if f.unit is not None else None]
             ln = f.qname.localName
-            if ln not in binding or inferredDecimals(f) > inferredDecimals(binding[ln]):
-                binding[ln] = f
+            if coverPeriod:
+                if ln not in binding:
+                    binding[ln] = defaultdict(dict)
+                if hper not in binding[ln] or inferredDecimals(f) > inferredDecimals(binding[ln][hper]):
+                    binding[ln][hper] = f
+            else:
+                if ln not in binding or inferredDecimals(f) > inferredDecimals(binding[ln]):
+                    binding[ln] = f
     for ln in localNames:
         for f in modelXbrl.factsByLocalName.get(ln,()):
             addMostAccurateFactToBinding(f)
     return bindings
 
-def leastDecimals(binding, localNames):
-    nonNilFacts = [binding[ln] for ln in localNames if not binding[ln].isNil]
+def leastDecimals(binding, localNames=None):
+    if localNames:
+        nonNilFacts = [binding[ln] for ln in localNames if not binding[ln].isNil]
+    else:
+        nonNilFacts = [f for f in binding if f is not None and not f.isNil] # just plain sequence of facts not in bindings
     if nonNilFacts:
         return min((inferredDecimals(f) for f in nonNilFacts))
     return floatINF

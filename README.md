@@ -48,9 +48,9 @@ be integrated with other applications and languages utilizing its web service.
 ## Installation
 
 The implementation is in Python >= 3.7 and is intended for Windows, macOS, or
-Linux (tested against Ubuntu and RHEL). The standard desktop installation
-includes a GUI, a RESTful web server, and CLI. We try to support all operating
-system versions that still receive security updates from their development teams.
+Linux (tested against Ubuntu). The standard desktop installation includes a GUI,
+a RESTful web server, and CLI. We try to support all operating system versions
+that still receive security updates from their development teams.
 
 ### Install PyPI package
 
@@ -84,7 +84,7 @@ Distributions are provided for the following operating systems:
 
 - Windows
 - macOS (Intel)
-- Linux (Ubuntu and Red Hat Enterprise Linux)
+- Linux (Ubuntu)
 
 Distributions can be downloaded from:
 

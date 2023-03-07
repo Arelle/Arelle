@@ -1,12 +1,14 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+from __future__ import annotations
+
 import datetime
 import regex as re
 from arelle import (XPathContext, ModelValue)
 from arelle.FunctionUtil import (anytypeArg, atomicArg, stringArg, numericArg, qnameArg, nodeArg)
 from arelle.XmlValidate import lexicalPatterns
-from arelle.XPathParser import ProgHeader
+from arelle.XPathParser import OperationDef, ProgHeader
 from math import isnan, fabs, isinf
 from decimal import Decimal, InvalidOperation
 from numbers import Number
@@ -31,7 +33,12 @@ class xsFunctionNotAvailable(Exception):
     def __repr__(self):
         return self.args[0]
 
-def call(xc, p, localname, args):
+def call(
+        xc: XPathContext.XPathContext,
+        p: ProgHeader | OperationDef | None,
+        localname: str,
+        args: XPathContext.ResultStack,
+) -> XPathContext.RecursiveContextItem:
     source = atomicArg(xc, p, args, 0, "value?", missingArgFallback=() )
     if source == (): return source
     try:

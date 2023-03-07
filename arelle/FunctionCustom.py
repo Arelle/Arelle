@@ -1,12 +1,14 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import xml.dom, math
-from arelle.ModelValue import qname
+from decimal import Decimal
+
 from arelle import XPathContext, XbrlUtil
 from arelle.ModelInstanceObject import ModelDimensionValue
+from arelle.ModelValue import QName, qname
 from arelle.PythonUtil import flattenSequence
-from decimal import Decimal
+from arelle.XPathParser import OperationDef
+
 
 class fnFunctionNotAvailable(Exception):
     def __init__(self):
@@ -14,7 +16,13 @@ class fnFunctionNotAvailable(Exception):
     def __repr__(self):
         return self.args[0]
 
-def call(xc, p, qname, contextItem, args):
+def call(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        qname: QName,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> XPathContext.RecursiveContextItem:
     try:
         cfSig = xc.modelXbrl.modelCustomFunctionSignatures[qname, len(args)]
         if cfSig is not None and cfSig.customFunctionImplementation is not None:

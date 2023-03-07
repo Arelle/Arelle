@@ -55,7 +55,7 @@ ObjectMaker = [
     'graphviz==0.*',
 ]
 WebServer = [
-    'cheroot==8.*',
+    'cheroot>=8,<10',
     'CherryPy==18.*',
     'tornado==6.*',
 ]
@@ -124,6 +124,7 @@ module = [
     'arelle.Updater',
     'arelle.UrlUtil',
     'arelle.ValidateXbrl',
+    'arelle.XPathContext',
     'arelle.XPathParser',
     'arelle.XbrlConst',
     'arelle.XbrlUtil',

@@ -13,18 +13,18 @@ jobs:
         with:
           workflow: Build and publish python package
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build for Linux
+      - name: Build and Release Linux
         uses: benc-uk/workflow-dispatch@v1.2.2
         with:
-          workflow: Build for Linux
+          workflow: Build and Release Linux
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build for Mac
+      - name: Build and Release Mac
         uses: benc-uk/workflow-dispatch@v1.2.2
         with:
-          workflow: Build for Mac
+          workflow: Build and Release Mac
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build for Windows
+      - name: Build and Release Windows
         uses: benc-uk/workflow-dispatch@v1.2.2
         with:
-          workflow: Build for Windows
+          workflow: Build and Release Windows
           token: ${{ secrets.GITHUB_TOKEN }}

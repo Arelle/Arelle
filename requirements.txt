@@ -1,13 +1,14 @@
 # core modules
 certifi==2022.12.7
+importlib-metadata==4.2; python_version < "3.8"
 lxml==4.9.2
-OpenPyXL==3.0.10
+OpenPyXL==3.1.1
 pyparsing==3.0.9
 regex==2022.10.31
 isodate==0.6.1
 aniso8601==9.0.1
 CherryPy==18.8.0
-Cheroot==8.6.0
+Cheroot==9.0.0
 # special note: pip install --no-cache --use-pep517 pycountry
 pycountry==22.3.5
 # plugins
@@ -16,16 +17,17 @@ NumPy==1.21.6 ; python_version < "3.8"
 NumPy==1.23.4 ; python_version >= "3.8"
 Matplotlib==3.5.3 ; python_version < "3.8"
 Matplotlib==3.6.1 ; python_version >= "3.8"
-holidays==0.16
+holidays==0.20
 Tornado==6.2
 # security plugin
-PyCryptodome==3.15.0
+PyCryptodome==3.17
 # xbrlDB plugin
 cx_Oracle==8.3.0
-pg8000==1.29.2
+pg8000==1.29.4
 PyMySQL==1.0.2
-pyodbc==4.0.34
+pyodbc==4.0.35
 RDFLib==5.0.0
 # other
 graphviz==0.20.1
 Pillow==9.4.0
+pywin32==305 ; sys_platform == "win32"

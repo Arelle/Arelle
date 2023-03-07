@@ -1,6 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+from __future__ import annotations
+
 import math
 import regex as re
 from arelle.ModelObject import ModelObject, ModelAttribute
@@ -9,6 +11,7 @@ from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTim
 from arelle.FunctionUtil import anytypeArg, atomicArg, stringArg, numericArg, integerArg, qnameArg, nodeArg
 from arelle import FunctionXs, XPathContext, XbrlUtil, XmlUtil, UrlUtil, ModelDocument, XmlValidate
 from arelle.Locale import format_picture
+from arelle.XPathParser import FormulaToken, OperationDef
 from arelle.XmlValidate import VALID_NO_CONTENT
 from decimal import Decimal
 from lxml import etree
@@ -22,7 +25,13 @@ class fnFunctionNotAvailable(Exception):
     def __repr__(self):
         return self.args[0]
 
-def call(xc, p, localname, contextItem, args):
+def call(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        localname: str,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> XPathContext.RecursiveContextItem:
     try:
         if localname not in fnFunctions: raise fnFunctionNotAvailable
         return fnFunctions[localname](xc, p, contextItem, args)
@@ -544,7 +553,12 @@ def lang(xc, p, contextItem, args):
 def root(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
 
-def boolean(xc, p, contextItem, args):
+def boolean(
+        xc: XPathContext.XPathContext,
+        p: FormulaToken | None,
+        contextItem: XPathContext.ContextItem | None,
+        args: XPathContext.ResultStack,
+) -> bool:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     inputSequence = args[0]
     if inputSequence is None or len(inputSequence) == 0:

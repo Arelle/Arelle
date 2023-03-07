@@ -8,19 +8,26 @@
     "description": [
         "DQC.US rule 0001 is implemented below",
         "DQC.US rule 0004 is implemented below",
-        "DQC.US rule 0005 is implemented below (new for 2022)",
-        "DQC.US rule 0006 is implemented below (new for 2022)",
+        "DQC.US rule 0005 is implemented below (2022)",
+        "DQC.US rule 0006 is implemented below (2022)",
         "DQC.US rule 0008 is implemented by us-gaap calc linkbase, compiled into file resources/us-gaap-calc-YYYY.json",
         "DQC.US rule 0009 is implemented below",
+        "DQC.US rule 0013 is implemented below (new for 2023)",
         "DQC.US rule 0015 is implemented below",
-        "DQC.US rule 0033 is implemented below (new for 2022)",
-        "DQC.US rule 0036 is implemented below (new for 2022)",
-        "DQC.US rule 0041 is implemented below (new for 2022)",
-        "DQC.US rule 0043 is implemented below (new for 2022)",
-        "DQC.US rule 0044 is implemented below (new for 2022)",
+        "DQC.US rule 0033 is implemented below (2022)",
+        "DQC.US rule 0036 is implemented below (2022)",
+        "DQC.US rule 0041 is implemented below (2022)",
+        "DQC.US rule 0043 is implemented below (2022)",
+        "DQC.US rule 0044 is implemented below (2022)",
+        "DQC.US rule 0047 is implemented below (new for 2023)",
         "DQC.US rule 0048 is implemented below",
-        "DQC.US rule 0060 is implemented below (new for 2022)",
-        "DQC.US rule 0079 is implemented below (new for 2022)",
+        "DQC.US rule 0053 is implemented below (new for 2023)",
+        "DQC.US rule 0057 is implemented below (new for 2023)",
+        "DQC.US rule 0060 is implemented below (2022)",
+        "DQC.US rule 0071 is implemented below (new for 2023)", 
+        "DQC.US rule 0073 is implemented below (new for 2023)",
+        "DQC.US rule 0079 is implemented below (2022)",
+        "DQC.US rule 0084 is implemented below (new for 2023)",
         "",
         "Each below rule contains a description of syntax used herein, message and rules. ",
         "",
@@ -466,6 +473,50 @@
                 "greater": "UndistributedEarningsOfForeignSubsidiaries"
             }
         }
+    }, 
+    "DQC.US.0013": {
+    	"name": "Negative Values With Dependence",
+        "description" : [
+            "DQC.US 0013 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and value which is name of ",
+            "elements which may be negative when the precondition is met.",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0013/DQC_0013.md"
+        ],
+        "message": "It is expected that {name} with a value of {value} will be reported with a value equal to or greater than zero if net income before tax is positive. In this case net income before tax is {incomeBeforeTax}. The value reported for the tax rate reconciliation item is less than zero. The preparer should consider if the value is input correctly for this assertion and, after considering the appropriateness of the input, if incorrect, input the amount as a positive (i.e., absolute) value and provide a negated label, if desired, for rendering purposes.  \nThe properties of this {name} fact are:\nContext: {contextID} \nUnit: {unitID}",
+        "precondition": [
+        	["IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest"],
+			["IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments", 
+			 "IncomeLossFromEquityMethodInvestments"],
+			["IncomeLossFromContinuingOperationsBeforeIncomeTaxesDomestic",
+			 "IncomeLossFromContinuingOperationsBeforeIncomeTaxesForeign", "IncomeLossFromEquityMethodInvestments"],
+			["IncomeLossFromContinuingOperationsBeforeIncomeTaxesForeign",
+			 "IncomeLossFromContinuingOperationsBeforeIncomeTaxesDomestic", "IncomeLossFromEquityMethodInvestments"]
+		],
+        "concepts": {
+			"2774": "EffectiveIncomeTaxRateReconciliationTaxCredits",
+			"2776": "EffectiveIncomeTaxRateReconciliationDeductionsQualifiedProductionActivities",
+			"2778": "EffectiveIncomeTaxRateReconciliationTaxCreditsResearch",
+			"2779": "EffectiveIncomeTaxRateReconciliationDeductionsOther",
+			"2780": "EffectiveIncomeTaxRateReconciliationNondeductibleExpenseLifeInsurance",
+			"2781": "EffectiveIncomeTaxRateReconciliationTaxCreditsOther",
+			"2782": "EffectiveIncomeTaxRateReconciliationTaxCreditsInvestment",
+			"2783": "EffectiveIncomeTaxRateReconciliationTaxCreditsForeign",
+			"2784": "EffectiveIncomeTaxRateReconciliationDeductionsDividends",
+			"2785": "EffectiveIncomeTaxRateReconciliationRepatriationOfForeignEarnings",
+			"2871": "EffectiveIncomeTaxRateReconciliationTaxHolidays",
+			"2872": "EffectiveIncomeTaxRateReconciliationNondeductibleExpenseResearchAndDevelopment",
+			"2873": "EffectiveIncomeTaxRateReconciliationDeductions",
+			"2874": "EffectiveIncomeTaxRateReconciliationNondeductibleExpenseImpairmentLosses",
+			"3001": "EffectiveIncomeTaxRateReconciliationDeductionsEmployeeStockOwnershipPlanDividends",
+			"3002": "EffectiveIncomeTaxRateReconciliationNondeductibleExpenseMealsAndEntertainment",
+			"3439": "EffectiveIncomeTaxRateReconciliationDeductionsExtraterritorialIncomeExclusion",
+			"3440": "EffectiveIncomeTaxRateReconciliationNondeductibleExpenseCharitableContributions",
+			"3441": "EffectiveIncomeTaxRateReconciliationRepatriationForeignEarningsJobsCreationActOf2004"
+		},
+		"additional-excluded-names": [
+		]
     },
     "DQC.US.0015": {
     	"name": "Negative Values",
@@ -474,12 +525,20 @@
             "",
             "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0015/DQC_0015.md"
         ],
-        "message": "Fact {name} has a value of {value} which is less than zero. This element should not have a negative value. The preparer should consider if the value is input correctly for this assertion and, after considering the appropriateness of the input, if incorrect, input the amount as a positive (i.e., absolute) value and provide a negated label.  \nThe properties of this {name} fact are:\nContext: {contextID} \nUnit: {unitID}"
+        "message": "Fact {name} has a value of {value} which is less than zero. This element should not have a negative value. The preparer should consider if the value is input correctly for this assertion and, after considering the appropriateness of the input, if incorrect, input the amount as a positive (i.e., absolute) value and provide a negated label.  \nThe properties of this {name} fact are:\nContext: {contextID} \nUnit: {unitID}",
+        "additional-excluded-names": [
+        	"SupplementalInformationForPropertyCasualtyInsuranceUnderwritersNetInvestmentIncome",
+        	"SupplementaryInsuranceInformationNetInvestmentIncome",
+        	"LeveragedLeasesIncomeStatementNetIncomeFromLeveragedLeases"
+        ] 
     },
     "DQC.US.0033": {
     	"name": "Document Period End Date Context",
         "description" : [
             "DQC.US 0033 rule entries are formatted is as follows:",
+            "",
+            "Precondition emulates xule precondition expression, first entry ",
+            "where first fact binds returns sum of all bound facts ",
             "",
             "A JSON object with key that is the rule id and value object as follows:",
             "names: local name of DEI facts to test",
@@ -487,6 +546,17 @@
             "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0033/DQC_0033.md"
         ],
         "message": "The ending date of {endDate} used for {name} must be the same as the Document Period End Date, {documentPeriodEndDate}.  \nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}",
+        "precondition": [
+        	["IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest"],
+        	["IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments",
+        	 "IncomeLossFromEquityMethodInvestments"],
+        	["IncomeLossFromContinuingOperationsBeforeIncomeTaxesDomestic",
+        	 "IncomeLossFromContinuingOperationsBeforeIncomeTaxesForeign",
+        	 "IncomeLossFromEquityMethodInvestments"],
+        	["IncomeLossFromContinuingOperationsBeforeIncomeTaxesForeign",
+        	 "IncomeLossFromContinuingOperationsBeforeIncomeTaxesDomestic",
+        	 "IncomeLossFromEquityMethodInvestments"]
+        ],
         "rules": {
         	"2": { 
         	    "names": [
@@ -497,7 +567,10 @@
 					"AmendmentFlag", 
 					"AnnualInformationForm", 
 					"ApproximateDateOfCommencementOfProposedSaleToThePublic", 
-					"AuditedAnnualFinancialStatements", 
+					"AuditedAnnualFinancialStatements",
+					"AuditorFirmId",
+					"AuditorLocation",
+					"AuditorName", 
 					"CityAreaCode", 
 					"ContactPersonnelEmailAddress", 
 					"ContactPersonnelFaxNumber", 
@@ -721,7 +794,7 @@
             "",
             "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0044/DQC_0044.md"
         ],
-        "message": "The concept {name} with a value of {value} is an accrual-based item in the US GAAP taxonomy that is included in the sum of cash provided by (used in) investing activities in the cash flows of the extension taxonomy.  \n\nAccrual-based concepts do not belong and should not be included in the investing section of the cash flows statement of the extension taxonomy.  \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}",
+        "message": "The concept {name} with a value of {value} is an accrual-based item in the US GAAP taxonomy that is included in the sum of cash provided by (used in) {activity} activities in the cash flows of the extension taxonomy.  \n\nAccrual-based concepts do not belong and should not be included in the {activity} section of the cash flows statement of the extension taxonomy.  \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}",
         "rules": {
         	"6834": {
         		"activity": "financing",
@@ -757,6 +830,31 @@
 			"StatementOfPartnersCapitalAbstract"
         ]
     },
+    "DQC.US.0047": {
+    	"name": "Calculation Descendants with No Balance Type",
+        "description" : [
+            "DQC.US 0047 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and parents is an array of element name(s) ",
+            "of which at there should be no children without a balance attribute ",
+            "excepting those in excluded-children.",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0047/DQC_0047.md"
+        ],
+		"message": "In the company's extension taxonomy the concept {parentName} includes {childName} as a summation-child. The concept {childName}  should not appear as a child of {parentName} because it does not have a balance type. Increase (Decrease) items without balance attributes are used in a roll forward and should not be used in the cash flow statement as they represent the impact on the balance sheet item which is the opposite of the impact on cash.",
+        "rules": {
+            "7481": {
+                "parents" : [
+                    "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations",
+                    "NetCashProvidedByUsedInOperatingActivities"
+                ],
+                "excluded-children": [
+                	"NetCashProvidedByUsedInOperatingActivitiesContinuingOperations",
+                	"InvestmentCompanyNetAssetsFromOperationsIncreaseDecrease"
+                ]
+            }
+        }
+    },
     "DQC.US.0048": {
     	"name": "Required Calculation Parent Element in the Cash Flow Statement",
         "description" : [
@@ -783,6 +881,61 @@
                     ["CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffectContinuingOperations"],
 					["CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffectDisposalGroupIncludingDiscontinuedOperations"]
                 ]
+            }
+        }
+    },
+    "DQC.US.0053": {
+    	"name": "Excluded Members from an Axis",
+        "description" : [
+            "DQC.US 0053 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and an object ",
+            "of dimensions name key whose value array are excluded member names.",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0053/DQC_0053.md"
+        ],
+		"message": "The member, {member} is used on the {axis} with element {factName} with a value of ${value}. The  {member} member should not be used with the {axis} in linkrole {linkRole}.",
+		"message-no-facts": "The member, {member} is used on the {axis}.  There are no facts associated with this member and axis. {member} members should not be used with the {axis} in linkrole {linkRole}.",
+        "rules": {
+            "7489": {
+                "excluded-dimension-members" : {
+                    "RetirementPlanSponsorLocationAxis": [
+                    	"NonUsMember"
+                    ]
+                }
+            }
+        }
+    },
+    "DQC.US.0057": {
+    	"name": "Cash Flow Opening and Closing Balances",
+        "description" : [
+            "DQC.US 0057 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and an object ",
+            "containing set of must-be-present-elements and message.",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0057/DQC_0057.md"
+        ],
+        "rules": {
+            "7494": {
+                "must-be-present-elements" : [
+					"Cash",
+					"CashAndCashEquivalentsAtCarryingValue",
+					"CashAndCashEquivalentsAtCarryingValueIncludingDiscontinuedOperations",
+					"CashAndDueFromBanks",
+					"CashCashEquivalentsAndFederalFundsSold", 
+					"CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
+					"CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsIncludingDisposalGroupAndDiscontinuedOperations",
+					"CashEquivalentsAtCarryingValue"
+                ],
+                "message": "One of the following elements {elementNames} should appear as the opening and closing balance in the cash flow statement using the group {role}. Instead the following balance items have been used in this statement {balanceElements}. Depending if ASU-2016-18 has been adopted at least one of the opening and closing balance items listed must be used in the cash flow statement."
+            },
+            "9728": {
+                "must-be-present-elements": [
+					"CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
+					"CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsIncludingDisposalGroupAndDiscontinuedOperations"
+                ],
+                "message": "One of the following elements {elementNames} should appear as the opening and closing balance in the cash flow statement using the group {role}. Instead the following balance items have been used in this statement {balanceElements}. Due to the implementaion of ASU-2016-18 at least one of the opening and closing balance items listed must be used in the cash flow statement. "
             }
         }
     },
@@ -824,6 +977,80 @@
         	}
         }
 	},
+    "DQC.US.0071": {
+    	"name": "Revenue/Cost Single Member",
+        "description" : [
+            "DQC.US 0071 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and value object as follows:",
+            "   axis-qname, array of primary-items-names",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0071/DQC_0071.md"
+        ],
+        "message": "The filing has  reported a value for the element {name} with a value of {value} using the ProductOrServiceAxis in the role {role} on the table {table}. However, the only member used to disaggregate the total for {name} was the member {member}. If only one member is used on this axis then the filer should either: \n\n1. Retag the filing using the element TypeOfRevenueExtensibleList/TypeOfCostGoodOrServiceExtensibleList with a value of {member} and the member {member} should be removed from the value as it represents the aggregate value of {name}; or \n\n2. Tag the aggregate value of {name} with a value of {value} without the product of service axis. This rule will not generate an error if the aggregate value of {name} is reported.  \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}",
+        "rules": {
+        	"7646": {
+        		"axis": "srt:ProductOrServiceAxis",
+        		"domain": "srt:ProductsAndServicesDomain",
+        		"skip-if-axis-present": "InitialApplicationPeriodCumulativeEffectTransitionAxis",
+        		"primary-items": [
+        			"RevenueFromContractWithCustomerIncludingAssessedTax", 
+        			"RevenueFromContractWithCustomerExcludingAssessedTax", 
+        			"CostOfGoodsAndServicesSold"
+        		]
+        	}
+        }
+    },
+    "DQC.US.0073": {
+    	"name": "Plan Asset Categories Permissible Line Items",
+        "description" : [
+            "DQC.US 0073 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and value object as follows:",
+            "   axis, array of allowable-primary-item names",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0073/DQC_0073.md"
+        ],
+        "message": "The concept {name} with a value of {value} is used with the DefinedBenefitPlanByPlanAssetCategoriesAxis. This element cannot be used with this axis.   \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}.  \n\nThe allowable list of elements that can be used are as follows: {allowableNames}",
+        "rules": {
+        	"7648": {
+        		"axis": "DefinedBenefitPlanByPlanAssetCategoriesAxis",
+        		"allowable-primary-items": [
+					"DefinedBenefitPlanActualReturnOnPlanAssetsSoldDuringPeriod",
+					"DefinedBenefitPlanActualReturnOnPlanAssetsStillHeld",
+					"DefinedBenefitPlanAmountOfEmployerAndRelatedPartySecuritiesIncludedInPlanAssets",
+					"DefinedBenefitPlanAssetsExpectedToBeReturnedToEmployerAmount",
+					"DefinedBenefitPlanAssumptionsUsedCalculatingNetPeriodicBenefitCostExpectedLongTermReturnOnAssets",
+					"DefinedBenefitPlanChangeInFairValueOfPlanAssetsLevel3ReconciliationPeriodIncreaseDecrease",
+					"DefinedBenefitPlanFairValueOfPlanAssets",
+					"DefinedBenefitPlanInvestmentPoliciesAndStrategiesNarrativeDescription",
+					"DefinedBenefitPlanNarrativeDescriptionOfBasisUsedToDetermineOverallExpectedLongTermRateOfReturnOnAssetsAssumption",
+					"DefinedBenefitPlanNumberOfSharesOfEquitySecuritiesIssuedByEmployerAndRelatedPartiesIncludedInPlanAssets",
+					"DefinedBenefitPlanPlanAssetsAtFairValueValuationTechniquesAndInputsChanges",
+					"DefinedBenefitPlanPlanAssetsEmployerRelatedPartyTransactionTypeExtensibleList",
+					"DefinedBenefitPlanPlanAssetsEmployerRelatedPartyTypeExtensibleList",
+					"DefinedBenefitPlanPlanAssetsFairValueByHierarchyAndNavExtensibleList",
+					"DefinedBenefitPlanPlanAssetsForeignCurrencyTranslationGainLoss",
+					"DefinedBenefitPlanPlanAssetsInvestmentWithinPlanAssetCategoryAmount",
+					"DefinedBenefitPlanPlanAssetsInvestmentWithinPlanAssetCategoryPercentage",
+					"DefinedBenefitPlanPlanAssetsLevel3ReconciliationDecreaseForSale",
+					"DefinedBenefitPlanPlanAssetsLevel3ReconciliationDecreaseForSettlement",
+					"DefinedBenefitPlanPlanAssetsLevel3ReconciliationIncreaseForPurchase",
+					"DefinedBenefitPlanPlanAssetsMeasurementInputExtensibleList",
+					"DefinedBenefitPlanPlanAssetsTargetAllocationPercentage",
+					"DefinedBenefitPlanPlanAssetsValuationTechniqueExtensibleList",
+					"DefinedBenefitPlanPurchasesSalesAndSettlements",
+					"DefinedBenefitPlanTransfersBetweenMeasurementLevels",
+					"DefinedBenefitPlanWeightedAverageAssetAllocations",
+					"FairValueInvestmentsEntitiesThatCalculateNetAssetValuePerShareInvestmentRedemptionDescription",
+					"FairValueInvestmentsEntitiesThatCalculateNetAssetValuePerShareInvestmentRedemptionFrequency",
+					"FairValueInvestmentsEntitiesThatCalculateNetAssetValuePerShareInvestmentRedemptionNoticePeriod1",
+					"FairValueInvestmentsEntitiesThatCalculateNetAssetValuePerShareRedemptionRestrictionPeriodInEffect1",
+					"FairValueInvestmentsEntitiesThatCalculateNetAssetValuePerShareUnfundedCommittments"
+        		]
+        	}
+        }
+    },
     "DQC.US.0079": {
     	"name": "Extension Members",
         "description" : [
@@ -1136,6 +1363,24 @@
 					"zimbabwemember": "country:ZW"
 	        		}
 	        	}
+        }
+	},
+    "DQC.US.0084": {
+    	"name": "Durational Aggregation",
+        "description" : [
+            "DQC.US 0084 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and value object as follows:",
+            "   axis, array of allowable-primary-item names",
+            "tolerance: integer representing 10**-leastDecimals*tolerance for equality margin)",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0084/DQC_0084.md"
+        ],
+        "message": "Sum of the cumulative periods of {sumPeriods} for {name} does not match the reported total of {value}, a difference of {difference}.  \n\nPeriod values are:\n{periods}\n\nThis rule takes into account possible rounding of values across periods and the decimals associated with each fact. This rule used a tolerance of {tolerance} which is calculated by taking the lowest decimal value used in the calculation of {minDecimals}. If there is a difference between the sum of the periods and the aggregate value reported the difference may be due to incorrect decimals associated with the individual fact values. The filer should check that the fact values do not have a decimal value that implies a higher level of accuracy than intended.\n\nIn those rare cases where there are small immaterial differences that are less than 1% of the total and decimals are zero the rule can be overidden. This is performed by creating an extension element called ImmaterialDifferenceFlag.  If this element has any value in any context in the instance then the immaterial difference will not result in an error.  \n\nThe rule excludes elements in the base taxonomy that cannot be aggregated such as an average, maximum or minimum value.   \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}.",
+        "rules": {
+        	"9298": {
+        		"tolerance": 3
+        	}
         }
 	}
 }
