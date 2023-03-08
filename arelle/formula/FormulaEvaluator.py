@@ -392,7 +392,7 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
             else:
                 newFact = None
             if varSet.hasConsistencyAssertion:
-                from arelle import FormulaConsisAsser
+                from arelle.formula import FormulaConsisAsser
 
                 FormulaConsisAsser.evaluate(xpCtx, varSet, newFact)
 
