@@ -1043,7 +1043,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if (modelXbrl.modelDocument.type not in ModelDocument.Type.TESTCASETYPES and
                             options.formulaAction in ("validate", "run") and  # do nothing here if "none"
                             not isAlreadyValidated):  # formulas can't run if streaming has validated the instance
-                        from arelle import ValidateXbrlDimensions, ValidateFormula
+                        from arelle import ValidateXbrlDimensions
+                        from arelle.formula import ValidateFormula
                         startedAt = time.time()
                         if not options.validate:
                             ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)

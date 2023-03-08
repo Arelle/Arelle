@@ -18,8 +18,8 @@ def init(modelXbrl):
     # setup modelXbrl for rendering evaluation
 
     # dimension defaults required in advance of validation
-    from arelle import ValidateXbrlDimensions, ValidateFormula, ModelDocument
-    from arelle.formula import FormulaEvaluator
+    from arelle import ValidateXbrlDimensions, ModelDocument
+    from arelle.formula import FormulaEvaluator, ValidateFormula
     ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
 
     hasXbrlTables = False

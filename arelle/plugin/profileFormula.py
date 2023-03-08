@@ -56,8 +56,8 @@ def profileFormulaMenuCommand(cntlr):
     thread.start()
 
 def backgroundProfileFormula(cntlr, profileReportFile, maxRunTime, excludeCompileTime):
-    from arelle import Locale, ValidateXbrlDimensions, ValidateFormula
-    from arelle.formula import XPathParser
+    from arelle import Locale, ValidateXbrlDimensions
+    from arelle.formula import ValidateFormula, XPathParser
 
     # build grammar before profiling (if this is the first pass, so it doesn't count in profile statistics)
     XPathParser.initializeParser(cntlr.modelManager)

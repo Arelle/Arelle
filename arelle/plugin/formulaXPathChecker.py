@@ -39,8 +39,8 @@ from arelle.formula.XPathParser import (VariableRef, QNameDef, OperationDef, Ran
 from arelle.formula.XPathContext import (XPathException, VALUE_OPS, GENERALCOMPARISON_OPS, NODECOMPARISON_OPS,
                                  COMBINING_OPS, LOGICAL_OPS, UNARY_OPS, FORSOMEEVERY_OPS, PATH_OPS,
                                  SEQUENCE_TYPES, GREGORIAN_TYPES)
-from arelle import FileSource, PackageManager, XbrlConst, XmlUtil, ValidateXbrlDimensions, ValidateFormula
-from arelle.formula import XPathParser
+from arelle import FileSource, PackageManager, XbrlConst, XmlUtil, ValidateXbrlDimensions
+from arelle.formula import ValidateFormula, XPathParser
 from arelle.Version import authorLabel, copyrightLabel
 import os, datetime, logging
 
