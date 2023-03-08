@@ -29,6 +29,28 @@ special value "(default)" for the default target (e.g., resources with no @targe
 
 For GUI instance loading a pop up selection dialog is provided when there is no formula parameter and there are multiple targets.
 
+Example to load multi-document IXDS and save extracted xBRL-XML target document:
+
+  For GUI using ix11 conformance suite directory multi-io test case "PASS-multiple-input-multiple-output"
+     File->Open File Inline Doc Set->multi-select PASS-multiple-input-multiple-output-ID1.html and PASS-multiple-input-multiple-output-ID2.html
+     Select Target -> (default)
+     Tools->Save Target Document
+     new file PASS-multiple-input-multiple-output-ID1_extracted.xbrl has (default) target xBRL-XML instance
+     close instance
+     Reopen as above and Select Target -> TARGET
+     Tools->Save Target Document
+     replaced file PASS-multiple-input-multiple-output-ID1_extracted.xbrl now has TARGET target xBRL-XML instance
+  For Command Line:
+     arelleCmdLine --plugin inlineXbrlDocumentSet 
+                   --file '[{"ixds":[{"file":".../PASS-multiple-input-multiple-output-ID1.html"},
+                                     {"file":".../PASS-multiple-input-multiple-output-ID2.html"}],
+                             "ixdsTarget":"(default)"}]'
+                   --saveInstance
+     For second target specify "ixdsTarget":"TARGET"
+     For default target either omit ixdsTarget or specify (default).
+     File will be saved as PASS-multiple-input-multiple-output-ID1_extracted.xbrl regardless of ixdsTarget parameter
+     For EDGAR style encoding of non-ASCII characters add --encodeSavedXmlChars
+
 See COPYRIGHT.md for copyright information.
 '''
 from arelle import FileSource, ModelXbrl, ValidateXbrlDimensions, XbrlConst
