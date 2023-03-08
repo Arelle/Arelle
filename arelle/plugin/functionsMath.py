@@ -12,7 +12,7 @@ from arelle import XPathContext
 from arelle.FunctionUtil import numericArg
 from arelle.ModelValue import QName, qname
 from arelle.Version import authorLabel, copyrightLabel
-from arelle.XPathParser import OperationDef
+from arelle.formula.XPathParser import OperationDef
 from arelle.typing import EmptyTuple
 
 INF = float('inf')

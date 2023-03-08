@@ -19,7 +19,8 @@ from arelle.ModelValue import (qname,QName)
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import normalizeSpace
 from arelle.XmlValidate import validate as xml_validate
-from arelle import (XbrlConst, XmlUtil, ModelXbrl, ModelDocument, XPathParser, XPathContext, FunctionXs, ValidateXbrlDimensions)
+from arelle import (XbrlConst, XmlUtil, ModelXbrl, ModelDocument, XPathContext, FunctionXs, ValidateXbrlDimensions)
+from arelle.formula import XPathParser
 
 formulaIdWhitespacesSeparatedPattern = re.compile(r"(\w+\s)*(\w+)$") # prenormalized IDs list
 

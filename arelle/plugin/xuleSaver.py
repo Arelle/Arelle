@@ -28,8 +28,9 @@ from arelle.ModelFormulaObject import (ModelValueAssertion, ModelExistenceAssert
                                        ModelCustomFunctionSignature, ModelCustomFunctionImplementation,
                                        ModelPeriod,
                                        ModelAndFilter, ModelOrFilter, ModelMessage, ModelAssertionSeverity)
-from arelle import XbrlConst, XmlUtil, XPathParser
+from arelle import XbrlConst, XmlUtil
 from arelle.Version import authorLabel, copyrightLabel
+from arelle.formula import XPathParser
 import os, datetime
 
 class NotExportable(Exception):

@@ -11,7 +11,7 @@ from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTim
 from arelle.FunctionUtil import anytypeArg, atomicArg, stringArg, numericArg, integerArg, qnameArg, nodeArg
 from arelle import FunctionXs, XPathContext, XbrlUtil, XmlUtil, UrlUtil, ModelDocument, XmlValidate
 from arelle.Locale import format_picture
-from arelle.XPathParser import FormulaToken, OperationDef
+from arelle.formula.XPathParser import FormulaToken, OperationDef
 from arelle.XmlValidate import VALID_NO_CONTENT
 from decimal import Decimal
 from lxml import etree

@@ -9,7 +9,8 @@ except ImportError:
 import regex as re
 from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox, radiobutton
 from arelle.CntlrWinTooltip import ToolTip
-from arelle import ModelDocument, XPathContext, XPathParser, XmlUtil
+from arelle import ModelDocument, XPathContext, XmlUtil
+from arelle.formula import XPathParser
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelRssItem import ModelRssItem

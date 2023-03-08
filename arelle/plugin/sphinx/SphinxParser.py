@@ -1024,7 +1024,7 @@ def parse(cntlr, _logMessage, sphinxFiles):
             prog.insert(0, astSourceFile(sphinxFile)) # keep the source file name
             sphinxProgs.append( prog )
         except (ParseException, ParseSyntaxException) as err:
-            from arelle.XPathParser import exceptionErrorIndication
+            from arelle.formula.XPathParser import exceptionErrorIndication
             file = os.path.basename(sphinxFile)
             logMessage("ERROR", "sphinxCompiler:syntaxError",
                 _("Parse error: \n%(error)s"),

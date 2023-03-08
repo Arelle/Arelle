@@ -38,7 +38,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
 from arelle.PythonUtil import STR_NUM_TYPES
-from arelle.XPathParser import (
+from arelle.formula.XPathParser import (
     Expr,
     FormulaToken,
     OperationDef,
