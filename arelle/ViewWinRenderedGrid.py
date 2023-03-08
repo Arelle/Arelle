@@ -13,7 +13,7 @@ from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelRenderingObject import (ModelClosedDefinitionNode, ModelEuAxisCoord,
                                          ModelFilterDefinitionNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
-from arelle.FormulaEvaluator import init as formulaEvaluatorInit, aspectMatches
+from arelle.formula.FormulaEvaluator import init as formulaEvaluatorInit, aspectMatches
 
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.UITkTable import XbrlTable

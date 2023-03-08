@@ -2870,6 +2870,6 @@ elementSubstitutionModelClass.update((
      ))
 
 # import after other modules resolved to prevent circular references
-from arelle.FormulaEvaluator import filterFacts, aspectsMatch, aspectMatches
+from arelle.formula.FormulaEvaluator import filterFacts, aspectsMatch, aspectMatches
 from arelle.FunctionXfi import concept_relationships
 from arelle.ValidateXbrlCalcs import inferredPrecision

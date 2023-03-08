@@ -913,7 +913,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
         else:
             maxFormulaRunTimeTimer = None
         # evaluate variable sets not in consistency assertions
-        from arelle.FormulaEvaluator import init as formulaEvaluatorInit, evaluate
+        from arelle.formula.FormulaEvaluator import init as formulaEvaluatorInit, evaluate
         formulaEvaluatorInit() # one-time module initialization
         val.modelXbrl.profileActivity("... evaluations", minTimeToShow=1.0)
         for instanceQname in orderedInstancesList:
