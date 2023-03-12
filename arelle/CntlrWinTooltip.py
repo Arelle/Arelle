@@ -38,7 +38,8 @@ create_contents() : creates the contents of the tooltip window (by default a Tki
 # Ideas gleaned from PySol
 
 import tkinter
-from tkhtmlview import HTMLLabel
+from tkhtmlview import HTMLLabel, HTMLText
+from arelle.ValidateFilingText import XMLpattern
 
 class ToolTip:
     def __init__(self, master, text='Your text here', delay=500, **opts):
@@ -57,6 +58,10 @@ class ToolTip:
         if self._opts['follow_mouse']:
             self._id4 = self.master.bind("<Motion>", self.motion, '+')
             self._follow_mouse = 1
+        self._htmlAware = False
+        
+    def setHtmlAware(self):
+        self._htmlAware = True
 
     def configure(self, **opts):
         for key in opts:
@@ -77,7 +82,7 @@ class ToolTip:
         self._hide()
 
     def motion(self, event=None):
-        if self._tipwindow and self._follow_mouse:
+        if self._tipwindow and self._follow_mouse == 1:
             x, y = self.coords()
             self._tipwindow.wm_geometry("+%d+%d" % (x, y))
 
@@ -133,7 +138,7 @@ class ToolTip:
         w, h = tw.winfo_screenwidth(), tw.winfo_screenheight()
         # calculate the y coordinate:
         if self._follow_mouse:
-            y = tw.winfo_pointery() + 20
+            y = tw.winfo_pointery() + (10 if self._follow_mouse == 1 else -10)
             # make sure the tipwindow is never outside the screen:
             if y + twy > h:
                 y = y - twy - 30
@@ -154,8 +159,17 @@ class ToolTip:
         opts = self._opts.copy()
         for opt in ('delay', 'follow_mouse', 'state'):
             del opts[opt]
-        #label = tkinter.Label(self._tipwindow, **opts)
-        label = HTMLLabel(self._tipwindow, html=opts["textvariable"].get() if opts["textvariable"] else opts["text"])
+        text = opts["textvariable"].get() if opts["textvariable"] else opts["text"]
+        if self._htmlAware and XMLpattern.match(text):
+            # turn off follow_mouse
+            if self._opts['follow_mouse']:
+                self._follow_mouse = 2 # tooltip encloses mouse pointer when shown so it can grab click and scroll
+            label = HTMLText(self._tipwindow, html=text) # has scrollbar
+        else:
+            # turn on follow_mouse
+            if self._opts['follow_mouse']:
+                self._follow_mouse = 1 # use cell location but don't move window
+            label = tkinter.Label(self._tipwindow, **opts)
         label.pack()
 
 ##---------demo code-----------------------------------##

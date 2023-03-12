@@ -53,7 +53,7 @@ def viewFacts(modelXbrl, tabWin, lang=None):
 
 class ViewFactList(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin, lang):
-        super(ViewFactList, self).__init__(modelXbrl, tabWin, "Fact List", True, lang)
+        super(ViewFactList, self).__init__(modelXbrl, tabWin, "Fact List", ViewWinTree.HTML_TOOLTIP, lang)
 
     def setViewTupleChildMenuItem(self, event=None):
         if event is not None and self.menu is not None:
