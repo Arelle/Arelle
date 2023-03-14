@@ -14,6 +14,7 @@ arelle/plugin/validate/DQC_US_Rules
 arelle/plugin/validate/DQC.py
 arelle/plugin/validate/eforms.py
 arelle/plugin/validate/ESEF-DQC.py
+arelle/plugin/Xince.py
 arelle/plugin/xule
 Arelle.egg-info
 arelleGUI.py
