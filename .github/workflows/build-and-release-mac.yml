@@ -118,7 +118,10 @@ jobs:
               mv build/Arelle.app/Contents/MacOS/$f build/Arelle.app/Contents/Resources/
             done
           mkdir build/Arelle.app/Contents/Resources/lib
-          for f in `ls build/Arelle.app/Contents/MacOS/lib | grep -v "Python\|encodings\|codecs\|collections\|importlib\|matplotlib\|re\|zlib\|library.zip\|so$"`
+          ls build/Arelle.app/Contents/MacOS/lib | \
+            fgrep -vx --regexp={Python,encodings,codecs,collections,importlib,matplotlib,re,zlib,library.zip} | \
+            grep -v '\.so$' | \
+            while IFS= read -r f
             do
               mv build/Arelle.app/Contents/MacOS/lib/$f build/Arelle.app/Contents/Resources/lib/
             done
