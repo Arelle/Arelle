@@ -74,11 +74,11 @@ RUN pip3 install --upgrade pip setuptools wheel
 
 WORKDIR /build
 
-ADD ../requirements*.txt .
+ADD requirements*.txt .
 
 RUN pip3 install -r requirements-build.txt
 
-ADD ../ /build
+ADD . /build
 
 RUN /bin/sh ./scripts/buildLinuxDist.sh ubuntu
 
