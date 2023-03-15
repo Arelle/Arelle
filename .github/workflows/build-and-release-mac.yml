@@ -147,7 +147,6 @@ jobs:
             {} \;
           
           # Create symlinks (some libraries can't be code signed in /MacOS but need to be found within it)
-          ln -s ../../Resources/lib/tcltk build/Arelle.app/Contents/MacOS/lib/tcltk
           ln -s ../../Resources/lib/tkinter build/Arelle.app/Contents/MacOS/lib/tkinter
           # Symlink plugins folder so /Resources/plugin is found when searching in default /MacOS/plugin location
           ln -s ../Resources/plugin build/Arelle.app/Contents/MacOS/plugin
