@@ -12,5 +12,3 @@ rem Regenerate messages catalog (doc/messagesCatalog.xml)
 python generateMessagesCatalog.py
 rem Build exe
 python distro.py build_exe
-rem https://github.com/marcelotduarte/cx_Freeze/issues/1732
-for /d %%d in (build\exe*) do copy /y %%d\lib\vcruntime* %%d
