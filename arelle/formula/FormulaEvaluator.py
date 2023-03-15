@@ -1,23 +1,37 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from arelle import (XPathContext, XbrlConst, XmlUtil, XbrlUtil, XmlValidate)
-from arelle.FunctionXs import xsString
-from arelle.ModelObject import ModelObject
-from arelle.ModelFormulaObject import (aspectModels, Aspect, aspectModelAspect,
-                                 ModelFormula, ModelTuple, ModelExistenceAssertion,
-                                 ModelValueAssertion,
-                                 ModelFactVariable, ModelGeneralVariable, ModelVariable,
-                                 ModelParameter, ModelFilter, ModelAspectCover, ModelBooleanFilter, ModelTypedDimension)
-from arelle.PrototypeInstanceObject import DimValuePrototype
-from arelle.PythonUtil import OrderedSet
-from arelle.ModelValue import (QName)
-import datetime, time, logging
-import regex as re
-from decimal import Decimal
-from math import log10, isnan, isinf, fabs
-from arelle.Locale import format_string
+import datetime
+import logging
+import time
 from collections import defaultdict
+from decimal import Decimal
+from math import fabs, isinf, isnan, log10
+
+import regex as re
+
+from arelle import XPathContext, XbrlConst, XbrlUtil, XmlUtil
+from arelle.Aspect import Aspect, aspectModels, aspectModelAspect
+from arelle.FunctionXs import xsString
+from arelle.Locale import format_string
+from arelle.ModelFormulaObject import (
+    ModelAspectCover,
+    ModelBooleanFilter,
+    ModelExistenceAssertion,
+    ModelFactVariable,
+    ModelFilter,
+    ModelFormula,
+    ModelGeneralVariable,
+    ModelParameter,
+    ModelTuple,
+    ModelTypedDimension,
+    ModelValueAssertion,
+    ModelVariable,
+)
+from arelle.ModelObject import ModelObject
+from arelle.ModelValue import QName
+from arelle.PrototypeInstanceObject import DimValuePrototype
+
 ModelDimensionValue = None
 ModelFact = None
 
