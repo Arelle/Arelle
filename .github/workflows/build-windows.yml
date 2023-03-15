@@ -143,7 +143,7 @@ jobs:
     - name: Build exe
       run: ./scripts/buildWinDist.bat
     - name: Copy Tktable2.11
-      run: xcopy libs\win64\Tktable2.11 ${{ env.BUILD_PATH }}\lib\tcltk\tk8.6 /y
+      run: xcopy libs\win64\Tktable2.11 ${{ env.BUILD_PATH }}\lib /y
     - name: Delete .git
       shell: cmd
       run: if exist "${{ env.BUILD_PATH }}\.git" rmdir /s /q ${{ env.BUILD_PATH }}\.git
