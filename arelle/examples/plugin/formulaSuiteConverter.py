@@ -12,8 +12,10 @@ See COPYRIGHT.md for copyright information.
 '''
 from arelle import ModelXbrl, XmlUtil
 from arelle.ModelDocument import Type
+from arelle.ModelValue import qname
 from arelle.ViewUtilFormulae import rootFormulaObjects, formulaObjSortKey
 from arelle.PluginManager import pluginClassMethods
+from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.PythonUtil import attrdict
 from arelle.Version import authorLabel, copyrightLabel
 import os, shutil
@@ -21,6 +23,7 @@ from lxml import etree
 import regex as re
 
 oimErrPattern = re.compile("(oime|xbrlxe):")
+QN_SCHEMA_REF = qname("{http://www.xbrl.org/2003/linkbase}schemaRef")
 
 def convertVariation(cntlr, variationFile, variationElt, inPath, outPath, entryPoint, resultInstFile):
     entryFile = os.path.join(inPath, entryPoint)
@@ -33,11 +36,12 @@ def convertVariation(cntlr, variationFile, variationElt, inPath, outPath, entryP
         break
     # convert formula linkbaseRefs into shim schema refs
     if doc.type in (Type.INSTANCE, Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET):
-        for lbDoc in modelXbrl.modelDocument.referencesDocument.keys():
+        for lbDoc, ref in doc.referencesDocument.items():
             if lbDoc.type == Type.LINKBASE:
                 lbRef = lbDoc.basename
                 if lbRef == formulaFile:
                     lbRef = os.path.splitext(lbRef)[0] + ".xf"
+                    lbDoc.uri = os.path.splitext(lbDoc.uri)[0] + ".xsd"
                 lbXsdFile = os.path.splitext(lbRef)[0] + ".xsd"
                 with open(os.path.join(outPath, lbXsdFile), "w", encoding="utf-8") as fh:
                     fh.write("""
@@ -58,6 +62,8 @@ def convertVariation(cntlr, variationFile, variationElt, inPath, outPath, entryP
 </schema>
 """.format(lbRef))
                 lbDoc.type = Type.SCHEMA
+                ref.referringModelObject = PrototypeObject(ref.referringModelObject.modelDocument, ref.referringModelObject)
+                ref.referringModelObject.qname = QN_SCHEMA_REF
                 
     # perform OIM validation on xBRL-XML source instance
     for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Finally"):
