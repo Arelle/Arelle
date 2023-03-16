@@ -17,7 +17,7 @@ on:
         required: true
         type: string
       python_version:
-        default: '3.10'
+        default: '3.11'
         description: 'Python version to use'
         required: true
         type: string
@@ -118,7 +118,10 @@ jobs:
               mv build/Arelle.app/Contents/MacOS/$f build/Arelle.app/Contents/Resources/
             done
           mkdir build/Arelle.app/Contents/Resources/lib
-          for f in `ls build/Arelle.app/Contents/MacOS/lib | grep -v "Python\|encodings\|codecs\|collections\|importlib\|matplotlib\|zlib\|library.zip\|so$"`
+          ls build/Arelle.app/Contents/MacOS/lib | \
+            fgrep -vx --regexp={Python,encodings,codecs,collections,importlib,matplotlib,re,zlib,library.zip} | \
+            grep -v '\.so$' | \
+            while IFS= read -r f
             do
               mv build/Arelle.app/Contents/MacOS/lib/$f build/Arelle.app/Contents/Resources/lib/
             done
@@ -144,7 +147,6 @@ jobs:
             {} \;
           
           # Create symlinks (some libraries can't be code signed in /MacOS but need to be found within it)
-          ln -s ../../Resources/lib/tcltk build/Arelle.app/Contents/MacOS/lib/tcltk
           ln -s ../../Resources/lib/tkinter build/Arelle.app/Contents/MacOS/lib/tkinter
           # Symlink plugins folder so /Resources/plugin is found when searching in default /MacOS/plugin location
           ln -s ../Resources/plugin build/Arelle.app/Contents/MacOS/plugin
