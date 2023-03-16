@@ -22,6 +22,7 @@ When run from GUI first load the instance/DTS and then import the xf file(s).
 import time, sys, traceback, os, io, os.path, zipfile
 import regex as re
 from arelle.Version import authorLabel, copyrightLabel
+from arelle import XbrlConst
 from lxml import etree
 
 # Debugging flag can be set to either "debug_flag=True" or "debug_flag=False"
@@ -91,7 +92,7 @@ def compileAspectCoverFilter( sourceStr, loc, toks ):
                     "xlink:label": filterLabel}
     prevTok = None
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -262,8 +263,8 @@ def compileAssertion( sourceStr, loc, toks ):
         elif prevTok == "evaluation-count":
             assertionEltQname = "ea:existenceAssertion"
             attrib["test"] = str(tok)
-        elif tok == "aspect-model-non-dimensional":
-            attrib["aspectModel"] = "non-dimensional"
+        #elif tok == "aspect-model-non-dimensional":
+        #    attrib["aspectModel"] = "non-dimensional"
         elif tok == "no-implicit-filtering":
             attrib["implicitFiltering"] = "false"
         prevTok = tok
@@ -345,7 +346,7 @@ def compileBooleanFilter( sourceStr, loc, toks ):
     prevTok = filterEltQname = None
     isMatchDimension = False
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -390,7 +391,7 @@ def compileConceptFilter( sourceStr, loc, toks ):
     isName = isPeriodType = isBalance = isDataType = isSubstitution = False
     hasLocalName = False
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -468,7 +469,7 @@ def compileConceptRelationFilter( sourceStr, loc, toks ):
                     "xlink:label": filterLabel}
     prevTok = None
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -580,7 +581,7 @@ def compileDimensionFilter( sourceStr, loc, toks ):
     prevTok = filterEltQname = None
     isTyped = False
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -650,7 +651,7 @@ def compileEntityFilter( sourceStr, loc, toks ):
                     "xlink:label": filterLabel}
     prevTok = filterEltQname = None
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -688,7 +689,7 @@ def compileFactVariable( sourceStr, loc, toks ):
     for tok in toks:
         if prevTok is None:
             name = tok[1:] # remove $ from variable name
-        elif tok == "bind-as-sequence":
+        elif tok == "as-sequence":
             attrib["bindAsSequence"] = "true"
         elif tok == "nils":
             attrib["nils"] = "true"
@@ -749,8 +750,8 @@ def compileFormula( sourceStr, loc, toks ):
             attrib["value"] = str(tok)
         elif prevTok == "source":
             attrib["source"] = tok
-        elif tok == "aspect-model-non-dimensional":
-            attrib["aspectModel"] = "non-dimensional"
+        #elif tok == "aspect-model-non-dimensional":
+        #    attrib["aspectModel"] = "non-dimensional"
         elif tok == "no-implicit-filtering":
             attrib["implicitFiltering"] = "false"
         prevTok = tok
@@ -854,7 +855,7 @@ def compileGeneralFilter( sourceStr, loc, toks ):
                     "xlink:label": filterLabel}
     prevTok = filterEltQname = None
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif prevTok == "general" and isinstance(tok, XPathExpression):
             filterAttrib["test"] = str(tok)
@@ -873,7 +874,7 @@ def compileGeneralVariable( sourceStr, loc, toks ):
     for tok in toks:
         if prevTok is None:
             name = tok[1:] # remove $ from variable name
-        elif tok == "bind-as-sequence":
+        elif tok == "as-sequence":
             attrib["bindAsSequence"] = "true"
         elif prevTok == "select":
             attrib["select"] = str(tok)
@@ -902,31 +903,37 @@ def compileGeneralVariable( sourceStr, loc, toks ):
 def compileLabel( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     prevTok = langTok = None
+    msgRole = XbrlConst.standardMessage
     for tok in toks:
         if tok.startswith("(") and tok.endswith(")"):
             langTok = tok[1:-1]
+        elif tok in ("standard", "terse", "verbose"):
+            msgRole = {
+                "standard": XbrlConst.standardMessage,
+                "terse": XbrlConst.terseMessage,
+                "verbose": XbrlConst.verboseMessage}[tok]
         else:
             if prevTok == "label":
                 labelType = "label"
                 arcrole = "element-label"
-                role = "label"
+                role = XbrlConst.genStandardLabel
                 labelElt = "generic:label"
                 label = tok
             elif prevTok == "satisfied-message":
                 labelType = "message"
                 arcrole = "assertion-satisfied-message"
-                role = "message"
+                role = msgRole
                 labelElt = "msg:message"
                 label = tok
                 lbGen.checkXmlns("msg")
             elif prevTok == "unsatisfied-message":
                 labelType = "message"
                 arcrole = "assertion-unsatisfied-message"
-                role = "message"
+                role = msgRole
                 labelElt = "msg:message"
                 label = tok
                 lbGen.checkXmlns("msg")
-            # Don't set prevTok if it was a language
+            # Don't set prevTok if it was a language or role
             prevTok = tok
     labelLabel = "{}{}".format(labelType, lbGen.labelNbr(labelType))
     arcAttrib={"xlink:type": "arc",
@@ -961,7 +968,7 @@ def compileMatchFilter( sourceStr, loc, toks ):
     prevTok = filterEltQname = None
     isMatchDimension = False
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -970,8 +977,8 @@ def compileMatchFilter( sourceStr, loc, toks ):
         elif filterEltQname is None:
             if tok == "match-concept":
                 filterEltQname = "mf:matchConcept"
-            elif tok == "match-location":
-                filterEltQname = "mf:matchLocation"
+            #elif tok == "match-location":
+            #    filterEltQname = "mf:matchLocation"
             elif tok == "match-entity-identifier":
                 filterEltQname = "mf:matchEntityIdentifier"
             elif tok == "match-period":
@@ -991,6 +998,11 @@ def compileMatchFilter( sourceStr, loc, toks ):
     filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
             FormulaResourceElt(filterElt)]
+
+def compileVersionDeclaration( sourceStr, loc, toks ):
+    if toks[1] != "1.0":
+        raise Exception(f"XF version must be 1.0, source file specified.  Unsupported version {toks[1]")
+    return []
 
 def compileNamespaceDeclaration( sourceStr, loc, toks ):
     lbGen.checkXmlns(dequotedString(toks[0]), dequotedString(toks[1]))
@@ -1054,7 +1066,7 @@ def compilePeriodFilter( sourceStr, loc, toks ):
     prevTok = filterEltQname = None
     isPeriod = isPeriodDateTime = isInstantDuration = False
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -1133,7 +1145,7 @@ def compileRelativeFilter( sourceStr, loc, toks ):
                     "xlink:label": filterLabel}
     prevTok = None
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -1149,6 +1161,7 @@ def compileRelativeFilter( sourceStr, loc, toks ):
 def compileSeverity( sourceStr, loc, toks ):
     return []
 
+''' not supported by OIM
 def compileTupleFilter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
@@ -1163,7 +1176,7 @@ def compileTupleFilter( sourceStr, loc, toks ):
                     "xlink:label": filterLabel}
     prevTok = None
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -1188,6 +1201,7 @@ def compileTupleFilter( sourceStr, loc, toks ):
             lbGen.subElement(relationElt, "tf:qname", text=lbGen.checkedQName(tupleRelationTok))
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
             FormulaResourceElt(filterElt)]
+'''
 
 def compileUnitFilter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
@@ -1205,7 +1219,7 @@ def compileUnitFilter( sourceStr, loc, toks ):
                     "xlink:label": filterLabel}
     prevTok = None
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -1249,7 +1263,7 @@ def compileValueFilter( sourceStr, loc, toks ):
                     "xlink:label": filterLabel}
     prevTok = None
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -1318,7 +1332,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                   "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*)"
                   ).setName("ncName").setDebug(debugParsing)
 
-    dateTime = Regex("([0-9]{4})-([0-9]{2})-([0-9]{2})[T ]([0-9]{2}):([0-9]{2}):([0-9]{2})|"
+    dateTime = Regex("([0-9]{4})-([0-9]{2})-([0-9]{2})[T ](24:00:00(\.0+)?|(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9]))|"
                      "([0-9]{4})-([0-9]{2})-([0-9]{2})")
 
 
@@ -1339,6 +1353,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
     decimalLiteral =  ( Combine( integerLiteral + decimalPoint + Opt(digits) ) |
                         decimalFractionLiteral )
     numberLiteral = (decimalLiteral | floatLiteral | integerLiteral)
+    versionLiteral = Combine( digits + ZeroOrMore( decimalPoint + digits) )
 
     xPathFunctionCall = Combine(qName + Literal("("))
 
@@ -1354,6 +1369,8 @@ def compileXfsGrammar( cntlr, debugParsing ):
                        Suppress(Literal("}"))).setParseAction(compileXPathExpression)
     separator = Suppress( Literal(";") )
 
+    versionDeclaration = (Suppress(Keyword("version")) + versionLiteral + separator
+                            ).setParseAction(compileVersionDeclaration).ignore(xfsComment)
     namespaceDeclaration = (Suppress(Keyword("namespace")) + ncName + Suppress(Literal("=")) + quoted_string + separator
                             ).setParseAction(compileNamespaceDeclaration).ignore(xfsComment)
     defaultDeclaration = (Suppress(Keyword("unsatisfied-severity") | Keyword("default-language")) + ncName + separator
@@ -1390,7 +1407,9 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
     severity = ( Suppress(Keyword("unsatisfied-severity")) + ( ncName ) + separator ).setParseAction(compileSeverity).ignore(xfsComment)
 
-    label = ( (Keyword("label") | Keyword("unsatisfied-message") | Keyword("satisfied-message")) +
+    label = ( (Keyword("label") | 
+               ( (Keyword("unsatisfied-message") | Keyword("satisfied-message") ) +
+                  Opt( Keyword("standard") | Keyword("verbose") | Keyword("terse") ) ) ) +
               Opt( Combine(Literal("(") + Regex("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*") + Literal(")")) ) +
               (QuotedString('"',multiline=True,escQuote='""') | QuotedString("'",multiline=True,escQuote="''")) +
               separator).setParseAction(compileLabel).ignore(xfsComment)
@@ -1454,7 +1473,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
     filter = Forward()
 
     conceptFilter = (
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) +
+        ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) +
         (Keyword("concept-name") + OneOrMore(qName | xpathExpression) + separator) |
          Keyword("concept-period-type") + (Keyword("instant") | Keyword("duration")) + separator |
          Keyword("concept-balance") + (Keyword("credit") | Keyword("debit") | Keyword("none")) + separator |
@@ -1464,13 +1483,13 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
 
     generalFilter = (
-        Opt( Keyword("complemented") ) +
+        Opt( Keyword("not") ) +
         Keyword("general") + xpathExpression + separator
         ).setParseAction(compileGeneralFilter).ignore(xfsComment).setName("general-filter").setDebug(debugParsing)
 
 
     periodFilter = (
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) +
+        ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) +
         (Keyword("period") + xpathExpression |
          (Keyword("period-start") | Keyword("period-end") | Keyword("period-instant")) +
            (dateTime | Keyword("date") + xpathExpression + Opt(Keyword("time") + xpathExpression)) |
@@ -1481,7 +1500,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
     dimensionAxis = (Keyword("child-or-self") | Keyword("child") | Keyword("descendant") | Keyword("descendant-or-self"))
 
     dimensionFilter = (
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) +
+        ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) +
             (
                 (Keyword("explicit-dimension") + (qName | xpathExpression) +
                     ZeroOrMore( Keyword("default-member") |
@@ -1495,14 +1514,14 @@ def compileXfsGrammar( cntlr, debugParsing ):
         ).setParseAction(compileDimensionFilter).ignore(xfsComment).setName("dimension-filter").setDebug(debugParsing)
 
     unitFilter = (
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) +
+        ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) +
         (Keyword("unit-single-measure") + (qName | xpathExpression) |
          Keyword("unit-general-measures") + xpathExpression) + separator
         ).setParseAction(compileUnitFilter).ignore(xfsComment).setName("unit-filter").setDebug(debugParsing)
 
 
     entityFilter = (
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) +
+        ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) +
         (Keyword("entity") + Keyword("scheme") + xpathExpression + Keyword("value") + xpathExpression |
          Keyword("entity-scheme") + xpathExpression |
          Keyword("entity-scheme-pattern") + quoted_string |
@@ -1510,9 +1529,9 @@ def compileXfsGrammar( cntlr, debugParsing ):
         ).setParseAction(compileEntityFilter).ignore(xfsComment).setName("entity-filter").setDebug(debugParsing)
 
     matchFilter = (
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) +
+        ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) +
         (Keyword("match-concept") + variableRef |
-         Keyword("match-location") + variableRef |
+         # Keyword("match-location") + variableRef |
          Keyword("match-entity-identifier") + variableRef |
          Keyword("match-period") + variableRef |
          Keyword("match-unit") + variableRef |
@@ -1521,28 +1540,29 @@ def compileXfsGrammar( cntlr, debugParsing ):
         ).setParseAction(compileMatchFilter).ignore(xfsComment).setName("match-filter").setDebug(debugParsing)
 
     relativeFilter = (
-        Opt( Keyword("complemented") ) +
+        Opt( Keyword("not") ) +
         Keyword("relative") + variableRef + separator
         ).setParseAction(compileRelativeFilter).ignore(xfsComment).setName("relative-filter").setDebug(debugParsing)
 
 
+    ''' not supported by OIM
     tupleFilter = (
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) +
+        ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) +
         (Keyword("parent") + (qName | xpathExpression) |
          Keyword("ancestor") + (qName | xpathExpression) |
          Keyword("sibling") + variableRef) + separator
         ).setParseAction(compileTupleFilter).ignore(xfsComment).setName("tuple-filter").setDebug(debugParsing)
-
+    '''
 
     valueFilter = (
-        Opt( Keyword("complemented") ) +
+        Opt( Keyword("not") ) +
         Keyword("nilled")
         ).setParseAction(compileValueFilter).ignore(xfsComment).setName("value-filter").setDebug(debugParsing)
 
     aspectCoverFilter = (
-        Opt( Keyword("complemented") ) +
+        Opt( Keyword("not") ) +
         Keyword("aspect-cover") +
-        OneOrMore( Keyword("all") | Keyword("concept") | Keyword("entity-identifier") | Keyword("location") |
+        OneOrMore( Keyword("all") | Keyword("concept") | Keyword("entity-identifier") | # Keyword("location") |
                    Keyword("period") | Keyword("unit") | Keyword("dimensions") |
                    Keyword("dimension") + (qName | xpathExpression) |
                    Keyword("exclude-dimension")+ (qName | xpathExpression) ) +
@@ -1555,7 +1575,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                     Keyword("sibling-or-self") | Keyword("sibling-or-descendant") | Keyword("sibling") )
 
     conceptRelationFilter = (
-        Opt( Keyword("complemented") ) +
+        Opt( Keyword("not") ) +
         Keyword("concept-relation") + (
             (variableRef | qName | xpathExpression) +
             Opt(Keyword("linkrole") + (quoted_string | xpathExpression)) +
@@ -1567,7 +1587,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
         ).setParseAction(compileConceptRelationFilter).ignore(xfsComment).setName("concept-relation-filter").setDebug(debugParsing)
 
     booleanFilter = (
-        Opt( Keyword("complemented") ) +
+        Opt( Keyword("not") ) +
         (Keyword("and") | Keyword("or")) + Suppress(Literal("{")) +
          OneOrMore(filter) +
         Suppress(Literal("}")) +
@@ -1584,7 +1604,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                 entityFilter |
                 matchFilter |
                 relativeFilter |
-                tupleFilter |
+                #tupleFilter |
                 valueFilter |
                 booleanFilter |
                 aspectCoverFilter |
@@ -1599,14 +1619,14 @@ def compileXfsGrammar( cntlr, debugParsing ):
                          Suppress(Literal("}"))).setParseAction(compileFilterDeclaration).ignore(xfsComment).setName("fact-variable").setDebug(debugParsing)
 
     factVariable = (Suppress(Keyword("variable")) + variableRef + Suppress(Literal("{")) +
-                    ZeroOrMore( Keyword("bind-as-sequence") | Keyword("nils") | Keyword("matches") |
+                    ZeroOrMore( Keyword("as-sequence") | Keyword("nils") | Keyword("matches") |
                                 ( Keyword("fallback") + xpathExpression ) ) +
                     ZeroOrMore( filter ) +
                     Suppress(Literal("}")) + separator).setParseAction(compileFactVariable).ignore(xfsComment).setName("fact-variable").setDebug(debugParsing)
 
 
     generalVariable = (Suppress(Keyword("variable")) + variableRef + Suppress(Literal("{")) +
-                       Opt( Keyword("bind-as-sequence") ) +
+                       Opt( Keyword("as-sequence") ) +
                        Keyword("select") + xpathExpression + separator +
                        Suppress(Literal("}")) + separator).setParseAction(compileGeneralVariable).ignore(xfsComment).setName("general-variable").setDebug(debugParsing)
 
@@ -1618,7 +1638,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
     formula = ( Suppress(Keyword("formula")) + ncName + Suppress(Literal("{")) +
                   ZeroOrMore( label | severity |
-                              Keyword("aspect-model-non-dimensional") +separator |
+                              # Keyword("aspect-model-non-dimensional") +separator |
                               Keyword("no-implicit-filtering") + separator |
                               Keyword("decimals") + xpathExpression + separator |
                               Keyword("precision") + xpathExpression + separator |
@@ -1633,7 +1653,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
     assertion = ( Suppress(Keyword("assertion")) + ncName + Suppress(Literal("{")) +
                   ZeroOrMore( label | severity |
-                              Keyword("aspect-model-non-dimensional") +separator |
+                              # Keyword("aspect-model-non-dimensional") +separator |
                               Keyword("no-implicit-filtering") + separator ) +
                   ZeroOrMore( filter ) +
                   ZeroOrMore( generalVariable | factVariable | referencedParameter) +
@@ -1654,7 +1674,8 @@ def compileXfsGrammar( cntlr, debugParsing ):
                    (ZeroOrMore( consistencyAssertion | assertion ) ) +
                    Suppress(Literal("}") + separator)).setParseAction( compileAssertionSet ).ignore(xfsComment).setName("assertionSet").setDebug(debugParsing)
 
-    xfsProg = ( ZeroOrMore( namespaceDeclaration | xfsComment ) +
+    xfsProg = ( ZeroOrMore( versionDeclaration | xfsComment ) +
+                ZeroOrMore( namespaceDeclaration | xfsComment ) +
                 ZeroOrMore( defaultDeclaration | xfsComment ) +
                 ZeroOrMore( parameterDeclaration | filterDeclaration | generalVariable | factVariable | functionDeclaration | xfsComment ) +
                 ZeroOrMore( assertionSet | consistencyAssertion | assertion | formula | xfsComment )
@@ -1812,7 +1833,7 @@ formulaPrefixes = {
     "mf": ('http://xbrl.org/2008/filter/match', 'http://www.xbrl.org/2008/match-filter.xsd'),
     "pf": ('http://xbrl.org/2008/filter/period', 'http://www.xbrl.org/2008/period-filter.xsd'),
     "rf": ('http://xbrl.org/2008/filter/relative', 'http://www.xbrl.org/2008/relative-filter.xsd'),
-    "tf": ('http://xbrl.org/2008/filter/tuple', 'http://www.xbrl.org/2008/tuple-filter.xsd'),
+    # "tf": ('http://xbrl.org/2008/filter/tuple', 'http://www.xbrl.org/2008/tuple-filter.xsd'),
     "uf": ('http://xbrl.org/2008/filter/unit', 'http://www.xbrl.org/2008/unit-filter.xsd'),
     "vf": ('http://xbrl.org/2008/filter/value', 'http://www.xbrl.org/2008/value-filter.xsd'),
     "acf": ('http://xbrl.org/2010/filter/aspect-cover', 'http://www.xbrl.org/2010/aspect-cover-filter.xsd'),
