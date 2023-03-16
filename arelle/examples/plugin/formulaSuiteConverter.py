@@ -185,6 +185,7 @@ def convertSuite(cntlr, options, *args, **kwargs):
         os.mkdir(sourceSuiteDir)
     for testcaseFile in ("index.xml",):
         convertTestcase(cntlr, sourceSuiteDir, convertedSuiteDir, testcaseFile)
+        shutil.copyfile(os.path.join(sourceSuiteDir, testcaseFile), os.path.join(convertedSuiteDir, testcaseFile))
         
 def commandLineOptionExtender(parser, *args, **kwargs):
     parser.add_option("--source-test-suite-dir",
