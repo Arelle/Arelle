@@ -185,264 +185,268 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
 
 def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFacts):
     if varIndex == len(varSet.orderedVariableRelationships):
-        # check if all fact vars are fallen back
-        anyFactVar = False
-        anyBoundFactVar = False
-        for vb in xpCtx.varBindings.values():
-            if vb.isFactVar:
-                anyFactVar = True
-                if not vb.isFallback:
-                    anyBoundFactVar = True
-        if xpCtx.varBindings and anyFactVar and not anyBoundFactVar:
-            if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                xpCtx.modelXbrl.info(
-                    "formula:trace",
-                    _("Variable set %(xlinkLabel)s skipped evaluation, all fact variables have fallen back"),
-                    modelObject=varSet,
-                    xlinkLabel=varSet.xlinkLabel,
-                )
-            return
-        # record completed evaluation, for fallback blocking purposes
-        fbVars = set(vb.qname for vb in xpCtx.varBindings.values() if vb.isFallback)
-        # HF try to use dict of vb by result qname
-        # thisEvaluation = tuple(vb.matchableBoundFact(fbVars) for vb in xpCtx.varBindings.values())
-        thisEvaluation = dict((vbQn, vb.matchableBoundFact(fbVars)) for vbQn, vb in xpCtx.varBindings.items())
-        if evaluationIsUnnecessary(thisEvaluation, xpCtx):
-            if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                xpCtx.modelXbrl.info(
-                    "formula:trace",
-                    _("Variable set %(xlinkLabel)s skipped non-different or fallback evaluation, duplicates another evaluation"),
-                    modelObject=varSet,
-                    xlinkLabel=varSet.xlinkLabel,
-                )
-            varSet.evaluationNumber += 1
-            if xpCtx.formulaOptions.timeVariableSetEvaluation:
-                now = time.time()
-                xpCtx.modelXbrl.info(
-                    "formula:time",
-                    _("Variable set %(xlinkLabel)s skipped evaluation %(count)s: %(time)s sec"),
-                    modelObject=varSet,
-                    xlinkLabel=varSet.xlinkLabel,
-                    count=varSet.evaluationNumber,
-                    time=format_string(xpCtx.modelXbrl.modelManager.locale, "%.3f", now - varSet.timeEvaluationStarted),
-                )
-                varSet.timeEvaluationStarted = now
-            if xpCtx.isRunTimeExceeded:
-                raise XPathContext.RunTimeExceededException()
-            xpCtx.modelXbrl.profileActivity(
-                "...   evaluation {0} (skipped)".format(varSet.evaluationNumber), minTimeToShow=10.0
+        evaluateVariableBindings(xpCtx, varSet, uncoveredAspectFacts)
+    else:
+        bindVariables(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFacts)
+
+
+def evaluateVariableBindings(xpCtx, varSet, uncoveredAspectFacts):
+    # check if all fact vars are fallen back
+    anyFactVar = False
+    anyBoundFactVar = False
+    for vb in xpCtx.varBindings.values():
+        if vb.isFactVar:
+            anyFactVar = True
+            if not vb.isFallback:
+                anyBoundFactVar = True
+    if xpCtx.varBindings and anyFactVar and not anyBoundFactVar:
+        if xpCtx.formulaOptions.traceVariableSetExpressionResult:
+            xpCtx.modelXbrl.info(
+                "formula:trace",
+                _("Variable set %(xlinkLabel)s skipped evaluation, all fact variables have fallen back"),
+                modelObject=varSet,
+                xlinkLabel=varSet.xlinkLabel,
             )
-            return
-        xpCtx.modelXbrl.profileActivity("...   evaluation {0}".format(varSet.evaluationNumber), minTimeToShow=10.0)
-        for vQn, vBoundFact in thisEvaluation.items():  # varQn, fact or tuple of facts bound to var
-            if vQn not in xpCtx.evaluationHashDicts:
-                xpCtx.evaluationHashDicts[vQn] = defaultdict(set)
-            xpCtx.evaluationHashDicts[vQn][hash(vBoundFact)].add(len(xpCtx.evaluations))  # hash and eval index
-        xpCtx.evaluations.append(thisEvaluation)  # complete evaluations tuple
-        # evaluate preconditions
-        for precondition in varSet.preconditions:
-            result = precondition.evalTest(xpCtx)
-            if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                xpCtx.modelXbrl.info(
-                    "formula:trace",
-                    _("Variable set %(xlinkLabel)s \nPrecondition %(precondition)s \nResult: %(result)s"),
-                    modelObject=varSet,
-                    xlinkLabel=varSet.xlinkLabel,
-                    precondition=precondition.xlinkLabel,
-                    result=result,
-                )
-            if not result:  # precondition blocks evaluation
-                if xpCtx.formulaOptions.timeVariableSetEvaluation:
-                    varSet.evaluationNumber += 1
-                    now = time.time()
-                    xpCtx.modelXbrl.info(
-                        "formula:time",
-                        _("Variable set %(xlinkLabel)s precondition blocked evaluation %(count)s: %(time)s sec"),
-                        modelObject=varSet,
-                        xlinkLabel=varSet.xlinkLabel,
-                        count=varSet.evaluationNumber,
-                        time=format_string(
-                            xpCtx.modelXbrl.modelManager.locale, "%.3f", now - varSet.timeEvaluationStarted
-                        ),
-                    )
-                    varSet.timeEvaluationStarted = now
-                if xpCtx.isRunTimeExceeded:
-                    raise XPathContext.RunTimeExceededException()
-                return
-
-        # evaluate variable set
-        if isinstance(varSet, ModelExistenceAssertion):
-            varSet.evaluationsCount += 1
-        else:
-            if isinstance(varSet, ModelTuple):
-                result = "(tuple)"
-                traceOf = "Tuple"
-            elif isinstance(varSet, ModelFormula):
-                result = xpCtx.evaluate(varSet.valueProg)
-                traceOf = "Formula"
-            elif isinstance(varSet, ModelValueAssertion):
-                result = xpCtx.evaluateBooleanValue(varSet.testProg)
-                msg = varSet.message(result)
-                unsatSeverity = varSet.unsatisfiedSeverity(xpCtx)
-                if msg is not None:
-                    xpCtx.inScopeVars[XbrlConst.qnVaTestExpression] = varSet.test
-                    _modelObjects = [varSet]
-                    for vb in xpCtx.varBindings.values():
-                        if not vb.isFallback:
-                            if vb.isBindAsSequence:
-                                if isinstance(vb.yieldedEvaluation, list):
-                                    _modelObjects.extend(vb.yieldedEvaluation)
-                            elif vb.yieldedFact is not None:
-                                _modelObjects.append(vb.yieldedFact)
-                    xpCtx.modelXbrl.log(
-                        "INFO" if result else {"OK": "INFO", "WARNING": "WARNING", "ERROR": "ERROR"}[unsatSeverity],
-                        "message:" + (varSet.id or varSet.xlinkLabel or _("unlabeled variableSet")),
-                        "%(formulaMessage)s",
-                        formulaMessage=msg.evaluate(xpCtx),
-                        modelObject=_modelObjects,
-                        label=varSet.logLabel(),
-                        messageCodes=("message:{variableSetID|xlinkLabel}",),
-                    )
-                    xpCtx.inScopeVars.pop(XbrlConst.qnVaTestExpression)
-                if result:
-                    varSet.countSatisfied += 1
-                else:
-                    varSet.countNotSatisfied += 1
-                    if unsatSeverity == "OK":
-                        varSet.countOkMessages += 1
-                    elif unsatSeverity == "WARNING":
-                        varSet.countWarningMessages += 1
-                    elif unsatSeverity == "ERROR":
-                        varSet.countErrorMessages += 1
-
-                if ((
-                    msg is None
-                    and not result
-                    and xpCtx.formulaOptions.traceUnmessagedUnsatisfiedAssertions
-                    and unsatSeverity in ("WARNING", "ERROR")
-                )
-                    or (xpCtx.formulaOptions.traceSatisfiedAssertions and result)
-                    or ((
-                        xpCtx.formulaOptions.traceUnsatisfiedAssertions
-                        or xpCtx.formulaOptions.errorUnsatisfiedAssertions
-                    ) and not result)
-                ):
-                    _modelObjects = [varSet]
-                    factVarBindings = []
-                    for vb in sorted(xpCtx.varBindings.values(), key=lambda _vb: _vb.qname):
-                        if vb.isFallback:
-                            factVarBindings.append(
-                                ", \n${}: fallback {}".format(vb.qname, xpCtx.flattenSequence(vb.values))
-                            )
-                        else:
-                            if vb.isBindAsSequence:
-                                if isinstance(vb.yieldedEvaluation, list):
-                                    _modelObjects.extend(vb.yieldedEvaluation)
-                            elif vb.yieldedFact is not None:
-                                _modelObjects.append(vb.yieldedFact)
-                            if vb.yieldedFact is not None:
-                                if vb.yieldedFact.isItem:
-                                    factVarBindings.append(
-                                        ", \n${}: {} context {}".format(
-                                            vb.qname, vb.yieldedFact.qname, vb.yieldedFactContext.id
-                                        )
-                                    )
-                                elif vb.yieldedFact.isTuple and isinstance(vb.yieldedFact.parentElement, ModelFact):
-                                    factVarBindings.append(
-                                        ", \n${}: {} tuple {}".format(
-                                            vb.qname, vb.yieldedFact.qname, vb.yieldedFact.parentElement.qname
-                                        )
-                                    )
-                    xpCtx.modelXbrl.log(
-                        unsatSeverity
-                        if xpCtx.formulaOptions.traceUnmessagedUnsatisfiedAssertions
-                        else "ERROR"
-                        if (xpCtx.formulaOptions.errorUnsatisfiedAssertions and not result)
-                        else "INFO",
-                        "formula:assertionSatisfied" if result else "formula:assertionUnsatisfied",
-                        _("%(label)s%(factVarBindings)s"),
-                        modelObject=_modelObjects,
-                        label=varSet.logLabel(),
-                        factVarBindings="".join(factVarBindings) + ("\n" if factVarBindings else ""),
-                        messageCodes=("formula:assertionSatisfied", "formula:assertionUnsatisfied"),
-                    )
-                    del _modelObjects[:]
-                traceOf = "Value Assertion"
-            if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                label = varSet.logLabel()
-                expression = varSet.expression
-                xpCtx.modelXbrl.info(
-                    "formula:trace",
-                    _("%(variableSetType)s %(xlinkLabel)s{0} \nExpression: %(expression)s \nEvaluated: %(evaluatedExpression)s \nResult: %(result)s").format(
-                        " \n%(label)s" if label else "",
-                    ),
-                    modelObject=varSet,
-                    variableSetType=traceOf,
-                    xlinkLabel=varSet.xlinkLabel,
-                    label=label,
-                    result=result,
-                    expression=expression,
-                    evaluatedExpression=''.join(
-                        xpCtx.traceEffectiveVariableValue(varSet, expr)
-                        for grp in expressionVariablesPattern.findall(expression)
-                        for expr in grp
-                    ),
-                )
-            if isinstance(varSet, ModelFormula) and varSet.outputInstanceQname in xpCtx.inScopeVars:
-                newFact = produceOutputFact(xpCtx, varSet, result)
-            else:
-                newFact = None
-            if varSet.hasConsistencyAssertion:
-                from arelle.formula import FormulaConsisAsser
-
-                FormulaConsisAsser.evaluate(xpCtx, varSet, newFact)
-
+        return
+    # record completed evaluation, for fallback blocking purposes
+    fbVars = set(vb.qname for vb in xpCtx.varBindings.values() if vb.isFallback)
+    # HF try to use dict of vb by result qname
+    # thisEvaluation = tuple(vb.matchableBoundFact(fbVars) for vb in xpCtx.varBindings.values())
+    thisEvaluation = dict((vbQn, vb.matchableBoundFact(fbVars)) for vbQn, vb in xpCtx.varBindings.items())
+    if evaluationIsUnnecessary(thisEvaluation, xpCtx):
+        if xpCtx.formulaOptions.traceVariableSetExpressionResult:
+            xpCtx.modelXbrl.info(
+                "formula:trace",
+                _("Variable set %(xlinkLabel)s skipped non-different or fallback evaluation, duplicates another evaluation"),
+                modelObject=varSet,
+                xlinkLabel=varSet.xlinkLabel,
+            )
+        varSet.evaluationNumber += 1
+        if xpCtx.formulaOptions.timeVariableSetEvaluation:
+            now = time.time()
+            xpCtx.modelXbrl.info(
+                "formula:time",
+                _("Variable set %(xlinkLabel)s skipped evaluation %(count)s: %(time)s sec"),
+                modelObject=varSet,
+                xlinkLabel=varSet.xlinkLabel,
+                count=varSet.evaluationNumber,
+                time=format_string(xpCtx.modelXbrl.modelManager.locale, "%.3f", now - varSet.timeEvaluationStarted),
+            )
+            varSet.timeEvaluationStarted = now
+        if xpCtx.isRunTimeExceeded:
+            raise XPathContext.RunTimeExceededException()
+        xpCtx.modelXbrl.profileActivity(
+            "...   evaluation {0} (skipped)".format(varSet.evaluationNumber), minTimeToShow=10.0
+        )
+        return
+    xpCtx.modelXbrl.profileActivity("...   evaluation {0}".format(varSet.evaluationNumber), minTimeToShow=10.0)
+    for vQn, vBoundFact in thisEvaluation.items():  # varQn, fact or tuple of facts bound to var
+        if vQn not in xpCtx.evaluationHashDicts:
+            xpCtx.evaluationHashDicts[vQn] = defaultdict(set)
+        xpCtx.evaluationHashDicts[vQn][hash(vBoundFact)].add(len(xpCtx.evaluations))  # hash and eval index
+    xpCtx.evaluations.append(thisEvaluation)  # complete evaluations tuple
+    # evaluate preconditions
+    for precondition in varSet.preconditions:
+        result = precondition.evalTest(xpCtx)
+        if xpCtx.formulaOptions.traceVariableSetExpressionResult:
+            xpCtx.modelXbrl.info(
+                "formula:trace",
+                _("Variable set %(xlinkLabel)s \nPrecondition %(precondition)s \nResult: %(result)s"),
+                modelObject=varSet,
+                xlinkLabel=varSet.xlinkLabel,
+                precondition=precondition.xlinkLabel,
+                result=result,
+            )
+        if not result:  # precondition blocks evaluation
             if xpCtx.formulaOptions.timeVariableSetEvaluation:
                 varSet.evaluationNumber += 1
                 now = time.time()
                 xpCtx.modelXbrl.info(
                     "formula:time",
-                    _("Variable set %(xlinkLabel)s completed evaluation %(count)s: %(time)s sec"),
+                    _("Variable set %(xlinkLabel)s precondition blocked evaluation %(count)s: %(time)s sec"),
                     modelObject=varSet,
                     xlinkLabel=varSet.xlinkLabel,
                     count=varSet.evaluationNumber,
-                    time=format_string(xpCtx.modelXbrl.modelManager.locale, "%.3f", now - varSet.timeEvaluationStarted),
+                    time=format_string(
+                        xpCtx.modelXbrl.modelManager.locale, "%.3f", now - varSet.timeEvaluationStarted
+                    ),
                 )
                 varSet.timeEvaluationStarted = now
             if xpCtx.isRunTimeExceeded:
                 raise XPathContext.RunTimeExceededException()
+            return
 
-            # do dependent variable scope relationships
-            for varScopeRel in xpCtx.modelXbrl.relationshipSet(XbrlConst.variablesScope).fromModelObject(varSet):
-                try:
-                    resultQname = varScopeRel.variableQname
-                    if resultQname:
-                        overriddenInScopeVar = xpCtx.inScopeVars.get(resultQname)
-                        xpCtx.inScopeVars[resultQname] = result
-                        vb = VariableBinding(xpCtx, varScopeRel)
-                        vb.yieldedEvaluation = result
-                        vb.yieldedFact = newFact
-                        overriddenVarBinding = xpCtx.varBindings.get(resultQname)
-                        xpCtx.varBindings[resultQname] = vb
-                    evaluate(xpCtx, varScopeRel.toModelObject, True, uncoveredAspectFacts)
-                    if resultQname:
-                        xpCtx.inScopeVars.pop(resultQname)
-                        if overriddenInScopeVar is not None:  # restore overridden value if there was one
-                            xpCtx.inScopeVars[resultQname] = overriddenInScopeVar
-                        xpCtx.varBindings.pop(resultQname)
-                        if overriddenVarBinding is not None:
-                            xpCtx.varBindings[resultQname] = overriddenVarBinding
-                        vb.close()  # dereference
-                except XPathContext.XPathException as err:
-                    xpCtx.modelXbrl.error(
-                        err.code,
-                        _("Variable set chained in scope of variable set %(variableset)s \nException: \n%(error)s"),
-                        modelObject=(varSet, varScopeRel.toModelObject),
-                        variableSet=varSet.logLabel(),
-                        error=err.message,
-                    )
+    # evaluate variable set
+    if isinstance(varSet, ModelExistenceAssertion):
+        varSet.evaluationsCount += 1
     else:
-        bindVariables(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFacts)
+        if isinstance(varSet, ModelTuple):
+            result = "(tuple)"
+            traceOf = "Tuple"
+        elif isinstance(varSet, ModelFormula):
+            result = xpCtx.evaluate(varSet.valueProg)
+            traceOf = "Formula"
+        elif isinstance(varSet, ModelValueAssertion):
+            result = xpCtx.evaluateBooleanValue(varSet.testProg)
+            msg = varSet.message(result)
+            unsatSeverity = varSet.unsatisfiedSeverity(xpCtx)
+            if msg is not None:
+                xpCtx.inScopeVars[XbrlConst.qnVaTestExpression] = varSet.test
+                _modelObjects = [varSet]
+                for vb in xpCtx.varBindings.values():
+                    if not vb.isFallback:
+                        if vb.isBindAsSequence:
+                            if isinstance(vb.yieldedEvaluation, list):
+                                _modelObjects.extend(vb.yieldedEvaluation)
+                        elif vb.yieldedFact is not None:
+                            _modelObjects.append(vb.yieldedFact)
+                xpCtx.modelXbrl.log(
+                    "INFO" if result else {"OK": "INFO", "WARNING": "WARNING", "ERROR": "ERROR"}[unsatSeverity],
+                    "message:" + (varSet.id or varSet.xlinkLabel or _("unlabeled variableSet")),
+                    "%(formulaMessage)s",
+                    formulaMessage=msg.evaluate(xpCtx),
+                    modelObject=_modelObjects,
+                    label=varSet.logLabel(),
+                    messageCodes=("message:{variableSetID|xlinkLabel}",),
+                )
+                xpCtx.inScopeVars.pop(XbrlConst.qnVaTestExpression)
+            if result:
+                varSet.countSatisfied += 1
+            else:
+                varSet.countNotSatisfied += 1
+                if unsatSeverity == "OK":
+                    varSet.countOkMessages += 1
+                elif unsatSeverity == "WARNING":
+                    varSet.countWarningMessages += 1
+                elif unsatSeverity == "ERROR":
+                    varSet.countErrorMessages += 1
+
+            if ((
+                msg is None
+                and not result
+                and xpCtx.formulaOptions.traceUnmessagedUnsatisfiedAssertions
+                and unsatSeverity in ("WARNING", "ERROR")
+            )
+                or (xpCtx.formulaOptions.traceSatisfiedAssertions and result)
+                or ((
+                    xpCtx.formulaOptions.traceUnsatisfiedAssertions
+                    or xpCtx.formulaOptions.errorUnsatisfiedAssertions
+                ) and not result)
+            ):
+                _modelObjects = [varSet]
+                factVarBindings = []
+                for vb in sorted(xpCtx.varBindings.values(), key=lambda _vb: _vb.qname):
+                    if vb.isFallback:
+                        factVarBindings.append(
+                            ", \n${}: fallback {}".format(vb.qname, xpCtx.flattenSequence(vb.values))
+                        )
+                    else:
+                        if vb.isBindAsSequence:
+                            if isinstance(vb.yieldedEvaluation, list):
+                                _modelObjects.extend(vb.yieldedEvaluation)
+                        elif vb.yieldedFact is not None:
+                            _modelObjects.append(vb.yieldedFact)
+                        if vb.yieldedFact is not None:
+                            if vb.yieldedFact.isItem:
+                                factVarBindings.append(
+                                    ", \n${}: {} context {}".format(
+                                        vb.qname, vb.yieldedFact.qname, vb.yieldedFactContext.id
+                                    )
+                                )
+                            elif vb.yieldedFact.isTuple and isinstance(vb.yieldedFact.parentElement, ModelFact):
+                                factVarBindings.append(
+                                    ", \n${}: {} tuple {}".format(
+                                        vb.qname, vb.yieldedFact.qname, vb.yieldedFact.parentElement.qname
+                                    )
+                                )
+                xpCtx.modelXbrl.log(
+                    unsatSeverity
+                    if xpCtx.formulaOptions.traceUnmessagedUnsatisfiedAssertions
+                    else "ERROR"
+                    if (xpCtx.formulaOptions.errorUnsatisfiedAssertions and not result)
+                    else "INFO",
+                    "formula:assertionSatisfied" if result else "formula:assertionUnsatisfied",
+                    _("%(label)s%(factVarBindings)s"),
+                    modelObject=_modelObjects,
+                    label=varSet.logLabel(),
+                    factVarBindings="".join(factVarBindings) + ("\n" if factVarBindings else ""),
+                    messageCodes=("formula:assertionSatisfied", "formula:assertionUnsatisfied"),
+                )
+                del _modelObjects[:]
+            traceOf = "Value Assertion"
+        if xpCtx.formulaOptions.traceVariableSetExpressionResult:
+            label = varSet.logLabel()
+            expression = varSet.expression
+            xpCtx.modelXbrl.info(
+                "formula:trace",
+                _("%(variableSetType)s %(xlinkLabel)s{0} \nExpression: %(expression)s \nEvaluated: %(evaluatedExpression)s \nResult: %(result)s").format(
+                    " \n%(label)s" if label else "",
+                ),
+                modelObject=varSet,
+                variableSetType=traceOf,
+                xlinkLabel=varSet.xlinkLabel,
+                label=label,
+                result=result,
+                expression=expression,
+                evaluatedExpression=''.join(
+                    xpCtx.traceEffectiveVariableValue(varSet, expr)
+                    for grp in expressionVariablesPattern.findall(expression)
+                    for expr in grp
+                ),
+            )
+        if isinstance(varSet, ModelFormula) and varSet.outputInstanceQname in xpCtx.inScopeVars:
+            newFact = produceOutputFact(xpCtx, varSet, result)
+        else:
+            newFact = None
+        if varSet.hasConsistencyAssertion:
+            from arelle.formula import FormulaConsisAsser
+
+            FormulaConsisAsser.evaluate(xpCtx, varSet, newFact)
+
+        if xpCtx.formulaOptions.timeVariableSetEvaluation:
+            varSet.evaluationNumber += 1
+            now = time.time()
+            xpCtx.modelXbrl.info(
+                "formula:time",
+                _("Variable set %(xlinkLabel)s completed evaluation %(count)s: %(time)s sec"),
+                modelObject=varSet,
+                xlinkLabel=varSet.xlinkLabel,
+                count=varSet.evaluationNumber,
+                time=format_string(xpCtx.modelXbrl.modelManager.locale, "%.3f", now - varSet.timeEvaluationStarted),
+            )
+            varSet.timeEvaluationStarted = now
+        if xpCtx.isRunTimeExceeded:
+            raise XPathContext.RunTimeExceededException()
+
+        # do dependent variable scope relationships
+        for varScopeRel in xpCtx.modelXbrl.relationshipSet(XbrlConst.variablesScope).fromModelObject(varSet):
+            try:
+                resultQname = varScopeRel.variableQname
+                if resultQname:
+                    overriddenInScopeVar = xpCtx.inScopeVars.get(resultQname)
+                    xpCtx.inScopeVars[resultQname] = result
+                    vb = VariableBinding(xpCtx, varScopeRel)
+                    vb.yieldedEvaluation = result
+                    vb.yieldedFact = newFact
+                    overriddenVarBinding = xpCtx.varBindings.get(resultQname)
+                    xpCtx.varBindings[resultQname] = vb
+                evaluate(xpCtx, varScopeRel.toModelObject, True, uncoveredAspectFacts)
+                if resultQname:
+                    xpCtx.inScopeVars.pop(resultQname)
+                    if overriddenInScopeVar is not None:  # restore overridden value if there was one
+                        xpCtx.inScopeVars[resultQname] = overriddenInScopeVar
+                    xpCtx.varBindings.pop(resultQname)
+                    if overriddenVarBinding is not None:
+                        xpCtx.varBindings[resultQname] = overriddenVarBinding
+                    vb.close()  # dereference
+            except XPathContext.XPathException as err:
+                xpCtx.modelXbrl.error(
+                    err.code,
+                    _("Variable set chained in scope of variable set %(variableset)s \nException: \n%(error)s"),
+                    modelObject=(varSet, varScopeRel.toModelObject),
+                    variableSet=varSet.logLabel(),
+                    error=err.message,
+                )
 
 
 def bindVariables(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFacts):
