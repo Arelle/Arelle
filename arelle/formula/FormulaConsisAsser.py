@@ -1,10 +1,12 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from arelle import XbrlConst
-from arelle.XbrlUtil import xEqual, S_EQUAL2
-from arelle.ValidateXbrlCalcs import inferredPrecision, roundValue
 from math import fabs
+
+from arelle import XbrlConst
+from arelle.ValidateXbrlCalcs import inferredPrecision, roundValue
+from arelle.XbrlUtil import S_EQUAL2, xEqual
+
 
 def evaluate(xpCtx, varSet, derivedFact):
     # there may be multiple consis assertions parenting any formula
