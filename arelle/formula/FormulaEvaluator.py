@@ -237,36 +237,25 @@ def evaluateVariableBindings(xpCtx, varSet, uncoveredAspectFacts):
             xpCtx.evaluationHashDicts[vQn] = defaultdict(set)
         xpCtx.evaluationHashDicts[vQn][hash(vBoundFact)].add(len(xpCtx.evaluations))  # hash and eval index
     xpCtx.evaluations.append(thisEvaluation)  # complete evaluations tuple
-    # evaluate preconditions
-    for precondition in varSet.preconditions:
-        result = precondition.evalTest(xpCtx)
-        if xpCtx.formulaOptions.traceVariableSetExpressionResult:
+
+    if not evaluateVariableSetPreconditions(xpCtx, varSet):
+        if xpCtx.formulaOptions.timeVariableSetEvaluation:
+            varSet.evaluationNumber += 1
+            now = time.time()
             xpCtx.modelXbrl.info(
-                "formula:trace",
-                _("Variable set %(xlinkLabel)s \nPrecondition %(precondition)s \nResult: %(result)s"),
+                "formula:time",
+                _("Variable set %(xlinkLabel)s precondition blocked evaluation %(count)s: %(time)s sec"),
                 modelObject=varSet,
                 xlinkLabel=varSet.xlinkLabel,
-                precondition=precondition.xlinkLabel,
-                result=result,
+                count=varSet.evaluationNumber,
+                time=format_string(
+                    xpCtx.modelXbrl.modelManager.locale, "%.3f", now - varSet.timeEvaluationStarted
+                ),
             )
-        if not result:  # precondition blocks evaluation
-            if xpCtx.formulaOptions.timeVariableSetEvaluation:
-                varSet.evaluationNumber += 1
-                now = time.time()
-                xpCtx.modelXbrl.info(
-                    "formula:time",
-                    _("Variable set %(xlinkLabel)s precondition blocked evaluation %(count)s: %(time)s sec"),
-                    modelObject=varSet,
-                    xlinkLabel=varSet.xlinkLabel,
-                    count=varSet.evaluationNumber,
-                    time=format_string(
-                        xpCtx.modelXbrl.modelManager.locale, "%.3f", now - varSet.timeEvaluationStarted
-                    ),
-                )
-                varSet.timeEvaluationStarted = now
-            if xpCtx.isRunTimeExceeded:
-                raise XPathContext.RunTimeExceededException()
-            return
+            varSet.timeEvaluationStarted = now
+        if xpCtx.isRunTimeExceeded:
+            raise XPathContext.RunTimeExceededException()
+        return
 
     # evaluate variable set
     if isinstance(varSet, ModelExistenceAssertion):
@@ -449,6 +438,23 @@ def allFactVariablesHaveFallenBack(xpCtx):
             if not vb.isFallback:
                 return False
     return thereIsAFactVariable
+
+
+def evaluateVariableSetPreconditions(xpCtx, varSet):
+    for precondition in varSet.preconditions:
+        result = precondition.evalTest(xpCtx)
+        if xpCtx.formulaOptions.traceVariableSetExpressionResult:
+            xpCtx.modelXbrl.info(
+                "formula:trace",
+                _("Variable set %(xlinkLabel)s \nPrecondition %(precondition)s \nResult: %(result)s"),
+                modelObject=varSet,
+                xlinkLabel=varSet.xlinkLabel,
+                precondition=precondition.xlinkLabel,
+                result=result,
+            )
+        if not result:  # precondition blocks evaluation
+            return False
+    return True
 
 
 def bindVariables(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFacts):
