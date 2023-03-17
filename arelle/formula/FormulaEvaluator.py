@@ -442,14 +442,13 @@ def evaluateVariableBindings(xpCtx, varSet, uncoveredAspectFacts):
 
 
 def allFactVariablesHaveFallenBack(xpCtx):
-    anyFactVar = False
-    anyBoundFactVar = False
+    thereIsAFactVariable = False
     for vb in xpCtx.varBindings.values():
         if vb.isFactVar:
-            anyFactVar = True
+            thereIsAFactVariable = True
             if not vb.isFallback:
-                anyBoundFactVar = True
-    return xpCtx.varBindings and anyFactVar and not anyBoundFactVar
+                return False
+    return thereIsAFactVariable
 
 
 def bindVariables(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFacts):
