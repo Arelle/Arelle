@@ -1,25 +1,43 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import os, sys, time, logging
-import regex as re
+import logging
+import time
 from collections import defaultdict
 from threading import Timer
 
-from arelle.ModelFormulaObject import (ModelParameter, ModelInstance, ModelVariableSet,
-                                       ModelFormula, ModelTuple, ModelVariable, ModelFactVariable,
-                                       ModelVariableSetAssertion, ModelConsistencyAssertion,
-                                       ModelExistenceAssertion, ModelValueAssertion, ModelAssertionSeverity,
-                                       ModelPrecondition, ModelConceptName, Trace,
-                                       Aspect, aspectModels, ModelAspectCover,
-                                       ModelMessage)
-from arelle.ModelRenderingObject import (ModelRuleDefinitionNode, ModelRelationshipDefinitionNode, ModelFilterDefinitionNode)
-from arelle.ModelObject import (ModelObject)
-from arelle.ModelValue import (qname,QName)
+import regex as re
+
+from arelle import FunctionXs, ModelDocument, ModelXbrl, ValidateXbrlDimensions, XbrlConst, XmlUtil
+from arelle.Aspect import Aspect, aspectModels
+from arelle.ModelFormulaObject import (
+    ModelAspectCover,
+    ModelAssertionSeverity,
+    ModelConceptName,
+    ModelConsistencyAssertion,
+    ModelExistenceAssertion,
+    ModelFactVariable,
+    ModelFormula,
+    ModelInstance,
+    ModelMessage,
+    ModelParameter,
+    ModelPrecondition,
+    ModelTuple,
+    ModelValueAssertion,
+    ModelVariable,
+    ModelVariableSet,
+    ModelVariableSetAssertion,
+    Trace,
+)
+from arelle.ModelRenderingObject import (
+    ModelFilterDefinitionNode,
+    ModelRelationshipDefinitionNode,
+    ModelRuleDefinitionNode,
+)
+from arelle.ModelValue import QName, qname
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import normalizeSpace
 from arelle.XmlValidate import validate as xml_validate
-from arelle import (XbrlConst, XmlUtil, ModelXbrl, ModelDocument, FunctionXs, ValidateXbrlDimensions)
 from arelle.formula import XPathContext, XPathParser
 
 formulaIdWhitespacesSeparatedPattern = re.compile(r"(\w+\s)*(\w+)$") # prenormalized IDs list
