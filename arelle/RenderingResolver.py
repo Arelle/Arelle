@@ -16,7 +16,7 @@ from arelle.ModelRenderingObject import (ModelEuTable, ModelTable, ModelBreakdow
                                          ROLLUP_NOT_ANALYZED, CHILDREN_BUT_NO_ROLLUP, CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.PrototypeInstanceObject import FactPrototype
-from arelle.XPathContext import XPathException
+from arelle.formula.XPathContext import XPathException
 from numbers import Number
 
 RENDER_UNITS_PER_CHAR = 16 # nominal screen units per char for wrapLength computation and adjustment

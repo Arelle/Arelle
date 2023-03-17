@@ -3,7 +3,8 @@ See COPYRIGHT.md for copyright information.
 '''
 import xml.dom, datetime
 import regex as re
-from arelle import XPathContext, XbrlConst, XbrlUtil, XmlUtil
+from arelle import XbrlConst, XbrlUtil, XmlUtil
+from arelle.formula import XPathContext
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelValue import qname, QName, dateTime, DATE, DATETIME, DATEUNION, DateTime, dateUnionEqual, anyURI
 from arelle.FunctionUtil import anytypeArg, stringArg, numericArg, qnameArg, nodeArg, atomicArg

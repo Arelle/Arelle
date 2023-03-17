@@ -9,7 +9,7 @@ from arelle.ModelValue import QName
 from arelle.PluginManager import pluginClassMethods
 from arelle.formula.XPathParser import OperationDef
 from arelle.XmlValidate import decimalPattern
-from arelle import XPathContext
+from arelle.formula import XPathContext
 from datetime import datetime
 
 class ixtFunctionNotAvailable(Exception):

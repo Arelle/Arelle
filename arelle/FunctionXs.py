@@ -5,7 +5,8 @@ from __future__ import annotations
 
 import datetime
 import regex as re
-from arelle import (XPathContext, ModelValue)
+from arelle import ModelValue
+from arelle.formula import XPathContext
 from arelle.FunctionUtil import (anytypeArg, atomicArg, stringArg, numericArg, qnameArg, nodeArg)
 from arelle.XmlValidate import lexicalPatterns
 from arelle.formula.XPathParser import OperationDef, ProgHeader

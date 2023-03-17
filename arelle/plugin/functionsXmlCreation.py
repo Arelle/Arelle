@@ -5,7 +5,8 @@ Sample custom functions plugin for formula XML Element, Attribute creation funct
 
 See COPYRIGHT.md for copyright information.
 '''
-from arelle import XPathContext, XbrlUtil
+from arelle import XbrlUtil
+from arelle.formula import XPathContext
 from arelle.ModelValue import qname, QName
 from arelle.ModelInstanceObject import ModelDimensionValue, XmlUtil
 from arelle.FunctionUtil import qnameArg, nodeArg, atomicArg

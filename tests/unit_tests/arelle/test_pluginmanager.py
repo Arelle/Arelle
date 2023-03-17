@@ -163,7 +163,7 @@ def test_function_loadModule():
     )
 
     # all_modules_list contains a list of all currently loaded modules, eg:
-    # arelle.XPathContext
+    # arelle.formula.XPathContext
     # arelle.FunctionUtil
     # arelle.FunctionXs
     # isodate.isoduration

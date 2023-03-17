@@ -5,7 +5,7 @@ import datetime
 
 from arelle import ModelValue
 from arelle.ModelObject import ModelAttribute, ModelObject
-from arelle.XPathContext import ContextItem, FunctionArgType, XPathContext, XPathException
+from arelle.formula.XPathContext import ContextItem, FunctionArgType, XPathContext, XPathException
 from arelle.formula.XPathParser import FormulaToken
 from arelle.PythonUtil import pyTypeName
 from numbers import Number

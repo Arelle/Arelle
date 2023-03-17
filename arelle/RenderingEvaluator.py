@@ -1,7 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from arelle import XPathContext, XbrlConst, XmlUtil
+from arelle import XbrlConst, XmlUtil
+from arelle.formula import XPathContext
 from arelle.ModelFormulaObject import (aspectModels, aspectStr, Aspect)
 from arelle.ModelRenderingObject import (CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST,
                                          ModelDefinitionNode, ModelEuAxisCoord,

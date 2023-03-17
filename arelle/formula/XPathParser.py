@@ -46,7 +46,7 @@ if TYPE_CHECKING:
     from arelle.ModelManager import ModelManager
     from arelle.ModelObject import ModelObject
     from arelle.ModelValue import QName
-    from arelle.XPathContext import XPathException
+    from arelle.formula.XPathContext import XPathException
     from arelle.typing import TypeGetText
 
 _: TypeGetText  # Handle gettext

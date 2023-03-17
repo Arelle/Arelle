@@ -2,8 +2,8 @@
 See COPYRIGHT.md for copyright information.
 '''
 import inspect, os
-from arelle import XmlUtil, XbrlConst, Locale, XPathContext
-from arelle.formula import XPathParser
+from arelle import XmlUtil, XbrlConst, Locale
+from arelle.formula import XPathContext, XPathParser
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import qname, QName

@@ -10,7 +10,7 @@ from math import fabs, isinf, isnan, log10
 
 import regex as re
 
-from arelle import XPathContext, XbrlConst, XbrlUtil, XmlUtil
+from arelle import XbrlConst, XbrlUtil, XmlUtil
 from arelle.Aspect import Aspect, aspectModels, aspectModelAspect
 from arelle.FunctionXs import xsString
 from arelle.Locale import format_string
@@ -31,6 +31,7 @@ from arelle.ModelFormulaObject import (
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName
 from arelle.PrototypeInstanceObject import DimValuePrototype
+from arelle.formula import XPathContext
 
 ModelDimensionValue = None
 ModelFact = None

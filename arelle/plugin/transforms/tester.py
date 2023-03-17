@@ -46,8 +46,8 @@ from arelle.FunctionIxt import ixtNamespaces, ixtNamespaceFunctions
 from arelle.ModelFormulaObject import Trace
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlUtil import setXmlns
-from arelle import ModelDocument, ModelXbrl, ValidateXbrl, XbrlConst, XPathContext
-from arelle.formula import XPathParser
+from arelle import ModelDocument, ModelXbrl, ValidateXbrl, XbrlConst
+from arelle.formula import XPathContext, XPathParser
 
 class TransformTester:
     def __init__(self, cntlr, isCmdLine=False):

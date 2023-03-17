@@ -9,7 +9,8 @@ from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTimeDuration,
                          YearMonthDuration, DayTimeDuration, time, Time)
 from arelle.FunctionUtil import anytypeArg, atomicArg, stringArg, numericArg, integerArg, qnameArg, nodeArg
-from arelle import FunctionXs, XPathContext, XbrlUtil, XmlUtil, UrlUtil, ModelDocument, XmlValidate
+from arelle import FunctionXs, XbrlUtil, XmlUtil, UrlUtil, ModelDocument, XmlValidate
+from arelle.formula import XPathContext
 from arelle.Locale import format_picture
 from arelle.formula.XPathParser import FormulaToken, OperationDef
 from arelle.XmlValidate import VALID_NO_CONTENT

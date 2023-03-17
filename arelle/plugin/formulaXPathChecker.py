@@ -34,9 +34,9 @@ from arelle.ModelFormulaObject import (aspectStr, ModelValueAssertion, ModelExis
                                        ModelCustomFunctionSignature, ModelCustomFunctionImplementation,
                                        ModelPeriod,
                                        ModelAndFilter, ModelOrFilter, ModelMessage, ModelAssertionSeverity)
-from arelle.XPathParser import (VariableRef, QNameDef, OperationDef, RangeDecl, Expr, ProgHeader,
+from arelle.formula.XPathParser import (VariableRef, QNameDef, OperationDef, RangeDecl, Expr, ProgHeader,
                                 exceptionErrorIndication)
-from arelle.XPathContext import (XPathException, VALUE_OPS, GENERALCOMPARISON_OPS, NODECOMPARISON_OPS,
+from arelle.formula.XPathContext import (XPathException, VALUE_OPS, GENERALCOMPARISON_OPS, NODECOMPARISON_OPS,
                                  COMBINING_OPS, LOGICAL_OPS, UNARY_OPS, FORSOMEEVERY_OPS, PATH_OPS,
                                  SEQUENCE_TYPES, GREGORIAN_TYPES)
 from arelle import FileSource, PackageManager, XbrlConst, XmlUtil, ValidateXbrlDimensions, ValidateFormula
