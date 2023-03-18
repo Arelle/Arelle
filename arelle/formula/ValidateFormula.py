@@ -606,292 +606,15 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     produceOutputXbrlInstance = False
     instanceProducingVariableSets = defaultdict(list)
 
-    for modelVariableSet in val.modelXbrl.modelVariableSets:
-        varSetInstanceDependencies = set()
-        if isinstance(modelVariableSet, ModelFormula):
-            instanceQname = None
-            for modelRel in val.modelXbrl.relationshipSet(XbrlConst.formulaInstance).fromModelObject(modelVariableSet):
-                instance = modelRel.toModelObject
-                if isinstance(instance, ModelInstance):
-                    if instanceQname is None:
-                        instanceQname = instance.instanceQname
-                        # required if referred to by variables scope chaining
-                        modelVariableSet.fromInstanceQnames = {instanceQname}
-                    else:
-                        val.modelXbrl.info(
-                            "arelle:multipleOutputInstances",
-                            _("Multiple output instances for formula %(xlinkLabel)s, to names %(instanceTo)s, %(instanceTo2)s"),
-                            modelObject=modelVariableSet,
-                            xlinkLabel=modelVariableSet.xlinkLabel,
-                            instanceTo=instanceQname,
-                            instanceTo2=instance.instanceQname,
-                        )
-            if instanceQname is None:
-                instanceQname = XbrlConst.qnStandardOutputInstance
-                instanceQnames.add(instanceQname)
-                modelVariableSet.fromInstanceQnames = None  # required if referred to by variables scope chaining
-            modelVariableSet.outputInstanceQname = instanceQname
-            if getattr(val, "validateSBRNL", False):  # may not exist on some val objects
-                val.modelXbrl.error(
-                    "SBR.NL.2.3.9.03",
-                    _("Formula:formula %(xlinkLabel)s is not allowed"),
-                    modelObject=modelVariableSet,
-                    xlinkLabel=modelVariableSet.xlinkLabel,
-                )
-        else:
-            instanceQname = None
-            modelVariableSet.countSatisfied = 0
-            modelVariableSet.countNotSatisfied = 0
-            modelVariableSet.countOkMessages = 0
-            modelVariableSet.countWarningMessages = 0
-            modelVariableSet.countErrorMessages = 0
-            checkValidationMessages(val, modelVariableSet)
-        instanceProducingVariableSets[instanceQname].append(modelVariableSet)
-        modelVariableSet.outputInstanceQname = instanceQname
-        if modelVariableSet.aspectModel not in ("non-dimensional", "dimensional"):
-            val.modelXbrl.error(
-                "xbrlve:unknownAspectModel",
-                _("Variable set %(xlinkLabel)s, aspect model %(aspectModel)s not recognized"),
-                modelObject=modelVariableSet,
-                xlinkLabel=modelVariableSet.xlinkLabel,
-                aspectModel=modelVariableSet.aspectModel,
-            )
-        modelVariableSet.hasConsistencyAssertion = False
-
-        # determine dependencies within variable sets
-        nameVariables = {}
-        qnameRels = {}
-        definedNamesSet = set()
-        for modelRel in val.modelXbrl.relationshipSet(XbrlConst.variableSet).fromModelObject(modelVariableSet):
-            varqname = modelRel.variableQname
-            if varqname:
-                qnameRels[varqname] = modelRel
-                toVariable = modelRel.toModelObject
-                if varqname not in definedNamesSet:
-                    definedNamesSet.add(varqname)
-                if varqname not in nameVariables:
-                    nameVariables[varqname] = toVariable
-                elif nameVariables[varqname] != toVariable:
-                    val.modelXbrl.error(
-                        "xbrlve:duplicateVariableNames",
-                        _("Multiple variables named %(xlinkLabel)s in variable set %(name)s"),
-                        modelObject=toVariable,
-                        xlinkLabel=modelVariableSet.xlinkLabel,
-                        name=varqname,
-                    )
-                fromInstanceQnames = None
-                for instRel in val.modelXbrl.relationshipSet(XbrlConst.instanceVariable).toModelObject(toVariable):
-                    fromInstance = instRel.fromModelObject
-                    if isinstance(fromInstance, ModelInstance):
-                        fromInstanceQname = fromInstance.instanceQname
-                        varSetInstanceDependencies.add(fromInstanceQname)
-                        instanceDependencies[instanceQname].add(fromInstanceQname)
-                        if fromInstanceQnames is None:
-                            fromInstanceQnames = set()
-                        fromInstanceQnames.add(fromInstanceQname)
-                if fromInstanceQnames is None:
-                    varSetInstanceDependencies.add(XbrlConst.qnStandardInputInstance)
-                    if instanceQname:
-                        instanceDependencies[instanceQname].add(XbrlConst.qnStandardInputInstance)
-                toVariable.fromInstanceQnames = fromInstanceQnames
-            else:
-                val.modelXbrl.error(
-                    "xbrlve:variableNameResolutionFailure",
-                    _("Variables name %(name)s cannot be determined on arc from %(xlinkLabel)s"),
-                    modelObject=modelRel,
-                    xlinkLabel=modelVariableSet.xlinkLabel,
-                    name=modelRel.variablename,
-                )
-        checkVariablesScopeVisibleQnames(val, nameVariables, definedNamesSet, modelVariableSet)
-        definedNamesSet |= parameterQnames
-
-        variableDependencies = {}
-        for modelRel in val.modelXbrl.relationshipSet(XbrlConst.variableSet).fromModelObject(modelVariableSet):
-            variable = modelRel.toModelObject
-            if isinstance(variable, (ModelParameter, ModelVariable)):  # ignore anything not parameter or variable
-                varqname = modelRel.variableQname
-                depVars = variable.variableRefs()
-                variableDependencies[varqname] = depVars
-                if len(depVars) > 0 and formulaOptions.traceVariablesDependencies:
-                    val.modelXbrl.info(
-                        "formula:trace",
-                        _("Variable set %(xlinkLabel)s, variable %(name)s, dependences %(dependencies)s"),
-                        modelObject=modelVariableSet,
-                        xlinkLabel=modelVariableSet.xlinkLabel,
-                        name=varqname,
-                        dependencies=depVars,
-                    )
-                definedNamesSet.add(varqname)
-                # check for fallback value variable references
-                if isinstance(variable, ModelFactVariable):
-                    variable.hasNoVariableDependencies = len(depVars - parameterQnames) == 0
-                    for depVar in XPathParser.variableReferencesSet(variable.fallbackValueProg, variable):
-                        if depVar in qnameRels and isinstance(qnameRels[depVar].toModelObject, ModelVariable):
-                            val.modelXbrl.error(
-                                "xbrlve:fallbackValueVariableReferenceNotAllowed",
-                                _("Variable set %(xlinkLabel)s fallbackValue '%(fallbackValue)s' cannot refer to variable %(dependency)s"),
-                                modelObject=variable,
-                                xlinkLabel=modelVariableSet.xlinkLabel,
-                                fallbackValue=variable.fallbackValue,
-                                dependency=depVar,
-                            )
-                    # check for covering aspect not in variable set aspect model
-                    checkFilterAspectModel(val, modelVariableSet, variable.filterRelationships, xpathContext)
-
-        orderedNameSet = set()
-        orderedNameList = []
-        orderedAVariable = True
-        while orderedAVariable:
-            orderedAVariable = False
-            for varqname, depVars in variableDependencies.items():
-                if varqname not in orderedNameSet and len(depVars - parameterQnames - orderedNameSet) == 0:
-                    orderedNameList.append(varqname)
-                    orderedNameSet.add(varqname)
-                    orderedAVariable = True
-                if varqname in instanceQnames:
-                    varSetInstanceDependencies.add(varqname)
-                    instanceDependencies[instanceQname].add(varqname)
-                elif isinstance(nameVariables.get(varqname), ModelInstance):
-                    instqname = nameVariables[varqname].instanceQname
-                    varSetInstanceDependencies.add(instqname)
-                    instanceDependencies[instanceQname].add(instqname)
-
-        # anything unresolved?
-        for varqname, depVars in variableDependencies.items():
-            if varqname not in orderedNameSet:
-                circularOrUndefVars = depVars - parameterQnames - orderedNameSet
-                undefinedVars = circularOrUndefVars - definedNamesSet
-                varsCircularDep = circularOrUndefVars - undefinedVars
-                if len(undefinedVars) > 0:
-                    val.modelXbrl.error(
-                        "xbrlve:unresolvedDependency",
-                        _("Undefined variable dependencies in variable set %(xlinkLabel)s, from variable %(nameFrom)s to %(nameTo)s"),
-                        modelObject=modelVariableSet,
-                        xlinkLabel=modelVariableSet.xlinkLabel,
-                        nameFrom=varqname,
-                        nameTo=undefinedVars,
-                    )
-                if len(varsCircularDep) > 0:
-                    val.modelXbrl.error(
-                        "xbrlve:cyclicDependencies",
-                        _("Cyclic dependencies in variable set %(xlinkLabel)s, from variable %(nameFrom)s to %(nameTo)s"),
-                        modelObject=modelVariableSet,
-                        xlinkLabel=modelVariableSet.xlinkLabel,
-                        nameFrom=varqname,
-                        nameTo=varsCircularDep,
-                    )
-
-        # check unresolved variable set dependencies
-        for varSetDepVarQname in modelVariableSet.variableRefs():
-            if varSetDepVarQname not in definedNamesSet and varSetDepVarQname not in parameterQnames:
-                val.modelXbrl.error(
-                    "xbrlve:unresolvedDependency",
-                    _("Undefined variable dependency in variable set %(xlinkLabel)s, %(name)s"),
-                    modelObject=modelVariableSet,
-                    xlinkLabel=modelVariableSet.xlinkLabel,
-                    name=varSetDepVarQname,
-                )
-            if varSetDepVarQname in instanceQnames:
-                varSetInstanceDependencies.add(varSetDepVarQname)
-                instanceDependencies[instanceQname].add(varSetDepVarQname)
-            elif isinstance(nameVariables.get(varSetDepVarQname), ModelInstance):
-                instqname = nameVariables[varSetDepVarQname].instanceQname
-                varSetInstanceDependencies.add(instqname)
-                instanceDependencies[instanceQname].add(instqname)
-
-        if formulaOptions.traceVariablesOrder:
-            val.modelXbrl.info(
-                "formula:trace",
-                _("Variable set %(xlinkLabel)s, variables order: %(dependencies)s"),
-                modelObject=modelVariableSet,
-                xlinkLabel=modelVariableSet.xlinkLabel,
-                dependencies=orderedNameList,
-            )
-
-        if (
-            formulaOptions.traceVariablesDependencies
-            and len(varSetInstanceDependencies) > 0
-            and varSetInstanceDependencies != {XbrlConst.qnStandardInputInstance}
-        ):
-            val.modelXbrl.info(
-                "formula:trace",
-                _("Variable set %(xlinkLabel)s, instance dependences %(dependencies)s"),
-                modelObject=modelVariableSet,
-                xlinkLabel=modelVariableSet.xlinkLabel,
-                dependencies=varSetInstanceDependencies,
-            )
-
-        modelVariableSet.orderedVariableRelationships = []
-        for varqname in orderedNameList:
-            if varqname in qnameRels:
-                modelVariableSet.orderedVariableRelationships.append(qnameRels[varqname])
-
-        orderedNameSet.clear()
-        del orderedNameList[:]  # dereference
-
-        # check existence assertion @test variable dependencies (not including precondition references)
-        if isinstance(modelVariableSet, ModelExistenceAssertion):
-            for depVar in XPathParser.variableReferencesSet(modelVariableSet.testProg, modelVariableSet):
-                if depVar in qnameRels and isinstance(qnameRels[depVar].toModelObject, ModelVariable):
-                    val.modelXbrl.error(
-                        "xbrleae:variableReferenceNotAllowed",
-                        _("Existence Assertion %(xlinkLabel)s, cannot refer to variable %(name)s"),
-                        modelObject=modelVariableSet,
-                        xlinkLabel=modelVariableSet.xlinkLabel,
-                        name=depVar,
-                    )
-
-        # check messages variable dependencies
-        checkValidationMessageVariables(val, modelVariableSet, qnameRels, xpathContext.parameterQnames)
-
-        # check consistency assertion message variables and its messages variables
-        if isinstance(modelVariableSet, ModelFormula):
-            for consisAsserRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).toModelObject(modelVariableSet):
-                consisAsser = consisAsserRel.fromModelObject
-                if isinstance(consisAsser, ModelConsistencyAssertion):
-                    checkValidationMessages(val, consisAsser)
-                    checkValidationMessageVariables(val, consisAsser, qnameRels, xpathContext.parameterQnames)
-
-        # check preconditions
-        modelVariableSet.preconditions = []
-        for modelRel in val.modelXbrl.relationshipSet(XbrlConst.variableSetPrecondition).fromModelObject(modelVariableSet):
-            precondition = modelRel.toModelObject
-            if isinstance(precondition, ModelPrecondition):
-                modelVariableSet.preconditions.append(precondition)
-
-        # check for variable sets referencing fact or general variables
-        for modelRel in val.modelXbrl.relationshipSet(XbrlConst.variableSetFilter).fromModelObject(modelVariableSet):
-            varSetFilter = modelRel.toModelObject
-            if modelRel.isCovered:
-                val.modelXbrl.warning(
-                    "arelle:variableSetFilterCovered",
-                    _("Variable set %(xlinkLabel)s, filter %(filterLabel)s, cannot be covered"),
-                    modelObject=varSetFilter,
-                    xlinkLabel=modelVariableSet.xlinkLabel,
-                    filterLabel=varSetFilter.xlinkLabel,
-                )
-                modelRel._isCovered = False  # block group filter from being able to covered
-
-            for depVar in varSetFilter.variableRefs():
-                if depVar in qnameRels and isinstance(qnameRels[depVar].toModelObject, ModelVariable):
-                    val.modelXbrl.error(
-                        "xbrlve:factVariableReferenceNotAllowed",
-                        _("Variable set %(xlinkLabel)s, filter %(filterLabel)s, cannot refer to variable %(name)s"),
-                        modelObject=varSetFilter,
-                        xlinkLabel=modelVariableSet.xlinkLabel,
-                        filterLabel=varSetFilter.xlinkLabel,
-                        name=depVar,
-                    )
-
-        # check aspects of formula
-        if isinstance(modelVariableSet, ModelFormula):
-            checkFormulaRules(val, modelVariableSet, nameVariables)
-
-        nameVariables.clear()  # dereference
-        qnameRels.clear()
-        definedNamesSet.clear()
-        variableDependencies.clear()
-        varSetInstanceDependencies.clear()
+    evaluateModelVariableSet(
+        xpathContext,
+        formulaOptions,
+        parameterQnames,
+        instanceQnames,
+        instanceDependencies,
+        instanceProducingVariableSets,
+        val,
+    )
 
     # check unlinked Consistency Assertions
     for consisAsser in val.modelXbrl.modelConsistencyAssertions:
@@ -1285,6 +1008,303 @@ def customFunctionSignatures(val):
             )
         custFnImpl.compile()
     val.modelXbrl.profileActivity("... custom function checks and compilation", minTimeToShow=1.0)
+
+
+def evaluateModelVariableSet(
+        xpathContext,
+        formulaOptions,
+        parameterQnames,
+        instanceQnames,
+        instanceDependencies,
+        instanceProducingVariableSets,
+        val,
+):
+    for modelVariableSet in val.modelXbrl.modelVariableSets:
+        varSetInstanceDependencies = set()
+        if isinstance(modelVariableSet, ModelFormula):
+            instanceQname = None
+            for modelRel in val.modelXbrl.relationshipSet(XbrlConst.formulaInstance).fromModelObject(modelVariableSet):
+                instance = modelRel.toModelObject
+                if isinstance(instance, ModelInstance):
+                    if instanceQname is None:
+                        instanceQname = instance.instanceQname
+                        # required if referred to by variables scope chaining
+                        modelVariableSet.fromInstanceQnames = {instanceQname}
+                    else:
+                        val.modelXbrl.info(
+                            "arelle:multipleOutputInstances",
+                            _("Multiple output instances for formula %(xlinkLabel)s, to names %(instanceTo)s, %(instanceTo2)s"),
+                            modelObject=modelVariableSet,
+                            xlinkLabel=modelVariableSet.xlinkLabel,
+                            instanceTo=instanceQname,
+                            instanceTo2=instance.instanceQname,
+                        )
+            if instanceQname is None:
+                instanceQname = XbrlConst.qnStandardOutputInstance
+                instanceQnames.add(instanceQname)
+                modelVariableSet.fromInstanceQnames = None  # required if referred to by variables scope chaining
+            modelVariableSet.outputInstanceQname = instanceQname
+            if getattr(val, "validateSBRNL", False):  # may not exist on some val objects
+                val.modelXbrl.error(
+                    "SBR.NL.2.3.9.03",
+                    _("Formula:formula %(xlinkLabel)s is not allowed"),
+                    modelObject=modelVariableSet,
+                    xlinkLabel=modelVariableSet.xlinkLabel,
+                )
+        else:
+            instanceQname = None
+            modelVariableSet.countSatisfied = 0
+            modelVariableSet.countNotSatisfied = 0
+            modelVariableSet.countOkMessages = 0
+            modelVariableSet.countWarningMessages = 0
+            modelVariableSet.countErrorMessages = 0
+            checkValidationMessages(val, modelVariableSet)
+        instanceProducingVariableSets[instanceQname].append(modelVariableSet)
+        modelVariableSet.outputInstanceQname = instanceQname
+        if modelVariableSet.aspectModel not in ("non-dimensional", "dimensional"):
+            val.modelXbrl.error(
+                "xbrlve:unknownAspectModel",
+                _("Variable set %(xlinkLabel)s, aspect model %(aspectModel)s not recognized"),
+                modelObject=modelVariableSet,
+                xlinkLabel=modelVariableSet.xlinkLabel,
+                aspectModel=modelVariableSet.aspectModel,
+            )
+        modelVariableSet.hasConsistencyAssertion = False
+
+        # determine dependencies within variable sets
+        nameVariables = {}
+        qnameRels = {}
+        definedNamesSet = set()
+        for modelRel in val.modelXbrl.relationshipSet(XbrlConst.variableSet).fromModelObject(modelVariableSet):
+            varqname = modelRel.variableQname
+            if varqname:
+                qnameRels[varqname] = modelRel
+                toVariable = modelRel.toModelObject
+                if varqname not in definedNamesSet:
+                    definedNamesSet.add(varqname)
+                if varqname not in nameVariables:
+                    nameVariables[varqname] = toVariable
+                elif nameVariables[varqname] != toVariable:
+                    val.modelXbrl.error(
+                        "xbrlve:duplicateVariableNames",
+                        _("Multiple variables named %(xlinkLabel)s in variable set %(name)s"),
+                        modelObject=toVariable,
+                        xlinkLabel=modelVariableSet.xlinkLabel,
+                        name=varqname,
+                    )
+                fromInstanceQnames = None
+                for instRel in val.modelXbrl.relationshipSet(XbrlConst.instanceVariable).toModelObject(toVariable):
+                    fromInstance = instRel.fromModelObject
+                    if isinstance(fromInstance, ModelInstance):
+                        fromInstanceQname = fromInstance.instanceQname
+                        varSetInstanceDependencies.add(fromInstanceQname)
+                        instanceDependencies[instanceQname].add(fromInstanceQname)
+                        if fromInstanceQnames is None:
+                            fromInstanceQnames = set()
+                        fromInstanceQnames.add(fromInstanceQname)
+                if fromInstanceQnames is None:
+                    varSetInstanceDependencies.add(XbrlConst.qnStandardInputInstance)
+                    if instanceQname:
+                        instanceDependencies[instanceQname].add(XbrlConst.qnStandardInputInstance)
+                toVariable.fromInstanceQnames = fromInstanceQnames
+            else:
+                val.modelXbrl.error(
+                    "xbrlve:variableNameResolutionFailure",
+                    _("Variables name %(name)s cannot be determined on arc from %(xlinkLabel)s"),
+                    modelObject=modelRel,
+                    xlinkLabel=modelVariableSet.xlinkLabel,
+                    name=modelRel.variablename,
+                )
+        checkVariablesScopeVisibleQnames(val, nameVariables, definedNamesSet, modelVariableSet)
+        definedNamesSet |= parameterQnames
+
+        variableDependencies = {}
+        for modelRel in val.modelXbrl.relationshipSet(XbrlConst.variableSet).fromModelObject(modelVariableSet):
+            variable = modelRel.toModelObject
+            if isinstance(variable, (ModelParameter, ModelVariable)):  # ignore anything not parameter or variable
+                varqname = modelRel.variableQname
+                depVars = variable.variableRefs()
+                variableDependencies[varqname] = depVars
+                if len(depVars) > 0 and formulaOptions.traceVariablesDependencies:
+                    val.modelXbrl.info(
+                        "formula:trace",
+                        _("Variable set %(xlinkLabel)s, variable %(name)s, dependences %(dependencies)s"),
+                        modelObject=modelVariableSet,
+                        xlinkLabel=modelVariableSet.xlinkLabel,
+                        name=varqname,
+                        dependencies=depVars,
+                    )
+                definedNamesSet.add(varqname)
+                # check for fallback value variable references
+                if isinstance(variable, ModelFactVariable):
+                    variable.hasNoVariableDependencies = len(depVars - parameterQnames) == 0
+                    for depVar in XPathParser.variableReferencesSet(variable.fallbackValueProg, variable):
+                        if depVar in qnameRels and isinstance(qnameRels[depVar].toModelObject, ModelVariable):
+                            val.modelXbrl.error(
+                                "xbrlve:fallbackValueVariableReferenceNotAllowed",
+                                _("Variable set %(xlinkLabel)s fallbackValue '%(fallbackValue)s' cannot refer to variable %(dependency)s"),
+                                modelObject=variable,
+                                xlinkLabel=modelVariableSet.xlinkLabel,
+                                fallbackValue=variable.fallbackValue,
+                                dependency=depVar,
+                            )
+                    # check for covering aspect not in variable set aspect model
+                    checkFilterAspectModel(val, modelVariableSet, variable.filterRelationships, xpathContext)
+
+        orderedNameSet = set()
+        orderedNameList = []
+        orderedAVariable = True
+        while orderedAVariable:
+            orderedAVariable = False
+            for varqname, depVars in variableDependencies.items():
+                if varqname not in orderedNameSet and len(depVars - parameterQnames - orderedNameSet) == 0:
+                    orderedNameList.append(varqname)
+                    orderedNameSet.add(varqname)
+                    orderedAVariable = True
+                if varqname in instanceQnames:
+                    varSetInstanceDependencies.add(varqname)
+                    instanceDependencies[instanceQname].add(varqname)
+                elif isinstance(nameVariables.get(varqname), ModelInstance):
+                    instqname = nameVariables[varqname].instanceQname
+                    varSetInstanceDependencies.add(instqname)
+                    instanceDependencies[instanceQname].add(instqname)
+
+        # anything unresolved?
+        for varqname, depVars in variableDependencies.items():
+            if varqname not in orderedNameSet:
+                circularOrUndefVars = depVars - parameterQnames - orderedNameSet
+                undefinedVars = circularOrUndefVars - definedNamesSet
+                varsCircularDep = circularOrUndefVars - undefinedVars
+                if len(undefinedVars) > 0:
+                    val.modelXbrl.error(
+                        "xbrlve:unresolvedDependency",
+                        _("Undefined variable dependencies in variable set %(xlinkLabel)s, from variable %(nameFrom)s to %(nameTo)s"),
+                        modelObject=modelVariableSet,
+                        xlinkLabel=modelVariableSet.xlinkLabel,
+                        nameFrom=varqname,
+                        nameTo=undefinedVars,
+                    )
+                if len(varsCircularDep) > 0:
+                    val.modelXbrl.error(
+                        "xbrlve:cyclicDependencies",
+                        _("Cyclic dependencies in variable set %(xlinkLabel)s, from variable %(nameFrom)s to %(nameTo)s"),
+                        modelObject=modelVariableSet,
+                        xlinkLabel=modelVariableSet.xlinkLabel,
+                        nameFrom=varqname,
+                        nameTo=varsCircularDep,
+                    )
+
+        # check unresolved variable set dependencies
+        for varSetDepVarQname in modelVariableSet.variableRefs():
+            if varSetDepVarQname not in definedNamesSet and varSetDepVarQname not in parameterQnames:
+                val.modelXbrl.error(
+                    "xbrlve:unresolvedDependency",
+                    _("Undefined variable dependency in variable set %(xlinkLabel)s, %(name)s"),
+                    modelObject=modelVariableSet,
+                    xlinkLabel=modelVariableSet.xlinkLabel,
+                    name=varSetDepVarQname,
+                )
+            if varSetDepVarQname in instanceQnames:
+                varSetInstanceDependencies.add(varSetDepVarQname)
+                instanceDependencies[instanceQname].add(varSetDepVarQname)
+            elif isinstance(nameVariables.get(varSetDepVarQname), ModelInstance):
+                instqname = nameVariables[varSetDepVarQname].instanceQname
+                varSetInstanceDependencies.add(instqname)
+                instanceDependencies[instanceQname].add(instqname)
+
+        if formulaOptions.traceVariablesOrder:
+            val.modelXbrl.info(
+                "formula:trace",
+                _("Variable set %(xlinkLabel)s, variables order: %(dependencies)s"),
+                modelObject=modelVariableSet,
+                xlinkLabel=modelVariableSet.xlinkLabel,
+                dependencies=orderedNameList,
+            )
+
+        if (
+                formulaOptions.traceVariablesDependencies
+                and len(varSetInstanceDependencies) > 0
+                and varSetInstanceDependencies != {XbrlConst.qnStandardInputInstance}
+        ):
+            val.modelXbrl.info(
+                "formula:trace",
+                _("Variable set %(xlinkLabel)s, instance dependences %(dependencies)s"),
+                modelObject=modelVariableSet,
+                xlinkLabel=modelVariableSet.xlinkLabel,
+                dependencies=varSetInstanceDependencies,
+            )
+
+        modelVariableSet.orderedVariableRelationships = []
+        for varqname in orderedNameList:
+            if varqname in qnameRels:
+                modelVariableSet.orderedVariableRelationships.append(qnameRels[varqname])
+
+        orderedNameSet.clear()
+        del orderedNameList[:]  # dereference
+
+        # check existence assertion @test variable dependencies (not including precondition references)
+        if isinstance(modelVariableSet, ModelExistenceAssertion):
+            for depVar in XPathParser.variableReferencesSet(modelVariableSet.testProg, modelVariableSet):
+                if depVar in qnameRels and isinstance(qnameRels[depVar].toModelObject, ModelVariable):
+                    val.modelXbrl.error(
+                        "xbrleae:variableReferenceNotAllowed",
+                        _("Existence Assertion %(xlinkLabel)s, cannot refer to variable %(name)s"),
+                        modelObject=modelVariableSet,
+                        xlinkLabel=modelVariableSet.xlinkLabel,
+                        name=depVar,
+                    )
+
+        # check messages variable dependencies
+        checkValidationMessageVariables(val, modelVariableSet, qnameRels, xpathContext.parameterQnames)
+
+        # check consistency assertion message variables and its messages variables
+        if isinstance(modelVariableSet, ModelFormula):
+            for consisAsserRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).toModelObject(modelVariableSet):
+                consisAsser = consisAsserRel.fromModelObject
+                if isinstance(consisAsser, ModelConsistencyAssertion):
+                    checkValidationMessages(val, consisAsser)
+                    checkValidationMessageVariables(val, consisAsser, qnameRels, xpathContext.parameterQnames)
+
+        # check preconditions
+        modelVariableSet.preconditions = []
+        for modelRel in val.modelXbrl.relationshipSet(XbrlConst.variableSetPrecondition).fromModelObject(modelVariableSet):
+            precondition = modelRel.toModelObject
+            if isinstance(precondition, ModelPrecondition):
+                modelVariableSet.preconditions.append(precondition)
+
+        # check for variable sets referencing fact or general variables
+        for modelRel in val.modelXbrl.relationshipSet(XbrlConst.variableSetFilter).fromModelObject(modelVariableSet):
+            varSetFilter = modelRel.toModelObject
+            if modelRel.isCovered:
+                val.modelXbrl.warning(
+                    "arelle:variableSetFilterCovered",
+                    _("Variable set %(xlinkLabel)s, filter %(filterLabel)s, cannot be covered"),
+                    modelObject=varSetFilter,
+                    xlinkLabel=modelVariableSet.xlinkLabel,
+                    filterLabel=varSetFilter.xlinkLabel,
+                )
+                modelRel._isCovered = False  # block group filter from being able to covered
+
+            for depVar in varSetFilter.variableRefs():
+                if depVar in qnameRels and isinstance(qnameRels[depVar].toModelObject, ModelVariable):
+                    val.modelXbrl.error(
+                        "xbrlve:factVariableReferenceNotAllowed",
+                        _("Variable set %(xlinkLabel)s, filter %(filterLabel)s, cannot refer to variable %(name)s"),
+                        modelObject=varSetFilter,
+                        xlinkLabel=modelVariableSet.xlinkLabel,
+                        filterLabel=varSetFilter.xlinkLabel,
+                        name=depVar,
+                    )
+
+        # check aspects of formula
+        if isinstance(modelVariableSet, ModelFormula):
+            checkFormulaRules(val, modelVariableSet, nameVariables)
+
+        nameVariables.clear()  # dereference
+        qnameRels.clear()
+        definedNamesSet.clear()
+        variableDependencies.clear()
+        varSetInstanceDependencies.clear()
 
 
 def logAssertionResultCounts(val, formulaOptions, runIDs):
