@@ -1196,49 +1196,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
             mins=val.maxFormulaRunTime,
         )
 
-    # log assertion result counts
-    asserTests = {}
-    for exisValAsser in val.modelXbrl.modelVariableSets:
-        if isinstance(exisValAsser, ModelVariableSetAssertion) and (not runIDs or runIDs.match(exisValAsser.id)):
-            asserTests[exisValAsser.id] = (
-                exisValAsser.countSatisfied,
-                exisValAsser.countNotSatisfied,
-                exisValAsser.countOkMessages,
-                exisValAsser.countWarningMessages,
-                exisValAsser.countErrorMessages,
-            )
-            if formulaOptions.traceAssertionResultCounts:
-                val.modelXbrl.info(
-                    "formula:trace",
-                    _("%(assertionType)s Assertion %(id)s evaluations : %(satisfiedCount)s satisfied, %(notSatisfiedCount)s not satisfied"),
-                    modelObject=exisValAsser,
-                    assertionType="Existence" if isinstance(exisValAsser, ModelExistenceAssertion) else "Value",
-                    id=exisValAsser.id,
-                    satisfiedCount=exisValAsser.countSatisfied,
-                    notSatisfiedCount=exisValAsser.countNotSatisfied,
-                )
-
-    for consisAsser in val.modelXbrl.modelConsistencyAssertions:
-        if not runIDs or runIDs.match(consisAsser.id):
-            asserTests[consisAsser.id] = (
-                consisAsser.countSatisfied,
-                consisAsser.countNotSatisfied,
-                consisAsser.countOkMessages,
-                consisAsser.countWarningMessages,
-                consisAsser.countErrorMessages,
-            )
-            if formulaOptions.traceAssertionResultCounts:
-                val.modelXbrl.info(
-                    "formula:trace",
-                    _("Consistency Assertion %(id)s evaluations : %(satisfiedCount)s satisfied, %(notSatisfiedCount)s not satisfied"),
-                    modelObject=consisAsser,
-                    id=consisAsser.id,
-                    satisfiedCount=consisAsser.countSatisfied,
-                    notSatisfiedCount=consisAsser.countNotSatisfied,
-                )
-
-    if asserTests:  # pass assertion results to validation if appropriate
-        val.modelXbrl.log(None, "asrtNoLog", None, assertionResults=asserTests)
+    logAssertionResultCounts(val, formulaOptions, runIDs)
 
     # display output instance
     if outputXbrlInstance:
@@ -1327,6 +1285,51 @@ def customFunctionSignatures(val):
             )
         custFnImpl.compile()
     val.modelXbrl.profileActivity("... custom function checks and compilation", minTimeToShow=1.0)
+
+
+def logAssertionResultCounts(val, formulaOptions, runIDs):
+    asserTests = {}
+    for exisValAsser in val.modelXbrl.modelVariableSets:
+        if isinstance(exisValAsser, ModelVariableSetAssertion) and (not runIDs or runIDs.match(exisValAsser.id)):
+            asserTests[exisValAsser.id] = (
+                exisValAsser.countSatisfied,
+                exisValAsser.countNotSatisfied,
+                exisValAsser.countOkMessages,
+                exisValAsser.countWarningMessages,
+                exisValAsser.countErrorMessages,
+            )
+            if formulaOptions.traceAssertionResultCounts:
+                val.modelXbrl.info(
+                    "formula:trace",
+                    _("%(assertionType)s Assertion %(id)s evaluations : %(satisfiedCount)s satisfied, %(notSatisfiedCount)s not satisfied"),
+                    modelObject=exisValAsser,
+                    assertionType="Existence" if isinstance(exisValAsser, ModelExistenceAssertion) else "Value",
+                    id=exisValAsser.id,
+                    satisfiedCount=exisValAsser.countSatisfied,
+                    notSatisfiedCount=exisValAsser.countNotSatisfied,
+                )
+
+    for consisAsser in val.modelXbrl.modelConsistencyAssertions:
+        if not runIDs or runIDs.match(consisAsser.id):
+            asserTests[consisAsser.id] = (
+                consisAsser.countSatisfied,
+                consisAsser.countNotSatisfied,
+                consisAsser.countOkMessages,
+                consisAsser.countWarningMessages,
+                consisAsser.countErrorMessages,
+            )
+            if formulaOptions.traceAssertionResultCounts:
+                val.modelXbrl.info(
+                    "formula:trace",
+                    _("Consistency Assertion %(id)s evaluations : %(satisfiedCount)s satisfied, %(notSatisfiedCount)s not satisfied"),
+                    modelObject=consisAsser,
+                    id=consisAsser.id,
+                    satisfiedCount=consisAsser.countSatisfied,
+                    notSatisfiedCount=consisAsser.countNotSatisfied,
+                )
+
+    if asserTests:  # pass assertion results to validation if appropriate
+        val.modelXbrl.log(None, "asrtNoLog", None, assertionResults=asserTests)
 
 
 def checkVariablesScopeVisibleQnames(val, nameVariables, definedNamesSet, modelVariableSet):
