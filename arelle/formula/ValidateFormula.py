@@ -475,69 +475,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                 )
     val.modelXbrl.profileActivity("... formula parameter checks", minTimeToShow=1.0)
 
-    for custFnSig in val.modelXbrl.modelCustomFunctionSignatures.values():
-        # entries indexed by qname, arity are signature, by qname are just for parser (value=None)
-        if custFnSig is not None:
-            custFnQname = custFnSig.functionQname
-            if custFnQname.namespaceURI == XbrlConst.xfi:
-                val.modelXbrl.error(
-                    "xbrlve:noProhibitedNamespaceForCustomFunction",
-                    _("Custom function %(name)s has namespace reserved for functions in the function registry %(namespace)s"),
-                    modelObject=custFnSig,
-                    name=custFnQname,
-                    namespace=custFnQname.namespaceURI,
-                )
-            # check types
-            _outputType = custFnSig.outputType
-            if (
-                _outputType
-                and _outputType.namespaceURI == XbrlConst.xsd
-                and not FunctionXs.isXsType(_outputType.localName)
-            ):
-                val.modelXbrl.error(
-                    "xbrlve:invalidDatatypeInCustomFunctionSignature",
-                    _("Custom Function Signature %(name)s output type %(type)s is not valid"),
-                    modelObject=custFnSig,
-                    name=custFnQname,
-                    type=_outputType,
-                )
-            for _inputType in custFnSig.inputTypes:
-                if (
-                    _inputType
-                    and _inputType.namespaceURI == XbrlConst.xsd
-                    and not FunctionXs.isXsType(_inputType.localName)
-                ):
-                    val.modelXbrl.error(
-                        "xbrlve:invalidDatatypeInCustomFunctionSignature",
-                        _("Custom Function Signature %(name)s input type %(type)s is not valid"),
-                        modelObject=custFnSig,
-                        name=custFnQname,
-                        type=_inputType,
-                    )
-            # any custom function implementations?
-            for modelRel in val.modelXbrl.relationshipSet(XbrlConst.functionImplementation).fromModelObject(custFnSig):
-                custFnImpl = modelRel.toModelObject
-                custFnSig.customFunctionImplementation = custFnImpl
-                if len(custFnImpl.inputNames) != len(custFnSig.inputTypes):
-                    val.modelXbrl.error(
-                        "xbrlcfie:inputMismatch",
-                        _("Custom function %(name)s signature has %(parameterCountSignature)s parameters but implementation has %(parameterCountImplementation)s, must be matching"),
-                        modelObject=custFnSig,
-                        name=custFnQname,
-                        parameterCountSignature=len(custFnSig.inputTypes),
-                        parameterCountImplementation=len(custFnImpl.inputNames),
-                    )
-
-    for custFnImpl in val.modelXbrl.modelCustomFunctionImplementations:
-        if not val.modelXbrl.relationshipSet(XbrlConst.functionImplementation).toModelObject(custFnImpl):
-            val.modelXbrl.error(
-                "xbrlcfie:missingCFIRelationship",
-                _("Custom function implementation %(xlinkLabel)s has no relationship from any custom function signature"),
-                modelObject=custFnSig,
-                xlinkLabel=custFnImpl.xlinkLabel,
-            )
-        custFnImpl.compile()
-    val.modelXbrl.profileActivity("... custom function checks and compilation", minTimeToShow=1.0)
+    customFunctionSignatures(val)
 
     # xpathContext is needed for filter setup for expressions such as aspect cover filter
     # determine parameter values
@@ -1323,6 +1261,72 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     del orderedParameters, orderedInstances, orderedInstancesList
     xpathContext.close()  # dereference everything
     val.modelXbrl.profileStat(_("formulaExecutionTotal"), time.time() - timeFormulasStarted)
+
+
+def customFunctionSignatures(val):
+    for custFnSig in val.modelXbrl.modelCustomFunctionSignatures.values():
+        # entries indexed by qname, arity are signature, by qname are just for parser (value=None)
+        if custFnSig is not None:
+            custFnQname = custFnSig.functionQname
+            if custFnQname.namespaceURI == XbrlConst.xfi:
+                val.modelXbrl.error(
+                    "xbrlve:noProhibitedNamespaceForCustomFunction",
+                    _("Custom function %(name)s has namespace reserved for functions in the function registry %(namespace)s"),
+                    modelObject=custFnSig,
+                    name=custFnQname,
+                    namespace=custFnQname.namespaceURI,
+                )
+            # check types
+            _outputType = custFnSig.outputType
+            if (
+                    _outputType
+                    and _outputType.namespaceURI == XbrlConst.xsd
+                    and not FunctionXs.isXsType(_outputType.localName)
+            ):
+                val.modelXbrl.error(
+                    "xbrlve:invalidDatatypeInCustomFunctionSignature",
+                    _("Custom Function Signature %(name)s output type %(type)s is not valid"),
+                    modelObject=custFnSig,
+                    name=custFnQname,
+                    type=_outputType,
+                )
+            for _inputType in custFnSig.inputTypes:
+                if (
+                        _inputType
+                        and _inputType.namespaceURI == XbrlConst.xsd
+                        and not FunctionXs.isXsType(_inputType.localName)
+                ):
+                    val.modelXbrl.error(
+                        "xbrlve:invalidDatatypeInCustomFunctionSignature",
+                        _("Custom Function Signature %(name)s input type %(type)s is not valid"),
+                        modelObject=custFnSig,
+                        name=custFnQname,
+                        type=_inputType,
+                    )
+            # any custom function implementations?
+            for modelRel in val.modelXbrl.relationshipSet(XbrlConst.functionImplementation).fromModelObject(custFnSig):
+                custFnImpl = modelRel.toModelObject
+                custFnSig.customFunctionImplementation = custFnImpl
+                if len(custFnImpl.inputNames) != len(custFnSig.inputTypes):
+                    val.modelXbrl.error(
+                        "xbrlcfie:inputMismatch",
+                        _("Custom function %(name)s signature has %(parameterCountSignature)s parameters but implementation has %(parameterCountImplementation)s, must be matching"),
+                        modelObject=custFnSig,
+                        name=custFnQname,
+                        parameterCountSignature=len(custFnSig.inputTypes),
+                        parameterCountImplementation=len(custFnImpl.inputNames),
+                    )
+
+    for custFnImpl in val.modelXbrl.modelCustomFunctionImplementations:
+        if not val.modelXbrl.relationshipSet(XbrlConst.functionImplementation).toModelObject(custFnImpl):
+            val.modelXbrl.error(
+                "xbrlcfie:missingCFIRelationship",
+                _("Custom function implementation %(xlinkLabel)s has no relationship from any custom function signature"),
+                modelObject=custFnSig,
+                xlinkLabel=custFnImpl.xlinkLabel,
+            )
+        custFnImpl.compile()
+    val.modelXbrl.profileActivity("... custom function checks and compilation", minTimeToShow=1.0)
 
 
 def checkVariablesScopeVisibleQnames(val, nameVariables, definedNamesSet, modelVariableSet):
