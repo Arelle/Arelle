@@ -7,7 +7,7 @@ Loads xbrl formula file syntax into formula linkbase.
 
 To run from command line, loading formula linkbase and saving formula syntax files:
 
-  python3.5 arelleCmdLine.py
+  python3 arelleCmdLine.py
      -f {DTS, instance, entry file, or formula linkbase file}
     --plugins formulaSaver.py
     --save-xbrl-formula {formula syntax output file.xf}
