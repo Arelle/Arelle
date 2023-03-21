@@ -59,7 +59,7 @@ class ToolTip:
             self._id4 = self.master.bind("<Motion>", self.motion, '+')
             self._follow_mouse = 1
         self._htmlAware = False
-        
+
     def setHtmlAware(self):
         self._htmlAware = True
 
@@ -179,7 +179,7 @@ def demo():
     l = tkinter.Listbox(root)
     l.insert('end', "I'm a listbox")
     l.pack(side='top')
-    t1 = ToolTip(l, follow_mouse=1, 
+    t1 = ToolTip(l, follow_mouse=1,
                  text="<html><h1>title</h1><p>para</p><p>para2</p></html>")
                  #text="I'm a tooltip with follow_mouse set to 1, so I won't be placed outside my parent")
     b = tkinter.Button(root, text='Quit', command=root.quit)
