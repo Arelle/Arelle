@@ -191,11 +191,11 @@ def commandLineOptionExtender(parser, *args, **kwargs):
     parser.add_option("--source-test-suite-dir",
                       action="store",
                       dest="sourceTestSuiteDir",
-                      help=_("Convert formula linkbase suite to XF."))
+                      help=_("The source directory containing formula linkbase files to convert to XF."))
     parser.add_option("--converted-test-suite-dir",
                       action="store",
                       dest="convertedTestSuiteDir",
-                      help=_("Convert formula linkbase suite to XF."))
+                      help=_("The destination directory to save the converted XF files."))
 
 __pluginInfo__ = {
     'name': 'Formula Suite Converter',
