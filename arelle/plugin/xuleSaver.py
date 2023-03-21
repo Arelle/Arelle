@@ -122,7 +122,7 @@ class GenerateXule:
                 for modelRel in self.modelXbrl.relationshipSet(arcrole).fromModelObject(fObj):
                     self.doObject(modelRel.toModelObject, modelRel, cIndent, visited)
             if fObj.aspectModel == "non-dimensional":
-                raise Exception(f"Non-dimensional aspect model is not supported.")
+                raise Exception("Non-dimensional aspect model is not supported.")
             if fObj.implicitFiltering == "false":
                 self.xf = "{}no-implicit-filtering;".format(cIndent)
             if isinstance(fObj, ModelFormula):
@@ -148,9 +148,9 @@ class GenerateXule:
                 self.xf = "{}evaluation-count {{{}}};".format(cIndent, fObj.viewExpression or ". gt 0")
             self.xf = "{}}};".format(pIndent)
         elif isinstance(fObj, ModelFormula):
-            raise Exception(f"xbrl formula (fact creation) is not supported.")
+            raise Exception("xbrl formula (fact creation) is not supported.")
         elif isinstance(fObj, ModelConsistencyAssertion):
-            raise Exception(f"xbrl consistency-assertion (fact comparison) is not supported.")
+            raise Exception("xbrl consistency-assertion (fact comparison) is not supported.")
         elif isinstance(fObj, ModelFactVariable) and fromRel is not None:
             self.xf = "{}${} = {{".format(pIndent, fromRel.variableQname)
             if fromRel.variableQname.prefix:
@@ -457,7 +457,7 @@ def saveXuleMenuEntender(cntlr, menu, *args, **kwargs):
     menu.add_command(label="Save Xule  file",
                      underline=0,
                      command=lambda: saveXuleMenuCommand(cntlr) )
-    
+
 def saveXuleMenuCommand(cntlr):
     # save DTS menu item has been invoked
     if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:

@@ -125,7 +125,7 @@ class GenerateXbrlFormula:
                 for modelRel in self.modelXbrl.relationshipSet(arcrole).fromModelObject(fObj):
                     self.doObject(modelRel.toModelObject, modelRel, cIndent, visited)
             if fObj.aspectModel == "non-dimensional":
-                raise Exception(f"Non-dimensional aspect model is not supported.")
+                raise Exception("Non-dimensional aspect model is not supported.")
                 # self.xf = "{}aspect-model-non-dimensional;".format(cIndent)
             if fObj.implicitFiltering == "false":
                 self.xf = "{}no-implicit-filtering;".format(cIndent)
@@ -472,7 +472,7 @@ def saveXfMenuEntender(cntlr, menu, *args, **kwargs):
     menu.add_command(label="Save Xbrl Formula file",
                      underline=0,
                      command=lambda: saveXfMenuCommand(cntlr) )
-    
+
 def saveXfMenuCommand(cntlr):
     # save DTS menu item has been invoked
     if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:

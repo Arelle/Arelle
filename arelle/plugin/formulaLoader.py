@@ -1001,7 +1001,7 @@ def compileMatchFilter( sourceStr, loc, toks ):
 
 def compileVersionDeclaration( sourceStr, loc, toks ):
     if toks[1] != "1.0":
-        raise Exception(f"XF version must be 1.0, source file specified.  Unsupported version {toks[1]")
+        raise Exception(f"XF version must be 1.0, source file specified.  Unsupported version {toks[1]}")
     return []
 
 def compileNamespaceDeclaration( sourceStr, loc, toks ):
@@ -1407,7 +1407,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
     severity = ( Suppress(Keyword("unsatisfied-severity")) + ( ncName ) + separator ).setParseAction(compileSeverity).ignore(xfsComment)
 
-    label = ( (Keyword("label") | 
+    label = ( (Keyword("label") |
                ( (Keyword("unsatisfied-message") | Keyword("satisfied-message") ) +
                   Opt( Keyword("standard") | Keyword("verbose") | Keyword("terse") ) ) ) +
               Opt( Combine(Literal("(") + Regex("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*") + Literal(")")) ) +

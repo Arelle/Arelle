@@ -1,12 +1,12 @@
 '''
 XBRL formula conf suite converter
    from Formula 1.0 to XF
-   
-   arelleCmdline 
-     --plugin formulaSuiteConverter 
+
+   arelleCmdline
+     --plugin formulaSuiteConverter
      --source-test-suite-dir {directory containing index.xml file for suite)
      --converted-test-suite-dir {directory receiving converted suite)
-   
+
 
 See COPYRIGHT.md for copyright information.
 '''
@@ -46,16 +46,16 @@ def convertVariation(cntlr, variationFile, variationElt, inPath, outPath, entryP
                 with open(os.path.join(outPath, lbXsdFile), "w", encoding="utf-8") as fh:
                     fh.write("""
 <?xml version="1.0" encoding="utf-8"?>
-<schema 
-    xmlns="http://www.w3.org/2001/XMLSchema" 
-    xmlns:link="http://www.xbrl.org/2003/linkbase" 
-    xmlns:xlink="http://www.w3.org/1999/xlink" 
+<schema
+    xmlns="http://www.w3.org/2001/XMLSchema"
+    xmlns:link="http://www.xbrl.org/2003/linkbase"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
     elementFormDefault="qualified">
   <annotation>
     <appinfo>
-      <link:linkbaseRef 
+      <link:linkbaseRef
         xlink:href="{}"
-        xlink:type="simple" 
+        xlink:type="simple"
         xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
     </appinfo>
   </annotation>
@@ -64,7 +64,7 @@ def convertVariation(cntlr, variationFile, variationElt, inPath, outPath, entryP
                 lbDoc.type = Type.SCHEMA
                 ref.referringModelObject = PrototypeObject(ref.referringModelObject.modelDocument, ref.referringModelObject)
                 ref.referringModelObject.qname = QN_SCHEMA_REF
-                
+
     # perform OIM validation on xBRL-XML source instance
     for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Finally"):
         pluginXbrlMethod(doc)
@@ -186,7 +186,7 @@ def convertSuite(cntlr, options, *args, **kwargs):
     for testcaseFile in ("index.xml",):
         convertTestcase(cntlr, sourceSuiteDir, convertedSuiteDir, testcaseFile)
         shutil.copyfile(os.path.join(sourceSuiteDir, testcaseFile), os.path.join(convertedSuiteDir, testcaseFile))
-        
+
 def commandLineOptionExtender(parser, *args, **kwargs):
     parser.add_option("--source-test-suite-dir",
                       action="store",
