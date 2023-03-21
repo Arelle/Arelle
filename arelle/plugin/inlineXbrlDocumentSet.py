@@ -41,7 +41,7 @@ Example to load multi-document IXDS and save extracted xBRL-XML target document:
      Tools->Save Target Document
      replaced file PASS-multiple-input-multiple-output-ID1_extracted.xbrl now has TARGET target xBRL-XML instance
   For Command Line:
-     arelleCmdLine --plugin inlineXbrlDocumentSet 
+     arelleCmdLine --plugin inlineXbrlDocumentSet
                    --file '[{"ixds":[{"file":".../PASS-multiple-input-multiple-output-ID1.html"},
                                      {"file":".../PASS-multiple-input-multiple-output-ID2.html"}],
                              "ixdsTarget":"(default)"}]'
