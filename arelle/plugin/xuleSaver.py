@@ -7,7 +7,7 @@ Loads xbrl formula file syntax into formula linkbase.
 
 To run from command line, loading formula linkbase and saving formula syntax files:
 
-  python3.5 arelleCmdLine.py
+  python3 arelleCmdLine.py
      -f {DTS, instance, entry file, or formula linkbase file}
     --plugins formulaSaver.py
     --save-xbrl-formula {formula syntax output file.xf}
@@ -42,9 +42,9 @@ def kebabCase(name):
 def strQuote(s):
     return '"' + s.replace('"', '""') + '"'
 
-class GenerateXbrlFormula:
-    def __init__(self, cntlr, modelXbrl, xfFile):
-        self.modelXbrl = modelXbrl
+class GenerateXule:
+    def __init__(self, cntlr, xfFile):
+        self.modelXbrl = cntlr.modelManager.modelXbrl
         self.xfFile = xfFile
         self.xfLines = []
         self.xmlns = {}
@@ -76,15 +76,12 @@ class GenerateXbrlFormula:
                 self.xfLines.insert(0, "namespace {} = \"{}\";".format(prefix, ns))
 
         self.xfLines.insert(0, "")
-        self.xfLines.insert(0, "Version 1.0;".format(self.modelXbrl.modelDocument.basename, XmlUtil.dateunionValue(datetime.datetime.now())))
-
-        self.xfLines.insert(0, "")
         self.xfLines.insert(0, "(: Generated from {} by Arelle on {} :)".format(self.modelXbrl.modelDocument.basename, XmlUtil.dateunionValue(datetime.datetime.now())))
 
         with open(xfFile, "w", encoding="utf-8") as fh:
             fh.write("\n".join(self.xfLines))
 
-        self.modelXbrl.info("info", "saved formula file %(file)s", file=xfFile)
+        self.modelXbrl.info("info", "saved xule file %(file)s", file=xfFile)
 
     @property
     def xf(self):
@@ -114,7 +111,7 @@ class GenerateXbrlFormula:
             for modelRel in self.modelXbrl.relationshipSet(XbrlConst.assertionSet).fromModelObject(fObj):
                 self.doObject(modelRel.toModelObject, modelRel, cIndent, visited)
             self.xf = "{}}};".format(pIndent)
-        elif isinstance(fObj, (ModelValueAssertion, ModelExistenceAssertion, ModelFormula)):
+        elif isinstance(fObj, (ModelValueAssertion, ModelExistenceAssertion)):
             varSetType = "formula" if isinstance(fObj, ModelFormula) else "assertion"
             self.xf = "{}{} {} {{".format(pIndent, varSetType, self.objectId(fObj, varSetType))
             for arcrole in (XbrlConst.elementLabel,
@@ -126,7 +123,6 @@ class GenerateXbrlFormula:
                     self.doObject(modelRel.toModelObject, modelRel, cIndent, visited)
             if fObj.aspectModel == "non-dimensional":
                 raise Exception("Non-dimensional aspect model is not supported.")
-                # self.xf = "{}aspect-model-non-dimensional;".format(cIndent)
             if fObj.implicitFiltering == "false":
                 self.xf = "{}no-implicit-filtering;".format(cIndent)
             if isinstance(fObj, ModelFormula):
@@ -151,30 +147,19 @@ class GenerateXbrlFormula:
             elif isinstance(fObj, ModelExistenceAssertion):
                 self.xf = "{}evaluation-count {{{}}};".format(cIndent, fObj.viewExpression or ". gt 0")
             self.xf = "{}}};".format(pIndent)
+        elif isinstance(fObj, ModelFormula):
+            raise Exception("xbrl formula (fact creation) is not supported.")
         elif isinstance(fObj, ModelConsistencyAssertion):
-            self.xf = "{}consistency-assertion {} {{".format(pIndent, self.objectId(fObj, "consistencyAssertion"))
-            for arcrole in (XbrlConst.elementLabel,
-                            XbrlConst.assertionSatisfiedMessage,
-                            XbrlConst.assertionUnsatisfiedMessage):
-                for modelRel in self.modelXbrl.relationshipSet(arcrole).fromModelObject(fObj):
-                    self.doObject(modelRel.toModelObject, modelRel, cIndent, visited)
-            if fObj.isStrict:
-                self.xf = "{}strict;".format(cIndent)
-            if fObj.get("proportionalAcceptanceRadius"):
-                self.xf = "{}proportional-acceptance-radius {{{}}};".format(cIndent, fObj.get("proportionalAcceptanceRadius"))
-            if fObj.get("absoluteAcceptanceRadius"):
-                self.xf = "{}absolute-acceptance-radius {{{}}};".format(cIndent, fObj.get("absoluteAcceptanceRadius"))
-            for modelRel in self.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).fromModelObject(fObj):
-                self.doObject(modelRel.toModelObject, modelRel, cIndent, visited)
-            self.xf = "{}}};".format(pIndent)
+            raise Exception("xbrl consistency-assertion (fact comparison) is not supported.")
         elif isinstance(fObj, ModelFactVariable) and fromRel is not None:
-            self.xf = "{}variable ${} {{".format(pIndent, fromRel.variableQname)
+            self.xf = "{}${} = {{".format(pIndent, fromRel.variableQname)
             if fromRel.variableQname.prefix:
                 self.xmlns[fromRel.variableQname.prefix] = fromRel.variableQname.namespaceURI
+            if fObj.nils == "true":
+                self.xf = "nonils"
+
             if fObj.bindAsSequence == "true":
                 self.xf = "{}as-sequence".format(cIndent)
-            if fObj.nils == "true":
-                self.xf = "{}nils".format(cIndent)
             if fObj.matches == "true":
                 self.xf = "{}matches".format(cIndent)
             if fObj.fallbackValue:
@@ -357,7 +342,7 @@ class GenerateXbrlFormula:
                     visited.remove(fObj)
                 self.xf = "{}}};".format(pIndent)
         elif isinstance(fObj, ModelMessage):
-            role = fObj.role
+            role = self.role
             self.xf = "{}{}{}{} \"{}\";".format(
                 pIndent,
                 "satisfied-message" if fromRel.arcrole == XbrlConst.assertionSatisfiedMessage else "unsatisfied-message",
@@ -467,13 +452,13 @@ class GenerateXbrlFormula:
                     XPathParser.prefixDeclarations(_ast, self.xmlns, fObj)
 
 
-def saveXfMenuEntender(cntlr, menu, *args, **kwargs):
+def saveXuleMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Save Xbrl Formula file",
+    menu.add_command(label="Save Xule  file",
                      underline=0,
-                     command=lambda: saveXfMenuCommand(cntlr) )
+                     command=lambda: saveXuleMenuCommand(cntlr) )
 
-def saveXfMenuCommand(cntlr):
+def saveXuleMenuCommand(cntlr):
     # save DTS menu item has been invoked
     if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
         cntlr.addToLog("No taxonomy loaded.")
@@ -481,50 +466,50 @@ def saveXfMenuCommand(cntlr):
 
     # get file name into which to save log file while in foreground thread
     xbrlFormulaFile = cntlr.uiFileDialog("save",
-            title=_("arelle - XBRL Formula file"),
-            initialdir=cntlr.config.setdefault("xbrlFormulaFileDir","."),
-            filetypes=[(_("XBRL formula file .xf"), "*.xf")],
-            defaultextension=".xf")
+            title=_("arelle - Xule file"),
+            initialdir=cntlr.config.setdefault("xuleFileDir","."),
+            filetypes=[(_("Xule file .xule"), "*.xule")],
+            defaultextension=".xule")
     if not xbrlFormulaFile:
         return False
     import os
-    cntlr.config["xbrlFormulaFileDir"] = os.path.dirname(xbrlFormulaFile)
+    cntlr.config["xbrlXuleFileDir"] = os.path.dirname(xbrlFormulaFile)
     cntlr.saveConfig()
 
-    modelXbrl = cntlr.modelManager.modelXbrl
     try:
-        GenerateXbrlFormula(cntlr, modelXbrl, xbrlFormulaFile, mode)
+        GenerateXule(cntlr, xbrlFormulaFile, mode)
     except Exception as ex:
+        dts = cntlr.modelManager.modelXbrl
         dts.error("exception",
-            _("Xbrl Formula file generation exception: %(error)s"), error=ex,
-            modelXbrl=modelXbrl,
+            _("Xule file generation exception: %(error)s"), error=ex,
+            modelXbrl=dts,
             exc_info=True)
 
-def saveXfCommandLineOptionExtender(parser, *args, **kwargs):
+def saveXuleCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
-    parser.add_option("--save-xbrl-formula",
+    parser.add_option("--save-xule-formula",
                       action="store",
-                      dest="xbrlFormulaFile",
-                      help=_("Save Formula File from formula linkbase."))
+                      dest="xuleFile",
+                      help=_("Save Xule from formula linkbase."))
 
-def saveXfCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
+def saveXuleCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
-    if getattr(options, "xbrlFormulaFile", False):
-        if cntlr.modelManager is None or modelXbrl is None:
+    if getattr(options, "xuleFile", False):
+        if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
             cntlr.addToLog("No taxonomy loaded.")
             return
-        GenerateXbrlFormula(cntlr, modelXbrl, options.xbrlFormulaFile)
+        GenerateXule(cntlr, options.xuleFile, "xule")
 
 
 __pluginInfo__ = {
-    'name': 'Save Formula File',
+    'name': 'Save Xule File',
     'version': '0.9',
-    'description': "This plug-in adds a feature to output XBRL Formula file from formula linkbase model objects. ",
+    'description': "This plug-in adds a feature to output a Xule file from formula linkbase model objects. ",
     'license': 'Apache-2',
     'author': authorLabel,
     'copyright': copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': saveXfMenuEntender,
-    'CntlrCmdLine.Options': saveXfCommandLineOptionExtender,
-    'CntlrCmdLine.Xbrl.Run': saveXfCommandLineXbrlRun,
+    'CntlrWinMain.Menu.Tools': saveXuleMenuEntender,
+    'CntlrCmdLine.Options': saveXuleCommandLineOptionExtender,
+    'CntlrCmdLine.Xbrl.Run': saveXuleCommandLineXbrlRun,
 }
