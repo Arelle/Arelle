@@ -191,7 +191,7 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
 
 
 def evaluateVariableBindings(xpCtx, varSet, uncoveredAspectFacts):
-    if allFactVariablesHaveFallenBack(xpCtx):
+    if factVarsExistAndAllHaveFallenBack(xpCtx):
         if xpCtx.formulaOptions.traceVariableSetExpressionResult:
             xpCtx.modelXbrl.info(
                 "formula:trace",
@@ -430,7 +430,7 @@ def evaluateVariableBindings(xpCtx, varSet, uncoveredAspectFacts):
                 )
 
 
-def allFactVariablesHaveFallenBack(xpCtx):
+def factVarsExistAndAllHaveFallenBack(xpCtx):
     thereIsAFactVariable = False
     for vb in xpCtx.varBindings.values():
         if vb.isFactVar:
