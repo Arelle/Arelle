@@ -77,7 +77,7 @@ from arelle.DisclosureSystem import DisclosureSystem
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
-from arelle.XPathContext import XPathContext
+from arelle.formula.XPathContext import XPathContext
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelInstanceObject import ModelContext

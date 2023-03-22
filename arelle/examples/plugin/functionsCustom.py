@@ -3,7 +3,8 @@ Sample custom functions plugin for formula custom functions
 
 See COPYRIGHT.md for copyright information.
 '''
-from arelle import XPathContext, XbrlUtil
+from arelle import XbrlUtil
+from arelle.formula import XPathContext
 from arelle.ModelValue import qname
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.Version import authorLabel, copyrightLabel

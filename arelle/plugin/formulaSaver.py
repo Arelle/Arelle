@@ -28,7 +28,8 @@ from arelle.ModelFormulaObject import (ModelValueAssertion, ModelExistenceAssert
                                        ModelCustomFunctionSignature, ModelCustomFunctionImplementation,
                                        ModelPeriod,
                                        ModelAndFilter, ModelOrFilter, ModelMessage, ModelAssertionSeverity)
-from arelle import XbrlConst, XmlUtil, XPathParser
+from arelle import XbrlConst, XmlUtil
+from arelle.formula import XPathParser
 from arelle.Version import authorLabel, copyrightLabel
 import os, datetime
 

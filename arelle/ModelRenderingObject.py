@@ -2,7 +2,8 @@
 See COPYRIGHT.md for copyright information.
 '''
 import inspect, os
-from arelle import XmlUtil, XbrlConst, XPathParser, Locale, XPathContext
+from arelle import XmlUtil, XbrlConst, Locale
+from arelle.formula import XPathContext, XPathParser
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import qname, QName
@@ -10,8 +11,8 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import (Trace, ModelFormulaResource, ModelFormulaRules, ModelConceptName,
                                        ModelParameter, Aspect, aspectStr, aspectRuleAspects)
 from arelle.ModelInstanceObject import ModelFact
-from arelle.FormulaEvaluator import (filterFacts as formulaEvaluatorFilterFacts,
-                                     aspectsMatch, factsPartitions, VariableBinding)
+from arelle.formula.FormulaEvaluator import (filterFacts as formulaEvaluatorFilterFacts,
+                                             aspectsMatch, factsPartitions, VariableBinding)
 from arelle.PrototypeInstanceObject import FactPrototype
 
 ROLLUP_NOT_ANALYZED = 0

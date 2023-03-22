@@ -162,14 +162,12 @@ def test_function_loadModule():
         }
     )
 
-    # all_modules_list contains a list of all currently loaded modules, eg:
-    # arelle.XPathContext
-    # arelle.FunctionUtil
-    # arelle.FunctionXs
-    # isodate.isoduration
-    # functionsMath
     all_modules_list: list[str] = [m.__name__ for m in sys.modules.values() if m]
 
+    assert "arelle.formula.XPathContext" in all_modules_list
+    assert "arelle.FunctionUtil" in all_modules_list
+    assert "arelle.FunctionXs" in all_modules_list
+    assert "isodate.isoduration" in all_modules_list
     assert "functionsMath" in all_modules_list
 
     PluginManager.close()

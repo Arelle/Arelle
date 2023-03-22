@@ -4,7 +4,8 @@ See COPYRIGHT.md for copyright information.
 from collections import defaultdict
 import datetime
 import regex as re
-from arelle import XmlUtil, XbrlConst, XPathParser, XPathContext
+from arelle import XmlUtil, XbrlConst
+from arelle.formula import XPathContext, XPathParser
 # Aspect used to be in this file, so allow others to import its attributes from here.
 from arelle.Aspect import (
     Aspect as Aspect, aspectStr, isDimensionalAspect, aspectModelAspect, aspectRuleAspects,
@@ -2870,6 +2871,6 @@ elementSubstitutionModelClass.update((
      ))
 
 # import after other modules resolved to prevent circular references
-from arelle.FormulaEvaluator import filterFacts, aspectsMatch, aspectMatches
+from arelle.formula.FormulaEvaluator import filterFacts, aspectsMatch, aspectMatches
 from arelle.FunctionXfi import concept_relationships
 from arelle.ValidateXbrlCalcs import inferredPrecision

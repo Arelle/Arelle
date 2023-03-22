@@ -5,7 +5,8 @@ from __future__ import annotations
 import regex as re
 from typing import Any, Union, cast
 from arelle import (XmlUtil, XbrlUtil, XbrlConst,
-                ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateFormula, ValidateUtr)
+                ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateUtr)
+from arelle.formula import ValidateFormula
 from arelle.ModelDocument import ModelDocument, Type as ModelDocumentType
 from arelle import FunctionIxt
 from arelle.ModelObject import ModelObject

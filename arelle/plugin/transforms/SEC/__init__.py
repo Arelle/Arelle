@@ -14,7 +14,7 @@ Local copy of text2num.py was obtained from https://github.com/ghewgill/text2num
 import datetime
 from arelle.ModelValue import qname, lastDayOfMonth
 from arelle.Version import authorLabel, copyrightLabel
-from arelle.XPathContext import FunctionArgType
+from arelle.formula.XPathContext import FunctionArgType
 
 #local copy of text2num.py from https://github.com/ghewgill/text2num
 from .text2num import text2num, NumberException

@@ -1,7 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from arelle import XPathContext, XbrlConst, XmlUtil
+from arelle import XbrlConst, XmlUtil
+from arelle.formula import XPathContext
 from arelle.ModelFormulaObject import (aspectModels, aspectStr, Aspect)
 from arelle.ModelRenderingObject import (CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST,
                                          ModelDefinitionNode, ModelEuAxisCoord,
@@ -17,7 +18,8 @@ def init(modelXbrl):
     # setup modelXbrl for rendering evaluation
 
     # dimension defaults required in advance of validation
-    from arelle import ValidateXbrlDimensions, ValidateFormula, FormulaEvaluator, ModelDocument
+    from arelle import ValidateXbrlDimensions, ModelDocument
+    from arelle.formula import FormulaEvaluator, ValidateFormula
     ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
 
     hasXbrlTables = False

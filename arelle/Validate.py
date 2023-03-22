@@ -5,8 +5,9 @@ import os, sys, traceback, logging
 import regex as re
 from collections import defaultdict, OrderedDict
 from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlConst,
-               ValidateXbrl, ValidateVersReport, ValidateFormula,
+               ValidateXbrl, ValidateVersReport,
                ValidateInfoset, RenderingEvaluator, ViewFileRenderedGrid, UrlUtil)
+from arelle.formula import ValidateFormula
 from arelle.ModelDocument import Type, ModelDocumentReference, load as modelDocumentLoad
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact

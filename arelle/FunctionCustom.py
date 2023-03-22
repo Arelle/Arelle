@@ -3,11 +3,12 @@ See COPYRIGHT.md for copyright information.
 '''
 from decimal import Decimal
 
-from arelle import XPathContext, XbrlUtil
+from arelle import XbrlUtil
+from arelle.formula import XPathContext
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import QName, qname
 from arelle.PythonUtil import flattenSequence
-from arelle.XPathParser import OperationDef
+from arelle.formula.XPathParser import OperationDef
 
 
 class fnFunctionNotAvailable(Exception):

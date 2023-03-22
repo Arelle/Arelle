@@ -1,10 +1,12 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from arelle import XbrlConst
-from arelle.XbrlUtil import xEqual, S_EQUAL2
-from arelle.ValidateXbrlCalcs import inferredPrecision, roundValue
 from math import fabs
+
+from arelle import XbrlConst
+from arelle.ValidateXbrlCalcs import inferredPrecision, roundValue
+from arelle.XbrlUtil import S_EQUAL2, xEqual
+
 
 def evaluate(xpCtx, varSet, derivedFact):
     # there may be multiple consis assertions parenting any formula
@@ -17,11 +19,20 @@ def evaluate(xpCtx, varSet, derivedFact):
         isNumeric = derivedFact.isNumeric
         if isNumeric and not derivedFact.isNil:
             derivedFactInferredPrecision = inferredPrecision(derivedFact)
-            if derivedFactInferredPrecision == 0 and not hasProportionalAcceptanceRadius and not hasAbsoluteAcceptanceRadius:
+            if (
+                derivedFactInferredPrecision == 0
+                and not hasProportionalAcceptanceRadius
+                and not hasAbsoluteAcceptanceRadius
+            ):
                 if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                    xpCtx.modelXbrl.info("formula:trace",
-                         _("Consistency assertion %(id)s formula %(xlinkLabel)s fact %(derivedFact)s has zero precision and no radius is defined, skipping consistency assertion"),
-                         modelObject=consisAsser, id=consisAsser.id, xlinkLabel=varSet.xlinkLabel, derivedFact=derivedFact)
+                    xpCtx.modelXbrl.info(
+                        "formula:trace",
+                        _("Consistency assertion %(id)s formula %(xlinkLabel)s fact %(derivedFact)s has zero precision and no radius is defined, skipping consistency assertion"),
+                        modelObject=consisAsser,
+                        id=consisAsser.id,
+                        xlinkLabel=varSet.xlinkLabel,
+                        derivedFact=derivedFact,
+                    )
                 continue
 
         # check xbrl validity of new fact
@@ -30,12 +41,15 @@ def evaluate(xpCtx, varSet, derivedFact):
         aspectMatchedInputFacts = []
         isStrict = consisAsser.isStrict
         for inputFact in xpCtx.modelXbrl.facts:
-            if (not inputFact.isNil and
-                inputFact.qname == derivedFact.qname and
-                inputFact.context.isEqualTo(derivedFact.context,
-                                            dimensionalAspectModel=(varSet.aspectModel == "dimensional")) and
-                (not isNumeric or inputFact.unit.isEqualTo(derivedFact.unit))):
-                aspectMatchedInputFacts.append( inputFact )
+            if (
+                not inputFact.isNil
+                and inputFact.qname == derivedFact.qname
+                and inputFact.context.isEqualTo(
+                    derivedFact.context, dimensionalAspectModel=(varSet.aspectModel == "dimensional")
+                )
+                and (not isNumeric or inputFact.unit.isEqualTo(derivedFact.unit))
+            ):
+                aspectMatchedInputFacts.append(inputFact)
 
         if len(aspectMatchedInputFacts) == 0:
             if isStrict:
@@ -45,9 +59,14 @@ def evaluate(xpCtx, varSet, derivedFact):
                     isSatisfied = False
             else:
                 if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                    xpCtx.modelXbrl.info("formula:trace",
-                         _("Consistency assertion %(id)s formula %(xlinkLabel)s no input facts matched to %(derivedFact)s, skipping consistency assertion"),
-                         modelObject=consisAsser, id=consisAsser.id, xlinkLabel=varSet.xlinkLabel, derivedFact=derivedFact)
+                    xpCtx.modelXbrl.info(
+                        "formula:trace",
+                        _("Consistency assertion %(id)s formula %(xlinkLabel)s no input facts matched to %(derivedFact)s, skipping consistency assertion"),
+                        modelObject=consisAsser,
+                        id=consisAsser.id,
+                        xlinkLabel=varSet.xlinkLabel,
+                        derivedFact=derivedFact,
+                    )
                 continue
         elif derivedFact.isNil:
             isSatisfied = False
@@ -72,11 +91,20 @@ def evaluate(xpCtx, varSet, derivedFact):
                     isSatisfied = False
             elif isNumeric:
                 factInferredPrecision = inferredPrecision(fact)
-                if factInferredPrecision == 0 and not hasProportionalAcceptanceRadius and not hasAbsoluteAcceptanceRadius:
+                if (
+                    factInferredPrecision == 0
+                    and not hasProportionalAcceptanceRadius
+                    and not hasAbsoluteAcceptanceRadius
+                ):
                     if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                        xpCtx.modelXbrl.info("formula:trace",
-                             _("Consistency assertion %(id)s formula %(xlinkLabel)s input fact matched to %(derivedFact)s has zero precision and no radius, skipping consistency assertion"),
-                             modelObject=consisAsser, id=consisAsser.id, xlinkLabel=varSet.xlinkLabel, derivedFact=derivedFact)
+                        xpCtx.modelXbrl.info(
+                            "formula:trace",
+                            _("Consistency assertion %(id)s formula %(xlinkLabel)s input fact matched to %(derivedFact)s has zero precision and no radius, skipping consistency assertion"),
+                            modelObject=consisAsser,
+                            id=consisAsser.id,
+                            xlinkLabel=varSet.xlinkLabel,
+                            derivedFact=derivedFact,
+                        )
                         isSatisfied = None
                         break
                 if hasProportionalAcceptanceRadius or hasAbsoluteAcceptanceRadius:
@@ -89,31 +117,39 @@ def evaluate(xpCtx, varSet, derivedFact):
                         isSatisfied = None  # no radius
                 else:
                     p = min(derivedFactInferredPrecision, factInferredPrecision)
-                    if (p == 0 or
-                        roundValue(derivedFact.value, precision=p) != roundValue(fact.value, precision=p)):
+                    if p == 0 or roundValue(derivedFact.value, precision=p) != roundValue(fact.value, precision=p):
                         isSatisfied = False
             else:
                 if not xEqual(fact, derivedFact, equalMode=S_EQUAL2):
                     isSatisfied = False
         if isSatisfied is not None:  # None means no evaluation
             if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-                xpCtx.modelXbrl.info("formula:trace",
-                     _("Consistency assertion %(id)s result %(result)s"),
-                     modelObject=consisAsser, id=consisAsser.id, result=isSatisfied)
+                xpCtx.modelXbrl.info(
+                    "formula:trace",
+                    _("Consistency assertion %(id)s result %(result)s"),
+                    modelObject=consisAsser,
+                    id=consisAsser.id,
+                    result=isSatisfied,
+                )
             message = consisAsser.message(isSatisfied)
             if message is not None:
                 xpCtx.inScopeVars[XbrlConst.qnCaAspectMatchedFacts] = aspectMatchedInputFacts
                 xpCtx.inScopeVars[XbrlConst.qnCaAcceptanceRadius] = acceptance
                 xpCtx.inScopeVars[XbrlConst.qnCaAbsoluteAcceptanceRadiusExpression] = consisAsser.get("absoluteAcceptanceRadius")
                 xpCtx.inScopeVars[XbrlConst.qnCaProportionalAcceptanceRadiusExpression] = consisAsser.get("proportionalAcceptanceRadius")
-                xpCtx.modelXbrl.info("message:" + consisAsser.id, message.evaluate(xpCtx),
-                                     modelObject=message,
-                                     messageCodes=("message:{variableSetID|xlinkLabel}"))
+                xpCtx.modelXbrl.info(
+                    "message:" + consisAsser.id,
+                    message.evaluate(xpCtx),
+                    modelObject=message,
+                    messageCodes=("message:{variableSetID|xlinkLabel}"),
+                )
                 xpCtx.inScopeVars.pop(XbrlConst.qnCaAspectMatchedFacts)
                 xpCtx.inScopeVars.pop(XbrlConst.qnCaAcceptanceRadius)
                 xpCtx.inScopeVars.pop(XbrlConst.qnCaAbsoluteAcceptanceRadiusExpression)
                 xpCtx.inScopeVars.pop(XbrlConst.qnCaProportionalAcceptanceRadiusExpression)
-            if isSatisfied: consisAsser.countSatisfied += 1
-            else: consisAsser.countNotSatisfied += 1
+            if isSatisfied:
+                consisAsser.countSatisfied += 1
+            else:
+                consisAsser.countNotSatisfied += 1
         for paramQname in paramQnamesAdded:
             xpCtx.inScopeVars.pop(paramQname)

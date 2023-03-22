@@ -8,7 +8,7 @@ from arelle.RenderingResolver import resolveAxesStructure, RENDER_UNITS_PER_CHAR
 from arelle.ViewFile import HTML, XML
 from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
-from arelle.FormulaEvaluator import aspectMatches
+from arelle.formula.FormulaEvaluator import aspectMatches
 from arelle.FunctionXs import xsString
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import QName

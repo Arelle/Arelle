@@ -4,7 +4,8 @@ See COPYRIGHT.md for copyright information.
 import os, sys, traceback
 import regex as re
 from arelle import (ModelXbrl, XmlUtil, ModelVersReport, XbrlConst, ModelDocument,
-               ValidateXbrl, ValidateFormula)
+               ValidateXbrl)
+from arelle.formula import ValidateFormula
 from arelle.FileSource import openFileSource
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods

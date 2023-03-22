@@ -3,7 +3,8 @@ See COPYRIGHT.md for copyright information.
 '''
 import xml.dom, datetime
 import regex as re
-from arelle import XPathContext, XbrlConst, XbrlUtil, XmlUtil
+from arelle import XbrlConst, XbrlUtil, XmlUtil
+from arelle.formula import XPathContext
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelValue import qname, QName, dateTime, DATE, DATETIME, DATEUNION, DateTime, dateUnionEqual, anyURI
 from arelle.FunctionUtil import anytypeArg, stringArg, numericArg, qnameArg, nodeArg, atomicArg
@@ -12,7 +13,7 @@ from arelle.ModelDtsObject import anonymousTypeSuffix, ModelConcept
 from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact, ModelInlineFact
 from arelle.ModelFormulaObject import ModelFormulaResource
 from arelle.PythonUtil import flattenSequence
-from arelle.XPathParser import OperationDef
+from arelle.formula.XPathParser import OperationDef
 from arelle.XmlValidate import UNKNOWN, VALID, VALID_NO_CONTENT, validate as xmlValidate, NCNamePattern
 from arelle.ValidateXbrlCalcs import inferredDecimals, inferredPrecision
 from arelle.ValidateXbrlDimensions import priItemElrHcRels
@@ -318,7 +319,7 @@ def checkXffFunctionUse(xc, p, functionName):
 
 def uncovered_aspect(xc, p, args):
     from arelle.ModelFormulaObject import aspectFromToken, Aspect
-    from arelle.FormulaEvaluator import uncoveredAspectValue
+    from arelle.formula.FormulaEvaluator import uncoveredAspectValue
     if len(args) not in (1,2): raise XPathContext.FunctionNumArgs()
     aspect = aspectFromToken.get(stringArg(xc, args, 0, "xs:token").strip())
     if aspect == Aspect.DIMENSIONS:
@@ -348,7 +349,7 @@ def uncovered_aspect(xc, p, args):
     return aspectValue
 
 def has_fallback_value(xc, p, args):
-    from arelle.FormulaEvaluator import variableBindingIsFallback
+    from arelle.formula.FormulaEvaluator import variableBindingIsFallback
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     variableQname = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
 
@@ -364,7 +365,7 @@ def uncovered_dimensional_aspects(xc, p, args):
 
 def uncovered_aspects(xc, p, args, dimensionAspects=False):
     from arelle.ModelFormulaObject import aspectToToken, Aspect
-    from arelle.FormulaEvaluator import uncoveredVariableSetAspects
+    from arelle.formula.FormulaEvaluator import uncoveredVariableSetAspects
     if len(args) != 0: raise XPathContext.FunctionNumArgs()
 
     # check function use after checking argument types
