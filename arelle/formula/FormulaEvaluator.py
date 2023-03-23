@@ -1080,11 +1080,11 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
         # detects evaluations which are not different (duplicate) and extra fallback evaluations
         # vBoundFact may be single fact or tuple of facts
         return any(
-            all([
+            all(
                 vBoundFact == matchingEval[vQn]
                 for vQn, vBoundFact in thisEval.items()
                 if vBoundFact is not None and vQn not in vQnDependentOnOtherVarFallenBackButBoundInOtherEval
-            ]) for matchingEval in matchingEvals
+            ) for matchingEval in matchingEvals
         )
     return False
 
