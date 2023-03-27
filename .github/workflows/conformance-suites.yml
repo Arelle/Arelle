@@ -7,7 +7,7 @@ jobs:
     outputs:
       matrix: ${{ steps.build-test-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v3.4.0
+      - uses: actions/checkout@v3.5.0
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
@@ -57,14 +57,14 @@ jobs:
           curl "${{ secrets.XBRL_VALIDATION_CONFIG_URL }}" -o config.zip
           7z x config.zip -o"$env:LOCALAPPDATA\Arelle\cache" 'http/*' 'https/*'
           rm config.zip
-      - uses: actions/checkout@v3.4.0
+      - uses: actions/checkout@v3.5.0
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Checkout EdgarRenderer
         if: ${{ matrix.test == 'efm_current' }}
-        uses: actions/checkout@v3.4.0
+        uses: actions/checkout@v3.5.0
         with:
           repository: Arelle/EdgarRenderer
           path: arelle/plugin/EdgarRenderer
