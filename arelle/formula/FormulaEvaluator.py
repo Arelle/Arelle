@@ -896,19 +896,19 @@ def implicitFilter(xpCtx, vb, facts, uncoveredAspectFacts):
                 if len(_facts) == 0:
                     break
     else:
-        testableAspectFacts = [
-            (aspect, uncoveredAspectFacts.get(aspect))
-            for aspect in aspects
-            if uncoveredAspectFacts.get(aspect, "none") is not None
-        ]
+        testableAspectFacts = defaultdict(set)
+        for aspect in aspects:
+            if uncoveredAspectFacts.get(aspect, "none") is not None:
+                testableAspectFacts[uncoveredAspectFacts.get(aspect)].add(aspect)
+
         if testableAspectFacts:
             # not tracing, do bulk aspect filtering
             _facts = [
                 fact
                 for fact in facts
                 if all(
-                    aspectMatches(xpCtx, uncoveredAspectFact, fact, aspect)
-                    for (aspect, uncoveredAspectFact) in testableAspectFacts
+                    aspectsMatch(xpCtx, uncoveredAspectFact, fact, aspects)
+                    for uncoveredAspectFact, aspects in testableAspectFacts.items()
                 )
             ]
         else:
@@ -916,12 +916,30 @@ def implicitFilter(xpCtx, vb, facts, uncoveredAspectFacts):
 
     return _facts
 
-
 def aspectsMatch(xpCtx, fact1, fact2, aspects):
-    return all(aspectMatches(xpCtx, fact1, fact2, aspect) for aspect in aspects)
+    factAspectsCache = getattr(xpCtx, "factAspectsCache", None)
+    if factAspectsCache is None:
+        return all(aspectMatchesNoCache(xpCtx, fact1, fact2, aspect) for aspect in aspects)
 
+    cachedEvaluationsByAspect = factAspectsCache.evaluations(fact1, fact2)
+    # Short circuit checking other aspects if any have already been evaluated to not match.
+    if any(cachedEvaluationsByAspect.get(aspect) is False for aspect in aspects):
+        return False
+    for aspect in aspects:
+        matches = cachedEvaluationsByAspect.get(aspect)
+        if matches is None:
+            matches = aspectMatchesNoCache(xpCtx, fact1, fact2, aspect)
+            if matches:
+                factAspectsCache.cacheMatch(fact1, fact2, aspect)
+            else:
+                factAspectsCache.cacheNotMatch(fact1, fact2, aspect)
+                return False
+    return True
 
 def aspectMatches(xpCtx, fact1, fact2, aspect):
+    return aspectsMatch(xpCtx, fact1, fact2, [aspect])
+
+def aspectMatchesNoCache(xpCtx, fact1, fact2, aspect):
     if fact1 is None:  # fallback (atomic) never matches any aspect
         return False
     if aspect == 1:  # Aspect.LOCATION:
@@ -1080,11 +1098,11 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
         # detects evaluations which are not different (duplicate) and extra fallback evaluations
         # vBoundFact may be single fact or tuple of facts
         return any(
-            all([
+            all(
                 vBoundFact == matchingEval[vQn]
                 for vQn, vBoundFact in thisEval.items()
                 if vBoundFact is not None and vQn not in vQnDependentOnOtherVarFallenBackButBoundInOtherEval
-            ]) for matchingEval in matchingEvals
+            ) for matchingEval in matchingEvals
         )
     return False
 
