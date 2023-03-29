@@ -665,7 +665,7 @@ class lxmlSchemaResolver(etree.Resolver):
                 #return self.resolve_file(fh, context, base_url=_url, close=True)
                 xml = ""
                 with self.modelXbrl.fileSource.file(url)[0] as fh:
-                    xml = fh.read()
+                    xml = fh.read() # type: ignore[attr-defined]
                 if xml:
                     return self.resolve_string(xml, context, base_url=_url)
             else: # probably no active modelXbrl yet, such as when loading packages, use url
