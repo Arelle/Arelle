@@ -1780,7 +1780,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                                             _("Inline XBRL fractions must have one ix:numerator and one ix:denominator child"),
                                             modelObject=modelInlineFact)
                     disallowedChildren = sorted((k for k in childCounts.keys() if k not in ("numerator", "denominator", "fraction") ))
-                    if disallowedChildren: 
+                    if disallowedChildren:
                         modelXbrl.error(ixMsgCode("fractionChildren", modelInlineFact, sect="constraint"),
                                         _("Inline XBRL fraction disallowed children: %(disallowedChildren)s"),
                                         modelObject=modelInlineFact, disallowedChildren=", ".join(disallowedChildren))
@@ -1832,11 +1832,10 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                 locateContinuation(modelInlineFootnote)
 
         for elt in htmlElement.iterdescendants(ixNStag + "exclude"):
-            if not any(True for ancestor in elt.iterancestors(ixNStag + "continuation", ixNStag + "footnote", ixNStag + "nonNumeric")): 
+            if not any(True for ancestor in elt.iterancestors(ixNStag + "continuation", ixNStag + "footnote", ixNStag + "nonNumeric")):
                 modelXbrl.error(ixMsgCode("excludeMisplaced", elt, sect="constraint"),
                                 _("Ix:exclude must be a descendant of descendant of at least one ix:continuation, ix:footnote or ix:nonNumeric element."),
                                 modelObject=elt)
-                                               
 
     # validate particle structure of elements after transformations and established tuple structure
     fractionTermTags = (ixNStag + "numerator", ixNStag + "denominator")

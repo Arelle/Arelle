@@ -75,7 +75,7 @@ def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
         valHtmlContentMsgPrefix = modelXbrl.modelManager.disclosureSystem.validationType + ".5.02.05."
 
 
-    XmlValidate.lxmlSchemaValidate(elt.modelDocument, 
+    XmlValidate.lxmlSchemaValidate(elt.modelDocument,
                                    "http://www.xbrl.org/2013/inlineXBRL/xhtml-inlinexbrl-1_1.xsd",
                                    # pass valid hrefs becalse lxml entity resolver doesn't pass back parent's baseURL
                                    {"http://www.xbrl.org/2013/inlineXBRL/xhtml",

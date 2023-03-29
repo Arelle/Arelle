@@ -653,7 +653,7 @@ class lxmlSchemaResolver(etree.Resolver):
     def resolve(self, url: str | None, id: str, context: Any) -> Any: #  type: ignore[override]
         if self.modelXbrl is None or not self.modelXbrl.fileSource.isInArchive(url):
             _url = url
-            if not (url.startswith("http://") or url.startswith("https://")):
+            if url and not (url.startswith("http://") or url.startswith("https://")):
                 for href in self.hrefs or ():
                     if href.endswith(url):
                         url = _url = href
@@ -666,7 +666,8 @@ class lxmlSchemaResolver(etree.Resolver):
                 xml = ""
                 with self.modelXbrl.fileSource.file(url)[0] as fh:
                     xml = fh.read()
-                return self.resolve_string(xml, context, base_url=_url)
+                if xml:
+                    return self.resolve_string(xml, context, base_url=_url)
             else: # probably no active modelXbrl yet, such as when loading packages, use url
                 return self.resolve_filename(url, context)  # type: ignore[attr-defined]
         return self.resolve_empty(context)  # type: ignore[attr-defined]
@@ -677,7 +678,7 @@ def lxmlResolvingParser(cntlr: Cntlr, modelXbrl: ModelXbrl | None = None, hrefs:
     parser.resolvers.add(resolver)
     return parser
 
-def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = None, hrefs : set(str) | None = None ) -> None:
+def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = None, hrefs : (str) | None = None ) -> None:
     # lxml schema-validate modelDocument
     if modelDocument is None:
         return
@@ -690,7 +691,7 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
                 xsdTree = modelXbrl.namespaceDocs[ns][0].xmlRootElement.getroottree()
             else:
                 xsdTree = url = None
-                
+
                 if extraSchema:
                     url = extraSchema
                 else:
@@ -717,7 +718,7 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
             etreeXMLSchema = etree.XMLSchema(xsdTree)
             etreeXMLSchema.assertValid(docTree)
         except etree.DocumentInvalid as err:
-            for e in err.error_log:
+            for e in err.error_log:  # type: ignore[attr-defined]
                 if not any(s in e.message for s in (": The QName value", "is not a valid value of the atomic type 'xs:QName'")):
                     # do newer lxml validations have QName whitespace collapsing issue?
                     msgCode = f"lxml.{e.type_name}"
@@ -727,7 +728,7 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
                                                 "sourceLine": e.line},
                                    messageCode=msgCode,
                                    file=modelDocument.basename,
-                                   level=logging.ERROR)                
+                                   level=logging.ERROR)
                     modelDocument.modelXbrl.errors.append(msgCode)
         except etree.XMLSyntaxError as err:
             msgCode = "lxml.schemaError"
