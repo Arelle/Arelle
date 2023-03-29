@@ -77,7 +77,7 @@ def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
 
     XmlValidate.lxmlSchemaValidate(elt.modelDocument,
                                    "http://www.xbrl.org/2013/inlineXBRL/xhtml-inlinexbrl-1_1.xsd",
-                                   # pass valid hrefs becalse lxml entity resolver doesn't pass back parent's baseURL
+                                   # pass valid hrefs because lxml entity resolver doesn't pass back parent's baseURL
                                    {"http://www.xbrl.org/2013/inlineXBRL/xhtml/xhtml-link-1.xsd",
                                     "http://www.xbrl.org/2013/inlineXBRL/xhtml/xhtml11-model-1.xsd",
                                     "http://www.xbrl.org/2013/inlineXBRL/xhtml/xhtml-meta-1.xsd",
