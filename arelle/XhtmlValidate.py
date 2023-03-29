@@ -78,8 +78,7 @@ def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
     XmlValidate.lxmlSchemaValidate(elt.modelDocument,
                                    "http://www.xbrl.org/2013/inlineXBRL/xhtml-inlinexbrl-1_1.xsd",
                                    # pass valid hrefs becalse lxml entity resolver doesn't pass back parent's baseURL
-                                   {"http://www.xbrl.org/2013/inlineXBRL/xhtml",
-                                    "http://www.xbrl.org/2013/inlineXBRL/xhtml/xhtml-link-1.xsd",
+                                   {"http://www.xbrl.org/2013/inlineXBRL/xhtml/xhtml-link-1.xsd",
                                     "http://www.xbrl.org/2013/inlineXBRL/xhtml/xhtml11-model-1.xsd",
                                     "http://www.xbrl.org/2013/inlineXBRL/xhtml/xhtml-meta-1.xsd",
                                     "http://www.xbrl.org/2013/inlineXBRL/xhtml/xhtml-inlstruct-1.xsd",
@@ -143,7 +142,6 @@ def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
                                     "http://www.xbrl.org/2013/inlineXBRL/xhtml-inlinexbrl-1_1-definitions.xsd",
                                     "http://www.xbrl.org/2013/inlineXBRL/xhtml-inlinexbrl-1_1-model.xsd",
                                     "http://www.xbrl.org/2013/inlineXBRL/xhtml-inlinexbrl-1_1-modules.xsd",
-                                    "http://www.xbrl.org/2013/inlineXBRL/xbrl",
                                     "http://www.xbrl.org/2013/inlineXBRL/xbrl/xl-2003-12-31.xsd",
                                     "http://www.xbrl.org/2013/inlineXBRL/xbrl/xbrl-linkbase-2003-12-31-ixmod.xsd",
                                     "http://www.xbrl.org/2013/inlineXBRL/xbrl/xlink-2003-12-31.xsd",
