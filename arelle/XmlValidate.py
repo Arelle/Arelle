@@ -663,7 +663,6 @@ class lxmlSchemaResolver(etree.Resolver):
             if self.modelXbrl is not None: # use fileSource
                 #fh = self.modelXbrl.fileSource.file(url,binary=True)[0]
                 #return self.resolve_file(fh, context, base_url=_url, close=True)
-                xml = "" # type: Union[bytes, Any, str]
                 with self.modelXbrl.fileSource.file(url)[0] as fh:
                     xml = fh.read()
                 if xml:
