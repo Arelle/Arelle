@@ -1514,6 +1514,10 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                         else:
                             targetReferenceAttrsDict[attrName] = elt
                             targetReferenceAttrVals[target][attrName] = attrValue # use qname to preserve prefix
+                    if attrName.startswith("{http://www.xbrl.org/2003/instance}"):
+                        modelXbrl.error(ixMsgCode("qualifiedAttributeDisallowed",ns=mdlDoc.ixNS,name="references",sect="constraint"),
+                            _("Inline XBRL element %(element)s has disallowed attribute %(name)s"),
+                            modelObject=elt, element=str(elt.elementQname), name=attrName)
                 if elt.id:
                     if ixdsEltById[elt.id] != [elt]:
                         modelXbrl.error(ixMsgCode("referencesIdDuplication",ns=mdlDoc.ixNS,name="references",sect="validation"),
@@ -1755,6 +1759,38 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                 locateContinuation(modelInlineFact)
                 for r in modelInlineFact.footnoteRefs:
                     footnoteRefs[r].append(modelInlineFact)
+                if modelInlineFact.elementQname.localName == "fraction":
+                    childCounts = {}
+                    for child in modelInlineFact.iter(ixNStag + "*"):
+                        childCounts[child.elementQname.localName] = childCounts.get(child.elementQname.localName, 0) + 1
+                        if child.elementQname.localName == "fraction":
+                            for attr in modelInlineFact.attrib:
+                                if (attr.startswith("{") or attr == "unitRef") and modelInlineFact.get(attr,"").strip() != child.get(attr,"").strip():
+                                    modelXbrl.error(ixMsgCode("fractionChildAttributes", modelInlineFact, sect="validation"),
+                                                    _("Inline XBRL nested fractions must have same attribute values for %(attr)s"),
+                                                    modelObject=(modelInlineFact,child), attr=attr)
+                    if modelInlineFact.isNil:
+                        if "numerator" in childCounts or "denominator" in childCounts:
+                            modelXbrl.error(ixMsgCode("nilFractionChildren", modelInlineFact, sect="constraint"),
+                                            _("Inline XBRL nil fractions must not have any ix:numerator or ix:denominator children"),
+                                            modelObject=modelInlineFact)
+                    else:
+                        if childCounts.get("numerator",0) != 1 or childCounts.get("denominator",0) != 1:
+                            modelXbrl.error(ixMsgCode("fractionChildren", modelInlineFact, sect="constraint"),
+                                            _("Inline XBRL fractions must have one ix:numerator and one ix:denominator child"),
+                                            modelObject=modelInlineFact)
+                    disallowedChildren = sorted((k for k in childCounts.keys() if k not in ("numerator", "denominator", "fraction") ))
+                    if disallowedChildren: 
+                        modelXbrl.error(ixMsgCode("fractionChildren", modelInlineFact, sect="constraint"),
+                                        _("Inline XBRL fraction disallowed children: %(disallowedChildren)s"),
+                                        modelObject=modelInlineFact, disallowedChildren=", ".join(disallowedChildren))
+                elif modelInlineFact.elementQname.localName == "nonFraction":
+                    if not modelInlineFact.isNil:
+                        if any(True for e in modelInlineFact.iterchildren("{*}*")) and (
+                            modelInlineFact.text is not None or any(e.tail is not None for e in modelInlineFact.iterchildren())):
+                            modelXbrl.error(ixMsgCode("nonFractionChildren", modelInlineFact, sect="constraint"),
+                                            _("Inline XBRL nonFraction must have only one child nonFraction or text/whitespace but not both"),
+                                            modelObject=modelInlineFact)
         # order tuple facts
         for tupleFact in tupleElements:
             # check for duplicates
@@ -1795,6 +1831,12 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
             if isinstance(modelInlineFootnote,ModelObject):
                 locateContinuation(modelInlineFootnote)
 
+        for elt in htmlElement.iterdescendants(ixNStag + "exclude"):
+            if not any(True for ancestor in elt.iterancestors(ixNStag + "continuation", ixNStag + "footnote", ixNStag + "nonNumeric")): 
+                modelXbrl.error(ixMsgCode("excludeMisplaced", elt, sect="constraint"),
+                                _("Ix:exclude must be a descendant of descendant of at least one ix:continuation, ix:footnote or ix:nonNumeric element."),
+                                modelObject=elt)
+                                               
 
     # validate particle structure of elements after transformations and established tuple structure
     fractionTermTags = (ixNStag + "numerator", ixNStag + "denominator")
