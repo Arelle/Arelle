@@ -651,8 +651,8 @@ class lxmlSchemaResolver(etree.Resolver):
         self.hrefs = hrefs
 
     def resolve(self, url: str | None, id: str, context: Any) -> Any: #  type: ignore[override]
+        _url = url
         if self.modelXbrl is None or not self.modelXbrl.fileSource.isInArchive(url):
-            _url = url
             if url and not (url.startswith("http://") or url.startswith("https://")):
                 for href in self.hrefs or ():
                     if href.endswith(url):
