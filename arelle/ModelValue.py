@@ -216,9 +216,12 @@ class QName:
         # 100,000+ times). This will be revisited once the mixed type dicts in the validation impl are no more.
         # Additionally `QName == otherValue` historically returns False if the other value doesn't have matching attrs.
         # This is bad practice, but returning NotImplemented breaks conformance suites. Requires further investigation.
-        return (_conformsQname(other) and
-                self.localName == other.localName and
-                self.namespaceURI == other.namespaceURI)
+        return (
+                hasattr(other, 'localName')
+                and self.localName == other.localName
+                and hasattr(other, 'namespaceURI')
+                and self.namespaceURI == other.namespaceURI
+        )
 
     def __lt__(self, other: Any) -> bool:
         if _conformsQname(other):
