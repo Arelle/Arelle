@@ -63,6 +63,7 @@ jobs:
           rm -rf tmp
       - uses: actions/checkout@v3.5.0
         with:
+          fetch-depth: 0
           repository: Workiva/ixbrl-viewer
           path: tmp/ixbrl-viewer
           ref: ${{ inputs.ixbrl_viewer_ref }}
