@@ -139,13 +139,10 @@ class ContextPrototype():  # behaves like a context
 
     def dimValue(self, dimQname):
         """(ModelDimension or QName) -- ModelDimension object if dimension is reported (in either context element), or QName of dimension default if there is a default, otherwise None"""
-        try:
-            return self.qnameDims[dimQname]
-        except KeyError:
-            try:
-                return self.modelXbrl.qnameDimensionDefaults[dimQname]
-            except KeyError:
-                return None
+        dimValue = self.qnameDims.get(dimQname)
+        if dimValue is None:
+            dimValue = self.modelXbrl.qnameDimensionDefaults.get(dimQname)
+        return dimValue
 
     def dimValues(self, contextElement, oppositeContextElement=False):
         if not oppositeContextElement:

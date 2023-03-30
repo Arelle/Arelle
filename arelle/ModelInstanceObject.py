@@ -1066,13 +1066,10 @@ class ModelContext(ModelObject):
     # returns ModelDimensionValue for instance dimensions, else QName for defaults
     def dimValue(self, dimQname):
         """(ModelDimension or QName) -- ModelDimension object if dimension is reported (in either context element), or QName of dimension default if there is a default, otherwise None"""
-        try:
-            return self.qnameDims[dimQname]
-        except KeyError:
-            try:
-                return self.modelXbrl.qnameDimensionDefaults[dimQname]
-            except KeyError:
-                return None
+        dimValue = self.qnameDims.get(dimQname)
+        if dimValue is None:
+            dimValue = self.modelXbrl.qnameDimensionDefaults.get(dimQname)
+        return dimValue
 
     def dimMemberQname(self, dimQname, includeDefaults=False):
         """(QName) -- QName of explicit dimension if reported (or defaulted if includeDefaults is True), else None"""
