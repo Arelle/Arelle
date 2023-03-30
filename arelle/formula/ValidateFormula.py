@@ -39,7 +39,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import normalizeSpace
 from arelle.XmlValidate import validate as xml_validate
 from arelle.formula import XPathContext, XPathParser
-from arelle.formula.FactAspectsCache import FactAspectsMatchCache
+from arelle.formula.FactAspectsCache import FactAspectsCache
 
 formulaIdWhitespacesSeparatedPattern = re.compile(r"(\w+\s)*(\w+)$")  # prenormalized IDs list
 
@@ -483,7 +483,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
 
     if xpathContext is None:
         xpathContext = XPathContext.create(val.modelXbrl)
-    xpathContext.factAspectsCache = FactAspectsMatchCache()
+    xpathContext.factAspectsCache = FactAspectsCache()
     xpathContext.parameterQnames = parameterQnames  # needed for formula filters to determine variable dependencies
     for paramQname in orderedParameters:
         modelParameter = val.modelXbrl.qnameParameters[paramQname]

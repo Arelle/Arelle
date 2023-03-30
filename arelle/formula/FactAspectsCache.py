@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 
-class FactAspectsMatchCache:
+class FactAspectsCache:
     def __init__(self):
         self._matchingAspects = defaultdict(lambda : defaultdict(dict))
 
@@ -19,4 +19,4 @@ class FactAspectsMatchCache:
         self._matchingAspects[fact2][fact1][aspect] = value
 
     def __repr__(self):
-        return f"FactAspectsMatchCache(matchingAspects={self._matchingAspects})"
+        return f"FactAspectsCache(matchingAspects={self._matchingAspects})"
