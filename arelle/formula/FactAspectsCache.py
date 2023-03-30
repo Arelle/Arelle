@@ -1,25 +1,33 @@
+from __future__ import annotations
+
 from collections import defaultdict
+from typing import TYPE_CHECKING
+
+from arelle.ModelValue import QName
+
+if TYPE_CHECKING:
+    from arelle.ModelInstanceObject import ModelFact
 
 
 class FactAspectsCache:
-    def __init__(self):
-        self._matchingAspects = defaultdict(lambda : defaultdict(dict))
+    def __init__(self) -> None:
+        self._matchingAspects: defaultdict[ModelFact, defaultdict[ModelFact, dict[int | QName, bool]]] = defaultdict(lambda : defaultdict(dict))
 
-    def evaluations(self, fact1, fact2):
+    def evaluations(self, fact1: ModelFact, fact2: ModelFact) -> dict[int | QName, bool]:
         return self._matchingAspects[fact1][fact2]
 
-    def cacheMatch(self, fact1, fact2, aspect):
+    def cacheMatch(self, fact1: ModelFact, fact2: ModelFact, aspect: int | QName) -> None:
         self._register(fact1, fact2, aspect, True)
 
-    def cacheNotMatch(self, fact1, fact2, aspect):
+    def cacheNotMatch(self, fact1: ModelFact, fact2: ModelFact, aspect: int | QName) -> None:
         self._register(fact1, fact2, aspect, False)
 
-    def _register(self, fact1, fact2, aspect, value):
+    def _register(self, fact1: ModelFact, fact2: ModelFact, aspect: int | QName, value: bool) -> None:
         self._matchingAspects[fact1][fact2][aspect] = value
         self._matchingAspects[fact2][fact1][aspect] = value
 
-    def clear(self):
+    def clear(self) -> None:
         self._matchingAspects.clear()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"FactAspectsCache(matchingAspects={self._matchingAspects})"
