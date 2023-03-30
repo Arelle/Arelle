@@ -920,10 +920,10 @@ def aspectsMatch(xpCtx, fact1, fact2, aspects):
     factAspectsCache = xpCtx.factAspectsCache
     cachedEvaluationsByAspect = factAspectsCache.evaluations(fact1, fact2)
     # Short circuit checking other aspects if any have already been evaluated to not match.
-    if any(cachedEvaluationsByAspect.get(aspect) is False for aspect in aspects):
+    if any(cachedEvaluationsByAspect[aspect] is False for aspect in aspects):
         return False
     for aspect in aspects:
-        matches = cachedEvaluationsByAspect.get(aspect)
+        matches = cachedEvaluationsByAspect[aspect]
         if matches is None:
             matches = aspectMatchesNoCache(xpCtx, fact1, fact2, aspect)
             if matches:
