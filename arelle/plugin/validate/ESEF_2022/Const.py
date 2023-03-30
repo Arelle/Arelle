@@ -22,6 +22,7 @@ disallowedURIsPattern = re.compile(
     "http://www.esma.europa.eu/taxonomy/[0-9-]{10}/esef_all.xsd"
     )
 
+esefCorNsPattern = re.compile(r"https?://www\.esma\.europa\.eu/taxonomy/[0-9-]{10}/esef_cor")
 
 DefaultDimensionLinkroles = ("https://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000", # preferred, new spec
                              "http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000")
@@ -85,6 +86,10 @@ esefStatementsOfMonetaryDeclarationNames = {
     "StatementOfChangesInEquityAbstract",
     "StatementOfCashFlowsAbstract",
     }
+
+esefNotesStatementConcepts = {
+    "NotesAccountingPoliciesAndMandatoryTags",
+}
 
 esefMandatoryElementNames2020 = (
     "NameOfReportingEntityOrOtherMeansOfIdentification",
