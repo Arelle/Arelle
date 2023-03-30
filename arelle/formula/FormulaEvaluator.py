@@ -1066,11 +1066,15 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
         if all(e is None for e in thisEval.values()):
             # evaluation not necessary, all fallen back
             return True
+        nonNoneEvals = {
+            vQn: vBoundFact
+            for vQn, vBoundFact in thisEval.items()
+            if vBoundFact is not None
+        }
         # hash check if any hashes merit further look for equality
         otherEvalSets = [
             otherEvalHashDicts[vQn][hash(vBoundFact)]
-            for vQn, vBoundFact in thisEval.items()
-            if vBoundFact is not None
+            for vQn, vBoundFact in nonNoneEvals.items()
             if vQn in otherEvalHashDicts
             if hash(vBoundFact) in otherEvalHashDicts[vQn]
         ]
@@ -1082,9 +1086,8 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
         varBindings = xpCtx.varBindings
         vQnDependentOnOtherVarFallenBackButBoundInOtherEval = set(
             vQn
-            for vQn, vBoundFact in thisEval.items()
-            if vBoundFact is not None
-            and vQn in varBindings
+            for vQn, vBoundFact in nonNoneEvals.items()
+            if vQn in varBindings
             and any(
                 varBindings[varRefQn].isFallback
                 and any(
@@ -1100,8 +1103,8 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
         return any(
             all(
                 vBoundFact == matchingEval[vQn]
-                for vQn, vBoundFact in thisEval.items()
-                if vBoundFact is not None and vQn not in vQnDependentOnOtherVarFallenBackButBoundInOtherEval
+                for vQn, vBoundFact in nonNoneEvals.items()
+                if vQn not in vQnDependentOnOtherVarFallenBackButBoundInOtherEval
             ) for matchingEval in matchingEvals
         )
     return False
