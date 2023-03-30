@@ -38,6 +38,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
 from arelle.PythonUtil import STR_NUM_TYPES
+from arelle.formula.FactAspectsCache import FactAspectsCache
 from arelle.formula.XPathParser import (
     Expr,
     FormulaToken,
@@ -213,6 +214,7 @@ class XPathContext:
             inputXbrlInstance: ModelDocument,
             sourceElement: ModelObject | None,
             inScopeVars: dict[QName, ModelXbrl | ModelObject | int | str] | None = None,
+            factAspectsCache: FactAspectsCache | None = None,
     ) -> None:
         self.modelXbrl = modelXbrl
         self.isRunTimeExceeded = False
@@ -226,6 +228,7 @@ class XPathContext:
         self.progHeader: ProgHeader | None = None
         self.traceType: int | None = None
         self.variableSet = None
+        self.factAspectsCache = factAspectsCache or FactAspectsCache()
         self.inScopeVars: dict[QName, ModelXbrl | ModelObject | int | str] = {} if inScopeVars is None else inScopeVars
         self.cachedFilterResults: dict[ModelGeneral, set[ModelFact]] = {}
         if inputXbrlInstance:
@@ -243,6 +246,7 @@ class XPathContext:
         return xpCtxCpy
 
     def close(self) -> None:
+        self.factAspectsCache.clear()
         self.outputLastContext.clear()  # dereference
         self.outputLastUnit.clear()
         self.outputLastFact.clear()

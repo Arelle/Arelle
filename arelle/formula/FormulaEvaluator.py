@@ -917,16 +917,13 @@ def implicitFilter(xpCtx, vb, facts, uncoveredAspectFacts):
     return _facts
 
 def aspectsMatch(xpCtx, fact1, fact2, aspects):
-    factAspectsCache = getattr(xpCtx, "factAspectsCache", None)
-    if factAspectsCache is None:
-        return all(aspectMatchesNoCache(xpCtx, fact1, fact2, aspect) for aspect in aspects)
-
+    factAspectsCache = xpCtx.factAspectsCache
     cachedEvaluationsByAspect = factAspectsCache.evaluations(fact1, fact2)
     # Short circuit checking other aspects if any have already been evaluated to not match.
-    if any(cachedEvaluationsByAspect.get(aspect) is False for aspect in aspects):
+    if any(cachedEvaluationsByAspect[aspect] is False for aspect in aspects):
         return False
     for aspect in aspects:
-        matches = cachedEvaluationsByAspect.get(aspect)
+        matches = cachedEvaluationsByAspect[aspect]
         if matches is None:
             matches = aspectMatchesNoCache(xpCtx, fact1, fact2, aspect)
             if matches:
@@ -1066,15 +1063,18 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
     otherEvals = xpCtx.evaluations
     if otherEvals:
         otherEvalHashDicts = xpCtx.evaluationHashDicts
-        # HF try
-        # if all(e is None for e in thisEval):
         if all(e is None for e in thisEval.values()):
-            return True  # evaluation not necessary, all fallen back
+            # evaluation not necessary, all fallen back
+            return True
+        nonNoneEvals = {
+            vQn: vBoundFact
+            for vQn, vBoundFact in thisEval.items()
+            if vBoundFact is not None
+        }
         # hash check if any hashes merit further look for equality
         otherEvalSets = [
             otherEvalHashDicts[vQn][hash(vBoundFact)]
-            for vQn, vBoundFact in thisEval.items()
-            if vBoundFact is not None
+            for vQn, vBoundFact in nonNoneEvals.items()
             if vQn in otherEvalHashDicts
             if hash(vBoundFact) in otherEvalHashDicts[vQn]
         ]
@@ -1086,22 +1086,29 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
         varBindings = xpCtx.varBindings
         vQnDependentOnOtherVarFallenBackButBoundInOtherEval = set(
             vQn
-            for vQn, vBoundFact in thisEval.items()
-            if vBoundFact is not None
-            and vQn in varBindings
+            for vQn, vBoundFact in nonNoneEvals.items()
+            if vQn in varBindings
             and any(
-                varBindings[varRefQn].isFallback and any(m[varRefQn] is not None for m in matchingEvals)
+                varBindings[varRefQn].isFallback
+                and any(
+                    m[varRefQn] is not None
+                    for m in matchingEvals
+                )
                 for varRefQn in varBindings[vQn].var.variableRefs()
                 if varRefQn in varBindings
             )
         )
+        evalsNotDependentOnVarFallenBackButBoundInOtherEval = {
+            vQn: vBoundFact
+            for vQn, vBoundFact in nonNoneEvals.items()
+            if vQn not in vQnDependentOnOtherVarFallenBackButBoundInOtherEval
+        }
         # detects evaluations which are not different (duplicate) and extra fallback evaluations
         # vBoundFact may be single fact or tuple of facts
         return any(
             all(
                 vBoundFact == matchingEval[vQn]
-                for vQn, vBoundFact in thisEval.items()
-                if vBoundFact is not None and vQn not in vQnDependentOnOtherVarFallenBackButBoundInOtherEval
+                for vQn, vBoundFact in evalsNotDependentOnVarFallenBackButBoundInOtherEval.items()
             ) for matchingEval in matchingEvals
         )
     return False

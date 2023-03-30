@@ -1,9 +1,9 @@
-from arelle.formula.FactAspectsCache import FactAspectsMatchCache
+from arelle.formula.FactAspectsCache import FactAspectsCache
 
 
-class TestFactAspectsMatchCache:
+class TestFactAspectsCache:
     def test_match(self):
-        cache = FactAspectsMatchCache()
+        cache = FactAspectsCache()
         cache.cacheMatch("fact1", "fact2", "aspect")
 
         fact1_evaluations = cache.evaluations("fact1", "fact2")
@@ -12,7 +12,7 @@ class TestFactAspectsMatchCache:
         assert all(evaluations == {"aspect": True} for evaluations in (fact1_evaluations, fact2_evaluations))
 
     def test_non_match(self):
-        cache = FactAspectsMatchCache()
+        cache = FactAspectsCache()
         cache.cacheNotMatch("fact1", "fact2", "aspect")
 
         fact1_evaluations = cache.evaluations("fact1", "fact2")
@@ -21,7 +21,7 @@ class TestFactAspectsMatchCache:
         assert all(evaluations == {"aspect": False} for evaluations in (fact1_evaluations, fact2_evaluations))
 
     def test_mixed_evaluations(self):
-        cache = FactAspectsMatchCache()
+        cache = FactAspectsCache()
         cache.cacheMatch("fact1", "fact2", "aspect1")
         cache.cacheNotMatch("fact1", "fact2", "aspect2")
 
@@ -33,14 +33,14 @@ class TestFactAspectsMatchCache:
         }
 
     def test_empty_cache(self):
-        cache = FactAspectsMatchCache()
+        cache = FactAspectsCache()
 
         evaluations = cache.evaluations("fact1", "fact2")
 
         assert evaluations == {}
 
     def test_additional_facts(self):
-        cache = FactAspectsMatchCache()
+        cache = FactAspectsCache()
 
         cache.cacheMatch("fact1", "fact2", "aspect1")
         cache.cacheNotMatch("fact1", "fact2", "aspect2")
@@ -58,3 +58,18 @@ class TestFactAspectsMatchCache:
             "aspect2": False,
             "aspect3": True,
         }
+
+    def test_clear(self):
+        cache = FactAspectsCache()
+        cache.cacheMatch("fact1", "fact2", "aspect")
+
+        evaluations = cache.evaluations("fact1", "fact2")
+
+        assert evaluations == {
+            "aspect": True,
+        }
+
+        cache.clear()
+        evaluations = cache.evaluations("fact1", "fact2")
+
+        assert evaluations == {}
