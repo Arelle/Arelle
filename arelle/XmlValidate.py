@@ -644,20 +644,14 @@ def validateAnyWildcard(qnElt: QName, qnAttr: QName, attributeWildcards: list[Mo
     return False
 
 class lxmlSchemaResolver(etree.Resolver):
-    def __init__(self, cntlr: Cntlr, modelXbrl: ModelXbrl | None = None, hrefs: (str) | None = None) -> None:
+    def __init__(self, cntlr: Cntlr, modelXbrl: ModelXbrl | None = None) -> None:
         super(lxmlSchemaResolver, self).__init__()
         self.cntlr = cntlr
         self.modelXbrl = modelXbrl
-        self.hrefs = hrefs
 
     def resolve(self, url: str | None, id: str, context: Any) -> Any: #  type: ignore[override]
         _url = url
         if self.modelXbrl is None or not self.modelXbrl.fileSource.isInArchive(url):
-            if url and not (url.startswith("http://") or url.startswith("https://")):
-                for href in self.hrefs or ():
-                    if href.endswith(url):
-                        url = _url = href
-                        break
             url = self.cntlr.webCache.getfilename(url)
         if url: # may be None if file doesn't exist
             if self.modelXbrl is not None: # use fileSource
@@ -671,13 +665,13 @@ class lxmlSchemaResolver(etree.Resolver):
                 return self.resolve_filename(url, context)  # type: ignore[attr-defined]
         return self.resolve_empty(context)  # type: ignore[attr-defined]
 
-def lxmlResolvingParser(cntlr: Cntlr, modelXbrl: ModelXbrl | None = None, hrefs: (str) | None = None) -> etree.XMLParser:
+def lxmlResolvingParser(cntlr: Cntlr, modelXbrl: ModelXbrl | None = None) -> etree.XMLParser:
     parser = etree.XMLParser()
-    resolver = lxmlSchemaResolver(cntlr, modelXbrl, hrefs)
+    resolver = lxmlSchemaResolver(cntlr, modelXbrl)
     parser.resolvers.add(resolver)
     return parser
 
-def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = None, hrefs : (str) | None = None ) -> None:
+def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = None) -> None:
     # lxml schema-validate modelDocument
     if modelDocument is None:
         return
@@ -702,7 +696,7 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
                                 break
                 if url:
                     try:
-                        xsdTree = etree.parse(url,parser=lxmlResolvingParser(cntlr, modelXbrl, hrefs))
+                        xsdTree = etree.parse(url,parser=lxmlResolvingParser(cntlr, modelXbrl))
                     except (EnvironmentError, KeyError, UnicodeDecodeError) as err:
                         msgCode = "arelle.schemaFileError"
                         cntlr.addToLog(_("XML schema validation error: %(error)s"),
