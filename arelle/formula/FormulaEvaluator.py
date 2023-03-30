@@ -1063,10 +1063,9 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
     otherEvals = xpCtx.evaluations
     if otherEvals:
         otherEvalHashDicts = xpCtx.evaluationHashDicts
-        # HF try
-        # if all(e is None for e in thisEval):
         if all(e is None for e in thisEval.values()):
-            return True  # evaluation not necessary, all fallen back
+            # evaluation not necessary, all fallen back
+            return True
         # hash check if any hashes merit further look for equality
         otherEvalSets = [
             otherEvalHashDicts[vQn][hash(vBoundFact)]
@@ -1087,7 +1086,11 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
             if vBoundFact is not None
             and vQn in varBindings
             and any(
-                varBindings[varRefQn].isFallback and any(m[varRefQn] is not None for m in matchingEvals)
+                varBindings[varRefQn].isFallback
+                and any(
+                    m[varRefQn] is not None
+                    for m in matchingEvals
+                )
                 for varRefQn in varBindings[vQn].var.variableRefs()
                 if varRefQn in varBindings
             )
