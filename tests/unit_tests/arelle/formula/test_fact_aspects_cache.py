@@ -58,3 +58,18 @@ class TestFactAspectsCache:
             "aspect2": False,
             "aspect3": True,
         }
+
+    def test_clear(self):
+        cache = FactAspectsCache()
+        cache.cacheMatch("fact1", "fact2", "aspect")
+
+        evaluations = cache.evaluations("fact1", "fact2")
+
+        assert evaluations == {
+            "aspect": True,
+        }
+
+        cache.clear()
+        evaluations = cache.evaluations("fact1", "fact2")
+
+        assert evaluations == {}

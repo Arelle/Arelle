@@ -18,5 +18,8 @@ class FactAspectsCache:
         self._matchingAspects[fact1][fact2][aspect] = value
         self._matchingAspects[fact2][fact1][aspect] = value
 
+    def clear(self):
+        self._matchingAspects.clear()
+
     def __repr__(self):
         return f"FactAspectsCache(matchingAspects={self._matchingAspects})"

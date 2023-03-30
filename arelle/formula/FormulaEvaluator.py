@@ -917,10 +917,7 @@ def implicitFilter(xpCtx, vb, facts, uncoveredAspectFacts):
     return _facts
 
 def aspectsMatch(xpCtx, fact1, fact2, aspects):
-    factAspectsCache = getattr(xpCtx, "factAspectsCache", None)
-    if factAspectsCache is None:
-        return all(aspectMatchesNoCache(xpCtx, fact1, fact2, aspect) for aspect in aspects)
-
+    factAspectsCache = xpCtx.factAspectsCache
     cachedEvaluationsByAspect = factAspectsCache.evaluations(fact1, fact2)
     # Short circuit checking other aspects if any have already been evaluated to not match.
     if any(cachedEvaluationsByAspect.get(aspect) is False for aspect in aspects):
