@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-import logging
+import logging, os
 from typing import TYPE_CHECKING, Any, Callable, Type, cast
 from lxml import etree
 from regex import Match, compile as re_compile
@@ -650,22 +650,28 @@ class lxmlSchemaResolver(etree.Resolver):
         self.modelXbrl = modelXbrl
 
     def resolve(self, url: str | None, id: str, context: Any) -> Any: #  type: ignore[override]
+        _url = url
         if self.modelXbrl is None or not self.modelXbrl.fileSource.isInArchive(url):
             url = self.cntlr.webCache.getfilename(url)
         if url: # may be None if file doesn't exist
             if self.modelXbrl is not None: # use fileSource
-                fh = self.modelXbrl.fileSource.file(url,binary=True)[0]
-                return self.resolve_file(fh, context, base_url=None, close=True)
+                #fh = self.modelXbrl.fileSource.file(url,binary=True)[0]
+                #return self.resolve_file(fh, context, base_url=_url, close=True)
+                with self.modelXbrl.fileSource.file(url)[0] as fh:
+                    xml = fh.read()
+                if xml:
+                    return self.resolve_string(xml, context, base_url=_url)
             else: # probably no active modelXbrl yet, such as when loading packages, use url
                 return self.resolve_filename(url, context)  # type: ignore[attr-defined]
         return self.resolve_empty(context)  # type: ignore[attr-defined]
 
 def lxmlResolvingParser(cntlr: Cntlr, modelXbrl: ModelXbrl | None = None) -> etree.XMLParser:
     parser = etree.XMLParser()
-    parser.resolvers.add(lxmlSchemaResolver(cntlr, modelXbrl))
+    resolver = lxmlSchemaResolver(cntlr, modelXbrl)
+    parser.resolvers.add(resolver)
     return parser
 
-def lxmlSchemaValidate(modelDocument: ModelDocument) -> None:
+def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = None) -> None:
     # lxml schema-validate modelDocument
     if modelDocument is None:
         return
@@ -677,31 +683,47 @@ def lxmlSchemaValidate(modelDocument: ModelDocument) -> None:
             if ns in modelXbrl.namespaceDocs:
                 xsdTree = modelXbrl.namespaceDocs[ns][0].xmlRootElement.getroottree()
             else:
-                xsdTree = None
-                for slElt in modelDocument.schemaLocationElements:
-                    _sl = (slElt.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation") or "").split()
-                    for i in range(0, len(_sl), 2):
-                        if _sl[i] == ns and i+1 < len(_sl):
-                            url = cntlr.webCache.normalizeUrl(_sl[i+1], modelDocument.baseForElement(slElt))  # type: ignore[no-untyped-call]
-                            try:
-                                xsdTree = etree.parse(url,parser=lxmlResolvingParser(cntlr, modelXbrl))
+                xsdTree = url = None
+
+                if extraSchema:
+                    url = extraSchema
+                else:
+                    for slElt in modelDocument.schemaLocationElements:
+                        _sl = (slElt.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation") or "").split()
+                        for i in range(0, len(_sl), 2):
+                            if _sl[i] == ns and i+1 < len(_sl):
+                                url = cntlr.webCache.normalizeUrl(_sl[i+1], modelDocument.baseForElement(slElt))  # type: ignore[no-untyped-call]
                                 break
-                            except (EnvironmentError, KeyError, UnicodeDecodeError) as err:
-                                msgCode = "arelle.schemaFileError"
-                                cntlr.addToLog(_("XML schema validation error: %(error)s"),
-                                               messageArgs={"error": str(err)},
-                                               messageCode=msgCode,
-                                               file=(modelDocument.basename, _sl[i+1]),
-                                               level=logging.INFO) # schemaLocation is just a hint
-                                modelDocument.modelXbrl.errors.append(msgCode)
-                    if xsdTree is not None:
-                        break
+                if url:
+                    try:
+                        xsdTree = etree.parse(url,parser=lxmlResolvingParser(cntlr, modelXbrl))
+                    except (EnvironmentError, KeyError, UnicodeDecodeError) as err:
+                        msgCode = "arelle.schemaFileError"
+                        cntlr.addToLog(_("XML schema validation error: %(error)s"),
+                                       messageArgs={"error": str(err)},
+                                       messageCode=msgCode,
+                                       file=(modelDocument.basename, _sl[i+1]),
+                                       level=logging.INFO) # schemaLocation is just a hint
+                        modelDocument.modelXbrl.errors.append(msgCode)
             if xsdTree is None:
                 return # no schema to validate
             docTree = modelDocument.xmlRootElement.getroottree()
             etreeXMLSchema = etree.XMLSchema(xsdTree)
             etreeXMLSchema.assertValid(docTree)
-        except (etree.XMLSyntaxError, etree.DocumentInvalid) as err:
+        except etree.DocumentInvalid as err:
+            for e in err.error_log:  # type: ignore[attr-defined]
+                if not any(s in e.message for s in (": The QName value", "is not a valid value of the atomic type 'xs:QName'")):
+                    # do newer lxml validations have QName whitespace collapsing issue?
+                    msgCode = f"lxml.{e.type_name}"
+                    cntlr.addToLog(_("XML file syntax error %(error)s, line %(sourceLine)s, path %(path)s"),
+                                   messageArgs={"error": e.message,
+                                                "path": e.path,
+                                                "sourceLine": e.line},
+                                   messageCode=msgCode,
+                                   file=modelDocument.basename,
+                                   level=logging.ERROR)
+                    modelDocument.modelXbrl.errors.append(msgCode)
+        except etree.XMLSyntaxError as err:
             msgCode = "lxml.schemaError"
             cntlr.addToLog(_("XML file syntax error %(error)s"),
                            messageArgs={"error": str(err)},
