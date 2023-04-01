@@ -922,18 +922,24 @@ def aspectsMatch(xpCtx, fact1, fact2, aspects):
         return True
     factAspectsCache = xpCtx.factAspectsCache
     cachedEvaluationsByAspect = factAspectsCache.evaluations(fact1, fact2)
-    # Short circuit checking other aspects if any have already been evaluated to not match.
-    if any(cachedEvaluationsByAspect[aspect] is False for aspect in aspects):
-        return False
-    for aspect in aspects:
-        matches = cachedEvaluationsByAspect[aspect]
-        if matches is None:
-            matches = aspectMatchesNoCache(xpCtx, fact1, fact2, aspect)
-            if matches:
-                factAspectsCache.cacheMatch(fact1, fact2, aspect)
-            else:
-                factAspectsCache.cacheNotMatch(fact1, fact2, aspect)
+    if not cachedEvaluationsByAspect:
+        uncachedAspects = aspects
+    else:
+        uncachedAspects = []
+        for aspect in aspects:
+            matches = cachedEvaluationsByAspect[aspect]
+            if matches is False:
+                # Short circuit checking other aspects if any have already been evaluated to not match.
                 return False
+            if matches is None:
+                uncachedAspects.append(aspect)
+    for aspect in uncachedAspects:
+        matches = aspectMatchesNoCache(xpCtx, fact1, fact2, aspect)
+        if matches:
+            factAspectsCache.cacheMatch(fact1, fact2, aspect)
+        else:
+            factAspectsCache.cacheNotMatch(fact1, fact2, aspect)
+            return False
     return True
 
 def aspectMatches(xpCtx, fact1, fact2, aspect):
