@@ -11,7 +11,13 @@ if TYPE_CHECKING:
 
 class FactAspectsCache:
     def __init__(self) -> None:
-        self._matchingAspects: defaultdict[ModelFact, defaultdict[ModelFact, defaultdict[int | QName, bool | None]]] = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: None)))
+        self._matchingAspects: defaultdict[
+            ModelFact,
+            defaultdict[
+                ModelFact,
+                defaultdict[int | QName, bool | None]
+            ]
+        ] = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: None)))
 
     def evaluations(self, fact1: ModelFact, fact2: ModelFact) -> defaultdict[int | QName, bool | None]:
         return self._matchingAspects[fact1][fact2]
