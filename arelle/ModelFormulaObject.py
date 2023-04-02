@@ -22,6 +22,7 @@ class FormulaOptions():
     def __init__(self, savedValues=None):
         self.parameterValues = {} # index is QName, value is typed value
         self.runIDs = None # formula and assertion/assertionset IDs to execute
+        self.cacheSize = 10_000_000  # maximum number of fact aspect comparisons to cache
         self.compileOnly = False # compile but don't execute formulas
         self.formulaAction = None # none, validate, run
         self.traceParameterExpressionResult = False

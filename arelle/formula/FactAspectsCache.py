@@ -10,11 +10,13 @@ if TYPE_CHECKING:
 
 
 class FactAspectsCache:
-    def __init__(self) -> None:
+    def __init__(self, maxSize: int) -> None:
+        self._maxSize = maxSize if maxSize >= 0 else float("inf")
         self.clear()
 
     def clear(self) -> None:
         # Dictionaries and sets only undergo resizing upon insertion. Clearing them does not reclaim memory.
+        self._size = 0
         self._prioritizedAspects: set[int | QName] = set()
         self._matchingAspects: defaultdict[
             ModelFact,
@@ -39,8 +41,14 @@ class FactAspectsCache:
         self._register(fact1, fact2, aspect, False)
 
     def _register(self, fact1: ModelFact, fact2: ModelFact, aspect: int | QName, value: bool) -> None:
+        if self._size >= self._maxSize:
+            # Stopping additions to the cache entirely is somewhat rudimentary. Alternative caching strategies, such as
+            # LRU, were explored, but they demonstrated poorer performance on average across all tested documents. The
+            # current strategy involves retaining the cache, but preventing additions once it reaches the maximum size.
+            return
+        self._size += 1
         self._matchingAspects[fact1][fact2][aspect] = value
         self._matchingAspects[fact2][fact1][aspect] = value
 
     def __repr__(self) -> str:
-        return f"FactAspectsCache(prioritizedAspects={self._prioritizedAspects}, matchingAspects={self._matchingAspects})"
+        return f"FactAspectsCache(size={self._size}, maxSize={self._maxSize}, prioritizedAspects={self._prioritizedAspects}, matchingAspects={self._matchingAspects})"
