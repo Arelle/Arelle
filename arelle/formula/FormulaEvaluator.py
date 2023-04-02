@@ -994,6 +994,8 @@ def aspectMatchesNoCache(xpCtx, fact1, fact2, aspect):
                 return True
             return False
         dimValue2 = c2.dimValue(aspect)
+        if dimValue1 is dimValue2:
+            return True
         if isinstance(dimValue1, ModelDimensionValue):
             if dimValue1.isExplicit:
                 if isinstance(dimValue2, QName):
