@@ -15,7 +15,7 @@ types-PyMySQL==1.0.19.5
 types-pytz==2023.2.0.0
 types-simplejson==3.18.0.1
 types-ujson==5.7.0.1
-types-regex==2023.3.23.0
+types-regex==2023.3.23.1
 types-waitress==2.1.4.5
 
 -r requirements.txt
