@@ -16,7 +16,6 @@ from arelle import Locale, XbrlConst, XbrlUtil
 from arelle.ModelObject import ObjectPropertyViewWrapper
 from arelle.PythonUtil import flattenSequence, strTruncate
 from arelle.XmlValidate import UNVALIDATED, VALID
-ModelFact = None
 
 numberPattern = re_compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
 ZERO = decimal.Decimal(0)
@@ -36,9 +35,6 @@ def validate(modelXbrl,
              deDuplicate=False,   # for XBRL v2.1 semantics, deduplicate by choosing most accurate value
              xbrl21=True,         # validate calc LB with XBRL v2.1 semantics (default)
              calc11=False):       # validate calc LB with Calculation 1.1 semantics
-    global ModelFact
-    if ModelFact is None:
-        from arelle.ModelInstanceObject import ModelFact
     ValidateXbrlCalcs(modelXbrl, inferDecimals, deDuplicate, xbrl21, calc11).validate()
     
 class ValidateXbrlCalcs:
@@ -565,6 +561,7 @@ def roundValue(value, precision=None, decimals=None, scale=None):
     return vRounded
 
 def rangeValue(value, decimals=None):
+    from arelle.ModelInstanceObject import ModelFact
     if isinstance(value, list):
         if len(value) == 1 and isinstance(value[0], ModelFact):
             return rangeValue(value[0].xValue, inferredDecimals(value[0]))
