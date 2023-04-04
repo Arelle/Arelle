@@ -183,7 +183,7 @@ class ValidateXbrlCalcs:
                                                 dupBindingKeys.add(sumBindKey)
                                             elif (xbrl21 and sumBindKey in boundSums and sumBindKey not in dupBindingKeys 
                                                   and fact not in self.consistentDupFacts
-                                                  and not (len(sumFacts) > 1 and not self.deDuplicate)): # don't bind if sum duplicated without dedup option
+                                                  and not (len(sumFacts) > 1 and not (self.deDuplicate or not any(inferredDecimals(f) != inferredDecimals(fact) for f in sumFacts)))): # don't bind if sum duplicated without dedup option
                                                 roundedSum = roundFact(fact, self.inferDecimals)
                                                 roundedItemsSum = roundFact(fact, self.inferDecimals, vDecimal=boundSums[sumBindKey])
                                                 if roundedItemsSum  != roundFact(fact, self.inferDecimals):
@@ -288,7 +288,7 @@ class ValidateXbrlCalcs:
                     # calcKey is the last ancestor added (immediate parent of fact)
                     if calcKey in self.duplicateKeyFacts and not f.isNil:
                         fDup = self.duplicateKeyFacts[calcKey]
-                        if self.deDuplicate: # add lesser precision fact to consistentDupFacts
+                        if self.deDuplicate or inferredDecimals(f) == inferredDecimals(fDup): # add lesser precision fact to consistentDupFacts
                             if self.inferDecimals:
                                 d = inferredDecimals(f); dDup = inferredDecimals(fDup)
                                 dMin = min((d, dDup)); pMin = None
