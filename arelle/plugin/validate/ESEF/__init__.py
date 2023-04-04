@@ -70,7 +70,7 @@ def etreeIterWithDepth(node, depth=0):
         for n_d in etreeIterWithDepth(child, depth+1):
             yield n_d
                 
-def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
+def disclosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("ESEF", "ESEFplugin"),)
 
@@ -1015,8 +1015,8 @@ __pluginInfo__ = {
     'ModelDocument.PullLoader': modelXbrlBeforeLoading,
     'import': ('inlineXbrlDocumentSet', ), # import dependent modules
     # classes of mount points (required)
-    'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
+    'DisclosureSystem.Types': disclosureSystemTypes,
     'ModelXbrl.LoadComplete': modelXbrlLoadComplete,
     'Validate.XBRL.Start': validateXbrlStart,
     'Validate.XBRL.Finally': validateXbrlFinally, # before formula processing
