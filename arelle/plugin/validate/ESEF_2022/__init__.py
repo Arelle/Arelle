@@ -1171,9 +1171,16 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 def validateCssUrl(cssContent:str, normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, contentOtherThanXHTMLGuidance: str):
     css_elements = tinycss2.parse_stylesheet(cssContent)
     for css_element in css_elements:
-        if not isinstance(css_element, tinycss2.ast.QualifiedRule):
-            continue
-        validateCssUrlContent(css_element.content, normalizedUri, modelXbrl, val, elt, contentOtherThanXHTMLGuidance)
+        if isinstance(css_element, tinycss2.ast.AtRule):
+            if css_element.lower_at_keyword == "font-face":
+                for css_rule in css_element.content:
+                    if isinstance(css_rule, tinycss2.ast.URLToken) and "data:font" not in css_rule.value:
+                        modelXbrl.warning(
+                            "ESEF.%s.fontIncludedAndNotEmbeddedAsBase64EncodedString" % contentOtherThanXHTMLGuidance,
+                            _("Fonts SHOULD be included in the XHTML document as a base64 encoded string: %(file)s."),
+                            modelObject=elt, file=css_rule.value)
+        if isinstance(css_element, tinycss2.ast.QualifiedRule):
+            validateCssUrlContent(css_element.content, normalizedUri, modelXbrl, val, elt, contentOtherThanXHTMLGuidance)
 
 
 def validateCssUrlContent(cssRules: list, normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, contentOtherThanXHTMLGuidance: str):
