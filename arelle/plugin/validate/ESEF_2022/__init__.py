@@ -46,7 +46,7 @@ import os, base64
 import regex as re
 from collections import defaultdict
 from math import isnan
-from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, EntityBase, _Element
+from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, EntityBase, parse, XMLSyntaxError, _Element, XMLParser
 import tinycss2
 from urllib.parse import unquote
 from arelle import LeiUtil, ModelDocument, XbrlConst, XhtmlValidate
@@ -169,6 +169,35 @@ def modelXbrlLoadComplete(modelXbrl: ModelXbrl) -> None:
             modelXbrl.error("ESEF.RTS.Art.6.a.noInlineXbrlTags",
                             _("RTS on ESEF requires inline XBRL, no facts were reported."),
                             modelObject=modelXbrl)
+        if modelXbrl.modelManager.filesource.isArchive:
+            for filename in modelXbrl.modelManager.filesource.dir:
+                validateEntity(modelXbrl, filename, modelXbrl.modelManager.filesource)
+        else:
+            validateEntity(modelXbrl, modelXbrl.modelManager.filesource.url, modelXbrl.modelManager.filesource)
+            # search for the zip of the taxonomy extension
+            entrypointDocs = [referencedDoc for referencedDoc in modelXbrl.modelDocument.referencesDocument.keys() if referencedDoc.type == ModelDocument.Type.SCHEMA]
+            for entrypointDoc in entrypointDocs: # usually only one
+                for filesource in modelXbrl.modelManager.filesource.referencedFileSources.values():
+                    if filesource.exists(entrypointDoc.filepath):
+                        for filename in filesource.dir:
+                            validateEntity(modelXbrl, filename, filesource)
+
+def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource) -> None:
+    consolidated = not any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names)
+    contentOtherThanXHTMLGuidance = '2.5.1' if consolidated else '4.1.3'
+    fullname = filesource.basedUrl(filename)
+    file = filesource.file(fullname)
+    try:
+        parser = XMLParser(load_dtd=True, resolve_entities=False)
+        root = parse(file[0], parser=parser)
+        if root.docinfo.internalDTD:
+            for entity in root.docinfo.internalDTD.iterentities():
+                modelXbrl.error(f"ESEF.{contentOtherThanXHTMLGuidance}.maliciousCodePresent",
+                                _("Documents MUST NOT contain any malicious content. Dangerous XML entity found: %(element)s."),
+                                modelObject=filename, element=entity.name)
+    except XMLSyntaxError as e:
+        # probably a image or a directory
+        pass
 
 def validateXbrlStart(val: ValidateXbrl, parameters: dict[Any, Any] | None=None, *args: Any, **kwargs: Any) -> None:
     val.validateESEFplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "ESEFplugin", False)
