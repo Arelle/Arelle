@@ -11,6 +11,29 @@ class TestFactAspectsCache:
 
         assert all(evaluations == {"aspect": True} for evaluations in (fact1_evaluations, fact2_evaluations))
 
+    def test_cache_none_values(self):
+        cache = FactAspectsCache(10)
+
+        cache.cacheNotMatch(None, "fact2", "aspect")
+        cache.cacheNotMatch("fact1", None, "aspect")
+        cache.cacheNotMatch("fact1", "fact2", None)
+
+        fact1_2_evaluations = cache.evaluations("fact1", "fact2")
+        fact1_none_evaluations = cache.evaluations("fact1", None)
+        fact2_none_evaluations = cache.evaluations(None, "fact2")
+
+        assert fact1_2_evaluations == {
+            None: False,
+        }
+
+        assert fact1_none_evaluations == {
+            "aspect": False,
+        }
+
+        assert fact2_none_evaluations == {
+            "aspect": False,
+        }
+
     def test_non_match(self):
         cache = FactAspectsCache(10)
         cache.cacheNotMatch("fact1", "fact2", "aspect")
