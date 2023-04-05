@@ -119,15 +119,8 @@ def validateImage(baseUrl:str, image: str, modelXbrl: ModelXbrl, val:ValidateXbr
             # check for malicious image contents
             try:  # allow embedded newlines
                 imgContents = base64.b64decode(m.group(3))
-                imglen = len(imgContents)
                 checkImageContents(None, modelXbrl, elt, m.group(1), False, imgContents, val.consolidated, val)
                 imgContents = None  # deref, may be very large
-
-                if minExternalRessourceSize != -1 and imglen > minExternalRessourceSize:
-                    modelXbrl.warning(
-                        "ESEF.%s.imageIncludedAndNotEmbeddedAsBase64EncodedString" % contentOtherThanXHTMLGuidance,
-                        _("Images SHOULD be included in the XHTML document as a base64 encoded string unless their size exceeds the minimum size for the authority (%(maxImageSize)s)."),
-                        modelObject=elt, maxImageSize=minExternalRessourceSize,)
 
             except base64.binascii.Error as err:
                 modelXbrl.error(f"ESEF.{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
