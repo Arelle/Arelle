@@ -493,11 +493,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 modelXbrl.warning("ESEF.2.5.4.externalCssFileForSingleIXbrlDocument",
                                     _("Where an Inline XBRL document set contains a single document, the CSS SHOULD be embedded within the document."),
                                     modelObject=elt, element=eltTag)
-                        elif val.unconsolidated:
-                            pass # rest of following tests don't apply to unconsolidated
                         elif eltTag == "style" and elt.get("type") == "text/css":
                             validateCssUrl(elt.stringValue, elt.modelDocument.baseForElement(elt), modelXbrl, val, elt, contentOtherThanXHTMLGuidance)
-                            if "position:absolute" in elt.stringValue:
+                            if not val.unconsolidated and "position:absolute" in elt.stringValue:
                                 # detect absolute positioning such as from Adobe Indesign producing pdf from whic html is extracted
                                 hasAbsolutePositioning = True
 
@@ -595,7 +593,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     hiddenFactRefMatch = styleIxHiddenPattern.match(styleValue)
 
                     if styleValue:
-                        validateCssUrlContent(tinycss2.parse_declaration_list(styleValue), ixElt.modelDocument.baseForElement(ixElt), modelXbrl, val, ixElt, contentOtherThanXHTMLGuidance)
+                        for declaration in tinycss2.parse_declaration_list(styleValue):
+                            validateCssUrlContent(declaration.value, ixElt.modelDocument.baseForElement(ixElt),
+                                                  modelXbrl, val, ixElt, contentOtherThanXHTMLGuidance)
 
                     if hiddenFactRefMatch:
                         hiddenFactRef = hiddenFactRefMatch.group(2)
@@ -1160,7 +1160,7 @@ def validateCssUrl(cssContent:str, normalizedUri:str, modelXbrl: ModelXbrl, val:
 
 
 def validateCssUrlContent(cssRules: list, normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, contentOtherThanXHTMLGuidance: str):
-    for css_rule in cssRules.content:
+    for css_rule in cssRules:
         if isinstance(css_rule, tinycss2.ast.FunctionBlock):
             if css_rule.lower_name == "url":
                 if len(css_rule.arguments):
@@ -1174,6 +1174,9 @@ def validateImage(baseUrl:str, image: str, modelXbrl: ModelXbrl, val:ValidateXbr
     image: either an url or base64 in data:image style
     """
     minExternalRessourceSize = val.authParam["minExternalResourceSizekB"]
+    if minExternalRessourceSize != -1:
+        # transform kb to b
+        minExternalRessourceSize = minExternalRessourceSize * 1000
     if scheme(image) in ("http", "https", "ftp"):
         modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
                         else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
