@@ -486,11 +486,14 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         if ((eltTag in ("object", "script")) or
                             (eltTag == "a" and "javascript:" in elt.get("href", "")) or
                             (eltTag == "img" and "javascript:" in elt.get("src", "")) or
-                            (eltTag == "a" and "mailto" in elt.get("href", "")) or
                             (hasEventHandlerAttributes(elt))):
                             modelXbrl.error(f"ESEF.{contentOtherThanXHTMLGuidance}.executableCodePresent",
                                 _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
                                 modelObject=elt, element=eltTag)
+                        elif eltTag == "a" and "mailto" in elt.get("href", ""):
+                            modelXbrl.warning(f"ESEF.{contentOtherThanXHTMLGuidance}.executableCodePresent.mailto",
+                                            _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
+                                            modelObject=elt, element=eltTag)
                         elif eltTag == "{http://www.w3.org/2000/svg}svg":
                             checkSVGContentElt(elt, elt.modelDocument.baseForElement(elt), modelXbrl, elt,
                                            contentOtherThanXHTMLGuidance, val)
@@ -1098,10 +1101,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         else:
                             has_core_label = True
                     if has_core_label and has_extension_label:
+                        labels_files = [l.modelDocument.basename for l in labels]
                         val.modelXbrl.error(
                             "ESEF.3.4.5.taxonomyElementDuplicateLabels",
-                            _("Issuer extension taxonomy with core taxonomy element: %(concept)s is assigned 2 labels using standard label role"),
-                            modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole)
+                            _("Issuer extension taxonomy with core taxonomy element: %(concept)s is assigned 2 labels using standard label role: %(labels)s"),
+                            modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole, labels=", ".join(labels_files))
 
         for ELR in modelXbrl.relationshipSet(parentChild).linkRoleUris:
             relSet = modelXbrl.relationshipSet(parentChild, ELR)
