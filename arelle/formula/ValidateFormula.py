@@ -900,6 +900,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                             val.modelXbrl.modelManager.showStatus(_("evaluating {0}").format(varSetId))
                             val.modelXbrl.profileActivity("... evaluating " + varSetId, minTimeToShow=1.0)
                             evaluate(xpathContext, modelVariableSet)
+                            xpathContext.factAspectsCache.clear()
                             val.modelXbrl.profileStat(modelVariableSet.localName + "_" + varSetId)
                         except XPathContext.XPathException as err:
                             val.modelXbrl.error(
