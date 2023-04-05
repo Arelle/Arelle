@@ -95,7 +95,7 @@
                 ["https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor-gen-en.xml"]
         },
         "formulaRunIDs": null,
-        "minExternalResourceSizekB": -1
+        "minExternalResourceSizekB": 0
     },
     "AT": {
         "name": "Austria",

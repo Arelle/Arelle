@@ -174,13 +174,14 @@ def modelXbrlLoadComplete(modelXbrl: ModelXbrl) -> None:
                 validateEntity(modelXbrl, filename, modelXbrl.modelManager.filesource)
         else:
             validateEntity(modelXbrl, modelXbrl.modelManager.filesource.url, modelXbrl.modelManager.filesource)
-            # search for the zip of the taxonomy extension
-            entrypointDocs = [referencedDoc for referencedDoc in modelXbrl.modelDocument.referencesDocument.keys() if referencedDoc.type == ModelDocument.Type.SCHEMA]
-            for entrypointDoc in entrypointDocs: # usually only one
-                for filesource in modelXbrl.modelManager.filesource.referencedFileSources.values():
-                    if filesource.exists(entrypointDoc.filepath):
-                        for filename in filesource.dir:
-                            validateEntity(modelXbrl, filename, filesource)
+            if modelXbrl.modelDocument:
+                # search for the zip of the taxonomy extension
+                entrypointDocs = [referencedDoc for referencedDoc in modelXbrl.modelDocument.referencesDocument.keys() if referencedDoc.type == ModelDocument.Type.SCHEMA]
+                for entrypointDoc in entrypointDocs: # usually only one
+                    for filesource in modelXbrl.modelManager.filesource.referencedFileSources.values():
+                        if filesource.exists(entrypointDoc.filepath):
+                            for filename in filesource.dir:
+                                validateEntity(modelXbrl, filename, filesource)
 
 def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource) -> None:
     consolidated = not any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names)
@@ -541,9 +542,14 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                     modelObject=elt, element=eltTag)
                         elif eltTag == "style" and elt.get("type") == "text/css":
                             validateCssUrl(elt.stringValue, elt.modelDocument.baseForElement(elt), modelXbrl, val, elt, contentOtherThanXHTMLGuidance)
-                            if not val.unconsolidated and "position:absolute" in elt.stringValue:
-                                # detect absolute positioning such as from Adobe Indesign producing pdf from whic html is extracted
-                                hasAbsolutePositioning = True
+                            if not val.unconsolidated:
+                                if len(modelXbrl.ixdsHtmlElements) > 1:
+                                    modelXbrl.warning("ESEF.2.5.4.embeddedCssForMultiHtmlIXbrlDocumentSets",
+                                                      _("Where an Inline XBRL document set contains multiple documents, the CSS SHOULD be defined in a separate file."),
+                                                      modelObject=elt, element=eltTag)
+                                if "position:absolute" in elt.stringValue:
+                                    # detect absolute positioning such as from Adobe Indesign producing pdf from whic html is extracted
+                                    hasAbsolutePositioning = True
 
                     if eltTag in ixTags and elt.get("target") and ixTargetUsage != "allowed":
                         modelXbrl.log(ixTargetUsage.upper(),
