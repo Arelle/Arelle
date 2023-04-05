@@ -933,7 +933,9 @@ def aspectsMatch(xpCtx, fact1, fact2, aspects):
                 return False
             if matches is None:
                 uncachedAspects.append(aspect)
-    for aspect in uncachedAspects:
+    prioritizedAspectCache = factAspectsCache.prioritizedAspects
+    prioritizedAspects = sorted(uncachedAspects, key=lambda a: a not in prioritizedAspectCache)
+    for aspect in prioritizedAspects:
         matches = aspectMatchesNoCache(xpCtx, fact1, fact2, aspect)
         if matches:
             factAspectsCache.cacheMatch(fact1, fact2, aspect)

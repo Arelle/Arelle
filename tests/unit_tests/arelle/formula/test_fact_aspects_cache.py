@@ -73,3 +73,27 @@ class TestFactAspectsCache:
         evaluations = cache.evaluations("fact1", "fact2")
 
         assert evaluations == {}
+
+    def test_prioritized_aspects(self):
+        cache = FactAspectsCache()
+        cache.cacheNotMatch("fact1", "fact2", "aspect1")
+        cache.cacheNotMatch("fact1", "fact2", "aspect2")
+        cache.cacheMatch("fact1", "fact2", "aspect3")
+        cache.cacheMatch("fact1", "fact2", "aspect4")
+        cache.cacheNotMatch("fact3", "fact4", "aspect5")
+
+        assert cache.prioritizedAspects == {"aspect1", "aspect2", "aspect5"}
+
+    def test_prioritized_aspects_clear(self):
+        cache = FactAspectsCache()
+        cache.cacheNotMatch("fact1", "fact2", "aspect1")
+
+        assert cache.prioritizedAspects == {"aspect1"}
+
+        cache.clear()
+
+        assert cache.prioritizedAspects == set()
+
+        cache.cacheNotMatch("fact1", "fact2", "aspect1")
+
+        assert cache.prioritizedAspects == {"aspect1"}

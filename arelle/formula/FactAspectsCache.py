@@ -14,7 +14,8 @@ class FactAspectsCache:
         self.clear()
 
     def clear(self) -> None:
-        # Dictionaries only undergo resizing upon insertion. Clearing them does not reclaim memory.
+        # Dictionaries and sets only undergo resizing upon insertion. Clearing them does not reclaim memory.
+        self._prioritizedAspects: set[int | QName] = set()
         self._matchingAspects: defaultdict[
             ModelFact,
             defaultdict[
@@ -23,6 +24,10 @@ class FactAspectsCache:
             ]
         ] = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: None)))
 
+    @property
+    def prioritizedAspects(self) -> set[int | QName]:
+        return self._prioritizedAspects
+
     def evaluations(self, fact1: ModelFact, fact2: ModelFact) -> defaultdict[int | QName, bool | None]:
         return self._matchingAspects[fact1][fact2]
 
@@ -30,6 +35,7 @@ class FactAspectsCache:
         self._register(fact1, fact2, aspect, True)
 
     def cacheNotMatch(self, fact1: ModelFact, fact2: ModelFact, aspect: int | QName) -> None:
+        self._prioritizedAspects.add(aspect)
         self._register(fact1, fact2, aspect, False)
 
     def _register(self, fact1: ModelFact, fact2: ModelFact, aspect: int | QName, value: bool) -> None:
@@ -37,4 +43,4 @@ class FactAspectsCache:
         self._matchingAspects[fact2][fact1][aspect] = value
 
     def __repr__(self) -> str:
-        return f"FactAspectsCache(matchingAspects={self._matchingAspects})"
+        return f"FactAspectsCache(prioritizedAspects={self._prioritizedAspects}, matchingAspects={self._matchingAspects})"
