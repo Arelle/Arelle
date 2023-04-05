@@ -11,6 +11,10 @@ if TYPE_CHECKING:
 
 class FactAspectsCache:
     def __init__(self) -> None:
+        self.clear()
+
+    def clear(self) -> None:
+        # Dictionaries only undergo resizing upon insertion. Clearing them does not reclaim memory.
         self._matchingAspects: defaultdict[
             ModelFact,
             defaultdict[
@@ -31,9 +35,6 @@ class FactAspectsCache:
     def _register(self, fact1: ModelFact, fact2: ModelFact, aspect: int | QName, value: bool) -> None:
         self._matchingAspects[fact1][fact2][aspect] = value
         self._matchingAspects[fact2][fact1][aspect] = value
-
-    def clear(self) -> None:
-        self._matchingAspects.clear()
 
     def __repr__(self) -> str:
         return f"FactAspectsCache(matchingAspects={self._matchingAspects})"
