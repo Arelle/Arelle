@@ -492,7 +492,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 modelObject=elt, element=eltTag)
                         elif eltTag == "a" and "mailto" in elt.get("href", ""):
                             modelXbrl.warning(f"ESEF.{contentOtherThanXHTMLGuidance}.executableCodePresent.mailto",
-                                            _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
+                                            _("Inline XBRL documents SHOULD NOT contain any 'mailto' URI: %(element)s"),
                                             modelObject=elt, element=eltTag)
                         elif eltTag == "{http://www.w3.org/2000/svg}svg":
                             checkSVGContentElt(elt, elt.modelDocument.baseForElement(elt), modelXbrl, elt,
