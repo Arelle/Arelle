@@ -73,8 +73,7 @@ def checkImageContents(modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, 
     else:
         if data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):
             headerType = "gif"
-        elif ((data[:4] == b'\xff\xd8\xff\xe0' and data[6:11] == b'JFIF\x00') or
-              (data[:4] == b'\xff\xd8\xff\xe1' and data[6:11] == b'Exif\x00')):
+        elif data[:2] == b'\xff\xd8':
             headerType = "jpg"
         elif data[:8] == b"\x89PNG\r\n\x1a\n":
             headerType = "png"
