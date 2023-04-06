@@ -922,7 +922,7 @@ def aspectsMatch(xpCtx, fact1, fact2, aspects):
         return True
     factAspectsCache = xpCtx.factAspectsCache
     cachedEvaluationsByAspect = factAspectsCache.evaluations(fact1, fact2)
-    if not cachedEvaluationsByAspect:
+    if cachedEvaluationsByAspect is None:
         uncachedAspects = aspects
     else:
         uncachedAspects = []

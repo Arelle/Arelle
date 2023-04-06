@@ -37,7 +37,7 @@ class TestFactAspectsCache:
 
         evaluations = cache.evaluations("fact1", "fact2")
 
-        assert evaluations == {}
+        assert evaluations is None
 
     def test_additional_facts(self):
         cache = FactAspectsCache(10)
@@ -104,7 +104,7 @@ class TestFactAspectsCache:
 
         evaluations = cache.evaluations("fact1", "fact2")
 
-        assert evaluations == {}
+        assert evaluations is None
         assert cache.prioritizedAspects == {"aspect"}
 
     def test_clear(self):
@@ -120,7 +120,7 @@ class TestFactAspectsCache:
         cache.clear()
         evaluations = cache.evaluations("fact1", "fact2")
 
-        assert evaluations == {}
+        assert evaluations is None
 
     def test_prioritized_aspects(self):
         cache = FactAspectsCache(10)

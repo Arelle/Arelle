@@ -19,19 +19,17 @@ class FactAspectsCache:
         self._size = 0
         self._prioritizedAspects: set[int | QName] = set()
         self._matchingAspects: defaultdict[
-            ModelFact,
-            defaultdict[
-                ModelFact,
-                defaultdict[int | QName, bool | None]
-            ]
-        ] = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: None)))
+            tuple[int, int],
+            defaultdict[int | QName, bool | None]
+        ] = defaultdict(lambda: defaultdict(lambda: None))
 
     @property
     def prioritizedAspects(self) -> set[int | QName]:
         return self._prioritizedAspects
 
-    def evaluations(self, fact1: ModelFact, fact2: ModelFact) -> defaultdict[int | QName, bool | None]:
-        return self._matchingAspects[fact1][fact2]
+    def evaluations(self, fact1: ModelFact, fact2: ModelFact) -> defaultdict[int | QName, bool | None] | None:
+        factsCacheKey = self._buildFactKey(fact1, fact2)
+        return self._matchingAspects.get(factsCacheKey)
 
     def cacheMatch(self, fact1: ModelFact, fact2: ModelFact, aspect: int | QName) -> None:
         self._register(fact1, fact2, aspect, True)
@@ -47,8 +45,13 @@ class FactAspectsCache:
             # current strategy involves retaining the cache, but preventing additions once it reaches the maximum size.
             return
         self._size += 1
-        self._matchingAspects[fact1][fact2][aspect] = value
-        self._matchingAspects[fact2][fact1][aspect] = value
+        factsCacheKey = self._buildFactKey(fact1, fact2)
+        self._matchingAspects[factsCacheKey][aspect] = value
+
+    def _buildFactKey(self, fact1: ModelFact, fact2: ModelFact) -> tuple[int, int]:
+        fact1Id = id(fact1)
+        fact2Id = id(fact2)
+        return min(fact1Id, fact2Id), max(fact1Id, fact2Id)
 
     def __repr__(self) -> str:
         return f"FactAspectsCache(size={self._size}, maxSize={self._maxSize}, prioritizedAspects={self._prioritizedAspects}, matchingAspects={self._matchingAspects})"
