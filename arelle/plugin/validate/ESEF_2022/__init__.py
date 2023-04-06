@@ -81,7 +81,7 @@ from arelle.formula.XPathContext import XPathContext
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelInstanceObject import ModelContext
-from typing import Any, cast
+from typing import Any, Dict, cast
 from collections.abc import Generator
 from arelle.ModelValue import QName
 
@@ -186,7 +186,7 @@ def validateXbrlStart(val: ValidateXbrl, parameters: dict[Any, Any] | None=None,
     authorityValidations = loadAuthorityValidations(val.modelXbrl)
     # loadAuthorityValidations returns either a list or a dict but in this context, we expect a dict.
     # By using cast, we let mypy know that a list is _not_ expected here.
-    authorityValidations = cast(dict[Any, Any], authorityValidations)
+    authorityValidations = cast(Dict[Any, Any], authorityValidations)
 
     val.authParam = authorityValidations["default"]
     val.authParam.update(authorityValidations.get(val.authority, {}))

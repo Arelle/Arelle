@@ -5,7 +5,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 from collections import defaultdict
-from typing import Any, cast
+from typing import Any, List, cast
 from arelle.ModelDtsObject import ModelConcept, ModelLink
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
@@ -154,7 +154,7 @@ def checkFilingDimensions(val: ValidateXbrl) -> None:
                 modelObject=rels, anchoringDimensionalELR=ELR)
 
     # check base set dimension default overrides in extension taxonomies
-    for modelLink in cast(list[ModelLink], val.modelXbrl.baseSets[XbrlConst.dimensionDefault, None, None, None]):
+    for modelLink in cast(List[ModelLink], val.modelXbrl.baseSets[XbrlConst.dimensionDefault, None, None, None]):
         if isExtension(val, modelLink):
             for linkChild in modelLink:
                 if (isinstance(linkChild,(ModelObject,PrototypeObject)) and

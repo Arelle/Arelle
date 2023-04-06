@@ -21,7 +21,7 @@ from arelle.UrlUtil import scheme
 from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
-from typing import Any, Union, cast
+from typing import Any, Dict, List, Union, cast
 from arelle.ModelDocument import ModelDocument
 from arelle.typing import TypeGetText
 from collections import defaultdict
@@ -129,7 +129,7 @@ def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]
     _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), 'rt', encoding='utf-8')
     validations = json.load(_file) # {localName: date, ...}
     _file.close()
-    return cast(Union[dict[Any, Any], list[Any]], validations)
+    return cast(Union[Dict[Any, Any], List[Any]], validations)
 
 
 def checkForMultiLangDuplicates(modelXbrl: ModelXbrl) -> None:
