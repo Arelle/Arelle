@@ -184,6 +184,14 @@ def checkSVGContent(baseURI, modelXbrl, imgElt, data, guidance, val:ValidateXbrl
     elt = XML(data, parser=_parser)
     checkSVGContentElt(elt, baseURI, modelXbrl, imgElt, guidance, val)
 
+def getHref(elt:_Element) -> str :
+    simple_href = elt.get("href", "").strip()
+    if len(simple_href) > 0:
+        return simple_href
+    else:
+        # 'xlink:href' is deprecated but still used by some SVG generators
+        return elt.get("{http://www.w3.org/1999/xlink}href", "").strip()
+
 def checkSVGContentElt(elt, baseUrl, modelXbrl, imgElt, guidance, val:ValidateXbrl):
     rootElement = True
     for elt in elt.iter():
@@ -195,7 +203,7 @@ def checkSVGContentElt(elt, baseUrl, modelXbrl, imgElt, guidance, val:ValidateXb
             rootElement = False
         eltTag = elt.tag.rpartition("}")[2] # strip namespace
         if eltTag == "image":
-            validateImage(baseUrl, elt.get("href","").strip(), modelXbrl, val, elt, guidance)
+            validateImage(baseUrl, getHref(elt), modelXbrl, val, elt, guidance)
         if ((eltTag in ("object", "script")) or
                 (eltTag in ("audio", "foreignObject", "iframe", "image", "use", "video"))):
             href = elt.get("href","")
