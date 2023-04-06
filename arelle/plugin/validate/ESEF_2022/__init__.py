@@ -1101,7 +1101,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         else:
                             has_core_label = True
                     if has_core_label and has_extension_label:
-                        labels_files = [l.modelDocument.basename for l in labels]
+                        labels_files = ['"%s": %s' % (l.text, l.modelDocument.basename) for l in labels]
                         val.modelXbrl.error(
                             "ESEF.3.4.5.taxonomyElementDuplicateLabels",
                             _("Issuer extension taxonomy with core taxonomy element: %(concept)s is assigned 2 labels using standard label role: %(labels)s"),
