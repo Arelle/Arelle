@@ -144,10 +144,8 @@ class ModelObject(etree.ElementBase):
 
     @property
     def modelXbrl(self) -> ModelXbrl | None:
-        try:
-            return cast("ModelXbrl", self.modelDocument.modelXbrl)
-        except AttributeError:
-            return None
+        modelDocument = getattr(self, "modelDocument", None)
+        return modelDocument.modelXbrl if modelDocument is not None else None
 
     def attr(self, attrname: str) -> str | None:
         return self.get(attrname)

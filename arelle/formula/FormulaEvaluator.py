@@ -917,20 +917,31 @@ def implicitFilter(xpCtx, vb, facts, uncoveredAspectFacts):
     return _facts
 
 def aspectsMatch(xpCtx, fact1, fact2, aspects):
+    # If facts are the same object, all aspects must match.
+    if fact1 is not None and fact1 is fact2:
+        return True
     factAspectsCache = xpCtx.factAspectsCache
     cachedEvaluationsByAspect = factAspectsCache.evaluations(fact1, fact2)
-    # Short circuit checking other aspects if any have already been evaluated to not match.
-    if any(cachedEvaluationsByAspect[aspect] is False for aspect in aspects):
-        return False
-    for aspect in aspects:
-        matches = cachedEvaluationsByAspect[aspect]
-        if matches is None:
-            matches = aspectMatchesNoCache(xpCtx, fact1, fact2, aspect)
-            if matches:
-                factAspectsCache.cacheMatch(fact1, fact2, aspect)
-            else:
-                factAspectsCache.cacheNotMatch(fact1, fact2, aspect)
+    if cachedEvaluationsByAspect is None:
+        uncachedAspects = aspects
+    else:
+        uncachedAspects = []
+        for aspect in aspects:
+            matches = cachedEvaluationsByAspect[aspect]
+            if matches is False:
+                # Short circuit checking other aspects if any have already been evaluated to not match.
                 return False
+            if matches is None:
+                uncachedAspects.append(aspect)
+    prioritizedAspectCache = factAspectsCache.prioritizedAspects
+    prioritizedAspects = sorted(uncachedAspects, key=lambda a: a not in prioritizedAspectCache)
+    for aspect in prioritizedAspects:
+        matches = aspectMatchesNoCache(xpCtx, fact1, fact2, aspect)
+        if matches:
+            factAspectsCache.cacheMatch(fact1, fact2, aspect)
+        else:
+            factAspectsCache.cacheNotMatch(fact1, fact2, aspect)
+            return False
     return True
 
 def aspectMatches(xpCtx, fact1, fact2, aspect):
@@ -991,6 +1002,8 @@ def aspectMatchesNoCache(xpCtx, fact1, fact2, aspect):
                 return True
             return False
         dimValue2 = c2.dimValue(aspect)
+        if dimValue1 is dimValue2:
+            return True
         if isinstance(dimValue1, ModelDimensionValue):
             if dimValue1.isExplicit:
                 if isinstance(dimValue2, QName):
@@ -1098,17 +1111,17 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
                 if varRefQn in varBindings
             )
         )
-        evalsNotDependentOnVarFallenBackButBoundInOtherEval = {
-            vQn: vBoundFact
+        evalsNotDependentOnVarFallenBackButBoundInOtherEval = [
+            (vQn, vBoundFact)
             for vQn, vBoundFact in nonNoneEvals.items()
             if vQn not in vQnDependentOnOtherVarFallenBackButBoundInOtherEval
-        }
+        ]
         # detects evaluations which are not different (duplicate) and extra fallback evaluations
         # vBoundFact may be single fact or tuple of facts
         return any(
             all(
                 vBoundFact == matchingEval[vQn]
-                for vQn, vBoundFact in evalsNotDependentOnVarFallenBackButBoundInOtherEval.items()
+                for vQn, vBoundFact in evalsNotDependentOnVarFallenBackButBoundInOtherEval
             ) for matchingEval in matchingEvals
         )
     return False
