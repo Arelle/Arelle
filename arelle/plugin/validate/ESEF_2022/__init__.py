@@ -649,9 +649,14 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
                     if styleValue:
                         for declaration in tinycss2.parse_declaration_list(styleValue):
-                            validateCssUrlContent(declaration.value, ixElt.modelDocument.baseForElement(ixElt),
-                                                  modelXbrl, val, ixElt, contentOtherThanXHTMLGuidance)
-
+                            if isinstance(declaration, tinycss2.ast.Declaration):
+                                validateCssUrlContent(declaration.value, ixElt.modelDocument.baseForElement(ixElt),
+                                                      modelXbrl, val, ixElt, contentOtherThanXHTMLGuidance)
+                            elif isinstance(declaration, tinycss2.ast.ParseError):
+                                modelXbrl.warning("ix.CssParsingError",
+                                                  _("The style attribute contains erroneous CSS declaration \"%(styleContent)s\": %(parseError)s"),
+                                                  modelObject=ixElt, parseError=declaration.message,
+                                                  styleContent=styleValue)
                     if hiddenFactRefMatch:
                         hiddenFactRef = hiddenFactRefMatch.group(2)
                         if hiddenFactRef not in hiddenEltIds:
