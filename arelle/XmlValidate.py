@@ -702,7 +702,7 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
                         cntlr.addToLog(_("XML schema validation error: %(error)s"),
                                        messageArgs={"error": str(err)},
                                        messageCode=msgCode,
-                                       file=(modelDocument.basename, _sl[i+1]),
+                                       file=modelDocument.basename,
                                        level=logging.INFO) # schemaLocation is just a hint
                         modelDocument.modelXbrl.errors.append(msgCode)
             if xsdTree is None:
