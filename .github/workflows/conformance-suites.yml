@@ -18,7 +18,7 @@ jobs:
           basename -s .py tests/integration_tests/validation/conformance_suite_configurations/*.py | grep -v '^efm' | jq -Rsc 'split("\n") | map(select(length > 0))' | tee -a $GITHUB_OUTPUT
 
   run-conformance-suite:
-    name: ${{ matrix.test }} - ${{ matrix.os }}
+    name: ${{ matrix.test }} - ${{ matrix.os }} - ${{ matrix.python-version }}
     needs: find-tests
     permissions: read-all
     runs-on: ${{ matrix.os }}
@@ -27,11 +27,55 @@ jobs:
       matrix:
         os:
           - ubuntu-22.04
+        python-version:
+          - '3.11'
         test: ${{ fromJson(needs.find-tests.outputs.matrix) }}
         include:
           - os: windows-2022
+            python-version: '3.7'
             test: xbrl_2_1
           - os: macos-12
+            python-version: '3.7'
+            test: xbrl_2_1
+          - os: ubuntu-22.04
+            python-version: '3.7'
+            test: xbrl_2_1
+
+          - os: windows-2022
+            python-version: '3.8'
+            test: xbrl_2_1
+          - os: macos-12
+            python-version: '3.8'
+            test: xbrl_2_1
+          - os: ubuntu-22.04
+            python-version: '3.8'
+            test: xbrl_2_1
+
+          - os: windows-2022
+            python-version: '3.9'
+            test: xbrl_2_1
+          - os: macos-12
+            python-version: '3.9'
+            test: xbrl_2_1
+          - os: ubuntu-22.04
+            python-version: '3.9'
+            test: xbrl_2_1
+
+          - os: windows-2022
+            python-version: '3.10'
+            test: xbrl_2_1
+          - os: macos-12
+            python-version: '3.10'
+            test: xbrl_2_1
+          - os: ubuntu-22.04
+            python-version: '3.10'
+            test: xbrl_2_1
+
+          - os: windows-2022
+            python-version: '3.11'
+            test: xbrl_2_1
+          - os: macos-12
+            python-version: '3.11'
             test: xbrl_2_1
 
     environment: integration-tests
@@ -73,7 +117,7 @@ jobs:
         with:
           cache: 'pip'
           check-latest: true
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools wheel
