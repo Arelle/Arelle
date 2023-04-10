@@ -15,7 +15,7 @@ jobs:
       - id: build-test-matrix
         run: |
           printf matrix= >> $GITHUB_OUTPUT
-          basename -s .py tests/integration_tests/validation/conformance_suite_configurations/*.py | grep -v '^efm' | jq -Rsc 'split("\n") | map(select(length > 0))' >> $GITHUB_OUTPUT
+          basename -s .py tests/integration_tests/validation/conformance_suite_configurations/*.py | grep -v '^efm' | jq -Rsc 'split("\n") | map(select(length > 0))' | tee -a $GITHUB_OUTPUT
 
   run-conformance-suite:
     name: ${{ matrix.test }} - ${{ matrix.os }}
