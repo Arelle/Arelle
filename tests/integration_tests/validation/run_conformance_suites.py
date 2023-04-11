@@ -12,6 +12,7 @@ from tests.integration_tests.validation.conformance_suite_configs import (
 from tests.integration_tests.validation.download_conformance_suites import (
     download_conformance_suite, extract_conformance_suite
 )
+from typing import Optional
 
 ARGUMENTS = [
     {
@@ -117,7 +118,7 @@ def run_conformance_suites_options(options: Namespace) -> list[pytest.param]:
     )
 
 
-def get_download_option(options: Namespace) -> str | None:
+def get_download_option(options: Namespace) -> Optional[str]:
     if options.download_overwrite:
         return DOWNLOAD_OVERWRITE
     elif options.download_missing:
