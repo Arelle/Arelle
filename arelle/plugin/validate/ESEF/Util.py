@@ -15,7 +15,7 @@ from arelle.UrlUtil import scheme
 from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
-from typing import Any, Union, cast
+from typing import Any, Dict, List, Union, cast
 from arelle.ModelDocument import ModelDocument
 from arelle.typing import TypeGetText
 
@@ -73,7 +73,7 @@ def checkImageContents(modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, 
     else:
         if data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):
             headerType = "gif"
-        elif data[:2] == b'\xff\xd8':
+        elif data[:2] == b"\xff\xd8":
             headerType = "jpg"
         elif data[:8] == b"\x89PNG\r\n\x1a\n":
             headerType = "png"

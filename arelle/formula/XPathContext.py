@@ -228,7 +228,7 @@ class XPathContext:
         self.progHeader: ProgHeader | None = None
         self.traceType: int | None = None
         self.variableSet = None
-        self.factAspectsCache = factAspectsCache or FactAspectsCache()
+        self.factAspectsCache = factAspectsCache or FactAspectsCache(modelXbrl.modelManager.formulaOptions.cacheSize)
         self.inScopeVars: dict[QName, ModelXbrl | ModelObject | int | str] = {} if inScopeVars is None else inScopeVars
         self.cachedFilterResults: dict[ModelGeneral, set[ModelFact]] = {}
         if inputXbrlInstance:

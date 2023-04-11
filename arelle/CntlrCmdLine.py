@@ -302,6 +302,7 @@ def parseAndRun(args):
     parser.add_option("--formularunids", action="store", dest="formulaRunIDs", help=SUPPRESS_HELP)
     parser.add_option("--formulaCompileOnly", action="store_true", dest="formulaCompileOnly", help=_("Specify formula are to be compiled but not executed."))
     parser.add_option("--formulacompileonly", action="store_true", dest="formulaCompileOnly", help=SUPPRESS_HELP)
+    parser.add_option("--formulaCacheSize", "--formulacachesize", action="store", dest="formulaCacheSize", help=_("Specify the number of fact aspect combinations to cache during formula evaluations. Negative numbers have no limit. (10_000_000 is default)"))
     parser.add_option(UILANG_OPTION, action="store", dest="uiLang",
                       help=_("Language for user interface (override system settings, such as program messages).  Does not save setting.  Requires locale country code, e.g. en-GB or en-US."))
     parser.add_option(UILANG_OPTION.lower(), action="store", dest="uiLang", help=SUPPRESS_HELP)
@@ -886,6 +887,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.compileOnly = True
         if options.formulaAction:
             fo.formulaAction = options.formulaAction
+        if options.formulaCacheSize:
+            fo.cacheSize = options.formulaCacheSize
         self.modelManager.formulaOptions = fo
 
         # run utility command line options that don't depend on entrypoint Files

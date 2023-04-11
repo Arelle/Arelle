@@ -7,7 +7,7 @@ import os, sys, traceback, uuid
 import regex as re
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, Type, TypeVar, cast, Optional
+from typing import Dict, TYPE_CHECKING, Any, Type, TypeVar, Union, cast, Optional
 import logging
 from decimal import Decimal
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
@@ -655,7 +655,7 @@ class ModelXbrl:
                         _("Create context for %(priItem)s, cannot determine valid context elements, no suitable hypercubes"),
                         modelObject=self, priItem=priItem)
                     # fp.context.qnameDims is actually of type Dict[QName, DimValuePrototype]
-                fpDims = cast('dict[int | QName, QName | DimValuePrototype]', fp.context.qnameDims)
+                fpDims = cast(Dict[Union[int, 'QName'], Union['QName', DimValuePrototype]], fp.context.qnameDims)
             else:
                 fpDims = dims # dims known to be valid (such as for inline extraction)
             for dimQname in sorted(fpDims.keys()):
