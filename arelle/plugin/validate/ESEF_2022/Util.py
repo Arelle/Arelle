@@ -179,7 +179,7 @@ def checkImageContents(baseURI: str, modelXbrl: ModelXbrl, imgElt: ModelObject, 
 
 
 def checkSVGContent(baseURI, modelXbrl, imgElt, data, guidance, val:ValidateXbrl):
-    _parser, _, _ = parser(modelXbrl, baseURI, no_network=True)
+    _parser, _ignored, _ignored = parser(modelXbrl, baseURI, no_network=True)
     elt = XML(data, parser=_parser)
     checkSVGContentElt(elt, baseURI, modelXbrl, imgElt, guidance, val)
 
