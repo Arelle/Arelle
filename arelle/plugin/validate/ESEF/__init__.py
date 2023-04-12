@@ -40,7 +40,7 @@ Client with curl:
 
 '''
 from __future__ import annotations
-import os, base64
+import os, base64, binascii
 import regex as re
 from collections import defaultdict
 from math import isnan
@@ -395,7 +395,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             requiredToDisplayFacts = []
             requiredToDisplayFactIds: dict[Any, Any] = {}
             firstIxdsDoc = True
-            contentOtherThanXHTMLGuidance = '2.5.1' if val.consolidated else '4.1.3'  # Different reference for iXBRL and stand-alone XHTML
+            contentOtherThanXHTMLGuidance = 'ESEF.2.5.1' if val.consolidated else 'ESEF.4.1.3'  # Different reference for iXBRL and stand-alone XHTML
             # ModelDocument.load has None as a return type. For typing reasons, we need to guard against that here.
             assert modelXbrl.modelDocument is not None
             for ixdsHtmlRootElt in (modelXbrl.ixdsHtmlElements if val.consolidated else # ix root elements for all ix docs in IXDS
@@ -424,7 +424,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             (eltTag == "a" and "javascript:" in elt.get("href","")) or
                             (eltTag == "img" and "javascript:" in elt.get("src","")) or
                             (hasEventHandlerAttributes(elt))):
-                            modelXbrl.error(f"ESEF.{contentOtherThanXHTMLGuidance}.executableCodePresent",
+                            modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.executableCodePresent",
                                 _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
                                 modelObject=elt, element=eltTag)
                         elif eltTag == "img":
@@ -453,32 +453,32 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                     #        _("Images MUST be included in the XHTML document as a base64 encoded string unless their size exceeds support of browsers (%(maxImageSize)s): %(file)s."),
                                     #        modelObject=elt, maxImageSize=browserMaxBase64ImageLength, file=os.path.basename(normalizedUri))
                                 except IOError as err:
-                                    modelXbrl.error(f"ESEF.{contentOtherThanXHTMLGuidance}.imageFileCannotBeLoaded",
+                                    modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.imageFileCannotBeLoaded",
                                         _("Image file which isn't openable '%(src)s', error: %(error)s"),
                                         modelObject=elt, src=src, error=err)
                             else:
                                 m = imgDataMediaBase64Pattern.match(src)
                                 if not m or not m.group(2):
-                                    modelXbrl.warning(f"ESEF.{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
+                                    modelXbrl.warning(f"{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
                                         _("Images included in the XHTML document SHOULD be base64 encoded: %(src)s."),
                                         modelObject=elt, src=src[:128])
                                     if m and m.group(1) and m.group(3):
                                         checkImageContents(modelXbrl, elt, m.group(1), False, m.group(3), val.consolidated)
                                 else:
                                     if not m.group(1):
-                                        modelXbrl.error(f"ESEF.{contentOtherThanXHTMLGuidance}.MIMETypeNotSpecified",
+                                        modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.MIMETypeNotSpecified",
                                             _("Images included in the XHTML document MUST be saved with MIME type specifying PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
                                             modelObject=elt, src=src[:128])
                                     elif m.group(1) not in ("/gif", "/jpeg", "/jpg", "/png", "/svg+xml"):
-                                        modelXbrl.error(f"ESEF.{contentOtherThanXHTMLGuidance}.imageFormatNotSupported",
+                                        modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.imageFormatNotSupported",
                                             _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
                                             modelObject=elt, src=src[:128])
                                     # check for malicious image contents
                                     try: # allow embedded newlines
                                         checkImageContents(modelXbrl, elt, m.group(1), False, base64.b64decode(m.group(3)), val.consolidated)
                                         imgContents = None # deref, may be very large
-                                    except base64.binascii.Error as err:
-                                        modelXbrl.error(f"ESEF.{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
+                                    except binascii.Error as err:
+                                        modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
                                             _("Base64 encoding error %(err)s in image source: %(src)s."),
                                             modelObject=elt, err=str(err), src=src[:128])
                         # links to external documents are allowed as of 2021 per G.2.5.1

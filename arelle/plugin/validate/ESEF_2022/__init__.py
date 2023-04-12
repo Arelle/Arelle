@@ -185,7 +185,7 @@ def modelXbrlLoadComplete(modelXbrl: ModelXbrl) -> None:
 
 def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -> None:
     consolidated = not any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names)
-    contentOtherThanXHTMLGuidance = '2.5.1' if consolidated else '4.1.3'
+    contentOtherThanXHTMLGuidance = 'ESEF.2.5.1' if consolidated else 'ESEF.4.1.3'
     fullname = filesource.basedUrl(filename)
     file = filesource.file(fullname)
     try:
@@ -193,7 +193,7 @@ def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -
         root = parse(file[0], parser=parser)
         if root.docinfo.internalDTD:
             for entity in root.docinfo.internalDTD.iterentities():
-                modelXbrl.error(f"ESEF.{contentOtherThanXHTMLGuidance}.maliciousCodePresent",
+                modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.maliciousCodePresent",
                                 _("Documents MUST NOT contain any malicious content. Dangerous XML entity found: %(element)s."),
                                 modelObject=filename, element=entity.name)
     except (UnicodeDecodeError, XMLSyntaxError) as e:
@@ -457,7 +457,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             requiredToDisplayFacts = []
             requiredToDisplayFactIds: dict[Any, Any] = {}
             firstIxdsDoc = True
-            contentOtherThanXHTMLGuidance = '2.5.1' if val.consolidated else '4.1.3'  # Different reference for iXBRL and stand-alone XHTML
+            contentOtherThanXHTMLGuidance = 'ESEF.2.5.1' if val.consolidated else 'ESEF.4.1.3'  # Different reference for iXBRL and stand-alone XHTML
             # ModelDocument.load has None as a return type. For typing reasons, we need to guard against that here.
             assert modelXbrl.modelDocument is not None
             for ixdsHtmlRootElt in (modelXbrl.ixdsHtmlElements if val.consolidated else # ix root elements for all ix docs in IXDS
@@ -487,11 +487,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             (eltTag == "a" and "javascript:" in elt.get("href", "")) or
                             (eltTag == "img" and "javascript:" in elt.get("src", "")) or
                             (hasEventHandlerAttributes(elt))):
-                            modelXbrl.error(f"ESEF.{contentOtherThanXHTMLGuidance}.executableCodePresent",
+                            modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.executableCodePresent",
                                 _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
                                 modelObject=elt, element=eltTag)
                         elif eltTag == "a" and "mailto" in elt.get("href", ""):
-                            modelXbrl.warning(f"ESEF.{contentOtherThanXHTMLGuidance}.executableCodePresent.mailto",
+                            modelXbrl.warning(f"{contentOtherThanXHTMLGuidance}.executableCodePresent.mailto",
                                             _("Inline XBRL documents SHOULD NOT contain any 'mailto' URI: %(element)s"),
                                             modelObject=elt, element=eltTag)
                         elif eltTag == "{http://www.w3.org/2000/svg}svg":

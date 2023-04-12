@@ -51,7 +51,7 @@ supportedImgTypes: dict[bool, tuple[str, ...]] = {
 # check image contents against mime/file ext and for Steganography
 
 def checkImageContents(modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, isFile: bool, data: bytes, consolidated: bool) -> None:
-    guidance = '2.5.1' if consolidated else '4.1.3'
+    guidance = 'ESEF.2.5.1' if consolidated else 'ESEF.4.1.3'
     if "svg" in imgType:
         try:
             checkSVGContent(modelXbrl, imgElt, data, guidance)
@@ -59,15 +59,15 @@ def checkImageContents(modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, 
             try:
                 checkSVGContent(modelXbrl, imgElt, unquote(data), guidance)  # Try with utf-8 decoded data as in conformance suite G4-1-3_2/TC2
             except XMLSyntaxError:
-                modelXbrl.error(f"ESEF.{guidance}.imageFileCannotBeLoaded",
+                modelXbrl.error(f"{guidance}.imageFileCannotBeLoaded",
                                 _("Image SVG has XML error %(error)s"),
                                 modelObject=imgElt, error=err)
         except UnicodeDecodeError as err:
-            modelXbrl.error(f"ESEF.{guidance}.imageFileCannotBeLoaded",
+            modelXbrl.error(f"{guidance}.imageFileCannotBeLoaded",
                 _("Image SVG has XML error %(error)s"),
                 modelObject=imgElt, error=err)
     elif not any(it in imgType for it in supportedImgTypes[isFile]):
-        modelXbrl.error(f"ESEF.{guidance}.imageFormatNotSupported",
+        modelXbrl.error(f"{guidance}.imageFormatNotSupported",
             _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPEG formats: %(imgType)s is not supported"),
             modelObject=imgElt, imgType=imgType)
     else:
@@ -92,8 +92,8 @@ def checkImageContents(modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, 
         if (("gif" in imgType and headerType != "gif") or
             (("jpg" in imgType or "jpeg" in imgType) and headerType != "jpg") or
             ("png" in imgType and headerType != "png")):
-            imageDoesNotMatchItsFileExtension = f"ESEF.{guidance}.imageDoesNotMatchItsFileExtension"
-            incorrectMIMETypeSpecified = f"ESEF.{guidance}.incorrectMIMETypeSpecified"
+            imageDoesNotMatchItsFileExtension = f"{guidance}.imageDoesNotMatchItsFileExtension"
+            incorrectMIMETypeSpecified = f"{guidance}.incorrectMIMETypeSpecified"
             modelXbrl.error(imageDoesNotMatchItsFileExtension if isFile else incorrectMIMETypeSpecified,
                 _("Image type %(imgType)s has wrong header type: %(headerType)s"),
                 modelObject=imgElt, imgType=imgType, headerType=headerType,
@@ -105,7 +105,7 @@ def checkSVGContent(modelXbrl: ModelXbrl, imgElt: ModelObject, data: Union[bytes
     for elt in XML(data).iter():
         if rootElement:
             if elt.tag != "{http://www.w3.org/2000/svg}svg":
-                modelXbrl.error(f"ESEF.{guidance}.imageFileCannotBeLoaded",
+                modelXbrl.error(f"{guidance}.imageFileCannotBeLoaded",
                                 _("Image SVG has root element which is not svg"),
                                 modelObject=imgElt)
             rootElement = False
@@ -113,15 +113,15 @@ def checkSVGContent(modelXbrl: ModelXbrl, imgElt: ModelObject, data: Union[bytes
         if eltTag in ("object", "script", "audio", "foreignObject", "iframe", "image", "use", "video"):
             href = elt.get("href","")
             if eltTag in ("object", "script") or "javascript:" in href:
-                modelXbrl.error(f"ESEF.{guidance}.executableCodePresent",
+                modelXbrl.error(f"{guidance}.executableCodePresent",
                                 _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
                                 modelObject=imgElt, element=eltTag)
             elif scheme(href) in ("http", "https", "ftp"):
-                modelXbrl.error(f"ESEF.{guidance}.referencesPointingOutsideOfTheReportingPackagePresent",
+                modelXbrl.error(f"{guidance}.referencesPointingOutsideOfTheReportingPackagePresent",
                                 _("Inline XBRL instance document [image] MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
                                 modelObject=imgElt, element=eltTag)
         if hasSvgEventAttributes(elt):
-            modelXbrl.error(f"ESEF.{guidance}.executableCodePresent",
+            modelXbrl.error(f"{guidance}.executableCodePresent",
                             _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
                             modelObject=imgElt, element=eltTag)
 
