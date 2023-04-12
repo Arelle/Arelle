@@ -6,6 +6,7 @@ Filer Guidelines: https://www.esma.europa.eu/sites/default/files/library/esma32-
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
+import binascii
 from lxml.etree import _Element
 from urllib.parse import unquote
 import os, json, base64, regex as re
@@ -25,11 +26,13 @@ from arelle.UrlUtil import scheme
 from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
-from typing import Any, Dict, List, Union, cast
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union, cast
 from arelle.ModelDocument import ModelDocument
 from arelle.typing import TypeGetText
 from collections import defaultdict
 
+if TYPE_CHECKING:
+    from _typeshed import SupportsRead
 
 _: TypeGetText  # Handle gettext
 imgDataMediaBase64Pattern = re.compile(r"data:image([^,;]*)(;base64)?,(.*)$", re.S)
@@ -61,7 +64,7 @@ supportedImgTypes: dict[bool, tuple[str, ...]] = {
     }
 # check image contents against mime/file ext and for Steganography
 
-def validateImage(baseUrl:str, image: str, modelXbrl: ModelXbrl, val:ValidateXbrl, elt:ModelObject, evaluatedMsg:str, contentOtherThanXHTMLGuidance=str):
+def validateImage(baseUrl:str, image: str, modelXbrl: ModelXbrl, val:ValidateXbrl, elt:ModelObject, evaluatedMsg:str, contentOtherThanXHTMLGuidance=str) -> None:
     """
     image: either an url or base64 in data:image style
     """
@@ -122,13 +125,13 @@ def validateImage(baseUrl:str, image: str, modelXbrl: ModelXbrl, val:ValidateXbr
                 checkImageContents(None, modelXbrl, elt, m.group(1), False, imgContents, val.consolidated, val)
                 imgContents = None  # deref, may be very large
 
-            except base64.binascii.Error as err:
+            except binascii.Error as err:
                 modelXbrl.error(f"ESEF.{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
                                 _("Base64 encoding error %(err)s in image source: %(src)s."),
                                 modelObject=elt, err=str(err), src=image[:128], evaluatedMsg=evaluatedMsg)
 
 
-def checkImageContents(baseURI: str, modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, isFile: bool, data: bytes, consolidated: bool, val:ValidateXbrl) -> None:
+def checkImageContents(baseURI: Optional[str], modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, isFile: bool, data: Union[bytes, Any, str], consolidated: bool, val: ValidateXbrl) -> None:
     guidance = '2.5.1' if consolidated else '4.1.3'
     if "svg" in imgType:
         try:
@@ -178,7 +181,8 @@ def checkImageContents(baseURI: str, modelXbrl: ModelXbrl, imgElt: ModelObject, 
                 messageCodes=(imageDoesNotMatchItsFileExtension, incorrectMIMETypeSpecified))
 
 
-def checkSVGContent(baseURI, modelXbrl, imgElt, data, guidance, val:ValidateXbrl):
+def checkSVGContent(baseURI: Optional[str], modelXbrl: ModelXbrl, imgElt: ModelObject, data: Union[bytes, Any, str],
+                    guidance: str, val: ValidateXbrl) -> None:
     _parser, _ignored, _ignored = parser(modelXbrl, baseURI, no_network=True)
     elt = XML(data, parser=_parser)
     checkSVGContentElt(elt, baseURI, modelXbrl, imgElt, guidance, val)
@@ -191,7 +195,8 @@ def getHref(elt:_Element) -> str :
         # 'xlink:href' is deprecated but still used by some SVG generators
         return elt.get("{http://www.w3.org/1999/xlink}href", "").strip()
 
-def checkSVGContentElt(elt, baseUrl, modelXbrl, imgElt, guidance, val:ValidateXbrl):
+def checkSVGContentElt(elt: _Element, baseUrl: Optional[str], modelXbrl: ModelXbrl, imgElt: ModelObject,
+                       guidance: str, val:ValidateXbrl):
     rootElement = True
     for elt in elt.iter():
         if rootElement:
@@ -228,7 +233,7 @@ def resourcesFilePath(modelManager: ModelManager, fileName: str) -> str:
 
 def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]:
     _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), 'rt', encoding='utf-8')
-    _file = cast("SupportsRead[Union[str, bytes]]", _file)
+    _file = cast(SupportsRead[Union[str, bytes]], _file)
     validations = json.load(_file) # {localName: date, ...}
     _file.close()
     return cast(Union[Dict[Any, Any], List[Any]], validations)
@@ -320,7 +325,7 @@ def hasEventHandlerAttributes(elt: Any) -> bool:
 def hasSvgEventAttributes(elt: Any) -> bool:
     return _hasEventAttributes(elt, svgEventAttributes)
 
-def _hasEventAttributes(elt: Any, attributes: set) -> bool:
+def _hasEventAttributes(elt: Any, attributes: set[str]) -> bool:
     if isinstance(elt, _Element):
         return any(a.lower() in attributes for a in elt.keys())
     return False

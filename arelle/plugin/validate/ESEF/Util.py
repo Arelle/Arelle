@@ -100,7 +100,7 @@ def checkImageContents(modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, 
                 messageCodes=(imageDoesNotMatchItsFileExtension, incorrectMIMETypeSpecified))
 
 
-def checkSVGContent(modelXbrl, imgElt, data, guidance):
+def checkSVGContent(modelXbrl: ModelXbrl, imgElt: ModelObject, data: Union[bytes, Any, str], guidance: str):
     rootElement = True
     for elt in XML(data).iter():
         if rootElement:
@@ -149,7 +149,7 @@ def hasEventHandlerAttributes(elt: Any) -> bool:
 def hasSvgEventAttributes(elt: Any) -> bool:
     return _hasEventAttributes(elt, svgEventAttributes)
 
-def _hasEventAttributes(elt: Any, attributes: set) -> bool:
+def _hasEventAttributes(elt: Any, attributes: set[str]) -> bool:
     if isinstance(elt, _Element):
         return any(a.lower() in attributes for a in elt.keys())
     return False

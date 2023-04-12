@@ -47,9 +47,9 @@ import regex as re
 from collections import defaultdict
 from math import isnan
 from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, EntityBase, parse, XMLSyntaxError, _Element, XMLParser
-import tinycss2
-from urllib.parse import unquote
+import tinycss2  # type: ignore
 from arelle import LeiUtil, ModelDocument, XbrlConst, XhtmlValidate
+from arelle.FileSource import FileSource
 from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
@@ -83,7 +83,7 @@ from arelle.formula.XPathContext import XPathContext
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelInstanceObject import ModelContext
-from typing import Any, Dict, cast
+from typing import Any, Dict, cast, List
 from collections.abc import Generator
 from arelle.ModelValue import QName
 import zipfile
@@ -183,7 +183,7 @@ def modelXbrlLoadComplete(modelXbrl: ModelXbrl) -> None:
                             for filename in filesource.dir:
                                 validateEntity(modelXbrl, filename, filesource)
 
-def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource) -> None:
+def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -> None:
     consolidated = not any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names)
     contentOtherThanXHTMLGuidance = '2.5.1' if consolidated else '4.1.3'
     fullname = filesource.basedUrl(filename)
@@ -1212,7 +1212,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
 
-def validateCssUrl(cssContent:str, normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, contentOtherThanXHTMLGuidance: str):
+def validateCssUrl(cssContent:str, normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, contentOtherThanXHTMLGuidance: str) -> None:
     css_elements = tinycss2.parse_stylesheet(cssContent)
     for css_element in css_elements:
         if isinstance(css_element, tinycss2.ast.AtRule):
@@ -1227,7 +1227,7 @@ def validateCssUrl(cssContent:str, normalizedUri:str, modelXbrl: ModelXbrl, val:
             validateCssUrlContent(css_element.content, normalizedUri, modelXbrl, val, elt, contentOtherThanXHTMLGuidance)
 
 
-def validateCssUrlContent(cssRules: list, normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, contentOtherThanXHTMLGuidance: str):
+def validateCssUrlContent(cssRules: List[Any], normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, contentOtherThanXHTMLGuidance: str) -> None:
     for css_rule in cssRules:
         if isinstance(css_rule, tinycss2.ast.FunctionBlock):
             if css_rule.lower_name == "url":
