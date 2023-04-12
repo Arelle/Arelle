@@ -110,8 +110,7 @@ def checkSVGContent(modelXbrl: ModelXbrl, imgElt: ModelObject, data: Union[bytes
                                 modelObject=imgElt)
             rootElement = False
         eltTag = elt.tag.rpartition("}")[2] # strip namespace
-        if ((eltTag in ("object", "script")) or
-                (eltTag in ("audio", "foreignObject", "iframe", "image", "use", "video"))):
+        if eltTag in ("object", "script", "audio", "foreignObject", "iframe", "image", "use", "video"):
             href = elt.get("href","")
             if eltTag in ("object", "script") or "javascript:" in href:
                 modelXbrl.error(f"ESEF.{guidance}.executableCodePresent",

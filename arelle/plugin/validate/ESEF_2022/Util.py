@@ -205,8 +205,7 @@ def checkSVGContentElt(elt: _Element, baseUrl: Optional[str], modelXbrl: ModelXb
         eltTag = elt.tag.rpartition("}")[2] # strip namespace
         if eltTag == "image":
             validateImage(baseUrl, getHref(elt), modelXbrl, val, elt, "", guidance)
-        if ((eltTag in ("object", "script")) or
-                (eltTag in ("audio", "foreignObject", "iframe", "image", "use", "video"))):
+        if eltTag in ("object", "script", "audio", "foreignObject", "iframe", "image", "use", "video"):
             href = elt.get("href","")
             if eltTag in ("object", "script") or "javascript:" in href:
                 modelXbrl.error(f"ESEF.{guidance}.executableCodePresent",
