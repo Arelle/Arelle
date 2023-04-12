@@ -42,12 +42,12 @@ Client with curl:
 
 '''
 from __future__ import annotations
-import os, base64
+import os
 import regex as re
 from collections import defaultdict
 from math import isnan
 from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, EntityBase, parse, XMLSyntaxError, _Element, XMLParser
-import tinycss2  # type: ignore
+import tinycss2  # type: ignore[import]
 from arelle import LeiUtil, ModelDocument, XbrlConst, XhtmlValidate
 from arelle.FileSource import FileSource
 from arelle.FunctionIxt import ixtNamespaces

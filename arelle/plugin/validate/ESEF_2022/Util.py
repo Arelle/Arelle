@@ -26,13 +26,10 @@ from arelle.UrlUtil import scheme
 from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Union, cast
 from arelle.ModelDocument import ModelDocument
 from arelle.typing import TypeGetText
 from collections import defaultdict
-
-if TYPE_CHECKING:
-    from _typeshed import SupportsRead
 
 _: TypeGetText  # Handle gettext
 imgDataMediaBase64Pattern = re.compile(r"data:image([^,;]*)(;base64)?,(.*)$", re.S)
@@ -64,7 +61,7 @@ supportedImgTypes: dict[bool, tuple[str, ...]] = {
     }
 # check image contents against mime/file ext and for Steganography
 
-def validateImage(baseUrl:str, image: str, modelXbrl: ModelXbrl, val:ValidateXbrl, elt:ModelObject, evaluatedMsg:str, contentOtherThanXHTMLGuidance=str) -> None:
+def validateImage(baseUrl:Optional[str], image: str, modelXbrl: ModelXbrl, val:ValidateXbrl, elt:_Element, evaluatedMsg:str, contentOtherThanXHTMLGuidance:str) -> None:
     """
     image: either an url or base64 in data:image style
     """
@@ -196,7 +193,7 @@ def getHref(elt:_Element) -> str :
         return elt.get("{http://www.w3.org/1999/xlink}href", "").strip()
 
 def checkSVGContentElt(elt: _Element, baseUrl: Optional[str], modelXbrl: ModelXbrl, imgElt: ModelObject,
-                       guidance: str, val:ValidateXbrl):
+                       guidance: str, val:ValidateXbrl) -> None:
     rootElement = True
     for elt in elt.iter():
         if rootElement:
@@ -207,7 +204,7 @@ def checkSVGContentElt(elt: _Element, baseUrl: Optional[str], modelXbrl: ModelXb
             rootElement = False
         eltTag = elt.tag.rpartition("}")[2] # strip namespace
         if eltTag == "image":
-            validateImage(baseUrl, getHref(elt), modelXbrl, val, elt, guidance)
+            validateImage(baseUrl, getHref(elt), modelXbrl, val, elt, "", guidance)
         if ((eltTag in ("object", "script")) or
                 (eltTag in ("audio", "foreignObject", "iframe", "image", "use", "video"))):
             href = elt.get("href","")
@@ -233,7 +230,6 @@ def resourcesFilePath(modelManager: ModelManager, fileName: str) -> str:
 
 def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]:
     _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), 'rt', encoding='utf-8')
-    _file = cast(SupportsRead[Union[str, bytes]], _file)
     validations = json.load(_file) # {localName: date, ...}
     _file.close()
     return cast(Union[Dict[Any, Any], List[Any]], validations)
