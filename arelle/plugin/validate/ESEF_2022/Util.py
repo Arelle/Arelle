@@ -128,7 +128,7 @@ def validateImage(baseUrl:Optional[str], image: str, modelXbrl: ModelXbrl, val:V
                                 modelObject=elt, err=str(err), src=image[:128], evaluatedMsg=evaluatedMsg)
 
 
-def checkImageContents(baseURI: Optional[str], modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, isFile: bool, data: Union[bytes, Any, str], consolidated: bool, val: ValidateXbrl) -> None:
+def checkImageContents(baseURI: Optional[str], modelXbrl: ModelXbrl, imgElt: _Element, imgType: str, isFile: bool, data: Union[bytes, Any, str], consolidated: bool, val: ValidateXbrl) -> None:
     guidance = 'ESEF.2.5.1' if consolidated else 'ESEF.4.1.3'
     if "svg" in imgType:
         try:

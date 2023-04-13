@@ -100,7 +100,7 @@ def checkImageContents(modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, 
                 messageCodes=(imageDoesNotMatchItsFileExtension, incorrectMIMETypeSpecified))
 
 
-def checkSVGContent(modelXbrl: ModelXbrl, imgElt: ModelObject, data: Union[bytes, Any, str], guidance: str):
+def checkSVGContent(modelXbrl: ModelXbrl, imgElt: ModelObject, data: Union[bytes, Any, str], guidance: str) -> None:
     rootElement = True
     for elt in XML(data).iter():
         if rootElement:
