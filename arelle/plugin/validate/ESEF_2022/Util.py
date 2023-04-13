@@ -178,7 +178,7 @@ def checkImageContents(baseURI: Optional[str], modelXbrl: ModelXbrl, imgElt: _El
                 messageCodes=(imageDoesNotMatchItsFileExtension, incorrectMIMETypeSpecified))
 
 
-def checkSVGContent(baseURI: Optional[str], modelXbrl: ModelXbrl, imgElt: ModelObject, data: Union[bytes, Any, str],
+def checkSVGContent(baseURI: Optional[str], modelXbrl: ModelXbrl, imgElt: _Element, data: Union[bytes, Any, str],
                     guidance: str, val: ValidateXbrl) -> None:
     _parser, _ignored, _ignored = parser(modelXbrl, baseURI, no_network=True)
     elt = XML(data, parser=_parser)
@@ -192,7 +192,7 @@ def getHref(elt:_Element) -> str :
         # 'xlink:href' is deprecated but still used by some SVG generators
         return elt.get("{http://www.w3.org/1999/xlink}href", "").strip()
 
-def checkSVGContentElt(elt: _Element, baseUrl: Optional[str], modelXbrl: ModelXbrl, imgElt: ModelObject,
+def checkSVGContentElt(elt: _Element, baseUrl: Optional[str], modelXbrl: ModelXbrl, imgElt: _Element,
                        guidance: str, val:ValidateXbrl) -> None:
     rootElement = True
     for elt in elt.iter():
