@@ -150,5 +150,5 @@ def hasSvgEventAttributes(elt: Any) -> bool:
 
 def _hasEventAttributes(elt: Any, attributes: set[str]) -> bool:
     if isinstance(elt, _Element):
-        return any(a.lower() in attributes for a in elt.keys())
+        return any(a in attributes for a in elt.keys())
     return False
