@@ -1174,7 +1174,8 @@ def writexml(
             else:
                 writexml(writer, child, indent=indent, xmlcharrefreplace=xmlcharrefreplace, parentNsmap={})
     elif isinstance(node,etree._Comment): # ok to use minidom implementation
-        writer.write(indent+"<!--" + node.text if isinstance(node.text, str) else '' + "-->\n")
+        commentText = node.text if isinstance(node.text, str) else ''
+        writer.write(indent + "<!--" + commentText + "-->\n")
     elif isinstance(node,etree._ProcessingInstruction): # ok to use minidom implementation
         writer.write(indent + str(node) + "\n")
     elif isinstance(node,etree._Element):
