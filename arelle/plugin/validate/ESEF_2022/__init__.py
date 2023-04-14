@@ -57,7 +57,7 @@ from arelle.ModelValue import qname
 from arelle.PackageManager import validateTaxonomyPackage
 from arelle.PythonUtil import strTruncate, normalizeSpace
 from arelle.Version import authorLabel, copyrightLabel
-from arelle.UrlUtil import isHttpUrl, scheme
+from arelle.UrlUtil import decodeBase64DataImage, isHttpUrl, scheme
 from arelle.XmlValidate import lexicalPatterns
 
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
@@ -494,7 +494,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                             modelObject=elt, src=src[:128])
                                     # check for malicious image contents
                                     try: # allow embedded newlines
-                                        checkImageContents(modelXbrl, elt, m.group(1), False, base64.b64decode(m.group(3)))
+                                        checkImageContents(modelXbrl, elt, m.group(1), False, decodeBase64DataImage(m.group(3)))
                                         imgContents = None # deref, may be very large
                                     except base64.binascii.Error as err:
                                         modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
