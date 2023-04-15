@@ -2,7 +2,10 @@ version: '3'
 services:
   arelle:
     build: .
-    command: shoryuken -r ./xbrl_extraction_worker.rb -q xbrl_extraction
+    command: sh start_arelle.sh
+    privileged: true
+    devices:
+      - "/dev/fuse"
     volumes:
       - .:/opt/arelle
       - ${HOST_PATH}:/index/data

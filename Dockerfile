@@ -1,4 +1,6 @@
-FROM ubuntu:18.04
+FROM ubuntu:22.10
+
+RUN mkdir /var/s3fs
 ADD . /opt/arelle
 WORKDIR /opt/arelle
 RUN apt update;\
@@ -6,7 +8,8 @@ RUN apt update;\
     pip3 install -r requirements.txt; \
     pip3 install isodate; \
     apt install -y ruby ruby-dev;
-RUN gem install bundler -v 2.3.26
+RUN apt-get install -y s3fs
+RUN gem install bundler
 RUN gem install shoryuken
 RUN gem install aws-sdk-sqs
 EXPOSE 8099
