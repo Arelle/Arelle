@@ -117,7 +117,7 @@ class WebCache:
         self.workOffline: bool = False
         self._logDownloads = False
         self.maxAgeSeconds = 60.0 * 60.0 * 24.0 * 7.0 # seconds before checking again for file
-        if cntlr.hasFileSystem:
+        if cntlr.hasFileSystem and not cntlr.disableConfigCache:
             self.urlCheckJsonFile = cntlr.userAppDir + os.sep + "cachedUrlCheckTimes.json"
             try:
                 with io.open(self.urlCheckJsonFile, 'rt', encoding='utf-8') as f:
