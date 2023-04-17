@@ -5,15 +5,15 @@ to domestic copyright protection. 17 U.S.C. 105.
 
 To run
    arelleCmdLine --plugin validate/EFM/tools/CheckTxmyRefs --disclosureSystem efm-pragmatic --report-file ../myReportFile.csv
-   
+
    if no --report-file the log entryies are printed to standard output stream
-   
-pass 1: for each edgartaxonomy family, for each version, 
+
+pass 1: for each edgartaxonomy family, for each version,
         load each href
         check that it's in the standard taxonomies dict inferred from edgartaxonomies
         check that each referenced URL from the href is also an href in edgartaxonomies
         check that any ref and doc LBs in same cache dir are in TaxonomyAddonManager files
-        
+
 pass 2: for each file found in an local-root directory by entries in fishInDirsForMissing
         for pattern (such as fishing for files -sub-)
         check if the file is loadable and if so if there are referenced files not in edgartaxonomies
@@ -53,7 +53,7 @@ def utilityRun(cntlr, options, *args, **kwargs):
         txmyFamily = edTxmyFamilies[family]
         txmyFamily.setdefault(version, set()).add(href)
         edTxmyHrefs.add(href)
-        
+
     txmyAddOnTree = etree.parse(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "EdgarRenderer", "resources", "TaxonomyAddonManager.xml"))
     txmyAddons = defaultdict(dict)
     for txmyElt in txmyAddOnTree.iter("TaxonomyAddon"):
@@ -66,7 +66,7 @@ def utilityRun(cntlr, options, *args, **kwargs):
         if refsElt is not None:
             for elt in refsElt.iter("string"):
                 txmyAddon.setdefault("ref", set()).add(elt.text)
-        
+
     # check each edgartaxonomy family
     for txmyFamily in edTxmyFamilies:
         for familyVer in edTxmyFamilies[txmyFamily]:
