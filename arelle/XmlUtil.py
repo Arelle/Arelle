@@ -1156,6 +1156,7 @@ def writexml(
     encoding: str | None = None,
     indent: str = '',
     xmlcharrefreplace: bool = False,
+    edgarcharrefreplace: bool = False,
     parentNsmap: dict[str | None, str] | None = None
 ) -> None:
     # customized from xml.minidom to provide correct indentation for data items
@@ -1170,9 +1171,9 @@ def writexml(
                 break   # stop depth first iteration after comment and root node
             if child.tag == 'nsmap':
                 for nsmapChild in child:
-                    writexml(writer, nsmapChild, indent=indent, xmlcharrefreplace=xmlcharrefreplace, parentNsmap={}) # force all xmlns in next element
+                    writexml(writer, nsmapChild, indent=indent, xmlcharrefreplace=xmlcharrefreplace, edgarcharrefreplace=edgarcharrefreplace, parentNsmap={}) # force all xmlns in next element
             else:
-                writexml(writer, child, indent=indent, xmlcharrefreplace=xmlcharrefreplace, parentNsmap={})
+                writexml(writer, child, indent=indent, xmlcharrefreplace=xmlcharrefreplace, edgarcharrefreplace=edgarcharrefreplace, parentNsmap={})
     elif isinstance(node,etree._Comment): # ok to use minidom implementation
         commentText = node.text if isinstance(node.text, str) else ''
         writer.write(indent + "<!--" + commentText + "-->\n")
@@ -1243,6 +1244,7 @@ def writexml(
                 writer.write(''.join("&amp;" if c == "&"
                                      else '&quot;' if c == '"'
                                      else "&#x%x;" % ord(c) if c >= '\x80' and xmlcharrefreplace
+                                     else "&#x%x;" % ord(c) if c in ('^', '\x7F') and edgarcharrefreplace
                                      else c
                                      for c in attrs[aName]))
             else:
@@ -1266,6 +1268,7 @@ def writexml(
                            else "&gt;" if c == ">"
                            else "&#173;" if c == "\u00AD"
                            else "&#x%x;" % ord(c) if c >= '\x80' and xmlcharrefreplace
+                           else "&#x%x;" % ord(c) if c in ('^', '\x7F') and edgarcharrefreplace
                            else c
                            for c in text)
         tail = node.tail
@@ -1276,6 +1279,7 @@ def writexml(
                            else "&gt;" if c == ">"
                            else "&#173;" if c == "\u00AD"
                            else "&#x%x;" % ord(c) if c >= '\x80' and xmlcharrefreplace
+                           else "&#x%x;" % ord(c) if c in ('^', '\x7F') and edgarcharrefreplace
                            else c
                            for c in tail)
         for child in node.iterchildren():
@@ -1288,7 +1292,7 @@ def writexml(
                 firstChild = False
             writexml(writer, child,
                      indent=indent+'    ' if indent is not None and not isFootnote else '',
-                     xmlcharrefreplace=xmlcharrefreplace)
+                     xmlcharrefreplace=xmlcharrefreplace, edgarcharrefreplace=edgarcharrefreplace)
         if hasChildNodes:
             if isXmlElement and not isFootnote and indent is not None:
                 writer.write("%s</%s>" % (indent, tag))

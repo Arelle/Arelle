@@ -25,7 +25,7 @@ PyCryptodome==3.17
 cx_Oracle==8.3.0
 pg8000==1.29.4
 PyMySQL==1.0.3
-pyodbc==4.0.35
+pyodbc==4.0.39
 RDFLib==5.0.0
 # other
 graphviz==0.20.1

@@ -924,10 +924,8 @@ class TextBlockHandler(xml.sax.ContentHandler, xml.sax.ErrorHandler):
              error=err.getMessage(), line=err.getLineNumber(), column=err.getColumnNumber())
 '''
 
-def validateGraphicHeaderType(data):
-    # Support both JFIF APP0 (0xffe0 + 'JFIF') and APP1 Exif (0xffe1 + 'Exif') JPEG application segment types
-    if ((data[:4] == b'\xff\xd8\xff\xe0' and data[6:11] == b'JFIF\0') or
-        (data[:4] == b'\xff\xd8\xff\xe1' and data[6:11] == b'Exif\0')):
+def validateGraphicHeaderType(data: bytes) -> str:
+    if data[:2] == b"\xff\xd8":
         return "jpg"
     elif data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):
         return "gif"
