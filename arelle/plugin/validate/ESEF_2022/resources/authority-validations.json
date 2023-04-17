@@ -14,7 +14,7 @@
         "authorityName: name of issuing authority, such as ESMA for ESEF and FRC for UKSEF",
         "reference: document(s) pertinent to authority validation",
         "reportPackageMaxMB: max file size in MB or null for unlimited",
-        "minExternalResourceSizekB: minimal file size in kB for allowing external resources,0 if no minimum requirement and -1 if external resources are forbidden",
+        "minExternalResourceSizekB: minimal file size in kB for allowing external resources, 0 if no minimum requirement and -1 if external resources are forbidden",
         "reportPackageMeasurement: \"zipped\" or \"unzipped\"",
         "ixTargetUsage: allowed, warning or error",
         "extensionAbstractContexts: allowed, warning or error",
