@@ -43,11 +43,11 @@ jobs:
 
     steps:
       - name: Checkout arelle
-        uses: actions/checkout@v3.5.0
+        uses: actions/checkout@v3.5.2
         with:
           fetch-depth: 0
       - name: Checkout EdgarRenderer
-        uses: actions/checkout@v3.5.0
+        uses: actions/checkout@v3.5.2
         with:
           repository: Arelle/EdgarRenderer
           path: arelle/plugin/EdgarRenderer
@@ -55,7 +55,7 @@ jobs:
       - name: Cleanup EdgarRenderer
         run: rm -rf arelle/plugin/EdgarRenderer/.git
       - name: Checkout XULE
-        uses: actions/checkout@v3.5.0
+        uses: actions/checkout@v3.5.2
         with:
           repository: xbrlus/xule
           path: xule
@@ -68,7 +68,7 @@ jobs:
       - name: Cleanup XULE
         run: rm -rf xule
       - name: Checkout ixbrl-viewer
-        uses: actions/checkout@v3.5.0
+        uses: actions/checkout@v3.5.2
         with:
           fetch-depth: 0
           repository: Workiva/ixbrl-viewer
