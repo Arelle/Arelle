@@ -140,7 +140,7 @@ def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]
     _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), 'rt', encoding='utf-8')
     validations = json.load(_file) # {localName: date, ...}
     _file.close()
-    return cast(Union[dict[Any, Any], list[Any]], validations)
+    return cast(Union[Dict[Any, Any], List[Any]], validations)
 
 def hasEventHandlerAttributes(elt: Any) -> bool:
     return _hasEventAttributes(elt, htmlEventHandlerAttributes)
