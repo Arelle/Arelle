@@ -180,7 +180,7 @@ def checkImageContents(baseURI: Optional[str], modelXbrl: ModelXbrl, imgElt: _El
 
 def checkSVGContent(baseURI: Optional[str], modelXbrl: ModelXbrl, imgElt: _Element, data: Union[bytes, Any, str],
                     guidance: str, val: ValidateXbrl) -> None:
-    _parser, _ignored, _ignored = parser(modelXbrl, baseURI, no_network=True)
+    _parser, _ignored, _ignored = parser(modelXbrl, baseURI)
     elt = XML(data, parser=_parser)
     checkSVGContentElt(elt, baseURI, modelXbrl, imgElt, guidance, val)
 
