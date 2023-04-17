@@ -78,25 +78,26 @@ def validateImage(baseUrl:Optional[str], image: str, modelXbrl: ModelXbrl, val:V
                                       "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
     elif image.startswith("data:image"):
         m = imgDataMediaBase64Pattern.match(image)
-        if not m or not m.group(2):
+        (imgMimeType, isBase64, imgData) = m.group(1, 2, 3) if m is not None else (None, None, None)
+        if not m or not isBase64:
             modelXbrl.warning(f"{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
                               _("Images included in the XHTML document SHOULD be base64 encoded: %(src)s."),
                               modelObject=elt, src=image[:128], evaluatedMsg=evaluatedMsg)
-            if m and m.group(1) and m.group(3):
-                checkImageContents(None, modelXbrl, elt, m.group(1), False, unquote(m.group(3)), val.consolidated, val)
+            if m and imgMimeType and imgData:
+                checkImageContents(None, modelXbrl, elt, imgMimeType, False, unquote(imgData), val.consolidated, val)
         else:
-            if not m.group(1):
+            if not imgMimeType:
                 modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.MIMETypeNotSpecified",
                                 _("Images included in the XHTML document MUST be saved with MIME type specifying PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
                                 modelObject=elt, src=image[:128], evaluatedMsg=evaluatedMsg)
-            elif m.group(1) not in ("/gif", "/jpeg", "/png", "/svg+xml"):
+            elif imgMimeType not in ("/gif", "/jpeg", "/png", "/svg+xml"):
                 modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.imageFormatNotSupported",
                                 _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
                                 modelObject=elt, src=image[:128], evaluatedMsg=evaluatedMsg)
             # check for malicious image contents
             try:  # allow embedded newlines
-                imgContents = base64.b64decode(m.group(3))
-                checkImageContents(None, modelXbrl, elt, m.group(1), False, imgContents, val.consolidated, val)
+                imgContents = base64.b64decode(imgData)
+                checkImageContents(None, modelXbrl, elt, imgMimeType, False, imgContents, val.consolidated, val)
                 imgContents = None  # deref, may be very large
 
             except binascii.Error as err:
