@@ -76,30 +76,7 @@ def validateImage(baseUrl:Optional[str], image: str, modelXbrl: ModelXbrl, val:V
                         modelObject=elt, element=elt.tag, evaluatedMsg=evaluatedMsg,
                         messageCodes=("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
                                       "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
-    elif not image.startswith("data:image"):
-        # presume it to be an image file, check image contents
-        try:
-            base = baseUrl
-            normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(image, base)
-            if not modelXbrl.fileSource.isInArchive(normalizedUri):
-                normalizedUri = modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
-            imglen = 0
-            with modelXbrl.fileSource.file(normalizedUri, binary=True)[0] as fh:
-                imgContents = fh.read()
-                imglen += len(imgContents)
-                checkImageContents(normalizedUri, modelXbrl, elt, os.path.splitext(image)[1], True, imgContents,
-                                   val.consolidated, val)
-                imgContents = None  # deref, may be very large
-            if minExternalRessourceSize == -1 or imglen < minExternalRessourceSize:
-                modelXbrl.warning(
-                    "%s.imageIncludedAndNotEmbeddedAsBase64EncodedString" % contentOtherThanXHTMLGuidance,
-                    _("Images SHOULD be included in the XHTML document as a base64 encoded string unless their size exceeds the minimum size for the authority (%(maxImageSize)s): %(file)s."),
-                    modelObject=elt, maxImageSize=minExternalRessourceSize, file=os.path.basename(normalizedUri), evaluatedMsg=evaluatedMsg)
-        except IOError as err:
-            modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.imageFileCannotBeLoaded",
-                            _("Error opening the file '%(src)s': %(error)s"),
-                            modelObject=elt, src=image, error=err, evaluatedMsg=evaluatedMsg)
-    else:
+    elif image.startswith("data:image"):
         m = imgDataMediaBase64Pattern.match(image)
         if not m or not m.group(2):
             modelXbrl.warning(f"{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
@@ -126,7 +103,29 @@ def validateImage(baseUrl:Optional[str], image: str, modelXbrl: ModelXbrl, val:V
                 modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
                                 _("Base64 encoding error %(err)s in image source: %(src)s."),
                                 modelObject=elt, err=str(err), src=image[:128], evaluatedMsg=evaluatedMsg)
-
+    else:
+        # presume it to be an image file, check image contents
+        try:
+            base = baseUrl
+            normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(image, base)
+            if not modelXbrl.fileSource.isInArchive(normalizedUri):
+                normalizedUri = modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
+            imglen = 0
+            with modelXbrl.fileSource.file(normalizedUri, binary=True)[0] as fh:
+                imgContents = fh.read()
+                imglen += len(imgContents)
+                checkImageContents(normalizedUri, modelXbrl, elt, os.path.splitext(image)[1], True, imgContents,
+                                   val.consolidated, val)
+                imgContents = None  # deref, may be very large
+            if minExternalRessourceSize == -1 or imglen < minExternalRessourceSize:
+                modelXbrl.warning(
+                    "%s.imageIncludedAndNotEmbeddedAsBase64EncodedString" % contentOtherThanXHTMLGuidance,
+                    _("Images SHOULD be included in the XHTML document as a base64 encoded string unless their size exceeds the minimum size for the authority (%(maxImageSize)s): %(file)s."),
+                    modelObject=elt, maxImageSize=minExternalRessourceSize, file=os.path.basename(normalizedUri), evaluatedMsg=evaluatedMsg)
+        except IOError as err:
+            modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.imageFileCannotBeLoaded",
+                            _("Error opening the file '%(src)s': %(error)s"),
+                            modelObject=elt, src=image, error=err, evaluatedMsg=evaluatedMsg)
 
 def checkImageContents(baseURI: Optional[str], modelXbrl: ModelXbrl, imgElt: _Element, imgType: str, isFile: bool, data: Union[bytes, Any, str], consolidated: bool, val: ValidateXbrl) -> None:
     guidance = 'ESEF.2.5.1' if consolidated else 'ESEF.4.1.3'
