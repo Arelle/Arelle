@@ -117,7 +117,7 @@ def validateImage(baseUrl:Optional[str], image: str, modelXbrl: ModelXbrl, val:V
                 checkImageContents(normalizedUri, modelXbrl, elt, os.path.splitext(image)[1], True, imgContents,
                                    val.consolidated, val)
                 imgContents = None  # deref, may be very large
-            if minExternalRessourceSize == -1 or imglen < minExternalRessourceSize:
+            if imglen < minExternalRessourceSize:
                 modelXbrl.warning(
                     "%s.imageIncludedAndNotEmbeddedAsBase64EncodedString" % contentOtherThanXHTMLGuidance,
                     _("Images SHOULD be included in the XHTML document as a base64 encoded string unless their size exceeds the minimum size for the authority (%(maxImageSize)s): %(file)s."),
