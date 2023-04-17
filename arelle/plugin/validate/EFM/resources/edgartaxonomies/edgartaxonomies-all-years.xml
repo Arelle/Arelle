@@ -5,6 +5,27 @@ This file was created by staff of the U.S. Securities and Exchange Commission.
 Data and content created by government employees within the scope of their employment
 are not subject to domestic copyright protection. 17 U.S.C. 105.
 -->
+  <!-- RR 2023, add missing entries-->
+  <Loc>
+    <Family>RR</Family>
+    <Version>2023</Version>
+    <Href>https://xbrl.sec.gov/rr/2023/rr-sub-2023.xsd</Href>
+    <AttType>SCH</AttType>
+    <FileTypeName>Schema</FileTypeName>
+    <Elements>0</Elements>
+    <Namespace>http://xbrl.sec.gov/rr-sub/2023</Namespace>
+    <Prefix>rr-sub</Prefix>
+  </Loc>
+  <Loc>
+    <Family>RR</Family>
+    <Version>2023</Version>
+    <Href>https://xbrl.sec.gov/rr/2023/rr-2023_cal.xsd</Href>
+    <AttType>SCH</AttType>
+    <FileTypeName>Schema</FileTypeName>
+    <Elements>0</Elements>
+    <Namespace>http://xbrl.sec.gov/rr-cal/2023</Namespace>
+    <Prefix>rr-cal</Prefix>
+  </Loc>
   <!-- DEI 2023 -->
   <Loc>
     <Family>DEI</Family>
