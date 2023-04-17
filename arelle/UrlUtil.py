@@ -2,8 +2,9 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
+
+import base64
 import os
-from typing import Any
 import regex as re
 from urllib.request import pathname2url
 from urllib.parse import urldefrag, unquote, quote, urljoin
@@ -385,3 +386,10 @@ def relativeUri(baseUri: str, relativeUri: str) -> str: # return uri relative to
     if mBaseUri and not mRelUri:
         baseUri = mBaseUri.group(1) # remove the zip part so relative URI is within zip
     return os.path.relpath(relativeUri, os.path.dirname(baseUri)).replace('\\','/')
+
+
+def decodeBase64DataImage(imageData: str | None) -> bytes | None:
+    if imageData is None:
+        return None
+    imageDataWithoutUriFragment = imageData.split("#", 1)[0]
+    return base64.b64decode(imageDataWithoutUriFragment)
