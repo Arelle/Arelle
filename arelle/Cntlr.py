@@ -138,7 +138,7 @@ class Cntlr:
         logFileEncoding: str | None = None,
         logFormat: str | None = None,
         uiLang: str | None = None,
-        disable_config_cache: bool = False,
+        disable_persistent_config: bool = False,
     ) -> None:
         self.hasWin32gui = False
         self.hasGui = hasGui
@@ -147,7 +147,7 @@ class Cntlr:
         self.isCGI = False
         self.systemWordSize = int(round(math.log(sys.maxsize, 2)) + 1) # e.g., 32 or 64
         self.uiLangDir = "ltr"
-        self.disableConfigCache = disable_config_cache
+        self.disablePersistentConfig = disable_persistent_config
 
         # sys.setrecursionlimit(10000) # 1000 default exceeded in some inline documents
 
@@ -250,7 +250,7 @@ class Cntlr:
             self.hasWebServer = False
         # assert that app dir must exist
         self.config = None
-        if self.hasFileSystem and not self.disableConfigCache:
+        if self.hasFileSystem and not self.disablePersistentConfig:
             if not os.path.exists(self.userAppDir):
                 os.makedirs(self.userAppDir)
             # load config if it exists
@@ -465,7 +465,7 @@ class Cntlr:
 
     def saveConfig(self) -> None:
         """Save user preferences configuration (in json configuration file)."""
-        if self.hasFileSystem and not self.disableConfigCache:
+        if self.hasFileSystem and not self.disablePersistentConfig:
             with io.open(self.configJsonFile, 'wt', encoding='utf-8') as f:
                 # might not be unicode in 2.7
                 jsonStr = str(json.dumps(self.config, ensure_ascii=False, indent=2))

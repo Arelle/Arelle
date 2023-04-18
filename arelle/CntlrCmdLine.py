@@ -29,7 +29,7 @@ from lxml import etree
 win32file = win32api = win32process = pywintypes = None
 STILL_ACTIVE = 259 # MS Windows process status constants
 PROCESS_QUERY_INFORMATION = 0x400
-DISABLE_CONFIG_CACHE_OPTION = "--disableConfigCache"
+DISABLE_PERSISTENT_CONFIG_OPTION = "--disablePersistentConfig"
 UILANG_OPTION = '--uiLang'
 
 def main():
@@ -72,9 +72,9 @@ def parseAndRun(args):
             break
 
     # Check if the config cache needs to be disabled prior to initializing the cntlr
-    disable_config_cache = bool({DISABLE_CONFIG_CACHE_OPTION, DISABLE_CONFIG_CACHE_OPTION.lower()} & set(args))
+    disable_persistent_config = bool({DISABLE_PERSISTENT_CONFIG_OPTION, DISABLE_PERSISTENT_CONFIG_OPTION.lower()} & set(args))
 
-    cntlr = CntlrCmdLine(uiLang=uiLang, disable_config_cache=disable_config_cache)  # need controller for plug ins to be loaded
+    cntlr = CntlrCmdLine(uiLang=uiLang, disable_persistent_config=disable_persistent_config)  # need controller for plug ins to be loaded
 
     usage = "usage: %prog [options]"
 
@@ -275,7 +275,7 @@ def parseAndRun(args):
                       help=_("Treat http and https schemes interchangeably when looking up files from the webcache"))
     parser.add_option("--httpUserAgent", "--httpuseragent", action="store", dest="httpUserAgent",
                       help=_("Specify non-standard http header User-Agent value"))
-    parser.add_option(DISABLE_CONFIG_CACHE_OPTION, DISABLE_CONFIG_CACHE_OPTION.lower(), action="store_true", dest="disableConfigCache", help=_("Prohibits Arelle from reading and writing a config to the local cache."))
+    parser.add_option(DISABLE_PERSISTENT_CONFIG_OPTION, DISABLE_PERSISTENT_CONFIG_OPTION.lower(), action="store_true", dest="disablePersistentConfig", help=_("Prohibits Arelle from reading and writing a config to the local cache."))
     parser.add_option("--xdgConfigHome", action="store", dest="xdgConfigHome",
                       help=_("Specify non-standard location for configuration and cache files (overrides environment parameter XDG_CONFIG_HOME)."))
     parser.add_option("--plugins", action="store", dest="plugins",
@@ -497,8 +497,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
     Initialization sets up for platform via Cntlr.Cntlr.
     """
 
-    def __init__(self, logFileName=None, uiLang=None, disable_config_cache=False):
-        super(CntlrCmdLine, self).__init__(hasGui=False, uiLang=uiLang, disable_config_cache=disable_config_cache)
+    def __init__(self, logFileName=None, uiLang=None, disable_persistent_config=False):
+        super(CntlrCmdLine, self).__init__(hasGui=False, uiLang=uiLang, disable_persistent_config=disable_persistent_config)
         self.preloadedPlugins =  {}
 
     def run(self, options, sourceZipStream=None, responseZipStream=None):
@@ -758,9 +758,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.outputAttribution:
             self.modelManager.outputAttribution = options.outputAttribution
         self.modelManager.validateTestcaseSchema = options.validateTestcaseSchema
-        if options.internetConnectivity == "offline" or options.disableConfigCache:
+        if options.internetConnectivity == "offline":
             self.webCache.workOffline = True
-        elif options.internetConnectivity == "online" and not options.disableConfigCache:
+        elif options.internetConnectivity == "online":
             self.webCache.workOffline = False
         if options.internetTimeout is not None:
             self.webCache.timeout = (options.internetTimeout or None)  # use None if zero specified to disable timeout
