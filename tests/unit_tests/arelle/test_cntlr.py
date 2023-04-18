@@ -9,9 +9,9 @@ from arelle import Cntlr
 def test_cntlr_cache_enabled(_, mock_codes, mock_open):
     mock_codes.return_value = ['en-US', 'en_US', 'en']
     cntlr = Cntlr.Cntlr(uiLang=None)
-    assert mock_open.call_count == 2
+    assert mock_open.call_count == 1
     cntlr.saveConfig()
-    assert mock_open.call_count == 3
+    assert mock_open.call_count == 2
 
 @patch('io.open')
 @patch('arelle.Cntlr.Cntlr.setUiLanguage')
