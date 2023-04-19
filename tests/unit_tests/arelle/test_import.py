@@ -31,6 +31,7 @@ TEST_PARAMS = [
 ]
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize('module_name', TEST_PARAMS)
 def test(module_name):
     subprocess.run([sys.executable, '-c', f'import {module_name}'], check=True)
