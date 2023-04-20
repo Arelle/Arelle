@@ -98,7 +98,7 @@ def validateImage(baseUrl:Optional[str], image: str, modelXbrl: ModelXbrl, val:V
             try:  # allow embedded newlines
                 imgContents = decodeBase64DataImage(imgData)
                 checkImageContents(None, modelXbrl, elt, imgMimeType, False, imgContents, val.consolidated, val)
-                imgContents = None  # deref, may be very large
+                imgContents = b""  # deref, may be very large
 
             except binascii.Error as err:
                 modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
@@ -113,11 +113,11 @@ def validateImage(baseUrl:Optional[str], image: str, modelXbrl: ModelXbrl, val:V
                 normalizedUri = modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
             imglen = 0
             with modelXbrl.fileSource.file(normalizedUri, binary=True)[0] as fh:
-                imgContents = fh.read()
+                imgContents:Union[bytes, Any, str] = fh.read()
                 imglen += len(imgContents)
                 checkImageContents(normalizedUri, modelXbrl, elt, os.path.splitext(image)[1], True, imgContents,
                                    val.consolidated, val)
-                imgContents = None  # deref, may be very large
+                imgContents = b""  # deref, may be very large
             if imglen < minExternalRessourceSize:
                 modelXbrl.warning(
                     "%s.imageIncludedAndNotEmbeddedAsBase64EncodedString" % contentOtherThanXHTMLGuidance,
