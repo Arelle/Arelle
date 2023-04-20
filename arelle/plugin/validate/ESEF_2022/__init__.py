@@ -43,6 +43,7 @@ Client with curl:
 '''
 from __future__ import annotations
 import os
+import zipfile
 import regex as re
 from collections import defaultdict
 from math import isnan
@@ -58,7 +59,7 @@ from arelle.PackageManager import validateTaxonomyPackage
 from arelle.PythonUtil import normalizeSpace
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.PythonUtil import strTruncate
-from arelle.UrlUtil import isHttpUrl, scheme
+from arelle.UrlUtil import decodeBase64DataImage, isHttpUrl, scheme
 from arelle.XmlValidate import lexicalPatterns
 
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
@@ -86,7 +87,6 @@ from arelle.ModelInstanceObject import ModelContext
 from typing import Any, Dict, cast, List
 from collections.abc import Generator
 from arelle.ModelValue import QName
-import zipfile
 
 _: TypeGetText  # Handle gettext
 

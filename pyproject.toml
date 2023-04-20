@@ -91,6 +91,11 @@ write_to = "arelle/_version.py"
 [tool.pytest.ini_options]
 xfail_strict = true
 empty_parameter_set_mark = "fail_at_collect"
+addopts = "--strict-markers"
+markers = [
+    "fast: mark automatically applied to tests which don't have the \"slow\" mark applied (deselect with '-m \"not fast\"')",
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
 
 [tool.mypy]
 # Warn when a # type: ignore comment does not specify any error codes

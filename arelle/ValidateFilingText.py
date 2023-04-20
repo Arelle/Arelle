@@ -8,7 +8,7 @@ import regex as re
 from arelle.XbrlConst import ixbrlAll, xhtml
 from arelle.XmlUtil import setXmlns, xmlstring
 from arelle.ModelObject import ModelObject
-from arelle.UrlUtil import isHttpUrl, scheme
+from arelle.UrlUtil import decodeBase64DataImage, isHttpUrl, scheme
 
 XMLdeclaration = re.compile(r"<\?xml.*\?>", re.DOTALL)
 XMLpattern = re.compile(r".*(<|&lt;|&#x3C;|&#60;)[A-Za-z_]+[A-Za-z0-9_:]*[^>]*(/>|>|&gt;|/&gt;).*", re.DOTALL)
@@ -627,7 +627,7 @@ def validateTextBlockFacts(modelXbrl):
                                             if (not allowedImageTypes["data-scheme"] or
                                                 not m or not m.group(1) or not m.group(2)
                                                 or m.group(1)[1:] not in allowedImageTypes["mime-types"]
-                                                or m.group(1)[1:] != validateGraphicHeaderType(base64.b64decode(m.group(3)))):
+                                                or m.group(1)[1:] != validateGraphicHeaderType(decodeBase64DataImage(m.group(3)))):
                                                 modelXbrl.error(("EFM.6.05.16.graphicDataUrl", "FERC.6.05.16.graphicDataUrl"),
                                                     _("Fact %(fact)s of context %(contextID)s references a graphics data URL which isn't accepted or valid '%(attribute)s' for <%(element)s>"),
                                                     modelObject=f1, fact=f1.qname, contextID=f1.contextID,
@@ -769,7 +769,7 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                             if (not allowedImageTypes["data-scheme"] or
                                 not m or not m.group(1) or not m.group(2)
                                 or m.group(1)[1:] not in allowedImageTypes["mime-types"]
-                                or m.group(1)[1:] != validateGraphicHeaderType(base64.b64decode(m.group(3)))):
+                                or m.group(1)[1:] != validateGraphicHeaderType(decodeBase64DataImage(m.group(3)))):
                                 modelXbrl.error(messageCodePrefix + "graphicDataUrl",
                                     _("%(validatedObjectLabel)s references a graphics data URL which isn't accepted '%(attribute)s' for <%(element)s>"),
                                     modelObject=elt, validatedObjectLabel=validatedObjectLabel,
@@ -924,10 +924,8 @@ class TextBlockHandler(xml.sax.ContentHandler, xml.sax.ErrorHandler):
              error=err.getMessage(), line=err.getLineNumber(), column=err.getColumnNumber())
 '''
 
-def validateGraphicHeaderType(data):
-    # Support both JFIF APP0 (0xffe0 + 'JFIF') and APP1 Exif (0xffe1 + 'Exif') JPEG application segment types
-    if ((data[:4] == b'\xff\xd8\xff\xe0' and data[6:11] == b'JFIF\0') or
-        (data[:4] == b'\xff\xd8\xff\xe1' and data[6:11] == b'Exif\0')):
+def validateGraphicHeaderType(data: bytes) -> str:
+    if data[:2] == b"\xff\xd8":
         return "jpg"
     elif data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):
         return "gif"
