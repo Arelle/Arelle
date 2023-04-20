@@ -119,7 +119,6 @@ class ModelObject(etree.ElementBase):
     def _init(self) -> None:
         self.isChanged = False
         parent = self.getparent()
-        self.objectIndex = 0
         if parent is not None and hasattr(parent, "modelDocument"):
             self.init(parent.modelDocument)
 
