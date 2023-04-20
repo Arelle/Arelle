@@ -96,8 +96,8 @@ def validateImage(baseUrl:Optional[str], image: str, modelXbrl: ModelXbrl, val:V
                                 modelObject=elt, src=image[:128], evaluatedMsg=evaluatedMsg)
             # check for malicious image contents
             try:  # allow embedded newlines
-                imgContents = decodeBase64DataImage(imgData)
-                checkImageContents(None, modelXbrl, elt, imgMimeType, False, imgContents, val.consolidated, val)
+                imgContents:Union[bytes, Any, str] = decodeBase64DataImage(imgData)
+                checkImageContents(None, modelXbrl, elt, str(imgMimeType), False, imgContents, val.consolidated, val)
                 imgContents = b""  # deref, may be very large
 
             except binascii.Error as err:
@@ -113,8 +113,8 @@ def validateImage(baseUrl:Optional[str], image: str, modelXbrl: ModelXbrl, val:V
                 normalizedUri = modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
             imglen = 0
             with modelXbrl.fileSource.file(normalizedUri, binary=True)[0] as fh:
-                imgContents:Union[bytes, Any, str] = fh.read()
-                imglen += len(imgContents)
+                imgContents = fh.read()
+                imglen += len(imgContents or '')
                 checkImageContents(normalizedUri, modelXbrl, elt, os.path.splitext(image)[1], True, imgContents,
                                    val.consolidated, val)
                 imgContents = b""  # deref, may be very large
