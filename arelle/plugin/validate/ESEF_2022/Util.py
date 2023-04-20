@@ -9,7 +9,7 @@ from __future__ import annotations
 import binascii
 from lxml.etree import _Element
 from urllib.parse import unquote
-import os, json, base64, regex as re
+import os, json, regex as re
 
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
@@ -22,7 +22,7 @@ from .Const import esefTaxonomyNamespaceURIs, esefNotesStatementConcepts,\
     esefCorNsPattern, htmlEventHandlerAttributes, svgEventAttributes
 from lxml.etree import XML, XMLSyntaxError
 from arelle.FileSource import openFileStream
-from arelle.UrlUtil import scheme
+from arelle.UrlUtil import scheme, decodeBase64DataImage
 from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
@@ -96,7 +96,7 @@ def validateImage(baseUrl:Optional[str], image: str, modelXbrl: ModelXbrl, val:V
                                 modelObject=elt, src=image[:128], evaluatedMsg=evaluatedMsg)
             # check for malicious image contents
             try:  # allow embedded newlines
-                imgContents = base64.b64decode(imgData)
+                imgContents = decodeBase64DataImage(imgData)
                 checkImageContents(None, modelXbrl, elt, imgMimeType, False, imgContents, val.consolidated, val)
                 imgContents = None  # deref, may be very large
 
