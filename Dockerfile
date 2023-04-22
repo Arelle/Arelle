@@ -11,6 +11,7 @@ RUN apt update;\
     apt install -y python3.6 libxml2-dev libxslt1.dev; \
     pip3 install -r requirements.txt; \
     pip3 install isodate; \
+    pip3 install --upgrade lxml; \
     apt install -y ruby ruby-dev;
 RUN apt-get install -y s3fs
 RUN gem install bundler
