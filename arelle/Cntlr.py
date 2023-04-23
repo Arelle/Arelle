@@ -468,7 +468,7 @@ class Cntlr:
         if self.hasFileSystem and not self.disablePersistentConfig:
             with io.open(self.configJsonFile, 'wt', encoding='utf-8') as f:
                 # might not be unicode in 2.7
-                jsonStr = str(json.dumps(self.config, ensure_ascii=False, indent=2))
+                jsonStr = str(json.dumps(self.config, ensure_ascii=False, indent=2, sort_keys=True))
                 f.write(jsonStr)  # 2.7 getss unicode this way
 
     # default non-threaded viewModelObject

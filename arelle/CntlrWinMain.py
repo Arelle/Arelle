@@ -223,10 +223,12 @@ class CntlrWinMain (Cntlr.Cntlr):
                     underline=0,
                     onvalue=_opt_val
              )
+        self.webCache.timeout = self.config.setdefault("internetConnectionTimeout", None)
 
         cacheMenu.add_command(label=_("Clear cache"), underline=0, command=self.confirmClearWebCache)
         cacheMenu.add_command(label=_("Manage cache"), underline=0, command=self.manageWebCache)
         cacheMenu.add_cascade(label=self._internetRecheckLabel, menu=internetCacheRecheckMenu, underline=0, state=_recheck_initial)
+        cacheMenu.add_command(label=_("Internet connection timeout"), underline=0, command=self.internetConnectionTimeout)
         cacheMenu.add_command(label=_("Proxy Server"), underline=0, command=self.setupProxy)
         cacheMenu.add_command(label=_("HTTP User Agent"), underline=0, command=self.setupUserAgent)
         self.webCache.httpUserAgent = self.config.get("httpUserAgent")
@@ -1130,6 +1132,17 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.webCache.noCertificateCheck = self.noCertificateCheck.get() # resets proxy handlers
         self.config["noCertificateCheck"] = self.webCache.noCertificateCheck
         self.saveConfig()
+
+    def internetConnectionTimeout(self):
+        response = tkinter.simpledialog.askinteger(
+                    _("arelle - Internet Connection Timeout"),
+                    _("Enter timeout in seconds or 0 for no timeout"),
+                    initialvalue=str(self.webCache.timeout or 0),
+                    parent=self.parent)
+        if response is not None and response >= 0:
+            self.webCache.timeout = response or None # set to None if zero - no timenout
+            self.config["internetConnectionTimeout"] = self.webCache.timeout
+            
 
     def confirmClearWebCache(self):
         if tkinter.messagebox.askyesno(
