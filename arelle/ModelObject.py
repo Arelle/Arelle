@@ -140,8 +140,7 @@ class ModelObject(etree.ElementBase):
         :param refId: A string to prefix the refId for uniqueless (such as to use in tags for tkinter)
         :type refId: str
         """
-        index:Union[int,str] = self.objectIndex if hasattr(self, 'objectIndex') else 'None'
-        return "_{0}_{1}".format(refId, index)
+        return f"_{refId}_{getattr(self, 'objectIndex', 'None')}"
 
     @property
     def modelXbrl(self) -> ModelXbrl | None:
