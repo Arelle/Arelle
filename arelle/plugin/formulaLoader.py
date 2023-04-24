@@ -21,6 +21,7 @@ When run from GUI first load the instance/DTS and then import the xf file(s).
 
 import time, sys, traceback, os, io, os.path, zipfile
 import regex as re
+from arelle.PythonUtil import OrderedSet
 from arelle.Version import authorLabel, copyrightLabel
 from arelle import XbrlConst
 from lxml import etree
@@ -41,6 +42,11 @@ reservedWords = {} # words that can't be qnames
 
 isGrammarCompiled = False
 
+XF_VERSIONS_SUPPORTED = OrderedSet(
+    "1.0",
+    "2.0+WGWD-YYYY-MM-DD"
+    )
+
 class PrefixError(Exception):
     def __init__(self, qnameToken):
         self.qname = qnameToken
@@ -56,7 +62,7 @@ def dequotedString(s):
     q = s[0]
     if q != '"' and q != "'":
         return s # note quoted
-    return s[1:-1].replace(q+q,q)
+    return s[1:-1].replace("\\"+q,q)
 
 def camelCase(name):
     s = []
@@ -72,7 +78,8 @@ def camelCase(name):
                 s.append(c)
     return "".join(s)
 
-
+def variableRefQname(varRef):
+    return varRef.rpartition("$")[2]
 
 # parse operations ("compile methods") are listed alphabetically
 
@@ -130,7 +137,7 @@ def compileAspectRules( sourceStr, loc, toks ):
     prevTok = None
     for tok in toks:
         if prevTok == "source":
-            attrib["source"] = tok
+            attrib["source"] = variableRefQname(tok)
         prevTok = tok
     elt = lbGen.element("formula:aspects", attrib=attrib)
     for tok in toks:
@@ -194,7 +201,7 @@ def compileAspectRuleUnitTerm( sourceStr, loc, toks ):
     prevTok = None
     for tok in toks:
         if prevTok == "source":
-            elt.set("source", tok)
+            elt.set("source", variableRefQname(tok))
         elif prevTok == "measure":
             elt.set("measure", str(tok))
         prevTok = tok
@@ -749,7 +756,7 @@ def compileFormula( sourceStr, loc, toks ):
         elif prevTok == "value":
             attrib["value"] = str(tok)
         elif prevTok == "source":
-            attrib["source"] = tok
+            attrib["source"] = variableRefQname(tok)
         #elif tok == "aspect-model-non-dimensional":
         #    attrib["aspectModel"] = "non-dimensional"
         elif tok == "no-implicit-filtering":
@@ -1000,8 +1007,8 @@ def compileMatchFilter( sourceStr, loc, toks ):
             FormulaResourceElt(filterElt)]
 
 def compileVersionDeclaration( sourceStr, loc, toks ):
-    if toks[1] != "1.0":
-        raise Exception(f"XF version must be 1.0, source file specified.  Unsupported version {toks[1]}")
+    if toks[1] not in XF_VERSIONS_SUPPORTED:
+        raise Exception(f"xf-version {toks[1]} is not supported. Supported versions: {", ".join()}.")
     return []
 
 def compileNamespaceDeclaration( sourceStr, loc, toks ):
@@ -1353,7 +1360,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
     decimalLiteral =  ( Combine( integerLiteral + decimalPoint + Opt(digits) ) |
                         decimalFractionLiteral )
     numberLiteral = (decimalLiteral | floatLiteral | integerLiteral)
-    versionLiteral = Combine( digits + ZeroOrMore( decimalPoint + digits) )
+    versionLiteral = (QuotedString('"',escChar='\\') | QuotedString("'",escChar="\\"))
 
     xPathFunctionCall = Combine(qName + Literal("("))
 
@@ -1405,13 +1412,13 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
     packageDeclaration = (Suppress(Keyword("package")) + ncName + separator ).setParseAction(compilePackageDeclaration).ignore(xfsComment)
 
-    severity = ( Suppress(Keyword("unsatisfied-severity")) + ( ncName ) + separator ).setParseAction(compileSeverity).ignore(xfsComment)
+    severity = ( Suppress(Keyword("unsatisfied-severity")) + ( ncName | xpathExpression ) + separator ).setParseAction(compileSeverity).ignore(xfsComment)
 
     label = ( (Keyword("label") |
                ( (Keyword("unsatisfied-message") | Keyword("satisfied-message") ) +
                   Opt( Keyword("standard") | Keyword("verbose") | Keyword("terse") ) ) ) +
               Opt( Combine(Literal("(") + Regex("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*") + Literal(")")) ) +
-              (QuotedString('"',multiline=True,escQuote='""') | QuotedString("'",multiline=True,escQuote="''")) +
+              (QuotedString('"',multiline=True,escChar="\\") | QuotedString("'",multiline=True,escChar="\\")) +
               separator).setParseAction(compileLabel).ignore(xfsComment)
 
     aspectRuleConcept = ( Suppress(Keyword("concept")) + (qName | xpathExpression) + separator
@@ -1431,7 +1438,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                         ).setParseAction(compileAspectRulePeriod).ignore(xfsComment)
 
     aspectRuleUnitTerm = ((Keyword("multiply-by") | Keyword("divide-by")) +
-                          Opt( Keyword("source") + qName ) +
+                          Opt( Keyword("source") + variableRef ) +
                           Opt( Keyword("measure") + xpathExpression ) + separator
                         ).setParseAction(compileAspectRuleUnitTerm).ignore(xfsComment)
 
@@ -1459,7 +1466,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                         ).setParseAction(compileAspectRuleTypedDimension).ignore(xfsComment)
 
     aspectRules = ( Suppress(Keyword("aspect-rules")) +
-                    Opt( Keyword("source") + qName ) +
+                    Opt( Keyword("source") + variableRef ) +
                     Suppress(Literal("{")) +
                     ZeroOrMore( aspectRuleConcept |
                                 aspectRuleEntityIdentifier |
@@ -1643,7 +1650,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                               Keyword("decimals") + xpathExpression + separator |
                               Keyword("precision") + xpathExpression + separator |
                               Keyword("value") + xpathExpression + separator |
-                              Keyword("source") + qName + separator ) +
+                              Keyword("source") + variableRef + separator ) +
                   ZeroOrMore( aspectRules ) +
                   ZeroOrMore( filter ) +
                   ZeroOrMore( generalVariable | factVariable | referencedParameter) +

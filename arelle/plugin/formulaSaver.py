@@ -33,6 +33,8 @@ from arelle.formula import XPathParser
 from arelle.Version import authorLabel, copyrightLabel
 import os, datetime
 
+XF_VERSION = "2.0+WGWD-YYYY-MM-DD"
+
 class NotExportable(Exception):
     def __init__(self, message):
         self.message = message
@@ -41,7 +43,7 @@ def kebabCase(name):
     return "".join("-" + c.lower() if c.isupper() else c for c in name)
 
 def strQuote(s):
-    return '"' + s.replace('"', '""') + '"'
+    return '"' + s.replace('"', '\\"') + '"'
 
 class GenerateXbrlFormula:
     def __init__(self, cntlr, modelXbrl, xfFile):
@@ -71,13 +73,12 @@ class GenerateXbrlFormula:
         for rootObject in sorted(rootObjects, key=formulaObjSortKey):
             self.doObject(rootObject, None, "", set())
 
+        self.xfLines.insert(0, "")
+        
         if self.xmlns:
             self.xfLines.insert(0, "")
             for prefix, ns in sorted(self.xmlns.items(), reverse=True):
                 self.xfLines.insert(0, "namespace {} = \"{}\";".format(prefix, ns))
-
-        self.xfLines.insert(0, "")
-        self.xfLines.insert(0, "Version 1.0;".format(self.modelXbrl.modelDocument.basename, XmlUtil.dateunionValue(datetime.datetime.now())))
 
         self.xfLines.insert(0, "")
         self.xfLines.insert(0, "(: Generated from {} by Arelle on {} :)".format(self.modelXbrl.modelDocument.basename, XmlUtil.dateunionValue(datetime.datetime.now())))
@@ -135,10 +136,10 @@ class GenerateXbrlFormula:
                     if fObj.get(attr):
                         self.xf = "{}{} {{{}}};".format(cIndent, attr, fObj.get(attr))
                 if fObj.get("source"):
-                    self.xf = "{}source {};".format(cIndent, fObj.get("source"))
+                    self.xf = "{}source ${};".format(cIndent, fObj.get("source"))
                 for aspectsElt in XmlUtil.children(fObj, XbrlConst.formula, "aspects"):
                     self.xf = "{}aspect-rules{} {{".format(cIndent,
-                                                           "source {}".format(aspectsElt.get("source")) if aspectsElt.get("source") else "")
+                                                           "source ${}".format(aspectsElt.get("source")) if aspectsElt.get("source") else "")
                     for ruleElt in XmlUtil.children(aspectsElt, XbrlConst.formula, "*"):
                         self.doObject(ruleElt, None, cIndent + "   ", visited)
                     self.xf = "{}}};".format(cIndent)
