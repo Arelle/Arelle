@@ -169,16 +169,16 @@ def modelXbrlLoadComplete(modelXbrl: ModelXbrl) -> None:
             modelXbrl.error("ESEF.RTS.Art.6.a.noInlineXbrlTags",
                             _("RTS on ESEF requires inline XBRL, no facts were reported."),
                             modelObject=modelXbrl)
-        if modelXbrl.modelManager.filesource.isArchive:
-            for filename in modelXbrl.modelManager.filesource.dir:
-                validateEntity(modelXbrl, filename, modelXbrl.modelManager.filesource)
+        if modelXbrl.fileSource.isArchive:
+            for filename in modelXbrl.fileSource.dir:
+                validateEntity(modelXbrl, filename, modelXbrl.fileSource)
         else:
-            validateEntity(modelXbrl, modelXbrl.modelManager.filesource.url, modelXbrl.modelManager.filesource)
+            validateEntity(modelXbrl, modelXbrl.fileSource.url, modelXbrl.fileSource)
             if modelXbrl.modelDocument:
                 # search for the zip of the taxonomy extension
                 entrypointDocs = [referencedDoc for referencedDoc in modelXbrl.modelDocument.referencesDocument.keys() if referencedDoc.type == ModelDocument.Type.SCHEMA]
                 for entrypointDoc in entrypointDocs: # usually only one
-                    for filesource in modelXbrl.modelManager.filesource.referencedFileSources.values():
+                    for filesource in modelXbrl.fileSource.referencedFileSources.values():
                         if filesource.exists(entrypointDoc.filepath):
                             for filename in filesource.dir:
                                 validateEntity(modelXbrl, filename, filesource)
