@@ -1123,7 +1123,7 @@ def validateFormulaCompiled(modelXbrl: ModelXbrl, xpathContext: XPathContext) ->
     xpathContext.formulaOptions.traceUnmessagedUnsatisfiedAssertions = True
 
 def validateFormulaFinished(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None: # runs *after* formula (which is different for test suite from other operation
-    if not (hasattr(val, 'validateESEFplugin')) or not (val.validateESEFplugin):
+    if not getattr(val, 'validateESEFplugin', False):
         return
 
     modelXbrl = val.modelXbrl
