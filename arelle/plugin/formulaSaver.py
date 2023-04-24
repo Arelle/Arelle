@@ -81,6 +81,9 @@ class GenerateXbrlFormula:
                 self.xfLines.insert(0, "namespace {} = \"{}\";".format(prefix, ns))
 
         self.xfLines.insert(0, "")
+        self.xfLines.insert(0, "xf-version {};".format(strQuote(XF_VERSION)))
+
+        self.xfLines.insert(0, "")
         self.xfLines.insert(0, "(: Generated from {} by Arelle on {} :)".format(self.modelXbrl.modelDocument.basename, XmlUtil.dateunionValue(datetime.datetime.now())))
 
         with open(xfFile, "w", encoding="utf-8") as fh:
@@ -122,7 +125,8 @@ class GenerateXbrlFormula:
             for arcrole in (XbrlConst.elementLabel,
                             XbrlConst.assertionSatisfiedMessage,
                             XbrlConst.assertionUnsatisfiedMessage,
-                            XbrlConst.assertionUnsatisfiedSeverity
+                            XbrlConst.assertionUnsatisfiedSeverity,
+                            XbrlConst.assertionUnsatisfiedSeverity20
                             ):
                 for modelRel in self.modelXbrl.relationshipSet(arcrole).fromModelObject(fObj):
                     self.doObject(modelRel.toModelObject, modelRel, cIndent, visited)
@@ -371,7 +375,7 @@ class GenerateXbrlFormula:
             self.xf = "{}{} {};".format(
                 pIndent,
                 "unsatisfied-severity",
-                fObj.level)
+                fObj.level if fObj.isStatic else f"{{{fObj.severity}}}")
         elif isinstance(fObj, ModelCustomFunctionSignature):
             hasImplememntation = False
             if fObj not in visited:
@@ -495,9 +499,9 @@ def saveXfMenuCommand(cntlr):
 
     modelXbrl = cntlr.modelManager.modelXbrl
     try:
-        GenerateXbrlFormula(cntlr, modelXbrl, xbrlFormulaFile, mode)
+        GenerateXbrlFormula(cntlr, modelXbrl, xbrlFormulaFile)
     except Exception as ex:
-        dts.error("exception",
+        modelXbrl.error("exception",
             _("Xbrl Formula file generation exception: %(error)s"), error=ex,
             modelXbrl=modelXbrl,
             exc_info=True)

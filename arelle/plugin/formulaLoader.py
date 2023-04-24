@@ -42,10 +42,10 @@ reservedWords = {} # words that can't be qnames
 
 isGrammarCompiled = False
 
-XF_VERSIONS_SUPPORTED = OrderedSet(
+XF_VERSIONS_SUPPORTED = OrderedSet((
     "1.0",
     "2.0+WGWD-YYYY-MM-DD"
-    )
+    ))
 
 class PrefixError(Exception):
     def __init__(self, qnameToken):
@@ -1008,7 +1008,7 @@ def compileMatchFilter( sourceStr, loc, toks ):
 
 def compileVersionDeclaration( sourceStr, loc, toks ):
     if toks[1] not in XF_VERSIONS_SUPPORTED:
-        raise Exception(f"xf-version {toks[1]} is not supported. Supported versions: {", ".join()}.")
+        raise Exception(f"xf-version {toks[1]} is not supported. Supported versions: {', '.join()}.")
     return []
 
 def compileNamespaceDeclaration( sourceStr, loc, toks ):
@@ -1360,7 +1360,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
     decimalLiteral =  ( Combine( integerLiteral + decimalPoint + Opt(digits) ) |
                         decimalFractionLiteral )
     numberLiteral = (decimalLiteral | floatLiteral | integerLiteral)
-    versionLiteral = (QuotedString('"',escChar='\\') | QuotedString("'",escChar="\\"))
+    versionString = (QuotedString('"',escChar='\\') | QuotedString("'",escChar="\\"))
 
     xPathFunctionCall = Combine(qName + Literal("("))
 
@@ -1376,7 +1376,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                        Suppress(Literal("}"))).setParseAction(compileXPathExpression)
     separator = Suppress( Literal(";") )
 
-    versionDeclaration = (Suppress(Keyword("version")) + versionLiteral + separator
+    versionDeclaration = (Suppress(Keyword("version")) + versionString + separator
                             ).setParseAction(compileVersionDeclaration).ignore(xfsComment)
     namespaceDeclaration = (Suppress(Keyword("namespace")) + ncName + Suppress(Literal("=")) + quoted_string + separator
                             ).setParseAction(compileNamespaceDeclaration).ignore(xfsComment)
@@ -1412,7 +1412,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
     packageDeclaration = (Suppress(Keyword("package")) + ncName + separator ).setParseAction(compilePackageDeclaration).ignore(xfsComment)
 
-    severity = ( Suppress(Keyword("unsatisfied-severity")) + ( ncName | xpathExpression ) + separator ).setParseAction(compileSeverity).ignore(xfsComment)
+    severity = ( Suppress(Keyword("unsatisfied-severity")) + ( messageSeverity | xpathExpression ) + separator ).setParseAction(compileSeverity).ignore(xfsComment)
 
     label = ( (Keyword("label") |
                ( (Keyword("unsatisfied-message") | Keyword("satisfied-message") ) +
