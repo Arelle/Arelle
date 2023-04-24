@@ -66,10 +66,6 @@ def checkImageContents(modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, 
             modelXbrl.error(f"{guidance}.imageFileCannotBeLoaded",
                 _("Image SVG has XML error %(error)s"),
                 modelObject=imgElt, error=err)
-    elif not any(it in imgType for it in supportedImgTypes[isFile]):
-        modelXbrl.error(f"{guidance}.imageFormatNotSupported",
-            _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPEG formats: %(imgType)s is not supported"),
-            modelObject=imgElt, imgType=imgType)
     else:
         if data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):
             headerType = "gif"
@@ -89,15 +85,19 @@ def checkImageContents(modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, 
             headerType = "none"
         else:
             headerType = "unrecognized"
-        if (("gif" in imgType and headerType != "gif") or
-            (("jpg" in imgType or "jpeg" in imgType) and headerType != "jpg") or
-            ("png" in imgType and headerType != "png")):
-            imageDoesNotMatchItsFileExtension = f"{guidance}.imageDoesNotMatchItsFileExtension"
-            incorrectMIMETypeSpecified = f"{guidance}.incorrectMIMETypeSpecified"
+        if (("gif" not in imgType and headerType == "gif") or
+            ("jpeg" not in imgType and headerType == "jpg") or
+            ("png" not in imgType and headerType == "png")):
+            imageDoesNotMatchItsFileExtension = f"ESEF.{guidance}.imageDoesNotMatchItsFileExtension"
+            incorrectMIMETypeSpecified = f"ESEF.{guidance}.incorrectMIMETypeSpecified"
             modelXbrl.error(imageDoesNotMatchItsFileExtension if isFile else incorrectMIMETypeSpecified,
-                _("Image type %(imgType)s has wrong header type: %(headerType)s"),
+                _("Header type %(headerType)s has wrong image type: %(imgType)s"),
                 modelObject=imgElt, imgType=imgType, headerType=headerType,
                 messageCodes=(imageDoesNotMatchItsFileExtension, incorrectMIMETypeSpecified))
+        elif not any(it in imgType for it in supportedImgTypes[isFile]):
+            modelXbrl.error(f"{guidance}.imageFormatNotSupported",
+                            _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPEG formats: %(imgType)s is not supported"),
+                            modelObject=imgElt, imgType=imgType)
 
 
 def checkSVGContent(modelXbrl: ModelXbrl, imgElt: ModelObject, data: Union[bytes, Any, str], guidance: str) -> None:
