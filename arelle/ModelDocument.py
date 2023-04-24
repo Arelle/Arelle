@@ -64,7 +64,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         return None
 
     if isEntry:
-        modelXbrl.entryLoadingUrl = normalizedUri   # for error loggiong during loading
+        modelXbrl.entryLoadingUrl = normalizedUri   # for error logging during loading
         modelXbrl.uri = normalizedUri
         modelXbrl.uriDir = os.path.dirname(normalizedUri)
         for i in range(modelXbrl.modelManager.disclosureSystem.maxSubmissionSubdirectoryEntryNesting):

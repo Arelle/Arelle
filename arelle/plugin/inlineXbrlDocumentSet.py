@@ -110,7 +110,7 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
 def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=False, namespace=None, **kwargs):
     if isEntry:
         try:
-            if "entrypoint" in kwargs:
+            if "entrypoint" in kwargs and "ixdsTarget" in kwargs["entrypoint"]:
                 _target = kwargs["entrypoint"].get("ixdsTarget") # assume None if not specified in entrypoint
             elif "ixdsTarget" in kwargs: # passed from validate (multio test cases)
                 _target = kwargs["ixdsTarget"]
