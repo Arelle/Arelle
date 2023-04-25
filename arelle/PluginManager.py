@@ -101,7 +101,7 @@ def orderedPluginConfig():
 
 def save(cntlr: Cntlr) -> None:
     global pluginConfigChanged
-    if pluginConfigChanged and cntlr.hasFileSystem:
+    if pluginConfigChanged and cntlr.hasFileSystem and not cntlr.disablePersistentConfig:
         pluginJsonFile = cntlr.userAppDir + os.sep + "plugins.json"
         with io.open(pluginJsonFile, 'wt', encoding='utf-8') as f:
             jsonStr = str(json.dumps(orderedPluginConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
