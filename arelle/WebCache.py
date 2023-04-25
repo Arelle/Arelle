@@ -169,10 +169,10 @@ class WebCache:
         self._logDownloads = _logDownloads
 
     def saveUrlCheckTimes(self) -> None:
-        if self.cachedUrlCheckTimesModified:
+        if self.cachedUrlCheckTimesModified and not self.cntlr.disablePersistentConfig:
             with io.open(self.urlCheckJsonFile, 'wt', encoding='utf-8') as f:
                 f.write(json.dumps(self.cachedUrlCheckTimes, ensure_ascii=False, indent=0))
-        self.cachedUrlCheckTimesModified = False
+            self.cachedUrlCheckTimesModified = False
 
     @property
     def noCertificateCheck(self):
