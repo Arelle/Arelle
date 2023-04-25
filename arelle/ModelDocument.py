@@ -1329,7 +1329,7 @@ class ModelDocument:
                     self.schemaLinkbaseRefsDiscover(inlineElement)
                     xmlValidate(self.modelXbrl, inlineElement) # validate instance elements
         # validate resources only if no possibility of multi-document ixds for which ix:references not encountered yet
-        if all(False for pluginMethod in pluginClassMethods("ModelDocument.SelectIxdsTarget")):
+        if len(list(pluginClassMethods("ModelDocument.SelectIxdsTarget"))) == 0:
             for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "resources"):
                 xmlValidate(self.modelXbrl, inlineElement) # validate instance elements
         # with DTS loaded, now validate inline HTML (so schema definition of facts is available)
