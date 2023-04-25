@@ -91,7 +91,7 @@ docTypesNotAllowingInlineXBRL = {
 standardNamespacesPattern = re.compile(
     # non-IFRS groups 1 - authority, 2 - taxonomy (e.g. us-gaap, us-types), 3 - year
     r"http://(xbrl\.us|fasb\.org|xbrl\.sec\.gov)/("
-            r"dei|us-gaap|srt|us-types|us-roles|srt-types|srt-roles|rr|cef|country|currency|exch|invest|naics|sic|stpr|vip|ecd"
+            r"dei|us-gaap|srt|us-types|us-roles|srt-types|srt-roles|rr|cef|country|currency|ecd|exch|invest|naics|oef|rxp|sic|stpr|vip"
             r")/([0-9]{4}|[0-9]{4}q[1-4])(-[0-9]{2}-[0-9]{2})?$"
     # ifrs groups 4 - year, 5 - taxonomy (e.g. ifrs-full)
     r"|https?://xbrl.ifrs.org/taxonomy/([0-9]{4})-[0-9]{2}-[0-9]{2}/(ifrs[\w-]*)$")
@@ -177,12 +177,22 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
+    "oef/*": {
+        "deprecatedLabels": ["https://xbrl.sec.gov/oef/2023/oef-entire-2023.xsd"],
+        "deprecatedLabelRole": usDeprecatedLabelRole,
+        "deprecationDatePattern": usDeprecatedLabelPattern
+        },
     "rr/*": {
         "deprecatedLabels": ["http://xbrl.sec.gov/rr/2012/rr-lab-2012-01-31.xml",
                              "https://xbrl.sec.gov/rr/2018/rr-lab-2018-01-31.xml",
                              "https://xbrl.sec.gov/rr/2021/rr-2021_lab.xsd",
                              "https://xbrl.sec.gov/rr/2022/rr-2022_lab.xsd",
                              "https://xbrl.sec.gov/rr/2023/rr-2023_lab.xsd"],
+        "deprecatedLabelRole": usDeprecatedLabelRole,
+        "deprecationDatePattern": usDeprecatedLabelPattern
+        },
+    "rxp/*": {
+        "deprecatedLabels": ["https://xbrl.sec.gov/rxp/2023/rxp-2023_lab.xml"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
