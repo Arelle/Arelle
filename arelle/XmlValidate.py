@@ -666,7 +666,7 @@ class lxmlSchemaResolver(etree.Resolver):
         return self.resolve_empty(context)  # type: ignore[attr-defined]
 
 def lxmlResolvingParser(cntlr: Cntlr, modelXbrl: ModelXbrl | None = None) -> etree.XMLParser:
-    parser = etree.XMLParser()
+    parser = etree.XMLParser(resolve_entities=False)
     resolver = lxmlSchemaResolver(cntlr, modelXbrl)
     parser.resolvers.add(resolver)
     return parser

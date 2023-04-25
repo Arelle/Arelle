@@ -49,7 +49,7 @@ def openFileSource(
         return filesource
     else:
         if cntlr and base:
-            filename = cntlr.webCache.normalizeUrl(filename, base=base) # type: ignore[no-untyped-call]
+            filename = cntlr.webCache.normalizeUrl(filename, base=base)
 
         assert filename is not None
         archivepathSelection = archiveFilenameParts(filename, checkIfXmlIsEis)

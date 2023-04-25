@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Generator, cast
+from typing import TYPE_CHECKING, Any, Generator, cast, Union
 from lxml import etree
 from arelle import Locale
 from arelle.ModelValue import qname, qnameEltPfxName, QName
@@ -140,7 +140,7 @@ class ModelObject(etree.ElementBase):
         :param refId: A string to prefix the refId for uniqueless (such as to use in tags for tkinter)
         :type refId: str
         """
-        return "_{0}_{1}".format(refId, self.objectIndex)
+        return f"_{refId}_{getattr(self, 'objectIndex', 'None')}"
 
     @property
     def modelXbrl(self) -> ModelXbrl | None:

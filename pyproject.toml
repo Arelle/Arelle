@@ -51,6 +51,9 @@ DB = [
 EFM = [
     'holidays==0.*',
 ]
+ESEF = [
+    'tinycss2==1.*',
+]
 ObjectMaker = [
     'graphviz==0.*',
 ]

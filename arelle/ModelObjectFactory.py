@@ -44,10 +44,11 @@ ModelFact: Any = None
 def parser(
         modelXbrl: ModelXbrl,
         baseUrl: str | None,
-        target: None = None,
+        target: None = None
 ) -> tuple[etree.XMLParser, KnownNamespacesModelObjectClassLookup, DiscoveringClassLookup]:
     moduleObject_init()  # init ModelObject globals
-    _parser = etree.XMLParser(recover=True, huge_tree=True, target=target, resolve_entities=False)
+    _parser = etree.XMLParser(recover=True, huge_tree=True, target=target,
+                              resolve_entities=False)
     return setParserElementClassLookup(_parser, modelXbrl, baseUrl)
 
 
