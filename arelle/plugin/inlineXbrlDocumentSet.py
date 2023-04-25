@@ -692,6 +692,10 @@ def selectTargetDocument(modelXbrl):
                 if ixRefElt.get("target") == modelXbrl.ixdsTarget:
                     modelDoc.schemaLinkbaseRefsDiscover(ixRefElt)
                     xmlValidate(modelXbrl, ixRefElt) # validate instance elements
+    # now that all ixds doc(s) references loaded, validate resource elements
+    for htmlElt in modelXbrl.ixdsHtmlElements:
+        for inlineElement in htmlElt.iterdescendants(tag=htmlElt.modelDocument.ixNStag + "resources"):
+            xmlValidate(modelXbrl, inlineElement) # validate instance elements
 
 
 __pluginInfo__ = {

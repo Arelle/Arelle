@@ -1328,11 +1328,13 @@ class ModelDocument:
                 if inlineElement.get("target") == ixdsTarget:
                     self.schemaLinkbaseRefsDiscover(inlineElement)
                     xmlValidate(self.modelXbrl, inlineElement) # validate instance elements
+        # validate resources only if no possibility of multi-document ixds for which ix:references not encountered yet
+        if all(False for pluginMethod in pluginClassMethods("ModelDocument.SelectIxdsTarget")):
+            for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "resources"):
+                xmlValidate(self.modelXbrl, inlineElement) # validate instance elements
         # with DTS loaded, now validate inline HTML (so schema definition of facts is available)
         if htmlElement.namespaceURI == XbrlConst.xhtml:  # must validate xhtml
             XhtmlValidate.xhtmlValidate(self.modelXbrl, htmlElement)  # fails on prefixed content
-        for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "resources"):
-            xmlValidate(self.modelXbrl, inlineElement) # validate instance elements
 
         # subsequent inline elements have to be processed after all of the document set is loaded
         if not hasattr(self.modelXbrl, "ixdsHtmlElements"):
