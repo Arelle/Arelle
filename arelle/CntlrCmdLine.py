@@ -7,13 +7,14 @@ See COPYRIGHT.md for copyright information.
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types
 import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging, platform
-from optparse import OptionParser, SUPPRESS_HELP
+from optparse import OptionGroup, OptionParser, SUPPRESS_HELP
 import regex as re
 from arelle import (Cntlr, FileSource, ModelDocument, RenderingEvaluator, XmlUtil, XbrlConst, Version,
                     ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts,
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
                     ViewFileRoleTypes,
                     ModelManager)
+from arelle.Cntlr import BETA_FEATURES
 from arelle.ModelValue import qname
 from arelle.Locale import format_string, setApplicationLocale, setDisableRTL
 from arelle.ModelFormulaObject import FormulaOptions
@@ -118,6 +119,12 @@ def parseAndRun(args):
                              ))
     parser.add_option("--noValidateTestcaseSchema", "--novalidatetestcaseschema", action="store_false", dest="validateTestcaseSchema", default=True,
                       help=_("Validate testcases against their schemas."))
+    betaGroup = OptionGroup(parser, "Beta Features",
+                        "Caution: these are beta features, use these options at your own risk.")
+    for b in BETA_FEATURES:
+        assert b.startswith('beta'), 'All beta options must start with "beta"'
+        betaGroup.add_option(f'--{b}', f'--{b.lower()}', action="store_true", default=False, help=f"Toggles on the beta {b} feature")
+    parser.add_option_group(betaGroup)
     parser.add_option("--calcDecimals", "--calcdecimals", action="store_true", dest="calcDecimals",
                       help=_("Specify calculation linkbase validation inferring decimals."))
     parser.add_option("--calcPrecision", "--calcprecision", action="store_true", dest="calcPrecision",
@@ -510,7 +517,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         :param options: OptionParser options from parse_args of main argv arguments (when called from command line) or corresponding arguments from web service (REST) request.
         :type options: optparse.Values
         """
-
+        for b in BETA_FEATURES:
+            self.betaFeatures[b] = getattr(options, b)
         if options.statusPipe or options.monitorParentProcess:
             try:
                 global win32file, win32api, win32process, pywintypes

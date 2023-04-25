@@ -27,6 +27,8 @@ if TYPE_CHECKING:
 osPrcs: Any = None
 LOG_TEXT_MAX_LENGTH = 32767
 cxFrozen = getattr(sys, 'frozen', False)
+# Add camelCaseOptionName
+BETA_FEATURES: list[str] = []
 
 
 def resourcesDir() -> str:
@@ -51,6 +53,7 @@ def resourcesDir() -> str:
        os.path.exists(os.path.join(os.path.dirname(_resourcesDir),"images")):
         _resourcesDir = os.path.dirname(_resourcesDir)
     return _resourcesDir
+
 
 class Cntlr:
     """
@@ -105,6 +108,7 @@ class Cntlr:
 
     """
     __version__ = "1.6.0"
+    betaFeatures: dict[str, bool]
     hasWin32gui: bool
     hasGui: bool
     hasFileSystem: bool
@@ -139,7 +143,14 @@ class Cntlr:
         logFormat: str | None = None,
         uiLang: str | None = None,
         disable_persistent_config: bool = False,
+        betaFeatures: dict[str, bool] | None =None
     ) -> None:
+        if betaFeatures is None:
+            betaFeatures = {}
+        self.betaFeatures = {
+            b: betaFeatures.get(b, False)
+            for b in BETA_FEATURES
+        }
         self.hasWin32gui = False
         self.hasGui = hasGui
         self.hasFileSystem = True # no file system on Google App Engine servers
