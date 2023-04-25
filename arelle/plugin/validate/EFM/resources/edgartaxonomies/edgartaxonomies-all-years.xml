@@ -1,10 +1,162 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Erxl version="65" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="erxl.xsd">
+<Erxl version="66" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="erxl.xsd">
   <!-- 
 This file was created by staff of the U.S. Securities and Exchange Commission.
 Data and content created by government employees within the scope of their employment
 are not subject to domestic copyright protection. 17 U.S.C. 105.
 -->
+    <Loc>
+        <Family>BASE</Family>
+        <Version>2014</Version>
+        <Href>http://www.xbrl.org/2014/extensible-enumerations.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://xbrl.org/2014/extensible-enumerations</Namespace>
+        <Prefix>enum</Prefix>
+    </Loc>
+    <!-- RXP 2023 -->
+    <Loc>
+        <Family>RXP</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/rxp/2023</Namespace>
+        <Prefix>rxp</Prefix>
+    </Loc>
+    <Loc>
+        <Family>RXP</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_pre.xml</Href>
+        <AttType>PRE</AttType>
+        <FileTypeName>Presentation</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>RXP</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_cal.xml</Href>
+        <AttType>CAL</AttType>
+        <FileTypeName>Calculations</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>RXP</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_def.xml</Href>
+        <AttType>DEF</AttType>
+        <FileTypeName>Definition, Dimensions</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>RXP</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_doc.xml</Href>
+        <AttType>LAB</AttType>
+        <FileTypeName>Documentation</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>RXP</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_lab.xml</Href>
+        <AttType>LAB</AttType>
+        <FileTypeName>Labels</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>RXP</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_ref.xml</Href>
+        <AttType>REF</AttType>
+        <FileTypeName>Reference</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>SNJ</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/snj/2023/snj-2023.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/snj/2023</Namespace>
+        <Prefix>snj</Prefix>
+    </Loc>
+    <!-- Missing Country def 2023 -->
+    <Loc>
+        <Family>COUNTRY</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/country/2023/country-2023_def.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://xbrl.sec.gov/country-def/2023</Namespace>
+        <Prefix>country-def</Prefix>
+    </Loc>
+    <!-- OEF 2023 -->
+    <Loc>
+        <Family>OEF</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/oef/2023/oef-2023.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/oef/2023</Namespace>
+        <Prefix>oef</Prefix>
+    </Loc>
+    <Loc>
+        <Family>OEF</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/oef/2023/oef-rr-2023.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/oef-rr/2023</Namespace>
+        <Prefix>oef-rr</Prefix>
+    </Loc>
+    <Loc>
+        <Family>OEF</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/oef/2023/oef-sr-2023.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/oef-sr/2023</Namespace>
+        <Prefix>oef-sr</Prefix>
+    </Loc>
+    <Loc>
+        <Family>OEF</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/oef/2023/oef-2023_lab.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://xbrl.sec.gov/oef-lab/2023</Namespace>
+        <Prefix>oef-lab</Prefix>
+    </Loc>
+    <Loc>
+        <Family>OEF</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/oef/2023/oef-2023_cal.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://xbrl.sec.gov/oef-cal/2023</Namespace>
+        <Prefix>oef-cal</Prefix>
+    </Loc>
+    <!-- IFRS 2023-->
+    <Loc>
+        <Family>IFRS</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.ifrs.org/taxonomy/2023-03-23/full_ifrs/full_ifrs-cor_2023-03-23.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>https://xbrl.ifrs.org/taxonomy/2023-03-23/ifrs-full</Namespace>
+        <Prefix>ifrs-full</Prefix>
+    </Loc>
   <!-- RR 2023, add missing entries-->
   <Loc>
     <Family>RR</Family>
