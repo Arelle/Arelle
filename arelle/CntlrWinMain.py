@@ -1142,7 +1142,6 @@ class CntlrWinMain (Cntlr.Cntlr):
         if response is not None and response >= 0:
             self.webCache.timeout = response or None # set to None if zero - no timenout
             self.config["internetConnectionTimeout"] = self.webCache.timeout
-            
 
     def confirmClearWebCache(self):
         if tkinter.messagebox.askyesno(
