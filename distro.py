@@ -46,6 +46,7 @@ includeLibs = [
     "pymysql",
     "regex",
     "sqlite3",
+    "tinycss2",
     "zlib",
 ]
 options = {
