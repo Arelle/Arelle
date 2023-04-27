@@ -79,7 +79,7 @@ submissionTypesAllowingExTransitionPeriodFlag = docTypesCoverTagged | {
 docTypesRequiringRrSchema = \
 docTypesExemptFromRoleOrder = \
 submissionTypesExemptFromRoleOrder = ('485APOS', '485BPOS','485BXT', '497', 'N-1A', 'N-1A/A',
-                                      'N-2', 'N-2/A', 'N-2MEF', 'N-2ASR', 'N-2 POSASR')
+                                      'N-2', 'N-2/A', 'N-2MEF', 'N-2ASR', 'N-2 POSASR', 'N-CSR', 'N-CSR/A','N-CSRS', 'N-CSRS/A')
 
 docTypesNotAllowingIfrs = ('485APOS', '485BPOS','485BXT', '497', 'N-1A', 'N-1A/A',
                            'N-CSR', 'N-CSR/A', 'N-CSRS', 'N-CSRS/A', 'N-Q', 'N-Q/A',
@@ -91,7 +91,7 @@ docTypesNotAllowingInlineXBRL = {
 standardNamespacesPattern = re.compile(
     # non-IFRS groups 1 - authority, 2 - taxonomy (e.g. us-gaap, us-types), 3 - year
     r"http://(xbrl\.us|fasb\.org|xbrl\.sec\.gov)/("
-            r"dei|us-gaap|srt|us-types|us-roles|srt-types|srt-roles|rr|cef|country|currency|ecd|exch|invest|naics|oef|rxp|sic|stpr|vip"
+            r"dei|us-gaap|srt|us-types|us-roles|srt-types|srt-roles|rr|cef|oef|country|currency|ecd|exch|invest|naics|rxp|sic|stpr|vip"
             r")/([0-9]{4}|[0-9]{4}q[1-4])(-[0-9]{2}-[0-9]{2})?$"
     # ifrs groups 4 - year, 5 - taxonomy (e.g. ifrs-full)
     r"|https?://xbrl.ifrs.org/taxonomy/([0-9]{4})-[0-9]{2}-[0-9]{2}/(ifrs[\w-]*)$")
@@ -104,8 +104,7 @@ untransformableTypes = {"anyURI", "base64Binary", "hexBinary", "NOTATION", "QNam
 hideableNamespacesPattern = re.compile("http://xbrl.sec.gov/(dei|vip)/")
 
 # RR untransformable facts
-rrUntransformableEltsPattern = re.compile(r"(\w*TableTextBlock|BarChart\w+|AnnualReturn(19|20)[0-9][0-9])")
-
+rrUntransformableEltsPattern = re.compile(r"(\w*TableTextBlock|RiskNarrativeTextBlock|BarChart\w+|AnnualReturn(19|20)[0-9][0-9])") # WcH RiskNarrative exception is an ABSOLUTELY TEMPORARY HACK
 usDeprecatedLabelPattern = re.compile(r"^.* \(Deprecated (....(-..-..)?)\)$")
 usDeprecatedLabelRole = "http://www.xbrl.org/2003/role/label"
 ifrsDeprecatedLabelPattern = re.compile(r"^\s*([0-9]{4}-[0-1][0-9]-[0-2][0-9])\s*$")
@@ -282,7 +281,6 @@ linkbaseValidations = {
         efmCal = "6.14.07",
         efmDef = "6.16.11",
         elrPre = re.compile("http://xbrl.sec.gov/vip/role/N[346]"),
-        elrPreDocTypes = None,
         elrDefInNs = re.compile("http://xbrl.sec.gov/vip/role/[^/]*Only"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/vip/role/[^/]*Only"),
         preSources = (),
@@ -293,10 +291,20 @@ linkbaseValidations = {
         efmCal = "6.14.08",
         efmDef = "6.16.12",
         elrPre = None,
-        elrPreDocTypes = None,
         elrDefInNs = re.compile("http://xbrl.sec.gov/ecd/role/"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/ecd/role/[^/]*Only"),
         preSources = (),
         preCustELRs = True
-    )
+    ),
+    "oef": attrdict(
+        efmCal = "6.14.09",
+        elrCalDocTypes = ('N-CSR','N-CSRS','N-CSR/A','N-CSRS/A'),
+        efmDef = "6.16.13", #elrDefDocTypes = ('N-CSR','N-CSRS','N-CSR/A','N-CSRS/A'),
+        # Need to add the "Only" suffix to these rr roles for consistency.
+        elrDefInNs = re.compile("http://xbrl.sec.gov/(oef/role/[^/]*Only|rr/role/(Series|Class|Coregistrant|Prospectus|Risk|PerformanceMeasure))"),
+        elrDefExNs = re.compile("http://xbrl.sec.gov/(oef/role/[^/]*Only|rr/role/(Series|Class|Coregistrant|Prospectus|Risk|PerformanceMeasure))"),
+        preSources = (),
+        efmPre = None,
+        preCustELRs = True
+    ),
 }
