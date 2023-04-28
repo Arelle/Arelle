@@ -141,6 +141,7 @@ module = [
     'arelle.formula.FactAspectsCache',
     'arelle.formula.XPathContext',
     'arelle.formula.XPathParser',
+    'arelle.model.*',
     'arelle.plugin.functionsMath',
     'arelle.plugin.validate.ESEF.*',
     'arelle.plugin.validate.ESEF_2022.*',
