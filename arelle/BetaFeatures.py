@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+BETA_OBJECT_MODEL_FEATURE = "betaObjectModel"
 # Add camelCaseOptionName
-BETA_FEATURES_AND_DESCRIPTIONS: dict[str, str] = {}
+BETA_FEATURES_AND_DESCRIPTIONS: dict[str, str] = {
+    BETA_OBJECT_MODEL_FEATURE: "Replace lxml based object model with a pure Python class hierarchy.",
+}
 
 BETA_FEATURES = BETA_FEATURES_AND_DESCRIPTIONS.keys()
 
