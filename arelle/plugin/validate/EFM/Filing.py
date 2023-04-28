@@ -1204,11 +1204,19 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         et = sev["earliest-taxonomy"]
                         sevMessage(sev, subType=submissionType, efmSection=efmSection, taxonomy=et.partition('/')[0], earliestTaxonomy=et)
                 elif validation == "taxonomy-url-required-in-dts":
+                    # value may have multiple fnmatch patterns with "|" separator
+                    # if multiple fnmatch patterns only one of them may have matches otherwise message
+                    patternMatchCount = dict((p,0) for p in value.split("|"))
                     et = sev.get("earliest-taxonomy", "")
                     foundVersion = abbreviatedNamespace(deiDefaultPrefixedNamespaces.get(et.partition("/")[0]))
-                    if (not foundVersion or foundVersion >= et) and (
-                        not any(fnmatch.fnmatch(url, value) for url in modelXbrl.urlDocs.keys())):
-                        sevMessage(sev, subType=submissionType, efmSection=efmSection, taxonomy=value, docType=documentType)
+                    for pattern in patternMatchCount.keys():
+                        for url in modelXbrl.urlDocs.keys():
+                            if fnmatch.fnmatch(url, pattern):
+                                patternMatchCount[pattern] += 1
+                    if (not foundVersion or foundVersion >= et) and sum(
+                            count > 0 for count in patternMatchCount.values()):
+                        sevMessage(sev, subType=submissionType, efmSection=efmSection, docType=documentType, 
+                                   taxonomyPattern=" or ".join(sorted(patternMatchCount.keys())))
                 # type-specific validations
                 elif len(names) == 0:
                     pass # no name entries if all dei names of this validation weren't in the loaded dei taxonomy (i.e., pre 2019)
