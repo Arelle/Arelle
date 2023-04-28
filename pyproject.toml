@@ -122,6 +122,7 @@ ignore_errors = true
 [[tool.mypy.overrides]]
 module = [
     'arelle.Cntlr',
+    'arelle.BetaFeatures',
     'arelle.FileSource',
     'arelle.Locale',
     'arelle.ModelObject',
