@@ -1,5 +1,5 @@
 '''
-This plug-in removes xmlns="http://www.w3.org/1999/xhtml" from 
+This plug-in removes xmlns="http://www.w3.org/1999/xhtml" from
 escaped html in text content of expected instance facts for inline XBRL text facts
 
 (c) Copyright 2019 Mark V Systems Limited, All rights reserved.
@@ -19,7 +19,7 @@ def testcaseVariationLoaded(testInstance, testcaseInstance, modelTestcaseVariati
                     testInstance.modelManager.validateCalcs = CalcsMode.ROUND_TO_NEAREST
                 elif v == "truncate":
                     testInstance.modelManager.validateCalcs = CalcsMode.TRUNCATION
-                
+
 __pluginInfo__ = {
     'name': 'Testcase obtain expected calc 11 mode from variation/result@mode',
     'version': '0.9',

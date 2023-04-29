@@ -25,7 +25,7 @@ class ValidateCalcsMode:
     XBRL_v2_1_DEDUPLICATE = 3       # post-2010 spec v2.1 with deduplication
     ROUND_TO_NEAREST = 4            # calculations 1.1 round-to-nearest mode
     TRUNCATION = 5                  # calculations 1.1 truncation mode
-    
+
     label = {
         NONE: "No calculations linkbase checks",
         XBRL_v2_1_INFER_PRECISION: "Pre-2010 XBRL 2.1 calculations validation inferring precision",
@@ -34,7 +34,7 @@ class ValidateCalcsMode:
         ROUND_TO_NEAREST: "Calculations 1.1 round-to-nearest mode",
         TRUNCATION: "Calculations 1.1 truncation mode"
         }
-    
+
 oimErrorCodePattern = re_compile("xbrl[cjx]e:|oimc?e:")
 numberPattern = re_compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
 ZERO = decimal.Decimal(0)
@@ -90,7 +90,7 @@ class ValidateXbrlCalcs:
         calc11 = self.calc11 # round or truncate
         calc11t = self.calc11t # truncate
         sumConceptItemRels = defaultdict(dict) # for calc11 dup sum-item detection
-          
+
         if xbrl21:
             if not self.modelXbrl.contexts and not self.modelXbrl.facts:
                 return # skip if no contexts or facts (note that in calc11 mode the dup relationships test is nonetheless required)
@@ -100,7 +100,7 @@ class ValidateXbrlCalcs:
             oimErrs = set()
             for i in range(len(modelXbrl.errors) - 1, -1, -1):
                 e = modelXbrl.errors[i]
-                if oimErrorCodePattern.match(e):                    
+                if oimErrorCodePattern.match(e):
                     del modelXbrl.errors[i] # remove the oim errors from modelXbrl.errors
                 oimErrs.add(e)
             if len(oimErrs) == 1 and "xbrlxe:unsupportedTuple" in oimErrs:
@@ -109,7 +109,7 @@ class ValidateXbrlCalcs:
             elif len(oimErrs) > 0:
                 modelXbrl.warning("calc11e:oimIncompatibleReportWarning","Validating of calculations is skipped due to OIM errors.")
                 return;
-            
+
         # identify equal contexts
         modelXbrl.profileActivity()
         uniqueContextHashes = {}
@@ -230,7 +230,7 @@ class ValidateXbrlCalcs:
                                             if not fact.isNil:
                                                 if fact in self.duplicatedFacts:
                                                     dupBindingKeys.add(sumBindKey)
-                                                elif (sumBindKey in boundSums and sumBindKey not in dupBindingKeys 
+                                                elif (sumBindKey in boundSums and sumBindKey not in dupBindingKeys
                                                       and fact not in self.consistentDupFacts
                                                       and not (len(sumFacts) > 1 and not self.deDuplicate)): # don't bind if sum duplicated without dedup option
                                                     roundedSum = roundFact(fact, self.inferDecimals)
@@ -242,16 +242,16 @@ class ValidateXbrlCalcs:
                                                         unreportedContribingItemQnames = [] # list the missing/unreported contributors in relationship order
                                                         for modelRel in modelRels:
                                                             itemConcept = modelRel.toModelObject
-                                                            if (itemConcept is not None and 
+                                                            if (itemConcept is not None and
                                                                 (itemConcept, ancestor, contextHash, unit) not in self.itemFacts):
                                                                 unreportedContribingItemQnames.append(str(itemConcept.qname))
                                                         modelXbrl.log('INCONSISTENCY', "xbrl.5.2.5.2:calcInconsistency",
                                                             _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreportedContributingItems %(unreportedContributors)s"),
                                                             modelObject=wrappedSummationAndItems(fact, roundedSum, _boundSummationItems),
-                                                            concept=sumConcept.qname, linkrole=ELR, 
+                                                            concept=sumConcept.qname, linkrole=ELR,
                                                             linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
                                                             reportedSum=Locale.format_decimal(modelXbrl.locale, roundedSum, 1, max(d,0)),
-                                                            computedSum=Locale.format_decimal(modelXbrl.locale, roundedItemsSum, 1, max(d,0)), 
+                                                            computedSum=Locale.format_decimal(modelXbrl.locale, roundedItemsSum, 1, max(d,0)),
                                                             contextID=fact.context.id, unitID=fact.unit.id,
                                                             unreportedContributors=", ".join(unreportedContribingItemQnames) or "none")
                                                         del unreportedContribingItemQnames[:]
@@ -267,10 +267,10 @@ class ValidateXbrlCalcs:
                                                 modelXbrl.error("calc11e:inconsistentCalculationUsing" + self.calc11suffix,
                                                     _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s"),
                                                     modelObject=sumFacts + boundIntervalItems[sumBindKey],
-                                                    concept=sumConcept.qname, linkrole=ELR, 
+                                                    concept=sumConcept.qname, linkrole=ELR,
                                                     linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
                                                     reportedSum=rangeToStr(s1,s2,incls1,incls2),
-                                                    computedSum=rangeToStr(x1,s2,inclx1,inclx2), 
+                                                    computedSum=rangeToStr(x1,s2,inclx1,inclx2),
                                                     contextID=sumFacts[0].context.id, unitID=sumFacts[0].unit.id)
                             boundSummationItems.clear() # dereference facts in list
                             boundIntervalItems.clear()
@@ -392,7 +392,7 @@ class ValidateXbrlCalcs:
         if any(f.isNil for f in fList):
             if all(f.isNil for f in fList):
                 return (NIL_FACT_SET,NIL_FACT_SET,True,True)
-            _inConsistent = True # provide error message 
+            _inConsistent = True # provide error message
         else: # not all have same decimals
             a = b = None
             inclA = inclB = _inConsistent = False
@@ -411,26 +411,26 @@ class ValidateXbrlCalcs:
                 else:
                     decVals[_d] = _v
                     _a, _b, _inclA, _inclB = rangeValue(_v, _d, truncate=truncate)
-                    if a is None or _a >= a: 
+                    if a is None or _a >= a:
                         a = _a
                         inclA |= _inclA
-                    if b is None or _b <= b: 
+                    if b is None or _b <= b:
                         b = _b
-                        inclB |= _inclB 
+                        inclB |= _inclB
             _inConsistent = (a == b and not(inclA and inclB)) or (a > b)
         if _excessDigitFacts:
             self.modelXbrl.error("calc11e:excessDigits",
                 "Calculations check stopped for excess digits in fact values %(element)s: %(values)s, %(contextIDs)s.",
-                modelObject=fList, element=_excessDigitFacts[0].qname, 
-                contextIDs=", ".join(sorted(set(f.contextID for f in _excessDigitFacts))), 
+                modelObject=fList, element=_excessDigitFacts[0].qname,
+                contextIDs=", ".join(sorted(set(f.contextID for f in _excessDigitFacts))),
                 values=", ".join(strTruncate(f.value,64) for f in _excessDigitFacts))
             return (INCONSISTENT, INCONSISTENT,True,True)
         if _inConsistent:
             self.modelXbrl.error(
                 "calc11e:disallowedDuplicateFactsUsingTruncation" if self.calc11t else "oime:disallowedDuplicateFacts",
                 "Calculations check stopped for duplicate fact values %(element)s: %(values)s, %(contextIDs)s.",
-                modelObject=fList, element=fList[0].qname, 
-                contextIDs=", ".join(sorted(set(f.contextID for f in fList))), 
+                modelObject=fList, element=fList[0].qname,
+                contextIDs=", ".join(sorted(set(f.contextID for f in fList))),
                 values=", ".join(strTruncate(f.value,64) for f in fList))
             return (INCONSISTENT, INCONSISTENT,True,True)
         return (a, b, inclA, inclB)
