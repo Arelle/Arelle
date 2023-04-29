@@ -36,17 +36,9 @@ class ModelManager:
 
         Disclosure system object.  To select the disclosure system, e.g., 'gfm', moduleManager.disclosureSystem.select('gfm').
 
-        .. attribute:: validateCalcLB
+        .. attribute:: validateCalcs
 
-        True for calculation linkbase validation.
-
-        .. attribute:: validateInferDecimals
-
-        True for calculation linkbase validation to infer decimals (instead of precision)
-
-        .. attribute:: validateDedupCalcs
-
-        True for calculation linkbase validation de-duplicate calculations
+        ValidateXbrlCalcs.ValidateCalcsMode
 
         .. attribute:: validateUTR
 
@@ -64,9 +56,7 @@ class ModelManager:
         self.cntlr = cntlr
         self.validateDisclosureSystem = False
         self.disclosureSystem = DisclosureSystem.DisclosureSystem(self)
-        self.validateCalcLB = False
-        self.validateInferDecimals = True
-        self.validateDedupCalcs = False
+        self.validateCalcs = 0 # ValidateXbrlCalcs.ValidateCalcsMode
         self.validateInfoset = False
         self.validateUtr = False
         self.validateTestcaseSchema = True

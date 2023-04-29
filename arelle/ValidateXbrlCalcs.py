@@ -10,10 +10,32 @@ from regex import compile as re_compile
 import hashlib
 from arelle import Locale, XbrlConst, XbrlUtil
 from arelle.ModelObject import ObjectPropertyViewWrapper
+from arelle.PythonUtil import flattenSequence, strTruncate
+from arelle.XmlValidate import UNVALIDATED, VALID
 
 if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelFact
+else:
+    ModelFact = None
 
+class ValidateCalcsMode:
+    NONE = 0                        # no calculations linkbase validation
+    XBRL_v2_1_INFER_PRECISION = 1   # pre-2010 spec v2.1 mode
+    XBRL_v2_1 = 2                   # post-2010 spec v2.1 mode
+    XBRL_v2_1_DEDUPLICATE = 3       # post-2010 spec v2.1 with deduplication
+    ROUND_TO_NEAREST = 4            # calculations 1.1 round-to-nearest mode
+    TRUNCATION = 5                  # calculations 1.1 truncation mode
+    
+    label = {
+        NONE: "No calculations linkbase checks",
+        XBRL_v2_1_INFER_PRECISION: "Pre-2010 XBRL 2.1 calculations validation inferring precision",
+        XBRL_v2_1:  "XBRL 2.1 calculations linkbase checks",
+        XBRL_v2_1_DEDUPLICATE: "XBRL v2.1 calculations linkbase with de-duplication",
+        ROUND_TO_NEAREST: "Calculations 1.1 round-to-nearest mode",
+        TRUNCATION: "Calculations 1.1 truncation mode"
+        }
+    
+oimErrorCodePattern = re_compile("xbrl[cjx]e:|oimc?e:")
 numberPattern = re_compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
 ZERO = decimal.Decimal(0)
 ONE = decimal.Decimal(1)
@@ -22,15 +44,29 @@ TEN = decimal.Decimal(10)
 NaN = decimal.Decimal("NaN")
 floatNaN = float("NaN")
 floatINF = float("INF")
+INCONSISTENT = "*inconsistent*" # singleton
+NIL_FACT_SET = "*nilFactSet*" # singleton
+# RANGE values are (lower, upper, incl Lower bound, incl upper bound)
+ZERO_RANGE = (0,0,True,True)
+EMPTY_SET = set()
+def rangeToStr(a, b, inclA, inclB) -> str:
+    return {True:"[", False: "("}[inclA] + f"{a}, {b}" + {True:"]", False: ")"}[inclB]
 
-def validate(modelXbrl, inferDecimals=False, deDuplicate=False) -> None:
-    ValidateXbrlCalcs(modelXbrl, inferDecimals, deDuplicate).validate()
+def validate(modelXbrl, validateCalcs) -> None:
+    global ModelFact
+    if ModelFact is None:
+        from arelle.ModelInstanceObject import ModelFact
+    ValidateXbrlCalcs(modelXbrl, validateCalcs).validate()
 
 class ValidateXbrlCalcs:
-    def __init__(self, modelXbrl, inferDecimals=False, deDuplicate=False):
+    def __init__(self, modelXbrl, validateCalcs):
         self.modelXbrl = modelXbrl
-        self.inferDecimals = inferDecimals
-        self.deDuplicate = deDuplicate
+        self.inferDecimals = validateCalcs == ValidateCalcsMode.XBRL_v2_1
+        self.deDuplicate = validateCalcs == ValidateCalcsMode.XBRL_v2_1_DEDUPLICATE
+        self.xbrl21 = validateCalcs in (ValidateCalcsMode.XBRL_v2_1_INFER_PRECISION, ValidateCalcsMode.XBRL_v2_1, ValidateCalcsMode.XBRL_v2_1_DEDUPLICATE)
+        self.calc11 = validateCalcs in (ValidateCalcsMode.ROUND_TO_NEAREST, ValidateCalcsMode.TRUNCATION)
+        self.calc11t = validateCalcs == ValidateCalcsMode.TRUNCATION
+        self.calc11suffix = "Truncation" if self.calc11t else "Rounding"
         self.mapContext = {}
         self.mapUnit = {}
         self.sumFacts = defaultdict(list)
@@ -39,7 +75,8 @@ class ValidateXbrlCalcs:
         self.itemConceptBindKeys = defaultdict(set)
         self.duplicateKeyFacts = {}
         self.duplicatedFacts = set()
-        self.consistentDupFacts = set() # when deDuplicatig, holds the less-precise of v-equal dups
+        self.calc11KeyFacts = defaultdict(list) # calc 11 reported facts by calcKey (concept, ancestor, contextHash, unit)
+        self.consistentDupFacts = set() # when deDuplicating, holds the less-precise of v-equal dups
         self.esAlFacts = defaultdict(list)
         self.esAlConceptBindKeys = defaultdict(set)
         self.conceptsInEssencesAlias = set()
@@ -47,16 +84,36 @@ class ValidateXbrlCalcs:
         self.conceptsInRequiresElement = set()
 
     def validate(self):
-        if not self.modelXbrl.contexts and not self.modelXbrl.facts:
-            return # skip if no contexts or facts
-
-        if not self.inferDecimals: # infering precision is now contrary to XBRL REC section 5.2.5.2
-            self.modelXbrl.info("xbrl.5.2.5.2:inferringPrecision","Validating calculations inferring precision.")
-
+        # note that calc linkbase checks need to be performed even if no facts in instance (e.g., to detect duplicate relationships)
+        modelXbrl = self.modelXbrl
+        xbrl21 = self.xbrl21
+        calc11 = self.calc11 # round or truncate
+        calc11t = self.calc11t # truncate
+        sumConceptItemRels = defaultdict(dict) # for calc11 dup sum-item detection
+          
+        if xbrl21:
+            if not self.modelXbrl.contexts and not self.modelXbrl.facts:
+                return # skip if no contexts or facts (note that in calc11 mode the dup relationships test is nonetheless required)
+            if not self.inferDecimals: # infering precision is now contrary to XBRL REC section 5.2.5.2
+                modelXbrl.info("xbrl.5.2.5.2:inferringPrecision","Validating calculations inferring precision.")
+        elif calc11:
+            oimErrs = set()
+            for i in range(len(modelXbrl.errors) - 1, -1, -1):
+                e = modelXbrl.errors[i]
+                if oimErrorCodePattern.match(e):                    
+                    del modelXbrl.errors[i] # remove the oim errors from modelXbrl.errors
+                oimErrs.add(e)
+            if len(oimErrs) == 1 and "xbrlxe:unsupportedTuple" in oimErrs:
+                # ignore this error and change to warning
+                modelXbrl.warning("calc11e:tuplesInReportWarning","Validating of calculations ignores tuples.")
+            elif len(oimErrs) > 0:
+                modelXbrl.warning("calc11e:oimIncompatibleReportWarning","Validating of calculations is skipped due to OIM errors.")
+                return;
+            
         # identify equal contexts
-        self.modelXbrl.profileActivity()
+        modelXbrl.profileActivity()
         uniqueContextHashes = {}
-        for context in self.modelXbrl.contexts.values():
+        for context in modelXbrl.contexts.values():
             h = context.contextDimAwareHash
             if h in uniqueContextHashes:
                 if context.isEqualTo(uniqueContextHashes[h]):
@@ -64,11 +121,11 @@ class ValidateXbrlCalcs:
             else:
                 uniqueContextHashes[h] = context
         del uniqueContextHashes
-        self.modelXbrl.profileActivity("... identify equal contexts", minTimeToShow=1.0)
+        modelXbrl.profileActivity("... identify equal contexts", minTimeToShow=1.0)
 
         # identify equal units
         uniqueUnitHashes = {}
-        for unit in self.modelXbrl.units.values():
+        for unit in modelXbrl.units.values():
             h = unit.hash
             if h in uniqueUnitHashes:
                 if unit.isEqualTo(uniqueUnitHashes[h]):
@@ -76,32 +133,41 @@ class ValidateXbrlCalcs:
             else:
                 uniqueUnitHashes[h] = unit
         del uniqueUnitHashes
-        self.modelXbrl.profileActivity("... identify equal units", minTimeToShow=1.0)
+        modelXbrl.profileActivity("... identify equal units", minTimeToShow=1.0)
 
         # identify concepts participating in essence-alias relationships
         # identify calcluation & essence-alias base sets (by key)
-        for baseSetKey in self.modelXbrl.baseSets.keys():
-            arcrole, ELR, linkqname, arcqname = baseSetKey
-            if ELR and linkqname and arcqname:
-                if arcrole in (XbrlConst.essenceAlias, XbrlConst.requiresElement):
-                    conceptsSet = {XbrlConst.essenceAlias:self.conceptsInEssencesAlias,
-                                   XbrlConst.requiresElement:self.conceptsInRequiresElement}[arcrole]
-                    for modelRel in self.modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname).modelRelationships:
-                        for concept in (modelRel.fromModelObject, modelRel.toModelObject):
-                            if concept is not None and concept.qname is not None:
-                                conceptsSet.add(concept)
-        self.modelXbrl.profileActivity("... identify requires-element and esseance-aliased concepts", minTimeToShow=1.0)
+        if xbrl21:
+            for baseSetKey in modelXbrl.baseSets.keys():
+                arcrole, ELR, linkqname, arcqname = baseSetKey
+                if ELR and linkqname and arcqname:
+                    if arcrole in (XbrlConst.essenceAlias, XbrlConst.requiresElement):
+                        conceptsSet = {XbrlConst.essenceAlias:self.conceptsInEssencesAlias,
+                                       XbrlConst.requiresElement:self.conceptsInRequiresElement}[arcrole]
+                        for modelRel in modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname).modelRelationships:
+                            for concept in (modelRel.fromModelObject, modelRel.toModelObject):
+                                if concept is not None and concept.qname is not None:
+                                    conceptsSet.add(concept)
+            modelXbrl.profileActivity("... identify requires-element and esseance-aliased concepts", minTimeToShow=1.0)
 
-        self.bindFacts(self.modelXbrl.facts,[self.modelXbrl.modelDocument.xmlRootElement])
-        self.modelXbrl.profileActivity("... bind facts", minTimeToShow=1.0)
+        self.bindFacts(modelXbrl.facts,[modelXbrl.modelDocument.xmlRootElement])
+        modelXbrl.profileActivity("... bind facts", minTimeToShow=1.0)
+
+        allArcroles = flattenSequence(
+            ({XbrlConst.summationItem, XbrlConst.essenceAlias, XbrlConst.requiresElement} if xbrl21 else EMPTY_SET) |
+            ({XbrlConst.summationItem, XbrlConst.summationItem11} if calc11 else EMPTY_SET))
+        summationArcroles = flattenSequence(
+            ({XbrlConst.summationItem} if xbrl21 else EMPTY_SET) |
+            ({XbrlConst.summationItem, XbrlConst.summationItem11} if calc11 else EMPTY_SET))
 
         # identify calcluation & essence-alias base sets (by key)
-        for baseSetKey in self.modelXbrl.baseSets.keys():
+        for baseSetKey in modelXbrl.baseSets.keys():
             arcrole, ELR, linkqname, arcqname = baseSetKey
             if ELR and linkqname and arcqname:
-                if arcrole in (XbrlConst.summationItem, XbrlConst.essenceAlias, XbrlConst.requiresElement):
-                    relsSet = self.modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname)
-                    if arcrole == XbrlConst.summationItem:
+                if arcrole in allArcroles:
+                    relsSet = modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname)
+                    sumConceptItemRels.clear()
+                    if arcrole in summationArcroles:
                         fromRelationships = relsSet.fromModelObjects()
                         for sumConcept, modelRels in fromRelationships.items():
                             sumBindingKeys = self.sumConceptBindKeys[sumConcept]
@@ -113,56 +179,101 @@ class ValidateXbrlCalcs:
                                 if itemConcept is not None and itemConcept.qname is not None:
                                     itemBindingKeys = self.itemConceptBindKeys[itemConcept]
                                     boundSumKeys |= sumBindingKeys & itemBindingKeys
+                                    if calc11:
+                                        siRels = sumConceptItemRels[sumConcept]
+                                        if itemConcept in siRels:
+                                            modelXbrl.error("calc11e:duplicateCalculationRelationships",
+                                                _("Duplicate summation-item relationships from total concept %(sumConcept)s to contributing concept %(itemConcept)s in link role %(linkrole)s"),
+                                                modelObject=(siRels[itemConcept], modelRel), linkrole=modelRel.linkrole,
+                                                sumConcept=sumConcept.qname, itemConcept=itemConcept.qname)
+                                        siRels[itemConcept] = modelRel
                             # add up rounded items
                             boundSums = defaultdict(decimal.Decimal) # sum of facts meeting factKey
+                            boundIntervals = {} # interval sum of facts meeting factKey
+                            blockedIntervals = set() # bind Keys for summations which have an inconsistency
                             boundSummationItems = defaultdict(list) # corresponding fact refs for messages
+                            boundIntervalItems = defaultdict(list) # corresponding fact refs for messages
                             for modelRel in modelRels:
-                                weight = modelRel.weightDecimal
+                                w = modelRel.weightDecimal
                                 itemConcept = modelRel.toModelObject
                                 if itemConcept is not None:
                                     for itemBindKey in boundSumKeys:
                                         ancestor, contextHash, unit = itemBindKey
                                         factKey = (itemConcept, ancestor, contextHash, unit)
-                                        if factKey in self.itemFacts:
-                                            for fact in self.itemFacts[factKey]:
-                                                if fact in self.duplicatedFacts:
-                                                    dupBindingKeys.add(itemBindKey)
-                                                elif fact not in self.consistentDupFacts:
-                                                    roundedValue = roundFact(fact, self.inferDecimals)
-                                                    boundSums[itemBindKey] += roundedValue * weight
-                                                    boundSummationItems[itemBindKey].append(wrappedFactWithWeight(fact,weight,roundedValue))
+                                        _itemFacts = self.itemFacts.get(factKey,())
+                                        if xbrl21:
+                                            for fact in _itemFacts:
+                                                if not fact.isNil:
+                                                    if fact in self.duplicatedFacts:
+                                                        dupBindingKeys.add(itemBindKey)
+                                                    elif fact not in self.consistentDupFacts:
+                                                        roundedValue = roundFact(fact, self.inferDecimals)
+                                                        boundSums[itemBindKey] += roundedValue * w
+                                                        boundSummationItems[itemBindKey].append(wrappedFactWithWeight(fact,w,roundedValue))
+                                        if calc11 and _itemFacts:
+                                            y1, y2, iY1, iY2 = self.consistentFactValueInterval(_itemFacts, calc11t)
+                                            if y1 is INCONSISTENT:
+                                                blockedIntervals.add(itemBindKey)
+                                            elif y1 is not NIL_FACT_SET:
+                                                x1, x2, iX1, iX2 = boundIntervals.get(itemBindKey, ZERO_RANGE)
+                                                y1 *= w
+                                                y2 *= w
+                                                boundIntervals[itemBindKey] = (x1 + y1, x2 + y2, iX1 and iY1, iX2 and iY2)
+                                                boundIntervalItems[itemBindKey].extend(_itemFacts)
                             for sumBindKey in boundSumKeys:
                                 ancestor, contextHash, unit = sumBindKey
                                 factKey = (sumConcept, ancestor, contextHash, unit)
                                 if factKey in self.sumFacts:
                                     sumFacts = self.sumFacts[factKey]
-                                    for fact in sumFacts:
-                                        if fact in self.duplicatedFacts:
-                                            dupBindingKeys.add(sumBindKey)
-                                        elif sumBindKey not in dupBindingKeys and fact not in self.consistentDupFacts:
-                                            roundedSum = roundFact(fact, self.inferDecimals)
-                                            roundedItemsSum = roundFact(fact, self.inferDecimals, vDecimal=boundSums[sumBindKey])
-                                            if roundedItemsSum  != roundFact(fact, self.inferDecimals):
-                                                d = inferredDecimals(fact)
-                                                if isnan(d) or isinf(d): d = 4
-                                                _boundSummationItems = boundSummationItems[sumBindKey]
-                                                unreportedContribingItemQnames = [] # list the missing/unreported contributors in relationship order
-                                                for modelRel in modelRels:
-                                                    itemConcept = modelRel.toModelObject
-                                                    if (itemConcept is not None and
-                                                        (itemConcept, ancestor, contextHash, unit) not in self.itemFacts):
-                                                        unreportedContribingItemQnames.append(str(itemConcept.qname))
-                                                self.modelXbrl.log('INCONSISTENCY', "xbrl.5.2.5.2:calcInconsistency",
-                                                    _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreportedContributingItems %(unreportedContributors)s"),
-                                                    modelObject=wrappedSummationAndItems(fact, roundedSum, _boundSummationItems),
-                                                    concept=sumConcept.qname, linkrole=ELR,
-                                                    linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR),
-                                                    reportedSum=Locale.format_decimal(self.modelXbrl.locale, roundedSum, 1, max(d,0)),
-                                                    computedSum=Locale.format_decimal(self.modelXbrl.locale, roundedItemsSum, 1, max(d,0)),
-                                                    contextID=fact.context.id, unitID=fact.unit.id,
-                                                    unreportedContributors=", ".join(unreportedContribingItemQnames) or "none")
-                                                del unreportedContribingItemQnames[:]
+                                    if xbrl21:
+                                        for fact in sumFacts:
+                                            if not fact.isNil:
+                                                if fact in self.duplicatedFacts:
+                                                    dupBindingKeys.add(sumBindKey)
+                                                elif (sumBindKey in boundSums and sumBindKey not in dupBindingKeys 
+                                                      and fact not in self.consistentDupFacts
+                                                      and not (len(sumFacts) > 1 and not self.deDuplicate)): # don't bind if sum duplicated without dedup option
+                                                    roundedSum = roundFact(fact, self.inferDecimals)
+                                                    roundedItemsSum = roundFact(fact, self.inferDecimals, vDecimal=boundSums[sumBindKey])
+                                                    if roundedItemsSum  != roundFact(fact, self.inferDecimals):
+                                                        d = inferredDecimals(fact)
+                                                        if isnan(d) or isinf(d): d = 4
+                                                        _boundSummationItems = boundSummationItems[sumBindKey]
+                                                        unreportedContribingItemQnames = [] # list the missing/unreported contributors in relationship order
+                                                        for modelRel in modelRels:
+                                                            itemConcept = modelRel.toModelObject
+                                                            if (itemConcept is not None and 
+                                                                (itemConcept, ancestor, contextHash, unit) not in self.itemFacts):
+                                                                unreportedContribingItemQnames.append(str(itemConcept.qname))
+                                                        modelXbrl.log('INCONSISTENCY', "xbrl.5.2.5.2:calcInconsistency",
+                                                            _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreportedContributingItems %(unreportedContributors)s"),
+                                                            modelObject=wrappedSummationAndItems(fact, roundedSum, _boundSummationItems),
+                                                            concept=sumConcept.qname, linkrole=ELR, 
+                                                            linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
+                                                            reportedSum=Locale.format_decimal(modelXbrl.locale, roundedSum, 1, max(d,0)),
+                                                            computedSum=Locale.format_decimal(modelXbrl.locale, roundedItemsSum, 1, max(d,0)), 
+                                                            contextID=fact.context.id, unitID=fact.unit.id,
+                                                            unreportedContributors=", ".join(unreportedContribingItemQnames) or "none")
+                                                        del unreportedContribingItemQnames[:]
+                                    if calc11:
+                                        s1, s2, incls1, incls2 = self.consistentFactValueInterval(sumFacts, calc11t)
+                                        if s1 is not INCONSISTENT and sumBindKey not in blockedIntervals and sumBindKey in boundIntervals:
+                                            x1, x2, inclx1, inclx2 = boundIntervals[sumBindKey]
+                                            a = max(s1, x1)
+                                            b = min(s2, x2)
+                                            inclA = incls1 | inclx1
+                                            inclB = incls2 | inclx2
+                                            if (a == b and not (inclA and inclB)) or (a > b):
+                                                modelXbrl.error("calc11e:inconsistentCalculationUsing" + self.calc11suffix,
+                                                    _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s"),
+                                                    modelObject=sumFacts + boundIntervalItems[sumBindKey],
+                                                    concept=sumConcept.qname, linkrole=ELR, 
+                                                    linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
+                                                    reportedSum=rangeToStr(s1,s2,incls1,incls2),
+                                                    computedSum=rangeToStr(x1,s2,inclx1,inclx2), 
+                                                    contextID=sumFacts[0].context.id, unitID=sumFacts[0].unit.id)
                             boundSummationItems.clear() # dereference facts in list
+                            boundIntervalItems.clear()
                     elif arcrole == XbrlConst.essenceAlias:
                         for modelRel in relsSet.modelRelationships:
                             essenceConcept = modelRel.fromModelObject
@@ -179,20 +290,20 @@ class ValidateXbrlCalcs:
                                             essenceUnit = self.mapUnit.get(eF.unit,eF.unit)
                                             aliasUnit = self.mapUnit.get(aF.unit,aF.unit)
                                             if essenceUnit != aliasUnit:
-                                                self.modelXbrl.log('INCONSISTENCY', "xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
+                                                modelXbrl.log('INCONSISTENCY', "xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
                                                     _("Essence-Alias inconsistent units from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s"),
                                                     modelObject=(modelRel, eF, aF),
                                                     essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname,
                                                     linkrole=ELR,
-                                                    linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR),
+                                                    linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
                                                     contextID=eF.context.id)
                                             if not XbrlUtil.vEqual(eF, aF):
-                                                self.modelXbrl.log('INCONSISTENCY', "xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
+                                                modelXbrl.log('INCONSISTENCY', "xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
                                                     _("Essence-Alias inconsistent value from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s"),
                                                     modelObject=(modelRel, eF, aF),
                                                     essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname,
                                                     linkrole=ELR,
-                                                    linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR),
+                                                    linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
                                                     contextID=eF.context.id)
                     elif arcrole == XbrlConst.requiresElement:
                         for modelRel in relsSet.modelRelationships:
@@ -200,14 +311,14 @@ class ValidateXbrlCalcs:
                             requiredConcept = modelRel.toModelObject
                             if sourceConcept in self.requiresElementFacts and \
                                not requiredConcept in self.requiresElementFacts:
-                                    self.modelXbrl.log('INCONSISTENCY', "xbrl.5.2.6.2.4:requiresElementInconsistency",
+                                    modelXbrl.log('INCONSISTENCY', "xbrl.5.2.6.2.4:requiresElementInconsistency",
                                         _("Requires-Element %(requiringConcept)s missing required fact for %(requiredConcept)s in link role %(linkrole)s"),
                                         modelObject=sourceConcept,
                                         requiringConcept=sourceConcept.qname, requiredConcept=requiredConcept.qname,
                                         linkrole=ELR,
-                                        linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR))
-        self.modelXbrl.profileActivity("... find inconsistencies", minTimeToShow=1.0)
-        self.modelXbrl.profileActivity() # reset
+                                        linkroleDefinition=modelXbrl.roleTypeDefinition(ELR))
+        modelXbrl.profileActivity("... find inconsistencies", minTimeToShow=1.0)
+        modelXbrl.profileActivity() # reset
 
     def bindFacts(self, facts, ancestors):
         for f in facts:
@@ -222,15 +333,13 @@ class ValidateXbrlCalcs:
                         contextHash = context.contextNonDimAwareHash if context is not None else hash(None)
                         unit = self.mapUnit.get(f.unit,f.unit)
                         calcKey = (concept, ancestor, contextHash, unit)
-                        if not f.isNil:
-                            self.itemFacts[calcKey].append(f)
-                            bindKey = (ancestor, contextHash, unit)
-                            self.itemConceptBindKeys[concept].add(bindKey)
-                    if not f.isNil:
-                        self.sumFacts[calcKey].append(f) # sum only for immediate parent
-                        self.sumConceptBindKeys[concept].add(bindKey)
+                        self.itemFacts[calcKey].append(f)
+                        bindKey = (ancestor, contextHash, unit)
+                        self.itemConceptBindKeys[concept].add(bindKey)
+                    self.sumFacts[calcKey].append(f) # sum only for immediate parent
+                    self.sumConceptBindKeys[concept].add(bindKey)
                     # calcKey is the last ancestor added (immediate parent of fact)
-                    if calcKey in self.duplicateKeyFacts:
+                    if calcKey in self.duplicateKeyFacts and not f.isNil:
                         fDup = self.duplicateKeyFacts[calcKey]
                         if self.deDuplicate: # add lesser precision fact to consistentDupFacts
                             if self.inferDecimals:
@@ -258,9 +367,11 @@ class ValidateXbrlCalcs:
                         else: # add both this fact and matching calcKey'ed fact to duplicatedFacts
                             self.duplicatedFacts.add(f)
                             self.duplicatedFacts.add(fDup)
-                    else:
+                    elif self.xbrl21 and not f.isNil:
                         self.duplicateKeyFacts[calcKey] = f
-                elif concept.isTuple:
+                    if self.calc11:
+                        self.calc11KeyFacts[calcKey].append(f)
+                elif concept.isTuple and not f.isNil and not self.calc11:
                     self.bindFacts(f.modelTupleFacts, ancestors + [f])
 
                 # index facts by their essence alias relationship set
@@ -275,6 +386,54 @@ class ValidateXbrlCalcs:
                 # index facts by their requires element usage
                 if concept in self.conceptsInRequiresElement:
                     self.requiresElementFacts[concept].append(f)
+
+    def consistentFactValueInterval(self, fList, truncate=False) -> tuple[decimal.Decimal | str, decimal.Decimal | str, bool, bool]:
+        _excessDigitFacts = []
+        if any(f.isNil for f in fList):
+            if all(f.isNil for f in fList):
+                return (NIL_FACT_SET,NIL_FACT_SET,True,True)
+            _inConsistent = True # provide error message 
+        else: # not all have same decimals
+            a = b = None
+            inclA = inclB = _inConsistent = False
+            decVals = {}
+            for f in fList:
+                _d = inferredDecimals(f)
+                _v = f.xValue
+                if isnan(_v):
+                    if len(fList) > 1:
+                        _inConsistent = True
+                    break
+                elif insignificantDigits(_v, decimals=_d):
+                    _excessDigitFacts.append(f)
+                elif _d in decVals:
+                    _inConsistent |= _v != decVals[_d]
+                else:
+                    decVals[_d] = _v
+                    _a, _b, _inclA, _inclB = rangeValue(_v, _d, truncate=truncate)
+                    if a is None or _a >= a: 
+                        a = _a
+                        inclA |= _inclA
+                    if b is None or _b <= b: 
+                        b = _b
+                        inclB |= _inclB 
+            _inConsistent = (a == b and not(inclA and inclB)) or (a > b)
+        if _excessDigitFacts:
+            self.modelXbrl.error("calc11e:excessDigits",
+                "Calculations check stopped for excess digits in fact values %(element)s: %(values)s, %(contextIDs)s.",
+                modelObject=fList, element=_excessDigitFacts[0].qname, 
+                contextIDs=", ".join(sorted(set(f.contextID for f in _excessDigitFacts))), 
+                values=", ".join(strTruncate(f.value,64) for f in _excessDigitFacts))
+            return (INCONSISTENT, INCONSISTENT,True,True)
+        if _inConsistent:
+            self.modelXbrl.error(
+                "calc11e:disallowedDuplicateFactsUsingTruncation" if self.calc11t else "oime:disallowedDuplicateFacts",
+                "Calculations check stopped for duplicate fact values %(element)s: %(values)s, %(contextIDs)s.",
+                modelObject=fList, element=fList[0].qname, 
+                contextIDs=", ".join(sorted(set(f.contextID for f in fList))), 
+                values=", ".join(strTruncate(f.value,64) for f in fList))
+            return (INCONSISTENT, INCONSISTENT,True,True)
+        return (a, b, inclA, inclB)
 
 def roundFact(fact, inferDecimals=False, vDecimal=None):
     if vDecimal is None:
@@ -465,11 +624,17 @@ def roundValue(value, precision=None, decimals=None, scale=None):
         vRounded = vDecimal
     return vRounded
 
-def rangeValue(value, decimals=None) -> tuple[decimal.Decimal, decimal.Decimal]:
+def rangeValue(value, decimals=None, truncate=False) -> tuple[decimal.Decimal, decimal.Decimal, bool, bool]:
+    if isinstance(value, list):
+        if len(value) == 1 and isinstance(value[0], ModelFact):
+            return rangeValue(value[0].xValue, inferredDecimals(value[0]), truncate=truncate)
+        # return intersection of fact value ranges
+    if isinstance(value, ModelFact):
+        return rangeValue(value.xValue, inferredDecimals(value), truncate=truncate)
     try:
         vDecimal = decimal.Decimal(value)
     except (decimal.InvalidOperation, ValueError): # would have been a schema error reported earlier
-        return (NaN, NaN)
+        return (NaN, NaN, True, True)
     if decimals is not None and decimals != "INF":
         if not isinstance(decimals, (int,float)):
             try:
@@ -477,9 +642,17 @@ def rangeValue(value, decimals=None) -> tuple[decimal.Decimal, decimal.Decimal]:
             except ValueError: # would be a schema error
                 decimals = floatNaN
         if not (isinf(decimals) or isnan(decimals)):
-            dd = (TEN**(decimal.Decimal(decimals).quantize(ONE,decimal.ROUND_DOWN)*-ONE)) / TWO
-            return (vDecimal - dd, vDecimal + dd)
-    return (vDecimal, vDecimal)
+            dd = (TEN**(decimal.Decimal(decimals).quantize(ONE,decimal.ROUND_DOWN)*-ONE))
+            if not truncate:
+                dd /= TWO
+                return (vDecimal - dd, vDecimal + dd, True, True)
+            elif vDecimal > 0:
+                return (vDecimal, vDecimal + dd, True, False)
+            elif vDecimal < 0:
+                return (vDecimal - dd, vDecimal, False, True)
+            else:
+                return (vDecimal - dd, vDecimal + dd, False, False)
+    return (vDecimal, vDecimal, True, True)
 
 def insignificantDigits(value, precision=None, decimals=None, scale=None):
     try:

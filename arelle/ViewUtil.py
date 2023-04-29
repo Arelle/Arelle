@@ -39,6 +39,8 @@ def groupRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname):
 
 def groupRelationshipLabel(arcrole):
     if isinstance(arcrole, (list,tuple)): # (group-name, [arcroles])
+        if len(set(XbrlConst.baseSetArcroleLabel(a) for a in arcrole)) == 1: # calc arcroles are all same group
+            return groupRelationshipLabel(arcrole[0])
         arcroleName = arcrole[0]
     else:
         arcroleName = XbrlConst.baseSetArcroleLabel(arcrole)[1:]

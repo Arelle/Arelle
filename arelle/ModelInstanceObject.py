@@ -450,8 +450,8 @@ class ModelFact(ModelObject):
                     return False
 
                 if numericIntervalConsistency: # values consistent with being rounded from same number
-                    (a1,b1) = rangeValue(self.value, inferredDecimals(self))
-                    (a2,b2) = rangeValue(other.value, inferredDecimals(other))
+                    (a1,b1,_ia1,_ib2) = rangeValue(self.value, inferredDecimals(self))
+                    (a2,b2,_ia2,_ib2) = rangeValue(other.value, inferredDecimals(other))
                     return not (b1 < a2 or b2 < a1)
 
                 if self.modelXbrl.modelManager.validateInferDecimals:

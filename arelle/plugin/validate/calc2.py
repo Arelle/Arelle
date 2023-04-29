@@ -41,7 +41,7 @@ def intervalValue(fact, dec=None): # value in decimals
     return rangeValue(fact.value, dec)
 
 def addInterval(boundValues, key, intervalValue, weight=None):
-    a, b = intervalValue
+    a, b, _inclA, _inclB = intervalValue
     if a is NIL:
         result = NILinterval
     else:
@@ -203,10 +203,10 @@ class ValidateXbrlCalc2:
                         _inConsistent = not all(intervalValue(f) == v0 for f in fList[1:])
                     else: # not all have same decimals
                         d0 = inferredDecimals(f0)
-                        aMax, bMin = intervalValue(f0, d0)
+                        aMax, bMin, _inclA, _inclB = intervalValue(f0, d0)
                         for f in fList[1:]:
                             df = inferredDecimals(f0)
-                            a, b = intervalValue(f, df)
+                            a, b, _inclA, _inclB = intervalValue(f, df)
                             if a > aMax: aMax = a
                             if b < bMin: bMin = b
                             if df > d0: # take most accurate fact in section
@@ -321,7 +321,7 @@ class ValidateXbrlCalc2:
                             dimMemKey = (hCntx, unit, dimQN, memQN)
                             if dimMemKey in self.aggBoundFacts:
                                 for f in self.aggBoundFacts[dimMemKey]:
-                                    a, b = intervalValue(f)
+                                    a, b, _inclA, _inclB = intervalValue(f)
                                     factDomKey = (f.concept, hCntx, unit, dimQN, domQN)
                                     addInterval(boundAggs, factDomKey, intervalValue(f))
                                     boundAggItems[aggKey].append(f)
@@ -338,7 +338,7 @@ class ValidateXbrlCalc2:
                 if factKey in self.sumBoundFacts:
                     for f in self.sumBoundFacts[factKey]:
                         d = inferredDecimals(f)
-                        sa, sb = intervalValue(f, d)
+                        sa, sb, _inclA, _inclB = intervalValue(f, d)
                         if ((ia is NIL) ^ (sa is NIL)) or ((ia is not NIL) and (sb < ia or sa > ib)):
                             self.modelXbrl.log('INCONSISTENCY', "calc2e:summationInconsistency",
                                 _("Summation inconsistent from %(concept)s in section %(section)s reported sum %(reportedSum)s, computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreported contributing items %(unreportedContributors)s"),
@@ -367,7 +367,7 @@ class ValidateXbrlCalc2:
                             d = 0
                             break
                         d = inferredDecimals(f)
-                        a, b = intervalValue(f,d)
+                        a, b, _inclA, _inclB = intervalValue(f,d)
                         endBalA += a
                         endBalB += b
                     foundStartingFact = (endBalA is NIL)
@@ -379,7 +379,7 @@ class ValidateXbrlCalc2:
                                     endBalA = endBalB = NIL
                                     foundStartingFact = True
                                     break
-                                a, b = intervalValue(f)
+                                a, b, _inclA, _inclB = intervalValue(f)
                                 endBalA -= a
                                 endBalB -= b
                                 foundStartingFact = True
@@ -424,7 +424,7 @@ class ValidateXbrlCalc2:
                     if factDomKey in self.aggBoundConceptFacts:
                         for f in self.aggBoundConceptFacts[factDomKey]:
                             d = inferredDecimals(f)
-                            sa, sb = intervalValue(f, d)
+                            sa, sb, _inclA, _inclB = intervalValue(f, d)
                             if ((ia is NIL) ^ (sa is NIL)) or ((ia is not NIL) and (sb < ia or sa > ib)):
                                 self.modelXbrl.log('INCONSISTENCY', "calc2e:aggregationInconsistency",
                                     _("Aggregation inconsistent for %(concept)s, domain %(domain)s in section %(section)s reported sum %(reportedSum)s, computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreported contributing members %(unreportedContributors)s"),
