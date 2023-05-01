@@ -79,10 +79,6 @@ class ValidateXbrlCalc2:
         if not modelXbrl.contexts or not modelXbrl.facts:
             return # skip if no contexts or facts
 
-        if not self.val.validateInferDecimals: # infering precision is now contrary to XBRL REC section 5.2.5.2
-            modelXbrl.error("calc2e:inferringPrecision","Calc2 requires inferring decimals.")
-            return
-
         startedAt = time.time()
 
         # check balance attributes and weights, same as XBRL 2.1

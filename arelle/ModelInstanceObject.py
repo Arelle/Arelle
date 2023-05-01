@@ -37,7 +37,7 @@ from typing import Any
 from lxml import etree
 from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
 from arelle.Aspect import Aspect
-from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue, rangeValue
+from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue, rangeValue, ValidateCalcsMode
 from arelle.XmlValidate import UNVALIDATED, INVALID, VALID, validate as xmlValidate
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from math import isnan, isinf
@@ -454,14 +454,14 @@ class ModelFact(ModelObject):
                     (a2,b2,_ia2,_ib2) = rangeValue(other.value, inferredDecimals(other))
                     return not (b1 < a2 or b2 < a1)
 
-                if self.modelXbrl.modelManager.validateInferDecimals:
+                if self.modelXbrl.modelManager.validateCalcs != ValidateCalcsMode.XBRL_v2_1_INFER_PRECISION:
                     d = min((inferredDecimals(self), inferredDecimals(other))); p = None
                     if isnan(d):
                         if deemP0Equal:
                             return True
                         elif deemP0inf: # for test cases deem P0 as INF comparison
                             return self.xValue == other.xValue
-                else:
+                else: # pre-2010 XBRL 2.1 inferred precision
                     d = None; p = min((inferredPrecision(self), inferredPrecision(other)))
                     if p == 0:
                         if deemP0Equal:
