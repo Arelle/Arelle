@@ -16,7 +16,12 @@ from arelle.XmlValidate import UNVALIDATED, VALID
 if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelFact
 else:
-    ModelFact = None
+    ModelFact = None # circular import with ModelInstanceObject
+
+def init(): # prevent circular imports
+    global ModelFact
+    if ModelFact is None:
+        from arelle.ModelInstanceObject import ModelFact
 
 class ValidateCalcsMode:
     NONE = 0                        # no calculations linkbase validation
@@ -53,9 +58,6 @@ def rangeToStr(a, b, inclA, inclB) -> str:
     return {True:"[", False: "("}[inclA] + f"{a}, {b}" + {True:"]", False: ")"}[inclB]
 
 def validate(modelXbrl, validateCalcs) -> None:
-    global ModelFact
-    if ModelFact is None:
-        from arelle.ModelInstanceObject import ModelFact
     ValidateXbrlCalcs(modelXbrl, validateCalcs).validate()
 
 class ValidateXbrlCalcs:

@@ -6,7 +6,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 import gc, sys, traceback, logging
-from arelle import ModelXbrl, Validate, DisclosureSystem, PackageManager
+from arelle import ModelXbrl, Validate, DisclosureSystem, PackageManager, ValidateXbrlCalcs
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle.PluginManager import pluginClassMethods
 from arelle.typing import LocaleDict
@@ -68,6 +68,7 @@ class ModelManager:
         self.customTransforms: dict[QName, Callable[[str], str]] | None = None
         self.isLocaleSet = False
         self.setLocale()
+        ValidateXbrlCalcs.init() # required due to circular dependencies in module
 
     def shutdown(self):
         self.status = "shutdown"
