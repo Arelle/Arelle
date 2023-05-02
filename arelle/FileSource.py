@@ -694,8 +694,8 @@ class FileSource:
                     assert descendantPeriod is not None
                     assert descendantDescription is not None
                     assert descendantPubDate is not None
-                    files.append(( # type: ignore[arg-type]
-                        XmlUtil.text(descendantTitle),
+                    files.append((
+                        XmlUtil.text(descendantTitle),  # type: ignore[arg-type]
                         # tooltip
                         "{0}\n {1}\n {2}\n {3}\n {4}".format(
                             XmlUtil.text(descendantCompanyName),
