@@ -20,28 +20,23 @@ def test_use_lxml_base_classes():
 
     importlib.reload(arelle.model)
 
-    class Element(arelle.model.ElementBase):
-        pass
-
-    class Comment(arelle.model.CommentBase):
-        pass
-
-    class PI(arelle.model.PIBase):
-        pass
+    from arelle.model import CommentBase as InitCommentBase
+    from arelle.model import ElementBase as InitElementBase
+    from arelle.model import PIBase as InitPIBase
 
     from arelle.model.CommentBase import CommentBase
     from arelle.model.ElementBase import ElementBase
     from arelle.model.PIBase import PIBase
 
-    element = Element()
+    element = InitElementBase()
     assert isinstance(element, etree.ElementBase)
     assert not isinstance(element, ElementBase)
 
-    comment = Comment("comment")
+    comment = InitCommentBase("comment")
     assert isinstance(comment, etree.CommentBase)
     assert not isinstance(comment, CommentBase)
 
-    pi = PI("instruction")
+    pi = InitPIBase("instruction")
     assert isinstance(pi, etree.PIBase)
     assert not isinstance(pi, PIBase)
 
@@ -52,28 +47,23 @@ def test_use_pure_python_base_classes():
 
     importlib.reload(arelle.model)
 
-    class Element(arelle.model.ElementBase):
-        pass
-
-    class Comment(arelle.model.CommentBase):
-        pass
-
-    class PI(arelle.model.PIBase):
-        pass
+    from arelle.model import CommentBase as InitCommentBase
+    from arelle.model import ElementBase as InitElementBase
+    from arelle.model import PIBase as InitPIBase
 
     from arelle.model.CommentBase import CommentBase
     from arelle.model.ElementBase import ElementBase
     from arelle.model.PIBase import PIBase
 
-    element = Element()
+    element = InitElementBase()
     assert not isinstance(element, etree.ElementBase)
     assert isinstance(element, ElementBase)
 
-    comment = Comment("comment")
+    comment = InitCommentBase("comment")
     assert not isinstance(comment, etree.CommentBase)
     assert isinstance(comment, CommentBase)
 
-    pi = PI("instruction")
+    pi = InitPIBase("instruction")
     assert not isinstance(pi, etree.PIBase)
     assert isinstance(pi, PIBase)
 
