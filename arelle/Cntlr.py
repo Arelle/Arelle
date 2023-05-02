@@ -11,7 +11,7 @@
 from __future__ import annotations
 from typing import Any, TYPE_CHECKING, TextIO, Mapping, cast
 
-from arelle.BetaFeatures import BETA_FEATURES
+from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.typing import TypeGetText
 import tempfile, os, io, sys, logging, gettext, json, subprocess, math
 import regex as re
@@ -149,7 +149,7 @@ class Cntlr:
             betaFeatures = {}
         self.betaFeatures = {
             b: betaFeatures.get(b, False)
-            for b in BETA_FEATURES
+            for b in BETA_FEATURES_AND_DESCRIPTIONS.keys()
         }
         self.hasWin32gui = False
         self.hasGui = hasGui
