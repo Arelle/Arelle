@@ -4,11 +4,20 @@ Use this module to start Arelle in command line modes
 
 See COPYRIGHT.md for copyright information.
 '''
-import sys, os
+import os
+import sys
+
 
 if sys.platform == "darwin" and getattr(sys, 'frozen', False):
-    for i in range(len(sys.path)): # signed code can't contain python modules
+    for i in range(len(sys.path)):  # signed code can't contain python modules
         sys.path.append(sys.path[i].replace("MacOS", "Resources"))
+
+
+from arelle.BetaFeatures import BETA_OBJECT_MODEL_FEATURE, enableNewObjectModel
+
+# Model transition must be enabled before any other imports to avoid mixing base classes.
+if f"--{BETA_OBJECT_MODEL_FEATURE}" in sys.argv or f"--{BETA_OBJECT_MODEL_FEATURE.lower()}" in sys.argv:
+    enableNewObjectModel()
 
 from arelle import CntlrCmdLine, CntlrComServer
 

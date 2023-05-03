@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Generator, cast, Union
 from lxml import etree
 from arelle import Locale
 from arelle.ModelValue import qname, qnameEltPfxName, QName
+from arelle.model import CommentBase, ElementBase, PIBase
 
 if TYPE_CHECKING:
     from arelle.ModelDocument import ModelDocument
@@ -31,7 +32,7 @@ def init() -> None: # init globals
         from arelle import XmlUtil
         from arelle.XmlValidate import VALID_NO_CONTENT
 
-class ModelObject(etree.ElementBase):
+class ModelObject(ElementBase):
     """ModelObjects represent the XML elements within a document, and are implemented as custom
     lxml proxy objects.  Each modelDocument has a parser with the parser objects in ModelObjectFactory.py,
     to determine the type of model object to correspond to a proxied lxml XML element.
@@ -392,7 +393,7 @@ class ModelObject(etree.ElementBase):
     def __repr__(self) -> str:
         return ("{0}[{1}, {2} line {3})".format(type(self).__name__, self.objectIndex, self.modelDocument.basename, self.sourceline))
 
-class ModelComment(etree.CommentBase): # type: ignore[misc]
+class ModelComment(CommentBase): # type: ignore[misc]
     """ModelConcept is a custom proxy objects for etree.
     """
     def _init(self) -> None:
@@ -404,7 +405,7 @@ class ModelComment(etree.CommentBase): # type: ignore[misc]
     def init(self, modelDocument: ModelDocument) -> None:
         self.modelDocument = modelDocument
 
-class ModelProcessingInstruction(etree.PIBase): # type: ignore[misc]
+class ModelProcessingInstruction(PIBase): # type: ignore[misc]
     """ModelProcessingInstruction is a custom proxy object for etree.
     """
     def _init(self) -> None:

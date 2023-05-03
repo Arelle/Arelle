@@ -14,7 +14,7 @@ from arelle import (Cntlr, FileSource, ModelDocument, RenderingEvaluator, XmlUti
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
                     ViewFileRoleTypes,
                     ModelManager)
-from arelle.Cntlr import BETA_FEATURES
+from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.ModelValue import qname
 from arelle.Locale import format_string, setApplicationLocale, setDisableRTL
 from arelle.ModelFormulaObject import FormulaOptions
@@ -121,9 +121,9 @@ def parseAndRun(args):
                       help=_("Validate testcases against their schemas."))
     betaGroup = OptionGroup(parser, "Beta Features",
                         "Caution: these are beta features, use these options at your own risk.")
-    for b in BETA_FEATURES:
-        assert b.startswith('beta'), 'All beta options must start with "beta"'
-        betaGroup.add_option(f'--{b}', f'--{b.lower()}', action="store_true", default=False, help=f"Toggles on the beta {b} feature")
+    for featureName, featureDescription in BETA_FEATURES_AND_DESCRIPTIONS.items():
+        assert featureName.startswith('beta'), 'All beta options must start with "beta"'
+        betaGroup.add_option(f'--{featureName}', f'--{featureName.lower()}', action="store_true", default=False, help=featureDescription)
     parser.add_option_group(betaGroup)
     parser.add_option("--calcDecimals", "--calcdecimals", action="store_true", dest="calcDecimals",
                       help=_("Specify calculation linkbase validation inferring decimals."))
@@ -517,7 +517,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         :param options: OptionParser options from parse_args of main argv arguments (when called from command line) or corresponding arguments from web service (REST) request.
         :type options: optparse.Values
         """
-        for b in BETA_FEATURES:
+        for b in BETA_FEATURES_AND_DESCRIPTIONS.keys():
             self.betaFeatures[b] = getattr(options, b)
         if options.statusPipe or options.monitorParentProcess:
             try:
