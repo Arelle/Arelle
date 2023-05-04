@@ -1214,7 +1214,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if fnmatch.fnmatch(url, pattern):
                                 patternMatchCount[pattern] += 1
                     if (not foundVersion or foundVersion >= et) and sum(
-                            count > 0 for count in patternMatchCount.values()):
+                            count > 0 for count in patternMatchCount.values()) == 0:
                         sevMessage(sev, subType=submissionType, efmSection=efmSection, docType=documentType, 
                                    taxonomyPattern=" or ".join(sorted(patternMatchCount.keys())))
                 # type-specific validations
@@ -1494,11 +1494,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             del unexpectedDeiNameEfmSects, expectedDeiNames # dereference
             val.modelXbrl.profileActivity("... submission type element validations", minTimeToShow=0.1)
 
-            if documentType in ("SD", "SD/A"): # SD documentType
+            if documentType in ("SD", "SD/A", "2.01 SD", "201 SD"): # wch - change ultimately to 2.01 SD only
                 val.modelXbrl.profileActivity("... filer required facts checks (other than SD)", minTimeToShow=1.0)
                 rxpNs = None # find RXP schema
                 rxpDoc = None
-                hasRxpPre = hasRxpDef = False
+                # wch now embedded
+                # hasRxpPre = hasRxpDef = False
                 for rxpLoc in disclosureSystem.familyHrefs["RXP"]:
                     rxpUri = rxpLoc.href
                     if rxpUri in modelXbrl.urlDocs:
@@ -1511,30 +1512,31 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     _("The DTS of $(instance) must use only one version of the RXP schema."),
                                     edgarCode="rxp-2310-RXP-Version-Value",
                                     modelObject=(rxpDoc, modelXbrl.urlDocs[rxpUri]), instance=instanceName)
-                        elif re.search(r'/rxp-20.._pre',rxpUri) is not None:
-                            hasRxpPre = True
-                        elif re.search(r'/rxp-20.._def',rxpUri) is not None:
-                            hasRxpDef = True
-                if False and not hasRxpPre:
-                    # WCH
-                    modelXbrl.error("EFM.6.23.08",
-                        _("The DTS of %(instance)s must use a standard presentation linkbase from Family RXP in edgartaxonomies.xml."),
-                        edgarCode="rxp-2308-RXP-Presentation-Existence",
-                        modelObject=modelXbrl, instance=instanceName)
-                if False and not hasRxpDef: # WCH
-                    modelXbrl.error("EFM.6.23.09",
-                        _("The DTS of %(instance)s must use a standard definition linkbase from Family RXP in edgartaxonomies.xml."),
-                        edgarCode="rxp-2309-RXP-Definition-Existence",
-                        modelObject=modelXbrl, instance=instanceName)
+                        # wch now embedded
+                        # elif re.search(r'/rxp-20.._pre',rxpUri) is not None:
+                        #     hasRxpPre = True
+                        # elif re.search(r'/rxp-20.._def',rxpUri) is not None:
+                        #     hasRxpDef = True
+                # wch now embedded
+                # if False and not hasRxpPre: # WCH
+                #     modelXbrl.error("EFM.6.23.08",
+                #         _("The DTS of %(instance)s must use a standard presentation linkbase from Family RXP in edgartaxonomies.xml."),
+                #         edgarCode="rxp-2308-RXP-Presentation-Existence",
+                #         modelObject=modelXbrl, instance=instanceName)
+                # if False and not hasRxpDef: # WCH
+                #     modelXbrl.error("EFM.6.23.09",
+                #         _("The DTS of %(instance)s must use a standard definition linkbase from Family RXP in edgartaxonomies.xml."),
+                #         edgarCode="rxp-2309-RXP-Definition-Existence",
+                #         modelObject=modelXbrl, instance=instanceName)
                 countryNs = None
                 deiNS = None
                 for url, doc in modelXbrl.urlDocs.items():
                     if doc.type == ModelDocument.Type.SCHEMA:
-                        if url.startswith("https://xbrl.sec.gov/country/"):
+                        if url.startswith("https://xbrl.sec.gov/country/") and '/country/' in doc.targetNamespace: # exclude, e.g., country-def
                             if countryNs is None:
                                 countryNs = doc.targetNamespace
                             else:
-                                modelXbrl.error("EFM.6.23.11",
+                                modelXbrl.error("EFM.6.23.11", # TODO: wch is this check needed now that we have lock-step taxonomy versions throughout?
                                     _("The DTS of %(instance)s must use only one version of the COUNTRY schema."),
                                     edgarCode="rxp-2311-Country-Version-Value",
                                     modelObject=(doc
@@ -1542,46 +1544,82 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                                  if url.startswith("https://xbrl.sec.gov/country/")), instance=instanceName)
                         if disclosureSystem.deiNamespacePattern.match(doc.targetNamespace):
                             deiNS = doc.targetNamespace
-
+                # wch not requiring amendment number. who thought that was a good idea?
                 if rxpNs:
-                    qn = qname(rxpNs, "AmendmentNumber")
-                    if amendmentFlag == True and (
-                                qn not in modelXbrl.factsByQname or not any(
-                                       f.context is not None and not f.context.hasSegment
-                                       for f in modelXbrl.factsByQname[qn])):
-                        modelXbrl.error("EFM.6.23.06",
-                            _("The value for dei:DocumentType, %(documentType)s, requires a value for rxp:AmendmentNumber in the Required Context."),
-                            edgarCode="rxp-2306-Amendment-Number-Existence",
-                            modelObject=modelXbrl, documentType=documentType)
+                    pass
+                    # qn = qname(rxpNs, "AmendmentNumber")
+                    # if amendmentFlag == True and (
+                    #             qn not in modelXbrl.factsByQname or not any(
+                    #                    f.context is not None and not f.context.hasSegment
+                    #                    for f in modelXbrl.factsByQname[qn])):
+                    #     modelXbrl.error("EFM.6.23.06",
+                    #         _("The value for dei:DocumentType, %(documentType)s, requires a value for rxp:AmendmentNumber in the Required Context."),
+                    #         edgarCode="rxp-2306-Amendment-Number-Existence",
+                    #         modelObject=modelXbrl, documentType=documentType)
                 else:
                     modelXbrl.error("EFM.6.23.07",
-                        _("The DTS of %(instance)s must use a standard schema from Family SD in edgartaxonomies.xml."),
+                        _("The DTS of %(instance)s must use a standard schema from Family RXP in edgartaxonomies.xml."),
                         edgarCode="rxp-2307-RXP-Schema-Existence",
                         modelObject=modelXbrl, instance=instanceName)
                 class Rxp(): # fake class of rxp qnames based on discovered rxp namespace
-                    def __init__(self):
+                    def __init__(self): # wch temporarily list actual element names here as a check
+                        # PmtAxis
+                        # ProjectAxis
+                        # ResourceAxis
+                        # SubnationalJurisdictionsAxis
+                        # CountryAxis
+                        # GovernmentAxis
+                        # PaymentTypeAxis
+                        # SegmentAxis
+                        # AllProjectsMember
+                        # AllResourcesMember
+                        # AllGovernmentsMember
+                        # AllPaymentTypesMember
+                        # AllSegmentsMember
+                        # Royalties
+                        # Fees
+                        # ProductionEntitlements
+                        # Dividends
+                        # Bonuses
+                        # InfrastructureImprovements
+                        # CommunityAndSocial
+                        # OtherPayments
+                        # TotalPayments
+                        # Taxes
+                        # Sg
+                        # P
+                        # Gv
+                        # Co
+                        # Sn
+                        # R
+                        # Pr
+                        # M
+                        # A
+                        # Cm
+                        # K
+                        # Km
                         for name in ("CountryAxis", "GovernmentAxis", "PaymentTypeAxis", "ProjectAxis","PmtAxis",
-                                    "AllGovernmentsMember", "AllProjectsMember","BusinessSegmentAxis", "EntityDomain",
-                                    "A", "Cm", "Co", "Cu", "D", "Gv", "E", "K", "Km", "P", "TotalPayments", "Pr", "Sm"):
-                            setattr(self, name, qname(rxpNs, "rxp:" + name))
+                                    "AllGovernmentsMember", "AllProjectsMember","SegmentAxis", "AllResourcesMember", "EntityDomain",
+                                    "A", "P", "Co", "Sn", "Gv", "Pr", "R", "Sg", "M", "K", "Cm", "Km", "TotalPayments"):
+                           setattr(self, name, qname(rxpNs, "rxp:" + name))
 
                 rxp = Rxp()
                 f1 = deiFacts.get(disclosureSystem.deiCurrentFiscalYearEndDateElement)
                 if f1 is not None and documentPeriodEndDateFact is not None and f1.xValid >= VALID and documentPeriodEndDateFact.xValid >= VALID:
                     d = ModelValue.dateunionDate(documentPeriodEndDateFact.xValue)# is an end date, convert back to a start date without midnight part
                     if f1.xValue.month != d.month or f1.xValue.day != d.day:
-                        modelXbrl.error("EFM.6.23.26",
+                        modelXbrl.error("EFM.6.23.26", # wch we might not care
                             _("The financial period %(reportingPeriod)s does not match the fiscal year end %(fyEndDate)s."),
                             edgarCode="rxp-2326-Fiscal-Year-End-Date-Value",
                             modelObject=(f1,documentPeriodEndDateFact), fyEndDate=f1.value, reportingPeriod=documentPeriodEndDateFact.value)
-                if (documentPeriodEndDateFact is not None and documentPeriodEndDateFact.xValid >= VALID and
-                    not any(f2.xValue == documentPeriodEndDateFact.xValue
-                            for f2 in modelXbrl.factsByQname[rxp.D]
-                            if f2.xValid >= VALID)):
-                    modelXbrl.error("EFM.6.23.27",
-                        _("The financial period %(reportingPeriod)s does not match rxp:D in any facts."),
-                        edgarCode="rxp-2327-Payment-Financial-Period-Existence",
-                        modelObject=documentPeriodEndDateFact, reportingPeriod=documentPeriodEndDateFact.value)
+                # if (documentPeriodEndDateFact is not None and documentPeriodEndDateFact.xValid >= VALID and
+                #     not any(f2.xValue == documentPeriodEndDateFact.xValue
+                #             for f2 in modelXbrl.factsByQname[rxp.D]
+                #             if f2.xValid >= VALID)):
+                #     modelXbrl.error("EFM.6.23.27",
+                #         _("The financial period %(reportingPeriod)s does not match rxp:D in any facts."),
+                #         edgarCode="rxp-2327-Payment-Financial-Period-Existence",
+                #         modelObject=documentPeriodEndDateFact, reportingPeriod=documentPeriodEndDateFact.value)
                 for url,doc in modelXbrl.urlDocs.items():
                     if (url not in disclosureSystem.standardTaxonomiesDict and
                         doc.inDTS and # ignore EdgarRenderer-loaded non-DTS schemas
@@ -1627,20 +1665,21 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if rel.consecutiveLinkrole == ELR:
                                 dim = rel.fromModelObject
                                 mem = memRel.toModelObject
-                                if isinstance(dim, ModelConcept) and isinstance(mem, ModelConcept):
-                                    if dim.qname == rxp.PaymentTypeAxis and not mem.modelDocument.targetNamespace.startswith("http://xbrl.sec.gov/rxp/"):
-                                        modelXbrl.error("EFM.6.23.17",
-                                            _("The member %(member)s of dimension rxp:PaymentTypeAxis in link role %(linkrole)s must be a QName "
-                                              "with namespace that begins with 'http://xbrl.sec.gov/rxp/'."),
-                                            edgarCode="rxp-2317-Payment-Type-Dimension-Value",
-                                            modelObject=(rel, memRel, dim, mem), member=mem.qname, linkrole=rel.linkrole)
-                                    if dim.qname == rxp.CountryAxis and not mem.modelDocument.targetNamespace.startswith("http://xbrl.sec.gov/country/"):
-                                        modelXbrl.error("EFM.6.23.18",
-                                            _("The member %(member)s of dimension rxp:CountryAxisAxis in link role %(linkrole)s must be a QName with namespace "
-                                              "that begins with 'http://xbrl.sec.gov/country/'."),
-                                            edgarCode="rxp-2318-Country-Dimension-Member-Value",
-                                            modelObject=(rel, memRel, dim, mem), member=mem.qname, linkrole=rel.linkrole)
-                                    checkMemMultDims(memRel, rel, rel.fromModelObject, rel.linkrole, visited)
+                                # wch now handled by enumerations 1.0
+                                # if isinstance(dim, ModelConcept) and isinstance(mem, ModelConcept):
+                                #     if dim.qname == rxp.PaymentTypeAxis and not mem.modelDocument.targetNamespace.startswith("http://xbrl.sec.gov/rxp/"):
+                                #         modelXbrl.error("EFM.6.23.17",
+                                #             _("The member %(member)s of dimension rxp:PaymentTypeAxis in link role %(linkrole)s must be a QName "
+                                #               "with namespace that begins with 'http://xbrl.sec.gov/rxp/'."),
+                                #             edgarCode="rxp-2317-Payment-Type-Dimension-Value",
+                                #             modelObject=(rel, memRel, dim, mem), member=mem.qname, linkrole=rel.linkrole)
+                                #     if dim.qname == rxp.CountryAxis and not mem.modelDocument.targetNamespace.startswith("http://xbrl.sec.gov/country/"):
+                                #         modelXbrl.error("EFM.6.23.18",
+                                #             _("The member %(member)s of dimension rxp:CountryAxisAxis in link role %(linkrole)s must be a QName with namespace "
+                                #               "that begins with 'http://xbrl.sec.gov/country/'."),
+                                #             edgarCode="rxp-2318-Country-Dimension-Member-Value",
+                                #             modelObject=(rel, memRel, dim, mem), member=mem.qname, linkrole=rel.linkrole)
+                                #     checkMemMultDims(memRel, rel, rel.fromModelObject, rel.linkrole, visited)
                         for rel in hypDimRelSet.toModelObject(elt):
                             if rel.consecutiveLinkrole == ELR and isinstance(rel.fromModelObject, ModelConcept):
                                 checkMemMultDims(memRel, dimRel, rel.fromModelObject, rel.linkrole, visited)
@@ -1654,36 +1693,37 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     otherDimRel, otherMemRel = memDim[mem,linkrole]
                                     modelXbrl.error("EFM.6.23.16",
                                         _("Member element %(member)s appears in more than one axis: %(dimension1)s and %(dimension2)s.  "
-                                          "Use distinct members for the Project, Country, Government, Legal Entity, Business Segment and Payment Type axes."),
+                                          "Use distinct members for the Project, Country, Government, Legal Entity, Subnational Jurisdiction, Segment and Payment Type axes."),
                                         edgarCode="rxp-2316-Member-Multiple-Axis-Existence",
                                         modelObject=(dimRel, otherDimRel, memRel, otherMemRel, dimRel.fromModelObject, otherDimRel.fromModelObject),
                                         member=mem.qname, dimension1=dimRel.fromModelObject.qname, linkrole1=linkrole,
                                         dimension2=otherDimRel.fromModelObject.qname, linkrole2=otherDimRel.linkrole)
                         visited.discard(elt)
-                for rel in domMemRelSet.modelRelationships:
-                    if isinstance(rel.fromModelObject, ModelConcept) and isinstance(rel.toModelObject, ModelConcept):
-                        for rel2 in modelXbrl.relationshipSet(XbrlConst.domainMember, rel.consecutiveLinkrole).fromModelObject(rel.toModelObject):
-                            if isinstance(rel2.fromModelObject, ModelConcept) and isinstance(rel2.toModelObject, ModelConcept):
-                                modelXbrl.error("EFM.6.23.15",
-                                    _("The domain-member relationship in %(linkrole)s from %(source)s to %(target)s is consecutive with domain-member relationship in %(linkrole2)s to %(target2)s."),
-                                    edgarCode="rxp-2315-Consecutive-Domain-Member-Relationships-Existence",
-                                    modelObject=(rel, rel.fromModelObject, rel.toModelObject),
-                                    linkrole=rel.linkrole, linkrole2=rel2.linkrole,
-                                    source=rel.fromModelObject.qname, target=rel.toModelObject.qname, target2=rel2.toModelObject.qname)
-                        checkMemMultDims(rel, None, rel.fromModelObject, rel.linkrole, set())
+                # TODO: wch this needs revisiting, because it's only relevant in a very few roles.
+                # for rel in domMemRelSet.modelRelationships:
+                #     if isinstance(rel.fromModelObject, ModelConcept) and isinstance(rel.toModelObject, ModelConcept):
+                #         for rel2 in modelXbrl.relationshipSet(XbrlConst.domainMember, rel.consecutiveLinkrole).fromModelObject(rel.toModelObject):
+                #             if isinstance(rel2.fromModelObject, ModelConcept) and isinstance(rel2.toModelObject, ModelConcept):
+                #                 modelXbrl.error("EFM.6.23.15",
+                #                     _("The domain-member relationship in %(linkrole)s from %(source)s to %(target)s is consecutive with domain-member relationship in %(linkrole2)s to %(target2)s."),
+                #                     edgarCode="rxp-2315-Consecutive-Domain-Member-Relationships-Existence",
+                #                     modelObject=(rel, rel.fromModelObject, rel.toModelObject),
+                #                     linkrole=rel.linkrole, linkrole2=rel2.linkrole,
+                #                     source=rel.fromModelObject.qname, target=rel.toModelObject.qname, target2=rel2.toModelObject.qname)
+                #         checkMemMultDims(rel, None, rel.fromModelObject, rel.linkrole, set())
                 val.modelXbrl.profileActivity("... SD checks 14-18", minTimeToShow=1.0)
                 qnDeiEntityDomain = qname(deiNS, "dei:EntityDomain")
-                for relSet, dom, priItem, errCode in ((domMemRelSet, rxp.AllProjectsMember, rxp.Pr, "EFM.6.23.30"),
-                                                      (domMemRelSet, rxp.AllGovernmentsMember, rxp.Gv, "EFM.6.23.31"),
-                                                      (dimDomRelSet, rxp.BusinessSegmentAxis, rxp.Sm, "EFM.6.23.33"),
-                                                      (domMemRelSet, qnDeiEntityDomain, rxp.E, "EFM.6.23.34")):
-                    for f in modelXbrl.factsByQname[priItem]:
-                        if (not f.isNil and f.xValid >= VALID and
-                            not relSet.isRelated(dom, "descendant", f.xValue, isDRS=True)):
-                            modelXbrl.error(errCode,
-                                _("The %(fact)s %(value)s in context %(context)s is not a %(domain)s."),
-                                modelObject=f, fact=priItem, value=f.xValue, context=f.context.id, domain=dom,
-                                messageCodes=("EFM.6.23.30", "EFM.6.23.31", "EFM.6.23.33", "EFM.6.23.34"))
+                # wch these now handled via extensible enumeration 1.0
+                # for relSet, dom, priItem, errCode in ((domMemRelSet, rxp.AllProjectsMember, rxp.Pr, "EFM.6.23.30"),
+                #                                       (domMemRelSet, rxp.AllGovernmentsMember, rxp.Gv, "EFM.6.23.31"),
+                #                                       (dimDomRelSet, rxp.SegmentAxis, rxp.Sg, "EFM.6.23.33")):
+                #     for f in modelXbrl.factsByQname[priItem]:
+                #         if (not f.isNil and f.xValid >= VALID and
+                #             not relSet.isRelated(dom, "descendant", f.xValue, isDRS=True)):
+                #             modelXbrl.error(errCode,
+                #                 _("The %(fact)s %(value)s in context %(context)s is not a %(domain)s."),
+                #                 modelObject=f, fact=priItem, value=f.xValue, context=f.context.id, domain=dom,
+                #                 messageCodes=("EFM.6.23.30", "EFM.6.23.31", "EFM.6.23.33", "EFM.6.23.34"))
                 val.modelXbrl.profileActivity("... SD checks 30, 31, 33, 34", minTimeToShow=1.0)
                 cntxEqualFacts = defaultdict(list)
                 for f in modelXbrl.facts:
@@ -1699,30 +1739,35 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     context = cntxFacts[0].context
                     contextDims = cntxFacts[0].context.qnameDims
                     # required priItem values based on context dimension
-                    for dim, priItem, errCode in ((rxp.PmtAxis, rxp.P, "EFM.6.23.20"),
-                                                  (rxp.GovernmentAxis, rxp.TotalPayments, "EFM.6.23.22")):
-                        if context.hasDimension(dim) and (priItem not in qnameFacts or qnameFacts[priItem].isNil):
-                            modelXbrl.error(errCode,
-                                _("The Context %(context)s has dimension %(dimension)s member %(member)s but is missing required fact %(fact)s"),
-                                modelObject=context, context=context.id, dimension=dim, member=context.dimMemberQname(dim), fact=priItem,
-                                messageCodes=("EFM.6.23.20", "EFM.6.23.22"))
-                    if (rxp.Co in qnameFacts and not qnameFacts[rxp.Co].isNil and
-                        not domMemRelSet.isRelated(qnAllCountriesDomain, "descendant", qnameFacts[rxp.Co].xValue, isDRS=True)):
-                        modelXbrl.error("EFM.6.23.44",
-                            _("The value of rxp:Co in context %(context)s, %(value)s, is not in the domain of rxp:CountryAxis. "
-                              "Change the value of rxp:Co or add it %(value)s to the Country Axis."),
-                            edgarCode="rxp-2344-Country-Value",
-                            modelObject=f, context=context.id, value=qnameFacts[rxp.Co].value)
+                    # Wch: this is not needed any more.  The facts in context check among themselves.
+                    # for dim, priItem, errCode in ((rxp.PmtAxis, rxp.P, "EFM.6.23.20"),
+                    #                               (rxp.GovernmentAxis, rxp.TotalPayments, "EFM.6.23.22")):
+                    #     if context.hasDimension(dim) and (priItem not in qnameFacts or qnameFacts[priItem].isNil):
+                    #         modelXbrl.error(errCode,
+                    #             _("The Context %(context)s has dimension %(dimension)s member %(member)s but is missing required fact %(fact)s"),
+                    #             modelObject=context, context=context.id, dimension=dim, member=context.dimMemberQname(dim), fact=priItem,
+                    #             messageCodes=("EFM.6.23.20", "EFM.6.23.22"))
+                    # wch: this is handled by extensible enumerations 1
+                    # if (rxp.Co in qnameFacts and not qnameFacts[rxp.Co].isNil and
+                    #     not domMemRelSet.isRelated(qnAllCountriesDomain, "descendant", qnameFacts[rxp.Co].xValue, isDRS=True)):
+                    #     modelXbrl.error("EFM.6.23.44",
+                    #         _("The value of rxp:Co in context %(context)s, %(value)s, is not in the domain of rxp:CountryAxis. "
+                    #           "Change the value of rxp:Co or add it %(value)s to the Country Axis."),
+                    #         edgarCode="rxp-2344-Country-Value",
+                    #         modelObject=f, context=context.id, value=qnameFacts[rxp.Co].value)
                     # required present facts based on other present fact
-                    for qnF, fNilOk, qnG, gNilOk, errCode in ((rxp.A, True, rxp.Cu, False, "EFM.6.23.24"),
-                                                              (rxp.A, True, rxp.D, False, "EFM.6.23.25"),
+                    for qnF, fNilOk, qnG, gNilOk, errCode in ((rxp.A, True, rxp.R, False, "EFM.6.23.24"),
+                                                              (rxp.A, True, rxp.M, False, "EFM.6.23.25"),
+                                                              # wch - seems redundant, but actually, rxp.A can be absent in some cases
                                                               (rxp.A, False, rxp.Gv, False, "EFM.6.23.28"),
                                                               (rxp.A, False, rxp.Co, False, "EFM.6.23.29"),
+                                                              (rxp.Gv, False, rxp.Co, False, "EFM.6.23.29"),
+                                                              (rxp.Sn, False, rxp.Co, False, "EFM.6.23.29"),
                                                               (rxp.Km, False, rxp.K, False, "EFM.6.23.35"),
                                                               (rxp.K, False, rxp.Km, False, "EFM.6.23.35"),
-                                                              (rxp.Cm, False, rxp.Cu, False, "EFM.6.23.39"),
+                                                              # (rxp.Cm, False, rxp.Cu, False, "EFM.6.23.39"), # wch there is no Cu
                                                               (rxp.K, False, rxp.A, False, "EFM.6.23.42"),
-                                                              (rxp.Pr, False, rxp.A, False, "EFM.6.23.43")):
+                                                              (rxp.Pr, False, rxp.Gv, False, "EFM.6.23.43")):
                         if (qnF in qnameFacts and (fNilOk or not qnameFacts[qnF].isNil) and
                             (qnG not in qnameFacts or (not gNilOk and qnameFacts[qnG].isNil))):
                             modelXbrl.error(errCode,
@@ -1733,7 +1778,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     for f in cntxFacts:
                         if (not context.hasDimension(rxp.PmtAxis) and f.isNumeric and
                             f.unit is not None and f.unit.measures != currencyMeasures):
-                            modelXbrl.error("EFM.6.23.37",
+                            modelXbrl.error("EFM.6.23.37", # wch this needs revision i think.
                                 _("An %(fact)s fact in context %(context)s has unit %(unit)s not matching the dei:EntityReportingCurrencyISOCode %(currency)s."),
                                 edgarCode="rxp-2337-Payment-Unit-Value",
                                 modelObject=f, fact=f.qname, context=context.id, unit=f.unit.value, currency=qnCurrencyMeasure)
@@ -1745,21 +1790,21 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             _("A value cannot be given for rxp:Cm in context %(context)s because the payment is in the reporting currency %(currency)s."),
                             edgarCode="rxp-2338-Conversion-Method-Value",
                             modelObject=(qnameFacts[rxp.A],qnameFacts[rxp.Cm]), context=context.id, currency=qnCurrencyMeasure)
-                    if (rxp.A in qnameFacts and
-                        rxp.Cu in qnameFacts and not qnameFacts[rxp.Cu].isNil and
-                        qnameFacts[rxp.A].unit is not None and qnameFacts[rxp.A].unit.measures != (tuple([XbrlConst.qnIsoCurrency(qnameFacts[rxp.Cu].xValue.localName)]),())):
-                        modelXbrl.error("EFM.6.23.41",
-                            _("The unit %(unit)s of rxp:A in context %(context)s is not consistent with the value %(currency)s of rxp:Cu.  "
-                              "Change one or the other to match."),
-                            edgarCode="rxp-2341-Amount-Currency-Existence",
-                            modelObject=(qnameFacts[rxp.A],qnameFacts[rxp.Cu]), context=context.id, unit=qnameFacts[rxp.A].unit.value, currency=qnameFacts[rxp.Cu].value)
-
+                    # wch there is no Cu
+                    # if (rxp.A in qnameFacts and
+                    #     rxp.Cu in qnameFacts and not qnameFacts[rxp.Cu].isNil and
+                    #     qnameFacts[rxp.A].unit is not None and qnameFacts[rxp.A].unit.measures != (tuple([XbrlConst.qnIsoCurrency(qnameFacts[rxp.Cu].xValue.localName)]),())):
+                    #     modelXbrl.error("EFM.6.23.41",
+                    #         _("The unit %(unit)s of rxp:A in context %(context)s is not consistent with the value %(currency)s of rxp:Cu.  "
+                    #           "Change one or the other to match."),
+                    #         edgarCode="rxp-2341-Amount-Currency-Existence",
+                    #         modelObject=(qnameFacts[rxp.A],qnameFacts[rxp.Cu]), context=context.id, unit=qnameFacts[rxp.A].unit.value, currency=qnameFacts[rxp.Cu].value)
                     if (context.hasDimension(rxp.ProjectAxis) and
                         not any(f.xValue == m
                                 for m in (contextDims[rxp.ProjectAxis].memberQname,)
                                 for f in modelXbrl.factsByQname[rxp.Pr]
                                 if f.context is not None)):
-                        modelXbrl.error("EFM.6.23.19",
+                        modelXbrl.error("EFM.6.23.19", # TODO wch this seems right but needs revisiting
                             _("A payment for each project axis member is required.  Provide a value for element rxp:Pr with value %(dimension)s in context %(context)s."),
                             edgarCode="rxp-2319-Project-Payment-Amount-Existence",
                             modelObject=context, context=context.id, dimension=rxp.GovernmentAxis)
@@ -1768,7 +1813,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 for m in (contextDims[rxp.GovernmentAxis].memberQname,)
                                 for f in modelXbrl.factsByQname[rxp.Gv]
                                 if f.context is not None)):
-                        modelXbrl.error("EFM.6.23.21",
+                        modelXbrl.error("EFM.6.23.21", # TODO wch has not put this in EFM draft yet.
                             _("A payment amount for each government is required.  Provide a value for element rxp:Gv with value %(member)s."),
                             edgarCode="rxp-2321-Government-Payment-Amount-Existence",
                             modelObject=context, context=context.id, dimension=rxp.GovernmentAxis, member=context.dimMemberQname(rxp.GovernmentAxis))
@@ -1784,12 +1829,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             edgarCode="rxp-2340-Amount-Line-Existence",
                             modelObject=(context, qnameFacts[rxp.A]), context=context.id)
                 val.modelXbrl.profileActivity("... SD by context for 19-25, 28-29, 35, 37-39, 40-44", minTimeToShow=1.0)
-                for f in modelXbrl.factsByQname[rxp.D]:
-                    if not f.isNil and f.xValid >= VALID and f.xValue + datetime.timedelta(1) != f.context.endDatetime: # date needs to be midnite to compare to datetime
-                        modelXbrl.error("EFM.6.23.32",
-                            _("The value of rxp:D in context %(context)s, %(value)s, is not equal to %(endDate)s.  Change the context end date or the value."),
-                            edgarCode="rxp-2332-Date-Value",
-                            modelObject=f, value=f.xValue, context=f.context.id, endDate=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True))
+                # for f in modelXbrl.factsByQname[rxp.D]:
+                #     if not f.isNil and f.xValid >= VALID and f.xValue + datetime.timedelta(1) != f.context.endDatetime: # date needs to be midnite to compare to datetime
+                #         modelXbrl.error("EFM.6.23.32",
+                #             _("The value of rxp:D in context %(context)s, %(value)s, is not equal to %(endDate)s.  Change the context end date or the value."),
+                #             edgarCode="rxp-2332-Date-Value",
+                #             modelObject=f, value=f.xValue, context=f.context.id, endDate=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True))
                 val.modelXbrl.profileActivity("... SD checks 32 (last SD check)", minTimeToShow=1.0)
                 # deference object references no longer needed
                 del rxpDoc, cntxEqualFacts
