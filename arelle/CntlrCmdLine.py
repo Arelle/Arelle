@@ -127,7 +127,7 @@ def parseAndRun(args):
     parser.add_option_group(betaGroup)
     parser.add_option("--calc", action="store", dest="calcs",
                       help=_("Specify calculations validations: "
-                             "none - default, "
+                             "none - no calculations validation, "
                              #"xbrl21precision - pre-2010 xbrl v2.1 calculations linkbase inferring precision, "
                              "c10 or xbrl21 - Calc 1.0 (XBRL 2.1) calculations, "
                              "c10d or xbrl21-dedup - Calc 1.0 (XBRL 2.1) calculations with de-duplication, "
@@ -767,6 +767,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         else:
             try:
                 self.modelManager.validateCalcs = {
+                     "none": CalcsMode.NONE,
                      "xbrl21precision": CalcsMode.XBRL_v2_1_INFER_PRECISION,
                      "xbrl21": CalcsMode.XBRL_v2_1,
                      "c10": CalcsMode.XBRL_v2_1,
@@ -776,9 +777,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                      "c11r": CalcsMode.ROUND_TO_NEAREST,
                      "truncation": CalcsMode.TRUNCATION,
                      "c11t": CalcsMode.TRUNCATION
-                    }.get(options.calcs)
-            except KEYERROR:
-                self.addToLog(_("--calcs value invalid, request ignored"),
+                    }[options.calcs]
+            except KeyError:
+                self.addToLog(_("--calc parameter value invalid, parameter ignored"),
                               messageCode="info", file=options.entrypointFile)
         if options.utrValidate:
             self.modelManager.validateUtr = True
