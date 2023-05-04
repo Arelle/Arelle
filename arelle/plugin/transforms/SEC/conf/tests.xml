@@ -354,6 +354,8 @@
       <variation input="Trinidad And Tobago" output="TT" result="valid" />
       <variation input="Tunisia" output="TN" result="valid" />
       <variation input="Turkey" output="TR" result="valid" />
+      <variation input="Türkiye" output="TR" result="valid" />
+      <variation input="Turkiye" output="TR" result="valid" />
       <variation input="Turkmenistan" output="TM" result="valid" />
       <variation input="Turks And Caicos Islands" output="TC" result="valid" />
       <variation input="Tuvalu" output="TV" result="valid" />
@@ -745,6 +747,8 @@
       <variation input="Trinidad And Tobago" output="W5" result="valid" />
       <variation input="Tunisia" output="W6" result="valid" />
       <variation input="Turkey" output="W8" result="valid" />
+      <variation input="Türkiye" output="W8" result="valid" />
+      <variation input="Turkiye" output="W8" result="valid" />
       <variation input="Turkmenistan" output="2E" result="valid" />
       <variation input="Turks And Caicos Islands" output="W7" result="valid" />
       <variation input="Tuvalu" output="2G" result="valid" />

@@ -68,6 +68,7 @@
         "vip/2022": ["@stx-2022"],
         "vip/2022q2": ["@stx-2022"],
         "vip/2023": ["@stx-2023"],
+        "dei/2023": ["@stx-2023"],
         
         "comment3": "entries for previously-supported taxonomies, such as disclosure mode efm-pragmatic-all-years",
         "rr/2021": ["@stx-2021"],

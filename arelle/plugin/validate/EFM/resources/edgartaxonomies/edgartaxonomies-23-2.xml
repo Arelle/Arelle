@@ -25,37 +25,7 @@
     <Loc>
         <Family>RXP</Family>
         <Version>2023</Version>
-        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_pre.xml</Href>
-        <AttType>SCH</AttType>
-        <FileTypeName>Schema</FileTypeName>
-        <Elements>0</Elements>
-        <Namespace>http://xbrl.sec.gov/rxp-pre/2023</Namespace>
-        <Prefix>rxp-pre</Prefix>
-    </Loc>
-    <Loc>
-        <Family>RXP</Family>
-        <Version>2023</Version>
-        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_cal.xml</Href>
-        <AttType>SCH</AttType>
-        <FileTypeName>Schema</FileTypeName>
-        <Elements>0</Elements>
-        <Namespace>http://xbrl.sec.gov/rxp-cal/2023</Namespace>
-        <Prefix>rxp-cal</Prefix>
-    </Loc>
-    <Loc>
-        <Family>RXP</Family>
-        <Version>2023</Version>
-        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_def.xml</Href>
-        <AttType>SCH</AttType>
-        <FileTypeName>Schema</FileTypeName>
-        <Elements>0</Elements>
-        <Namespace>http://xbrl.sec.gov/rxp-def/2023</Namespace>
-        <Prefix>rxp-def</Prefix>
-    </Loc>
-    <Loc>
-        <Family>RXP</Family>
-        <Version>2023</Version>
-        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_doc.xml</Href>
+        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_doc.xsd</Href>
         <AttType>SCH</AttType>
         <FileTypeName>Schema</FileTypeName>
         <Elements>0</Elements>
@@ -65,17 +35,7 @@
     <Loc>
         <Family>RXP</Family>
         <Version>2023</Version>
-        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_lab.xml</Href>
-        <AttType>SCH</AttType>
-        <FileTypeName>Schema</FileTypeName>
-        <Elements>0</Elements>
-        <Namespace>http://xbrl.sec.gov/rxp-lab/2023</Namespace>
-        <Prefix>rxp-lab</Prefix>
-    </Loc>
-    <Loc>
-        <Family>RXP</Family>
-        <Version>2023</Version>
-        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_ref.xml</Href>
+        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_ref.xsd</Href>
         <AttType>SCH</AttType>
         <FileTypeName>Schema</FileTypeName>
         <Elements>0</Elements>
@@ -91,6 +51,16 @@
         <Elements>1</Elements>
         <Namespace>http://xbrl.sec.gov/snj/2023</Namespace>
         <Prefix>snj</Prefix>
+    </Loc>
+    <Loc>
+        <Family>SNJ</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/snj/2023/snj-2023_def.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/snj/2023</Namespace>
+        <Prefix>snj-def</Prefix>
     </Loc>
     <!-- Missing Country def 2023 -->
     <Loc>
