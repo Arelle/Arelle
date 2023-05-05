@@ -40,7 +40,19 @@ class ValidateCalcsMode:
         TRUNCATION: "Calculations 1.1 truncation mode"
         }
 
-oimErrorCodePattern = re_compile("xbrl[cjx]e:|oimc?e:")
+oimXbrlxeBlockingErrorCodes = {
+        "xbrlxe:nonDimensionalSegmentScenarioContent",
+        "xbrlxe:nonStandardFootnoteResourceRole",
+        "xbrlxe:unsupportedTuple",
+        "xbrlxe:unexpectedContextContent",
+        "xbrlxe:unlinkedFootnoteResource",
+        "xbrlxe:unsupportedComplexTypedDimension",
+        "xbrlxe:unsupportedExternalRoleRef",
+        "xbrlxe:unsupportedFraction",
+        "xbrlxe:unsupportedLinkbaseReference",
+        "xbrlxe:unsupportedXmlBase",
+        "xbrlxe:unsupportedZeroPrecisionFact"
+        }
 numberPattern = re_compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
 ZERO = decimal.Decimal(0)
 ONE = decimal.Decimal(1)
@@ -102,13 +114,13 @@ class ValidateXbrlCalcs:
             oimErrs = set()
             for i in range(len(modelXbrl.errors) - 1, -1, -1):
                 e = modelXbrl.errors[i]
-                if oimErrorCodePattern.match(e):
+                if e in oimXbrlxeBlockingErrorCodes:
                     del modelXbrl.errors[i] # remove the oim errors from modelXbrl.errors
                 oimErrs.add(e)
-            if len(oimErrs) == 1 and "xbrlxe:unsupportedTuple" in oimErrs:
+            if any(e == "xbrlxe:unsupportedTuple" for e in oimErrs):
                 # ignore this error and change to warning
                 modelXbrl.warning("calc11e:tuplesInReportWarning","Validating of calculations ignores tuples.")
-            elif len(oimErrs) > 0:
+            if any(e in oimXbrlxeBlockingErrorCodes for e in oimErrs if e != "xbrlxe:unsupportedTuple"):
                 modelXbrl.warning("calc11e:oimIncompatibleReportWarning","Validating of calculations is skipped due to OIM errors.")
                 return;
 
