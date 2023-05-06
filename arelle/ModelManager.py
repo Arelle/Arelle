@@ -6,7 +6,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 import gc, sys, traceback, logging
-from arelle import ModelXbrl, Validate, DisclosureSystem, PackageManager
+from arelle import ModelXbrl, Validate, DisclosureSystem, PackageManager, ValidateXbrlCalcs
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle.PluginManager import pluginClassMethods
 from arelle.typing import LocaleDict
@@ -36,17 +36,9 @@ class ModelManager:
 
         Disclosure system object.  To select the disclosure system, e.g., 'gfm', moduleManager.disclosureSystem.select('gfm').
 
-        .. attribute:: validateCalcLB
+        .. attribute:: validateCalcs
 
-        True for calculation linkbase validation.
-
-        .. attribute:: validateInferDecimals
-
-        True for calculation linkbase validation to infer decimals (instead of precision)
-
-        .. attribute:: validateDedupCalcs
-
-        True for calculation linkbase validation de-duplicate calculations
+        ValidateXbrlCalcs.ValidateCalcsMode
 
         .. attribute:: validateUTR
 
@@ -64,9 +56,7 @@ class ModelManager:
         self.cntlr = cntlr
         self.validateDisclosureSystem = False
         self.disclosureSystem = DisclosureSystem.DisclosureSystem(self)
-        self.validateCalcLB = False
-        self.validateInferDecimals = True
-        self.validateDedupCalcs = False
+        self.validateCalcs = 0 # ValidateXbrlCalcs.ValidateCalcsMode
         self.validateInfoset = False
         self.validateUtr = False
         self.validateTestcaseSchema = True
@@ -78,6 +68,7 @@ class ModelManager:
         self.customTransforms: dict[QName, Callable[[str], str]] | None = None
         self.isLocaleSet = False
         self.setLocale()
+        ValidateXbrlCalcs.init() # required due to circular dependencies in module
 
     def shutdown(self):
         self.status = "shutdown"

@@ -687,7 +687,7 @@ def checkForDuplicates(modelXbrl, allowedDups, footnoteIDs):
                                     _v = f0.xValue
                                     _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
                                     decVals[_d] = _v
-                                    aMax, bMin = rangeValue(_v, _d)
+                                    aMax, bMin, _inclA, _inclB = rangeValue(_v, _d)
                                     for f in fList[1:]:
                                         _d = inferredDecimals(f)
                                         _v = f.xValue
@@ -698,7 +698,7 @@ def checkForDuplicates(modelXbrl, allowedDups, footnoteIDs):
                                             _inConsistent |= _v != decVals[_d]
                                         else:
                                             decVals[_d] = _v
-                                        a, b = rangeValue(_v, _d)
+                                        a, b, _inclA, _inclB = rangeValue(_v, _d)
                                         if a > aMax: aMax = a
                                         if b < bMin: bMin = b
                                     if not _inConsistent:

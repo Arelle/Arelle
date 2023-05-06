@@ -4,6 +4,7 @@ This module is an example Arelle controller in non-interactive mode
 See COPYRIGHT.md for copyright information.
 '''
 from arelle import Cntlr
+from arelle.ValidateXbrlCalcs import ValidateCalcsMode
 
 # this is the controller class
 class CntlrValidateExample(Cntlr.Cntlr):
@@ -18,8 +19,7 @@ class CntlrValidateExample(Cntlr.Cntlr):
         modelXbrl = self.modelManager.load("c:\\temp\\test.xbrl")
 
         # select validation of calculation linkbase using infer decimals option
-        self.modelManager.validateInferDecimals = True
-        self.modelManager.validateCalcLB = True
+        self.modelManager.validateCalcs = ValidateCalcsMode.XBRL_v2_1
 
         # perfrom XBRL 2.1, dimensions, calculation
         self.modelManager.validate()

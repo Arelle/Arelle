@@ -125,12 +125,21 @@ def parseAndRun(args):
         assert featureName.startswith('beta'), 'All beta options must start with "beta"'
         betaGroup.add_option(f'--{featureName}', f'--{featureName.lower()}', action="store_true", default=False, help=featureDescription)
     parser.add_option_group(betaGroup)
+    parser.add_option("--calc", action="store", dest="calcs",
+                      help=_("Specify calculations validations: "
+                             "none - no calculations validation, "
+                             #"xbrl21precision - pre-2010 xbrl v2.1 calculations linkbase inferring precision, "
+                             "c10 or xbrl21 - Calc 1.0 (XBRL 2.1) calculations, "
+                             "c10d or xbrl21-dedup - Calc 1.0 (XBRL 2.1) calculations with de-duplication, "
+                             "c11r or round-to-nearest - Calc 1.1 round-to-nearest mode, "
+                             "c11t or truncation - Calc 1.1 truncation mode"
+                             ))
     parser.add_option("--calcDecimals", "--calcdecimals", action="store_true", dest="calcDecimals",
-                      help=_("Specify calculation linkbase validation inferring decimals."))
+                      help=_("Deprecated - XBRL v2.1 calculation linkbase validation inferring decimals."))
     parser.add_option("--calcPrecision", "--calcprecision", action="store_true", dest="calcPrecision",
-                      help=_("Specify calculation linkbase validation inferring precision."))
+                      help=_("Deprecated - pre-2010 XBRL v2.1 calculation linkbase validation inferring precision."))
     parser.add_option("--calcDeduplicate", "--calcdeduplicate", action="store_true", dest="calcDeduplicate",
-                      help=_("Specify de-duplication of consistent facts when performing calculation validation, chooses most accurate fact."))
+                      help=_("Deprecaated -  de-duplication of consistent facts when performing calculation validation, chooses most accurate fact."))
     parser.add_option("--efm", action="store_true", dest="validateEFM",
                       help=_("Select Edgar Filer Manual (U.S. SEC) disclosure system validation (strict)."))
     parser.add_option("--efm-skip-calc-tree", action="store_false", default=True, dest="validateEFMCalcTree",
@@ -744,17 +753,34 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.setLogLevelFilter(options.logLevelFilter)
         if options.logCodeFilter:
             self.setLogCodeFilter(options.logCodeFilter)
+        from arelle.ValidateXbrlCalcs import ValidateCalcsMode as CalcsMode
         if options.calcDecimals:
             if options.calcPrecision:
                 self.addToLog(_("both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"),
                               messageCode="info", file=options.entrypointFile)
-            self.modelManager.validateInferDecimals = True
-            self.modelManager.validateCalcLB = True
+            if options.calcs:
+                self.addToLog(_("both --calcDecimals and --calcs validation are requested, proceeding with --calcDecimals only"),
+                              messageCode="info", file=options.entrypointFile)
+            self.modelManager.validateCalcs = CalcsMode.XBRL_v2_1 + (options.calcDeduplicate or 0)
         elif options.calcPrecision:
-            self.modelManager.validateInferDecimals = False
-            self.modelManager.validateCalcLB = True
-        if options.calcDeduplicate:
-            self.modelManager.validateDedupCalcs = True
+            self.modelManager.validateCalcs = CalcsMode.XBRL_v2_1_INFER_PRECISION
+        else:
+            try:
+                self.modelManager.validateCalcs = {
+                     "none": CalcsMode.NONE,
+                     "xbrl21precision": CalcsMode.XBRL_v2_1_INFER_PRECISION,
+                     "xbrl21": CalcsMode.XBRL_v2_1,
+                     "c10": CalcsMode.XBRL_v2_1,
+                     "xbrl21-dedup": CalcsMode.XBRL_v2_1_DEDUPLICATE,
+                     "c10d": CalcsMode.XBRL_v2_1_DEDUPLICATE,
+                     "round-to-nearest": CalcsMode.ROUND_TO_NEAREST,
+                     "c11r": CalcsMode.ROUND_TO_NEAREST,
+                     "truncation": CalcsMode.TRUNCATION,
+                     "c11t": CalcsMode.TRUNCATION
+                    }[options.calcs]
+            except KeyError:
+                self.addToLog(_("--calc parameter value invalid, parameter ignored"),
+                              messageCode="info", file=options.entrypointFile)
         if options.utrValidate:
             self.modelManager.validateUtr = True
         if options.infosetValidate:

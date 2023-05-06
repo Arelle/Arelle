@@ -4,6 +4,7 @@ This module is an example Arelle controller in non-interactive mode
 See COPYRIGHT.md for copyright information.
 '''
 from arelle import Cntlr
+from arelle.ValidateXbrlCalcs import ValidateCalcsMode
 
 class CntlrEfmValidateExample(Cntlr.Cntlr):
 
@@ -17,8 +18,7 @@ class CntlrEfmValidateExample(Cntlr.Cntlr):
 
         modelXbrl = self.modelManager.load("c:\\temp\\test.xbrl")
 
-        self.modelManager.validateInferDecimals = True
-        self.modelManager.validateCalcLB = True
+        self.modelManager.validateCalcs = ValidateCalcsMode.XBRL_v2_1
 
         # perfrom XBRL 2.1, dimensions, calculation and SEC EFM validation
         self.modelManager.validate()
