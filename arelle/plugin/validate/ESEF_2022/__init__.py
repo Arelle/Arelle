@@ -42,21 +42,23 @@ Client with curl:
 
 '''
 from __future__ import annotations
-import os, base64
+import os
 import zipfile
 import regex as re
 from collections import defaultdict
 from math import isnan
-from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, EntityBase, _Element
-from urllib.parse import unquote
+from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, EntityBase, parse, XMLSyntaxError, _Element, XMLParser
+import tinycss2  # type: ignore[import]
 from arelle import LeiUtil, ModelDocument, XbrlConst, XhtmlValidate
+from arelle.FileSource import FileSource
 from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import qname
 from arelle.PackageManager import validateTaxonomyPackage
-from arelle.PythonUtil import strTruncate, normalizeSpace
+from arelle.PythonUtil import normalizeSpace
 from arelle.Version import authorLabel, copyrightLabel
+from arelle.PythonUtil import strTruncate
 from arelle.UrlUtil import decodeBase64DataImage, isHttpUrl, scheme
 from arelle.XmlValidate import lexicalPatterns
 
@@ -70,7 +72,8 @@ from .Const import (mandatory, untransformableTypes,
                     esefPrimaryStatementPlaceholderNames, esefStatementsOfMonetaryDeclarationNames, esefMandatoryElementNames2020)
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
-from .Util import isExtension, checkImageContents, loadAuthorityValidations, checkForMultiLangDuplicates, getEsefNotesStatementConcepts
+from .Util import isExtension, loadAuthorityValidations, checkForMultiLangDuplicates,\
+    getEsefNotesStatementConcepts, hasEventHandlerAttributes, validateImage, checkSVGContentElt
 from arelle.typing import TypeGetText
 from arelle.ModelObject import ModelObject
 from arelle.DisclosureSystem import DisclosureSystem
@@ -81,7 +84,7 @@ from arelle.formula.XPathContext import XPathContext
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelInstanceObject import ModelContext
-from typing import Any, Dict, cast
+from typing import Any, Dict, cast, List
 from collections.abc import Generator
 from arelle.ModelValue import QName
 
@@ -91,7 +94,6 @@ styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*
 styleCssHiddenPattern = re.compile(r"(.*[^\w]|^)display\s*:\s*none([^\w].*|$)")
 ifrsNsPattern = re.compile(r"https?://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full")
 datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
-imgDataMediaBase64Pattern = re.compile(r"data:image([^,;]*)(;base64)?,(.*)$", re.S)
 ixErrorPattern = re.compile(r"ix11[.]|xmlSchema[:]|(?!xbrl.5.2.5.2|xbrl.5.2.6.2)xbrl[.]|xbrld[ti]e[:]|utre[:]")
 docTypeXhtmlPattern = re.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-//W3C//DTD\s+(X?HTML)\s)?.*>$", re.IGNORECASE)
 
@@ -117,7 +119,7 @@ def modelXbrlBeforeLoading(modelXbrl: ModelXbrl, normalizedUri: str, filepath: s
     if getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
         if isEntry:
             if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
-                if re.match(".*[.](7z|rar|tar)", normalizedUri):
+                if re.match(r'.*[.](7z|rar|tar|jar)', normalizedUri):
                     modelXbrl.error("ESEF.Arelle.InvalidSubmissionFormat",
                                     _("Unrecognized submission format."),
                                     modelObject=modelXbrl)
@@ -167,6 +169,41 @@ def modelXbrlLoadComplete(modelXbrl: ModelXbrl) -> None:
             modelXbrl.error("ESEF.RTS.Art.6.a.noInlineXbrlTags",
                             _("RTS on ESEF requires inline XBRL, no facts were reported."),
                             modelObject=modelXbrl)
+        if modelXbrl.fileSource.isArchive:
+            if modelXbrl.fileSource.dir is not None:
+                for filename in modelXbrl.fileSource.dir:
+                    validateEntity(modelXbrl, filename, modelXbrl.fileSource)
+        else:
+            if isinstance(modelXbrl.fileSource.url, str):
+                validateEntity(modelXbrl, modelXbrl.fileSource.url, modelXbrl.fileSource)
+            elif isinstance(modelXbrl.fileSource.url, list):
+                for filename in modelXbrl.fileSource.url:
+                    validateEntity(modelXbrl, filename, modelXbrl.fileSource)
+            if modelXbrl.modelDocument:
+                # search for the zip of the taxonomy extension
+                entrypointDocs = [referencedDoc for referencedDoc in modelXbrl.modelDocument.referencesDocument.keys() if referencedDoc.type == ModelDocument.Type.SCHEMA]
+                for entrypointDoc in entrypointDocs: # usually only one
+                    for filesource in modelXbrl.fileSource.referencedFileSources.values():
+                        if filesource.exists(entrypointDoc.filepath) and filesource.dir is not None:
+                            for filename in filesource.dir:
+                                validateEntity(modelXbrl, filename, filesource)
+
+def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -> None:
+    consolidated = not any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names)
+    contentOtherThanXHTMLGuidance = 'ESEF.2.5.1' if consolidated else 'ESEF.4.1.3'
+    fullname = filesource.basedUrl(filename)
+    file = filesource.file(fullname)
+    try:
+        parser = XMLParser(load_dtd=True, resolve_entities=False)
+        root = parse(file[0], parser=parser)
+        if root.docinfo.internalDTD:
+            for entity in root.docinfo.internalDTD.iterentities():  # type: ignore[attr-defined]
+                modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.maliciousCodePresent",
+                                _("Documents MUST NOT contain any malicious content. Dangerous XML entity found: %(element)s."),
+                                modelObject=filename, element=entity.name)
+    except (UnicodeDecodeError, XMLSyntaxError) as e:
+        # probably a image or a directory
+        pass
 
 def validateXbrlStart(val: ValidateXbrl, parameters: dict[Any, Any] | None=None, *args: Any, **kwargs: Any) -> None:
     val.validateESEFplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "ESEFplugin", False)
@@ -190,6 +227,18 @@ def validateXbrlStart(val: ValidateXbrl, parameters: dict[Any, Any] | None=None,
 
     val.authParam = authorityValidations["default"]
     val.authParam.update(authorityValidations.get(val.authority, {}))
+    if parameters:
+        overwiteParams = {}
+        for key, value in parameters.items():
+            if str(key) in val.authParam and len(value) == 2 and value[1] not in ("null", "None", None):
+                if isinstance(val.authParam[str(key)], int):
+                    try:
+                        overwiteParams[str(key)] = int(value[1])
+                    except ValueError:
+                        modelXbrl.error("Invalid Parameter", _("%(key)s should be a int, got (value)"), key=key, value=value)
+                else:
+                    overwiteParams[str(key)] = value[1]
+        val.authParam.update(overwiteParams)
     for convertListIntoSet in ("outdatedTaxonomyURLs", "effectiveTaxonomyURLs", "standardTaxonomyURIs", "additionalMandatoryTags"):
         if convertListIntoSet in val.authParam:
             val.authParam[convertListIntoSet] = set(val.authParam[convertListIntoSet])
@@ -271,7 +320,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             return
         if len(_ifrsNses) > 1:
             modelXbrl.error("Arelle.ESEF.multipleIfrsTaxonomies",
-                            _("Multuple IFRS taxonomies were imported %(ifrsNamespaces)s."),
+                            _("Multiple IFRS taxonomies were imported %(ifrsNamespaces)s."),
                             modelObject=modelXbrl, ifrsNamespaces=", ".join(_ifrsNses))
         if _ifrsNses:
             _ifrsNs = _ifrsNses[0]
@@ -381,13 +430,13 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 ixdsDocDirs.add("/".join(docDirPath[i+1:len(docDirPath)-1])) # needed for error msg on orphaned instance docs
                     if not reportIsInZipFile:
                         modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
-                            _("Inline XBRL document MUST be included within an ESEF report package as defined in"
+                            _("Inline XBRL document MUST be included within an ESEF report package as defined in "
                                "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
                                ".html: %(fileName)s (Document is not in a zip archive)"),
                             modelObject=doc, fileName=doc.basename)
                     elif not reportCorrectlyPlacedInPackage:
                         modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
-                             _("Inline XBRL document MUST be included within an ESEF report package as defined in"
+                             _("Inline XBRL document MUST be included within an ESEF report package as defined in "
                                "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
                                ".html: %(fileName)s (Document file not in correct place in package)"),
                             modelObject=doc, fileName=doc.basename)
@@ -413,7 +462,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             requiredToDisplayFacts = []
             requiredToDisplayFactIds: dict[Any, Any] = {}
             firstIxdsDoc = True
-
+            contentOtherThanXHTMLGuidance = 'ESEF.2.5.1' if val.consolidated else 'ESEF.4.1.3'  # Different reference for iXBRL and stand-alone XHTML
             # ModelDocument.load has None as a return type. For typing reasons, we need to guard against that here.
             assert modelXbrl.modelDocument is not None
             for ixdsHtmlRootElt in (modelXbrl.ixdsHtmlElements if val.consolidated else # ix root elements for all ix docs in IXDS
@@ -442,64 +491,21 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         if ((eltTag in ("object", "script")) or
                             (eltTag == "a" and "javascript:" in elt.get("href", "")) or
                             (eltTag == "img" and "javascript:" in elt.get("src", "")) or
-                            (eltTag == "a" and "mailto" in elt.get("href", ""))):
-                            modelXbrl.error("ESEF.2.5.1.executableCodePresent",
+                            (hasEventHandlerAttributes(elt))):
+                            modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.executableCodePresent",
                                 _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
                                 modelObject=elt, element=eltTag)
+                        elif eltTag == "a" and "mailto" in elt.get("href", ""):
+                            modelXbrl.warning(f"{contentOtherThanXHTMLGuidance}.executableCodePresent.mailto",
+                                            _("Inline XBRL documents SHOULD NOT contain any 'mailto' URI: %(element)s"),
+                                            modelObject=elt, element=eltTag)
+                        elif eltTag == "{http://www.w3.org/2000/svg}svg":
+                            checkSVGContentElt(elt, elt.modelDocument.baseForElement(elt), modelXbrl, elt,
+                                           contentOtherThanXHTMLGuidance, val)
                         elif eltTag == "img":
                             src = elt.get("src","").strip()
-                            if scheme(src) in ("http", "https", "ftp"):
-                                modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
-                                                else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
-                                    _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
-                                    modelObject=elt, element=eltTag,
-                                    messageCodes=("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences", "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
-                            elif not src.startswith("data:image"):
-                                # presume it to be an image file, check image contents
-                                try:
-                                    base = elt.modelDocument.baseForElement(elt)
-                                    normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(src, base)
-                                    if not elt.modelXbrl.fileSource.isInArchive(normalizedUri):
-                                        normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
-                                    imglen = 0
-                                    with elt.modelXbrl.fileSource.file(normalizedUri,binary=True)[0] as fh:
-                                        imgContents = fh.read()
-                                        imglen += len(imgContents)
-                                        checkImageContents(modelXbrl, elt, os.path.splitext(src)[1], True, imgContents)
-                                        imgContents = None # deref, may be very large
-                                    #if imglen < browserMaxBase64ImageLength:
-                                    #    modelXbrl.error("ESEF.2.5.1.imageIncludedAndNotEmbeddedAsBase64EncodedString",
-                                    #        _("Images MUST be included in the XHTML document as a base64 encoded string unless their size exceeds support of browsers (%(maxImageSize)s): %(file)s."),
-                                    #        modelObject=elt, maxImageSize=browserMaxBase64ImageLength, file=os.path.basename(normalizedUri))
-                                except IOError as err:
-                                    modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
-                                        _("Image file which isn't openable '%(src)s', error: %(error)s"),
-                                        modelObject=elt, src=src, error=err)
-                            else:
-                                m = imgDataMediaBase64Pattern.match(src)
-                                if not m or not m.group(2):
-                                    modelXbrl.warning("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
-                                        _("Images included in the XHTML document SHOULD be base64 encoded: %(src)s."),
-                                        modelObject=elt, src=src[:128])
-                                    if m and m.group(1) and m.group(3):
-                                        checkImageContents(modelXbrl, elt, m.group(1), False, unquote(m.group(3)))
-                                else:
-                                    if not m.group(1):
-                                        modelXbrl.error("ESEF.2.5.1.MIMETypeNotSpecified",
-                                            _("Images included in the XHTML document MUST be saved with MIME type specifying PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
-                                            modelObject=elt, src=src[:128])
-                                    elif m.group(1) not in ("/gif", "/jpeg", "/jpg", "/png", "/svg+xml"):
-                                        modelXbrl.error("ESEF.2.5.1.imageFormatNotSupported",
-                                            _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
-                                            modelObject=elt, src=src[:128])
-                                    # check for malicious image contents
-                                    try: # allow embedded newlines
-                                        checkImageContents(modelXbrl, elt, m.group(1), False, decodeBase64DataImage(m.group(3)))
-                                        imgContents = None # deref, may be very large
-                                    except base64.binascii.Error as err:
-                                        modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
-                                            _("Base64 encoding error %(err)s in image source: %(src)s."),
-                                            modelObject=elt, err=str(err), src=src[:128])
+                            evaluatedMsg = _('On line {line}, "alt" attribute value: "{alt}"').format(line=elt.sourceline, alt=elt.get("alt"))
+                            validateImage(elt.modelDocument.baseForElement(elt), src, modelXbrl, val, elt, evaluatedMsg, contentOtherThanXHTMLGuidance)
                         # links to external documents are allowed as of 2021 per G.2.5.1
                         #    Since ESEF is a format requirement and is not expected to impact the 'human readable layer' of a report,
                         #    this guidance should not be seen as limiting the inclusion of links to external websites, to other documents
@@ -516,7 +522,18 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             modelXbrl.error("ESEF.2.4.2.htmlOrXmlBaseUsed",
                                 _("The HTML <base> elements MUST NOT be used in the Inline XBRL document."),
                                 modelObject=elt, element=eltTag)
-                        elif eltTag == "link" and elt.get("type") == "text/css":
+                        elif eltTag == "link" and (elt.get("type") == "text/css" or (elt.get("rel") == "stylesheet" and not elt.get("type"))):
+                            #  type can be omitted https://www.w3schools.com/tags/att_link_type.asp
+
+                            base = elt.modelDocument.baseForElement(elt)
+                            normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(elt.get("href"), base)
+                            if not elt.modelXbrl.fileSource.isInArchive(normalizedUri):
+                                normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
+
+                            with elt.modelXbrl.fileSource.file(normalizedUri, binary=True)[0] as fh:
+                                cssContents = fh.read()
+                                validateCssUrl(cssContents.decode(), normalizedUri, modelXbrl, val, elt, contentOtherThanXHTMLGuidance)
+                                cssContents = None
                             if val.unconsolidated:
                                 modelXbrl.warning("ESEF.4.1.4.externalCssFileForXhtmlDocument",
                                     _("For XHTML stand-alone documents, the CSS SHOULD be embedded within the document."),
@@ -531,16 +548,16 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 modelXbrl.warning("ESEF.2.5.4.externalCssFileForSingleIXbrlDocument",
                                     _("Where an Inline XBRL document set contains a single document, the CSS SHOULD be embedded within the document."),
                                     modelObject=elt, element=eltTag)
-                        elif val.unconsolidated:
-                            pass # rest of following tests don't apply to unconsolidated
                         elif eltTag == "style" and elt.get("type") == "text/css":
-                            if len(modelXbrl.ixdsHtmlElements) > 1:
-                                modelXbrl.warning("ESEF.2.5.4.embeddedCssForMultiHtmlIXbrlDocumentSets",
-                                    _("Where an Inline XBRL document set contains multiple documents, the CSS SHOULD be defined in a separate file."),
-                                    modelObject=elt, element=eltTag)
-                            if "position:absolute" in elt.stringValue:
-                                # detect absolute positioning such as from Adobe Indesign producing pdf from whic html is extracted
-                                hasAbsolutePositioning = True
+                            validateCssUrl(elt.stringValue, elt.modelDocument.baseForElement(elt), modelXbrl, val, elt, contentOtherThanXHTMLGuidance)
+                            if not val.unconsolidated:
+                                if len(modelXbrl.ixdsHtmlElements) > 1:
+                                    modelXbrl.warning("ESEF.2.5.4.embeddedCssForMultiHtmlIXbrlDocumentSets",
+                                                      _("Where an Inline XBRL document set contains multiple documents, the CSS SHOULD be defined in a separate file."),
+                                                      modelObject=elt, element=eltTag)
+                                if "position:absolute" in elt.stringValue:
+                                    # detect absolute positioning such as from Adobe Indesign producing pdf from whic html is extracted
+                                    hasAbsolutePositioning = True
 
                     if eltTag in ixTags and elt.get("target") and ixTargetUsage != "allowed":
                         modelXbrl.log(ixTargetUsage.upper(),
@@ -614,8 +631,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             for ixElt in cssHiddenElt.iterdescendants(tag=tag):
                                 if ixElt not in ixHiddenFacts:
                                     modelXbrl.error("ESEF.2.5.4.displayNoneUsedToHideTaggedFacts",
-                                        _("\"display:none\" style applies to a fact that is not in an ix:hidden section."),
-                                        modelObject=ixElt)
+                                        _('CSS MUST not be used to hide tagged facts, e.g. by applying display:none style. Concept "%(concept)s", value: %(value)s - line %(sourceline)s'),
+                                        modelObject=ixElt, concept=ixElt.concept.label(), sourceline=ixElt.sourceline, value=ixElt.effectiveValue)
                 del ixHiddenFacts
 
                 firstIxdsDoc = False
@@ -632,13 +649,25 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     elements=", ".join(sorted(set(str(f.qname) for f in eligibleForTransformHiddenFacts))))
             for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
                 for ixElt in ixdsHtmlRootElt.getroottree().iterfind("//{http://www.w3.org/1999/xhtml}*[@style]"):
-                    hiddenFactRefMatch = styleIxHiddenPattern.match(ixElt.get("style",""))
+                    styleValue = ixElt.get("style","")
+                    hiddenFactRefMatch = styleIxHiddenPattern.match(styleValue)
+
+                    if styleValue:
+                        for declaration in tinycss2.parse_declaration_list(styleValue):
+                            if isinstance(declaration, tinycss2.ast.Declaration):
+                                validateCssUrlContent(declaration.value, ixElt.modelDocument.baseForElement(ixElt),
+                                                      modelXbrl, val, ixElt, contentOtherThanXHTMLGuidance)
+                            elif isinstance(declaration, tinycss2.ast.ParseError):
+                                modelXbrl.warning("ix.CssParsingError",
+                                                  _("The style attribute contains erroneous CSS declaration \"%(styleContent)s\": %(parseError)s"),
+                                                  modelObject=ixElt, parseError=declaration.message,
+                                                  styleContent=styleValue)
                     if hiddenFactRefMatch:
                         hiddenFactRef = hiddenFactRefMatch.group(2)
                         if hiddenFactRef not in hiddenEltIds:
                             modelXbrl.error("ESEF.2.4.1.esefIxHiddenStyleNotLinkingFactInHiddenSection",
-                                _("\"-esef-ix-hidden\" style identifies @id, %(id)s of a fact that is not in ix:hidden section."),
-                                modelObject=ixElt, id=hiddenFactRef)
+                                _("\"-esef-ix-hidden\" style identifies id attribute of a fact that is not in ix:hidden section: %(factId)s"),
+                                modelObject=ixElt, factId=hiddenFactRef)
                         else:
                             presentedHiddenEltIds[hiddenFactRef].append(ixElt)
             for hiddenEltId, ixElt in hiddenEltIds.items():
@@ -838,9 +867,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 else: # not all have same decimals
                     _d = inferredDecimals(f0)
                     _v = cast(float, f0.xValue)
+                    if _v is None:
+                        continue
                     _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
                     decVals[_d] = _v
-                    aMax, bMin = rangeValue(_v, _d)
+                    aMax, bMin, _inclA, _inclB = rangeValue(_v, _d)
                     for f in fList[1:]:
                         _d = inferredDecimals(f)
                         _v = cast(float, f.xValue)
@@ -851,7 +882,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             _inConsistent |= _v != decVals[_d]
                         else:
                             decVals[_d] = _v
-                        a, b = rangeValue(_v, _d)
+                        a, b, _inclA, _inclB = rangeValue(_v, _d)
                         if a > aMax: aMax = a
                         if b < bMin: bMin = b
                     if not _inConsistent:
@@ -859,7 +890,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     decVals.clear()
                 if _inConsistent:
                     modelXbrl.error(("ESEF.2.2.4.inconsistentDuplicateNumericFactInInlineXbrlDocument"),
-                        "Inconsistent duplicate numeric facts MUST NOT appear in the content of an inline XBRL document. %(fact)s that was used more than once in contexts equivalent to %(contextID)s: values %(values)s.  ",
+                        _("Inconsistent duplicate numeric facts MUST NOT appear in the content of an inline XBRL document. %(fact)s that was used more than once in contexts equivalent to %(contextID)s: values %(values)s."),
                         modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(strTruncate(f.value, 128) for f in fList))
 
         if precisionFacts:
@@ -881,8 +912,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         if orphanedFootnotes:
             modelXbrl.warning("ESEF.2.3.1.unusedFootnote",
-                _("Every nonempty link:footnote element SHOULD be linked to at least one fact."),
-                modelObject=orphanedFootnotes)
+                _("Every nonempty link:footnote element SHOULD be linked to at least one fact. Unused footnote ids: %(ids)s"),
+                modelObject=orphanedFootnotes, ids=', '.join([f'"{footnote.id}"' for footnote in orphanedFootnotes]))
 
         # this test removed from Filer Manual July 2020
         #if noLangFootnotes:
@@ -940,17 +971,17 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 hasOutdatedUrl = True
 
         if ("authorityRequiredTaxonomyURLs" in val.authParam and
-            not any(e in val.extensionImportedUrls for e in val.authParam["authorityRequiredTaxonomyURLs"])):
+                not any(e in val.extensionImportedUrls for e in val.authParam["authorityRequiredTaxonomyURLs"])):
             val.modelXbrl.error(
                 "UKFRC22.3.requiredFrcEntryPointNotImported",
-                 _("The issuer's extension taxonomies MUST import the FRC entry point of the taxonomy files prepared by %(authority)s."),
+                _("The issuer's extension taxonomies MUST import the FRC entry point of the taxonomy files prepared by %(authority)s."),
                 modelObject=modelDocument, authority=val.authParam["authorityName"])
 
         if not hasOutdatedUrl and not any(e in val.extensionImportedUrls for e in val.authParam["effectiveTaxonomyURLs"]):
             val.modelXbrl.error(
                 "UKFRC22.1.requiredUksefEntryPointNotImported" if val.authority == "UKFRC" else
                 "ESEF.3.1.2.requiredEntryPointNotImported",
-                 _("The issuer's extension taxonomies MUST import the entry point of the taxonomy files prepared by %(authority)s."),
+                _("The issuer's extension taxonomies MUST import the entry point of the taxonomy files prepared by %(authority)s."),
                 modelObject=modelDocument, authority=val.authParam["authorityName"])
 
 
@@ -985,9 +1016,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             if reportedEltsNotInLb and lbType == "presentation":
                 # reported pri items excluded from having to be in pre LB
                 nsExcl = val.authParam.get("lineItemsMustBeInPreLbExclusionNsPattern")
+                nsExclPat = None
                 if nsExcl:
                     nsExclPat = re.compile(nsExcl)
-                    reportedEltsNotInLb -= set(c for c in reportedEltsNotInLb if nsExclPat.match(c.qname.namespaceURI))
+                reportedEltsNotInLb -= set(c for c in reportedEltsNotInLb
+                                           if nsExclPat and nsExclPat.match(c.qname.namespaceURI))
             if reportedEltsNotInLb and lbType != "calculation":
                 modelXbrl.warning(f"ESEF.3.4.6.UsableConceptsNotIncludedIn{lbType.title()}Link",
                     _("All concepts used by tagged facts SHOULD be in extension taxonomy %(linkbaseType)s relationships: %(elements)s."),
@@ -1022,7 +1055,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         def checkLabels(parent: ModelConcept, relSet: ModelRelationshipSet, labelrole: str | None, visited: set[ModelConcept]) -> None:
             if not parent.label(labelrole,lang=reportXmlLang,fallbackToQname=False):
-                if not labelrole or labelrole == standardLabel:
+                if (not labelrole or labelrole == standardLabel) and isExtension(val, parent):
                     missingConceptLabels[labelrole].add(parent)
             visited.add(parent)
             conceptRels = defaultdict(list) # counts for concepts without preferred label role
@@ -1078,10 +1111,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         else:
                             has_core_label = True
                     if has_core_label and has_extension_label:
+                        labels_files = ['"%s": %s' % (l.text, l.modelDocument.basename) for l in labels]
                         val.modelXbrl.error(
                             "ESEF.3.4.5.taxonomyElementDuplicateLabels",
-                            _("Issuer extension taxonomy with core taxonomy element: %(concept)s is assigned 2 labels using standard label role"),
-                            modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole)
+                            _("Issuer extension taxonomy with core taxonomy element: %(concept)s is assigned 2 labels using standard label role: %(labels)s"),
+                            modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole, labels=", ".join(labels_files))
 
         for ELR in modelXbrl.relationshipSet(parentChild).linkRoleUris:
             relSet = modelXbrl.relationshipSet(parentChild, ELR)
@@ -1183,6 +1217,31 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
 
+def validateCssUrl(cssContent:str, normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, contentOtherThanXHTMLGuidance: str) -> None:
+    css_elements = tinycss2.parse_stylesheet(cssContent)
+    for css_element in css_elements:
+        if isinstance(css_element, tinycss2.ast.AtRule):
+            if css_element.lower_at_keyword == "font-face":
+                for css_rule in css_element.content:
+                    if isinstance(css_rule, tinycss2.ast.URLToken) and "data:font" not in css_rule.value:
+                        modelXbrl.warning(
+                            "ESEF.%s.fontIncludedAndNotEmbeddedAsBase64EncodedString" % contentOtherThanXHTMLGuidance,
+                            _("Fonts SHOULD be included in the XHTML document as a base64 encoded string: %(file)s."),
+                            modelObject=elt, file=css_rule.value)
+        if isinstance(css_element, tinycss2.ast.QualifiedRule):
+            validateCssUrlContent(css_element.content, normalizedUri, modelXbrl, val, elt, contentOtherThanXHTMLGuidance)
+
+
+def validateCssUrlContent(cssRules: List[Any], normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, contentOtherThanXHTMLGuidance: str) -> None:
+    for css_rule in cssRules:
+        if isinstance(css_rule, tinycss2.ast.FunctionBlock):
+            if css_rule.lower_name == "url":
+                if len(css_rule.arguments):
+                    css_rule_url = css_rule.arguments[0].value  # url or base64
+                    evaluatedMsg = _('On line {line}').format(line=1) #css_element.source_line)
+                    validateImage(normalizedUri, css_rule_url, modelXbrl, val, elt, evaluatedMsg, contentOtherThanXHTMLGuidance)
+
+
 def validateFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None: # runs all inline checks
     if not (val.validateESEFplugin):
         return
@@ -1213,7 +1272,7 @@ def validateFormulaCompiled(modelXbrl: ModelXbrl, xpathContext: XPathContext) ->
     xpathContext.formulaOptions.traceUnmessagedUnsatisfiedAssertions = True
 
 def validateFormulaFinished(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None: # runs *after* formula (which is different for test suite from other operation
-    if not (val.validateESEFplugin):
+    if not getattr(val, 'validateESEFplugin', False):
         return
 
     modelXbrl = val.modelXbrl

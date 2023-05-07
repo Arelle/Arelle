@@ -14,6 +14,7 @@
         "authorityName: name of issuing authority, such as ESMA for ESEF and FRC for UKSEF",
         "reference: document(s) pertinent to authority validation",
         "reportPackageMaxMB: max file size in MB or null for unlimited",
+        "minExternalResourceSizekB: minimal file size in kB for allowing external resources, 0 if no minimum requirement and -1 if external resources are forbidden",
         "reportPackageMeasurement: \"zipped\" or \"unzipped\"",
         "ixTargetUsage: allowed, warning or error",
         "extensionAbstractContexts: allowed, warning or error",
@@ -93,7 +94,8 @@
             "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd":
                 ["https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor-gen-en.xml"]
         },
-        "formulaRunIDs": null
+        "formulaRunIDs": null,
+        "minExternalResourceSizekB": 0
     },
     "AT": {
         "name": "Austria",
@@ -168,7 +170,8 @@
         "name": "Lithuania"
     },
     "LU": {
-        "name": "Luxembourg"
+        "name": "Luxembourg",
+        "minExternalResourceSizekB": 1024
     },
     "LV": {
         "name": "Latvia"

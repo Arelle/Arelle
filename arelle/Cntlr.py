@@ -10,6 +10,8 @@
 """
 from __future__ import annotations
 from typing import Any, TYPE_CHECKING, TextIO, Mapping, cast
+
+from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.typing import TypeGetText
 import tempfile, os, io, sys, logging, gettext, json, subprocess, math
 import regex as re
@@ -51,6 +53,7 @@ def resourcesDir() -> str:
        os.path.exists(os.path.join(os.path.dirname(_resourcesDir),"images")):
         _resourcesDir = os.path.dirname(_resourcesDir)
     return _resourcesDir
+
 
 class Cntlr:
     """
@@ -105,6 +108,7 @@ class Cntlr:
 
     """
     __version__ = "1.6.0"
+    betaFeatures: dict[str, bool]
     hasWin32gui: bool
     hasGui: bool
     hasFileSystem: bool
@@ -139,7 +143,14 @@ class Cntlr:
         logFormat: str | None = None,
         uiLang: str | None = None,
         disable_persistent_config: bool = False,
+        betaFeatures: dict[str, bool] | None = None
     ) -> None:
+        if betaFeatures is None:
+            betaFeatures = {}
+        self.betaFeatures = {
+            b: betaFeatures.get(b, False)
+            for b in BETA_FEATURES_AND_DESCRIPTIONS.keys()
+        }
         self.hasWin32gui = False
         self.hasGui = hasGui
         self.hasFileSystem = True # no file system on Google App Engine servers
@@ -468,7 +479,7 @@ class Cntlr:
         if self.hasFileSystem and not self.disablePersistentConfig:
             with io.open(self.configJsonFile, 'wt', encoding='utf-8') as f:
                 # might not be unicode in 2.7
-                jsonStr = str(json.dumps(self.config, ensure_ascii=False, indent=2))
+                jsonStr = str(json.dumps(self.config, ensure_ascii=False, indent=2, sort_keys=True))
                 f.write(jsonStr)  # 2.7 getss unicode this way
 
     # default non-threaded viewModelObject

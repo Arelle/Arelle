@@ -108,9 +108,7 @@ class ValidateXbrl:
         self.validateSBRNL = self.validateDisclosureSystem and self.disclosureSystem.SBRNL
         self.validateEFMorGFMorSBRNL = self.validateEFMorGFM or self.validateSBRNL
         self.validateXmlLang = self.validateDisclosureSystem and self.disclosureSystem.xmlLangPattern
-        self.validateCalcLB = modelXbrl.modelManager.validateCalcLB
-        self.validateInferDecimals = modelXbrl.modelManager.validateInferDecimals
-        self.validateDedupCalcs = modelXbrl.modelManager.validateDedupCalcs
+        self.validateCalcs = modelXbrl.modelManager.validateCalcs
         self.validateUTR = (modelXbrl.modelManager.validateUtr or
                             (self.parameters and self.parameters.get(qname("forceUtrValidation",noPrefixIsNoNamespace=True),(None,"false"))[1] == "true") or
                             (self.validateEFM and
@@ -417,11 +415,9 @@ class ValidateXbrl:
             validateUniqueParticleAttribution(modelXbrl, modelType.particlesList, modelType)
         modelXbrl.profileStat(_("validateDTS"))
 
-        if self.validateCalcLB:
+        if self.validateCalcs:
             modelXbrl.modelManager.showStatus(_("Validating instance calculations"))
-            ValidateXbrlCalcs.validate(modelXbrl,
-                                       inferDecimals=self.validateInferDecimals,
-                                       deDuplicate=self.validateDedupCalcs)
+            ValidateXbrlCalcs.validate(modelXbrl, self.validateCalcs)
             modelXbrl.profileStat(_("validateCalculations"))
 
         if self.validateUTR:

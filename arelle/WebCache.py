@@ -6,7 +6,7 @@ e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
 
 '''
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 import os, posixpath, sys, time, calendar, io, json, logging, shutil, zlib
 import regex as re
 from urllib.parse import quote, unquote
@@ -169,10 +169,10 @@ class WebCache:
         self._logDownloads = _logDownloads
 
     def saveUrlCheckTimes(self) -> None:
-        if self.cachedUrlCheckTimesModified:
+        if self.cachedUrlCheckTimesModified and not self.cntlr.disablePersistentConfig:
             with io.open(self.urlCheckJsonFile, 'wt', encoding='utf-8') as f:
                 f.write(json.dumps(self.cachedUrlCheckTimes, ensure_ascii=False, indent=0))
-        self.cachedUrlCheckTimesModified = False
+            self.cachedUrlCheckTimesModified = False
 
     @property
     def noCertificateCheck(self):
@@ -261,8 +261,7 @@ class WebCache:
         #self.opener.close()
         #self.opener = WebCacheUrlOpener(self.cntlr, proxyDirFmt(httpProxyTuple))
 
-
-    def normalizeUrl(self, url, base=None):
+    def normalizeUrl(self, url:Optional[Any], base: Optional[Any] = None) -> Any:
         if url:
             if url.startswith("file://"): url = url[7:]
             elif url.startswith("file:\\"): url = url[6:]

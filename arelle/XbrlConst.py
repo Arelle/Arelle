@@ -156,6 +156,7 @@ factFootnote = "http://www.xbrl.org/2003/arcrole/fact-footnote"
 factExplanatoryFact = "http://www.xbrl.org/2009/arcrole/fact-explanatoryFact"
 parentChild = "http://www.xbrl.org/2003/arcrole/parent-child"
 summationItem = "http://www.xbrl.org/2003/arcrole/summation-item"
+summationItem11 = "https://xbrl.org/2023/arcrole/summation-item"
 essenceAlias = "http://www.xbrl.org/2003/arcrole/essence-alias"
 similarTuples = "http://www.xbrl.org/2003/arcrole/similar-tuples"
 requiresElement = "http://www.xbrl.org/2003/arcrole/requires-element"
@@ -688,7 +689,7 @@ def baseSetArcroleLabel(arcrole: str) -> str:  # with sort char in first positio
         return _("1Rendering")
     if arcrole == parentChild:
         return _("1Presentation")
-    if arcrole == summationItem:
+    if arcrole in (summationItem, summationItem11):
         return _("1Calculation")
     if arcrole == widerNarrower:
         return "1Anchoring"
