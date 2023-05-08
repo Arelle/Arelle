@@ -2050,7 +2050,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                             modelObject=_contElt, continuedAt=_contAt)
         if XmlUtil.ancestor(_contElt, _contElt.modelDocument.ixNS, "hidden") is not None:
             modelXbrl.error(ixMsgCode("ancestorNodeDisallowed", ns=XbrlConst.ixbrl11, name="continuation", sect="constraint"),
-                            _("ix:continuation %(continuedAt)s may note be nested in an ix:hidden element."),
+                            _("ix:continuation %(continuedAt)s may not be nested in an ix:hidden element."),
                             modelObject=_contElt, continuedAt=_contAt)
 
     if ixdsTarget in modelXbrl.ixTargetRootElements:
