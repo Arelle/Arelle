@@ -767,6 +767,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         else:
             try:
                 self.modelManager.validateCalcs = {
+                     None: CalcsMode.NONE,
                      "none": CalcsMode.NONE,
                      "xbrl21precision": CalcsMode.XBRL_v2_1_INFER_PRECISION,
                      "xbrl21": CalcsMode.XBRL_v2_1,

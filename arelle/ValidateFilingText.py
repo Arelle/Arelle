@@ -386,10 +386,10 @@ xhtmlEntities = {
     }
 
 efmBlockedInlineHtmlElements = {
-    'acronym', 'area', 'base', 'bdo', 'button', 'cite', 'col', 'colgroup',
-    'dd', 'del', 'embed', 'fieldset', 'form', 'input', 'ins', 'label', 'legend',
-    'map', 'object', 'option', 'param', 'q', 'script', 'select', 'style',
-    'textarea'
+    'acronym', 'area', 'atob', 'base', 'bdo', 'button', 'cite', 'col', 'colgroup',
+    'dd', 'del', 'embed', 'fieldset', 'form', 'function', 'input', 'ins', 'label', 'legend',
+    'map', 'noscript', 'onclick', 'oncontextmenu', 'ondblclick', 'onfocus', 'onload', 
+    'object', 'option', 'param', 'q', 'script', 'select', 'style', 'textarea'
     }
 efmBlockedInlineHtmlElementAttributes = {
     'a': ('name',),
