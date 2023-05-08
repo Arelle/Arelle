@@ -1812,7 +1812,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                             _("Fact %(fact)s has unrecognized transformation name %(name)s"),
                             modelObject=modelInlineFact, fact=modelInlineFact.qname, transform=fmt, name=fmt.localName)
                         modelInlineFact.setInvalid()
-                
+
         # order tuple facts
         for tupleFact in tupleElements:
             # check for duplicates
