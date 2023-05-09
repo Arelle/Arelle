@@ -592,6 +592,7 @@ class Validate:
                                 _expMatched = True
                         elif (testErr == _exp or
                             (isinstance(_exp, str) and (
+                             (_exp == "html:syntaxError" and testErr.startswith("lxml.SCHEMA")) or
                              (_exp == "EFM.6.03.04" and testErr.startswith("xmlSchema:")) or
                              (_exp == "EFM.6.03.05" and (testErr.startswith("xmlSchema:") or testErr == "EFM.5.02.01.01")) or
                              (_exp == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or

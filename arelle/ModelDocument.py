@@ -8,7 +8,7 @@ from typing import Any
 from lxml import etree
 from xml.sax import SAXParseException
 from arelle import (PackageManager, XbrlConst, XmlUtil, UrlUtil, ValidateFilingText,
-                    XhtmlValidate, XmlValidateSchema)
+                    XhtmlValidate, XmlValidateSchema, FunctionIxt)
 from arelle.FileSource import FileSource
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
@@ -1744,6 +1744,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
         else:
             mdlDoc.modelXbrl.factsInInstance.add( modelInlineFact )
 
+    _customTransforms = modelXbrl.modelManager.customTransforms or {}
     for htmlElement in modelXbrl.ixdsHtmlElements:
         mdlDoc = htmlElement.modelDocument
         ixNStag = mdlDoc.ixNStag
@@ -1797,6 +1798,21 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                             modelXbrl.error(ixMsgCode("nonFractionChildren", modelInlineFact, sect="constraint"),
                                             _("Inline XBRL nonFraction must have only one child nonFraction or text/whitespace but not both"),
                                             modelObject=modelInlineFact)
+                fmt = modelInlineFact.format
+                if fmt:
+                    if fmt in _customTransforms:
+                        pass
+                    elif fmt.namespaceURI not in FunctionIxt.ixtNamespaceFunctions:
+                        modelXbrl.error(ixMsgCode("invalidTransformation", modelInlineFact, sect="validation"),
+                            _("Fact %(fact)s has unrecognized transformation namespace %(namespace)s"),
+                            modelObject=modelInlineFact, fact=modelInlineFact.qname, transform=fmt, namespace=fmt.namespaceURI)
+                        modelInlineFact.setInvalid()
+                    elif fmt.localName not in FunctionIxt.ixtNamespaceFunctions[fmt.namespaceURI]:
+                        modelXbrl.error(ixMsgCode("invalidTransformation", modelInlineFact, sect="validation"),
+                            _("Fact %(fact)s has unrecognized transformation name %(name)s"),
+                            modelObject=modelInlineFact, fact=modelInlineFact.qname, transform=fmt, name=fmt.localName)
+                        modelInlineFact.setInvalid()
+
         # order tuple facts
         for tupleFact in tupleElements:
             # check for duplicates
@@ -2026,11 +2042,15 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                             modelObject=_contReferences, continuedAt=_contAt, referencesCount=len(_contReferences),
                             sourceElements=', '.join(str(qn) for qn in sorted(_refEltQnames)))
 
-    # check for orphan continuation elements
+    # check for orphan or mis-located continuation elements
     for _contAt, _contElt in continuationElements.items():
         if _contAt not in continuationReferences:
             modelXbrl.error(ixMsgCode("continuationNotReferenced", ns=XbrlConst.ixbrl11, name="continuation", sect="validation"),
                             _("ix:continuation %(continuedAt)s is not referenced by a, ix:footnote, ix:nonNumeric or other ix:continuation element."),
+                            modelObject=_contElt, continuedAt=_contAt)
+        if XmlUtil.ancestor(_contElt, _contElt.modelDocument.ixNS, "hidden") is not None:
+            modelXbrl.error(ixMsgCode("ancestorNodeDisallowed", ns=XbrlConst.ixbrl11, name="continuation", sect="constraint"),
+                            _("ix:continuation %(continuedAt)s may not be nested in an ix:hidden element."),
                             modelObject=_contElt, continuedAt=_contAt)
 
     if ixdsTarget in modelXbrl.ixTargetRootElements:
