@@ -7,9 +7,9 @@ config = ConformanceSuiteConfig(
         '--httpsRedirectCache',
         '--plugins', 'loadFromOIM',
     ],
-    file='oim-index.xml',
+    file='oim-conformance-2023-04-19/oim-index.xml',
     info_url='https://specifications.xbrl.org/work-product-index-open-information-model-open-information-model.html',
-    local_filepath='oim-conf-2021-10-13.zip',
+    local_filepath='oim-conformance-2023-04-19.zip',
     membership_url='https://www.xbrl.org/join',
     name=PurePath(__file__).stem,
 )
