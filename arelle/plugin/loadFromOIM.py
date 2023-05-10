@@ -1196,7 +1196,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 for extendedFile in documentInfo["extends"]:
                     try:
                         extendedOimObject = loadOimObject(extendedFile, mappedUrl, visitedFiles, extensionChain)
-                    except FileNotFoundError:
+                    except IOError:
                         error("{}:unresolvableBaseMetadataFile".format(errPrefix),
                               _("Extending document file not found: %(extendingFile)s, referenced from %(extendedFile)s"),
                               extendingFile=extendedFile, extendedFile=oimFile)
