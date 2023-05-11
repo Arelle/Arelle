@@ -23,26 +23,6 @@
         <Prefix>rxp</Prefix>
     </Loc>
     <Loc>
-        <Family>RXP</Family>
-        <Version>2023</Version>
-        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_doc.xsd</Href>
-        <AttType>SCH</AttType>
-        <FileTypeName>Schema</FileTypeName>
-        <Elements>0</Elements>
-        <Namespace>http://xbrl.sec.gov/rxp-doc/2023</Namespace>
-        <Prefix>rxp-doc</Prefix>
-    </Loc>
-    <Loc>
-        <Family>RXP</Family>
-        <Version>2023</Version>
-        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_ref.xsd</Href>
-        <AttType>SCH</AttType>
-        <FileTypeName>Schema</FileTypeName>
-        <Elements>0</Elements>
-        <Namespace>http://xbrl.sec.gov/rxp-ref/2023</Namespace>
-        <Prefix>rxp-ref</Prefix>
-    </Loc>
-    <Loc>
         <Family>SNJ</Family>
         <Version>2023</Version>
         <Href>https://xbrl.sec.gov/snj/2023/snj-2023.xsd</Href>
