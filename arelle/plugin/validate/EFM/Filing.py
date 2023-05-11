@@ -1206,7 +1206,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 members = axesValidations["members"]
 
                 for name in names:
-                    for f in modelXbrl.factsByQname.get(qname(name, deiDefaultPrefixedNamespaces), 
+                    for f in (modelXbrl.factsByQname.get(qname(name, deiDefaultPrefixedNamespaces)) or 
                                                         NONE_SET if fallback else EMPTY_SET):
                         if f is not None: # not fallback
                             if langPattern is not None and not langPattern.match(f.xmlLang):
@@ -1390,7 +1390,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             expectedEloParams = set()
             storeDbObjectFacts = defaultdict(dict)
             storeDbActions = {}
-            eloValueFactNames = set(n for sev in sevs if "store-db-name" in sev for n in sev.get("xbrl-names", ())) # fact names producing elo values
+            eloValueFactNames = set(n
+                                    for sev in sevs
+                                    if "store-db-name" in sev and "subTypeSet" in sev
+                                    for n in sev.get("xbrl-names", ())) # fact names producing elo values
             missingReqInlineTag = False
             reportDate = val.params.get("periodOfReport")
             if reportDate:
@@ -1421,8 +1424,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if checkAfter and reportDate and checkAfter >= reportDate:
                     continue
                 subFormTypesCheck = {submissionType, "{}§{}".format(submissionType, documentType)}
-                if (subTypes not in ({"all"},
-                    {"n/a"}) 
+                if (subTypes != "all"
                     and (subFormTypesCheck.isdisjoint(subTypes) ^ ("!not!" in subTypes))
                     and (not subTypesPattern or not subTypesPattern.match(submissionType))):
                     if validation not in (None, "fany"): # don't process name for sev's which only store-db-field
@@ -1689,9 +1691,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if f.xValue and (_fileNum.startswith("811-") or _fileNum.startswith("814-")):
                             sevMessage(sev, subType=submissionType, modelObject=f, tag=f.qname.localName, otherTag="entity file number",
                                        value="not starting with 811- or 814-", contextID=f.contextID)
-                elif validation in ("x", "xv", "r", "y", "n"):
+                elif validation in ("x", "xv", "r", "y", "n") or (validation and validation.startswith("ov")):
                     for name in names:
-                        for f in sevFacts(sev, name, requiredContext=not axisKey, whereKey="where"):
+                        for f in sevFacts(sev, name, requiredContext=not axisKey, whereKey="where", fallback=True):
+                            # always fallback to None for these validations
                             if validation.startswith("ov") and f is None:
                                 continue
                             if f is None or (((f.xValue not in value) ^ ("!not!" in value)) if isinstance(value, (set,list))
