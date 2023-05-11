@@ -1735,8 +1735,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         sevMessage(sev, subType=submissionType, modelObject=f, efmSection=efmSection, tag=name, value="U.S. state codes")
                 elif validation in ("o", "ov"):
                     for name in names:
-                        if name == "SecurityReportingObligation":
-                            print("trace")
                         f = sevFact(sev, name)
                         if f is not None and (((f.xValue not in value) ^ ("!not!" in value)) if isinstance(value, (set,list))
                                               else (value is not None and f.xValue != value)):
