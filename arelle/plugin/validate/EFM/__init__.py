@@ -34,10 +34,13 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
    "rptIncludeAllSeriesFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "rptSeriesClassInfo.seriesIds": ["S0000990666", ...] # list of EDGAR seriesId values
    "newClass2.seriesIds": [] # //seriesId xpath result on submission headers
+   "saveCoverFacts": test environment file into which to save JSON output
    # CEF forms
    "eligibleFundFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "pursuantGeneralInstructionFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "filerNewRegistrantFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
+   # OEF forms
+   "classIds": ["C000000123", ...] # list of EDGAR classId values
    # Test/debug fields
    datetimeForTesting: xml-syntax datetime to override clock time for test/debug purposes
    dqcRuleFilter: null or absent for all DQC rules, else regular expression to filter which rules run
@@ -87,6 +90,8 @@ an additional EdgarRenderer parameters:
 The parameters with array values are entered to the GUI as blank-separated strings (no quotes):
    itemsList could be 5.03 6.99
    rptSeriesClassInfo.seriesIds could be S0000990666 S0000990777 S0000990888
+   classIDs could be C000000123 C000000124 C000000125
+
 
 For GUI mode there are two ways to set rendering output, (1) by formula parameter and (2) by GUI view menu.
   If both formula parameters summaryXslt and reportXslt are provided they override use of the GUI menu setting
@@ -134,8 +139,9 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                       "wellKnownSeasonedIssuerFlag", "shellCompanyFlag", "acceleratedFilerStatus", "smallBusinessFlag",
                       "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "invCompanyType",
                       "rptIncludeAllSeriesFlag", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds",
+                      "classIds",
                       "eligibleFundFlag", "pursuantGeneralInstructionFlag", "filerNewRegistrantFlag",
-                      "datetimeForTesting", "dqcRuleFilter")
+                      "datetimeForTesting", "dqcRuleFilter", "saveCoverFacts")
     parameterEisFileTags = {
         "cik":["depositorId", "cik", "filerId"],
         "submissionType": "submissionType",
@@ -177,7 +183,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                                      "smallBusinessFlag", "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "rptIncludeAllSeriesFlag",
                                      "filerNewRegistrantFlag", "pursuantGeneralInstructionFlag", "eligibleFundFlag"}:
                         v = {"true":True, "false":False}.get(v)
-                    elif paramName in {"itemsList", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds"}:
+                    elif paramName in {"itemsList", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds", "classIds"}:
                         v = v.split()
                 val.params[paramName] = v
         if "CIK" in val.params: # change to lower case key

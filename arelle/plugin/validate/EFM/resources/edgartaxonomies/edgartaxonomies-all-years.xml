@@ -27,54 +27,6 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
         <Prefix>rxp</Prefix>
     </Loc>
     <Loc>
-        <Family>RXP</Family>
-        <Version>2023</Version>
-        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_cal.xml</Href>
-        <AttType>CAL</AttType>
-        <FileTypeName>Calculations</FileTypeName>
-        <Elements>0</Elements>
-    </Loc>
-    <Loc>
-        <Family>RXP</Family>
-        <Version>2023</Version>
-        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_def.xml</Href>
-        <AttType>DEF</AttType>
-        <FileTypeName>Definition, Dimensions</FileTypeName>
-        <Elements>0</Elements>
-    </Loc>
-    <Loc>
-        <Family>RXP</Family>
-        <Version>2023</Version>
-        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_doc.xml</Href>
-        <AttType>LAB</AttType>
-        <FileTypeName>Documentation</FileTypeName>
-        <Elements>0</Elements>
-    </Loc>
-    <Loc>
-        <Family>RXP</Family>
-        <Version>2023</Version>
-        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_lab.xml</Href>
-        <AttType>LAB</AttType>
-        <FileTypeName>Labels</FileTypeName>
-        <Elements>0</Elements>
-    </Loc>
-    <Loc>
-	    <Family>RXP</Family>
-	    <Version>2023</Version>
-	    <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_pre.xml</Href>
-	    <AttType>PRE</AttType>
-	    <FileTypeName>Presentation</FileTypeName>
-	    <Elements>0</Elements>
-    </Loc>
-    <Loc>
-        <Family>RXP</Family>
-        <Version>2023</Version>
-        <Href>https://xbrl.sec.gov/rxp/2023/rxp-2023_ref.xml</Href>
-        <AttType>REF</AttType>
-        <FileTypeName>Reference</FileTypeName>
-        <Elements>0</Elements>
-    </Loc>
-    <Loc>
         <Family>SNJ</Family>
         <Version>2023</Version>
         <Href>https://xbrl.sec.gov/snj/2023/snj-2023.xsd</Href>

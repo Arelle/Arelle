@@ -10,7 +10,7 @@ from arelle import XbrlConst
 from arelle.PythonUtil import attrdict, flattenSequence, pyObjectSize
 from arelle.ValidateXbrlCalcs import inferredDecimals, floatINF
 from arelle.XmlValidate import VALID
-from .Consts import standardNamespacesPattern, latestTaxonomyDocs, latestEntireUgt
+from .Consts import standardNamespacesPattern, latestTaxonomyDocs, latestEntireUgt, feeTaggingExhibitTypePattern
 
 EMPTY_DICT = {}
 
@@ -94,8 +94,25 @@ def loadCustomAxesReplacements(modelXbrl): # returns match expression, standard 
     return attrdict(standardAxes=standardAxes,
                     customNamePatterns=re.compile("|".join(matchPattern)))
 
-def loadDeiValidations(modelXbrl, isInlineXbrl):
-    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "dei-validations.json"), 'rt', encoding='utf-8')
+class ValueRange:
+    def inRange(self, v):
+        return self.v1 <= v <= self.v2
+    def __repr__(self):
+        return f"from {self.v1} to {self.v2}"
+    
+class NumericRange(ValueRange):
+    def __init__(self, r):
+        self.v1 = Decimal(r[0])
+        self.v2 = Decimal(r[1])
+    
+class DateRange(ValueRange):
+    def __init__(self, r):
+        self.v1 = dateTime(r[0], type=DATE)
+        self.v2 = dateTime(r[1], type=DATE)
+
+def loadDeiValidations(modelXbrl, isInlineXbrl, exhibitType):
+    isFeeTagging = feeTaggingExhibitTypePattern.match(exhibitType)
+    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "ft-validations.json" if feeTaggingExhibitTypePattern.match(exhibitType) else "dei-validations.json"), 'rt', encoding='utf-8')
     validations = json.load(_file) # {localName: date, ...}
     _file.close()
     #print ("original validations size {}".format(pyObjectSize(validations)))
@@ -126,10 +143,11 @@ def loadDeiValidations(modelXbrl, isInlineXbrl):
                 formSet.add(form)
         return formSet
     for sev in validations["sub-type-element-validations"]:
-        if sev.keys() == {"comment"}:
+        if all(k.startswith("comment") for k in sev.keys()):
             continue
         for field in (
             ("xbrl-names",) if "store-db-name" in sev else
+            ("xbrl-names", "validation") if feeTaggingExhibitTypePattern.match(exhibitType) else
             ("xbrl-names", "validation", "efm", "source")):
             if field not in sev:
                 modelXbrl.error("arelle:loadDeiValidations",
@@ -151,6 +169,10 @@ def loadDeiValidations(modelXbrl, isInlineXbrl):
                 modelXbrl.error("arelle:loadDeiValidations",
                                 _("Missing sub-type-element-validation[\"value\"] from %(validation)s, must be a list."),
                                 field=field, validation=sev)
+        if validationCode and validationCode.startswith("fdep") and "references"not in sev:
+            modelXbrl.error("arelle:loadDeiValidations", 
+                            _("Missing sub-type-element-validation[\"references\"] from %(validation)s."), 
+                            field=field, validation=sev)
         if validationCode in ():
             if isinstance(sev.get("reference-value"), list):
                 sev["reference-value"] = set(sev["reference-value"]) # change options list into set
@@ -168,7 +190,7 @@ def loadDeiValidations(modelXbrl, isInlineXbrl):
         if "lang" in sev:
             sev["langPattern"] = re.compile(sev["lang"])
         s = sev.get("source")
-        if s is None and not validationCode and "store-db-name" in sev:
+        if s is None and not validationCode and "store-db-name" in sev and not isFeeTagging:
             pass # not a validation entry
         elif s not in ("inline", "non-inline", "both"):
             modelXbrl.error("arelle:loadDeiValidations", _("Invalid source [\"%(source)s\"]."), source=s)
@@ -180,6 +202,10 @@ def loadDeiValidations(modelXbrl, isInlineXbrl):
             sev["xbrl-names"] = [name
                                  for name in flattenSequence(sev.get("xbrl-names", ()))
                                  if qname(name, prefixedNamespaces) in modelXbrl.qnameConcepts or name.endswith(":*")]
+            if "references" in sev:
+                sev["references"] = flattenSequence(sev["references"])
+                if "reference-value" not in sev:
+                    sev["reference-value"] = ["!not!", "absent"] # default condition
             subTypeSet = compileSubTypeSet(sev.get("sub-types", (sev.get("sub-type",()),)))
             if "*" in subTypeSet:
                 subTypeSet = "all" # change to string for faster testing in Filing.py
@@ -188,6 +214,24 @@ def loadDeiValidations(modelXbrl, isInlineXbrl):
                 sev["subTypesPattern"] = re.compile(sev["sub-types-pattern"])
             sev["formTypeSet"] = compileSubTypeSet(sev.get("form-types", (sev.get("form-type",()),)))
 
+        # allow value to be a list which includes @ references to sub types
+        for valueKey in ("value", "reference-value"):
+            if valueKey in sev and isinstance(sev[valueKey],list) and any(e.startswith("@") for e in sev[valueKey] if isinstance(e,str)):
+                sev[valueKey] = compileSubTypeSet(sev[valueKey])
+        if "value-pattern" in sev:
+            sev["value"] = re.compile(sev["value-pattern"])
+        if "value-date-range" in sev:
+            sev["value"] = DateRange(sev["value-date-range"])
+        if "value-numeric-range" in sev:
+            sev["value"] = NumericRange(sev["value-numeric-range"])
+        # check where predicates, must be lists
+        for field, value in sev.items():
+            if field.endswith("where") and isinstance(value, dict):
+                for cond, clause in value.items():
+                    if not isinstance(clause, list):
+                        modelXbrl.error("arelle:loadDeiValidations", 
+                                        _("Where clause %(field)s %(cond)s from %(validation)s, must be a list."), 
+                                        field=field, cond=cond, validation=sev)
     for axisKey, axisValidation in validations["axis-validations"].items():
         messageKey = axisValidation.get("message")
         if messageKey and messageKey not in validations["messages"]:

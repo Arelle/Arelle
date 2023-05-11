@@ -60,6 +60,7 @@ submissionTypesAllowingEntityInvCompanyType = docTypesRR | {
 submissionTypesAllowingSeriesClasses = docTypesRR | {
     "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A", 'N-Q', 'N-Q/A'}
 invCompanyTypesAllowingSeriesClasses = {"N-1A", "N-3"}
+submissionTypesRequiringOefClasses = {'N-CSR', 'N-CSR/A', 'N-CSRS', 'N-CSRS/A',}
 
 docTypesRequiringPeriodOfReport = {"10", "10-K", "10-Q", "20-F", "40-F", "6-K", "8-K",
     "F-1", "F-10", "F-3", "F-4", "F-9", "S-1", "S-11", "S-3", "S-4", "POS AM", "10-KT", "10-QT", "POS EX",
@@ -87,6 +88,8 @@ docTypesNotAllowingIfrs = ('485APOS', '485BPOS','485BXT', '497', 'N-1A', 'N-1A/A
 
 docTypesNotAllowingInlineXBRL = {
     "K SDR", "L SDR"}
+
+feeTaggingExhibitTypePattern = re.compile(r"EX-FILING FEES.*")
 
 standardNamespacesPattern = re.compile(
     # non-IFRS groups 1 - authority, 2 - taxonomy (e.g. us-gaap, us-types), 3 - year
@@ -191,7 +194,7 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "rxp/*": {
-        "deprecatedLabels": ["https://xbrl.sec.gov/rxp/2023/rxp-2023_lab.xml"],
+        "deprecatedLabels": ["https://xbrl.sec.gov/rxp/2023/rxp-2023_lab.xsd"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },

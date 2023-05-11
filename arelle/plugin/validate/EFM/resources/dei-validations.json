@@ -96,7 +96,7 @@
 		"S-nX": ["S-1MEF", "S-3D", "S-3DPOS", "S-3MEF", "S-4EF", "S-4MEF", "S-4 POS", "S-11MEF"],
 		
 		"comment3": "for SDR include both submission types (SDR, SDR/A, ...) and sub-type types (K SDR, L SDR) because in previewing desktop mode only sub-type type is provided",
-		"SD": ["SD", "SD/A", "201 SD"], "comment3.5": "following the SDR pattern for SD.  -wch",
+		"SD": ["SD", "SD/A", "2.01 SD"], "wch-comment": "following the SDR pattern for SD.",
 		"SDR": ["SDR", "SDR/A", "SDR-A", "SDR/W", "K SDR", "L SDR"],
 		"all-FAST": ["@10-K+Q", "@8-K", "@20+40-F"],
         "all-non-FAST": ["!not!", "@all-FAST"],
@@ -249,10 +249,8 @@
 	{"sub-types": ["S-4MEF"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["S-4MEF"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["SC 13E3"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["SC 13E3"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["SC 13E3/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["SC 13E3/A"], "source": "both", "dei/cover": "dei"},
-    {"sub-types": ["SD"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["201 SD"], "source": "both", "dei/cover": "dei"},
-	{"sub-types": ["SD/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["201 SD/A"], "source": "both", "dei/cover": "dei"},
-	{"sub-types": ["201 SD"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["201 SD"], "source": "both", "dei/cover": "dei"},
-	{"sub-types": ["201 SD/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["201 SD/A"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["SD"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["2.01 SD"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["SD/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["2.01 SD/A"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["SP 15D2"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["SP 15D2"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["SP 15D2/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["SP 15D2/A"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["@SDR"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["K SDR", "L SDR"], "source": "both", "dei/cover": "dei"},
@@ -337,7 +335,14 @@
         "dei/cover": "dei"
     },
     {
-        "sub-types": ["@all-FAST-not-8K", "@SP 15D2", "@POS", "@N", "@RR", "N-3", "N-4", "N-6", "@SDR"],
+    	"sub-types": ["@SD"],
+        "xbrl-names": "DocumentPeriodEndDate",
+        "store-db-name": "periodOfReport",
+        "store-db-object": "eloValuesFromFacts",
+        "source": "non-inline"
+    },
+    {
+        "sub-types": ["@all-FAST-not-8K"],
         "xbrl-names": "DocumentPeriodEndDate",
         "efm": "6.5.20",
         "validation": "de",
@@ -345,7 +350,7 @@
         "dei/cover": "dei"
     },
     {
-        "sub-types": ["@8-K", "@6-K"],
+        "sub-types": ["@8-K"],
         "xbrl-names": "DocumentPeriodEndDate",
         "efm": "6.5.20",
         "validation": "de5pm",
@@ -2341,6 +2346,42 @@
         "source": "both"
     },
     {
+        "comment": "N-CSR*"
+    },
+    {
+        "sub-types": ["@N-CSR"],
+        "xbrl-names": [
+        	"oef:ShareholderReportAnnualOrSemiAnnual",
+        	"oef:FundName",
+        	"oef:ClassName"
+        	],
+        "efm": "6.5.57",
+        "validation": "r",
+        "axis": "oef:class",
+        "source": "both",
+        "dei/cover": "dei"
+    },
+    {
+        "sub-types": ["N-CSRS", "N-CSRS/A"],
+        "xbrl-names": "EntityCentralIndexKey",
+        "efm": "6.5.57",
+        "validation": "required-context-duration",
+        "value": 6,
+        "source": "both",
+        "dei/cover": "dei",
+        "comment": "checks duration length of required context"
+    },
+    {
+        "sub-types": ["N-CSR", "N-CSR/A"],
+        "xbrl-names": "EntityCentralIndexKey",
+        "efm": "6.5.57",
+        "validation": "required-context-duration",
+        "value": 12,
+        "source": "both",
+        "dei/cover": "dei",
+        "comment": "checks duration length of required context"
+    },
+    {
         "comment": "SD"
     },
     {
@@ -2649,6 +2690,10 @@
         "n2h": {
             "message": "dq-{efmSection}-{tag}-{otherTag}-Value-Dependency",
             "severity": "error"
+        },
+        "required-context-duration": {
+            "message": "dq-{efmSection}-{tag}-Value",
+            "severity": "error"
         }
 	},
 
@@ -2677,6 +2722,12 @@
             "axes": ["!not!", "ConsolidatedEntitiesAxis", "ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "LegalEntityAxis", "OwnershipAxis", "CounterpartyNameAxis"],
             "members": [],
             "message": "dq-{efmSection}-{tag}-Unexpected"
+        },
+        "oef:class": {
+            "axes": ["oef:ClassAxis"],
+            "axes-operator": "all",
+            "members": [],
+            "message": "dq-{efmSection}-{tags}-Missing"
         },
 		"": {
 			"axes": [],
