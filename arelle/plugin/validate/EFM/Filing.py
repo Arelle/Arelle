@@ -937,7 +937,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             if len(legalEntityAxis) > 0:
                 legalEntityAxisQname = legalEntityAxis[0].qname
                 if legalEntityAxisQname.namespaceURI.startswith("http://xbrl.sec.gov/dei/"):
-                    legalEntityAxisRelationshipSet = modelXbrl.modelXbrl.relationshipSet("XBRL-dimensions")
+                    legalEntityAxisRelationshipSet = modelXbrl.relationshipSet("XBRL-dimensions")
                     if val.params.get("rptIncludeAllSeriesFlag") in (True, "Yes", "yes", "Y", "y"):
                         seriesIds = val.params.get("newClass2.seriesIds", ())
                     else:
@@ -978,7 +978,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             if len(classAxis) > 0:
                 classAxisQname = classAxis[0].qname
                 if classAxisQname.namespaceURI in disclosureSystem.standardTaxonomiesDict:
-                    classAxisRelationshipSet = modelXbrl.modelXbrl.relationshipSet("XBRL-dimensions")
+                    classAxisRelationshipSet = modelXbrl.modelXbrl.relationshipSet("XBRL-dimensions", "http://xbrl.sec.gov/oef/role/ClassOnly")
                     if val.params.get("rptIncludeAllClassesFlag") in (True, "Yes", "yes", "Y", "y"):
                         classIds = val.params.get("classIds", ())
                     else:
@@ -1018,7 +1018,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         if isEFM:
             if val.params.get("exhibitType") and documentType is not None:
                 _exhibitType = val.params["exhibitType"]
-                if (documentType in ("SD", "SD/A")) != (_exhibitType == "EX-2.01"):
+                if (documentType in ("SD", "SD/A", "2.01 SD")) != (_exhibitType == "EX-2.01"):
                     modelXbrl.error({"EX-100":"EFM.6.23.04",
                                      "EX-101":"EFM.6.23.04",
                                      "EX-99.K SDR.INS":"EFM.6.23.04",
@@ -1064,8 +1064,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     efm = logArgs["efmSection"].split(".")
                     logArgs["efmSection"] = ""
                     logArgs["arelleCode"] = "EFM"
-                    for e in efm:
-                        if e.isnumeric(): 
+                    for i, e in enumerate(efm):
+                        if i > 0 and e.isnumeric(): # e.g. [6,5,2] -> "6.05.02" 
                             e = e.zfill(2)
                         logArgs["efmSection"] += e
                         logArgs["arelleCode"] += "." + e
@@ -1092,7 +1092,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 axisKey = sev.get("axis","")
                 axesValidations = deiValidations["axis-validations"][axisKey]
                 logArgs["axis"] = " or ".join(axesValidations.get("names") or axesValidations.get("axes")) # names in ft-validations axes in dei-validations
-                logArgs["member"] = " or ".join(axesValidations["members"])
+                logArgs["member"] = " or ".join(axesValidations.get("members",()))
                 for validationParam, validationParamValue in axesValidations.items():
                     if validationParam not in ("axes", "members", "message", "comment"):
                         logArgs[validationParam] = validationParamValue
@@ -1201,13 +1201,15 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 axes = axesValidations["axes"]
                 excludesAxes = "!not!" in axes
                 axisOperator = axesValidations.get("axes-operator", "any")
+                matchCubes = sev.get("cubes")
                 axesQNs = [qname(axis, deiDefaultPrefixedNamespaces) for axis in axes if axis != "!not!"]
 
-                members = axesValidations["members"]
+                members = axesValidations.get("members")
 
                 for name in names:
+                    yielded = False
                     for f in (modelXbrl.factsByQname.get(qname(name, deiDefaultPrefixedNamespaces)) or 
-                                                        NONE_SET if fallback else EMPTY_SET):
+                                                        (NONE_SET if fallback else EMPTY_SET)):
                         if f is not None: # not fallback
                             if langPattern is not None and not langPattern.match(f.xmlLang):
                                 continue
@@ -1242,18 +1244,22 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if _skipF:
                                 continue # skip this fact
                             if f is None:
+                                yielded = True
                                 yield f # fallback
                             elif otherFact is not None:
                                 if context.isEqualTo(otherFact.context):
                                     if not deduplicate or notdup(f):
+                                        yielded = True
                                         yield f
                             elif requiredContext and documentType:
                                 if ((context.isInstantPeriod and not context.qnameDims) or
                                     (context.isStartEndPeriod and context.isEqualTo(documentTypeFact.context))):
                                     if not deduplicate or notdup(f):
+                                        yielded = True
                                         yield f
                             elif not context.qnameDims and (not axes or axisKey == "c"):
                                 if not deduplicate or notdup(f):
+                                    yielded = True
                                     yield f
                             elif axisOperator == "any":
                                 excludesAxes = "!not!" in axes
@@ -1265,23 +1271,31 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                             hasDimMatch = True
                                             if not deduplicate or notdup(f):
                                                 if not excludesAxes:
+                                                    yielded = True
                                                     yield f
                                             break
                                 if not context.qnameDims and None in axesQNs:
+                                    yielded = True
                                     yield f
                                 if excludesAxes and not hasDimMatch:
+                                    yielded = True
                                     yield f
 
                             elif axisOperator == "all" and all(
                                 context.hasDimension(qn) and 
-                                (not matchDims or qn not in matchDims or context.qnameDims[qn].isEqualTo(matchDims[qn]))
+                                (not matchDims or qn not in matchDims or context.qnameDims[qn].isEqualTo(matchDims[qn])) and
+                                (not matchCubes or any(modelXbrl.relationshipSet("XBRL-dimensions",elr).isRelated(qn, "descendant", context.dimValue(qn).member) for elr in matchCubes))
                                 for qn in axesQNs) and (
                                 len(context.qnameDims) == len(axes)): # no extra dimensions
                                     if not deduplicate or notdup(f):
                                         if not excludesAxes:
+                                            yielded = True
                                             yield f
                     if name.startswith("header:") and name[7:] in val.params:
+                        yielded = True
                         yield HeaderValuePsuedoFact(val.params[name[7:]])
+                    if not yielded and fallback:
+                        yield None
 
             # return first of matching facts or None
             def sevFact(sev=None, name=None, otherFact=None, requiredContext=False, axisKey=None, whereKey=None):
@@ -1301,13 +1315,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             def axesValsKey(axisKey, cntx):
                 axesValidations = deiValidations["axis-validations"][axisKey]
                 axisQns = [qname(name, deiDefaultPrefixedNamespaces) for name in axesValidations["axes"]]
-                members = axesValidations["members"]
+                members = axesValidations.get("members")
+                cubes = axesValidations.get("cubes")
                 if len(axisQns) == len(cntx.qnameDims):
                     if len(axisQns) == 0:
                         return ()
-                    if all(axisQn in cntx.qnameDims
+                    if all(axisQn in cntx.qnameDims and (not cubes or (any(modelXbrl.relationshipSet("XBRL-dimensions",elr).isRelated(axisQn, "descendant", context.dimValue(axisQn).member) for elr in cubes)))
                            for axisQn in axisQns
-                           if not members or cntx.dimMemberQname.localName in members):
+                           if (not members or cntx.dimMemberQname(axisQn).localName in members)):
                         return tuple(
                             dim.typedMember.xValue if dim.isTyped else dim.memberQname.localName
                             for axisQn in axisQns
@@ -1720,6 +1735,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         sevMessage(sev, subType=submissionType, modelObject=f, efmSection=efmSection, tag=name, value="U.S. state codes")
                 elif validation in ("o", "ov"):
                     for name in names:
+                        if name == "SecurityReportingObligation":
+                            print("trace")
                         f = sevFact(sev, name)
                         if f is not None and (((f.xValue not in value) ^ ("!not!" in value)) if isinstance(value, (set,list))
                                               else (value is not None and f.xValue != value)):
@@ -1763,7 +1780,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         sevMessage(sev, subType=submissionType, modelObject=val.requiredContext, tag="Required Context",
                                    value=f"{value} months", contextID=val.requiredContext.id)
                 # fee tagging
-                elif validation in ("fe", "fw","fo"): # note where clauses are incomptible with this validation
+                elif validation in ("fe", "fw","fo"): # note where clauses are incompatible with this validation
                     mbrValCntxIds = {}
                     for cntx in modelXbrl.contexts.values():
                         mbrValKey = axesValsKey(axisKey, cntx)
@@ -1785,7 +1802,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         mbrValKey = axesValsKey(axisKey, cntx)
                         if mbrValKey is not None:
                             if len(mbfValFacts.get(mbrValKey,())) != 1:
-                                sevMessage(sev, subType=submissionType, modelObject=mbfValFacts.get(mbrValKey, None), tags=ftName(names), labels=ftLabel(names), ftContext=ftContext(axisKey,mbrValKey))
+                                sevMessage(sev, subType=submissionType, modelObject=mbfValFacts.get(mbrValKey, None), tags=ftName(names), labels=ftLabel(names), ftContext=ftContext(axisKey,mbrValKey), contextID=cntx.id)
                     mbfValFacts.clear()
                 elif validation and validation.startswith("fdep"):
                     #if efmSection == "ft.oClmSrc":
@@ -2006,7 +2023,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         _storeDbName = lcStr(f.qname.localName) if storeDbName == "@lcName" else storeDbName
                         axesValidations = deiValidations["axis-validations"][axisKey]
                         axes = axesValidations["axes"]
-                        members = axesValidations["members"]
                         if f is not None:
                             _axisKey = tuple(
                                 (lcStr(dim.dimensionQname.localName.replace("Axis","")),
