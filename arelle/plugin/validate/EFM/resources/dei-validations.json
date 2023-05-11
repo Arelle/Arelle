@@ -2742,10 +2742,15 @@
             "validation": "Mutual dependent tags."
         }
 	},
-
+	"axis-validations-comment": [
+		"axis-code: object of axes (dei prefix implied, others explicit), ",
+		"  members (localnames, not prefixed), ",
+		"  cubes (array of Hypercube linkrole URIs), ",
+		"  message where applicable"
+	],
 	"axis-validations": {
 		"c": {
-			"axes": ["StatementClassOfStockAxis", "ClassesOfShareCapitalAxis"],
+			"axes": ["us-gaap:StatementClassOfStockAxis", "ifrs-full:ClassesOfShareCapitalAxis"],
 			"message": "dq-{efmSection}-{tag}-Missing"
 		},
 		"a": {
@@ -2759,11 +2764,11 @@
 			"message": "dq-{efmSection}-{tag}-Missing"
 		},
         "auditor-axes": {
-            "axes": ["ConsolidatedEntitiesAxis", "ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "LegalEntityAxis", "OwnershipAxis", "CounterpartyNameAxis"],
+            "axes": ["srt:ConsolidatedEntitiesAxis", "srt:ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "LegalEntityAxis", "OwnershipAxis", "CounterpartyNameAxis"],
             "message": "dq-{efmSection}-{tags}-Missing"
         },
         "no-auditor-axis": {
-            "axes": ["!not!", "ConsolidatedEntitiesAxis", "ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "LegalEntityAxis", "OwnershipAxis", "CounterpartyNameAxis"],
+            "axes": ["!not!", "srt:ConsolidatedEntitiesAxis", "srt:ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "LegalEntityAxis", "OwnershipAxis", "CounterpartyNameAxis"],
             "message": "dq-{efmSection}-{tag}-Unexpected"
         },
         "oef:class": {
