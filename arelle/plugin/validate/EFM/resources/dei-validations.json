@@ -2356,10 +2356,41 @@
         	"oef:ClassName"
         	],
         "efm": "6.5.57",
-        "validation": "r",
+        "validation": "fw",
         "axis": "oef:class",
         "source": "both",
         "dei/cover": "dei"
+    },
+    {
+        "sub-types": ["@N-CSR"],
+        "xbrl-names": [     
+        	"NoTradingSymbolFlag",
+        	"TradingSymbol"
+        ],
+        "efm": "6.5.57",
+        "validation": "of-rule",
+        "axis": "oef:class",
+        "source": "both",
+        "dei/cover": "dei"
+    },
+    {
+        "sub-types": ["@N-CSR"],
+        "xbrl-names": "TradingSymbol",
+        "efm": "6.5.57",
+        "validation": "o",
+        "axis": "oef:class",
+        "source": "both",
+        "dei/cover": "cover"
+    },
+    {
+        "sub-types": ["@N-CSR"],
+        "xbrl-names": "SecurityExchangeName",
+        "efm": "6.5.57",
+        "validation": "t1",
+        "axis": "oef:class",
+        "references": ["TradingSymbol"],
+        "source": "both",
+        "dei/cover": "cover"
     },
     {
         "sub-types": ["N-CSRS", "N-CSRS/A"],
@@ -2699,13 +2730,22 @@
             "message": "dq-{efmSection}-{tag}-Value",
             "qualifier": "",
             "severity": "error"
+        },
+        "of-rule": {
+            "message": "dq-{efmSection}-{tags}-Exclusive-Presence",
+            "severity": "warning",
+            "validation": "Mutual dependent tags."
+        },
+        "fw": {
+            "message": "dq-{efmSection}-{tag}-Missing",
+            "severity": "warning",
+            "validation": "Mutual dependent tags."
         }
 	},
 
 	"axis-validations": {
 		"c": {
 			"axes": ["StatementClassOfStockAxis", "ClassesOfShareCapitalAxis"],
-			"members": [],
 			"message": "dq-{efmSection}-{tag}-Missing"
 		},
 		"a": {
@@ -2720,23 +2760,20 @@
 		},
         "auditor-axes": {
             "axes": ["ConsolidatedEntitiesAxis", "ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "LegalEntityAxis", "OwnershipAxis", "CounterpartyNameAxis"],
-            "members": [],
             "message": "dq-{efmSection}-{tags}-Missing"
         },
         "no-auditor-axis": {
             "axes": ["!not!", "ConsolidatedEntitiesAxis", "ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "LegalEntityAxis", "OwnershipAxis", "CounterpartyNameAxis"],
-            "members": [],
             "message": "dq-{efmSection}-{tag}-Unexpected"
         },
         "oef:class": {
             "axes": ["oef:ClassAxis"],
             "axes-operator": "all",
-            "members": [],
+            "cubes": ["http://xbrl.sec.gov/oef/role/ClassOnly"],
             "message": "dq-{efmSection}-{tags}-Missing"
         },
 		"": {
 			"axes": [],
-			"members": [],
 			"message": "dq-{efmSection}-{tag}-Missing"
 		}
 	},
@@ -2757,6 +2794,7 @@
         "dq-{efmSection}-{tags}-Exclusive": "In submission type {subType}, only one of {tags} {severityVerb} have a value, but not both, in context, {contextID}.",
 		"dq-{efmSection}-{tags}-Exclusive-Values": "In submission type {subType}, exactly one of {tags} {severityVerb} have the value \"{value}\" and the others {severityVerb} have the value \"{otherValue}\".",
 		"dq-{efmSection}-{tags}-Exclusive-Value": "In submission type {subType}, only one of {tags} {severityVerb} have a value {value}.",
+		"dq-{efmSection}-{tags}-Exclusive-Presence": "In submission type {subType}, one of {tags} {severityVerb} be present in context {contextID}.",
 		"dq-{efmSection}-{tags}-Inclusive": "In submission type {subType}, at least one of {tags} {severityVerb} have a value.",
 		"dq-{efmSection}-{tags}-Both": "In submission type {subType}, both or neither of {tags} {severityVerb} have a value.",
         "dq-{efmSection}-{tag}-{otherTag}-Dependency": "In submission type {subType}, {tag} {severityVerb} have a value if and only if {otherTag} has a value in context {contextID}.",
