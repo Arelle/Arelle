@@ -2477,6 +2477,7 @@
 		"xv": {
 			"message": "dq-{efmSection}-{tag}-Value",
 			"severity": "error",
+            "qualifier": "",
 			"validation": "X - A non-null fact must appear with specified value"
 		},
 		"f2": {
@@ -2605,11 +2606,13 @@
 		"de": {
 			"message": "dq-{efmSection}-{tag}-Value",
 			"severity": "error",
+            "qualifier": "",
 			"validation": "Document period end date restrictions"
 		},
 		"de5pm": {
 			"message": "dq-{efmSection}-{tag}-Value",
 			"severity": "error",
+            "qualifier": "",
 			"validation": "Document period end date restrictions"
 		},
 		"e503": {
@@ -2673,6 +2676,7 @@
         },
         "n2bn2": {
             "message": "dq-{efmSection}-{tag}-Value",
+            "qualifier": "",
             "severity": "error"
         },
         "n2c": {
@@ -2693,6 +2697,7 @@
         },
         "required-context-duration": {
             "message": "dq-{efmSection}-{tag}-Value",
+            "qualifier": "",
             "severity": "error"
         }
 	},
@@ -2743,7 +2748,7 @@
         "dq-{efmSection}-{taxonomy}-Version-Required": "Submission type {subType} {severityVerb} use {taxonomy} version {earliestTaxonomy} or later.",
         "dq-{efmSection}-Taxonomy-Url-Required": "Submission type {subType} document type {docType} {severityVerb} contain a taxonomy URL matching {taxonomyPattern} in its DTS.",
 		"dq-{efmSection}-{tag}-{value}": "In submission type {subType}, {tag} value {severityVerb} have {value} in the {context}.",
-		"dq-{efmSection}-{tag}-Value": "In submission type {subType}, {tag} value {severityVerb} have {value} in the {context}.",
+		"dq-{efmSection}-{tag}-Value": "In submission type {subType}, {tag} value {severityVerb} be {qualifier}{expectedValue} in the {context}.",
 		"dq-{efmSection}-{tag}-{otherTag}": "In submission type {subType}, {tag} value {severityVerb} have value \"{value}\" in the same context as {otherTag}, {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTag}-Missing": "In submission type {subType}, {tag} requires {otherTag} in the same context, {contextID}.",
 		"dq-{efmSection}-{tag}-Value-{otherTag}-Missing": "In submission type {subType}, {tag} value \"{value}\" requires {otherTag} in the same context, {contextID}.",
