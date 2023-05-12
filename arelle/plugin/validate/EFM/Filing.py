@@ -1150,12 +1150,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 modelXbrl.log(severity, arelleCode, logMsg(message), **logArgs)
                 
             sevs = deiValidations["sub-type-element-validations"]
+            sevCoveredFacts = set()
             deiCAxes = deiValidations["axis-validations"].get("c",EMPTY_DICT).get("axes",EMPTY_LIST)
             # Its possible that extension concepts could have prefixes that match `cef` or `vip`
             # and EFM.6.5.55 or EFM.6.5.56 validations so we exclude all extension namespaces by
             # filtering out prefix namespace combos where the namespace matches known SEC domains.
             deiDefaultPrefixedNamespaces = {
-                prefix: namespace for prefix, namespace in deiValidations["prefixed-namespaces"].items() if secDomainPattern.search(namespace)
+                prefix: namespace for prefix, namespace in deiValidations["prefixed-namespaces"].items() if namespace in disclosureSystem.standardTaxonomiesDict
             }
             messageRuleAxesOrdering = deiValidations.get("message-rule-axes-ordering", ())
             messageRuleAxesDefaults = []
@@ -1174,7 +1175,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
             # called with sev, returns iterator of sev facts for names and axes matching
             # called with sev and name, returns single fact for name matching axesMembers (if any)
-            def sevFacts(sev=None, name=None, otherFact=None, matchDims=None, requiredContext=False, axisKey=None, deduplicate=False, whereKey=None, fallback=None):
+            def sevFacts(sev=None, name=None, otherFact=None, matchDims=None, requiredContext=False, axisKey=None, deduplicate=False, whereKey=None, fallback=None, sevCovered=True):
                 if deduplicate:
                     previouslyYieldedFacts = set()
                     def notdup(f):
@@ -1202,7 +1203,21 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 excludesAxes = "!not!" in axes
                 axisOperator = axesValidations.get("axes-operator", "any")
                 matchCubes = sev.get("cubes")
-                axesQNs = [qname(axis, deiDefaultPrefixedNamespaces) for axis in axes if axis != "!not!"]
+                axesQNs = []
+                for axis in axes:
+                    if axis is None:
+                        axesQNs.append(None)
+                    elif axis.startswith("!std!:"):
+                        for c in modelXbrl.nameConcepts.get(axis[6:],()):
+                            if c.qname.namespaceURI in disclosureSystem.standardTaxonomiesDict:
+                                axesQNs.append(c.qname)
+                    elif axis.startswith("*:"):
+                        for c in modelXbrl.nameConcepts.get(axis[2:],()):
+                            axesQNs.append(c.qname)
+                    elif axis != "!not!":
+                        qn = qname(axis, deiDefaultPrefixedNamespaces) 
+                        if qn is not None:
+                            axesQNs.append(qn)
 
                 members = axesValidations.get("members")
 
@@ -1249,20 +1264,22 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             elif otherFact is not None:
                                 if context.isEqualTo(otherFact.context):
                                     if not deduplicate or notdup(f):
+                                        if sevCovered: sevCoveredFacts.add(f)
                                         yielded = True
                                         yield f
                             elif requiredContext and documentType:
                                 if ((context.isInstantPeriod and not context.qnameDims) or
                                     (context.isStartEndPeriod and context.isEqualTo(documentTypeFact.context))):
                                     if not deduplicate or notdup(f):
+                                        if sevCovered: sevCoveredFacts.add(f)
                                         yielded = True
                                         yield f
-                            elif not context.qnameDims and (not axes or axisKey == "c"):
+                            elif not context.qnameDims and not axes:
                                 if not deduplicate or notdup(f):
+                                    if sevCovered: sevCoveredFacts.add(f)
                                     yielded = True
                                     yield f
                             elif axisOperator == "any":
-                                excludesAxes = "!not!" in axes
                                 hasDimMatch = False
                                 for dim in context.qnameDims.values():
                                     if dim.dimensionQname in axesQNs:
@@ -1271,13 +1288,19 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                             hasDimMatch = True
                                             if not deduplicate or notdup(f):
                                                 if not excludesAxes:
+                                                    if sevCovered: sevCoveredFacts.add(f)
                                                     yielded = True
                                                     yield f
                                             break
                                 if not context.qnameDims and None in axesQNs:
-                                    yielded = True
-                                    yield f
+                                    hasDimMatch = True
+                                    if not deduplicate or notdup(f):
+                                        if not excludesAxes:
+                                            if sevCovered: sevCoveredFacts.add(f)
+                                            yielded = True
+                                            yield f
                                 if excludesAxes and not hasDimMatch:
+                                    if sevCovered: sevCoveredFacts.add(f)
                                     yielded = True
                                     yield f
 
@@ -1289,6 +1312,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 len(context.qnameDims) == len(axes)): # no extra dimensions
                                     if not deduplicate or notdup(f):
                                         if not excludesAxes:
+                                            if sevCovered: sevCoveredFacts.add(f)
                                             yielded = True
                                             yield f
                     if name.startswith("header:") and name[7:] in val.params:
@@ -1298,35 +1322,48 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         yield None
 
             # return first of matching facts or None
-            def sevFact(sev=None, name=None, otherFact=None, requiredContext=False, axisKey=None, whereKey=None):
+            def sevFact(sev=None, name=None, otherFact=None, requiredContext=False, axisKey=None, whereKey=None, sevCovered=True):
                 if isinstance(name, list):
                     for _name in name:
-                        f = sevFact(sev, _name, otherFact, requiredContext, axisKey=axisKey, whereKey=whereKey)
+                        f = sevFact(sev, _name, otherFact, requiredContext, axisKey=axisKey, whereKey=whereKey, sevCovered=sevCovered)
                         if f is not None:
                             return f
                 elif isinstance(name, dict): # dict has name, where-key, and optional axis (else inherits axisKey)
                     if "name" in name and "where-key" in name:
-                        return sevFact(sev, name["name"], otherFact, requiredContext, name.get("axis",axisKey), name["where-key"])
+                        return sevFact(sev, name["name"], otherFact, requiredContext, name.get("axis",axisKey), name["where-key"], sevCovered)
                 else:
-                    for f in sevFacts(sev, name, otherFact, requiredContext, axisKey=axisKey, whereKey=whereKey):
+                    for f in sevFacts(sev, name, otherFact, requiredContext, axisKey=axisKey, whereKey=whereKey, sevCovered=sevCovered):
                         return f
                 return None
 
             def axesValsKey(axisKey, cntx):
                 axesValidations = deiValidations["axis-validations"][axisKey]
-                axisQns = [qname(name, deiDefaultPrefixedNamespaces) for name in axesValidations["axes"]]
+                axesQNs = []
+                for axis in axesValidations["axes"]:
+                    if axis is not None and axis != "!not!":
+                        if axis.startswith("!std!:"):
+                            for c in modelXbrl.nameConcepts.get(axis[6:],()):
+                                if c.qname.namespaceURI in disclosureSystem.standardTaxonomiesDict:
+                                    axesQNs.append(c.qname)
+                        elif axis.startswith("*:"):
+                            for c in modelXbrl.nameConcepts.get(axis[2:],()):
+                                axesQNs.append(c.qname)
+                        else:
+                            qn = qname(axis, deiDefaultPrefixedNamespaces) 
+                            if qn is not None:
+                                axesQNs.append(qn)
                 members = axesValidations.get("members")
                 cubes = axesValidations.get("cubes")
-                if len(axisQns) == len(cntx.qnameDims):
-                    if len(axisQns) == 0:
+                if len(axesQNs) == len(cntx.qnameDims):
+                    if len(axesQNs) == 0:
                         return ()
-                    if all(axisQn in cntx.qnameDims and (not cubes or (any(modelXbrl.relationshipSet("XBRL-dimensions",elr).isRelated(axisQn, "descendant", context.dimValue(axisQn).member) for elr in cubes)))
-                           for axisQn in axisQns
-                           if (not members or cntx.dimMemberQname(axisQn).localName in members)):
+                    if all(axisQN in cntx.qnameDims and (not cubes or (any(modelXbrl.relationshipSet("XBRL-dimensions",elr).isRelated(axisQN, "descendant", context.dimValue(axisQN).member) for elr in cubes)))
+                           for axisQN in axesQNs
+                           if (not members or cntx.dimMemberQname(axisQN).localName in members)):
                         return tuple(
                             dim.typedMember.xValue if dim.isTyped else dim.memberQname.localName
-                            for axisQn in axisQns
-                            for dim in (cntx.qnameDims[axisQn],))
+                            for axisQN in axesQNs
+                            for dim in (cntx.qnameDims[axisQN],))
                 return None # context doesn't match expected dimensions
             
             def ftContext(axisKey, axesValsOrF):
@@ -1342,18 +1379,21 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 else:
                     axesVals = None
                 if axesVals:
-                    for i, name in enumerate(axes):
-                        axisConcepts = modelXbrl.nameConcepts.get(name.rpartition(":")[2], ())
-                        if axisConcepts:
-                            axisConcept = axisConcepts[0]
-                            if (c): c[-1] += ","
-                            c.append(axisConcept.label(XbrlConst.terseLabel))
-                            c.append(str(axesVals[i]))
-                            for f in sorted(modelXbrl.factsByDimMemQname(axisConcept.qname, str(axesVals[i])),
-                                            key=lambda f:f.qname.localName):
-                                if f.qname.localName.endswith("Flag") and "Rule" in f.qname.localName:
-                                    c[-1] += ","
-                                    c.append(f.concept.label(XbrlConst.terseLabel))
+                    try:
+                        for i, name in enumerate(axes):
+                            axisConcepts = modelXbrl.nameConcepts.get(name.rpartition(":")[2], ())
+                            if axisConcepts:
+                                axisConcept = axisConcepts[0]
+                                if (c): c[-1] += ","
+                                c.append(axisConcept.label(XbrlConst.terseLabel))
+                                c.append(str(axesVals[i]))
+                                for f in sorted(modelXbrl.factsByDimMemQname(axisConcept.qname, str(axesVals[i])),
+                                                key=lambda f:f.qname.localName):
+                                    if f.qname.localName.endswith("Flag") and "Rule" in f.qname.localName:
+                                        c[-1] += ","
+                                        c.append(f.concept.label(XbrlConst.terseLabel))
+                    except IndexError: # variable expression for dimension arguments
+                        c = f"Axes {' or '.join(axesValidations.get('names') or axesValidations.get('axes'))} values {axesVals}"
                 return " ".join(c or ["Submission / Fees Summary"])
                 
             def ftName(factOrName):
@@ -1454,8 +1494,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                             unexpectedFacts |= facts
                                     if unexpectedFacts:
                                         sevMessage(sev, subType=submissionType, modelObject=unexpectedFacts, taxonomy=txPrefix)
-                            if sevFact(sev, name) is not None:
-                                unexpectedDeiNameEfmSects[name,axisKey].add(sevIndex)
+                            try:
+                                if sevFact(sev, name, sevCovered=False) is not None:
+                                    unexpectedDeiNameEfmSects[name,axisKey].add(sevIndex)
+                            except Exception as ex:
+                                print(ex)
                         if eloName:
                             unexpectedEloParams.add(eloName)
                     continue
@@ -1474,11 +1517,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if nameAxisKey not in expectedDeiNames:
                             name, axisKey = nameAxisKey
                             if (includeNames is None or name in includeNames) and (excludeNames is None or name not in excludeNames):
-                                facts = sorted(set(f for i in sevIndices for f in sevFacts(i, name)), key=lambda f:f.objectIndex)
-                                sevMessage(sev, subType=submissionType, efmSection=efmSection, tag=name,
-                                                label=ftLabel(name),
-                                                modelObject=facts, ftContext=", ".join(ftContext(axisKey,axesValsKey(axisKey, f.context)) for f in facts),
-                                                typeOfContext="Required Context")
+                                unexpectedFacts = set(f for i in sevIndices for f in sevFacts(i, name, sevCovered=False)) - sevCoveredFacts
+                                if unexpectedFacts:
+                                    facts = sorted(unexpectedFacts, key=lambda f:f.objectIndex)
+                                    sevMessage(sev, subType=submissionType, efmSection=efmSection, tag=name,
+                                                    label=ftLabel(name),
+                                                    modelObject=facts, ftContext=", ".join(ftContext(axisKey,axesValsKey(axisKey, f.context)) for f in facts),
+                                                    typeOfContext="Required Context")
                 elif validation == "(elo-unexpected)":
                     for eloName in sorted(unexpectedEloParams - expectedEloParams):
                         if eloName in val.params:
@@ -1741,7 +1786,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             sevMessage(sev, subType=submissionType, modelObject=f, efmSection=efmSection, tag=ftName(name), label=ftLabel(f), value=value, ftContext=ftContext(axisKey,f))
                 elif validation == "security-axis":
                     for name in names:
-                        facts = tuple(f for f in sevFacts(sev, name, deduplicate=True))
+                        facts = [f for f in sevFacts(sev, name, deduplicate=True)]
                         hasNonDimContext = any((not f.context.qnameDims) for f in facts)
                         hasADRmember = any(isADR(f) for f in facts)
                         if (len(facts) == 1 and not hasNonDimContext and not hasADRmember) or (len(facts) > 1 and hasNonDimContext):
@@ -1807,7 +1852,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     #    print("trace") # uncomment for debug tracing specific validation rules
                     refFactsFound = set()
                     for name in names:
-                        for f in sevFacts(sev, name, deduplicate=True, whereKey="where", fallback=bindIfAbsent):
+                        for f in sevFacts(sev, name, deduplicate=True, whereKey="where", fallback=bindIfAbsent, sevCovered=False):
                             flagFactsFound = set()
                             if f is None:
                                 fMbrVals = () # process reference values
@@ -1818,7 +1863,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if ((value is None or ((fValue in value) == ("!not!" not in value) ))
                                  and fMbrVals is not None): # dimensions match
                                 for rName in referenceTag:
-                                    fr = sevFact(sev, rName, f, axisKey=sev.get("references-axes"), whereKey="references-where") # dependent fact is of context of f or for "c" inherited context (less disaggregated)
+                                    fr = sevFact(sev, rName, f, axisKey=sev.get("references-axes"), whereKey="references-where", sevCovered=False) # dependent fact is of context of f or for "c" inherited context (less disaggregated)
                                     items = [f]
                                     if fr is None:
                                         frValue = "absent"
@@ -1835,7 +1880,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     # find dependent facts without corresponding named fact
                     if "flag" not in validation:
                         for rName in referenceTag:
-                            for fr in sevFacts(sev, rName, deduplicate=True):
+                            for fr in sevFacts(sev, rName, deduplicate=True, sevCovered=False):
                                 fMbrVals = axesValsKey(axisKey, fr.context)
                                 if fMbrVals is not None and fr not in refFactsFound: # dimensions match, ref fact not matched to a name fact
                                     if (fr.xValue in referenceValue) ^ ("!not!" in referenceValue):
@@ -2017,7 +2062,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                        tag=ftName(name), label=ftLabel(name), value=str(f.xValue), headerTag=eloName, valueOfHeaderTag=val.params[eloName])
 
                 if storeDbName or storeDbAction:
-                    for f in sevFacts(sev, names, whereKey="where"):
+                    for f in sevFacts(sev, names, whereKey="where", sevCovered=False):
                         _storeDbName = lcStr(f.qname.localName) if storeDbName == "@lcName" else storeDbName
                         axesValidations = deiValidations["axis-validations"][axisKey]
                         axes = axesValidations["axes"]
@@ -2051,7 +2096,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 for k, v in storeDbAction.items():
                                     storeDbActions.setdefault(storeDbObject,{}).setdefault((),{})[k] = getStoreDBValue(k, v)
 
-            del unexpectedDeiNameEfmSects, expectedDeiNames # dereference
+            del unexpectedDeiNameEfmSects, expectedDeiNames, sevCoveredFacts # dereference
             val.modelXbrl.profileActivity("... submission type element validations", minTimeToShow=0.1)
 
             if documentType in ("SD", "SD/A", "2.01 SD"): # wch - change ultimately to 2.01 SD only
