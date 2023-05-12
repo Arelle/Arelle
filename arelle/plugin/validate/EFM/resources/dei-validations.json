@@ -790,7 +790,7 @@
         "xbrl-names": "EntityCommonStockSharesOutstanding",
         "efm": "6.5.26",
         "validation": "r",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "both",
         "dei/cover": "cover"
     },
@@ -799,7 +799,7 @@
         "xbrl-names": "EntityCommonStockSharesOutstanding",
         "efm": "6.5.26",
         "validation": "o",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "both",
         "dei/cover": "cover"
     },
@@ -808,7 +808,7 @@
         "xbrl-names": "EntityCommonStockSharesOutstanding",
         "efm": "6.5.26",
         "validation": "o",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "both",
         "dei/cover": "dei"
     },
@@ -817,7 +817,7 @@
         "xbrl-names": "EntityCommonStockSharesOutstanding",
         "efm": "6.5.26",
         "validation": "security-axis",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "both",
         "dei/cover": "dei"
     },
@@ -2000,7 +2000,7 @@
             ],
         "efm": "6.5.54",
         "validation": "md-unexpected",
-        "axis": "no-auditor-axis",
+        "axis": "non-auditor-axis",
         "source": "both",
         "dei/cover": "COVER"
     },
@@ -2743,14 +2743,19 @@
         }
 	},
 	"axis-validations-comment": [
-		"axis-code: object of axes (dei prefix implied, others explicit), ",
+		"axis-code: object of axes (dei prefix implied, others explicit, !std! for any standard taxonomy, *: for any taxonomy incl extension), ",
 		"  members (localnames, not prefixed), ",
 		"  cubes (array of Hypercube linkrole URIs), ",
 		"  message where applicable"
 	],
 	"axis-validations": {
 		"c": {
-			"axes": ["us-gaap:StatementClassOfStockAxis", "ifrs-full:ClassesOfShareCapitalAxis"],
+			"axes": ["!std!:StatementClassOfStockAxis", "!std!:ClassesOfShareCapitalAxis"],
+			"message": "dq-{efmSection}-{tag}-Missing"
+		},
+		"c-or-required-context": {
+			"axes": ["!std!:StatementClassOfStockAxis", "!std!:ClassesOfShareCapitalAxis", null],
+			"names": ["StatementClassOfStockAxis", "ClassesOfShareCapitalAxis", "Required Context"],
 			"message": "dq-{efmSection}-{tag}-Missing"
 		},
 		"a": {
@@ -2764,11 +2769,13 @@
 			"message": "dq-{efmSection}-{tag}-Missing"
 		},
         "auditor-axes": {
-            "axes": ["srt:ConsolidatedEntitiesAxis", "srt:ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "LegalEntityAxis", "OwnershipAxis", "CounterpartyNameAxis"],
+            "axes": [null, "!std!:ConsolidatedEntitiesAxis", "!std!:ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "!std!:LegalEntityAxis", "!std!:OwnershipAxis", "srt:CounterpartyNameAxis"],
+            "names": ["Required Context", "ConsolidatedEntitiesAxis", "ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "LegalEntityAxis", "OwnershipAxis", "CounterpartyNameAxis"],
             "message": "dq-{efmSection}-{tags}-Missing"
         },
-        "no-auditor-axis": {
-            "axes": ["!not!", "srt:ConsolidatedEntitiesAxis", "srt:ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "LegalEntityAxis", "OwnershipAxis", "CounterpartyNameAxis"],
+        "non-auditor-axis": {
+            "axes": ["!not!", null, "!std!:ConsolidatedEntitiesAxis", "!std!:ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "!std!:LegalEntityAxis", "!std!:OwnershipAxis", "srt:CounterpartyNameAxis"],
+            "names": ["not", "Required Context", "ConsolidatedEntitiesAxis", "ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "LegalEntityAxis", "OwnershipAxis", "CounterpartyNameAxis"],
             "message": "dq-{efmSection}-{tag}-Unexpected"
         },
         "oef:class": {
