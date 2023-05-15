@@ -412,13 +412,13 @@ class ValidateXbrlCalcs:
             inclA = inclB = _inConsistent = False
             decVals = {}
             for f in fList:
-                _d = inferredDecimals(f)
-                _v = f.xValue
-                if isnan(_v):
+                if f.xValid < VALID or isnan(f.xValue):
                     if len(fList) > 1:
                         _inConsistent = True
                     break
-                elif insignificantDigits(_v, decimals=_d):
+                _d = inferredDecimals(f)
+                _v = f.xValue
+                if insignificantDigits(_v, decimals=_d):
                     _excessDigitFacts.append(f)
                 elif _d in decVals:
                     _inConsistent |= _v != decVals[_d]
