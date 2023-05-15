@@ -13,7 +13,7 @@ typing-extensions==4.5.0
 lxml-stubs==0.4.0
 types-PyMySQL==1.0.19.7
 types-pytz==2023.3.0.0
-types-simplejson==3.19.0.0
+types-simplejson==3.19.0.1
 types-ujson==5.7.0.5
 types-regex==2023.5.5.0
 types-waitress==2.1.4.8
