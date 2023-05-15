@@ -11,7 +11,7 @@ pytest==7.3.1
 
 typing-extensions==4.5.0
 lxml-stubs==0.4.0
-types-PyMySQL==1.0.19.6
+types-PyMySQL==1.0.19.7
 types-pytz==2023.3.0.0
 types-simplejson==3.19.0.0
 types-ujson==5.7.0.5
