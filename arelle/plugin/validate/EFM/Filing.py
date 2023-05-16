@@ -1021,15 +1021,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             if val.params.get("exhibitType") and documentType is not None:
                 _exhibitType = val.params["exhibitType"]
                 if (documentType in ("2.01 SD",)) != (_exhibitType == "EX-2.01"):
-                    modelXbrl.error({"EX-100":"EFM.6.58.04",
-                                     "EX-101":"EFM.6.58.04",
-                                     "EX-99.K SDR.INS":"EFM.6.58.04",
-                                     "EX-99.L SDR.INS":"EFM.6.58.04",
-                                     "EX-2.01":"EFM.6.58.05"}.get(_exhibitType,"EX-101"),
-                        #edgarCode
+                    modelXbrl.error("EFM.6.05.58.exhibitDocumentType",
                         _("The value for dei:DocumentType, %(documentType)s, is not allowed for %(exhibitType)s attachments."),
                         modelObject=documentTypeFact, contextID=documentTypeFactContextID, documentType=documentType, exhibitType=_exhibitType,
-                        messageCodes=("EFM.6.58.04", "EFM.6.58.04", "EFM.6.58.05"))
+                        edgarCode="rxp-0558-Exhibit-Document-Type")
                 elif (((documentType == "K SDR") != (_exhibitType in ("EX-99.K SDR", "EX-99.K SDR.INS"))) or
                       ((documentType == "L SDR") != (_exhibitType in ("EX-99.L SDR", "EX-99.L SDR.INS")))):
                     modelXbrl.error("EFM.6.05.20.exhibitDocumentType",
@@ -2167,9 +2162,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if f1 is not None and documentPeriodEndDateFact is not None and f1.xValid >= VALID and documentPeriodEndDateFact.xValid >= VALID:
                     d = ModelValue.dateunionDate(documentPeriodEndDateFact.xValue)# is an end date, convert back to a start date without midnight part
                     if f1.xValue.month != d.month or f1.xValue.day != d.day:
-                        modelXbrl.error("EFM.6.58.26", # wch we might not care
+                        modelXbrl.error("EFM.6.05.58", # wch we might not care
                             _("The financial period %(reportingPeriod)s does not match the fiscal year end %(fyEndDate)s."),
-                            edgarCode="rxp-2326-Fiscal-Year-End-Date-Value",
+                            edgarCode="rxp-0558-Fiscal-Year-End-Date-Value",
                             modelObject=(f1,documentPeriodEndDateFact), fyEndDate=f1.value, reportingPeriod=documentPeriodEndDateFact.value)
                 # if (documentPeriodEndDateFact is not None and documentPeriodEndDateFact.xValid >= VALID and
                 #     not any(f2.xValue == documentPeriodEndDateFact.xValue
@@ -2300,7 +2295,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if rxp.A in qnameFacts and not qnameFacts[rxp.A].isNil:
                         if (rxp.Cm in qnameFacts and not qnameFacts[rxp.Cm].isNil and
                             qnameFacts[rxp.A].unit is not None and qnameFacts[rxp.A].unit.measures == currencyMeasures):
-                            modelXbrl.error("EFM.6.04.58.04",
+                            modelXbrl.error("EFM.6.05.58.04",
                                 _("A value cannot be given for rxp:Cm in context %(context)s because the payment is in the reporting currency %(currency)s."),
                                 edgarCode="rxp-055804-Conversion-Method-Value",
                                 modelObject=(qnameFacts[rxp.A],qnameFacts[rxp.Cm]), context=context.id, currency=qnCurrencyMeasure)
@@ -2329,11 +2324,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             _("A payment for each project axis member is required.  Provide a value for element rxp:Pr with value %(dimension)s in context %(context)s."),
                             edgarCode="rxp-055809-Project-Payment-Amount-Existence",
                             modelObject=context, context=context.id, dimension=rxp.GovernmentAxis)
-                    if not context.hasDimension(rxp.PmtAxis) and rxp.A in qnameFacts and not qnameFacts[rxp.A].isNil:
-                        modelXbrl.error("EFM.6.05.58.??",
-                            _("There is a fact with element rxp:A in context %(context)s not defining its payment number on axis rxp:PmtAxis."),
-                            edgarCode="rxp-0558??-Amount-Line-Existence",
-                            modelObject=(context, qnameFacts[rxp.A]), context=context.id)
+                    #if not context.hasDimension(rxp.PmtAxis) and rxp.A in qnameFacts and not qnameFacts[rxp.A].isNil:
+                    #    modelXbrl.error("EFM.6.05.58.??",
+                    #        _("There is a fact with element rxp:A in context %(context)s not defining its payment number on axis rxp:PmtAxis."),
+                    #        edgarCode="rxp-0558??-Amount-Line-Existence",
+                    #        modelObject=(context, qnameFacts[rxp.A]), context=context.id)
                 if hasRxpAwithCurAndYr == False:
                     modelXbrl.error("EFM.6.05.58.05",
                             _("Amount rxp:A missing for reporting currency and matching 12 months preceeding dei:DocumentPeriodEndDate."),
@@ -2714,7 +2709,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             for level, err, verb in (("WARNING", False, "should"), ("ERROR", True, "MUST")):
                 facts = [f for f, _err in undisplayedCoverFacts.items() if _err == err]
                 if facts:
-                    modelXbrl.log(level, "EFM.6.05.45.cover-page-fact-not-visible",
+                    modelXbrl.log(level, "EFM.6.05.45.coverPageFactNotVisible",
                         _("Submission type %(subType)s has %(countUnreferenced)s cover page fact(s) in ix:hidden that %(verb)s be visible or referenced by an -sec-ix-hidden style property: %(elements)s"),
                         edgarCode="dq-0545-Cover-Page-Fact-Not-Visible",
                         modelObject=facts, subType=submissionType, countUnreferenced=len(facts), verb=verb,
@@ -3690,7 +3685,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 if not factsFound:
                                     modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(dqcRule["message-no-facts"])),
                                         modelObject=mRel, member=memName, axis=dimName, linkRole=rel.linkrole,
-                                        edgarCode=edgarCode, ruleElementId=id)
+                                        edgarCode=f"{edgarCode}-No-Facts", ruleElementId=id)
         elif dqcRuleName == "DQC.US.0057":
             linkroleUris = OrderedSet(modelLink.role for modelLink in val.modelXbrl.baseSets[(XbrlConst.parentChild,None,None,None)])
             for linkroleUri in linkroleUris: # role ELRs may be repeated in pre LB
@@ -3721,7 +3716,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(rule["message"])),
                                 modelObject=balanceElts, role=linkroleUri, elementNames=", ".join(mustBePresentElements),
                                 balanceElements=", ".join(sorted(balanceEltNames)),
-                                edgarCode=edgarCode, ruleElementId=id)
+                                edgarCode=f"{edgarCode}-{id}", ruleElementId=id)
                     balanceElts.clear() # deref
         elif dqcRuleName == "DQC.US.0060":
             for id, rule in dqcRule["rules"].items():
