@@ -89,7 +89,7 @@
             "57": {
                 "axis": "ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis",
                 "axis-descendants": "None",
-                "additional-members": ["EquityMethodInvesteeNameDomain"],
+                "additional-members": ["EquityMethodInvesteeNameDomain", "OtherInvesteesMember"],
                 "extensions-allowed": "Yes"
             },
             "58": {
@@ -170,7 +170,9 @@
             "75": {
                 "axis": "StatementEquityComponentsAxis",
                 "axis-descendants": "Yes",
-                "additional-members": ["AccumulatedNetGainLossFromCashFlowHedgesIncludingPortionAttributableToNoncontrollingInterestMember", "AccumulatedNetGainLossFromDesignatedOrQualifyingCashFlowHedgesMember", "AccumulatedNetGainLossFromCashFlowHedgesAttributableToNoncontrollingInterestMember", "TrustForBenefitOfEmployeesMember"],
+                "additional-members": ["AccumulatedNetGainLossFromCashFlowHedgesIncludingPortionAttributableToNoncontrollingInterestMember", "AccumulatedNetGainLossFromDesignatedOrQualifyingCashFlowHedgesMember", "AccumulatedNetGainLossFromCashFlowHedgesAttributableToNoncontrollingInterestMember", "TrustForBenefitOfEmployeesMember",
+                	"AociLiabilityForFuturePolicyBenefitNoncontrollingInterestMember", "AociLiabilityForFuturePolicyBenefitParentMember", "AociLiabilityForFuturePolicyBenefitIncludingNoncontrollingInterestMember", "AociMarketRiskBenefitInstrumentSpecificCreditRiskIncludingNoncontrollingInterestMember", "AociMarketRiskBenefitInstrumentSpecificCreditRiskParentMember", "AociMarketRiskBenefitInstrumentSpecificCreditRiskNoncontrollingInterestMember"
+                	],
                 "extensions-allowed": "Yes",
                 "comment": "DQC implementation additionally notes in message when disallowed member is also in the StatementClassOfStockAxis"
             },
@@ -523,14 +525,19 @@
         "description" : [
             "DQC.US 0015 rule entries based on the DQCRT taxonomy rule 0015 entries specifying facts and rule IDs.",
             "",
-            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0015/DQC_0015.md"
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0015/DQC_0015.md",
+            "",
+            "excluded-concept-typed-dimensions is a dict by concept localname of type dim localnames which when present exclude from nonneg test"
         ],
         "message": "Fact {name} has a value of {value} which is less than zero. This element should not have a negative value. The preparer should consider if the value is input correctly for this assertion and, after considering the appropriateness of the input, if incorrect, input the amount as a positive (i.e., absolute) value and provide a negated label.  \nThe properties of this {name} fact are:\nContext: {contextID} \nUnit: {unitID}",
         "additional-excluded-names": [
         	"SupplementalInformationForPropertyCasualtyInsuranceUnderwritersNetInvestmentIncome",
         	"SupplementaryInsuranceInformationNetInvestmentIncome",
         	"LeveragedLeasesIncomeStatementNetIncomeFromLeveragedLeases"
-        ] 
+        ],
+        "excluded-concept-typed-dimensions": {
+        	"InvestmentOwnedAtCost": ["InvestmentIdentifierAxis"]
+        }
     },
     "DQC.US.0033": {
     	"name": "Document Period End Date Context",
@@ -1129,7 +1136,6 @@
 					"connecticutmember": "stpr:CT",
 					"cookislandsmember": "country:CK",
 					"costaricamember": "country:CR",
-					"costaricamember": "country:CR",
 					"cotedivoiremember": "country:CI",
 					"croatiamember": "country:HR",
 					"cubamember": "country:CU",
@@ -1161,7 +1167,6 @@
 					"georgiamember": "stpr:GA",
 					"georgiamember": "country:GE",
 					"germanymember": "country:DE",
-					"ghanamember": "country:GH",
 					"ghanamember": "country:GH",
 					"gibraltarmember": "country:GI",
 					"greecemember": "country:GR",

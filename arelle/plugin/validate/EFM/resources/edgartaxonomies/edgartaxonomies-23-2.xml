@@ -39,7 +39,7 @@
         <AttType>SCH</AttType>
         <FileTypeName>Schema</FileTypeName>
         <Elements>1</Elements>
-        <Namespace>http://xbrl.sec.gov/snj/2023</Namespace>
+        <Namespace>http://xbrl.sec.gov/snj-def/2023</Namespace>
         <Prefix>snj-def</Prefix>
     </Loc>
     <!-- Missing Country def 2023 -->
