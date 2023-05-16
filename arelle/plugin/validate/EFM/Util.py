@@ -99,12 +99,12 @@ class ValueRange:
         return self.v1 <= v <= self.v2
     def __repr__(self):
         return f"from {self.v1} to {self.v2}"
-    
+
 class NumericRange(ValueRange):
     def __init__(self, r):
         self.v1 = Decimal(r[0])
         self.v2 = Decimal(r[1])
-    
+
 class DateRange(ValueRange):
     def __init__(self, r):
         self.v1 = dateTime(r[0], type=DATE)
@@ -170,8 +170,8 @@ def loadDeiValidations(modelXbrl, isInlineXbrl, exhibitType):
                                 _("Missing sub-type-element-validation[\"value\"] from %(validation)s, must be a list."),
                                 field=field, validation=sev)
         if validationCode and validationCode.startswith("fdep") and "references"not in sev:
-            modelXbrl.error("arelle:loadDeiValidations", 
-                            _("Missing sub-type-element-validation[\"references\"] from %(validation)s."), 
+            modelXbrl.error("arelle:loadDeiValidations",
+                            _("Missing sub-type-element-validation[\"references\"] from %(validation)s."),
                             field=field, validation=sev)
         if validationCode in ():
             if isinstance(sev.get("reference-value"), list):
@@ -229,8 +229,8 @@ def loadDeiValidations(modelXbrl, isInlineXbrl, exhibitType):
             if field.endswith("where") and isinstance(value, dict):
                 for cond, clause in value.items():
                     if not isinstance(clause, list):
-                        modelXbrl.error("arelle:loadDeiValidations", 
-                                        _("Where clause %(field)s %(cond)s from %(validation)s, must be a list."), 
+                        modelXbrl.error("arelle:loadDeiValidations",
+                                        _("Where clause %(field)s %(cond)s from %(validation)s, must be a list."),
                                         field=field, cond=cond, validation=sev)
     for axisKey, axisValidation in validations["axis-validations"].items():
         messageKey = axisValidation.get("message")
