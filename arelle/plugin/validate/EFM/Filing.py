@@ -982,9 +982,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if classAxisQname.namespaceURI in disclosureSystem.standardTaxonomiesDict:
                     classAxisRelationshipSet = modelXbrl.modelXbrl.relationshipSet("XBRL-dimensions", "http://xbrl.sec.gov/oef/role/ClassOnly")
                     if val.params.get("rptIncludeAllClassesFlag") in (True, "Yes", "yes", "Y", "y"):
-                        classIds = val.params.get("classIds", ())
+                        classIds = val.params.get("newClass2.classIds", ())
                     else:
-                        classIds = val.params.get("classIds", ())
+                        classIds = val.params.get("rptSeriesClassInfo.classIds", ())
                     for classId in sorted(set(classIds)): # series Ids are a hierarchy and need to be de-duplicated and ordered
                         classIdMemberName = classId + "Member"
                         classIdMember = None
