@@ -34,13 +34,14 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
    "rptIncludeAllSeriesFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "rptSeriesClassInfo.seriesIds": ["S0000990666", ...] # list of EDGAR seriesId values
    "newClass2.seriesIds": [] # //seriesId xpath result on submission headers
+   "rptIncludeAllClassesFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
+   "rptSeriesClassInfo.classIds": ["C000000123", ...] # list of EDGAR classId values
+   "newClass2.classIds": [] # //classId xpath result on submission headers
    "saveCoverFacts": test environment file into which to save JSON output
    # CEF forms
    "eligibleFundFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "pursuantGeneralInstructionFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "filerNewRegistrantFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
-   # OEF forms
-   "classIds": ["C000000123", ...] # list of EDGAR classId values
    # Test/debug fields
    datetimeForTesting: xml-syntax datetime to override clock time for test/debug purposes
    dqcRuleFilter: null or absent for all DQC rules, else regular expression to filter which rules run
@@ -139,7 +140,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                       "wellKnownSeasonedIssuerFlag", "shellCompanyFlag", "acceleratedFilerStatus", "smallBusinessFlag",
                       "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "invCompanyType",
                       "rptIncludeAllSeriesFlag", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds",
-                      "classIds",
+                      "rptIncludeAllClassesFlag", "rptSeriesClassInfo.classIds", "newClass2.classIds",
                       "eligibleFundFlag", "pursuantGeneralInstructionFlag", "filerNewRegistrantFlag",
                       "datetimeForTesting", "dqcRuleFilter", "saveCoverFacts")
     parameterEisFileTags = {
@@ -183,7 +184,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                                      "smallBusinessFlag", "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "rptIncludeAllSeriesFlag",
                                      "filerNewRegistrantFlag", "pursuantGeneralInstructionFlag", "eligibleFundFlag"}:
                         v = {"true":True, "false":False}.get(v)
-                    elif paramName in {"itemsList", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds", "classIds"}:
+                    elif paramName in {"itemsList", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds", "rptSeriesClassInfo.classIds", "newClass2.classIds"}:
                         v = v.split()
                 val.params[paramName] = v
         if "CIK" in val.params: # change to lower case key
