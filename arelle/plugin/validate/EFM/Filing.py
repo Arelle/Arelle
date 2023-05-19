@@ -35,7 +35,7 @@ from .Consts import submissionTypesAllowingWellKnownSeasonedIssuer, \
                     submissionTypesAllowingAcceleratedFilerStatus, submissionTypesAllowingShellCompanyFlag, \
                     submissionTypesAllowingEdgarSmallBusinessFlag, submissionTypesAllowingEmergingGrowthCompanyFlag, \
                     submissionTypesAllowingExTransitionPeriodFlag, submissionTypesAllowingSeriesClasses, \
-                    submissionTypesRequiringOefClasses, \
+                    submissionTypesRequiringOefClasses, invCompanyTypesRequiringOefClasses, \
                     submissionTypesExemptFromRoleOrder, docTypesExemptFromRoleOrder, \
                     submissionTypesAllowingPeriodOfReport, docTypesRequiringPeriodOfReport, \
                     docTypesRequiringEntityWellKnownSeasonedIssuer, invCompanyTypesAllowingSeriesClasses, \
@@ -975,7 +975,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 edgarCode="dq-0541-Series-Id-Member-Not-In-Context",
                                 modelObject=(modelXbrl,seriesIdMember), seriesIdMember=seriesIdMemberName, subType=submissionType)
          # seriesId 6.5.57 OEF Classes
-        if submissionType in submissionTypesRequiringOefClasses:
+        if submissionType in submissionTypesRequiringOefClasses and val.params.get("invCompanyType") in invCompanyTypesRequiringOefClasses:
             classAxis = modelXbrl.nameConcepts.get("ClassAxis",())
             if len(classAxis) > 0:
                 classAxisQname = classAxis[0].qname
@@ -2180,18 +2180,15 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         doc.type == ModelDocument.Type.SCHEMA):
                         for concept in XmlUtil.children(doc.xmlRootElement, XbrlConst.xsd, "element"):
                             name = concept.name
-                            if not concept.isAbstract and not concept.isTextBlock:
-                                modelXbrl.error("EFM.6.58.12",
-                                    _("%(schemaName)s contained a non-abstract declaration for %(name)s that is not a Text Block.  "
-                                      "Use a standard element or change the type to Text Block."),
-                                    edgarCode="rxp-2312-Custom-Element-Value",
-                                    modelObject=concept, schemaName=doc.basename, name=concept.name, concept=concept.qname)
-                            elif name.endswith("Table") or name.endswith("Axis") or name.endswith("Domain"):
-                                modelXbrl.error("EFM.6.58.13",
-                                    _("%(schemaName)s contained a declaration for %(name)s that is not allowed.  "
-                                      "Use dimensions from a standard schema instead."),
-                                    edgarCode="rxp-2313-Custom-Dimension-Existence",
-                                    modelObject=concept, schemaName=doc.basename, name=concept.name, concept=concept.qname)
+                            if not concept.isAbstract or concept.isHypercubeItem or concept.isDimensionItem:
+                                modelXbrl.error("EFM.6.05.58.customElementDeclaration",
+                                    _("%(schemaName)s contained a disallowed %(disallowance)s declaration for element %(concept)s.  "
+                                      "Use a standard RXP element instead."),
+                                    edgarCode="rxp-2312-Custom-Element-Declaration",
+                                    modelObject=concept, schemaName=doc.basename, concept=concept.qname,
+                                                disallowance="non-abstract" if not concept.isAbstract
+                                                             else "hypercube" if concept.isHypercubeItem
+                                                             else "dimension")
                 val.modelXbrl.profileActivity("... SD checks 6-13, 26-27", minTimeToShow=1.0)
                 dimDefRelSet = modelXbrl.relationshipSet(XbrlConst.dimensionDefault)
                 dimDomRelSet = modelXbrl.relationshipSet(XbrlConst.dimensionDomain)
@@ -2324,11 +2321,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             _("A payment for each project axis member is required.  Provide a value for element rxp:Pr with value %(dimension)s in context %(context)s."),
                             edgarCode="rxp-055809-Project-Payment-Amount-Existence",
                             modelObject=context, context=context.id, dimension=rxp.GovernmentAxis)
-                    #if not context.hasDimension(rxp.PmtAxis) and rxp.A in qnameFacts and not qnameFacts[rxp.A].isNil:
-                    #    modelXbrl.error("EFM.6.05.58.??",
-                    #        _("There is a fact with element rxp:A in context %(context)s not defining its payment number on axis rxp:PmtAxis."),
-                    #        edgarCode="rxp-0558??-Amount-Line-Existence",
-                    #        modelObject=(context, qnameFacts[rxp.A]), context=context.id)
                 if hasRxpAwithCurAndYr == False:
                     modelXbrl.error("EFM.6.05.58.05",
                             _("Amount rxp:A missing for reporting currency and matching 12 months preceeding dei:DocumentPeriodEndDate."),
@@ -2356,9 +2348,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             val.modelXbrl.profileActivity("... filer required facts checks", minTimeToShow=1.0)
 
         # log extracted facts
-        if (isXbrlInstance or isFtJson) and (extractedCoverFacts or storeDbObjectFacts) and False: #### FIX ####
-            if storeDbObjectFacts.get("eloValuesFromFacts"):
-                storeDbObjectFacts["eloValuesFromFacts"]["missingReqInlineTag"] = ["no", "yes"][missingReqInlineTag]
+        if (isXbrlInstance or isFtJson) and (extractedCoverFacts or storeDbObjectFacts):
             contextualFactNameSets = (("Security12bTitle", "TradingSymbol"), ("Security12gTitle", "TradingSymbol"))
             exchangeFactName = "SecurityExchangeName"
             exchangeAxisQN = qname(deiNamespaceURI, "EntityListingsExchangeAxis")
@@ -2427,6 +2417,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                                 rec.append(f)
                                         addCoverFactRecord(rec)
             jsonParam = OrderedDict()
+            if storeDbObjectFacts.get("eloValuesFromFacts"):
+                jsonParam["missingReqInlineTag"] = ["no", "yes"][missingReqInlineTag]
             if coverFactRecords:
                 jsonParam["coverFacts"] = [dict(keyval for keyval in rec) for rec in sorted(coverFactRecords)]
             for _objName, _objFacts in sorted(storeDbObjectFacts.items(), key=lambda i:i[0]):
@@ -2447,12 +2439,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     else:
                         _orderedObjFacts = OrderedDict((k,v) for k,v in sorted(_objFacts.items()))
                 jsonParam[_objName] = _orderedObjFacts
-            if "coverFacts" in jsonParam:
-                jsonObjType = "cover"
-                testEnvJsonFile = val.params.get("saveCoverFacts")
-            else:
+            if isFeeTagging:
                 jsonObjType = "fee"
                 testEnvJsonFile = val.params.get("saveFeeFacts")
+            else:
+                jsonObjType = "cover"
+                testEnvJsonFile = val.params.get("saveCoverFacts")
             modelXbrl.log("INFO-RESULT",
                           "EFM.{}Facts".format(jsonObjType),
                           "Extracted {} facts returned as json parameter".format(jsonObjType),
@@ -3159,6 +3151,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     for rel in modelXbrl.relationshipSet("XBRL-dimensions").modelRelationships:
                         if not isStandardUri(val, rel.modelDocument.uri) and rel.modelDocument.targetNamespace not in val.otherStandardTaxonomies:
                             relFrom = rel.fromModelObject
+                            relFromQNstr = str(relFrom.qname)
                             relTo = rel.toModelObject
                             if relFrom is not None and relTo is not None:
                                 if ((relFrom.qname.namespaceURI == ns or relTo.qname.namespaceURI == ns)
@@ -3167,7 +3160,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         (relFrom.qname.namespaceURI == ns and relTo.qname.namespaceURI == ns and lbVal.elrDefInNs.match(rel.linkrole))
                                         or
                                         (relFrom.qname.namespaceURI == ns and lbVal.elrDefExNs.match(rel.linkrole))
-                                      ))):
+                                        or
+                                        (lbVal.elrDefNoTgtRole and rel.targetRole)
+                                        or
+                                        (elrDefRoleSrc.get(rel.linkrole,relFromQNstr) == relFromQNstr)
+                                      )
+                                    )
+                                   ):
                                     modelXbrl.error(f"EFM.{lbVal.efmDef}.relationshipNotPermitted",
                                         _("The %(arcrole)s relationship from %(conceptFrom)s to %(conceptTo)s, link role %(linkroleDefinition)s, is not permitted."),
                                         edgarCode=f"du-{lbVal.efmDef[2:4]}{lbVal.efmDef[5:]}-Relationship-Not-Permitted",
