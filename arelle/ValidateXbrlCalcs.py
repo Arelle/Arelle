@@ -271,7 +271,7 @@ class ValidateXbrlCalcs:
                                                         del unreportedContribingItemQnames[:]
                                     if calc11:
                                         s1, s2, incls1, incls2 = self.consistentFactValueInterval(sumFacts, calc11t)
-                                        if s1 is not INCONSISTENT and sumBindKey not in blockedIntervals and sumBindKey in boundIntervals:
+                                        if s1 is not INCONSISTENT and s1 is not NIL_FACT_SET and sumBindKey not in blockedIntervals and sumBindKey in boundIntervals:
                                             x1, x2, inclx1, inclx2 = boundIntervals[sumBindKey]
                                             a = max(s1, x1)
                                             b = min(s2, x2)
@@ -337,7 +337,7 @@ class ValidateXbrlCalcs:
     def bindFacts(self, facts, ancestors):
         for f in facts:
             concept = f.concept
-            if concept is not None:
+            if concept is not None and f.xValid >= VALID:
                 # index facts by their calc relationship set
                 if concept.isNumeric:
                     for ancestor in ancestors:
@@ -412,13 +412,13 @@ class ValidateXbrlCalcs:
             inclA = inclB = _inConsistent = False
             decVals = {}
             for f in fList:
-                _d = inferredDecimals(f)
-                _v = f.xValue
-                if isnan(_v):
+                if isnan(f.xValue):
                     if len(fList) > 1:
                         _inConsistent = True
                     break
-                elif insignificantDigits(_v, decimals=_d):
+                _d = inferredDecimals(f)
+                _v = f.xValue
+                if insignificantDigits(_v, decimals=_d):
                     _excessDigitFacts.append(f)
                 elif _d in decVals:
                     _inConsistent |= _v != decVals[_d]

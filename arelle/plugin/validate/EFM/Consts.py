@@ -58,8 +58,9 @@ submissionTypesAllowingAcceleratedFilerStatus = docTypes10K10KT | docTypes20F
 submissionTypesAllowingEntityInvCompanyType = docTypesRR | {
     'N-CSR', 'N-CSR/A', 'N-CSRS', 'N-CSRS/A', 'N-Q', 'N-Q/A'}
 submissionTypesAllowingSeriesClasses = docTypesRR | {
-    "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A", 'N-Q', 'N-Q/A'}
+    'N-Q', 'N-Q/A'}
 invCompanyTypesAllowingSeriesClasses = {"N-1A", "N-3"}
+invCompanyTypesRequiringOefClasses = {"N-1A"}
 submissionTypesRequiringOefClasses = {'N-CSR', 'N-CSR/A', 'N-CSRS', 'N-CSRS/A',}
 
 docTypesRequiringPeriodOfReport = {"10", "10-K", "10-Q", "20-F", "40-F", "6-K", "8-K",
@@ -268,6 +269,15 @@ latestEntireUgt = {
     }
 
 linkbaseValidations = {
+    # key - validation taxonomy prefix
+    # efmPre, Cal, Def - EFM section for linkbase constraint
+    # elrPre - regex matching allowed linkrole for extension 
+    # elrPreDocTypes - list of doc types which are checked for this validation
+    # elrDefInNs - regex of linkroles permitting extension relationships between base taxonomy concepts
+    # elrDefExNs - regex of linkroles permitting extension relationships between base and non-base concepts
+    # elrDefNoTgtRole - true to block extension arcs with target role
+    # preSources - local names of allowed source elements
+    # preCustELFs - true to allow custom linkroles in extension
     "cef": attrdict(
         efmPre = "6.12.10",
         efmCal = "6.14.06",
@@ -276,6 +286,7 @@ linkbaseValidations = {
         elrPreDocTypes = ("N-2", "N-2/A"), # only these doc types are checked
         elrDefInNs = re.compile("http://xbrl.sec.gov/cef/role/N2"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/cef/role/(Security|Risk)Only"),
+        elrDefNoTgtRole = False,
         preSources = ("AllSecuritiesMember", "AllRisksMember", "ClassOfStockDomain", "DebtInstrumentNameDomain"),
         preCustELRs = False
     ),
@@ -286,6 +297,7 @@ linkbaseValidations = {
         elrPre = re.compile("http://xbrl.sec.gov/vip/role/N[346]"),
         elrDefInNs = re.compile("http://xbrl.sec.gov/vip/role/[^/]*Only"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/vip/role/[^/]*Only"),
+        elrDefNoTgtRole = False,
         preSources = (),
         preCustELRs = False
     ),
@@ -296,6 +308,7 @@ linkbaseValidations = {
         elrPre = None,
         elrDefInNs = re.compile("http://xbrl.sec.gov/ecd/role/"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/ecd/role/[^/]*Only"),
+        elrDefNoTgtRole = False,
         preSources = (),
         preCustELRs = True
     ),
@@ -306,8 +319,28 @@ linkbaseValidations = {
         # Need to add the "Only" suffix to these rr roles for consistency.
         elrDefInNs = re.compile("http://xbrl.sec.gov/(oef/role/[^/]*Only|rr/role/(Series|Class|Coregistrant|Prospectus|Risk|PerformanceMeasure))"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/(oef/role/[^/]*Only|rr/role/(Series|Class|Coregistrant|Prospectus|Risk|PerformanceMeasure))"),
+        elrDefNoTgtRole = False,
         preSources = (),
         efmPre = None,
         preCustELRs = True
+    ),
+    "rxp": attrdict(
+        efmCal = "6.14.10",
+        elrCalDocTypes = ('2.01 SD'),
+        efmDef = "6.16.14",
+        elrDefDocTypes = ('2.01 SD'),
+        elrDefInNs = re.compile("never permitted"),
+        elrDefExNs = re.compile("http://xbrl.sec.gov/rxp/role/(Projects|Governments|Segments|LegalEntities|Resources)"),
+        elrDefRoleSrc = {
+            "http://xbrl.sec.gov/rxp/role/Projects": "rxp:AllProjectsMember",
+            "http://xbrl.sec.gov/rxp/role/Governments": "rxp:AllGovernmentsMember",
+            "http://xbrl.sec.gov/rxp/role/Segments": "rxp:AllSegmentsMember",
+            "http://xbrl.sec.gov/rxp/role/LegalEntities": "dei:EntityDomain",
+            "http://xbrl.sec.gov/rxp/role/Resources": "rxp:AllResourcesMember"
+            },
+        elrDefNoTgtRole = True,
+        preSources = (),
+        efmPre = None,
+        preCustELRs = True,
     ),
 }
