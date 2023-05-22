@@ -20,7 +20,7 @@ Matplotlib==3.6.1 ; python_version >= "3.8"
 holidays==0.25
 Tornado==6.2
 # security plugin
-PyCryptodome==3.17
+PyCryptodome==3.18.0
 # xbrlDB plugin
 cx_Oracle==8.3.0
 pg8000==1.29.4
