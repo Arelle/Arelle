@@ -159,11 +159,10 @@ def compileAspectRules( sourceStr, loc, toks ):
     try:
         attrib = {}
         prevTok = None
-        #HF TODO
-        #for tok in toks:
-        #    if prevTok == "source":
-        #        attrib["source"] = variableRefQname(tok)
-        #    prevTok = tok
+        for tok in toks:
+            if prevTok == "source":
+                attrib["source"] = variableRefQname(tok)
+            prevTok = tok
         elt = lbGen.element("formula:aspects", attrib=attrib)
         for tok in toks:
             if isinstance(tok, FormulaAspectElt):
@@ -193,7 +192,7 @@ def compileAspectRuleEntityIdentifier( sourceStr, loc, toks ):
             if prevTok == "scheme":
                 attrib["scheme"] = str(tok)
             elif prevTok == "identifier":
-                attrib["identifier"] = str(tok)
+                attrib["value"] = str(tok)
             prevTok = tok
         elt = lbGen.element("formula:entityIdentifier", attrib=attrib)
         return [FormulaAspectElt(elt)]
@@ -224,11 +223,14 @@ def compileAspectRuleUnit( sourceStr, loc, toks ):
     try:
         elt = lbGen.element("formula:unit")
         prevTok = None
+        elt.set("augment", "false") # default when augment not in xf source
         for tok in toks:
             if tok == "augment":
                 elt.set("augment", "true")
+            elif prevTok == "source":
+                elt.set("source", variableRefQname(tok))
             elif isinstance(tok, FormulaAspectElt):
-                elt.append(tok)
+                elt.append(tok.elt)
             prevTok = tok
         return [FormulaAspectElt(elt)]
     except Exception as ex:
@@ -237,7 +239,7 @@ def compileAspectRuleUnit( sourceStr, loc, toks ):
 def compileAspectRuleUnitTerm( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     try:
-        elt = lbGen.element("formula:" + camelCase(tok[0]))
+        elt = lbGen.element("formula:" + camelCase(toks[0]))
         prevTok = None
         for tok in toks:
             if prevTok == "source":
@@ -252,10 +254,14 @@ def compileAspectRuleUnitTerm( sourceStr, loc, toks ):
 def compileAspectRuleExplicitDimension( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     try:
-        elt = lbGen.element("formula:explicitDimension", attrib={"dimension": tok[0]})
+        elt = lbGen.element("formula:explicitDimension", attrib={"dimension": toks[0]})
+        prevTok = None
         for tok in toks:
-            if isinstance(tok, FormulaAspectElt):
-                elt.append(tok)
+            if prevTok == "source":
+                elt.set("source", variableRefQname(tok))
+            elif isinstance(tok, FormulaAspectElt):
+                elt.append(tok.elt)
+            prevTok = tok
         return [FormulaAspectElt(elt)]
     except Exception as ex:
         raiseCompilationError(ex)
@@ -282,10 +288,14 @@ def compileAspectRuleExplicitDimensionTerm( sourceStr, loc, toks ):
 def compileAspectRuleTypedDimension( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     try:
-        elt = lbGen.element("formula:typedDimension", attrib={"dimension": tok[0]})
+        elt = lbGen.element("formula:typedDimension", attrib={"dimension": toks[0]})
+        prevTok = None
         for tok in toks:
-            if isinstance(tok, FormulaAspectElt):
-                elt.append(tok)
+            if prevTok == "source":
+                elt.set("source", variableRefQname(tok))
+            elif isinstance(tok, FormulaAspectElt):
+                elt.append(tok.elt)
+            prevTok = tok
         return [FormulaAspectElt(elt)]
     except Exception as ex:
         raiseCompilationError(ex)
@@ -1574,18 +1584,22 @@ def compileXfsGrammar( cntlr, debugParsing ):
               (QuotedString('"',multiline=True,escChar="\\") | QuotedString("'",multiline=True,escChar="\\")) +
               separator).setParseAction(compileLabel).ignore(xfsComment)
 
-    aspectRuleConcept = ( Suppress(Keyword("concept")) + (qName | xpathExpression) + separator
+    aspectRuleConcept = ( Suppress(Keyword("concept")) + 
+                          Opt( Keyword("source") + variableRef ) + 
+                          Opt( qName | xpathExpression ) + separator
                         ).setParseAction(compileAspectRuleConcept).ignore(xfsComment)
 
-    aspectRuleEntityIdentifier = (Suppress(Keyword("entity-identifier")) +
-                                  Opt( Keyword("scheme") + xpathExpression) +
+    aspectRuleEntityIdentifier = (Suppress(Keyword("entity-identifier")) + 
+                                  Opt( Keyword("source") + variableRef ) +
+                                  Opt( Keyword("scheme") + xpathExpression )  +
                                   Opt( Keyword("identifier") + xpathExpression) + separator
                         ).setParseAction(compileAspectRuleEntityIdentifier).ignore(xfsComment)
 
-    aspectRulePeriod = (Suppress(Keyword("period")) +
-                        ( Keyword("forever") |
-                          Keyword("instant") +  xpathExpression |
-                          Keyword("duration") +
+    aspectRulePeriod = (Suppress(Keyword("period")) + 
+                        Opt( Keyword("source") + variableRef ) +
+                        Opt( Keyword("forever") |
+                             Keyword("instant") +  xpathExpression |
+                             Keyword("duration") +
                                   Opt( Keyword("start") + xpathExpression) +
                                   Opt( Keyword("end") + xpathExpression) ) + separator
                         ).setParseAction(compileAspectRulePeriod).ignore(xfsComment)
@@ -1595,8 +1609,9 @@ def compileXfsGrammar( cntlr, debugParsing ):
                           Opt( Keyword("measure") + xpathExpression ) + separator
                         ).setParseAction(compileAspectRuleUnitTerm).ignore(xfsComment)
 
-    aspectRuleUnit = (Suppress(Keyword("unit")) + Opt(Keyword("augment")) + Suppress(Literal("{")) +
-                      ZeroOrMore( aspectRuleUnitTerm ) + Suppress(Literal("}")) + separator
+    aspectRuleUnit = (Suppress(Keyword("unit")) + 
+                      Opt( Keyword("source") + variableRef ) + Opt(Keyword("augment")) + Opt(Suppress(Literal("{")) +
+                      ZeroOrMore( aspectRuleUnitTerm ) + Suppress(Literal("}"))) + separator
                         ).setParseAction(compileAspectRuleUnit).ignore(xfsComment)
 
     aspectRuleExplicitDimensionTerm = (
@@ -1604,7 +1619,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                           Keyword("omit")) + separator
                         ).setParseAction(compileAspectRuleExplicitDimensionTerm).ignore(xfsComment)
 
-    aspectRuleExplicitDimension = (Suppress(Keyword("explicit-dimension")) + qName + Suppress(Literal("{")) +
+    aspectRuleExplicitDimension = (Suppress(Keyword("explicit-dimension")) + qName + Opt( Keyword("source") + variableRef ) +  Suppress(Literal("{")) +
                       ZeroOrMore( aspectRuleExplicitDimensionTerm ) + Suppress(Literal("}")) + separator
                         ).setParseAction(compileAspectRuleExplicitDimension).ignore(xfsComment)
 
@@ -1614,7 +1629,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                           Keyword("omit")) + separator
                         ).setParseAction(compileAspectRuleTypedDimensionTerm).ignore(xfsComment)
 
-    aspectRuleTypedDimension = (Suppress(Keyword("tyoed-dimension")) + qName + Suppress(Literal("{")) +
+    aspectRuleTypedDimension = (Suppress(Keyword("tyoed-dimension")) + qName + Opt( Keyword("source") + variableRef ) +  Suppress(Literal("{")) +
                       ZeroOrMore( aspectRuleTypedDimensionTerm ) + Suppress(Literal("}")) + separator
                         ).setParseAction(compileAspectRuleTypedDimension).ignore(xfsComment)
 

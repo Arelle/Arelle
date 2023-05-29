@@ -410,6 +410,7 @@ class GenerateXbrlFormula:
         elif fObj.getparent().tag == "{http://xbrl.org/2008/formula}aspects":
             # aspect rules
             arg = ""
+            if fObj.get("source"): arg += " source $" + fObj.get("source")
             if fObj.localName == "concept":
                 if XmlUtil.hasChild(fObj, None, "qname"):
                     arg += " " + XmlUtil.childText(fObj, None, "qname")
@@ -417,7 +418,7 @@ class GenerateXbrlFormula:
                     arg += " {" + XmlUtil.childText(fObj, None, "qnameExpression") + "}"
             elif fObj.localName == "entityIdentifier":
                 if fObj.get("scheme"): arg += " scheme {" + fObj.get("scheme") + "}"
-                if fObj.get("identifier"): arg += " identifier {" + fObj.get("identifier") + "}"
+                if fObj.get("value"): arg += " identifier {" + fObj.get("value") + "}"
             elif fObj.localName == "period":
                 if XmlUtil.hasChild(fObj, None, "forever"):
                     arg += " forever"
@@ -443,7 +444,7 @@ class GenerateXbrlFormula:
             if fObj.localName == "unit":
                 for elt in fObj.iterchildren():
                     arg = ""
-                    if elt.get("source"): arg += " source " + elt.get("source")
+                    if elt.get("source"): arg += " source $" + elt.get("source")
                     if elt.get("measure"): arg += " measure {" + elt.get("measure") + "}"
                     self.xf = "{}{}{};".format(cIndent, kebabCase(elt.localName), arg)
             elif fObj.localName == "explicitDimension":
