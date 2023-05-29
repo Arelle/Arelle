@@ -275,6 +275,7 @@ linkbaseValidations = {
     # elrPreDocTypes - list of doc types which are checked for this validation
     # elrDefInNs - regex of linkroles permitting extension relationships between base taxonomy concepts
     # elrDefExNs - regex of linkroles permitting extension relationships between base and non-base concepts
+    # elrDefRowSrc - dict by role of required source concept
     # elrDefNoTgtRole - true to block extension arcs with target role
     # preSources - local names of allowed source elements
     # preCustELFs - true to allow custom linkroles in extension
@@ -286,6 +287,7 @@ linkbaseValidations = {
         elrPreDocTypes = ("N-2", "N-2/A"), # only these doc types are checked
         elrDefInNs = re.compile("http://xbrl.sec.gov/cef/role/N2"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/cef/role/(Security|Risk)Only"),
+        elrDefRoleSrc = None,
         elrDefNoTgtRole = False,
         preSources = ("AllSecuritiesMember", "AllRisksMember", "ClassOfStockDomain", "DebtInstrumentNameDomain"),
         preCustELRs = False
@@ -297,6 +299,7 @@ linkbaseValidations = {
         elrPre = re.compile("http://xbrl.sec.gov/vip/role/N[346]"),
         elrDefInNs = re.compile("http://xbrl.sec.gov/vip/role/[^/]*Only"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/vip/role/[^/]*Only"),
+        elrDefRoleSrc = None,
         elrDefNoTgtRole = False,
         preSources = (),
         preCustELRs = False
@@ -308,6 +311,7 @@ linkbaseValidations = {
         elrPre = None,
         elrDefInNs = re.compile("http://xbrl.sec.gov/ecd/role/"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/ecd/role/[^/]*Only"),
+        elrDefRoleSrc = None,
         elrDefNoTgtRole = False,
         preSources = (),
         preCustELRs = True
@@ -319,6 +323,7 @@ linkbaseValidations = {
         # Need to add the "Only" suffix to these rr roles for consistency.
         elrDefInNs = re.compile("http://xbrl.sec.gov/(oef/role/[^/]*Only|rr/role/(Series|Class|Coregistrant|Prospectus|Risk|PerformanceMeasure))"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/(oef/role/[^/]*Only|rr/role/(Series|Class|Coregistrant|Prospectus|Risk|PerformanceMeasure))"),
+        elrDefRoleSrc = None,
         elrDefNoTgtRole = False,
         preSources = (),
         efmPre = None,
@@ -330,13 +335,13 @@ linkbaseValidations = {
         efmDef = "6.16.14",
         elrDefDocTypes = ('2.01 SD'),
         elrDefInNs = re.compile("never permitted"),
-        elrDefExNs = re.compile("http://xbrl.sec.gov/rxp/role/(Projects|Governments|Segments|LegalEntities|Resources)"),
+        elrDefExNs = re.compile("http://xbrl.sec.gov/rxp/role/(Projects|Governments|Segments|Entities|Resources)Only"),
         elrDefRoleSrc = {
-            "http://xbrl.sec.gov/rxp/role/Projects": "rxp:AllProjectsMember",
-            "http://xbrl.sec.gov/rxp/role/Governments": "rxp:AllGovernmentsMember",
-            "http://xbrl.sec.gov/rxp/role/Segments": "rxp:AllSegmentsMember",
-            "http://xbrl.sec.gov/rxp/role/LegalEntities": "dei:EntityDomain",
-            "http://xbrl.sec.gov/rxp/role/Resources": "rxp:AllResourcesMember"
+            "http://xbrl.sec.gov/rxp/role/ProjectsOnly": "rxp:AllProjectsMember",
+            "http://xbrl.sec.gov/rxp/role/GovernmentsOnly": "rxp:AllGovernmentsMember",
+            "http://xbrl.sec.gov/rxp/role/SegmentsOnly": "rxp:AllSegmentsMember",
+            "http://xbrl.sec.gov/rxp/role/EntitiesOnly": "dei:EntityDomain",
+            "http://xbrl.sec.gov/rxp/role/ResourcesOnly": "rxp:AllResourcesMember"
             },
         elrDefNoTgtRole = True,
         preSources = (),

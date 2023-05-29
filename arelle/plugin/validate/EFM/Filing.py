@@ -2245,6 +2245,22 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 #                     linkrole=rel.linkrole, linkrole2=rel2.linkrole,
                 #                     source=rel.fromModelObject.qname, target=rel.toModelObject.qname, target2=rel2.toModelObject.qname)
                 #         checkMemMultDims(rel, None, rel.fromModelObject, rel.linkrole, set())
+                memRxpRoles = defaultdict(set)
+                memRxpRels = defaultdict(list)
+                for rel in domMemRelSet.modelRelationships:
+                    if rel.linkrole.startswith("http://xbrl.sec.gov/rxp/role"):
+                        mem = rel.toModelObject
+                        if mem is not None and mem.qname.namespaceURI not in disclosureSystem.standardTaxonomiesDict:
+                            memRxpRoles[mem].add(rel.linkrole)
+                            memRxpRels[mem].append(rel)
+                for mem, roles in memRxpRoles.items():
+                    if len(roles) > 1:
+                        modelXbrl.error("EFM.6.16.14.04",
+                            _("Member concept %(member)s appears in more than one RXP role: %(roles)s."),
+                            edgarCode="rxp-161404-Member-Multiple-RXP-Roles",
+                            modelObject=memRxpRels[mem], member=mem.qname, roles=", ".join(sorted(roles)))                    
+                del memRxpRoles, memRxpRels # dereference
+                        
 
                 cntxEqualFacts = defaultdict(list)
                 for f in modelXbrl.facts:
@@ -2288,7 +2304,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             modelXbrl.error("EFM.6.05.58.03",
                                 _("The Context %(context)s has a %(fact1)s and is missing required %(fact2NotNil)sfact %(fact2)s"),
                                 modelObject=qnameFacts[qnF], context=context.id, fact1=qnF, fact2=qnG, fact2NotNil="" if gNilOk else "non-nil ",
-                                edgarCode="rxp-0558-Context-Required-Facts")
+                                edgarCode="rxp-055803-Context-Required-Facts")
                     if rxp.A in qnameFacts and not qnameFacts[rxp.A].isNil:
                         if (rxp.Cm in qnameFacts and not qnameFacts[rxp.Cm].isNil and
                             qnameFacts[rxp.A].unit is not None and qnameFacts[rxp.A].unit.measures == currencyMeasures):
@@ -2349,6 +2365,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
         # log extracted facts
         if (isXbrlInstance or isFtJson) and (extractedCoverFacts or storeDbObjectFacts):
+            if storeDbObjectFacts.get("eloValuesFromFacts"):
+                storeDbObjectFacts["eloValuesFromFacts"][()]["missingReqInlineTag"] = ["no", "yes"][missingReqInlineTag]
             contextualFactNameSets = (("Security12bTitle", "TradingSymbol"), ("Security12gTitle", "TradingSymbol"))
             exchangeFactName = "SecurityExchangeName"
             exchangeAxisQN = qname(deiNamespaceURI, "EntityListingsExchangeAxis")
@@ -2417,8 +2435,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                                 rec.append(f)
                                         addCoverFactRecord(rec)
             jsonParam = OrderedDict()
-            if storeDbObjectFacts.get("eloValuesFromFacts"):
-                jsonParam["missingReqInlineTag"] = ["no", "yes"][missingReqInlineTag]
             if coverFactRecords:
                 jsonParam["coverFacts"] = [dict(keyval for keyval in rec) for rec in sorted(coverFactRecords)]
             for _objName, _objFacts in sorted(storeDbObjectFacts.items(), key=lambda i:i[0]):
@@ -3160,16 +3176,26 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         (relFrom.qname.namespaceURI == ns and relTo.qname.namespaceURI == ns and lbVal.elrDefInNs.match(rel.linkrole))
                                         or
                                         (relFrom.qname.namespaceURI == ns and lbVal.elrDefExNs.match(rel.linkrole))
-                                        or
-                                        (lbVal.elrDefNoTgtRole and rel.targetRole)
-                                        or
-                                        (elrDefRoleSrc.get(rel.linkrole,relFromQNstr) == relFromQNstr)
                                       )
                                     )
                                    ):
                                     modelXbrl.error(f"EFM.{lbVal.efmDef}.relationshipNotPermitted",
                                         _("The %(arcrole)s relationship from %(conceptFrom)s to %(conceptTo)s, link role %(linkroleDefinition)s, is not permitted."),
                                         edgarCode=f"du-{lbVal.efmDef[2:4]}{lbVal.efmDef[5:]}-Relationship-Not-Permitted",
+                                        modelObject=(rel,relFrom,relTo), arc=rel.qname, arcrole=rel.arcrole,
+                                        linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole),
+                                        conceptFrom=relFrom.qname, conceptTo=relTo.qname)
+                                elif lbVal.elrDefRoleSrc and rel.linkrole in lbVal.elrDefRoleSrc and lbVal.elrDefRoleSrc[rel.linkrole] != relFromQNstr:
+                                    modelXbrl.error(f"EFM.{lbVal.efmDef}.roleSourceNotPermitted",
+                                        _("The %(arcrole)s relationship source, %(conceptFrom)s, to %(conceptTo)s, link role %(linkroleDefinition)s, is not permitted."),
+                                        edgarCode=f"du-{lbVal.efmDef[2:4]}{lbVal.efmDef[5:]}-Role-Source-Not-Permitted",
+                                        modelObject=(rel,relFrom,relTo), arc=rel.qname, arcrole=rel.arcrole,
+                                        linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole),
+                                        conceptFrom=relFrom.qname, conceptTo=relTo.qname)
+                                if lbVal.elrDefNoTgtRole and rel.targetRole:
+                                    modelXbrl.error(f"EFM.{lbVal.efmDef}.targetRoleNotPermitted",
+                                        _("The %(arcrole)s relationship targetRole from %(conceptFrom)s to %(conceptTo)s, link role %(linkroleDefinition)s, is not permitted."),
+                                        edgarCode=f"du-{lbVal.efmDef[2:4]}{lbVal.efmDef[5:]}-TargetRole-Not-Permitted",
                                         modelObject=(rel,relFrom,relTo), arc=rel.qname, arcrole=rel.arcrole,
                                         linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole),
                                         conceptFrom=relFrom.qname, conceptTo=relTo.qname)
