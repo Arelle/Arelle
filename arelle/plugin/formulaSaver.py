@@ -21,7 +21,7 @@ from arelle.ModelFormulaObject import (ModelValueAssertion, ModelExistenceAssert
                                        ModelConceptCustomAttribute, ModelConceptDataType, ModelConceptSubstitutionGroup,
                                        ModelTestFilter, ModelGeneral, ModelGeneralMeasures, ModelInstantDuration,
                                        ModelDateTimeFilter, ModelSingleMeasure, ModelExplicitDimension, ModelTypedDimension,
-                                       ModelEntitySpecificIdentifier, ModelEntityScheme, ModelEntityRegexpScheme,
+                                       ModelEntityIdentifier, ModelEntitySpecificIdentifier, ModelEntityScheme, ModelEntityRegexpScheme,
                                        ModelEntityRegexpIdentifier, ModelMatchFilter, ModelRelativeFilter,
                                        ModelAncestorFilter, ModelParentFilter, ModelSiblingFilter, ModelNilFilter,
                                        ModelAspectCover, ModelConceptRelation,
@@ -143,7 +143,7 @@ class GenerateXbrlFormula:
                     self.xf = "{}source ${};".format(cIndent, fObj.get("source"))
                 for aspectsElt in XmlUtil.children(fObj, XbrlConst.formula, "aspects"):
                     self.xf = "{}aspect-rules{} {{".format(cIndent,
-                                                           "source ${}".format(aspectsElt.get("source")) if aspectsElt.get("source") else "")
+                                                           " source ${}".format(aspectsElt.get("source")) if aspectsElt.get("source") else "")
                     for ruleElt in XmlUtil.children(aspectsElt, XbrlConst.formula, "*"):
                         self.doObject(ruleElt, None, cIndent + "   ", visited)
                     self.xf = "{}}};".format(cIndent)
@@ -279,7 +279,7 @@ class GenerateXbrlFormula:
                                                 "general" if isinstance(fObj, ModelGeneral) else
                                                 "unit-general-measures" if isinstance(fObj, ModelGeneralMeasures) else
                                                 "period" if isinstance(fObj, ModelPeriod) else
-                                                "entity-identifier" if isinstance(fObj, ModelIdentifier) else None,
+                                                "entity-identifier" if isinstance(fObj, ModelEntityIdentifier) else None,
                                                 fObj.test)
             elif isinstance(fObj, ModelDateTimeFilter):
                 self.xf = "{}{} {{{}}}{};".format(pIndent, kebabCase(fObj.localName), fObj.date,
