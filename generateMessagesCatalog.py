@@ -16,7 +16,7 @@ if __name__ == "__main__":
     for arelleSrcDir in (arelleSrcPath, 
                          arelleSrcPath + os.sep + "plugin",
                          arelleSrcPath + os.sep + "plugin" + os.sep + "validate" + os.sep + "EFM",
-                         arelleSrcPath + os.sep + "plugin" + os.sep + "validate" + os.sep + "ESEF",
+                         # arelleSrcPath + os.sep + "plugin" + os.sep + "validate" + os.sep + "ESEF",
                          arelleSrcPath + os.sep + "plugin" + os.sep + "EdgarRenderer"
                          # arelleSrcPath + os.sep + "plugin" + os.sep + "validate" + os.sep + "GL"
                          ):
