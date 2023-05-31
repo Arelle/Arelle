@@ -1740,8 +1740,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 break
                     for f in sevFacts(sev, names, deduplicate=True):
                         if not (MIN_DOC_PER_END_DATE <= f.xValue <= t): # f.xValue is a date only, not a date-time
-                            sevMessage(sev, subType=submissionType, modelObject=f, tag=name,
-                                       value="between 1980-01-01 and {}".format(t.date().isoformat()))
+                            sevMessage(sev, subType=submissionType, modelObject=f, tag=name, value=f.xValue,
+                                       expectedValue="between 1980-01-01 and {}".format(t.date().isoformat()))
                 elif validation == "e503" and "itemsList" in val.params: # don't validate if no itemList (e.g. stand alone)
                     e503facts = set()
                     for f in sevFacts(sev, names, deduplicate=True):
