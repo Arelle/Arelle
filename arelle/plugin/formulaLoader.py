@@ -660,6 +660,21 @@ def compileDefaults( sourceStr, loc, toks ):
     except Exception as ex:
         raiseCompilationError(ex)
 
+
+def compileDefaultLanguage( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
+    try:
+        prevTok = None
+        for tok in toks:
+            if prevTok == "default-language":
+                lbGen.defaultLanguage = tok
+            elif prevTok == "unsatisfied-severity":
+                lbGen.defaultUnsatisfiedMessageSeverity = tok
+            prevTok = tok
+        return []
+    except Exception as ex:
+        raiseCompilationError(ex)
+
 def compileDimensionFilter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     try:
@@ -1543,8 +1558,11 @@ def compileXfsGrammar( cntlr, debugParsing ):
                             ).setParseAction(compileVersionDeclaration).ignore(xfsComment)
     namespaceDeclaration = (Suppress(Keyword("namespace")) + ncName + Suppress(Literal("=")) + quoted_string + separator
                             ).setParseAction(compileNamespaceDeclaration).ignore(xfsComment)
-    defaultDeclaration = (Suppress(Keyword("unsatisfied-severity") | Keyword("default-language")) + ncName + separator
-                         ).setParseAction(compileDefaults).ignore(xfsComment)
+    severity = ( Suppress(Keyword("severity")) + ( messageSeverity | xpathExpression ) + separator ).setParseAction(compileSeverity).ignore(xfsComment).setDebug(debugParsing)
+
+    defaults = ( ZeroOrMore(Keyword("default-language") + ncName + separator | 
+                            Keyword("unsatisfied-severity")  + ( messageSeverity | xpathExpression ) + separator )
+                            ).setParseAction(compileDefaults).ignore(xfsComment).setDebug(debugParsing)
 
     parameterDeclaration = (Suppress(Keyword("parameter")) + qName  +
                             Suppress(Literal("{")) +
@@ -1574,8 +1592,6 @@ def compileXfsGrammar( cntlr, debugParsing ):
                            ).setParseAction(compileFunctionDeclaration).ignore(xfsComment)
 
     packageDeclaration = (Suppress(Keyword("package")) + ncName + separator ).setParseAction(compilePackageDeclaration).ignore(xfsComment)
-
-    severity = ( Suppress(Keyword("unsatisfied-severity")) + ( messageSeverity | xpathExpression ) + separator ).setParseAction(compileSeverity).ignore(xfsComment)
 
     label = ( (Keyword("label") |
                ( (Keyword("unsatisfied-message") | Keyword("satisfied-message") ) +
@@ -1852,7 +1868,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
     xfsProg = ( ZeroOrMore( versionDeclaration | xfsComment ) +
                 ZeroOrMore( namespaceDeclaration | xfsComment ) +
-                ZeroOrMore( defaultDeclaration | xfsComment ) +
+                ZeroOrMore( defaults | xfsComment ) +
                 ZeroOrMore( parameterDeclaration | filterDeclaration | generalVariable | factVariable | functionDeclaration | xfsComment ) +
                 ZeroOrMore( assertionSet | consistencyAssertion | assertion | formula | xfsComment )
               ) + StringEnd()
