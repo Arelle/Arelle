@@ -31,6 +31,8 @@ includeLibs = [
     "graphviz",
     "gzip",
     "holidays",
+    "holidays.countries",
+    "holidays.financial",
     "isodate",
     "lxml._elementpath",
     "lxml.etree",
