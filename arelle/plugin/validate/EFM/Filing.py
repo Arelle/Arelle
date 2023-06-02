@@ -60,6 +60,7 @@ EMPTY_SET = set()
 EMPTY_LIST = []
 NONE_SET = {None}
 
+nonQuotedStringPatterns = re.compile(r"\d{2}[/-]\d{2}[/-]\d{4}|\d{4}[/-]\d{2}[/-]\d{2}|true|false")
 def sevMessageArgValue(x, pf=None): # pf is prototype Fact if any
     if isinstance(x, (list,tuple)):
         return ", ".join(sevMessageArgValue(v,pf) for v in x)
@@ -82,7 +83,7 @@ def sevMessageArgValue(x, pf=None): # pf is prototype Fact if any
     elif isinstance(x, str): # may need to check pf for str type as well
         if x.startswith("!do-not-quote!"):
             x = x[14:]
-        else:
+        elif not nonQuotedStringPatterns.match(x):
             x = '"' + x + '"'
     return str(x)
 
@@ -1247,6 +1248,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                            ) == ("!not!" in wCond)):
                                         _skipF = True
                                         break
+                                elif wName == "period":
+                                    if ("required-context" in wCond and documentType and
+                                        context.isPeriodEqualTo(documentTypeFact.context) == ("!not!" in wCond)):
+                                        _skipF = True
+                                        break
                                 else:
                                     wOp = wCond[0]
                                     if ((wOp == "~" and not re.search(wCond[1], str(wValue))) or
@@ -1339,6 +1345,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
             def axesValsKey(axisKey, cntx):
                 axesValidations = deiValidations["axis-validations"][axisKey]
+                if ("required-context-period" in axesValidations and documentType and
+                    cntx.isPeriodEqualTo(documentTypeFact.context) != axesValidations["required-context-period"]):
+                    return None # context period doesn't match required context
                 axesQNs = []
                 for axis in axesValidations["axes"]:
                     if axis is not None and axis != "!not!":
@@ -1374,7 +1383,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if isinstance(axesValsOrF,tuple):
                     axesVals = axesValsOrF
                 elif isinstance(axesValsOrF, ModelFact): # axesValsOrF is a fact
-                    if isFeeTagging:
+                    if not isFeeTagging:
                         return axesValsOrF.contextID
                     axesVals = axesValsKey(axisKey, axesValsOrF.context)
                 else:
@@ -1741,7 +1750,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     for f in sevFacts(sev, names, deduplicate=True):
                         if not (MIN_DOC_PER_END_DATE <= f.xValue <= t): # f.xValue is a date only, not a date-time
                             sevMessage(sev, subType=submissionType, modelObject=f, tag=name, value=f.xValue,
-                                       expectedValue="between 1980-01-01 and {}".format(t.date().isoformat()))
+                                       expectedValue="!do-not-quote!between 1980-01-01 and {}".format(t.date().isoformat()))
                 elif validation == "e503" and "itemsList" in val.params: # don't validate if no itemList (e.g. stand alone)
                     e503facts = set()
                     for f in sevFacts(sev, names, deduplicate=True):
@@ -1845,19 +1854,21 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 mbrValCntxIds[mbrValKey] = cntx.id
                         for name in instDurNames:
                             usedMbrVals = set(axesValsKey(axisKey, f.context)
-                                              for f in sevFacts(sev, name))
+                                              for f in sevFacts(sev, name, whereKey="where"))
                             for mbrVal, cntxId in mbrValCntxIds.items():
                                 if mbrVal not in usedMbrVals and validation in ("fe", "fw"):
                                     sevMessage(sev, subType=submissionType, modelObject=None, tag=ftName(name), label=ftLabel(name), ftContext=ftContext(axisKey,mbrVal), contextID=cntxId)
                 elif validation in ("of-rule",):
                     mbfValFacts = defaultdict(list)
+                    requiredContextPeriod = sev.get("period") == "required-context" and documentType
                     for name in names:
                         for f in sevFacts(sev, name, deduplicate=True, whereKey="where"):
                             fMbrVals = axesValsKey(axisKey, f.context)
                             mbfValFacts[fMbrVals].append(f)
                     for cntx in modelXbrl.contexts.values():
                         mbrValKey = axesValsKey(axisKey, cntx)
-                        if mbrValKey is not None and mbrValKey != ():
+                        if mbrValKey is not None and mbrValKey != () and (
+                               not requiredContextPeriod or cntx.isPeriodEqualTo(documentTypeFact.context)):
                             if len(mbfValFacts.get(mbrValKey,())) != 1:
                                 sevMessage(sev, subType=submissionType, modelObject=mbfValFacts.get(mbrValKey, None), tags=ftName(names), labels=ftLabel(names), ftContext=ftContext(axisKey,mbrValKey), contextID=cntx.id)
                     mbfValFacts.clear()
@@ -2063,9 +2074,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                            for f in sevFacts(sev, name1, deduplicate=True, whereKey="where", fallback=bindIfAbsent)
                            ):
                         continue # dont process store-to-db or other following actions
-                elif validation == "fu":
-                    for f in sevFacts(sev, names):
-                        sevMessage(sev, subType=submissionType, modelObject=f, tag=ftName(f), ftContext=ftContext(axisKey,f))
+                elif validation == "fw-unexpected":
+                    for f in sevFacts(sev, names, whereKey="where"):
+                        sevMessage(sev, subType=submissionType, modelObject=f, tag=ftName(f), ftContext=ftContext(axisKey,f), contextID=f.contextID)
                 if eloName:
                     expectedEloParams.add(eloName)
                     for name in names:
@@ -2073,7 +2084,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if f is not None and eloName in val.params and not deiParamEqual(name, f.xValue, val.params[eloName]):
                             sevMessage(sev, messageKey=sev.get("elo-match-message", "dq-0540-{tag}-Value"),
                                        subType=submissionType, modelObject=f, efmSection="6.5.40",
-                                       tag=ftName(name), label=ftLabel(name), value=str(f.xValue), headerTag=eloName, valueOfHeaderTag=val.params[eloName])
+                                       tag=ftName(name), label=ftLabel(name), value=f.xValue, headerTag=eloName, valueOfHeaderTag=val.params[eloName])
 
                 if storeDbName or storeDbAction:
                     for f in sevFacts(sev, names, whereKey="where", sevCovered=False):
@@ -2258,9 +2269,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         modelXbrl.error("EFM.6.16.14.04",
                             _("Member concept %(member)s appears in more than one RXP role: %(roles)s."),
                             edgarCode="rxp-161404-Member-Multiple-RXP-Roles",
-                            modelObject=memRxpRels[mem], member=mem.qname, roles=", ".join(sorted(roles)))                    
+                            modelObject=memRxpRels[mem], member=mem.qname, roles=", ".join(sorted(roles)))
                 del memRxpRoles, memRxpRels # dereference
-                        
+
 
                 cntxEqualFacts = defaultdict(list)
                 for f in modelXbrl.facts:
@@ -2273,7 +2284,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 hasRxpAwithCurAndYr = None # an rxp:A found matching currency measure and 1 yr per to doc end date
                 if documentPeriodEndDateFact is not None and documentPeriodEndDateFact.xValid >= VALID:
                     rxpAendDatetime = dateTime(documentPeriodEndDateFact.xValue, addOneDay=True)
-                    rxpAstartDatetime = rxpAendDatetime.replace(year=rxpAendDatetime.year-1) 
+                    rxpAstartDatetime = rxpAendDatetime.replace(year=rxpAendDatetime.year-1)
                     hasRxpAwithCurAndYr = False
                 for cntxFacts in cntxEqualFacts.values():
                     qnameFacts = dict((f.qname,f) for f in cntxFacts)
@@ -2668,6 +2679,15 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 requiredToDisplayFacts.append(ixElt)
                         if ixElt.id:
                             hiddenEltIds[ixElt.id] = ixElt
+            for ixElt in ixdsHtmlRootElt.iterdescendants(tag=ixNStag+"footnote"):
+                if isinstance(ixElt,ModelInlineFootnote) and ixElt.stringValue:
+                    if not modelXbrl.relationshipSet("XBRL-footnotes").toModelObject(ixElt):
+                        modelXbrl.error(("EFM.6.05.33", "GFM.1.02.24"),
+                            _("The footnote with id %(footnoteId)s and text '%(text)s' is not connected to any fact.  "
+                              "Please remove the footnote, or link it to a fact."),
+                            edgarCode="cp-0533-Dangling-Footnote",
+                            modelObject=ixElt, footnoteId=ixElt.id,
+                            text=ixElt.stringValue[:100])
         if eligibleForTransformHiddenFacts:
             modelXbrl.warning("EFM.5.02.05.14.hidden-fact-eligible-for-transform",
                 _("%(countEligible)s fact(s) appearing in ix:hidden were eligible for transformation: %(elements)s"),
@@ -3522,7 +3542,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     not isDQC0013 or f.context.contextDimAwareHash in posIncomeBeforeTax) and (
                     all((d.isTyped and # typed member exclusion
                          d.dimensionQname.localName not in excludedConceptTypedDimensions.get(f.qname.localName, EMPTY_SET)
-                        ) or (# explicit dimension exclusion
+                        ) or (d.isExplicit and # explicit dimension exclusion
                         (d.dimensionQname not in dqc0015.excludedAxesMembers or
                          ("*" not in dqc0015.excludedAxesMembers[d.dimensionQname] and
                           d.memberQname not in dqc0015.excludedAxesMembers[d.dimensionQname])) and

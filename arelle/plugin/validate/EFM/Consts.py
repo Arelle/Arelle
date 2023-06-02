@@ -331,9 +331,9 @@ linkbaseValidations = {
     ),
     "rxp": attrdict(
         efmCal = "6.14.10",
-        elrCalDocTypes = ('2.01 SD'),
+        elrCalDocTypes = ('2.01 SD',),
         efmDef = "6.16.14",
-        elrDefDocTypes = ('2.01 SD'),
+        elrDefDocTypes = ('2.01 SD',),
         elrDefInNs = re.compile("never permitted"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/rxp/role/(Projects|Governments|Segments|Entities|Resources)Only"),
         elrDefRoleSrc = {

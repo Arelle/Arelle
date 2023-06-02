@@ -2370,6 +2370,7 @@
         "efm": "6.5.57",
         "validation": "of-rule",
         "axis": "oef:class",
+        "period": "required-context",
         "source": "both",
         "dei/cover": "dei"
     },
@@ -2391,6 +2392,23 @@
         "references": ["TradingSymbol"],
         "source": "both",
         "dei/cover": "cover"
+    },
+    {
+        "sub-types": ["@N-CSR"],
+        "xbrl-names": [
+        	"oef:ShareholderReportAnnualOrSemiAnnual",
+        	"oef:FundName",
+        	"oef:ClassName",
+        	"NoTradingSymbolFlag",
+        	"TradingSymbol",
+        	"SecurityExchangeName"
+        	],
+        "where": {"period": ["!not!", "required-context"]},
+        "efm": "6.5.57",
+        "validation": "fw-unexpected",
+        "axis": "oef:class",
+        "source": "both",
+        "dei/cover": "dei"
     },
     {
         "sub-types": ["N-CSRS", "N-CSRS/A"],
@@ -2740,6 +2758,11 @@
             "message": "dq-{efmSection}-{tag}-Missing",
             "severity": "warning",
             "validation": "Mutual dependent tags."
+        },
+        "fw-unexpected": {
+            "message": "dq-{efmSection}-{tag}-Unexpected",
+            "severity": "warning",
+            "validation": "Mutual dependent tags."
         }
 	},
 	"axis-validations-comment": [
@@ -2782,6 +2805,7 @@
             "axes": ["oef:ClassAxis"],
             "axes-operator": "all",
             "cubes": ["http://xbrl.sec.gov/oef/role/ClassOnly"],
+            "required-context-period": true,
             "message": "dq-{efmSection}-{tags}-Missing"
         },
 		"": {
@@ -2798,36 +2822,36 @@
         "dq-{efmSection}-Taxonomy-Url-Required": "Submission type {subType} document type {docType} {severityVerb} contain a taxonomy URL matching {taxonomyPattern} in its DTS.",
 		"dq-{efmSection}-{tag}-{value}": "In submission type {subType}, {tag} value {severityVerb} have {value} in the {context}.",
 		"dq-{efmSection}-{tag}-Value": "In submission type {subType}, {tag} value, {value}, {severityVerb} be {qualifier}{expectedValue} in the {context}.",
-		"dq-{efmSection}-{tag}-{otherTag}": "In submission type {subType}, {tag} value {severityVerb} have value \"{value}\" in the same context as {otherTag}, {contextID}.",
+		"dq-{efmSection}-{tag}-{otherTag}": "In submission type {subType}, {tag} value {severityVerb} have value {value} in the same context as {otherTag}, {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTag}-Missing": "In submission type {subType}, {tag} requires {otherTag} in the same context, {contextID}.",
-		"dq-{efmSection}-{tag}-Value-{otherTag}-Missing": "In submission type {subType}, {tag} value \"{value}\" requires {otherTag} in the same context, {contextID}.",
+		"dq-{efmSection}-{tag}-Value-{otherTag}-Missing": "In submission type {subType}, {tag} value, {value}, requires {otherTag} in the same context, {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTags}-Missing": "In submission type {subType}, {tag} requires a non-empty value for at least one of {otherTags} in the same context, {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTag}-Exclusive": "In submission type {subType}, either {tag} or {otherTag} {severityVerb} have a value, but not both, in context, {contextID}.",
         "dq-{efmSection}-{tags}-Exclusive": "In submission type {subType}, only one of {tags} {severityVerb} have a value, but not both, in context, {contextID}.",
-		"dq-{efmSection}-{tags}-Exclusive-Values": "In submission type {subType}, exactly one of {tags} {severityVerb} have the value \"{value}\" and the others {severityVerb} have the value \"{otherValue}\".",
+		"dq-{efmSection}-{tags}-Exclusive-Values": "In submission type {subType}, exactly one of {tags} {severityVerb} have the value {value} and the others {severityVerb} have the value {otherValue}.",
 		"dq-{efmSection}-{tags}-Exclusive-Value": "In submission type {subType}, only one of {tags} {severityVerb} have a value {value}.",
 		"dq-{efmSection}-{tags}-Exclusive-Presence": "In submission type {subType}, one of {tags} {severityVerb} be present in context {contextID}.",
 		"dq-{efmSection}-{tags}-Inclusive": "In submission type {subType}, at least one of {tags} {severityVerb} have a value.",
 		"dq-{efmSection}-{tags}-Both": "In submission type {subType}, both or neither of {tags} {severityVerb} have a value.",
         "dq-{efmSection}-{tag}-{otherTag}-Dependency": "In submission type {subType}, {tag} {severityVerb} have a value if and only if {otherTag} has a value in context {contextID}.",
-        "dq-{efmSection}-{tag}-{otherTag}-Value-Dependency": "In submission type {subType}, {tag} {severityVerb} have the value \"{value}\"  if and only if {otherTag} has the value \"{value}\"  in context {contextID}.",
-        "dq-{efmSection}-{tag}-Value-{otherTag}-Dependency": "In submission type {subType}, when {tag} has the value \"{value}\" {otherTag} {severityVerb} have a value in context {contextID}.",
+        "dq-{efmSection}-{tag}-{otherTag}-Value-Dependency": "In submission type {subType}, {tag} {severityVerb} have the value {value} if and only if {otherTag} has the value {value} in context {contextID}.",
+        "dq-{efmSection}-{tag}-Value-{otherTag}-Dependency": "In submission type {subType}, when {tag} has the value {value} {otherTag} {severityVerb} have a value in context {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTags}-Dependency": "In submission type {subType}, {tag} {severityVerb} have a value if one of {otherTags} has a value in context {contextID}.",
-		"dq-{efmSection}-{tag}-{otherTag}-Dependent-Value": "In submission type {subType}, {tag} {severityVerb} be provided if and only if {otherTag} has value \"{value}\" in context {contextID}.",
+		"dq-{efmSection}-{tag}-{otherTag}-Dependent-Value": "In submission type {subType}, {tag} {severityVerb} be provided if and only if {otherTag} has value {value} in context {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTag}-Inclusive": "In submission type {subType}, either {tag} or {otherTag} should have a value, or both.",
 		"dq-{efmSection}-{tag}-{otherTag}-Exclusive-Dependency": "In submission type {subType}, {tag} {severityVerb} have a value if and only if {otherTag} has a value in context {contextID}.",
 		"dq-{efmSection}-{tags}-{otherTag}-Exclusive-Dependency": "In submission type {subType}, one of {tags} {severityVerb} have a value if and only if {otherTag} has a value in context {contextID}.",
 		"dq-{efmSection}-{tags}-{otherTags}-Exclusive-Dependency": "In submission type {subType}, one of {tags} {severityVerb} have a value if one of {otherTags} has a value in context {contextID}.",
         "dq-{efmSection}-{tags}-Mutual-Dependency": "In submission type {subType}, all of {tags} {severityVerb} have a value if any of them has a value in context {contextID}.",
         "dq-{efmSection}-{tag}-{headerTag}-Dependency": "In submission type {subType}, {tag} {severityVerb} have a value if and only if header element {headerTag} is provided.",
-		"dq-{efmSection}-{tag}-{headerTag}-Dependent-Value": "In submission type {subType}, when {tag} has a value \"{value}\", header element {headerTag} {severityVerb} have a value \"{otherValue}\".",
+		"dq-{efmSection}-{tag}-{headerTag}-Dependent-Value": "In submission type {subType}, when {tag} has a value {value}, header element {headerTag} {severityVerb} have a value {otherValue}.",
 		"dq-{efmSection}-{tag}-Security-Axes": "In submission type {subType}, {tag} {severityVerb} have values without axes if a single non-ADR member, otherwise in separate contexts by axis member, but not both, in contexts {contextIDs}.",
 		"dq-0514-Hidden-Cover-Page-Fact-Not-Referenced": "Submission type {subType} has {n} cover page fact(s) in ix:hidden that were not referenced by any -sec-ix-hidden style property: (namesOfTags).",
-		"dq-0540-{tag}-Value": "In submission type {subType}, {tag} value \"{value}\", is not equivalent to header element {headerTag} value \"{valueOfHeaderTag}\" in the {context}.",
-		"dq-0540-CurrentFiscalYearEndDate-Registrant-Value": "In submission type {subType}, {tag} value \"{value}\", {severityVerb} match the Entity Registrant Fiscal Year End Date \"{valueOfHeaderTag}\" on record within EDGAR.",
-		"dq-0540-CurrentFiscalYearEndDate-Submission-Value": "In submission type {subType}, {tag} value \"{value}\", does not match the Submission Header Fiscal Year End Date \"{valueOfHeaderTag}\".",
+		"dq-0540-{tag}-Value": "In submission type {subType}, {tag} value, {value}, is not equivalent to header element {headerTag} value, {valueOfHeaderTag}, in the {context}.",
+		"dq-0540-CurrentFiscalYearEndDate-Registrant-Value": "In submission type {subType}, {tag} value, {value}, {severityVerb} match the Entity Registrant Fiscal Year End Date {valueOfHeaderTag} on record within EDGAR.",
+		"dq-0540-CurrentFiscalYearEndDate-Submission-Value": "In submission type {subType}, {tag} value, {value}, does not match the Submission Header Fiscal Year End Date {valueOfHeaderTag}.",
 		"dq-0540-EntityExTransitionPeriod-EntityEmergingGrowthCompany-Dependency": "In submission type {subType}, EntityExTransitionPeriod must have a value if EntityEmergingGrowthCompany has value \"true\" in context {contextID}, else it should not be provided.",
-		"dq-0540-{headerTag}-Unexpected": "Header element {headerTag} value \"{value}\" is not applicable for {subType} submission type."
+		"dq-0540-{headerTag}-Unexpected": "Header element {headerTag} value {value} is not applicable for {subType} submission type."
     },
 	"extraction-cover-tags": [
 		"TradingSymbol",

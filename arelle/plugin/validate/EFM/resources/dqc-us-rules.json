@@ -565,7 +565,7 @@
         	 "IncomeLossFromEquityMethodInvestments"]
         ],
         "rules": {
-        	"2": { 
+        	"2": {
         	    "names": [
 					"AdditionalSecurities462b", 
 					"AdditionalSecurities462bFileNumber", 
@@ -575,9 +575,6 @@
 					"AnnualInformationForm", 
 					"ApproximateDateOfCommencementOfProposedSaleToThePublic", 
 					"AuditedAnnualFinancialStatements",
-					"AuditorFirmId",
-					"AuditorLocation",
-					"AuditorName", 
 					"CityAreaCode", 
 					"ContactPersonnelEmailAddress", 
 					"ContactPersonnelFaxNumber", 
@@ -759,6 +756,7 @@
         },
         "income-names": [
 			"ComprehensiveIncomeNetOfTax", 
+			"ComprehensiveIncomeNetOfTaxIncludingPortionAttributableToNoncontrollingInterest",
 			"DiscontinuedOperationIncomeLossFromDiscontinuedOperationBeforeIncomeTax", 
 			"ExtraordinaryItemGainOrLossNetOfTaxAttributableToNoncontrollingInterest", 
 			"ExtraordinaryItemGainOrLossNetOfTaxAttributableToReportingEntity", 
