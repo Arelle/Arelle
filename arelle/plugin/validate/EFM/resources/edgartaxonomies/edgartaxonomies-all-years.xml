@@ -37,14 +37,14 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
         <Prefix>snj</Prefix>
     </Loc>
     <Loc>
-	    <Family>SNJ</Family>
-	    <Version>2023</Version>
-	    <Href>https://xbrl.sec.gov/snj/2023/snj-2023_def.xsd</Href>
-	    <AttType>DEF</AttType>
-	    <FileTypeName>Entry Point</FileTypeName>
-	    <Elements>0</Elements>
-	    <Namespace>http://xbrl.sec.gov/snj-def/2023</Namespace>
-	    <Prefix>snj-def</Prefix>
+        <Family>SNJ</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/snj/2023/snj-2023_def.xsd</Href>
+        <AttType>DEF</AttType>
+        <FileTypeName>Entry Point</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://xbrl.sec.gov/snj-def/2023</Namespace>
+        <Prefix>snj-def</Prefix>
     </Loc>
     <!-- Missing Country def 2023 -->
     <Loc>

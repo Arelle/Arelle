@@ -271,7 +271,7 @@ latestEntireUgt = {
 linkbaseValidations = {
     # key - validation taxonomy prefix
     # efmPre, Cal, Def - EFM section for linkbase constraint
-    # elrPre - regex matching allowed linkrole for extension 
+    # elrPre - regex matching allowed linkrole for extension
     # elrPreDocTypes - list of doc types which are checked for this validation
     # elrDefInNs - regex of linkroles permitting extension relationships between base taxonomy concepts
     # elrDefExNs - regex of linkroles permitting extension relationships between base and non-base concepts
