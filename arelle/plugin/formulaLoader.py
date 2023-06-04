@@ -320,6 +320,7 @@ def compileAspectRuleTypedDimensionTerm( sourceStr, loc, toks ):
 def compileAssertion( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     try:
+        hasAssertionUnsatisfiedSeverity = False
         assertionLabel = "assertion{}".format(lbGen.labelNbr("assertion"))
         attrib = {"xlink:type": "resource",
                   "xlink:label": assertionLabel,
@@ -358,6 +359,31 @@ def compileAssertion( sourceStr, loc, toks ):
                         del attrib["cover"] # no cover on variable set filter arc
                 attrib["xlink:from"] = assertionLabel
                 lbGen.subElement(lbGen.genLinkElement, tag, attrib)
+                if attrib.get("xlink:arcrole") == "assertion-unsatisfied-severity":
+                    hasAssertionUnsatisfiedSeverity
+        if not hasAssertionUnsatisfiedSeverity and lbGen.defaultUnsatMsgSev:
+            # compile in the default assertion severity
+            if isinstance(lbGen.defaultUnsatMsgSev, XPathExpression):
+                sevLabel = "sevExpr{}".format(lbGen.labelNbr("sevExpr"))
+                sevExprAttrib = {"xlink:type": "resource",
+                                 "xlink:label": sevLabel,
+                                 "severity": str(lbGen.defaultUnsatMsgSev)}
+                lbGen.checkXmlns("sev")
+                sevElt = lbGen.subElement(lbGen.genLinkElement, "sev:expression", attrib=sevExprAttrib)
+            else:
+                sevLabel = "loc{}".format(lbGen.labelNbr("loc"))
+                locAttrib = {"xlink:type": "locator",
+                             "xlink:label": sevLabel,
+                             "xlink:href": "http://www.xbrl.org/2022/severities.xml#" + str(lbGen.defaultUnsatMsgSev)}
+                sevElt = lbGen.subElement(lbGen.genLinkElement, "link:loc", attrib=locAttrib)
+            arcAttrib={"xlink:type": "arc",
+                       "xlink:arcrole": "assertion-unsatisfied-severity",
+                       "xlink:to": sevLabel,
+                       "xlink:from": assertionLabel}
+            if not omitSourceLineAttributes:
+                arcAttrib["xfs:sourceline"] =  "{}".format(lbGen.defaultUnsatMsgSevLoc)
+            lbGen.subElement(lbGen.genLinkElement, "generic:arc", arcAttrib)
+
         arcAttrib =  {"xlink:type": "arc",
                       "xlink:arcrole": "assertion-set",
                       "xlink:to": assertionLabel}
@@ -654,7 +680,8 @@ def compileDefaults( sourceStr, loc, toks ):
             if prevTok == "default-language":
                 lbGen.defaultLanguage = tok
             elif prevTok == "unsatisfied-severity":
-                lbGen.defaultUnsatisfiedMessageSeverity = tok
+                lbGen.defaultUnsatMsgSev = tok
+                lbGen.defaultUnsatMsgSevLoc = loc
             prevTok = tok
         return []
     except Exception as ex:
@@ -669,7 +696,8 @@ def compileDefaultLanguage( sourceStr, loc, toks ):
             if prevTok == "default-language":
                 lbGen.defaultLanguage = tok
             elif prevTok == "unsatisfied-severity":
-                lbGen.defaultUnsatisfiedMessageSeverity = tok
+                lbGen.defaultUnsatMsgSev = tok
+                lbGen.defaultUnsatMsgSevLoc = loc
             prevTok = tok
         return []
     except Exception as ex:
@@ -1333,7 +1361,35 @@ def compileRelativeFilter( sourceStr, loc, toks ):
         raiseCompilationError(ex)
 
 def compileSeverity( sourceStr, loc, toks ):
-    return []
+    global lastLoc; lastLoc = loc
+    try:
+        # determine of dynamic or static severity
+        for tok in toks:
+            if isinstance(tok, XPathExpression):
+                sevLabel = "sevExpr{}".format(lbGen.labelNbr("sevExpr"))
+                sevExprAttrib = {"xlink:type": "resource",
+                                 "xlink:label": sevLabel,
+                                 "severity": str(tok)}
+                lbGen.checkXmlns("sev")
+                sevElt = lbGen.subElement(lbGen.genLinkElement, "sev:expression", attrib=sevExprAttrib)
+            else:
+                sevLabel = "loc{}".format(lbGen.labelNbr("loc"))
+                locAttrib = {"xlink:type": "locator",
+                                 "xlink:label": sevLabel,
+                                 "xlink:href": "http://www.xbrl.org/2022/severities.xml#" + str(tok)}
+                sevElt = lbGen.subElement(lbGen.genLinkElement, "link:loc", attrib=locAttrib)
+
+            arcAttrib={"xlink:type": "arc",
+                       "xlink:arcrole": "assertion-unsatisfied-severity",
+                       "xlink:to": sevLabel}
+
+            if not omitSourceLineAttributes:
+                arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+
+            return [FormulaArc("generic:arc", attrib=arcAttrib),
+                    FormulaResourceElt(sevElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 ''' not supported by OIM
 def compileTupleFilter( sourceStr, loc, toks ):
@@ -1560,8 +1616,8 @@ def compileXfsGrammar( cntlr, debugParsing ):
                             ).setParseAction(compileNamespaceDeclaration).ignore(xfsComment)
     severity = ( Suppress(Keyword("severity")) + ( messageSeverity | xpathExpression ) + separator ).setParseAction(compileSeverity).ignore(xfsComment).setDebug(debugParsing)
 
-    defaults = ( ZeroOrMore(Keyword("default-language") + ncName + separator | 
-                            Keyword("unsatisfied-severity")  + ( messageSeverity | xpathExpression ) + separator )
+    defaults = ( (Keyword("default-language") + ncName + separator |
+                  Keyword("unsatisfied-severity")  + ( messageSeverity | xpathExpression ) + separator )
                             ).setParseAction(compileDefaults).ignore(xfsComment).setDebug(debugParsing)
 
     parameterDeclaration = (Suppress(Keyword("parameter")) + qName  +
@@ -1600,18 +1656,18 @@ def compileXfsGrammar( cntlr, debugParsing ):
               (QuotedString('"',multiline=True,escChar="\\") | QuotedString("'",multiline=True,escChar="\\")) +
               separator).setParseAction(compileLabel).ignore(xfsComment)
 
-    aspectRuleConcept = ( Suppress(Keyword("concept")) + 
-                          Opt( Keyword("source") + variableRef ) + 
+    aspectRuleConcept = ( Suppress(Keyword("concept")) +
+                          Opt( Keyword("source") + variableRef ) +
                           Opt( qName | xpathExpression ) + separator
                         ).setParseAction(compileAspectRuleConcept).ignore(xfsComment)
 
-    aspectRuleEntityIdentifier = (Suppress(Keyword("entity-identifier")) + 
+    aspectRuleEntityIdentifier = (Suppress(Keyword("entity-identifier")) +
                                   Opt( Keyword("source") + variableRef ) +
                                   Opt( Keyword("scheme") + xpathExpression )  +
                                   Opt( Keyword("identifier") + xpathExpression) + separator
                         ).setParseAction(compileAspectRuleEntityIdentifier).ignore(xfsComment)
 
-    aspectRulePeriod = (Suppress(Keyword("period")) + 
+    aspectRulePeriod = (Suppress(Keyword("period")) +
                         Opt( Keyword("source") + variableRef ) +
                         Opt( Keyword("forever") |
                              Keyword("instant") +  xpathExpression |
@@ -1625,7 +1681,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                           Opt( Keyword("measure") + xpathExpression ) + separator
                         ).setParseAction(compileAspectRuleUnitTerm).ignore(xfsComment)
 
-    aspectRuleUnit = (Suppress(Keyword("unit")) + 
+    aspectRuleUnit = (Suppress(Keyword("unit")) +
                       Opt( Keyword("source") + variableRef ) + Opt(Keyword("augment")) + Opt(Suppress(Literal("{")) +
                       ZeroOrMore( aspectRuleUnitTerm ) + Suppress(Literal("}"))) + separator
                         ).setParseAction(compileAspectRuleUnit).ignore(xfsComment)
@@ -2043,7 +2099,8 @@ formulaPrefixes = {
     "xfi": ('http://www.xbrl.org/2008/function/instance',),
     "xsi": ('http://www.w3.org/2001/XMLSchema-instance',),
     "xs": ('http://www.w3.org/2001/XMLSchema',),
-    "xfs": ('http://arelle.org/2016/xfs',)
+    "xfs": ('http://arelle.org/2016/xfs',),
+    "sev": ('http://xbrl.org/2022/assertion-severity', 'http://www.xbrl.org/2022/assertion-severity.xsd'),
     }
 
 formulaArcroleRefs = {
@@ -2056,7 +2113,8 @@ formulaArcroleRefs = {
     "assertion-unsatisfied-message": ("http://xbrl.org/arcrole/2010/assertion-unsatisfied-message", "http://www.xbrl.org/2010/validation-message.xsd#assertion-unsatisfied-message"),
     "assertion-satisfied-message": ("http://xbrl.org/arcrole/2010/assertion-satisfied-message", "http://www.xbrl.org/2010/validation-message.xsd#assertion-satisfied-message"),
     "boolean-filter": ('http://xbrl.org/arcrole/2008/boolean-filter', 'http://www.xbrl.org/2008/boolean-filter.xsd#boolean-filter'),
-    "function-implementation": ('http://xbrl.org/arcrole/2010/function-implementation','http://www.xbrl.org/2010/custom-function-implementation.xsd#cfi-implementation')
+    "function-implementation": ('http://xbrl.org/arcrole/2010/function-implementation','http://www.xbrl.org/2010/custom-function-implementation.xsd#cfi-implementation'),
+    "assertion-unsatisfied-severity": ('http://xbrl.org/arcrole/2022/assertion-unsatisfied-severity','http://www.xbrl.org/2022/assertion-severity.xsd#assertion-unsatisfied-severity'),
     }
 
 formulaRoleRefs = {
@@ -2120,7 +2178,7 @@ class FormulaLbGenerator:
         self.xfsFile = xfsFile
         self.modelXbrl = modelXbrl # null when running stand alone
         self.lbFile = xfsFile.rpartition(".")[0] + "-formula.xml"
-        self.defaultUnsatisfiedMessageSeverity = None
+        self.defaultUnsatMsgSev = None
         self.lbDoc = None
         self.params = {} # qname of parameter xlink:label
         self.labels = {}

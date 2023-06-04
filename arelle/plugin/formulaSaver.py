@@ -74,7 +74,7 @@ class GenerateXbrlFormula:
             self.doObject(rootObject, None, "", set())
 
         self.xfLines.insert(0, "")
-        
+
         if self.xmlns:
             self.xfLines.insert(0, "")
             for prefix, ns in sorted(self.xmlns.items(), reverse=True):
