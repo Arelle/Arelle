@@ -29,7 +29,7 @@ jobs:
             ${{ needs.build.outputs.exe_artifact_versioned_name }}
             ${{ needs.build.outputs.zip_artifact_versioned_name }}
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2.0.0
+        uses: aws-actions/configure-aws-credentials@v2.1.0
         if: startsWith(github.ref, 'refs/tags/')
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
