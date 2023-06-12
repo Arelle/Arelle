@@ -88,7 +88,7 @@ jobs:
       - name: Cleanup ixbrl-viewer
         run: rm -rf ixbrl-viewer
       - name: Docker setup buildx
-        uses: docker/setup-buildx-action@v2.5.0
+        uses: docker/setup-buildx-action@v2.6.0
       - name: Docker build
         uses: docker/build-push-action@v4.0.0
         with:
