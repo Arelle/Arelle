@@ -164,7 +164,7 @@ def checkImageContents(baseURI: Optional[str], modelXbrl: ModelXbrl, imgElt: _El
         else:
             headerType = "unrecognized"
         if (("gif" not in imgType and headerType == "gif") or
-            ("jpeg" not in imgType and headerType == "jpg") or
+            ("jpeg" not in imgType and "jpg" not in imgType and headerType == "jpg") or
             ("png" not in imgType and headerType == "png")):
             imageDoesNotMatchItsFileExtension = f"{guidance}.imageDoesNotMatchItsFileExtension"
             incorrectMIMETypeSpecified = f"{guidance}.incorrectMIMETypeSpecified"
