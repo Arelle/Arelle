@@ -380,9 +380,15 @@ def priItemElrHcRels(val, priItem, ELR=None):
         rels = priItemElrHcRels[key] = findPriItemElrHcRels(val, priItem, ELR)
         return rels
 
-def findPriItemElrHcRels(val, priItem, ELR=None, elrHcRels=None):
+def findPriItemElrHcRels(val, priItem, ELR=None, elrHcRels=None, seenPrimaryItems=None):
     if elrHcRels is None:
         elrHcRels = defaultdict(list)
+    if seenPrimaryItems is None:
+        seenPrimaryItems = set()
+    seenConceptsKey = (ELR, priItem)
+    if seenConceptsKey in seenPrimaryItems:
+        return elrHcRels
+    seenPrimaryItems.add(seenConceptsKey)
     # add has hypercube relationships for ELR
     for arcrole in (XbrlConst.all, XbrlConst.notAll):
         for hasHcRel in val.modelXbrl.relationshipSet(arcrole,ELR).fromModelObject(priItem):
@@ -392,7 +398,7 @@ def findPriItemElrHcRels(val, priItem, ELR=None, elrHcRels=None):
         relLinkrole = domMbrRel.linkrole
         toELR = (domMbrRel.targetRole or relLinkrole)
         if ELR is None or ELR == toELR:
-            findPriItemElrHcRels(val, domMbrRel.fromModelObject, relLinkrole, elrHcRels)
+            findPriItemElrHcRels(val, domMbrRel.fromModelObject, relLinkrole, elrHcRels, seenPrimaryItems)
     return elrHcRels
 
 def priItemsOfElrHc(val, priItem, hcELR, relELR, priItems=None):
