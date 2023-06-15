@@ -74,6 +74,7 @@ from optparse import SUPPRESS_HELP
 from lxml.etree import XML, XMLSyntaxError
 from collections import defaultdict
 
+DEFAULT_TARGET = "(default)"
 IXDS_SURROGATE = "_IXDS#?#" # surrogate (fake) file name for inline XBRL doc set (IXDS)
 IXDS_DOC_SEPARATOR = "#?#" # the files of the document set follow the above "surrogate" with these separators
 
@@ -116,7 +117,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
                 _target = kwargs["ixdsTarget"]
             else:
                 _target = modelXbrl.modelManager.formulaOptions.parameterValues["ixdsTarget"][1]
-            modelXbrl.ixdsTarget = None if _target == "(default)" else _target or None
+            modelXbrl.ixdsTarget = None if _target == DEFAULT_TARGET else _target or None
         except (KeyError, AttributeError, IndexError, TypeError):
             pass # set later in selectTargetDocument plugin method
     if IXDS_SURROGATE in normalizedUri:
@@ -671,10 +672,12 @@ class TargetChoiceDialog:
 def selectTargetDocument(modelXbrl):
     if not hasattr(modelXbrl, "ixdsTarget"): # DTS discoverey deferred until all ix docs loaded
         # find target attributes
-        _targets = sorted(set(elt.get("target", "(default)")
+        _targets = sorted(set(elt.get("target", DEFAULT_TARGET)
                               for htmlElt in modelXbrl.ixdsHtmlElements
                               for elt in htmlElt.iterfind(f".//{{{htmlElt.modelDocument.ixNS}}}references")))
-        if len(_targets) == 1:
+        if len(_targets) == 0:
+            _target = DEFAULT_TARGET
+        elif len(_targets) == 1:
             _target = _targets[0]
         elif modelXbrl.modelManager.cntlr.hasGui:
             dlg = TargetChoiceDialog(modelXbrl.modelManager.cntlr.parent, _targets)
@@ -684,7 +687,7 @@ def selectTargetDocument(modelXbrl):
             modelXbrl.warning("arelle:unspecifiedTargetDocument",
                               _("Target document not specified, loading %(target)s, found targets %(targets)s"),
                               modelObject=modelXbrl, target=_target, targets=_targets)
-        modelXbrl.ixdsTarget = None if _target == "(default)" else _target or None
+        modelXbrl.ixdsTarget = None if _target == DEFAULT_TARGET else _target or None
         # load referenced schemas and linkbases (before validating inline HTML
         for htmlElt in modelXbrl.ixdsHtmlElements:
             modelDoc = htmlElt.modelDocument
