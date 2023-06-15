@@ -675,7 +675,9 @@ def selectTargetDocument(modelXbrl):
         _targets = sorted(set(elt.get("target", DEFAULT_TARGET)
                               for htmlElt in modelXbrl.ixdsHtmlElements
                               for elt in htmlElt.iterfind(f".//{{{htmlElt.modelDocument.ixNS}}}references")))
-        if len(_targets) == 1:
+        if len(_targets) == 0:
+            _target = DEFAULT_TARGET
+        elif len(_targets) == 1:
             _target = _targets[0]
         elif modelXbrl.modelManager.cntlr.hasGui:
             dlg = TargetChoiceDialog(modelXbrl.modelManager.cntlr.parent, _targets)
