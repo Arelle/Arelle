@@ -150,9 +150,6 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
                 # set reference to ix document in document set surrogate object
                 referencedDocument = ModelDocumentReference("inlineDocument", elt)
                 ixdocset.referencesDocument[ixdoc] = referencedDocument
-                for referencedDoc in ixdoc.referencesDocument.keys():
-                    if referencedDoc.type == Type.SCHEMA:
-                        ixdocset.targetDocumentSchemaRefs.add(ixdoc.relativeUri(referencedDoc.uri))
                 ixdocset.ixNS = ixdoc.ixNS # set docset ixNS
                 if _firstdoc:
                     _firstdoc = False
@@ -160,6 +157,10 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
                 ixdoc.inDTS = True # behaves like an entry
         if hasattr(modelXbrl, "ixdsHtmlElements"): # has any inline root elements
             inlineIxdsDiscover(modelXbrl, ixdocset) # compile cross-document IXDS references
+            for ixdoc in ixdocset.referencesDocument.keys():
+                for referencedDoc in ixdoc.referencesDocument.keys():
+                    if referencedDoc.type == Type.SCHEMA:
+                        ixdocset.targetDocumentSchemaRefs.add(ixdoc.relativeUri(referencedDoc.uri))
             return ixdocset
     return None
 
