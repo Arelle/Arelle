@@ -156,17 +156,14 @@ jobs:
           codesign --options runtime --force --deep --timestamp -s "$MAC_BUILD_CERTIFICATE_NAME" build/Arelle.app/Contents/MacOS/arelleCmdLine
           codesign --options runtime --force --deep --timestamp -s "$MAC_BUILD_CERTIFICATE_NAME" build/Arelle.app/Contents/MacOS/arelleGUI
       - name: Notarize app
-        uses: aaroncameron-wk/xcode-notarize@7b185cbfd79cf1fc2d2eaa597541329e18a44ba0
-        with:
-          product-path: build/Arelle.app
-          appstore-connect-username: ${{ secrets.MAC_BUILD_NOTARIZATION_USERNAME }}
-          appstore-connect-password: ${{ secrets.MAC_BUILD_NOTARIZATION_PASSWORD }}
-          verbose: true
-      - name: Staple notarization ticket
-        uses: devbotsxyz/xcode-staple@v1.0.0
-        with:
-          product-path: build/Arelle.app
-          verbose: true
+        env:
+          USERNAME: ${{ secrets.MAC_BUILD_NOTARIZATION_USERNAME }}
+          PASSWORD: ${{ secrets.MAC_BUILD_NOTARIZATION_PASSWORD }}
+          TEAM_ID: '5ZF66U48UD'
+        run: |
+          ditto -c -k --keepParent "build/Arelle.app" "notarization.zip"
+          xcrun notarytool submit "notarization.zip" -v --apple-id "$USERNAME" --password "$PASSWORD" --team-id "$TEAM_ID" --wait --timeout 30m --output-format json
+          xcrun stapler staple -v "build/Arelle.app"
       - name: Build DMG
         run: |
           pwd
