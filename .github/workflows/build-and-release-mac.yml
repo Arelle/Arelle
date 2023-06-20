@@ -159,9 +159,10 @@ jobs:
         env:
           USERNAME: ${{ secrets.MAC_BUILD_NOTARIZATION_USERNAME }}
           PASSWORD: ${{ secrets.MAC_BUILD_NOTARIZATION_PASSWORD }}
+          TEAM_ID: '5ZF66U48UD'
         run: |
           ditto -c -k --keepParent "build/Arelle.app" "notarization.zip"
-          xcrun notarytool submit "notarization.zip" -v --apple-id "$USERNAME" --password "$PASSWORD" --wait --timeout 30m --output-format json
+          xcrun notarytool submit "notarization.zip" -v --apple-id "$USERNAME" --password "$PASSWORD" --team-id "$TEAM_ID" --wait --timeout 30m --output-format json
           xcrun stapler staple -v "build/Arelle.app"
       - name: Build DMG
         run: |
