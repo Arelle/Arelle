@@ -122,10 +122,14 @@ class ContextPrototype():  # behaves like a context
                                                    "startDatetime", "endDatetime", "instantDatetime",
                                                    "periodHash"):
                         setattr(self, contextPeriodAttribute, getattr(context, contextPeriodAttribute, None))
-                elif aspect == Aspect.ENTITY_IDENTIFIER: # entitytIdentifier xml object
-                    context = aspectValue.getparent().getparent()
-                    for entityIdentAttribute in ("entityIdentifier", "entityIdentifierHash"):
-                        setattr(self, entityIdentAttribute, getattr(context, entityIdentAttribute, None))
+                elif aspect == Aspect.ENTITY_IDENTIFIER:
+                    if isinstance(aspectValue, list): # string values of entity scheme, identifier
+                        setattr(self, "entityIdentifier", aspectValue)
+                        setattr(self, "entityIdentifierHash", hash(aspectValue))
+                    else: # entityIdentifier XML object
+                        context = aspectValue.getparent().getparent()
+                        for entityIdentAttribute in ("entityIdentifier", "entityIdentifierHash"):
+                            setattr(self, entityIdentAttribute, getattr(context, entityIdentAttribute, None))
 
     def clear(self):
         try:

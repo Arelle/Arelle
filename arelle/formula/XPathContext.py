@@ -168,6 +168,15 @@ class FunctionNotAvailable(Exception):
     def __repr__(self) -> str:
         return _("Exception, function implementation not available: {0}").format(self.name)
 
+class FunctionNotOimCompatible(Exception):
+    def __init__(self, name: str | None = None, errCode: str | None = None) -> None:
+        self.errCode = errCode
+        self.name = name
+        self.args = (self.__repr__(),)
+
+    def __repr__(self) -> str:
+        return _("[{0}]: Function is not OIM compatible: {1}").format(self.errCode, self.name)
+
 
 class RunTimeExceededException(Exception):
     def __init__(self) -> None:
@@ -237,6 +246,7 @@ class XPathContext:
             QName,
             Callable[[XPathContext, OperationDef, ContextItem, ResultStack], ContextItem]
         ] = {}
+        self.oimMode = False
         for pluginXbrlMethod in pluginClassMethods("Formula.CustomFunctions"):
             self.customFunctions.update(pluginXbrlMethod())
 
@@ -569,6 +579,9 @@ class XPathContext:
                     opDef = cast(OperationDef, p.args[1 if test else 2])
                     result = self.evaluate(opDef.args, contextItem=contextItem)
                 elif op == '.':
+                    if self.oimMode and not (isinstance(contextItem, ModelFact) or isinstance(contextItem,List) and all(isinstance(l, ModelRelationship) for l in contextItem)):
+                        # note: may need to flatten relationship list before checking
+                        raise XPathException(p, 'oimfe:unsupportedContextNode', _('OIM compatible XBRL formula MUST NOT attempt to access the context node'))
                     result = contextItem
                 elif op == '..':
                     result = XmlUtil.parent(cast(ModelObject, contextItem))
@@ -718,9 +731,13 @@ class XPathContext:
                         elif modelAttribute.xValid >= VALID or modelAttribute.xValid == UNKNOWN:  # may be undeclared attribute
                             targetNodes.append(modelAttribute)
                 elif op == '/' or op is None:
+                    if self.oimMode and isinstance(contextItem, ModelFact):
+                        raise XPathException(p, 'oimfe:unsupportedFactOperation', _('OIM compatible XBRL formula MUST NOT attempt node operations on a fact'))
                     if axis is None or axis == "child":
                         if isinstance(node, (ModelObject, etree._ElementTree, PrototypeElementTree, PrototypeObject)):
                             targetNodes = XmlUtil.children(cast(ModelObject, node), ns, localname, ixTarget=True)  # type: ignore[assignment]
+                    elif self.oimMode:
+                        raise XPathException(p, 'oimfe:unsupportedFilter', _('OIM compatible XBRL formula MUST NOT attempt node filter operation {}').format(axis))
                     elif axis == "parent":
                         parentNode: list[ModelObject | None]
                         if isinstance(node, ModelAttribute):

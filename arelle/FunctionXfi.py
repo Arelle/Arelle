@@ -34,10 +34,12 @@ def call(
         args: XPathContext.ResultStack,
 ) -> XPathContext.RecursiveContextItem:
     try:
+        if xc.oimMode and localname in oimIncompatibleFunctions: 
+            raise XPathContext.FunctionNotOimCompatible("oimfe:OIMincompatibleRegistryFunction", f"xfi:{localname}")
         if localname not in xfiFunctions: raise xfiFunctionNotAvailable
         return xfiFunctions[localname](xc, p, args)
     except xfiFunctionNotAvailable:
-        raise XPathContext.FunctionNotAvailable("xfi:{0}".format(localname))
+        raise XPathContext.FunctionNotAvailable(f"xfi:{localname}")
 
 def instance(xc, p, args, i=0):
     if i >= len(args):  # missing argument means to use the standard input instance
@@ -1522,3 +1524,62 @@ xfiFunctions = {
     'negative-filing-indicators': negative_filing_indicators,
     'negative-filing-indicator': negative_filing_indicator,
      }
+
+oimIncompatibleFunctions = {
+    "context",
+    "unit",
+    "unit-numerator",
+    "unit-denominator",
+    "measure-name",
+    "period",
+    "context-period",
+    "is-start-end-period",
+    "is-forever-period",
+    "is-duration-period",
+    "is-instant-period",
+    "period-start",
+    "period-end",
+    "period-instant",
+    "entity",
+    "context-entity",
+    "identifier",
+    "context-identifier",
+    "entity-identifier",
+    "identifier-value",
+    "identifier-scheme",
+    "segment",
+    "entity-segment",
+    "context-segment",
+    "scenario",
+    "context-scenario",
+    "identical-nodes",
+    "s-equal",
+    "u-equal",
+    "v-equal",
+    "c-equal",
+    "identical-node-set",
+    "s-equal-set",
+    "v-equal-set",
+    "c-equal-set",
+    "u-equal-set",
+    "x-equal",
+    "duplicate-item",
+    "duplicate-tuple",
+    "p-equal",
+    "cu-equal",
+    "pc-equal",
+    "pcu-equal",
+    "start-equal",
+    "end-equal",
+    "any-identifier",
+    "unique-identifiers",
+    "any-start-date",
+    "any-instant-date",
+    "items-in-tuple",
+    "tuples-in-tuple",
+    "fact-segment-remainder",
+    "fact-scenario-remainder",
+    "fact-typed-dimension-value",
+    "fact-dimension-s-equal2",
+    "fact-footnotes",
+    }

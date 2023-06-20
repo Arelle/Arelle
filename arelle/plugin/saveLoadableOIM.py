@@ -60,6 +60,20 @@ ENTITY_NA_QNAME = ("https://xbrl.org/entities", "NA")
 csvOpenMode = 'w'
 csvOpenNewline = ''
 
+def taxonomyRefs(modelXbrl):
+    baseUrl = modelXbrl.modelDocument.uri.partition("#")[0]
+    for doc,ref in sorted(modelXbrl.modelDocument.referencesDocument.items(),
+                              key=lambda _item:_item[0].uri):
+        if ref.referringModelObject.qname in SCHEMA_LB_REFS:
+            dtsReferences.add(relativeUri(baseUrl,doc.uri))
+    for refType in ("role", "arcrole"):
+        for refElt in sorted(modelXbrl.modelDocument.xmlRootElement.iterchildren(
+                                "{{http://www.xbrl.org/2003/linkbase}}{}Ref".format(refType)),
+                              key=lambda elt:elt.get(refType+"URI")
+                              ):
+            dtsReferences.add(refElt.get("{http://www.w3.org/1999/xlink}href").partition("#")[0])
+    return sorted(dtsReferences) # turn into list
+
 
 def saveLoadableOIM(modelXbrl, oimFile, outputZip=None,
                     # arguments to add extension features to OIM document
@@ -124,20 +138,6 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None,
                                IsoDuration, int)):
             return str(object)
         return object
-
-    def oimPeriodValue(cntx):
-        if cntx.isStartEndPeriod:
-            s = cntx.startDatetime
-            e = cntx.endDatetime
-        else: # instant
-            s = e = cntx.instantDatetime
-        return({str(qnOimPeriodAspect):
-                ("{0:04}-{1:02}-{2:02}T{3:02}:{4:02}:{5:02}{6}/".format(
-                         s.year, s.month, s.day, s.hour, s.minute, s.second, tzinfoStr(s))
-                    if cntx.isStartEndPeriod else "") +
-                "{0:04}-{1:02}-{2:02}T{3:02}:{4:02}:{5:02}{6}".format(
-                         e.year, e.month, e.day, e.hour, e.minute, e.second, tzinfoStr(e))
-                })
 
     hasId = False
     hasTuple = False
@@ -219,19 +219,7 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None,
         if groupPrefix not in groupAliases:
             groupAliases[footnoteRel.linkrole] = groupPrefix
 
-    dtsReferences = set()
-    baseUrl = modelXbrl.modelDocument.uri.partition("#")[0]
-    for doc,ref in sorted(modelXbrl.modelDocument.referencesDocument.items(),
-                              key=lambda _item:_item[0].uri):
-        if ref.referringModelObject.qname in SCHEMA_LB_REFS:
-            dtsReferences.add(relativeUri(baseUrl,doc.uri))
-    for refType in ("role", "arcrole"):
-        for refElt in sorted(modelXbrl.modelDocument.xmlRootElement.iterchildren(
-                                "{{http://www.xbrl.org/2003/linkbase}}{}Ref".format(refType)),
-                              key=lambda elt:elt.get(refType+"URI")
-                              ):
-            dtsReferences.add(refElt.get("{http://www.w3.org/1999/xlink}href").partition("#")[0])
-    dtsReferences = sorted(dtsReferences) # turn into list
+    dtsReferences = taxonomyRefs(modelXbrl)
     footnoteFacts = set()
 
     def factFootnotes(fact, oimFact=None, csvLinks=None):
@@ -318,7 +306,7 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None,
             if cntx.entityIdentifierElement is not None and cntx.entityIdentifier != ENTITY_NA_QNAME:
                 aspects[str(qnOimEntityAspect)] = oimValue(qname(*cntx.entityIdentifier))
             if cntx.period is not None and not cntx.isForeverPeriod:
-                aspects.update(oimPeriodValue(cntx))
+                aspects.update(cntx.oimPeriodString)
             for _qn, dim in sorted(cntx.qnameDims.items(), key=lambda item: item[0]):
                 if dim.isExplicit:
                     dimVal = oimValue(dim.memberQname)
@@ -330,23 +318,8 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None,
                 aspects[str(dim.dimensionQname)] = dimVal
         unit = fact.unit
         if unit is not None:
-            _mMul, _mDiv = unit.measures
-            _sMul = '*'.join(oimValue(m) for m in sorted(_mMul, key=lambda m: oimValue(m)))
-            if _mDiv:
-                _sDiv = '*'.join(oimValue(m) for m in sorted(_mDiv, key=lambda m: oimValue(m)))
-                if len(_mDiv) > 1:
-                    if len(_mMul) > 1:
-                        _sUnit = "({})/({})".format(_sMul,_sDiv)
-                    else:
-                        _sUnit = "{}/({})".format(_sMul,_sDiv)
-                else:
-                    if len(_mMul) > 1:
-                        _sUnit = "({})/{}".format(_sMul,_sDiv)
-                    else:
-                        _sUnit = "{}/{}".format(_sMul,_sDiv)
-            else:
-                _sUnit = _sMul
-            if _sUnit != "xbrli:pure":
+            _sUnit = unit.oimString
+            if _sUnit is not None: # xbrli:pure is None
                 aspects[str(qnOimUnitAspect)] = _sUnit
         # Tuples removed from xBRL-JSON
         #if parent.qname != XbrlConst.qnXbrliXbrl:

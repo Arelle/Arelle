@@ -23,11 +23,13 @@ from arelle.ModelFormulaObject import (
     ModelParameter,
     ModelPrecondition,
     ModelTuple,
+    ModelTypedDimension,
     ModelValueAssertion,
     ModelVariable,
     ModelVariableSet,
     ModelVariableSetAssertion,
     Trace,
+    oimUnsupportedFilters
 )
 from arelle.ModelRenderingObject import (
     ModelFilterDefinitionNode,
@@ -483,6 +485,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     if xpathContext is None:
         xpathContext = XPathContext.create(val.modelXbrl)
     xpathContext.parameterQnames = parameterQnames  # needed for formula filters to determine variable dependencies
+    oimCompatibile = None # may be None, False, "false", True, "true"
     for paramQname in orderedParameters:
         modelParameter = val.modelXbrl.qnameParameters[paramQname]
         if not isinstance(modelParameter, ModelInstance):
@@ -522,6 +525,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                             input=result,
                         )
                     xpathContext.inScopeVars[paramQname] = result  # make visible to subsequent parameter expression
+                    if paramQname.localName == "oim-compatible-formula" and oimCompatibile not in ("false", False):
+                        oimCompatible = result
                 elif modelParameter.isRequired:
                     val.modelXbrl.error(
                         "xbrlve:missingParameterValue",
@@ -547,6 +552,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                             result=result,
                         )
                     xpathContext.inScopeVars[paramQname] = result  # make visible to subsequent parameter expression
+                    if paramQname.localName == "oim-compatible-formula" and oimCompatibile not in ("false", False):
+                        oimCompatible = result
             except XPathContext.XPathException as err:
                 val.modelXbrl.error(
                     "xbrlve:parameterTypeMismatch" if err.code == "err:FORG0001" else err.code,
@@ -574,6 +581,12 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                     _("Standard input instance resource parameter has multiple XBRL instances"),
                     modelObject=modelParameter)
         '''
+    if oimCompatible in (True, "true"):
+        xpathContext.oimMode = True
+        val.modelXbrl.info(
+            "arelle:oimCompatible",
+            _("OIM-compatible XBRL Formula Rules mode is specified"))
+
     val.modelXbrl.profileActivity("... parameter checks and select evaluation", minTimeToShow=1.0)
 
     val.modelXbrl.profileStat(_("parametersProcessing"))
@@ -583,7 +596,16 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     for modelRel in val.modelXbrl.relationshipSet(XbrlConst.equalityDefinition).modelRelationships:
         typedDomainElt = modelRel.fromModelObject
         modelEqualityDefinition = modelRel.toModelObject
-        if typedDomainElt in val.modelXbrl.modelFormulaEqualityDefinitions:
+        if xpathContext.oimMode:
+            val.modelXbrl.error(
+                "oimfe:unsupportedFilter",
+                _("Typed domain definition from %(typedDomain)s to %(equalityDefinition1)s and %(equalityDefinition2)s is not supported in OIM mode"),
+                modelObject=modelRel.arcElement,
+                typedDomain=typedDomainElt.qname,
+                equalityDefinition1=modelEqualityDefinition.xlinkLabel,
+                equalityDefinition2=val.modelXbrl.modelFormulaEqualityDefinitions[typedDomainElt].xlinkLabel,
+            )
+        elif typedDomainElt in val.modelXbrl.modelFormulaEqualityDefinitions:
             val.modelXbrl.error(
                 "xbrlve:multipleTypedDimensionEqualityDefinitions",
                 _("Multiple typed domain definitions from %(typedDomain)s to %(equalityDefinition1)s and %(equalityDefinition2)s"),
@@ -1426,6 +1448,17 @@ def checkFilterAspectModel(val, variableSet, filterRelationships, xpathContext, 
                 result |= checkFilterAspectModel(
                     val, variableSet, _filter.filterRelationships, xpathContext, uncoverableAspects
                 )
+        if xpathContext.oimMode and (
+            isinstance(_filter, oimUnsupportedFilters) or
+            (isinstance(_filter, ModelTypedDimension) and _filter.test)):
+            val.modelXbrl.error(
+                "oimfe:unsupportedFilter",
+                _("Variable set %(xlinkLabel)s, filter %(filterName)s %(filterLabel)s is not supported in OIM mode"),
+                modelObject=variableSet,
+                xlinkLabel=variableSet.xlinkLabel,
+                filterName=_filter.localName,
+                filterLabel=_filter.xlinkLabel,
+            )
     return result
 
 
