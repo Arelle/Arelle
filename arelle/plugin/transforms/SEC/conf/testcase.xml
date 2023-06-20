@@ -2995,6 +2995,24 @@
       </outputs>
    </variation>
    <variation id="V-3-315">
+      <name>ixt-sec:countrynameen("Türkiye")</name>
+      <inputs>
+         <cfcn:call>ixt-sec:countrynameen("Türkiye")</cfcn:call>
+      </inputs>
+      <outputs>
+         <cfcn:test>$result eq "TR"</cfcn:test>
+      </outputs>
+   </variation>
+   <variation id="V-3-316">
+      <name>ixt-sec:countrynameen("Turkiye")</name>
+      <inputs>
+         <cfcn:call>ixt-sec:countrynameen("Turkiye")</cfcn:call>
+      </inputs>
+      <outputs>
+         <cfcn:test>$result eq "TR"</cfcn:test>
+      </outputs>
+   </variation>
+   <variation id="V-3-317">
       <name>ixt-sec:countrynameen("Turkmenistan")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Turkmenistan")</cfcn:call>
@@ -3003,7 +3021,7 @@
          <cfcn:test>$result eq "TM"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-316">
+   <variation id="V-3-318">
       <name>ixt-sec:countrynameen("Turks And Caicos Islands")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Turks And Caicos Islands")</cfcn:call>
@@ -3012,7 +3030,7 @@
          <cfcn:test>$result eq "TC"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-317">
+   <variation id="V-3-319">
       <name>ixt-sec:countrynameen("Tuvalu")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Tuvalu")</cfcn:call>
@@ -3021,7 +3039,7 @@
          <cfcn:test>$result eq "TV"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-318">
+   <variation id="V-3-320">
       <name>ixt-sec:countrynameen("Uganda")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Uganda")</cfcn:call>
@@ -3030,7 +3048,7 @@
          <cfcn:test>$result eq "UG"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-319">
+   <variation id="V-3-321">
       <name>ixt-sec:countrynameen("Ukraine")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Ukraine")</cfcn:call>
@@ -3039,7 +3057,7 @@
          <cfcn:test>$result eq "UA"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-320">
+   <variation id="V-3-322">
       <name>ixt-sec:countrynameen("UAE")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("UAE")</cfcn:call>
@@ -3048,7 +3066,7 @@
          <cfcn:test>$result eq "AE"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-321">
+   <variation id="V-3-323">
       <name>ixt-sec:countrynameen("United Arab Emirates")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("United Arab Emirates")</cfcn:call>
@@ -3057,7 +3075,7 @@
          <cfcn:test>$result eq "AE"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-322">
+   <variation id="V-3-324">
       <name>ixt-sec:countrynameen("U.K.")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("U.K.")</cfcn:call>
@@ -3066,7 +3084,7 @@
          <cfcn:test>$result eq "GB"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-323">
+   <variation id="V-3-325">
       <name>ixt-sec:countrynameen("UK")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("UK")</cfcn:call>
@@ -3075,7 +3093,7 @@
          <cfcn:test>$result eq "GB"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-324">
+   <variation id="V-3-326">
       <name>ixt-sec:countrynameen("Britain")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Britain")</cfcn:call>
@@ -3084,7 +3102,7 @@
          <cfcn:test>$result eq "GB"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-325">
+   <variation id="V-3-327">
       <name>ixt-sec:countrynameen("Great Britain")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Great Britain")</cfcn:call>
@@ -3093,7 +3111,7 @@
          <cfcn:test>$result eq "GB"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-326">
+   <variation id="V-3-328">
       <name>ixt-sec:countrynameen("United Kingdom")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("United Kingdom")</cfcn:call>
@@ -3102,7 +3120,7 @@
          <cfcn:test>$result eq "GB"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-327">
+   <variation id="V-3-329">
       <name>ixt-sec:countrynameen("United Kingdom Of Great Britain And Northern Ireland")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("United Kingdom Of Great Britain And Northern Ireland")</cfcn:call>
@@ -3111,7 +3129,7 @@
          <cfcn:test>$result eq "GB"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-328">
+   <variation id="V-3-330">
       <name>ixt-sec:countrynameen("England")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("England")</cfcn:call>
@@ -3120,7 +3138,7 @@
          <cfcn:test>$result eq "GB"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-329">
+   <variation id="V-3-331">
       <name>ixt-sec:countrynameen("England And Wales")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("England And Wales")</cfcn:call>
@@ -3129,7 +3147,7 @@
          <cfcn:test>$result eq "GB"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-330">
+   <variation id="V-3-332">
       <name>ixt-sec:countrynameen("United States Minor Outlying Islands")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("United States Minor Outlying Islands")</cfcn:call>
@@ -3138,7 +3156,7 @@
          <cfcn:test>$result eq "UM"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-331">
+   <variation id="V-3-333">
       <name>ixt-sec:countrynameen("U.S.A.")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("U.S.A.")</cfcn:call>
@@ -3147,7 +3165,7 @@
          <cfcn:test>$result eq "US"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-332">
+   <variation id="V-3-334">
       <name>ixt-sec:countrynameen("USA")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("USA")</cfcn:call>
@@ -3156,7 +3174,7 @@
          <cfcn:test>$result eq "US"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-333">
+   <variation id="V-3-335">
       <name>ixt-sec:countrynameen("United States Of America")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("United States Of America")</cfcn:call>
@@ -3165,7 +3183,7 @@
          <cfcn:test>$result eq "US"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-334">
+   <variation id="V-3-336">
       <name>ixt-sec:countrynameen("United States")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("United States")</cfcn:call>
@@ -3174,7 +3192,7 @@
          <cfcn:test>$result eq "US"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-335">
+   <variation id="V-3-337">
       <name>ixt-sec:countrynameen("Uruguay")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Uruguay")</cfcn:call>
@@ -3183,7 +3201,7 @@
          <cfcn:test>$result eq "UY"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-336">
+   <variation id="V-3-338">
       <name>ixt-sec:countrynameen("Uzbekistan")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Uzbekistan")</cfcn:call>
@@ -3192,7 +3210,7 @@
          <cfcn:test>$result eq "UZ"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-337">
+   <variation id="V-3-339">
       <name>ixt-sec:countrynameen("Vanuatu")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Vanuatu")</cfcn:call>
@@ -3201,7 +3219,7 @@
          <cfcn:test>$result eq "VU"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-338">
+   <variation id="V-3-340">
       <name>ixt-sec:countrynameen("Venezuela")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Venezuela")</cfcn:call>
@@ -3210,7 +3228,7 @@
          <cfcn:test>$result eq "VE"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-339">
+   <variation id="V-3-341">
       <name>ixt-sec:countrynameen("Viet Nam")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Viet Nam")</cfcn:call>
@@ -3219,7 +3237,7 @@
          <cfcn:test>$result eq "VN"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-340">
+   <variation id="V-3-342">
       <name>ixt-sec:countrynameen("British Virgin Islands")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("British Virgin Islands")</cfcn:call>
@@ -3228,7 +3246,7 @@
          <cfcn:test>$result eq "VG"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-341">
+   <variation id="V-3-343">
       <name>ixt-sec:countrynameen("U.S. Virgin Islands")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("U.S. Virgin Islands")</cfcn:call>
@@ -3237,7 +3255,7 @@
          <cfcn:test>$result eq "VI"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-342">
+   <variation id="V-3-344">
       <name>ixt-sec:countrynameen("US Virgin Islands")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("US Virgin Islands")</cfcn:call>
@@ -3246,7 +3264,7 @@
          <cfcn:test>$result eq "VI"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-343">
+   <variation id="V-3-345">
       <name>ixt-sec:countrynameen("Wallis And Futuna")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Wallis And Futuna")</cfcn:call>
@@ -3255,7 +3273,7 @@
          <cfcn:test>$result eq "WF"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-344">
+   <variation id="V-3-346">
       <name>ixt-sec:countrynameen("Western Sahara")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Western Sahara")</cfcn:call>
@@ -3264,7 +3282,7 @@
          <cfcn:test>$result eq "EH"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-345">
+   <variation id="V-3-347">
       <name>ixt-sec:countrynameen("Yemen")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Yemen")</cfcn:call>
@@ -3273,7 +3291,7 @@
          <cfcn:test>$result eq "YE"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-346">
+   <variation id="V-3-348">
       <name>ixt-sec:countrynameen("Zambia")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Zambia")</cfcn:call>
@@ -3282,7 +3300,7 @@
          <cfcn:test>$result eq "ZM"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-3-347">
+   <variation id="V-3-349">
       <name>ixt-sec:countrynameen("Zimbabwe")</name>
       <inputs>
          <cfcn:call>ixt-sec:countrynameen("Zimbabwe")</cfcn:call>
@@ -6307,6 +6325,24 @@
       </outputs>
    </variation>
    <variation id="V-11-255">
+      <name>ixt-sec:edgarprovcountryen("Türkiye")</name>
+      <inputs>
+         <cfcn:call>ixt-sec:edgarprovcountryen("Türkiye")</cfcn:call>
+      </inputs>
+      <outputs>
+         <cfcn:test>$result eq "W8"</cfcn:test>
+      </outputs>
+   </variation>
+   <variation id="V-11-256">
+      <name>ixt-sec:edgarprovcountryen("Turkiye")</name>
+      <inputs>
+         <cfcn:call>ixt-sec:edgarprovcountryen("Turkiye")</cfcn:call>
+      </inputs>
+      <outputs>
+         <cfcn:test>$result eq "W8"</cfcn:test>
+      </outputs>
+   </variation>
+   <variation id="V-11-257">
       <name>ixt-sec:edgarprovcountryen("Turkmenistan")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("Turkmenistan")</cfcn:call>
@@ -6315,7 +6351,7 @@
          <cfcn:test>$result eq "2E"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-256">
+   <variation id="V-11-258">
       <name>ixt-sec:edgarprovcountryen("Turks And Caicos Islands")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("Turks And Caicos Islands")</cfcn:call>
@@ -6324,7 +6360,7 @@
          <cfcn:test>$result eq "W7"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-257">
+   <variation id="V-11-259">
       <name>ixt-sec:edgarprovcountryen("Tuvalu")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("Tuvalu")</cfcn:call>
@@ -6333,7 +6369,7 @@
          <cfcn:test>$result eq "2G"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-258">
+   <variation id="V-11-260">
       <name>ixt-sec:edgarprovcountryen("Uganda")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("Uganda")</cfcn:call>
@@ -6342,7 +6378,7 @@
          <cfcn:test>$result eq "W9"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-259">
+   <variation id="V-11-261">
       <name>ixt-sec:edgarprovcountryen("Ukraine")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("Ukraine")</cfcn:call>
@@ -6351,7 +6387,7 @@
          <cfcn:test>$result eq "2H"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-260">
+   <variation id="V-11-262">
       <name>ixt-sec:edgarprovcountryen("UAE")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("UAE")</cfcn:call>
@@ -6360,7 +6396,7 @@
          <cfcn:test>$result eq "C0"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-261">
+   <variation id="V-11-263">
       <name>ixt-sec:edgarprovcountryen("United Kingdom")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("United Kingdom")</cfcn:call>
@@ -6369,7 +6405,7 @@
          <cfcn:test>$result eq "X0"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-262">
+   <variation id="V-11-264">
       <name>ixt-sec:edgarprovcountryen("United States Minor Outlying Islands")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("United States Minor Outlying Islands")</cfcn:call>
@@ -6378,7 +6414,7 @@
          <cfcn:test>$result eq "2J"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-263">
+   <variation id="V-11-265">
       <name>ixt-sec:edgarprovcountryen("United States")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("United States")</cfcn:call>
@@ -6387,7 +6423,7 @@
          <cfcn:test>$result eq "X1"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-264">
+   <variation id="V-11-266">
       <name>ixt-sec:edgarprovcountryen("Uruguay")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("Uruguay")</cfcn:call>
@@ -6396,7 +6432,7 @@
          <cfcn:test>$result eq "X3"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-265">
+   <variation id="V-11-267">
       <name>ixt-sec:edgarprovcountryen("Uzbekistan")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("Uzbekistan")</cfcn:call>
@@ -6405,7 +6441,7 @@
          <cfcn:test>$result eq "2K"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-266">
+   <variation id="V-11-268">
       <name>ixt-sec:edgarprovcountryen("Vanuatu")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("Vanuatu")</cfcn:call>
@@ -6414,7 +6450,7 @@
          <cfcn:test>$result eq "2L"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-267">
+   <variation id="V-11-269">
       <name>ixt-sec:edgarprovcountryen("Venezuela")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("Venezuela")</cfcn:call>
@@ -6423,7 +6459,7 @@
          <cfcn:test>$result eq "X5"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-268">
+   <variation id="V-11-270">
       <name>ixt-sec:edgarprovcountryen("Viet Nam")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("Viet Nam")</cfcn:call>
@@ -6432,7 +6468,7 @@
          <cfcn:test>$result eq "Q1"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-269">
+   <variation id="V-11-271">
       <name>ixt-sec:edgarprovcountryen("British Virgin Islands")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("British Virgin Islands")</cfcn:call>
@@ -6441,7 +6477,7 @@
          <cfcn:test>$result eq "D8"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-270">
+   <variation id="V-11-272">
       <name>ixt-sec:edgarprovcountryen("Wallis And Futuna")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("Wallis And Futuna")</cfcn:call>
@@ -6450,7 +6486,7 @@
          <cfcn:test>$result eq "X8"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-271">
+   <variation id="V-11-273">
       <name>ixt-sec:edgarprovcountryen("Western Sahara")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("Western Sahara")</cfcn:call>
@@ -6459,7 +6495,7 @@
          <cfcn:test>$result eq "U5"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-272">
+   <variation id="V-11-274">
       <name>ixt-sec:edgarprovcountryen("Yemen")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("Yemen")</cfcn:call>
@@ -6468,7 +6504,7 @@
          <cfcn:test>$result eq "T7"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-273">
+   <variation id="V-11-275">
       <name>ixt-sec:edgarprovcountryen("Zambia")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("Zambia")</cfcn:call>
@@ -6477,7 +6513,7 @@
          <cfcn:test>$result eq "Y4"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-274">
+   <variation id="V-11-276">
       <name>ixt-sec:edgarprovcountryen("Zimbabwe")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("Zimbabwe")</cfcn:call>
@@ -6486,7 +6522,7 @@
          <cfcn:test>$result eq "Y5"</cfcn:test>
       </outputs>
    </variation>
-   <variation id="V-11-275">
+   <variation id="V-11-277">
       <name>ixt-sec:edgarprovcountryen("Unknown")</name>
       <inputs>
          <cfcn:call>ixt-sec:edgarprovcountryen("Unknown")</cfcn:call>
@@ -7072,7 +7108,7 @@
       </outputs>
    </variation>
    <revisions>
-      <revision by="Makefile" on="2023-02-28T13:44:43.682-08:00">
+      <revision by="Makefile" on="2023-05-03T22:59:39.586-07:00">
          <xhtml:p>
 	        Created the test case by xslt extraction from tests.xml.
 	      </xhtml:p>

@@ -1,7 +1,7 @@
 {
     "copyright": [
         "This file was created by staff of the U.S. Securities and Exchange Commission.",
-        "Data and content created by government employees within the scope of their employment", 
+        "Data and content created by government employees within the scope of their employment",
         "are not subject to domestic copyright protection. 17 U.S.C. 105."
     ],
     "description": [
@@ -24,31 +24,31 @@
         "  sub-types: arrayed submissionType or submissionType references or single submissionType or submissionType reference,",
         "             where specific to a form type, section-sign § separates sub and form types, e.g. 'POS EX§N-2' ",
         "  sub-types-pattern: a regex to match submissionTypes instead of the sub-types array of submissionType values",
-        "  xbrl-names, elo-names, and severities may be array (plural) or individual", 
+        "  xbrl-names, elo-names, and severities may be array (plural) or individual",
         "  xbrl-names: arrayed dei local names or prefixed non-dei nmes of XBRL elements,",
         "  elo-names: optional corresponding arrayed ELO schema names of XML elements,",
         "  xbrl-name: single local name of XBRL element,",
         "  elo-name: optional single ELO schema name of XML element,",
-        "  store-db-name: optional ELO db name if elo value to be stored in EDGAR db", 
+        "  store-db-name: optional ELO db name if elo value to be stored in EDGAR db",
         "  store-db-object: optional ELO object for DB parameter passing, e.g., eloValuesFromFacts or submissionFacts",
         "  efm: section in EFM, e.g., 6.5.21,",
         "  validation: cell reference per FRD (replace below), required except for store-db-name entries",
         "  axis: optional, when an element has an axis specification",
         "  value: optional, when an element must have a certain value",
-        "  check-after:  optional date, when provided the validation is skipped unless it is earlier than periodOfReport if provided, else DocumentPeriodEndDate if provided, else required context end date", 
+        "  check-after:  optional date, when provided the validation is skipped unless it is earlier than periodOfReport if provided, else DocumentPeriodEndDate if provided, else required context end date",
         "  value-for-reference-check: optional, when this fact must have a value for referenced fact condition check (default non-nil non-empty)",
         "  reference: optional, reference to another xbrl-name for dependent or co-dependent validations,",
         "  reference-value: optional, when a referenced fact must have a certain value",
         "  source: inline or both",
         "  dei/cover: cover - warning if inline and not visible, COVER - error if inline and not visible, dei - no visibility requirement for inline",
-        "  elo-match-message: optional, overrides elo match message, default is dq-0540-{tag}-Value", 
+        "  elo-match-message: optional, overrides elo match message, default is dq-0540-{tag}-Value",
         "  comment: optional, comment string",
         "",
         "The messages object contains messages which may be referenced by validations",
         "",
         "The validation-legend object describes the codes in the validation object @validation value",
         "",
-    "The extraction-cover-tags array lists local names of facts to be added to exported JSON facts."        
+    "The extraction-cover-tags array lists local names of facts to be added to exported JSON facts."
     ],
     "sub-type-classes": {
     	"comment1": "FAST act sub-type classes",
@@ -63,7 +63,7 @@
 		"20-F": ["20-F", "20-F/A"],
 		"40-F": ["40-F", "40-F/A"],
 		"20+40-F": ["@20-F", "@40-F"],
-		
+
 		"comment2": "sub-types not subject to FAST act",
     	"6-K": ["6-K", "6-K/A"],
 		"10-12B": ["10-12B", "10-12B/A"],
@@ -78,34 +78,36 @@
 		"N": ["N-Q", "N-Q/A", "N-CSRS", "N-CSRS/A", "NCSR", "NCSR/A", "N-CSR", "N-CSR/A"],
         "N-1A": ["485POS§N-1A", "485APOS§N-1A", "485BPOS§N-1A", "485BXT§N-1A", "497§N-1A"],
         "N-2": ["N-2§N-2", "@N-2-a"],
-        "N-2-a": ["N-2/A§N-2", "N-2ASR§N-2", "N-2 POSASR§N-2", "N-2MEF§N-2", 
-                  "N-2/A§N-2/A", "N-2ASR§N-2ASR", "N-2 POSASR§N-2 POSASR", "N-2MEF§N-2MEF", 
+        "N-2-a": ["N-2/A§N-2", "N-2ASR§N-2", "N-2 POSASR§N-2", "N-2MEF§N-2",
+                  "N-2/A§N-2/A", "N-2ASR§N-2ASR", "N-2 POSASR§N-2 POSASR", "N-2MEF§N-2MEF",
                   "486APOS§N-2", "486BPOS§N-2", "POS 8C§N-2", "POS AMI§N-2", "POS EX§N-2", "POS462B§N-2", "POS462C§N-2", "486BXT§N-2"],
         "N-2-any-form": ["N-2", "N-2/A", "N-2ASR", "N-2 POSASR", "N-2MEF", "486APOS", "486BPOS", "POS 8C", "POS AMI", "POS EX", "POS462B", "POS462C", "486BXT"],
         "N-3": ["N-3", "N-3/A", "485POS§N-3", "485APOS§N-3", "485BPOS§N-3", "485BXT§N-3", "497§N-3"],
         "N-4": ["N-4", "N-4/A", "485POS§N-4", "485APOS§N-4", "485BPOS§N-4", "485BXT§N-4", "497§N-4"],
         "N-6": ["N-6", "N-6/A", "485POS§N-6", "485APOS§N-6", "485BPOS§N-6", "485BXT§N-6", "497§N-6"],
         "N-346": ["@N-3", "@N-4", "@N-6"],
+        "N-CSR": ["N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A"],
 		"POS": ["POS AM", "POS EX"],
-		"PvP": ["PRE 14A", "PREM14A", "PREC14A", "PRER14A", "PRE 14C", "PREM14C", "PREC14C", "PRER14C", 
+		"PvP": ["PRE 14A", "PREM14A", "PREC14A", "PRER14A", "PRE 14C", "PREM14C", "PREC14C", "PRER14C",
 				"DEF 14A", "DEFM14A", "DEFC14A", "DEFR14A", "DEFA14A", "DEF 14C", "DEFM14C", "DEFC14C", "DEFR14C", "DEFA14C"],
 		"RR": ["485APOS", "485BPOS", "485BXT", "497", "N-1A", "N-1A/A"],
 		"SP 15D2": ["SP 15D2", "SP 15D2/A"],
 		"S-n": ["S-1", "S-1/A", "S-3", "S-3/A", "S-4", "S-4/A", "S-11", "S-11/A"],
 		"S-nX": ["S-1MEF", "S-3D", "S-3DPOS", "S-3MEF", "S-4EF", "S-4MEF", "S-4 POS", "S-11MEF"],
-		
+
 		"comment3": "for SDR include both submission types (SDR, SDR/A, ...) and sub-type types (K SDR, L SDR) because in previewing desktop mode only sub-type type is provided",
+		"SD": ["SD", "SD/A", "2.01 SD"], "wch-comment": "following the SDR pattern for SD.",
 		"SDR": ["SDR", "SDR/A", "SDR-A", "SDR/W", "K SDR", "L SDR"],
 		"all-FAST": ["@10-K+Q", "@8-K", "@20+40-F"],
         "all-non-FAST": ["!not!", "@all-FAST"],
 		"all-FAST-not-8K": ["@10-K+Q", "@20+40-F"],
 		"all": ["*"],
-        
+
         "comment4": "CEF compatibility checks",
         "CEF-cover": ["497"],
-        "CEF-non-cover": ["N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A", 
+        "CEF-non-cover": ["N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A",
                           "424A", "424B1", "424B2", "424B3", "424B4", "424B5", "424B7", "424B8",
-                          "SC 13E3", "SC 13E3/A", 
+                          "SC 13E3", "SC 13E3/A",
                           "DEF 14A", "DEF 14C", "DEFA14A", "DEFA14C", "DEFC14A", "DEFM14A", "DEFM14C", "DEFN14A", "DEFR14A", "DEFR14C"],
         "CEF-all-sub-types": ["@8-K", "@10-K+Q", "@CEF-cover", "@CEF-non-cover", "@N-2"]
     },
@@ -208,11 +210,11 @@
     {"sub-types": ["N-6/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-6/A"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["N-ASR"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-ASR"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["N-CSR"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-CSR"], "source": "both", "dei/cover": "dei"},
-	{"sub-types": ["N-CSR/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-CSR/A"], "source": "both", "dei/cover": "dei"},
-	{"sub-types": ["N-CSRS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-CSRS"], "source": "both", "dei/cover": "dei"},
-	{"sub-types": ["N-CSRS/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-CSRS/A"], "source": "both", "dei/cover": "dei"},
-	{"sub-types": ["N-Q"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-Q"], "source": "both", "dei/cover": "dei"},
-	{"sub-types": ["N-Q/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-Q/A"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["N-CSR/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-CSR", "N-CSR/A"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["N-CSRS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-CSR", "N-CSRS"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["N-CSRS/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-CSR", "N-CSRS/A"], "source": "both", "dei/cover": "dei"},
+	{"comment": "obsolete, replaced by N-PORT/P", "sub-types": ["N-Q"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-Q"], "source": "both", "dei/cover": "dei"},
+	{"comment": "obsolete, replaced by N-PORT/P", "sub-types": ["N-Q/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-Q/A"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["POS 8C"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-2"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["POS AM"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["F-1", "F-3", "F-4", "F-6", "POS AM", "S-1", "S-11", "S-3", "S-4", "N-2"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["POS AMI"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["POS AMI", "N-2"], "source": "both", "dei/cover": "dei"},
@@ -247,41 +249,41 @@
 	{"sub-types": ["S-4MEF"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["S-4MEF"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["SC 13E3"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["SC 13E3"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["SC 13E3/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["SC 13E3/A"], "source": "both", "dei/cover": "dei"},
-    {"sub-types": ["SD"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["SD"], "source": "both", "dei/cover": "dei"},
-	{"sub-types": ["SD/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["SD/A"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["SD"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["2.01 SD"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["SD/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["2.01 SD"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["SP 15D2"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["SP 15D2"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["SP 15D2/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["SP 15D2/A"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["@SDR"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["K SDR", "L SDR"], "source": "both", "dei/cover": "dei"},
-	{"sub-types": ["!not!", "10-12B", "10-12B/A", "10-12G", "10-12G/A", "10-K", "10-K/A", "10-KT", 
-				"10-KT/A", "10-Q", "10-Q/A", "10-QT", "10-QT/A", "20-F", "20-F/A", "20FR12B", 
-				"20FR12B/A", "20FR12G", "20FR12G/A", "40-F", "40-F/A", "40FR12B", "40FR12B/A", 
-				"40FR12G", "40FR12G/A", "485APOS", "485BPOS", "485BXT", 
-                "486APOS", "486BPOS", "486BXT", "497", "6-K", "6-K/A", 
-				"8-K", "8-K/A", "8-K12B", "8-K12B/A", "8-K12G3", "8-K12G3/A", "8-K15D5", "8-K15D5/A", 
-				"F-1", "F-1/A", "F-10", "F-10/A", "F-10EF", "F-10POS", "F-1MEF", "F-3", "F-3/A", "F-3ASR", 
-				"F-3D", "F-3DPOS", "F-3MEF", "F-4", "F-4 POS", "F-4/A", "F-4EF", "F-4MEF", "F-9", "F-9 POS", 
+	{"sub-types": ["!not!", "10-12B", "10-12B/A", "10-12G", "10-12G/A", "10-K", "10-K/A", "10-KT",
+				"10-KT/A", "10-Q", "10-Q/A", "10-QT", "10-QT/A", "20-F", "20-F/A", "20FR12B",
+				"20FR12B/A", "20FR12G", "20FR12G/A", "40-F", "40-F/A", "40FR12B", "40FR12B/A",
+				"40FR12G", "40FR12G/A", "485APOS", "485BPOS", "485BXT",
+                "486APOS", "486BPOS", "486BXT", "497", "6-K", "6-K/A",
+				"8-K", "8-K/A", "8-K12B", "8-K12B/A", "8-K12G3", "8-K12G3/A", "8-K15D5", "8-K15D5/A",
+				"F-1", "F-1/A", "F-10", "F-10/A", "F-10EF", "F-10POS", "F-1MEF", "F-3", "F-3/A", "F-3ASR",
+				"F-3D", "F-3DPOS", "F-3MEF", "F-4", "F-4 POS", "F-4/A", "F-4EF", "F-4MEF", "F-9", "F-9 POS",
 				"F-9/A", "F-9EF", "N-1A", "N-1A/A", "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A", "N-Q", "N-Q/A",
                 "POS AM", "POS EX", "POSASR", "S-1", "S-1/A", "S-11", "S-11/A", "S-11MEF", "S-1MEF", "S-3",
                 "N-2§N-2", "N-2/A§N-2", "N-2ASR§N-2", "N-2 POSASR§N-2", "N-2MEF§N-2",
-                "N-2/A§N-2/A", "N-2ASR§N-2ASR", "N-2 POSASR§N-2 POSASR", "N-2MEF§N-2MEF", 
-                "486APOS§N-2", "486BPOS§N-2", "POS 8C§N-2", "POS AMI§N-2", "POS EX§N-2", "POS462B§N-2", "POS462C§N-2", "486BXT§N-2", 
-				"S-3/A", "S-3ASR", "S-3D", "S-3DPOS", "S-3MEF", "S-4", "S-4 POS", "S-4/A", "S-4EF", "S-4MEF", 
-				"SD", "SD/A", "SP 15D2", "SP 15D2/A", "@SDR"], 
-	"xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", 
-	"value": ["!not!", "10-12B", "10-12B/A", "10-12G", "10-12G/A", "10-K", "10-K/A", "10-KT", "10-KT/A", 
-				"10-Q", "10-Q/A", "10-QT", "10-QT/A", "20-F", "20-F/A", "20FR12B", "20FR12B/A", "20FR12G", 
-				"20FR12G/A", "40-F", "40-F/A", "40FR12B", "40FR12B/A", "40FR12G", "40FR12G/A", "485APOS", 
+                "N-2/A§N-2/A", "N-2ASR§N-2ASR", "N-2 POSASR§N-2 POSASR", "N-2MEF§N-2MEF",
+                "486APOS§N-2", "486BPOS§N-2", "POS 8C§N-2", "POS AMI§N-2", "POS EX§N-2", "POS462B§N-2", "POS462C§N-2", "486BXT§N-2",
+				"S-3/A", "S-3ASR", "S-3D", "S-3DPOS", "S-3MEF", "S-4", "S-4 POS", "S-4/A", "S-4EF", "S-4MEF",
+				"SP 15D2", "SP 15D2/A", "@SD", "@SDR"],
+	"xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv",
+	"value": ["!not!", "10-12B", "10-12B/A", "10-12G", "10-12G/A", "10-K", "10-K/A", "10-KT", "10-KT/A",
+				"10-Q", "10-Q/A", "10-QT", "10-QT/A", "20-F", "20-F/A", "20FR12B", "20FR12B/A", "20FR12G",
+				"20FR12G/A", "40-F", "40-F/A", "40FR12B", "40FR12B/A", "40FR12G", "40FR12G/A", "485APOS",
 				"485BPOS", "485BXT", "486APOS", "486BPOS", "486BXT",
-                "497", "6-K", "6-K/A", "8-K", "8-K/A", "8-K12B", "8-K12B/A", "8-K12G3", 
-				"8-K12G3/A", "8-K15D5", "8-K15D5/A", "F-1", "F-1/A", "F-10", "F-10/A", "F-10EF", "F-10POS", 
-				"F-1MEF", "F-3", "F-3/A", "F-3ASR", "F-3D", "F-3DPOS", "F-3MEF", "F-4", "F-4 POS", "F-4/A", 
-				"F-4EF", "F-4MEF", "F-6", "F-9", "F-9 POS", "F-9/A", "F-9EF", "K SDR", "L SDR", "N-1A", 
-				"N-1A/A", "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A", "N-Q", "N-Q/A", "POS AM", 
-                "N-2/A", "N-2ASR", "N-2 POSASR", "N-2MEF", 
-                "486APOS", "486BPOS", "POS 8C", "POS AMI", "POS EX", "POS462B", "POS462C", "486BXT", 
-				"POS EX", "POSASR", "S-1", "S-1/A", "S-11", "S-11/A", "S-11MEF", "S-1MEF", "S-3", "S-3/A", 
-				"S-3ASR", "S-3D", "S-3DPOS", "S-3MEF", "S-4", "S-4 POS", "S-4/A", "S-4EF", "S-4MEF", "SD", 
-				"SD/A", "SP 15D2", "SP 15D2/A"], 
+                "497", "6-K", "6-K/A", "8-K", "8-K/A", "8-K12B", "8-K12B/A", "8-K12G3",
+				"8-K12G3/A", "8-K15D5", "8-K15D5/A", "F-1", "F-1/A", "F-10", "F-10/A", "F-10EF", "F-10POS",
+				"F-1MEF", "F-3", "F-3/A", "F-3ASR", "F-3D", "F-3DPOS", "F-3MEF", "F-4", "F-4 POS", "F-4/A",
+				"F-4EF", "F-4MEF", "F-6", "F-9", "F-9 POS", "F-9/A", "F-9EF", "K SDR", "L SDR", "N-1A",
+				"N-1A/A", "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A", "N-Q", "N-Q/A", "POS AM",
+                "N-2/A", "N-2ASR", "N-2 POSASR", "N-2MEF",
+                "486APOS", "486BPOS", "POS 8C", "POS AMI", "POS EX", "POS462B", "POS462C", "486BXT",
+				"POS EX", "POSASR", "S-1", "S-1/A", "S-11", "S-11/A", "S-11MEF", "S-1MEF", "S-3", "S-3/A",
+				"S-3ASR", "S-3D", "S-3DPOS", "S-3MEF", "S-4", "S-4 POS", "S-4/A", "S-4EF", "S-4MEF", "SD",
+				"SD/A", "SP 15D2", "SP 15D2/A"],
 	"source": "both", "dei/cover": "dei",
 	"comment": "catch any submission type not explicitly above with any sub-type type not covered by the above, excluding Other"
     },
@@ -306,7 +308,7 @@
         "comment": "if and only if non-empty, AmendmentFlag must be true"
     },
     {
-        "sub-types": ["@all-FAST"],
+        "sub-types": ["@all-FAST", "@N-CSR"],
         "xbrl-names": "DocumentPeriodEndDate",
         "elo-name": "periodOfReport",
         "efm": "6.5.20",
@@ -315,7 +317,7 @@
         "dei/cover": "cover"
     },
     {
-        "sub-types": ["@POS", "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A"],
+        "sub-types": ["@POS"],
         "xbrl-names": "DocumentPeriodEndDate",
         "elo-name": "periodOfReport",
         "efm": "6.5.20",
@@ -324,7 +326,7 @@
         "dei/cover": "dei"
     },
     {
-        "sub-types": ["@6-K", "@SP 15D2", "@RR", "@N-346", "@SDR"],
+        "sub-types": ["@6-K", "@SP 15D2", "@RR", "@N-346", "@SDR", "@SD"],
         "xbrl-names": "DocumentPeriodEndDate",
         "elo-name": "periodOfReport",
         "efm": "6.5.20",
@@ -333,7 +335,14 @@
         "dei/cover": "dei"
     },
     {
-        "sub-types": ["@all-FAST-not-8K", "@SP 15D2", "@POS", "@N", "@RR", "N-3", "N-4", "N-6", "@SDR"],
+    	"sub-types": ["@SD"],
+        "xbrl-names": "DocumentPeriodEndDate",
+        "store-db-name": "periodOfReport",
+        "store-db-object": "eloValuesFromFacts",
+        "source": "non-inline"
+    },
+    {
+        "sub-types": ["@all-FAST-not-8K"],
         "xbrl-names": "DocumentPeriodEndDate",
         "efm": "6.5.20",
         "validation": "de",
@@ -341,7 +350,7 @@
         "dei/cover": "dei"
     },
     {
-        "sub-types": ["@8-K", "@6-K"],
+        "sub-types": ["@8-K"],
         "xbrl-names": "DocumentPeriodEndDate",
         "efm": "6.5.20",
         "validation": "de5pm",
@@ -434,7 +443,7 @@
     {
         "sub-types": ["@all"],
         "xbrl-names": [],
-        "elo-name": "entityRegistration.fyEnd",	
+        "elo-name": "entityRegistration.fyEnd",
         "efm": "6.5.21",
         "validation": "o",
         "source": "both",
@@ -462,7 +471,7 @@
         "elo-match-message" : "dq-0540-CurrentFiscalYearEndDate-Registrant-Value"
     },
     {
-        "sub-types": ["@20+40FR", "@8-K"],
+        "sub-types": ["@20+40FR", "@8-K", "@N-CSR", "@SD"],
         "xbrl-names": "CurrentFiscalYearEndDate",
         "elo-name": "entityRegistration.fyEnd",
         "efm": "6.5.21",
@@ -476,7 +485,7 @@
         "sub-types": ["@8-K"],
         "xbrl-names": "CurrentFiscalYearEndDate",
         "efm": "6.5.21",
-        "validation": "e503", 
+        "validation": "e503",
         "source": "inline",
         "dei/cover": "dei"
     },
@@ -744,7 +753,7 @@
         "dei/cover": "dei"
     },
     {
-    
+
         "sub-types": ["@10-K+Q", "@20+40-F"],
         "xbrl-names": "EntityCurrentReportingStatus",
         "efm": "6.5.21",
@@ -781,7 +790,7 @@
         "xbrl-names": "EntityCommonStockSharesOutstanding",
         "efm": "6.5.26",
         "validation": "r",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "both",
         "dei/cover": "cover"
     },
@@ -790,7 +799,7 @@
         "xbrl-names": "EntityCommonStockSharesOutstanding",
         "efm": "6.5.26",
         "validation": "o",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "both",
         "dei/cover": "cover"
     },
@@ -799,7 +808,7 @@
         "xbrl-names": "EntityCommonStockSharesOutstanding",
         "efm": "6.5.26",
         "validation": "o",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "both",
         "dei/cover": "dei"
     },
@@ -808,7 +817,7 @@
         "xbrl-names": "EntityCommonStockSharesOutstanding",
         "efm": "6.5.26",
         "validation": "security-axis",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "both",
         "dei/cover": "dei"
     },
@@ -832,19 +841,19 @@
     },
     {
         "sub-types": ["@10-K+Q", "@8-K", "@20+40-F"],
-        "xbrl-names": ["Security12bTitle", "Security12gTitle"], 
+        "xbrl-names": ["Security12bTitle", "Security12gTitle"],
         "efm": "6.5.46",
         "validation": "ot1",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "both",
         "dei/cover": "cover"
     },
     {
         "sub-types": ["@10-12", "@20+40FR"],
-        "xbrl-names": ["Security12bTitle", "Security12gTitle"], 
+        "xbrl-names": ["Security12bTitle", "Security12gTitle"],
         "efm": "6.5.46",
         "validation": "ot1",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "both",
         "dei/cover": "dei"
     },
@@ -854,7 +863,7 @@
         "efm": "6.5.46",
         "validation": "te",
         "references": ["TradingSymbol", "NoTradingSymbolFlag"],
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "both",
         "dei/cover": "cover"
     },
@@ -864,7 +873,7 @@
         "efm": "6.5.46",
         "validation": "te",
         "references": ["TradingSymbol", "NoTradingSymbolFlag"],
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "both",
         "dei/cover": "dei"
     },
@@ -876,7 +885,7 @@
         ],
         "efm": "6.5.46",
         "validation": "t1",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "references": ["Security12bTitle", "Security12gTitle"],
         "source": "both",
         "dei/cover": "dei",
@@ -887,7 +896,7 @@
         "xbrl-names": "TradingSymbol",
         "efm": "6.5.46",
         "validation": "o",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "inline",
         "dei/cover": "cover",
         "comment": "cover here only checks trading symbol, if OTC may have no exchange"
@@ -900,7 +909,7 @@
         ],
         "efm": "6.5.46",
         "validation": "t1",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "references": ["Security12bTitle", "Security12gTitle"],
         "source": "both",
         "dei/cover": "dei"
@@ -910,7 +919,7 @@
         "xbrl-names": "TradingSymbol",
         "efm": "6.5.46",
         "validation": "o",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "inline",
         "dei/cover": "cover",
         "comment": "cover here only checks trading symbol, if OTC may have no exchange"
@@ -920,7 +929,7 @@
         "xbrl-names": "TradingSymbol",
         "efm": "6.5.46",
         "validation": "o",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "both",
         "dei/cover": "dei"
     },
@@ -929,7 +938,7 @@
         "xbrl-names": "SecurityReportingObligation",
         "efm": "6.5.46",
         "validation": "o",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "both",
         "dei/cover": "cover",
         "comment": "ot in table 6-1 behaves same as o here with c-axis doing context check"
@@ -939,19 +948,19 @@
         "xbrl-names": "SecurityReportingObligation",
         "efm": "6.5.46",
         "validation": "o",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "both",
         "dei/cover": "dei"
     },
     {
         "sub-types": ["@10-K+Q", "@8-K", "@20+40-F", "@10-12", "@20+40FR"],
         "xbrl-names": [
-        	"Security12bTitle", 
+        	"Security12bTitle",
         	"Security12gTitle"
         ],
         "efm": "6.5.46",
         "validation": "security-axis",
-        "axis": "c",
+        "axis": "c-or-required-context",
         "source": "both",
         "dei/cover": "dei"
     },
@@ -1130,7 +1139,7 @@
         "validation": "o",
         "source": "non-inline",
         "dei/cover": "dei"
-    },    
+    },
     {
         "sub-types": ["@20+40FR", "@6-K"],
         "xbrl-names": "EntityFileNumber",
@@ -1688,7 +1697,7 @@
         "efm": "6.5.51",
         "validation": "ru",
         "value": [
-		"AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", 
+		"AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO",
 		"MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "X1", "UT", "VT", "VA", "WA", "WV", "WI", "WY"],
         "axis": "a",
         "source": "inline",
@@ -1700,7 +1709,7 @@
         "efm": "6.5.51",
         "validation": "ov",
         "value": [
-		"AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", 
+		"AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO",
 		"MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "X1", "UT", "VT", "VA", "WA", "WV", "WI", "WY"],
         "axis": "a",
         "source": "non-inline",
@@ -1789,7 +1798,7 @@
         "efm": "6.5.51",
         "validation": "ou",
         "value": [
-		"AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", 
+		"AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO",
 		"MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "X1", "UT", "VT", "VA", "WA", "WV", "WI", "WY"],
         "axis": "a",
         "source": "both",
@@ -1991,7 +2000,7 @@
             ],
         "efm": "6.5.54",
         "validation": "md-unexpected",
-        "axis": "no-auditor-axis",
+        "axis": "non-auditor-axis",
         "source": "both",
         "dei/cover": "COVER"
     },
@@ -2299,7 +2308,7 @@
         "xbrl-names": [],
         "efm": "6.5.56",
         "validation": "taxonomy-url-required-in-dts",
-        "value": "https://xbrl.sec.gov/rr/*/rr-*.xsd",
+        "value": "https://xbrl.sec.gov/rr/*/rr-*.xsd|https://xbrl.sec.gov/oef/*/oef-rr*.xsd",
         "source": "both"
     },
     {
@@ -2335,6 +2344,113 @@
         "validation": "taxonomy-url-required-in-dts",
         "value": "https://xbrl.sec.gov/vip/*/vip-n6-*.xsd",
         "source": "both"
+    },
+    {
+        "comment": "N-CSR*"
+    },
+    {
+        "sub-types": ["@N-CSR"],
+        "xbrl-names": [
+        	"oef:ShareholderReportAnnualOrSemiAnnual",
+        	"oef:FundName",
+        	"oef:ClassName"
+        	],
+        "efm": "6.5.57",
+        "validation": "fw",
+        "axis": "oef:class",
+        "source": "both",
+        "dei/cover": "dei"
+    },
+    {
+        "sub-types": ["@N-CSR"],
+        "xbrl-names": [
+        	"NoTradingSymbolFlag",
+        	"TradingSymbol"
+        ],
+        "efm": "6.5.57",
+        "validation": "of-rule",
+        "axis": "oef:class",
+        "period": "required-context",
+        "source": "both",
+        "dei/cover": "dei"
+    },
+    {
+        "sub-types": ["@N-CSR"],
+        "xbrl-names": "TradingSymbol",
+        "efm": "6.5.57",
+        "validation": "o",
+        "axis": "oef:class",
+        "source": "both",
+        "dei/cover": "cover"
+    },
+    {
+        "sub-types": ["@N-CSR"],
+        "xbrl-names": "SecurityExchangeName",
+        "efm": "6.5.57",
+        "validation": "t1",
+        "axis": "oef:class",
+        "references": ["TradingSymbol"],
+        "source": "both",
+        "dei/cover": "cover"
+    },
+    {
+        "sub-types": ["@N-CSR"],
+        "xbrl-names": [
+        	"oef:ShareholderReportAnnualOrSemiAnnual",
+        	"oef:FundName",
+        	"oef:ClassName",
+        	"NoTradingSymbolFlag",
+        	"TradingSymbol",
+        	"SecurityExchangeName"
+        	],
+        "where": {"period": ["!not!", "required-context"]},
+        "efm": "6.5.57",
+        "validation": "fw-unexpected",
+        "axis": "oef:class",
+        "source": "both",
+        "dei/cover": "dei"
+    },
+    {
+        "sub-types": ["N-CSRS", "N-CSRS/A"],
+        "xbrl-names": "EntityCentralIndexKey",
+        "efm": "6.5.57",
+        "validation": "required-context-duration",
+        "value": 6,
+        "source": "both",
+        "dei/cover": "dei",
+        "comment": "checks duration length of required context"
+    },
+    {
+        "sub-types": ["N-CSR", "N-CSR/A"],
+        "xbrl-names": "EntityCentralIndexKey",
+        "efm": "6.5.57",
+        "validation": "required-context-duration",
+        "value": 12,
+        "source": "both",
+        "dei/cover": "dei",
+        "comment": "checks duration length of required context"
+    },
+    {
+        "comment": "SD"
+    },
+    {
+        "sub-types": ["@SD"],
+        "xbrl-names": [],
+        "efm": "6.5.58.01",
+        "validation": "taxonomy-url-required-in-dts",
+        "value": "https://xbrl.sec.gov/rxp/*/rxp-*.xsd|https://xbrl.sec.gov/snj/*/snj-*.xsd",
+        "source": "both"
+    },
+    {
+        "sub-types": ["@SD"],
+        "xbrl-names": [
+        	"EntityReportingCurrencyISOCode",
+        	"rxp:TotalPayments"
+        ],
+        "efm": "6.5.58.02",
+        "validation": "x",
+        "source": "both",
+        "dei/cover": "cover"
     },
     {
         "comment": "Following validationd must be last."
@@ -2410,6 +2526,7 @@
 		"xv": {
 			"message": "dq-{efmSection}-{tag}-Value",
 			"severity": "error",
+            "qualifier": "",
 			"validation": "X - A non-null fact must appear with specified value"
 		},
 		"f2": {
@@ -2538,11 +2655,13 @@
 		"de": {
 			"message": "dq-{efmSection}-{tag}-Value",
 			"severity": "error",
+            "qualifier": "",
 			"validation": "Document period end date restrictions"
 		},
 		"de5pm": {
 			"message": "dq-{efmSection}-{tag}-Value",
 			"severity": "error",
+            "qualifier": "",
 			"validation": "Document period end date restrictions"
 		},
 		"e503": {
@@ -2606,6 +2725,7 @@
         },
         "n2bn2": {
             "message": "dq-{efmSection}-{tag}-Value",
+            "qualifier": "",
             "severity": "error"
         },
         "n2c": {
@@ -2623,13 +2743,42 @@
         "n2h": {
             "message": "dq-{efmSection}-{tag}-{otherTag}-Value-Dependency",
             "severity": "error"
+        },
+        "required-context-duration": {
+            "message": "dq-{efmSection}-{tag}-Value",
+            "qualifier": "",
+            "severity": "error"
+        },
+        "of-rule": {
+            "message": "dq-{efmSection}-{tags}-Exclusive-Presence",
+            "severity": "warning",
+            "validation": "Mutual dependent tags."
+        },
+        "fw": {
+            "message": "dq-{efmSection}-{tag}-Missing",
+            "severity": "warning",
+            "validation": "Mutual dependent tags."
+        },
+        "fw-unexpected": {
+            "message": "dq-{efmSection}-{tag}-Unexpected",
+            "severity": "warning",
+            "validation": "Mutual dependent tags."
         }
 	},
-
+	"axis-validations-comment": [
+		"axis-code: object of axes (dei prefix implied, others explicit, !std! for any standard taxonomy, *: for any taxonomy incl extension), ",
+		"  members (localnames, not prefixed), ",
+		"  cubes (array of Hypercube linkrole URIs), ",
+		"  message where applicable"
+	],
 	"axis-validations": {
 		"c": {
-			"axes": ["StatementClassOfStockAxis", "ClassesOfShareCapitalAxis"],
-			"members": [],
+			"axes": ["!std!:StatementClassOfStockAxis", "!std!:ClassesOfShareCapitalAxis"],
+			"message": "dq-{efmSection}-{tag}-Missing"
+		},
+		"c-or-required-context": {
+			"axes": ["!std!:StatementClassOfStockAxis", "!std!:ClassesOfShareCapitalAxis", null],
+			"names": ["StatementClassOfStockAxis", "ClassesOfShareCapitalAxis", "Required Context"],
 			"message": "dq-{efmSection}-{tag}-Missing"
 		},
 		"a": {
@@ -2643,18 +2792,24 @@
 			"message": "dq-{efmSection}-{tag}-Missing"
 		},
         "auditor-axes": {
-            "axes": ["ConsolidatedEntitiesAxis", "ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "LegalEntityAxis", "OwnershipAxis", "CounterpartyNameAxis"],
-            "members": [],
+            "axes": [null, "!std!:ConsolidatedEntitiesAxis", "!std!:ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "!std!:LegalEntityAxis", "!std!:OwnershipAxis", "srt:CounterpartyNameAxis"],
+            "names": ["Required Context", "ConsolidatedEntitiesAxis", "ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "LegalEntityAxis", "OwnershipAxis", "CounterpartyNameAxis"],
             "message": "dq-{efmSection}-{tags}-Missing"
         },
-        "no-auditor-axis": {
-            "axes": ["!not!", "ConsolidatedEntitiesAxis", "ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "LegalEntityAxis", "OwnershipAxis", "CounterpartyNameAxis"],
-            "members": [],
+        "non-auditor-axis": {
+            "axes": ["!not!", null, "!std!:ConsolidatedEntitiesAxis", "!std!:ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "!std!:LegalEntityAxis", "!std!:OwnershipAxis", "srt:CounterpartyNameAxis"],
+            "names": ["not", "Required Context", "ConsolidatedEntitiesAxis", "ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis", "LegalEntityAxis", "OwnershipAxis", "CounterpartyNameAxis"],
             "message": "dq-{efmSection}-{tag}-Unexpected"
+        },
+        "oef:class": {
+            "axes": ["oef:ClassAxis"],
+            "axes-operator": "all",
+            "cubes": ["http://xbrl.sec.gov/oef/role/ClassOnly"],
+            "required-context-period": true,
+            "message": "dq-{efmSection}-{tags}-Missing"
         },
 		"": {
 			"axes": [],
-			"members": [],
 			"message": "dq-{efmSection}-{tag}-Missing"
 		}
 	},
@@ -2664,38 +2819,39 @@
         "dq-{efmSection}-{tag}-Unexpected": "Submission type {subType} {severityVerb} not have a value for {tag} in the {context}.",
         "dq-{efmSection}-{taxonomy}-Facts-Unexpected": "Submission type {subType} {severityVerb} not report {taxonomy} namespace facts.",
         "dq-{efmSection}-{taxonomy}-Version-Required": "Submission type {subType} {severityVerb} use {taxonomy} version {earliestTaxonomy} or later.",
-        "dq-{efmSection}-Taxonomy-Url-Required": "Submission type {subType} document type {docType} {severityVerb} contain a taxonomy URL {taxonomy} in its DTS.",
+        "dq-{efmSection}-Taxonomy-Url-Required": "Submission type {subType} document type {docType} {severityVerb} contain a taxonomy URL matching {taxonomyPattern} in its DTS.",
 		"dq-{efmSection}-{tag}-{value}": "In submission type {subType}, {tag} value {severityVerb} have {value} in the {context}.",
-		"dq-{efmSection}-{tag}-Value": "In submission type {subType}, {tag} value {severityVerb} have {value} in the {context}.",
-		"dq-{efmSection}-{tag}-{otherTag}": "In submission type {subType}, {tag} value {severityVerb} have value \"{value}\" in the same context as {otherTag}, {contextID}.",
+		"dq-{efmSection}-{tag}-Value": "In submission type {subType}, {tag} value, {value}, {severityVerb} be {qualifier}{expectedValue} in the {context}.",
+		"dq-{efmSection}-{tag}-{otherTag}": "In submission type {subType}, {tag} value {severityVerb} have value {value} in the same context as {otherTag}, {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTag}-Missing": "In submission type {subType}, {tag} requires {otherTag} in the same context, {contextID}.",
-		"dq-{efmSection}-{tag}-Value-{otherTag}-Missing": "In submission type {subType}, {tag} value \"{value}\" requires {otherTag} in the same context, {contextID}.",
+		"dq-{efmSection}-{tag}-Value-{otherTag}-Missing": "In submission type {subType}, {tag} value, {value}, requires {otherTag} in the same context, {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTags}-Missing": "In submission type {subType}, {tag} requires a non-empty value for at least one of {otherTags} in the same context, {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTag}-Exclusive": "In submission type {subType}, either {tag} or {otherTag} {severityVerb} have a value, but not both, in context, {contextID}.",
         "dq-{efmSection}-{tags}-Exclusive": "In submission type {subType}, only one of {tags} {severityVerb} have a value, but not both, in context, {contextID}.",
-		"dq-{efmSection}-{tags}-Exclusive-Values": "In submission type {subType}, exactly one of {tags} {severityVerb} have the value \"{value}\" and the others {severityVerb} have the value \"{otherValue}\".",
+		"dq-{efmSection}-{tags}-Exclusive-Values": "In submission type {subType}, exactly one of {tags} {severityVerb} have the value {value} and the others {severityVerb} have the value {otherValue}.",
 		"dq-{efmSection}-{tags}-Exclusive-Value": "In submission type {subType}, only one of {tags} {severityVerb} have a value {value}.",
+		"dq-{efmSection}-{tags}-Exclusive-Presence": "In submission type {subType}, one of {tags} {severityVerb} be present in context {contextID}.",
 		"dq-{efmSection}-{tags}-Inclusive": "In submission type {subType}, at least one of {tags} {severityVerb} have a value.",
 		"dq-{efmSection}-{tags}-Both": "In submission type {subType}, both or neither of {tags} {severityVerb} have a value.",
         "dq-{efmSection}-{tag}-{otherTag}-Dependency": "In submission type {subType}, {tag} {severityVerb} have a value if and only if {otherTag} has a value in context {contextID}.",
-        "dq-{efmSection}-{tag}-{otherTag}-Value-Dependency": "In submission type {subType}, {tag} {severityVerb} have the value \"{value}\"  if and only if {otherTag} has the value \"{value}\"  in context {contextID}.",
-        "dq-{efmSection}-{tag}-Value-{otherTag}-Dependency": "In submission type {subType}, when {tag} has the value \"{value}\" {otherTag} {severityVerb} have a value in context {contextID}.",
+        "dq-{efmSection}-{tag}-{otherTag}-Value-Dependency": "In submission type {subType}, {tag} {severityVerb} have the value {value} if and only if {otherTag} has the value {value} in context {contextID}.",
+        "dq-{efmSection}-{tag}-Value-{otherTag}-Dependency": "In submission type {subType}, when {tag} has the value {value} {otherTag} {severityVerb} have a value in context {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTags}-Dependency": "In submission type {subType}, {tag} {severityVerb} have a value if one of {otherTags} has a value in context {contextID}.",
-		"dq-{efmSection}-{tag}-{otherTag}-Dependent-Value": "In submission type {subType}, {tag} {severityVerb} be provided if and only if {otherTag} has value \"{value}\" in context {contextID}.",
+		"dq-{efmSection}-{tag}-{otherTag}-Dependent-Value": "In submission type {subType}, {tag} {severityVerb} be provided if and only if {otherTag} has value {value} in context {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTag}-Inclusive": "In submission type {subType}, either {tag} or {otherTag} should have a value, or both.",
 		"dq-{efmSection}-{tag}-{otherTag}-Exclusive-Dependency": "In submission type {subType}, {tag} {severityVerb} have a value if and only if {otherTag} has a value in context {contextID}.",
 		"dq-{efmSection}-{tags}-{otherTag}-Exclusive-Dependency": "In submission type {subType}, one of {tags} {severityVerb} have a value if and only if {otherTag} has a value in context {contextID}.",
 		"dq-{efmSection}-{tags}-{otherTags}-Exclusive-Dependency": "In submission type {subType}, one of {tags} {severityVerb} have a value if one of {otherTags} has a value in context {contextID}.",
         "dq-{efmSection}-{tags}-Mutual-Dependency": "In submission type {subType}, all of {tags} {severityVerb} have a value if any of them has a value in context {contextID}.",
         "dq-{efmSection}-{tag}-{headerTag}-Dependency": "In submission type {subType}, {tag} {severityVerb} have a value if and only if header element {headerTag} is provided.",
-		"dq-{efmSection}-{tag}-{headerTag}-Dependent-Value": "In submission type {subType}, when {tag} has a value \"{value}\", header element {headerTag} {severityVerb} have a value \"{otherValue}\".",
+		"dq-{efmSection}-{tag}-{headerTag}-Dependent-Value": "In submission type {subType}, when {tag} has a value {value}, header element {headerTag} {severityVerb} have a value {otherValue}.",
 		"dq-{efmSection}-{tag}-Security-Axes": "In submission type {subType}, {tag} {severityVerb} have values without axes if a single non-ADR member, otherwise in separate contexts by axis member, but not both, in contexts {contextIDs}.",
 		"dq-0514-Hidden-Cover-Page-Fact-Not-Referenced": "Submission type {subType} has {n} cover page fact(s) in ix:hidden that were not referenced by any -sec-ix-hidden style property: (namesOfTags).",
-		"dq-0540-{tag}-Value": "In submission type {subType}, {tag} value \"{value}\", is not equivalent to header element {headerTag} value \"{valueOfHeaderTag}\" in the {context}.",
-		"dq-0540-CurrentFiscalYearEndDate-Registrant-Value": "In submission type {subType}, {tag} value \"{value}\", {severityVerb} match the Entity Registrant Fiscal Year End Date \"{valueOfHeaderTag}\" on record within EDGAR.",
-		"dq-0540-CurrentFiscalYearEndDate-Submission-Value": "In submission type {subType}, {tag} value \"{value}\", does not match the Submission Header Fiscal Year End Date \"{valueOfHeaderTag}\".",
+		"dq-0540-{tag}-Value": "In submission type {subType}, {tag} value, {value}, is not equivalent to header element {headerTag} value, {valueOfHeaderTag}, in the {context}.",
+		"dq-0540-CurrentFiscalYearEndDate-Registrant-Value": "In submission type {subType}, {tag} value, {value}, {severityVerb} match the Entity Registrant Fiscal Year End Date {valueOfHeaderTag} on record within EDGAR.",
+		"dq-0540-CurrentFiscalYearEndDate-Submission-Value": "In submission type {subType}, {tag} value, {value}, does not match the Submission Header Fiscal Year End Date {valueOfHeaderTag}.",
 		"dq-0540-EntityExTransitionPeriod-EntityEmergingGrowthCompany-Dependency": "In submission type {subType}, EntityExTransitionPeriod must have a value if EntityEmergingGrowthCompany has value \"true\" in context {contextID}, else it should not be provided.",
-		"dq-0540-{headerTag}-Unexpected": "Header element {headerTag} value \"{value}\" is not applicable for {subType} submission type."
+		"dq-0540-{headerTag}-Unexpected": "Header element {headerTag} value {value} is not applicable for {subType} submission type."
     },
 	"extraction-cover-tags": [
 		"TradingSymbol",

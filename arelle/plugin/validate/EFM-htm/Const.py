@@ -51,6 +51,7 @@ disallowedElements = {
     "noframe",
     "noframes",
     "note",
+    "noscript",
     "object",
     "option",
     "overlay",

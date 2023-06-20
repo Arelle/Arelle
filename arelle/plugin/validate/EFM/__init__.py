@@ -34,6 +34,10 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
    "rptIncludeAllSeriesFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "rptSeriesClassInfo.seriesIds": ["S0000990666", ...] # list of EDGAR seriesId values
    "newClass2.seriesIds": [] # //seriesId xpath result on submission headers
+   "rptIncludeAllClassesFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
+   "rptSeriesClassInfo.classIds": ["C000000123", ...] # list of EDGAR classId values
+   "newClass2.classIds": [] # //classId xpath result on submission headers
+   "saveCoverFacts": test environment file into which to save JSON output
    # CEF forms
    "eligibleFundFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "pursuantGeneralInstructionFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
@@ -87,6 +91,8 @@ an additional EdgarRenderer parameters:
 The parameters with array values are entered to the GUI as blank-separated strings (no quotes):
    itemsList could be 5.03 6.99
    rptSeriesClassInfo.seriesIds could be S0000990666 S0000990777 S0000990888
+   classIDs could be C000000123 C000000124 C000000125
+
 
 For GUI mode there are two ways to set rendering output, (1) by formula parameter and (2) by GUI view menu.
   If both formula parameters summaryXslt and reportXslt are provided they override use of the GUI menu setting
@@ -134,8 +140,9 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                       "wellKnownSeasonedIssuerFlag", "shellCompanyFlag", "acceleratedFilerStatus", "smallBusinessFlag",
                       "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "invCompanyType",
                       "rptIncludeAllSeriesFlag", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds",
+                      "rptIncludeAllClassesFlag", "rptSeriesClassInfo.classIds", "newClass2.classIds",
                       "eligibleFundFlag", "pursuantGeneralInstructionFlag", "filerNewRegistrantFlag",
-                      "datetimeForTesting", "dqcRuleFilter")
+                      "datetimeForTesting", "dqcRuleFilter", "saveCoverFacts")
     parameterEisFileTags = {
         "cik":["depositorId", "cik", "filerId"],
         "submissionType": "submissionType",
@@ -177,7 +184,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                                      "smallBusinessFlag", "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "rptIncludeAllSeriesFlag",
                                      "filerNewRegistrantFlag", "pursuantGeneralInstructionFlag", "eligibleFundFlag"}:
                         v = {"true":True, "false":False}.get(v)
-                    elif paramName in {"itemsList", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds"}:
+                    elif paramName in {"itemsList", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds", "rptSeriesClassInfo.classIds", "newClass2.classIds"}:
                         v = v.split()
                 val.params[paramName] = v
         if "CIK" in val.params: # change to lower case key
@@ -692,7 +699,7 @@ class Report:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
-    'version': '1.23.1', # SEC EDGAR release 23.1
+    'version': '1.23.2', # SEC EDGAR release 23.2
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'import': ('transforms/SEC',), # SEC inline can use SEC transformations

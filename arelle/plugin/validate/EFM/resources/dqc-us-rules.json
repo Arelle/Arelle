@@ -89,7 +89,7 @@
             "57": {
                 "axis": "ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis",
                 "axis-descendants": "None",
-                "additional-members": ["EquityMethodInvesteeNameDomain"],
+                "additional-members": ["EquityMethodInvesteeNameDomain", "OtherInvesteesMember"],
                 "extensions-allowed": "Yes"
             },
             "58": {
@@ -170,7 +170,9 @@
             "75": {
                 "axis": "StatementEquityComponentsAxis",
                 "axis-descendants": "Yes",
-                "additional-members": ["AccumulatedNetGainLossFromCashFlowHedgesIncludingPortionAttributableToNoncontrollingInterestMember", "AccumulatedNetGainLossFromDesignatedOrQualifyingCashFlowHedgesMember", "AccumulatedNetGainLossFromCashFlowHedgesAttributableToNoncontrollingInterestMember", "TrustForBenefitOfEmployeesMember"],
+                "additional-members": ["AccumulatedNetGainLossFromCashFlowHedgesIncludingPortionAttributableToNoncontrollingInterestMember", "AccumulatedNetGainLossFromDesignatedOrQualifyingCashFlowHedgesMember", "AccumulatedNetGainLossFromCashFlowHedgesAttributableToNoncontrollingInterestMember", "TrustForBenefitOfEmployeesMember",
+                	"AociLiabilityForFuturePolicyBenefitNoncontrollingInterestMember", "AociLiabilityForFuturePolicyBenefitParentMember", "AociLiabilityForFuturePolicyBenefitIncludingNoncontrollingInterestMember", "AociMarketRiskBenefitInstrumentSpecificCreditRiskIncludingNoncontrollingInterestMember", "AociMarketRiskBenefitInstrumentSpecificCreditRiskParentMember", "AociMarketRiskBenefitInstrumentSpecificCreditRiskNoncontrollingInterestMember"
+                	],
                 "extensions-allowed": "Yes",
                 "comment": "DQC implementation additionally notes in message when disallowed member is also in the StatementClassOfStockAxis"
             },
@@ -523,14 +525,19 @@
         "description" : [
             "DQC.US 0015 rule entries based on the DQCRT taxonomy rule 0015 entries specifying facts and rule IDs.",
             "",
-            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0015/DQC_0015.md"
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0015/DQC_0015.md",
+            "",
+            "excluded-concept-typed-dimensions is a dict by concept localname of type dim localnames which when present exclude from nonneg test"
         ],
         "message": "Fact {name} has a value of {value} which is less than zero. This element should not have a negative value. The preparer should consider if the value is input correctly for this assertion and, after considering the appropriateness of the input, if incorrect, input the amount as a positive (i.e., absolute) value and provide a negated label.  \nThe properties of this {name} fact are:\nContext: {contextID} \nUnit: {unitID}",
         "additional-excluded-names": [
         	"SupplementalInformationForPropertyCasualtyInsuranceUnderwritersNetInvestmentIncome",
         	"SupplementaryInsuranceInformationNetInvestmentIncome",
         	"LeveragedLeasesIncomeStatementNetIncomeFromLeveragedLeases"
-        ] 
+        ],
+        "excluded-concept-typed-dimensions": {
+        	"InvestmentOwnedAtCost": ["InvestmentIdentifierAxis"]
+        }
     },
     "DQC.US.0033": {
     	"name": "Document Period End Date Context",
@@ -558,7 +565,7 @@
         	 "IncomeLossFromEquityMethodInvestments"]
         ],
         "rules": {
-        	"2": { 
+        	"2": {
         	    "names": [
 					"AdditionalSecurities462b", 
 					"AdditionalSecurities462bFileNumber", 
@@ -568,9 +575,6 @@
 					"AnnualInformationForm", 
 					"ApproximateDateOfCommencementOfProposedSaleToThePublic", 
 					"AuditedAnnualFinancialStatements",
-					"AuditorFirmId",
-					"AuditorLocation",
-					"AuditorName", 
 					"CityAreaCode", 
 					"ContactPersonnelEmailAddress", 
 					"ContactPersonnelFaxNumber", 
@@ -752,6 +756,7 @@
         },
         "income-names": [
 			"ComprehensiveIncomeNetOfTax", 
+			"ComprehensiveIncomeNetOfTaxIncludingPortionAttributableToNoncontrollingInterest",
 			"DiscontinuedOperationIncomeLossFromDiscontinuedOperationBeforeIncomeTax", 
 			"ExtraordinaryItemGainOrLossNetOfTaxAttributableToNoncontrollingInterest", 
 			"ExtraordinaryItemGainOrLossNetOfTaxAttributableToReportingEntity", 
@@ -935,7 +940,7 @@
 					"CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
 					"CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsIncludingDisposalGroupAndDiscontinuedOperations"
                 ],
-                "message": "One of the following elements {elementNames} should appear as the opening and closing balance in the cash flow statement using the group {role}. Instead the following balance items have been used in this statement {balanceElements}. Due to the implementaion of ASU-2016-18 at least one of the opening and closing balance items listed must be used in the cash flow statement. "
+                "message": "One of the following elements {elementNames} should appear as the opening and closing balance in the cash flow statement using the group {role}. Instead the following balance items have been used in this statement {balanceElements}. Due to the implementaion of ASU-2016-18 at least one of the opening and closing balance items listed must be used in the cash flow statement."
             }
         }
     },
@@ -987,7 +992,7 @@
             "",
             "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0071/DQC_0071.md"
         ],
-        "message": "The filing has  reported a value for the element {name} with a value of {value} using the ProductOrServiceAxis in the role {role} on the table {table}. However, the only member used to disaggregate the total for {name} was the member {member}. If only one member is used on this axis then the filer should either: \n\n1. Retag the filing using the element TypeOfRevenueExtensibleList/TypeOfCostGoodOrServiceExtensibleList with a value of {member} and the member {member} should be removed from the value as it represents the aggregate value of {name}; or \n\n2. Tag the aggregate value of {name} with a value of {value} without the product of service axis. This rule will not generate an error if the aggregate value of {name} is reported.  \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}",
+        "message": "The filing has reported a value for the element {name} with a value of {value} using the ProductOrServiceAxis in the role {role} on the table {table}. However, the only member used to disaggregate the total for {name} was the member {member}. If only one member is used on this axis then the filer should either: \n\n1. Retag the filing using the element TypeOfRevenueExtensibleList/TypeOfCostGoodOrServiceExtensibleList with a value of {member} and the member {member} should be removed from the value as it represents the aggregate value of {name}; or \n\n2. Tag the aggregate value of {name} with a value of {value} without the product of service axis. This rule will not generate an error if the aggregate value of {name} is reported.  \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}.",
         "rules": {
         	"7646": {
         		"axis": "srt:ProductOrServiceAxis",
@@ -1011,7 +1016,7 @@
             "",
             "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0073/DQC_0073.md"
         ],
-        "message": "The concept {name} with a value of {value} is used with the DefinedBenefitPlanByPlanAssetCategoriesAxis. This element cannot be used with this axis.   \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}.  \n\nThe allowable list of elements that can be used are as follows: {allowableNames}",
+        "message": "The concept {name} with a value of {value} is used with the DefinedBenefitPlanByPlanAssetCategoriesAxis. This element cannot be used with this axis.   \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}.  \n\nThe allowable list of elements that can be used are as follows: {allowableNames}.",
         "rules": {
         	"7648": {
         		"axis": "DefinedBenefitPlanByPlanAssetCategoriesAxis",
@@ -1129,7 +1134,6 @@
 					"connecticutmember": "stpr:CT",
 					"cookislandsmember": "country:CK",
 					"costaricamember": "country:CR",
-					"costaricamember": "country:CR",
 					"cotedivoiremember": "country:CI",
 					"croatiamember": "country:HR",
 					"cubamember": "country:CU",
@@ -1161,7 +1165,6 @@
 					"georgiamember": "stpr:GA",
 					"georgiamember": "country:GE",
 					"germanymember": "country:DE",
-					"ghanamember": "country:GH",
 					"ghanamember": "country:GH",
 					"gibraltarmember": "country:GI",
 					"greecemember": "country:GR",

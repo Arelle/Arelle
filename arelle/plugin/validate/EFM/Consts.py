@@ -58,8 +58,10 @@ submissionTypesAllowingAcceleratedFilerStatus = docTypes10K10KT | docTypes20F
 submissionTypesAllowingEntityInvCompanyType = docTypesRR | {
     'N-CSR', 'N-CSR/A', 'N-CSRS', 'N-CSRS/A', 'N-Q', 'N-Q/A'}
 submissionTypesAllowingSeriesClasses = docTypesRR | {
-    "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A", 'N-Q', 'N-Q/A'}
+    'N-Q', 'N-Q/A'}
 invCompanyTypesAllowingSeriesClasses = {"N-1A", "N-3"}
+invCompanyTypesRequiringOefClasses = {"N-1A"}
+submissionTypesRequiringOefClasses = {'N-CSR', 'N-CSR/A', 'N-CSRS', 'N-CSRS/A',}
 
 docTypesRequiringPeriodOfReport = {"10", "10-K", "10-Q", "20-F", "40-F", "6-K", "8-K",
     "F-1", "F-10", "F-3", "F-4", "F-9", "S-1", "S-11", "S-3", "S-4", "POS AM", "10-KT", "10-QT", "POS EX",
@@ -79,7 +81,7 @@ submissionTypesAllowingExTransitionPeriodFlag = docTypesCoverTagged | {
 docTypesRequiringRrSchema = \
 docTypesExemptFromRoleOrder = \
 submissionTypesExemptFromRoleOrder = ('485APOS', '485BPOS','485BXT', '497', 'N-1A', 'N-1A/A',
-                                      'N-2', 'N-2/A', 'N-2MEF', 'N-2ASR', 'N-2 POSASR')
+                                      'N-2', 'N-2/A', 'N-2MEF', 'N-2ASR', 'N-2 POSASR', 'N-CSR', 'N-CSR/A','N-CSRS', 'N-CSRS/A')
 
 docTypesNotAllowingIfrs = ('485APOS', '485BPOS','485BXT', '497', 'N-1A', 'N-1A/A',
                            'N-CSR', 'N-CSR/A', 'N-CSRS', 'N-CSRS/A', 'N-Q', 'N-Q/A',
@@ -88,10 +90,12 @@ docTypesNotAllowingIfrs = ('485APOS', '485BPOS','485BXT', '497', 'N-1A', 'N-1A/A
 docTypesNotAllowingInlineXBRL = {
     "K SDR", "L SDR"}
 
+feeTaggingExhibitTypePattern = re.compile(r"EX-FILING FEES.*")
+
 standardNamespacesPattern = re.compile(
     # non-IFRS groups 1 - authority, 2 - taxonomy (e.g. us-gaap, us-types), 3 - year
     r"http://(xbrl\.us|fasb\.org|xbrl\.sec\.gov)/("
-            r"dei|us-gaap|srt|us-types|us-roles|srt-types|srt-roles|rr|cef|country|currency|exch|invest|naics|sic|stpr|vip|ecd"
+            r"dei|us-gaap|srt|us-types|us-roles|srt-types|srt-roles|rr|cef|oef|country|currency|ecd|exch|invest|naics|rxp|sic|stpr|vip"
             r")/([0-9]{4}|[0-9]{4}q[1-4])(-[0-9]{2}-[0-9]{2})?$"
     # ifrs groups 4 - year, 5 - taxonomy (e.g. ifrs-full)
     r"|https?://xbrl.ifrs.org/taxonomy/([0-9]{4})-[0-9]{2}-[0-9]{2}/(ifrs[\w-]*)$")
@@ -104,8 +108,7 @@ untransformableTypes = {"anyURI", "base64Binary", "hexBinary", "NOTATION", "QNam
 hideableNamespacesPattern = re.compile("http://xbrl.sec.gov/(dei|vip)/")
 
 # RR untransformable facts
-rrUntransformableEltsPattern = re.compile(r"(\w*TableTextBlock|BarChart\w+|AnnualReturn(19|20)[0-9][0-9])")
-
+rrUntransformableEltsPattern = re.compile(r"(\w*TableTextBlock|RiskNarrativeTextBlock|BarChart\w+|AnnualReturn(19|20)[0-9][0-9])") # WcH RiskNarrative exception is an ABSOLUTELY TEMPORARY HACK
 usDeprecatedLabelPattern = re.compile(r"^.* \(Deprecated (....(-..-..)?)\)$")
 usDeprecatedLabelRole = "http://www.xbrl.org/2003/role/label"
 ifrsDeprecatedLabelPattern = re.compile(r"^\s*([0-9]{4}-[0-1][0-9]-[0-2][0-9])\s*$")
@@ -177,12 +180,22 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
+    "oef/*": {
+        "deprecatedLabels": ["https://xbrl.sec.gov/oef/2023/oef-entire-2023.xsd"],
+        "deprecatedLabelRole": usDeprecatedLabelRole,
+        "deprecationDatePattern": usDeprecatedLabelPattern
+        },
     "rr/*": {
         "deprecatedLabels": ["http://xbrl.sec.gov/rr/2012/rr-lab-2012-01-31.xml",
                              "https://xbrl.sec.gov/rr/2018/rr-lab-2018-01-31.xml",
                              "https://xbrl.sec.gov/rr/2021/rr-2021_lab.xsd",
                              "https://xbrl.sec.gov/rr/2022/rr-2022_lab.xsd",
                              "https://xbrl.sec.gov/rr/2023/rr-2023_lab.xsd"],
+        "deprecatedLabelRole": usDeprecatedLabelRole,
+        "deprecationDatePattern": usDeprecatedLabelPattern
+        },
+    "rxp/*": {
+        "deprecatedLabels": ["https://xbrl.sec.gov/rxp/2023/rxp-2023_lab.xsd"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
@@ -228,7 +241,9 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
         "deprecatedLabels": ["http://xbrl.ifrs.org/taxonomy/2018-03-16/deprecated/depr-lab_full_ifrs-en_2018-03-16.xml",
                              "http://xbrl.ifrs.org/taxonomy/2019-03-27/deprecated/depr-lab_full_ifrs-en_2019-03-27.xml",
                              "http://xbrl.ifrs.org/taxonomy/2020-03-16/deprecated/depr-lab_full_ifrs-en_2020-03-16.xml",
-                             "http://xbrl.ifrs.org/taxonomy/2021-03-24/deprecated/depr-lab_full_ifrs-en_2021-03-24.xml"],
+                             "http://xbrl.ifrs.org/taxonomy/2021-03-24/deprecated/depr-lab_full_ifrs-en_2021-03-24.xml",
+                             "http://xbrl.ifrs.org/taxonomy/2022-03-24/deprecated/depr-lab_full_ifrs-en_2022-03-24.xml",
+                             "https://xbrl.ifrs.org/taxonomy/2023-03-24/deprecated/depr-lab_full_ifrs-en_2023-03-23.xml"],
         "deprecatedLabelRole": ifrsDeprecatedLabelRole,
         "deprecationDatePattern": ifrsDeprecatedLabelPattern
         }
@@ -254,6 +269,16 @@ latestEntireUgt = {
     }
 
 linkbaseValidations = {
+    # key - validation taxonomy prefix
+    # efmPre, Cal, Def - EFM section for linkbase constraint
+    # elrPre - regex matching allowed linkrole for extension
+    # elrPreDocTypes - list of doc types which are checked for this validation
+    # elrDefInNs - regex of linkroles permitting extension relationships between base taxonomy concepts
+    # elrDefExNs - regex of linkroles permitting extension relationships between base and non-base concepts
+    # elrDefRowSrc - dict by role of required source concept
+    # elrDefNoTgtRole - true to block extension arcs with target role
+    # preSources - local names of allowed source elements
+    # preCustELFs - true to allow custom linkroles in extension
     "cef": attrdict(
         efmPre = "6.12.10",
         efmCal = "6.14.06",
@@ -262,6 +287,8 @@ linkbaseValidations = {
         elrPreDocTypes = ("N-2", "N-2/A"), # only these doc types are checked
         elrDefInNs = re.compile("http://xbrl.sec.gov/cef/role/N2"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/cef/role/(Security|Risk)Only"),
+        elrDefRoleSrc = None,
+        elrDefNoTgtRole = False,
         preSources = ("AllSecuritiesMember", "AllRisksMember", "ClassOfStockDomain", "DebtInstrumentNameDomain"),
         preCustELRs = False
     ),
@@ -270,9 +297,10 @@ linkbaseValidations = {
         efmCal = "6.14.07",
         efmDef = "6.16.11",
         elrPre = re.compile("http://xbrl.sec.gov/vip/role/N[346]"),
-        elrPreDocTypes = None,
         elrDefInNs = re.compile("http://xbrl.sec.gov/vip/role/[^/]*Only"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/vip/role/[^/]*Only"),
+        elrDefRoleSrc = None,
+        elrDefNoTgtRole = False,
         preSources = (),
         preCustELRs = False
     ),
@@ -281,10 +309,43 @@ linkbaseValidations = {
         efmCal = "6.14.08",
         efmDef = "6.16.12",
         elrPre = None,
-        elrPreDocTypes = None,
         elrDefInNs = re.compile("http://xbrl.sec.gov/ecd/role/"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/ecd/role/[^/]*Only"),
+        elrDefRoleSrc = None,
+        elrDefNoTgtRole = False,
         preSources = (),
         preCustELRs = True
-    )
+    ),
+    "oef": attrdict(
+        efmCal = "6.14.09",
+        elrCalDocTypes = ('N-CSR','N-CSRS','N-CSR/A','N-CSRS/A'),
+        efmDef = "6.16.13", #elrDefDocTypes = ('N-CSR','N-CSRS','N-CSR/A','N-CSRS/A'),
+        # Need to add the "Only" suffix to these rr roles for consistency.
+        elrDefInNs = re.compile("http://xbrl.sec.gov/(oef/role/[^/]*Only|rr/role/(Series|Class|Coregistrant|Prospectus|Risk|PerformanceMeasure))"),
+        elrDefExNs = re.compile("http://xbrl.sec.gov/(oef/role/[^/]*Only|rr/role/(Series|Class|Coregistrant|Prospectus|Risk|PerformanceMeasure))"),
+        elrDefRoleSrc = None,
+        elrDefNoTgtRole = False,
+        preSources = (),
+        efmPre = None,
+        preCustELRs = True
+    ),
+    "rxp": attrdict(
+        efmCal = "6.14.10",
+        elrCalDocTypes = ('2.01 SD',),
+        efmDef = "6.16.14",
+        elrDefDocTypes = ('2.01 SD',),
+        elrDefInNs = re.compile("never permitted"),
+        elrDefExNs = re.compile("http://xbrl.sec.gov/rxp/role/(Projects|Governments|Segments|Entities|Resources)Only"),
+        elrDefRoleSrc = {
+            "http://xbrl.sec.gov/rxp/role/ProjectsOnly": "rxp:AllProjectsMember",
+            "http://xbrl.sec.gov/rxp/role/GovernmentsOnly": "rxp:AllGovernmentsMember",
+            "http://xbrl.sec.gov/rxp/role/SegmentsOnly": "rxp:AllSegmentsMember",
+            "http://xbrl.sec.gov/rxp/role/EntitiesOnly": "dei:EntityDomain",
+            "http://xbrl.sec.gov/rxp/role/ResourcesOnly": "rxp:AllResourcesMember"
+            },
+        elrDefNoTgtRole = True,
+        preSources = (),
+        efmPre = None,
+        preCustELRs = True,
+    ),
 }
