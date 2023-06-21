@@ -649,7 +649,7 @@ def discoverIxdsDts(modelXbrl):
 class TargetChoiceDialog:
     def __init__(self,parent, choices):
         from tkinter import Toplevel, Label, Listbox, StringVar
-        parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
+        parentGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
         self.parent = parent

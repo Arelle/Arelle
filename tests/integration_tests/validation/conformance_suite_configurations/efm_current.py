@@ -3,7 +3,7 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 
 config = ConformanceSuiteConfig(
     args=[
-        '--disclosureSystem', 'efm-pragmatic-preview',
+        '--disclosureSystem', 'efm-pragmatic',
         '--formula', 'run',
         '--plugins', 'validate/EFM|inlineXbrlDocumentSet|EdgarRenderer',
     ],
@@ -12,12 +12,13 @@ config = ConformanceSuiteConfig(
         'conf/609-linkbase-syntax/609-10-general-namespace-specific-custom-arc-restrictions/609-10-general-namespace-specific-custom-arc-restrictions-testcase.xml',
         'conf/624-rendering/09-start-end-labels/gd/09-start-end-labels-gd-testcase.xml',
         'conf/624-rendering/14-cash-flows/gd/14-cash-flows-gd-testcase.xml',
-        'conf/624-rendering/18-numeric/gd/18-numeric-gd-testcase.xml',
         'conf/624-rendering/15-equity-changes/gw/15-equity-changes-gw-testcase.xml',
+        'conf/624-rendering/18-numeric/gd/18-numeric-gd-testcase.xml',
+        'conf/626-rendering-syntax/626-03-no-matching-durations/626-03-no-matching-durations-testcase.xml',
     ]),
     file='conf/testcases.xml',
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
-    local_filepath='efm_conformance_suite_2022.zip',
+    local_filepath='efm-66-230620.zip',
     name=PurePath(__file__).stem,
-    public_download_url='https://www.sec.gov/info/edgar/ednews/efmtest/efm-64d-221128.zip'
+    public_download_url='https://www.sec.gov/files/edgar/efm-66-230620.zip'
 )
