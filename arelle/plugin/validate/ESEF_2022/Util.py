@@ -168,8 +168,13 @@ def checkImageContents(baseURI: Optional[str], modelXbrl: ModelXbrl, imgElt: _El
             ("png" not in imgType and headerType == "png")):
             imageDoesNotMatchItsFileExtension = f"{guidance}.imageDoesNotMatchItsFileExtension"
             incorrectMIMETypeSpecified = f"{guidance}.incorrectMIMETypeSpecified"
-            modelXbrl.error(imageDoesNotMatchItsFileExtension if isFile else incorrectMIMETypeSpecified,
-                _("File type %(headerType)s inferred from file signature does not match the data URL mediatype (MIME type) %(imgType)s"),
+            if isFile:
+                code = imageDoesNotMatchItsFileExtension
+                message = _("File type %(headerType)s inferred from file signature does not match the file extension %(imgType)s")
+            else:
+                code = incorrectMIMETypeSpecified
+                message = _("File type %(headerType)s inferred from file signature does not match the data URL media subtype (MIME subtype) %(imgType)s")
+            modelXbrl.error(code, message,
                 modelObject=imgElt, imgType=imgType, headerType=headerType,
                 messageCodes=(imageDoesNotMatchItsFileExtension, incorrectMIMETypeSpecified))
         elif not any(it in imgType for it in supportedImgTypes[isFile]):
