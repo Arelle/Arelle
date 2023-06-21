@@ -2535,7 +2535,7 @@
 			"validation": "F2 – One or both non-null facts should be present if EntityAddressAddressLine1 is present."
 		},
 		"n": {
-			"message": "dq-{efmSection}-{tag}-{value}",
+			"message": "dq-{efmSection}-{tag}-{expectedValue}",
 			"severity": "warning",
 			"validation": "N – A fact should be present with value \"false\"."
 		},
@@ -2643,7 +2643,7 @@
 			"validation": "Tb – A non-null fact is required only if the Security12bTitle exists.  If ADR a non-null trading symbol is required."
 		},
 		"y": {
-			"message": "dq-{efmSection}-{tag}-{value}",
+			"message": "dq-{efmSection}-{tag}-{expectedValue}",
 			"severity": "warning",
 			"validation": "Y – A fact should be present with value \"true\"."
 		},
@@ -2821,6 +2821,7 @@
         "dq-{efmSection}-{taxonomy}-Version-Required": "Submission type {subType} {severityVerb} use {taxonomy} version {earliestTaxonomy} or later.",
         "dq-{efmSection}-Taxonomy-Url-Required": "Submission type {subType} document type {docType} {severityVerb} contain a taxonomy URL matching {taxonomyPattern} in its DTS.",
 		"dq-{efmSection}-{tag}-{value}": "In submission type {subType}, {tag} value {severityVerb} have {value} in the {context}.",
+		"dq-{efmSection}-{tag}-{expectedValue}": "In submission type {subType}, {tag} value, {value}, {severityVerb} have {expectedValue} in the {context}.",
 		"dq-{efmSection}-{tag}-Value": "In submission type {subType}, {tag} value, {value}, {severityVerb} be {qualifier}{expectedValue} in the {context}.",
 		"dq-{efmSection}-{tag}-{otherTag}": "In submission type {subType}, {tag} value {severityVerb} have value {value} in the same context as {otherTag}, {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTag}-Missing": "In submission type {subType}, {tag} requires {otherTag} in the same context, {contextID}.",

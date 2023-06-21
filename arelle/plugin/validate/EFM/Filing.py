@@ -1056,6 +1056,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
                 logArgs["severityVerb"] = (sev.get("severityVerb", validation.get("severityVerb")) or
                                             {"WARNING":"should","ERROR":"must"}[severity])
+                for n, v in logArgs.items(): # clean up tag arguments
+                    if n.lower().endswith("tag"):
+                        if isinstance(v, list):
+                            logArgs[n] = "".join(v)
                 if "efmSection" not in logArgs:
                     logArgs["efmSection"] = sev.get("efm")
                 if logArgs.get("efmSection"):
