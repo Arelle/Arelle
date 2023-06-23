@@ -3,6 +3,15 @@
 <Erxl xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="66" xsi:noNamespaceSchemaLocation="erxl.xsd">
     <Loc>
         <Family>BASE</Family>
+        <Version>2023</Version>
+        <Href>https://www.xbrl.org/2023/calculation-1.1.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>https://xbrl.org/2023/calculation-1.1</Namespace>
+    </Loc>
+    <Loc>
+        <Family>BASE</Family>
         <Version>2014</Version>
         <Href>http://www.xbrl.org/2014/extensible-enumerations.xsd</Href>
         <AttType>SCH</AttType>

@@ -1208,7 +1208,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 axes = axesValidations["axes"]
                 excludesAxes = "!not!" in axes
                 axisOperator = axesValidations.get("axes-operator", "any")
-                matchCubes = sev.get("cubes")
+                matchCubes = axesValidations.get("cubes")
                 axesQNs = []
                 for axis in axes:
                     if axis is None:
@@ -1315,12 +1315,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     yielded = True
                                     yield f
 
-                            elif axisOperator == "all" and all(
+                            elif axisOperator == "all" and (
+                                len(context.qnameDims) == len(axes) and
+                                len(axes) == len(axesQNs)) and all(
                                 context.hasDimension(qn) and
                                 (not matchDims or qn not in matchDims or context.qnameDims[qn].isEqualTo(matchDims[qn])) and
                                 (not matchCubes or any(modelXbrl.relationshipSet("XBRL-dimensions",elr).isRelated(qn, "descendant", context.dimValue(qn).member) for elr in matchCubes))
-                                for qn in axesQNs) and (
-                                len(context.qnameDims) == len(axes)): # no extra dimensions
+                                for qn in axesQNs): # no extra dimensions
                                     if not deduplicate or notdup(f):
                                         if not excludesAxes:
                                             if sevCovered: sevCoveredFacts.add(f)
@@ -2927,14 +2928,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     drsELRs = set()
 
     # do calculation, then presentation, then other arcroles
-    val.summationItemRelsSetAllELRs = modelXbrl.relationshipSet(XbrlConst.summationItem)
-    for arcroleFilter in (XbrlConst.summationItem, XbrlConst.parentChild, "*"):
+    val.summationItemRelsSetAllELRs = modelXbrl.relationshipSet(XbrlConst.summationItems)
+    for arcroleFilter in (XbrlConst.summationItem, XbrlConst.summationItem11, XbrlConst.parentChild, "*"):
         for baseSetKey, baseSetModelLinks  in modelXbrl.baseSets.items():
             arcrole, ELR, linkqname, arcqname = baseSetKey
             if ELR and linkqname and arcqname and not arcrole.startswith("XBRL-"):
                 # assure summationItem, then parentChild, then others
                 if not (arcroleFilter == arcrole or
-                        arcroleFilter == "*" and arcrole not in (XbrlConst.summationItem, XbrlConst.parentChild)):
+                        arcroleFilter == "*" and arcrole not in (XbrlConst.summationItem, XbrlConst.summationItem11, XbrlConst.parentChild)):
                     continue
                 ineffectiveArcs = ModelRelationshipSet.ineffectiveArcs(baseSetModelLinks, arcrole)
                 #validate ineffective arcs
@@ -3051,7 +3052,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             modelObject=(rel,parentChildRels.rootConcepts), linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR),
                             linkroleName=val.modelXbrl.roleTypeName(ELR),
                             numberRootConcepts=len(parentChildRels.rootConcepts))
-                elif arcrole == XbrlConst.summationItem:
+                elif arcrole in XbrlConst.summationItems:
                     # 6.14.3 check for relation concept periods
                     fromRelationships = modelXbrl.relationshipSet(arcrole,ELR).fromModelObjects()
                     # allElrRelSet = modelXbrl.relationshipSet(arcrole)
@@ -3175,7 +3176,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole),
                                         conceptFrom=relFrom.qname, conceptTo=relTo.qname)
                 if lbVal.efmCal and ('elrCalDocTypes' not in lbVal or documentType in lbVal.elrCalDocTypes):
-                    for rel in modelXbrl.relationshipSet(XbrlConst.summationItem).modelRelationships:
+                    for rel in modelXbrl.relationshipSet(XbrlConst.summationItems).modelRelationships:
                         if not isStandardUri(val, rel.modelDocument.uri) and rel.modelDocument.targetNamespace not in val.otherStandardTaxonomies:
                             relFrom = rel.fromModelObject
                             relTo = rel.toModelObject
@@ -3247,7 +3248,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         for toIndx in toIndxs:
             fromModelObject = val.modelXbrl.modelObject(fromIndx)
             toModelObject = val.modelXbrl.modelObject(toIndx)
-            calcRels = modelXbrl.relationshipSet(XbrlConst.summationItem) \
+            calcRels = modelXbrl.relationshipSet(XbrlConst.summationItems) \
                                 .fromToModelObjects(fromModelObject, toModelObject, checkBothDirections=True)
             fromFacts = val.modelXbrl.factsByQname[fromModelObject.qname]
             toFacts = val.modelXbrl.factsByQname[toModelObject.qname]
@@ -3372,15 +3373,15 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if sumLn in modelXbrl.nameConcepts and "calc-items" in rule: # (dqc_us_rules/pull/544)
                     sumConcept = modelXbrl.nameConcepts[sumLn][0]
                     linkroleURIs = OrderedSet(modelLink.role
-                                              for modelLink in val.modelXbrl.baseSets[(XbrlConst.summationItem,None,None,None)]
-                                              if modelXbrl.relationshipSet(XbrlConst.summationItem, modelLink.role , None, None).fromModelObject(sumConcept))
+                                              for modelLink in val.modelXbrl.baseSets[(XbrlConst.summationItems,None,None,None)]
+                                              if modelXbrl.relationshipSet(XbrlConst.summationItems, modelLink.role , None, None).fromModelObject(sumConcept))
 
                 for linkroleUri in linkroleURIs: # evaluate by network where applicable to ID
                     itemWeights = {}
                     summingNetworkChildren = False
                     if linkroleUri: # has calc network evaluation
                         itemWeights = dict((rel.toModelObject.name, rel.weightDecimal)
-                                            for rel in modelXbrl.relationshipSet(XbrlConst.summationItem, linkroleUri, None, None).fromModelObject(sumConcept)
+                                            for rel in modelXbrl.relationshipSet(XbrlConst.summationItems, linkroleUri, None, None).fromModelObject(sumConcept)
                                             if rel.toModelObject is not None)
                         if set(rule.get("calc-items")) <= itemWeights.keys():
                             itemLns = list(itemWeights.keys())
@@ -3604,7 +3605,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     visited = set()
                     bottomWeights = set()
                 visited.add(fromConcept)
-                for rel in modelXbrl.relationshipSet(XbrlConst.summationItem, ELR).fromModelObject(fromConcept):
+                for rel in modelXbrl.relationshipSet(XbrlConst.summationItems, ELR).fromModelObject(fromConcept):
                     if rel.toModelObject is not None and rel.toModelObject.name not in incomeNames:
                         w = effectiveWeight * rel.weight
                         bottomWeights.add((rel.toModelObject, w))
@@ -3649,7 +3650,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         elif dqcRuleName == "DQC.US.0047":
             # 0047 has only one id, rule
             id, rule = next(iter(dqcRule["rules"].items()))
-            calcRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.summationItem, linkroleUri)
+            calcRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.summationItems, linkroleUri)
             excludedChildren = set(rule["excluded-children"])
             for parentName in rule["parents"]:
                 for parentConcept in modelXbrl.nameConcepts.get(parentName,()):
@@ -3680,7 +3681,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                      'cashflow' in linkroleUri.lower())
                     and ' - Statement - ' in definition and 'parenthetical' not in linkroleUri.lower()):
                     preCashFlowLinkRoles.add(linkroleUri)
-                    calcRelationshipSet = modelXbrl.relationshipSet(XbrlConst.summationItem, linkroleUri)
+                    calcRelationshipSet = modelXbrl.relationshipSet(XbrlConst.summationItems, linkroleUri)
                     calcRoots = calcRelationshipSet.rootConcepts
                     if calcRoots:
                         calcCashFlowLinkRoles.add(linkroleUri)
@@ -3697,7 +3698,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 elif calcCashFlowLinkRolesMissingRoots == calcCashFlowLinkRoles: # every calc is missing the roots
                     for linkRole in calcCashFlowLinkRolesMissingRoots:
                         modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
-                            modelObject=val.modelXbrl.baseSets[(XbrlConst.summationItem,linkroleUri,None,None)] or modelXbrl, # may be no base sets, in which case just show the instance
+                            modelObject=val.modelXbrl.baseSets[(XbrlConst.summationItems,linkroleUri,None,None)] or modelXbrl, # may be no base sets, in which case just show the instance
                             linkRole=linkroleUri, linkroleDefinition=definition,
                             rootNames=(", ".join(r.name for r in calcRoots) or "(none)"),
                             edgarCode=edgarCode, ruleElementId=id)

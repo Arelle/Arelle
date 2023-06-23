@@ -98,6 +98,12 @@ def baseSetRelationship(arcElement):
             return rel
     return None
 
+def baseSetSortkey(baseSetKey): # for base set sorting functions
+    arcrole, linkrole, _linkqname, _arcqname = baseSetKey
+    # arcrole may be a string or tuple of strings.
+    return (",".join(arcrole) if isinstance(arcrole, (tuple,list)) else arcrole or "",
+            linkrole or "")
+
 class ModelRelationshipSet:
     __slots__ = ("isChanged", "modelXbrl", "arcrole", "linkrole", "linkqname", "arcqname",
                  "modelRelationshipsFrom", "modelRelationshipsTo", "modelConceptRoots", "modellinkRoleUris",
