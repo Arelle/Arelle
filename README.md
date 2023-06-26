@@ -1,3 +1,5 @@
+Test
+
 # Arelle
 
 [![pypi-version](https://img.shields.io/pypi/v/arelle-release.svg)](https://pypi.org/project/arelle-release/)
