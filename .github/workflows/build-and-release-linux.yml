@@ -64,12 +64,6 @@ jobs:
   build-linux:
     environment: release
     runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        distro: [
-          ubuntu
-        ]
-
     steps:
       - name: Checkout arelle
         uses: actions/checkout@v3.5.3
@@ -125,7 +119,7 @@ jobs:
             "OPENSSL_VERSION=${{ inputs.openssl_version }}"
             "PYTHON_VERSION=${{ inputs.python_version }}"
           context: .
-          file: docker/${{ matrix.distro }}.Dockerfile
+          file: docker/ubuntu.Dockerfile
           load: true
           tags: arelle:arelle
       - name: Docker copy build artifact
@@ -135,13 +129,13 @@ jobs:
           docker rm -v arelle
       - name: Capture build env
         run: |
-          [[ $(echo dist/*.tgz) =~ -([0-9]+\.[0-9]+\.[0-9]+)\.tgz$ ]] && echo "ARTIFACT_VERSIONED_NAME=arelle-${{ matrix.distro }}-${BASH_REMATCH[1]}.tgz" >> $GITHUB_ENV
-          echo "ARTIFACT_NAME=arelle-${{ matrix.distro }}.tgz" >> $GITHUB_ENV
+          [[ $(echo dist/*.tgz) =~ -([0-9]+\.[0-9]+\.[0-9]+)\.tgz$ ]] && echo "ARTIFACT_VERSIONED_NAME=arelle-ubuntu-${BASH_REMATCH[1]}.tgz" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=arelle-ubuntu.tgz" >> $GITHUB_ENV
           echo "BUILD_ARTIFACT_PATH=$(echo dist/*.tgz)" >> $GITHUB_ENV
       - name: Upload build artifact
         uses: actions/upload-artifact@v3.1.2
         with:
-          name: ${{ matrix.distro }} distribution
+          name: ubuntu distribution
           if-no-files-found: error
           path: ${{ env.BUILD_ARTIFACT_PATH }}
       - name: Upload release artifact
