@@ -19,7 +19,6 @@ KNOWN_FAILURES = frozenset([
     'arelle.plugin.validate.EFM-htm.Const',
     'arelle.plugin.validate.EFM-htm.__init__',
     'arelle.plugin.validate.XFsyntax.xf',
-    'arelle.webserver.bottle-no2to3',
 ])
 MODULE_NAMES = list(map(lambda g: g.replace('/', '.').replace('\\', '.').replace('.py', ''), glob.glob('arelle/**/*.py', recursive=True)))
 TEST_PARAMS = [
