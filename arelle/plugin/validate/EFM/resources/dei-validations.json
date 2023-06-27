@@ -2802,7 +2802,7 @@
             "message": "dq-{efmSection}-{tag}-Unexpected"
         },
         "oef:class": {
-            "axes": ["oef:ClassAxis"],
+            "axes": ["!std!:ClassAxis"],
             "axes-operator": "all",
             "cubes": ["http://xbrl.sec.gov/oef/role/ClassOnly"],
             "required-context-period": true,
