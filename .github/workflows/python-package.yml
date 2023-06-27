@@ -1,6 +1,13 @@
 name: Build and publish python package
 
 on:
+  workflow_call:
+    inputs:
+      python_version:
+        default: '3.11'
+        description: 'Python version to use'
+        required: false
+        type: string
   workflow_dispatch:
     inputs:
       python_version:

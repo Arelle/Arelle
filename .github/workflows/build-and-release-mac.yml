@@ -1,6 +1,30 @@
 name: Build and Release Mac
 
 on:
+  workflow_call:
+    inputs:
+      edgar_renderer_ref:
+        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+      ixbrl_viewer_ref:
+        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+      node_version:
+        default: '19'
+        description: 'Node.js version to use'
+        required: false
+        type: string
+      python_version:
+        default: '3.11'
+        description: 'Python version to use'
+        required: false
+        type: string
+      xule_ref:
+        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
   workflow_dispatch:
     inputs:
       edgar_renderer_ref:
@@ -27,7 +51,7 @@ on:
         type: string
 
 jobs:
-  build-distribution:
+  build-macos:
     environment: release
     runs-on: macos-12
 
