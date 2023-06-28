@@ -32,16 +32,6 @@ jobs:
         test: ${{ fromJson(needs.find-tests.outputs.matrix) }}
         include:
           - os: windows-2022
-            python-version: '3.7'
-            test: xbrl_2_1
-          - os: macos-12
-            python-version: '3.7'
-            test: xbrl_2_1
-          - os: ubuntu-22.04
-            python-version: '3.7'
-            test: xbrl_2_1
-
-          - os: windows-2022
             python-version: '3.8'
             test: xbrl_2_1
           - os: macos-12
