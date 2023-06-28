@@ -1156,7 +1156,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         # facts in declared units RTS Annex II para 1
         # assume declared currency is one with majority of concepts
         monetaryItemsNotInDeclaredCurrency = []
-        unitCounts = sorted(statementMonetaryUnitFactCounts.items(), key=lambda uc:uc[1], reverse=True) # type: ignore[no-any-return]
+        unitCounts = sorted(statementMonetaryUnitFactCounts.items(), key=lambda uc:uc[1], reverse=True)
         if unitCounts: # must have a monetary statement fact for this check
             _declaredCurrency = unitCounts[0][0]
             for facts in modelXbrl.factsByQname.values():
