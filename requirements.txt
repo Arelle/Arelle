@@ -15,7 +15,7 @@ pycountry==22.3.5
 NumPy==1.24.4
 Matplotlib==3.6.1
 holidays==0.27.1
-Tornado==6.2
+Tornado==6.3.2
 # security plugin
 PyCryptodome==3.18.0
 # xbrlDB plugin
