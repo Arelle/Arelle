@@ -19,7 +19,7 @@ on:
 permissions: {}
 
 jobs:
-  publish-frozen-builds:
+  publish-frozen-build:
     environment: release
     permissions:
       contents: write

@@ -4,16 +4,61 @@ on:
   release:
     types: [released]
 
+permissions: {}
+
 jobs:
   python-package:
+    permissions:
+      contents: write
     uses: ./.github/workflows/python-package.yml
     secrets: inherit
+
   build-linux:
-    uses: ./.github/workflows/build-and-release-linux.yml
+    uses: ./.github/workflows/build-linux.yml
+  publish-linux:
+    permissions:
+      contents: write
+    needs: build-linux
+    uses: ./.github/workflows/publish-frozen-build.yml
+    with:
+      github_artifact: ${{ needs.build-linux.outputs.uploaded_artifact_name }}
+      build_name: ${{ needs.build-linux.outputs.artifact_versioned_name }}
+      build_alias: arelle-ubuntu.tgz
     secrets: inherit
+
   build-macos:
-    uses: ./.github/workflows/build-and-release-mac.yml
+    uses: ./.github/workflows/build-macos.yml
     secrets: inherit
+  publish-macos:
+    permissions:
+      contents: write
+    needs: build-macos
+    uses: ./.github/workflows/publish-frozen-build.yml
+    with:
+      github_artifact: ${{ needs.build-macos.outputs.uploaded_artifact_name }}
+      build_name: ${{ needs.build-macos.outputs.artifact_versioned_name }}
+      build_alias: arelle-macos.dmg
+    secrets: inherit
+
   build-windows:
-    uses: ./.github/workflows/build-and-release-windows.yml
+    uses: ./.github/workflows/build-windows.yml
+  publish-windows-installer:
+    permissions:
+      contents: write
+    needs: build-windows
+    uses: ./.github/workflows/publish-frozen-build.yml
+    with:
+      github_artifact: ${{ needs.build-windows.outputs.exe_uploaded_artifact_name }}
+      build_name: ${{ needs.build-windows.outputs.exe_artifact_versioned_name }}
+      build_alias: arelle-win.exe
+    secrets: inherit
+  publish-windows-zip:
+    permissions:
+      contents: write
+    needs: build-windows
+    uses: ./.github/workflows/publish-frozen-build.yml
+    with:
+      github_artifact: ${{ needs.build-windows.outputs.zip_uploaded_artifact_name }}
+      build_name: ${{ needs.build-windows.outputs.zip_artifact_versioned_name }}
+      build_alias: arelle-win.zip
     secrets: inherit

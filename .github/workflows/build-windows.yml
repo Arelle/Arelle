@@ -1,4 +1,4 @@
-name: Build for Windows
+name: Build Windows
 
 on:
   workflow_call:
@@ -62,6 +62,8 @@ on:
         description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
+
+permissions: {}
 
 jobs:
   build-windows:
