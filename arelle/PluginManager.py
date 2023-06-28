@@ -6,10 +6,7 @@ based on pull request 4
 '''
 from __future__ import annotations
 import os, sys, types, time, ast, importlib, io, json, gettext, traceback
-if sys.version_info < (3, 8):
-    from importlib_metadata import entry_points
-else:
-    from importlib.metadata import entry_points
+from importlib.metadata import entry_points
 import importlib.util
 import logging
 
@@ -250,12 +247,12 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
                             _value = item.value.values[i]
                             _valueType = _value.__class__.__name__
                             if _key == "import":
-                                if _valueType in ('Str', 'Constant'):
+                                if _valueType == 'Constant':
                                     importURLs.append(_value.s)
                                 elif _valueType in ("List", "Tuple"):
                                     for elt in _value.elts:
                                         importURLs.append(elt.s)
-                            elif _valueType in ('Str', 'Constant'): # Str < =python 3.7, Constant python 3.8+
+                            elif _valueType == 'Constant':
                                 moduleInfo[_key] = _value.s
                             elif _valueType == 'Name':
                                 if _value.id in constantStrings:
