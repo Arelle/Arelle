@@ -9,6 +9,8 @@ on:
     types:
       - opened
 
+permissions: {}
+
 jobs:
   add-to-project:
     name: PR
