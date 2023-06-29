@@ -1,5 +1,8 @@
 name: Run Xbrl Conformance Suites
+
 on: pull_request_target
+
+permissions: {}
 
 jobs:
   find-tests:
@@ -20,7 +23,6 @@ jobs:
   run-conformance-suite:
     name: ${{ matrix.test }} - ${{ matrix.os }} - ${{ matrix.python-version }}
     needs: find-tests
-    permissions: read-all
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

@@ -1,0 +1,68 @@
+name: Publish Frozen Build
+
+on:
+  workflow_call:
+    inputs:
+      github_artifact:
+        description: 'Name of the GitHub artifact uploaded by the build job.'
+        required: true
+        type: string
+      build_name:
+        description: 'Name of the build to publish.'
+        required: true
+        type: string
+      build_alias:
+        description: 'Build alias (no version info) used as a download link on arelle.org.'
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  publish-frozen-build:
+    environment: release
+    permissions:
+      contents: write
+    runs-on: ubuntu-22.04
+    if: startsWith(github.ref, 'refs/tags/')
+
+    # Prefix the build names for S3 and Ali Cloud uploads if testing from a fork.
+    env:
+      ARELLE_WEBSITE_BUILD_NAME: ${{ github.repository == 'Arelle/Arelle' && inputs.build_name || format('{0}-{1}', github.repository_owner, inputs.build_name) }}
+      ARELLE_WEBSITE_BUILD_ALIAS: ${{ github.repository == 'Arelle/Arelle' && inputs.build_alias || format('{0}-{1}', github.repository_owner, inputs.build_alias) }}
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: ${{ inputs.github_artifact }}
+
+      - name: Upload build to release
+        uses: softprops/action-gh-release@v0.1.15
+        with:
+          fail_on_unmatched_files: true
+          files: ${{ inputs.build_name }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2.2.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          aws-region: us-west-1
+      - name: Upload build to AWS S3
+        run: aws s3 cp --acl public-read ${{ inputs.build_name }} s3://arelle-us/${{ env.ARELLE_WEBSITE_BUILD_NAME }}
+      - name: Update arelle.org US & EU (mirror) downloads
+        if: github.event.release.draft == false
+        run: aws s3 cp --acl public-read s3://arelle-us/${{ env.ARELLE_WEBSITE_BUILD_NAME }} s3://arelle-us/${{ env.ARELLE_WEBSITE_BUILD_ALIAS }}
+
+      - name: Configure Ali Cloud credentials
+        uses: yizhoumo/setup-ossutil@v1.1.3
+        with:
+          endpoint: oss-cn-shenzhen.aliyuncs.com
+          access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+      - name: Upload build to Ali Cloud
+        run: ossutil cp -f ${{ inputs.build_name }} oss://arelle-cn/${{ env.ARELLE_WEBSITE_BUILD_NAME }}
+      - name: Update arelle.org CN download
+        if: github.event.release.draft == false
+        run: ossutil create-symlink oss://arelle-cn/${{ env.ARELLE_WEBSITE_BUILD_ALIAS }} oss://arelle-cn/${{ env.ARELLE_WEBSITE_BUILD_NAME }}

@@ -1,4 +1,5 @@
 name: Run UI Tests
+
 on:
   workflow_dispatch:
     inputs:
@@ -28,6 +29,8 @@ on:
   pull_request:
     branches:
       - master
+
+permissions: {}
 
 jobs:
   build-windows-dispatch:

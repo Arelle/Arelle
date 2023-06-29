@@ -1,6 +1,42 @@
-name: Build and Release Linux
+name: Build Linux
 
 on:
+  workflow_call:
+    inputs:
+      edgar_renderer_ref:
+        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+      ixbrl_viewer_ref:
+        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+      openssl_version:
+        default: '1.1.1s'
+        description: 'OpenSSL version to use'
+        required: false
+        type: string
+      node_version:
+        default: '19'
+        description: 'Node.js version to use'
+        required: false
+        type: string
+      python_version:
+        default: '3.11.4'
+        description: 'Python version to use'
+        required: false
+        type: string
+      xule_ref:
+        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+    outputs:
+      artifact_versioned_name:
+        description: 'The file name of the tarball including the version, e.g. "arelle-ubuntu-1.0.0.tgz".'
+        value: ${{ jobs.build-linux.outputs.artifact_versioned_name }}
+      uploaded_artifact_name:
+        description: 'The name of the GitHub Actions artifact for the tarball.'
+        value: ${{ jobs.build-linux.outputs.uploaded_artifact_name }}
   workflow_dispatch:
     inputs:
       edgar_renderer_ref:
@@ -22,7 +58,7 @@ on:
         required: true
         type: string
       python_version:
-        default: '3.11.2'
+        default: '3.11.4'
         description: 'Python version to use'
         required: true
         type: string
@@ -31,15 +67,14 @@ on:
         required: false
         type: string
 
+permissions: {}
+
 jobs:
   build-linux:
-    environment: release
     runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        distro: [
-          ubuntu
-        ]
+    outputs:
+      artifact_versioned_name: ${{ steps.define-artifact-names.outputs.artifact_versioned_name }}
+      uploaded_artifact_name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
 
     steps:
       - name: Checkout arelle
@@ -96,7 +131,7 @@ jobs:
             "OPENSSL_VERSION=${{ inputs.openssl_version }}"
             "PYTHON_VERSION=${{ inputs.python_version }}"
           context: .
-          file: docker/${{ matrix.distro }}.Dockerfile
+          file: docker/ubuntu.Dockerfile
           load: true
           tags: arelle:arelle
       - name: Docker copy build artifact
@@ -104,44 +139,18 @@ jobs:
           docker create --name arelle arelle:arelle
           docker cp arelle:/build/dist/ dist/
           docker rm -v arelle
+      - name: Define artifact names
+        id: define-artifact-names
+        run: |
+          [[ $(echo dist/*.tgz) =~ -([0-9]+\.[0-9]+\.[0-9]+)\.tgz$ ]] && echo "artifact_versioned_name=arelle-ubuntu-${BASH_REMATCH[1]}.tgz" >> $GITHUB_OUTPUT
+          echo "BUILD_ARTIFACT_PATH=$(echo dist/*.tgz)" >> $GITHUB_ENV
+          echo "uploaded_artifact_name=ubuntu distribution" >> $GITHUB_OUTPUT
       - name: Capture build env
         run: |
-          [[ $(echo dist/*.tgz) =~ -([0-9]+\.[0-9]+\.[0-9]+)\.tgz$ ]] && echo "ARTIFACT_VERSIONED_NAME=arelle-${{ matrix.distro }}-${BASH_REMATCH[1]}.tgz" >> $GITHUB_ENV
-          echo "ARTIFACT_NAME=arelle-${{ matrix.distro }}.tgz" >> $GITHUB_ENV
-          echo "BUILD_ARTIFACT_PATH=$(echo dist/*.tgz)" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=arelle-ubuntu.tgz" >> $GITHUB_ENV
       - name: Upload build artifact
         uses: actions/upload-artifact@v3.1.2
         with:
-          name: ${{ matrix.distro }} distribution
+          name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
           if-no-files-found: error
           path: ${{ env.BUILD_ARTIFACT_PATH }}
-      - name: Upload release artifact
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v0.1.15
-        with:
-          fail_on_unmatched_files: true
-          files: ${{ env.BUILD_ARTIFACT_PATH }}
-      - name: Configure AWS Credentials
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: aws-actions/configure-aws-credentials@v2.2.0
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
-          aws-region: us-west-1
-      - name: Upload release artifacts to S3
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          aws s3 cp --acl public-read ${{ env.BUILD_ARTIFACT_PATH }} s3://arelle-us/${{ env.ARTIFACT_VERSIONED_NAME }}
-          aws s3 cp --acl public-read s3://arelle-us/${{ env.ARTIFACT_VERSIONED_NAME }} s3://arelle-us/${{ env.ARTIFACT_NAME }}
-      - name: Configure Ali Cloud Credentials
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: yizhoumo/setup-ossutil@v1.1.3
-        with:
-          endpoint: oss-cn-shenzhen.aliyuncs.com
-          access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
-          access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
-      - name: Upload release artifacts to Ali Cloud
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          ossutil cp -f ${{ env.BUILD_ARTIFACT_PATH }} oss://arelle-cn/${{ env.ARTIFACT_VERSIONED_NAME }}
-          ossutil create-symlink oss://arelle-cn/${{ env.ARTIFACT_NAME }} oss://arelle-cn/${{ env.ARTIFACT_VERSIONED_NAME }}
