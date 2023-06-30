@@ -139,12 +139,10 @@ class ValidateXbrl:
         modelXbrl.modelManager.showStatus(_("validating relationship sets"))
         for baseSetKey in modelXbrl.baseSets.keys():
             arcrole, ELR, linkqname, arcqname = baseSetKey
-            if isinstance(arcrole, str) and arcrole.startswith("XBRL-") \
-                    or ELR is None \
-                    or linkqname is None \
-                    or arcqname is None:
+            if arcrole.startswith("XBRL-") or ELR is None or \
+                linkqname is None or arcqname is None:
                 continue
-            elif isinstance(arcrole, str) and arcrole in XbrlConst.standardArcroleCyclesAllowed:
+            elif arcrole in XbrlConst.standardArcroleCyclesAllowed:
                 # TODO: table should be in this module, where it is used
                 cyclesAllowed, specSect = XbrlConst.standardArcroleCyclesAllowed[arcrole]
             elif arcrole in self.modelXbrl.arcroleTypes and len(self.modelXbrl.arcroleTypes[arcrole]) > 0:
@@ -158,8 +156,8 @@ class ValidateXbrl:
                 specSect = None
             if cyclesAllowed != "any" or arcrole in (XbrlConst.summationItem,) \
                                       or arcrole in self.genericArcArcroles  \
-                                      or isinstance(arcrole, str) and arcrole.startswith(XbrlConst.formulaStartsWith) \
-                                      or (modelXbrl.hasXDT and isinstance(arcrole, str) and arcrole.startswith(XbrlConst.dimStartsWith)):
+                                      or arcrole.startswith(XbrlConst.formulaStartsWith) \
+                                      or (modelXbrl.hasXDT and arcrole.startswith(XbrlConst.dimStartsWith)):
                 relsSet = modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname)
             if cyclesAllowed != "any" and \
                    ((XbrlConst.isStandardExtLinkQname(linkqname) and XbrlConst.isStandardArcQname(arcqname)) \
@@ -262,7 +260,7 @@ class ValidateXbrl:
                                     _("Essence-alias relationship from %(source)s to %(target)s in link role %(linkrole)s has different balances")).format(
                                     modelObject=modelRel,
                                     source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
-            elif modelXbrl.hasXDT and isinstance(arcrole, str) and arcrole.startswith(XbrlConst.dimStartsWith):
+            elif modelXbrl.hasXDT and arcrole.startswith(XbrlConst.dimStartsWith):
                 ValidateXbrlDimensions.checkBaseSet(self, arcrole, ELR, relsSet)
             elif arcrole in ValidateFormula.arcroleChecks:
                 ValidateFormula.checkBaseSet(self, arcrole, ELR, relsSet)
