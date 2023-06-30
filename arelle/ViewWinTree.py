@@ -9,6 +9,8 @@ except ImportError:
 from arelle.CntlrWinTooltip import ToolTip
 import os
 
+HTML_TOOLTIP = 2 # tooltip is aware that there may be HTML content
+
 class ViewTree:
     def __init__(self, modelXbrl, tabWin, tabTitle, hasToolTip=False, lang=None):
         self.tabWin = tabWin
@@ -63,6 +65,8 @@ class ViewTree:
                                    state="disabled")
             self.toolTipColId = None
             self.toolTipRowId = None
+            if hasToolTip == HTML_TOOLTIP:
+                self.toolTip.setHtmlAware()
         self.modelXbrl = modelXbrl
         self.lang = lang
         self.labelrole = None

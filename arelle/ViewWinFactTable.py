@@ -40,7 +40,7 @@ def viewFacts(modelXbrl, tabWin, header="Fact Table", arcrole=XbrlConst.parentCh
 
 class ViewFactTable(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin, header, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None, expandAll=False):
-        super(ViewFactTable, self).__init__(modelXbrl, tabWin, header, True, lang)
+        super(ViewFactTable, self).__init__(modelXbrl, tabWin, header, ViewWinTree.HTML_TOOLTIP, lang)
         self.arcrole = arcrole
         self.linkrole = linkrole
         self.linkqname = linkqname
@@ -296,3 +296,11 @@ class ViewFactTable(ViewWinTree.ViewTree):
                 self.treeView.selection_set(())
             if self.blockViewModelObject > 0:
                 self.blockViewModelObject -= 1
+
+    def getToolTip(self, tvRowId, tvColId):
+        factId = self.rowColFactId.get(tvRowId + tvColId)
+        if factId:
+            modelFact = self.modelXbrl.modelObject(factId)
+            if isinstance(modelFact, ModelInstanceObject.ModelFact):
+                return modelFact.effectiveValue # for text blocks this includes unstripped HTML
+        return None
