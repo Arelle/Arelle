@@ -3373,7 +3373,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if sumLn in modelXbrl.nameConcepts and "calc-items" in rule: # (dqc_us_rules/pull/544)
                     sumConcept = modelXbrl.nameConcepts[sumLn][0]
                     linkroleURIs = OrderedSet(modelLink.role
-                                              for modelLink in val.modelXbrl.baseSets[(XbrlConst.summationItems,None,None,None)]
+                                              for arcRole in XbrlConst.summationItems
+                                              for modelLink in val.modelXbrl.baseSets[(arcRole,None,None,None)]
                                               if modelXbrl.relationshipSet(XbrlConst.summationItems, modelLink.role , None, None).fromModelObject(sumConcept))
 
                 for linkroleUri in linkroleURIs: # evaluate by network where applicable to ID
@@ -3698,7 +3699,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 elif calcCashFlowLinkRolesMissingRoots == calcCashFlowLinkRoles: # every calc is missing the roots
                     for linkRole in calcCashFlowLinkRolesMissingRoots:
                         modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
-                            modelObject=val.modelXbrl.baseSets[(XbrlConst.summationItems,linkroleUri,None,None)] or modelXbrl, # may be no base sets, in which case just show the instance
+                            modelObject=val.modelXbrl.baseSets[(XbrlConst.summationItem,linkroleUri,None,None)]
+                                        or val.modelXbrl.baseSets[(XbrlConst.summationItem11,linkroleUri,None,None)]
+                                        or modelXbrl, # may be no base sets, in which case just show the instance
                             linkRole=linkroleUri, linkroleDefinition=definition,
                             rootNames=(", ".join(r.name for r in calcRoots) or "(none)"),
                             edgarCode=edgarCode, ruleElementId=id)

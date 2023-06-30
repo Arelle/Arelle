@@ -15,7 +15,6 @@ from arelle.ModelValue import qname
 from arelle.ModelDtsObject import ModelLink
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObjectFactory import parser
-from arelle.ModelRelationshipSet import baseSetSortkey
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype, DocumentPrototype, PrototypeElementTree
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import OrderedDefaultDict, normalizeSpace
@@ -371,7 +370,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             # re-order base set keys for entry point or supplemental linkbase addition
             modelXbrl.baseSets = OrderedDefaultDict( # order by linkRole, arcRole of key
                 modelXbrl.baseSets.default_factory,
-                sorted(modelXbrl.baseSets.items(), key=lambda i: baseSetSortkey(i[0])))
+                sorted(modelXbrl.baseSets.items(), key=lambda i: (i[0][0] or "",i[0][1] or "")))
 
     return modelDocument
 
