@@ -16,3 +16,13 @@ updates:
           - ">=6"
       - dependency-name: "cx_Freeze"
       - dependency-name: "packaging"
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    allow:
+      - dependency-name: "python"
+    ignore:
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
