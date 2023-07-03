@@ -9,7 +9,10 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
-    open-pull-requests-limit: 10
+    groups:
+      dependencies:
+        patterns:
+          - "*"
     ignore:
       - dependency-name: "RDFLib"
         versions:
