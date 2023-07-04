@@ -12,7 +12,7 @@ on:
         required: false
         type: string
       node_version:
-        default: '19'
+        default: '20'
         description: 'Node.js version to use'
         required: false
         type: string
