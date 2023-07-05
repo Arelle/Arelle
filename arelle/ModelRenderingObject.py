@@ -18,7 +18,7 @@ from arelle.FormulaEvaluator import (filterFacts as formulaEvaluatorFilterFacts,
                                      aspectsMatch, factsPartitions, VariableBinding)
 from arelle.PrototypeInstanceObject import FactPrototype
 
-OPEN_ASPECT_ENTRY_SURROGATE = '\uDBFF'
+OPEN_ASPECT_ENTRY_SURROGATE = '\uFFEE' # this need to be a utf-8 compatible char
 
 EMPTY_SET = set()
 
@@ -72,6 +72,7 @@ class StrctMdlNode:
         self.variables = {}
         self.zInheritance = None
         self.rollup = False # true when this is the rollup node among its siblings
+        self.choiceNodeIndex = 0
         
     @property
     def axis(self):
@@ -235,8 +236,9 @@ class StrctMdlNode:
         return result
     
     def hasValueExpression(self, otherAxisStructuralNode=None):
-        return (self.defnMdlNode.hasValueExpression or 
-                (otherAxisStructuralNode is not None and 
+        return (self.defnMdlNode.hasValueExpression or
+                not isinstance(otherAxisStructuralNode, StrctMdlBreakdown) and
+                (otherAxisStructuralNode is not None and
                  otherAxisStructuralNode.defnMdlNode is not None and
                  otherAxisStructuralNode.defnMdlNode.hasValueExpression))
     
@@ -286,6 +288,10 @@ class StrctMdlBreakdown(StrctMdlNode):
                 if sibling._axis == self._axis:
                     return (sibling,)
         return ()
+
+    @property
+    def strctMdlAncestorBreakdownNode(self):
+        return self
 
     @property     
     def strctMdlEffectiveChildNodes(self):
@@ -898,7 +904,7 @@ class DefnMdlConstraintSet(ModelFormulaRules):
     '''
     
     def cardinalityAndDepth(self, structuralNode, **kwargs):
-        if self.aspectValues or self.aspectProgs or structuralNode.header(evaluate=False) is not None:
+        if self.aspectValues or self.aspectProgs or structuralNode.header(role="*", evaluate=False) is not None:
             return (1, 1)
         else:
             return (0, 0)

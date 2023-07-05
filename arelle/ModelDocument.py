@@ -1164,6 +1164,8 @@ class ModelDocument:
                                             linkrole = XbrlConst.defaultLinkRole
                                         #index by both arcrole and linkrole#arcrole and dimensionsions if applicable
                                         baseSetKeys = [(arcrole, linkrole, linkQn, arcQn)]
+                                        baseSetKeys.append((arcrole, linkrole, linkQn, None))
+                                        baseSetKeys.append((arcrole, linkrole, None, arcQn))
                                         baseSetKeys.append((arcrole, linkrole, None, None))
                                         baseSetKeys.append((arcrole, None, None, None))
                                         if XbrlConst.isDimensionArcrole(arcrole) and not dimensionArcFound:

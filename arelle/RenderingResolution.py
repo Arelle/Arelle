@@ -450,7 +450,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                 cartesianProductExpander(strctMdlNode, *cartesianProductNestedArgs)
                                         
             if isinstance(defnMdlNode, (NoneType, DefnMdlBreakdown)) and not strctMdlNode.strctMdlChildNodes: # childless root ordinate, make a child to iterate in producing table
-                subOrdContext = StrctMdlStructuralNode(strctMdlNode, defnMdlNode)
+                subOrdContext = StrctMdlBreakdown(strctMdlNode, defnMdlNode, axis)
         except ResolutionException as ex:
             if sys.version[0] >= '3':
                 #import traceback
