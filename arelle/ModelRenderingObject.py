@@ -12,13 +12,13 @@ from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import qname, QName
 from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import (Trace, ModelFormulaResource, ModelFormulaRules, ModelConceptName,
-                                       ModelParameter, Aspect, aspectStr, aspectRuleAspects)
+                                       ModelParameter, Aspect, aspectStr, aspectRuleAspects, aspectModelAspect)
 from arelle.ModelInstanceObject import ModelFact
 from arelle.FormulaEvaluator import (filterFacts as formulaEvaluatorFilterFacts, 
                                      aspectsMatch, factsPartitions, VariableBinding)
 from arelle.PrototypeInstanceObject import FactPrototype
 
-OPEN_ASPECT_ENTRY_SURROGATE = '\uFFEE' # this need to be a utf-8 compatible char
+OPEN_ASPECT_ENTRY_SURROGATE = '\uDBFF' # this need to be a utf-8 compatible char
 
 EMPTY_SET = set()
 
@@ -161,10 +161,11 @@ class StrctMdlNode:
                     if not text and XmlUtil.hasChild(aspectValue, aspectValue.namespaceURI, "forever"):
                         text = "forever" 
                     return text, "processor"
-        if concept is not None:
-            label = concept.label(lang=lang)
-            if label:
-                return label, "processor"
+        # TODO for conformance, concept should not be contributing labels
+        # if concept is not None:
+        #     label = concept.label(lang=lang)
+        #     if label:
+        #         return label, "processor"
         # if there is a role, check if it's available on a parent node
         if role and recurseParent and self.strctMdlParentNode is not None:
             return self.strctMdlParentNode.headerAndSource(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
@@ -314,7 +315,17 @@ class StrctMdlBreakdown(StrctMdlNode):
             return self.strctMdlParentNode.inheritedAspectValue(*args)
         else:
             return None
-             
+
+    # for __hash__ and __eq__: at some point, the breakdown is used a key of a dict
+    # when 2 same axis exist, multiple breakdown for the same definition node can be created
+    # but we want to only have one as key
+    # (see headerElts in ViewFileRenderedGrid.py)
+    def __hash__(self):
+        return self.defnMdlNode.__hash__()
+
+    def __eq__(self, other):
+        return self.defnMdlNode == other.defnMdlNode
+
 class StrctMdlStructuralNode(StrctMdlNode):
     def __init__(self, strctMdlParentNode, defnMdlNode, zInheritance=None, contextItemFact=None, tableNode=None, rendrCntx=None):
         super(StrctMdlStructuralNode, self).__init__(strctMdlParentNode, defnMdlNode)
@@ -376,7 +387,13 @@ class StrctMdlStructuralNode(StrctMdlNode):
                 if tag in defnMdlNode.constraintSets:
                     return defnMdlNode.constraintSets[tag]
         return defnMdlNode.constraintSets.get(None) # returns None if no default constraint set
-    
+
+    def constraintTags(self):
+        defnMdlNode = self.defnMdlNode
+        if defnMdlNode is None:
+            return None # root node
+        return list(defnMdlNode.constraintSets.keys())
+
     def aspectsCovered(self, inherit=False):
         if self.aspects is None:
             return ()
@@ -876,7 +893,16 @@ class DefnMdlConstraintSet(ModelFormulaRules):
     
     def aspectsCovered(self):
         return _DICT_SET(self.aspectValues.keys()) | _DICT_SET(self.aspectProgs.keys())
-    
+
+    def aspectsModelCovered(self):
+        aspectModels = set()
+        for aspect in self.aspectsCovered():
+            if aspect in aspectModelAspect:
+                aspectModels.add(aspectModelAspect[aspect])
+            else:
+                aspectModels.add(aspect)
+        return aspectModels
+
     '''
     @property   
     def primaryItemQname(self):

@@ -5,6 +5,7 @@ Created on Sep 13, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 import os, io, sys, json
+import traceback
 from collections import defaultdict, OrderedDict
 from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
@@ -69,6 +70,7 @@ def resolveTableStructure(view, viewTblELR):
             resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet)
             return strctMdlTable
     except ResolutionException as ex:
+        traceback.print_exc()
         view.modelXbrl.error(ex.code, ex.message, exc_info=True, **ex.kwargs);        
     
     return None
@@ -121,7 +123,6 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
         if not axisBrkdnRels: # no breakdown rels
             strctMdlBreakdown = resolveDefinition(view, strctMdlTable, None, 1, facts, 0, axisBrkdnRels, axis=axis)
             strctMdlBreakdown.setHasOpenNode()
-            strctMdlBreakdown = resolveDefinition(view, strctMdlTable, None, 1, facts, 0, axisBrkdnRels, axis=axis)
             if axis == "x":
                 view.dataCols += strctMdlBreakdown.leafNodeCount
                 strctMdlBreakdown.setHasOpenNode()
@@ -325,18 +326,32 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                 # note: reduced set of facts should always be passed to subsequent open nodes
                 for subtreeRel in subtreeRels:
                     childDefnMdlNode = subtreeRel.toModelObject
-                    childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels)
-                    if childDefnMdlNode.isRollUp:
-                        rollUpStrctNode = StrctMdlStructuralNode(childStrctNode, childDefnMdlNode)
-                        rollUpStrctNode.rollup = True
-                        childStrctNode.hasChildRollup = True
-                        strctMdlNode.rollUpChildStrctMdlNode = rollUpStrctNode
-                        if childDefnMdlNode.parentChildOrder == "parent-first":
-                            childStrctNode.strctMdlChildNodes = childStrctNode.strctMdlChildNodes[-1:] + childStrctNode.strctMdlChildNodes[0:-1]
-                        cartesianProductExpander(rollUpStrctNode, *cartesianProductNestedArgs)
-                    if not childContainsOpenNodes(childStrctNode) and not childDefnMdlNode.isRollUp:
-                        # To be computed only if the structural node does not contain an open node
-                        cartesianProductExpander(childStrctNode, *cartesianProductNestedArgs)
+
+                    if getattr(childDefnMdlNode, "isMerged", False):
+                        childSubtreeRels = view.defnSubtreeRelSet.fromModelObject(childDefnMdlNode)
+                        for childSubtreeRel in childSubtreeRels:
+                            mergedChildDefnMdlNode = childSubtreeRel.toModelObject
+                            childStrctNode = resolveDefinition(view, strctMdlNode, mergedChildDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels)
+                            for mergedAspect in childDefnMdlNode.aspectsCovered():
+                                aspect = childDefnMdlNode.aspectValue(view.rendrCntx, mergedAspect)
+                                if mergedAspect not in childStrctNode.aspects:
+                                    if isinstance(aspect, list):
+                                        aspect = set(aspect)
+                                    childStrctNode.aspects[mergedAspect] = aspect
+                            print(childStrctNode.aspectsCovered())
+                    else:
+                        childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels)
+                        if childDefnMdlNode.isRollUp:
+                            rollUpStrctNode = StrctMdlStructuralNode(childStrctNode, childDefnMdlNode)
+                            rollUpStrctNode.rollup = True
+                            childStrctNode.hasChildRollup = True
+                            strctMdlNode.rollUpChildStrctMdlNode = rollUpStrctNode
+                            if childDefnMdlNode.parentChildOrder == "parent-first":
+                                childStrctNode.strctMdlChildNodes = childStrctNode.strctMdlChildNodes[-1:] + childStrctNode.strctMdlChildNodes[0:-1]
+                            cartesianProductExpander(rollUpStrctNode, *cartesianProductNestedArgs)
+                        if not childContainsOpenNodes(childStrctNode) and not childDefnMdlNode.isRollUp:
+                            # To be computed only if the structural node does not contain an open node
+                            cartesianProductExpander(childStrctNode, *cartesianProductNestedArgs)
 
             if isinstance(defnMdlNode, DefnMdlRelationshipNode):
                 strctMdlNode.isLabeled = False
@@ -405,7 +420,6 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     childStructuralNode.indent = 0
                     #TBD this is now computed, not an attribute
                     #childStructuralNode.depth -= 1  # for label width; parent is merged/invisible
-                    childList.append(childStructuralNode)
                     checkLabelWidth(view, childStructuralNode, subtreeRels, checkBoundFact=True)
                     #resolveDefinition(view, childStructuralNode, breakdownNode, defnMdlNode, depth, axis, factsPartition, processOpenDefinitionNode=False) #recurse
 

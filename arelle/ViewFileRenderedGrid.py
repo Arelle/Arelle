@@ -5,6 +5,7 @@ Created on Sep 13, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 import os
+from datetime import timedelta
 from arelle import ViewFile
 from lxml import etree
 from arelle.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
@@ -35,7 +36,7 @@ emptyList = []
 def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=None, diffToFile=False, cssExtras=""):
     modelXbrl.modelManager.showStatus(_("saving rendering"))
     view = ViewRenderedGrid(modelXbrl, outfile, lang, cssExtras)
-    
+
     if sourceView is not None:
         viewTblELR = sourceView.tblELR
         view.ignoreDimValidity.set(sourceView.ignoreDimValidity.get())
@@ -134,7 +135,18 @@ class ViewRenderedGrid(ViewFile.View):
                             self.headerElts = {}
                             self.headerCells = defaultdict(list) # order #: (breakdownNode, xml element)
                             for axis in ("z", "y", "x"):
-                                breakdownNodes = [s for s in strctMdlTable.strctMdlChildNodes if s._axis == axis and s.defnMdlNode is not None]
+                                def listBreakdown(strctMdl, breakdownNodes):
+                                    if isinstance(strctMdl, StrctMdlBreakdown) and \
+                                            all(strctMdl.defnMdlNode is not None and strctMdl.defnMdlNode.id != bdn.defnMdlNode.id for bdn in breakdownNodes):
+                                        breakdownNodes.append(strctMdl)
+
+                                    for node in strctMdl.strctMdlChildNodes:
+                                        listBreakdown(node, breakdownNodes)
+
+                                breakdownNodes = list()
+                                breakdownNodesTop = [s for s in strctMdlTable.strctMdlChildNodes if s._axis == axis and s.defnMdlNode is not None]
+                                for breakdownNode in breakdownNodesTop:
+                                    listBreakdown(breakdownNode, breakdownNodes)
                                 if breakdownNodes:
                                     hdrsElt = etree.SubElement(tableElt, self.tableModelQName("headers"),
                                                                attrib={"axis": axis})
@@ -149,7 +161,7 @@ class ViewRenderedGrid(ViewFile.View):
                                         self.headerElts[brkdownNode] = etree.SubElement(groupElt, self.tableModelQName("header"))
                                 else:
                                     tableElt.append(etree.Comment("No breakdown group for \"{0}\" axis".format(axis)))
-                            self.zAxis(1, strctMdlTable.strctMdlFirstAxisBreakdown("z"), zAspectStrctNodes, True)
+                            # self.zAxis(1, strctMdlTable.strctMdlFirstAxisBreakdown("z"), zAspectStrctNodes, True)
                             self.cellsTableElt = tableElt
                             self.cellsZElt = etree.SubElement(self.cellsTableElt, self.tableModelQName("cells"),
                                                                    attrib={"axis": "z"})
@@ -157,26 +169,52 @@ class ViewRenderedGrid(ViewFile.View):
                                                                attrib={"axis": "y"})
                     # rows/cols only on firstTime for infoset XML, but on each time for xhtml
                     zAspectStrctNodes = defaultdict(set)
-                    self.zAxis(1, zTopStrctNode, zAspectStrctNodes, False)
+                    # self.zAxis(1, zTopStrctNode, zAspectStrctNodes, False)
                     xStrctNodes = []
-                    if self.type == HTML or (xTopStrctNode and xTopStrctNode.strctMdlChildNodes):
-                        self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1, 
+                    yStrctNodes = []
+                    zStrctNodes = []
+
+                    if zTopStrctNode.strctMdlChildNodes:  # same as combo box selection in GUI mode
+                        self.zStrNodesWithChoices.insert(0, zTopStrctNode)  # iteration from last is first
+                    if self.type == XML:
+                        self.axis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
+                                   zTopStrctNode, zStrctNodes, True, True, self.colHdrNonStdRoles)
+                    else:
+                        self.zAxis(1, zTopStrctNode, zAspectStrctNodes, False)
+                    if self.type == XML and (xTopStrctNode and xTopStrctNode.strctMdlChildNodes):
+                        self.axis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
+                                   xTopStrctNode, xStrctNodes, True, True, self.colHdrNonStdRoles)
+                    elif self.type == HTML and (xTopStrctNode and xTopStrctNode.strctMdlChildNodes):
+                        self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
                                    xTopStrctNode, xStrctNodes, True, True)
                     if self.type == HTML: # table/tr goes by row
                         self.yAxisByRow(0, self.dataFirstRow, yTopStrctNode, True, True)
                     elif self.type == XML and discriminator == 1: # infoset goes by col of row header
                         if yTopStrctNode and yTopStrctNode.strctMdlChildNodes: # no row header element if no rows
-                            self.yAxisByCol(0, self.dataFirstRow, yTopStrctNode, True, True)
+                            self.axis(self.dataFirstRow, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
+                                       yTopStrctNode, yStrctNodes, True, True, self.rowHdrNonStdRoles)
+                            # self.yAxisByCol(0, self.dataFirstRow, yTopStrctNode, True, True)
                         # add header cells to header elements cycling through nested repeats
-                        moreHeaderCells = True
-                        while moreHeaderCells:
-                            moreHeaderCells = False
-                            for _position, breakdownCellElts in sorted(self.headerCells.items()):
-                                if breakdownCellElts:
-                                    breakdownNode, headerCell = breakdownCellElts.pop(0)
+                        headerByPos = {}
+                        for _position, breakdownCellElts in sorted(self.headerCells.items(), reverse=True):
+                            if breakdownCellElts:
+                                for breakdownNode, headerCell in breakdownCellElts:
                                     if breakdownNode in self.headerElts:
-                                        self.headerElts[breakdownNode].append(headerCell)
-                                    moreHeaderCells = True
+                                        if _position != 0: # TODO this need reworks
+                                            if _position not in headerByPos or breakdownNode not in headerByPos[_position]:
+                                                headerElt = etree.Element(self.tableModelQName("header"))
+                                                if _position not in headerByPos:
+                                                    headerByPos[_position] = {breakdownNode: headerElt}
+                                                else:
+                                                    headerByPos[_position][breakdownNode] = headerElt
+                                                self.headerElts[breakdownNode].addnext(headerElt)
+                                            else:
+                                                headerElt = headerByPos[_position][breakdownNode]
+                                            headerElt.append(headerCell)
+                                        else:
+                                            self.headerElts[breakdownNode].append(headerCell)
+                            self.headerCells[_position] = []
+
                         for StrctNode,modelElt in self.StrctNodeModelElements: # must do after elements are all arragned
                             modelElt.addprevious(etree.Comment("{0}: label {1}, file {2}, line {3}"
                                                           .format(StrctNode.defnMdlNode.localName,
@@ -330,7 +368,7 @@ class ViewRenderedGrid(ViewFile.View):
             for i in range(span):
                 for zChildStrctNode in zStrctNode.strctMdlChildNodes:
                     self.zAxis(row + 1, zChildStrctNode, zAspectStrctNodes, discriminatorsTable)
-                            
+
     def xAxis(self, leftCol, topRow, rowBelow, xParentStrctNode, xStrctNodes, renderNow, atTop):
         if xParentStrctNode is not None:
             parentRow = rowBelow
@@ -351,7 +389,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                                   True, False)
                 if row - 1 < parentRow:
                     parentRow = row - 1
-                #if not leafNode: 
+                #if not leafNode:
                 #    rightCol -= 1
                 nonAbstract = not xStrctNode.isAbstract
                 if nonAbstract:
@@ -423,7 +461,7 @@ class ViewRenderedGrid(ViewFile.View):
                                 if source:
                                     set(labelElt, "source", source)
                                 labelElt.text = roleLabel
-                                                        
+
                         for aspect in sorted(xStrctNode.aspectsCovered(), key=lambda a: aspectStr(a)):
                             if xStrctNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
                                 aspectValue = xStrctNode.aspectValue(aspect)
@@ -503,6 +541,190 @@ class ViewRenderedGrid(ViewFile.View):
                 elif self.type == XML:
                     if columnspan > 1:
                         rollUpCellElt.set("span", str(columnspan))
+            return (rightCol, parentRow, colsToSpanParent, widthToSpanParent, noDescendants)
+
+    def axis(self, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, renderNow, atTop, HdrNonStdRoles):
+        # axis handling for xml export
+        if parentStrctNode is not None:
+            parentRow = rowBelow
+            noDescendants = True
+            rightCol = leftCol
+            colsToSpanParent = 0
+            widthToSpanParent = 0
+            rowsForThisBreakdown = 1 + parentStrctNode.hasRollUpChild
+            for i, strctNode in enumerate(parentStrctNode.strctMdlChildNodes): # strctMdlEffectiveChildNodes:
+                noDescendants = False
+                if isinstance(strctNode, StrctMdlBreakdown) and not strctNode.isLabeled:
+                    rowsForThisStrctNode = 0
+                else:
+                    rowsForThisStrctNode = rowsForThisBreakdown
+                rightCol, row, cols, width, leafNode = self.axis(leftCol, topRow + rowsForThisStrctNode, rowBelow, strctNode, strctNodes, # nested items before totals
+                                                                  True, False, HdrNonStdRoles)
+                if row - 1 < parentRow:
+                    parentRow = row - 1
+                nonAbstract = not strctNode.isAbstract
+                if nonAbstract:
+                    width += 100 # width for this label
+                widthToSpanParent += width
+                if cols:
+                    colsToSpanParent += cols
+                else:
+                    colsToSpanParent += rightCol + 1 - leftCol
+                isRollUp = strctNode.rollup
+                if renderNow and not isinstance(strctNode, StrctMdlBreakdown):
+                    label, source = strctNode.headerAndSource(lang=self.lang,
+                                    returnGenLabel=isinstance(strctNode.defnMdlNode, DefnMdlClosedDefinitionNode))
+                    if cols:
+                        columnspan = cols
+                    else:
+                        columnspan = rightCol - leftCol
+                    brkdownNode = strctNode.strctMdlAncestorBreakdownNode
+                    attrib = {}
+                    if columnspan > 1:
+                        attrib["span"] = str(columnspan)
+                    if isRollUp:
+                        attrib["rollup"] = "true"
+                    cellElt = etree.Element(self.tableModelQName("cell"), attrib)
+                    cellElt.append(etree.Comment("Cell id {0}".format(strctNode.defnMdlNode.id, )))
+
+                    self.headerCells[topRow].append((brkdownNode, cellElt))
+                    if isRollUp:
+                        continue
+                    elt = None
+                    if label:
+                        elt = etree.SubElement(cellElt, self.tableModelQName("label"))
+                    for i, role in enumerate(HdrNonStdRoles):
+                        roleLabel, source = strctNode.headerAndSource(role=role, lang=self.lang, recurseParent=False) # infoset does not move parent label to decscndant
+                        if roleLabel is not None:
+                            cellElt.append(etree.Comment("Label role: {0}, lang {1}"
+                                                         .format(os.path.basename(role), self.lang)))
+                            labelElt = etree.SubElement(cellElt, self.tableModelQName("label"))
+                            labelElt.text = roleLabel
+
+                    orderKeys = {}
+                    for tag in strctNode.constraintTags():  # TODO try to order tags
+                        if tag is None:
+                            orderKeys[tag] = 2
+                        elif "start" in tag:
+                            orderKeys[tag] = 1
+                        elif "end" in tag:
+                            orderKeys[tag] = 3
+                        else:
+                            orderKeys[tag] = 4
+
+                    for tag in sorted(strctNode.constraintTags(), key=lambda s: orderKeys[s]):
+                        aspectProcessed = set()
+                        constraint = strctNode.constraintSet([tag])
+
+                        def hasAspect(aspect):
+                            if tag:
+                                return constraint.hasAspect(strctNode, aspect)
+                            return strctNode.hasAspect(aspect)
+                        def getAspectValue(aspect):
+                            if tag:
+                                return constraint.aspectValue(strctNode._rendrCntx, aspect)
+                            return strctNode.aspectValue(aspect)
+
+                        def aspectsCovered():
+                            if tag:
+                                return constraint.aspectsCovered()
+                            return strctNode.aspectsCovered()
+
+                        for aspect in sorted(aspectsCovered(), key=lambda a: aspectStr(a)):
+                            if hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
+                                if aspect in aspectProcessed:
+                                    continue
+                                if aspect == Aspect.AUGMENT: # TODO seems to be skipped for xml output
+                                    continue
+                                aspectProcessed.add(aspect)
+
+                                attrib = None
+                                if tag:
+                                    attrib = {"tag": tag}
+
+                                constraintElt = etree.SubElement(cellElt, self.tableModelQName("constraint"), attrib)
+                                aspElt = etree.SubElement(constraintElt, self.tableModelQName("aspect"))
+                                valueElt = etree.SubElement(constraintElt, self.tableModelQName("value"))
+
+                                if aspect in aspectRuleAspects[Aspect.PERIOD]:
+                                    aspectProcessed.update(aspectRuleAspects[Aspect.PERIOD])
+
+                                    periodType = getAspectValue(Aspect.PERIOD_TYPE)
+                                    if periodType == "duration":
+                                        start = getAspectValue(Aspect.START)
+                                        end = getAspectValue(Aspect.END)
+
+                                        aspectValue = etree.Element("{http://www.xbrl.org/2003/instance}startDate")
+                                        aspectValue.text = "{}Z".format(start.isoformat())
+                                        valueElt.append(aspectValue)
+
+                                        aspectValueEnd = etree.Element("{http://www.xbrl.org/2003/instance}endDate")
+                                        aspectValueEnd.text = "{}Z".format((end + timedelta(days=1)).isoformat())
+                                        valueElt.append(aspectValueEnd)
+                                    elif periodType == "instant":
+                                        instant = getAspectValue(Aspect.INSTANT)
+                                        aspectValue = etree.Element("{http://www.xbrl.org/2003/instance}instant")
+
+                                        aspectValue.text = "{}Z".format((instant + timedelta(days=1)).isoformat())
+                                        valueElt.append(aspectValue)
+                                    else:  # "forever":
+                                        # TODO
+                                        pass
+                                    aspect = Aspect.PERIOD
+                                elif aspect in aspectRuleAspects[Aspect.ENTITY_IDENTIFIER]:
+                                    aspectProcessed.add(Aspect.SCHEME)
+                                    aspectProcessed.add(Aspect.VALUE)
+
+                                    scheme = getAspectValue(Aspect.SCHEME)
+                                    value = getAspectValue(Aspect.VALUE)
+
+                                    aspectValue = etree.Element("{http://www.xbrl.org/2003/instance}identifier", {"scheme": scheme})
+                                    aspectValue.text = str(value)
+                                    aspect = Aspect.ENTITY_IDENTIFIER
+                                    valueElt.append(aspectValue)
+                                elif aspect in aspectRuleAspects[Aspect.UNIT]:
+                                    aspectProcessed.update(aspectRuleAspects[Aspect.UNIT])
+
+                                    unit = getAspectValue(aspect)
+
+                                    aspectValue = etree.Element("{http://www.xbrl.org/2003/instance}unit")
+                                    measure = etree.SubElement(aspectValue, "{http://www.xbrl.org/2003/instance}measure")
+                                    measure.text = str(unit[0])
+                                    valueElt.append(aspectValue)
+                                    aspect = Aspect.UNIT
+                                else:
+                                    aspectValue = getAspectValue(aspect)
+                                    def format_aspect_value(aspectValue):
+                                        if aspectValue is None: aspectValue = "(bound dynamically)"
+                                        if isinstance(aspectValue, ModelObject): # typed dimension value
+                                            aspectValue = aspectValue
+                                        if isinstance(aspectValue, QName) and aspectValue.prefix is None: # may be dynamic
+                                            try:
+                                                aspectValue = self.modelXbrl.qnameConcepts[aspectValue].qname # usually has a prefix
+                                            except KeyError:
+                                                pass
+                                        return aspectValue
+
+                                    if isinstance(aspectValue, list):
+                                        # TODO for now take the fist will see later how to handle correctly
+                                        aspectValue = aspectValue[0]
+                                    else:
+                                        aspectValue = format_aspect_value(aspectValue)
+                                    if not isRollUp and self.modelXbrl.qnameDimensionDefaults.get(aspect) != aspectValue:
+                                        if not isinstance(aspectValue, etree._Element):
+                                            valueElt.text = xsString(None, None, addQnameValue(self.xmlDoc, aspectValue if not label or label != OPEN_ASPECT_ENTRY_SURROGATE else "\u00A0"))
+                                        else:
+                                            valueElt.append(aspectValue)
+                                aspElt.text = aspectStr(aspect)
+
+                    if elt is not None:
+                        elt.text = label if bool(label) and label != OPEN_ASPECT_ENTRY_SURROGATE else "\u00A0" #produces &nbsp;
+                        if source:
+                            elt.set("source", source)
+                    if nonAbstract and not strctNode.hasChildRollup:
+                        strctNodes.append(strctNode)
+                if nonAbstract:
+                    rightCol += 1
             return (rightCol, parentRow, colsToSpanParent, widthToSpanParent, noDescendants)
             
     def yAxisByRow(self, leftCol, row, yParentStrctNode, renderNow, atLeft):
@@ -768,15 +990,24 @@ class ViewRenderedGrid(ViewFile.View):
                         for aspect in aspectModels["dimensional"]:
                             if xStrctNode.hasAspect(aspect):
                                 if aspect == Aspect.DIMENSIONS:
-                                    for dim in (xStrctNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
+                                    for dim in (xStrctNode.aspectValue(
+                                            Aspect.DIMENSIONS) or emptyList):
                                         xAspectStrctNodes[dim].add(xStrctNode)
                                 else:
-                                    xAspectStrctNodes[aspect].add(xStrctNode)
+                                    realAspects = [aspect]
+                                    if aspect in aspectRuleAspects:
+                                        realAspects = []
+                                        for asp in aspectRuleAspects[aspect]:
+                                            if xStrctNode.hasAspect(asp):
+                                                realAspects.append(asp)
+
+                                    for asp in realAspects:
+                                        xAspectStrctNodes[asp].add(xStrctNode)
                         cellTagSelectors = yTagSelectors | xStrctNode.tagSelectors
                         cellAspectValues = {}
                         matchableAspects = set()
                         for aspect in _DICT_SET(xAspectStrctNodes.keys()) | _DICT_SET(yAspectStrctNodes.keys()) | _DICT_SET(zAspectStrctNodes.keys()):
-                            aspectValue = xStrctNode.inheritedAspectValue(yStrctNode,
+                            aspectValue = yStrctNode.inheritedAspectValue(xStrctNode,
                                                self, aspect, cellTagSelectors, 
                                                xAspectStrctNodes, yAspectStrctNodes, zAspectStrctNodes)
                             # value is None for a dimension whose value is to be not reported in this slice
@@ -799,10 +1030,14 @@ class ViewRenderedGrid(ViewFile.View):
                         justify = "left"
                         fp = FactPrototype(self, cellAspectValues)
                         if conceptNotAbstract:
-                            # reduce set of matchable facts to those with pri item qname and have dimension aspects
-                            facts = self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.factsInInstance
-                            if self.hasTableFilters:
-                                facts = self.defnMdlTable.filteredFacts(self.rendrCntx, facts)
+                            # Reuse already computed facts partition in case of open Y axis
+                            if hasattr(yStrctNode, "factsPartition"):
+                                facts = set(yStrctNode.factsPartition)
+                            else:
+                                # reduce set of matchable facts to those with pri item qname and have dimension aspects
+                                facts = self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.factsInInstance
+                                if self.hasTableFilters:
+                                    facts = self.defnMdlTable.filteredFacts(self.rendrCntx, facts)
                             for aspect in matchableAspects:  # trim down facts with explicit dimensions match or just present
                                 if isinstance(aspect, QName):
                                     aspectValue = cellAspectValues.get(aspect, None)
@@ -872,19 +1107,18 @@ class ViewRenderedGrid(ViewFile.View):
                                                                                            for dim in cellDefaultedDims
                                                                                            if fact.context.dimMemberQname(dim,includeDefaults=True) not in (dimDefaults[dim], None))
                                                                                  )))
-                                    if factsVals:
-                                        cellElt = etree.SubElement(cellsParentElt, self.tableModelQName("cell"))
-                                        for f, v, _j in factsVals:
-                                            cellElt.append(etree.Comment("{0}: context {1}, value {2}, file {3}, line {4}"
-                                                                                .format(f.qname,
-                                                                                     f.contextID,
-                                                                                     v[:32], # no more than 32 characters
-                                                                                     f.modelDocument.basename, 
-                                                                                     f.sourceline)))
-                                            if v is not None:
-                                                etree.SubElement(cellElt, self.tableModelQName("fact")
-                                                                 ).text = '{}#{}'.format(f.modelDocument.basename,
-                                                                                             elementFragmentIdentifier(f))
+                                    cellElt = etree.SubElement(cellsParentElt, self.tableModelQName("cell"))
+                                    for f, v, _j in factsVals:
+                                        cellElt.append(etree.Comment("{0}: context {1}, value {2}, file {3}, line {4}"
+                                                                            .format(f.qname,
+                                                                                 f.contextID,
+                                                                                 v[:32], # no more than 32 characters
+                                                                                 f.modelDocument.basename,
+                                                                                 f.sourceline)))
+                                        if v is not None:
+                                            etree.SubElement(cellElt, self.tableModelQName("fact")
+                                                             ).text = '{}#{}'.format(f.modelDocument.basename,
+                                                                                         elementFragmentIdentifier(f))
                             else:
                                 if self.type == HTML:
                                     etree.SubElement(self.rowElts[row], 
