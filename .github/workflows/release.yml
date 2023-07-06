@@ -7,9 +7,12 @@ on:
 permissions: {}
 
 jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
   python-package:
     permissions:
       contents: write
+    needs: tests
     uses: ./.github/workflows/python-package.yml
     secrets: inherit
 
