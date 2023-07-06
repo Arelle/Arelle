@@ -232,6 +232,8 @@ def sortkey(obj):
     return obj
 
 def childContainsOpenNodes(childStructuralNode):
+    if childStructuralNode is None:
+        return False
     if isinstance(childStructuralNode.defnMdlNode, DefnMdlAspectNode) \
        and (childStructuralNode.isLabeled \
             or any([node.isEntryPrototype(default=False) for node in childStructuralNode.strctMdlChildNodes])):
@@ -242,7 +244,7 @@ def childContainsOpenNodes(childStructuralNode):
         for node in childStructuralNode.strctMdlChildNodes:
             if childContainsOpenNodes(node):
                 return True
-        return False
+    return False
     
 def checkLabelWidth(view, strctMdlNode, subtreeRels, checkBoundFact=False):
     if strctMdlNode.axis == "y":
