@@ -110,7 +110,7 @@ jobs:
           path: ixbrl-viewer
           ref: ${{ inputs.ixbrl_viewer_ref }}
       - name: Set up Node JS
-        uses: actions/setup-node@v3.6.0
+        uses: actions/setup-node@v3.7.0
         with:
           node-version: ${{ inputs.node_version }}
       - name: Build ixbrl-viewer
