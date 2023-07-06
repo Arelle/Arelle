@@ -4,7 +4,10 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
-    open-pull-requests-limit: 10
+    groups:
+      dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: pip
     directory: "/"
     schedule:
@@ -23,7 +26,6 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
     allow:
       - dependency-name: "python"
     ignore:
