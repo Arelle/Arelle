@@ -19,6 +19,7 @@ from arelle.ModelRenderingObject import (DefnMdlTable, DefnMdlBreakdown,
                                          StrctMdlNode, StrctMdlTableSet, StrctMdlTable, StrctMdlBreakdown, StrctMdlStructuralNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.PrototypeInstanceObject import FactPrototype
+from arelle.PythonUtil import flattenSequence
 from arelle.XPathContext import XPathException
 NoneType = type(None)
 
@@ -370,6 +371,15 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                         view.modelXbrl.error("xbrlte:invalidConceptRelationshipSource",
                             _("Concept relationship rule node %(xlinkLabel)s source %(source)s does not refer to an existing concept."),
                             modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, source=defnMdlNode._sourceQname)
+                    else: 
+                        # check if single network
+                        networks = set() # entry is linkrole, arcrole, linkQName, arcQName
+                        for rel in flattenSequence(defnMdlNode.relationships(strctMdlNode)):
+                            networks.add((rel.arcrole, rel.linkrole, rel.qname, rel.arcElement.qname))
+                        if len(networks) > 1:
+                            view.modelXbrl.error("xbrlte:ambiguousConceptNetwork",
+                                _("Concept relationship rule node %(xlinkLabel)s has %(count)s networks: %(networks)s"),
+                                modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, count=len(networks), networks=str(networks))
                 elif isinstance(defnMdlNode, DefnMdlDimensionRelationshipNode):
                     dim = view.modelXbrl.qnameConcepts.get(defnMdlNode._dimensionQname)
                     if dim is None or not dim.isExplicitDimension:
