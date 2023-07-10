@@ -179,6 +179,15 @@ class ViewRenderedGrid(ViewFile.View):
                     if self.type == XML:
                         self.axis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
                                    zTopStrctNode, zStrctNodes, True, True, self.colHdrNonStdRoles)
+                        # try to set zAspectStrctNodes
+                        for effectiveStrctNode in zStrctNodes:
+                            for aspect in aspectModels["dimensional"]:
+                                if effectiveStrctNode.hasAspect(aspect, inherit=True): #implies inheriting from other z axes
+                                    if aspect == Aspect.DIMENSIONS:
+                                        for dim in (effectiveStrctNode.aspectValue(Aspect.DIMENSIONS, inherit=True) or emptyList):
+                                            zAspectStrctNodes[dim].add(effectiveStrctNode)
+                                    else:
+                                        zAspectStrctNodes[aspect].add(effectiveStrctNode)
                     else:
                         self.zAxis(1, zTopStrctNode, zAspectStrctNodes, False)
                     if self.type == XML and (xTopStrctNode and xTopStrctNode.strctMdlChildNodes):

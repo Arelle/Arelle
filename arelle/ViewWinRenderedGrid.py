@@ -4,12 +4,15 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 
+To auto-save layout model provide formula parameter
+   saveLayoutModel specifying layout model filepath
+
 '''
 import os, threading, time, logging
 from tkinter import Menu, BooleanVar, font as tkFont
 from arelle import (ViewWinTkTable, ModelDocument, ModelDtsObject, ModelInstanceObject, XbrlConst, 
                     ModelXbrl, Locale, FunctionXfi,
-                    ValidateXbrlDimensions)
+                    ValidateXbrlDimensions, ViewFileRenderedGrid)
 from arelle.ModelValue import qname, QName
 from arelle.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectModelAspect
@@ -90,6 +93,10 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view.viewFrame.bind("<1>", view.onClick, '+') # does not currently work (since tktable changes)
     view.viewFrame.bind("<Configure>", view.onConfigure, '+') # frame resized, redo column header wrap length ratios
     view.blockMenuEvents = 0
+    if "saveLayoutModel" in modelXbrl.modelManager.formulaOptions.parameterValues:
+        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl,
+              modelXbrl.modelManager.formulaOptions.parameterValues["saveLayoutModel"][1],
+              lang=lang, sourceView=view)   
     return view
     
 class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
