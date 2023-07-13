@@ -6,11 +6,17 @@ See COPYRIGHT.md for copyright information.
 '''
 import os
 import sys
+import re
+from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE
 
 
 if sys.platform == "darwin" and getattr(sys, 'frozen', False):
     for i in range(len(sys.path)):  # signed code can't contain python modules
         sys.path.append(sys.path[i].replace("MacOS", "Resources"))
+
+if re.compile(rf"(\s|^)--({INTERNET_CONNECTIVITY}|{INTERNET_CONNECTIVITY.lower()})(\s+|=){OFFLINE}(\s|$)") in sys.argv:
+    from arelle.SocketUtils import warnSocket
+    warnSocket()
 
 
 from arelle.BetaFeatures import BETA_OBJECT_MODEL_FEATURE, enableNewObjectModel
