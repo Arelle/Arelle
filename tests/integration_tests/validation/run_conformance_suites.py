@@ -109,6 +109,8 @@ def run_conformance_suites(
 def run_conformance_suites_options(options: Namespace) -> list[pytest.param]:
     select_option = get_select_option(options)
     download_option = get_download_option(options)
+    assert download_option or options.test, \
+        'Specify at least one of download, list, or test.'
     return run_conformance_suites(
         select_option=select_option,
         test_option=options.test,
