@@ -56,6 +56,12 @@ ARGUMENTS = [
         "help": "Select all public conformance suites"
     },
     {
+        "name": "--shard",
+        "action": "store",
+        "help": "0-indexed shard to run",
+        "type": int,
+    },
+    {
         "name": "--test",
         "action": "store_true",
         "help": "Run selected conformance suite tests"
@@ -88,6 +94,7 @@ def _get_conformance_suite_names(select_option: str) -> tuple[ConformanceSuiteCo
 def run_conformance_suites(
         select_option: str,
         test_option: bool,
+        shard: int | None,
         download_option: str = None,
         log_to_file: bool = False,
         offline_option: bool = False) -> list[pytest.param]:
@@ -101,7 +108,7 @@ def run_conformance_suites(
     all_results = []
     if test_option:
         for config in conformance_suite_configs:
-            results = get_conformance_suite_test_results(config, log_to_file=log_to_file, offline=offline_option)
+            results = get_conformance_suite_test_results(config, shard=shard, log_to_file=log_to_file, offline=offline_option)
             all_results.extend(results)
     return all_results
 
@@ -114,6 +121,7 @@ def run_conformance_suites_options(options: Namespace) -> list[pytest.param]:
     return run_conformance_suites(
         select_option=select_option,
         test_option=options.test,
+        shard=options.shard,
         download_option=download_option,
         log_to_file=options.log_to_file,
         offline_option=options.offline
@@ -139,7 +147,8 @@ def get_select_option(options: Namespace) -> str:
 def run() -> None:
     parser = ArgumentParser(prog=sys.argv[0])
     for arg in ARGUMENTS:
-        parser.add_argument(arg["name"], action=arg["action"], help=arg["help"])
+        arg_without_name = {k: v for k, v in arg.items() if k != "name"}
+        parser.add_argument(arg["name"], **arg_without_name)
     options = parser.parse_args(sys.argv[1:])
     if options.list:
         for config in ALL_CONFORMANCE_SUITE_CONFIGS:

@@ -2,6 +2,10 @@ from pathlib import PurePath
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 
 config = ConformanceSuiteConfig(
+    additional_plugins_by_prefix=[
+        ('conf/612-presentation-syntax/612-09-presented-units-order', frozenset({'EdgarRenderer'})),
+        ('conf/626-rendering-syntax', frozenset({'EdgarRenderer'})),
+    ],
     args=[
         '--disclosureSystem', 'efm-pragmatic',
         '--formula', 'run',
@@ -19,6 +23,7 @@ config = ConformanceSuiteConfig(
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     local_filepath='efm-66-230620.zip',
     name=PurePath(__file__).stem,
-    plugins=frozenset({'validate/EFM', 'inlineXbrlDocumentSet', 'EdgarRenderer'}),
+    plugins=frozenset({'validate/EFM', 'inlineXbrlDocumentSet'}),
     public_download_url='https://www.sec.gov/files/edgar/efm-66-230620.zip',
+    shards=20,
 )

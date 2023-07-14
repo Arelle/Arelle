@@ -6,7 +6,8 @@ from tests.integration_tests.validation.run_conformance_suites import (
 
 def pytest_addoption(parser):
     for arg in ARGUMENTS:
-        parser.addoption(arg["name"], action=arg["action"], help=arg["help"])
+        arg_without_name = {k: v for k, v in arg.items() if k != "name"}
+        parser.addoption(arg["name"], **arg_without_name)
 
 
 def pytest_generate_tests(metafunc):
