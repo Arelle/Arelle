@@ -70,7 +70,7 @@ def get_test_data(
             test_case_file_id = get_document_id(test_case)
             if test_case.type not in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
                 test_cases_with_unrecognized_type[test_case_file_id] = test_case.type
-            if not getattr(test_case, "testcaseVariations", None) and test_case_file_id not in expected_empty_testcases:
+            if not getattr(test_case, "testcaseVariations", None):
                 test_cases_with_no_variations.add(test_case_file_id)
             else:
                 for mv in test_case.testcaseVariations:
@@ -87,8 +87,12 @@ def get_test_data(
                     results.append(param)
         if test_cases_with_unrecognized_type:
             raise Exception(f"Some test cases have an unrecognized document type: {sorted(test_cases_with_unrecognized_type.items())}.")
-        if test_cases_with_no_variations:
-            raise Exception(f"Some test cases don't have any variations: {sorted(test_cases_with_no_variations)}.")
+        unrecognized_expected_empty_testcases = expected_empty_testcases.difference(map(get_document_id, test_cases))
+        if unrecognized_expected_empty_testcases:
+            raise Exception(f"Some expected empty test cases weren't found: {sorted(unrecognized_expected_empty_testcases)}.")
+        unexpected_empty_testcases = test_cases_with_no_variations - expected_empty_testcases
+        if unexpected_empty_testcases:
+            raise Exception(f"Some test cases don't have any variations: {sorted(unexpected_empty_testcases)}.")
         test_id_frequencies = Counter(p.id for p in results)
         nonunique_test_ids = {test_id: count for test_id, count in test_id_frequencies.items() if count > 1}
         if nonunique_test_ids:
