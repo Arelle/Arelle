@@ -14,9 +14,8 @@ from arelle.WebCache import WebCache
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 
 
-def _get_path_tail(uri: str) -> tuple[str]:
-    path = PurePath(uri)
-    return path.parts[-3:-1] if path.name == 'index.xml' else path.parts[-2:]
+def get_document_id(doc: ModelDocument):
+    return os.path.relpath(doc.filepath, doc.modelXbrl.fileSource.basefile)
 
 
 def get_test_data(
@@ -52,8 +51,7 @@ def get_test_data(
                 referenced_documents = [case for doc in referenced_documents for case in doc.referencesDocument.keys()]
             test_cases = sorted(referenced_documents, key=lambda doc: doc.uri)
         elif model_document.type == ModelDocument.Type.INSTANCE:
-            test_case_path_tail = _get_path_tail(model_document.uri)
-            test_id = '/'.join(test_case_path_tail)
+            test_id = get_document_id(model_document)
             model_errors = sorted(cntlr.modelManager.modelXbrl.errors)
             expected_model_errors_list = sorted(expected_model_errors)
             param = pytest.param(
@@ -69,15 +67,14 @@ def get_test_data(
         else:
             raise Exception('Unhandled model document type: {}'.format(model_document.type))
         for test_case in test_cases:
-            test_case_path_tail = _get_path_tail(test_case.uri)
+            test_case_file_id = get_document_id(test_case)
             if test_case.type not in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
-                test_cases_with_unrecognized_type[test_case_path_tail] = test_case.type
-            if not getattr(test_case, "testcaseVariations", None) and \
-                    os.path.relpath(test_case.filepath, model_document.modelXbrl.fileSource.basefile) not in expected_empty_testcases:
-                test_cases_with_no_variations.add(test_case_path_tail)
+                test_cases_with_unrecognized_type[test_case_file_id] = test_case.type
+            if not getattr(test_case, "testcaseVariations", None) and test_case_file_id not in expected_empty_testcases:
+                test_cases_with_no_variations.add(test_case_file_id)
             else:
                 for mv in test_case.testcaseVariations:
-                    test_id = '{}/{}'.format('/'.join(test_case_path_tail), mv.id)
+                    test_id = f'{test_case_file_id}:{mv.id}'
                     param = pytest.param(
                         {
                             'status': mv.status,
