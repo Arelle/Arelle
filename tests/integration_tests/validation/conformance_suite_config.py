@@ -21,6 +21,7 @@ class ConformanceSuiteConfig:
     expected_model_errors: frozenset[str] = frozenset()
     extract_path: str = None
     membership_url: str = None
+    plugins: set[str] = frozenset()
     public_download_url: str = None
     url_replace: str = None
 

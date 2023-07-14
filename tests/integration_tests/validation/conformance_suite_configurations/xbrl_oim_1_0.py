@@ -5,7 +5,6 @@ config = ConformanceSuiteConfig(
     args=[
         '--formula', 'run',
         '--httpsRedirectCache',
-        '--plugins', 'loadFromOIM',
     ],
     expected_failure_ids=frozenset([
         '600-xml/index-xbrl-xml.xml/V-05',
@@ -16,4 +15,5 @@ config = ConformanceSuiteConfig(
     local_filepath='oim-conformance-2023-04-19.zip',
     membership_url='https://www.xbrl.org/join',
     name=PurePath(__file__).stem,
+    plugins=frozenset({'loadFromOIM'}),
 )

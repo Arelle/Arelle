@@ -5,7 +5,6 @@ config = ConformanceSuiteConfig(
     args=[
         '--disclosureSystem', 'esef',
         '--formula', 'run',
-        '--plugins', 'validate/ESEF_2022',
     ],
     expected_failure_ids=frozenset([
         # The following test cases fail because of the `tech_duplicated_facts1` formula which fires
@@ -17,5 +16,6 @@ config = ConformanceSuiteConfig(
     info_url='https://www.esma.europa.eu/document/conformance-suite-2022',
     local_filepath='esef_conformance_suite_2022.zip',
     name=PurePath(__file__).stem,
+    plugins=frozenset({'validate/ESEF_2022'}),
     public_download_url='https://www.esma.europa.eu/sites/default/files/library/esef_conformance_suite_2022.zip',
 )

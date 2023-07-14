@@ -5,7 +5,6 @@ config = ConformanceSuiteConfig(
     args=[
         '--disclosureSystem', 'efm-pragmatic',
         '--formula', 'run',
-        '--plugins', 'validate/EFM|inlineXbrlDocumentSet|EdgarRenderer',
     ],
     expected_empty_testcases=frozenset([
         'conf/605-instance-syntax/605-45-cover-page-facts-general-case/605-45-cover-page-facts-general-case-testcase.xml',
@@ -20,5 +19,6 @@ config = ConformanceSuiteConfig(
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     local_filepath='efm-66-230620.zip',
     name=PurePath(__file__).stem,
+    plugins=frozenset({'validate/EFM', 'inlineXbrlDocumentSet', 'EdgarRenderer'}),
     public_download_url='https://www.sec.gov/files/edgar/efm-66-230620.zip',
 )

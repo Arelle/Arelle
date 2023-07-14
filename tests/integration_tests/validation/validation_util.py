@@ -126,6 +126,8 @@ def get_conformance_suite_test_results(
         '--keepOpen',
         '--validate',
     ]
+    if config.plugins:
+        args.extend(['--plugins', '|'.join(config.plugins)])
     if config.capture_warnings:
         args.append('--testcaseResultsCaptureWarnings')
     if log_to_file:
