@@ -1,4 +1,8 @@
-def test_conformance_suite(conformance_suite_results):
+from __future__ import annotations
+from typing import Any
+
+
+def test_conformance_suite(conformance_suite_results: dict[str, Any]) -> None:
     """
     See conftest.py for context around the parameterization of conformance suite results.
     It is critical that this file is not imported or referenced by other modules to ensure that it is not evaluated

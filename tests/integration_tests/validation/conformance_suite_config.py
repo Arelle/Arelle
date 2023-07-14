@@ -22,14 +22,14 @@ class ConformanceSuiteConfig:
     expected_empty_testcases: frozenset[str] = frozenset()
     expected_failure_ids: frozenset[str] = frozenset()
     expected_model_errors: frozenset[str] = frozenset()
-    extract_path: str = None
-    membership_url: str = None
-    plugins: set[str] = frozenset()
-    public_download_url: str = None
+    extract_path: str | None = None
+    membership_url: str | None = None
+    plugins: frozenset[str] = frozenset()
+    public_download_url: str | None = None
     shards: int = 1
-    url_replace: str = None
+    url_replace: str | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         redundant_plugins = [(prefix, overlap)
             for prefix, additional_plugins in self.additional_plugins_by_prefix
             for overlap in [self.plugins & additional_plugins]
@@ -49,11 +49,11 @@ class ConformanceSuiteConfig:
             f' combinations={plugin_combinations} shards={self.shards}'
 
     @property
-    def prefixed_extract_filepath(self):
+    def prefixed_extract_filepath(self) -> str | None:
         if self.extract_path is None:
             return None
         return os.path.join(CONFORMANCE_SUITE_PATH_PREFIX, self.extract_path)
 
     @property
-    def prefixed_local_filepath(self):
+    def prefixed_local_filepath(self) -> str:
         return os.path.join(CONFORMANCE_SUITE_PATH_PREFIX, self.local_filepath)

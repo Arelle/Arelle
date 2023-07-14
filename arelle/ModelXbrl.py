@@ -49,7 +49,7 @@ DEFAULTorNONDEFAULT = sys.intern("default-or-non-default")
 EMPTY_TUPLE: EmptyTuple = ()
 
 
-def load(modelManager: ModelManager, url: str, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: str | None = None, **kwargs: str) -> ModelXbrl:
+def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: str | None = None, **kwargs: str) -> ModelXbrl:
     """Each loaded instance, DTS, testcase, testsuite, versioning report, or RSS feed, is represented by an
     instance of a ModelXbrl object. The ModelXbrl object has a collection of ModelDocument objects, each
     representing an XML document (for now, with SQL whenever its time comes). One of the modelDocuments of

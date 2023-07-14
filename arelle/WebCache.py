@@ -261,7 +261,7 @@ class WebCache:
         #self.opener.close()
         #self.opener = WebCacheUrlOpener(self.cntlr, proxyDirFmt(httpProxyTuple))
 
-    def normalizeUrl(self, url:Optional[Any], base: Optional[Any] = None) -> Any:
+    def normalizeUrl(self, url: Optional[str], base: Optional[str] = None) -> Any:
         if url:
             if url.startswith("file://"): url = url[7:]
             elif url.startswith("file:\\"): url = url[6:]

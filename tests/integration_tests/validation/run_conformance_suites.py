@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import pytest
 import sys
 from argparse import ArgumentParser, Namespace
 from tests.integration_tests.validation.validation_util import get_conformance_suite_test_results
@@ -12,9 +11,13 @@ from tests.integration_tests.validation.conformance_suite_configs import (
 from tests.integration_tests.validation.download_conformance_suites import (
     download_conformance_suite, extract_conformance_suite
 )
-from typing import Optional
+from typing import Any, Optional, TYPE_CHECKING
 
-ARGUMENTS = [
+if TYPE_CHECKING:
+    from _pytest.mark import ParameterSet
+
+
+ARGUMENTS: list[dict[str, Any]] = [
     {
         "name": "--all",
         "action": "store_true",
@@ -95,9 +98,9 @@ def run_conformance_suites(
         select_option: str,
         test_option: bool,
         shard: int | None,
-        download_option: str = None,
+        download_option: str | None = None,
         log_to_file: bool = False,
-        offline_option: bool = False) -> list[pytest.param]:
+        offline_option: bool = False) -> list[ParameterSet]:
     conformance_suite_configs = _get_conformance_suite_names(select_option)
     if download_option:
         overwrite = download_option == DOWNLOAD_OVERWRITE
@@ -113,7 +116,7 @@ def run_conformance_suites(
     return all_results
 
 
-def run_conformance_suites_options(options: Namespace) -> list[pytest.param]:
+def run_conformance_suites_options(options: Namespace) -> list[ParameterSet]:
     select_option = get_select_option(options)
     download_option = get_download_option(options)
     assert download_option or options.test, \
@@ -141,6 +144,7 @@ def get_select_option(options: Namespace) -> str:
         return SELECT_ALL
     elif options.public:
         return SELECT_PUBLIC
+    assert isinstance(options.name, str)
     return options.name
 
 

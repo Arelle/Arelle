@@ -19,6 +19,8 @@ from arelle.WebCache import WebCache
 
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 
+if TYPE_CHECKING:
+    from _pytest.mark import ParameterSet
 
 
 def get_document_id(doc: ModelDocument.ModelDocument) -> str:
@@ -42,7 +44,7 @@ def get_test_data(
         args: list[str],
         expected_failure_ids: frozenset[str] = frozenset(),
         expected_empty_testcases: frozenset[str] = frozenset(),
-        expected_model_errors: frozenset[str] = frozenset()) -> list[pytest.param]:
+        expected_model_errors: frozenset[str] = frozenset()) -> list[ParameterSet]:
     """
     Produces a list of Pytest Params that can be fed into a parameterized pytest function
 
@@ -52,7 +54,7 @@ def get_test_data(
     :param expected_model_errors: The set of error codes expected to be in the ModelXbrl errors
     :return: A list of PyTest Params that can be used to run a parameterized pytest function
     """
-    cntlr = parseAndRun(args)
+    cntlr = parseAndRun(args)  # type: ignore[no-untyped-call]
     try:
         results = []
         test_cases_with_no_variations = set()
@@ -113,28 +115,29 @@ def get_test_data(
         unexpected_empty_testcases = test_cases_with_no_variations - expected_empty_testcases
         if unexpected_empty_testcases:
             raise Exception(f"Some test cases don't have any variations: {sorted(unexpected_empty_testcases)}.")
-        test_id_frequencies = Counter(p.id for p in results)
+        test_id_frequencies = Counter(cast(str, p.id) for p in results)
         nonunique_test_ids = {test_id: count for test_id, count in test_id_frequencies.items() if count > 1}
         if nonunique_test_ids:
             raise Exception(f'Some test IDs are not unique.  Frequencies of nonunique test IDs: {nonunique_test_ids}.')
-        nonexistent_expected_failure_ids = expected_failure_ids - set(test_id_frequencies)
+        nonexistent_expected_failure_ids = expected_failure_ids - test_id_frequencies.keys()
         if nonexistent_expected_failure_ids:
             raise Exception(f"Some expected failure IDs don't match any test cases: {sorted(nonexistent_expected_failure_ids)}.")
         return results
     finally:
         cntlr.modelManager.close()
-        PackageManager.close()
-        PluginManager.close()
+        PackageManager.close()  # type: ignore[no-untyped-call]
+        PluginManager.close()  # type: ignore[no-untyped-call]
 
 
 original_normalize_url_function = WebCache.normalizeUrl
 
 
-def normalize_url_function(config: ConformanceSuiteConfig) -> Callable:
-    def normalize_url(self, url, base=None):
+def normalize_url_function(config: ConformanceSuiteConfig) -> Callable[[WebCache, str, str | None], str]:
+    def normalize_url(self: WebCache, url: str, base: str | None = None) -> str:
+        assert config.url_replace is not None
         if url.startswith(config.url_replace):
             return url.replace(config.url_replace, f'{config.prefixed_local_filepath}/')
-        return original_normalize_url_function(self, url, base)
+        return cast(str, original_normalize_url_function(self, url, base))
     return normalize_url
 
 
@@ -195,7 +198,7 @@ def get_conformance_suite_test_results(
         config: ConformanceSuiteConfig,
         shard: int | None,
         log_to_file: bool = False,
-        offline: bool = False) -> list[pytest.param]:
+        offline: bool = False) -> list[ParameterSet]:
     file_path = os.path.join(config.prefixed_local_filepath, config.file)
     assert shard is None or config.shards != 1, \
         'Conformance suite configuration must specify shards if --shard is passed'
