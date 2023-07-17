@@ -24,7 +24,7 @@ from arelle.XPathContext import XPathException
 NoneType = type(None)
 
 TRACE_RESOLUTION = True
-TRACE_TABLE_STRUCTURE = False
+TRACE_TABLE_STRUCTURE = True
 
 RENDER_UNITS_PER_CHAR = 16 # nominal screen units per char for wrapLength computation and adjustment
 

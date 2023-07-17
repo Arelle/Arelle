@@ -161,7 +161,7 @@ class ViewRenderedGrid(ViewFile.View):
                                         self.headerElts[brkdownNode] = etree.SubElement(groupElt, self.tableModelQName("header"))
                                 else:
                                     tableElt.append(etree.Comment("No breakdown group for \"{0}\" axis".format(axis)))
-                            # self.zAxis(1, strctMdlTable.strctMdlFirstAxisBreakdown("z"), zAspectStrctNodes, True)
+                            self.zAxis(1, strctMdlTable.strctMdlFirstAxisBreakdown("z"), zAspectStrctNodes, True)
                             self.cellsTableElt = tableElt
                             self.cellsZElt = etree.SubElement(self.cellsTableElt, self.tableModelQName("cells"),
                                                                    attrib={"axis": "z"})
@@ -169,7 +169,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                                attrib={"axis": "y"})
                     # rows/cols only on firstTime for infoset XML, but on each time for xhtml
                     zAspectStrctNodes = defaultdict(set)
-                    # self.zAxis(1, zTopStrctNode, zAspectStrctNodes, False)
+                    self.zAxis(1, zTopStrctNode, zAspectStrctNodes, False)
                     xStrctNodes = []
                     yStrctNodes = []
                     zStrctNodes = []
