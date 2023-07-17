@@ -891,10 +891,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
             try: # may be a json list
                 _entryPoints = json.loads(_f)
                 _checkIfXmlIsEis = False # json entry objects never specify an xml EIS archive
-            except ValueError:
+            except ValueError as e:
                 # is it malformed json?
                 if _f.startswith("[{") or _f.endswith("]}") or '"file:"' in _f:
-                    self.addToLog(_("File name parameter appears to be malformed JSON: {0}").format(_f),
+                    self.addToLog(_("File name parameter appears to be malformed JSON: {0}\n{1}".format(e, _f)),
                                   messageCode="FileNameFormatError",
                                   level=logging.ERROR)
                     success = False
