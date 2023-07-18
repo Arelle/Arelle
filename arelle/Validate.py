@@ -232,8 +232,25 @@ class Validate:
                                                        errorCaptureLevel=errorCaptureLevel,
                                                        ixdsTarget=modelTestcaseVariation.ixdsTarget)
                         else: # need own file source, may need instance discovery
+                            sourceFileSource = None
+                            newSourceFileSource = False
+                            if (
+                                self.useFileSource
+                                and not os.path.isabs(readMeFirstUri)
+                                and readMeFirstUri.endswith('.zip')
+                            ):
+                                if self.useFileSource.isArchive:
+                                    sourceFileSource = self.useFileSource
+                                elif expectTaxonomyPackage:
+                                    archiveFilenameParts = FileSource.archiveFilenameParts(baseForElement)
+                                    if archiveFilenameParts is not None:
+                                        sourceFileSource = FileSource.openFileSource(archiveFilenameParts[0], self.modelXbrl.modelManager.cntlr)
+                                        newSourceFileSource = True
+
                             filesource = FileSource.openFileSource(readMeFirstUri, self.modelXbrl.modelManager.cntlr, base=baseForElement,
-                                                                   sourceFileSource=self.useFileSource if self.useFileSource.isArchive and not os.path.isabs(readMeFirstUri) and readMeFirstUri.endswith(".zip") else None)
+                                                                   sourceFileSource=sourceFileSource)
+                            if newSourceFileSource:
+                                sourceFileSource.close()
                             _errors = [] # accumulate pre-loading errors, such as during taxonomy package loading
                             if filesource and not filesource.selection and filesource.isArchive:
                                 try:
