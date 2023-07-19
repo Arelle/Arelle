@@ -6,21 +6,23 @@ Created on Sep 13, 2011
 '''
 import os
 from datetime import timedelta
-from arelle import ViewFile
+from collections import OrderedDict
 from lxml import etree
-from arelle.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
-from arelle.ViewFile import HTML, XML
-from arelle.ModelObject import ModelObject
-from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
+from arelle import ViewFile
 from arelle.FormulaEvaluator import aspectMatches
 from arelle.FunctionXs import xsString
+from arelle.ModelObject import ModelObject
+from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
 from arelle.ModelInstanceObject import ModelDimensionValue
-from arelle.ModelValue import QName
-from arelle.ModelXbrl import DEFAULT
+from arelle.PrototypeInstanceObject import FactPrototype
+from arelle.PythonUtil import OrderedSet
 from arelle.ModelRenderingObject import (StrctMdlBreakdown,
                                          DefnMdlClosedDefinitionNode, DefnMdlRuleDefinitionNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
-from arelle.PrototypeInstanceObject import FactPrototype
+from arelle.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
+from arelle.ModelValue import QName
+from arelle.ModelXbrl import DEFAULT
+from arelle.ViewFile import HTML, XML
 # change tableModel for namespace needed for consistency suite
 '''
 from arelle.XbrlConst import (tableModelMMDD as tableModelNamespace, 
@@ -161,33 +163,46 @@ class ViewRenderedGrid(ViewFile.View):
                                         self.headerElts[brkdownNode] = etree.SubElement(groupElt, self.tableModelQName("header"))
                                 else:
                                     tableElt.append(etree.Comment("No breakdown group for \"{0}\" axis".format(axis)))
-                            self.zAxis(1, strctMdlTable.strctMdlFirstAxisBreakdown("z"), zAspectStrctNodes, True)
+                            zStrctNodes = []
+                            self.axis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
+                                       zTopStrctNode, zStrctNodes, True, True, self.colHdrNonStdRoles)
+                            # lay out choices for each discriminator
+                            zAspects = OrderedSet()
+                            zAspectStrctNodeChoices = defaultdict(list)
+                            for effectiveStrctNode in zStrctNodes:
+                                for aspect in aspectModels["dimensional"]:
+                                    if effectiveStrctNode.hasAspect(aspect, inherit=True): #implies inheriting from other z axes
+                                        if aspect == Aspect.DIMENSIONS:
+                                            for dim in (effectiveStrctNode.aspectValue(Aspect.DIMENSIONS, inherit=True) or emptyList):
+                                                zAspects.add(dim)
+                                                zAspectStrctNodeChoices[dim].append(effectiveStrctNode)
+                                        else:
+                                            zAspects.add(aspect)
+                                            zAspectStrctNodeChoices[aspect].append(effectiveStrctNode)
+                            zAspectChoiceLens = dict((aspect, len(zAspectStrctNodeChoices[aspect]))
+                                                     for aspect in zAspects)
+                            zAspectChoiceIndx = OrderedDict((aspect,0) for aspect in zAspects)
+                            #self.zAxis(1, strctMdlTable.strctMdlFirstAxisBreakdown("z"), zAspectStrctNodes, True)
                             self.cellsTableElt = tableElt
                             self.cellsZElt = etree.SubElement(self.cellsTableElt, self.tableModelQName("cells"),
                                                                    attrib={"axis": "z"})
                         self.cellsYElt = etree.SubElement(self.cellsZElt, self.tableModelQName("cells"),
                                                                attrib={"axis": "y"})
                     # rows/cols only on firstTime for infoset XML, but on each time for xhtml
-                    zAspectStrctNodes = defaultdict(set)
-                    self.zAxis(1, zTopStrctNode, zAspectStrctNodes, False)
+                    #self.zAxis(1, zTopStrctNode, zAspectStrctNodes, False)
                     xStrctNodes = []
                     yStrctNodes = []
                     zStrctNodes = []
+                    zAspectStrctNodes = defaultdict(list)
 
                     if zTopStrctNode.strctMdlChildNodes:  # same as combo box selection in GUI mode
                         self.zStrNodesWithChoices.insert(0, zTopStrctNode)  # iteration from last is first
                     if self.type == XML:
-                        self.axis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
-                                   zTopStrctNode, zStrctNodes, True, True, self.colHdrNonStdRoles)
-                        # try to set zAspectStrctNodes
-                        for effectiveStrctNode in zStrctNodes:
-                            for aspect in aspectModels["dimensional"]:
-                                if effectiveStrctNode.hasAspect(aspect, inherit=True): #implies inheriting from other z axes
-                                    if aspect == Aspect.DIMENSIONS:
-                                        for dim in (effectiveStrctNode.aspectValue(Aspect.DIMENSIONS, inherit=True) or emptyList):
-                                            zAspectStrctNodes[dim].add(effectiveStrctNode)
-                                    else:
-                                        zAspectStrctNodes[aspect].add(effectiveStrctNode)
+                        # try to set zStrctNodes
+                        for aspect, i in zAspectChoiceIndx.items():
+                            strctNode = zAspectStrctNodes[aspect][i]
+                            if strctNode not in zStrctNodes:
+                                zStrctNodes.append(strctNode)
                     else:
                         self.zAxis(1, zTopStrctNode, zAspectStrctNodes, False)
                     if self.type == XML and (xTopStrctNode and xTopStrctNode.strctMdlChildNodes):
@@ -246,17 +261,26 @@ class ViewRenderedGrid(ViewFile.View):
                     self.bodyCells(self.dataFirstRow, yTopStrctNode, xStrctNodes, zAspectStrctNodes)
                 # find next choice structural node
                 moreDiscriminators = False
-                for zStrNodeWithChoices in self.zStrNodesWithChoices:
-                    currentIndex = zStrNodeWithChoices.choiceNodeIndex + 1
-                    if currentIndex < len(zStrNodeWithChoices.strctMdlChildNodes):
-                        zStrNodeWithChoices.choiceNodeIndex = currentIndex
-                        self.zOrdinateChoices[zStrNodeWithChoices.defnMdlNode] = currentIndex
-                        moreDiscriminators = True
-                        break
-                    else:
-                        zStrNodeWithChoices.choiceNodeIndex = 0
-                        self.zOrdinateChoices[zStrNodeWithChoices.defnMdlNode] = 0
-                        # continue incrementing next outermore z choices index
+                if self.type == XML:
+                    for aspect in reversed(zAspectChoiceIndx.keys()):
+                        zAspectChoiceIndx[aspect] += 1
+                        if zAspectChoiceIndx[aspect] < zAspectChoiceLens[aspect]:
+                            moreDiscriminators = True
+                            break
+                        else:
+                            zAspectChoiceIndx[aspect] = 0
+                else:
+                    for zStrNodeWithChoices in self.zStrNodesWithChoices:
+                        currentIndex = zStrNodeWithChoices.choiceNodeIndex + 1
+                        if currentIndex < len(zStrNodeWithChoices.strctMdlChildNodes):
+                            zStrNodeWithChoices.choiceNodeIndex = currentIndex
+                            self.zOrdinateChoices[zStrNodeWithChoices.defnMdlNode] = currentIndex
+                            moreDiscriminators = True
+                            break
+                        else:
+                            zStrNodeWithChoices.choiceNodeIndex = 0
+                            self.zOrdinateChoices[zStrNodeWithChoices.defnMdlNode] = 0
+                            # continue incrementing next outermore z choices index
                 if not moreDiscriminators:
                     break
 
