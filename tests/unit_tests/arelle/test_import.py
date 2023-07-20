@@ -23,7 +23,7 @@ KNOWN_FAILURES = frozenset([
 MODULE_NAMES = [
     g.replace('/', '.').replace('\\', '.').replace('.py', '')
     for g in glob.glob('arelle/**/*.py', recursive=True)
-    if not g.startswith(('arelle/plugin/iXBRLViewerPlugin/', 'arelle/plugin/xule/'))
+    if not g.startswith(tuple(f'arelle/plugin/{p}/' for p in ['EdgarRenderer', 'iXBRLViewerPlugin', 'xule']))
 ]
 TEST_PARAMS = [
     pytest.param(
