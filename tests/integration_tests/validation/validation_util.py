@@ -55,11 +55,11 @@ def get_test_data(
             test_case_path_tail = _get_path_tail(model_document.uri)
             test_id = '/'.join(test_case_path_tail)
             model_errors = sorted(cntlr.modelManager.modelXbrl.errors)
-            expected_model_errors = sorted(expected_model_errors)
+            expected_model_errors_list = sorted(expected_model_errors)
             param = pytest.param(
                 {
-                    'status': 'pass' if model_errors == expected_model_errors else 'fail',
-                    'expected': expected_model_errors,
+                    'status': 'pass' if model_errors == expected_model_errors_list else 'fail',
+                    'expected': expected_model_errors_list,
                     'actual': model_errors
                 },
                 id=test_id,

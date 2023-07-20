@@ -20,5 +20,5 @@ config = ConformanceSuiteConfig(
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     local_filepath='efm-66-230620.zip',
     name=PurePath(__file__).stem,
-    public_download_url='https://www.sec.gov/files/edgar/efm-66-230620.zip'
+    public_download_url='https://www.sec.gov/files/edgar/efm-66-230620.zip',
 )
