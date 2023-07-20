@@ -63,4 +63,3 @@ def test_package_manager_reset():
     assert len(PackageManager.packagesConfig) == 0
     assert len(PackageManager.packagesMappings) == 0
     assert PackageManager._cntlr == cntlr
-

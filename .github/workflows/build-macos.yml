@@ -134,22 +134,22 @@ jobs:
         run: |
           # Decode and write base64 p12 certificate to file.
           echo $MAC_BUILD_CERTIFICATE_BASE64 | base64 --decode > certificate.p12
-          
+
           # Create local keychain
           security create-keychain -p "$MAC_BUILD_KEYCHAIN_PASSWORD" build.keychain -v
           security set-keychain-settings -lut 21600 build.keychain
           security default-keychain -s build.keychain
-          
+
           # Import certificate into keychain
           security unlock-keychain -p "$MAC_BUILD_KEYCHAIN_PASSWORD" build.keychain
           security import certificate.p12 -k build.keychain -T /usr/bin/codesign -P "$MAC_BUILD_CERTIFICATE_PASSWORD"
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MAC_BUILD_KEYCHAIN_PASSWORD" build.keychain
-          
+
           # Confirm certificate
           security find-identity
           security find-certificate -a -p | openssl x509 -subject -noout
           echo MAC_BUILD_CERTIFICATE_NAME="$MAC_BUILD_CERTIFICATE_NAME"
-          
+
           # Move python modules to Resources
           for f in config doc examples images locale plugin scripts Tktable2.11 ;
             do
@@ -163,7 +163,7 @@ jobs:
             do
               mv build/Arelle.app/Contents/MacOS/lib/$f build/Arelle.app/Contents/Resources/lib/
             done
-          
+
           # Code signing (*.so, *.dylib, etc)
           for i in $(find build/Arelle.app -type f -perm +111 -exec file "{}" \; | \
             grep -v "(for architecture" | \
@@ -177,18 +177,18 @@ jobs:
             --sign "$MAC_BUILD_CERTIFICATE_NAME" \
             "$i"
           done
-          
+
           find build/Arelle.app -type f -name "*.dylib*" -exec \
             codesign --deep --force --verify --verbose --timestamp \
             --options runtime \
             --sign "$MAC_BUILD_CERTIFICATE_NAME" \
             {} \;
-          
+
           # Create symlinks (some libraries can't be code signed in /MacOS but need to be found within it)
           ln -s ../../Resources/lib/tkinter build/Arelle.app/Contents/MacOS/lib/tkinter
           # Symlink plugins folder so /Resources/plugin is found when searching in default /MacOS/plugin location
           ln -s ../Resources/plugin build/Arelle.app/Contents/MacOS/plugin
-          
+
           # Executable code signing (slightly redundant, but ensures all necessary files are code signed)
           codesign --options runtime --force --deep --timestamp -s "$MAC_BUILD_CERTIFICATE_NAME" build/Arelle.app/Contents/MacOS/arelleCmdLine
           codesign --options runtime --force --deep --timestamp -s "$MAC_BUILD_CERTIFICATE_NAME" build/Arelle.app/Contents/MacOS/arelleGUI

@@ -20,7 +20,11 @@ KNOWN_FAILURES = frozenset([
     'arelle.plugin.validate.EFM-htm.__init__',
     'arelle.plugin.validate.XFsyntax.xf',
 ])
-MODULE_NAMES = list(map(lambda g: g.replace('/', '.').replace('\\', '.').replace('.py', ''), glob.glob('arelle/**/*.py', recursive=True)))
+MODULE_NAMES = [
+    g.replace('/', '.').replace('\\', '.').replace('.py', '')
+    for g in glob.glob('arelle/**/*.py', recursive=True)
+    if not g.startswith(tuple(f'arelle/plugin/{p}/' for p in ['EdgarRenderer', 'iXBRLViewerPlugin', 'xule']))
+]
 TEST_PARAMS = [
     pytest.param(
         module_name,

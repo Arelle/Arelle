@@ -5,15 +5,15 @@ config = ConformanceSuiteConfig(
     args=[
         '--formula', 'run',
         '--httpsRedirectCache',
-        '--plugins', 'loadFromOIM',
     ],
-    expected_failure_ids=frozenset([
-        '600-xml/index-xbrl-xml.xml/V-05',
-        '600-xml/index-xbrl-xml.xml/V-06',
+    expected_failure_ids=frozenset(f'oim-conformance-2023-04-19/{s}' for s in [
+        '600-xml/index-xbrl-xml.xml:V-05',
+        '600-xml/index-xbrl-xml.xml:V-06',
     ]),
     file='oim-conformance-2023-04-19/oim-index.xml',
     info_url='https://specifications.xbrl.org/work-product-index-open-information-model-open-information-model.html',
     local_filepath='oim-conformance-2023-04-19.zip',
     membership_url='https://www.xbrl.org/join',
     name=PurePath(__file__).stem,
+    plugins=frozenset({'loadFromOIM'}),
 )

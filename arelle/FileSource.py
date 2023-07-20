@@ -460,6 +460,7 @@ class FileSource:
                 referencedFileSource = openFileSource(filepath, self.cntlr)
                 if referencedFileSource:
                     self.referencedFileSources[referencedArchiveFile] = referencedFileSource
+                    return referencedFileSource
         return None
 
     def file(

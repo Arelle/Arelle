@@ -89,14 +89,14 @@ def test_plugin_manager_reset():
             # Test data
             ("tests/unit_tests/arelle", "functionsMaths", "xyz"),
             # Expected result
-            ("functionsMaths", f"tests/unit_tests", "xyz")
+            ("functionsMaths", "tests/unit_tests", "xyz")
         ),
         # Test case 2
         (
             # Test data
             ("arelle/plugin/", "sphinx/__init__.py", "xyz"),
             # Expected result
-            ("sphinx", f"arelle/plugin", "sphinx.")
+            ("sphinx", "arelle/plugin", "sphinx.")
         ),
         # Test case 3
         (

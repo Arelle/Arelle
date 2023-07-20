@@ -438,7 +438,18 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
             global openFileSource
             if openFileSource is None:
                 from arelle.FileSource import openFileSource
-            filesource = openFileSource(packageFilename, _cntlr)
+            from arelle.FileSource import archiveFilenameParts
+            parts = archiveFilenameParts(packageFilename)
+            if parts is not None:
+                sourceFileSource = openFileSource(parts[0], _cntlr)
+                sourceFileSource.open()
+                fileDateTuple = sourceFileSource.fs.getinfo(parts[1]).date_time + (0,0,0)
+            else:
+                sourceFileSource = None
+                fileDateTuple = time.gmtime(os.path.getmtime(packageFilename))
+            filesource = openFileSource(packageFilename, _cntlr, sourceFileSource=sourceFileSource)
+            if sourceFileSource:
+                sourceFileSource.close()
             # allow multiple manifests [[metadata, prefix]...] for multiple catalogs
             packages = []
             packageFiles = []
@@ -518,7 +529,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                        'status': 'enabled',
                        'version': parsedPackage.get('version'),
                        'license': parsedPackage.get('license'),
-                       'fileDate': time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(packageFilename))),
+                       'fileDate': time.strftime('%Y-%m-%dT%H:%M:%S UTC', fileDateTuple),
                        'URL': URL,
                        'entryPoints': parsedPackage.get('entryPoints', {}),
                        'manifestName': packageManifestName,

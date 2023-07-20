@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import pytest
 import sys
 from argparse import ArgumentParser, Namespace
 from tests.integration_tests.validation.validation_util import get_conformance_suite_test_results
@@ -12,9 +11,13 @@ from tests.integration_tests.validation.conformance_suite_configs import (
 from tests.integration_tests.validation.download_conformance_suites import (
     download_conformance_suite, extract_conformance_suite
 )
-from typing import Optional
+from typing import Any, Optional, TYPE_CHECKING
 
-ARGUMENTS = [
+if TYPE_CHECKING:
+    from _pytest.mark import ParameterSet
+
+
+ARGUMENTS: list[dict[str, Any]] = [
     {
         "name": "--all",
         "action": "store_true",
@@ -56,6 +59,12 @@ ARGUMENTS = [
         "help": "Select all public conformance suites"
     },
     {
+        "name": "--shard",
+        "action": "store",
+        "help": "0-indexed shard to run",
+        "type": int,
+    },
+    {
         "name": "--test",
         "action": "store_true",
         "help": "Run selected conformance suite tests"
@@ -88,9 +97,10 @@ def _get_conformance_suite_names(select_option: str) -> tuple[ConformanceSuiteCo
 def run_conformance_suites(
         select_option: str,
         test_option: bool,
-        download_option: str = None,
+        shard: int | None,
+        download_option: str | None = None,
         log_to_file: bool = False,
-        offline_option: bool = False) -> list[pytest.param]:
+        offline_option: bool = False) -> list[ParameterSet]:
     conformance_suite_configs = _get_conformance_suite_names(select_option)
     if download_option:
         overwrite = download_option == DOWNLOAD_OVERWRITE
@@ -101,17 +111,20 @@ def run_conformance_suites(
     all_results = []
     if test_option:
         for config in conformance_suite_configs:
-            results = get_conformance_suite_test_results(config, log_to_file=log_to_file, offline=offline_option)
+            results = get_conformance_suite_test_results(config, shard=shard, log_to_file=log_to_file, offline=offline_option)
             all_results.extend(results)
     return all_results
 
 
-def run_conformance_suites_options(options: Namespace) -> list[pytest.param]:
+def run_conformance_suites_options(options: Namespace) -> list[ParameterSet]:
     select_option = get_select_option(options)
     download_option = get_download_option(options)
+    assert download_option or options.test, \
+        'Specify at least one of download, list, or test.'
     return run_conformance_suites(
         select_option=select_option,
         test_option=options.test,
+        shard=options.shard,
         download_option=download_option,
         log_to_file=options.log_to_file,
         offline_option=options.offline
@@ -131,13 +144,15 @@ def get_select_option(options: Namespace) -> str:
         return SELECT_ALL
     elif options.public:
         return SELECT_PUBLIC
+    assert isinstance(options.name, str)
     return options.name
 
 
 def run() -> None:
     parser = ArgumentParser(prog=sys.argv[0])
     for arg in ARGUMENTS:
-        parser.add_argument(arg["name"], action=arg["action"], help=arg["help"])
+        arg_without_name = {k: v for k, v in arg.items() if k != "name"}
+        parser.add_argument(arg["name"], **arg_without_name)
     options = parser.parse_args(sys.argv[1:])
     if options.list:
         for config in ALL_CONFORMANCE_SUITE_CONFIGS:
