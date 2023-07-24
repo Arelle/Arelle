@@ -31,6 +31,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                                             r"/([12][0-9]{3})([01][0-9])([0-3][0-9])|")
         efmFilenamePattern = re.compile(r"^[a-z0-9][a-zA-Z0-9_\.\-]*(\.xsd|\.xml|\.htm)$")
         htmlFileNamePattern = re.compile(r"^[a-zA-Z0-9][._a-zA-Z0-9-]*(\.htm)$")
+        efmJsonFilenamePattern = re.compile(r"^[a-z0-9][a-zA-Z0-9_\.\-]*(\.xsd|\.xml|\.htm|\.json)$")
         roleTypePattern = re.compile(r"^.*/role/[^/\s]+$")
         arcroleTypePattern = re.compile(r"^.*/arcrole/[^/\s]+$")
         arcroleDefinitionPattern = re.compile(r"^.*[^\\s]+.*$")  # at least one non-whitespace character
@@ -75,6 +76,9 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 if modelDocument.type == ModelDocument.Type.INLINEXBRL:
                     _pattern = htmlFileNamePattern
                     _suffix = ".htm"
+                elif modelDocument.type == ModelDocument.Type.INSTANCE and getattr(val.modelXbrl, "loadedFromOIM", False):
+                    _pattern = efmJsonFilenamePattern
+                    _suffix = ".htm or .json"
                 else:
                     _pattern = efmFilenamePattern
                     _suffix = ".xsd or .xml"

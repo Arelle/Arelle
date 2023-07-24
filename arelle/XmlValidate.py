@@ -169,7 +169,10 @@ def validate(
                 if isAbstract:
                     raise ValueError("element is abstract")
                 if isNil:
-                    text = ""
+                    if ixFacts: # still must validate format
+                        text = elt.stringValue
+                    else:
+                        text = ""
                 elif baseXsdType == "noContent":
                     text = elt.textValue # no descendant text nodes
                 else:

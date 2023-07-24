@@ -67,7 +67,7 @@ from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateFilingText import CDATApattern
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence, xmlnsprefix, setXmlns
-from arelle.XmlValidate import validate as xmlValidate
+from arelle.XmlValidate import validate as xmlValidate, VALID
 import os, zipfile
 import regex as re
 from optparse import SUPPRESS_HELP
@@ -167,7 +167,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
 
 # baseXmlLang: set on root xbrli:xbrl element
 # defaultXmlLang: if a fact/footnote has a different lang, provide xml:lang on it.
-def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingFiles, baseXmlLang=None, defaultXmlLang=None):
+def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingFiles, baseXmlLang=None, defaultXmlLang=None, skipInvalid=False):
     def addLocallyReferencedFile(elt,filingFiles):
         if elt.tag in ("a", "img"):
             for attrTag, attrValue in elt.items():
@@ -229,9 +229,12 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
 
     modelXbrl.modelManager.showStatus(_("Creating and validating facts"))
     newFactForOldObjId = {}
+    invalidFacts = []
     def createFacts(facts, parent):
         for fact in facts:
-            if fact.isItem: # HF does not de-duplicate, which is currently-desired behavior
+            if fact.xValid < VALID and skipInvalid:
+                invalidFacts.append(fact)
+            elif fact.isItem: # HF does not de-duplicate, which is currently-desired behavior
                 modelConcept = fact.concept # isItem ensures concept is not None
                 attrs = {"contextRef": fact.contextID}
                 if fact.id:
@@ -279,6 +282,11 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                 createFacts(fact.modelTupleFacts, newTuple)
 
     createFacts(modelXbrl.facts, None)
+    if invalidFacts:
+        modelXbrl.warning("arelle.invalidFactsSkipped",
+                          _("Skipping %(count)s invalid facts in saving extracted instance document."),
+                          modelObject=invalidFacts, count=len(invalidFacts))
+        del invalidFacts[:] # dereference
     modelXbrl.modelManager.showStatus(_("Creating and validating footnotes and relationships"))
     HREF = "{http://www.w3.org/1999/xlink}href"
     footnoteLinks = defaultdict(list)
@@ -409,6 +417,8 @@ def runOpenInlineDocumentSetMenuCommand(cntlr, filenames, runInBackground=False,
                 filename = docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(archiveEntries)
             else:
                 filename = None
+        else:
+            filename = None
         filesource.close()
     elif len(filenames) >= MINIMUM_IXDS_DOC_COUNT:
         ixdsFirstFile = filenames[0]

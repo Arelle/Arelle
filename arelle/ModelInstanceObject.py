@@ -636,25 +636,25 @@ class ModelInlineValueObject:
                                   ixContinuation=(self.elementQname == XbrlConst.qnIXbrl11NonNumeric),
                                   ixResolveUris=ixEscape,
                                   strip=(f is not None)) # transforms are whitespace-collapse, otherwise it is preserved.
+            if f is not None:
+                if f.namespaceURI in FunctionIxt.ixtNamespaceFunctions:
+                    try:
+                        v = FunctionIxt.ixtNamespaceFunctions[f.namespaceURI][f.localName](v)
+                    except Exception as err:
+                        self.setInvalid()
+                        raise err
+                else:
+                    try:
+                        v = self.modelXbrl.modelManager.customTransforms[f](v)
+                    except KeyError as err:
+                        self.setInvalid()
+                        raise FunctionIxt.ixtFunctionNotAvailable
+                    except Exception as err:
+                        self.setInvalid()
+                        raise err
             if self.isNil:
                 self._ixValue = v
             else:
-                if f is not None:
-                    if f.namespaceURI in FunctionIxt.ixtNamespaceFunctions:
-                        try:
-                            v = FunctionIxt.ixtNamespaceFunctions[f.namespaceURI][f.localName](v)
-                        except Exception as err:
-                            self._ixValue = ModelValue.INVALIDixVALUE
-                            raise err
-                    else:
-                        try:
-                            v = self.modelXbrl.modelManager.customTransforms[f](v)
-                        except KeyError as err:
-                            self._ixValue = ModelValue.INVALIDixVALUE
-                            raise FunctionIxt.ixtFunctionNotAvailable
-                        except Exception as err:
-                            self._ixValue = ModelValue.INVALIDixVALUE
-                            raise err
                 if self.localName == "nonNumeric":
                     self._ixValue = v
                 elif self.localName == "tuple":

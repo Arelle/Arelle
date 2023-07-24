@@ -155,7 +155,7 @@ class ModelManager:
         self.filesource = filesource
         modelXbrl = None # loaded modelXbrl
         for customLoader in pluginClassMethods("ModelManager.Load"):
-            modelXbrl = customLoader(self, filesource)
+            modelXbrl = customLoader(self, filesource, **kwargs)
             if modelXbrl is not None:
                 break # custom loader did the loading
         if modelXbrl is None:  # use default xbrl loader

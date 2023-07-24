@@ -25,6 +25,7 @@ from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelDtsObject import ModelResource
 from arelle import XbrlConst, ModelDocument, ModelXbrl, PackageManager, ValidateXbrlDimensions
 from arelle.ModelObject import ModelObject
+from arelle.PluginManager import pluginClassMethods
 from arelle.ModelValue import qname, dateTime, DateTime, DATETIME, yearMonthDuration, dayTimeDuration
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict, flattenToSet, strTruncate
@@ -1012,6 +1013,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     raise OIMException("{}:invalidJSON".format(errPrefix),
                             "JSON error while %(action)s, %(file)s \"metadata\" worksheet, error %(error)s",
                             file=filepath, action=currentAction, error=ex)
+            # allow report setup or extension objects processing
+            for pluginXbrlMethod in pluginClassMethods("LoadFromOim.DocumentSetup"):
+                pluginXbrlMethod(modelXbrl, oimObject, oimFile)
             # identify document type (JSON or CSV)
             documentInfo = jsonGet(oimObject, "documentInfo", {})
             documentType = jsonGet(documentInfo, "documentType")

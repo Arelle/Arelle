@@ -88,8 +88,7 @@
         "N-346": ["@N-3", "@N-4", "@N-6"],
         "N-CSR": ["N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A"],
 		"POS": ["POS AM", "POS EX"],
-		"PvP": ["PRE 14A", "PREM14A", "PREC14A", "PRER14A", "PRE 14C", "PREM14C", "PREC14C", "PRER14C",
-				"DEF 14A", "DEFM14A", "DEFC14A", "DEFR14A", "DEFA14A", "DEF 14C", "DEFM14C", "DEFC14C", "DEFR14C", "DEFA14C"],
+		"PvP": ["DEF 14A", "DEF 14C", "PRE 14A", "PRE 14C", "PREM14A", "PREM14C"],
 		"RR": ["485APOS", "485BPOS", "485BXT", "497", "N-1A", "N-1A/A"],
 		"SP 15D2": ["SP 15D2", "SP 15D2/A"],
 		"S-n": ["S-1", "S-1/A", "S-3", "S-3/A", "S-4", "S-4/A", "S-11", "S-11/A"],
@@ -317,7 +316,7 @@
         "dei/cover": "cover"
     },
     {
-        "sub-types": ["@POS"],
+        "sub-types": ["@POS", "@PvP"],
         "xbrl-names": "DocumentPeriodEndDate",
         "elo-name": "periodOfReport",
         "efm": "6.5.20",
@@ -362,7 +361,7 @@
             "@all-FAST",
             "@POS", "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A",
             "@6-K", "@SP 15D2", "@RR", "@N-346", "@SDR",
-            "@N", "N-3", "N-4", "N-6"
+            "@N", "N-3", "N-4", "N-6", "@PvP"
         ],
         "xbrl-names": "DocumentPeriodEndDate",
         "store-db-name": "periodOfReport",

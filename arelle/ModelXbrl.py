@@ -353,6 +353,7 @@ class ModelXbrl:
         self.logRefObjectProperties: bool = getattr(self.logger, "logRefObjectProperties", False)
         self.logRefHasPluginAttrs: bool = any(True for m in pluginClassMethods("Logging.Ref.Attributes"))
         self.logRefHasPluginProperties: bool = any(True for m in pluginClassMethods("Logging.Ref.Properties"))
+        self.logHasRelevelerPlugin: bool = any(True for m in pluginClassMethods("Logging.Severity.Releveler"))
         self.logRefFileRelUris: defaultdict[Any, dict[str, str]] = defaultdict(dict)
         self.profileStats: dict[str, tuple[int, float, float | int]] = {}
         self.schemaDocsToValidate: set[ModelDocumentClass] = set()
@@ -824,7 +825,7 @@ class ModelXbrl:
         except KeyError:
             return set()  # no facts for this period type
 
-    def factsByDimMemQname(self, dimQname: QName, memQname: QName | None = None) -> set[ModelFact]:  # indexed by fact (concept) qname
+    def factsByDimMemQname(self, dimQname: QName, memQname: QName | str | None = None) -> set[ModelFact]:  # indexed by fact (concept) qname
         """Facts in the instance indexed by their Dimension  and Member QName, cached
         If Member is None, returns facts that have the dimension (explicit or typed)
         If Member is NONDEFAULT, returns facts that have the dimension (explicit non-default or typed)
@@ -851,6 +852,8 @@ class ModelXbrl:
                         fbdq[NONDEFAULT].add(fact) # set of all facts that have non-default value for dimension
                         if dimValue.isExplicit:
                             fbdq[dimValue.memberQname].add(fact) # set of facts that have this dim and mem
+                        elif dimValue.isTyped:
+                            fbdq[dimValue.typedMember.textValue].add(fact) # set of facts that have this dim and mem
                     else: # default typed dimension
                         fbdq[DEFAULT].add(fact)
             return fbdq[memQname]
@@ -1208,6 +1211,9 @@ class ModelXbrl:
         if messageCode == "asrtNoLog":
             self.errors.append(args["assertionResults"])
             return
+        if self.logHasRelevelerPlugin:
+            for pluginXbrlMethod in pluginClassMethods("Logging.Severity.Releveler"):
+                level = pluginXbrlMethod(self, level, messageCode, args) # args must be passed as dict because it may contain modelXbrl or messageCode key value
         if (messageCode and
               (not logger.messageCodeFilter or logger.messageCodeFilter.match(messageCode)) and
               (not logger.messageLevelFilter or logger.messageLevelFilter.match(level.lower()))):

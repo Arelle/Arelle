@@ -1812,6 +1812,10 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                             _("Fact %(fact)s has unrecognized transformation name %(name)s"),
                             modelObject=modelInlineFact, fact=modelInlineFact.qname, transform=fmt, name=fmt.localName)
                         modelInlineFact.setInvalid()
+            else:
+                modelXbrl.error(ixMsgCode("missingReferences", modelInlineFact, name="references", sect="validation"),
+                                _("Instance fact missing schema definition: %(qname)s of Inline Element %(localName)s"),
+                                modelObject=modelInlineFact, qname=modelInlineFact.get("name","(no name)"), localName=modelInlineFact.elementQname)
 
         # order tuple facts
         for tupleFact in tupleElements:

@@ -212,6 +212,8 @@ def parseAndRun(args):
     parser.add_option("--logFile", "--logfile", action="store", dest="logFile",
                       help=_("Write log messages into file, otherwise they go to standard output.  "
                              "If file ends in .xml it is xml-formatted, otherwise it is text. "))
+    parser.add_option("--logFileMode", "--logfilemode", action="store", dest="logFileMode",
+                      help=_("Write log file mode, a=append if existing (default), w=overwrite if existing. "))
     parser.add_option("--logFormat", "--logformat", action="store", dest="logFormat",
                       help=_("Logging format for messages capture, otherwise default is \"[%(messageCode)s] %(message)s - %(file)s\"."))
     parser.add_option("--logLevel", "--loglevel", action="store", dest="logLevel",
@@ -446,6 +448,7 @@ def parseAndRun(args):
     else:
         # parse and run the FILENAME
         cntlr.startLogging(logFileName=(options.logFile or "logToPrint"),
+                           logFileMode=options.logFileMode,
                            logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
                            logLevel=(options.logLevel or "DEBUG"),
                            logToBuffer=getattr(options, "logToBuffer", False),
