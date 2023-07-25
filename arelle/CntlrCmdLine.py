@@ -20,6 +20,7 @@ from arelle.Locale import format_string, setApplicationLocale, setDisableRTL
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle import PluginManager
 from arelle.PluginManager import pluginClassMethods
+from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE
 from arelle.UrlUtil import isHttpUrl
 from arelle.Version import copyrightLabel
 from arelle.WebCache import proxyTuple
@@ -277,7 +278,7 @@ def parseAndRun(args):
                              "'http://[user[:password]@]host[:port]' "
                              " (e.g., http://192.168.1.253, http://example.com:8080, http://joe:secret@example.com:8080), "
                              " or 'show' to show current setting, ." ))
-    parser.add_option("--internetConnectivity", "--internetconnectivity", choices=("online", "offline"), dest="internetConnectivity",
+    parser.add_option(f"--{INTERNET_CONNECTIVITY}", f"--{INTERNET_CONNECTIVITY.lower()}", choices=("online", OFFLINE), dest="internetConnectivity",
                       help=_("Specify internet connectivity: online or offline"))
     parser.add_option("--internetTimeout", "--internettimeout", type="int", dest="internetTimeout",
                       help=_("Specify internet connection timeout in seconds (0 means unlimited)."))
