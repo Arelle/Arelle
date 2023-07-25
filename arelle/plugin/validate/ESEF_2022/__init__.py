@@ -175,7 +175,12 @@ def modelXbrlLoadComplete(modelXbrl: ModelXbrl) -> None:
                     validateEntity(modelXbrl, filename, modelXbrl.fileSource)
         else:
             if isinstance(modelXbrl.fileSource.url, str):
-                validateEntity(modelXbrl, modelXbrl.fileSource.url, modelXbrl.fileSource)
+                ixdsDocUrls = getattr(modelXbrl, "ixdsDocUrls", None)
+                if ixdsDocUrls:
+                    for url in ixdsDocUrls:
+                        validateEntity(modelXbrl, url, modelXbrl.fileSource)
+                else:
+                    validateEntity(modelXbrl, modelXbrl.fileSource.url, modelXbrl.fileSource)
             elif isinstance(modelXbrl.fileSource.url, list):
                 for filename in modelXbrl.fileSource.url:
                     validateEntity(modelXbrl, filename, modelXbrl.fileSource)
