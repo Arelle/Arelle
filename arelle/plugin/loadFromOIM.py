@@ -38,7 +38,8 @@ from arelle.XbrlConst import (xbrli, qnLinkLabel, standardLabelRoles, qnLinkRefe
                               dtrPrefixedContentItemTypes, dtrPrefixedContentTypes, dtrSQNameNamesItemTypes, dtrSQNameNamesTypes,
                               lrrRoleHrefs, lrrArcroleHrefs)
 from arelle.XmlUtil import addChild, addQnameValue, copyIxFootnoteHtml, setXmlns
-from arelle.XmlValidate import integerPattern, languagePattern, NCNamePattern, QNamePattern, validate as xmlValidate, VALID
+from arelle.XmlValidateConst import VALID
+from arelle.XmlValidate import integerPattern, languagePattern, NCNamePattern, QNamePattern, validate as xmlValidate
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 
 nsOims = ("https://xbrl.org/2021",

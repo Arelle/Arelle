@@ -38,7 +38,8 @@ from lxml import etree
 from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
 from arelle.Aspect import Aspect
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue, rangeValue, ValidateCalcsMode
-from arelle.XmlValidate import UNVALIDATED, INVALID, VALID, validate as xmlValidate
+from arelle.XmlValidateConst import UNVALIDATED, INVALID, VALID
+from arelle.XmlValidate import validate as xmlValidate
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from math import isnan, isinf
 from arelle.ModelObject import ModelObject

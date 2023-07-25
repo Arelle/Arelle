@@ -59,7 +59,7 @@ from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlUtil import xmlstring, datetimeValue, DATETIME_MAXYEAR, dateunionValue, addChild, addQnameValue, addProcessingInstruction
 from arelle import XbrlConst
-from arelle.XmlValidate import UNKNOWN, NONE as xmlValidateNONE, INVALID, VALID
+from arelle.XmlValidateConst import UNKNOWN, NONE as xmlValidateNONE, INVALID, VALID
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
 from decimal import Decimal, InvalidOperation
 from numbers import Number

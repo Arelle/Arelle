@@ -11,7 +11,7 @@ import regex as re
 from arelle import FileSource, ModelDocument
 from arelle.ModelRssObject import ModelRssObject
 from arelle.Version import authorLabel, copyrightLabel
-from arelle.XmlValidate import UNVALIDATED, VALID
+from arelle.XmlValidateConst import UNVALIDATED, VALID
 
 class SECCorrespondenceItem:
     def __init__(self, modelXbrl, fileName, entryUrl):

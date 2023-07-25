@@ -6,7 +6,8 @@ from typing import Any, Sequence, TYPE_CHECKING
 import math
 from arelle.ModelValue import QName, DateTime
 from arelle.ModelObject import ModelObject, ModelAttribute
-from arelle.XmlValidate import UNKNOWN, VALID, VALID_ID, validate as xmlValidate
+from arelle.XmlValidateConst import UNKNOWN, VALID, VALID_ID
+from arelle.XmlValidate import validate as xmlValidate
 
 if TYPE_CHECKING:
     from arelle.ModelXbrl import ModelXbrl

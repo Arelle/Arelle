@@ -63,7 +63,7 @@ import os, sys
 from lxml import etree
 import decimal
 from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue, XmlValidate)
-from arelle.XmlValidate import UNVALIDATED, VALID
+from arelle.XmlValidateConst import UNVALIDATED, VALID
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName
 
