@@ -27,7 +27,7 @@ from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
 from arelle.PythonUtil import pyNamedObject, strTruncate, normalizeSpace, lcStr, flattenSequence, flattenToSet, OrderedSet
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue, roundValue, ONE
-from arelle.XmlValidate import VALID
+from arelle.XmlValidateConst import VALID
 from .DTS import checkFilingDTS
 from .Consts import submissionTypesAllowingWellKnownSeasonedIssuer, \
                     submissionTypesNotRequiringPeriodEndDate, \

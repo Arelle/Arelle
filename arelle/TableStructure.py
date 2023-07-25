@@ -7,7 +7,7 @@ import os, io, json
 from datetime import datetime, timedelta
 from arelle import XbrlConst
 from arelle.ModelDtsObject import ModelConcept
-from arelle.XmlValidate import VALID
+from arelle.XmlValidateConst import VALID
 
 # regular expression components
 STMT = r".* - statement - "

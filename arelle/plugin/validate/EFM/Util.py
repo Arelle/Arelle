@@ -10,7 +10,7 @@ from arelle.ModelValue import qname, dateTime, DATE
 from arelle import XbrlConst
 from arelle.PythonUtil import attrdict, flattenSequence, pyObjectSize
 from arelle.ValidateXbrlCalcs import inferredDecimals, floatINF
-from arelle.XmlValidate import VALID
+from arelle.XmlValidateConst import VALID
 from .Consts import standardNamespacesPattern, latestTaxonomyDocs, latestEntireUgt, feeTaggingExhibitTypePattern
 
 EMPTY_DICT = {}

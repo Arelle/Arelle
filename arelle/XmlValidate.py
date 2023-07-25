@@ -14,6 +14,7 @@ from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, qnameHref
                                anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay, isoDuration)
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.PythonUtil import strTruncate
+from arelle.XmlValidateConst import UNVALIDATED, UNKNOWN, INVALID, NONE, VALID, VALID_ID, VALID_NO_CONTENT
 from arelle import UrlUtil
 
 if TYPE_CHECKING:
@@ -33,14 +34,6 @@ validateElementSequence: Callable[..., Any] | None = None  #dynamic import to br
 modelGroupCompositorTitle: Callable[[Any], str] | None = None
 ModelInlineValueObject: Type[Any] | None = None
 ixMsgCode: Callable[..., str] | None = None
-
-UNVALIDATED = 0 # note that these values may be used a constants in code for better efficiency
-UNKNOWN = 1
-INVALID = 2
-NONE = 3
-VALID = 4 # values >= VALID are valid
-VALID_ID = 5
-VALID_NO_CONTENT = 6 # may be a complex type with children, must be last (after VALID with content enums)
 
 normalizeWhitespacePattern = re_compile(r"[\t\n\r]") # replace tab, line feed, return with space (XML Schema Rules, note: does not include NBSP)
 collapseWhitespacePattern = re_compile(r"[ \t\n\r]+") # collapse multiple spaces, tabs, line feeds and returns to single space

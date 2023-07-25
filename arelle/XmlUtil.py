@@ -10,7 +10,7 @@ from arelle.XbrlConst import ixbrlAll, qnLinkFootnote, xhtml, xml, xsd, xhtml
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, QName, tzinfoStr
 from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
-from arelle.XmlValidate import VALID, INVALID
+from arelle.XmlValidateConst import VALID, INVALID
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import cast

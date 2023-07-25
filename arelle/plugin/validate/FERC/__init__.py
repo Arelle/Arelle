@@ -15,7 +15,7 @@ from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import xbrli, xhtml
-from arelle.XmlValidate import VALID
+from arelle.XmlValidateConst import VALID
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
