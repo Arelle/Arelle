@@ -23,7 +23,6 @@ if TYPE_CHECKING:
     from arelle.ModelValue import TypeSValue, TypeXValue
 
 XmlUtil: Any = None
-VALID_NO_CONTENT: int | None = None
 
 emptySet: set[Any] = set()
 

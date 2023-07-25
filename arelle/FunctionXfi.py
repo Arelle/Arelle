@@ -14,7 +14,8 @@ from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact, ModelInli
 from arelle.ModelFormulaObject import ModelFormulaResource
 from arelle.PythonUtil import flattenSequence
 from arelle.formula.XPathParser import OperationDef
-from arelle.XmlValidate import UNKNOWN, VALID, VALID_NO_CONTENT, validate as xmlValidate, NCNamePattern
+from arelle.XmlValidateConst import UNKNOWN, VALID, VALID_NO_CONTENT
+from arelle.XmlValidate import validate as xmlValidate, NCNamePattern
 from arelle.ValidateXbrlCalcs import inferredDecimals, inferredPrecision
 from arelle.ValidateXbrlDimensions import priItemElrHcRels
 from arelle.Locale import format_picture

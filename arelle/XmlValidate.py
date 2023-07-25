@@ -8,14 +8,12 @@ from lxml import etree
 from regex import Match, compile as re_compile
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
-from arelle import XbrlConst, XmlUtil
+from arelle import UrlUtil, XbrlConst, XmlUtil, XmlValidateConst
 from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, qnameHref,
                                dateTime, DATE, DATETIME, DATEUNION, time,
                                anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay, isoDuration)
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.PythonUtil import strTruncate
-from arelle.XmlValidateConst import UNVALIDATED, UNKNOWN, INVALID, NONE, VALID, VALID_ID, VALID_NO_CONTENT
-from arelle import UrlUtil
 
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
@@ -29,6 +27,16 @@ if TYPE_CHECKING:
     from arelle.ModelValue import QName
 
 _: TypeGetText
+
+# support legacy direct imports from this module
+UNVALIDATED      = XmlValidateConst.UNVALIDATED
+UNKNOWN          = XmlValidateConst.UNKNOWN
+INVALID          = XmlValidateConst.INVALID
+NONE             = XmlValidateConst.NONE
+VALID            = XmlValidateConst.VALID
+VALID_ID         = XmlValidateConst.VALID_ID
+VALID_NO_CONTENT = XmlValidateConst.VALID_NO_CONTENT
+
 
 validateElementSequence: Callable[..., Any] | None = None  #dynamic import to break dependency loops
 modelGroupCompositorTitle: Callable[[Any], str] | None = None
