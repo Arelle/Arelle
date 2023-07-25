@@ -1,3 +1,4 @@
+from __future__ import annotations
 import socket
 
 INTERNET_CONNECTIVITY = 'internetConnectivity'
