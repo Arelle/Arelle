@@ -727,14 +727,14 @@ class FileSource:
         return self.filesDir
 
     def basedUrl(self, selection: str) -> str:
-        if isHttpUrl(selection) or os.path.isabs(selection):
+        baseurl = getattr(self, "baseurl", None)
+        if not baseurl or isHttpUrl(selection) or os.path.isabs(selection):
             return selection
-        elif self.baseIsHttp or os.sep == '/':
-            assert isinstance(self.baseurl, str)
-            return self.baseurl + "/" + selection
-        else: # MSFT os.sep == '\\'
-            assert isinstance(self.baseurl, str)
-            return self.baseurl + os.sep + selection.replace("/", os.sep)
+        assert isinstance(baseurl, str)
+        if self.baseIsHttp or os.sep == '/':
+            return baseurl + "/" + selection
+        # MSFT os.sep == '\\'
+        return baseurl + os.sep + selection.replace("/", os.sep)
 
     def select(self, selection: str | list[str] | None) -> None:
         self.selection = selection
