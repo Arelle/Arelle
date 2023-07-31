@@ -76,4 +76,3 @@ def messageNumericId(modelXbrl, level, messageCode, args):
             return code + sum(int(n) * 100**i
                               for i,n in enumerate(reversed(m.group(1).split(splitChar))))
     return unknown
-
