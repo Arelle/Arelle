@@ -21,6 +21,7 @@ from arelle.PrototypeInstanceObject import FactPrototype
 OPEN_ASPECT_ENTRY_SURROGATE = '\uDBFF' # this need to be a utf-8 compatible char
 
 EMPTY_SET = set()
+EMPTY_DICT = {}
 
 class LayoutMdlHdrCells:
     def __init__(self, strctMdlNode):
@@ -521,17 +522,25 @@ class StrctMdlStructuralNode(StrctMdlNode):
         if len(aspectStructuralNodes) == 1:
             structuralNode = aspectStructuralNodes.pop()
         elif len(aspectStructuralNodes) > 1:
-            if aspect == Aspect.LOCATION:
-                hasClash = False
-                for _aspectStructuralNode in aspectStructuralNodes:
-                    if not _aspectStructuralNode.defnMdlNode.aspectValueDependsOnVars(aspect):
-                        if structuralNode:
-                            hasClash = True
-                        else:
-                            structuralNode = _aspectStructuralNode 
+            strctNodesWithAspect = set(_aspectStructuralNode
+                                       for _aspectStructuralNode in aspectStructuralNodes
+                                       if not _aspectStructuralNode.rollup
+                                       if _aspectStructuralNode.defnMdlNode.hasAspect(self, aspect))
+            if len(strctNodesWithAspect) == 1:
+                structuralNode = strctNodesWithAspect.pop()
             else:
-                # take closest structural node
-                hasClash = True
+                # check if all nodes have same value
+                if aspect == Aspect.LOCATION:
+                    hasClash = False
+                    for _aspectStructuralNode in aspectStructuralNodes:
+                        if not _aspectStructuralNode.defnMdlNode.aspectValueDependsOnVars(aspect):
+                            if structuralNode:
+                                hasClash = True
+                            else:
+                                structuralNode = _aspectStructuralNode 
+                else:
+                    # take closest structural node
+                    hasClash = True
                 
             ''' reported in static analysis by RenderingEvaluator.py
             if hasClash:

@@ -167,6 +167,28 @@ class ViewRenderedGrid(ViewFile.View):
                             self.axis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
                                        zTopStrctNode, zStrctNodes, True, True, self.colHdrNonStdRoles)
                             # lay out choices for each discriminator
+                            zCounts = [1]
+                            for _position, layoutMdlBrkdnCells in sorted(self.headerCells.items()):
+                                if layoutMdlBrkdnCells:
+                                    zCounts.append(sum((int(headerCell.get("span","1"))
+                                                        for _brkdnNode, _strNode, headerCell in layoutMdlBrkdnCells)))
+                            zDiscrimAspectNodes = [{} for i in range(max(zCounts))]
+                            for _position, layoutMdlBrkdnCells in sorted(self.headerCells.items()):
+                                if layoutMdlBrkdnCells:
+                                    i = 0
+                                    for _brkdnNode, strctNode, headerCell in layoutMdlBrkdnCells:
+                                        for j in range(int(headerCell.get("span","1"))):
+                                            if not headerCell.get("rollup"):
+                                                for aspect in aspectModels["dimensional"]:
+                                                    if strctNode.hasAspect(aspect, inherit=True): #implies inheriting from other z axes
+                                                        if aspect == Aspect.DIMENSIONS:
+                                                            for dim in (strctNode.aspectValue(Aspect.DIMENSIONS, inherit=True) or emptyList):
+                                                                zDiscrimAspectNodes[i][dim] = {strctNode}
+                                                        else:
+                                                            zDiscrimAspectNodes[i][aspect] = {strctNode}
+                                            i += 1                            
+                            
+                            zColumns = self.headerCells
                             zAspects = OrderedSet()
                             zAspectStrctNodeChoices = defaultdict(list)
                             for effectiveStrctNode in zStrctNodes:
@@ -199,10 +221,13 @@ class ViewRenderedGrid(ViewFile.View):
                         self.zStrNodesWithChoices.insert(0, zTopStrctNode)  # iteration from last is first
                     if self.type == XML:
                         # try to set zStrctNodes
+                        pass
+                        '''
                         for aspect, i in zAspectChoiceIndx.items():
                             strctNode = zAspectStrctNodes[aspect][i]
                             if strctNode not in zStrctNodes:
                                 zStrctNodes.append(strctNode)
+                        '''
                     else:
                         self.zAxis(1, zTopStrctNode, zAspectStrctNodes, False)
                     if self.type == XML and (xTopStrctNode and xTopStrctNode.strctMdlChildNodes):
@@ -222,7 +247,7 @@ class ViewRenderedGrid(ViewFile.View):
                         headerByPos = {}
                         for _position, breakdownCellElts in sorted(self.headerCells.items(), reverse=True):
                             if breakdownCellElts:
-                                for breakdownNode, headerCell in breakdownCellElts:
+                                for breakdownNode, _strctNode, headerCell in breakdownCellElts:
                                     if breakdownNode in self.headerElts:
                                         if _position != 0: # TODO this need reworks
                                             if _position not in headerByPos or breakdownNode not in headerByPos[_position]:
@@ -258,8 +283,9 @@ class ViewRenderedGrid(ViewFile.View):
                             if not any(e is not None for e in headerElt.iterchildren()):
                                 if headerElt.getparent() is not None:
                                     headerElt.getparent().remove(headerElt)
-                    self.bodyCells(self.dataFirstRow, yTopStrctNode, xStrctNodes, zAspectStrctNodes)
+                    self.bodyCells(self.dataFirstRow, yTopStrctNode, xStrctNodes, zDiscrimAspectNodes[discriminator-1]) # zAspectStrctNodes)
                 # find next choice structural node
+                '''
                 moreDiscriminators = False
                 if self.type == XML:
                     for aspect in reversed(zAspectChoiceIndx.keys()):
@@ -283,6 +309,10 @@ class ViewRenderedGrid(ViewFile.View):
                             # continue incrementing next outermore z choices index
                 if not moreDiscriminators:
                     break
+                '''
+                if discriminator >= len(zDiscrimAspectNodes):
+                    break
+                
 
             
     def zAxis(self, row, zStrctNode, zAspectStrctNodes, discriminatorsTable):
@@ -620,7 +650,7 @@ class ViewRenderedGrid(ViewFile.View):
                     cellElt = etree.Element(self.tableModelQName("cell"), attrib)
                     cellElt.append(etree.Comment("Cell id {0}".format(strctNode.defnMdlNode.id, )))
 
-                    self.headerCells[topRow].append((brkdownNode, cellElt))
+                    self.headerCells[topRow].append((brkdownNode, strctNode, cellElt))
                     if isRollUp:
                         continue
                     elt = None
