@@ -26,7 +26,6 @@ intersphinx_mapping = {
     'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
 }
 
-templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 
@@ -35,3 +34,14 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'furo'
+html_theme_options = {
+    "light_css_variables": {
+        "color-brand-primary": "#6ecacb",
+        "color-brand-content": "#ac218e",
+    },
+    "dark_css_variables": {
+        "color-link": "#6ecacb",
+    },
+}
+html_title = 'Arelle <release>'
+html_logo = '../arelle/images/arelle-rtd.gif'
