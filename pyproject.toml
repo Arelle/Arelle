@@ -57,6 +57,7 @@ ObjectMaker = [
     'graphviz==0.*',
 ]
 Sphinx = [
+    "myst-parser==2.*",
     "sphinx==6.*",
     "furo==2023.*",
 ]

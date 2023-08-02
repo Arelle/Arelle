@@ -1,0 +1,5 @@
+furo==2023.07.26
+myst-parser==2.0.0
+sphinx==6.2.1
+
+-r requirements.txt
