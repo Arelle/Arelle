@@ -56,6 +56,10 @@ ESEF = [
 ObjectMaker = [
     'graphviz==0.*',
 ]
+Sphinx = [
+    "sphinx==6.*",
+    "furo==2023.*",
+]
 WebServer = [
     'cheroot>=8,<11',
     'CherryPy==18.*',
