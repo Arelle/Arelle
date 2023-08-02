@@ -253,7 +253,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                     prefixLength = len(mapFrom)
                     if prefixLength > longestPrefix:
                         _remappedUrl = remappedUrl[prefixLength:]
-                        if not (_remappedUrl[0] in (os.sep, '/') or mapTo[-1] in (os.sep, '/')):
+                        if len(_remappedUrl) > 0 and (not (_remappedUrl[0] in (os.sep, '/') or mapTo[-1] in (os.sep, '/'))):
                             _remappedUrl = mapTo + os.sep + _remappedUrl
                         else:
                             _remappedUrl = mapTo + _remappedUrl
