@@ -373,40 +373,103 @@ class DialogPluginManager(Toplevel):
             self.moduleReloadButton.config(state=DISABLED)
             self.moduleRemoveButton.config(state=DISABLED)
 
+    @staticmethod
+    def _discoverBuiltInPluginChoices(choices: list[dict], directory: str):
+        """
+        Recursively discovers plugins (within directory) before generating choice dict and adding to provided list.
+        :param choices: List of choices to add on to
+        :param directory: Directory to search for plugins
+        :return:
+        """
+        for fileName in sorted(os.listdir(directory)):
+            if fileName in (".", "..", "__pycache__", "__init__.py"):
+                continue  # Ignore these entries
+            filePath = os.path.join(directory, fileName)
+            initFilePath = os.path.join(filePath, "__init__.py")
+            moduleInfo = None
+            if ((os.path.isdir(filePath) and os.path.exists(initFilePath)) or
+                    (os.path.isfile(filePath) and fileName.endswith(".py"))):
+                moduleInfo = PluginManager.moduleModuleInfo(filePath)
+            children = []
+            if os.path.isdir(filePath) and fileName not in ("DQC_US_Rules",) and not fileName.startswith("ixviewer"):
+                DialogPluginManager._discoverBuiltInPluginChoices(children, filePath)
+            if moduleInfo or children:
+                choices.append({
+                    "name": fileName,
+                    "path": filePath,
+                    "info": moduleInfo,
+                    "children": children,
+                })
+
+    @staticmethod
+    def _discoverInstalledPluginChoices(choices: list[dict], moduleInfo: dict):
+        """
+        Recursively discovers plugins (from moduleInfo imports) before generating choice dict and adding to provided list.
+        :param choices: List of choices to add on to
+        :param moduleInfo: Module info to add and discover child plugins from
+        :return:
+        """
+        moduleUrl = moduleInfo.get('moduleURL')
+        if moduleUrl and not os.path.isdir(moduleUrl):
+            moduleUrl = os.path.dirname(moduleUrl)
+        children = []
+        for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
+            DialogPluginManager._discoverInstalledPluginChoices(children, importModuleInfo)
+        choices.append({
+            "name": moduleInfo.get("name"),
+            "path": moduleUrl,
+            "info": moduleInfo,
+            "children": children,
+        })
+
+    @staticmethod
+    def _choiceSortOrder(moduleInfoMap):
+        key = moduleInfoMap["name"]
+        return {"EdgarRenderer": "1",
+                "validate": "2",
+                "xbrlDB": "3"}.get(key, "4") + key.lower()
+
+    @staticmethod
+    def _generateChoiceTuples(choiceTuples: list[tuple], choices: list[dict], indent: str = ""):
+        """
+        Recursively navigate `choices` tree structure to add choices to `choiceTuples`.
+        :param choiceTuples: List of choice tuples to add on to
+        :param choices: List of tree structures to navigate
+        :param indent: Indent to prepend to first column, grows with recursion depth
+        :return:
+        """
+        for moduleInfoMap in sorted(choices, key=DialogPluginManager._choiceSortOrder):
+            label = indent + moduleInfoMap.get("name")
+            path = moduleInfoMap.get("path")
+            info = moduleInfoMap.get("info")
+            name = info.get("name") if info else None
+            description = info.get("description") if info else None
+            version = info.get("version") if info else None
+            lic = info.get("license") if info else None
+            tooltip = "name: {}\ndescription: {}\nversion: {}\nlicense: {}".format(
+                name, description, version, lic) if info else None
+            choiceTuple = (label, tooltip, path, name, version, description, lic)
+            choiceTuples.append(choiceTuple)
+            children = moduleInfoMap["children"]
+            if children:
+                DialogPluginManager._generateChoiceTuples(choiceTuples, children, indent=indent + "   ")
+
     def selectLocally(self):
-        choices = [] # list of tuple of (file name, description)
-        def sortOrder(key):
-            return {"EdgarRenderer": "1",
-                    "validate": "2",
-                    "xbrlDB": "3"}.get(key, "4") + key.lower()
-        def selectChoices(dir, indent=""):
-            dirHasEntries = False
-            for f in sorted(os.listdir(dir), key=sortOrder):
-                if f not in (".", "..", "__pycache__", "__init__.py"):
-                    fPath = os.path.join(dir, f)
-                    fPkgInit = os.path.join(fPath, "__init__.py")
-                    dirInsertPoint = len(choices)
-                    moduleInfo = None
-                    if ((os.path.isdir(fPath) and os.path.exists(fPkgInit)) or
-                        ((os.path.isfile(fPath) and f.endswith(".py")))):
-                        moduleInfo = PluginManager.moduleModuleInfo(fPath)
-                        if moduleInfo:
-                            choices.append((indent + f,
-                                            "name: {}\ndescription: {}\nversion: {}\nlicense: {}".format(
-                                                        moduleInfo["name"],
-                                                        moduleInfo.get("description"),
-                                                        moduleInfo.get("version"),
-                                                        moduleInfo.get("license")),
-                                            fPath, moduleInfo["name"], moduleInfo.get("version"), moduleInfo.get("description"), moduleInfo.get("license")))
-                            dirHasEntries = True
-                    if os.path.isdir(fPath) and f not in ("DQC_US_Rules",) and not f.startswith("ixviewer"):
-                        if selectChoices(fPath, indent=indent + "   ") and not moduleInfo:
-                            choices.insert(dirInsertPoint, (indent + f,None,None,None,None,None,None))
-            return dirHasEntries
-        selectChoices(self.cntlr.pluginDir)
-        selectedPath = DialogOpenArchive.selectPlugin(self, choices)
+        choices: list[dict] = []
+        # Add both built-in and installed plugins to choice tree
+        self._discoverBuiltInPluginChoices(choices, self.cntlr.pluginDir)
+        for entryPoint in PluginManager.discoverPluginEntryPoints():
+            moduleInfo = PluginManager.entryPointToModuleInfo(entryPoint)
+            self._discoverInstalledPluginChoices(choices, moduleInfo)
+        # Convert choice tree to list of tuples
+        choiceTuples = []
+        self._generateChoiceTuples(choiceTuples, choices)
+
+        selectedPath = DialogOpenArchive.selectPlugin(self, choiceTuples)
         if selectedPath:
-            moduleInfo = PluginManager.moduleModuleInfo(selectedPath[len(self.cntlr.pluginDir)+1:])
+            if selectedPath.startswith(self.cntlr.pluginDir):
+                selectedPath = selectedPath[len(self.cntlr.pluginDir)+1:]
+            moduleInfo = PluginManager.moduleModuleInfo(selectedPath)
             self.loadFoundModuleInfo(moduleInfo, selectedPath)
 
     def browseLocally(self):
