@@ -6,7 +6,7 @@ based on pull request 4
 '''
 from __future__ import annotations
 import os, sys, types, time, ast, importlib, io, json, gettext, traceback
-from importlib.metadata import entry_points
+from importlib.metadata import entry_points, EntryPoint
 import importlib.util
 import logging
 
@@ -33,7 +33,7 @@ PLUGIN_TRACE_LEVEL = logging.WARNING
 
 # plugin control is static to correspond to statically loaded modules
 pluginJsonFile = None
-pluginConfig = None
+pluginConfig: dict | None = None
 pluginConfigChanged = False
 pluginTraceFileLogger = None
 modulePluginInfos = {}
@@ -493,40 +493,24 @@ def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
         for method in pluginMethodsForClass:
             yield method
 
-def addPluginModule(url):
-    moduleInfo = None
-    if sys.version_info < (3, 10):
-        unloaded_arelle_plugins = [e for e in entry_points().get('arelle.plugin', []) if e.name == url]
-    else:
-        unloaded_arelle_plugins = entry_points(group='arelle.plugin', name=url)
+
+def addPluginModule(name: str) -> dict[str, Any] | None:
+    """
+    Discover plugin entry points with given name.
+    :param name: The name to search for
+    :return: The module information dictionary, if added. Otherwise, None.
+    """
+    unloaded_arelle_plugins = discoverPluginEntryPoints(name)
+    if len(unloaded_arelle_plugins) > 1:
+        error_msg = f'Multiple pip installed plugins with name {name} in group arelle.plugin'
+        logPluginTrace(error_msg, logging.ERROR)
+    plugin_module_info = None
     if unloaded_arelle_plugins:
-        if len(unloaded_arelle_plugins) != 1:
-            error_msg = f'Multiple pip installed plugins with name {url} in group arelle.plugin'
-            logPluginTrace(error_msg, logging.ERROR)
-        pluginUrl = unloaded_arelle_plugins[0].load()
-        moduleInfo = moduleModuleInfo(pluginUrl())
-    if not moduleInfo or not moduleInfo.get("name"):
-        moduleInfo = moduleModuleInfo(url)
-    if moduleInfo and moduleInfo.get("name"):
-        name = moduleInfo["name"]
-        removePluginModule(name)  # remove any prior entry for this module
-        def _addPluginModule(moduleInfo):
-            _name = moduleInfo.get("name")
-            if _name:
-                # add classes
-                for classMethod in moduleInfo["classMethods"]:
-                    classMethods = pluginConfig["classes"].setdefault(classMethod, [])
-                    _name = moduleInfo["name"]
-                    if _name and _name not in classMethods:
-                        classMethods.append(_name)
-                for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
-                    _addPluginModule(importModuleInfo)
-                pluginConfig["modules"][_name] = moduleInfo
-        _addPluginModule(moduleInfo)
-        global pluginConfigChanged
-        pluginConfigChanged = True
-        return moduleInfo
-    return None
+        plugin_module_info = entryPointToModuleInfo(unloaded_arelle_plugins[0])
+    if not plugin_module_info or not plugin_module_info.get("name"):
+        plugin_module_info = moduleModuleInfo(name)
+    return addPluginModuleInfo(plugin_module_info)
+
 
 def reloadPluginModule(name):
     if name in pluginConfig["modules"]:
@@ -558,3 +542,64 @@ def removePluginModule(name):
         pluginConfigChanged = True
         return True
     return False # unable to remove
+
+
+def addPluginModuleInfo(plugin_module_info: dict[str, Any]) -> dict[str, Any] | None:
+    """
+    Given a dictionary containing module information, loads plugin info into `pluginConfig`
+    :param plugin_module_info: Dictionary of module info fields. See comment block in PluginManager.py for structure.
+    :return: The module information dictionary, if added. Otherwise, None.
+    """
+    if not plugin_module_info or not plugin_module_info.get("name"):
+        return None
+    name = plugin_module_info["name"]
+    removePluginModule(name)  # remove any prior entry for this module
+
+    def _addPluginSubModule(subModuleInfo: dict[str, Any]):
+        """
+        Inline function for recursively exploring module imports
+        :param subModuleInfo: Module information to add.
+        :return:
+        """
+        _name = subModuleInfo.get("name")
+        if not _name:
+            return
+        # add classes
+        for classMethod in subModuleInfo["classMethods"]:
+            classMethods = pluginConfig["classes"].setdefault(classMethod, [])
+            _name = subModuleInfo["name"]
+            if _name and _name not in classMethods:
+                classMethods.append(_name)
+        for importModuleInfo in subModuleInfo.get('imports', EMPTYLIST):
+            _addPluginSubModule(importModuleInfo)
+        pluginConfig["modules"][_name] = subModuleInfo
+
+    _addPluginSubModule(plugin_module_info)
+    global pluginConfigChanged
+    pluginConfigChanged = True
+    return plugin_module_info
+
+
+def entryPointToModuleInfo(entryPoint: EntryPoint) -> dict:
+    """
+    Given an EntryPoint instance, evaluates the plugin to retrieve a module information dictionary.
+    :param entryPoint: EntryPoint instance
+    :return: Module information dictionary
+    """
+    pluginUrl = entryPoint.load()
+    return moduleModuleInfo(pluginUrl())
+
+
+def discoverPluginEntryPoints(name: str | None = None) -> list[EntryPoint]:
+    """
+    Retrieve entry point information. Optionally provide `name` to retrieve a specific entry point.
+    :param name: Only retrieve entry points with the given name. May return multiple items.
+    :return: List of EntryPoints
+    """
+    if sys.version_info < (3, 10):
+        return [e for e in entry_points().get('arelle.plugin', []) if name is None or e.name == name]
+    else:
+        matches = entry_points(group='arelle.plugin')
+        if name is not None:
+            matches = matches.select(name=name)
+        return list(matches)
