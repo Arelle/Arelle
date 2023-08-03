@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 based on pull request 4
 
 '''
+from __future__ import annotations
 from tkinter import Toplevel, font, messagebox, VERTICAL, HORIZONTAL, N, S, E, W
 from tkinter.constants import DISABLED, ACTIVE
 try:
