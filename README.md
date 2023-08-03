@@ -2,6 +2,7 @@
 
 [![pypi-version](https://img.shields.io/pypi/v/arelle-release.svg)](https://pypi.org/project/arelle-release/)
 [![Python Version](https://img.shields.io/pypi/pyversions/arelle-release.svg)](https://pypi.org/project/arelle-release/)
+[![Read the Docs](https://img.shields.io/readthedocs/arelle)](https://arelle.readthedocs.io/)
 
 [![Arelle Banner](https://arelle.org/arelle/wp-content/themes/platform/images/logo-platform.png)](https://arelle.org/)
 
