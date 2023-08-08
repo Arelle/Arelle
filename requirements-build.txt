@@ -1,6 +1,4 @@
-cx-Freeze==6.14.7
-# A dependency of cx_Freeze that we specify explicitly in order to pin
-packaging==21.3
+cx-Freeze==6.15.5
 requests-negotiate-sspi==0.5.2 ; sys_platform == 'win32'
 
 -r requirements.txt
