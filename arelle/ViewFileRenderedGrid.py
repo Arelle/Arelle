@@ -18,7 +18,7 @@ from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.PythonUtil import OrderedSet
 from arelle.ModelRenderingObject import (StrctMdlBreakdown,
                                          DefnMdlClosedDefinitionNode, DefnMdlRuleDefinitionNode,
-                                         OPEN_ASPECT_ENTRY_SURROGATE)
+                                         OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER)
 from arelle.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import DEFAULT
@@ -94,6 +94,7 @@ class ViewRenderedGrid(ViewFile.View):
             self.zOrdinateChoices = {}
 
             strctMdlTable = resolveTableStructure(self, tblELR)
+            zDiscrimAspectNodes = ()
             for discriminator in range(1, 65535):
                 # each table z production
                 defnMdlTable = strctMdlTable.defnMdlNode
@@ -321,7 +322,7 @@ class ViewRenderedGrid(ViewFile.View):
             label, source = zStrctNode.headerAndSource(lang=self.lang)
             choiceLabel = None
             effectiveStrctNode = zStrctNode
-            isRollUp = zDefnMdlNode.isRollUp
+            isRollUpParent = zDefnMdlNode.childrenCoverSameAspects
             span = 1
             if zStrctNode.strctMdlChildNodes: # same as combo box selection in GUI mode
                 if not discriminatorsTable:
@@ -406,7 +407,7 @@ class ViewRenderedGrid(ViewFile.View):
                                         etree.SubElement(aspElt, self.tableModelQName("aspect")
                                                          ).text = aspectStr(aspect)
                                         valueElt = etree.SubElement(aspElt, self.tableModelQName("value"))
-                                        if not isRollUp:
+                                        if not isRollUpParent:
                                             valueElt.text = xsString(None,None,addQnameValue(self.xmlDoc, aspectValue))
                         #else: # choiceLabel from above 
                         #    etree.SubElement(hdrElt, self.tableModelQName("label")
@@ -463,7 +464,7 @@ class ViewRenderedGrid(ViewFile.View):
                 else:
                     colsToSpanParent += rightCol + 1 - leftCol
                 thisCol = leftCol
-                isRollUp = xDefnMdlNode.isRollUp
+                isRollUpParent = xDefnMdlNode.childrenCoverSameAspects
                  #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
                 if renderNow:
                     label, source = xStrctNode.headerAndSource(lang=self.lang,
@@ -489,9 +490,9 @@ class ViewRenderedGrid(ViewFile.View):
                                 attrib["rowspan"] = str(rowspan)
                         elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                             attrib=attrib)
-                        if isRollUp:
+                        if isRollUpParent:
                             rollUpCellElt = elt
-                        self.rowElts[topRow-1+rowsForThisBreakdown-isRollUp].insert(leftCol,elt)
+                        self.rowElts[topRow-1+rowsForThisBreakdown-isRollUpParent].insert(leftCol,elt)
                     elif (self.type == XML and # is leaf or no sub-breakdown cardinality
                           # TBD: determine why following clause is needed
                           (True or xStrctNode.strctMdlChildNodes is None or columnspan > 0)): # ignore no-breakdown situation
@@ -499,12 +500,12 @@ class ViewRenderedGrid(ViewFile.View):
                         attrib = {}
                         if columnspan > 1:
                             attrib["span"] = str(columnspan)
-                        if isRollUp:
+                        if isRollUpParent:
                             attrib["rollup"] = "true"
                         cellElt = etree.Element(self.tableModelQName("cell"), attrib)
                         self.headerCells[thisCol].append((brkdownNode, cellElt))
                         # self.StrctNodeModelElements.append((xStrctNode, cellElt))
-                        if isRollUp:
+                        if isRollUpParent:
                             # preceding header element contains cell and aspects for rollup
                             rollUpHdrElt = etree.Element(self.tableModelQName("header"))
                             rollUpCellElt = cellElt = etree.SubElement(rollUpHdrElt, self.tableModelQName("cell"), attrib)
@@ -540,15 +541,15 @@ class ViewRenderedGrid(ViewFile.View):
                                 etree.SubElement(aspElt, self.tableModelQName("aspect")
                                                  ).text = aspectStr(aspect)
                                 valueElt = etree.SubElement(aspElt, self.tableModelQName("value"))
-                                if not isRollUp:
+                                if not isRollUpParent:
                                     valueElt.text = xsString(None,None,addQnameValue(self.xmlDoc, aspectValue))
                     if elt is not None:
                         elt.text = label if bool(label) and label != OPEN_ASPECT_ENTRY_SURROGATE else "\u00A0" #produces &nbsp;
                         if source:
                             elt.set("source", source)
-                    if nonAbstract or isRollUp:
+                    if nonAbstract or isRollUpParent:
                         if self.type == HTML and (xStrctNode.isLabeled or not isinstance(xStrctNode, StrctMdlBreakdown)):
-                            if isRollUp:   # add spanned left leg portion one row down
+                            if isRollUpParent:   # add spanned left leg portion one row down
                                 attrib= {"class":"xAxisSpanLeg",
                                          "rowspan": str(rowBelow - row)}
                                 if columnspan > 1:
@@ -633,7 +634,7 @@ class ViewRenderedGrid(ViewFile.View):
                     colsToSpanParent += cols
                 else:
                     colsToSpanParent += rightCol + 1 - leftCol
-                isRollUp = strctNode.rollup
+                isRollUpCell = strctNode.rollup
                 if renderNow and not isinstance(strctNode, StrctMdlBreakdown):
                     label, source = strctNode.headerAndSource(lang=self.lang,
                                     returnGenLabel=isinstance(strctNode.defnMdlNode, DefnMdlClosedDefinitionNode))
@@ -645,24 +646,25 @@ class ViewRenderedGrid(ViewFile.View):
                     attrib = {}
                     if columnspan > 1:
                         attrib["span"] = str(columnspan)
-                    if isRollUp:
+                    if isRollUpCell:
                         attrib["rollup"] = "true"
                     cellElt = etree.Element(self.tableModelQName("cell"), attrib)
                     cellElt.append(etree.Comment("Cell id {0}".format(strctNode.defnMdlNode.id, )))
 
                     self.headerCells[topRow].append((brkdownNode, strctNode, cellElt))
-                    if isRollUp:
-                        continue
+                    if isRollUpCell == ROLLUP_SPECIFIES_MEMBER:
+                        continue # leave rollup's dimension out of structural model
                     elt = None
-                    if label:
-                        elt = etree.SubElement(cellElt, self.tableModelQName("label"))
-                    for i, role in enumerate(HdrNonStdRoles):
-                        roleLabel, source = strctNode.headerAndSource(role=role, lang=self.lang, recurseParent=False) # infoset does not move parent label to decscndant
-                        if roleLabel is not None:
-                            cellElt.append(etree.Comment("Label role: {0}, lang {1}"
-                                                         .format(os.path.basename(role), self.lang)))
-                            labelElt = etree.SubElement(cellElt, self.tableModelQName("label"))
-                            labelElt.text = roleLabel
+                    if not isRollUpCell:
+                        if label:
+                            elt = etree.SubElement(cellElt, self.tableModelQName("label"))
+                        for i, role in enumerate(HdrNonStdRoles):
+                            roleLabel, source = strctNode.headerAndSource(role=role, lang=self.lang, recurseParent=False) # infoset does not move parent label to decscndant
+                            if roleLabel is not None:
+                                cellElt.append(etree.Comment("Label role: {0}, lang {1}"
+                                                             .format(os.path.basename(role), self.lang)))
+                                labelElt = etree.SubElement(cellElt, self.tableModelQName("label"))
+                                labelElt.text = roleLabel
 
                     orderKeys = {}
                     for tag in strctNode.constraintTags():  # TODO try to order tags
@@ -773,12 +775,18 @@ class ViewRenderedGrid(ViewFile.View):
                                         aspectValue = aspectValue[0]
                                     else:
                                         aspectValue = format_aspect_value(aspectValue)
-                                    if not isRollUp and self.modelXbrl.qnameDimensionDefaults.get(aspect) != aspectValue:
+                                    if not isRollUpCell and self.modelXbrl.qnameDimensionDefaults.get(aspect) != aspectValue:
                                         if not isinstance(aspectValue, etree._Element):
                                             valueElt.text = xsString(None, None, addQnameValue(self.xmlDoc, aspectValue if not label or label != OPEN_ASPECT_ENTRY_SURROGATE else "\u00A0"))
                                         else:
                                             valueElt.append(aspectValue)
                                 aspElt.text = aspectStr(aspect)
+                    for aspect in getattr(strctNode.defnMdlNode, "deemedDefaultedDims", ()):
+                        # deemed defaulted explicit dimensions when present in sibling str mdl nodes
+                        aspElt = etree.SubElement(cellElt, self.tableModelQName("constraint"))
+                        etree.SubElement(aspElt, self.tableModelQName("aspect")
+                                         ).text = aspectStr(aspect)
+                        valueElt = etree.SubElement(aspElt, self.tableModelQName("value"))
 
                     if elt is not None:
                         elt.text = label if bool(label) and label != OPEN_ASPECT_ENTRY_SURROGATE else "\u00A0" #produces &nbsp;
@@ -934,7 +942,7 @@ class ViewRenderedGrid(ViewFile.View):
                     rowsToSpanParent += rows
                 else:
                     rowsToSpanParent = nestRow - row
-                isRollUp = yDefnMdlNode.isRollUp
+                isRollUpParent = yDefnMdlNode.childrenCoverSameAspects
                 #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
                 if renderNow and isLabeled:
                     label, source = yStrctNode.headerAndSource(lang=self.lang,
@@ -948,7 +956,7 @@ class ViewRenderedGrid(ViewFile.View):
                         rowspan = nestRow - row
                     if rowspan > 1:
                         attrib["span"] = str(rowspan)
-                    if isRollUp:
+                    if isRollUpParent:
                         attrib["rollup"] = "true"
                     cellElt = etree.Element(self.tableModelQName("cell"), attrib)
                     elt = etree.SubElement(cellElt, self.tableModelQName("label"))
@@ -961,7 +969,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                   attrib={"rollup":"true"})
                         self.headerCells[leftCol].append((brkdownNode, rollUpElt))
                     '''
-                    if not isRollUp:
+                    if not isRollUpParent:
                         elt.text = label if label != OPEN_ASPECT_ENTRY_SURROGATE else ""
                         self.headerCells[leftCol].append((brkdownNode, cellElt))
                         i = -1 # for case where no enumeration takes place

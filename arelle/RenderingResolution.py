@@ -17,7 +17,7 @@ from arelle.ModelRenderingObject import (DefnMdlTable, DefnMdlBreakdown,
                                          DefnMdlRelationshipNode, DefnMdlAspectNode,
                                          DefnMdlConceptRelationshipNode, DefnMdlDimensionRelationshipNode,
                                          StrctMdlNode, StrctMdlTableSet, StrctMdlTable, StrctMdlBreakdown, StrctMdlStructuralNode,
-                                         OPEN_ASPECT_ENTRY_SURROGATE)
+                                         OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_IMPLIES_DEFAULT_MEMBER)
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.PythonUtil import flattenSequence
 from arelle.XPathContext import XPathException
@@ -166,7 +166,7 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
                 if obj.hasChildRollup:
                     o["hasChildRollup"] = True
                 if obj.rollup:
-                    o["rollup"] = True
+                    o["rollup"] = {ROLLUP_SPECIFIES_MEMBER:"rollup specifies member", ROLLUP_IMPLIES_DEFAULT_MEMBER:"rollup implies default member"}[obj.rollup]
                 o["structuralDepth"] = obj.structuralDepth
                 _aspectsCovered = obj.aspectsCovered()
                 if _aspectsCovered:
@@ -288,7 +288,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     return
             if (not defnMdlNode.isAbstract and
                 isinstance(defnMdlNode, DefnMdlClosedDefinitionNode) and 
-                ordCardinality == 0 and not defnMdlNode.isRollUp):
+                ordCardinality == 0 and not defnMdlNode.childrenCoverSameAspects):
                 view.modelXbrl.error("xbrlte:closedDefinitionNodeZeroCardinality",
                     _("Closed definition node %(xlinkLabel)s does not contribute at least one structural node"),
                     modelObject=(view.defnMdlTable,defnMdlNode), xlinkLabel=defnMdlNode.xlinkLabel, axis=defnMdlNode.localName)
@@ -344,15 +344,53 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                             print(childStrctNode.aspectsCovered())
                     else:
                         childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels)
-                        if childDefnMdlNode.isRollUp:
-                            rollUpStrctNode = StrctMdlStructuralNode(childStrctNode, childDefnMdlNode)
-                            rollUpStrctNode.rollup = True
+                        descendantDefMdlNodes = view.defnSubtreeRelSet.fromModelObject(childDefnMdlNode)
+                        if not childDefnMdlNode.isAbstract and descendantDefMdlNodes:
+                            # contributes at least one child node
+                            rollupAspectDefinitionNode = childDefnMdlNode
+                            _rollup = ROLLUP_IMPLIES_DEFAULT_MEMBER
+                            # definition node is that of the other child elements, to contribute a defaulted dimension
+                            if childStrctNode.strctMdlChildNodes:
+                                if childStrctNode.aspectsCovered() == childStrctNode.strctMdlChildNodes[0].aspectsCovered():
+                                    _rollup = ROLLUP_SPECIFIES_MEMBER
+                                else:
+                                    rollupAspectDefinitionNode = childStrctNode.strctMdlChildNodes[0].defnMdlNode
+                            rollUpStrctNode = StrctMdlStructuralNode(childStrctNode, rollupAspectDefinitionNode)
+                            rollUpStrctNode.rollup = _rollup
                             childStrctNode.hasChildRollup = True
-                            strctMdlNode.rollUpChildStrctMdlNode = rollUpStrctNode
+                            childStrctNode.rollUpChildStrctMdlNode = rollUpStrctNode
                             if childDefnMdlNode.parentChildOrder == "parent-first":
                                 childStrctNode.strctMdlChildNodes = childStrctNode.strctMdlChildNodes[-1:] + childStrctNode.strctMdlChildNodes[0:-1]
                             cartesianProductExpander(rollUpStrctNode, *cartesianProductNestedArgs)
-                        if not childContainsOpenNodes(childStrctNode) and not childDefnMdlNode.isRollUp:
+                        elif childStrctNode.strctMdlChildNodes:
+                            # check if a children specify explicit dimensions and one is missing default
+                            childDimsCovered = set( # defaulted dims in children
+                                aspect
+                                for rel in descendantDefMdlNodes
+                                if rel.toModelObject is not None
+                                for aspect in rel.toModelObject.aspectsCovered()
+                                if isinstance(aspect, QName) and aspect in rel.modelXbrl.qnameDimensionDefaults
+                            )
+                            # note child defnMdlNodes needing default dimension
+                            for rel in descendantDefMdlNodes:
+                                defnMdlNode = rel.toModelObject
+                                if rel.toModelObject is not None:
+                                    defaultedDims = childDimsCovered - rel.toModelObject.aspectsCovered()
+                                    if defaultedDims:
+                                        defnMdlNode.deemedDefaultedDims = defaultedDims
+                            # check if child strct nodes specify explicit dimensions and one is missing default
+                            childDimsCovered = set( # defaulted dims in children
+                                aspect
+                                for gStrctNode in childStrctNode.strctMdlChildNodes
+                                for aspect in gStrctNode.aspectsCovered(inherit=True)
+                                if isinstance(aspect, QName) and aspect in rel.modelXbrl.qnameDimensionDefaults
+                            )
+                            # note child defnMdlNodes needing default dimension
+                            for gStrctNode in childStrctNode.strctMdlChildNodes:
+                                defaultedDims = childDimsCovered - gStrctNode.aspectsCovered(inherit=True)
+                                if defaultedDims:
+                                    gStrctNode.deemedDefaultedDims = defaultedDims
+                        if not childContainsOpenNodes(childStrctNode) and not childDefnMdlNode.childrenCoverSameAspects:
                             # To be computed only if the structural node does not contain an open node
                             cartesianProductExpander(childStrctNode, *cartesianProductNestedArgs)
 

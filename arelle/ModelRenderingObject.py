@@ -22,6 +22,8 @@ OPEN_ASPECT_ENTRY_SURROGATE = '\uDBFF' # this need to be a utf-8 compatible char
 
 EMPTY_SET = set()
 EMPTY_DICT = {}
+ROLLUP_SPECIFIES_MEMBER = 1
+ROLLUP_IMPLIES_DEFAULT_MEMBER = 2
 
 class LayoutMdlHdrCells:
     def __init__(self, strctMdlNode):
@@ -418,6 +420,11 @@ class StrctMdlStructuralNode(StrctMdlNode):
                  isinstance(self.strctMdlParentNode, StrctMdlBreakdown) and 
                  self.strctMdlParentNode.strctMdlParentNode.hasAspect(aspect, inherit))
                 )
+        
+    def dimRAV(self, aspect, value): # dimensional rollup aspect value (None for a rollup node)
+        if isinstance(value, QName) and self.rollup == ROLLUP_IMPLIES_DEFAULT_MEMBER and aspect in self.defnMdlNode.modelXbrl.qnameDimensionDefaults:
+            return self.defnMdlNode.modelXbrl.qnameDimensionDefaults[aspect]
+        return value
     
     def aspectValue(self, aspect, inherit=True, dims=None, depth=0, tagSelectors=None):
         xc = self._rendrCntx
@@ -443,9 +450,9 @@ class StrctMdlStructuralNode(StrctMdlNode):
         elif constraintSet is not None and constraintSet.hasAspect(self, aspect):
             if isinstance(defnMdlNode, DefnMdlAspectNode):
                 if contextItemBinding:
-                    return contextItemBinding.aspectValue(aspect)
+                    return self.dimRAV(aspect, contextItemBinding.aspectValue(aspect))
             else:
-                return constraintSet.aspectValue(xc, aspect)
+                return self.dimRAV(aspect, constraintSet.aspectValue(xc, aspect))
         if inherit and isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
             return self.strctMdlParentNode.aspectValue(aspect, depth=depth+1)
         elif inherit and isinstance(self.strctMdlParentNode, StrctMdlBreakdown) and isinstance(self.strctMdlParentNode.strctMdlParentNode, StrctMdlStructuralNode):
@@ -678,7 +685,7 @@ class DefnMdlBreakdown(ModelFormulaResource):
         return (XbrlConst.tableModel, XbrlConst.tableModelMMDD)
 
     @property
-    def isRollUp(self):
+    def childrenCoverSameAspects(self):
         return False
         
     @property
@@ -855,7 +862,7 @@ class DefnMdlClosedDefinitionNode(DefnMdlDefinitionNode):
                    if aspectsMatch(xpCtx, fact, fp, aspects))
         
     @property
-    def isRollUp(self):
+    def childrenCoverSameAspects(self):
         # indicates this definition node has children with same aspect
         descendantRels = self.modelXbrl.relationshipSet(self.descendantArcroles).fromModelObject(self)
         if descendantRels:
@@ -1333,7 +1340,7 @@ class DefnMdlOpenDefinitionNode(DefnMdlDefinitionNode):
         super(DefnMdlOpenDefinitionNode, self).init(modelDocument)
 
     @property
-    def isRollUp(self):
+    def childrenCoverSameAspects(self):
         return False
             
 aspectNodeAspectCovered = {"conceptAspect": Aspect.CONCEPT,

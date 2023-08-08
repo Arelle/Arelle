@@ -456,14 +456,14 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         widthToSpanParent = 0
         for xStrctNode in xParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
             xDefnMdlNode = xStrctNode.defnMdlNode
-            childrenFirst = not xDefnMdlNode.isRollUp or xDefnMdlNode.parentChildOrder == "children-first"
+            childrenFirst = not xDefnMdlNode.childrenCoverSameAspects or xDefnMdlNode.parentChildOrder == "children-first"
             noDescendants = False
             isLabeled = xStrctNode.isLabeled
             isAbstract = (xStrctNode.isAbstract or
                           (xStrctNode.strctMdlChildNodes and
                            not isinstance(xDefnMdlNode, DefnMdlClosedDefinitionNode)))
             isNonAbstract = not isAbstract
-            isRollUp = xDefnMdlNode.isRollUp
+            isRollUpParent = xDefnMdlNode.childrenCoverSameAspects
             rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + isLabeled, rowBelow, xStrctNode, xStrctNodes, # nested items before totals
                                                         True, #childrenFirst, 
                                                         False)
@@ -490,7 +490,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 if xStrctNode.rollup:
                     headerLabel = None # just set span to block borders
                 if label != OPEN_ASPECT_ENTRY_SURROGATE:
-                    if TRACE_TK: print(f"xAxis hdr x {xValue} y {yValue} cols {columnspan} rows {rowspan} isRollUp {isRollUp} value \"{headerLabel}\"")
+                    if TRACE_TK: print(f"xAxis hdr x {xValue} y {yValue} cols {columnspan} rows {rowspan} isRollUpParent {isRollUpParent} value \"{headerLabel}\"")
                     self.table.initHeaderCellValue(headerLabel,
                                                    xValue, yValue,
                                                    columnspan - 1,
@@ -498,7 +498,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                    XbrlTable.TG_CENTERED,
                                                    objectId=xStrctNode.objectId(),
                                                    hasTopBorder=not (yValue > 0 and headerLabel is None), 
-                                                   hasBottomBorder=not isRollUp)
+                                                   hasBottomBorder=not isRollUpParent)
                 else:
                     self.aspectEntryObjectIdsNode[xStrctNode.aspectEntryObjectId] = xStrctNode
                     if TRACE_TK: print(f"xAxis hdr combobox x {leftCol-1} y {topRow-1} values {self.aspectEntryValues(xStrctNode)}")
@@ -534,7 +534,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         columnspan = 1
         for yOrdinal, yStrctNode in enumerate(yParentStrctNode.strctMdlChildNodes): # strctMdlEffectiveChildNodes:
             yDefnMdlNode = yStrctNode.defnMdlNode
-            childrenFirst = not yDefnMdlNode.isRollUp or yDefnMdlNode.parentChildOrder == "children-first"
+            childrenFirst = not yDefnMdlNode.childrenCoverSameAspects or yDefnMdlNode.parentChildOrder == "children-first"
             noDescendants = False
             isAbstract = (yStrctNode.isAbstract or 
                           (yStrctNode.strctMdlChildNodes and
@@ -569,8 +569,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     yValue = row
                     rowspan = nestRow - row
                     hasTopBorder = True
-                    isRollUp = rowspan>1 and isNonAbstract and (len(yStrctNode.strctMdlChildNodes)>1 or (len(yStrctNode.strctMdlChildNodes)==1 and not(yStrctNode.strctMdlChildNodes[0].isAbstract)))
-                    if rowspan > 1 and yOrdinal == 0 and isRollUp and yStrctNode.parentChildOrder == "parent-first":
+                    isRollUpParent = rowspan>1 and isNonAbstract and (len(yStrctNode.strctMdlChildNodes)>1 or (len(yStrctNode.strctMdlChildNodes)==1 and not(yStrctNode.strctMdlChildNodes[0].isAbstract)))
+                    if rowspan > 1 and yOrdinal == 0 and isRollUpParent and yStrctNode.parentChildOrder == "parent-first":
                         if TRACE_TK: print(f"yAxis hdr x {xValue} y {yValue} cols {columnspan +  nestedColumnspan} rows {rowspan} isRollUp {isRollUp} value \"{headerLabel}\"")
                         self.table.initHeaderCellValue(headerLabel,
                                                        xValue, yValue,
@@ -578,13 +578,13 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                        nestedRowspan - 1,
                                                        XbrlTable.TG_LEFT_JUSTIFIED,
                                                        objectId=yStrctNode.objectId(),
-                                                       hasBottomBorder = not isRollUp,
+                                                       hasBottomBorder = not isRollUpParent,
                                                        width=3 if isRollUp else None)
                         rowspan -= nestedRowspan
                         yValue += nestedRowspan
                         headerLabel = None
-                        hasTopBorder = not isRollUp
-                    if TRACE_TK: print(f"yAxis hdr x {xValue} y {yValue} cols {columnspan} rows {rowspan} isRollUp {isRollUp} value \"{headerLabel}\"")
+                        hasTopBorder = not isRollUpParent
+                    if TRACE_TK: print(f"yAxis hdr x {xValue} y {yValue} cols {columnspan} rows {rowspan} isRollUpParent {isRollUpParent} value \"{headerLabel}\"")
                     # put column-spanning labels on top row of the span across columns, otherwise centered on left
                     self.table.initHeaderCellValue(headerLabel,
                                                    xValue, yValue,
@@ -595,9 +595,9 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                     else XbrlTable.TG_CENTERED),
                                                    objectId=yStrctNode.objectId(),
                                                    hasLeftBorder=not (xValue > 0 and headerLabel is None), 
-                                                   hasRightBorder=not isRollUp,
+                                                   hasRightBorder=not isRollUpParent,
                                                    hasTopBorder=hasTopBorder,
-                                                   width=3 if isRollUp else None)
+                                                   width=3 if isRollUpParent else None)
 
                 else:
                     self.aspectEntryObjectIdsNode[yStrctNode.aspectEntryObjectId] = yStrctNode
@@ -662,7 +662,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             dimDefaults = self.modelXbrl.qnameDimensionDefaults
             for yStrctNode in yParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
                 yDefnMdlNode = yStrctNode.defnMdlNode
-                yChildrenFirst = not yDefnMdlNode.isRollUp or yDefnMdlNode.parentChildOrder == "children-first"
+                yChildrenFirst = not yDefnMdlNode.childrenCoverSameAspects or yDefnMdlNode.parentChildOrder == "children-first"
                 if yChildrenFirst:
                     row = self.bodyCells(row, yStrctNode, xStrctNodes, zAspectStrctNodes)
                 if not (yStrctNode.isAbstract or 
