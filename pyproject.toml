@@ -58,7 +58,7 @@ ObjectMaker = [
 ]
 Sphinx = [
     "myst-parser==2.*",
-    "sphinx==6.*",
+    "sphinx==7.*",
     "furo",
 ]
 WebServer = [
