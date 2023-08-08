@@ -82,6 +82,19 @@ jobs:
             test:
               name: xbrl_2_1
 
+          - os: windows-2022
+            python-version: '3.12.0-rc.1'
+            test:
+              name: xbrl_2_1
+          - os: macos-12
+            python-version: '3.12.0-rc.1'
+            test:
+              name: xbrl_2_1
+          - os: ubuntu-22.04
+            python-version: '3.12.0-rc.1'
+            test:
+              name: xbrl_2_1
+
     environment: integration-tests
     steps:
       - name: Download XBRL validation config

@@ -14,6 +14,7 @@ pycountry==22.3.5
 # EdgarRenderer plugin
 NumPy==1.24.4 ; python_version < "3.9"
 NumPy==1.25.2 ; python_version >= "3.9" and python_version <= "3.11"
+NumPy==1.26.0b1 ; python_version > "3.11"
 Matplotlib==3.7.1
 holidays==0.30
 Tornado==6.3.3
