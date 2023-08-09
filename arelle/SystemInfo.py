@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import math
 import os
 import platform
 import sys
@@ -17,6 +18,9 @@ def get_system_info() -> dict[str, Any]:
         "arelle_version": __version__,
         "arch": platform.machine(),
         "args": sys.argv,
+        "cgi": False,
+        "filesystem": True,
+        "gae": False,
         "docker": False,
         "os_name": platform.system(),
         "os_version": platform.release(),
@@ -26,6 +30,8 @@ def get_system_info() -> dict[str, Any]:
         "python_version": platform.python_version(),
         "python_virtualenv": getattr(sys, "base_prefix", sys.prefix) != sys.prefix
         or hasattr(sys, "real_prefix"),
+        "system_word_size": int(round(math.log(sys.maxsize, 2)) + 1),
+        "webserver": False,
     }
 
     if platform.system() == "Darwin":

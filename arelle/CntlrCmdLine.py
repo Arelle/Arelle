@@ -14,6 +14,7 @@ from arelle import (Cntlr, FileSource, ModelDocument, RenderingEvaluator, XmlUti
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
                     ViewFileRoleTypes,
                     ModelManager)
+from arelle.ArelleBaseOptions import buildOptionsObject
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.ModelValue import qname
 from arelle.Locale import format_string, setApplicationLocale, setDisableRTL
@@ -34,6 +35,8 @@ PROCESS_QUERY_INFORMATION = 0x400
 DISABLE_PERSISTENT_CONFIG_OPTION = "--disablePersistentConfig"
 UILANG_OPTION = '--uiLang'
 
+systemInfo = get_system_info()
+
 def main():
     """Main program to initiate application from command line or as a separate process (e.g, java Runtime.getRuntime().exec).  May perform
     a command line request, or initiate a web server on specified local port.
@@ -49,19 +52,17 @@ def main():
 
     gettext.install("arelle") # needed for options messages
     setApplicationLocale()
-    parseAndRun(args)
+    data = parseAndRun(args)
+    configAndRunCntlr(data[0], data[1])
 
 def wsgiApplication(extraArgs=[]): # for example call wsgiApplication(["--plugins=EdgarRenderer"])
     return parseAndRun( ["--webserver=::wsgi"] + extraArgs )
 
+
 def parseAndRun(args):
     """interface used by Main program and py.test (arelle_test.py)
     """
-    try:
-        from arelle import webserver
-        hasWebServer = True
-    except ImportError:
-        hasWebServer = False
+    arellePluginModules = {}
     uiLang = None
     # Check if there is UI language override to use the selected language
     # for help and error messages...
@@ -77,11 +78,10 @@ def parseAndRun(args):
     disable_persistent_config = bool({DISABLE_PERSISTENT_CONFIG_OPTION, DISABLE_PERSISTENT_CONFIG_OPTION.lower()} & set(args))
 
     cntlr = CntlrCmdLine(uiLang=uiLang, disable_persistent_config=disable_persistent_config)  # need controller for plug ins to be loaded
-
     usage = "usage: %prog [options]"
 
     parser = OptionParser(usage,
-                          version="Arelle(r) {0} ({1}bit)".format(Version.__version__, cntlr.systemWordSize),
+                          version="Arelle(r) {0} ({1}bit)".format(Version.__version__, systemInfo["system_word_size"]),
                           conflict_handler="resolve") # allow reloading plug-in options without errors
     parser.add_option("-f", "--file", dest="entrypointFile",
                       help=_("FILENAME is an entry point, which may be "
@@ -322,7 +322,7 @@ def parseAndRun(args):
     parser.add_option("--abortOnMajorError", action="store_true", dest="abortOnMajorError", help=_("Abort process on major error, such as when load is unable to find an entry or discovered file."))
     parser.add_option("--showEnvironment", "--showenvironment", action="store_true", dest="showEnvironment", help=_("Show Arelle's config and cache directory and host OS environment parameters."))
     parser.add_option("--collectProfileStats", action="store_true", dest="collectProfileStats", help=_("Collect profile statistics, such as timing of validation activities and formulae."))
-    if hasWebServer:
+    if systemInfo["webserver"]:
         parser.add_option("--webserver", action="store", dest="webserver",
                           help=_("start web server on host:port[:server] for REST and web access, e.g., --webserver locahost:8080, "
                                  "or specify nondefault a server name, such as cherrypy, --webserver locahost:8080:cherrypy. "
@@ -343,7 +343,7 @@ def parseAndRun(args):
                 if cmd not in ("show", "temp") and len(cmd) > 0 and cmd[0] not in ('-', '~', '+'):
                     moduleInfo = PluginManager.addPluginModule(cmd)
                     if moduleInfo:
-                        cntlr.preloadedPlugins[cmd] = moduleInfo
+                        arellePluginModules[cmd] = moduleInfo
                         PluginManager.reset()
             break
     # add plug-in options
@@ -356,11 +356,11 @@ def parseAndRun(args):
     parser.add_option("--diagnostics", action="store_true", dest="diagnostics",
                       help=_("output system diagnostics information"))
 
-    if not args and cntlr.isGAE:
+    if not args and systemInfo["gae"]:
         args = ["--webserver=::gae"]
-    elif cntlr.isCGI:
+    elif systemInfo["cgi"]:
         args = ["--webserver=::cgi"]
-    elif cntlr.isMSW:
+    elif systemInfo["os_name"] == "Windows":
         # if called from java on Windows any empty-string arguments are lost, see:
         # http://bugs.java.com/view_bug.do?bug_id=6518827
         # insert needed arguments
@@ -406,29 +406,33 @@ def parseAndRun(args):
                 "{bottleCopyright}"
                 "\n   May include installable plug-in modules with author-specific license terms").format(
                     version=Version.__version__,
-                    wordSize=cntlr.systemWordSize,
+                    wordSize=systemInfo["system_word_size"],
                     platform=platform.machine(),
                     copyrightLabel=copyrightLabel,
                     pythonVersion=f'{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}',
                     lxmlVersion=f'{etree.LXML_VERSION[0]}.{etree.LXML_VERSION[1]}.{etree.LXML_VERSION[2]}',
-                    bottleCopyright="\n   Bottle (c) 2011-2013 Marcel Hellkamp" if hasWebServer else ""
+                    bottleCopyright="\n   Bottle (c) 2011-2013 Marcel Hellkamp" if systemInfo["webserver"] else ""
         ))
     elif options.diagnostics:
-        pprint(get_system_info())
+        pprint(systemInfo)
     elif options.disclosureSystemName in ("help", "help-verbose"):
+        cntlr = CntlrCmdLine(uiLang=uiLang, disable_persistent_config=disable_persistent_config)
+        if arellePluginModules.len() > 0:
+            for cmd, moduleInfo in arellePluginModules.items():
+                cntlr.preloadedPlugins[cmd] = moduleInfo
         text = _("Disclosure system choices: \n{0}").format(' \n'.join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName)))
         try:
             print(text)
         except UnicodeEncodeError:
             print(text.encode("ascii", "replace").decode("ascii"))
-    elif len(leftoverArgs) != 0 and (not hasWebServer or options.webserver is None):
+    elif len(leftoverArgs) != 0 and (not systemInfo["webserver"] or options.webserver is None):
         parser.error(_("unrecognized arguments: {}").format(', '.join(leftoverArgs)))
     elif (options.entrypointFile is None and
           ((not options.proxy) and (not options.plugins) and
            (not any(pluginOption for pluginOption in parser.option_list[pluginOptionsIndex:pluginLastOptionIndex])) and
-           (not hasWebServer or options.webserver is None))):
+           (not systemInfo["webserver"] or options.webserver is None))):
         parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.py --help"))
-    elif hasWebServer and options.webserver:
+    elif systemInfo["webserver"] and options.webserver:
         # webserver incompatible with file operations
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
                 options.factsFile, options.factListCols, options.factTableFile, options.factTableCols, options.relationshipCols,
@@ -437,28 +441,41 @@ def parseAndRun(args):
                 )):
             parser.error(_("incorrect arguments with --webserver, please try\n  python CntlrCmdLine.py --help"))
         else:
-            # note that web server logging does not strip time stamp, use logFormat if that is desired
-            cntlr.startLogging(logFileName='logToBuffer',
-                               logTextMaxLength=options.logTextMaxLength,
-                               logRefObjectProperties=options.logRefObjectProperties)
-            cntlr.postLoggingInit() # Cntlr options after logging is started
-            from arelle import CntlrWebMain
-            app = CntlrWebMain.startWebserver(cntlr, options)
-            if options.webserver == '::wsgi':
-                return app
+            optionObject = buildOptionsObject(options)
+            return optionObject, arellePluginModules
     else:
+        pprint(options)
         # parse and run the FILENAME
+        optionObject = buildOptionsObject(options)
+        pprint(optionObject)
+        return optionObject, arellePluginModules
+
+
+def configAndRunCntlr(options, arellePluginModules):
+    cntlr = CntlrCmdLine(uiLang=options.uiLang, disable_persistent_config=options.disablePersistentConfig)
+    for cmd, moduleInfo in arellePluginModules.items():
+        cntlr.preloadedPlugins[cmd] = moduleInfo
+    if options.webserver:
+        cntlr.startLogging(logFileName='logToBuffer',
+                           logTextMaxLength=options.logTextMaxLength,
+                           logRefObjectProperties=options.logRefObjectProperties)
+        cntlr.postLoggingInit()
+        from arelle import CntlrWebMain
+        app = CntlrWebMain.startWebserver(cntlr, options)
+        if options.webserver == '::wsgi':
+            return app
+    else:
         cntlr.startLogging(logFileName=(options.logFile or "logToPrint"),
                            logFileMode=options.logFileMode,
                            logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
                            logLevel=(options.logLevel or "DEBUG"),
                            logToBuffer=getattr(options, "logToBuffer", False),
-                           logTextMaxLength=options.logTextMaxLength, # e.g., used by EdgarRenderer to require buffered logging
+                           logTextMaxLength=options.logTextMaxLength,  # e.g., used by EdgarRenderer to require buffered logging
                            logRefObjectProperties=options.logRefObjectProperties)
-        cntlr.postLoggingInit() # Cntlr options after logging is started
+        cntlr.postLoggingInit()  # Cntlr options after logging is started
         cntlr.run(options)
-
         return cntlr
+
 
 def filesourceEntrypointFiles(filesource, entrypointFiles=[]):
     if filesource.isArchive:

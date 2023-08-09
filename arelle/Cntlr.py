@@ -19,6 +19,7 @@ from arelle import ModelManager
 from arelle.WebCache import WebCache
 from arelle.Locale import getLanguageCodes, setDisableRTL
 from arelle import PluginManager, PackageManager, XbrlConst
+from arelle.SystemInfo import get_system_info
 from collections import defaultdict
 
 _: TypeGetText
@@ -29,6 +30,7 @@ if TYPE_CHECKING:
 osPrcs: Any = None
 LOG_TEXT_MAX_LENGTH = 32767
 cxFrozen = getattr(sys, 'frozen', False)
+systemInfo = get_system_info()
 
 
 def resourcesDir() -> str:
@@ -153,10 +155,10 @@ class Cntlr:
         }
         self.hasWin32gui = False
         self.hasGui = hasGui
-        self.hasFileSystem = True # no file system on Google App Engine servers
-        self.isGAE = False
-        self.isCGI = False
-        self.systemWordSize = int(round(math.log(sys.maxsize, 2)) + 1) # e.g., 32 or 64
+        self.hasFileSystem = systemInfo["filesystem"] # no file system on Google App Engine servers
+        self.isGAE = systemInfo["gae"]
+        self.isCGI = systemInfo["cgi"]
+        self.systemWordSize = systemInfo["system_word_size"]  # e.g., 32 or 64
         self.uiLangDir = "ltr"
         self.disablePersistentConfig = disable_persistent_config
 
@@ -170,15 +172,6 @@ class Cntlr:
         if cxFrozen:
             # some cx_freeze versions set this variable, which is incompatible with matplotlib after v3.1
             os.environ.pop("MATPLOTLIBDATA", None)
-        serverSoftware = os.getenv("SERVER_SOFTWARE", "")
-        if serverSoftware.startswith("Google App Engine/") or serverSoftware.startswith("Development/"):
-            self.hasFileSystem = False # no file system, userAppDir does not exist
-            self.isGAE = True
-        else:
-            gatewayInterface = os.getenv("GATEWAY_INTERFACE", "")
-            if gatewayInterface.startswith("CGI/"):
-                self.isCGI = True
-
         configHomeDir = None  # look for path configDir/CONFIG_HOME in argv and environment parameters
         for i, arg in enumerate(sys.argv):  # check if config specified in a argv
             if arg.startswith("--xdgConfigHome="):
