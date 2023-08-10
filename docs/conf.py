@@ -34,4 +34,4 @@ html_theme_options = {
     },
 }
 html_title = "Arelle <release>"
-html_logo = "../arelle/images/arelle-rtd.gif"
+html_logo = "../arelle/images/arelle-rtd.png"
