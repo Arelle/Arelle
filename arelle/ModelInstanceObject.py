@@ -620,6 +620,17 @@ class ModelInlineValueObject:
         self.xValue = None
 
     @property
+    def rawValue(self):
+        ixEscape = self.get("escape") in ("true", "1")
+        return XmlUtil.innerText(
+            self,
+            ixExclude="tuple" if self.elementQname == XbrlConst.qnIXbrl11Tuple else "html",
+            ixEscape=ixEscape,
+            ixContinuation=(self.elementQname == XbrlConst.qnIXbrl11NonNumeric),
+            ixResolveUris=ixEscape,
+            strip=(self.format is not None))  # transforms are whitespace-collapse, otherwise it is preserved.
+
+    @property
     def value(self):
         """(str) -- Overrides and corresponds to value property of ModelFact,
         for relevant inner text nodes aggregated and transformed as needed."""
@@ -629,13 +640,7 @@ class ModelInlineValueObject:
             self.xValid = UNVALIDATED # may not be initialized otherwise
             self.xValue = None
             f = self.format
-            ixEscape = self.get("escape") in ("true","1")
-            v = XmlUtil.innerText(self,
-                                  ixExclude="tuple" if self.elementQname == XbrlConst.qnIXbrl11Tuple else "html",
-                                  ixEscape=ixEscape,
-                                  ixContinuation=(self.elementQname == XbrlConst.qnIXbrl11NonNumeric),
-                                  ixResolveUris=ixEscape,
-                                  strip=(f is not None)) # transforms are whitespace-collapse, otherwise it is preserved.
+            v = self.rawValue
             if self.isNil:
                 self._ixValue = v
             else:
