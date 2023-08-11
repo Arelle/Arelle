@@ -39,6 +39,7 @@ html_favicon = "../arelle/images/favicon.ico"
 html_logo = "../arelle/images/arelle-rtd.png"
 
 myst_enable_extensions = ["colon_fence"]
+myst_heading_anchors = 6
 
 pygments_style = "xcode"
 pygments_dark_style = "monokai"
