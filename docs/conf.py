@@ -15,6 +15,7 @@ author = "support@arelle.org"
 
 extensions = [
     "myst_parser",
+    "sphinx_copybutton",
 ]
 
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
