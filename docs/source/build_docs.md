@@ -25,7 +25,12 @@ Arelle's documentation is built using Sphinx and published to [Read the Docs][re
 3. Build HTML documentation.
 
    ```shell
+   # build
    make html
+   # or auto rebuild on file changes (useful when working on documentation)
+   make livehtml
    ```
 
-4. Open `docs/_build/html/index.html` in your browser.
+4. Open documentation:
+    * file `docs/_build/html/index.html` if using `make html`
+    * <http://127.0.0.1:8000/> if using `make livehtml`
