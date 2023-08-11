@@ -112,9 +112,13 @@ Please report issues to the [issue tracker](https://github.com/arelle/arelle/iss
 
 ## How To Contribute
 
-If you want to contribute to Arelle, be sure to review the
-[contribution guidelines](https://github.com/Arelle/Arelle/blob/master/CONTRIBUTING.md).
+Interested in contributing to Arelle? Awesome! Make sure to review our
+[contribution guidelines][contribution guidelines].
+
+[contribution guidelines]: https://arelle.readthedocs.io/contributing.html
 
 ## License
 
-[Apache License 2.0](https://github.com/Arelle/Arelle/blob/master/LICENSE.md)
+[Apache License 2.0][license]
+
+[license]: https://arelle.readthedocs.io/license.html

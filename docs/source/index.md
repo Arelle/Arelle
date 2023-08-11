@@ -3,6 +3,8 @@
 
 :::{toctree}
 :hidden:
+contributing
 build_docs
+license
 genindex
 :::
