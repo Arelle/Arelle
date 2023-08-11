@@ -38,5 +38,7 @@ html_title = "Arelle <release>"
 html_favicon = "../arelle/images/favicon.ico"
 html_logo = "../arelle/images/arelle-rtd.png"
 
+myst_enable_extensions = ["colon_fence"]
+
 pygments_style = "xcode"
 pygments_dark_style = "monokai"

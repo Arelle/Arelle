@@ -1,8 +1,7 @@
 # Building Documentation
 
-```{eval-rst}
-.. index:: Documentation
-```
+:::{index} Building Documentation
+:::
 
 Arelle's documentation is built using Sphinx and published to [Read the Docs][read-the-docs-project].
 
