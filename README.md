@@ -34,6 +34,7 @@ languages utilizing its web service, command line interface, and Python API.
   production tool to generate the basics of a versioning report that can be
   inferred by diffing two DTSs.
 - Edgar and Global Filer Manual validation
+- ESEF Reporting Manual validation
 - Base Specification, Dimensions, Generic linkbase validation
 - Formula validation including support for extension modules
 - Instance creation is supported using forms defined by the table linkbase
