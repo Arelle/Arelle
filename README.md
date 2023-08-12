@@ -26,7 +26,7 @@ Arelle is an end-to-end open source XBRL platform, which provides the XBRL commu
 with an easy to use set of tools. It supports XBRL and its extension features in
 an extensible manner. It does this in a compact yet robust framework that can be
 used as a desktop application and can be integrated with other applications and
-languages utilizing its web service.
+languages utilizing its web service, command line interface, and Python API.
 
 ## Features
 
