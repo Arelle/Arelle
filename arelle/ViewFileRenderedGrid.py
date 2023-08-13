@@ -35,6 +35,13 @@ from collections import defaultdict
 emptySet = set()
 emptyList = []
 
+headerOmittedRollupAspects  = {
+    Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO, Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO,
+    Aspect.VALUE, Aspect.SCHEME,
+    Aspect.PERIOD_TYPE, Aspect.START, Aspect.END, Aspect.INSTANT,
+    Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY}
+
+
 def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=None, diffToFile=False, cssExtras=""):
     modelXbrl.modelManager.showStatus(_("saving rendering"))
     view = ViewRenderedGrid(modelXbrl, outfile, lang, cssExtras)
@@ -60,7 +67,7 @@ class ViewRenderedGrid(ViewFile.View):
                 self.tableModelNamespace = xsdNs + "/model"
                 break
         super(ViewRenderedGrid, self).__init__(modelXbrl, outfile, 
-                                               'tableModel xmlns="{0}"'.format(self.tableModelNamespace), 
+                                               f'tableModel xmlns="{self.tableModelNamespace}" xmlns:xbrli="http://www.xbrl.org/2003/instance"', 
                                                lang, 
                                                style="rendering",
                                                cssExtras=cssExtras)
@@ -701,8 +708,8 @@ class ViewRenderedGrid(ViewFile.View):
                                     continue
                                 if aspect == Aspect.AUGMENT: # TODO seems to be skipped for xml output
                                     continue
-                                aspectProcessed.add(aspect)
-
+                                if isRollUpCell and aspect in headerOmittedRollupAspects:
+                                    continue
                                 attrib = None
                                 if tag:
                                     attrib = {"tag": tag}
@@ -775,7 +782,9 @@ class ViewRenderedGrid(ViewFile.View):
                                         aspectValue = aspectValue[0]
                                     else:
                                         aspectValue = format_aspect_value(aspectValue)
-                                    if not isRollUpCell and self.modelXbrl.qnameDimensionDefaults.get(aspect) != aspectValue:
+                                    if (not isRollUpCell and 
+                                            self.modelXbrl.qnameDimensionDefaults.get(aspect) != aspectValue and
+                                            aspectValue != XbrlConst.qnFormulaOccEmpty):
                                         if not isinstance(aspectValue, etree._Element):
                                             valueElt.text = xsString(None, None, addQnameValue(self.xmlDoc, aspectValue if not label or label != OPEN_ASPECT_ENTRY_SURROGATE else "\u00A0"))
                                         else:

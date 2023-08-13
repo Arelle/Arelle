@@ -86,7 +86,7 @@ class StrctMdlNode:
         return self.strctMdlParentNode.depth + 1 if self.strctMdlParentNode else 0
 
     def aspectsCovered(self, inherit=False):
-        return ()
+        return EMPTY_SET
     
     def hasAspect(self, aspect, inherit=True):
         return False
@@ -399,7 +399,7 @@ class StrctMdlStructuralNode(StrctMdlNode):
 
     def aspectsCovered(self, inherit=False):
         if self.aspects is None:
-            return ()
+            return EMPTY_SET
         aspectsCovered = _DICT_SET(self.aspects.keys())
         if self.defnMdlNode is not None and hasattr(self.defnMdlNode, "aspectsCovered"):
             aspectsCovered |= self.defnMdlNode.aspectsCovered()
@@ -410,16 +410,20 @@ class StrctMdlStructuralNode(StrctMdlNode):
         return aspectsCovered
       
     def hasAspect(self, aspect, inherit=True):
-        return (aspect in self.aspects or 
-                (self.defnMdlNode is not None and 
-                 self.defnMdlNode.hasAspect(self, aspect)) or
-                (inherit and
-                 isinstance(self.strctMdlParentNode, StrctMdlStructuralNode) and 
+        if (aspect in self.aspects or 
+            (self.defnMdlNode is not None and self.defnMdlNode.hasAspect(self, aspect))):
+            return True
+        if inherit:
+            # block override of aspect rule aspects, e.g. don't inherit period duration aspects if this str node defines an instant aspect
+            if any(aspect in _aspectRuleAspects and self.hasAspect(_aspect)
+                   for _aspect, _aspectRuleAspects in aspectRuleAspects.items()):
+                return False
+            if ((isinstance(self.strctMdlParentNode, StrctMdlStructuralNode) and 
                  self.strctMdlParentNode.hasAspect(aspect, inherit)) or 
-                (inherit and
-                 isinstance(self.strctMdlParentNode, StrctMdlBreakdown) and 
-                 self.strctMdlParentNode.strctMdlParentNode.hasAspect(aspect, inherit))
-                )
+                (isinstance(self.strctMdlParentNode, StrctMdlBreakdown) and 
+                 self.strctMdlParentNode.strctMdlParentNode.hasAspect(aspect, inherit))):
+                return True
+        return False
         
     def dimRAV(self, aspect, value): # dimensional rollup aspect value (None for a rollup node)
         if isinstance(value, QName) and self.rollup == ROLLUP_IMPLIES_DEFAULT_MEMBER and aspect in self.defnMdlNode.modelXbrl.qnameDimensionDefaults:
@@ -687,6 +691,9 @@ class DefnMdlBreakdown(ModelFormulaResource):
     @property
     def childrenCoverSameAspects(self):
         return False
+    
+    def aspectsCovered(self):
+        return EMPTY_SET
         
     @property
     def isAbstract(self):
@@ -751,7 +758,7 @@ class DefnMdlDefinitionNode(ModelFormulaResource):
         return None
     
     def aspectsCovered(self):
-        return set()
+        return EMPTY_SET
 
     @property
     def constraintSets(self):

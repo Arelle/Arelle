@@ -351,10 +351,12 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                             _rollup = ROLLUP_IMPLIES_DEFAULT_MEMBER
                             # definition node is that of the other child elements, to contribute a defaulted dimension
                             if childStrctNode.strctMdlChildNodes:
-                                if childStrctNode.aspectsCovered() == childStrctNode.strctMdlChildNodes[0].aspectsCovered():
-                                    _rollup = ROLLUP_SPECIFIES_MEMBER
-                                else:
-                                    rollupAspectDefinitionNode = childStrctNode.strctMdlChildNodes[0].defnMdlNode
+                                childStrctNodeAspectsCovered = childStrctNode.aspectsCovered()
+                                if childStrctNodeAspectsCovered  & {Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS}:
+                                    if childStrctNodeAspectsCovered == childStrctNode.strctMdlChildNodes[0].aspectsCovered():
+                                        _rollup = ROLLUP_SPECIFIES_MEMBER
+                                    else:
+                                        rollupAspectDefinitionNode = childStrctNode.strctMdlChildNodes[0].defnMdlNode
                             rollUpStrctNode = StrctMdlStructuralNode(childStrctNode, rollupAspectDefinitionNode)
                             rollUpStrctNode.rollup = _rollup
                             childStrctNode.hasChildRollup = True
@@ -362,37 +364,40 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                             if childDefnMdlNode.parentChildOrder == "parent-first":
                                 childStrctNode.strctMdlChildNodes = childStrctNode.strctMdlChildNodes[-1:] + childStrctNode.strctMdlChildNodes[0:-1]
                             cartesianProductExpander(rollUpStrctNode, *cartesianProductNestedArgs)
-                        elif childStrctNode.strctMdlChildNodes:
-                            # check if a children specify explicit dimensions and one is missing default
-                            childDimsCovered = set( # defaulted dims in children
-                                aspect
-                                for rel in descendantDefMdlNodes
-                                if rel.toModelObject is not None
-                                for aspect in rel.toModelObject.aspectsCovered()
-                                if isinstance(aspect, QName) and aspect in rel.modelXbrl.qnameDimensionDefaults
-                            )
-                            # note child defnMdlNodes needing default dimension
-                            for rel in descendantDefMdlNodes:
-                                defnMdlNode = rel.toModelObject
-                                if rel.toModelObject is not None:
-                                    defaultedDims = childDimsCovered - rel.toModelObject.aspectsCovered()
-                                    if defaultedDims:
-                                        defnMdlNode.deemedDefaultedDims = defaultedDims
-                            # check if child strct nodes specify explicit dimensions and one is missing default
-                            childDimsCovered = set( # defaulted dims in children
-                                aspect
-                                for gStrctNode in childStrctNode.strctMdlChildNodes
-                                for aspect in gStrctNode.aspectsCovered(inherit=True)
-                                if isinstance(aspect, QName) and aspect in rel.modelXbrl.qnameDimensionDefaults
-                            )
-                            # note child defnMdlNodes needing default dimension
-                            for gStrctNode in childStrctNode.strctMdlChildNodes:
-                                defaultedDims = childDimsCovered - gStrctNode.aspectsCovered(inherit=True)
-                                if defaultedDims:
-                                    gStrctNode.deemedDefaultedDims = defaultedDims
                         if not childContainsOpenNodes(childStrctNode) and not childDefnMdlNode.childrenCoverSameAspects:
                             # To be computed only if the structural node does not contain an open node
                             cartesianProductExpander(childStrctNode, *cartesianProductNestedArgs)
+                # check if a children specify explicit dimensions and one is missing default
+                descendantDefMdlNodes = view.defnSubtreeRelSet.fromModelObject(defnMdlNode)
+                childDimsCovered = set( # defaulted dims in children
+                    aspect
+                    for rel in descendantDefMdlNodes
+                    if rel.toModelObject is not None
+                    for aspect in rel.toModelObject.aspectsCovered()
+                    if isinstance(aspect, QName) and aspect in view.modelXbrl.qnameDimensionDefaults
+                )
+                # note child defnMdlNodes needing default dimension
+                for rel in descendantDefMdlNodes:
+                    descDefnMdlNode = rel.toModelObject
+                    if descDefnMdlNode is not None:
+                        defaultedDims = childDimsCovered - descDefnMdlNode.aspectsCovered() - defnMdlNode.aspectsCovered()
+                        if defaultedDims:
+                            descDefnMdlNode.deemedDefaultedDims = defaultedDims
+                # check if child strct nodes specify explicit dimensions and one is missing default
+                childDimsCovered = set( # defaulted dims in children
+                    aspect
+                    for gStrctNode in strctMdlParent.strctMdlChildNodes
+                    for aspect in gStrctNode.aspectsCovered(inherit=True)
+                    if isinstance(aspect, QName) and aspect in view.modelXbrl.qnameDimensionDefaults
+                )
+                # note child defnMdlNodes needing default dimension
+                for gStrctNode in strctMdlParent.strctMdlChildNodes:
+                    defaultedDims = childDimsCovered - gStrctNode.aspectsCovered(inherit=True)
+                    # remove any OMIT dimensions
+                    if gStrctNode.hasAspect(Aspect.OMIT_DIMENSIONS):
+                        defaultedDims |= set(gStrctNode.aspectValue(Aspect.OMIT_DIMENSIONS))
+                    if defaultedDims:
+                        gStrctNode.defnMdlNode.deemedDefaultedDims = defaultedDims
 
             if isinstance(defnMdlNode, DefnMdlRelationshipNode):
                 strctMdlNode.isLabeled = False

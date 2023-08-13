@@ -218,7 +218,7 @@ def compareRenderingInfosetElts(modelXbrl, sourceElt, comparisonElt):
         cmpConstraints = {}
         for srcE, cstrts in ((sourceElt, srcConstraints),(comparisonElt, cmpConstraints)):
             for e in srcE.iter("{http://xbrl.org/2014/table/model}constraint"):
-                cstrts[e.findtext("{http://xbrl.org/2014/table/model}aspect")] = e.findtext("{http://xbrl.org/2014/table/model}value")
+                cstrts[e.findtext("{http://xbrl.org/2014/table/model}aspect")] = "".join((f.text or "").strip() for f in e.find("{http://xbrl.org/2014/table/model}value").iter())
         if srcConstraints != cmpConstraints:
             modelXbrl.error("arelle:tableModelCnstraintsMismatch",
                 _("Table layout model constraints %(src)s expecting %(cmp)s"),

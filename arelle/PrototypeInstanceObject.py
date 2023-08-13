@@ -1,5 +1,5 @@
 
-from arelle import XmlUtil
+from arelle import XbrlConst, XmlUtil
 from arelle.ModelValue import QName, DateTime
 from arelle.ModelObject import ModelObject
 Aspect = None
@@ -107,7 +107,10 @@ class ContextPrototype():  # behaves like a context
                 self.entityIdentifier = (aspectValue, self.entityIdentifier[1])
                 self.entityIdentifierHash = hash(self.entityIdentifier)
             elif aspect in (Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO, "segment", Aspect.NON_XDT_SEGMENT, "scenario", Aspect.NON_XDT_SCENARIO):
-                self._nonDimValues[aspect] = aspectValue
+                if aspectValue == [XbrlConst.qnFormulaOccEmpty]:
+                    self._nonDimValues[aspect] = []
+                else:
+                    self._nonDimValues[aspect] = aspectValue
             elif isinstance(aspect, QName):
                 try: # if a DimVal, then it has a suggested context element
                     contextElement = aspectValue.contextElement
