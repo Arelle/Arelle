@@ -14,6 +14,7 @@ from xml.dom import minidom
 from pyparsing import (
     CaselessLiteral,
     Combine,
+    DelimitedList,
     Forward,
     Group,
     Keyword,
@@ -31,7 +32,6 @@ from pyparsing import (
     ZeroOrMore,
     alphanums,
     alphas,
-    delimited_list,
     nums,
     quoted_string,
 )
@@ -490,7 +490,7 @@ def pushExpr(sourceStr: str, loc: int, toks: ParseResults) -> Expr:
     return expr
 
 
-ParserElement.enablePackrat()
+ParserElement.enable_packrat()
 # define grammar
 variableRef = Regex(
     "[$]"  # variable prefix
@@ -554,16 +554,16 @@ rPred = Literal("]")
 expOp = Literal("^")
 
 commaOp = Literal(",")
-forOp = Keyword("for").setParseAction(pushOp)
+forOp = Keyword("for").set_parse_action(pushOp)
 someOp = Keyword("some")
 everyOp = Keyword("every")
-quantifiedOp = (someOp | everyOp).setParseAction(pushOp)
+quantifiedOp = (someOp | everyOp).set_parse_action(pushOp)
 inOp = Keyword("in")
-returnOp = Keyword("return").setParseAction(pushOp)
-satisfiesOp = Keyword("satisfies").setParseAction(pushOp)
-ifOp = Keyword("if").setParseAction(pushOp)
-thenOp = Keyword("then").setParseAction(pushOp)
-elseOp = Keyword("else").setParseAction(pushOp)
+returnOp = Keyword("return").set_parse_action(pushOp)
+satisfiesOp = Keyword("satisfies").set_parse_action(pushOp)
+ifOp = Keyword("if").set_parse_action(pushOp)
+thenOp = Keyword("then").set_parse_action(pushOp)
+elseOp = Keyword("else").set_parse_action(pushOp)
 andOp = Keyword("and")
 orOp = Keyword("or")
 eqValueOp = Keyword("eq")
@@ -584,16 +584,16 @@ geGeneralOp = Literal(">=")
 gtGeneralOp = Literal(">")
 eqGeneralOp = Literal("=")
 generalCompOp = neGeneralOp | leGeneralOp | ltGeneralOp | geGeneralOp | gtGeneralOp | eqGeneralOp
-comparisonOp = (nodeCompOp | valueCompOp | generalCompOp).setParseAction(pushOp)
-toOp = Keyword("to").setParseAction(pushOp)
+comparisonOp = (nodeCompOp | valueCompOp | generalCompOp).set_parse_action(pushOp)
+toOp = Keyword("to").set_parse_action(pushOp)
 plusOp = Literal("+")
 minusOp = Literal("-")
-plusMinusOp = (plusOp | minusOp).setParseAction(pushOp)
+plusMinusOp = (plusOp | minusOp).set_parse_action(pushOp)
 multOp = Literal("*")
 divOp = Keyword("div")
 idivOp = Keyword("idiv")
 modOp = Keyword("mod")
-multDivOp = (multOp | divOp | idivOp | modOp).setParseAction(pushOp)
+multDivOp = (multOp | divOp | idivOp | modOp).set_parse_action(pushOp)
 unionWordOp = Keyword("union")
 unionSymbOp = Literal("|")
 unionOp = unionWordOp | unionSymbOp
@@ -621,7 +621,7 @@ schemaElementTest = (
     + Suppress(lParen)
     + elementDeclaration
     + Suppress(rParen)
-).setParseAction(pushOperation)
+).set_parse_action(pushOperation)
 elementNameOrWildcard = elementName | wildOp
 elementTest = (
     Keyword("element")
@@ -635,48 +635,48 @@ elementTest = (
         )
     )
     + Suppress(rParen)
-).setParseAction(pushOperation)
+).set_parse_action(pushOperation)
 attributeDeclaration = attributeName
 schemaAttributeTest = (
     Keyword("schema-attribute")
     + Suppress(lParen)
     + attributeDeclaration
     + Suppress(rParen)
-).setParseAction(pushOperation)
+).set_parse_action(pushOperation)
 attribNameOrWildcard = attributeName | wildOp
 attributeTest = (
     Keyword("attribute")
     + Suppress(lParen)
     + Opt(attribNameOrWildcard + Opt(commaOp + typeName))
     + Suppress(rParen)
-).setParseAction(pushOperation)
+).set_parse_action(pushOperation)
 PITest = (
     Keyword("processing-instruction")
     + Suppress(lParen)
     + Opt(ncName | quoted_string)
     + Suppress(rParen)
-).setParseAction(pushOperation)
+).set_parse_action(pushOperation)
 commentTest = (
         Keyword("comment")
         + Suppress(lParen)
         + Suppress(rParen)
-).setParseAction(pushOperation)
+).set_parse_action(pushOperation)
 textTest = (
         Keyword("text")
         + Suppress(lParen)
         + Suppress(rParen)
-).setParseAction(pushOperation)
+).set_parse_action(pushOperation)
 documentTest = (
     Keyword("document-node")
     + Suppress(lParen)
     + Opt(elementTest | schemaElementTest)
     + Suppress(rParen)
-).setParseAction(pushOperation)
+).set_parse_action(pushOperation)
 anyKindTest = (
         Keyword("node")
         + Suppress(lParen)
         + Suppress(rParen)
-).setParseAction(pushOperation)
+).set_parse_action(pushOperation)
 kindTest = (
     documentTest
     | elementTest
@@ -691,10 +691,10 @@ kindTest = (
 wildcard = Combine(ncName + prefixOp + wildOp) | Combine(wildOp + prefixOp + ncName) | wildOp
 nameTest = qName | wildcard
 nodeTest = kindTest | nameTest
-abbrevForwardStep = (Literal("@") + nodeTest).setParseAction(pushAttr) | (nodeTest)
+abbrevForwardStep = (Literal("@") + nodeTest).set_parse_action(pushAttr) | (nodeTest)
 atomicType = qName
 itemType = kindTest | Keyword("item") + lParen + rParen | atomicType
-occurrenceIndicator = occurOptionalOp | multOp | plusOp  # oneOf("? * +")
+occurrenceIndicator = occurOptionalOp | multOp | plusOp  # one_of("? * +")
 sequenceType = (Keyword("empty-sequence") + lParen + rParen) | (itemType + Opt(occurrenceIndicator))
 singleType = atomicType + Opt(occurOptionalOp)
 contextItem = decimalPoint
@@ -729,72 +729,72 @@ expr = Forward()
 atom = (
     (
         forOp
-        - (variableRef + inOp + expr).setParseAction(pushRangeVar)
-        + ZeroOrMore(Suppress(commaOp) + (variableRef + inOp + expr).setParseAction(pushRangeVar))
-        - (returnOp + expr).setParseAction(pushExpr)
-    ).setParseAction(pushOperation)
+        - (variableRef + inOp + expr).set_parse_action(pushRangeVar)
+        + ZeroOrMore(Suppress(commaOp) + (variableRef + inOp + expr).set_parse_action(pushRangeVar))
+        - (returnOp + expr).set_parse_action(pushExpr)
+    ).set_parse_action(pushOperation)
     | (
         quantifiedOp
-        - (variableRef + inOp + expr).setParseAction(pushRangeVar)
-        + ZeroOrMore(Suppress(commaOp) + (variableRef + inOp + expr).setParseAction(pushRangeVar))
-        - (satisfiesOp + expr).setParseAction(pushExpr)
-    ).setParseAction(pushOperation)
+        - (variableRef + inOp + expr).set_parse_action(pushRangeVar)
+        + ZeroOrMore(Suppress(commaOp) + (variableRef + inOp + expr).set_parse_action(pushRangeVar))
+        - (satisfiesOp + expr).set_parse_action(pushExpr)
+    ).set_parse_action(pushOperation)
     | (
-        (ifOp - Suppress(lParen) + Group(expr, aslist=True) + Suppress(rParen)).setParseAction(pushExpr)
-        - (thenOp + expr).setParseAction(pushOperation)
-        - (elseOp + expr).setParseAction(pushOperation)
-    ).setParseAction(pushOperation)
-    | (qName + Suppress(lParen) + Opt(delimited_list(expr)) + Suppress(rParen)).setParseAction(pushFunction)
-    | floatLiteral.setParseAction(pushFloat)
-    | decimalLiteral.setParseAction(pushDecimal)
-    | integerLiteral.setParseAction(pushInt)
-    | quoted_string.setParseAction(pushQuotedString)
-    | variableRef.setParseAction(pushVarRef)
-    | abbrevReverseStep.setParseAction(pushOperation)
-    | contextItem.setParseAction(pushOperation)
-    | qName.setParseAction(pushQName)
+        (ifOp - Suppress(lParen) + Group(expr, aslist=True) + Suppress(rParen)).set_parse_action(pushExpr)
+        - (thenOp + expr).set_parse_action(pushOperation)
+        - (elseOp + expr).set_parse_action(pushOperation)
+    ).set_parse_action(pushOperation)
+    | (qName + Suppress(lParen) + Opt(DelimitedList(expr)) + Suppress(rParen)).set_parse_action(pushFunction)
+    | floatLiteral.set_parse_action(pushFloat)
+    | decimalLiteral.set_parse_action(pushDecimal)
+    | integerLiteral.set_parse_action(pushInt)
+    | quoted_string.set_parse_action(pushQuotedString)
+    | variableRef.set_parse_action(pushVarRef)
+    | abbrevReverseStep.set_parse_action(pushOperation)
+    | contextItem.set_parse_action(pushOperation)
+    | qName.set_parse_action(pushQName)
     | (
-        Suppress(lParen) - Opt(expr) - ZeroOrMore(commaOp.setParseAction(pushOp) - expr) - Suppress(rParen)
-    ).setParseAction(pushSequence)
+        Suppress(lParen) - Opt(expr) - ZeroOrMore(commaOp.set_parse_action(pushOp) - expr) - Suppress(rParen)
+    ).set_parse_action(pushSequence)
 )
-# stepExpr = ( ( atom + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) |
-#             ( (reverseStep | forwardStep) + ZeroOrMore( (lPred.setParseAction( pushOp ) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) ) )
+# stepExpr = ( ( atom + ZeroOrMore( (lPred.set_parse_action( pushOp ) - expr - Suppress(rPred)).set_parse_action(pushPredicate) ) ) |
+#             ( (reverseStep | forwardStep) + ZeroOrMore( (lPred.set_parse_action( pushOp ) - expr - Suppress(rPred)).set_parse_action(pushPredicate) ) ) )
 stepExpr = (
-    atom + ZeroOrMore((lPred.setParseAction(pushOp) - expr - Suppress(rPred)).setParseAction(pushPredicate))
-) | (step + ZeroOrMore((lPred.setParseAction(pushOp) - expr - Suppress(rPred)).setParseAction(pushPredicate)))
-relativePathExpr = stepExpr + ZeroOrMore(((pathDescOp | pathStepOp) + stepExpr).setParseAction(pushOperation))
+    atom + ZeroOrMore((lPred.set_parse_action(pushOp) - expr - Suppress(rPred)).set_parse_action(pushPredicate))
+) | (step + ZeroOrMore((lPred.set_parse_action(pushOp) - expr - Suppress(rPred)).set_parse_action(pushPredicate)))
+relativePathExpr = stepExpr + ZeroOrMore(((pathDescOp | pathStepOp) + stepExpr).set_parse_action(pushOperation))
 pathExpr = (
-    (pathDescOp + relativePathExpr).setParseAction(pushRootStep)
-    | (pathStepOp + relativePathExpr).setParseAction(pushRootStep)
+    (pathDescOp + relativePathExpr).set_parse_action(pushRootStep)
+    | (pathStepOp + relativePathExpr).set_parse_action(pushRootStep)
     | (relativePathExpr)
-    | ((pathRootOp).setParseAction(pushRootStep))
+    | ((pathRootOp).set_parse_action(pushRootStep))
 )
 
 
 valueExpr = pathExpr
 
-# filterExpr = ( atom + ZeroOrMore( (Suppress(lPred) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) )
-# axisStep = ( (reverseStep | forwardStep) + ZeroOrMore( (Suppress(lPred) - expr - Suppress(rPred)).setParseAction(pushPredicate) ) )
+# filterExpr = ( atom + ZeroOrMore( (Suppress(lPred) - expr - Suppress(rPred)).set_parse_action(pushPredicate) ) )
+# axisStep = ( (reverseStep | forwardStep) + ZeroOrMore( (Suppress(lPred) - expr - Suppress(rPred)).set_parse_action(pushPredicate) ) )
 # stepExpr = filterExpr | axisStep
-# relativePathExpr = ( stepExpr + ZeroOrMore( ( pathStepOp | pathDescOp ) + stepExpr ).setParseAction( pushOperation ) )
+# relativePathExpr = ( stepExpr + ZeroOrMore( ( pathStepOp | pathDescOp ) + stepExpr ).set_parse_action( pushOperation ) )
 # pathExpr = ( ( pathDescOp + relativePathExpr ) |
 #             ( pathStepOp + relativePathExpr ) |
 #             ( relativePathExpr ) |
 #             ( pathStepOp ) )
 # valueExpr = pathExpr
-unaryExpr = (plusMinusOp + valueExpr).setParseAction(pushUnaryOperation) | valueExpr
-castExpr = unaryExpr + ZeroOrMore((castOp + asOp + singleType).setParseAction(pushOperation))
-castableExpr = castExpr + ZeroOrMore((castableOp + asOp + singleType).setParseAction(pushOperation))
-treatExpr = castableExpr + ZeroOrMore((treatOp + asOp + sequenceType).setParseAction(pushOperation))
-instanceOfExpr = treatExpr + ZeroOrMore((instanceOp + Suppress(ofOp) + sequenceType).setParseAction(pushOperation))
-intersectExceptExpr = instanceOfExpr + ZeroOrMore((intersectExceptOp + instanceOfExpr).setParseAction(pushOperation))
-unionExpr = intersectExceptExpr + ZeroOrMore((unionOp + intersectExceptExpr).setParseAction(pushOperation))
-multiplicitaveExpr = unionExpr + ZeroOrMore((multDivOp + unionExpr).setParseAction(pushOperation))
-additiveExpr = multiplicitaveExpr + ZeroOrMore((plusMinusOp + multiplicitaveExpr).setParseAction(pushOperation))
-rangeExpr = additiveExpr + ZeroOrMore((toOp + additiveExpr).setParseAction(pushOperation))
-comparisonExpr = rangeExpr + ZeroOrMore((comparisonOp + rangeExpr).setParseAction(pushOperation))
-andExpr = comparisonExpr + ZeroOrMore((andOp + comparisonExpr).setParseAction(pushOperation))
-orExpr = andExpr + ZeroOrMore((orOp + andExpr).setParseAction(pushOperation))
+unaryExpr = (plusMinusOp + valueExpr).set_parse_action(pushUnaryOperation) | valueExpr
+castExpr = unaryExpr + ZeroOrMore((castOp + asOp + singleType).set_parse_action(pushOperation))
+castableExpr = castExpr + ZeroOrMore((castableOp + asOp + singleType).set_parse_action(pushOperation))
+treatExpr = castableExpr + ZeroOrMore((treatOp + asOp + sequenceType).set_parse_action(pushOperation))
+instanceOfExpr = treatExpr + ZeroOrMore((instanceOp + Suppress(ofOp) + sequenceType).set_parse_action(pushOperation))
+intersectExceptExpr = instanceOfExpr + ZeroOrMore((intersectExceptOp + instanceOfExpr).set_parse_action(pushOperation))
+unionExpr = intersectExceptExpr + ZeroOrMore((unionOp + intersectExceptExpr).set_parse_action(pushOperation))
+multiplicitaveExpr = unionExpr + ZeroOrMore((multDivOp + unionExpr).set_parse_action(pushOperation))
+additiveExpr = multiplicitaveExpr + ZeroOrMore((plusMinusOp + multiplicitaveExpr).set_parse_action(pushOperation))
+rangeExpr = additiveExpr + ZeroOrMore((toOp + additiveExpr).set_parse_action(pushOperation))
+comparisonExpr = rangeExpr + ZeroOrMore((comparisonOp + rangeExpr).set_parse_action(pushOperation))
+andExpr = comparisonExpr + ZeroOrMore((andOp + comparisonExpr).set_parse_action(pushOperation))
+orExpr = andExpr + ZeroOrMore((orOp + andExpr).set_parse_action(pushOperation))
 
 expr <<= orExpr
 # The Forward expression streamline implementation (expr.streamline())
@@ -891,7 +891,7 @@ def initializeParser(modelManager: ModelManager) -> bool:
 
         modelManager.showStatus(_("initializing formula xpath2 grammar"))
         startedAt = time.time()
-        xpathExpr.parseString("0", parseAll=True)
+        xpathExpr.parse_string("0", parseAll=True)
         modelManager.addToLog(format_string(modelManager.locale,
                                     _("Formula xpath2 grammar initialized in %.2f secs"),
                                     time.time() - startedAt))
@@ -981,7 +981,7 @@ def parse(
             assert element is not None
             exprStack.append(ProgHeader(modelObject, name, element, normalizedExpr, traceType))
 
-            L = xpathExpr.parseString(normalizedExpr, parseAll=True)
+            L = xpathExpr.parse_string(normalizedExpr, parseAll=True)
 
             # modelXbrl.error( _("AST {0} {1}").format(name, L),
             #    "info", "formula:trace")
@@ -1146,7 +1146,7 @@ def codeModule(code: Iterable[Any]) -> str:
 
 def parser_unit_test() -> None:
     # initialize
-    xpathExpr.parseString("0", parseAll=True)
+    xpathExpr.parse_string("0", parseAll=True)
 
     test1 = "3*7+5"
     test1a = "5+3*7"
@@ -1285,7 +1285,7 @@ def parser_unit_test() -> None:
         # try parsing the input string
         L: ParseResults | list[Any]
         try:
-            L = xpathExpr.parseString(normalizeExpr(test), parseAll=True)
+            L = xpathExpr.parse_string(normalizeExpr(test), parseAll=True)
         except (ParseException, ParseSyntaxException) as err:
             L = ['Parse Failure', test, err]
 

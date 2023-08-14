@@ -21,10 +21,10 @@ updates:
         versions:
           - ">=6"
       - dependency-name: "cx_Freeze"
-      - dependency-name: "packaging"
-      - dependency-name: "pyparsing"
+      - dependency-name: "matplotlib"
         versions:
-          - "3.1.0"
+          - "3.7.2"
+      - dependency-name: "packaging"
   - package-ecosystem: docker
     directory: "/"
     schedule:
