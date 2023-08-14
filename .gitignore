@@ -50,3 +50,4 @@ Pipfile.lock
 Pipfile
 
 .DS_Store
+docs/_build

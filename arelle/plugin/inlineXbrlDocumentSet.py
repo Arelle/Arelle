@@ -60,7 +60,7 @@ from arelle.FileSource import archiveFilenameParts, archiveFilenameSuffixes
 from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load, create, inlineIxdsDiscover
-from arelle.ModelValue import qname
+from arelle.ModelValue import INVALIDixVALUE, qname
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import attrdict
 from arelle.UrlUtil import isHttpUrl
@@ -250,10 +250,10 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                     text = None
                 elif ( not(modelConcept.baseXsdType == "token" and modelConcept.isEnumeration)
                        and fact.xValid ):
-                    text = fact.xValue
+                    text = fact.rawValue if fact.xValue == INVALIDixVALUE else fact.xValue
                 # may need a special case for QNames (especially if prefixes defined below root)
                 else:
-                    text = fact.textValue
+                    text = fact.rawValue if fact.textValue == INVALIDixVALUE else fact.textValue
                 for attrName, attrValue in fact.items():
                     if attrName.startswith("{"):
                         attrs[qname(attrName,fact.nsmap)] = attrValue # using qname allows setting prefix in extracted instance

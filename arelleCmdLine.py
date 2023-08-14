@@ -7,11 +7,28 @@ See COPYRIGHT.md for copyright information.
 import os
 import sys
 
-
+# Only imports for modules distributed as part of the standard Python library may go above this line.
+# All other imports will result in module not found exceptions on the frozen macOS build.
 if sys.platform == "darwin" and getattr(sys, 'frozen', False):
     for i in range(len(sys.path)):  # signed code can't contain python modules
         sys.path.append(sys.path[i].replace("MacOS", "Resources"))
 
+import regex as re
+
+from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE, warnSocket
+
+internetConnectivityArgPattern = rf'--({INTERNET_CONNECTIVITY}|{INTERNET_CONNECTIVITY.lower()})'
+internetConnectivityArgRegex = re.compile(internetConnectivityArgPattern)
+internetConnectivityOfflineEqualsRegex = re.compile(f"{internetConnectivityArgPattern}={OFFLINE}")
+prevArg = ''
+for arg in sys.argv[1:]:
+    if (
+            internetConnectivityOfflineEqualsRegex.fullmatch(arg)
+            or (internetConnectivityArgRegex.fullmatch(prevArg) and arg == OFFLINE)
+    ):
+        warnSocket()
+        break
+    prevArg = arg
 
 from arelle.BetaFeatures import BETA_OBJECT_MODEL_FEATURE, enableNewObjectModel
 
