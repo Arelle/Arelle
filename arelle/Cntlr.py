@@ -750,9 +750,9 @@ class LogHandlerWithXml(logging.Handler):
                 "refs": getattr(logRec, "refs", []),
                 "message": message}
 
-    def recordToHtml(self, logRec):
+    def recordToHtml(self, logRec: logging.LogRecord) -> str:
         record = ["<tr>"]
-        record.append(f"<td>{logRec.messageCode}</td>")
+        record.append(f"<td>{getattr(logRec, 'messageCode', '')}</td>")
         record.append(f"<td>{logRec.levelname.lower()}</td>")
         record.append(f"<td>{self.format(logRec)}</td>")
         record.append("</tr>")
@@ -874,7 +874,7 @@ class LogToXmlHandler(LogHandlerWithXml):
             self.clearLogBuffer()
         return json.dumps( {"log": entries}, ensure_ascii=False, indent=1, default=str )
 
-    def getHtml(self, clearLogBuffer=True):
+    def getHtml(self, clearLogBuffer: bool = True) -> str:
         """Returns an HTML string representing the messages in the log buffer, and clears the buffer.
 
         :returns: str -- HTML representation of messages in the log buffer
