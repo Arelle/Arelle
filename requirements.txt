@@ -2,8 +2,8 @@
 certifi==2023.7.22
 lxml==4.9.3
 OpenPyXL==3.1.2
-pyparsing==3.0.9
-regex==2023.6.3
+pyparsing==3.1.1
+regex==2023.8.8
 isodate==0.6.1
 aniso8601==9.0.1
 CherryPy==18.8.0
@@ -14,13 +14,13 @@ pycountry==22.3.5
 # EdgarRenderer plugin
 NumPy==1.24.4
 Matplotlib==3.7.2
-holidays==0.29
-Tornado==6.3.2
+holidays==0.30
+Tornado==6.3.3
 # security plugin
 PyCryptodome==3.18.0
 # xbrlDB plugin
 cx_Oracle==8.3.0
-pg8000==1.29.8
+pg8000==1.30.1
 PyMySQL==1.1.0
 pyodbc==4.0.39
 RDFLib==5.0.0
