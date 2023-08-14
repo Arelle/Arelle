@@ -34,10 +34,12 @@ def call(
         args: XPathContext.ResultStack,
 ) -> XPathContext.RecursiveContextItem:
     try:
+        if xc.oimMode and localname in oimIncompatibleFunctions: 
+            raise XPathContext.FunctionNotOimCompatible("oimfe:oimIncompatibleXPathFunctionOrOperator", f"fn:{localname}")
         if localname not in fnFunctions: raise fnFunctionNotAvailable
         return fnFunctions[localname](xc, p, contextItem, args)
     except fnFunctionNotAvailable:
-        raise XPathContext.FunctionNotAvailable("fn:{0}".format(localname))
+        raise XPathContext.FunctionNotAvailable(f"fn:{localname}")
 
 def node_name(xc, p, contextItem, args):
     node = nodeArg(xc, args, 0, "node()?", missingArgFallback=contextItem, emptyFallback=())
@@ -932,4 +934,8 @@ fnFunctions = {
     'default-collation': default_collation,
     'static-base-uri': static_base_uri,
     'format-number': format_number,
+    }
+
+oimIncompatibleFunctions = {
+    "is-same-node", "root", "id", "idref", "element-with-id", "doc", "doc-available"
     }

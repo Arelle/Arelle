@@ -21,7 +21,7 @@ from arelle.ModelFormulaObject import (ModelValueAssertion, ModelExistenceAssert
                                        ModelConceptCustomAttribute, ModelConceptDataType, ModelConceptSubstitutionGroup,
                                        ModelTestFilter, ModelGeneral, ModelGeneralMeasures, ModelInstantDuration,
                                        ModelDateTimeFilter, ModelSingleMeasure, ModelExplicitDimension, ModelTypedDimension,
-                                       ModelEntitySpecificIdentifier, ModelEntityScheme, ModelEntityRegexpScheme,
+                                       ModelEntityIdentifier, ModelEntitySpecificIdentifier, ModelEntityScheme, ModelEntityRegexpScheme,
                                        ModelEntityRegexpIdentifier, ModelMatchFilter, ModelRelativeFilter,
                                        ModelAncestorFilter, ModelParentFilter, ModelSiblingFilter, ModelNilFilter,
                                        ModelAspectCover, ModelConceptRelation,
@@ -33,6 +33,8 @@ from arelle.formula import XPathParser
 from arelle.Version import authorLabel, copyrightLabel
 import os, datetime
 
+XF_VERSION = "2.0+WGWD-YYYY-MM-DD"
+
 class NotExportable(Exception):
     def __init__(self, message):
         self.message = message
@@ -41,7 +43,7 @@ def kebabCase(name):
     return "".join("-" + c.lower() if c.isupper() else c for c in name)
 
 def strQuote(s):
-    return '"' + s.replace('"', '""') + '"'
+    return '"' + s.replace('"', '\\"') + '"'
 
 class GenerateXbrlFormula:
     def __init__(self, cntlr, modelXbrl, xfFile):
@@ -71,13 +73,15 @@ class GenerateXbrlFormula:
         for rootObject in sorted(rootObjects, key=formulaObjSortKey):
             self.doObject(rootObject, None, "", set())
 
+        self.xfLines.insert(0, "")
+
         if self.xmlns:
             self.xfLines.insert(0, "")
             for prefix, ns in sorted(self.xmlns.items(), reverse=True):
                 self.xfLines.insert(0, "namespace {} = \"{}\";".format(prefix, ns))
 
         self.xfLines.insert(0, "")
-        self.xfLines.insert(0, "Version 1.0;".format(self.modelXbrl.modelDocument.basename, XmlUtil.dateunionValue(datetime.datetime.now())))
+        self.xfLines.insert(0, "xf-version {};".format(strQuote(XF_VERSION)))
 
         self.xfLines.insert(0, "")
         self.xfLines.insert(0, "(: Generated from {} by Arelle on {} :)".format(self.modelXbrl.modelDocument.basename, XmlUtil.dateunionValue(datetime.datetime.now())))
@@ -121,7 +125,8 @@ class GenerateXbrlFormula:
             for arcrole in (XbrlConst.elementLabel,
                             XbrlConst.assertionSatisfiedMessage,
                             XbrlConst.assertionUnsatisfiedMessage,
-                            XbrlConst.assertionUnsatisfiedSeverity
+                            XbrlConst.assertionUnsatisfiedSeverity,
+                            XbrlConst.assertionUnsatisfiedSeverity20
                             ):
                 for modelRel in self.modelXbrl.relationshipSet(arcrole).fromModelObject(fObj):
                     self.doObject(modelRel.toModelObject, modelRel, cIndent, visited)
@@ -135,10 +140,10 @@ class GenerateXbrlFormula:
                     if fObj.get(attr):
                         self.xf = "{}{} {{{}}};".format(cIndent, attr, fObj.get(attr))
                 if fObj.get("source"):
-                    self.xf = "{}source {};".format(cIndent, fObj.get("source"))
+                    self.xf = "{}source ${};".format(cIndent, fObj.get("source"))
                 for aspectsElt in XmlUtil.children(fObj, XbrlConst.formula, "aspects"):
                     self.xf = "{}aspect-rules{} {{".format(cIndent,
-                                                           "source {}".format(aspectsElt.get("source")) if aspectsElt.get("source") else "")
+                                                           " source ${}".format(aspectsElt.get("source")) if aspectsElt.get("source") else "")
                     for ruleElt in XmlUtil.children(aspectsElt, XbrlConst.formula, "*"):
                         self.doObject(ruleElt, None, cIndent + "   ", visited)
                     self.xf = "{}}};".format(cIndent)
@@ -274,7 +279,7 @@ class GenerateXbrlFormula:
                                                 "general" if isinstance(fObj, ModelGeneral) else
                                                 "unit-general-measures" if isinstance(fObj, ModelGeneralMeasures) else
                                                 "period" if isinstance(fObj, ModelPeriod) else
-                                                "entity-identifier" if isinstance(fObj, ModelIdentifier) else None,
+                                                "entity-identifier" if isinstance(fObj, ModelEntityIdentifier) else None,
                                                 fObj.test)
             elif isinstance(fObj, ModelDateTimeFilter):
                 self.xf = "{}{} {{{}}}{};".format(pIndent, kebabCase(fObj.localName), fObj.date,
@@ -370,7 +375,7 @@ class GenerateXbrlFormula:
             self.xf = "{}{} {};".format(
                 pIndent,
                 "unsatisfied-severity",
-                fObj.level)
+                fObj.level if fObj.isStatic else f"{{{fObj.severity}}}")
         elif isinstance(fObj, ModelCustomFunctionSignature):
             hasImplememntation = False
             if fObj not in visited:
@@ -405,6 +410,7 @@ class GenerateXbrlFormula:
         elif fObj.getparent().tag == "{http://xbrl.org/2008/formula}aspects":
             # aspect rules
             arg = ""
+            if fObj.get("source"): arg += " source $" + fObj.get("source")
             if fObj.localName == "concept":
                 if XmlUtil.hasChild(fObj, None, "qname"):
                     arg += " " + XmlUtil.childText(fObj, None, "qname")
@@ -412,7 +418,7 @@ class GenerateXbrlFormula:
                     arg += " {" + XmlUtil.childText(fObj, None, "qnameExpression") + "}"
             elif fObj.localName == "entityIdentifier":
                 if fObj.get("scheme"): arg += " scheme {" + fObj.get("scheme") + "}"
-                if fObj.get("identifier"): arg += " identifier {" + fObj.get("identifier") + "}"
+                if fObj.get("value"): arg += " identifier {" + fObj.get("value") + "}"
             elif fObj.localName == "period":
                 if XmlUtil.hasChild(fObj, None, "forever"):
                     arg += " forever"
@@ -438,7 +444,7 @@ class GenerateXbrlFormula:
             if fObj.localName == "unit":
                 for elt in fObj.iterchildren():
                     arg = ""
-                    if elt.get("source"): arg += " source " + elt.get("source")
+                    if elt.get("source"): arg += " source $" + elt.get("source")
                     if elt.get("measure"): arg += " measure {" + elt.get("measure") + "}"
                     self.xf = "{}{}{};".format(cIndent, kebabCase(elt.localName), arg)
             elif fObj.localName == "explicitDimension":
@@ -494,9 +500,9 @@ def saveXfMenuCommand(cntlr):
 
     modelXbrl = cntlr.modelManager.modelXbrl
     try:
-        GenerateXbrlFormula(cntlr, modelXbrl, xbrlFormulaFile, mode)
+        GenerateXbrlFormula(cntlr, modelXbrl, xbrlFormulaFile)
     except Exception as ex:
-        dts.error("exception",
+        modelXbrl.error("exception",
             _("Xbrl Formula file generation exception: %(error)s"), error=ex,
             modelXbrl=modelXbrl,
             exc_info=True)

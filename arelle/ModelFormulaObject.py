@@ -2799,6 +2799,14 @@ class ModelCustomFunctionImplementation(ModelFormulaResource):
         return ' \n'.join([_("step ${0}: \n{1}").format(str(qname),expr) for qname,expr in self.stepExpressions] +
                           [_("output: \n{0}").format(self.outputExpression)])
 
+oimUnsupportedFilters = (
+    ModelAncestorFilter, ModelLocationFilter, ModelParentFilter, ModelSiblingFilter,
+    ModelScenarioFilter, ModelSegmentFilter,
+    ModelConceptCustomAttribute,
+    ModelPeriod,
+    ModelGeneralMeasures
+    )
+
 
 from arelle.ModelObjectFactory import elementSubstitutionModelClass
 elementSubstitutionModelClass.update((

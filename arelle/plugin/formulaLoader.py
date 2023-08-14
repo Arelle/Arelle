@@ -19,10 +19,14 @@ When run from GUI first load the instance/DTS and then import the xf file(s).
 
 '''
 
-import time, sys, traceback, os, io, os.path, zipfile
+import time, sys, traceback, os, io, os.path, zipfile, datetime
 import regex as re
-from arelle.Version import authorLabel, copyrightLabel
-from arelle import XbrlConst
+from arelle.PythonUtil import OrderedSet
+try:
+    from arelle.Version import authorLabel, copyrightLabel
+except ImportError:
+    authorLabel = copyrightLabel = None # when debugging as main these are not used
+from arelle import XbrlConst, XmlUtil
 from lxml import etree
 
 # Debugging flag can be set to either "debug_flag=True" or "debug_flag=False"
@@ -32,6 +36,7 @@ logMessage = None
 xfsFile = None
 lastLoc = 0
 lineno = col = line = None
+xfVersion = "(not specified)"
 
 lbGen = None
 
@@ -41,6 +46,11 @@ reservedWords = {} # words that can't be qnames
 
 isGrammarCompiled = False
 
+XF_VERSIONS_SUPPORTED = OrderedSet((
+    "1.0",
+    "2.0+WGWD-YYYY-MM-DD"
+    ))
+
 class PrefixError(Exception):
     def __init__(self, qnameToken):
         self.qname = qnameToken
@@ -49,14 +59,30 @@ class PrefixError(Exception):
     def __repr__(self):
         return _("QName prefix undeclared: {0}").format(self.qname)
 
+class CompilationError(Exception):
+    def __init__(self, loc, method, lineno, exceptionMsg):
+        self.loc = loc
+        self.message = _("{} line {}: {}").format(method, lineno, exceptionMsg)
+        self.args = ( self.__repr__(), )
+    def __repr__(self):
+        return self.message
+
+def raiseCompilationError(ex):
+    exInfo = sys.exc_info()[2]
+    raise CompilationError(lastLoc, exInfo.tb_frame.f_code.co_name, exInfo.tb_lineno, str(ex))
+
+
+
 def cleanedName(name):
     return re.sub(r"\W", "_", name)
 
 def dequotedString(s):
+    if not s:
+        return s
     q = s[0]
     if q != '"' and q != "'":
         return s # note quoted
-    return s[1:-1].replace(q+q,q)
+    return s[1:-1].replace("\\"+q,q)
 
 def camelCase(name):
     s = []
@@ -72,656 +98,783 @@ def camelCase(name):
                 s.append(c)
     return "".join(s)
 
-
+def variableRefQname(varRef):
+    return varRef.rpartition("$")[2]
 
 # parse operations ("compile methods") are listed alphabetically
 
 def compileAspectCoverFilter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "variable-filter",
-               "xlink:to": filterLabel,
-               "complement": "false",
-               "cover": "true"}
+    try:
+        filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "variable-filter",
+                   "xlink:to": filterLabel,
+                   "complement": "false",
+                   "cover": "true"}
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] = "{}".format(loc)
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] = "{}".format(loc)
 
-    filterAttrib = {"xlink:type": "resource",
-                    "xlink:label": filterLabel}
-    prevTok = None
-    for tok in toks:
-        if tok == "not":
-            arcAttrib["complement"] = "true"
-        elif tok == "covering":
-            arcAttrib["cover"] = "true"
-        elif tok == "non-covering":
-            arcAttrib["cover"] = "false"
-        prevTok = tok
-    filterElt = lbGen.subElement(lbGen.genLinkElement, "acf:aspectCover", attrib=filterAttrib)
-    # sub-elements of filter
-    dimElt = None
-    for tok in toks:
-        if tok in {"all", "concept", "entity-identifier", "location", "period", "unit",
-                   "complete-segment", "complete-scenario", "non-XDT-segment", "non-XDT-scenario",
-                   "dimensions"} and dimElt is None:
-            lbGen.subElement(filterElt, "acf:aspect", text=tok)
-        elif tok == "dimension":
-            dimElt = "acf:dimension"
-        elif tok == "exclude-dimension":
-            dimElt = "acf:excludeDimension"
-        elif dimElt is not None:
-            if isinstance(tok, XPathExpression):
-                lbGen.subElement(filterElt, dimElt, text=str(tok))
-            elif ':' in tok: # it's a QName
-                lbGen.subElement(filterElt, dimElt, text=tok)
-            else: # it's a local name, requires general & aspect cover filter
-                lbGen.checkXmlns("xfi")
-                lbGen.subElement(filterElt, dimElt,
-                                 text="xfi:concepts-from-local-name('{}')".format(tok))
-            dimElt = None
-    return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
-            FormulaResourceElt(filterElt)]
+        filterAttrib = {"xlink:type": "resource",
+                        "xlink:label": filterLabel}
+        prevTok = None
+        for tok in toks:
+            if tok == "not":
+                arcAttrib["complement"] = "true"
+            elif tok == "covering":
+                arcAttrib["cover"] = "true"
+            elif tok == "non-covering":
+                arcAttrib["cover"] = "false"
+            prevTok = tok
+        filterElt = lbGen.subElement(lbGen.genLinkElement, "acf:aspectCover", attrib=filterAttrib)
+        # sub-elements of filter
+        dimElt = None
+        for tok in toks:
+            if tok in {"all", "concept", "entity-identifier", "location", "period", "unit",
+                       "complete-segment", "complete-scenario", "non-XDT-segment", "non-XDT-scenario",
+                       "dimensions"} and dimElt is None:
+                lbGen.subElement(filterElt, "acf:aspect", text=tok)
+            elif tok == "dimension":
+                dimElt = "acf:dimension"
+            elif tok == "exclude-dimension":
+                dimElt = "acf:excludeDimension"
+            elif dimElt is not None:
+                if isinstance(tok, XPathExpression):
+                    lbGen.subElement(filterElt, dimElt, text=str(tok))
+                elif ':' in tok: # it's a QName
+                    lbGen.subElement(filterElt, dimElt, text=tok)
+                else: # it's a local name, requires general & aspect cover filter
+                    lbGen.checkXmlns("xfi")
+                    lbGen.subElement(filterElt, dimElt,
+                                     text="xfi:concepts-from-local-name('{}')".format(tok))
+                dimElt = None
+        return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
+                FormulaResourceElt(filterElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileAspectRules( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    attrib = {}
-    prevTok = None
-    for tok in toks:
-        if prevTok == "source":
-            attrib["source"] = tok
-        prevTok = tok
-    elt = lbGen.element("formula:aspects", attrib=attrib)
-    for tok in toks:
-        if isinstance(tok, FormulaAspectElt):
-            elt.append(tok.elt)
-    return [FormulaAspectElt(elt)]
+    try:
+        attrib = {}
+        prevTok = None
+        for tok in toks:
+            if prevTok == "source":
+                attrib["source"] = variableRefQname(tok)
+            prevTok = tok
+        elt = lbGen.element("formula:aspects", attrib=attrib)
+        for tok in toks:
+            if isinstance(tok, FormulaAspectElt):
+                elt.append(tok.elt)
+        return [FormulaAspectElt(elt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileAspectRuleConcept( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    elt = lbGen.element("formula:concept")
-    if isinstance(toks[0], XPathExpression):
-        lbGen.subElement(elt, "formula:qnameExpression", text=str(toks[0]))
-    else:
-        lbGen.subElement(elt, "formula:qname", text=lbGen.checkedQName(toks[0]))
-    return [FormulaAspectElt(elt)]
+    try:
+        elt = lbGen.element("formula:concept")
+        if isinstance(toks[0], XPathExpression):
+            lbGen.subElement(elt, "formula:qnameExpression", text=str(toks[0]))
+        else:
+            lbGen.subElement(elt, "formula:qname", text=lbGen.checkedQName(toks[0]))
+        return [FormulaAspectElt(elt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileAspectRuleEntityIdentifier( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    attrib = {}
-    prevTok = None
-    for tok in toks:
-        if prevTok == "scheme":
-            attrib["scheme"] = str(tok)
-        elif prevTok == "identifier":
-            attrib["identifier"] = str(tok)
-        prevTok = tok
-    elt = lbGen.element("formula:entityIdentifier", attrib=attrib)
-    return [FormulaAspectElt(elt)]
+    try:
+        attrib = {}
+        prevTok = None
+        for tok in toks:
+            if prevTok == "scheme":
+                attrib["scheme"] = str(tok)
+            elif prevTok == "identifier":
+                attrib["value"] = str(tok)
+            prevTok = tok
+        elt = lbGen.element("formula:entityIdentifier", attrib=attrib)
+        return [FormulaAspectElt(elt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileAspectRulePeriod( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    elt = lbGen.element("formula:period")
-    prevTok = None
-    for tok in toks:
-        if tok in ("forever", "instant", "duration"):
-            perElt = lbGen.subElement(elt, "formula:" + tok)
-        elif prevTok == "instant":
-            perElt.set("value", str(tok))
-        elif prevTok == "start":
-            perElt.set("start", str(tok))
-        elif prevTok == "end":
-            perElt.set("end", str(tok))
-        prevTok = tok
-    return [FormulaAspectElt(elt)]
+    try:
+        elt = lbGen.element("formula:period")
+        prevTok = None
+        for tok in toks:
+            if tok in ("forever", "instant", "duration"):
+                perElt = lbGen.subElement(elt, "formula:" + tok)
+            elif prevTok == "instant":
+                perElt.set("value", str(tok))
+            elif prevTok == "start":
+                perElt.set("start", str(tok))
+            elif prevTok == "end":
+                perElt.set("end", str(tok))
+            prevTok = tok
+        return [FormulaAspectElt(elt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileAspectRuleUnit( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    elt = lbGen.element("formula:unit")
-    prevTok = None
-    for tok in toks:
-        if tok == "augment":
-            elt.set("augment", "true")
-        elif isinstance(tok, FormulaAspectElt):
-            elt.append(tok)
-        prevTok = tok
-    return [FormulaAspectElt(elt)]
+    try:
+        elt = lbGen.element("formula:unit")
+        prevTok = None
+        elt.set("augment", "false") # default when augment not in xf source
+        for tok in toks:
+            if tok == "augment":
+                elt.set("augment", "true")
+            elif prevTok == "source":
+                elt.set("source", variableRefQname(tok))
+            elif isinstance(tok, FormulaAspectElt):
+                elt.append(tok.elt)
+            prevTok = tok
+        return [FormulaAspectElt(elt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileAspectRuleUnitTerm( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    elt = lbGen.element("formula:" + camelCase(tok[0]))
-    prevTok = None
-    for tok in toks:
-        if prevTok == "source":
-            elt.set("source", tok)
-        elif prevTok == "measure":
-            elt.set("measure", str(tok))
-        prevTok = tok
-    return [FormulaAspectElt(elt)]
+    try:
+        elt = lbGen.element("formula:" + camelCase(toks[0]))
+        prevTok = None
+        for tok in toks:
+            if prevTok == "source":
+                elt.set("source", variableRefQname(tok))
+            elif prevTok == "measure":
+                elt.set("measure", str(tok))
+            prevTok = tok
+        return [FormulaAspectElt(elt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileAspectRuleExplicitDimension( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    elt = lbGen.element("formula:explicitDimension", attrib={"dimension": tok[0]})
-    for tok in toks:
-        if isinstance(tok, FormulaAspectElt):
-            elt.append(tok)
-    return [FormulaAspectElt(elt)]
+    try:
+        elt = lbGen.element("formula:explicitDimension", attrib={"dimension": toks[0]})
+        prevTok = None
+        for tok in toks:
+            if prevTok == "source":
+                elt.set("source", variableRefQname(tok))
+            elif isinstance(tok, FormulaAspectElt):
+                elt.append(tok.elt)
+            prevTok = tok
+        return [FormulaAspectElt(elt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileAspectRuleExplicitDimensionTerm( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    prevTok = None
-    for tok in toks:
-        if prevTok == "member":
-            elt = lbGen.element("formula:member")
-            if isinstance(toks, XPathExpression):
-                lbGen.subElement(elt, "formula:qnameExpression", text=str(tok))
-            else:
-                lbGen.subElement(elt, "formula:qname", text=lbGen.checkedQName(tok))
-        elif prevTok == "omit":
-            elt = lbGen.element("formula:omit")
-        prevTok = tok
-    return [FormulaAspectElt(elt)]
+    try:
+        prevTok = None
+        for tok in toks:
+            if prevTok == "member":
+                elt = lbGen.element("formula:member")
+                if isinstance(toks, XPathExpression):
+                    lbGen.subElement(elt, "formula:qnameExpression", text=str(tok))
+                else:
+                    lbGen.subElement(elt, "formula:qname", text=lbGen.checkedQName(tok))
+            elif prevTok == "omit":
+                elt = lbGen.element("formula:omit")
+            prevTok = tok
+        return [FormulaAspectElt(elt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
+
 
 def compileAspectRuleTypedDimension( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    elt = lbGen.element("formula:typedDimension", attrib={"dimension": tok[0]})
-    for tok in toks:
-        if isinstance(tok, FormulaAspectElt):
-            elt.append(tok)
-    return [FormulaAspectElt(elt)]
+    try:
+        elt = lbGen.element("formula:typedDimension", attrib={"dimension": toks[0]})
+        prevTok = None
+        for tok in toks:
+            if prevTok == "source":
+                elt.set("source", variableRefQname(tok))
+            elif isinstance(tok, FormulaAspectElt):
+                elt.append(tok.elt)
+            prevTok = tok
+        return [FormulaAspectElt(elt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileAspectRuleTypedDimensionTerm( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    prevTok = None
-    for tok in toks:
-        if prevTok == "xpath":
-            elt = lbGen.element("formula:xpath", text=str(tok))
-        elif prevTok == "value":
-            elt = lbGen.element("formula:value")
-            elt.append(etree.fromstring(dequotedString(tok)))
-        elif prevTok == "omit":
-            elt = lbGen.element("formula:omit")
-        prevTok = tok
-    return [FormulaAspectElt(elt)]
+    try:
+        prevTok = None
+        for tok in toks:
+            if prevTok == "xpath":
+                elt = lbGen.element("formula:xpath", text=str(tok))
+            elif prevTok == "value":
+                elt = lbGen.element("formula:value")
+                elt.append(etree.fromstring(dequotedString(tok)))
+            elif prevTok == "omit":
+                elt = lbGen.element("formula:omit")
+            prevTok = tok
+        return [FormulaAspectElt(elt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileAssertion( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    assertionLabel = "assertion{}".format(lbGen.labelNbr("assertion"))
-    attrib = {"xlink:type": "resource",
-              "xlink:label": assertionLabel,
-              "aspectModel": "dimensional",
-              "implicitFiltering": "true"}
-    assertionEltQname = "va:valueAssertion" # default for error situations
-    prevTok = None
-    for tok in toks:
-        if prevTok is None:
-            attrib["id"] = tok
-        elif prevTok == "test":
-            assertionEltQname = "va:valueAssertion"
-            attrib["test"] = str(tok)
-        elif prevTok == "evaluation-count":
-            assertionEltQname = "ea:existenceAssertion"
-            attrib["test"] = str(tok)
-        #elif tok == "aspect-model-non-dimensional":
-        #    attrib["aspectModel"] = "non-dimensional"
-        elif tok == "no-implicit-filtering":
-            attrib["implicitFiltering"] = "false"
-        prevTok = tok
-    elt = lbGen.subElement(lbGen.genLinkElement,
-             assertionEltQname,
-             attrib=attrib)
-    for tok in toks:
-        if isinstance(tok, FormulaResourceElt):
-            tok.elt.addprevious(elt)
-            break
-    for tok in toks:
-        if isinstance(tok, FormulaArc):
-            tag = tok.tag
-            attrib = tok.attrib.copy()
-            if tag == "variable:variableFilterArc":
-                tag = "variable:variableSetFilterArc"
-                if "cover" in attrib:
-                    del attrib["cover"] # no cover on variable set filter arc
-            attrib["xlink:from"] = assertionLabel
-            lbGen.subElement(lbGen.genLinkElement, tag, attrib)
-    arcAttrib =  {"xlink:type": "arc",
-                  "xlink:arcrole": "assertion-set",
-                  "xlink:to": assertionLabel}
+    try:
+        hasAssertionUnsatisfiedSeverity = False
+        assertionLabel = "assertion{}".format(lbGen.labelNbr("assertion"))
+        attrib = {"xlink:type": "resource",
+                  "xlink:label": assertionLabel,
+                  "aspectModel": "dimensional",
+                  "implicitFiltering": "true"}
+        assertionEltQname = "va:valueAssertion" # default for error situations
+        prevTok = None
+        for tok in toks:
+            if prevTok is None:
+                attrib["id"] = tok
+            elif prevTok == "test":
+                assertionEltQname = "va:valueAssertion"
+                attrib["test"] = str(tok)
+            elif prevTok == "evaluation-count":
+                assertionEltQname = "ea:existenceAssertion"
+                attrib["test"] = str(tok)
+            #elif tok == "aspect-model-non-dimensional":
+            #    attrib["aspectModel"] = "non-dimensional"
+            elif tok == "no-implicit-filtering":
+                attrib["implicitFiltering"] = "false"
+            prevTok = tok
+        elt = lbGen.subElement(lbGen.genLinkElement,
+                 assertionEltQname,
+                 attrib=attrib)
+        for tok in toks:
+            if isinstance(tok, FormulaResourceElt):
+                tok.elt.addprevious(elt)
+                break
+        for tok in toks:
+            if isinstance(tok, FormulaArc):
+                tag = tok.tag
+                attrib = tok.attrib.copy()
+                if tag == "variable:variableFilterArc":
+                    tag = "variable:variableSetFilterArc"
+                    if "cover" in attrib:
+                        del attrib["cover"] # no cover on variable set filter arc
+                attrib["xlink:from"] = assertionLabel
+                lbGen.subElement(lbGen.genLinkElement, tag, attrib)
+                if attrib.get("xlink:arcrole") == "assertion-unsatisfied-severity":
+                    hasAssertionUnsatisfiedSeverity
+        if not hasAssertionUnsatisfiedSeverity and lbGen.defaultUnsatMsgSev:
+            # compile in the default assertion severity
+            if isinstance(lbGen.defaultUnsatMsgSev, XPathExpression):
+                sevLabel = "sevExpr{}".format(lbGen.labelNbr("sevExpr"))
+                sevExprAttrib = {"xlink:type": "resource",
+                                 "xlink:label": sevLabel,
+                                 "severity": str(lbGen.defaultUnsatMsgSev)}
+                lbGen.checkXmlns("sev")
+                sevElt = lbGen.subElement(lbGen.genLinkElement, "sev:expression", attrib=sevExprAttrib)
+            else:
+                sevLabel = "loc{}".format(lbGen.labelNbr("loc"))
+                locAttrib = {"xlink:type": "locator",
+                             "xlink:label": sevLabel,
+                             "xlink:href": "http://www.xbrl.org/2022/severities.xml#" + str(lbGen.defaultUnsatMsgSev)}
+                sevElt = lbGen.subElement(lbGen.genLinkElement, "link:loc", attrib=locAttrib)
+            arcAttrib={"xlink:type": "arc",
+                       "xlink:arcrole": "assertion-unsatisfied-severity",
+                       "xlink:to": sevLabel,
+                       "xlink:from": assertionLabel}
+            if not omitSourceLineAttributes:
+                arcAttrib["xfs:sourceline"] =  "{}".format(lbGen.defaultUnsatMsgSevLoc)
+            lbGen.subElement(lbGen.genLinkElement, "generic:arc", arcAttrib)
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+        arcAttrib =  {"xlink:type": "arc",
+                      "xlink:arcrole": "assertion-set",
+                      "xlink:to": assertionLabel}
 
-    return [FormulaArc("generic:arc", attrib=arcAttrib), FormulaResourceElt(elt)]
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+
+        return [FormulaArc("generic:arc", attrib=arcAttrib), FormulaResourceElt(elt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileAssertionSet( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    assertionSetLabel = "assertionSet{}".format(lbGen.labelNbr("assertionSet"))
-    attrib = {"xlink:type": "resource",
-              "xlink:label": assertionSetLabel}
-    prevTok = None
-    eltPositioned = False
-    for tok in toks:
-        if prevTok is None:
-            attrib["id"] = tok
-        prevTok = tok
-    elt = lbGen.element(
-             "validation:assertionSet",
-             attrib=attrib)
-    for tok in toks:
-        if isinstance(tok, FormulaResourceElt) and not eltPositioned:
-            tok.elt.addprevious(elt)
-            elt = None
+    try:
+        assertionSetLabel = "assertionSet{}".format(lbGen.labelNbr("assertionSet"))
+        attrib = {"xlink:type": "resource",
+                  "xlink:label": assertionSetLabel}
+        prevTok = None
+        eltPositioned = False
+        for tok in toks:
+            if prevTok is None:
+                attrib["id"] = tok
+            prevTok = tok
+        elt = lbGen.element(
+                 "validation:assertionSet",
+                 attrib=attrib)
+        for tok in toks:
+            if isinstance(tok, FormulaResourceElt) and not eltPositioned:
+                tok.elt.addprevious(elt)
+                elt = None
+                eltPositioned = True
+        if not eltPositioned:
+            lbGen.genLinkElement.append(elt)
             eltPositioned = True
-    if not eltPositioned:
-        lbGen.genLinkElement.append(elt)
-        eltPositioned = True
-    for tok in toks:
-        if isinstance(tok, FormulaArc):
-            tok.attrib["xlink:from"] = assertionSetLabel
-            lbGen.subElement(lbGen.genLinkElement, tok.tag, tok.attrib)
-    return [FormulaResourceElt(elt)]
+        for tok in toks:
+            if isinstance(tok, FormulaArc):
+                tok.attrib["xlink:from"] = assertionSetLabel
+                lbGen.subElement(lbGen.genLinkElement, tok.tag, tok.attrib)
+        return [FormulaResourceElt(elt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 commentStripPattern = re.compile(r"^\(:\s*|\s*:\)$")
 def compileComment( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    if lbGen is not None: # none when compiling grammer first time
-        lbGen.genLinkElement.append(etree.Comment(commentStripPattern.sub("", toks[0])))
-    return []
+    try:
+        if lbGen is not None: # none when compiling grammer first time
+            lbGen.genLinkElement.append(etree.Comment(commentStripPattern.sub("", toks[0])))
+        return []
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileBooleanFilter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "variable-filter",
-               "xlink:to": filterLabel,
-               "complement": "false",
-               "cover": "true"}
+    try:
+        filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "variable-filter",
+                   "xlink:to": filterLabel,
+                   "complement": "false",
+                   "cover": "true"}
 
-    if not omitSourceLineAttributes:
-       arcAttrib["xfs:sourceline"] = "{}".format(loc)
+        if not omitSourceLineAttributes:
+           arcAttrib["xfs:sourceline"] = "{}".format(loc)
 
-    filterAttrib = {"xlink:type": "resource",
-                    "xlink:label": filterLabel}
-    prevTok = filterEltQname = None
-    isMatchDimension = False
-    for tok in toks:
-        if tok == "not":
-            arcAttrib["complement"] = "true"
-        elif tok == "covering":
-            arcAttrib["cover"] = "true"
-        elif tok == "non-covering":
-            arcAttrib["cover"] = "false"
-        elif filterEltQname is None:
-            if tok == "and":
-                filterEltQname = "bf:andFilter"
-            elif tok == "or":
-                filterEltQname = "bf:orFilter"
-        prevTok = tok
-    filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
-    eltPositioned = False
-    for tok in toks:
-        if isinstance(tok, FormulaResourceElt) and not eltPositioned:
-            tok.elt.addprevious(filterElt)
+        filterAttrib = {"xlink:type": "resource",
+                        "xlink:label": filterLabel}
+        prevTok = filterEltQname = None
+        isMatchDimension = False
+        for tok in toks:
+            if tok == "not":
+                arcAttrib["complement"] = "true"
+            elif tok == "covering":
+                arcAttrib["cover"] = "true"
+            elif tok == "non-covering":
+                arcAttrib["cover"] = "false"
+            elif filterEltQname is None:
+                if tok == "and":
+                    filterEltQname = "bf:andFilter"
+                elif tok == "or":
+                    filterEltQname = "bf:orFilter"
+            prevTok = tok
+        filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
+        eltPositioned = False
+        for tok in toks:
+            if isinstance(tok, FormulaResourceElt) and not eltPositioned:
+                tok.elt.addprevious(filterElt)
+                eltPositioned = True
+        if not eltPositioned:
+            lbGen.genLinkElement.append(filterElt)
             eltPositioned = True
-    if not eltPositioned:
-        lbGen.genLinkElement.append(filterElt)
-        eltPositioned = True
-    for tok in toks:
-        if isinstance(tok, FormulaArc):
-            tok.attrib["xlink:from"] = filterLabel
-            tok.attrib["xlink:arcrole"] = "boolean-filter"
-            lbGen.subElement(lbGen.genLinkElement, tok.tag, tok.attrib)
-    return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
-            FormulaResourceElt(filterElt)]
+        for tok in toks:
+            if isinstance(tok, FormulaArc):
+                tok.attrib["xlink:from"] = filterLabel
+                tok.attrib["xlink:arcrole"] = "boolean-filter"
+                lbGen.subElement(lbGen.genLinkElement, tok.tag, tok.attrib)
+        return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
+                FormulaResourceElt(filterElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileConceptFilter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "variable-filter",
-               "xlink:to": filterLabel,
-               "complement": "false",
-               "cover": "true"}
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] = "{}".format(loc)
-    filterAttrib = {"xlink:type": "resource",
-                    "xlink:label": filterLabel}
-    prevTok = filterEltQname = None
-    isName = isPeriodType = isBalance = isDataType = isSubstitution = False
-    hasLocalName = False
-    for tok in toks:
-        if tok == "not":
-            arcAttrib["complement"] = "true"
-        elif tok == "covering":
-            arcAttrib["cover"] = "true"
-        elif tok == "non-covering":
-            arcAttrib["cover"] = "false"
-        elif filterEltQname is None:
-            if tok == "concept-name":
-                isName = True
-                filterEltQname = "cf:conceptName"
-            elif tok == "concept-period-type":
-                isPeriodType = True
-                filterEltQname = "cf:conceptPeriodType"
-            elif tok == "concept-balance":
-                isBalance = True
-                filterEltQname = "cf:conceptBalance"
-            elif tok == "concept-data-type":
-                isDataType = True
-                filterEltQname = "cf:conceptDataType"
-                filterAttrib["strict"] = "false"
-            elif tok == "concept-substitution-group":
-                isSubstitution = True
-                filterEltQname = "cf:conceptSubstitutionGroup"
-        elif isPeriodType and tok in ("instant", "duration"):
-            filterAttrib["periodType"] = tok
-        elif isBalance and tok in ("credit", "debit", "none"):
-            filterAttrib["balance"] = tok
-        elif isSubstitution and tok == "strict":
-            filterAttrib["strict"] = "true"
-        elif isSubstitution and prevTok == "non-strict":
-            filterAttrib["strict"] = "false"
-        elif isName and not hasLocalName and isinstance(tok, str) and ":" not in tok:
-            hasLocalName = True
-        prevTok = tok
-    filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
-    if isDataType:
-        subEltParent = lbGen.subElement(filterElt, "cf:type")
-    elif isName:
-        subEltParent = lbGen.subElement(filterElt, "cf:concept")
-    else:
-        subEltParent = filterElt
-    # sub-elements of filter
-    if isName or isSubstitution or isDataType:
-        useTok = False
+    try:
+        filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "variable-filter",
+                   "xlink:to": filterLabel,
+                   "complement": "false",
+                   "cover": "true"}
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] = "{}".format(loc)
+        filterAttrib = {"xlink:type": "resource",
+                        "xlink:label": filterLabel}
+        prevTok = filterEltQname = None
+        isName = isPeriodType = isBalance = isDataType = isSubstitution = False
+        hasLocalName = False
         for tok in toks:
-            # "concept-name" (qname | local-name | enclosed-expression)+
-            # "concept-data-type" ("strict" | "not-strict") (qname | enclosed-expression)
-            # "concept-substitution-group" ("strict" | "not-strict") (qname | enclosed-expression)
-            if not useTok and tok in ("concept-name", "strict", "non-strict"):
-                useTok = True
-            elif useTok:
-                if isinstance(tok, XPathExpression):
-                    lbGen.subElement(subEltParent, "cf:qnameExpression", text=str(tok))
-                elif ':' in tok: # it's a QName
-                    lbGen.subElement(subEltParent, "cf:qname", text=lbGen.checkedQName(tok))
-                else: # it's a local name, requires general & aspect cover filter
-                    lbGen.checkXmlns("xfi")
-                    lbGen.subElement(subEltParent, "cf:qnameExpression",
-                                     text="xfi:concepts-from-local-name('{}')".format(tok))
-    return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
-            FormulaResourceElt(filterElt)]
+            if tok == "not":
+                arcAttrib["complement"] = "true"
+            elif tok == "covering":
+                arcAttrib["cover"] = "true"
+            elif tok == "non-covering":
+                arcAttrib["cover"] = "false"
+            elif filterEltQname is None:
+                if tok == "concept-name":
+                    isName = True
+                    filterEltQname = "cf:conceptName"
+                elif tok == "concept-period-type":
+                    isPeriodType = True
+                    filterEltQname = "cf:conceptPeriodType"
+                elif tok == "concept-balance":
+                    isBalance = True
+                    filterEltQname = "cf:conceptBalance"
+                elif tok == "concept-data-type":
+                    isDataType = True
+                    filterEltQname = "cf:conceptDataType"
+                    filterAttrib["strict"] = "false"
+                elif tok == "concept-substitution-group":
+                    isSubstitution = True
+                    filterEltQname = "cf:conceptSubstitutionGroup"
+            elif isPeriodType and tok in ("instant", "duration"):
+                filterAttrib["periodType"] = tok
+            elif isBalance and tok in ("credit", "debit", "none"):
+                filterAttrib["balance"] = tok
+            elif isSubstitution and tok == "strict":
+                filterAttrib["strict"] = "true"
+            elif isSubstitution and prevTok == "non-strict":
+                filterAttrib["strict"] = "false"
+            elif isName and not hasLocalName and isinstance(tok, str) and ":" not in tok:
+                hasLocalName = True
+            prevTok = tok
+        filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
+        if isDataType:
+            subEltParent = lbGen.subElement(filterElt, "cf:type")
+        elif isName:
+            subEltParent = lbGen.subElement(filterElt, "cf:concept")
+        else:
+            subEltParent = filterElt
+        # sub-elements of filter
+        if isName or isSubstitution or isDataType:
+            useTok = False
+            for tok in toks:
+                # "concept-name" (qname | local-name | enclosed-expression)+
+                # "concept-data-type" ("strict" | "not-strict") (qname | enclosed-expression)
+                # "concept-substitution-group" ("strict" | "not-strict") (qname | enclosed-expression)
+                if not useTok and tok in ("concept-name", "strict", "non-strict"):
+                    useTok = True
+                elif useTok:
+                    if isinstance(tok, XPathExpression):
+                        lbGen.subElement(subEltParent, "cf:qnameExpression", text=str(tok))
+                    elif ':' in tok: # it's a QName
+                        lbGen.subElement(subEltParent, "cf:qname", text=lbGen.checkedQName(tok))
+                    else: # it's a local name, requires general & aspect cover filter
+                        lbGen.checkXmlns("xfi")
+                        lbGen.subElement(subEltParent, "cf:qnameExpression",
+                                         text="xfi:concepts-from-local-name('{}')".format(tok))
+        return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
+                FormulaResourceElt(filterElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileConceptRelationFilter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "variable-filter",
-               "xlink:to": filterLabel,
-               "complement": "false",
-               "cover": "true"}
+    try:
+        filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "variable-filter",
+                   "xlink:to": filterLabel,
+                   "complement": "false",
+                   "cover": "true"}
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] =  "{}".format(loc)
 
-    filterAttrib = {"xlink:type": "resource",
-                    "xlink:label": filterLabel}
-    prevTok = None
-    for tok in toks:
-        if tok == "not":
-            arcAttrib["complement"] = "true"
-        elif tok == "covering":
-            arcAttrib["cover"] = "true"
-        elif tok == "non-covering":
-            arcAttrib["cover"] = "false"
-        elif prevTok == "test":
-            filterAttrib["test"] = str(tok)
-        prevTok = tok
-    filterElt = lbGen.subElement(lbGen.genLinkElement, "crf:conceptRelation", attrib=filterAttrib)
-    # sub-elements of filter
-    crfElt = None
-    beforeSubElt = True
-    afterConceptRel = False
-    for tok in toks:
-        if tok in {"linkrole", "arcrole"} and crfElt is None:
-            crfElt = dequotedString(tok)
-            beforeSubElt = False
-        elif tok in {"axis", "generations"} and crfElt is None:
-            crfElt = tok
-            beforeSubElt = False
-        elif crfElt is not None:
-            if isinstance(tok, XPathExpression):
-                lbGen.subElement(filterElt, crfElt + "Expression", text=str(tok))
-            else:
-                lbGen.subElement(filterElt, crfElt, text=tok)
-            crfElt = None
-        elif tok == "concept-relation":
-            afterConceptRel = True
-        elif afterConceptRel and beforeSubElt:
-            if isinstance(tok, XPathExpression):
-                lbGen.subElement(filterElt, "crf:qnameExpression", text=str(tok))
-            elif tok.startswith('$'):
-                lbGen.subElement(filterElt, "crf:variable", text=tok)
-            elif ':' in tok: # it's a QName
-                lbGen.subElement(filterElt, "crf:qname", text=lbGen.checkedQName(tok))
-            else: # it's a local name, requires general & aspect cover filter
-                lbGen.checkXmlns("xfi")
-                lbGen.subElement(filterElt, "crf:qnameExpression",
-                                 text="xfi:concepts-from-local-name('{}')".format(tok))
-    return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
-            FormulaResourceElt(filterElt)]
+        filterAttrib = {"xlink:type": "resource",
+                        "xlink:label": filterLabel}
+        prevTok = None
+        for tok in toks:
+            if tok == "not":
+                arcAttrib["complement"] = "true"
+            elif tok == "covering":
+                arcAttrib["cover"] = "true"
+            elif tok == "non-covering":
+                arcAttrib["cover"] = "false"
+            elif prevTok == "test":
+                filterAttrib["test"] = str(tok)
+            prevTok = tok
+        filterElt = lbGen.subElement(lbGen.genLinkElement, "crf:conceptRelation", attrib=filterAttrib)
+        # sub-elements of filter
+        crfElt = None
+        beforeSubElt = True
+        afterConceptRel = False
+        for tok in toks:
+            if tok in {"linkrole", "arcrole"} and crfElt is None:
+                crfElt = dequotedString(tok)
+                beforeSubElt = False
+            elif tok in {"axis", "generations"} and crfElt is None:
+                crfElt = tok
+                beforeSubElt = False
+            elif crfElt is not None:
+                if isinstance(tok, XPathExpression):
+                    lbGen.subElement(filterElt, crfElt + "Expression", text=str(tok))
+                else:
+                    lbGen.subElement(filterElt, crfElt, text=tok)
+                crfElt = None
+            elif tok == "concept-relation":
+                afterConceptRel = True
+            elif afterConceptRel and beforeSubElt:
+                if isinstance(tok, XPathExpression):
+                    lbGen.subElement(filterElt, "crf:qnameExpression", text=str(tok))
+                elif tok.startswith('$'):
+                    lbGen.subElement(filterElt, "crf:variable", text=tok)
+                elif ':' in tok: # it's a QName
+                    lbGen.subElement(filterElt, "crf:qname", text=lbGen.checkedQName(tok))
+                else: # it's a local name, requires general & aspect cover filter
+                    lbGen.checkXmlns("xfi")
+                    lbGen.subElement(filterElt, "crf:qnameExpression",
+                                     text="xfi:concepts-from-local-name('{}')".format(tok))
+        return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
+                FormulaResourceElt(filterElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileConsistencyAssertion( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    assertionLabel = "assertion{}".format(lbGen.labelNbr("assertion"))
-    attrib = {"xlink:type": "resource",
-              "xlink:label": assertionLabel,
-              "strict": "false"}
-    prevTok = None
-    for tok in toks:
-        if prevTok is None:
-            attrib["id"] = tok
-        elif tok == "strict":
-            attrib["strict"] = "true"
-        elif prevTok == "absolute-acceptance-radius":
-            attrib["absoluteAcceptanceRadius"] = str(tok)
-        elif prevTok == "proportional-acceptance-radius":
-            attrib["proportionalAcceptanceRadius"] = str(tok)
-        prevTok = tok
-    elt = lbGen.subElement(lbGen.genLinkElement,
-             "ca:consistencyAssertion",
-             attrib=attrib)
-    for tok in toks:
-        if isinstance(tok, FormulaResourceElt):
-            tok.elt.addprevious(elt)
-            break
-    for tok in toks:
-        if isinstance(tok, FormulaArc):
-            tok.attrib["xlink:arcrole"] = "consistency-assertion-formula"
-            tok.attrib["xlink:from"] = assertionLabel
-            lbGen.subElement(lbGen.genLinkElement, tok.tag, tok.attrib)
+    try:
+        assertionLabel = "assertion{}".format(lbGen.labelNbr("assertion"))
+        attrib = {"xlink:type": "resource",
+                  "xlink:label": assertionLabel,
+                  "strict": "false"}
+        prevTok = None
+        for tok in toks:
+            if prevTok is None:
+                attrib["id"] = tok
+            elif tok == "strict":
+                attrib["strict"] = "true"
+            elif prevTok == "absolute-acceptance-radius":
+                attrib["absoluteAcceptanceRadius"] = str(tok)
+            elif prevTok == "proportional-acceptance-radius":
+                attrib["proportionalAcceptanceRadius"] = str(tok)
+            prevTok = tok
+        elt = lbGen.subElement(lbGen.genLinkElement,
+                 "ca:consistencyAssertion",
+                 attrib=attrib)
+        for tok in toks:
+            if isinstance(tok, FormulaResourceElt):
+                tok.elt.addprevious(elt)
+                break
+        for tok in toks:
+            if isinstance(tok, FormulaArc):
+                tok.attrib["xlink:arcrole"] = "consistency-assertion-formula"
+                tok.attrib["xlink:from"] = assertionLabel
+                lbGen.subElement(lbGen.genLinkElement, tok.tag, tok.attrib)
 
-    arcAttrib = {"xlink:type": "arc",
-                 "xlink:arcrole": "assertion-set",
-                 "xlink:to": assertionLabel}
+        arcAttrib = {"xlink:type": "arc",
+                     "xlink:arcrole": "assertion-set",
+                     "xlink:to": assertionLabel}
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] =  "{}".format(loc)
 
-    return [FormulaArc("generic:arc",
-                       attrib= arcAttrib),
-            FormulaResourceElt(elt)]
+        return [FormulaArc("generic:arc",
+                           attrib= arcAttrib),
+                FormulaResourceElt(elt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileDefaults( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    prevTok = None
-    for tok in toks:
-        if prevTok == "default-language":
-            lbGen.defaultLanguage = tok
-        elif prevTok == "unsatisfied-severity":
-            lbGen.defaultUnsatisfiedMessageSeverity = tok
-        prevTok = tok
-    return []
+    try:
+        prevTok = None
+        for tok in toks:
+            if prevTok == "default-language":
+                lbGen.defaultLanguage = tok
+            elif prevTok == "unsatisfied-severity":
+                lbGen.defaultUnsatMsgSev = tok
+                lbGen.defaultUnsatMsgSevLoc = loc
+            prevTok = tok
+        return []
+    except Exception as ex:
+        raiseCompilationError(ex)
+
+
+def compileDefaultLanguage( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
+    try:
+        prevTok = None
+        for tok in toks:
+            if prevTok == "default-language":
+                lbGen.defaultLanguage = tok
+            elif prevTok == "unsatisfied-severity":
+                lbGen.defaultUnsatMsgSev = tok
+                lbGen.defaultUnsatMsgSevLoc = loc
+            prevTok = tok
+        return []
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileDimensionFilter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "variable-filter",
-               "xlink:to": filterLabel,
-               "complement": "false",
-               "cover": "true"}
+    try:
+        filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "variable-filter",
+                   "xlink:to": filterLabel,
+                   "complement": "false",
+                   "cover": "true"}
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] = "{}".format(loc)
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] = "{}".format(loc)
 
-    filterAttrib = {"xlink:type": "resource",
-                    "xlink:label": filterLabel}
-    prevTok = filterEltQname = None
-    isTyped = False
-    for tok in toks:
-        if tok == "not":
-            arcAttrib["complement"] = "true"
-        elif tok == "covering":
-            arcAttrib["cover"] = "true"
-        elif tok == "non-covering":
-            arcAttrib["cover"] = "false"
-        elif filterEltQname is None:
-            if tok == "typed-dimension":
-                isTyped = True
-                filterEltQname = "df:typedDimension"
-            elif tok == "explicit-dimension":
-                isTyped = False
-                filterEltQname = "df:explicitDimension"
-        elif prevTok == "test" and isinstance(tok, XPathExpression):
-            filterAttrib["test"] = str(tok)
-        prevTok = tok
-    filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
-    # sub-elements of filter
-    prevTok = None
-    for tok in toks:
-        if prevTok in ("explicit-dimension", "typed-dimension"):
-            dimElt = lbGen.subElement(filterElt, "df:dimension")
-            if isinstance(tok, XPathExpression):
-                dimQNameExpr = str(tok)
-                lbGen.subElement(dimElt, "df:qnameExpression", text=dimQNameExpr)
-            elif ':' in tok: # it's a QName
-                lbGen.subElement(dimElt, "df:qname", text=lbGen.checkedQName(tok))
-                dimQNameExpr = "resolve-QName({})".format(lbGen.checkedQName(tok))
-            else: # it's a local name
-                dimQNameExpr = "xfi:concepts-from-local-name('{}')".format(tok)
-                lbGen.checkXmlns("xfi")
-                lbGen.subElement(dimElt, "df:qnameExpression", text=dimQNameExpr)
-        elif prevTok == "member":
-            memElt = lbGen.subElement(filterElt, "df:member")
-            if isinstance(tok, XPathExpression):
-                lbGen.subElement(memElt, "df:qnameExpression", text=str(tok))
-            elif tok.startswith('$'):
-                lbGen.subElement(memElt, "df:variable", text=tok[1:]) # remove $ from variable name
-            elif ':' in tok: # it's a QName
-                lbGen.subElement(memElt, "df:qname", text=lbGen.checkedQName(tok))
-            else: # it's a local name
+        filterAttrib = {"xlink:type": "resource",
+                        "xlink:label": filterLabel}
+        prevTok = filterEltQname = None
+        isTyped = False
+        for tok in toks:
+            if tok == "not":
+                arcAttrib["complement"] = "true"
+            elif tok == "covering":
+                arcAttrib["cover"] = "true"
+            elif tok == "non-covering":
+                arcAttrib["cover"] = "false"
+            elif filterEltQname is None:
+                if tok == "typed-dimension":
+                    isTyped = True
+                    filterEltQname = "df:typedDimension"
+                elif tok == "explicit-dimension":
+                    isTyped = False
+                    filterEltQname = "df:explicitDimension"
+            elif prevTok == "test" and isinstance(tok, XPathExpression):
+                filterAttrib["test"] = str(tok)
+            prevTok = tok
+        filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
+        # sub-elements of filter
+        prevTok = None
+        for tok in toks:
+            if prevTok in ("explicit-dimension", "typed-dimension"):
+                dimElt = lbGen.subElement(filterElt, "df:dimension")
+                if isinstance(tok, XPathExpression):
+                    dimQNameExpr = str(tok)
+                    lbGen.subElement(dimElt, "df:qnameExpression", text=dimQNameExpr)
+                elif ':' in tok: # it's a QName
+                    lbGen.subElement(dimElt, "df:qname", text=lbGen.checkedQName(tok))
+                    dimQNameExpr = "resolve-QName({})".format(lbGen.checkedQName(tok))
+                else: # it's a local name
+                    dimQNameExpr = "xfi:concepts-from-local-name('{}')".format(tok)
+                    lbGen.checkXmlns("xfi")
+                    lbGen.subElement(dimElt, "df:qnameExpression", text=dimQNameExpr)
+            elif prevTok == "member":
+                memElt = lbGen.subElement(filterElt, "df:member")
+                if isinstance(tok, XPathExpression):
+                    lbGen.subElement(memElt, "df:qnameExpression", text=str(tok))
+                elif tok.startswith('$'):
+                    lbGen.subElement(memElt, "df:variable", text=tok[1:]) # remove $ from variable name
+                elif ':' in tok: # it's a QName
+                    lbGen.subElement(memElt, "df:qname", text=lbGen.checkedQName(tok))
+                else: # it's a local name
+                    lbGen.checkXmlns("xfi")
+                    lbGen.subElement(memElt, "df:qnameExpression",
+                                     text="xfi:concepts-from-local-name('{}')".format(tok))
+            elif prevTok in ("linkrole", "arcrole", "axis"):
+                lbGen.subElement(memElt, "df:" + prevTok, text=dequotedString(tok))
+            elif tok == "default-member":
+                memElt = lbGen.subElement(filterElt, "df:member")
                 lbGen.checkXmlns("xfi")
                 lbGen.subElement(memElt, "df:qnameExpression",
-                                 text="xfi:concepts-from-local-name('{}')".format(tok))
-        elif prevTok in ("linkrole", "arcrole", "axis"):
-            lbGen.subElement(memElt, "df:" + prevTok, text=dequotedString(tok))
-        elif tok == "default-member":
-            memElt = lbGen.subElement(filterElt, "df:member")
-            lbGen.checkXmlns("xfi")
-            lbGen.subElement(memElt, "df:qnameExpression",
-                             text="xfi:dimension-default('{}')".format(dimQNameExpr))
-        prevTok = tok
-    return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
-            FormulaResourceElt(filterElt)]
+                                 text="xfi:dimension-default('{}')".format(dimQNameExpr))
+            prevTok = tok
+        return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
+                FormulaResourceElt(filterElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileEntityFilter( sourceStr, loc, toks ):
-    filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "variable-filter",
-               "xlink:to": filterLabel,
-               "complement": "false",
-               "cover": "true"}
+    global lastLoc; lastLoc = loc
+    try:
+        filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "variable-filter",
+                   "xlink:to": filterLabel,
+                   "complement": "false",
+                   "cover": "true"}
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] = "{}".format(loc)
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] = "{}".format(loc)
 
-    filterAttrib = {"xlink:type": "resource",
-                    "xlink:label": filterLabel}
-    prevTok = filterEltQname = None
-    for tok in toks:
-        if tok == "not":
-            arcAttrib["complement"] = "true"
-        elif tok == "covering":
-            arcAttrib["cover"] = "true"
-        elif tok == "non-covering":
-            arcAttrib["cover"] = "false"
-        elif filterEltQname is None:
-            if tok == "entity":
-                filterEltQname = "ef:specificIdentifier"
-            elif tok == "entity-scheme":
-                filterEltQname = "ef:specificScheme"
-            elif tok == "entity-scheme-pattern":
-                filterEltQname = "ef:regexpScheme"
-            elif tok == "entity-identifier-pattern":
-                filterEltQname = "ef:regexpIdentifier"
-        elif prevTok == "scheme" and isinstance(tok, XPathExpression):
-            filterAttrib["scheme"] = str(tok)
-        elif prevTok == "value" and isinstance(tok, XPathExpression):
-            filterAttrib["value"] = str(tok)
-        elif prevTok == "entity-scheme" and isinstance(tok, XPathExpression):
-            filterAttrib["scheme"] = str(tok)
-        elif prevTok in ("entity-scheme-pattern", "entity-identifier-pattern"):
-            filterAttrib["pattern"] = dequotedString(tok)
-        prevTok = tok
-    filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
-    return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
-            FormulaResourceElt(filterElt)]
+        filterAttrib = {"xlink:type": "resource",
+                        "xlink:label": filterLabel}
+        prevTok = filterEltQname = None
+        for tok in toks:
+            if tok == "not":
+                arcAttrib["complement"] = "true"
+            elif tok == "covering":
+                arcAttrib["cover"] = "true"
+            elif tok == "non-covering":
+                arcAttrib["cover"] = "false"
+            elif filterEltQname is None:
+                if tok == "entity":
+                    filterEltQname = "ef:specificIdentifier"
+                elif tok == "entity-scheme":
+                    filterEltQname = "ef:specificScheme"
+                elif tok == "entity-identifier":
+                    filterEltQname = "ef:identifier"
+                elif tok == "entity-scheme-pattern":
+                    filterEltQname = "ef:regexpScheme"
+                elif tok == "entity-identifier-pattern":
+                    filterEltQname = "ef:regexpIdentifier"
+            elif prevTok == "scheme" and isinstance(tok, XPathExpression):
+                filterAttrib["scheme"] = str(tok)
+            elif prevTok == "value" and isinstance(tok, XPathExpression):
+                filterAttrib["value"] = str(tok)
+            elif prevTok == "entity-scheme" and isinstance(tok, XPathExpression):
+                filterAttrib["scheme"] = str(tok)
+            elif prevTok == "entity-identifier" and isinstance(tok, XPathExpression):
+                filterAttrib["value"] = str(tok)
+            elif prevTok in ("entity-scheme-pattern", "entity-identifier-pattern"):
+                filterAttrib["pattern"] = dequotedString(tok)
+            prevTok = tok
+        filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
+        return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
+                FormulaResourceElt(filterElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileFactVariable( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    varLabel = "variable{}".format(lbGen.labelNbr("variable"))
-    attrib = {"xlink:type": "resource",
-              "xlink:label": varLabel,
-              "bindAsSequence": "false"}
-    prevTok = name = None
-    for tok in toks:
-        if prevTok is None:
-            name = tok[1:] # remove $ from variable name
-        elif tok == "as-sequence":
-            attrib["bindAsSequence"] = "true"
-        elif tok == "nils":
-            attrib["nils"] = "true"
-        elif tok == "matches":
-            attrib["matches"] = "true"
-        elif prevTok == "fallback":
-            attrib["fallbackValue"] = str(tok)
-        elif isinstance(tok, FormulaArc):
-            tok.attrib["xlink:from"] = varLabel
-            lbGen.subElement(lbGen.genLinkElement, tok.tag, tok.attrib)
-        prevTok = tok
-    fvElt = lbGen.element(
-             "variable:factVariable",
-             attrib=attrib)
-    fvFormulaResource = FormulaResourceElt(fvElt)
-    for tok in toks:
-        if isinstance(tok, FormulaResourceElt):
-            tok.elt.addprevious(fvElt)
-            fvElt = None
-            break
-    if fvElt is not None: # no filter to preceede
-        lbGen.genLinkElement.append(fvElt)
+    try:
+        varLabel = "variable{}".format(lbGen.labelNbr("variable"))
+        attrib = {"xlink:type": "resource",
+                  "xlink:label": varLabel,
+                  "bindAsSequence": "false"}
+        prevTok = name = None
+        for tok in toks:
+            if prevTok is None:
+                name = tok[1:] # remove $ from variable name
+            elif tok == "as-sequence":
+                attrib["bindAsSequence"] = "true"
+            elif tok == "nils":
+                attrib["nils"] = "true"
+            elif tok == "matches":
+                attrib["matches"] = "true"
+            elif prevTok == "fallback":
+                attrib["fallbackValue"] = str(tok)
+            elif isinstance(tok, FormulaArc):
+                tok.attrib["xlink:from"] = varLabel
+                lbGen.subElement(lbGen.genLinkElement, tok.tag, tok.attrib)
+            prevTok = tok
+        fvElt = lbGen.element(
+                 "variable:factVariable",
+                 attrib=attrib)
+        fvFormulaResource = FormulaResourceElt(fvElt)
+        for tok in toks:
+            if isinstance(tok, FormulaResourceElt):
+                tok.elt.addprevious(fvElt)
+                fvElt = None
+                break
+        if fvElt is not None: # no filter to preceede
+            lbGen.genLinkElement.append(fvElt)
 
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "variable-set",
-               "xlink:to": varLabel,
-               "name": lbGen.checkedQName(name)}
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "variable-set",
+                   "xlink:to": varLabel,
+                   "name": lbGen.checkedQName(name)}
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] = "{}".format(loc)
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] = "{}".format(loc)
 
-    return [FormulaArc("variable:variableArc", attrib=arcAttrib), fvFormulaResource]
+        return [FormulaArc("variable:variableArc", attrib=arcAttrib), fvFormulaResource]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileFilterDeclaration( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
@@ -733,397 +886,443 @@ def compileFilterReference( sourceStr, loc, toks ):
 
 def compileFormula( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    formulaLabel = "formula{}".format(lbGen.labelNbr("formula"))
-    attrib = {"xlink:type": "resource",
-              "xlink:label": formulaLabel,
-              "aspectModel": "dimensional",
-              "implicitFiltering": "true"}
-    prevTok = None
-    for tok in toks:
-        if prevTok is None:
-            attrib["id"] = tok
-        elif prevTok == "decimals":
-            attrib["decimals"] = str(tok)
-        elif prevTok == "precision":
-            attrib["precision"] = str(tok)
-        elif prevTok == "value":
-            attrib["value"] = str(tok)
-        elif prevTok == "source":
-            attrib["source"] = tok
-        #elif tok == "aspect-model-non-dimensional":
-        #    attrib["aspectModel"] = "non-dimensional"
-        elif tok == "no-implicit-filtering":
-            attrib["implicitFiltering"] = "false"
-        prevTok = tok
-    elt = lbGen.subElement(lbGen.genLinkElement, "formula:formula", attrib=attrib)
-    for tok in toks:
-        if isinstance(tok, FormulaResourceElt):
-            tok.elt.addprevious(elt)
-            break
-    for tok in toks:
-        if isinstance(tok, FormulaAspectElt):
-            elt.append(tok.elt)
-    for tok in toks:
-        if isinstance(tok, FormulaArc):
-            tag = tok.tag
-            attrib = tok.attrib.copy()
-            if tag == "variable:variableFilterArc":
-                tag = "variable:variableSetFilterArc"
-                if "cover" in attrib:
-                    del attrib["cover"] # no cover on variable set filter arc
-            attrib["xlink:from"] = formulaLabel
-            lbGen.subElement(lbGen.genLinkElement, tag, attrib)
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "consistency-assertion-formula",
-               "xlink:to": formulaLabel}
-
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] = "{}".format(loc)
-
-    return [FormulaArc("generic:arc", attrib=arcAttrib), FormulaResourceElt(elt)]
-
-
-def compileFunctionDeclaration( sourceStr, loc, toks ):
-    global lastLoc; lastLoc = loc
-    # first do function signature (may not have an implementation part
-    signatureAttrib = {"xlink:type": "resource",
-                       "name": lbGen.checkedQName(toks[0])}
-    hasImplementation = False
-    prevTok = None
-    for tok in toks:
-        if prevTok == "as":
-            signatureAttrib["output"] = tok
-        elif tok == "return":
-            hasImplementation = "true"
-            signatureLabel = "function{}".format(lbGen.labelNbr("function"))
-            signatureAttrib["xlink:label"] = signatureLabel
-        prevTok = tok
-    signatureElt = lbGen.subElement(lbGen.genLinkElement, "variable:function", attrib=signatureAttrib)
-    prevTok = None
-    for tok in toks:
-        if isinstance(tok, FunctionParameter):
-            lbGen.subElement(signatureElt, "variable:input", attrib={"type": tok.ptype})
-    # function implementation
-    if hasImplementation:
-        cfiLabel = "functionImplementation{}".format(lbGen.labelNbr("functionImplementation"))
-        lbGen.checkXmlns("cfi")
-        cfiElt = lbGen.subElement(lbGen.genLinkElement, "cfi:implementation", attrib={
-            "xlink:type": "resource",
-            "xlink:label": cfiLabel})
-        arcAttrib = {
-            "xlink:type": "arc",
-            "xlink:arcrole": "function-implementation",
-            "xlink:from": signatureLabel,
-            "xlink:to": cfiLabel
-        }
+    try:
+        formulaLabel = "formula{}".format(lbGen.labelNbr("formula"))
+        attrib = {"xlink:type": "resource",
+                  "xlink:label": formulaLabel,
+                  "aspectModel": "dimensional",
+                  "implicitFiltering": "true"}
+        prevTok = None
+        for tok in toks:
+            if prevTok is None:
+                attrib["id"] = tok
+            elif prevTok == "decimals":
+                attrib["decimals"] = str(tok)
+            elif prevTok == "precision":
+                attrib["precision"] = str(tok)
+            elif prevTok == "value":
+                attrib["value"] = str(tok)
+            elif prevTok == "source":
+                attrib["source"] = variableRefQname(tok)
+            #elif tok == "aspect-model-non-dimensional":
+            #    attrib["aspectModel"] = "non-dimensional"
+            elif tok == "no-implicit-filtering":
+                attrib["implicitFiltering"] = "false"
+            prevTok = tok
+        elt = lbGen.subElement(lbGen.genLinkElement, "formula:formula", attrib=attrib)
+        for tok in toks:
+            if isinstance(tok, FormulaResourceElt):
+                tok.elt.addprevious(elt)
+                break
+        for tok in toks:
+            if isinstance(tok, FormulaAspectElt):
+                elt.append(tok.elt)
+        for tok in toks:
+            if isinstance(tok, FormulaArc):
+                tag = tok.tag
+                attrib = tok.attrib.copy()
+                if tag == "variable:variableFilterArc":
+                    tag = "variable:variableSetFilterArc"
+                    if "cover" in attrib:
+                        del attrib["cover"] # no cover on variable set filter arc
+                attrib["xlink:from"] = formulaLabel
+                lbGen.subElement(lbGen.genLinkElement, tag, attrib)
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "consistency-assertion-formula",
+                   "xlink:to": formulaLabel}
 
         if not omitSourceLineAttributes:
             arcAttrib["xfs:sourceline"] = "{}".format(loc)
 
-        lbGen.subElement(lbGen.genLinkElement, "generic:arc", attrib= arcAttrib)
+        return [FormulaArc("generic:arc", attrib=arcAttrib), FormulaResourceElt(elt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
+
+
+def compileFunctionDeclaration( sourceStr, loc, toks ):
+    global lastLoc; lastLoc = loc
+    try:
+        # first do function signature (may not have an implementation part
+        signatureAttrib = {"xlink:type": "resource",
+                           "name": lbGen.checkedQName(toks[0])}
+        hasImplementation = False
+        prevTok = None
+        for tok in toks:
+            if prevTok == "as":
+                signatureAttrib["output"] = tok
+            elif tok == "return":
+                hasImplementation = "true"
+                signatureLabel = "function{}".format(lbGen.labelNbr("function"))
+                signatureAttrib["xlink:label"] = signatureLabel
+            prevTok = tok
+        signatureElt = lbGen.subElement(lbGen.genLinkElement, "variable:function", attrib=signatureAttrib)
         prevTok = None
         for tok in toks:
             if isinstance(tok, FunctionParameter):
-                lbGen.subElement(cfiElt, "cfi:input", attrib={"name": lbGen.checkedQName(tok.qname)})
-            elif isinstance(tok, FunctionStep):
-                lbGen.subElement(cfiElt, "cfi:step", attrib={"name": lbGen.checkedQName(tok.qname)}, text=str(tok.xpathExpression))
-            elif prevTok == "return":
-                lbGen.subElement(cfiElt, "cfi:output", attrib={}, text=str(tok))
-            prevTok = tok
-    return []
+                lbGen.subElement(signatureElt, "variable:input", attrib={"type": tok.ptype})
+        # function implementation
+        if hasImplementation:
+            cfiLabel = "functionImplementation{}".format(lbGen.labelNbr("functionImplementation"))
+            lbGen.checkXmlns("cfi")
+            cfiElt = lbGen.subElement(lbGen.genLinkElement, "cfi:implementation", attrib={
+                "xlink:type": "resource",
+                "xlink:label": cfiLabel})
+            arcAttrib = {
+                "xlink:type": "arc",
+                "xlink:arcrole": "function-implementation",
+                "xlink:from": signatureLabel,
+                "xlink:to": cfiLabel
+            }
+
+            if not omitSourceLineAttributes:
+                arcAttrib["xfs:sourceline"] = "{}".format(loc)
+
+            lbGen.subElement(lbGen.genLinkElement, "generic:arc", attrib= arcAttrib)
+            prevTok = None
+            for tok in toks:
+                if isinstance(tok, FunctionParameter):
+                    lbGen.subElement(cfiElt, "cfi:input", attrib={"name": lbGen.checkedQName(tok.qname)})
+                elif isinstance(tok, FunctionStep):
+                    lbGen.subElement(cfiElt, "cfi:step", attrib={"name": lbGen.checkedQName(tok.qname)}, text=str(tok.xpathExpression))
+                elif prevTok == "return":
+                    lbGen.subElement(cfiElt, "cfi:output", attrib={}, text=str(tok))
+                prevTok = tok
+        return []
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileFunctionParameter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    return [FunctionParameter(toks[0], toks[1])]
+    try:
+        return [FunctionParameter(toks[0], toks[1])]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileFunctionStep( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    return [FunctionStep(toks[0], toks[1])]
+    try:
+        return [FunctionStep(toks[0], toks[1])]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileGeneralFilter( sourceStr, loc, toks ):
-    filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "variable-filter",
-               "xlink:to": filterLabel,
-               "complement": "false",
-               "cover": "true"}
+    global lastLoc; lastLoc = loc
+    try:
+        filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "variable-filter",
+                   "xlink:to": filterLabel,
+                   "complement": "false",
+                   "cover": "true"}
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] =  "{}".format(loc)
 
-    filterAttrib = {"xlink:type": "resource",
-                    "xlink:label": filterLabel}
-    prevTok = filterEltQname = None
-    for tok in toks:
-        if tok == "not":
-            arcAttrib["complement"] = "true"
-        elif prevTok == "general" and isinstance(tok, XPathExpression):
-            filterAttrib["test"] = str(tok)
-        prevTok = tok
-    filterElt = lbGen.subElement(lbGen.genLinkElement, "gf:general", attrib=filterAttrib)
-    return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
-            FormulaResourceElt(filterElt)]
+        filterAttrib = {"xlink:type": "resource",
+                        "xlink:label": filterLabel}
+        prevTok = filterEltQname = None
+        for tok in toks:
+            if tok == "not":
+                arcAttrib["complement"] = "true"
+            elif prevTok == "general" and isinstance(tok, XPathExpression):
+                filterAttrib["test"] = str(tok)
+            prevTok = tok
+        filterElt = lbGen.subElement(lbGen.genLinkElement, "gf:general", attrib=filterAttrib)
+        return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
+                FormulaResourceElt(filterElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileGeneralVariable( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    varLabel = "variable{}".format(lbGen.labelNbr("variable"))
-    attrib = {"xlink:type": "resource",
-              "xlink:label": varLabel,
-              "bindAsSequence": "false"}
-    prevTok = name = None
-    for tok in toks:
-        if prevTok is None:
-            name = tok[1:] # remove $ from variable name
-        elif tok == "as-sequence":
-            attrib["bindAsSequence"] = "true"
-        elif prevTok == "select":
-            attrib["select"] = str(tok)
-        prevTok = tok
-    gvElt = lbGen.element(
-             "variable:generalVariable",
-             attrib=attrib)
-    gvFormulaResource = FormulaResourceElt(gvElt)
-    for tok in toks:
-        if isinstance(tok, FormulaResourceElt):
-            tok.elt.addprevious(gvElt)
-            gvElt = None
-            break
-    if gvElt is not None: # no filter to preceede
-        lbGen.genLinkElement.append(gvElt)
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "variable-set",
-               "xlink:to": varLabel,
-               "name": lbGen.checkedQName(name)}
+    try:
+        varLabel = "variable{}".format(lbGen.labelNbr("variable"))
+        attrib = {"xlink:type": "resource",
+                  "xlink:label": varLabel,
+                  "bindAsSequence": "false"}
+        prevTok = name = None
+        for tok in toks:
+            if prevTok is None:
+                name = tok[1:] # remove $ from variable name
+            elif tok == "as-sequence":
+                attrib["bindAsSequence"] = "true"
+            elif prevTok == "select":
+                attrib["select"] = str(tok)
+            prevTok = tok
+        gvElt = lbGen.element(
+                 "variable:generalVariable",
+                 attrib=attrib)
+        gvFormulaResource = FormulaResourceElt(gvElt)
+        for tok in toks:
+            if isinstance(tok, FormulaResourceElt):
+                tok.elt.addprevious(gvElt)
+                gvElt = None
+                break
+        if gvElt is not None: # no filter to preceede
+            lbGen.genLinkElement.append(gvElt)
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "variable-set",
+                   "xlink:to": varLabel,
+                   "name": lbGen.checkedQName(name)}
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] =  "{}".format(loc)
 
-    return [FormulaArc("variable:variableArc", attrib=arcAttrib), gvFormulaResource]
+        return [FormulaArc("variable:variableArc", attrib=arcAttrib), gvFormulaResource]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileLabel( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    prevTok = langTok = None
-    msgRole = XbrlConst.standardMessage
-    for tok in toks:
-        if tok.startswith("(") and tok.endswith(")"):
-            langTok = tok[1:-1]
-        elif tok in ("standard", "terse", "verbose"):
-            msgRole = {
-                "standard": XbrlConst.standardMessage,
-                "terse": XbrlConst.terseMessage,
-                "verbose": XbrlConst.verboseMessage}[tok]
-        else:
-            if prevTok == "label":
-                labelType = "label"
-                arcrole = "element-label"
-                role = XbrlConst.genStandardLabel
-                labelElt = "generic:label"
-                label = tok
-            elif prevTok == "satisfied-message":
-                labelType = "message"
-                arcrole = "assertion-satisfied-message"
-                role = msgRole
-                labelElt = "msg:message"
-                label = tok
-                lbGen.checkXmlns("msg")
-            elif prevTok == "unsatisfied-message":
-                labelType = "message"
-                arcrole = "assertion-unsatisfied-message"
-                role = msgRole
-                labelElt = "msg:message"
-                label = tok
-                lbGen.checkXmlns("msg")
-            # Don't set prevTok if it was a language or role
-            prevTok = tok
-    labelLabel = "{}{}".format(labelType, lbGen.labelNbr(labelType))
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": arcrole,
-               "xlink:to": labelLabel}
+    try:
+        prevTok = langTok = None
+        msgRole = XbrlConst.standardMessage
+        for tok in toks:
+            if tok.startswith("(") and tok.endswith(")"):
+                langTok = tok[1:-1]
+            elif tok in ("standard", "terse", "verbose"):
+                msgRole = {
+                    "standard": XbrlConst.standardMessage,
+                    "terse": XbrlConst.terseMessage,
+                    "verbose": XbrlConst.verboseMessage}[tok]
+            else:
+                if prevTok == "label":
+                    labelType = "label"
+                    arcrole = "element-label"
+                    role = XbrlConst.genStandardLabel
+                    labelElt = "generic:label"
+                    label = tok
+                elif prevTok == "satisfied-message":
+                    labelType = "message"
+                    arcrole = "assertion-satisfied-message"
+                    role = msgRole
+                    labelElt = "msg:message"
+                    label = tok
+                    lbGen.checkXmlns("msg")
+                elif prevTok == "unsatisfied-message":
+                    labelType = "message"
+                    arcrole = "assertion-unsatisfied-message"
+                    role = msgRole
+                    labelElt = "msg:message"
+                    label = tok
+                    lbGen.checkXmlns("msg")
+                # Don't set prevTok if it was a language or role
+                prevTok = tok
+        labelLabel = "{}{}".format(labelType, lbGen.labelNbr(labelType))
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": arcrole,
+                   "xlink:to": labelLabel}
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] =  "{}".format(loc)
 
-    labelAttrib = {"xlink:type": "resource",
-                   "xlink:role": role,
-                   "xlink:label": labelLabel,
-                   "xml:lang": langTok or "en"}
-    labelElt = lbGen.subElement(lbGen.genLinkElement, labelElt, attrib=labelAttrib, text=label)
-    return [FormulaArc("generic:arc", attrib=arcAttrib),
-            FormulaResourceElt(labelElt)]
+        labelAttrib = {"xlink:type": "resource",
+                       "xlink:role": role,
+                       "xlink:label": labelLabel,
+                       "xml:lang": langTok or "en"}
+        labelElt = lbGen.subElement(lbGen.genLinkElement, labelElt, attrib=labelAttrib, text=label)
+        return [FormulaArc("generic:arc", attrib=arcAttrib),
+                FormulaResourceElt(labelElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileMatchFilter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "variable-filter",
-               "xlink:to": filterLabel,
-               "complement": "false",
-               "cover": "true"}
+    try:
+        filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "variable-filter",
+                   "xlink:to": filterLabel,
+                   "complement": "false",
+                   "cover": "true"}
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] =  "{}".format(loc)
 
-    filterAttrib = {"xlink:type": "resource",
-                    "xlink:label": filterLabel}
-    prevTok = filterEltQname = None
-    isMatchDimension = False
-    for tok in toks:
-        if tok == "not":
-            arcAttrib["complement"] = "true"
-        elif tok == "covering":
-            arcAttrib["cover"] = "true"
-        elif tok == "non-covering":
-            arcAttrib["cover"] = "false"
-        elif filterEltQname is None:
-            if tok == "match-concept":
-                filterEltQname = "mf:matchConcept"
-            #elif tok == "match-location":
-            #    filterEltQname = "mf:matchLocation"
-            elif tok == "match-entity-identifier":
-                filterEltQname = "mf:matchEntityIdentifier"
-            elif tok == "match-period":
-                filterEltQname = "mf:matchPeriod"
-            elif tok == "match-unit":
-                filterEltQname = "mf:matchUnit"
-            elif tok == "match-dimension":
-                filterEltQname = "mf:matchDimension"
-                isMatchDimension = True
-        elif filterEltQname is not None and "variable" not in filterAttrib:
-            filterAttrib["variable"] = tok[1:] # remove $ from variable name
-        elif isMatchDimension and prevTok == "dimension":
-            filterAttrib["dimension"] = lbGen.checkedQName(tok) # must be a qname in nsmap (not a local name)
-        elif tok == "match-any":
-            filterAttrib["matchAny"] = "true"
-        prevTok = tok
-    filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
-    return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
-            FormulaResourceElt(filterElt)]
+        filterAttrib = {"xlink:type": "resource",
+                        "xlink:label": filterLabel}
+        prevTok = filterEltQname = None
+        isMatchDimension = False
+        for tok in toks:
+            if tok == "not":
+                arcAttrib["complement"] = "true"
+            elif tok == "covering":
+                arcAttrib["cover"] = "true"
+            elif tok == "non-covering":
+                arcAttrib["cover"] = "false"
+            elif filterEltQname is None:
+                if tok == "match-concept":
+                    filterEltQname = "mf:matchConcept"
+                #elif tok == "match-location":
+                #    filterEltQname = "mf:matchLocation"
+                elif tok == "match-entity-identifier":
+                    filterEltQname = "mf:matchEntityIdentifier"
+                elif tok == "match-period":
+                    filterEltQname = "mf:matchPeriod"
+                elif tok == "match-unit":
+                    filterEltQname = "mf:matchUnit"
+                elif tok == "match-dimension":
+                    filterEltQname = "mf:matchDimension"
+                    isMatchDimension = True
+            elif filterEltQname is not None and "variable" not in filterAttrib:
+                filterAttrib["variable"] = tok[1:] # remove $ from variable name
+            elif isMatchDimension and prevTok == "dimension":
+                filterAttrib["dimension"] = lbGen.checkedQName(tok) # must be a qname in nsmap (not a local name)
+            elif tok == "match-any":
+                filterAttrib["matchAny"] = "true"
+            prevTok = tok
+        filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
+        return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
+                FormulaResourceElt(filterElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileVersionDeclaration( sourceStr, loc, toks ):
-    if toks[1] != "1.0":
-        raise Exception(f"XF version must be 1.0, source file specified.  Unsupported version {toks[1]}")
-    return []
+    global lastLoc, xfVersion; lastLoc = loc
+    try:
+        xfVersion = toks[0]
+        if toks[0] not in XF_VERSIONS_SUPPORTED:
+            raise Exception(f"xf-version {toks[1]} is not supported. Supported versions: {', '.join()}.")
+        return []
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileNamespaceDeclaration( sourceStr, loc, toks ):
-    lbGen.checkXmlns(dequotedString(toks[0]), dequotedString(toks[1]))
-    return []
+    global lastLoc; lastLoc = loc
+    try:
+        lbGen.checkXmlns(dequotedString(toks[0]), dequotedString(toks[1]))
+        return []
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compilePackageDeclaration( sourceStr, loc, toks ):
     return []
 
 def compileParameterDeclaration( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    name = toks[0]
-    generalVarLabel = cleanedName(name)
-    lbGen.params[name] = generalVarLabel
-    attrib = {"xlink:type": "resource",
-              "xlink:label": generalVarLabel,
-              "name": lbGen.checkedQName(name)}
-    prevTok = None
-    for tok in toks:
-        if tok == "required":
-            attrib["required"] = "true"
-        elif prevTok == "select":
-            attrib["select"] = str(tok)
-        elif prevTok == "as":
-            attrib["as"] = tok
-        prevTok = tok
-    paramElt = lbGen.subElement(lbGen.genLinkElement,
-             "variable:parameter",
-             attrib=attrib)
-    return []
+    try:
+        name = toks[0]
+        generalVarLabel = cleanedName(name)
+        lbGen.params[name] = generalVarLabel
+        attrib = {"xlink:type": "resource",
+                  "xlink:label": generalVarLabel,
+                  "name": lbGen.checkedQName(name)}
+        prevTok = None
+        for tok in toks:
+            if tok == "required":
+                attrib["required"] = "true"
+            elif prevTok == "select":
+                attrib["select"] = str(tok)
+            elif prevTok == "as":
+                attrib["as"] = tok
+            prevTok = tok
+        paramElt = lbGen.subElement(lbGen.genLinkElement,
+                 "variable:parameter",
+                 attrib=attrib)
+        return []
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileParameterReference( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    arcAttrib={
-            "xlink:type": "arc",
-            "xlink:arcrole": "variable-set",
-            "xlink:to": lbGen.params[toks[1]],
-            "name": lbGen.checkedQName(toks[0])}
+    try:
+        arcAttrib={
+                "xlink:type": "arc",
+                "xlink:arcrole": "variable-set",
+                "xlink:to": lbGen.params[toks[1]],
+                "name": lbGen.checkedQName(toks[0])}
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] =  "{}".format(loc)
 
-    return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib)]
+        return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 dateTimePattern = re.compile("([0-9]{4})-([0-9]{2})-([0-9]{2})[T ]([0-9]{2}):([0-9]{2}):([0-9]{2})")
 dateOnlyPattern = re.compile("([0-9]{4})-([0-9]{2})-([0-9]{2})")
 
 def compilePeriodFilter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "variable-filter",
-               "xlink:to": filterLabel,
-               "complement": "false",
-               "cover": "true"}
+    try:
+        filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "variable-filter",
+                   "xlink:to": filterLabel,
+                   "complement": "false",
+                   "cover": "true"}
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] =  "{}".format(loc)
 
-    filterAttrib = {"xlink:type": "resource",
-                    "xlink:label": filterLabel}
-    prevTok = filterEltQname = None
-    isPeriod = isPeriodDateTime = isInstantDuration = False
-    for tok in toks:
-        if tok == "not":
-            arcAttrib["complement"] = "true"
-        elif tok == "covering":
-            arcAttrib["cover"] = "true"
-        elif tok == "non-covering":
-            arcAttrib["cover"] = "false"
-        elif filterEltQname is None:
-            if tok == "period":
-                isPeriod = True
-                filterEltQname = "pf:period"
-            elif tok == "period-start":
-                isPeriodDateTime = True
-                filterEltQname = "pf:periodStart"
-            elif tok == "period-end":
-                isPeriodDateTime = True
-                filterEltQname = "pf:periodEnd"
-            elif tok == "period-instant":
-                isPeriodDateTime = True
-                filterEltQname = "pf:periodInstant"
-            elif tok == "instant-duration":
-                isInstantDuration = True
-                filterEltQname = "pf:instantDuration"
-        elif prevTok == "period" and isinstance(tok, XPathExpression):
-            filterAttrib["test"] = str(tok)
-        elif isPeriodDateTime:
-            if prevTok == "date" and isinstance(tok, XPathExpression):
-                filterAttrib["date"] = str(tok)
-            elif prevTok == "time" and isinstance(tok, XPathExpression):
-                filterAttrib["time"] = str(tok)
-            # elif dateTimePattern.match(tok):
-            # elif dateOnlyPattern.match(tok):
-        elif isInstantDuration and tok in ("start", "end"):
-            filterAttrib["boundary"] = tok
-        elif isInstantDuration and prevTok in ("start", "end"):
-            filterAttrib["variable"] = tok[1:] # remove $ from variable name
-        prevTok = tok
-    filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
-    return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
-            FormulaResourceElt(filterElt)]
+        filterAttrib = {"xlink:type": "resource",
+                        "xlink:label": filterLabel}
+        prevTok = filterEltQname = None
+        isPeriod = isPeriodDateTime = isInstantDuration = False
+        for tok in toks:
+            if tok == "not":
+                arcAttrib["complement"] = "true"
+            elif tok == "covering":
+                arcAttrib["cover"] = "true"
+            elif tok == "non-covering":
+                arcAttrib["cover"] = "false"
+            elif filterEltQname is None:
+                if tok == "period":
+                    isPeriod = True
+                    filterEltQname = "pf:period"
+                elif tok == "period-start":
+                    isPeriodDateTime = True
+                    filterEltQname = "pf:periodStart"
+                elif tok == "period-end":
+                    isPeriodDateTime = True
+                    filterEltQname = "pf:periodEnd"
+                elif tok == "period-instant":
+                    isPeriodDateTime = True
+                    filterEltQname = "pf:periodInstant"
+                elif tok == "instant-duration":
+                    isInstantDuration = True
+                    filterEltQname = "pf:instantDuration"
+            elif prevTok == "period" and isinstance(tok, XPathExpression):
+                filterAttrib["test"] = str(tok)
+            elif isPeriodDateTime:
+                if prevTok == "date" and isinstance(tok, XPathExpression):
+                    filterAttrib["date"] = str(tok)
+                elif prevTok == "time" and isinstance(tok, XPathExpression):
+                    filterAttrib["time"] = str(tok)
+                # elif dateTimePattern.match(tok):
+                # elif dateOnlyPattern.match(tok):
+            elif isInstantDuration and tok in ("start", "end"):
+                filterAttrib["boundary"] = tok
+            elif isInstantDuration and prevTok in ("start", "end"):
+                filterAttrib["variable"] = tok[1:] # remove $ from variable name
+            prevTok = tok
+        filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
+        return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
+                FormulaResourceElt(filterElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compilePrecondition( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    precondLabel = "precondition{}".format(lbGen.labelNbr("precondition"))
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "variable-set-precondition",
-               "xlink:to": precondLabel}
+    try:
+        precondLabel = "precondition{}".format(lbGen.labelNbr("precondition"))
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "variable-set-precondition",
+                   "xlink:to": precondLabel}
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] =  "{}".format(loc)
 
-    precondAttrib = {"xlink:type": "resource",
-                    "xlink:label": precondLabel}
-    for tok in toks:
-        if isinstance(tok, XPathExpression):
-            precondAttrib["test"] = str(tok)
-    precondElt = lbGen.subElement(lbGen.genLinkElement, "variable:precondition", attrib=precondAttrib)
-    return [FormulaArc("generic:arc", attrib=arcAttrib),
-            FormulaResourceElt(precondElt)]
+        precondAttrib = {"xlink:type": "resource",
+                        "xlink:label": precondLabel}
+        for tok in toks:
+            if isinstance(tok, XPathExpression):
+                precondAttrib["test"] = str(tok)
+        precondElt = lbGen.subElement(lbGen.genLinkElement, "variable:precondition", attrib=precondAttrib)
+        return [FormulaArc("generic:arc", attrib=arcAttrib),
+                FormulaResourceElt(precondElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compilePreconditionDeclaration( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
@@ -1131,150 +1330,189 @@ def compilePreconditionDeclaration( sourceStr, loc, toks ):
 
 def compileRelativeFilter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "variable-filter",
-               "xlink:to": filterLabel,
-               "complement": "false",
-               "cover": "true"}
+    try:
+        filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "variable-filter",
+                   "xlink:to": filterLabel,
+                   "complement": "false",
+                   "cover": "true"}
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] =  "{}".format(loc)
 
-    filterAttrib = {"xlink:type": "resource",
-                    "xlink:label": filterLabel}
-    prevTok = None
-    for tok in toks:
-        if tok == "not":
-            arcAttrib["complement"] = "true"
-        elif tok == "covering":
-            arcAttrib["cover"] = "true"
-        elif tok == "non-covering":
-            arcAttrib["cover"] = "false"
-        elif prevTok == "relative":
-            filterAttrib["variable"] = tok[1:] # remove $ from variable name
-        prevTok = tok
-    filterElt = lbGen.subElement(lbGen.genLinkElement, "rf:relativeFilter", attrib=filterAttrib)
-    return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
-            FormulaResourceElt(filterElt)]
+        filterAttrib = {"xlink:type": "resource",
+                        "xlink:label": filterLabel}
+        prevTok = None
+        for tok in toks:
+            if tok == "not":
+                arcAttrib["complement"] = "true"
+            elif tok == "covering":
+                arcAttrib["cover"] = "true"
+            elif tok == "non-covering":
+                arcAttrib["cover"] = "false"
+            elif prevTok == "relative":
+                filterAttrib["variable"] = tok[1:] # remove $ from variable name
+            prevTok = tok
+        filterElt = lbGen.subElement(lbGen.genLinkElement, "rf:relativeFilter", attrib=filterAttrib)
+        return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
+                FormulaResourceElt(filterElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileSeverity( sourceStr, loc, toks ):
-    return []
+    global lastLoc; lastLoc = loc
+    try:
+        # determine of dynamic or static severity
+        for tok in toks:
+            if isinstance(tok, XPathExpression):
+                sevLabel = "sevExpr{}".format(lbGen.labelNbr("sevExpr"))
+                sevExprAttrib = {"xlink:type": "resource",
+                                 "xlink:label": sevLabel,
+                                 "severity": str(tok)}
+                lbGen.checkXmlns("sev")
+                sevElt = lbGen.subElement(lbGen.genLinkElement, "sev:expression", attrib=sevExprAttrib)
+            else:
+                sevLabel = "loc{}".format(lbGen.labelNbr("loc"))
+                locAttrib = {"xlink:type": "locator",
+                                 "xlink:label": sevLabel,
+                                 "xlink:href": "http://www.xbrl.org/2022/severities.xml#" + str(tok)}
+                sevElt = lbGen.subElement(lbGen.genLinkElement, "link:loc", attrib=locAttrib)
+
+            arcAttrib={"xlink:type": "arc",
+                       "xlink:arcrole": "assertion-unsatisfied-severity",
+                       "xlink:to": sevLabel}
+
+            if not omitSourceLineAttributes:
+                arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+
+            return [FormulaArc("generic:arc", attrib=arcAttrib),
+                    FormulaResourceElt(sevElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 ''' not supported by OIM
 def compileTupleFilter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "variable-filter",
-               "xlink:to": filterLabel,
-               "complement": "false",
-               "cover": "true"}
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
-    filterAttrib = {"xlink:type": "resource",
-                    "xlink:label": filterLabel}
-    prevTok = None
-    for tok in toks:
-        if tok == "not":
-            arcAttrib["complement"] = "true"
-        elif tok == "covering":
-            arcAttrib["cover"] = "true"
-        elif tok == "non-covering":
-            arcAttrib["cover"] = "false"
-        elif prevTok == "parent":
-            filterEltQname = "tf:parentFilter"
-            tupleRelationTok = tok
-        elif prevTok == "ancestor":
-            filterEltQname = "tf:ancestorFilter"
-            tupleRelationTok = tok
-        elif prevTok == "sibling":
-            filterEltQname = "tf:siblingFilter"
-            filterAttrib["variable"] = tok[1:] # remove $ from variable name
-        prevTok = tok
-    filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
-    if filterEltQname in ("tf:parentFilter", "tf:ancestorFilter"):
-        relationElt = lbGen.subElement(filterElt, filterEltQname[:-6])
-        if isinstance(tupleRelationTok, XPathExpression):
-            lbGen.subElement(relationElt, "tf:qnameExpression", text=str(tupleRelationTok))
-        else:
-            lbGen.subElement(relationElt, "tf:qname", text=lbGen.checkedQName(tupleRelationTok))
-    return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
-            FormulaResourceElt(filterElt)]
+    try:
+        filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "variable-filter",
+                   "xlink:to": filterLabel,
+                   "complement": "false",
+                   "cover": "true"}
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+        filterAttrib = {"xlink:type": "resource",
+                        "xlink:label": filterLabel}
+        prevTok = None
+        for tok in toks:
+            if tok == "not":
+                arcAttrib["complement"] = "true"
+            elif tok == "covering":
+                arcAttrib["cover"] = "true"
+            elif tok == "non-covering":
+                arcAttrib["cover"] = "false"
+            elif prevTok == "parent":
+                filterEltQname = "tf:parentFilter"
+                tupleRelationTok = tok
+            elif prevTok == "ancestor":
+                filterEltQname = "tf:ancestorFilter"
+                tupleRelationTok = tok
+            elif prevTok == "sibling":
+                filterEltQname = "tf:siblingFilter"
+                filterAttrib["variable"] = tok[1:] # remove $ from variable name
+            prevTok = tok
+        filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
+        if filterEltQname in ("tf:parentFilter", "tf:ancestorFilter"):
+            relationElt = lbGen.subElement(filterElt, filterEltQname[:-6])
+            if isinstance(tupleRelationTok, XPathExpression):
+                lbGen.subElement(relationElt, "tf:qnameExpression", text=str(tupleRelationTok))
+            else:
+                lbGen.subElement(relationElt, "tf:qname", text=lbGen.checkedQName(tupleRelationTok))
+        return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
+                FormulaResourceElt(filterElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 '''
 
 def compileUnitFilter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "variable-filter",
-               "xlink:to": filterLabel,
-               "complement": "false",
-               "cover": "true"}
+    try:
+        filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "variable-filter",
+                   "xlink:to": filterLabel,
+                   "complement": "false",
+                   "cover": "true"}
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] =  "{}".format(loc)
 
-    filterAttrib = {"xlink:type": "resource",
-                    "xlink:label": filterLabel}
-    prevTok = None
-    for tok in toks:
-        if tok == "not":
-            arcAttrib["complement"] = "true"
-        elif tok == "covering":
-            arcAttrib["cover"] = "true"
-        elif tok == "non-covering":
-            arcAttrib["cover"] = "false"
-        elif prevTok == "unit-general-measures" and isinstance(tok, XPathExpression):
-            filterEltQname = "uf:generalMeasures"
-            singleMeasureTok = tok
-            filterAttrib["test"] = str(tok)
-        elif prevTok == "unit-single-measure" and isinstance(tok, XPathExpression):
-            filterEltQname = "uf:singleMeasure"
-            singleMeasureTok = tok
-        elif prevTok == "unit-single-measure" and isinstance(tok, string):
-            filterEltQname = "uf:singleMeasure"
-            singleMeasureTok = tok
-        prevTok = tok
-    filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
-    if filterEltQname == "uf:singleMeasure":
-        measureElt = lbGen.subElement(filterElt, "uf:measure")
-        if isinstance(singleMeasureTok, XPathExpression):
-            lbGen.subElement(measureElt, "uf:qnameExpression", text=str(singleMeasureTok))
-        else:
-            lbGen.subElement(measureElt, "uf:qname", text=lbGen.checkedQName(singleMeasureTok))
-    return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
-            FormulaResourceElt(filterElt)]
-
+        filterAttrib = {"xlink:type": "resource",
+                        "xlink:label": filterLabel}
+        prevTok = None
+        for tok in toks:
+            if tok == "not":
+                arcAttrib["complement"] = "true"
+            elif tok == "covering":
+                arcAttrib["cover"] = "true"
+            elif tok == "non-covering":
+                arcAttrib["cover"] = "false"
+            elif prevTok == "unit-general-measures" and isinstance(tok, XPathExpression):
+                filterEltQname = "uf:generalMeasures"
+                singleMeasureTok = tok
+                filterAttrib["test"] = str(tok)
+            elif prevTok == "unit-single-measure" and isinstance(tok, XPathExpression):
+                filterEltQname = "uf:singleMeasure"
+                singleMeasureTok = tok
+            elif prevTok == "unit-single-measure" and isinstance(tok, string):
+                filterEltQname = "uf:singleMeasure"
+                singleMeasureTok = tok
+            prevTok = tok
+        filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
+        if filterEltQname == "uf:singleMeasure":
+            measureElt = lbGen.subElement(filterElt, "uf:measure")
+            if isinstance(singleMeasureTok, XPathExpression):
+                lbGen.subElement(measureElt, "uf:qnameExpression", text=str(singleMeasureTok))
+            else:
+                lbGen.subElement(measureElt, "uf:qname", text=lbGen.checkedQName(singleMeasureTok))
+        return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
+                FormulaResourceElt(filterElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileValueFilter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
-    arcAttrib={"xlink:type": "arc",
-               "xlink:arcrole": "variable-filter",
-               "xlink:to": filterLabel,
-               "complement": "false",
-               "cover": "true"}
+    try:
+        filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
+        arcAttrib={"xlink:type": "arc",
+                   "xlink:arcrole": "variable-filter",
+                   "xlink:to": filterLabel,
+                   "complement": "false",
+                   "cover": "true"}
 
-    if not omitSourceLineAttributes:
-        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] =  "{}".format(loc)
 
-    filterAttrib = {"xlink:type": "resource",
-                    "xlink:label": filterLabel}
-    prevTok = None
-    for tok in toks:
-        if tok == "not":
-            arcAttrib["complement"] = "true"
-        elif tok == "covering":
-            arcAttrib["cover"] = "true"
-        elif tok == "non-covering":
-            arcAttrib["cover"] = "false"
-        elif prevTok == "nilled":
-            filterEltQname = "vf:nil"
-        prevTok = tok
-    filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
-    return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
-            FormulaResourceElt(filterElt)]
+        filterAttrib = {"xlink:type": "resource",
+                        "xlink:label": filterLabel}
+        prevTok = None
+        for tok in toks:
+            if tok == "not":
+                arcAttrib["complement"] = "true"
+            elif tok == "covering":
+                arcAttrib["cover"] = "true"
+            elif tok == "non-covering":
+                arcAttrib["cover"] = "false"
+            elif prevTok == "nilled":
+                filterEltQname = "vf:nil"
+            prevTok = tok
+        filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
+        return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
+                FormulaResourceElt(filterElt)]
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileVariableAssignment( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
@@ -1286,7 +1524,10 @@ def compileVariableReference( sourceStr, loc, toks ):
 
 def compileXPathExpression( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    return XPathExpression(toks)
+    try:
+        return XPathExpression(toks)
+    except Exception as ex:
+        raiseCompilationError(ex)
 
 def compileXfsGrammar( cntlr, debugParsing ):
     global isGrammarCompiled, xfsProg, lineno, line, col
@@ -1353,7 +1594,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
     decimalLiteral =  ( Combine( integerLiteral + decimalPoint + Opt(digits) ) |
                         decimalFractionLiteral )
     numberLiteral = (decimalLiteral | floatLiteral | integerLiteral)
-    versionLiteral = Combine( digits + ZeroOrMore( decimalPoint + digits) )
+    versionString = (QuotedString('"',escChar='\\') | QuotedString("'",escChar="\\"))
 
     xPathFunctionCall = Combine(qName + Literal("("))
 
@@ -1369,12 +1610,15 @@ def compileXfsGrammar( cntlr, debugParsing ):
                        Suppress(Literal("}"))).setParseAction(compileXPathExpression)
     separator = Suppress( Literal(";") )
 
-    versionDeclaration = (Suppress(Keyword("version")) + versionLiteral + separator
+    versionDeclaration = (Suppress(Keyword("xf-version")) + versionString + separator
                             ).setParseAction(compileVersionDeclaration).ignore(xfsComment)
     namespaceDeclaration = (Suppress(Keyword("namespace")) + ncName + Suppress(Literal("=")) + quoted_string + separator
                             ).setParseAction(compileNamespaceDeclaration).ignore(xfsComment)
-    defaultDeclaration = (Suppress(Keyword("unsatisfied-severity") | Keyword("default-language")) + ncName + separator
-                         ).setParseAction(compileDefaults).ignore(xfsComment)
+    severity = ( Suppress(Keyword("severity")) + ( messageSeverity | xpathExpression ) + separator ).setParseAction(compileSeverity).ignore(xfsComment).setDebug(debugParsing)
+
+    defaults = ( (Keyword("default-language") + ncName + separator |
+                  Keyword("unsatisfied-severity")  + ( messageSeverity | xpathExpression ) + separator )
+                            ).setParseAction(compileDefaults).ignore(xfsComment).setDebug(debugParsing)
 
     parameterDeclaration = (Suppress(Keyword("parameter")) + qName  +
                             Suppress(Literal("{")) +
@@ -1405,38 +1649,41 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
     packageDeclaration = (Suppress(Keyword("package")) + ncName + separator ).setParseAction(compilePackageDeclaration).ignore(xfsComment)
 
-    severity = ( Suppress(Keyword("unsatisfied-severity")) + ( ncName ) + separator ).setParseAction(compileSeverity).ignore(xfsComment)
-
     label = ( (Keyword("label") |
                ( (Keyword("unsatisfied-message") | Keyword("satisfied-message") ) +
                   Opt( Keyword("standard") | Keyword("verbose") | Keyword("terse") ) ) ) +
               Opt( Combine(Literal("(") + Regex("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*") + Literal(")")) ) +
-              (QuotedString('"',multiline=True,escQuote='""') | QuotedString("'",multiline=True,escQuote="''")) +
+              (QuotedString('"',multiline=True,escChar="\\") | QuotedString("'",multiline=True,escChar="\\")) +
               separator).setParseAction(compileLabel).ignore(xfsComment)
 
-    aspectRuleConcept = ( Suppress(Keyword("concept")) + (qName | xpathExpression) + separator
+    aspectRuleConcept = ( Suppress(Keyword("concept")) +
+                          Opt( Keyword("source") + variableRef ) +
+                          Opt( qName | xpathExpression ) + separator
                         ).setParseAction(compileAspectRuleConcept).ignore(xfsComment)
 
     aspectRuleEntityIdentifier = (Suppress(Keyword("entity-identifier")) +
-                                  Opt( Keyword("scheme") + xpathExpression) +
+                                  Opt( Keyword("source") + variableRef ) +
+                                  Opt( Keyword("scheme") + xpathExpression )  +
                                   Opt( Keyword("identifier") + xpathExpression) + separator
                         ).setParseAction(compileAspectRuleEntityIdentifier).ignore(xfsComment)
 
     aspectRulePeriod = (Suppress(Keyword("period")) +
-                        ( Keyword("forever") |
-                          Keyword("instant") +  xpathExpression |
-                          Keyword("duration") +
+                        Opt( Keyword("source") + variableRef ) +
+                        Opt( Keyword("forever") |
+                             Keyword("instant") +  xpathExpression |
+                             Keyword("duration") +
                                   Opt( Keyword("start") + xpathExpression) +
                                   Opt( Keyword("end") + xpathExpression) ) + separator
                         ).setParseAction(compileAspectRulePeriod).ignore(xfsComment)
 
     aspectRuleUnitTerm = ((Keyword("multiply-by") | Keyword("divide-by")) +
-                          Opt( Keyword("source") + qName ) +
+                          Opt( Keyword("source") + variableRef ) +
                           Opt( Keyword("measure") + xpathExpression ) + separator
                         ).setParseAction(compileAspectRuleUnitTerm).ignore(xfsComment)
 
-    aspectRuleUnit = (Suppress(Keyword("unit")) + Opt(Keyword("augment")) + Suppress(Literal("{")) +
-                      ZeroOrMore( aspectRuleUnitTerm ) + Suppress(Literal("}")) + separator
+    aspectRuleUnit = (Suppress(Keyword("unit")) +
+                      Opt( Keyword("source") + variableRef ) + Opt(Keyword("augment")) + Opt(Suppress(Literal("{")) +
+                      ZeroOrMore( aspectRuleUnitTerm ) + Suppress(Literal("}"))) + separator
                         ).setParseAction(compileAspectRuleUnit).ignore(xfsComment)
 
     aspectRuleExplicitDimensionTerm = (
@@ -1444,7 +1691,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                           Keyword("omit")) + separator
                         ).setParseAction(compileAspectRuleExplicitDimensionTerm).ignore(xfsComment)
 
-    aspectRuleExplicitDimension = (Suppress(Keyword("explicit-dimension")) + qName + Suppress(Literal("{")) +
+    aspectRuleExplicitDimension = (Suppress(Keyword("explicit-dimension")) + qName + Opt( Keyword("source") + variableRef ) +  Suppress(Literal("{")) +
                       ZeroOrMore( aspectRuleExplicitDimensionTerm ) + Suppress(Literal("}")) + separator
                         ).setParseAction(compileAspectRuleExplicitDimension).ignore(xfsComment)
 
@@ -1454,12 +1701,12 @@ def compileXfsGrammar( cntlr, debugParsing ):
                           Keyword("omit")) + separator
                         ).setParseAction(compileAspectRuleTypedDimensionTerm).ignore(xfsComment)
 
-    aspectRuleTypedDimension = (Suppress(Keyword("tyoed-dimension")) + qName + Suppress(Literal("{")) +
+    aspectRuleTypedDimension = (Suppress(Keyword("tyoed-dimension")) + qName + Opt( Keyword("source") + variableRef ) +  Suppress(Literal("{")) +
                       ZeroOrMore( aspectRuleTypedDimensionTerm ) + Suppress(Literal("}")) + separator
                         ).setParseAction(compileAspectRuleTypedDimension).ignore(xfsComment)
 
     aspectRules = ( Suppress(Keyword("aspect-rules")) +
-                    Opt( Keyword("source") + qName ) +
+                    Opt( Keyword("source") + variableRef ) +
                     Suppress(Literal("{")) +
                     ZeroOrMore( aspectRuleConcept |
                                 aspectRuleEntityIdentifier |
@@ -1524,6 +1771,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
         ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) +
         (Keyword("entity") + Keyword("scheme") + xpathExpression + Keyword("value") + xpathExpression |
          Keyword("entity-scheme") + xpathExpression |
+         Keyword("entity-identifier") + xpathExpression |
          Keyword("entity-scheme-pattern") + quoted_string |
          Keyword("entity-identifier-pattern") + quoted_string) + separator
         ).setParseAction(compileEntityFilter).ignore(xfsComment).setName("entity-filter").setDebug(debugParsing)
@@ -1643,7 +1891,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                               Keyword("decimals") + xpathExpression + separator |
                               Keyword("precision") + xpathExpression + separator |
                               Keyword("value") + xpathExpression + separator |
-                              Keyword("source") + qName + separator ) +
+                              Keyword("source") + variableRef + separator ) +
                   ZeroOrMore( aspectRules ) +
                   ZeroOrMore( filter ) +
                   ZeroOrMore( generalVariable | factVariable | referencedParameter) +
@@ -1676,7 +1924,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
     xfsProg = ( ZeroOrMore( versionDeclaration | xfsComment ) +
                 ZeroOrMore( namespaceDeclaration | xfsComment ) +
-                ZeroOrMore( defaultDeclaration | xfsComment ) +
+                ZeroOrMore( defaults | xfsComment ) +
                 ZeroOrMore( parameterDeclaration | filterDeclaration | generalVariable | factVariable | functionDeclaration | xfsComment ) +
                 ZeroOrMore( assertionSet | consistencyAssertion | assertion | formula | xfsComment )
               ) + StringEnd()
@@ -1715,7 +1963,7 @@ def parse(cntlr, _logMessage, xfFiles, modelXbrl=None, debugParsing=False):
             lastLoc = 0
             currentPackage = None
             xfsGrammar.parseString( sourceString, parseAll=True )
-        except (ParseException, ParseSyntaxException) as err:
+        except (ParseException, ParseSyntaxException, CompilationError) as err:
             file = os.path.basename(xfsFile)
             codeLines = []
             lineStart = sourceString.rfind("\n", 0, err.loc) + 1
@@ -1740,13 +1988,22 @@ def parse(cntlr, _logMessage, xfFiles, modelXbrl=None, debugParsing=False):
             if len(codeLines) > 5:
                 del codeLines[2:len(codeLines)-3]
                 codeLines.insert(2,"...")
-            logMessage("ERROR", "formulaSyntax:syntaxError",
-                _("Parse error after line %(lineno)s col %(col)s:\n%(lines)s"),
-                xfsFile=xfsFile,
-                sourceFileLines=((file, lineno(err.loc,err.pstr)),),
-                lineno=lineno(lastLoc,sourceString),
-                col=col(lastLoc,sourceString),
-                lines="\n".join(codeLines))
+            if isinstance(err, CompilationError):
+                logMessage("ERROR", "arelle:xfLoadingError",
+                    _("Exception after line %(lineno)s col %(col)s:\n%(lines)s, \nerror: %(error)s"),
+                    xfsFile=xfsFile,
+                    lineno=lineno(lastLoc,sourceString),
+                    col=col(lastLoc,sourceString),
+                    lines="\n".join(codeLines),
+                    error=str(err))
+            else:
+                logMessage("ERROR", "formulaSyntax:syntaxError",
+                    _("Parse error after line %(lineno)s col %(col)s:\n%(lines)s"),
+                    xfsFile=xfsFile,
+                    sourceFileLines=((file, lineno(err.loc,err.pstr)),),
+                    lineno=lineno(lastLoc,sourceString),
+                    col=col(lastLoc,sourceString),
+                    lines="\n".join(codeLines))
             successful = False
         except (ValueError) as err:
             file = os.path.basename(xfsFile)
@@ -1842,7 +2099,8 @@ formulaPrefixes = {
     "xfi": ('http://www.xbrl.org/2008/function/instance',),
     "xsi": ('http://www.w3.org/2001/XMLSchema-instance',),
     "xs": ('http://www.w3.org/2001/XMLSchema',),
-    "xfs": ('http://arelle.org/2016/xfs',)
+    "xfs": ('http://arelle.org/2016/xfs',),
+    "sev": ('http://xbrl.org/2022/assertion-severity', 'http://www.xbrl.org/2022/assertion-severity.xsd'),
     }
 
 formulaArcroleRefs = {
@@ -1855,7 +2113,8 @@ formulaArcroleRefs = {
     "assertion-unsatisfied-message": ("http://xbrl.org/arcrole/2010/assertion-unsatisfied-message", "http://www.xbrl.org/2010/validation-message.xsd#assertion-unsatisfied-message"),
     "assertion-satisfied-message": ("http://xbrl.org/arcrole/2010/assertion-satisfied-message", "http://www.xbrl.org/2010/validation-message.xsd#assertion-satisfied-message"),
     "boolean-filter": ('http://xbrl.org/arcrole/2008/boolean-filter', 'http://www.xbrl.org/2008/boolean-filter.xsd#boolean-filter'),
-    "function-implementation": ('http://xbrl.org/arcrole/2010/function-implementation','http://www.xbrl.org/2010/custom-function-implementation.xsd#cfi-implementation')
+    "function-implementation": ('http://xbrl.org/arcrole/2010/function-implementation','http://www.xbrl.org/2010/custom-function-implementation.xsd#cfi-implementation'),
+    "assertion-unsatisfied-severity": ('http://xbrl.org/arcrole/2022/assertion-unsatisfied-severity','http://www.xbrl.org/2022/assertion-severity.xsd#assertion-unsatisfied-severity'),
     }
 
 formulaRoleRefs = {
@@ -1919,7 +2178,7 @@ class FormulaLbGenerator:
         self.xfsFile = xfsFile
         self.modelXbrl = modelXbrl # null when running stand alone
         self.lbFile = xfsFile.rpartition(".")[0] + "-formula.xml"
-        self.defaultUnsatisfiedMessageSeverity = None
+        self.defaultUnsatMsgSev = None
         self.lbDoc = None
         self.params = {} # qname of parameter xlink:label
         self.labels = {}
@@ -1929,9 +2188,8 @@ class FormulaLbGenerator:
 
     def newLb(self):
         initialXml = '''
-<!--  Generated by Arelle(r) http://arelle.org -->
 <link:linkbase
-{0}
+{}
 xsi:schemaLocation=""
 >
 <link:roleRef roleURI='http://www.xbrl.org/2008/role/link'
@@ -1966,7 +2224,6 @@ xsi:schemaLocation=""
                   Type.LINKBASE,
                   self.lbFile,
                   initialXml=initialXml,
-                  initialComment="generated from XBRL Formula {}".format(os.path.basename(self.lbFile)),
                   documentEncoding="utf-8")
             self.lbDocument = self.modelDocument.xmlDocument
             self.xmlParser = self.modelDocument.parser
@@ -1975,6 +2232,13 @@ xsi:schemaLocation=""
         self.genLinkElement = next(self.lbDocument.iter(tag=self.clarkName("generic:link")))
 
     def saveLb(self):
+        # provide initial comment after loading
+        self.lbElement.addprevious(etree.Comment(""" Generated by Arelle(r) http://arelle.org
+     from Xbrl Formula file {},
+     version {},
+     on {} """.format(os.path.basename(self.xfsFile),
+                      xfVersion,
+                      XmlUtil.dateunionValue(datetime.datetime.now()))))
         if self.modelXbrl is None:
             # main program stand-alone mode
             if self.lbDocument is not None:
@@ -2120,7 +2384,7 @@ def xfLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
 
     cntlr = modelXbrl.modelManager.cntlr
     cntlr.showStatus(_("Loading XBRL Formula file: {0}").format(os.path.basename(filepath)))
-    doc = parse(cntlr, modelXbrl.log, (filepath,), modelXbrl=modelXbrl)
+    doc = parse(cntlr, modelXbrl.log, (filepath,), modelXbrl=modelXbrl, debugParsing=hasattr(cntlr, "showDebugMessages") and cntlr.showDebugMessages.get())
     if doc is None:
         return None # not an OIM file
     doc.loadedFromXbrlFormula = True
@@ -2234,3 +2498,4 @@ if __name__ == "__main__":
     # load xf formula files
     if xfFiles:
         xfsProgs = parse(_cntlr(), _logMessage, xfFiles, debugParsing=debugParsing)
+

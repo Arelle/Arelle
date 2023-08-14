@@ -984,6 +984,24 @@ class ModelContext(ModelObject):
             return self._period
 
     @property
+    def oimPeriodString(self):
+        if self.isStartEndPeriod:
+            s = self.startDatetime
+            e = self.endDatetime
+        elif self.isInstantPeriod: # instant
+            s = e = self.instantDatetime
+        else:
+            return None # forever
+        return({str(qnOimPeriodAspect):
+                ("{0:04}-{1:02}-{2:02}T{3:02}:{4:02}:{5:02}{6}/".format(
+                         s.year, s.month, s.day, s.hour, s.minute, s.second, tzinfoStr(s))
+                    if self.isStartEndPeriod else "") +
+                "{0:04}-{1:02}-{2:02}T{3:02}:{4:02}:{5:02}{6}".format(
+                         e.year, e.month, e.day, e.hour, e.minute, e.second, tzinfoStr(e))
+                })
+
+
+    @property
     def periodHash(self):
         """(int) -- hash of period start and end datetimes"""
         try:
@@ -1085,6 +1103,11 @@ class ModelContext(ModelObject):
             return dimValue
         if dimValue is None and includeDefaults and dimQname in self.modelXbrl.qnameDimensionDefaults:
             return self.modelXbrl.qnameDimensionDefaults[dimQname]
+        return None
+
+    def dimOimValue(self, dimQname):
+        if dimQname in self.dimValue:
+            return self.dimValue[dimQname].oimValue
         return None
 
     def dimAspects(self, defaultDimensionAspects=None):
@@ -1402,6 +1425,16 @@ class ModelDimensionValue(ModelObject):
         return self.getparent().localName
 
     @property
+    def oimValue(self):
+        if self.isExplicit:
+            return self.dimensionQname
+        elif self.isTyped:
+            member = self.member
+            if not self.member.isNil and self.member.xValid >= VALID:
+                return self.member.xValue
+        return None
+
+    @property
     def propertyView(self):
         if self.isExplicit:
             return (str(self.dimensionQname),str(self.memberQname))
@@ -1538,6 +1571,27 @@ class ModelUnit(ModelObject):
             self._utrSymbols[modelType] = utrSymbol(modelType, self.measures)
             return self._utrSymbols[modelType]
 
+    @property
+    def oimString(self): # OIM core dimension value (None for unit xbrli:pure)
+        _mMul, _mDiv = self.measures
+        _sMul = '*'.join(oimValue(m) for m in sorted(_mMul, key=lambda m: oimValue(m)))
+        if _mDiv:
+            _sDiv = '*'.join(oimValue(m) for m in sorted(_mDiv, key=lambda m: oimValue(m)))
+            if len(_mDiv) > 1:
+                if len(_mMul) > 1:
+                    _sUnit = "({})/({})".format(_sMul,_sDiv)
+                else:
+                    _sUnit = "{}/({})".format(_sMul,_sDiv)
+            else:
+                if len(_mMul) > 1:
+                    _sUnit = "({})/{}".format(_sMul,_sDiv)
+                else:
+                    _sUnit = "{}/{}".format(_sMul,_sDiv)
+        else:
+            _sUnit = _sMul
+        if _sUnit == "xbrli:pure":
+            return None
+        return _sUnit
 
     @property
     def propertyView(self):
