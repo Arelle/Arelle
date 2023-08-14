@@ -750,6 +750,14 @@ class LogHandlerWithXml(logging.Handler):
                 "refs": getattr(logRec, "refs", []),
                 "message": message}
 
+    def recordToHtml(self, logRec):
+        record = ["<tr>"]
+        record.append(f"<td>{logRec.messageCode}</td>")
+        record.append(f"<td>{logRec.levelname.lower()}</td>")
+        record.append(f"<td>{self.format(logRec)}</td>")
+        record.append("</tr>")
+        return "\n".join(record)
+
 class LogToXmlHandler(LogHandlerWithXml):
     """
     .. class:: LogToXmlHandler(filename)
@@ -759,6 +767,7 @@ class LogToXmlHandler(LogHandlerWithXml):
     logRecordBuffer: list[logging.LogRecord]
     filename: str | None
     filemode: str
+    htmlTitle: str = "Arelle Message Log" # may be customized in plugin startup
 
     def __init__(self, filename: str | None = None, mode: str = 'w') -> None:
         super(LogToXmlHandler, self).__init__()
@@ -767,6 +776,10 @@ class LogToXmlHandler(LogHandlerWithXml):
         self.filemode = mode
 
     def flush(self) -> None:
+        # Note to developers: breakpoints in this method don't work, please debug with print statements
+        securityIsActive = securityHasWritten = False
+        for pluginMethod in PluginManager.pluginClassMethods("Security.Crypt.IsActive"):
+            securityIsActive = pluginMethod(self) # must be active for the cntlr object to effect log writing
         if self.filename == "logToStdOut.xml":
             print('<?xml version="1.0" encoding="utf-8"?>')
             print('<log>')
@@ -783,15 +796,32 @@ class LogToXmlHandler(LogHandlerWithXml):
         elif self.filename is not None:
             if self.filename.endswith(".xml"):
                 # print ("filename=" + self.filename)
-                with open(self.filename, self.filemode, encoding='utf-8') as fh:
-                    fh.write('<?xml version="1.0" encoding="utf-8"?>\n')
-                    fh.write('<log>\n')
-                    for logRec in self.logRecordBuffer:
-                        fh.write(self.recordToXml(logRec))
-                    fh.write('</log>\n')
+                if securityIsActive:
+                    for pluginMethod in PluginManager.pluginClassMethods("Security.Crypt.Write"):
+                        securityHasWritten = pluginMethod(self, self.filename,
+                            '<?xml version="1.0" encoding="utf-8"?>\n<log>\n' +
+                            ''.join(self.recordToXml(logRec) for logRec in self.logRecordBuffer) +
+                            '</log>\n')
+                if not securityHasWritten:
+                    with open(self.filename, self.filemode, encoding='utf-8') as fh:
+                        fh.write('<?xml version="1.0" encoding="utf-8"?>\n<log>\n')
+                        for logRec in self.logRecordBuffer:
+                            fh.write(self.recordToXml(logRec))
+                        fh.write('</log>\n')
             elif self.filename.endswith(".json"):
-                with open(self.filename, self.filemode, encoding='utf-8') as fh:
-                    fh.write(self.getJson())
+                if securityIsActive:
+                    for pluginMethod in PluginManager.pluginClassMethods("Security.Crypt.Write"):
+                        securityHasWritten = pluginMethod(self, self.filename, self.getJson())
+                if not securityHasWritten:
+                    with open(self.filename, self.filemode, encoding='utf-8') as fh:
+                        fh.write(self.getJson())
+            elif self.filename.endswith(".html"):
+                if securityIsActive:
+                    for pluginMethod in PluginManager.pluginClassMethods("Security.Crypt.Write"):
+                        securityHasWritten = pluginMethod(self, self.filename, self.getHtml())
+                if not securityHasWritten:
+                    with open(self.filename, self.filemode, encoding='utf-8') as fh:
+                        fh.write(self.getHtml())
             elif self.filename in ("logToPrint", "logToStdErr"):
                 _file = sys.stderr if self.filename == "logToStdErr" else None
                 for logRec in self.logRecordBuffer:
@@ -805,9 +835,14 @@ class LogToXmlHandler(LogHandlerWithXml):
                                .decode(sys.stdout.encoding, 'strict')),
                               file=_file)
             else:
-                with open(self.filename, self.filemode, encoding='utf-8') as fh:
-                    for logRec in self.logRecordBuffer:
-                        fh.write(self.format(logRec) + "\n")
+                if securityIsActive:
+                    for pluginMethod in PluginManager.pluginClassMethods("Security.Crypt.Write"):
+                        securityHasWritten = pluginMethod(self, self.filename,
+                            ''.join(self.format(logRec) + "\n" for logRec in self.logRecordBuffer))
+                if not securityHasWritten:
+                    with open(self.filename, self.filemode, encoding='utf-8') as fh:
+                        for logRec in self.logRecordBuffer:
+                            fh.write(self.format(logRec) + "\n")
         self.clearLogBuffer()
 
     def clearLogBuffer(self) -> None:
@@ -838,6 +873,90 @@ class LogToXmlHandler(LogHandlerWithXml):
         if clearLogBuffer:
             self.clearLogBuffer()
         return json.dumps( {"log": entries}, ensure_ascii=False, indent=1, default=str )
+
+    def getHtml(self, clearLogBuffer=True):
+        """Returns an HTML string representing the messages in the log buffer, and clears the buffer.
+
+        :returns: str -- HTML representation of messages in the log buffer
+        """
+        html = ["""<!doctype html>
+        <html>
+        <head>
+            <title>{0}</title>
+            <style>
+                table {{
+                    border: 1px solid black;
+                    border-spacing: 3px;
+                    table-layout: fixed;
+                    width: 100%;
+                }}
+                th, td {{
+                    padding: 5px;
+                    word-wrap: break-word;
+                }}
+                th {{
+                    background-color: #bcf1fd;
+                }}
+                td {{
+                    background-color: #f4f7f7;
+                }}
+                td:last-child, th:last-child {{
+                    width: 80%;
+                }}
+            </style>
+        </head>
+        <body>
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Level</th>
+                    <th style="">Message</th>
+                </tr>
+            </thead>
+            <tbody>""".format(
+                self.htmlTitle)
+        ]
+        if self.logRecordBuffer:
+            for logRec in self.logRecordBuffer:
+                html.append(self.recordToHtml(logRec))
+            if clearLogBuffer:
+                self.clearLogBuffer()
+            html.append("</tbody>\n</table>\n</body>\n</html>\n")
+        else:
+            html = ["""<!doctype html>
+            <html>
+            <head>
+                <title>{0}</title>
+                <style>
+                    div {{
+                        background-color: #f4f7f7;
+                        position: relative;
+                        top: 33.33%;
+                        margin: -10px auto;
+                        width: 25vw;
+                        height: 25vh;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        text-align: center;
+                    }}
+                    body {{
+                        background-color: #bcf1fd;
+                        height: 100vh;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div>
+                    <h1>No log errors to display</h1>
+                </div>
+            </body>
+            </html>
+            """.format(
+                self.htmlTitle)
+            ]
+        return '\n'.join(html)
 
     def getLines(self, clearLogBuffer: bool = True) -> list[str]:
         """Returns a list of the message strings in the log buffer, and clears the buffer.
