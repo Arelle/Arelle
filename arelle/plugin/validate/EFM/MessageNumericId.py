@@ -19,7 +19,7 @@ xml3Start = 52000000 # XML element issue in inline XML (LXML schema check)
 unknown   = 60000000 # no pattern match
 
 ignoredCodes = {
-    "debug", "info"}
+    "debug", "info", None}
 ftTableStartCode = (
     (1000000, "Submission / Fees Summary"),
     (2000000, "Offering"),
@@ -41,10 +41,9 @@ ftRuleCode = (
     (1000000, "Rule 429"),
     (100000, "")) # catch all
 codesPatterns = (
-    (efmStart,  re_compile(r"EFM\.([0-9]+(.[0-9]+)*).*"), "."),
-    (ixStart,   re_compile(r"ix11\.([0-9]+(.[0-9]+)*).*"), "."),
-    (efmStart,  re_compile(r"xbrl\.([0-9]+(.[0-9]+)*).*"), "."),
-    (xbrlStart, re_compile(r"EFM\.([0-9]+(.[0-9]+)*).*"), "."),
+    (efmStart,  re_compile(r"EFM\.([0-9]+(\.[0-9]+)*).*"), "."),
+    (ixStart,   re_compile(r"ix11\.([0-9]+(\.[0-9]+)*).*"), "."),
+    (xbrlStart, re_compile(r"xbrl\.([0-9]+(\.[0-9]+)*).*"), "."),
     (xml1Start, re_compile(r"xmlSchema.valueError"), "."),
     (xml2Start, re_compile(r"xmlSchema"), "."),
     (xml3Start, re_compile(r"lxml.SCHEMA[A-Za-z_]*([0-9]+(_[0-9]+)*).*"), "_"),
@@ -58,21 +57,24 @@ def messageNumericId(modelXbrl, level, messageCode, args):
     if isinstance(modelObject, (tuple, list)) and len(modelObject) > 0:
         modelObject = modelObject[0]
     ftContext = args.get("ftContext")
-    if isinstance(modelObject, ModelFact) and ftContext and messageCode.startswith("ft."):
+    if isinstance(modelObject, ModelFact) and ftContext and messageCode.startswith("EFM.ft."):
         for code, tbl in ftTableStartCode:
             if ftContext.startswith(tbl):
                 code += ftStart
                 break
         # code has the table portion in it
         for ruleCode, rule in ftRuleCode:
-            if rulecode in ftContext:
+            if rule in ftContext:
                 code += ruleCode
                 break
         if code:
             return code
-    for code, pattern, splitChar in codesPatterns:
-        m = pattern.match(messageCode)
-        if m and m.lastindex is not None and m.lastindex >= 1:
-            return code + sum(int(n) * 100**i
-                              for i,n in enumerate(reversed(m.group(1).split(splitChar))))
+    try:
+        for code, pattern, splitChar in codesPatterns:
+            m = pattern.match(messageCode)
+            if m and m.lastindex is not None and m.lastindex >= 1:
+                return code + sum(int(n) * 100**i
+                                  for i,n in enumerate(reversed(m.group(1).split(splitChar))))
+    except ValueError as ex:
+        return unknown
     return unknown

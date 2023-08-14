@@ -295,7 +295,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         efmFiling.submissionType = val.params.get("submissionType")
 
 def severityReleveler(modelXbrl, level, messageCode, args, **kwargs):
-    if feeTagMessageCodesRelevelable.match(messageCode) and level == "ERROR":
+    if messageCode and feeTagMessageCodesRelevelable.match(messageCode) and level == "ERROR":
         if not hasattr(modelXbrl, "isFeeTagging"):
             modelXbrl.isFeeTagging = any(ns.startswith("http://xbrl.sec.gov/ffd") for ns in modelXbrl.namespaceDocs)
         if modelXbrl.isFeeTagging:
