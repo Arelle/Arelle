@@ -28,14 +28,26 @@ return it. Once we receive it, we'll be able to accept your pull requests.
 ***NOTE***: Only original source code from you and other people that have signed the CLA can be accepted into the main repository.
 
 ### Setting up an environment
-1. Install [pyenv](https://github.com/pyenv/pyenv#installation)
-2. Install a [supported version of Python](https://github.com/Arelle/Arelle/blob/master/README.md#installation). For example, `pyenv install 3.11:4`
-3. Create a virtual env using the minimum python version. For example, `PYENV_VERSION=3.11.4 pyenv exec python -m venv venv`
-4. Activate your environment `source venv/bin/activate`
-5. Install dependencies `pip install -r requirements-dev.txt`
-6. Verify you can run the app
+
+The Arelle implementation is written in Python with the goal to support all stable
+versions of Python (not prerelease versions) that are [still receiving security support][python-supported-versions].
+
+1. [Fork][fork-arelle] the Arelle repo
+2. Clone your fork: `git clone git@github.com:<your-github-username>/Arelle.git`
+3. Install [pyenv][pyenv-install]
+4. Install a supported version of Python.
+   For example, `pyenv install 3.11.4`
+5. Create a virtual env using the Python version you just installed.
+   For example, `PYENV_VERSION=3.11.4 pyenv exec python -m venv venv`
+6. Activate your environment `source venv/bin/activate`
+7. Install dependencies `pip install -r requirements-dev.txt`
+8. Verify you can run the app
    1. GUI `python arelleGUI.pyw`
    2. CLI `python arelleCmdLine.py`
+
+[fork-arelle]: https://github.com/Arelle/Arelle/fork
+[pyenv-install]: https://github.com/pyenv/pyenv#installation
+[python-supported-versions]: https://devguide.python.org/versions/#supported-versions
 
 ### Contributing code
 
