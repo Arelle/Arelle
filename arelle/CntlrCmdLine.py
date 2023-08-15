@@ -26,6 +26,7 @@ from arelle.UrlUtil import isHttpUrl
 from arelle.Version import copyrightLabel
 from arelle.WebCache import proxyTuple
 from arelle.SystemInfo import get_system_info
+from collections import namedtuple
 from pprint import pprint
 import logging
 from lxml import etree
@@ -35,6 +36,8 @@ PROCESS_QUERY_INFORMATION = 0x400
 DISABLE_PERSISTENT_CONFIG_OPTION = "--disablePersistentConfig"
 UILANG_OPTION = '--uiLang'
 
+
+import pprint
 systemInfo = get_system_info()
 
 def main():
@@ -49,6 +52,7 @@ def main():
         args = shlex.split(envArgs)
     else:
         args = sys.argv[1:]
+    parse_options = namedtuple("parsed_options", "additional_plugins")
 
     gettext.install("arelle") # needed for options messages
     setApplicationLocale()
@@ -327,7 +331,6 @@ def parseAndRun(args):
                           help=_("start web server on host:port[:server] for REST and web access, e.g., --webserver locahost:8080, "
                                  "or specify nondefault a server name, such as cherrypy, --webserver locahost:8080:cherrypy. "
                                  "(It is possible to specify options to be defaults for the web server, such as disclosureSystem and validations, but not including file names.) "))
-    pluginOptionsIndex = len(parser.option_list)
 
     # install any dynamic plugins so their command line options can be parsed if present
     for i, arg in enumerate(args):
@@ -349,7 +352,6 @@ def parseAndRun(args):
     # add plug-in options
     for optionsExtender in pluginClassMethods("CntlrCmdLine.Options"):
         optionsExtender(parser)
-    pluginLastOptionIndex = len(parser.option_list)
     parser.add_option("-a", "--about",
                       action="store_true", dest="about",
                       help=_("Show product version, copyright, and license."))
@@ -427,27 +429,9 @@ def parseAndRun(args):
             print(text.encode("ascii", "replace").decode("ascii"))
     elif len(leftoverArgs) != 0 and (not systemInfo["webserver"] or options.webserver is None):
         parser.error(_("unrecognized arguments: {}").format(', '.join(leftoverArgs)))
-    elif (options.entrypointFile is None and
-          ((not options.proxy) and (not options.plugins) and
-           (not any(pluginOption for pluginOption in parser.option_list[pluginOptionsIndex:pluginLastOptionIndex])) and
-           (not systemInfo["webserver"] or options.webserver is None))):
-        parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.py --help"))
-    elif systemInfo["webserver"] and options.webserver:
-        # webserver incompatible with file operations
-        if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
-                options.factsFile, options.factListCols, options.factTableFile, options.factTableCols, options.relationshipCols,
-                options.conceptsFile, options.preFile, options.tableFile, options.calFile, options.dimFile, options.anchFile, options.formulaeFile, options.viewArcrole, options.viewFile,
-                options.roleTypesFile, options.arcroleTypesFile
-                )):
-            parser.error(_("incorrect arguments with --webserver, please try\n  python CntlrCmdLine.py --help"))
-        else:
-            optionObject = buildOptionsObject(options)
-            return optionObject, arellePluginModules
     else:
-        pprint(options)
         # parse and run the FILENAME
-        optionObject = buildOptionsObject(options)
-        pprint(optionObject)
+        optionObject = buildOptionsObject(options, arellePluginModules)
         return optionObject, arellePluginModules
 
 
