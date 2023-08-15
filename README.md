@@ -6,10 +6,10 @@
 
 [![Arelle Banner](https://arelle.org/arelle/wp-content/themes/platform/images/logo-platform.png)](https://arelle.org/)
 
-## Table of contents
+## Table of Contents
 
 - [Arelle](#arelle)
-  - [Table of contents](#table-of-contents)
+  - [Table of Contents](#table-of-contents)
   - [Description](#description)
   - [Features](#features)
   - [Installation](#installation)
@@ -17,16 +17,16 @@
     - [Install development version from GitHub](#install-development-version-from-github)
     - [Install distributions](#install-distributions)
   - [Reporting issues](#reporting-issues)
-  - [Contribution guidelines](#contribution-guidelines)
+  - [How To Contribute](#how-to-contribute)
   - [License](#license)
 
 ## Description
 
-[Arelle](https://arelle.org/) is an end-to-end open source XBRL platform,
-which provides the XBRL community with an easy to use set of tools.  It supports
-XBRL and its extension features in an extensible manner.  It does this in a
-compact yet robust framework that can be used as a desktop application and can
-be integrated with other applications and languages utilizing its web service.
+Arelle is an end-to-end open source XBRL platform, which provides the XBRL community
+with an easy to use set of tools. It supports XBRL and its extension features in
+an extensible manner. It does this in a compact yet robust framework that can be
+used as a desktop application and can be integrated with other applications and
+languages utilizing its web service.
 
 ## Features
 
@@ -79,7 +79,8 @@ pip install git+https://git@github.com/arelle/arelle.git@master
 
 ### Install distributions
 
-Distributions are self contained builds that come bundled with their own Python runtime and resources needed to run Arelle.
+Distributions are self contained builds that come bundled with their own Python
+runtime and resources needed to run Arelle.
 
 Distributions are provided for the following operating systems:
 
@@ -101,7 +102,7 @@ Please report issues to the [issue tracker](https://github.com/arelle/arelle/iss
 - Be clear and precise (do not prose, but name functions and commands exactly).
 - Include the version of Arelle.
 
-## Contribution guidelines
+## How To Contribute
 
 If you want to contribute to Arelle, be sure to review the
 [contribution guidelines](https://github.com/Arelle/Arelle/blob/master/CONTRIBUTING.md).

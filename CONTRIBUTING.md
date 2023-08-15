@@ -2,30 +2,36 @@
 
 ## Pull Request Checklist
 
-Before sending your pull requests, make sure you do the following:
+Before submitting a pull request, make sure to do the following:
 
-*   Read the [contributing guidelines](CONTRIBUTING.md).
-*   Ensure you have signed the [Contributor License Agreement (CLA)](#conttributor-license-agreements).
-*   Check if your changes are consistent with the [guidelines](#general-guidelines-and-philosophy-for-contribution).
-*   Changes are consistent with the [Coding Style](#python-coding-style).
+* Ensure you have signed and submitted a [Contributor License Agreement](#contributor-license-agreements).
+* Check if your changes are consistent with the [guidelines](#general-guidelines-and-philosophy-for-contribution).
+* Changes are consistent with the [Coding Style](#python-coding-style).
 
-
-## How to become a contributor and submit your own code
-
+## How to become a code contributor
 
 ### Contributor License Agreements
 
-We'd love to accept your commits! Before we can take them, we have to jump a couple of legal hurdles.
+We'd love to accept your commits! Before we can take them, we have to jump a
+couple of legal hurdles.
 
-Please fill out either the individual or corporate Contributor License Agreement (CLA).
+Please fill out either the individual or corporate Contributor License
+Agreement (CLA).
 
-* If you are an individual writing original source code, then you'll need to sign an [individual CLA](https://arelle.org/arelle/wp-content/uploads/2010/11/ContributorLicenseForIndividuals.txt).
-* If you work for a company that wants to allow you to contribute your work, then you'll need to sign a [corporate CLA](https://arelle.org/arelle/wp-content/uploads/2010/11/ContributorLicenseForEmployees.txt).
+* If you are an individual writing original source code, then you'll need to
+  sign an [individual CLA][cla-individual].
+* If you work for a company that wants to allow you to contribute your work,
+  then you'll need to sign a [corporate CLA][cla-corporate].
 
-Follow either of the two links above to access the appropriate CLA and instructions for how to sign and
-return it. Once we receive it, we'll be able to accept your pull requests.
+Follow either of the two links above to access the appropriate CLA and
+instructions for how to sign and return it. Once you've signed and emailed
+the agreement to <Support@Arelle.org> we'll be able to accept your pull requests.
 
-***NOTE***: Only original source code from you and other people that have signed the CLA can be accepted into the main repository.
+***NOTE***: Only original source code from you and other people that have
+signed the CLA can be accepted into the main repository.
+
+[cla-corporate]: https://arelle.org/arelle/wp-content/uploads/2010/11/ContributorLicenseForEmployees.txt
+[cla-individual]: https://arelle.org/arelle/wp-content/uploads/2010/11/ContributorLicenseForIndividuals.txt
 
 ### Setting up an environment
 
@@ -51,26 +57,27 @@ versions of Python (not prerelease versions) that are [still receiving security 
 
 ### Contributing code
 
-If you have improvements or bug fixes for Arelle, send us your pull requests! For those
-just getting started, Github has a [how to](https://help.github.com/articles/using-pull-requests/).
+If you have improvements or bug fixes for Arelle, send us your pull requests!
+For those just getting started, Github has a [how to][using-pull-requests].
 
-Arelle team members will be assigned to review your pull requests. Once the
-pull requests are approved and tested an Arelle team member will merge your request.
+Arelle team members will be assigned to review your pull requests. Once the pull
+requests are approved and tested an Arelle team member will merge your request.
 
-If you want to contribute, start working through the Arelle codebase,
-navigate to the
-[Github "issues" tab](https://github.com/arelle/arelle/issues) and start
-looking through interesting issues. If you decide to start on an issue, leave a
-comment so that other people know that you're working on it. If you want to help
-out, but not alone, use the issue comment thread to coordinate.
+If you want to contribute, start working through the Arelle codebase, navigate to
+the [Github "issues" tab][github-issue-tracker] and start looking through interesting
+issues.  If you decide to start on an issue, leave a comment so that other people
+know that you're working on it. If you want to help out, but not alone, use the
+issue comment thread to coordinate.
 
+[github-issue-tracker]: https://github.com/Arelle/Arelle/issues
+[using-pull-requests]: https://help.github.com/articles/using-pull-requests/
 
 ### Contribution guidelines and standards
 
-Before sending your pull request for [review](https://github.com/arelle/arelle/pulls),
-make sure your changes are consistent with the guidelines and follow the
-Arelle coding style.
+Before submitting your pull request for [review][github-pull-requests], make sure
+your changes are consistent with the guidelines and follow the Arelle coding style.
 
+[github-pull-requests]: https://github.com/arelle/arelle/pulls
 
 #### General guidelines and philosophy for contribution
 
@@ -89,18 +96,15 @@ Arelle coding style.
   is (by default) transferred to the Arelle team. This means that the benefit
   of the contribution must be compared against the cost of maintaining the feature.
 
-
 #### Commit messages
 
 Write commit messages according to the following guidance:
 
-* If necessary, add one or more paragraphs with details, wrapped at 72
-  characters.
+* If necessary, add one or more paragraphs with details, wrapped at 72 characters.
 * Use present tense and write in the imperative: “Fix bug”, not “fixed bug” or
   “fixes bug”.
 * Separate paragraphs by blank lines.
 * Do *not* use special markup (e.g. Markdown). Commit messages are plain text.
-
 
 #### License
 
