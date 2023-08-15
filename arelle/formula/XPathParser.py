@@ -14,7 +14,6 @@ from xml.dom import minidom
 from pyparsing import (
     CaselessLiteral,
     Combine,
-    DelimitedList,
     Forward,
     Group,
     Keyword,
@@ -32,6 +31,7 @@ from pyparsing import (
     ZeroOrMore,
     alphanums,
     alphas,
+    delimitedList as DelimitedList,
     nums,
     quoted_string,
 )

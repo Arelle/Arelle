@@ -1299,7 +1299,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                  Literal, CaselessLiteral,
                  Combine, Opt, nums, Or, Forward, Group, ZeroOrMore, OneOrMore, StringEnd, alphanums,
                  ParserElement, quoted_string, dbl_quoted_string, sgl_quoted_string, QuotedString,
-                 DelimitedList, Suppress, Regex, FollowedBy,
+                 delimitedList as DelimitedList, Suppress, Regex, FollowedBy,
                  lineno, line, col)
 
     ParserElement.enable_packrat()

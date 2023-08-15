@@ -773,7 +773,8 @@ def compileSphinxGrammar( cntlr ):
     cntlr.showStatus(_("Compiling Sphinx Grammar"))
     from pyparsing import (
         Word, Keyword, Literal, CaselessLiteral, Combine, Opt, nums, Forward, ZeroOrMore,
-        StringEnd, ParserElement, quoted_string, DelimitedList, Suppress, Regex, lineno
+        StringEnd, ParserElement, quoted_string, delimitedList as DelimitedList, Suppress,
+        Regex, lineno
     )
 
     ParserElement.enable_packrat()
