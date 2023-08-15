@@ -96,7 +96,9 @@ Include a license at the top of new files.
 
 * [Python license example](https://github.com/Arelle/Arelle/blob/a0a6fbc0bc901262dbab0dd6aad3b45313e5ab8e/arelle/plugin/validate/ESEF/__init__.py#L12-L13)
 
+#### Python Coding Style
 
-#### Python coding style
+Stick to the [PEP8 guidelines][pep-0008] and use `mixedCase` for variable and function
+names.
 
-Changes to Arelle Python code should conform to [PEP8 guidelines](https://www.python.org/dev/peps/pep-0008/)
+[pep-0008]: https://www.python.org/dev/peps/pep-0008/
