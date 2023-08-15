@@ -4,6 +4,7 @@
 :::{toctree}
 :hidden:
 install
+faq
 contributing
 build_docs
 license
