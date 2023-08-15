@@ -91,6 +91,7 @@ docTypesNotAllowingInlineXBRL = {
     "K SDR", "L SDR"}
 
 feeTaggingExhibitTypePattern = re.compile(r"EX-FILING FEES.*")
+supplementalExhibitTypesPattern = re.compile(r"EX-FILING FEES.*|EX-26.*")
 
 standardNamespacesPattern = re.compile(
     # non-IFRS groups 1 - authority, 2 - taxonomy (e.g. us-gaap, us-types), 3 - year
@@ -105,7 +106,7 @@ untransformableTypes = {"anyURI", "base64Binary", "hexBinary", "NOTATION", "QNam
                         "token", "language"}
 
 # hideable namespaceURIs
-hideableNamespacesPattern = re.compile("http://xbrl.sec.gov/(dei|vip)/")
+hideableNamespacesPattern = re.compile("http://xbrl.sec.gov/(dei|vip|ffd)/")
 
 # RR untransformable facts
 rrUntransformableEltsPattern = re.compile(r"(\w*TableTextBlock|RiskNarrativeTextBlock|BarChart\w+|AnnualReturn(19|20)[0-9][0-9])") # WcH RiskNarrative exception is an ABSOLUTELY TEMPORARY HACK
@@ -348,4 +349,12 @@ linkbaseValidations = {
         efmPre = None,
         preCustELRs = True,
     ),
+}
+
+# constants for fee tagging message severity releveling
+feeTagMessageCodesRelevelable = re.compile(r"xmlSchema:|ix11\.|xbrl\.")
+
+feeTagEltsNotRelevelable = {
+        "dei:CentralIndexKey", "ffd:RegnFileNb", "ffd:FormTp", "ffd:SubmissnTp", "ffd:FormTp",
+        "ffd:FeeExhibitTp", "ffd:TtlFeeAmt", "ffd:TtlPrevslyPdAmt", "ffd:TtlOffsetAmt", "ffd:NetFeeAmt"
 }

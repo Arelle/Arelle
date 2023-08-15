@@ -10,6 +10,7 @@ from arelle.XbrlConst import ixbrlAll, qnLinkFootnote, xhtml, xml, xsd, xhtml
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, QName, tzinfoStr
 from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
+from arelle.XmlValidateConst import VALID, INVALID
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import cast
@@ -1157,6 +1158,7 @@ def writexml(
     indent: str = '',
     xmlcharrefreplace: bool = False,
     edgarcharrefreplace: bool = False,
+    skipInvalid: bool = False,
     parentNsmap: dict[str | None, str] | None = None
 ) -> None:
     # customized from xml.minidom to provide correct indentation for data items
@@ -1171,9 +1173,9 @@ def writexml(
                 break   # stop depth first iteration after comment and root node
             if child.tag == 'nsmap':
                 for nsmapChild in child:
-                    writexml(writer, nsmapChild, indent=indent, xmlcharrefreplace=xmlcharrefreplace, edgarcharrefreplace=edgarcharrefreplace, parentNsmap={}) # force all xmlns in next element
+                    writexml(writer, nsmapChild, indent=indent, xmlcharrefreplace=xmlcharrefreplace, edgarcharrefreplace=edgarcharrefreplace, skipInvalid=skipInvalid, parentNsmap={}) # force all xmlns in next element
             else:
-                writexml(writer, child, indent=indent, xmlcharrefreplace=xmlcharrefreplace, edgarcharrefreplace=edgarcharrefreplace, parentNsmap={})
+                writexml(writer, child, indent=indent, xmlcharrefreplace=xmlcharrefreplace, edgarcharrefreplace=edgarcharrefreplace, skipInvalid=skipInvalid, parentNsmap={})
     elif isinstance(node,etree._Comment): # ok to use minidom implementation
         commentText = node.text if isinstance(node.text, str) else ''
         writer.write(indent + "<!--" + commentText + "-->\n")
@@ -1195,6 +1197,8 @@ def writexml(
             tag = node.prefixedName
             isXmlElement = node.namespaceURI != xhtml
             isFootnote = node.qname == qnLinkFootnote
+            if skipInvalid and getattr(node, "xValid", VALID) == INVALID:
+                return
         else:
             ns, sep, localName = node.tag.partition('}')
             if sep:
@@ -1292,7 +1296,7 @@ def writexml(
                 firstChild = False
             writexml(writer, child,
                      indent=indent+'    ' if indent is not None and not isFootnote else '',
-                     xmlcharrefreplace=xmlcharrefreplace, edgarcharrefreplace=edgarcharrefreplace)
+                     xmlcharrefreplace=xmlcharrefreplace, edgarcharrefreplace=edgarcharrefreplace, skipInvalid=skipInvalid)
         if hasChildNodes:
             if isXmlElement and not isFootnote and indent is not None:
                 writer.write("%s</%s>" % (indent, tag))

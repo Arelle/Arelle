@@ -38,7 +38,8 @@ from lxml import etree
 from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
 from arelle.Aspect import Aspect
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue, rangeValue, ValidateCalcsMode
-from arelle.XmlValidate import UNVALIDATED, INVALID, VALID, validate as xmlValidate
+from arelle.XmlValidateConst import UNVALIDATED, INVALID, VALID
+from arelle.XmlValidate import validate as xmlValidate
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from math import isnan, isinf
 from arelle.ModelObject import ModelObject
@@ -641,25 +642,25 @@ class ModelInlineValueObject:
             self.xValue = None
             f = self.format
             v = self.rawValue
+            if f is not None:
+                if f.namespaceURI in FunctionIxt.ixtNamespaceFunctions:
+                    try:
+                        v = FunctionIxt.ixtNamespaceFunctions[f.namespaceURI][f.localName](v)
+                    except Exception as err:
+                        self.setInvalid()
+                        raise err
+                else:
+                    try:
+                        v = self.modelXbrl.modelManager.customTransforms[f](v)
+                    except KeyError as err:
+                        self.setInvalid()
+                        raise FunctionIxt.ixtFunctionNotAvailable
+                    except Exception as err:
+                        self.setInvalid()
+                        raise err
             if self.isNil:
                 self._ixValue = v
             else:
-                if f is not None:
-                    if f.namespaceURI in FunctionIxt.ixtNamespaceFunctions:
-                        try:
-                            v = FunctionIxt.ixtNamespaceFunctions[f.namespaceURI][f.localName](v)
-                        except Exception as err:
-                            self._ixValue = ModelValue.INVALIDixVALUE
-                            raise err
-                    else:
-                        try:
-                            v = self.modelXbrl.modelManager.customTransforms[f](v)
-                        except KeyError as err:
-                            self._ixValue = ModelValue.INVALIDixVALUE
-                            raise FunctionIxt.ixtFunctionNotAvailable
-                        except Exception as err:
-                            self._ixValue = ModelValue.INVALIDixVALUE
-                            raise err
                 if self.localName == "nonNumeric":
                     self._ixValue = v
                 elif self.localName == "tuple":

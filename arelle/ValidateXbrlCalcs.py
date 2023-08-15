@@ -11,7 +11,7 @@ import hashlib
 from arelle import Locale, XbrlConst, XbrlUtil
 from arelle.ModelObject import ObjectPropertyViewWrapper
 from arelle.PythonUtil import flattenSequence, strTruncate
-from arelle.XmlValidate import UNVALIDATED, VALID
+from arelle.XmlValidateConst import UNVALIDATED, VALID
 
 if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelFact

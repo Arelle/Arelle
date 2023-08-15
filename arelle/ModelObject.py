@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Generator, cast, Union
 from lxml import etree
 from arelle import Locale
 from arelle.ModelValue import qname, qnameEltPfxName, QName
+from arelle.XmlValidateConst import VALID_NO_CONTENT
 from arelle.model import CommentBase, ElementBase, PIBase
 
 if TYPE_CHECKING:
@@ -22,15 +23,13 @@ if TYPE_CHECKING:
     from arelle.ModelValue import TypeSValue, TypeXValue
 
 XmlUtil: Any = None
-VALID_NO_CONTENT: int | None = None
 
 emptySet: set[Any] = set()
 
 def init() -> None: # init globals
-    global XmlUtil, VALID_NO_CONTENT
+    global XmlUtil
     if XmlUtil is None:
         from arelle import XmlUtil
-        from arelle.XmlValidate import VALID_NO_CONTENT
 
 class ModelObject(ElementBase):
     """ModelObjects represent the XML elements within a document, and are implemented as custom

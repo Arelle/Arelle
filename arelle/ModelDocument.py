@@ -19,7 +19,8 @@ from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype,
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import OrderedDefaultDict, normalizeSpace
 from arelle.XhtmlValidate import ixMsgCode
-from arelle.XmlValidate import VALID, validate as xmlValidate, lxmlSchemaValidate
+from arelle.XmlValidateConst import VALID
+from arelle.XmlValidate import validate as xmlValidate, lxmlSchemaValidate
 from arelle.ModelTestcaseObject import ModelTestcaseVariation
 
 creationSoftwareNames = None
@@ -1812,6 +1813,10 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                             _("Fact %(fact)s has unrecognized transformation name %(name)s"),
                             modelObject=modelInlineFact, fact=modelInlineFact.qname, transform=fmt, name=fmt.localName)
                         modelInlineFact.setInvalid()
+            else:
+                modelXbrl.error(ixMsgCode("missingReferences", modelInlineFact, name="references", sect="validation"),
+                                _("Instance fact missing schema definition: %(qname)s of Inline Element %(localName)s"),
+                                modelObject=modelInlineFact, qname=modelInlineFact.get("name","(no name)"), localName=modelInlineFact.elementQname)
 
         # order tuple facts
         for tupleFact in tupleElements:

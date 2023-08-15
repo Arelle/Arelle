@@ -66,7 +66,7 @@ from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import (ixbrl11, xhtml, parentChild, summationItem, standardLabel,
                               all as hc_all, notAll as hc_notAll, dimensionDomain, domainMember,
                               qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote, iso17442, widerNarrower)
-from arelle.XmlValidate import VALID
+from arelle.XmlValidateConst import VALID
 from arelle.ValidateUtr import ValidateUtr
 from .Const import (mandatory, untransformableTypes,
                     esefPrimaryStatementPlaceholderNames, esefStatementsOfMonetaryDeclarationNames, esefMandatoryElementNames2020)

@@ -17,7 +17,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelObjectFactory import parser
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import QName
-from arelle.XmlValidate import VALID
+from arelle.XmlValidateConst import VALID
 from .Const import esefTaxonomyNamespaceURIs, esefNotesStatementConcepts,\
     esefCorNsPattern, htmlEventHandlerAttributes, svgEventAttributes
 from lxml.etree import XML, XMLSyntaxError

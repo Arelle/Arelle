@@ -3,13 +3,14 @@ See COPYRIGHT.md for copyright information.
 '''
 import os, json
 import regex as re
+from decimal import Decimal
 from collections import defaultdict, OrderedDict
 from arelle.FileSource import openFileStream, openFileSource, saveFile # only needed if building a cached file
-from arelle.ModelValue import qname
+from arelle.ModelValue import qname, dateTime, DATE
 from arelle import XbrlConst
 from arelle.PythonUtil import attrdict, flattenSequence, pyObjectSize
 from arelle.ValidateXbrlCalcs import inferredDecimals, floatINF
-from arelle.XmlValidate import VALID
+from arelle.XmlValidateConst import VALID
 from .Consts import standardNamespacesPattern, latestTaxonomyDocs, latestEntireUgt, feeTaggingExhibitTypePattern
 
 EMPTY_DICT = {}
@@ -147,13 +148,13 @@ def loadDeiValidations(modelXbrl, isInlineXbrl, exhibitType):
             continue
         for field in (
             ("xbrl-names",) if "store-db-name" in sev else
-            ("xbrl-names", "validation") if feeTaggingExhibitTypePattern.match(exhibitType) else
+            ("xbrl-names", "validation") if isFeeTagging else
             ("xbrl-names", "validation", "efm", "source")):
             if field not in sev:
                 modelXbrl.error("arelle:loadDeiValidations",
                                 _("Missing sub-type-element-validation[\"%(field)s\"] from %(validation)s."),
                                 field=field, validation=sev)
-        if "severity" in sev and not any(field.startswith("message") for field in sev):
+        if "severity" in sev and not any(field.startswith("message") for field in sev) and not isFeeTagging:
             modelXbrl.error("arelle:loadDeiValidations",
                             _("Missing sub-type-element-validation[\"%(field)s\"] from %(validation)s."),
                             field="message*", validation=sev)
@@ -192,23 +193,23 @@ def loadDeiValidations(modelXbrl, isInlineXbrl, exhibitType):
         s = sev.get("source")
         if s is None and not validationCode and "store-db-name" in sev and not isFeeTagging:
             pass # not a validation entry
-        elif s not in ("inline", "non-inline", "both"):
+        elif s not in ("inline", "non-inline", "both") and not isFeeTagging:
             modelXbrl.error("arelle:loadDeiValidations", _("Invalid source [\"%(source)s\"]."), source=s)
-        elif (isInlineXbrl and s in ("inline", "both")) or (not isInlineXbrl and s in ("non-inline", "both")):
+        elif (isInlineXbrl and s in ("inline", "both")) or (not isInlineXbrl and s in ("non-inline", "both")) or isFeeTagging:
             messageKey = sev.get("message")
             if messageKey and messageKey not in validations["messages"]:
                 modelXbrl.error("arelle:loadDeiValidations", _("Missing message[\"%(messageKey)s\"]."), messageKey=messageKey)
             # only include dei names in current dei taxonomy
             sev["xbrl-names"] = [name
                                  for name in flattenSequence(sev.get("xbrl-names", ()))
-                                 if qname(name, prefixedNamespaces) in modelXbrl.qnameConcepts or name.endswith(":*")]
+                                 if qname(name, prefixedNamespaces) in modelXbrl.qnameConcepts or name.endswith(":*") or name.startswith("header:")]
             if "references" in sev:
                 sev["references"] = flattenSequence(sev["references"])
                 if "reference-value" not in sev:
                     sev["reference-value"] = ["!not!", "absent"] # default condition
             subTypeSet = compileSubTypeSet(sev.get("sub-types", (sev.get("sub-type",()),)))
             if "*" in subTypeSet:
-                subTypeSet = "all" # change to string for faster testing in Filing.py
+                subTypeSet = {"all"} # change to string for faster testing in Filing.py
             sev["subTypeSet"] = subTypeSet
             if "sub-types-pattern" in sev:
                 sev["subTypesPattern"] = re.compile(sev["sub-types-pattern"])

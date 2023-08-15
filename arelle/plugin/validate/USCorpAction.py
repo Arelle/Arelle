@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 
 from arelle.ModelValue import qname
 from arelle.Version import copyrightLabel
-from arelle.XmlValidate import VALID
+from arelle.XmlValidateConst import VALID
 import time
 from collections import defaultdict
 

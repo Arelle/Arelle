@@ -8,13 +8,12 @@ from lxml import etree
 from regex import Match, compile as re_compile
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
-from arelle import XbrlConst, XmlUtil
+from arelle import UrlUtil, XbrlConst, XmlUtil, XmlValidateConst
 from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, qnameHref,
                                dateTime, DATE, DATETIME, DATEUNION, time,
                                anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay, isoDuration)
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.PythonUtil import strTruncate
-from arelle import UrlUtil
 
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
@@ -29,18 +28,20 @@ if TYPE_CHECKING:
 
 _: TypeGetText
 
+# support legacy direct imports from this module
+UNVALIDATED      = XmlValidateConst.UNVALIDATED
+UNKNOWN          = XmlValidateConst.UNKNOWN
+INVALID          = XmlValidateConst.INVALID
+NONE             = XmlValidateConst.NONE
+VALID            = XmlValidateConst.VALID
+VALID_ID         = XmlValidateConst.VALID_ID
+VALID_NO_CONTENT = XmlValidateConst.VALID_NO_CONTENT
+
+
 validateElementSequence: Callable[..., Any] | None = None  #dynamic import to break dependency loops
 modelGroupCompositorTitle: Callable[[Any], str] | None = None
 ModelInlineValueObject: Type[Any] | None = None
 ixMsgCode: Callable[..., str] | None = None
-
-UNVALIDATED = 0 # note that these values may be used a constants in code for better efficiency
-UNKNOWN = 1
-INVALID = 2
-NONE = 3
-VALID = 4 # values >= VALID are valid
-VALID_ID = 5
-VALID_NO_CONTENT = 6 # may be a complex type with children, must be last (after VALID with content enums)
 
 normalizeWhitespacePattern = re_compile(r"[\t\n\r]") # replace tab, line feed, return with space (XML Schema Rules, note: does not include NBSP)
 collapseWhitespacePattern = re_compile(r"[ \t\n\r]+") # collapse multiple spaces, tabs, line feeds and returns to single space
@@ -169,7 +170,10 @@ def validate(
                 if isAbstract:
                     raise ValueError("element is abstract")
                 if isNil:
-                    text = ""
+                    if ixFacts: # still must validate format
+                        text = elt.stringValue
+                    else:
+                        text = ""
                 elif baseXsdType == "noContent":
                     text = elt.textValue # no descendant text nodes
                 else:

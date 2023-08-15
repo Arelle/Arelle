@@ -253,9 +253,9 @@ config = ConformanceSuiteConfig(
     ]),
     file='conf/testcases.xml',
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
-    local_filepath='efm-66-230620.zip',
+    local_filepath='efm-661d-230727.zip',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/EFM', 'inlineXbrlDocumentSet'}),
-    public_download_url='https://www.sec.gov/files/edgar/efm-66-230620.zip',
+    public_download_url='https://www.sec.gov/files/edgar/efm-661d-230727.zip',
     shards=20,
 )

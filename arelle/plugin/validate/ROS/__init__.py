@@ -18,7 +18,7 @@ from arelle.PythonUtil import strTruncate
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import qnXbrliXbrl, xhtml
-from arelle.XmlValidate import VALID
+from arelle.XmlValidateConst import VALID
 
 taxonomyReferences = [
      "https://xbrl.frc.org.uk/ireland/FRS-101/2019-01-01/ie-FRS-101-2019-01-01.xsd",

@@ -47,6 +47,13 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
    dqcRuleFilter: null or absent for all DQC rules, else regular expression to filter which rules run
        (e.g. "DQC.US.00(04|15)" ), but not including the id suffix (which is not filterable)
        If parameter is absent and config.xml for disclosureSystem options specifies a dqc-rule-filter, it will be in effect
+   # fee table instance validations (only):
+   "exhibitType": "EX-FILINGS-FEES",  # this field is mandatory for fee table instance validations else instance will be validated as a financial report
+   # exhibitType must match an entry in feeTaggingExhibitTypes (Consts.py) for instance to be recognized as a fee table instance
+   "submissionType" : "S-1", # this field is mandatory for fee table instance validations
+   "feeRate": "0.000130" # decimal number expressed in string - feeRate on the filing date
+   "feeValuesFromFacts": true # save fee facts in json
+   "saveFeeFacts": test environment file into which to save JSON output
    },
  {"file": "file 2"...
 ]
@@ -105,10 +112,11 @@ For GUI mode there are two ways to set rendering output, (1) by formula paramete
 '''
 import os, io, json, zipfile, logging
 jsonIndent = 1  # None for most compact, 0 for left aligned
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from lxml.etree import XML, XMLSyntaxError
 from arelle import ModelDocument, ModelValue, XmlUtil, FileSource
 from arelle.ModelDocument import Type
+from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelValue import qname
 from arelle.PluginManager import pluginClassMethods  # , pluginMethodsForClasses, modulePluginInfos
 from arelle.PythonUtil import flattenSequence
@@ -116,7 +124,9 @@ from arelle.UrlUtil import authority, relativeUri
 from arelle.ValidateFilingText import referencedFiles
 from arelle.Version import authorLabel, copyrightLabel
 from .Document import checkDTSdocument
+from .Consts import feeTagEltsNotRelevelable, feeTagMessageCodesRelevelable, feeTaggingExhibitTypePattern, supplementalExhibitTypesPattern
 from .Filing import validateFiling
+from .MessageNumericId import messageNumericId
 import regex as re
 from collections import defaultdict
 
@@ -142,7 +152,11 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                       "rptIncludeAllSeriesFlag", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds",
                       "rptIncludeAllClassesFlag", "rptSeriesClassInfo.classIds", "newClass2.classIds",
                       "eligibleFundFlag", "pursuantGeneralInstructionFlag", "filerNewRegistrantFlag",
-                      "datetimeForTesting", "dqcRuleFilter", "saveCoverFacts")
+                      "datetimeForTesting", "dqcRuleFilter", "saveCoverFacts",
+                      "feeRate", "feeValuesFromFacts", "saveFeeFacts", "fiscalYearEnd", "intrstRate", "issrNm")
+    boolParameterNames = {"voluntaryFilerFlag", "wellKnownSeasonedIssuerFlag", "shellCompanyFlag", "acceleratedFilerStatus",
+                          "smallBusinessFlag", "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "rptIncludeAllSeriesFlag",
+                          "filerNewRegistrantFlag", "pursuantGeneralInstructionFlag", "eligibleFundFlag"}
     parameterEisFileTags = {
         "cik":["depositorId", "cik", "filerId"],
         "submissionType": "submissionType",
@@ -162,7 +176,8 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         #"newClass2.seriesIds": ?,
         "filerNewRegistrantFlag": "filerNewRegistrantFlag",
         "pursuantGeneralInstructionFlag": "pursuantGeneralInstructionFlag",
-        "eligibleFundFlag": "eligibleFundFlag"
+        "eligibleFundFlag": "eligibleFundFlag",
+        "feeRate": "feeRate",
     }
     # retrieve any EIS file parameters first
     if val.modelXbrl.fileSource and val.modelXbrl.fileSource.isEis and hasattr(val.modelXbrl.fileSource, "eisDocument"):
@@ -180,12 +195,22 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
             if p and len(p) == 2 and p[1] not in ("null", "None", None):
                 v = p[1] # formula dialog and cmd line formula parameters may need type conversion
                 if isinstance(v, str):
-                    if paramName in {"voluntaryFilerFlag", "wellKnownSeasonedIssuerFlag", "shellCompanyFlag", "acceleratedFilerStatus",
-                                     "smallBusinessFlag", "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "rptIncludeAllSeriesFlag",
-                                     "filerNewRegistrantFlag", "pursuantGeneralInstructionFlag", "eligibleFundFlag"}:
-                        v = {"true":True, "false":False}.get(v)
+                    if paramName in boolParameterNames:
+                        v = {"true":True, "false":False}.get(v, v)
                     elif paramName in {"itemsList", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds", "rptSeriesClassInfo.classIds", "newClass2.classIds"}:
                         v = v.split()
+                    elif paramName == "feeRate":
+                        if isinstance(v, float):
+                            val.modelXbrl.warning("arelle.Parameters",
+                                _("parameter %(name)s has should not have float value %(value)s"),
+                                modelXbrl=val.modelXbrl, name=paramName, value=v)
+                        try:
+                            v = Decimal(v)
+                        except (ValueError, InvalidOperation):
+                            val.modelXbrl.error("arelle.Parameters",
+                                _("parameter %(name)s has non-decimal value %(value)s"),
+                                modelXbrl=val.modelXbrl, name=paramName, value=v)
+                            continue # don't use parameter
                 val.params[paramName] = v
         if "CIK" in val.params: # change to lower case key
             val.params["cik"] = val.params["CIK"]
@@ -206,8 +231,26 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         if efmFiling.reports: # possible that there are no reports
             entryPoint = efmFiling.reports[-1].entryPoint
             for paramName in parameterNames: # cik is lower case here
-                if paramName in entryPoint and entryPoint[paramName] not in (None, ""):
-                    val.params[paramName] = entryPoint[paramName] # if not set uses prior value
+                v = entryPoint.get(paramName)
+                if paramName in boolParameterNames:
+                    v = {"true":True, "false":False}.get(v, v)
+                elif paramName == "feeRate" and v not in (None, ""):
+                    if isinstance(v, float):
+                        val.modelXbrl.warning("arelle.Parameters",
+                            _("parameter %(name)s should not have float value %(value)s"),
+                            modelXbrl=val.modelXbrl, name=paramName, value=v)
+                    try:
+                        v = Decimal(v)
+                    except (ValueError, InvalidOperation):
+                        val.modelXbrl.error("arelle.Parameters",
+                            _("parameter %(name)s has non-decimal value %(value)s"),
+                            modelXbrl=val.modelXbrl, name=paramName, value=v)
+                        v = None
+                if v not in (None, ""):
+                    val.params[paramName] = v # if not set uses prior value
+    if "CIK" in val.params: # change to lower case key
+        val.params["cik"] = val.params["CIK"]
+        del val.params["CIK"]
 
     # exhibitType may be an attachmentType, if so remove ".INS"
     if val.params.get("exhibitType", "").endswith(".INS"):
@@ -251,6 +294,20 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         efmFiling = modelManager.efmFiling
         efmFiling.submissionType = val.params.get("submissionType")
 
+def severityReleveler(modelXbrl, level, messageCode, args, **kwargs):
+    if messageCode and feeTagMessageCodesRelevelable.match(messageCode) and level == "ERROR":
+        if not hasattr(modelXbrl, "isFeeTagging"):
+            modelXbrl.isFeeTagging = any(ns.startswith("http://xbrl.sec.gov/ffd") for ns in modelXbrl.namespaceDocs)
+        if modelXbrl.isFeeTagging:
+            modelObject = args.get("modelObject")
+            if (isinstance(modelObject, ModelFact) and
+                str(modelObject.qname) not in feeTagEltsNotRelevelable):
+                    return "WARNING"
+    # add message number
+    msgNum = messageNumericId(modelXbrl, level, messageCode, args)
+    if msgNum:
+        args["edgarMessageNumericId"] = msgNum
+    return level
 
 def validateXbrlFinally(val, *args, **kwargs):
     if not (val.validateEFMplugin):
@@ -304,6 +361,22 @@ def testcasesStart(cntlr, options, modelXbrl, *args, **kwargs):
         del modelManager.efmFiling
         if not hasattr(modelXbrl, "efmOptions") and options: # may have already been set by EdgarRenderer in gui startup
             modelXbrl.efmOptions = options  # save options in testcase's modelXbrl
+
+def xbrlLoad(modelManager, filesource, entrypoint=None, **kwargs):
+    # starting to load an instance
+    if hasattr(modelManager, "efmFiling"):
+        if entrypoint:
+            exhibitType = entrypoint.get("exhibitType")
+            if feeTaggingExhibitTypePattern.match(exhibitType or ""):
+                # set html log title
+                modelManager.cntlr.logHandler.htmlTitle = "Fee Exhibit Message Log"
+            modelManager.cntlr.addToLog(
+                f"Exhibit Type {exhibitType}",
+                level="INFO-RESULT",
+                messageCode="EFM.exhibitType",
+                messageArgs={"exhibitType":exhibitType},
+                file=os.path.basename(entrypoint.get("file"))
+                )
 
 def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args, **kwargs):
     # cntlr.addToLog("TRACE EFM xbrl loaded")
@@ -396,7 +469,7 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
                                     r.url)
         _exhibitTypeReports = defaultdict(list)
         for r in reports:
-            if hasattr(r, "exhibitType") and r.exhibitType:
+            if hasattr(r, "exhibitType") and r.exhibitType and not supplementalExhibitTypesPattern.match(r.exhibitType):
                 _exhibitTypeReports[r.exhibitType.partition(".")[0]].append(r)
         if len(_exhibitTypeReports) > 1:
             efmFiling.error("EFM.6.03.08",
@@ -699,7 +772,7 @@ class Report:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
-    'version': '1.23.2', # SEC EDGAR release 23.2
+    'version': '1.23.2.2', # SEC EDGAR release 23.2
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'import': ('transforms/SEC',), # SEC inline can use SEC transformations
@@ -721,11 +794,13 @@ __pluginInfo__ = {
     'CntlrCmdLine.Xbrl.Run': xbrlRun,
     'CntlrCmdLine.Filing.Validate': filingValidate,
     'CntlrCmdLine.Filing.End': filingEnd,
+    'ModelManager.Load': xbrlLoad,
     'RssItem.Xbrl.Loaded': rssItemXbrlLoaded,
     'Validate.RssItem': rssItemValidated,
     'TestcaseVariation.Xbrl.Loaded': testcaseVariationXbrlLoaded,
     'TestcaseVariation.Xbrl.Validated': testcaseVariationXbrlValidated,
     'TestcaseVariation.Validated': testcaseVariationValidated,
     'FileSource.File': fileSourceFile,
-    'FileSource.Exists': fileSourceExists
+    'FileSource.Exists': fileSourceExists,
+    'Logging.Severity.Releveler': severityReleveler
 }

@@ -24,10 +24,10 @@ from arelle.ModelDtsObject import ModelConcept, ModelResource
 from arelle.ModelXbrl import NONDEFAULT
 from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
-from arelle.PythonUtil import pyNamedObject, strTruncate, flattenSequence, flattenToSet, OrderedSet
+from arelle.PythonUtil import pyNamedObject, strTruncate, normalizeSpace, lcStr, flattenSequence, flattenToSet, OrderedSet
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue, roundValue, ONE
-from arelle.XmlValidate import VALID
+from arelle.XmlValidateConst import VALID
 from .DTS import checkFilingDTS
 from .Consts import submissionTypesAllowingWellKnownSeasonedIssuer, \
                     submissionTypesNotRequiringPeriodEndDate, \
@@ -1034,6 +1034,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
             # Table driven validations
             def sevMessage(sev, messageKey=None, **kwargs):
+                # skip these messages when loadedFromFtJson
+                # Specific use case: EDGAR will not store the business address detail or send it to EFMS as part of BR4, no validation for BR6.
+                if sev.get("skip-if-ft-json") == True:
+                    if hasattr(modelXbrl, 'loadedFromFtJson') and modelXbrl.loadedFromFtJson == True:
+                        return
+
                 logArgs = kwargs.copy()
                 validation = deiValidations["validations"][sev["validation"]]
                 severity = kwargs.get("severity", sev.get("severity", validation["severity"]))
@@ -1133,7 +1139,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if len(v) == 1:
                                 logArgs[n] = sevMessageArgValue(v[0], pf)
                             elif len(v) == 2 and v[0] == "!not!":
-                                logArgs[n] = f"not( {sevMessageArgValue(v[1], pf)} )"
+                                val = "not " if "severityVerb" not in sev else ""
+                                logArgs[n] = f"{val}{sevMessageArgValue(v[1], pf)}"
                             elif len(v) > 2 and v[0] == "!not!":
                                 logArgs[n] = f"not any of ( {', '.join(sevMessageArgValue(_v, pf) for _v in v[1:])} )"
                             else:
@@ -1227,8 +1234,48 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
                 members = axesValidations.get("members")
 
+                def whereConditionIsFalse(wValue, wCond):
+                    wOp = wCond[0]
+                    if ((wOp == "~" and not re.search(wCond[1], str(wValue))) or
+                        (wOp == "~*" and not re.search(wCond[1], str(wValue), re.IGNORECASE)) or
+                        (wOp == "!~" and re.search(wCond[1], str(wValue))) or
+                        (wOp == "!~*" and re.search(wCond[1], str(wValue))) or
+                        ((wOp not in {"~", "~*", "!~", "!~*", "less than or equal"}) and
+                            (wValue not in wCond) == ("!not!" not in wCond)) or
+                        ((wValue != "absent" and wOp == "less than or equal" and (wValue > wCond[1]) == ("!not!" not in wCond)))
+                        ):
+                        return True
+                    return False
+
+                def comparison(sev, otherFact):
+                    names = sev.get("comparison-names")
+                    refNames = sev.get("comparison-ref-names")
+                    comparisonOperator = sev.get("comparison-operator")
+                    tolerance = sev.get("comparison-tolerance", 0)
+                    items1 = []
+                    items2 = []
+                    for name1 in names:
+                        for f in sevFacts(sev, name1, otherFact=otherFact, deduplicate=True):
+                            items1.append(f)
+                    for name2 in refNames:
+                        for g in sevFacts(sev, name2, otherFact=otherFact, deduplicate=True):
+                            items2.append(g)
+                    item1Vals = [f.xValue if f is not None else 0 for f in items1]
+                    item2Vals = [g.xValue if g is not None else 0 for g in items2]
+                    sum1 = sum(item1Vals)
+                    sum2 = sum(item2Vals)
+                    if ((comparisonOperator == "equal" and abs(sum1 - sum2) <= tolerance) or
+                        (comparisonOperator == "not-equal" and abs(sum1 - sum2) >= tolerance) or
+                        (comparisonOperator == "less than or equal" and (sum1 - sum2) <= tolerance) or
+                        (comparisonOperator == "less than" and (sum1 - sum2) < tolerance) or
+                        (comparisonOperator == "greater than or equal" and (sum1 - sum2) > tolerance) or
+                        (comparisonOperator == "greater" and (sum1 - sum2) > tolerance)):
+                        return True
+                    return False
+
                 for name in names:
                     yielded = False
+                    skipF = False
                     for f in (modelXbrl.factsByQname.get(qname(name, deiDefaultPrefixedNamespaces)) or
                                                         (NONE_SET if fallback else EMPTY_SET)):
                         if f is not None: # not fallback
@@ -1236,38 +1283,51 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 continue
                             context = f.context
                         if (f is None) or (context is not None and f.xValid >= VALID and not f.isNil):
-                            _skipF = False
+                            skipF = False
                             for wName, wCond in where.items():
-                                fw = sevFact(sev, wName, f)
-                                wValue = "absent" if fw is None else fw.xValue
+                                if wName.startswith("function:"):
+                                    # Need to name functions to make it visible to eval scope
+                                    getNumberofDaysLate
+                                    functionName = wName[9:]
+                                    evalString, functionArgs = getEvalFunctionStringAndArgs(sev, functionName)
+                                    wValue = eval(evalString) if evalString else 0
+                                elif wName == "comparison":
+                                    wValue = comparison(sev, f)
+                                elif " axisSum " in wName:
+                                    _wName, _sep, _axisKey = wName.partition(" axisSum ")
+                                    items = []
+                                    for fw in sevFacts(sev, _wName, axisKey=_axisKey, deduplicate=True, sevCovered=False):
+                                        items.append(fw)
+                                    itemVals = [g.xValue if g is not None else 0 for g in items]
+                                    wValue = sum(itemVals)
+                                else:
+                                    fw = sevFact(sev, wName, f, sevCovered=False)
+                                    wValue = "absent" if fw is None else fw.xValue
                                 if "!anotherLine!" in wCond: # allow axis  axisKey for !anotherLine!
                                     if " axis " in wName:
                                         _wName, _sep, _axisKey = wName.partition(" axis ")
                                     else:
                                         _wName = wName; _axisKey = axisKey
-                                    if (((wValue not in wCond) == ("!not!" in wCond)) and
-                                        any(fw.xValue in wCond
-                                           for fw in sevFacts(sev, _wName, axisKey=_axisKey)
-                                           if fw.context.dimsHash != f.context.dimsHash
-                                           ) == ("!not!" in wCond)):
-                                        _skipF = True
+                                    otherLinesConditionFalse = list(whereConditionIsFalse(fw.xValue, wCond)
+                                                    for fw in sevFacts(sev, _wName, axisKey=_axisKey, sevCovered=False)
+                                                        if fw.context.dimsHash != (f.context.dimsHash if f is not None else None)
+                                                )
+                                    if ( (otherLinesConditionFalse and all(otherLinesConditionFalse)) or
+                                         ( otherLinesConditionFalse and ("!not!" in wCond) == (any(otherLinesConditionFalse)) ) or
+                                         ( (len(otherLinesConditionFalse) == 0) and ("absent" in wCond) == ("!not!" in wCond) )
+                                    ):
+                                        skipF = True
                                         break
                                 elif wName == "period":
                                     if ("required-context" in wCond and documentType and
                                         context.isPeriodEqualTo(documentTypeFact.context) == ("!not!" in wCond)):
-                                        _skipF = True
+                                        skipF = True
                                         break
                                 else:
-                                    wOp = wCond[0]
-                                    if ((wOp == "~" and not re.search(wCond[1], str(wValue))) or
-                                        (wOp == "~*" and not re.search(wCond[1], str(wValue), re.IGNORECASE)) or
-                                        (wOp == "!~" and re.search(wCond[1], str(wValue))) or
-                                        (wOp == "!~*" and re.search(wCond[1], str(wValue))) or
-                                        (wOp not in {"~", "~*", "!~", "!~*"} and
-                                            (wValue not in wCond) == ("!not!" not in wCond))):
-                                        _skipF = True
+                                    if whereConditionIsFalse(wValue, wCond):
+                                        skipF = True
                                         break
-                            if _skipF:
+                            if skipF:
                                 continue # skip this fact
                             if f is None:
                                 yielded = True
@@ -1330,7 +1390,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if name.startswith("header:") and name[7:] in val.params:
                         yielded = True
                         yield HeaderValuePsuedoFact(val.params[name[7:]])
-                    if not yielded and fallback:
+                    if not yielded and fallback and not skipF:
                         yield None
 
             # return first of matching facts or None
@@ -1410,7 +1470,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     c.append(str(axesVals[i]))
                                     for f in sorted(modelXbrl.factsByDimMemQname(axisConcept.qname, str(axesVals[i])),
                                                     key=lambda f:f.qname.localName):
-                                        if f.qname.localName.endswith("Flag") and "Rule" in f.qname.localName:
+                                        if f.qname.localName.endswith("Flg") and "Rule" in f.qname.localName and f.xValue == True:
                                             c[-1] += ","
                                             c.append(f.concept.label(XbrlConst.terseLabel))
                     except IndexError: # variable expression for dimension arguments
@@ -1447,10 +1507,25 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         and d.memberQname == deiADRmember
                         for d in f.context.qnameDims.values()))
 
-            def getStoreDBValue(key, value):
+            def getStoreDBValue(key, value, otherFact=None):
                 if type(value) is dict:
+                    if "subtract" in value:
+                        items = []
+                        for name in value.get('xbrl-names', []):
+                            f = sevFact(value, name, otherFact=otherFact, whereKey="where")
+                            if f is not None:
+                                items.append(f.xValue)
+                            else:
+                                items.append(0)
+                        for i, subtract in enumerate(value.get("subtract", [])):
+                            if subtract:
+                                items[i] =- items[i]
+                        result = str(max(sum(items), 0)) # non-negative values only
+                        return result
+                    elif "calculateDaysLate" in value:
+                        return getNumberofDaysLate(otherFact.xValue)
                     # this will get the first matching fact
-                    f = sevFact(value, whereKey="where")
+                    f = sevFact(value, otherFact=otherFact, whereKey="where")
                     if f is not None:
                         if ftName(f) in deiValidations['form-fields']:
                             return deiValidations['form-mapping'].get(f.value, f.value)
@@ -1458,6 +1533,15 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 elif key in deiValidations.get('form-fields', EMPTY_DICT):
                     return deiValidations['form-mapping'].get(value, value)
                 return value
+
+            def getNumberofDaysLate(fiscalYearEnd, lateAfter=90):
+                dueDate = fiscalYearEnd + datetime.timedelta(days=lateAfter)
+                # if due date falls on a weekend or holiday the due date will be the next business day
+                # Monday = 0, Sunday = 6
+                while dueDate.weekday() > 4 or dueDate in upcomingSECHolidays:
+                    dueDate += datetime.timedelta(days=1)
+
+                return max((datetimeNowAtSEC - dueDate).days, 0)
 
             unexpectedDeiNameEfmSects = defaultdict(set) # name and sev(s)
             expectedDeiNames = defaultdict(set)
@@ -1500,7 +1584,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if checkAfter and reportDate and checkAfter >= reportDate:
                     continue
                 subFormTypesCheck = {submissionType, "{}§{}".format(submissionType, documentType)}
-                if (subTypes != "all"
+                if (subTypes not in ({"all"}, {"n/a"})
                     and (subFormTypesCheck.isdisjoint(subTypes) ^ ("!not!" in subTypes))
                     and (not subTypesPattern or not subTypesPattern.match(submissionType))):
                     if validation not in (None, "fany"): # don't process name for sev's which only store-db-field
@@ -1577,6 +1661,30 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             count > 0 for count in patternMatchCount.values()) == 0:
                         sevMessage(sev, subType=submissionType, efmSection=efmSection, docType=documentType,
                                    taxonomyPattern=" or ".join(sorted(patternMatchCount.keys())))
+                elif validation == "noDups":
+                    axes = deiValidations["axis-validations"][axisKey]["axes"]
+                    axesQNs = [qname(axis, deiDefaultPrefixedNamespaces) for axis in axes]
+                    axesKeys = axisKey.split('-')
+                    for index, axisQN in enumerate(axesQNs):
+                        currentAxisKey = axesKeys[index]
+                        axisContexts = {}
+                        for f in modelXbrl.factsByDimMemQname(axisQN):
+                            if f.context.dimsHash in axisContexts:
+                                axisContexts[f.context.dimsHash]["data"][f.concept.qname] = f.xValue
+                            else:
+                                axisContexts[f.context.dimsHash] = {
+                                                                    "data": {f.concept.qname: f.xValue},
+                                                                    "refFact": f
+                                                                    }
+                        found = []
+                        for contextID, groupData in axisContexts.items():
+                            for otherContextID, otherGroupData in axisContexts.items():
+                                if otherContextID != contextID:
+                                    if groupData["data"] == otherGroupData["data"]:
+                                        matchingPair = set([contextID, otherContextID])
+                                        if matchingPair not in found:
+                                            sevMessage(sev, ftContext=ftContext(currentAxisKey, otherGroupData["refFact"]), otherftContext=ftContext(currentAxisKey, groupData["refFact"]))
+                                            found.append(matchingPair)
                 # type-specific validations
                 elif len(names) == 0:
                     pass # no name entries if all dei names of this validation weren't in the loaded dei taxonomy (i.e., pre 2019)
@@ -1869,18 +1977,32 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     for name in names:
                         for f in sevFacts(sev, name, deduplicate=True, whereKey="where"):
                             fMbrVals = axesValsKey(axisKey, f.context)
-                            mbfValFacts[fMbrVals].append(f)
+                            if isinstance(value, (set, list)) and value:
+                                appendFact = f.xValue in value
+                            elif isinstance(value, (str, bool, int, float)) and value != "":
+                                appendFact = f.xValue == value
+                            else:
+                                appendFact = True
+                            if appendFact: mbfValFacts[fMbrVals].append(f)
                     for cntx in modelXbrl.contexts.values():
                         mbrValKey = axesValsKey(axisKey, cntx)
                         if mbrValKey is not None and mbrValKey != () and (
                                not requiredContextPeriod or cntx.isPeriodEqualTo(documentTypeFact.context)):
                             if len(mbfValFacts.get(mbrValKey,())) != 1:
                                 sevMessage(sev, subType=submissionType, modelObject=mbfValFacts.get(mbrValKey, None), tags=ftName(names), labels=ftLabel(names), ftContext=ftContext(axisKey,mbrValKey), contextID=cntx.id)
+                                for localName, facts in modelXbrl.factsByLocalName.items():
+                                    # avoid duplicate messages about of-rule for this context
+                                    if localName.endswith("Flg") and "Rule" in localName:
+                                        for f in facts:
+                                            if f.context == cntx:
+                                                sevCoveredFacts.add(f)
                     mbfValFacts.clear()
                 elif validation and validation.startswith("fdep"):
                     #if efmSection == "ft.oClmSrc":
                     #    print("trace") # uncomment for debug tracing specific validation rules
                     refFactsFound = set()
+                    isAnotherLine = validation.endswith("anotherLine")
+                    referenceComparison = sev.get("references-comparison")
                     for name in names:
                         for f in sevFacts(sev, name, deduplicate=True, whereKey="where", fallback=bindIfAbsent, sevCovered=False):
                             flagFactsFound = set()
@@ -1893,7 +2015,17 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if ((value is None or ((fValue in value) == ("!not!" not in value) ))
                                  and fMbrVals is not None): # dimensions match
                                 for rName in referenceTag:
-                                    fr = sevFact(sev, rName, f, axisKey=sev.get("references-axes"), whereKey="references-where", sevCovered=False) # dependent fact is of context of f or for "c" inherited context (less disaggregated)
+                                    if isAnotherLine:
+                                        otherLinesFacts = list(
+                                                fr for fr in sevFacts(sev, rName, axisKey=sev.get("references-axes"), whereKey="references-where", sevCovered=False)
+                                                if fr.context.dimsHash != (f.context.dimsHash if f is not None else None) and
+                                                (referenceComparison is None or
+                                                (referenceComparison == "equal" and fValue == "absent" if fr is None else fValue == fr.xValue)
+                                                )
+                                            )
+                                        fr = otherLinesFacts[0] if any(otherFact is not None for otherFact in otherLinesFacts) else None
+                                    else:
+                                        fr = sevFact(sev, rName, f, axisKey=sev.get("references-axes"), whereKey="references-where", sevCovered=False) # dependent fact is of context of f or for "c" inherited context (less disaggregated)
                                     items = [f]
                                     if fr is None:
                                         frValue = "absent"
@@ -1968,7 +2100,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 elif validation == "future":
                     for name in names:
                         fFound = False
-                        for f in sevFacts(sev, name, deduplicate=True):
+                        for f in sevFacts(sev, name, deduplicate=True, whereKey="where"):
                             fMbrVals = axesValsKey(axisKey, f.context)
                             if fMbrVals is not None: # dimensions match
                                 t = datetime.date.today(); y = t.year; m = t.month; d = t.day
@@ -2018,7 +2150,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             sevMessage(sev, subType=submissionType, modelObject=items, ftContext=ftContext(axisKey,f),
                                        tag=ftName(name1), label=ftLabel(name1), otherTag=ftName(name2), otherLabel=ftLabel(name2), sumValue=sum1, otherSumValue=sum2, comparison=comparison,
                                        values=items1, otherValues=items2)
-                elif validation in ("tmult", "tdiff", "tnotGt", "tequals"):
+                elif validation in ("tmult", "tdiff", "tnotGt", "tequals", "tnotLs"):
                     tolerance = sev.get("tolerance",0)
                     referencesSubtract = sev.get("references-subtract", ())
                     for name in names:
@@ -2036,18 +2168,22 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                            tag=ftName(name), label=ftLabel(name), value=f.xValue, expectedValue=itemVals[1] * itemVals[2],
                                            term1=referenceTag[0], term1Label=ftLabel(referenceTag[0]), value1=items[1],
                                            term2=referenceTag[1], term2Label=ftLabel(referenceTag[1]), value2=items[2])
-                            elif validation in ("tdiff", "tnotGt"):
+                            elif validation in ("tdiff", "tnotGt", "tnotLs"):
                                 for i, subtractThisTerm in enumerate(referencesSubtract):
                                     if subtractThisTerm:
                                         itemVals[i+1] = - itemVals[i+1]
                                 expectedValue = sum(itemVals[1:])
                                 if ((validation == "tdiff" and abs(itemVals[0] - expectedValue) > tolerance) or
-                                    (validation == "tnotGt" and itemVals[0] > expectedValue)):
+                                    (validation == "tnotGt" and itemVals[0] > expectedValue) or
+                                    (validation == "tnotLs" and itemVals[0] < expectedValue)):
                                     termValues = "!do-not-quote!"
                                     for i, subtractThisTerm in enumerate(referencesSubtract):
-                                        if i > 0:
-                                            termValues += " minus " if subtractThisTerm else " plus "
-                                        termValues += f"{ftName(referenceTag[i])} {sevMessageArgValue(items[i+1])}"
+                                        if i == 0 or (items[i + 1] is not None and items[i + 1].xValue != 0):
+                                            # only append to termValues when the xValue is not 0 or
+                                            # when it is the first reference item.
+                                            if i > 0:
+                                                termValues += " minus " if subtractThisTerm else " plus "
+                                            termValues += f"{ftName(referenceTag[i])} {sevMessageArgValue(items[i+1])}"
                                     sevMessage(sev, subType=submissionType, modelObject=[f]+items, ftContext=ftContext(axisKey,f),
                                                tag=ftName(name), label=ftLabel(name), value=items[0], expectedValue=expectedValue,
                                                termValues=termValues)
@@ -2062,12 +2198,92 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         for f in sevFacts(sev, name1, deduplicate=True, whereKey="where"): # these all are sum facts
                             for name2 in referenceTag:
                                 for g in sevFacts(sev, name2, f, axisKey=sev.get("references-axes"), deduplicate=True, whereKey="references-where"):
+                                    if "references-date-format" in sev:
+                                        referenceDate = datetime.datetime.strptime(g.xValue, sev.get("references-date-format"))
+                                        if "%y" not in sev.get("references-date-format").lower():
+                                            referenceDate = referenceDate.replace(year=f.xValue.year)
+                                        if "%m" not in sev.get("references-date-format").lower():
+                                            referenceDate = referenceDate.replace(year=f.xValue.month)
+                                        if "%d" not in sev.get("references-date-format").lower():
+                                            referenceDate = referenceDate.replace(year=f.xValue.day)
+                                        g.xValue = ModelValue.dateTime(referenceDate.date().isoformat(), type=ModelValue.DATE)
                                     if ((comparison == "equal" and f.xValue != g.xValue) or
                                         (comparison == "not equal" and f.xValue == g.xValue) or
                                         (comparison in ("less than or equal", "not greater") and f.xValue > g.xValue)):
                                         comparisonText = sev.get("comparisonText", deiValidations["validations"][sev["validation"]].get("comparisonText", comparison)).format(comparison=comparison)
                                         sevMessage(sev, subType=submissionType, modelObject=(f,g), ftContext=ftContext(axisKey,g), comparison=comparisonText,
                                                    tag=ftName(name1), label=ftLabel(name1), otherTag=ftName(name2), otherLabel=ftLabel(name2), value=f.xValue, otherValue=g.xValue)
+                elif validation == "calculation":
+                    comparison = sev.get("comparison")
+                    operators = sev.get("references-operators")
+                    operatorsQualifiers = {
+                        "*": " multiplied by ",
+                        "/": " divided by ",
+                        "+": " plus ",
+                        "-": " minus ",
+                        "(": "(",
+                        ")": ")"
+                    }
+                    tolerance = sev.get("tolerance", 0)
+                    def getEvalFunctionStringAndArgs(sev, functionName, argumentsKey="function-arguments"):
+                        functionArgsFacts = [sevFact(sev, argName, None if sev.get("function-arguments-exclude-otherFact") == True else f, axisKey=sev.get("references-axes"), whereKey="references-where") for argName in sev.get(argumentsKey)]
+                        if all([fact is not None for fact in functionArgsFacts]):
+                            functionArgs = [fact.xValue for fact in functionArgsFacts]
+                            functionEvalString = f"{functionName}(*functionArgs)"
+                            return functionEvalString, functionArgs
+                        elif argumentsKey != "function-arguments-alt" and sev.get("function-arguments-alt"):
+                            return getEvalFunctionStringAndArgs(sev, functionName, argumentsKey="function-arguments-alt")
+                        return None, None
+
+                    for name1 in names:
+                        for f in sevFacts(sev, name1, deduplicate=True, whereKey="where", fallback=bindIfAbsent):
+                            fValue = 0 if f is None else f.xValue
+                            stringToEvaluate = ""
+                            termValues = "!do-not-quote!"
+                            operators = sev.get("references-operators").copy()
+                            for i, name2 in enumerate(referenceTag):
+                                if name2.startswith("function:"):
+                                    functionName = name2[9:]
+                                    evalString, functionArgs = getEvalFunctionStringAndArgs(sev, functionName)
+                                    value = eval(evalString) if evalString else 0
+                                    termValue = sevMessageArgValue(value)
+                                else:
+                                    refFact = sevFact(sev, name2, f, axisKey=sev.get("references-axes"), whereKey="references-where")
+                                    value = refFact.xValue if refFact is not None else 0
+                                    termValue = sevMessageArgValue(refFact if refFact is not None else 0)
+
+                                if i > 0:
+                                    operator = operators.pop(0)
+                                    stringToEvaluate = f"{stringToEvaluate}{operator}"
+                                    for char in operator:
+                                        termValues += operatorsQualifiers.get(char, char)
+
+                                stringToEvaluate = f"{stringToEvaluate}{value}"
+
+                                if name2.startswith("function:"):
+                                    termName = sev.get("function-term-name")
+                                else:
+                                    termName = ftName(name2)
+                                termValues += f"{termName} {termValue}"
+
+                            while operators:
+                                operator = operators.pop(0)
+                                stringToEvaluate += operator
+                                for char in operator:
+                                    termValues += operatorsQualifiers.get(char, char)
+
+                            expectedValue = eval(stringToEvaluate)
+                            expectedValue = decimal.Decimal(f"{expectedValue:.2f}")
+                            expectedValueString = sevMessageArgValue(expectedValue, f)
+                            expectedValueString = f"!do-not-quote!{expectedValueString}"
+
+                            if ((comparison == "equal" and abs(fValue-expectedValue) > tolerance) or
+                                (comparison == "not equal" and abs(fValue - expectedValue) <= tolerance ) or
+                                (comparison in ("less than or equal", "not greater") and (fValue - expectedValue) > tolerance)):
+                                comparisonText = sev.get("comparisonText", deiValidations["validations"][sev["validation"]].get("comparisonText", comparison)).format(comparison=comparison)
+                                sevMessage(sev, subType=submissionType, modelObject=[f], ftContext=ftContext(axisKey,f),
+                                            tag=ftName(name), label=ftLabel(name), value=f, expectedValue=expectedValueString,
+                                            termValues=termValues, comparison=comparisonText)
                 elif validation == "skip-if-absent":
                     #if efmSection == "ft.r011Flg":
                     #    print("trace") # uncomment for debug tracing specific validation rules
@@ -2096,6 +2312,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         _storeDbName = lcStr(f.qname.localName) if storeDbName == "@lcName" else storeDbName
                         axesValidations = deiValidations["axis-validations"][axisKey]
                         axes = axesValidations["axes"]
+                        members = axesValidations.get("members",())
                         if f is not None:
                             _axisKey = tuple(
                                 (lcStr(dim.dimensionQname.localName.replace("Axis","")),
@@ -2117,7 +2334,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                               strip=True)), storeDbInnerTextTruncate) # transforms are whitespace-collapse, otherwise it is preserved.
                             if storeDbAction:
                                 for k, v in storeDbAction.items():
-                                    storeDbActions.setdefault(storeDbObject,{}).setdefault(_axisKey,{})[k] = getStoreDBValue(k, v)
+                                    storeDbActions.setdefault(storeDbObject,{}).setdefault(_axisKey,{})[k] = getStoreDBValue(k, v, otherFact=f)
 
                         elif not axes:
                             if storeDbName and _storeDbName not in storeDbObjectFacts:
@@ -2846,7 +3063,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
     # checks on all documents: instance, schema, instance
     val.hasExtensionSchema = False
-    checkFilingDTS(val, modelXbrl.modelDocument, isEFM, isGFM, [])
+    if not isFtJson:
+        checkFilingDTS(val, modelXbrl.modelDocument, isEFM, isGFM, [])
     val.modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
 
     # checks for namespace clashes
@@ -2889,11 +3107,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             modelXbrl.error("EFM.6.22.03.incompatibleInlineDocumentType",
                 _("Inline XBRL may not be used with document type %(documentType)s"),
                 modelObject=modelXbrl, conflictClass="inline XBRL", documentType=documentType)
+        ''' removed by EER-434
         if documentType is not None and not val.hasExtensionSchema and documentType != "L SDR": # and disclosureSystemVersion[0] <= 58:
             modelXbrl.error("EFM.6.03.10",
                             _("%(documentType)s report is missing a extension schema file."),
                             edgarCode="cp-0310-Missing-Schema",
                             modelObject=modelXbrl, documentType=documentType)
+        '''
 
         # 6.7.12: check link role orders
         if submissionType not in submissionTypesExemptFromRoleOrder and documentType not in docTypesExemptFromRoleOrder:
@@ -4067,8 +4287,8 @@ def deiParamEqual(deiName, xbrlVal, secVal):
     elif deiName == "EntityFileNumber":
         return secVal == xbrlVal
     elif deiName == "EntityInvCompanyType":
-        return xbrlVal in {"N-1A":("N-1A",), "N-1":("N-1",), "N-2":("N-2"), "N-3":("N-3",), "N-4":("N-4",), "N-5":("N-5",),
-                           "N-6":("N-6",), "S-1":("S-1","S-3"), "S-3":("S-1","S-3"),"S-6":("S-6")}.get(secVal,())
+        return xbrlVal in {"N-1A":("N-1A",), "N-1":("N-1",), "N-2":("N-2",), "N-3":("N-3",), "N-4":("N-4",), "N-5":("N-5",),
+                           "N-6":("N-6",), "S-1":("S-1","S-3"), "S-3":("S-1","S-3"),"S-6":("S-6",)}.get(secVal,())
     elif deiName == "EntityFilerCategory":
         return xbrlVal in {"Non-Accelerated Filer":("Non-accelerated Filer", "Smaller Reporting Company"),
                            "Accelerated Filer":("Accelerated Filer", "Smaller Reporting Accelerated Filer"),

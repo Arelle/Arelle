@@ -13,7 +13,7 @@ from arelle import FunctionXs, XbrlUtil, XmlUtil, UrlUtil, ModelDocument, XmlVal
 from arelle.formula import XPathContext
 from arelle.Locale import format_picture
 from arelle.formula.XPathParser import FormulaToken, OperationDef
-from arelle.XmlValidate import VALID_NO_CONTENT
+from arelle.XmlValidateConst import VALID_NO_CONTENT
 from decimal import Decimal
 from lxml import etree
 from numbers import Number
