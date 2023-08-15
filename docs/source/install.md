@@ -3,15 +3,63 @@
 :::{index} Install
 :::
 
-The implementation is in Python >= 3.8 and is intended for Windows, macOS, or
-Linux (tested against Ubuntu). The standard desktop installation includes a GUI,
-a RESTful web server, and CLI. We try to support all operating system versions
-that still receive security updates from their development teams.
+There are a few different ways to install Arelle depending on your requirements.
 
-## Install PyPI package
+## Prepackaged Distributions
 
-The Arelle python package defines optional extra dependencies for various
-plugins and use cases.
+The Arelle distribution builds are self contained bundles that provide an executable
+and include the Arelle source code along with its dependencies and a Python runtime
+ready to run out of the box. These distributions include all of the plugins in the
+Arelle repo, along with the Arelle ixbrl-viewer, the SEC EdgarRenderer, and XULE.
+
+Distributions are provided for Windows, macOS, and Linux and can be downloaded from
+the [Arelle website][arelle-download-page] and [GitHub release page][github-latest-release].
+
+[arelle-download-page]: https://arelle.org/arelle/pub/
+[github-latest-release]: https://github.com/Arelle/Arelle/releases/latest
+
+### Clean Install
+
+Arelle stores configuration data and comes with a number of installation files.
+If your installation of Arelle isn't behaving as expected it can be beneficial to
+try deleting (or moving) these files and performing a fresh installation.
+
+### Linux
+
+1. Delete the directory where you extracted the Arelle download.
+2. If the `~/.config/arelle/` configuration directory exists, delete it.
+3. Reinstall Arelle using the [latest release](#prepackaged-distributions).
+
+### Windows
+
+1. If the file `C:\Program Files\Arelle\Uninstall.exe` exists, run it.
+2. If the `C:\Program Files\Arelle` application directory exists, delete it.
+3. If the `%LOCALAPPDATA%\Arelle` configuration directory exists, delete it.
+4. Reinstall Arelle using the [latest release](#prepackaged-distributions).
+
+### macOS
+
+1. If the `/Applications/Arelle.app` application exists, delete it.
+2. If the `~/Library/Application Support/Arelle` configuration directory exists,
+   delete it.
+3. If the `~/Library/Caches/Arelle` cache directory exists, delete it.
+4. Reinstall Arelle using the [latest release](#prepackaged-distributions).
+
+## From Python Source
+
+See the contributing documentation for [setting up your environment][setting-up-your-environment]
+if you're comfortable setting up your own Python environment and would like to run
+Arelle from source.
+
+[setting-up-your-environment]: project:contributing.md#setting-up-your-environment
+
+## Python Package
+
+If you would like to use Arelle as a Python library or you want to use your own
+Python runtime, but would rather not clone the repo, you can use pip to install Arelle.
+
+The Arelle Python package defines optional extra dependencies for various plugins
+and use cases.
 
 - Crypto (security plugin dependencies)
 - DB (database plugin dependencies)
@@ -21,29 +69,18 @@ plugins and use cases.
 - WebServer (dependencies for running the Arelle web server)
 
 ```shell
+# to install Arelle and its base dependencies
 pip install arelle-release
-# or for all extra dependencies
+# to install Arelle with all optional dependencies
 pip install arelle-release[Crypto,DB,EFM,ObjectMaker,WebServer]
 ```
 
-## Install development version from GitHub
+The Arelle command line and GUI applications should then be available on your path.
 
 ```shell
-pip install git+https://git@github.com/arelle/arelle.git@master
+# To run the command line
+arelleCmdLine --help
+
+# To launch the GUI
+arelleGUI
 ```
-
-## Install distributions
-
-Distributions are self contained builds that come bundled with their own Python
-runtime and resources needed to run Arelle.
-
-Distributions are provided for the following operating systems:
-
-- Windows
-- macOS (Intel)
-- Linux (Ubuntu)
-
-Distributions can be downloaded from:
-
-- [Arelle website](https://arelle.org/arelle/pub/)
-- [GitHub releases](https://github.com/Arelle/Arelle/releases)
