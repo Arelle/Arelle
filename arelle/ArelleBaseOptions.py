@@ -2,7 +2,6 @@ from typing import Optional
 from arelle.SystemInfo import get_system_info
 
 systemInfo = get_system_info()
-errors = []
 
 
 class ArelleBaseOptions:
@@ -348,22 +347,15 @@ def buildOptionsObject(options, extra_modules):
                                        options.viewArcrole,
                                        options.viewFile,
                                        options.xdgConfigHome)
-
-    if (options.entrypointFile is None and
+    assert not (options.entrypointFile is None and
             ((not options.proxy) and (not options.plugins) and
              (not any(pluginOption for pluginOption in extra_modules)) and
-             (not systemInfo["webserver"] or options.webserver is None))):
-        errors.append("incorrect arguments, please try\n  python CntlrCmdLine.py --help")
-    elif systemInfo["webserver"] and options.webserver:
+             (not systemInfo["webserver"] or options.webserver is None))), 'Incorrect arguments, please try\n  python CntlrCmdLine.py --help'
+    if systemInfo["webserver"] and options.webserver:
         # webserver incompatible with file operations
-        if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
-                options.factsFile, options.factListCols, options.factTableFile, options.factTableCols, options.relationshipCols,
-                options.conceptsFile, options.preFile, options.tableFile, options.calFile, options.dimFile, options.anchFile, options.formulaeFile, options.viewArcrole, options.viewFile,
-                options.roleTypesFile, options.arcroleTypesFile
-                )):
-            errors.append("incorrect arguments with --webserver, please try\n  python CntlrCmdLine.py --help")
-
-    if len(errors) == 0:
-        return options_object
-    else:
-        return errors
+        assert not any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
+                        options.factsFile, options.factListCols, options.factTableFile, options.factTableCols, options.relationshipCols,
+                        options.conceptsFile, options.preFile, options.tableFile, options.calFile, options.dimFile, options.anchFile, options.formulaeFile, options.viewArcrole, options.viewFile,
+                        options.roleTypesFile, options.arcroleTypesFile
+                        )), 'incorrect arguments with --webserver, please try\n  python CntlrCmdLine.py --help'
+    return options_object
