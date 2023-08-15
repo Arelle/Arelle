@@ -1,18 +1,4 @@
-<div align="center">
-  <img src="http://arelle.org/arelle/wp-content/themes/platform/images/logo-platform.png">
-</div>
-
-# Contributing guidelines
-
-## Reporting issues
-
-Please report issues to the [issue tracker](https://github.com/arelle/arelle/issues).
-
-* Check that the issue has not already been reported.
-* Check that the issue has not already been fixed in the latest code.
-* Be clear and precise (do not prose, but name functions and commands exactly).
-* Include the version of Arelle.
-
+# Contributing
 
 ## Pull Request Checklist
 
