@@ -92,9 +92,9 @@ Write commit messages according to the following guidance:
 
 #### License
 
-Include a license at the top of new files.
+Include a license at the top of new Python files ([example][python-license-example]).
 
-* [Python license example](https://github.com/Arelle/Arelle/blob/a0a6fbc0bc901262dbab0dd6aad3b45313e5ab8e/arelle/plugin/validate/ESEF/__init__.py#L12-L13)
+[python-license-example]: https://github.com/Arelle/Arelle/blob/4e88da3b8e8edd368ffb50be01b7daf0324dda4c/arelle/plugin/validate/ESEF/__init__.py#L10
 
 #### Python Coding Style
 
