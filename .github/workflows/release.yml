@@ -7,6 +7,9 @@ on:
 permissions: {}
 
 jobs:
+  publish-documentation:
+    uses: ./.github/workflows/publish-documentation.yml
+
   tests:
     uses: ./.github/workflows/tests.yml
   python-package:
