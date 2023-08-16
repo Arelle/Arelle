@@ -35,9 +35,6 @@ STILL_ACTIVE = 259 # MS Windows process status constants
 PROCESS_QUERY_INFORMATION = 0x400
 DISABLE_PERSISTENT_CONFIG_OPTION = "--disablePersistentConfig"
 UILANG_OPTION = '--uiLang'
-
-
-import pprint
 systemInfo = get_system_info()
 
 def main():
