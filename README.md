@@ -90,7 +90,7 @@ Most installation and startup issues can be resolved by downloading the latest v
 of Arelle and performing a [clean install][clean-install]. If that doesn't resolve
 the problem for you, please [report a bug](#bug-report-or-feature-request).
 
-[clean-install]: https://arelle.readthedocs.io/install.html#clean-install
+[clean-install]: https://arelle.readthedocs.io/en/latest/install.html#clean-install
 
 ### Bug Report or Feature Request
 
@@ -136,10 +136,10 @@ to your message.
 Interested in contributing to Arelle? Awesome! Make sure to review our
 [contribution guidelines][contribution guidelines].
 
-[contribution guidelines]: https://arelle.readthedocs.io/contributing.html
+[contribution guidelines]: https://arelle.readthedocs.io/en/latest/contributing.html
 
 ## License
 
 [Apache License 2.0][license]
 
-[license]: https://arelle.readthedocs.io/license.html
+[license]: https://arelle.readthedocs.io/en/latest/license.html
