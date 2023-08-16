@@ -35,19 +35,19 @@ try deleting (or moving) these files and performing a fresh installation.
 2. If the `~/.config/arelle/` configuration directory exists, delete it.
 3. Reinstall Arelle using the [latest release](#prepackaged-distributions).
 
-### Windows
-
-1. If the file `C:\Program Files\Arelle\Uninstall.exe` exists, run it.
-2. If the `C:\Program Files\Arelle` application directory exists, delete it.
-3. If the `%LOCALAPPDATA%\Arelle` configuration directory exists, delete it.
-4. Reinstall Arelle using the [latest release](#prepackaged-distributions).
-
 ### macOS
 
 1. If the `/Applications/Arelle.app` application exists, delete it.
 2. If the `~/Library/Application Support/Arelle` configuration directory exists,
    delete it.
 3. If the `~/Library/Caches/Arelle` cache directory exists, delete it.
+4. Reinstall Arelle using the [latest release](#prepackaged-distributions).
+
+### Windows
+
+1. If the file `C:\Program Files\Arelle\Uninstall.exe` exists, run it.
+2. If the `C:\Program Files\Arelle` application directory exists, delete it.
+3. If the `%LOCALAPPDATA%\Arelle` configuration directory exists, delete it.
 4. Reinstall Arelle using the [latest release](#prepackaged-distributions).
 
 ## From Python Source
