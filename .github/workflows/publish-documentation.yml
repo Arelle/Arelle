@@ -1,0 +1,27 @@
+name: Publish Documentation
+
+on:
+  workflow_call:
+    inputs:
+      branch:
+        default: 'master'
+        description: 'branch to trigger RTD builds for'
+        required: false
+        type: string
+  workflow_dispatch:
+    inputs:
+      branch:
+        default: 'master'
+        description: 'branch to trigger RTD builds for'
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  publish-documentation:
+    environment: release
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Trigger RTD builds for input branch and any new tags
+        run: curl -X POST -d "branches=${{ inputs.branch }}" -d "token=${{ secrets.RTD_TOKEN }}" -d "default_branch=master" "${{ secrets.RTD_WEBHOOK }}"
