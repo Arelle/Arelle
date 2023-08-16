@@ -9,14 +9,19 @@ There are a few different ways to install Arelle depending on your requirements.
 
 The Arelle distribution builds are self contained bundles that provide an executable
 and include the Arelle source code along with its dependencies and a Python runtime
-ready to run out of the box. These distributions include all of the plugins in the
-Arelle repo, along with the Arelle ixbrl-viewer, the SEC EdgarRenderer, and XULE.
+ready to run out of the box. These distributions include all of the [plugins in the
+Arelle repo][arelle-plugins], along with the [Arelle ixbrl-viewer][arelle-ixbrl-viewer],
+the [SEC EdgarRenderer][edgarrenderer], and [XULE][xule].
 
 Distributions are provided for Windows, macOS, and Linux and can be downloaded from
 the [Arelle website][arelle-download-page] and [GitHub release page][github-latest-release].
 
 [arelle-download-page]: https://arelle.org/arelle/pub/
+[arelle-ixbrl-viewer]: https://github.com/Arelle/ixbrl-viewer
+[arelle-plugins]: https://github.com/Arelle/Arelle/tree/master/arelle/plugin
+[edgarrenderer]: https://github.com/Arelle/EdgarRenderer
 [github-latest-release]: https://github.com/Arelle/Arelle/releases/latest
+[xule]: https://github.com/xbrlus/xule
 
 ### Clean Install
 
