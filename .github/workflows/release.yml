@@ -9,6 +9,7 @@ permissions: {}
 jobs:
   publish-documentation:
     uses: ./.github/workflows/publish-documentation.yml
+    secrets: inherit
 
   tests:
     uses: ./.github/workflows/tests.yml
