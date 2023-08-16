@@ -1,25 +1,35 @@
 # Building Documentation
 
-```{eval-rst}
-.. index:: Documentation
-```
+:::{index} Building Documentation
+:::
 
-Arelle's documentation is built using Sphinx.
-To build locally:
+Arelle's documentation is built using Sphinx and published to [Read the Docs][read-the-docs-project].
 
-1. Install documentation dependencies from `requirements-docs.txt`. For example:
-```
-pip install -r requirements-docs.txt
-```
+[read-the-docs-project]: https://arelle.readthedocs.io/
 
-2. Navigate to `/docs` directory.
-```
-cd docs
-```
+## Build Locally
 
-3. Build HTML
-```
-make html
-```
+1. Install documentation dependencies.
 
-4. Open `/docs/_build/html/index.html` in your browser.
+   ```shell
+   pip install -r requirements-docs.txt
+   ```
+
+2. Navigate to the `docs` directory.
+
+   ```shell
+   cd docs
+   ```
+
+3. Build HTML documentation.
+
+   ```shell
+   # build
+   make html
+   # or auto rebuild on file changes (useful when working on documentation)
+   make livehtml
+   ```
+
+4. Open documentation:
+    * file `docs/_build/html/index.html` if using `make html`
+    * <http://127.0.0.1:8000/> if using `make livehtml`

@@ -6,7 +6,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from arelle import PythonUtil # define 2.x or 3.x string types
-import os, sys, subprocess, pickle, time, locale, fnmatch, platform
+import os, sys, subprocess, pickle, time, locale, fnmatch, platform, webbrowser
 import regex as re
 
 if sys.platform == 'win32' and getattr(sys, 'frozen', False):
@@ -60,6 +60,8 @@ from arelle.ModelFormulaObject import FormulaOptions
 from arelle.FileSource import openFileSource
 
 restartMain = True
+
+DOCUMENTATION_URL = "https://arelle.readthedocs.io/"
 
 class CntlrWinMain (Cntlr.Cntlr):
 
@@ -267,6 +269,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 (_("Manage packages"), lambda: DialogPackageManager.dialogPackageManager(self), None, None),
                 ("PLUG-IN", "CntlrWinMain.Menu.Help.Upper", None, None),
                 (None, None, None, None),
+                (_("Online documentation"), self.openOnlineDocumentation, None, None),
                 (_("About..."), self.helpAbout, None, None),
                 ("PLUG-IN", "CntlrWinMain.Menu.Help.Lower", None, None),
                 ):
@@ -1315,6 +1318,9 @@ class CntlrWinMain (Cntlr.Cntlr):
     def find(self, *args):
         from arelle.DialogFind import find
         find(self)
+
+    def openOnlineDocumentation(self, event=None):
+        webbrowser.open(DOCUMENTATION_URL)
 
     def helpAbout(self, event=None):
         from arelle import DialogAbout, Version

@@ -426,9 +426,13 @@ class DialogPluginManager(Toplevel):
     @staticmethod
     def _choiceSortOrder(moduleInfoMap):
         key = moduleInfoMap["name"]
-        return {"EdgarRenderer": "1",
-                "validate": "2",
-                "xbrlDB": "3"}.get(key, "4") + key.lower()
+        return {
+            "ixbrl-viewer": "1",  # pip installed Arelle viewer
+            "iXBRLViewerPlugin": "2",  # git clone installed Arelle viewer
+            "EdgarRenderer": "3",
+            "validate": "4",
+            "xbrlDB": "5"
+        }.get(key, "6") + key.lower()
 
     @staticmethod
     def _generateChoiceTuples(choiceTuples: list[tuple], choices: list[dict], indent: str = ""):

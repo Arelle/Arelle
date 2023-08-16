@@ -6,27 +6,37 @@
 
 [![Arelle Banner](https://arelle.org/arelle/wp-content/themes/platform/images/logo-platform.png)](https://arelle.org/)
 
-## Table of contents
+## Table of Contents
 
 - [Arelle](#arelle)
-  - [Table of contents](#table-of-contents)
+  - [Table of Contents](#table-of-contents)
   - [Description](#description)
+  - [Documentation](#documentation)
   - [Features](#features)
-  - [Installation](#installation)
-    - [Install PyPI package](#install-pypi-package)
-    - [Install development version from GitHub](#install-development-version-from-github)
-    - [Install distributions](#install-distributions)
-  - [Reporting issues](#reporting-issues)
-  - [Contribution guidelines](#contribution-guidelines)
+  - [Need Support?](#need-support)
+    - [Arelle Within Other Products](#arelle-within-other-products)
+    - [EdgarRenderer or EFM Validations](#edgarrenderer-or-efm-validations)
+    - [Installing or Running Arelle](#installing-or-running-arelle)
+    - [Bug Report or Feature Request](#bug-report-or-feature-request)
+    - [Security Vulnerabilities](#security-vulnerabilities)
+    - [How-To and General XBRL Questions](#how-to-and-general-xbrl-questions)
+    - [Email](#email)
+  - [How To Contribute](#how-to-contribute)
   - [License](#license)
 
 ## Description
 
-[Arelle](https://arelle.org/) is an end-to-end open source XBRL platform,
-which provides the XBRL community with an easy to use set of tools.  It supports
-XBRL and its extension features in an extensible manner.  It does this in a
-compact yet robust framework that can be used as a desktop application and can
-be integrated with other applications and languages utilizing its web service.
+Arelle is an end-to-end open source XBRL platform, which provides the XBRL community
+with an easy to use set of tools. It supports XBRL and its extension features in
+an extensible manner. It does this in a compact yet robust framework that can be
+used as a desktop application and can be integrated with other applications and
+languages utilizing its web service, command line interface, and Python API.
+
+## Documentation
+
+Need help with Arelle? Go check out [our documentation][read-the-docs].
+
+[read-the-docs]: https://arelle.readthedocs.io/
 
 ## Features
 
@@ -34,6 +44,7 @@ be integrated with other applications and languages utilizing its web service.
   production tool to generate the basics of a versioning report that can be
   inferred by diffing two DTSs.
 - Edgar and Global Filer Manual validation
+- ESEF Reporting Manual validation
 - Base Specification, Dimensions, Generic linkbase validation
 - Formula validation including support for extension modules
 - Instance creation is supported using forms defined by the table linkbase
@@ -46,66 +57,89 @@ be integrated with other applications and languages utilizing its web service.
   Excel, Java or Oracle.
 - QuickBooks is supported by XBRL-GL.
 
-## Installation
+## Need Support?
 
-The implementation is in Python >= 3.8 and is intended for Windows, macOS, or
-Linux (tested against Ubuntu). The standard desktop installation includes a GUI,
-a RESTful web server, and CLI. We try to support all operating system versions
-that still receive security updates from their development teams.
+Whether you've found a bug, need help with installation, have a feature request,
+or want to know how to use Arelle, we can help! Here's a quick guide:
 
-### Install PyPI package
+When reporting issues it's important to include as much information as possible:
 
-The Arelle python package defines optional extra dependencies for various
-plugins and use cases.
+- what version of Arelle are you using?
+- how are you using Arelle (GUI, command line, web server, or the Python API?)
+- what operating system (Windows, macOS, Ubuntu, etc.) are you using?
+- what plugins if any do you have enabled?
+- can you provide an XBRL report that recreates the issue?
+- what's the diagnostics output (`arelleCmdLine.exe --diagnostics`) on your system?
 
-- Crypto (security plugin dependencies)
-- DB (database plugin dependencies)
-- EFM (EdgarRenderer plugin dependencies - does not include the EdgarRenderer,
-  just the dependencies required to run it)
-- ObjectMaker (ObjectMaker plugin dependencies)
-- WebServer (dependencies for running the Arelle web server)
+### Arelle Within Other Products
 
-```shell
-pip install arelle-release
-# or for all extra dependencies
-pip install arelle-release[Crypto,DB,EFM,ObjectMaker,WebServer]
-```
+A number of service providers embed Arelle within their XBRL products and tools.
+If you're having an issue with Arelle within one of these offerings please
+contact the developer of that tool for support or first verify that you have the
+same issue when using Arelle directly. Most issues in these situations are caused
+by the tool using an old version of Arelle or not running a valid command.
 
-### Install development version from GitHub
+### EdgarRenderer or EFM Validations
 
-```shell
-pip install git+https://git@github.com/arelle/arelle.git@master
-```
+The SEC develops and maintains the EdgarRenderer and EFM validation plugins. Please
+report issues with these plugins directly to the SEC (<StructuredData@sec.gov>).
 
-### Install distributions
+### Installing or Running Arelle
 
-Distributions are self contained builds that come bundled with their own Python runtime and resources needed to run Arelle.
+Most installation and startup issues can be resolved by downloading the latest version
+of Arelle and performing a [clean install][clean-install]. If that doesn't resolve
+the problem for you, please [report a bug](#bug-report-or-feature-request).
 
-Distributions are provided for the following operating systems:
+[clean-install]: https://arelle.readthedocs.io/install.html#clean-install
 
-- Windows
-- macOS (Intel)
-- Linux (Ubuntu)
+### Bug Report or Feature Request
 
-Distributions can be downloaded from:
+Please use the GitHub [issue tracker][github-issue-tracker] if you'd like to suggest
+a new feature or report a bug.
 
-- [Arelle website](https://arelle.org/arelle/pub/)
-- [GitHub releases](https://github.com/Arelle/Arelle/releases)
-
-## Reporting issues
-
-Please report issues to the [issue tracker](https://github.com/arelle/arelle/issues).
+Before opening a new issue, please:
 
 - Check that the issue has not already been reported.
-- Check that the issue has not already been fixed in the latest code.
+- Check that the issue has not already been fixed in the latest release.
 - Be clear and precise (do not prose, but name functions and commands exactly).
-- Include the version of Arelle.
+- For bug reports include the version of Arelle you're using.
 
-## Contribution guidelines
+[github-issue-tracker]: https://github.com/Arelle/Arelle/issues
 
-If you want to contribute to Arelle, be sure to review the
-[contribution guidelines](https://github.com/Arelle/Arelle/blob/master/CONTRIBUTING.md).
+### Security Vulnerabilities
+
+Identified a security concern? Email the Arelle team (<Support@arelle.org>) so we
+can resolve the issue and make sure service providers and authorities who use Arelle
+in production are prepared to update and apply security patches before notifying
+the general public.
+
+### How-To and General XBRL Questions
+
+Have a question that isn't covered by the [documentation](#documentation)?
+Join our [Arelle Google Group][google-group] and start a conversation with the Arelle
+team and community of experts.
+
+### Email
+
+The Arelle team can also be reached by email (<Support@arelle.org>) for issues that
+aren't a good fit for the other support channels. However, please note that you will
+likely receive a faster response if you [open a GitHub issue][new-github-issue]
+or start a new conversation in the [Arelle Google Group][google-group] where the
+Arelle team is active and other people within the community can also see and respond
+to your message.
+
+[google-group]: https://groups.google.com/g/arelle-users
+[new-github-issue]: https://github.com/Arelle/Arelle/issues/new/choose
+
+## How To Contribute
+
+Interested in contributing to Arelle? Awesome! Make sure to review our
+[contribution guidelines][contribution guidelines].
+
+[contribution guidelines]: https://arelle.readthedocs.io/contributing.html
 
 ## License
 
-[Apache License 2.0](https://github.com/Arelle/Arelle/blob/master/LICENSE.md)
+[Apache License 2.0][license]
+
+[license]: https://arelle.readthedocs.io/license.html
