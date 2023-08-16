@@ -56,11 +56,6 @@ ESEF = [
 ObjectMaker = [
     'graphviz==0.*',
 ]
-Sphinx = [
-    "myst-parser==2.*",
-    "sphinx==7.*",
-    "furo",
-]
 WebServer = [
     'cheroot>=8,<11',
     'CherryPy==18.*',
