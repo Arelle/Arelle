@@ -21,14 +21,24 @@ Arelle's documentation is built using Sphinx and published to [Read the Docs][re
    cd docs
    ```
 
-3. Build HTML documentation.
+3. Build HTML documentation
+   * Linux or macOS
 
-   ```shell
-   # build
-   make html
-   # or auto rebuild on file changes (useful when working on documentation)
-   make livehtml
-   ```
+     ```shell
+     # build
+     make html
+     # or auto rebuild on file changes (useful when working on documentation)
+     make livehtml
+     ```
+
+   * Windows
+
+     ```powershell
+     # build
+     .\make.bat html
+     # or auto rebuild on file changes (useful when working on documentation)
+     .\make.bat livehtml
+     ```
 
 4. Open documentation:
     * file `docs/_build/html/index.html` if using `make html`
