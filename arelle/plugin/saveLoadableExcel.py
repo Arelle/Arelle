@@ -390,10 +390,11 @@ def saveLoadableExcel(dts, excelFile):
                     conceptsRow += 1
 
     try:
-        workbook.save(excelFile)
+        excelFilename = excelFile if excelFile.lower().endswith(".xlsx") else excelFile + ".xlsx"
+        workbook.save(excelFilename)
         dts.info("info:saveLoadableExcel",
             _("Saved Excel file: %(excelFile)s"),
-            excelFile=os.path.basename(excelFile),
+            excelFile=os.path.basename(excelFilename),
             modelXbrl=dts)
     except Exception as ex:
         dts.error("exception:saveLoadableExcel",
@@ -434,7 +435,6 @@ def saveLoadableExcelMenuCommand(cntlr):
 def saveLoadableExcelCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
     parser.add_option("--save-loadable-excel",
-                      action="store_true",
                       dest="saveLoadableExcel",
                       help=_("Save Loadable Excel file"))
 
