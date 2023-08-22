@@ -434,7 +434,6 @@ def saveLoadableExcelMenuCommand(cntlr):
 def saveLoadableExcelCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
     parser.add_option("--save-loadable-excel",
-                      action="store_true",
                       dest="saveLoadableExcel",
                       help=_("Save Loadable Excel file"))
 
