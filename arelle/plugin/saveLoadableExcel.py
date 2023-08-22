@@ -390,10 +390,11 @@ def saveLoadableExcel(dts, excelFile):
                     conceptsRow += 1
 
     try:
-        workbook.save(excelFile)
+        excelFilename = excelFile if excelFile.lower().endswith(".xlsx") else excelFile + ".xlsx"
+        workbook.save(excelFilename)
         dts.info("info:saveLoadableExcel",
             _("Saved Excel file: %(excelFile)s"),
-            excelFile=os.path.basename(excelFile),
+            excelFile=os.path.basename(excelFilename),
             modelXbrl=dts)
     except Exception as ex:
         dts.error("exception:saveLoadableExcel",
