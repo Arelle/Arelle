@@ -173,14 +173,19 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
                 ixdoc.modelXbrl = modelXbrl # TODO: this won't work for multi-targets sharing same html
             else:
                 ixdoc = load(modelXbrl, elt.text, referringElement=elt, isDiscovered=True)
-            if ixdoc is not None and ixdoc.type == Type.INLINEXBRL:
-                # set reference to ix document in document set surrogate object
-                referencedDocument = ModelDocumentReference("inlineDocument", elt)
-                ixdocset.referencesDocument[ixdoc] = referencedDocument
-                ixdocset.ixNS = ixdoc.ixNS # set docset ixNS
-                if i == 0:
-                    ixdocset.targetDocumentPreferredFilename = os.path.splitext(ixdoc.uri)[0] + ".xbrl"
-                ixdoc.inDTS = True # behaves like an entry
+            if ixdoc is not None:
+                if ixdoc.type == Type.INLINEXBRL:
+                    # set reference to ix document in document set surrogate object
+                    referencedDocument = ModelDocumentReference("inlineDocument", elt)
+                    ixdocset.referencesDocument[ixdoc] = referencedDocument
+                    ixdocset.ixNS = ixdoc.ixNS # set docset ixNS
+                    if i == 0:
+                        ixdocset.targetDocumentPreferredFilename = os.path.splitext(ixdoc.uri)[0] + ".xbrl"
+                    ixdoc.inDTS = True # behaves like an entry
+                else:
+                    modelXbrl.warning("arelle:nonIxdsDocument",
+                                      _("Non-inline file is not loadable into an Inline XBRL Document Set."),
+                                      modelObject=ixdoc)
         # correct uriDir to remove surrogate suffix
         if IXDS_SURROGATE in modelXbrl.uriDir:
             modelXbrl.uriDir = os.path.dirname(modelXbrl.uriDir.partition(IXDS_SURROGATE)[0])
