@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- (c) Copyright 2017 Mark V Systems Limited, All rights reserved. -->
 <DisclosureSystems  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
       xsi:noNamespaceSchemaLocation="../../../config/disclosuresystems.xsd" >
@@ -6,7 +6,7 @@
    
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Strict)|efm|efm-strict"
-     description="US SEC Edgar Filing Manual v66 Release 23.2\n
+     description="US SEC Edgar Filing Manual v67 Release 23.3\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Disallowed references are blocked and not loaded (same as SEC production system)\n
@@ -16,7 +16,7 @@
      blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
-     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-23-2.xml"
+     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-23-23.xml"
      utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
      validateEntryText="true"
@@ -43,7 +43,7 @@
      />
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Pragmatic)|efm-blocking|efm-pragmatic"
-     description="US SEC Edgar Filing Manual v66 Release 23.2\n
+     description="US SEC Edgar Filing Manual v67 Release 23.3\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
@@ -54,7 +54,7 @@
      blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
-     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-23-2.xml"
+     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-23-3.xml"
      utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
      validateEntryText="true"
@@ -85,7 +85,7 @@
      />
   <DisclosureSystem 
      names="US SEC 2021 Preview with DQCRT applied to us-gaap 2020-2021 (EFM Pragmatic)|efm-preview-dqcrt-testing"
-     description="US SEC Edgar Filing Manual v66 Release 23.2\n
+     description="US SEC Edgar Filing Manual v67 Release 23.3\n
      DQCRT/2021 applied to us-gaap/2020 for testing purposes\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n

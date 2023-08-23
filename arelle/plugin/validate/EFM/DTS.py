@@ -54,6 +54,11 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 modelObject=modelDocumentReference.referringModelObject,
                     schema=modelDocument.basename,
                     include=referencedDocument.basename)
+        if (modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE)
+            and referencedDocument.type == ModelDocument.Type.LINKBASE):
+            val.modelXbrl.error("EFM.6.03.12",
+                _("Linkbase reference from instance is not allowed"),
+                modelObject=(referencedDocument,modelDocumentReference.referringModelObject))
         if referencedDocument not in visited and (
             referencedDocument.inDTS or referencedDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET) and ( # ignore EdgarRenderer added non-DTS documents
             not extensionFiledStandardTaxonomy):

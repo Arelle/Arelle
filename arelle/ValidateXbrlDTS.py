@@ -909,7 +909,7 @@ def checkElements(val, modelDocument, parent):
                     if elt.namespaceURI == XbrlConst.ixbrl:
                         val.ixdsFootnotes[elt.footnoteID] = elt
                     else:
-                        checkIxContinuationChain(elt)
+                        checkIxContinuationChain(val, elt)
                     if not elt.xmlLang:
                         val.modelXbrl.error(ixMsgCode("footnoteLang", elt, sect="validation"),
                             _("Inline XBRL footnotes require an in-scope xml:lang"),
@@ -981,7 +981,7 @@ def checkElements(val, modelDocument, parent):
                             _("Inline XBRL ix:nonFraction without format attribute must be non-negative"),
                             modelObject=elt)
                 elif elt.localName == "nonNumeric":
-                    checkIxContinuationChain(elt)
+                    checkIxContinuationChain(val, elt)
                 elif elt.localName == "references":
                     val.ixdsReferences[elt.get("target")].append(elt)
                 elif elt.localName == "relationship":
@@ -1361,17 +1361,17 @@ def checkArcrole(val, elt, arcEltQname, arcrole, arcroleRefURIs) -> None:
             modelObject=elt, arcrole=arcrole, element=arcEltQname, status=XbrlConst.lrrUnapprovedArcroles[arcrole])
 
 
-def checkIxContinuationChain(elt, chain=None):
+def checkIxContinuationChain(val, elt, chain=None):
     if chain is None:
         chain = [elt]
     else:
         for otherElt in chain:
             if XmlUtil.isDescendantOf(elt, otherElt) or XmlUtil.isDescendantOf(otherElt, elt):
-                elt.modelDocument.modelXbrl.error("ix:continuationDescendancy",
+                val.modelXbrl.error("ix:continuationDescendancy",
                                 _("Inline XBRL continuation chain has elements which are descendants of each other."),
                                 modelObject=(elt, otherElt))
             else:
                 contAt = elt.get("_continuationElement")
                 if contAt is not None:
                     chain.append(elt)
-                checkIxContinuationChain(contAt, chain)
+                checkIxContinuationChain(val, contAt, chain)

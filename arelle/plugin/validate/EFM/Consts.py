@@ -22,41 +22,8 @@ srtAxisIfrsMembers = { # members of IFRS axes which have SRT corresponding membe
 """
 
 # doc type requirements are for EFM 6.5.20 and are in some cases a superset of what the submission allows.
-docTypes8K = {"8-K", "8-K/A", "8-K12B", "8-K12B/A", "8-K12G3", "8-K12G3/A", "8-K15D5", "8-K15D5/A"}
-docTypes1012B = {"10-12B", "10-12B/A"}
-docTypes1012G = {"10-12G", "10-12G/A"}
-docTypes10K = {"10-K", "10-K/A"}
-docTypes10KT = {"10-KT", "10-KT/A"}
-docTypes10K10KT = docTypes10K | docTypes10KT
-docTypes10Q = {"10-Q", "10-Q/A"}
-docTypes10QT = {"10-QT", "10-QT/A"}
-docTypes10Q10QT = docTypes10Q | docTypes10QT
-docTypes10all = docTypes10K10KT | docTypes10Q10QT
-docTypes20F = {"20-F", "20-F/A"}
-docTypes40F = {"40-F", "40-F/A"}
-docTypes20F40F = docTypes20F | docTypes40F
-docTypes20FR = {"20FR12B", "20FR12B/A", "20FR12G", "20FR12G/A"}
-docTypes40FR = {"40FR12B", "40FR12B/A", "40FR12G", "40FR12G/A"}
-docTypes20FR40FR = docTypes20FR | docTypes40FR
-docTypes10all20all = docTypes10all | docTypes20F | docTypes20FR
-docTypesCoverTagged = docTypes8K | docTypes1012B | docTypes1012G | docTypes10all | docTypes20F40F | docTypes20FR40FR
-docTypesSDR = {"K SDR", "L SDR"}
 docTypesRR = {"497", "485APOS", "485BPOS", "485BXT", "N-1A", "N-1A/A"}
 
-submissionTypesNotRequiringPeriodEndDate = docTypes8K | {
-                                            "F-1", "F-1/A", "F-3", "F-3/A", "F-4", "F-4/A", "F-10", "F-10/A",
-                                            "S-1", "S-1/A", "S-3", "S-3/A", "S-4", "S-4/A", "S-11", "S-11/A",
-                                            "20-F"}
-
-
-submissionTypesAllowingPeriodOfReport = docTypes8K | docTypes10all | docTypes20F40F | {
-    "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A", "N-Q", "6-K", "6-K/A", "N-Q/A", "SP 15D2", "SP 15D2/A"}
-submissionTypesAllowingWellKnownSeasonedIssuer = \
-submissionTypesAllowingShellCompanyFlag = \
-submissionTypesAllowingVoluntaryFilerFlag = \
-submissionTypesAllowingAcceleratedFilerStatus = docTypes10K10KT | docTypes20F
-submissionTypesAllowingEntityInvCompanyType = docTypesRR | {
-    'N-CSR', 'N-CSR/A', 'N-CSRS', 'N-CSRS/A', 'N-Q', 'N-Q/A'}
 submissionTypesAllowingSeriesClasses = docTypesRR | {
     'N-Q', 'N-Q/A'}
 invCompanyTypesAllowingSeriesClasses = {"N-1A", "N-3"}
@@ -68,15 +35,6 @@ docTypesRequiringPeriodOfReport = {"10", "10-K", "10-Q", "20-F", "40-F", "6-K", 
     "10/A", "10-K/A", "10-Q/A", "20-F/A", "40-F/A", "6-K/A", "8-K/A", "F-1/A", "F-10/A", "F-3/A", "F-4/A",
     "F-9/A", "S-1/A", "S-11/A", "S-3/A", "S-4/A", "10-KT/A", "10-QT/A", "485APOS", "485BPOS", "485BXT", "497",
     "N-CSR", "N-CSRS", "N-Q", "N-CSR/A", "N-CSRS/A", "N-Q/A", "K SDR", "L SDR" }
-docTypesRequiringEntityWellKnownSeasonedIssuer = docTypes10K10KT | docTypes20F | docTypes20FR
-docTypesRequiringEntityFilerCategory = docTypesCoverTagged - docTypes40F - docTypes40FR | {
-    "S-1", "S-1/A", "S-3", "S-3/A", "S-4", "S-4/A", "S-11", "S-11/A", "S-11MEF", "S-1MEF", "S-3D", "S-3DPOS", "S-3MEF", "S-4 POS", "S-4EF", "S-4MEF", "POS AM", "S-3ASR"}
-submissionTypesAllowingEdgarSmallBusinessFlag = docTypes10all | {
-    "S-1", "S-1/A", "S-3", "S-3/A", "S-4", "S-4/A", "S-11", "S-11/A", "S-11MEF", "S-1MEF", "S-3D", "S-3DPOS", "S-3MEF", "S-4 POS", "S-4EF", "S-4MEF"}
-submissionTypesAllowingEmergingGrowthCompanyFlag = \
-submissionTypesAllowingExTransitionPeriodFlag = docTypesCoverTagged | {
-    "F-1", "F-1/A", "F-3", "F-3/A", "F-4", "F-4/A",
-    "S-1", "S-1/A", "S-3", "S-3/A", "S-4", "S-4/A", "S-11", "S-11/A"}
 
 docTypesRequiringRrSchema = \
 docTypesExemptFromRoleOrder = \
@@ -88,15 +46,31 @@ docTypesNotAllowingIfrs = ('485APOS', '485BPOS','485BXT', '497', 'N-1A', 'N-1A/A
                            'K SDR', 'L SDR')
 
 docTypesNotAllowingInlineXBRL = {
-    "K SDR", "L SDR"}
+    "K SDR", "L SDR", "2.01 SD"}
+docTypesAttachmentDocumentType = {
+    "2.01 SD": "EX-2.01",
+    "K SDR": "EX-99.K SDR",
+    "L SDR": "EX-99.L SDR"
+    # default is attachmentDocumentType parameter is the same as dei:DocumentType
+    }
+docTypesSubType = {
+    "2.01 SD": "SD"
+    # default is submissionType parameter is the same as dei:DocumentType
+    }
 
-feeTaggingExhibitTypePattern = re.compile(r"EX-FILING FEES.*")
-supplementalExhibitTypesPattern = re.compile(r"EX-FILING FEES.*|EX-26.*")
+feeTaggingAttachmentDocumentTypePattern = re.compile(r"EX-FILING FEES.*")
+
+attachmentDocumentTypeValidationRulesFiles = ( # match attachment doc type pattern to rules file
+    (feeTaggingAttachmentDocumentTypePattern, "ft-validations.json"),
+    (re.compile(r"EX-26.*"), "ex26-validations.json"),
+    (None, "dei-validations.json")
+    )
+supplementalAttachmentDocumentTypesPattern = re.compile(r"EX-FILING FEES.*|EX-26.*")
 
 standardNamespacesPattern = re.compile(
     # non-IFRS groups 1 - authority, 2 - taxonomy (e.g. us-gaap, us-types), 3 - year
     r"http://(xbrl\.us|fasb\.org|xbrl\.sec\.gov)/("
-            r"dei|us-gaap|srt|us-types|us-roles|srt-types|srt-roles|rr|cef|oef|country|currency|ecd|exch|invest|naics|rxp|sic|stpr|vip"
+            r"dei|us-gaap|srt|us-types|us-roles|srt-types|srt-roles|rr|cef|oef|country|currency|ecd|exch|invest|naics|rxp|shr|sic|stpr|vip"
             r")/([0-9]{4}|[0-9]{4}q[1-4])(-[0-9]{2}-[0-9]{2})?$"
     # ifrs groups 4 - year, 5 - taxonomy (e.g. ifrs-full)
     r"|https?://xbrl.ifrs.org/taxonomy/([0-9]{4})-[0-9]{2}-[0-9]{2}/(ifrs[\w-]*)$")
@@ -197,6 +171,11 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
         },
     "rxp/*": {
         "deprecatedLabels": ["https://xbrl.sec.gov/rxp/2023/rxp-2023_lab.xsd"],
+        "deprecatedLabelRole": usDeprecatedLabelRole,
+        "deprecationDatePattern": usDeprecatedLabelPattern
+        },
+    "shr/*": {
+        "deprecatedLabels": ["https://xbrl.sec.gov/shr/2023/shr-entire-2023.xsd"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
@@ -345,9 +324,31 @@ linkbaseValidations = {
             "http://xbrl.sec.gov/rxp/role/ResourcesOnly": "rxp:AllResourcesMember"
             },
         elrDefNoTgtRole = True,
+        elrDefRgtMemsRole = re.compile("http://xbrl.sec.gov/rxp/"),
+        efmDefTgtMemsUnique = "6.16.14.04",
         preSources = (),
         efmPre = None,
         preCustELRs = True,
+    ),
+    "shr": attrdict(
+        efmPre = "6.12.12",
+        efmCal = "6.14.11",
+        efmDef = "6.16.15",
+        elrPre = re.compile("http://xbrl.sec.gov/shr/role/"),
+        elrDefInNs = re.compile("never permitted"),
+        elrDefExNs = re.compile("http://xbrl.sec.gov/shr/role/"),
+        elrDefRoleSrc = {
+            "http://xbrl.sec.gov/shr/role/narr/IssrOrAfflShrRpPrgmsOnly": "us-gaap:ShareRepurchaseProgramDomain",
+            "http://xbrl.sec.gov/shr/role/10b51/IssrRule10b51ArrangementsOnly": "shr:IssrRule10b51ArrDomain",
+            "http://xbrl.sec.gov/shr/role/exh/IssrOrAfflRepurchsStockOnly": "us-gaap:ClassOfStockDomain",
+            "http://xbrl.sec.gov/shr/role/exh/IssrOrAfflRepurchsCapitalUnitsOnly": "us-gaap:CapitalUnitClassDomain",
+            "http://xbrl.sec.gov/shr/role/exh/IssrOrAfflRepurchsWarrantsOnly": "us-gaap:ClassOfWarrantOrRightDomain"
+            },
+        elrDefNoTgtRole = True,
+        elrDefRgtMemsRole = re.compile("http://xbrl.sec.gov/shr/"),
+        efmDefTgtMemsUnique = "6.16.15.01",
+        preSources = (),
+        preCustELRs = False
     ),
 }
 
