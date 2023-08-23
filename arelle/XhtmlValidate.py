@@ -53,6 +53,11 @@ ixSect = {
         "tuple": {"constraint": "ix11.15.1.1", "validation": "ix11.15.1.2"},
         "other": {"constraint": "ix11", "validation": "ix11"}}
     }
+
+INLINE_1_0_SCHEMA = "http://www.xbrl.org/2008/inlineXBRL/xhtml-inlinexbrl-1_0.xsd"
+INLINE_1_1_SCHEMA = "http://www.xbrl.org/2013/inlineXBRL/xhtml-inlinexbrl-1_1.xsd"
+
+
 def ixMsgCode(codeName, elt=None, sect="constraint", ns=None, name=None) -> str:
     if elt is None:
         if ns is None: ns = XbrlConst.ixbrl11
@@ -74,9 +79,11 @@ def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
     if validateEntryText:
         valHtmlContentMsgPrefix = modelXbrl.modelManager.disclosureSystem.validationType + ".5.02.05."
 
+    inlineSchema = INLINE_1_1_SCHEMA
+    if containsNamespacedElements(elt, XbrlConst.ixbrl) and not containsNamespacedElements(elt, XbrlConst.ixbrl11):
+        inlineSchema = INLINE_1_0_SCHEMA
+    XmlValidate.lxmlSchemaValidate(elt.modelDocument, inlineSchema)
 
-    XmlValidate.lxmlSchemaValidate(elt.modelDocument,
-                                   "http://www.xbrl.org/2013/inlineXBRL/xhtml-inlinexbrl-1_1.xsd")
     # lxml bug: doesn't detect: class="" (min length 1)
     for e in elt.getroottree().iterfind("//{http://www.w3.org/1999/xhtml}*[@class='']"):
         modelXbrl.error("arelle:xhtmlClassError",
@@ -90,6 +97,11 @@ def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
         modelXbrl.error("html:syntaxError",
             _("%(element)s error %(error)s"),
             modelObject=elt, element=elt.localName.title(), error=', '.join(dtdErrs()))
+
+
+def containsNamespacedElements(elt: etree.ElementBase, namespace: str) -> bool:
+    return elt.getroottree().find("//ns:*", {"ns": namespace}) is not None
+
 
 def resolveHtmlUri(elt, name, value):
     if name == "archive": # URILIST
