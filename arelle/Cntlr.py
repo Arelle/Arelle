@@ -19,7 +19,7 @@ from arelle import ModelManager
 from arelle.WebCache import WebCache
 from arelle.Locale import getLanguageCodes, setDisableRTL
 from arelle import PluginManager, PackageManager, XbrlConst
-from arelle.SystemInfo import get_system_info
+from arelle.SystemInfo import getSystemWordSize, hasFileSystem, isCGI, isGAE
 from collections import defaultdict
 
 _: TypeGetText
@@ -30,7 +30,6 @@ if TYPE_CHECKING:
 osPrcs: Any = None
 LOG_TEXT_MAX_LENGTH = 32767
 cxFrozen = getattr(sys, 'frozen', False)
-systemInfo = get_system_info()
 
 
 def resourcesDir() -> str:
@@ -155,10 +154,10 @@ class Cntlr:
         }
         self.hasWin32gui = False
         self.hasGui = hasGui
-        self.hasFileSystem = systemInfo["filesystem"] # no file system on Google App Engine servers
-        self.isGAE = systemInfo["gae"]
-        self.isCGI = systemInfo["cgi"]
-        self.systemWordSize = systemInfo["system_word_size"]  # e.g., 32 or 64
+        self.hasFileSystem = hasFileSystem() # no file system on Google App Engine servers
+        self.isGAE = isGAE()
+        self.isCGI = isCGI()
+        self.systemWordSize = getSystemWordSize()  # e.g., 32 or 64
         self.uiLangDir = "ltr"
         self.disablePersistentConfig = disable_persistent_config
 

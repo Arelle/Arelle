@@ -3,11 +3,27 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 from arelle.Version import __version__
+from enum import Enum, auto
 from typing import Any
 import math
 import os
 import platform
 import sys
+
+
+class PlatformOS(Enum):
+    LINUX = auto()
+    MACOS = auto()
+    WINDOWS = auto()
+
+    @staticmethod
+    def getPlatformOS() -> PlatformOS:
+        if platform.system() == "Darwin":
+            return PlatformOS.MACOS
+        if platform.system() == "Windows":
+            return PlatformOS.WINDOWS
+        # For legacy support purposes all other platforms are treated the same as Linux.
+        return PlatformOS.LINUX
 
 
 def isCGI() -> bool:
@@ -23,15 +39,23 @@ def hasFileSystem() -> bool:
     return not isGAE()
 
 
+def hasWebServer() -> bool:
+    try:
+        from arelle import webserver
+        return True
+    except ImportError:
+        return False
+
+
 def getSystemWordSize() -> int:
     return int(round(math.log(sys.maxsize, 2)) + 1)
 
 
-def getVirtualEnv() -> Any:
+def hasVirtualEnv() -> bool:
     return getattr(sys, "base_prefix", sys.prefix) != sys.prefix or hasattr(sys, "real_prefix")
 
 
-def get_system_info() -> dict[str, Any]:
+def getSystemInfo() -> dict[str, Any]:
     """Return info about the system."""
     info_object = {
         "arelle_version": __version__,
@@ -47,13 +71,13 @@ def get_system_info() -> dict[str, Any]:
         "python_compiler": platform.python_compiler(),
         "python_implementation": platform.python_implementation(),
         "python_version": platform.python_version(),
-        "python_virtualenv": getVirtualEnv(),
+        "python_virtualenv": hasVirtualEnv(),
         "system_word_size": getSystemWordSize(),
-        "webserver": False,
+        "webserver": hasWebServer(),
     }
 
-    if platform.system() == "Darwin":
+    if PlatformOS.getPlatformOS() == "Darwin":
         info_object["os_version"] = platform.mac_ver()[0]
-    elif platform.system() == "Linux":
+    elif PlatformOS.getPlatformOS() == "Linux":
         info_object["docker"] = os.path.isfile("/.dockerenv")
     return info_object
