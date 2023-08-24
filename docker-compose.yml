@@ -1,7 +1,16 @@
-version: '2.1'
-
+version: '3'
 services:
   arelle:
     build: .
-    ports:
-      - "8080:8080"
+    command: sh start_arelle.sh
+    privileged: true
+    devices:
+      - "/dev/fuse"
+    volumes:
+      - .:/opt/arelle
+      - ${HOST_PATH}:/index/data
+    environment:
+      HOST_PATH:
+      AWS_REGION:
+      AWS_ACCESS_KEY:
+      AWS_SECRET_ACCESS_KEY:
