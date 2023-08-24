@@ -34,7 +34,6 @@ STILL_ACTIVE = 259 # MS Windows process status constants
 PROCESS_QUERY_INFORMATION = 0x400
 DISABLE_PERSISTENT_CONFIG_OPTION = "--disablePersistentConfig"
 UILANG_OPTION = '--uiLang'
-systemInfo = getSystemInfo()
 
 
 def main():
@@ -59,13 +58,20 @@ def wsgiApplication(extraArgs=[]): # for example call wsgiApplication(["--plugin
 
 
 def parseAndRun(args):
+    """interface used by Main program and py.test (arelle_test.py)
+    """
     runtimeOptions, arellePluginModules = parseArgs(args)
     cntlr = configAndRunCntlr(runtimeOptions, arellePluginModules)
     return cntlr
 
 
 def parseArgs(args):
-    """interface used by Main program and py.test (arelle_test.py)
+    """
+    Parses the command line arguments and generates runtimeOptions and arellePluginModules
+    :param args: Command Line arguments
+    :return: runtimeOptions which is an object of options specified
+    and
+    arellePluginModules which is a dictionary of commands and moduleInfos
     """
 
     uiLang = None
@@ -83,7 +89,7 @@ def parseArgs(args):
     disable_persistent_config = bool({DISABLE_PERSISTENT_CONFIG_OPTION, DISABLE_PERSISTENT_CONFIG_OPTION.lower()} & set(args))
     usage = "usage: %prog [options]"
     parser = OptionParser(usage,
-                          version="Arelle(r) {0} ({1}bit)".format(Version.__version__, getSystemWordSize),
+                          version="Arelle(r) {0} ({1}bit)".format(Version.__version__, getSystemWordSize()),
                           conflict_handler="resolve") # allow reloading plug-in options without errors
     parser.add_option("-f", "--file", dest="entrypointFile",
                       help=_("FILENAME is an entry point, which may be "
@@ -364,7 +370,7 @@ def parseArgs(args):
         args = ["--webserver=::gae"]
     elif isCGI():
         args = ["--webserver=::cgi"]
-    elif PlatformOS.getPlatformOS() == "Windows":
+    elif PlatformOS.getPlatformOS() == PlatformOS.WINDOWS:
         # if called from java on Windows any empty-string arguments are lost, see:
         # http://bugs.java.com/view_bug.do?bug_id=6518827
         # insert needed arguments
@@ -418,7 +424,7 @@ def parseArgs(args):
                     bottleCopyright="\n   Bottle (c) 2011-2013 Marcel Hellkamp" if hasWebServer() else ""
         ))
     elif options.diagnostics:
-        pprint(systemInfo)
+        pprint(getSystemInfo())
     elif options.disclosureSystemName in ("help", "help-verbose"):
         cntlr = createCntlrAndPreloadPlugins(uiLang, disable_persistent_config, arellePluginModules)
         text = _("Disclosure system choices: \n{0}").format(' \n'.join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName)))
@@ -447,8 +453,15 @@ def parseArgs(args):
     return runtimeOptions, arellePluginModules
 
 
-def createCntlrAndPreloadPlugins(uiLang, disablePersistantConfig, arellePluginModules):
-    cntlr = CntlrCmdLine(uiLang=uiLang, disable_persistent_config=disablePersistantConfig)
+def createCntlrAndPreloadPlugins(uiLang, disablePersistentConfig, arellePluginModules):
+    """
+    This function creates a cntlr and preloads all the necessary plugins.
+    :param uiLang: The UI Language
+    :param disablePersistentConfig: flag to determine if persistent configs should be ignored
+    :param arellePluginModules: a dictionary of commands and moduleInfos
+    :return: cntlr
+    """
+    cntlr = CntlrCmdLine(uiLang=uiLang, disable_persistent_config=disablePersistentConfig)
     if arellePluginModules:
         for cmd, moduleInfo in arellePluginModules.items():
             cntlr.preloadedPlugins[cmd] = moduleInfo
@@ -456,6 +469,12 @@ def createCntlrAndPreloadPlugins(uiLang, disablePersistantConfig, arellePluginMo
 
 
 def configAndRunCntlr(options, arellePluginModules):
+    """
+    This function creates and configures a controller based off an options dataclass and
+    :param options: RuntimeOptions dataclass
+    :param arellePluginModules: a dictionary of commands and moduleInfos
+    :return: cntlr
+    """
     cntlr = createCntlrAndPreloadPlugins(options.uiLang, options.disablePersistentConfig, arellePluginModules)
     if options.webserver:
         cntlr.startLogging(logFileName='logToBuffer',

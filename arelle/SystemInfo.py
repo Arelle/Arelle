@@ -76,8 +76,8 @@ def getSystemInfo() -> dict[str, Any]:
         "webserver": hasWebServer(),
     }
 
-    if PlatformOS.getPlatformOS() == "Darwin":
+    if PlatformOS.getPlatformOS() == PlatformOS.MACOS:
         info_object["os_version"] = platform.mac_ver()[0]
-    elif PlatformOS.getPlatformOS() == "Linux":
+    elif PlatformOS.getPlatformOS() == PlatformOS.LINUX:
         info_object["docker"] = os.path.isfile("/.dockerenv")
     return info_object

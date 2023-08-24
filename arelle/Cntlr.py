@@ -19,7 +19,7 @@ from arelle import ModelManager
 from arelle.WebCache import WebCache
 from arelle.Locale import getLanguageCodes, setDisableRTL
 from arelle import PluginManager, PackageManager, XbrlConst
-from arelle.SystemInfo import getSystemWordSize, hasFileSystem, isCGI, isGAE
+from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, isCGI, isGAE
 from collections import defaultdict
 
 _: TypeGetText
@@ -157,6 +157,9 @@ class Cntlr:
         self.hasFileSystem = hasFileSystem() # no file system on Google App Engine servers
         self.isGAE = isGAE()
         self.isCGI = isCGI()
+        platformOS = PlatformOS.getPlatformOS()
+        self.isMac = platformOS == PlatformOS.MACOS
+        self.isMSW = platformOS == PlatformOS.WINDOWS
         self.systemWordSize = getSystemWordSize()  # e.g., 32 or 64
         self.uiLangDir = "ltr"
         self.disablePersistentConfig = disable_persistent_config
@@ -200,17 +203,13 @@ class Cntlr:
                 self.userAppDir = configHomeDir # use the XDG_CONFIG_HOME because cache is already a subdirectory
             else:
                 self.userAppDir = impliedAppDir
-        if sys.platform == "darwin":
-            self.isMac = True
-            self.isMSW = False
+        if self.isMac:
             if self.hasFileSystem and not configHomeDir:
                 self.userAppDir = os.path.expanduser("~") + "/Library/Application Support/Arelle"
             # note that cache is in ~/Library/Caches/Arelle
             self.contextMenuClick = "<Button-2>"
             self.hasClipboard = hasGui  # clipboard always only if Gui (not command line mode)
-        elif sys.platform.startswith("win"):
-            self.isMac = False
-            self.isMSW = True
+        elif self.isMSW:
             if self.hasFileSystem and not configHomeDir:
                 tempDir = tempfile.gettempdir()
                 if tempDir.lower().endswith('local\\temp'):
@@ -232,9 +231,7 @@ class Cntlr:
             else:
                 self.hasClipboard = False
             self.contextMenuClick = "<Button-3>"
-        else: # Unix/Linux
-            self.isMac = False
-            self.isMSW = False
+        else:  # Unix/Linux
             if self.hasFileSystem and not configHomeDir:
                     self.userAppDir = os.path.join( os.path.expanduser("~/.config"), "arelle")
             if hasGui:
