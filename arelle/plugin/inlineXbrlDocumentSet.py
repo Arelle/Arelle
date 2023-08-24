@@ -249,8 +249,8 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                     attrs[XbrlConst.qnXsiNil] = "true"
                     text = None
                 elif ( not(modelConcept.baseXsdType == "token" and modelConcept.isEnumeration)
-                       and fact.xValid ):
-                    text = fact.rawValue if fact.xValue == INVALIDixVALUE else fact.xValue
+                       and fact.xValid >= VALID ):
+                    text = fact.xValue
                 # may need a special case for QNames (especially if prefixes defined below root)
                 else:
                     text = fact.rawValue if fact.textValue == INVALIDixVALUE else fact.textValue
