@@ -420,7 +420,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
     elif type == Type.INSTANCE:
         # modelXbrl.uriDir = os.path.dirname(normalizedUri)
         Xml = ('<nsmap>{}'
-               '<xbrl xmlns="http://www.xbrl.org/2003/instance"'
+               '<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance"'
                ' xmlns:link="http://www.xbrl.org/2003/linkbase"'
                ' xmlns:xlink="http://www.w3.org/1999/xlink">').format(initialComment)
         if schemaRefs:
