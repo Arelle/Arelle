@@ -469,6 +469,15 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             return self._isNumeric
 
     @property
+    def isDecimal(self):
+        """(bool) -- True for a decimal xsd base type (not including xbrl fractions, float or double)"""
+        try:
+            return self._isDecimal
+        except AttributeError:
+            self._isDecimal = XbrlConst.isDecimalXsdType(self.baseXsdType)
+            return self._isDecimal
+
+    @property
     def isInteger(self):
         """(bool) -- True for elements of, or derived from, integer base type (not including fractionItemType)"""
         try:

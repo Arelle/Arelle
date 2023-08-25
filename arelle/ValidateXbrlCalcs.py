@@ -136,10 +136,10 @@ class ValidateXbrlCalcs:
                     del modelXbrl.errors[i] # remove the oim errors from modelXbrl.errors
                 oimErrs.add(e)
             if any(e == "xbrlxe:unsupportedTuple" for e in oimErrs):
-                # ignore this error and change to warning
-                modelXbrl.warning("calc11e:tuplesInReportWarning","Validating of calculations ignores tuples.")
+                # ignore this error and change to INCONSISTENCY
+                modelXbrl.log('INCONSISTENCY', "calc11e:tuplesInReportWarning","Validating of calculations ignores tuples.")
             if any(e in oimXbrlxeBlockingErrorCodes for e in oimErrs if e != "xbrlxe:unsupportedTuple"):
-                modelXbrl.warning("calc11e:oimIncompatibleReportWarning","Validating of calculations is skipped due to OIM errors.")
+                modelXbrl.log('INCONSISTENCY', "calc11e:oimIncompatibleReportWarning","Validating of calculations is skipped due to OIM errors.")
                 return;
 
         # identify equal contexts
@@ -219,6 +219,12 @@ class ValidateXbrlCalcs:
                                                 modelObject=(siRels[itemConcept], modelRel), linkrole=modelRel.linkrole,
                                                 sumConcept=sumConcept.qname, itemConcept=itemConcept.qname)
                                         siRels[itemConcept] = modelRel
+                                        if not sumConcept.isDecimal or not itemConcept.isDecimal:
+                                            modelXbrl.error("calc11e:nonDecimalItemNode",
+                                                _("The source and target of a Calculations v1.1 relationship MUST both be a decimal concepts: %(sumConcept)s, %(itemConcept)s, link role %(linkrole)s"),
+                                                modelObject=(sumConcept, itemConcept, modelRel), linkrole=modelRel.linkrole,
+                                                sumConcept=sumConcept.qname, itemConcept=itemConcept.qname)
+                                            
                             # add up rounded items
                             boundSums = defaultdict(decimal.Decimal) # sum of facts meeting factKey
                             boundIntervals = {} # interval sum of facts meeting factKey
@@ -298,7 +304,7 @@ class ValidateXbrlCalcs:
                                             inclA = incls1 | inclx1
                                             inclB = incls2 | inclx2
                                             if (a == b and not (inclA and inclB)) or (a > b):
-                                                modelXbrl.error("calc11e:inconsistentCalculationUsing" + self.calc11suffix,
+                                                modelXbrl.log('INCONSISTENCY', "calc11e:inconsistentCalculationUsing" + self.calc11suffix,
                                                     _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s"),
                                                     modelObject=sumFacts + boundIntervalItems[sumBindKey],
                                                     concept=sumConcept.qname, linkrole=ELR,
@@ -452,14 +458,14 @@ class ValidateXbrlCalcs:
                         inclB |= _inclB
             _inConsistent = (a == b and not(inclA and inclB)) or (a > b)
         if _excessDigitFacts:
-            self.modelXbrl.error("calc11e:excessDigits",
+            self.modelXbrl.log('INCONSISTENCY', "calc11e:excessDigits",
                 _("Calculations check stopped for excess digits in fact values %(element)s: %(values)s, %(contextIDs)s."),
                 modelObject=fList, element=_excessDigitFacts[0].qname,
                 contextIDs=", ".join(sorted(set(f.contextID for f in _excessDigitFacts))),
                 values=", ".join(strTruncate(f.value,64) for f in _excessDigitFacts))
             return (INCONSISTENT, INCONSISTENT,True,True)
         if _inConsistent:
-            self.modelXbrl.error(
+            self.modelXbrl.log('INCONSISTENCY',
                 "calc11e:disallowedDuplicateFactsUsingTruncation" if self.calc11t else "oime:disallowedDuplicateFacts",
                 _("Calculations check stopped for duplicate fact values %(element)s: %(values)s, %(contextIDs)s."),
                 modelObject=fList, element=fList[0].qname,

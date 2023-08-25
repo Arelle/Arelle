@@ -12,6 +12,7 @@ from arelle.XhtmlValidate import htmlEltUriAttrs, resolveHtmlUri
 from arelle.ValidateXbrlCalcs import ValidateCalcsMode as CalcsMode
 
 def testcaseVariationLoaded(testInstance, testcaseInstance, modelTestcaseVariation):
+    testInstance.modelManager.formulaOptions.testcaseResultsCaptureWarnings = False
     for result in modelTestcaseVariation.iter("{*}result"):
         for n, v in result.attrib.items():
             if n.endswith("mode"):
@@ -19,6 +20,12 @@ def testcaseVariationLoaded(testInstance, testcaseInstance, modelTestcaseVariati
                     testInstance.modelManager.validateCalcs = CalcsMode.ROUND_TO_NEAREST
                 elif v == "truncate":
                     testInstance.modelManager.validateCalcs = CalcsMode.TRUNCATION
+        if result.tag.endswith("warning"):
+            testInstance.modelManager.formulaOptions.testcaseResultsCaptureWarnings = True
+                    
+def testcaseVariationExpectedResult(modelTestcaseVariation):
+    for result in modelTestcaseVariation.iter("{*}warning"):
+        return result.text
 
 __pluginInfo__ = {
     'name': 'Testcase obtain expected calc 11 mode from variation/result@mode',
@@ -29,4 +36,5 @@ __pluginInfo__ = {
     'copyright': '(c) Copyright 2019 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
     'TestcaseVariation.Xbrl.Loaded': testcaseVariationLoaded,
+    'ModelTestcaseVariation.ExpectedResult': testcaseVariationExpectedResult
 }
