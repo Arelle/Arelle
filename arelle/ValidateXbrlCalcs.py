@@ -221,7 +221,7 @@ class ValidateXbrlCalcs:
                                         siRels[itemConcept] = modelRel
                                         if not sumConcept.isDecimal or not itemConcept.isDecimal:
                                             modelXbrl.error("calc11e:nonDecimalItemNode",
-                                                _("The source and target of a Calculations v1.1 relationship MUST both be a decimal concepts: %(sumConcept)s, %(itemConcept)s, link role %(linkrole)s"),
+                                                _("The source and target of a Calculations v1.1 relationship MUST both be decimal concepts: %(sumConcept)s, %(itemConcept)s, link role %(linkrole)s"),
                                                 modelObject=(sumConcept, itemConcept, modelRel), linkrole=modelRel.linkrole,
                                                 sumConcept=sumConcept.qname, itemConcept=itemConcept.qname)
                                             
