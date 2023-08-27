@@ -24,6 +24,7 @@ EMPTY_SET = set()
 EMPTY_DICT = {}
 ROLLUP_SPECIFIES_MEMBER = 1
 ROLLUP_IMPLIES_DEFAULT_MEMBER = 2
+ROLLUP_FOR_RELATIONSHIP_NODE = 3
 
 class LayoutMdlHdrCells:
     def __init__(self, strctMdlNode):

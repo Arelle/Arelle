@@ -17,11 +17,13 @@ from arelle.ModelRenderingObject import (DefnMdlTable, DefnMdlBreakdown,
                                          DefnMdlRelationshipNode, DefnMdlAspectNode,
                                          DefnMdlConceptRelationshipNode, DefnMdlDimensionRelationshipNode,
                                          StrctMdlNode, StrctMdlTableSet, StrctMdlTable, StrctMdlBreakdown, StrctMdlStructuralNode,
-                                         OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_IMPLIES_DEFAULT_MEMBER)
+                                         OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_IMPLIES_DEFAULT_MEMBER,
+                                         ROLLUP_FOR_RELATIONSHIP_NODE)
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.PythonUtil import flattenSequence
 from arelle.XPathContext import XPathException
 NoneType = type(None)
+EMPTY_LIST = []
 
 TRACE_RESOLUTION = True
 TRACE_TABLE_STRUCTURE = True
@@ -166,7 +168,9 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
                 if obj.hasChildRollup:
                     o["hasChildRollup"] = True
                 if obj.rollup:
-                    o["rollup"] = {ROLLUP_SPECIFIES_MEMBER:"rollup specifies member", ROLLUP_IMPLIES_DEFAULT_MEMBER:"rollup implies default member"}[obj.rollup]
+                    o["rollup"] = {ROLLUP_SPECIFIES_MEMBER:"rollup specifies member", 
+                                   ROLLUP_IMPLIES_DEFAULT_MEMBER:"rollup implies default member",
+                                   ROLLUP_FOR_RELATIONSHIP_NODE:"rollup for relationship nesting"}[obj.rollup]
                 o["structuralDepth"] = obj.structuralDepth
                 _aspectsCovered = obj.aspectsCovered()
                 if _aspectsCovered:
@@ -401,12 +405,18 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
 
             if isinstance(defnMdlNode, DefnMdlRelationshipNode):
                 strctMdlNode.isLabeled = False
-                selfStructuralNodes = {} if defnMdlNode.axis.endswith('-or-self') else None
-                for rel in defnMdlNode.relationships(strctMdlNode):
-                    if not isinstance(rel, list):
-                        relChildStructuralNode = addRelationship(defnMdlNode, rel, strctMdlParent, selfStructuralNodes)
-                    else:
-                        addRelationships(defnMdlNode, rel, strctMdlParent)
+                rels = defnMdlNode.relationships(strctMdlNode)
+                if defnMdlNode.axis.endswith('-or-self') or defnMdlNode._sourceQname == XbrlConst.qnXfiRoot:
+                    rootOrSelfStructuralNodes = {}
+                else:
+                    rootOrSelfStructuralNodes = None
+                addRelationships(defnMdlNode, rels, strctMdlParent, rootOrSelfStructuralNodes)
+                addRelationshipsRollups(strctMdlParent)
+                #for rel in defnMdlNode.relationships(strctMdlNode):
+                #    if not isinstance(rel, list):
+                #        relChildStructuralNode = addRelationship(defnMdlNode, rel, strctMdlParent, selfStructuralNodes)
+                #    else:
+                #        addRelationships(defnMdlNode, rel, strctMdlParent)
                 # relationship strct mdl nodes were added to strctMdlNode, move them to parent and dereference strctMdlNode
                 del strctMdlParent.strctMdlChildNodes[0] # remove unused strctMdlNode as rel str mdl nodes are owned by parent
                 # set up by defnMdlNode.relationships
@@ -564,25 +574,28 @@ def cartesianProductExpander(childStructuralNode, view, depth, axis, facts, axis
                             axis=subOrdTblCntx.axis) #cartesian product
                 break
             
-def addRelationship(relDefinitionNode, rel, strctMdlNode, selfStructuralNodes=None):
+def addRelationship(relDefinitionNode, rel, strctMdlNode, rootOrSelfStructuralNodes=None):
     variableQname = relDefinitionNode.variableQname
     conceptQname = relDefinitionNode.conceptQname
     coveredAspect = relDefinitionNode.coveredAspect(strctMdlNode)
     if not coveredAspect:
         return None
-    if selfStructuralNodes is not None:
+    if rootOrSelfStructuralNodes is not None:
         fromConceptQname = rel.fromModelObject.qname
         # is there an ordinate for this root object?
-        if fromConceptQname in selfStructuralNodes:
-            childStructuralNode = selfStructuralNodes[fromConceptQname]
+        if fromConceptQname in rootOrSelfStructuralNodes:
+            childStructuralNode = rootOrSelfStructuralNodes[fromConceptQname]
         else:
             childStructuralNode = StrctMdlStructuralNode(strctMdlNode, relDefinitionNode)
-            selfStructuralNodes[fromConceptQname] = childStructuralNode
+            rootOrSelfStructuralNodes[fromConceptQname] = childStructuralNode
             if variableQname:
                 childStructuralNode.variables[variableQname] = []
             if conceptQname:
                 childStructuralNode.variables[conceptQname] = fromConceptQname
             childStructuralNode.aspects[coveredAspect] = fromConceptQname
+            concept = relDefinitionNode.modelXbrl.qnameConcepts.get(fromConceptQname)
+            if concept is not None and concept.isAbstract:
+                childStructuralNode.abstract = True
         relChildStructuralNode = StrctMdlStructuralNode(childStructuralNode, relDefinitionNode)
     else:
         relChildStructuralNode = StrctMdlStructuralNode(strctMdlNode, relDefinitionNode)
@@ -597,19 +610,41 @@ def addRelationship(relDefinitionNode, rel, strctMdlNode, selfStructuralNodes=No
     if conceptQname:
         relChildStructuralNode.variables[conceptQname] = toConceptQname
     relChildStructuralNode.aspects[coveredAspect] = toConceptQname
+    concept = relDefinitionNode.modelXbrl.qnameConcepts.get(toConceptQname)
+    if concept is not None and concept.isAbstract:
+        relChildStructuralNode.abstract = True
     return relChildStructuralNode
 
-def addRelationships(relDefinitionNode, rels, strctMdlNode):
+def addRelationships(relDefinitionNode, rels, strctMdlNode, rootOrSelfStructuralNodes=None):
     childStructuralNode = None # holder for nested relationships
     for rel in rels:
         if not isinstance(rel, list):
             # first entry can be parent of nested list relationships
-            childStructuralNode = addRelationship(relDefinitionNode, rel, strctMdlNode)
+            childStructuralNode = addRelationship(relDefinitionNode, rel, strctMdlNode, rootOrSelfStructuralNodes)
         elif childStructuralNode is None:
             childStructuralNode = StrctMdlStructuralNode(strctMdlNode, relDefinitionNode)
             addRelationships(relDefinitionNode, rel, childStructuralNode)
         else:
             addRelationships(relDefinitionNode, rel, childStructuralNode)
             
+def addRelationshipsRollups(strctMdlParent, precedingStrMdlUncles=(), followingStrMdlUncles=()):
+    # add roll-up nodes after the children were populated from top level
+    _strMdlChildNodes = []
+    _precedingStrMdlChildren = []
+    for childStrctMdlNode in strctMdlParent.strctMdlChildNodes.copy():
+        for precedingStrMdlUncle in precedingStrMdlUncles:
+            rollUpStrctNode = StrctMdlStructuralNode(strctMdlParent, strctMdlParent.defnMdlNode)
+            rollUpStrctNode.rollup = ROLLUP_FOR_RELATIONSHIP_NODE
+            precedingStrMdlUncle.hasChildRollup = True
+            precedingStrMdlUncle.rollUpChildStrctMdlNode = rollUpStrctNode
+            if strctMdlParent.defnMdlNode.parentChildOrder == "parent-first":
+                _strMdlChildNodes.append(rollUpStrctNode)
+                _precedingStrMdlChildren.append(rollUpStrctNode)
+        if not childStrctMdlNode.isAbstract:
+            if childStrctMdlNode.strctMdlChildNodes:
+                _strMdlChildNodes.append(childStrctMdlNode)
+        addRelationshipsRollups(childStrctMdlNode, precedingStrMdlUncles=_precedingStrMdlChildren)
+    if _strMdlChildNodes:
+        strctMdlParent.strctMdlChildNodes = _strMdlChildNodes
 
 
