@@ -366,6 +366,10 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 XmlValidateSchema.validate(doc, doc.xmlRootElement, doc.targetNamespace) # validate schema elements
             if hasattr(modelXbrl, "ixdsHtmlElements"):
                 inlineIxdsDiscover(modelXbrl, modelDocument) # compile cross-document IXDS references
+                for doc in modelDocument.referencesDocument.keys():
+                    for referencedDoc in doc.referencesDocument.keys():
+                        if referencedDoc.type == Type.SCHEMA:
+                            modelDocument.targetDocumentSchemaRefs.add(doc.relativeUri(referencedDoc.uri))
 
         if isEntry or isSupplemental:
             # re-order base set keys for entry point or supplemental linkbase addition

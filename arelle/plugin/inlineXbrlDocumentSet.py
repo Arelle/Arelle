@@ -102,9 +102,6 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
                         referencedDocument.targetId = targetId
                         self.referencesDocument[doc] = referencedDocument
                         self.ixNS = doc.ixNS
-                        for referencedDoc in doc.referencesDocument.keys():
-                            if referencedDoc.type == Type.SCHEMA:
-                                self.targetDocumentSchemaRefs.add(doc.relativeUri(referencedDoc.uri))
         return True
 
 # this loader is used for test cases of multi-ix doc sets
