@@ -682,6 +682,7 @@ class ModelDocument:
         self.hrefObjects = []
         self.schemaLocationElements = set()
         self.referencedNamespaces = set()
+        self.targetDocumentSchemaRefs = set()
         self.inDTS = False
         self.definesUTR = False
         self.isModified = False
