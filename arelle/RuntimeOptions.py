@@ -13,7 +13,7 @@ class RuntimeOptionsException(Exception):
     pass
 
 
-@dataclass()
+@dataclass(eq=False, repr=False)
 class RuntimeOptions:
     """
     This class takes an option file parsed from command line arguments and uses __post_init__
@@ -86,6 +86,7 @@ class RuntimeOptions:
     labelRole: Optional[str] = None
     logCodeFilter: Optional[str] = None
     logFile: Optional[str] = None
+    logFileMode: Optional[str] = None
     logFormat: Optional[str] = None
     logLevel: Optional[str] = None
     logLevelFilter: Optional[str] = None
@@ -128,10 +129,23 @@ class RuntimeOptions:
     validateTestcaseSchema: Optional[bool] = None
     versReportFile: Optional[str] = None
     viewArcrole: Optional[bool] = None
-    viewer_feature_review: Optional[bool] = False
     viewFile: Optional[str] = None
     webserver: Optional[str] = None
     xdgConfigHome: Optional[str] = None
+
+    def __eq__(self, other):
+        """ Default dataclass implementation doesn't consider plugin applied options. """
+        if isinstance(other, RuntimeOptions):
+            return vars(self) == vars(other)
+        return NotImplemented
+
+    def __repr__(self):
+        """ Default dataclass implementation doesn't consider plugin applied options. """
+        r = ", ".join(
+            f"{name}={option}"
+            for name, option in sorted(vars(self).items())
+        )
+        return f"{self.__class__.__name__}({r})"
 
     def __post_init__(self, pluginOptions: Optional[dict[str, RuntimeOptionValue]]) -> None:
         """
@@ -146,7 +160,7 @@ class RuntimeOptions:
                 if hasattr(self, optionName)
             )
             if existingBaseOptions:
-                raise RuntimeOptionsException(_('Provided plugin options already exist as base options {}'.format(existingBaseOptions)))
+                raise RuntimeOptionsException(_('Provided plugin options already exist as base options {}').format(existingBaseOptions))
             for optionName, optionValue in pluginOptions.items():
                 setattr(self, optionName, optionValue)
         if (self.entrypointFile is None and ((not self.proxy) and (not self.plugins) and

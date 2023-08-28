@@ -336,6 +336,7 @@ def parseArgs(args):
                                  "or specify nondefault a server name, such as cherrypy, --webserver locahost:8080:cherrypy. "
                                  "(It is possible to specify options to be defaults for the web server, such as disclosureSystem and validations, but not including file names.) "))
     pluginOptionsIndex = len(parser.option_list)
+    pluginOptionsGroupIndex = len(parser.option_groups)
 
     # install any dynamic plugins so their command line options can be parsed if present
     arellePluginModules = {}
@@ -360,6 +361,7 @@ def parseArgs(args):
     for optionsExtender in pluginClassMethods("CntlrCmdLine.Options"):
         optionsExtender(parser)
     pluginLastOptionIndex = len(parser.option_list)
+    pluginLastOptionsGroupIndex = len(parser.option_groups)
     parser.add_option("-a", "--about",
                       action="store_true", dest="about",
                       help=_("Show product version, copyright, and license."))
@@ -439,6 +441,9 @@ def parseArgs(args):
             option.dest
             for option in parser.option_list[pluginOptionsIndex:pluginLastOptionIndex]
         }
+        for optGroup in parser.option_groups[pluginOptionsGroupIndex:pluginLastOptionsGroupIndex]:
+            for groupOption in optGroup.option_list:
+                pluginOptionDestinations.add(groupOption.dest)
     baseOptions = {}
     pluginOptions = {}
     for optionName, optionValue in vars(options).items():
