@@ -39,9 +39,9 @@ Here's how to set up your environment:
 2. Clone your fork: `git clone git@github.com:<your-github-username>/Arelle.git`
 3. Install [pyenv][pyenv-install]
 4. Install a supported version of Python.
-   For example, `pyenv install 3.11.4`
+   For example, `pyenv install 3.11.5`
 5. Create a virtual env using the Python version you just installed.
-   For example, `PYENV_VERSION=3.11.4 pyenv exec python -m venv venv`
+   For example, `PYENV_VERSION=3.11.5 pyenv exec python -m venv venv`
 6. Activate your environment: `source venv/bin/activate`
 7. Install dependencies: `pip install -r requirements-dev.txt`
 8. Verify you can run the app

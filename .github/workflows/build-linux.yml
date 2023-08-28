@@ -22,7 +22,7 @@ on:
         required: false
         type: string
       python_version:
-        default: '3.11.4'
+        default: '3.11.5'
         description: 'Python version to use'
         required: false
         type: string
@@ -58,7 +58,7 @@ on:
         required: true
         type: string
       python_version:
-        default: '3.11.4'
+        default: '3.11.5'
         description: 'Python version to use'
         required: true
         type: string
