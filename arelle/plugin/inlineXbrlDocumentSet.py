@@ -102,6 +102,7 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
                         referencedDocument = ModelDocumentReference("inlineDocument", instanceElt)
                         referencedDocument.targetId = targetId
                         self.referencesDocument[doc] = referencedDocument
+                        self.ixNS = doc.ixNS
                         for referencedDoc in doc.referencesDocument.keys():
                             if referencedDoc.type == Type.SCHEMA:
                                 self.targetDocumentSchemaRefs.add(doc.relativeUri(referencedDoc.uri))
