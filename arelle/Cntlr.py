@@ -9,7 +9,7 @@
    :synopsis: Common controller class to initialize for platform and setup common logger functions
 """
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING, TextIO, Mapping, cast
+from typing import Any, TYPE_CHECKING, TextIO, Mapping
 
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.typing import TypeGetText
@@ -19,7 +19,7 @@ from arelle import ModelManager
 from arelle.WebCache import WebCache
 from arelle.Locale import getLanguageCodes, setDisableRTL
 from arelle import PluginManager, PackageManager, XbrlConst
-from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, isCGI, isGAE
+from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, isCGI, isGAE, hasWebServer
 from collections import defaultdict
 
 _: TypeGetText
@@ -243,11 +243,7 @@ class Cntlr:
             else:
                 self.hasClipboard = False
             self.contextMenuClick = "<Button-3>"
-        try:
-            from arelle import webserver
-            self.hasWebServer = True
-        except ImportError:
-            self.hasWebServer = False
+        self.hasWebServer = hasWebServer()
         # assert that app dir must exist
         self.config = None
         if self.hasFileSystem and not self.disablePersistentConfig:
