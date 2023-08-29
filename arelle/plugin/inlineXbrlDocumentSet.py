@@ -167,7 +167,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
 
 # baseXmlLang: set on root xbrli:xbrl element
 # defaultXmlLang: if a fact/footnote has a different lang, provide xml:lang on it.
-def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingFiles, baseXmlLang=None, defaultXmlLang=None, skipInvalid=False):
+def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingFiles, baseXmlLang=None, defaultXmlLang=None, skipInvalid=False, xbrliNamespacePrefix=None):
     def addLocallyReferencedFile(elt,filingFiles):
         if elt.tag in ("a", "img"):
             for attrTag, attrValue in elt.items():
@@ -183,7 +183,8 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                                       url=targetUrl,
                                       schemaRefs=targetDocumentSchemaRefs,
                                       isEntry=True,
-                                      discover=False) # don't attempt to load DTS
+                                      discover=False,  # don't attempt to load DTS
+                                      xbrliNamespacePrefix=xbrliNamespacePrefix)
     ixTargetRootElt = modelXbrl.ixTargetRootElements[getattr(modelXbrl, "ixdsTarget", None)]
     langIsSet = False
     # copy ix resources target root attributes
@@ -334,7 +335,7 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                             addLocallyReferencedFile(elt,filingFiles)
     return targetInstance
 
-def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRefs, outputZip=None, filingFiles=None, *args, **kwargs):
+def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRefs, outputZip=None, filingFiles=None, xbrliNamespacePrefix=None, *args, **kwargs):
     targetUrl = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(targetDocumentFilename, modelXbrl.modelDocument.filepath)
     targetUrlParts = targetUrl.rpartition(".")
     targetUrl = targetUrlParts[0] + "_extracted." + targetUrlParts[2]
@@ -344,7 +345,7 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
     baseXmlLang = htmlRootElt.get("{http://www.w3.org/XML/1998/namespace}lang") or htmlRootElt.get("lang")
     for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/1999/xhtml}body"):
         baseXmlLang = ixElt.get("{http://www.w3.org/XML/1998/namespace}lang") or htmlRootElt.get("lang") or baseXmlLang
-    targetInstance = createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingFiles, baseXmlLang)
+    targetInstance = createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingFiles, baseXmlLang, xbrliNamespacePrefix=xbrliNamespacePrefix)
     targetInstance.saveInstance(overrideFilepath=targetUrl, outputZip=outputZip, xmlcharrefreplace=kwargs.get("encodeSavedXmlChars", False))
     if getattr(modelXbrl, "isTestcaseVariation", False):
         modelXbrl.extractedInlineInstance = True # for validation comparison
@@ -435,7 +436,7 @@ def runOpenInlineDocumentSetMenuCommand(cntlr, filenames, runInBackground=False,
         cntlr.fileOpenFile(filename)
 
 
-def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFiling=False, encodeSavedXmlChars=False):
+def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFiling=False, encodeSavedXmlChars=False, xbrliNamespacePrefix=None):
     # skip if another class handles saving (e.g., EdgarRenderer)
     for pluginXbrlMethod in pluginClassMethods('InlineDocumentSet.SavesTargetInstance'):
         if pluginXbrlMethod():
@@ -478,7 +479,7 @@ def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFil
         else:
             filingZip = None
             filingFiles = None
-        saveTargetDocument(modelDocument.modelXbrl, targetFilename, targetSchemaRefs, filingZip, filingFiles, encodeSavedXmlChars=encodeSavedXmlChars)
+        saveTargetDocument(modelDocument.modelXbrl, targetFilename, targetSchemaRefs, filingZip, filingFiles, encodeSavedXmlChars=encodeSavedXmlChars, xbrliNamespacePrefix=xbrliNamespacePrefix)
         if saveTargetFiling:
             instDir = os.path.dirname(modelDocument.uri.split(IXDS_DOC_SEPARATOR)[0])
             for refFile in filingFiles:
@@ -516,6 +517,16 @@ def commandLineOptionExtender(parser, *args, **kwargs):
                       action="store_true",
                       dest="encodeSavedXmlChars",
                       help=SUPPRESS_HELP)
+    parser.add_option("--xbrliNamespacePrefix",
+                      action="store",
+                      dest="xbrliNamespacePrefix",
+                      help=_("The namespace prefix to use for http://www.xbrl.org/2003/instance. It's used as the default namespace when unset."),
+                      type="string")
+    parser.add_option("--xbrlinamespaceprefix",  # for WEB SERVICE use
+                      action="store",
+                      dest="xbrliNamespacePrefix",
+                      help=SUPPRESS_HELP,
+                      type="string")
 
 def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     global skipExpectedInstanceComparison
@@ -575,7 +586,8 @@ def commandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
         runSaveTargetDocumentMenuCommand(cntlr,
                                          runInBackground=False,
                                          saveTargetFiling=getattr(options, "saveTargetFiling", False),
-                                         encodeSavedXmlChars=getattr(options, "encodeSavedXmlChars", False))
+                                         encodeSavedXmlChars=getattr(options, "encodeSavedXmlChars", False),
+                                         xbrliNamespacePrefix=getattr(options, "xbrliNamespacePrefix"))
 
 def testcaseVariationReadMeFirstUris(modelTestcaseVariation):
     _readMeFirstUris = [os.path.join(modelTestcaseVariation.modelDocument.filepathdir,

@@ -103,7 +103,7 @@ def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str
 
 def create(
         modelManager: ModelManager, newDocumentType: int | None = None, url: str | None = None, schemaRefs: str|None = None, createModelDocument: bool = True, isEntry: bool = False,
-        errorCaptureLevel: str | None = None, initialXml: str | None = None, initialComment: str | None = None, base: str | None = None, discover: bool = True
+        errorCaptureLevel: str | None = None, initialXml: str | None = None, initialComment: str | None = None, base: str | None = None, discover: bool = True, xbrliNamespacePrefix: str | None = None
 ) -> ModelXbrl:
     from arelle import (ModelDocument, FileSource)
     modelXbrl = ModelXbrl(modelManager, errorCaptureLevel=errorCaptureLevel)
@@ -112,7 +112,7 @@ def create(
         modelXbrl.fileSource = FileSource.FileSource(cast(str, url), modelManager.cntlr)  # url may be an open file handle, use str(url) below
         modelXbrl.closeFileSource= True
         if createModelDocument:
-            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry, initialXml=initialXml, initialComment=initialComment, base=base, discover=discover)
+            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry, initialXml=initialXml, initialComment=initialComment, base=base, discover=discover, xbrliNamespacePrefix=xbrliNamespacePrefix)
             if isEntry:
                 del modelXbrl.entryLoadingUrl
                 loadSchemalocatedSchemas(modelXbrl)
