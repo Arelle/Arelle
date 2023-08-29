@@ -411,7 +411,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                 else:
                     rootOrSelfStructuralNodes = None
                 addRelationships(defnMdlNode, rels, strctMdlParent, rootOrSelfStructuralNodes)
-                addRelationshipsRollups(strctMdlParent)
+                addRelationshipsRollups(strctMdlParent, getDepth(strctMdlParent))
                 #for rel in defnMdlNode.relationships(strctMdlNode):
                 #    if not isinstance(rel, list):
                 #        relChildStructuralNode = addRelationship(defnMdlNode, rel, strctMdlParent, selfStructuralNodes)
@@ -627,8 +627,18 @@ def addRelationships(relDefinitionNode, rels, strctMdlNode, rootOrSelfStructural
         else:
             addRelationships(relDefinitionNode, rel, childStructuralNode)
             
-def addRelationshipsRollups(strctMdlParent, precedingStrMdlUncles=(), followingStrMdlUncles=()):
+def getDepth(strctMdlParent, depth=0):
+    maxDepth = depth
+    for childStrctMdlNode in strctMdlParent.strctMdlChildNodes:
+        d = getDepth(childStrctMdlNode, depth+1)
+        if d > maxDepth:
+            maxDepth = d
+    return maxDepth
+
+            
+def addRelationshipsRollups(strctMdlParent, maxDepth, precedingStrMdlUncles=(), depth=0):
     # add roll-up nodes after the children were populated from top level
+    depthUnderChild = depth
     _strMdlChildNodes = []
     _precedingStrMdlChildren = []
     for childStrctMdlNode in strctMdlParent.strctMdlChildNodes.copy():
@@ -643,8 +653,20 @@ def addRelationshipsRollups(strctMdlParent, precedingStrMdlUncles=(), followingS
         if not childStrctMdlNode.isAbstract:
             if childStrctMdlNode.strctMdlChildNodes:
                 _strMdlChildNodes.append(childStrctMdlNode)
-        addRelationshipsRollups(childStrctMdlNode, precedingStrMdlUncles=_precedingStrMdlChildren)
+        d = addRelationshipsRollups(childStrctMdlNode, maxDepth, precedingStrMdlUncles=_precedingStrMdlChildren, depth=depth+1)
+        if d > depthUnderChild:
+            depthUnderChild = d
     if _strMdlChildNodes:
         strctMdlParent.strctMdlChildNodes = _strMdlChildNodes
+    if depthUnderChild < maxDepth:
+        rollUpStrctNode = StrctMdlStructuralNode(strctMdlParent, strctMdlParent.defnMdlNode)
+        rollUpStrctNode.rollup = ROLLUP_FOR_RELATIONSHIP_NODE
+        strctMdlParent.hasChildRollup = True
+        strctMdlParent.rollUpChildStrctMdlNode = rollUpStrctNode
+        d = addRelationshipsRollups(rollUpStrctNode, maxDepth, precedingStrMdlUncles=_precedingStrMdlChildren, depth=depth+1)
+        if d > depthUnderChild:
+            depthUnderChild = d
+        
+    return depthUnderChild
 
 
