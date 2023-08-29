@@ -2,7 +2,7 @@ from __future__ import annotations
 from arelle.typing import TypeGetText
 from arelle.SystemInfo import hasWebServer
 from dataclasses import InitVar, dataclass
-from typing import Optional, Union
+from typing import Optional, Union, Any
 
 _: TypeGetText
 
@@ -133,13 +133,13 @@ class RuntimeOptions:
     webserver: Optional[str] = None
     xdgConfigHome: Optional[str] = None
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """ Default dataclass implementation doesn't consider plugin applied options. """
         if isinstance(other, RuntimeOptions):
             return vars(self) == vars(other)
         return NotImplemented
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """ Default dataclass implementation doesn't consider plugin applied options. """
         r = ", ".join(
             f"{name}={option}"

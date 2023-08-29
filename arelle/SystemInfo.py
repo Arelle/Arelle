@@ -20,7 +20,7 @@ class PlatformOS(Enum):
     def getPlatformOS() -> PlatformOS:
         if platform.system() == "Darwin":
             return PlatformOS.MACOS
-        if platform.system() == "Windows":
+        if sys.platform.startswith("win"):
             return PlatformOS.WINDOWS
         # For legacy support purposes all other platforms are treated the same as Linux.
         return PlatformOS.LINUX
