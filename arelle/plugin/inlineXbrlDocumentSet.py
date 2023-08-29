@@ -91,7 +91,6 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
             targetId = instanceElt.id
             self.targetDocumentId = targetId
             self.targetDocumentPreferredFilename = instanceElt.get('preferredFilename')
-            self.targetDocumentSchemaRefs = set()  # union all the instance schemaRefs
             for ixbrlElt in instanceElt.iter(tag="{http://disclosure.edinet-fsa.go.jp/2013/manifest}ixbrl"):
                 uri = ixbrlElt.textValue.strip()
                 if uri:
@@ -102,9 +101,7 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
                         referencedDocument = ModelDocumentReference("inlineDocument", instanceElt)
                         referencedDocument.targetId = targetId
                         self.referencesDocument[doc] = referencedDocument
-                        for referencedDoc in doc.referencesDocument.keys():
-                            if referencedDoc.type == Type.SCHEMA:
-                                self.targetDocumentSchemaRefs.add(doc.relativeUri(referencedDoc.uri))
+                        self.ixNS = doc.ixNS
         return True
 
 # this loader is used for test cases of multi-ix doc sets
@@ -142,7 +139,6 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
         xml.append("</instances>\n")
         ixdocset = create(modelXbrl, Type.INLINEXBRLDOCUMENTSET, docsetUrl, isEntry=True, initialXml="".join(xml))
         ixdocset.type = Type.INLINEXBRLDOCUMENTSET
-        ixdocset.targetDocumentSchemaRefs = set()  # union all the instance schemaRefs
         _firstdoc = True
         for elt in ixdocset.xmlRootElement.iter(tag="instance"):
             # load ix document
