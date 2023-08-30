@@ -63,7 +63,6 @@ Need help with Arelle? Go check out [our documentation][read-the-docs].
 - Instance creation is supported using forms defined by the table linkbase
   (Eurofiling version).
 - RSS Watch facility.
-- QuickBooks is supported by XBRL-GL.
 
 [viewer]: https://github.com/Arelle/ixbrl-viewer
 [certification]: https://software.xbrl.org/processor/arelle-arelle
