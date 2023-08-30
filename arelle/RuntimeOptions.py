@@ -16,10 +16,10 @@ class RuntimeOptionsException(Exception):
 @dataclass(eq=False, repr=False)
 class RuntimeOptions:
     """
-    This class takes an option file parsed from command line arguments and uses __post_init__
-    to set the correct values.
-     pluginOptions contains all the non-standard plugins.  The rest of the fields are
-     the standard Arelle options.
+        This class contains the runtime options for Arelle. The base options are defined as member
+        variables and are passed directly to the constructor. Plugin options are dynamic and passed
+        using the pluginOptions InitVar and applied to the class using setattr() in __post_init
+        RuntimeOptionsException is raised if an improper combination of options are specified.
     """
     pluginOptions: InitVar[Optional[dict[str, RuntimeOptionValue]]] = None
 

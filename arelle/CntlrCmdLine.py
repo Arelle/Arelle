@@ -22,6 +22,7 @@ from arelle.ModelFormulaObject import FormulaOptions
 from arelle import PluginManager
 from arelle.PluginManager import pluginClassMethods
 from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE
+from arelle.typing import TypeGetText
 from arelle.UrlUtil import isHttpUrl
 from arelle.Version import copyrightLabel
 from arelle.WebCache import proxyTuple
@@ -34,6 +35,7 @@ STILL_ACTIVE = 259 # MS Windows process status constants
 PROCESS_QUERY_INFORMATION = 0x400
 DISABLE_PERSISTENT_CONFIG_OPTION = "--disablePersistentConfig"
 UILANG_OPTION = '--uiLang'
+_: TypeGetText
 
 
 def main():
@@ -48,7 +50,6 @@ def main():
         args = shlex.split(envArgs)
     else:
         args = sys.argv[1:]
-    gettext.install("arelle")  # needed for options messages
     setApplicationLocale()
     parseAndRun(args)
 
@@ -60,6 +61,7 @@ def wsgiApplication(extraArgs=[]): # for example call wsgiApplication(["--plugin
 def parseAndRun(args):
     """interface used by Main program and py.test (arelle_test.py)
     """
+
     runtimeOptions, arellePluginModules = parseArgs(args)
     cntlr = configAndRunCntlr(runtimeOptions, arellePluginModules)
     return cntlr
@@ -73,8 +75,8 @@ def parseArgs(args):
     and
     arellePluginModules which is a dictionary of commands and moduleInfos
     """
-
     uiLang = None
+    gettext.install("arelle")
     # Check if there is UI language override to use the selected language
     # for help and error messages...
     for _i, _arg in enumerate(args):
@@ -84,9 +86,9 @@ def parseArgs(args):
         elif _arg in (UILANG_OPTION, UILANG_OPTION.lower()) and _i + 1 < len(args):
             uiLang = args[_i+1]
             break
-
     # Check if the config cache needs to be disabled prior to initializing the cntlr
     disable_persistent_config = bool({DISABLE_PERSISTENT_CONFIG_OPTION, DISABLE_PERSISTENT_CONFIG_OPTION.lower()} & set(args))
+    cntlr = createCntlrAndPreloadPlugins(uiLang, disable_persistent_config, {})  # This Cntlr is needed for translations and to enable the web cache.  The cntlr is not used outside the parse function
     usage = "usage: %prog [options]"
     parser = OptionParser(usage,
                           version="Arelle(r) {0} ({1}bit)".format(Version.__version__, getSystemWordSize()),
@@ -395,7 +397,6 @@ def parseArgs(args):
                 arg = arg.replace(r'\"', '"')
             args.append(arg)
             priorArg = arg
-
     (options, leftoverArgs) = parser.parse_args(args)
     if options.about:
         print(_("\narelle(r) {version} ({wordSize}bit {platform})\n\n"
@@ -428,7 +429,6 @@ def parseArgs(args):
     elif options.diagnostics:
         pprint(getSystemInfo())
     elif options.disclosureSystemName in ("help", "help-verbose"):
-        cntlr = createCntlrAndPreloadPlugins(uiLang, disable_persistent_config, arellePluginModules)
         text = _("Disclosure system choices: \n{0}").format(' \n'.join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName)))
         try:
             print(text)

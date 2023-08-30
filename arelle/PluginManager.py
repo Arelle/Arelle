@@ -43,7 +43,7 @@ _pluginBase = None
 EMPTYLIST = []
 _ERROR_MESSAGE_IMPORT_TEMPLATE = "Unable to load module {}"
 
-def init(cntlr: Cntlr | None = None, loadPluginConfig: bool = True) -> None:
+def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
     global pluginJsonFile, pluginConfig, pluginTraceFileLogger, modulePluginInfos, pluginMethodsForClasses, pluginConfigChanged, _cntlr, _pluginBase
     if PLUGIN_TRACE_FILE:
         pluginTraceFileLogger = logging.getLogger(__name__)
@@ -54,9 +54,6 @@ def init(cntlr: Cntlr | None = None, loadPluginConfig: bool = True) -> None:
         handler.setLevel(PLUGIN_TRACE_LEVEL)
         pluginTraceFileLogger.addHandler(handler)
     pluginConfigChanged = False
-    if cntlr is None:
-        from .Cntlr import Cntlr
-        cntlr = Cntlr()
     _cntlr = cntlr
     _pluginBase = cntlr.pluginDir + os.sep
     if loadPluginConfig:
