@@ -163,9 +163,11 @@ class RuntimeOptions:
                 raise RuntimeOptionsException(_('Provided plugin options already exist as base options {}').format(existingBaseOptions))
             for optionName, optionValue in pluginOptions.items():
                 setattr(self, optionName, optionValue)
-        if (self.entrypointFile is None and ((not self.proxy) and (not self.plugins) and
-                                             (not pluginOptions) and
-                                             (not hasWebServer() or self.webserver is None))):
+        if (self.entrypointFile is None and
+                not self.proxy and
+                not self.plugins and
+                not pluginOptions and
+                not self.webserver):
             raise RuntimeOptionsException(_('Incorrect arguments'))
         if hasWebServer() and self.webserver and any((
                 self.entrypointFile, self.importFiles, self.diffFile, self.versReportFile,
