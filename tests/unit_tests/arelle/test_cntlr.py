@@ -15,7 +15,6 @@ def test_cntlr_cache_enabled(_, mock_codes, mock_exists, mock_open):
     cntlr.saveConfig()
     assert mock_open.call_count == 4
 
-
 @patch('io.open')
 @patch('os.path.exists')
 @patch('arelle.Cntlr.Cntlr.setUiLanguage')
