@@ -88,7 +88,7 @@ def parseArgs(args):
             break
     # Check if the config cache needs to be disabled prior to initializing the cntlr
     disable_persistent_config = bool({DISABLE_PERSISTENT_CONFIG_OPTION, DISABLE_PERSISTENT_CONFIG_OPTION.lower()} & set(args))
-    cntlr = createCntlrAndPreloadPlugins(uiLang, disable_persistent_config, {})  # This Cntlr is needed for translations and to enable the web cache.  The cntlr is not used outside the parse function
+
     usage = "usage: %prog [options]"
     parser = OptionParser(usage,
                           version="Arelle(r) {0} ({1}bit)".format(Version.__version__, getSystemWordSize()),
@@ -397,6 +397,7 @@ def parseArgs(args):
                 arg = arg.replace(r'\"', '"')
             args.append(arg)
             priorArg = arg
+
     (options, leftoverArgs) = parser.parse_args(args)
     if options.about:
         print(_("\narelle(r) {version} ({wordSize}bit {platform})\n\n"
@@ -429,6 +430,7 @@ def parseArgs(args):
     elif options.diagnostics:
         pprint(getSystemInfo())
     elif options.disclosureSystemName in ("help", "help-verbose"):
+        cntlr = createCntlrAndPreloadPlugins(uiLang, disable_persistent_config, arellePluginModules)
         text = _("Disclosure system choices: \n{0}").format(' \n'.join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName)))
         try:
             print(text)
