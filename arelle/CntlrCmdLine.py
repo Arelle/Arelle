@@ -399,7 +399,7 @@ def parseArgs(args):
 
     (options, leftoverArgs) = parser.parse_args(args)
     if options.about:
-        parser.exit(msg=_("\narelle(r) {version} ({wordSize}bit {platform})\n\n"
+        print(_("\narelle(r) {version} ({wordSize}bit {platform})\n\n"
                           "An open source XBRL platform\n"
                           "{copyrightLabel}\n"
                           "http://www.arelle.org\nsupport@arelle.org\n\n"
@@ -426,14 +426,18 @@ def parseArgs(args):
             lxmlVersion=f'{etree.LXML_VERSION[0]}.{etree.LXML_VERSION[1]}.{etree.LXML_VERSION[2]}',
             bottleCopyright="\n   Bottle (c) 2011-2013 Marcel Hellkamp" if hasWebServer() else ""
         ))
+        parser.exit()  # Printing the message in parser.exit sends it to stderr NOT stdout
     elif options.diagnostics:
-        parser.exit(msg=pprint(getSystemInfo()))
+        pprint(getSystemInfo())
+        parser.exit()
     elif options.disclosureSystemName in ("help", "help-verbose"):
         text = _("Disclosure system choices: \n{0}").format(' \n'.join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName)))
         try:
-            parser.exit(msg=text)
+            print(text)
+            parser.exit()
         except UnicodeEncodeError:
-            parser.exit(msg=text.encode("ascii", "replace").decode("ascii"))
+            print(text.encode("ascii", "replace").decode("ascii"))
+            parser.exit()
     elif len(leftoverArgs) != 0 and (not hasWebServer() or options.webserver is None):
         parser.error(_("unrecognized arguments: {}").format(', '.join(leftoverArgs)))
     pluginOptionDestinations = {
