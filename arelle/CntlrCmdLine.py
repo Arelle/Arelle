@@ -436,14 +436,13 @@ def parseArgs(args):
             print(text.encode("ascii", "replace").decode("ascii"))
     elif len(leftoverArgs) != 0 and (not hasWebServer() or options.webserver is None):
         parser.error(_("unrecognized arguments: {}").format(', '.join(leftoverArgs)))
-    else:
-        pluginOptionDestinations = {
-            option.dest
-            for option in parser.option_list[pluginOptionsIndex:pluginLastOptionIndex]
-        }
-        for optGroup in parser.option_groups[pluginOptionsGroupIndex:pluginLastOptionsGroupIndex]:
-            for groupOption in optGroup.option_list:
-                pluginOptionDestinations.add(groupOption.dest)
+    pluginOptionDestinations = {
+        option.dest
+        for option in parser.option_list[pluginOptionsIndex:pluginLastOptionIndex]
+    }
+    for optGroup in parser.option_groups[pluginOptionsGroupIndex:pluginLastOptionsGroupIndex]:
+        for groupOption in optGroup.option_list:
+            pluginOptionDestinations.add(groupOption.dest)
     baseOptions = {}
     pluginOptions = {}
     for optionName, optionValue in vars(options).items():
