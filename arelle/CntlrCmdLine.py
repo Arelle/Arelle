@@ -51,6 +51,7 @@ def main():
     else:
         args = sys.argv[1:]
     setApplicationLocale()
+    gettext.install("arelle")
     parseAndRun(args)
 
 
@@ -76,7 +77,6 @@ def parseArgs(args):
     arellePluginModules which is a dictionary of commands and moduleInfos
     """
     uiLang = None
-    gettext.install("arelle")
     # Check if there is UI language override to use the selected language
     # for help and error messages...
     for _i, _arg in enumerate(args):
@@ -399,41 +399,41 @@ def parseArgs(args):
 
     (options, leftoverArgs) = parser.parse_args(args)
     if options.about:
-        print(_("\narelle(r) {version} ({wordSize}bit {platform})\n\n"
-                "An open source XBRL platform\n"
-                "{copyrightLabel}\n"
-                "http://www.arelle.org\nsupport@arelle.org\n\n"
-                "Licensed under the Apache License, Version 2.0 (the \"License\"); "
-                "you may not \nuse this file except in compliance with the License.  "
-                "You may obtain a copy \nof the License at "
-                "'http://www.apache.org/licenses/LICENSE-2.0'\n\n"
-                "Unless required by applicable law or agreed to in writing, software \n"
-                "distributed under the License is distributed on an \"AS IS\" BASIS, \n"
-                "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  \n"
-                "See the License for the specific language governing permissions and \n"
-                "limitations under the License."
-                "\n\nIncludes:"
-                "\n   Python(r) {pythonVersion} (c) 2001-2013 Python Software Foundation"
-                "\n   PyParsing (c) 2003-2013 Paul T. McGuire"
-                "\n   lxml {lxmlVersion} (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
-                "{bottleCopyright}"
-                "\n   May include installable plug-in modules with author-specific license terms").format(
-                    version=Version.__version__,
-                    wordSize=getSystemWordSize(),
-                    platform=platform.machine(),
-                    copyrightLabel=copyrightLabel,
-                    pythonVersion=f'{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}',
-                    lxmlVersion=f'{etree.LXML_VERSION[0]}.{etree.LXML_VERSION[1]}.{etree.LXML_VERSION[2]}',
-                    bottleCopyright="\n   Bottle (c) 2011-2013 Marcel Hellkamp" if hasWebServer() else ""
+        parser.exit(msg=_("\narelle(r) {version} ({wordSize}bit {platform})\n\n"
+                          "An open source XBRL platform\n"
+                          "{copyrightLabel}\n"
+                          "http://www.arelle.org\nsupport@arelle.org\n\n"
+                          "Licensed under the Apache License, Version 2.0 (the \"License\"); "
+                          "you may not \nuse this file except in compliance with the License.  "
+                          "You may obtain a copy \nof the License at "
+                          "'http://www.apache.org/licenses/LICENSE-2.0'\n\n"
+                          "Unless required by applicable law or agreed to in writing, software \n"
+                          "distributed under the License is distributed on an \"AS IS\" BASIS, \n"
+                          "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  \n"
+                          "See the License for the specific language governing permissions and \n"
+                          "limitations under the License."
+                          "\n\nIncludes:"
+                          "\n   Python(r) {pythonVersion} (c) 2001-2013 Python Software Foundation"
+                          "\n   PyParsing (c) 2003-2013 Paul T. McGuire"
+                          "\n   lxml {lxmlVersion} (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
+                          "{bottleCopyright}"
+                          "\n   May include installable plug-in modules with author-specific license terms").format(
+            version=Version.__version__,
+            wordSize=getSystemWordSize(),
+            platform=platform.machine(),
+            copyrightLabel=copyrightLabel,
+            pythonVersion=f'{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}',
+            lxmlVersion=f'{etree.LXML_VERSION[0]}.{etree.LXML_VERSION[1]}.{etree.LXML_VERSION[2]}',
+            bottleCopyright="\n   Bottle (c) 2011-2013 Marcel Hellkamp" if hasWebServer() else ""
         ))
     elif options.diagnostics:
-        pprint(getSystemInfo())
+        parser.exit(msg=pprint(getSystemInfo()))
     elif options.disclosureSystemName in ("help", "help-verbose"):
         text = _("Disclosure system choices: \n{0}").format(' \n'.join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName)))
         try:
-            print(text)
+            parser.exit(msg=text)
         except UnicodeEncodeError:
-            print(text.encode("ascii", "replace").decode("ascii"))
+            parser.exit(msg=text.encode("ascii", "replace").decode("ascii"))
     elif len(leftoverArgs) != 0 and (not hasWebServer() or options.webserver is None):
         parser.error(_("unrecognized arguments: {}").format(', '.join(leftoverArgs)))
     pluginOptionDestinations = {

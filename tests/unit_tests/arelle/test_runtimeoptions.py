@@ -16,8 +16,15 @@ def test_existing_plugin_options_collision():
 
 
 @patch('arelle.RuntimeOptions.hasWebServer')
-def test_incorrect_arguments_with_webserver(mockwebserver):
-    mockwebserver.return_value = True
+def test_webserver_requires_module(mockwebserver):
+    mockwebserver.return_value = False
+    with pytest.raises(RuntimeOptionsException, match='Webserver option requires webserver module'):
+        RuntimeOptions(
+            webserver='webserver',
+        )
+
+
+def test_incorrect_arguments_with_webserver():
     with pytest.raises(RuntimeOptionsException, match='Incorrect arguments with webserver'):
         RuntimeOptions(
             entrypointFile='File',

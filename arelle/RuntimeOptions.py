@@ -169,7 +169,9 @@ class RuntimeOptions:
                 not pluginOptions and
                 not self.webserver):
             raise RuntimeOptionsException(_('Incorrect arguments'))
-        if hasWebServer() and self.webserver and any((
+        if self.webserver and not hasWebServer():
+            raise RuntimeOptionsException(_("Webserver option requires webserver module"))
+        if self.webserver and any((
                 self.entrypointFile, self.importFiles, self.diffFile, self.versReportFile,
                 self.factsFile, self.factListCols, self.factTableFile, self.factTableCols,
                 self.relationshipCols, self.conceptsFile, self.preFile, self.tableFile, self.calFile,
