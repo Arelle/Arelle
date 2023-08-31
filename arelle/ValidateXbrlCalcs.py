@@ -284,7 +284,7 @@ class ValidateXbrlCalcs:
                                                     concept=sumConcept.qname, linkrole=ELR,
                                                     linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
                                                     reportedSum=rangeToStr(s1,s2,incls1,incls2),
-                                                    computedSum=rangeToStr(x1,s2,inclx1,inclx2),
+                                                    computedSum=rangeToStr(x1,x2,inclx1,inclx2),
                                                     contextID=sumFacts[0].context.id, unitID=sumFacts[0].unit.id)
                             boundSummationItems.clear() # dereference facts in list
                             boundIntervalItems.clear()
