@@ -60,9 +60,8 @@ Need help with Arelle? Go check out [our documentation][read-the-docs].
 - Support for XF text-based Formula and XULE validation rules.
 - The Web Service API allows XBRL integration with applications, such as those in
   Excel, Java or Oracle.
-- Instance creation is supported using forms defined by the table linkbase
-  (Eurofiling version).
-- Support for reading/monitoring US SEC XBRL RSS feeds (RSS Watch)
+- Instance creation is supported using forms defined by the table linkbase.
+- Support for reading/monitoring US SEC XBRL RSS feeds (RSS Watch).
 
 [viewer]: https://github.com/Arelle/ixbrl-viewer
 [certification]: https://software.xbrl.org/processor/arelle-arelle
