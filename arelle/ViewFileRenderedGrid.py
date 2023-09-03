@@ -36,6 +36,7 @@ emptySet = set()
 emptyList = []
 
 headerOmittedRollupAspects  = {
+    Aspect.CONCEPT,
     Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO, Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO,
     Aspect.VALUE, Aspect.SCHEME,
     Aspect.PERIOD_TYPE, Aspect.START, Aspect.END, Aspect.INSTANT,
@@ -291,7 +292,7 @@ class ViewRenderedGrid(ViewFile.View):
                             if not any(e is not None for e in headerElt.iterchildren()):
                                 if headerElt.getparent() is not None:
                                     headerElt.getparent().remove(headerElt)
-                    self.bodyCells(self.dataFirstRow, yTopStrctNode, xStrctNodes, zDiscrimAspectNodes[discriminator-1]) # zAspectStrctNodes)
+                    self.bodyCells(self.dataFirstRow, yStrctNodes, xStrctNodes, zDiscrimAspectNodes[discriminator-1]) # zAspectStrctNodes)
                 # find next choice structural node
                 '''
                 moreDiscriminators = False
@@ -656,13 +657,13 @@ class ViewRenderedGrid(ViewFile.View):
                     if isRollUpCell:
                         attrib["rollup"] = "true"
                     cellElt = etree.Element(self.tableModelQName("cell"), attrib)
-                    cellElt.append(etree.Comment("Cell id {0}".format(strctNode.defnMdlNode.id, )))
 
                     self.headerCells[topRow].append((brkdownNode, strctNode, cellElt))
                     if isRollUpCell == ROLLUP_SPECIFIES_MEMBER:
                         continue # leave rollup's dimension out of structural model
                     elt = None
                     if not isRollUpCell:
+                        cellElt.append(etree.Comment("Cell id {0}".format(strctNode.defnMdlNode.id, )))
                         if label:
                             elt = etree.SubElement(cellElt, self.tableModelQName("label"))
                         for i, role in enumerate(HdrNonStdRoles):
@@ -727,17 +728,16 @@ class ViewRenderedGrid(ViewFile.View):
                                         end = getAspectValue(Aspect.END)
 
                                         aspectValue = etree.Element("{http://www.xbrl.org/2003/instance}startDate")
-                                        aspectValue.text = "{}Z".format(start.isoformat())
+                                        aspectValue.text = f"{start.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]}Z" # report in millisec, not microsec for conformance suite
                                         valueElt.append(aspectValue)
 
                                         aspectValueEnd = etree.Element("{http://www.xbrl.org/2003/instance}endDate")
-                                        aspectValueEnd.text = "{}Z".format((end + timedelta(days=1)).isoformat())
+                                        aspectValueEnd.text = f"{(end + timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]}Z" # report in millisec, not microsec for conformance suite
                                         valueElt.append(aspectValueEnd)
                                     elif periodType == "instant":
                                         instant = getAspectValue(Aspect.INSTANT)
                                         aspectValue = etree.Element("{http://www.xbrl.org/2003/instance}instant")
-
-                                        aspectValue.text = "{}Z".format((instant + timedelta(days=1)).isoformat())
+                                        aspectValue.text = f"{(instant + timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]}Z" # report in millisec, not microsec for conformance suite
                                         valueElt.append(aspectValue)
                                     else:  # "forever":
                                         # TODO
@@ -1041,12 +1041,11 @@ class ViewRenderedGrid(ViewFile.View):
             return (nestedBottomRow, row, rowsToSpanParent)
             
     
-    def bodyCells(self, row, yParentStrctNode, xStrctNodes, zAspectStrctNodes):
-        if yParentStrctNode is not None:
+    def bodyCells(self, row, yStrctNodes, xStrctNodes, zAspectStrctNodes):
+        if True: # yParentStrctNode is not None:
             dimDefaults = self.modelXbrl.qnameDimensionDefaults
-            for yStrctNode in yParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
-                yDefnMdlNode = yStrctNode.defnMdlNode
-                row = self.bodyCells(row, yStrctNode, xStrctNodes, zAspectStrctNodes)
+            for yStrctNode in yStrctNodes: # yParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
+                #row = self.bodyCells(row, yStrctNode, xStrctNodes, zAspectStrctNodes)
                 if not (yStrctNode.isAbstract or 
                         (yStrctNode.strctMdlChildNodes and
                          not isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode))) and yStrctNode.isLabeled:
@@ -1221,5 +1220,5 @@ class ViewRenderedGrid(ViewFile.View):
                                                  attrib={"abstract":"true"})
                         fp.clear()  # dereference
                     row += 1
-        return row
+        # return row
             

@@ -6,6 +6,7 @@ Created on Jan 4, 2011
 '''
 from __future__ import annotations
 from arelle import PythonUtil # define 2.x or 3.x string types
+from arelle.UrlUtil import isValidUriReference
 import copy, datetime, isodate
 from decimal import Decimal
 from functools import total_ordering
@@ -186,7 +187,9 @@ class QName:
 
 from arelle.ModelObject import ModelObject
 
-def anyURI(value):
+def anyURI(value, castException: Exception | None = None):
+    if castException and not value or not isValidUriReference(value):
+        raise castException
     return AnyURI(value)
 
 class AnyURI(str):

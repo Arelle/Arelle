@@ -65,6 +65,13 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view = ViewRenderedGrid(modelXbrl, tabWin, lang)
     if not view.table.isInitialized: # unable to load or initialize tktable
         return None
+    
+    # HF debugging, remove this
+    if "saveLayoutModel" in modelXbrl.modelManager.formulaOptions.parameterValues:
+        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl,
+              modelXbrl.modelManager.formulaOptions.parameterValues["saveLayoutModel"][1],
+              lang=lang)   
+    return None # HF DEbugging block table.
         
     view.blockMenuEvents = 1
 
@@ -571,7 +578,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     hasTopBorder = True
                     isRollUpParent = rowspan>1 and isNonAbstract and (len(yStrctNode.strctMdlChildNodes)>1 or (len(yStrctNode.strctMdlChildNodes)==1 and not(yStrctNode.strctMdlChildNodes[0].isAbstract)))
                     if rowspan > 1 and yOrdinal == 0 and isRollUpParent and yStrctNode.parentChildOrder == "parent-first":
-                        if TRACE_TK: print(f"yAxis hdr x {xValue} y {yValue} cols {columnspan +  nestedColumnspan} rows {rowspan} isRollUp {isRollUp} value \"{headerLabel}\"")
+                        if TRACE_TK: print(f"yAxis hdr x {xValue} y {yValue} cols {columnspan +  nestedColumnspan} rows {rowspan} rollup {yStrctNode.rollup} value \"{headerLabel}\"")
                         self.table.initHeaderCellValue(headerLabel,
                                                        xValue, yValue,
                                                        columnspan + nestedColumnspan - 1,
@@ -579,7 +586,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                        XbrlTable.TG_LEFT_JUSTIFIED,
                                                        objectId=yStrctNode.objectId(),
                                                        hasBottomBorder = not isRollUpParent,
-                                                       width=3 if isRollUp else None)
+                                                       width=3 if yStrctNode.rollup else None)
                         rowspan -= nestedRowspan
                         yValue += nestedRowspan
                         headerLabel = None

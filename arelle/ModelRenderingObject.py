@@ -2,6 +2,7 @@
 Created on Mar 7, 2011
 
 @author: Mark V Systems Limited
+
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 import inspect, os
@@ -92,6 +93,12 @@ class StrctMdlNode:
     def hasAspect(self, aspect, inherit=True):
         return False
         
+    @property
+    def parentChildOrder(self):
+        if self.defnMdlNode is not None:
+            return self.defnMdlNode.parentChildOrder
+        return "parent-first" # default value
+
     @property
     def hasRollUpChild(self):
         return any(c.hasChildRollup for c in self.strctMdlChildNodes)
@@ -432,6 +439,8 @@ class StrctMdlStructuralNode(StrctMdlNode):
         return value
     
     def aspectValue(self, aspect, inherit=True, dims=None, depth=0, tagSelectors=None):
+        if self.rollup == ROLLUP_FOR_RELATIONSHIP_NODE:
+            return self.strctMdlParentNode.aspectValue(aspect, inherit, dims, depth, tagSelectors)
         xc = self._rendrCntx
         aspects = self.aspects
         defnMdlNode = self.defnMdlNode
@@ -475,11 +484,6 @@ class StrctMdlStructuralNode(StrctMdlNode):
     def explicitDims(self):
         return self.defnMdlNode.explicitDims
     '''
-    @property
-    def parentChildOrder(self):
-        if self.defnMdlNode is not None:
-            return self.defnMdlNode.parentChildOrder
-        return "parent-first" # default value
             
     @property
     def tableDefinitionNode(self):
@@ -1028,6 +1032,7 @@ class DefnMdlRuleDefinitionNode(DefnMdlConstraintSet, DefnMdlClosedDefinitionNod
 class DefnMdlRelationshipNode(DefnMdlClosedDefinitionNode):
     def init(self, modelDocument):
         super(DefnMdlRelationshipNode, self).init(modelDocument)
+        self.relationshipSourceQnamesAndQnameExpressionProgs = []
         
     def aspectsCovered(self):
         return {Aspect.CONCEPT}
@@ -1036,85 +1041,81 @@ class DefnMdlRelationshipNode(DefnMdlClosedDefinitionNode):
     def conceptQname(self):
         name = self.getStripped("conceptname")
         return qname(self, name, noPrefixIsNoNamespace=True) if name else None
-        
-    @property
-    def relationshipSourceQname(self):
-        sourceQname = XmlUtil.child(self, (XbrlConst.table, XbrlConst.tableMMDD), "relationshipSource")
-        if sourceQname is not None:
-            return qname( sourceQname, XmlUtil.text(sourceQname) )
-        return None
     
     @property
     def linkrole(self):
         return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD), "linkrole")
 
     @property
-    def axis(self):
-        a = XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD), ("axis", "formulaAxis"))
-        if not a: a = 'descendant'  # would be an XML error
+    def formulaAxis(self):
+        a = XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD), "formulaAxis")
+        if not a: a = 'descendant-or-self'  # would be an XML error
         return a
     
     @property
     def isOrSelfAxis(self):
-        return self.axis.endswith('-or-self')
+        return self.formulaAxis.endswith('-or-self')
 
     @property
     def generations(self):
         try:
             return _INT( XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD), "generations") )
         except (TypeError, ValueError):
-            if self.axis in ('sibling', 'child', 'parent'): 
+            if self.formulaAxis in ('sibling', 'child', 'parent'): 
                 return 1
             return 0
 
     @property
-    def relationshipSourceQnameExpression(self):
-        return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD), "relationshipSourceExpression")
+    def relationshipSourceQnamesAndExpressions(self):
+        return [qname(e, XmlUtil.text(e)) if e.qname.localName == "relationshipSource" else XmlUtil.text(e)
+                for e in XmlUtil.children(self, (XbrlConst.table, XbrlConst.tableMMDD), ("relationshipSource", "relationshipSourceExpression"))]
 
     @property
     def linkroleExpression(self):
         return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD), "linkroleExpression")
 
     @property
-    def axisExpression(self):
-        return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD), ("axisExpression", "formulAxisExpression"))
+    def formulaAxisExpression(self):
+        return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD), "formulAxisExpression")
 
     @property
     def generationsExpression(self):
         return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD), "generationsExpression")
 
     def compile(self):
-        if not hasattr(self, "relationshipSourceQnameExpressionProg"):
-            self.relationshipSourceQnameExpressionProg = XPathParser.parse(self, self.relationshipSourceQnameExpression, self, "relationshipSourceQnameExpressionProg", Trace.VARIABLE)
+        if not hasattr(self, "linkroleExpressionProg"):
+            self.relationshipSourceQnamesAndQnameExpressionProgs = [
+                qe if isinstance(qe, QName) else XPathParser.parse(self, qe, self, "relationshipSourceQnamesExpressionProg", Trace.VARIABLE)
+                for qe in self.relationshipSourceQnamesAndExpressions]
             self.linkroleExpressionProg = XPathParser.parse(self, self.linkroleExpression, self, "linkroleQnameExpressionProg", Trace.VARIABLE)
-            self.axisExpressionProg = XPathParser.parse(self, self.axisExpression, self, "axisExpressionProg", Trace.VARIABLE)
+            self.formulaAxisExpressionProg = XPathParser.parse(self, self.formulaAxisExpression, self, "formulaAxisExpressionProg", Trace.VARIABLE)
             self.generationsExpressionProg = XPathParser.parse(self, self.generationsExpression, self, "generationsExpressionProg", Trace.VARIABLE)
             super(DefnMdlRelationshipNode, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
-        if self.relationshipSourceQname and self.relationshipSourceQname != XbrlConst.qnXfiRoot:
+        if self.relationshipSourceQnames and self.relationshipSourceQnames != [XbrlConst.qnXfiRoot]:
             if varRefSet is None: varRefSet = set()
-            varRefSet.add(self.relationshipSourceQname)
+            varRefSet.update(self.relationshipSourceQnames)
         return super(DefnMdlRelationshipNode, self).variableRefs(
-                                                [p for p in (self.relationshipSourceQnameExpressionProg,
-                                                             self.linkroleExpressionProg, self.axisExpressionProg,
-                                                             self.generationsExpressionProg)
+                                        [p 
+                                         for p in self.relationshipSourceQnamesExpressionProgs + [
+                                                        self.linkroleExpressionProg, self.formulaAxisExpressionProg,
+                                                        self.generationsExpressionProg]
                                         if p], varRefSet)
 
-    def evalRrelationshipSourceQname(self, xpCtx, fact=None):
-        if self.relationshipSourceQname:
-            return self.relationshipSourceQname
-        return xpCtx.evaluateAtomicValue(self.relationshipSourceQnameExpressionProg, 'xs:QName', fact)
+    def evalRrelationshipSourceQnames(self, xpCtx, fact=None):
+        return [qp if isinstance(qp, QName) else xpCtx.evaluateAtomicValue(qp, 'xs:QName', fact)
+                for qp in self.relationshipSourceQnamesAndQnameExpressionProgs]
     
     def evalLinkrole(self, xpCtx, fact=None):
         if self.linkrole:
             return self.linkrole
         return xpCtx.evaluateAtomicValue(self.linkroleExpressionProg, 'xs:anyURI', fact)
     
-    def evalAxis(self, xpCtx, fact=None):
-        if self.axis:
-            return self.axis
-        return xpCtx.evaluateAtomicValue(self.axisExpressionProg, 'xs:token', fact)
+    def evalFormulaAxis(self, xpCtx, fact=None):
+        if self.formulaAxis:
+            return self.formulaAxis
+        return xpCtx.evaluateAtomicValue(self.formulaAxisExpressionProg, 'xs:token', fact)
     
     def evalGenerations(self, xpCtx, fact=None):
         if self.generations:
@@ -1123,7 +1124,7 @@ class DefnMdlRelationshipNode(DefnMdlClosedDefinitionNode):
 
     def cardinalityAndDepth(self, structuralNode, **kwargs):
         return self.lenDepth(self.relationships(structuralNode, **kwargs), 
-                             self.axis.endswith('-or-self'))
+                             self.formulaAxis.endswith('-or-self'))
     
     def lenDepth(self, nestedRelationships, includeSelf):
         l = 0
@@ -1224,25 +1225,28 @@ class DefnMdlConceptRelationshipNode(DefnMdlRelationshipNode):
         return Aspect.CONCEPT
 
     def relationships(self, structuralNode, **kwargs):
-        self._sourceQname = structuralNode.evaluate(self, self.evalRrelationshipSourceQname, **kwargs) or XbrlConst.qnXfiRoot
-        linkrole = structuralNode.evaluate(self, self.evalLinkrole)
+        self._sourceQnames = structuralNode.evaluate(self, self.evalRrelationshipSourceQnames, **kwargs) or [XbrlConst.qnXfiRoot]
+        linkrole = structuralNode.evaluate(self, self.evalLinkrole, handleXPathException=False) # expect cast exception on bad anyURI
         if not linkrole:
-            linkrole = "XBRL-all-linkroles"
+            linkrole = XbrlConst.defaultLinkRole
         linkQname = (structuralNode.evaluate(self, self.evalLinkQname) or () )
         arcrole = (structuralNode.evaluate(self, self.evalArcrole) or () )
         arcQname = (structuralNode.evaluate(self, self.evalArcQname) or () )
-        self._axis = (structuralNode.evaluate(self, self.evalAxis) or () )
+        self._formulaAxis = (structuralNode.evaluate(self, self.evalFormulaAxis) or () )
         self._generations = (structuralNode.evaluate(self, self.evalGenerations) or () )
-        return concept_relationships(self.modelXbrl.rendrCntx, 
-                                     None, 
-                                     (self._sourceQname,
-                                      linkrole,
-                                      arcrole,
-                                      self._axis.replace('-or-self',''),
-                                      self._generations,
-                                      linkQname,
-                                      arcQname),
-                                     True) # return nested lists representing concept tree nesting
+        rels = []
+        for srcQname in self._sourceQnames:
+            rels.extend(concept_relationships(self.modelXbrl.rendrCntx, 
+                                      None, 
+                                      (srcQname,
+                                       linkrole,
+                                       arcrole,
+                                       self._formulaAxis.replace('-or-self',''),
+                                       self._generations,
+                                       linkQname,
+                                       arcQname),
+                                       True)) # return nested lists representing concept tree nesting
+        return rels
     
 class DefnMdlDimensionRelationshipNode(DefnMdlRelationshipNode):
     def init(self, modelDocument):
@@ -1295,17 +1299,17 @@ class DefnMdlDimensionRelationshipNode(DefnMdlRelationshipNode):
     
     def dimRelationships(self, structuralNode, getMembers=False, getDimQname=False):
         self._dimensionQname = structuralNode.evaluate(self, self.evalDimensionQname)
-        self._sourceQname = structuralNode.evaluate(self, self.evalRrelationshipSourceQname) or XbrlConst.qnXfiRoot
+        self._sourceQnames = structuralNode.evaluate(self, self.evalRrelationshipSourceQnames) or [XbrlConst.qnXfiRoot]
         linkrole = structuralNode.evaluate(self, self.evalLinkrole)
         if not linkrole and getMembers:
             linkrole = "XBRL-all-linkroles"
         dimConcept = self.modelXbrl.qnameConcepts.get(self._dimensionQname)
-        sourceConcept = self.modelXbrl.qnameConcepts.get(self._sourceQname)
-        self._axis = (structuralNode.evaluate(self, self.evalAxis) or () )
+        sourceConcepts = [self.modelXbrl.qnameConcepts.get(qn) for qn in self._sourceQnames]
+        self._formulaAxis = (structuralNode.evaluate(self, self.evalFormulaAxis) or () )
         self._generations = (structuralNode.evaluate(self, self.evalGenerations) or () )
         if ((self._dimensionQname and (dimConcept is None or not dimConcept.isDimensionItem)) or
-            (self._sourceQname and self._sourceQname != XbrlConst.qnXfiRoot and (
-                    sourceConcept is None or not sourceConcept.isItem))):
+            (self._sourceQnames and self._sourceQnames != [XbrlConst.qnXfiRoot] and (
+                    any(c is None or not c.isItem for c in sourceConcepts)))):
             return ()
         if dimConcept is not None:
             if getDimQname:
@@ -1313,18 +1317,19 @@ class DefnMdlDimensionRelationshipNode(DefnMdlRelationshipNode):
             if sourceConcept is None:
                 sourceConcept = dimConcept
         if getMembers:
-            return concept_relationships(self.modelXbrl.rendrCntx, 
-                                         None, 
-                                         (self._sourceQname,
-                                          linkrole,
-                                          "XBRL-dimensions",  # all dimensions arcroles
-                                          self._axis.replace('-or-self',''),
-                                          self._generations),
-                                         True) # return nested lists representing concept tree nesting
+            return [concept_relationships(self.modelXbrl.rendrCntx, 
+                                          None, 
+                                          (srcQname,
+                                           linkrole,
+                                           "XBRL-dimensions",  # all dimensions arcroles
+                                           self._formulaAxis.replace('-or-self',''),
+                                           self._generations),
+                                          True) # return nested lists representing concept tree nesting
+                    for srcQname in self._sourceQnames]
         if getDimQname:
-            if sourceConcept is not None:
+            if sourceConcepts:
                 # look back from member to a dimension
-                return self.stepDimRel(sourceConcept, linkrole)
+                return self.stepDimRel(sourceConcepts[0], linkrole)
             return None
         
     def stepDimRel(self, stepConcept, linkrole):

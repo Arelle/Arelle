@@ -13,6 +13,7 @@ from arelle import ModelDtsObject, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelResource
 from arelle.PrototypeDtsObject import LocPrototype, PrototypeObject
+from arelle.PythonUtil import OrderedSet
 from arelle.XbrlConst import consecutiveArcrole
 import sys
 
@@ -213,7 +214,7 @@ class ModelRelationshipSet:
     @property
     def linkRoleUris(self):
         if self.modellinkRoleUris is None:
-            self.modellinkRoleUris = set(modelRel.linkrole for modelRel in self.modelRelationships)
+            self.modellinkRoleUris = OrderedSet(modelRel.linkrole for modelRel in self.modelRelationships)
         return self.modellinkRoleUris
 
     def loadModelRelationshipsFrom(self):
