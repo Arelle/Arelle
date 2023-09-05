@@ -11,11 +11,14 @@ so every CLI execution needs any used plugins to be specified each time.
 
 ___
 ### By Name
-The plugin's name can be passed to the `--plugins` CLI option.
+The plugin's name can be passed to the `--plugins` CLI option. Multiple names can be passed by separating with a vertical bar `|` character.
 
 Example:
 ```bash
 python arelleCmdLine.py --plugins=myplugin ...
+```
+```bash
+python arelleCmdLine.py --plugins="myplugin|myplugin2" ...
 ```
 
 ___

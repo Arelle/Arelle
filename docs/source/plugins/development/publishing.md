@@ -15,7 +15,7 @@ but an extra step is necessary to make the package discoverable as a plugin by A
 
 Arelle uses [`setuptools`](https://pypi.org/project/setuptools/) to discover packages that define entry points for Arelle.
 Entry points can be defined in `pyproject.toml` as described [here](https://setuptools.pypa.io/en/latest/userguide/entry_point.html#entry-points-for-plugins).
-For `ixbrl-viewer`, that looks like [this](https://github.com/Arelle/ixbrl-viewer/blob/master/pyproject.toml#L41-L43C1):
+For `ixbrl-viewer`, that looks like [this](https://github.com/Arelle/ixbrl-viewer/blob/fa547995873662328ce761cafd8c7dbf40fc5ae4/pyproject.toml#L41-L43C1):
 ```toml
 [project.entry-points."arelle.plugin"]
 ixbrl-viewer = "iXBRLViewerPlugin:load_plugin_url"
