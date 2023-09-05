@@ -5,6 +5,6 @@
 
 :::{toctree}
 getting_started
-hooks
 publishing
+hooks
 :::
