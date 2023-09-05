@@ -10,7 +10,7 @@ To auto-save layout model provide formula parameter
 '''
 import os, threading, time, logging
 from tkinter import Menu, BooleanVar, font as tkFont
-from arelle import (ViewWinTkTable, ModelDocument, ModelDtsObject, ModelInstanceObject, XbrlConst, 
+from arelle import (ViewWinTkTable, ModelDocument, ModelDtsObject, ModelInstanceObject, XbrlConst,
                     ModelXbrl, Locale, FunctionXfi,
                     ValidateXbrlDimensions, ViewFileRenderedGrid)
 from arelle.ModelValue import qname, QName
@@ -65,14 +65,14 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view = ViewRenderedGrid(modelXbrl, tabWin, lang)
     if not view.table.isInitialized: # unable to load or initialize tktable
         return None
-    
+
     # HF debugging, remove this
     if "saveLayoutModel" in modelXbrl.modelManager.formulaOptions.parameterValues:
         ViewFileRenderedGrid.viewRenderedGrid(modelXbrl,
               modelXbrl.modelManager.formulaOptions.parameterValues["saveLayoutModel"][1],
-              lang=lang)   
+              lang=lang)
     return None # HF DEbugging block table.
-        
+
     view.blockMenuEvents = 1
 
     menu = view.contextMenu()
@@ -103,9 +103,9 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     if "saveLayoutModel" in modelXbrl.modelManager.formulaOptions.parameterValues:
         ViewFileRenderedGrid.viewRenderedGrid(modelXbrl,
               modelXbrl.modelManager.formulaOptions.parameterValues["saveLayoutModel"][1],
-              lang=lang, sourceView=view)   
+              lang=lang, sourceView=view)
     return view
-    
+
 class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
     def __init__(self, modelXbrl, tabWin, lang):
         super(ViewRenderedGrid, self).__init__(modelXbrl, tabWin, _("Table"),
@@ -134,9 +134,9 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.aspectEntryObjectIdsNode.clear()
             self.aspectEntryObjectIdsCell.clear()
             self.rendrCntx = None # remove the reference but do not manipulate since it may still be in use and shared
-        
+
     def loadTablesMenu(self):
-        tblMenuEntries = {}             
+        tblMenuEntries = {}
         tblRelSet = self.modelXbrl.relationshipSet("Table-rendering")
         self.tablesToELR = {}
         for tblLinkroleUri in tblRelSet.linkRoleUris:
@@ -149,7 +149,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         # roledefinition = modelRoleTypes[0].definition
                         roledefinition = self.modelXbrl.roleTypeDefinition(tblLinkroleUri, self.lang) # Definition in selected language
                         if roledefinition is None or roledefinition == "":
-                            roledefinition = os.path.basename(tblLinkroleUri)       
+                            roledefinition = os.path.basename(tblLinkroleUri)
                         for table in tblAxisRelSet.rootConcepts:
                             # add table to menu if there's any entry
                             tblMenuEntries[roledefinition] = tblLinkroleUri
@@ -162,15 +162,15 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             tbl,elr = tblMenuEntry
             self.tablesMenu.add_command(label=tbl, command=lambda e=elr: self.view(viewTblELR=e)) # use this to activate profiling from menu selection:  , profile=True))
             self.tablesMenuLength += 1
-            if self.tblELR is None: 
+            if self.tblELR is None:
                 self.tblELR = elr # start viewing first ELR
-        
+
     def viewReloadDueToMenuAction(self, *args):
         if not self.blockMenuEvents:
             # update config (config saved when exiting)
             self.options["ignoreDimValidity"] = self.ignoreDimValidity.get()
             self.view()
-            
+
     def setOpenBreakdownEntryRows(self, *args):
         import tkinter.simpledialog
         newValue = tkinter.simpledialog.askinteger(_("arelle - Open breakdown entry rows setting"),
@@ -181,7 +181,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         if newValue is not None:
             self.options["openBreakdownLines"] = self.openBreakdownLines = newValue
             self.viewReloadDueToMenuAction()
-        
+
     def view(self, viewTblELR=None, newInstance=None, profile=False):
         '''
         if profile: # for debugging only, to use, uncomment in loadTablesMenu
@@ -228,17 +228,17 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 self.zBreakdownStrctNodes = [None] * self.zAxisBreakdowns
                 self.zBreakdownLeafNbr = [0] * self.zAxisBreakdowns
                 self.zBreakdownLeafParents = [None] * self.zAxisBreakdowns
-                viewTblELR = self.tblELR                 
-            
+                viewTblELR = self.tblELR
+
         if not self.tblELR:
             return  # no table to display
         if not viewTblELR:
             viewTblELR = self.tblELR
-        
+
         if TRACE_TK: print(f"resizeTable rows {self.dataFirstRow+self.dataRows} cols {self.dataFirstCol+self.dataCols} titleRows {self.dataFirstRow} titleColumns {self.dataFirstCol})")
         self.table.resizeTable(self.dataFirstRow+self.dataRows, self.dataFirstCol+self.dataCols, titleRows=self.dataFirstRow, titleColumns=self.dataFirstCol)
         self.hasTableFilters = bool(self.defnMdlTable.filterRelationships)
-        
+
         if self.tblBrkdnRels:
             # review row header wrap widths and limit to 2/3 of the frame width (all are screen units)
             fontWidth = tkFont.Font(font='TkTextFont').configure()['size']
@@ -265,14 +265,14 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.aspectEntryObjectIdsCell.clear()
             self.factPrototypeAspectEntryObjectIds.clear()
             if TRACE_TK: print(f"tbl hdr x {0} y {0} cols {self.dataFirstCol} rows {self.dataFirstRow} value {(self.defnMdlTable.genLabel(lang=self.lang, strip=True) or self.roledefinition)}")
-            self.table.initHeaderCellValue((self.defnMdlTable.genLabel(lang=self.lang, strip=True) or  # use table label, if any 
+            self.table.initHeaderCellValue((self.defnMdlTable.genLabel(lang=self.lang, strip=True) or  # use table label, if any
                                             self.roledefinition),
                                            0, 0, self.dataFirstCol-1, self.dataFirstRow-1,
                                            XbrlTable.TG_TOP_LEFT_JUSTIFIED)
             self.zAspectStrctNodes = defaultdict(set)
             self.zAxis(-1, strctMdlTable.strctMdlFirstAxisBreakdown("z"), clearZchoices)
             xStrctNodes = []
-            colsFoundPlus1, _, _, _ = self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1, 
+            colsFoundPlus1, _, _, _ = self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
                                                  strctMdlTable.strctMdlFirstAxisBreakdown("x"), xStrctNodes, True, True)
             _, rowsFoundPlus1, _, _, _ = self.yAxis(0, self.dataFirstRow,
                                            strctMdlTable.strctMdlFirstAxisBreakdown("y"), True, True)
@@ -283,24 +283,24 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 if fp is not None:
                     fp.clear()
             self.factPrototypes = []
-            
+
             startedAt2 = time.time()
             self.bodyCells(self.dataFirstRow, strctMdlTable.strctMdlFirstAxisBreakdown("y"), xStrctNodes, self.zAspectStrctNodes)
             #print("bodyCells {:.2f}secs ".format(time.time() - startedAt2) + self.roledefinition)
-            
+
             self.table.clearModificationStatus()
             self.table.disableUnusedCells()
             self.table.resizeTableCells()
-                
+
             # data cells
             #print("body cells done")
-                
+
         self.modelXbrl.profileStat("viewTable_" + os.path.basename(viewTblELR), time.time() - startedAt)
 
         #self.gridView.config(scrollregion=self.gridView.bbox(constants.ALL))
         self.blockMenuEvents -= 1
 
-            
+
     def zAxis(self, breakdownRow, zStrctNode, clearZchoices):
         if (isinstance(zStrctNode, StrctMdlBreakdown) and zStrctNode.defnMdlNode is not None):
             breakdownRow += 1
@@ -321,9 +321,9 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                            0, 0,
                                            XbrlTable.TG_LEFT_JUSTIFIED,
                                            objectId=zStrctNode.objectId())
-    
+
             if not zBreakdownStrctNode.hasOpenNode: # combo box
-                valueHeaders = [# ''.ljust(zBreakdownStrctNode.indent * 4) + # indent if nested choices 
+                valueHeaders = [# ''.ljust(zBreakdownStrctNode.indent * 4) + # indent if nested choices
                                 (z.header(lang=self.lang) or '')
                                 for z in zStrctNode.strctMdlChildNodes]
                 zAxisIsOpenExplicitDimension = False
@@ -331,7 +331,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 i = self.zBreakdownLeafNbr[breakdownRow] # for aspect entry, use header selected
                 choiceStrctNodes = zStrctNode.strctMdlChildNodes
                 comboBoxValue = None if i >= 0 else zchoiceStrctNodes[0].aspects.get('aspectValueLabel')
-                chosenStrctNode = choiceStrctNodes[i or 0]    
+                chosenStrctNode = choiceStrctNodes[i or 0]
                 aspect = None
                 for aspect in chosenStrctNode.aspectsCovered():
                     if aspect != Aspect.DIMENSIONS:
@@ -390,7 +390,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.zAxis(breakdownRow, zStrctNode, clearZchoices)
             break
 
-                    
+
     def setZStrctNodeAspects(self, zStrctNode, add=True):
         for aspect in aspectModels["dimensional"]:
             if zStrctNode.hasAspect(aspect, inherit=False):
@@ -405,7 +405,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         self.zAspectStrctNodes[aspect].add(zStrctNode)
                     else:
                         self.zAspectStrctNodes[aspect].discard(zStrctNode)
-            
+
     def onZComboBoxSelected(self, event):
         combobox = event.widget
         breakdownRow = combobox.zBreakdownRow
@@ -420,7 +420,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 self.view() # redraw grid
         elif combobox.zAxisIsOpenExplicitDimension and combobox.get() == "(all members)":
             # reload combo box
-            self.comboboxLoadExplicitDimension(combobox, 
+            self.comboboxLoadExplicitDimension(combobox,
                                                structuralNode, # owner of combobox
                                                choiceStrctNodes[breakdownLeafNbr]) # aspect filter node
             self.zBreakdownLeafNbr[breakdownRow] = -1 # use entry aspect value
@@ -428,16 +428,16 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         elif combobox.zAxisTypedDimension is not None and combobox.get() == "(enter typed member)":
             # ask typed member entry
             import tkinter.simpledialog
-            result = tkinter.simpledialog.askstring(_("Enter new typed dimension value"), 
-                                                    combobox.zAxisTypedDimension.label(), 
+            result = tkinter.simpledialog.askstring(_("Enter new typed dimension value"),
+                                                    combobox.zAxisTypedDimension.label(),
                                                     parent=self.tabWin)
             if result:
                 self.zBreakdownLeafNbr[breakdownRow] = -1 # use entry aspect value
-                aspectValue = FunctionXfi.create_element(self.rendrCntx, 
-                                                         None, 
+                aspectValue = FunctionXfi.create_element(self.rendrCntx,
+                                                         None,
                                                          (combobox.zAxisTypedDimension.typedDomainElement.qname, (), result))
                 self.zOrdinateChoices[structuralNode.defnMdlNode] = \
-                    structuralNode.aspects = {combobox.zAxisAspect: aspectValue, 
+                    structuralNode.aspects = {combobox.zAxisAspect: aspectValue,
                                               Aspect.DIMENSIONS: {combobox.zAxisTypedDimension.qname},
                                               'aspectValueLabel': result}
                 if not hasattr(structuralNode, "aspectEntryHeaderValues"): structuralNode.aspectEntryHeaderValues = {}
@@ -455,7 +455,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             # set current combo choice aspect
             self.setZStrctNodeAspects(choiceStrctNodes[i])
             self.view() # redraw grid
-            
+
     def xAxis(self, leftCol, topRow, rowBelow, xParentStrctNode, xStrctNodes, renderNow, atTop):
         parentRow = rowBelow
         noDescendants = True
@@ -472,11 +472,11 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             isNonAbstract = not isAbstract
             isRollUpParent = xDefnMdlNode.childrenCoverSameAspects
             rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + isLabeled, rowBelow, xStrctNode, xStrctNodes, # nested items before totals
-                                                        True, #childrenFirst, 
+                                                        True, #childrenFirst,
                                                         False)
             if row - 1 < parentRow:
                 parentRow = row - 1
-            #if not leafNode: 
+            #if not leafNode:
             #    rightCol -= 1
             if isNonAbstract and isLabeled:
                 width += ENTRY_WIDTH_SCREEN_UNITS # width for this label, in screen units
@@ -504,7 +504,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                    rowspan - 1,
                                                    XbrlTable.TG_CENTERED,
                                                    objectId=xStrctNode.objectId(),
-                                                   hasTopBorder=not (yValue > 0 and headerLabel is None), 
+                                                   hasTopBorder=not (yValue > 0 and headerLabel is None),
                                                    hasBottomBorder=not isRollUpParent)
                 else:
                     self.aspectEntryObjectIdsNode[xStrctNode.aspectEntryObjectId] = xStrctNode
@@ -533,7 +533,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             #    self.xAxis(leftCol + (1 if isNonAbstract else 0), topRow + isLabeled, rowBelow, xStrctNode, xStrctNodes, True, False) # render on this pass
             leftCol = rightCol
         return (rightCol, parentRow, widthToSpanParent, noDescendants)
-            
+
     def yAxis(self, leftCol, row, yParentStrctNode, renderNow, atLeft):
         noDescendants = True
         nestedBottomRow = row
@@ -543,16 +543,16 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             yDefnMdlNode = yStrctNode.defnMdlNode
             childrenFirst = not yDefnMdlNode.childrenCoverSameAspects or yDefnMdlNode.parentChildOrder == "children-first"
             noDescendants = False
-            isAbstract = (yStrctNode.isAbstract or 
+            isAbstract = (yStrctNode.isAbstract or
                           (yStrctNode.strctMdlChildNodes and
                            not isinstance(yDefnMdlNode, DefnMdlClosedDefinitionNode)))
             isNonAbstract = not isAbstract
             isLabeled = yStrctNode.isLabeled
             nestRow, nextRow, leafNode, nestedColumnspan, nestedRowspan = self.yAxis(
                 leftCol + isLabeled, row, yStrctNode,  # nested items before totals
-                True, # childrenFirst, 
+                True, # childrenFirst,
                 False)
-            
+
             topRow = row
             #if childrenFirst and isNonAbstract:
             #    row = nextRow
@@ -601,7 +601,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                     if isNonAbstract or nestRow == row
                                                     else XbrlTable.TG_CENTERED),
                                                    objectId=yStrctNode.objectId(),
-                                                   hasLeftBorder=not (xValue > 0 and headerLabel is None), 
+                                                   hasLeftBorder=not (xValue > 0 and headerLabel is None),
                                                    hasRightBorder=not isRollUpParent,
                                                    hasTopBorder=hasTopBorder,
                                                    width=3 if isRollUpParent else None)
@@ -672,7 +672,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 yChildrenFirst = not yDefnMdlNode.childrenCoverSameAspects or yDefnMdlNode.parentChildOrder == "children-first"
                 if yChildrenFirst:
                     row = self.bodyCells(row, yStrctNode, xStrctNodes, zAspectStrctNodes)
-                if not (yStrctNode.isAbstract or 
+                if not (yStrctNode.isAbstract or
                         (yStrctNode.strctMdlChildNodes and
                          not isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode))) and yStrctNode.isLabeled:
                     isYEntryPrototype = yStrctNode.isEntryPrototype(default=False) # row to enter open aspects
@@ -688,13 +688,13 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     # data for columns of row
                     #print ("row " + str(row) + "yNode " + yStrctNode.defnMdlNode.objectId() )
                     ignoreDimValidity = self.ignoreDimValidity.get()
-                    
+
                     # Reuse already computed facts partition in case of open Y axis
                     if True and hasattr(yStrctNode, "factsPartition"):
                         factsPartition = yStrctNode.factsPartition
                     else:
                         factsPartition = None
-                    
+
                     for i, xStrctNode in enumerate(xStrctNodes):
                         isEntryPrototype = isYEntryPrototype or xStrctNode.isEntryPrototype(default=False)
                         xAspectStrctNodes = defaultdict(set)
@@ -710,7 +710,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         matchableAspects = set()
                         for aspect in _DICT_SET(xAspectStrctNodes.keys()) | _DICT_SET(yAspectStrctNodes.keys()) | _DICT_SET(zAspectStrctNodes.keys()):
                             aspectValue = xStrctNode.inheritedAspectValue(yStrctNode,
-                                               self, aspect, cellTagSelectors, 
+                                               self, aspect, cellTagSelectors,
                                                xAspectStrctNodes, yAspectStrctNodes, zAspectStrctNodes)
                             # value is None for a dimension whose value is to be not reported in this slice
                             if (isinstance(aspect, _INT) or  # not a dimension
@@ -720,7 +720,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                             matchableAspects.add(aspectModelAspect.get(aspect,aspect)) #filterable aspect from rule aspect
                         cellDefaultedDims = _DICT_SET(dimDefaults) - _DICT_SET(cellAspectValues.keys())
                         priItemQname = cellAspectValues.get(Aspect.CONCEPT)
-                            
+
                         concept = self.modelXbrl.qnameConcepts.get(priItemQname)
                         conceptNotAbstract = concept is None or not concept.isAbstract
                         value = None
@@ -740,7 +740,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                             dimMemQname = aspectValue.memberQname # match facts with this explicit value
                                         else:
                                             dimMemQname = None  # match facts that report this dimension
-                                    elif isinstance(aspectValue, QName): 
+                                    elif isinstance(aspectValue, QName):
                                         dimMemQname = aspectValue  # match facts that have this explicit value
                                     elif aspectValue is None: # match typed dims that don't report this value
                                         dimMemQname = ModelXbrl.DEFAULT
@@ -750,7 +750,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                     if len(facts)==0:
                                         break;
                             for fact in facts:
-                                if (all(aspectMatches(self.rendrCntx, fact, fp, aspect) 
+                                if (all(aspectMatches(self.rendrCntx, fact, fp, aspect)
                                         for aspect in matchableAspects) and
                                     all(fact.context.dimMemberQname(dim,includeDefaults=True) in (dimDefaults[dim], None)
                                         for dim in cellDefaultedDims) and
@@ -814,8 +814,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                         newAspectQNames[""] = None
                                         domPrefix, _, domLocalName = domainQNameAsString.strip().rpartition(":")
                                         domNamespace = concept.nsmap.get(domPrefix)
-                                        relationships = concept_relationships(self.rendrCntx, 
-                                             None, 
+                                        relationships = concept_relationships(self.rendrCntx,
+                                             None,
                                              (QName(domPrefix, domNamespace, domLocalName),
                                               hierarchy, # linkrole,
                                               "XBRL-dimensions",
@@ -897,7 +897,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 if not yChildrenFirst:
                     row = self.bodyCells(row, yStrctNode, xStrctNodes, zAspectStrctNodes)
             return row
-        
+
     def onClick(self, event):
         try:
             objId = event.widget.objectId
@@ -909,7 +909,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         except AttributeError: # not clickable
             pass
         self.modelXbrl.modelManager.cntlr.currentView = self
-            
+
     def cellEnter(self, *args):
         # triggered on grid frame enter (not cell enter)
         self.blockSelectEvent = 0
@@ -926,7 +926,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             #self.modelXbrl.viewModelObject(self.nodeToObjectId[self.treeView.selection()[0]])
             #self.modelXbrl.viewModelObject(self.treeView.selection()[0])
             self.blockViewModelObject -= 1
-        
+
     def viewModelObject(self, modelObject):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
@@ -942,11 +942,11 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         # force focus (synch) on the corresponding "Table" tab (useful in case of several instances)
                         self.modelXbrl.guiViews.tableView.tabWin.select(str(self.modelXbrl.guiViews.tableView.viewFrame))
                     except:
-                        pass 
+                        pass
             except (KeyError, AttributeError):
                     pass
             self.blockViewModelObject -= 1
-            
+
     def onConfigure(self, event, *args):
         if not self.blockMenuEvents:
             lastFrameWidth = getattr(self, "lastFrameWidth", 0)
@@ -975,7 +975,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     self.viewFrame.after(1500, deferredReload)
 
     def onQuitView(self, event, *args):
-        # this method is passed as callback when creating the view 
+        # this method is passed as callback when creating the view
         # (to ScrolledTkTableFrame and then to XbrlTable that will monitor cell operations)
         self.updateInstanceFromFactPrototypes()
         self.updateProperties()
@@ -1004,7 +1004,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         else:
                             return
                         modelXbrl.viewModelObject(viewableObject)
-                
+
 
     def updateInstanceFromFactPrototypes(self):
         # Only update the model if it already exists
@@ -1071,14 +1071,14 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 qnameDims.update(newAspectValues)
                                 # open aspects widgets
                                 prevCntx = instance.matchContext(
-                                    entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, 
+                                    entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant,
                                     qnameDims, [], [])
                                 if prevCntx is not None:
                                     cntxId = prevCntx.id
                                 else: # need new context
-                                    newCntx = instance.createContext(entityIdentScheme, entityIdentValue, 
-                                        periodType, periodStart, periodEndInstant, 
-                                        concept.qname, qnameDims, [], [], 
+                                    newCntx = instance.createContext(entityIdentScheme, entityIdentValue,
+                                        periodType, periodStart, periodEndInstant,
+                                        concept.qname, qnameDims, [], [],
                                         afterSibling=newCntx)
                                     cntxId = newCntx.id # need new context
                                 # new context
@@ -1153,7 +1153,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             if not getNewFactItemOptions(self.modelXbrl.modelManager.cntlr, self.newFactItemOptions):
                 return # new instance not set
         # newFilename = None # only used when a new instance must be created
-        
+
         self.updateInstanceFromFactPrototypes()
         if self.modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE and newFilename is None:
             newFilename = self.modelXbrl.modelManager.cntlr.fileSave(view=self, fileType="xbrl")
@@ -1163,7 +1163,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         thread = threading.Thread(target=lambda: self.backgroundSaveInstance(newFilename, onSaved))
         thread.daemon = True
         thread.start()
-        
+
 
     def backgroundSaveInstance(self, newFilename=None, onSaved=None):
         cntlr = self.modelXbrl.modelManager.cntlr
@@ -1191,7 +1191,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     break
             gridCellItem = self.aspectEntryObjectIdsCell[aspectObjId]
             value = gridCellItem.get()
-            # is aspect in a childStrctNode? 
+            # is aspect in a childStrctNode?
             if value is not None and OPEN_ASPECT_ENTRY_SURROGATE in aspectObjId and len(value)==0:
                 return None # some values are missing!
             if value:
@@ -1209,7 +1209,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 if aspectValue is not None:
                     aspectValues[aspect] = aspectValue
         return aspectValues
-    
+
     def aspectEntryValues(self, structuralNode):
         for aspect in structuralNode.aspectsCovered():
             if aspect != Aspect.DIMENSIONS:
@@ -1221,14 +1221,14 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         while (n.strctMdlParentNode is not None):
             depth += 1
             root = n = n.strctMdlParentNode
-            
+
         headers = set()
         headerValues = {}
         def getHeaders(n, d):
             for childStrctNode in n.strctMdlChildNodes:
                 if d == depth:
-                    h = childStrctNode.header(lang=self.lang, 
-                                                   returnGenLabel=False, 
+                    h = childStrctNode.header(lang=self.lang,
+                                                   returnGenLabel=False,
                                                    returnMsgFormatString=False)
                     if not childStrctNode.isEntryPrototype() and h:
                         headerValues[h] = childStrctNode.aspectValue(aspect)
@@ -1236,8 +1236,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 else:
                     getHeaders(childStrctNode, d+1)
         getHeaders(root, 1)
-            
-        structuralNode.aspectEntryHeaderValues = headerValues       
+
+        structuralNode.aspectEntryHeaderValues = headerValues
         # is this an explicit dimension, if so add "(all members)" option at end
         headersList = sorted(headers)
         if isinstance(aspect, QName): # dimension
@@ -1254,10 +1254,10 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         if gridCombobox.get() == "(all members)":
             structuralNode = self.aspectEntryObjectIdsNode[gridCombobox.objectId]
             self.comboboxLoadExplicitDimension(gridCombobox, structuralNode, structuralNode)
-            
+
     def comboboxLoadExplicitDimension(self, gridCombobox, structuralNode, structuralNodeWithFilter):
         gridCombobox["values"] = self.explicitDimensionFilterMembers(structuralNode, structuralNodeWithFilter)
-            
+
     def explicitDimensionFilterMembers(self, structuralNode, structuralNodeWithFilter):
         for aspect in structuralNodeWithFilter.aspectsCovered():
             if isinstance(aspect, QName): # dimension
@@ -1287,8 +1287,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                         searchAxis = memberModel.axis[:len(memberModel.axis)-len('-or-self')]
                                     else:
                                         searchAxis = memberModel.axis
-                                    relationships = concept_relationships(self.rendrCntx, 
-                                                         None, 
+                                    relationships = concept_relationships(self.rendrCntx,
+                                                         None,
                                                          (memQname,
                                                           memberModel.linkrole,
                                                           memberModel.arcrole,
@@ -1300,8 +1300,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                             valueHeaders.add(header)
                                             headerValues[header] = rel.toModelObject.qname
             if not valueHeaders:
-                relationships = concept_relationships(self.rendrCntx, 
-                                     None, 
+                relationships = concept_relationships(self.rendrCntx,
+                                     None,
                                      (aspect,
                                       "XBRL-all-linkroles", # linkrole,
                                       "XBRL-dimensions",
@@ -1315,6 +1315,6 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         headerValues[header] = rel.toModelObject.qname
             structuralNode.aspectEntryHeaderValues = headerValues
         return sorted(valueHeaders)
-                
+
 # import after other modules resolved to prevent circular references
 from arelle.FunctionXfi import concept_relationships

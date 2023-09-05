@@ -98,7 +98,7 @@ predefinedAttributeTypes = {
     qname("{http://www.w3.org/XML/1998/namespace}xml:space"):("NCName",{"enumeration":{"default","preserve"}})}
 xAttributesSharedEmptyDict = {}
 
-def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
+def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False, elementDeclarationType=None):
     global ModelInlineValueObject, ixMsgCode
     if ModelInlineValueObject is None:
         from arelle.ModelInstanceObject import ModelInlineValueObject
@@ -119,6 +119,9 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                 isAbstract = True
             elif modelConcept.isFraction:
                 baseXsdType = "fraction"
+            elif elementDeclarationType is not None:
+                baseXsdType = elementDeclarationType.baseXsdType
+                facets = elementDeclarationType.facets
             else:
                 baseXsdType = modelConcept.baseXsdType
                 facets = modelConcept.facets

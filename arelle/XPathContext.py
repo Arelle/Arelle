@@ -58,11 +58,12 @@ class FunctionNumArgs(Exception):
         return _("Exception: Number of arguments mismatch")
 
 class FunctionArgType(Exception):
-    def __init__(self, argIndex, expectedType, foundObject='', errCode='err:XPTY0004'):
+    def __init__(self, argIndex, expectedType, foundObject='', errCode='err:XPTY0004', value=None):
         self.errCode = errCode
         self.argNum = (argIndex + 1) if isinstance(argIndex, _NUM_TYPES) else argIndex # may be string
         self.expectedType = expectedType
         self.foundObject = foundObject
+        self.value = value
         self.args = ( self.__repr__(), )
     def __repr__(self):
         return _("[{0}]: Arg {1} expected type {2}").format(self.errCode, self.argNum, self.expectedType)

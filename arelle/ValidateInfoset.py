@@ -7,7 +7,7 @@ Created on Feb 15, 2012
 from collections import defaultdict
 from lxml import etree
 from arelle.ModelDocument import Type
-from arelle.ModelValue import qname
+from arelle.ModelValue import qname, dateTime
 from arelle import XmlUtil, XbrlConst
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals
 
@@ -195,6 +195,15 @@ def resolvePath(modelXbrl, namespaceId):
             return doc.idObjects[id]
     return None
 
+def stripTime(periodAspect):
+    a = [t for t in periodAspect if t]
+    p = []
+    if len(a) > 1:
+        p.append(dateTime(a[0].replace("Z","")))
+    if len(a) > 0:
+        p.append(dateTime(a[-1].replace("Z",""), addOneDay=True))
+    return tuple(p)
+
 def compareRenderingInfosetElts(modelXbrl, sourceElt, comparisonElt):
     sourceEltTag = sourceElt.tag if sourceElt is not None else '(no more elements)'
     comparisonEltTag = comparisonElt.tag if comparisonElt is not None else '(no more elements)'
@@ -218,11 +227,15 @@ def compareRenderingInfosetElts(modelXbrl, sourceElt, comparisonElt):
         cmpConstraints = {}
         for srcE, cstrts in ((sourceElt, srcConstraints),(comparisonElt, cmpConstraints)):
             for e in srcE.iter("{http://xbrl.org/2014/table/model}constraint"):
-                cstrts[e.findtext("{http://xbrl.org/2014/table/model}aspect")] = "".join((f.text or "").strip() for f in e.find("{http://xbrl.org/2014/table/model}value").iter())
+                cstrts[e.findtext("{http://xbrl.org/2014/table/model}aspect")] = tuple((f.text or "").strip() for f in e.find("{http://xbrl.org/2014/table/model}value").iter())
+        if "period" in srcConstraints and "period" in cmpConstraints:
+            # remove end dates time parts if zero (because not consistently reported in conf suite expected outputs)
+            srcConstraints["period"] = stripTime(srcConstraints["period"])
+            cmpConstraints["period"] = stripTime(cmpConstraints["period"])
         if srcConstraints != cmpConstraints:
             modelXbrl.error("arelle:tableModelCnstraintsMismatch",
                 _("Table layout model constraints %(src)s expecting %(cmp)s"),
-                modelObject=modelXbrl, src=",".join(sorted(srcConstraints)), cmp=",".join(sorted(cmpConstraints)),
+                modelObject=modelXbrl, src=",".join(str(s) for s in sorted(srcConstraints.items())), cmp=",".join(str(s) for s in sorted(cmpConstraints.items())),
                 elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)
     else:
         text1 = (sourceElt.text or '').strip() or '(none)'

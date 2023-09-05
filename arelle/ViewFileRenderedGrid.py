@@ -25,7 +25,7 @@ from arelle.ModelXbrl import DEFAULT
 from arelle.ViewFile import HTML, XML
 # change tableModel for namespace needed for consistency suite
 '''
-from arelle.XbrlConst import (tableModelMMDD as tableModelNamespace, 
+from arelle.XbrlConst import (tableModelMMDD as tableModelNamespace,
                               tableModelMMDDQName as tableModelQName)
 '''
 from arelle import XbrlConst
@@ -55,10 +55,10 @@ def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=
         from arelle.ValidateInfoset import validateRenderingInfoset
         validateRenderingInfoset(modelXbrl, outfile, view.xmlDoc)
         view.close(noWrite=True)
-    else:   
+    else:
         view.close()
     modelXbrl.modelManager.showStatus(_("rendering saved to {0}").format(outfile), clearAfter=5000)
-    
+
 class ViewRenderedGrid(ViewFile.View):
     def __init__(self, modelXbrl, outfile, lang, cssExtras):
         # find table model namespace based on table namespace
@@ -67,9 +67,9 @@ class ViewRenderedGrid(ViewFile.View):
             if xsdNs in (XbrlConst.tableMMDD, XbrlConst.table):
                 self.tableModelNamespace = xsdNs + "/model"
                 break
-        super(ViewRenderedGrid, self).__init__(modelXbrl, outfile, 
-                                               f'tableModel xmlns="{self.tableModelNamespace}" xmlns:xbrli="http://www.xbrl.org/2003/instance"', 
-                                               lang, 
+        super(ViewRenderedGrid, self).__init__(modelXbrl, outfile,
+                                               f'tableModel xmlns="{self.tableModelNamespace}" xmlns:xbrli="http://www.xbrl.org/2003/instance"',
+                                               lang,
                                                style="rendering",
                                                cssExtras=cssExtras)
         class nonTkBooleanVar():
@@ -81,23 +81,23 @@ class ViewRenderedGrid(ViewFile.View):
                 return self.value
         # context menu boolean vars (non-tkinter boolean
         self.ignoreDimValidity = nonTkBooleanVar(value=True)
-        
+
 
     def tableModelQName(self, localName):
         return '{' + self.tableModelNamespace + '}' + localName
-    
+
     def viewReloadDueToMenuAction(self, *args):
         self.view()
-        
+
     def view(self, viewTblELR=None):
         if viewTblELR is not None:
             tblELRs = (viewTblELR,)
         else:
             tblELRs = self.modelXbrl.relationshipSet("Table-rendering").linkRoleUris
-            
+
         if self.type == XML:
             self.tblElt.append(etree.Comment("Entry point file: {0}".format(self.modelXbrl.modelDocument.basename)))
-        
+
         for tblELR in tblELRs:
             self.zOrdinateChoices = {}
 
@@ -107,13 +107,13 @@ class ViewRenderedGrid(ViewFile.View):
                 # each table z production
                 defnMdlTable = strctMdlTable.defnMdlNode
                 self.hasTableFilters = bool(self.defnMdlTable.filterRelationships)
-                
+
                 self.zStrNodesWithChoices = []
                 xTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("x")
                 yTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("y")
                 zTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("z")
                 if self.tblBrkdnRels and self.tblElt is not None:
-                    tableLabel = (defnMdlTable.genLabel(lang=self.lang, strip=True) or  # use table label, if any 
+                    tableLabel = (defnMdlTable.genLabel(lang=self.lang, strip=True) or  # use table label, if any
                                   self.roledefinition)
                     if self.type == HTML: # table on each Z
                         # each Z is a separate table in the outer table
@@ -140,7 +140,7 @@ class ViewRenderedGrid(ViewFile.View):
                             etree.SubElement(tableSetElt, self.tableModelQName("label")
                                              ).text = tableLabel
                             zAspectStrctNodes = defaultdict(set)
-            
+
                             tableElt = etree.SubElement(tableSetElt, self.tableModelQName("table"))
                             self.groupElts = {}
                             self.headerElts = {}
@@ -195,8 +195,8 @@ class ViewRenderedGrid(ViewFile.View):
                                                                 zDiscrimAspectNodes[i][dim] = {strctNode}
                                                         else:
                                                             zDiscrimAspectNodes[i][aspect] = {strctNode}
-                                            i += 1                            
-                            
+                                            i += 1
+
                             zColumns = self.headerCells
                             zAspects = OrderedSet()
                             zAspectStrctNodeChoices = defaultdict(list)
@@ -277,7 +277,7 @@ class ViewRenderedGrid(ViewFile.View):
                             modelElt.addprevious(etree.Comment("{0}: label {1}, file {2}, line {3}"
                                                           .format(StrctNode.defnMdlNode.localName,
                                                                   StrctNode.defnMdlNode.xlinkLabel,
-                                                                  StrctNode.defnMdlNode.modelDocument.basename, 
+                                                                  StrctNode.defnMdlNode.modelDocument.basename,
                                                                   StrctNode.defnMdlNode.sourceline)))
                             if StrctNode.defnMdlNode.get('value'):
                                 modelElt.addprevious(etree.Comment("   @value {0}".format(StrctNode.defnMdlNode.get('value'))))
@@ -321,9 +321,9 @@ class ViewRenderedGrid(ViewFile.View):
                 '''
                 if discriminator >= len(zDiscrimAspectNodes):
                     break
-                
 
-            
+
+
     def zAxis(self, row, zStrctNode, zAspectStrctNodes, discriminatorsTable):
         if zStrctNode is not None and zStrctNode.defnMdlNode is not None:
             zDefnMdlNode = zStrctNode.defnMdlNode
@@ -399,7 +399,7 @@ class ViewRenderedGrid(ViewFile.View):
                                         labelElt.text = roleLabel
                                         if source:
                                             labelElt.set("source", source)
-                                                                
+
                                 for aspect in sorted(choiceStrctNode.aspectsCovered(), key=lambda a: aspectStr(a)):
                                     if choiceStrctNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
                                         aspectValue = choiceStrctNode.aspectValue(aspect)
@@ -417,7 +417,7 @@ class ViewRenderedGrid(ViewFile.View):
                                         valueElt = etree.SubElement(aspElt, self.tableModelQName("value"))
                                         if not isRollUpParent:
                                             valueElt.text = xsString(None,None,addQnameValue(self.xmlDoc, aspectValue))
-                        #else: # choiceLabel from above 
+                        #else: # choiceLabel from above
                         #    etree.SubElement(hdrElt, self.tableModelQName("label")
                         #                     ).text = choiceLabel
                     else: # no combo choices, single label
@@ -728,16 +728,16 @@ class ViewRenderedGrid(ViewFile.View):
                                         end = getAspectValue(Aspect.END)
 
                                         aspectValue = etree.Element("{http://www.xbrl.org/2003/instance}startDate")
-                                        aspectValue.text = f"{start.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]}Z" # report in millisec, not microsec for conformance suite
+                                        aspectValue.text = f"{start.strftime('%Y-%m-%dT%H:%M:%S.%f')}Z"
                                         valueElt.append(aspectValue)
 
                                         aspectValueEnd = etree.Element("{http://www.xbrl.org/2003/instance}endDate")
-                                        aspectValueEnd.text = f"{(end + timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]}Z" # report in millisec, not microsec for conformance suite
+                                        aspectValueEnd.text = f"{(end + timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S.%f')}Z"
                                         valueElt.append(aspectValueEnd)
                                     elif periodType == "instant":
                                         instant = getAspectValue(Aspect.INSTANT)
                                         aspectValue = etree.Element("{http://www.xbrl.org/2003/instance}instant")
-                                        aspectValue.text = f"{(instant + timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]}Z" # report in millisec, not microsec for conformance suite
+                                        aspectValue.text = f"{(instant + timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S.%f')}Z"
                                         valueElt.append(aspectValue)
                                     else:  # "forever":
                                         # TODO
@@ -782,7 +782,7 @@ class ViewRenderedGrid(ViewFile.View):
                                         aspectValue = aspectValue[0]
                                     else:
                                         aspectValue = format_aspect_value(aspectValue)
-                                    if (not isRollUpCell and 
+                                    if (not isRollUpCell and
                                             self.modelXbrl.qnameDimensionDefaults.get(aspect) != aspectValue and
                                             aspectValue != XbrlConst.qnFormulaOccEmpty):
                                         if not isinstance(aspectValue, etree._Element):
@@ -806,7 +806,7 @@ class ViewRenderedGrid(ViewFile.View):
                 if nonAbstract:
                     rightCol += 1
             return (rightCol, parentRow, colsToSpanParent, widthToSpanParent, noDescendants)
-            
+
     def yAxisByRow(self, leftCol, row, yParentStrctNode, renderNow, atLeft):
         noDescendants = True
         nestedBottomRow = row
@@ -817,14 +817,14 @@ class ViewRenderedGrid(ViewFile.View):
             yDefnMdlNode = yStrctNode.defnMdlNode
             childrenFirst = yDefnMdlNode.parentChildOrder == "children-first"
             noDescendants = False
-            isAbstract = (yStrctNode.isAbstract or 
+            isAbstract = (yStrctNode.isAbstract or
                           (yStrctNode.strctMdlChildNodes and
                            not isinstance(yDefnMdlNode, DefnMdlClosedDefinitionNode)))
             isNonAbstract = not isAbstract
             isLabeled = yStrctNode.isLabeled
             nestRow, nextRow = self.yAxisByRow(leftCol + isLabeled, row, yStrctNode,  # nested items before totals
                                                childrenFirst, False)
-            
+
             topRow = row
             #if childrenFirst and isNonAbstract:
             #    row = nextRow
@@ -848,7 +848,7 @@ class ViewRenderedGrid(ViewFile.View):
                     hdrRow = row
                 # provide top or bottom borders
                 edgeBorder = ""
-                
+
                 if childrenFirst:
                     if hdrRow == self.dataFirstRow:
                         edgeBorder = "border-top:.5pt solid windowtext;"
@@ -881,7 +881,7 @@ class ViewRenderedGrid(ViewFile.View):
                 if isNonAbstract:
                     self.rowElts[hdrRow].append(elt)
                     if not childrenFirst and nestRow > hdrRow:   # add spanned left leg portion one row down
-                        etree.SubElement(self.rowElts[hdrRow], 
+                        etree.SubElement(self.rowElts[hdrRow],
                                          "{http://www.w3.org/1999/xhtml}th",
                                          attrib={"class":"yAxisSpanLeg",
                                                  "style":"text-align:center;max-width:{0}pt;{1}".format(RENDER_UNITS_PER_CHAR, edgeBorder),
@@ -890,7 +890,7 @@ class ViewRenderedGrid(ViewFile.View):
                     hdrClass = "yAxisHdr" if not childrenFirst else "yAxisHdrWithChildrenFirst"
                     for i, role in enumerate(self.rowHdrNonStdRoles):
                         hdr = yStrctNode.header(role=role, lang=self.lang)
-                        etree.SubElement(self.rowElts[hdrRow], 
+                        etree.SubElement(self.rowElts[hdrRow],
                                          "{http://www.w3.org/1999/xhtml}th",
                                          attrib={"class":hdrClass,
                                                  "style":"text-align:left;max-width:100pt;{0}".format(edgeBorder)}
@@ -899,7 +899,7 @@ class ViewRenderedGrid(ViewFile.View):
                     if self.rowHdrDocCol:
                         docCol = self.dataFirstCol - 1 - self.rowHdrCodeCol
                         doc = yStrctNode.header(role="http://www.xbrl.org/2008/role/documentation")
-                        etree.SubElement(self.rowElts[hdrRow], 
+                        etree.SubElement(self.rowElts[hdrRow],
                                          "{http://www.w3.org/1999/xhtml}th",
                                          attrib={"class":hdrClass,
                                                  "style":"text-align:left;max-width:100pt;{0}".format(edgeBorder)}
@@ -907,7 +907,7 @@ class ViewRenderedGrid(ViewFile.View):
                     if self.rowHdrCodeCol:
                         codeCol = self.dataFirstCol - 1
                         code = yStrctNode.header(role="http://www.eurofiling.info/role/2010/coordinate-code")
-                        etree.SubElement(self.rowElts[hdrRow], 
+                        etree.SubElement(self.rowElts[hdrRow],
                                          "{http://www.w3.org/1999/xhtml}th",
                                          attrib={"class":hdrClass,
                                                  "style":"text-align:center;max-width:40pt;{0}".format(edgeBorder)}
@@ -939,7 +939,7 @@ class ViewRenderedGrid(ViewFile.View):
                 yDefnMdlNode = yStrctNode.defnMdlNode
                 nestRow, nextRow, rows = self.yAxisByCol(leftCol + 1, row, yStrctNode,  # nested items before totals
                                                          True, False)
-                isAbstract = (yStrctNode.isAbstract or 
+                isAbstract = (yStrctNode.isAbstract or
                               (yStrctNode.strctMdlChildNodes and
                                not isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode)))
                 isNonAbstract = not isAbstract
@@ -1039,14 +1039,14 @@ class ViewRenderedGrid(ViewFile.View):
                 #if not childrenFirst:
                 #    dummy, row = self.yAxisByCol(leftCol + 1, row, yStrctNode, renderNow, False) # render on this pass
             return (nestedBottomRow, row, rowsToSpanParent)
-            
-    
+
+
     def bodyCells(self, row, yStrctNodes, xStrctNodes, zAspectStrctNodes):
         if True: # yParentStrctNode is not None:
             dimDefaults = self.modelXbrl.qnameDimensionDefaults
             for yStrctNode in yStrctNodes: # yParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
                 #row = self.bodyCells(row, yStrctNode, xStrctNodes, zAspectStrctNodes)
-                if not (yStrctNode.isAbstract or 
+                if not (yStrctNode.isAbstract or
                         (yStrctNode.strctMdlChildNodes and
                          not isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode))) and yStrctNode.isLabeled:
                     if self.type == XML:
@@ -1087,7 +1087,7 @@ class ViewRenderedGrid(ViewFile.View):
                         matchableAspects = set()
                         for aspect in _DICT_SET(xAspectStrctNodes.keys()) | _DICT_SET(yAspectStrctNodes.keys()) | _DICT_SET(zAspectStrctNodes.keys()):
                             aspectValue = yStrctNode.inheritedAspectValue(xStrctNode,
-                                               self, aspect, cellTagSelectors, 
+                                               self, aspect, cellTagSelectors,
                                                xAspectStrctNodes, yAspectStrctNodes, zAspectStrctNodes)
                             # value is None for a dimension whose value is to be not reported in this slice
                             if (isinstance(aspect, _INT) or  # not a dimension
@@ -1099,7 +1099,7 @@ class ViewRenderedGrid(ViewFile.View):
                         priItemQname = cellAspectValues.get(Aspect.CONCEPT)
                         if priItemQname == OPEN_ASPECT_ENTRY_SURROGATE:
                             priItemQname = None # open concept aspect
-                            
+
                         concept = self.modelXbrl.qnameConcepts.get(priItemQname)
                         conceptNotAbstract = concept is None or not concept.isAbstract
                         from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
@@ -1125,7 +1125,7 @@ class ViewRenderedGrid(ViewFile.View):
                                             dimMemQname = aspectValue.memberQname # match facts with this explicit value
                                         else:
                                             dimMemQname = None  # match facts that report this dimension
-                                    elif isinstance(aspectValue, QName): 
+                                    elif isinstance(aspectValue, QName):
                                         dimMemQname = aspectValue  # match facts that have this explicit value
                                     elif aspectValue is None: # match typed dims that don't report this value
                                         dimMemQname = DEFAULT
@@ -1133,7 +1133,7 @@ class ViewRenderedGrid(ViewFile.View):
                                         dimMemQname = None # match facts that report this dimension
                                     facts = facts & self.modelXbrl.factsByDimMemQname(aspect, dimMemQname)
                             for fact in sorted(facts, key=lambda f:f.objectIndex):
-                                if (all(aspectMatches(self.rendrCntx, fact, fp, aspect) 
+                                if (all(aspectMatches(self.rendrCntx, fact, fp, aspect)
                                         for aspect in matchableAspects) and
                                     all(fact.context.dimMemberQname(dim,includeDefaults=True) in (dimDefaults[dim], None)
                                         for dim in cellDefaultedDims) and
@@ -1157,7 +1157,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                                          )))
                             if factsVals or ignoreDimValidity or isFactDimensionallyValid(self, fp) or isEntryPrototype:
                                 if self.type == HTML and not isinstance(xStrctNode, StrctMdlBreakdown):
-                                    elt = etree.SubElement(self.rowElts[row], 
+                                    elt = etree.SubElement(self.rowElts[row],
                                                            "{http://www.w3.org/1999/xhtml}td",
                                                            attrib={"class":"cell",
                                                                    "style":"text-align:{0};width:8em".format(justify)}
@@ -1177,7 +1177,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                                             .format(fact.qname,
                                                                                  fact.contextID,
                                                                                  fact.effectiveValue[:32],
-                                                                                 fact.modelDocument.basename, 
+                                                                                 fact.modelDocument.basename,
                                                                                  fact.sourceline,
                                                                                  ', '.join(str(aspect)
                                                                                            for aspect in matchableAspects
@@ -1200,7 +1200,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                                                          elementFragmentIdentifier(f))
                             else:
                                 if self.type == HTML:
-                                    etree.SubElement(self.rowElts[row], 
+                                    etree.SubElement(self.rowElts[row],
                                                      "{http://www.w3.org/1999/xhtml}td",
                                                      attrib={"class":"blockedCell",
                                                              "style":"text-align:{0};width:8em".format(justify)}
@@ -1210,7 +1210,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                      attrib={"blocked":"true"})
                         else: # concept is abstract
                             if self.type == HTML:
-                                etree.SubElement(self.rowElts[row], 
+                                etree.SubElement(self.rowElts[row],
                                                  "{http://www.w3.org/1999/xhtml}td",
                                                  attrib={"class":"abstractCell",
                                                          "style":"text-align:{0};width:8em".format(justify)}
@@ -1221,4 +1221,3 @@ class ViewRenderedGrid(ViewFile.View):
                         fp.clear()  # dereference
                     row += 1
         # return row
-            

@@ -6,9 +6,9 @@ Created on Jun 6, 2012
 '''
 from arelle import XPathContext, XbrlConst, XmlUtil
 from arelle.ModelFormulaObject import (aspectModels, aspectStr, Aspect)
-from arelle.ModelRenderingObject import (DefnMdlDefinitionNode, 
+from arelle.ModelRenderingObject import (DefnMdlDefinitionNode,
                                          DefnMdlBreakdown,
-                                         DefnMdlClosedDefinitionNode, 
+                                         DefnMdlClosedDefinitionNode,
                                          DefnMdlRuleDefinitionNode,
                                          DefnMdlAspectNode,
                                          DefnMdlConceptRelationshipNode,
@@ -21,9 +21,9 @@ def init(modelXbrl):
     # dimension defaults required in advance of validation
     from arelle import ValidateXbrlDimensions, ValidateFormula, FormulaEvaluator, ModelDocument
     ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
-    
+
     hasXbrlTables = False
-    
+
     # validate table linkbase dimensions
     for baseSetKey in modelXbrl.baseSets.keys():
         arcrole, ELR, linkqname, arcqname = baseSetKey
@@ -36,22 +36,22 @@ def init(modelXbrl):
     if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE:
         instance = None # use instance of the entry pont
     else: # need dummy instance
-        instance = ModelDocument.create(modelXbrl, ModelDocument.Type.INSTANCE, 
-                                        "dummy.xml",  # fake URI and fake schemaRef 
+        instance = ModelDocument.create(modelXbrl, ModelDocument.Type.INSTANCE,
+                                        "dummy.xml",  # fake URI and fake schemaRef
                                         ("http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd",))
-        
+
     if hasXbrlTables:
         FormulaEvaluator.init()
         modelXbrl.rendrCntx = XPathContext.create(modelXbrl, instance)
-        
+
         modelXbrl.profileStat(None)
-        
+
         # setup fresh parameters from formula options
         modelXbrl.parameters = modelXbrl.modelManager.formulaOptions.typedParameters(modelXbrl.prefixedNamespaces)
-        
+
         # validate parameters and custom function signatures
         ValidateFormula.validate(modelXbrl, xpathContext=modelXbrl.rendrCntx, parametersOnly=True, statusMsg=_("compiling rendering tables"))
-        
+
         # compile and validate tables
         for modelTable in modelXbrl.modelRenderingTables:
             modelTable.fromInstanceQnames = None # required if referred to by variables scope chaining
@@ -82,7 +82,7 @@ def init(modelXbrl):
                         modelObject=(modelTable,tblParamRel,parameterNames[parameterName]), xlinkLabel=modelTable.xlinkLabel, name=parameterName)
                 else:
                     parameterNames[parameterName] = tblParamRel
-    
+
         modelXbrl.profileStat(_("compileTables"))
 
 def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblAxisDisposition, uncoverableAspects, aspectsCovered):
@@ -103,7 +103,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblAxisDisp
                 if tblAxisDisposition != otherAxisDisposition and aspect != Aspect.DIMENSIONS:
                     modelXbrl.error("xbrlte:aspectClashBetweenBreakdowns",
                         _("%(definitionNode)s %(xlinkLabel)s, aspect %(aspect)s defined on axes of disposition %(axisDisposition)s and %(axisDisposition2)s"),
-                        modelObject=(modelTable, definitionNode, otherDefinitionNode), definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel, 
+                        modelObject=(modelTable, definitionNode, otherDefinitionNode), definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel,
                         axisDisposition=tblAxisDisposition, axisDisposition2=otherAxisDisposition,
                         aspect=str(aspect) if isinstance(aspect,QName) else Aspect.label[aspect])
             else:
@@ -120,7 +120,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblAxisDisp
             if ruleSetChildren:
                 modelXbrl.error("xbrlte:mergedRuleNodeWithTaggedRuleSet",
                     _("Merged %(definitionNode)s %(xlinkLabel)s has tagged rule set(s)"),
-                    modelObject=[modelTable, definitionNode] + ruleSetChildren, 
+                    modelObject=[modelTable, definitionNode] + ruleSetChildren,
                     definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel)
             if not definitionNode.isAbstract:
                 modelXbrl.error("xbrlte:nonAbstractMergedRuleNode",
@@ -139,7 +139,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblAxisDisp
             if tag in tagConstraintSets:
                 modelXbrl.error("xbrlte:duplicateTag",
                     _("%(definitionNode)s %(xlinkLabel)s duplicate rule set tags %(tag)s"),
-                    modelObject=(modelTable, definitionNode, tagConstraintSets[tag], ruleSet), 
+                    modelObject=(modelTable, definitionNode, tagConstraintSets[tag], ruleSet),
                     definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel, tag=tag)
             else:
                 tagConstraintSets[tag] = ruleSet
@@ -149,10 +149,10 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblAxisDisp
             elif otherConstraintSet.aspectsModelCovered() != constraintSet.aspectsModelCovered():
                 modelXbrl.error("xbrlte:constraintSetAspectMismatch",
                     _("%(definitionNode)s %(xlinkLabel)s constraint set mismatches between %(tag1)s and %(tag2)s in constraints %(aspects)s"),
-                    modelObject=(modelTable, definitionNode, otherConstraintSet, constraintSet), 
-                    definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel, 
+                    modelObject=(modelTable, definitionNode, otherConstraintSet, constraintSet),
+                    definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel,
                     tag1=getattr(otherConstraintSet,"tagName","(no tag)"), tag2=getattr(constraintSet, "tagName", "(no tag)"),
-                    aspects=", ".join(aspectStr(aspect) 
+                    aspects=", ".join(aspectStr(aspect)
                                       for aspect in otherConstraintSet.aspectsCovered() ^ constraintSet.aspectsCovered()
                                       if aspect != Aspect.DIMENSIONS))
     if isinstance(definitionNode, DefnMdlDimensionRelationshipNode):
@@ -174,9 +174,9 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblAxisDisp
                     modelXbrl.error("xbrlte:invalidDimensionQNameOnAspectNode",
                         _("Aspect node %(xlinkLabel)s dimensional aspect %(dimension)s is not a dimension"),
                         modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, dimension=aspect)
-    
+
     if not definitionNodeHasChild:
-        if (definitionNode.namespaceURI in ("http://www.eurofiling.info/2010/rendering", "http://xbrl.org/2011/table") 
+        if (definitionNode.namespaceURI in ("http://www.eurofiling.info/2010/rendering", "http://xbrl.org/2011/table")
             and not hasCoveredAspect):
             modelXbrl.error("xbrlte:aspectValueNotDefinedByOrdinate",
                 _("%(definitionNode)s %(xlinkLabel)s does not define an aspect"),
