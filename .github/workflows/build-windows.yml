@@ -117,7 +117,7 @@ jobs:
       working-directory: ixbrl-viewer
       run: |
         npm install
-        npm run prod
+        make prod
     - shell: cmd
       run: move ixbrl-viewer\iXBRLViewerPlugin arelle\plugin\iXBRLViewerPlugin && rmdir /s /q ixbrl-viewer
     - name: Set up Python ${{ inputs.python_version }}
