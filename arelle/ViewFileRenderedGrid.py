@@ -1090,7 +1090,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                self, aspect, cellTagSelectors,
                                                xAspectStrctNodes, yAspectStrctNodes, zAspectStrctNodes)
                             # value is None for a dimension whose value is to be not reported in this slice
-                            if (isinstance(aspect, _INT) or  # not a dimension
+                            if ((isinstance(aspect, _INT) and aspectValue is not None) or  # not a dimension
                                 dimDefaults.get(aspect) != aspectValue or # explicit dim defaulted will equal the value
                                 aspectValue is not None): # typed dim absent will be none
                                 cellAspectValues[aspect] = aspectValue

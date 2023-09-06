@@ -180,6 +180,8 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
                                                       for a in _aspectsCovered
                                                       if a != Aspect.DIMENSIONS
                                                       for v in (obj.aspectValue(a),))
+            if obj.tagSelector:
+                o["tagSelector"] = obj.tagSelector
             if obj.defnMdlNode is not None:
                 o["defnMdlNode"] = str(obj.defnMdlNode)
             if obj.strctMdlChildNodes:
@@ -343,6 +345,8 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     childDefnMdlNode = subtreeRel.toModelObject
 
                     if getattr(childDefnMdlNode, "isMerged", False):
+                        if childDefnMdlNode.tagSelector is not None:
+                            strctMdlNode.tagSelector = childDefnMdlNode.tagSelector
                         childSubtreeRels = view.defnSubtreeRelSet.fromModelObject(childDefnMdlNode)
                         for childSubtreeRel in childSubtreeRels:
                             mergedChildDefnMdlNode = childSubtreeRel.toModelObject
@@ -618,7 +622,7 @@ def addRelationship(relDefinitionNode, rel, strctMdlNode, rootOrSelfStructuralNo
         preferredLabel = rel.preferredLabel
         if preferredLabel == XbrlConst.periodStartLabel:
             relChildStructuralNode.tagSelector = "table.periodStart"
-        elif preferredLabel == XbrlConst.periodStartLabel:
+        elif preferredLabel == XbrlConst.periodEndLabel:
             relChildStructuralNode.tagSelector = "table.periodEnd"
         toConceptQname = rel.toModelObject.qname
     else:

@@ -1,6 +1,6 @@
 
 from arelle import XbrlConst, XmlUtil
-from arelle.ModelValue import QName, DateTime
+from arelle.ModelValue import QName, DateTime, dateTime, DATETIME
 from arelle.ModelObject import ModelObject
 Aspect = None
 
@@ -90,15 +90,13 @@ class ContextPrototype():  # behaves like a context
                 self.startDatetime = aspectValue
             elif aspect == Aspect.END:
                 self.isStartEndPeriod = True
-                if isinstance(aspectValue, DateTime) and aspectValue.dateOnly:
-                    aspectValue += "P1D"
-                    aspectValue.dateOnly = False # now it's datetime of midnight next day
+                if isinstance(aspectValue, DateTime) and aspectValue.dateOnly: # passed by reference, need a new datetime object
+                    aspectValue = dateTime(aspectValue, addOneDay=True, type=DATETIME)
                 self.endDatetime = aspectValue
             elif aspect == Aspect.INSTANT:
                 self.isInstantPeriod = True
-                if isinstance(aspectValue, DateTime) and aspectValue.dateOnly:
-                    aspectValue += "P1D"
-                    aspectValue.dateOnly = False # now it's datetime of midnight next day
+                if isinstance(aspectValue, DateTime) and aspectValue.dateOnly: # passed by reference, need a new datetime object
+                    aspectValue = dateTime(aspectValue, addOneDay=True, type=DATETIME)
                 self.endDatetime = self.instantDatetime = aspectValue
             elif aspect == Aspect.VALUE:
                 self.entityIdentifier = (self.entityIdentifier[0], aspectValue)

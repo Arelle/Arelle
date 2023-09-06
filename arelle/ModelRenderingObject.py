@@ -78,6 +78,7 @@ class StrctMdlNode:
         self.zInheritance = None
         self.rollup = False # true when this is the rollup node among its siblings
         self.choiceNodeIndex = 0
+        self.tagSelector = getattr(defnMdlNode, "tagSelector", None)
 
     @property
     def axis(self):
@@ -102,6 +103,25 @@ class StrctMdlNode:
     @property
     def hasRollUpChild(self):
         return any(c.hasChildRollup for c in self.strctMdlChildNodes)
+
+    @property
+    def tagSelectors(self):
+        try:
+            return self._tagSelectors
+        except AttributeError:
+            if self.strctMdlParentNode is not None:
+                self._tagSelectors = self.strctMdlParentNode.tagSelectors
+            else:
+                self._tagSelectors = set()
+            if not self.rollup and isinstance(self.defnMdlNode, DefnMdlConceptRelationshipNode):
+                self._tagSelectors -= {"table.periodStart", "table.periodEnd"} # these can't inherit
+            else:
+                _defnTagSelector = getattr(self.defnMdlNode, "tagSelector", None)
+                if _defnTagSelector:
+                    self._tagSelectors.add(_defnTagSelector)
+            if self.tagSelector:
+                self._tagSelectors.add(self.tagSelector)
+            return self._tagSelectors
 
     @property
     def leafNodeCount(self):
@@ -315,12 +335,6 @@ class StrctMdlBreakdown(StrctMdlNode):
     def setHasOpenNode(self):
         self.hasOpenNode = True
 
-    @property
-    def tagSelectors(self):
-        if isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
-            return self.strctMdlParentNode.tagSelectors
-        else:
-            return set()
     def inheritedAspectValue(self, *args):
         if isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
             return self.strctMdlParentNode.inheritedAspectValue(*args)
@@ -354,7 +368,6 @@ class StrctMdlStructuralNode(StrctMdlNode):
             self.contextItemBinding = None
         if tableNode is not None:
             self.tableNode = tableNode
-        self.tagSelector = getattr(defnMdlNode, "tagSelector", None)
         self.isLabeled = True
 
     @property
@@ -492,15 +505,6 @@ class StrctMdlStructuralNode(StrctMdlNode):
         else:
             return self.strctMdlParentNode.tableDefinitionNode
 
-    @property
-    def tagSelectors(self):
-        try:
-            return self._tagSelectors
-        except AttributeError:
-            self._tagSelectors = self.strctMdlParentNode.tagSelectors
-            if self.tagSelector:
-                self._tagSelectors.add(self.tagSelector)
-            return self._tagSelectors
 
     @property
     def leafNodeCount(self):
