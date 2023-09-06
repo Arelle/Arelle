@@ -109,7 +109,7 @@ jobs:
       - run: |
           cd tmp/ixbrl-viewer
           npm install
-          npm run prod
+          make prod
           cd ../..
           mv tmp/ixbrl-viewer/iXBRLViewerPlugin arelle/plugin/
           rm -rf tmp
