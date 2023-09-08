@@ -16,11 +16,8 @@ from arelle.Locale import getLanguageCodes
 import arelle.FileSource
 from arelle.UrlUtil import isAbsolute
 from pathlib import Path
-try:
-    from collections import OrderedDict
-except ImportError:
-    OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order
-from collections.abc import Generator, Callable
+from collections import OrderedDict, defaultdict
+from collections.abc import Callable
 
 
 if TYPE_CHECKING:
@@ -233,6 +230,7 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
             tree = ast.parse(f.read(), filename=moduleFilename)
             constantStrings = {}
             functionDefNames = set()
+            methodDefNamesByClass = defaultdict(set)
             moduleImports = []
             for item in tree.body:
                 if isinstance(item, ast.Assign):
@@ -258,6 +256,9 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
                                 if _value.id in constantStrings:
                                     moduleInfo[_key] = constantStrings[_value.id]
                                 elif _value.id in functionDefNames:
+                                    classMethods.append(_key)
+                            elif _valueType == 'Attribute':
+                                if _value.attr in methodDefNamesByClass[_value.value.id]:
                                     classMethods.append(_key)
                             elif _key == "imports" and _valueType in ("List", "Tuple"):
                                 importURLs = [elt.s for elt in _value.elts]
@@ -325,6 +326,10 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
                                         moduleImports.append(_importeePfxName)
                 elif isinstance(item, ast.FunctionDef): # possible functionDef used in plugininfo
                     functionDefNames.add(item.name)
+                elif isinstance(item, ast.ClassDef):  # possible ClassDef used in plugininfo
+                    for classItem in item.body:
+                        if isinstance(classItem, ast.FunctionDef):
+                            methodDefNamesByClass[item.name].add(classItem.name)
             logPluginTrace(f"Successful module plug-in info: {moduleFilename}", logging.INFO)
         except Exception as err:
             _msg = _("Exception obtaining plug-in module info: {moduleFilename}\n{error}\n{traceback}").format(
