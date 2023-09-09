@@ -9,5 +9,6 @@ plugins/plugins
 contributing
 build_docs
 license
+apidocs/index
 genindex
 :::

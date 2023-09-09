@@ -33,6 +33,7 @@ buildRenameX64.bat
 buildRenameX86.bat
 dist
 docs/_build
+docs/source/apidocs
 obj/
 tests/resources/conformance_suites/
 
