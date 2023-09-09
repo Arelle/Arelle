@@ -1055,10 +1055,6 @@ class DefnMdlRelationshipNode(DefnMdlClosedDefinitionNode):
         return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD), "formulaAxis")
 
     @property
-    def isOrSelfAxis(self):
-        return self._formulaAxis.endswith('-or-self') and self._formulaAxis not in ("sibling-or-self", "sibling-or-descendant-or-self")
-
-    @property
     def generations(self):
         try:
             return _INT( XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD), "generations") )
@@ -1223,6 +1219,10 @@ class DefnMdlConceptRelationshipNode(DefnMdlRelationshipNode):
     def arcQnameExpression(self):
         return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD), "arcnameExpression")
 
+    @property
+    def isOrSelfAxis(self):
+        return self._formulaAxis.endswith('-or-self') and self._formulaAxis not in ("sibling-or-self", "sibling-or-descendant-or-self")
+
     def coveredAspect(self, ordCntx=None):
         return Aspect.CONCEPT
 
@@ -1277,22 +1277,18 @@ class DefnMdlDimensionRelationshipNode(DefnMdlRelationshipNode):
             return qname( dimensionElt, XmlUtil.text(dimensionElt) )
         return None
 
-    @property
-    def dimensionQnameExpression(self):
-        return XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD), "dimensionExpression")
-
     def compile(self):
-        if not hasattr(self, "dimensionQnameExpressionProg"):
-            self.dimensionQnameExpressionProg = XPathParser.parse(self, self.dimensionQnameExpression, self, "dimensionQnameExpressionProg", Trace.VARIABLE)
-            super(DefnMdlDimensionRelationshipNode, self).compile()
+        super(DefnMdlDimensionRelationshipNode, self).compile()
 
     def variableRefs(self, progs=[], varRefSet=None):
         return super(DefnMdlDimensionRelationshipNode, self).variableRefs(self.dimensionQnameExpressionProg, varRefSet)
 
     def evalDimensionQname(self, xpCtx, fact=None):
-        if self.dimensionQname:
-            return self.dimensionQname
-        return xpCtx.evaluateAtomicValue(self.dimensionQnameExpressionProg, 'xs:QName', fact)
+        return self.dimensionQname
+
+    @property
+    def isOrSelfAxis(self):
+        return False # always return relationships into nodes for domain members
 
     def coveredAspect(self, structuralNode=None):
         try:
@@ -1307,34 +1303,48 @@ class DefnMdlDimensionRelationshipNode(DefnMdlRelationshipNode):
     def dimRelationships(self, structuralNode, getMembers=False, getDimQname=False):
         self._dimensionQname = structuralNode.evaluate(self, self.evalDimensionQname)
         self._sourceQnames = structuralNode.evaluate(self, self.evalRrelationshipSourceQnames) or [XbrlConst.qnXfiRoot]
-        linkrole = structuralNode.evaluate(self, self.evalLinkrole)
+        linkrole = structuralNode.evaluate(self, self.evalLinkrole, handleXPathException=False) # expect cast exception on bad anyURI
         if not linkrole and getMembers:
-            linkrole = "XBRL-all-linkroles"
+            linkrole = XbrlConst.defaultLinkRole
         dimConcept = self.modelXbrl.qnameConcepts.get(self._dimensionQname)
         sourceConcepts = [self.modelXbrl.qnameConcepts.get(qn) for qn in self._sourceQnames]
-        self._formulaAxis = (structuralNode.evaluate(self, self.evalFormulaAxis) or () )
+        self._formulaAxis = (structuralNode.evaluate(self, self.evalFormulaAxis) or "descendant-or-self" )
+        isOrSelf = self._formulaAxis.endswith("-or-self")
         self._generations = (structuralNode.evaluate(self, self.evalGenerations) or 0 )
-        if not isinstance(self._generations, int) or self._generations < 0:
-            raise XPathContext.FunctionArgType(4, _("generations must be a non-negative integer"), errCode="xfie:InvalidConceptRelationParameters")
         if ((self._dimensionQname and (dimConcept is None or not dimConcept.isDimensionItem)) or
-            (self._sourceQnames and self._sourceQnames != [XbrlConst.qnXfiRoot] and (
+            (self._sourceQnames and (
                     any(c is None or not c.isItem for c in sourceConcepts)))):
             return ()
         if dimConcept is not None:
             if getDimQname:
                 return self._dimensionQname
-            if sourceConcept is None:
-                sourceConcept = dimConcept
+            if sourceConcepts:
+                sourceConcepts = [dimConcept]
         if getMembers:
-            return [concept_relationships(self.modelXbrl.rendrCntx,
+            sourceDimRels = self.modelXbrl.relationshipSet(XbrlConst.hypercubeDimension,linkrole).toModelObject(dimConcept)
+            rels = []
+            def srcQnDims(srcRel):
+                if not self._sourceQnames or srcRel.toModelObject.qname in self._sourceQnames:
+                    _rels = concept_relationships(self.modelXbrl.rendrCntx,
                                           None,
-                                          (srcQname,
-                                           linkrole,
-                                           "XBRL-dimensions",  # all dimensions arcroles
+                                          (srcRel.toModelObject.qname,
+                                           srcRel.consecutiveLinkrole,
+                                           XbrlConst.domainMember,
                                            self._formulaAxis.replace('-or-self',''),
                                            self._generations),
-                                          True) # return nested lists representing concept tree nesting
-                    for srcQname in self._sourceQnames]
+                                          True)
+                    if isOrSelf:
+                        rels.append(srcRel)
+                        rels.append(_rels)
+                    else:
+                        rels.extend(_rels) # return nested lists representing concept tree nesting)
+                else:
+                    for rel in self.modelXbrl.relationshipSet(XbrlConst.domainMember,linkrole).toModelObject(dimConcept):
+                        srcQnDims(rel)
+            for rel in sourceDimRels:
+                for dimDomRel in self.modelXbrl.relationshipSet(XbrlConst.dimensionDomain,rel.consecutiveLinkrole).fromModelObject(rel.toModelObject):
+                    srcQnDims(dimDomRel)                
+            return rels
         if getDimQname:
             if sourceConcepts:
                 # look back from member to a dimension

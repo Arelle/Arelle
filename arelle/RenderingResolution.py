@@ -614,16 +614,19 @@ def addRelationship(relDefinitionNode, rel, strctMdlNode, rootOrSelfStructuralNo
             if concept is not None and concept.isAbstract:
                 childStructuralNode.abstract = True
         if isinstance(rel, QName):
-            return None
+            return childStructuralNode
         relChildStructuralNode = StrctMdlStructuralNode(childStructuralNode, relDefinitionNode)
     else:
         relChildStructuralNode = StrctMdlStructuralNode(strctMdlNode, relDefinitionNode)
     if isinstance(rel, ModelRelationship):
-        preferredLabel = rel.preferredLabel
-        if preferredLabel == XbrlConst.periodStartLabel:
-            relChildStructuralNode.tagSelector = "table.periodStart"
-        elif preferredLabel == XbrlConst.periodEndLabel:
-            relChildStructuralNode.tagSelector = "table.periodEnd"
+        if isinstance(relDefinitionNode, DefnMdlConceptRelationshipNode):
+            preferredLabel = rel.preferredLabel
+            if preferredLabel == XbrlConst.periodStartLabel:
+                relChildStructuralNode.tagSelector = "table.periodStart"
+            elif preferredLabel == XbrlConst.periodEndLabel:
+                relChildStructuralNode.tagSelector = "table.periodEnd"
+        elif isinstance(relDefinitionNode, DefnMdlDimensionRelationshipNode):
+            relChildStructuralNode.abstract = not rel.isUsable
         toConceptQname = rel.toModelObject.qname
     else:
         toConceptQname = rel # QName
