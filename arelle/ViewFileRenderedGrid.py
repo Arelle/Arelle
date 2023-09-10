@@ -18,7 +18,7 @@ from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.PythonUtil import OrderedSet
 from arelle.ModelRenderingObject import (StrctMdlBreakdown,
                                          DefnMdlClosedDefinitionNode, DefnMdlRuleDefinitionNode,
-                                         OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER)
+                                         OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE)
 from arelle.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import DEFAULT
@@ -708,6 +708,8 @@ class ViewRenderedGrid(ViewFile.View):
                                 if aspect in aspectProcessed:
                                     continue
                                 if aspect == Aspect.AUGMENT: # TODO seems to be skipped for xml output
+                                    continue
+                                if isRollUpCell == ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE:
                                     continue
                                 if isRollUpCell and aspect in headerOmittedRollupAspects:
                                     continue

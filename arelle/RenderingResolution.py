@@ -18,7 +18,7 @@ from arelle.ModelRenderingObject import (DefnMdlTable, DefnMdlBreakdown,
                                          DefnMdlConceptRelationshipNode, DefnMdlDimensionRelationshipNode,
                                          StrctMdlNode, StrctMdlTableSet, StrctMdlTable, StrctMdlBreakdown, StrctMdlStructuralNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_IMPLIES_DEFAULT_MEMBER,
-                                         ROLLUP_FOR_RELATIONSHIP_NODE)
+                                         ROLLUP_FOR_CONCEPT_RELATIONSHIP_NODE, ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE)
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.PythonUtil import flattenSequence
 from arelle.XPathContext import XPathException, FunctionArgType
@@ -170,7 +170,8 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
                 if obj.rollup:
                     o["rollup"] = {ROLLUP_SPECIFIES_MEMBER:"rollup specifies member",
                                    ROLLUP_IMPLIES_DEFAULT_MEMBER:"rollup implies default member",
-                                   ROLLUP_FOR_RELATIONSHIP_NODE:"rollup for relationship nesting"}[obj.rollup]
+                                   ROLLUP_FOR_CONCEPT_RELATIONSHIP_NODE:"rollup for concept relationship nesting",
+                                   ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE:"rollup for concept relationship nesting"}[obj.rollup]
                 o["structuralDepth"] = obj.structuralDepth
                 _aspectsCovered = obj.aspectsCovered()
                 if _aspectsCovered:
@@ -289,17 +290,17 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
             try:
                 ordCardinality, ordDepth = defnMdlNode.cardinalityAndDepth(strctMdlNode, handleXPathException=False)
             except (XPathException, FunctionArgType) as ex:
-                if isinstance(defnMdlNode, DefnMdlConceptRelationshipNode):
-                    if type(ex) == FunctionArgType and ex.argNum == 5 and isinstance(ex.value, int) and ex.value >= 0:
-                        view.modelXbrl.error("xbrlte:relationshipNodeTooManyGenerations",
-                                             ex.expectedType,
-                                             modelObject=(view.defnMdlTable,defnMdlNode), xlinkLabel=defnMdlNode.xlinkLabel, axis=defnMdlNode.localName)
-                    else:
-                        view.modelXbrl.error("xbrlte:expressionNotCastableToRequiredType",
-                        _("Relationship node %(xlinkLabel)s expression not castable to required type (%(xpathError)s)"),
-                        modelObject=(view.defnMdlTable,defnMdlNode), xlinkLabel=defnMdlNode.xlinkLabel, axis=defnMdlNode.localName,
-                        xpathError=str(ex))
-                    return
+                if (isinstance(defnMdlNode, DefnMdlRelationshipNode) and
+                    type(ex) == FunctionArgType and ex.argNum == 5 and isinstance(ex.value, int) and ex.value >= 0):
+                    view.modelXbrl.error("xbrlte:relationshipNodeTooManyGenerations",
+                                         ex.expectedType,
+                                         modelObject=(view.defnMdlTable,defnMdlNode), xlinkLabel=defnMdlNode.xlinkLabel, axis=defnMdlNode.localName)
+                else:
+                    view.modelXbrl.error("xbrlte:expressionNotCastableToRequiredType",
+                    _("Relationship node %(xlinkLabel)s expression not castable to required type (%(xpathError)s)"),
+                    modelObject=(view.defnMdlTable,defnMdlNode), xlinkLabel=defnMdlNode.xlinkLabel, axis=defnMdlNode.localName,
+                    xpathError=str(ex))
+                return
             if (not defnMdlNode.isAbstract and
                 isinstance(defnMdlNode, DefnMdlClosedDefinitionNode) and
                 ordCardinality == 0 and not defnMdlNode.childrenCoverSameAspects):
@@ -452,12 +453,12 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                         view.modelXbrl.error("xbrlte:invalidExplicitDimensionQName",
                             _("Dimension relationship rule node %(xlinkLabel)s dimension %(dimension)s does not refer to an existing explicit dimension."),
                             modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, dimension=defnMdlNode._dimensionQname)
-                    if any (domMbr is None or not domMbr.isDomainMember
-                            for qn in defnMdlNode._sourceQnames
-                            for domMbr in (view.modelXbrl.qnameConcepts.get(qn),)):
-                        view.modelXbrl.error("xbrlte:invalidDimensionRelationshipSource",
-                            _("Dimension relationship rule node %(xlinkLabel)s source %(source)s does not refer to an existing domain member."),
-                            modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, source=defnMdlNode._sourceQname)
+                    for _sourceQname in defnMdlNode._sourceQnames:
+                        domMbr = view.modelXbrl.qnameConcepts.get(_sourceQname)
+                        if domMbr is None or not domMbr.isDomainMember:
+                            view.modelXbrl.error("xbrlte:invalidDimensionRelationshipSource",
+                                _("Dimension relationship rule node %(xlinkLabel)s source %(source)s does not refer to an existing domain member."),
+                                modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, source=_sourceQname)
                 if (defnMdlNode._formulaAxis in ("child", "child-or-self", "parent", "parent-or-self", "sibling", "sibling-or-self") and
                     (not isinstance(defnMdlNode._generations, _NUM_TYPES) or defnMdlNode._generations > 1)):
                     view.modelXbrl.error("xbrlte:relationshipNodeTooManyGenerations ",
@@ -636,7 +637,7 @@ def addRelationship(relDefinitionNode, rel, strctMdlNode, rootOrSelfStructuralNo
         relChildStructuralNode.variables[conceptQname] = toConceptQname
     relChildStructuralNode.aspects[coveredAspect] = toConceptQname
     concept = relDefinitionNode.modelXbrl.qnameConcepts.get(toConceptQname)
-    if concept is not None and concept.isAbstract:
+    if isinstance(relDefinitionNode, DefnMdlConceptRelationshipNode) and concept is not None and concept.isAbstract:
         relChildStructuralNode.abstract = True
     return relChildStructuralNode
 
@@ -679,7 +680,7 @@ def addRelationshipsRollups(strctMdlParent, maxDepth, depth=0):
         addRelationshipsRollups(childStrctMdlNode, maxDepth, depth=depth+1)
     if needsChildRollup:
         rollUpStrctNode = StrctMdlStructuralNode(strctMdlParent, strctMdlParent.defnMdlNode)
-        rollUpStrctNode.rollup = ROLLUP_FOR_RELATIONSHIP_NODE
+        rollUpStrctNode.rollup = strctMdlParent.defnMdlNode.strctMdlRollupType
         strctMdlParent.hasChildRollup = True
         strctMdlParent.rollUpChildStrctMdlNode = rollUpStrctNode
         if strctMdlParent.parentChildOrder == "parent-first":

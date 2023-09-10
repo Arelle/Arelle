@@ -11,7 +11,7 @@ from arelle.ModelRenderingObject import (DefnMdlDefinitionNode,
                                          DefnMdlClosedDefinitionNode,
                                          DefnMdlRuleDefinitionNode,
                                          DefnMdlAspectNode,
-                                         DefnMdlConceptRelationshipNode,
+                                         DefnMdlRelationshipNode,
                                          DefnMdlDimensionRelationshipNode)
 from arelle.ModelValue import (QName)
 
@@ -109,7 +109,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblAxisDisp
             else:
                 modelTable.priorAspectAxisDisposition[aspect] = (tblAxisDisposition, definitionNode)
         ruleSetChildren = XmlUtil.children(definitionNode, definitionNode.namespaceURI, "ruleSet")
-        if definitionNode.isMerged or isinstance(definitionNode, (DefnMdlConceptRelationshipNode, DefnMdlAspectNode)):
+        if definitionNode.isMerged or isinstance(definitionNode, (DefnMdlRelationshipNode, DefnMdlAspectNode)):
             labelRels = modelXbrl.relationshipSet(XbrlConst.elementLabel).fromModelObject(definitionNode)
             if labelRels:
                 modelXbrl.error("xbrlte:invalidUseOfLabel",
