@@ -5,9 +5,9 @@
 :hidden:
 install
 faq
+plugins/plugins
 contributing
 build_docs
 license
-plugins/plugins
 genindex
 :::
