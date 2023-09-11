@@ -17,7 +17,7 @@ from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.PythonUtil import OrderedSet
 from arelle.ModelRenderingObject import (StrctMdlBreakdown,
-                                         DefnMdlClosedDefinitionNode, DefnMdlRuleDefinitionNode,
+                                         DefnMdlClosedDefinitionNode, DefnMdlRuleDefinitionNode, DefnMdlAspectNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE)
 from arelle.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
 from arelle.ModelValue import QName
@@ -645,7 +645,8 @@ class ViewRenderedGrid(ViewFile.View):
                 isRollUpCell = strctNode.rollup
                 if renderNow and not isinstance(strctNode, StrctMdlBreakdown):
                     label, source = strctNode.headerAndSource(lang=self.lang,
-                                    returnGenLabel=isinstance(strctNode.defnMdlNode, DefnMdlClosedDefinitionNode))
+                                    returnGenLabel=isinstance(strctNode.defnMdlNode, DefnMdlClosedDefinitionNode),
+                                    returnStdLabel=not isinstance(strctNode.defnMdlNode, DefnMdlAspectNode))
                     if cols:
                         columnspan = cols
                     else:
@@ -770,8 +771,11 @@ class ViewRenderedGrid(ViewFile.View):
                                     aspectValue = getAspectValue(aspect)
                                     def format_aspect_value(aspectValue):
                                         if aspectValue is None: aspectValue = "(bound dynamically)"
-                                        if isinstance(aspectValue, ModelObject): # typed dimension value
-                                            aspectValue = aspectValue
+                                        if isinstance(aspectValue, ModelDimensionValue): # typed dimension value
+                                            if aspectValue.isExplicit:
+                                                aspectValue = aspectValue.memberQname
+                                            else:
+                                                aspectValue = aspectValue.typedMember
                                         if isinstance(aspectValue, QName) and aspectValue.prefix is None: # may be dynamic
                                             try:
                                                 aspectValue = self.modelXbrl.qnameConcepts[aspectValue].qname # usually has a prefix

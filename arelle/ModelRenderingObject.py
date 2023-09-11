@@ -1220,7 +1220,7 @@ class DefnMdlAspectNode(DefnMdlOpenDefinitionNode):
             reportedAspectFacts = set()
             for fact in filteredFacts:
                 if all(fact.context is not None and
-                       isinstance(fact.context.dimValue(dimAspect), ModelDimensionValue)
+                       isinstance(fact.context.dimValue(dimAspect), (ModelDimensionValue,QName)) # include default dimension values
                        for dimAspect in self._dimensionsCovered):
                     reportedAspectFacts.add(fact)
         else:

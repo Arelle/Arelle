@@ -109,7 +109,6 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
     facts = view.modelXbrl.factsInInstance
     if facts:
         facts = defnMdlTable.filteredFacts(view.rendrCntx, view.modelXbrl.factsInInstance) # apply table filters
-
     # do z's first to set variables needed by x and y axes expressions
     for axis in ("z", "x", "y"):
         axisBrkdnRels = [r for r in tblBrkdnRels if r.axis == axis]
@@ -152,7 +151,6 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
                 heightBalance(childStrctMdlNode, depth + 1)
         heightBalance(strctMdlBrkdn, 0)
     '''
-
     # uncomment below for debugging Definition and Structural Models
     def jsonStrctMdlEncoder(obj, indent="\n"):
         if isinstance(obj, StrctMdlNode):
@@ -190,11 +188,9 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
             # print(str(o))
             return o
         raise TypeError("Type {} is not supported for json output".format(type(obj).__name__))
-
     if TRACE_TABLE_STRUCTURE:
         with io.open(r"/Users/hermf/temp/test.json", 'wt') as fh:
             json.dump(strctMdlTable, fh, ensure_ascii=False, indent=2, default=jsonStrctMdlEncoder)
-
     view.colHdrTopRow = view.zAxisBreakdowns # need rest if combobox used (2 if view.zAxisRows else 1)
     for i in range(view.rowHdrCols):
         if view.rowNonAbstractHdrSpanMin[i]:
@@ -214,7 +210,6 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
     #    view.gridView.rowconfigure(i)
     #for i in range(view.dataFirstCol + view.dataCols):
     #    view.gridView.columnconfigure(i)
-
     # organize hdrNonStdRoles so code (if any) is after documentation (if any)
     for hdrNonStdRoles in (view.colHdrNonStdRoles, view.rowHdrNonStdRoles):
         iCodeRole = -1
@@ -225,7 +220,6 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
         if iCodeRole >= 0 and len(hdrNonStdRoles) > 1 and iCodeRole < len(hdrNonStdRoles) - 1:
             del hdrNonStdRoles[iCodeRole]
             hdrNonStdRoles.append(hdrNonStdRole)
-
     if TRACE_RESOLUTION: print (
         f"dataCols {view.dataCols} dataRows {view.dataRows} dataFirstCol {view.dataFirstCol} dataFirstRow {view.dataFirstRow} "
         f"colHdrRows {view.colHdrRows} rowHdrCols {view.rowHdrCols} zAxisBreakdowns {view.zAxisBreakdowns} "
@@ -264,7 +258,8 @@ def checkLabelWidth(view, strctMdlNode, subtreeRels, checkBoundFact=False):
             widestWordLen = max(len(w) * RENDER_UNITS_PER_CHAR for w in label.split())
             # abstract only pertains to subtree of closed nodesbut not cartesian products or open nodes
             while strctMdlNode.depth >= len(view.rowHdrColWidth):
-                view.rowHdrColWidth.append(0)
+                view.rowHdrColWidth.append(RENDER_UNITS_PER_CHAR)
+                view.rowNonAbstractHdrSpanMin.append(0)
             if strctMdlNode.defnMdlNode.isAbstract or not subtreeRels:
                 if widestWordLen > view.rowHdrColWidth[strctMdlNode.depth]:
                     view.rowHdrColWidth[strctMdlNode.depth] = widestWordLen
@@ -277,7 +272,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
     if isinstance(defnMdlNode, (NoneType, DefnMdlBreakdown)):
         strctMdlNode = StrctMdlBreakdown(strctMdlParent, defnMdlNode, axis)
     else:
-        if isinstance(defnMdlNode, DefnMdlRelationshipNode):
+        if isinstance(defnMdlNode, (DefnMdlRelationshipNode,DefnMdlAspectNode)):
             strctMdlNode = strctMdlParent # all children are added during relationship navigatio below
         else:
             strctMdlNode = StrctMdlStructuralNode(strctMdlParent, defnMdlNode)
@@ -362,7 +357,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     else:
                         childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels)
                         descendantDefMdlNodes = view.defnSubtreeRelSet.fromModelObject(childDefnMdlNode)
-                        if not childDefnMdlNode.isAbstract and descendantDefMdlNodes:
+                        if not childDefnMdlNode.isAbstract and descendantDefMdlNodes and not isinstance(childDefnMdlNode, DefnMdlAspectNode):
                             # contributes at least one child node
                             rollupAspectDefinitionNode = childDefnMdlNode
                             _rollup = ROLLUP_IMPLIES_DEFAULT_MEMBER
@@ -378,7 +373,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                             rollUpStrctNode.rollup = _rollup
                             childStrctNode.hasChildRollup = True
                             childStrctNode.rollUpChildStrctMdlNode = rollUpStrctNode
-                            if childDefnMdlNode.parentChildOrder == "parent-first":
+                            if isinstance(childDefnMdlNode, DefnMdlClosedDefinitionNode) and childDefnMdlNode.parentChildOrder == "parent-first":
                                 childStrctNode.strctMdlChildNodes = childStrctNode.strctMdlChildNodes[-1:] + childStrctNode.strctMdlChildNodes[0:-1]
                             cartesianProductExpander(rollUpStrctNode, *cartesianProductNestedArgs)
                         if not childContainsOpenNodes(childStrctNode) and not childDefnMdlNode.childrenCoverSameAspects:
@@ -469,17 +464,23 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                 strctMdlNode.setHasOpenNode()
                 strctMdlNode.isLabeled = False
                 isCartesianProductExpanded = True
-                strctMdlNode.abstract = True # spanning ordinate acts as a subtitle
-                filteredFactsPartitions = strctMdlNode.evaluate(defnMdlNode,
+                # strctMdlNode.abstract = True # spanning ordinate acts as a subtitle
+                aspectFactsPartitions = strctMdlNode.evaluate(defnMdlNode,
+                                                                  defnMdlNode.filteredFactsPartitions,
+                                                                  evalArgs=(view.modelXbrl.factsInInstance,)) # for all reported facts ignoring parent def node filters
+                if depth < 2:
+                    filteredFactsPartitions = aspectFactsPartitions
+                else:
+                    filteredFactsPartitions = strctMdlNode.evaluate(defnMdlNode,
                                                                   defnMdlNode.filteredFactsPartitions,
                                                                   evalArgs=(facts,))
+
                 if strctMdlNode._rendrCntx.formulaOptions.traceVariableFilterWinnowing:
                     view.modelXbrl.info("table:trace",
                         _("Filter node %(xlinkLabel)s facts partitions: %(factsPartitions)s"),
                         modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel,
                         factsPartitions=str(filteredFactsPartitions))
-
-                # ohly for fact entry (true if no parent open nodes or all are on entry prototype row)
+                # only for fact entry (true if no parent open nodes or all are on entry prototype row)
                 childList = strctMdlNode.strctMdlChildNodes
                 if strctMdlNode.isEntryPrototype(default=True):
                     for i in range(getattr(view, "openBreakdownLines",
@@ -489,8 +490,22 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                         filteredFactsPartitions.append([FactPrototype(view, {"aspectEntryObjectId": OPEN_ASPECT_ENTRY_SURROGATE + str(view.aspectEntryObjectId)})])
                         if strctMdlNode.isEntryPrototype(default=False):
                             break # only one node per cartesian product under outermost nested open entry row
-                for factsPartition in filteredFactsPartitions:
-                    childStructuralNode = StrctMdlStructuralNode(strctMdlNode, defnMdlNode, contextItemFact=factsPartition[0])
+                if depth >= 2:
+                    for i in range(len(filteredFactsPartitions)):
+                        filteredFactsPartitions[i] = set(filteredFactsPartitions[i])
+                for aspectPartition in aspectFactsPartitions:
+                    childStructuralNode = StrctMdlStructuralNode(strctMdlNode, defnMdlNode, contextItemFact=aspectPartition[0])
+                    aspectPartition = set(aspectPartition)
+
+                    # find matching filterFactsPartition
+                    if depth < 2:
+                        factsPartition = aspectPartition
+                    else:
+                        factsPartition = set()
+                        for fp in filteredFactsPartitions:
+                            if fp <= aspectPartition:
+                                factsPartition = fp
+                                break
 
                     # store the partition for later reuse when spreading facts in body cells
                     childStructuralNode.factsPartition = factsPartition
@@ -504,9 +519,10 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     if subtreeRels:
                         for subtreeRel in subtreeRels:
                             child2DefinitionNode = subtreeRel.toModelObject
-                            child2StructuralNode = StrctMdlStructuralNode(childStructuralNode, child2DefinitionNode) # others are nested structuralNode
-                            childStructuralNode.strctMdlChildNodes.append(child2StructuralNode)
-                            resolveDefinition(view, child2StructuralNode, child2DefinitionNode, depth+ordDepth, factsPartition, iBrkdn, axisBrkdnRels) #recurse
+                            #child2StructuralNode = StrctMdlStructuralNode(childStructuralNode, child2DefinitionNode) # others are nested structuralNode
+                            #childStructuralNode.strctMdlChildNodes.append(child2StructuralNode)
+                            #resolveDefinition(view, child2StructuralNode, child2DefinitionNode, depth+ordDepth, factsPartition, iBrkdn, axisBrkdnRels) #recurse
+                            resolveDefinition(view, childStructuralNode, child2DefinitionNode, depth+ordDepth, factsPartition, iBrkdn, axisBrkdnRels) #recurse
                 # sort by header (which is likely to be typed dim value, for example)
                 childList.sort(key=lambda childStructuralNode:
                                childStructuralNode.header(lang=view.lang,
