@@ -282,7 +282,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 helpMenu.add_command(label=label, underline=0, command=command, accelerator=shortcut_text)
                 self.parent.bind(shortcut, command)
         for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.Help"):
-            pluginMenuExtender(self, toolsMenu)
+            pluginMenuExtender(self, helpMenu)
         self.menubar.add_cascade(label=_("Help"), menu=helpMenu, underline=0)
 
         windowFrame = Frame(self.parent)
