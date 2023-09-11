@@ -15,7 +15,7 @@ pycountry==22.3.5
 NumPy==1.24.4 ; python_version <= "3.8"
 NumPy==1.25.2 ; python_version > "3.8"
 Matplotlib==3.7.1
-holidays==0.31
+holidays==0.32
 Tornado==6.3.3
 # security plugin
 PyCryptodome==3.18.0

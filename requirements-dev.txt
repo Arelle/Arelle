@@ -3,7 +3,7 @@ flake8-noqa==1.3.2
 
 mock==5.1.0
 mypy==1.5.1
-pytest==7.4.1
+pytest==7.4.2
 
 typing-extensions==4.7.1
 lxml-stubs==0.4.0
