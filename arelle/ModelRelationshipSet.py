@@ -8,7 +8,7 @@ from collections import defaultdict
 from typing import Any
 from arelle import ModelDtsObject, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
-from arelle.ModelDtsObject import ModelResource
+from arelle.ModelDtsObject import ModelRelationship, ModelResource
 from arelle.PrototypeDtsObject import LocPrototype, PrototypeObject
 from arelle.XbrlConst import consecutiveArcrole
 import sys
@@ -31,7 +31,7 @@ def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
                 toLabel = linkChild.get("{http://www.w3.org/1999/xlink}to")
                 for fromResource in modelLink.labeledResources[fromLabel]:
                     for toResource in modelLink.labeledResources[toLabel]:
-                        modelRel = ModelDtsObject.ModelRelationship(modelLink.modelDocument, linkChild, fromResource.dereference(), toResource.dereference())
+                        modelRel = ModelRelationship(modelLink.modelDocument, linkChild, fromResource.dereference(), toResource.dereference())
                         hashEquivalentRels[modelRel.equivalenceHash].append(modelRel)
     # determine ineffective relationships
     ineffectives = []
@@ -161,7 +161,7 @@ class ModelRelationshipSet:
                 for fromResource in modelLink.labeledResources[fromLabel]:
                     for toResource in modelLink.labeledResources[toLabel]:
                         if isinstance(fromResource,(ModelResource,LocPrototype)) and isinstance(toResource,(ModelResource,LocPrototype)):
-                            modelRel = ModelDtsObject.ModelRelationship(modelLink.modelDocument, arcElement, fromResource.dereference(), toResource.dereference())
+                            modelRel = ModelRelationship(modelLink.modelDocument, arcElement, fromResource.dereference(), toResource.dereference())
                             modelRelEquivalenceHash = modelRel.equivalenceHash
                             if modelRelEquivalenceHash not in relationships:
                                 relationships[modelRelEquivalenceHash] = modelRel
