@@ -315,10 +315,8 @@ class ModelRelationshipSet:
                     visited.discard(toConcept)
         return False
 
-    def label(self, modelFrom, role, lang, returnMultiple=False, returnText=True, linkroleHint=None):
+    def label(self, modelFrom, role, lang, returnMultiple=False, returnText=True, linkroleHint=None) -> str | ModelObject | list[str] | list[ModelObject] | None:
         _lang = lang.lower() if lang else lang # lang processing is case insensitive
-        shorterLangInLabel = longerLangInLabel = None
-        shorterLangLabels = longerLangLabels = None
         langLabels = []
         wildRole = role == '*'
         labels = self.fromModelObject(modelFrom)
@@ -344,6 +342,9 @@ class ModelRelationshipSet:
                 labels = (labelsHintedLink or labelsDefaultLink or labelsOtherLinks)
         if len(labels) > 1: # order by priority (ignoring equivalence of relationships)
             labels = sorted(labels, key=lambda rel: rel.priority, reverse=True)
+        # (lang, labels) where labels is list[str] if returnText else list[ModelObject]
+        shorter: tuple[str, list[Any]] | None = None
+        longer: tuple[str, list[Any]] | None = None
         for modelLabelRel in labels:
             label = modelLabelRel.toModelObject
             if wildRole or role == label.role:
@@ -357,24 +358,22 @@ class ModelRelationshipSet:
                         break
                 elif labelLang is not None:
                     if labelLang.startswith(_lang):
-                        if not longerLangInLabel or len(longerLangInLabel) > len(labelLang):
-                            longerLangInLabel = labelLang
-                            longerLangLabels = [text,]
+                        if not longer or len(longer[0]) > len(labelLang):
+                            longer = (labelLang, [text])
                         else:
-                            longerLangLabels.append(text)
+                            longer[1].append(text)
                     elif lang.startswith(labelLang):
-                        if not shorterLangInLabel or len(shorterLangInLabel) < len(labelLang):
-                            shorterLangInLabel = labelLang
-                            shorterLangLabels = [text,]
+                        if not shorter or len(shorter[0]) < len(labelLang):
+                            shorter = (labelLang, [text])
                         else:
-                            shorterLangLabels.append(text)
+                            shorter[1].append(text)
         if langLabels:
             if returnMultiple: return langLabels
             else: return langLabels[0]
-        if shorterLangLabels:  # more general has preference
-            if returnMultiple: return shorterLangLabels
-            else: return shorterLangLabels[0]
-        if longerLangLabels:
-            if returnMultiple: return longerLangLabels
-            else: return longerLangLabels[0]
+        if shorter:  # more general has preference
+            if returnMultiple: return shorter[1]
+            else: return shorter[1][0]
+        if longer:
+            if returnMultiple: return longer[1]
+            else: return longer[1][0]
         return None

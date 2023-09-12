@@ -369,9 +369,10 @@ class ModelObject(ElementBase):
         assert self.modelXbrl is not None
         labelsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.elementLabel,linkrole)
         if labelsRelationshipSet:
-            label = labelsRelationshipSet.label(self, role, lang) # type: ignore[no-untyped-call]
+            label = labelsRelationshipSet.label(self, role, lang)
             if label is not None:
-                if strip: return cast(str, label.strip())
+                label = cast(str, label)
+                if strip: return label.strip()
                 return Locale.rtlString(label, lang=lang)
         if fallbackToQname:
             return str(self.qname)
