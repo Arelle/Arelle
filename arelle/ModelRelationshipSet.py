@@ -272,6 +272,7 @@ class ModelRelationshipSet:
     # if modelFrom and modelTo are provided determine that they have specified relationship
     # if only modelFrom, determine that there are relationships present of specified axis
     def isRelated(self, modelFrom, axis, modelTo=None, visited=None, isDRS=False): # either model concept or qname
+        assert self.modelXbrl is not None
         if isinstance(modelFrom,ModelValue.QName):
             modelFrom = self.modelXbrl.qnameConcepts.get(modelFrom) # fails if None
         if isinstance(modelTo,ModelValue.QName):
