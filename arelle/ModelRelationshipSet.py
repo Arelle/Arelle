@@ -214,41 +214,40 @@ class ModelRelationshipSet:
         return self.modellinkRoleUris
 
     def loadModelRelationshipsFrom(self):
-        if self.modelRelationshipsFrom is None:
-            self.modelRelationshipsFrom = defaultdict(list)
+        modelRelationshipsFrom = self.modelRelationshipsFrom
+        if modelRelationshipsFrom is None:
+            modelRelationshipsFrom = defaultdict(list)
             for modelRel in self.modelRelationships:
                 fromModelObject = modelRel.fromModelObject
                 if fromModelObject is not None: # none if concepts failed to load
-                    self.modelRelationshipsFrom[fromModelObject].append(modelRel)
+                    modelRelationshipsFrom[fromModelObject].append(modelRel)
+            self.modelRelationshipsFrom = modelRelationshipsFrom
+        return modelRelationshipsFrom
 
     def loadModelRelationshipsTo(self):
-        if self.modelRelationshipsTo is None:
-            self.modelRelationshipsTo = defaultdict(list)
+        modelRelationshipsTo = self.modelRelationshipsTo
+        if modelRelationshipsTo is None:
+            modelRelationshipsTo = defaultdict(list)
             for modelRel in self.modelRelationships:
                 toModelObject = modelRel.toModelObject
                 if toModelObject is not None:   # none if concepts failed to load
-                    self.modelRelationshipsTo[toModelObject].append(modelRel)
+                    modelRelationshipsTo[toModelObject].append(modelRel)
+            self.modelRelationshipsTo = modelRelationshipsTo
+        return modelRelationshipsTo
 
     def fromModelObjects(self) -> dict[Any, list]:
-        self.loadModelRelationshipsFrom()
-        return self.modelRelationshipsFrom
+        return self.loadModelRelationshipsFrom()
 
     def fromModelObject(self, modelFrom) -> list[Any]:
-        if self.modelRelationshipsFrom is None:
-            self.loadModelRelationshipsFrom()
-        return self.modelRelationshipsFrom.get(modelFrom, [])
+        return self.loadModelRelationshipsFrom().get(modelFrom, [])
 
     def toModelObjects(self):
-        self.loadModelRelationshipsTo()
-        return self.modelRelationshipsTo
+        return self.loadModelRelationshipsTo()
 
     def toModelObject(self, modelTo) -> list[Any]:
-        if self.modelRelationshipsTo is None:
-            self.loadModelRelationshipsTo()
-        return self.modelRelationshipsTo.get(modelTo, [])
+        return self.loadModelRelationshipsTo().get(modelTo, [])
 
     def fromToModelObjects(self, modelFrom, modelTo, checkBothDirections=False):
-        self.loadModelRelationshipsFrom()
         rels = [rel for rel in self.fromModelObject(modelFrom) if rel.toModelObject is modelTo]
         if checkBothDirections:
             rels += [rel for rel in self.fromModelObject(modelTo) if rel.toModelObject is modelFrom]
@@ -257,13 +256,13 @@ class ModelRelationshipSet:
     @property
     def rootConcepts(self):
         if self.modelConceptRoots is None:
-            self.loadModelRelationshipsFrom()
-            self.loadModelRelationshipsTo()
+            modelRelationshipsFrom = self.loadModelRelationshipsFrom()
+            modelRelationshipsTo = self.loadModelRelationshipsTo()
             self.modelConceptRoots = [modelRelFrom
-                                      for modelRelFrom, relFrom in self.modelRelationshipsFrom.items()
-                                      if modelRelFrom not in self.modelRelationshipsTo or
+                                      for modelRelFrom, relFrom in modelRelationshipsFrom.items()
+                                      if modelRelFrom not in modelRelationshipsTo or
                                       (len(relFrom) == 1 and # root-level self-looping arc
-                                       len(self.modelRelationshipsTo[modelRelFrom]) == 1 and
+                                       len(modelRelationshipsTo[modelRelFrom]) == 1 and
                                        relFrom[0].fromModelObject == relFrom[0].toModelObject)]
         return self.modelConceptRoots
 
