@@ -5,6 +5,7 @@ from __future__ import annotations
 
 # initialize object from loaded linkbases
 from collections import defaultdict
+from dataclasses import dataclass
 from typing import Any
 from arelle import ModelDtsObject, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
@@ -97,6 +98,12 @@ def baseSetRelationship(arcElement):
         if rel.arcElement == arcElement:
             return rel
     return None
+
+# For internal use by ModelRelationshipSet.label.
+@dataclass
+class _LangLabels:
+    lang: str
+    labels: list[ModelObject] | list[str] # list[str] if returnText
 
 class ModelRelationshipSet:
     __slots__ = ("isChanged", "modelXbrl", "arcrole", "linkrole", "linkqname", "arcqname",
@@ -343,9 +350,8 @@ class ModelRelationshipSet:
                 labels = (labelsHintedLink or labelsDefaultLink or labelsOtherLinks)
         if len(labels) > 1: # order by priority (ignoring equivalence of relationships)
             labels = sorted(labels, key=lambda rel: rel.priority, reverse=True)
-        # (lang, labels) where labels is list[str] if returnText else list[ModelObject]
-        shorter: tuple[str, list[Any]] | None = None
-        longer: tuple[str, list[Any]] | None = None
+        shorter: _LangLabels | None = None
+        longer: _LangLabels | None = None
         for modelLabelRel in labels:
             label = modelLabelRel.toModelObject
             if wildRole or role == label.role:
@@ -359,22 +365,22 @@ class ModelRelationshipSet:
                         break
                 elif labelLang is not None:
                     if labelLang.startswith(_lang):
-                        if not longer or len(longer[0]) > len(labelLang):
-                            longer = (labelLang, [text])
+                        if not longer or len(longer.lang) > len(labelLang):
+                            longer = _LangLabels(labelLang, [text])
                         else:
-                            longer[1].append(text)
+                            longer.labels.append(text)
                     elif lang.startswith(labelLang):
-                        if not shorter or len(shorter[0]) < len(labelLang):
-                            shorter = (labelLang, [text])
+                        if not shorter or len(shorter.lang) < len(labelLang):
+                            shorter = _LangLabels(labelLang, [text])
                         else:
-                            shorter[1].append(text)
+                            shorter.labels.append(text)
         if langLabels:
             if returnMultiple: return langLabels
             else: return langLabels[0]
         if shorter:  # more general has preference
-            if returnMultiple: return shorter[1]
-            else: return shorter[1][0]
+            if returnMultiple: return shorter.labels
+            else: return shorter.labels[0]
         if longer:
-            if returnMultiple: return longer[1]
-            else: return longer[1][0]
+            if returnMultiple: return longer.labels
+            else: return longer.labels[0]
         return None
