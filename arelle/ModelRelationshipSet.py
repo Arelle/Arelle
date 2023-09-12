@@ -103,6 +103,9 @@ class ModelRelationshipSet:
                  "modelRelationshipsFrom", "modelRelationshipsTo", "modelConceptRoots", "modellinkRoleUris",
                  "modelRelationships", "_testHintedLabelLinkrole")
 
+    modelRelationshipsFrom: dict[Any, list[ModelRelationship]] | None
+    modelRelationshipsTo: dict[Any, list[ModelRelationship]] | None
+
     # arcrole can either be a single string or a tuple or frozenset of strings
     def __init__(self, modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
         self.isChanged = False
@@ -213,7 +216,7 @@ class ModelRelationshipSet:
             self.modellinkRoleUris = set(modelRel.linkrole for modelRel in self.modelRelationships)
         return self.modellinkRoleUris
 
-    def loadModelRelationshipsFrom(self):
+    def loadModelRelationshipsFrom(self) -> dict[Any, list[ModelRelationship]]:
         modelRelationshipsFrom = self.modelRelationshipsFrom
         if modelRelationshipsFrom is None:
             modelRelationshipsFrom = defaultdict(list)
@@ -224,7 +227,7 @@ class ModelRelationshipSet:
             self.modelRelationshipsFrom = modelRelationshipsFrom
         return modelRelationshipsFrom
 
-    def loadModelRelationshipsTo(self):
+    def loadModelRelationshipsTo(self) -> dict[Any, list[ModelRelationship]]:
         modelRelationshipsTo = self.modelRelationshipsTo
         if modelRelationshipsTo is None:
             modelRelationshipsTo = defaultdict(list)
@@ -235,19 +238,19 @@ class ModelRelationshipSet:
             self.modelRelationshipsTo = modelRelationshipsTo
         return modelRelationshipsTo
 
-    def fromModelObjects(self) -> dict[Any, list]:
+    def fromModelObjects(self) -> dict[Any, list[ModelRelationship]]:
         return self.loadModelRelationshipsFrom()
 
-    def fromModelObject(self, modelFrom) -> list[Any]:
+    def fromModelObject(self, modelFrom) -> list[ModelRelationship]:
         return self.loadModelRelationshipsFrom().get(modelFrom, [])
 
-    def toModelObjects(self):
+    def toModelObjects(self) -> dict[Any, list[ModelRelationship]]:
         return self.loadModelRelationshipsTo()
 
-    def toModelObject(self, modelTo) -> list[Any]:
+    def toModelObject(self, modelTo) -> list[ModelRelationship]:
         return self.loadModelRelationshipsTo().get(modelTo, [])
 
-    def fromToModelObjects(self, modelFrom, modelTo, checkBothDirections=False):
+    def fromToModelObjects(self, modelFrom, modelTo, checkBothDirections=False) -> list[ModelRelationship]:
         rels = [rel for rel in self.fromModelObject(modelFrom) if rel.toModelObject is modelTo]
         if checkBothDirections:
             rels += [rel for rel in self.fromModelObject(modelTo) if rel.toModelObject is modelFrom]
