@@ -25,7 +25,7 @@ from arelle.FileSource import openFileStream
 from arelle.UrlUtil import scheme, decodeBase64DataImage
 from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
-from arelle.ValidateFilingText import imgDataMediaBase64Pattern
+from arelle.ValidateFilingText import parseImageDataURL
 from arelle.ValidateXbrl import ValidateXbrl
 from typing import Any, Dict, List, Optional, Union, cast
 from arelle.ModelDocument import ModelDocument
@@ -77,27 +77,26 @@ def validateImage(baseUrl:Optional[str], image: str, modelXbrl: ModelXbrl, val:V
                         messageCodes=("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
                                       "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
     elif image.startswith("data:image"):
-        m = imgDataMediaBase64Pattern.match(image)
-        (imgMimeType, isBase64, imgData) = m.group(1, 2, 3) if m is not None else (None, None, None)
-        if not m or not isBase64:
+        dataURLParts = parseImageDataURL(image)
+        if not dataURLParts or not dataURLParts.isBase64:
             modelXbrl.warning(f"{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
                               _("Images included in the XHTML document SHOULD be base64 encoded: %(src)s."),
                               modelObject=elt, src=image[:128], evaluatedMsg=evaluatedMsg)
-            if m and imgMimeType and imgData:
-                checkImageContents(None, modelXbrl, elt, imgMimeType, False, unquote(imgData), val.consolidated, val)
+            if dataURLParts and dataURLParts.mimeSubtype and dataURLParts.data:
+                checkImageContents(None, modelXbrl, elt, dataURLParts.mimeSubtype, False, unquote(dataURLParts.data), val.consolidated, val)
         else:
-            if not imgMimeType:
+            if not dataURLParts.mimeSubtype:
                 modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.MIMETypeNotSpecified",
                                 _("Images included in the XHTML document MUST be saved with MIME type specifying PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
                                 modelObject=elt, src=image[:128], evaluatedMsg=evaluatedMsg)
-            elif imgMimeType not in ("/gif", "/jpeg", "/png", "/svg+xml"):
+            elif dataURLParts.mimeSubtype not in ("/gif", "/jpeg", "/png", "/svg+xml"):
                 modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.imageFormatNotSupported",
                                 _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
                                 modelObject=elt, src=image[:128], evaluatedMsg=evaluatedMsg)
             # check for malicious image contents
             try:  # allow embedded newlines
-                imgContents:Union[bytes, Any, str] = decodeBase64DataImage(imgData)
-                checkImageContents(None, modelXbrl, elt, str(imgMimeType), False, imgContents, val.consolidated, val)
+                imgContents:Union[bytes, Any, str] = decodeBase64DataImage(dataURLParts.data)
+                checkImageContents(None, modelXbrl, elt, str(dataURLParts.mimeSubtype), False, imgContents, val.consolidated, val)
                 imgContents = b""  # deref, may be very large
 
             except binascii.Error as err:

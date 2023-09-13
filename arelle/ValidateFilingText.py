@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 #import xml.sax, xml.sax.handler
 from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, XMLSyntaxError, XMLParser
+from dataclasses import dataclass
 import os, io, base64
 import regex as re
 from arelle.XbrlConst import ixbrlAll, xhtml
@@ -623,11 +624,11 @@ def validateTextBlockFacts(modelXbrl):
                                 if attrTag == "src" and allowedImageTypes and attrValue not in checkedGraphicsFiles:
                                     if scheme(attrValue)  == "data":
                                         try: # allow embedded newlines
-                                            m = imgDataMediaBase64Pattern.match(attrValue)
+                                            dataURLParts = parseImageDataURL(attrValue)
                                             if (not allowedImageTypes["data-scheme"] or
-                                                not m or not m.group(1) or not m.group(2)
-                                                or m.group(1)[1:] not in allowedImageTypes["mime-types"]
-                                                or m.group(1)[1:] != validateGraphicHeaderType(decodeBase64DataImage(m.group(3)))):
+                                                not dataURLParts or not dataURLParts.mimeSubtype or not dataURLParts.isBase64
+                                                or dataURLParts.mimeSubtype[1:] not in allowedImageTypes["mime-types"]
+                                                or dataURLParts.mimeSubtype[1:] != validateGraphicHeaderType(decodeBase64DataImage(dataURLParts.data))):
                                                 modelXbrl.error(("EFM.6.05.16.graphicDataUrl", "FERC.6.05.16.graphicDataUrl"),
                                                     _("Fact %(fact)s of context %(contextID)s references a graphics data URL which isn't accepted or valid '%(attribute)s' for <%(element)s>"),
                                                     modelObject=f1, fact=f1.qname, contextID=f1.contextID,
@@ -765,11 +766,11 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                 if attrTag == "src" and allowedImageTypes and attrValue not in checkedGraphicsFiles:
                     if scheme(attrValue) == "data":
                         try: # allow embedded newlines
-                            m = imgDataMediaBase64Pattern.match(attrValue)
+                            dataURLParts = parseImageDataURL(attrValue)
                             if (not allowedImageTypes["data-scheme"] or
-                                not m or not m.group(1) or not m.group(2)
-                                or m.group(1)[1:] not in allowedImageTypes["mime-types"]
-                                or m.group(1)[1:] != validateGraphicHeaderType(decodeBase64DataImage(m.group(3)))):
+                                not dataURLParts or not dataURLParts.mimeSubtype or not dataURLParts.isBase64
+                                or dataURLParts.mimeSubtype[1:] not in allowedImageTypes["mime-types"]
+                                or dataURLParts.mimeSubtype[1:] != validateGraphicHeaderType(decodeBase64DataImage(dataURLParts.data))):
                                 modelXbrl.error(messageCodePrefix + "graphicDataUrl",
                                     _("%(validatedObjectLabel)s references a graphics data URL which isn't accepted '%(attribute)s' for <%(element)s>"),
                                     modelObject=elt, validatedObjectLabel=validatedObjectLabel,
@@ -923,6 +924,20 @@ class TextBlockHandler(xml.sax.ContentHandler, xml.sax.ErrorHandler):
              modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID,
              error=err.getMessage(), line=err.getLineNumber(), column=err.getColumnNumber())
 '''
+
+@dataclass
+class ImageDataURLParts:
+    mimeSubtype: str
+    isBase64: bool
+    data: str
+
+def parseImageDataURL(uri: str) -> ImageDataURLParts | None:
+    m = imgDataMediaBase64Pattern.match(uri)
+    return ImageDataURLParts(
+        mimeSubtype=m.group(1),
+        isBase64=bool(m.group(2)),
+        data=m.group(3),
+    ) if m else None
 
 def validateGraphicHeaderType(data: bytes) -> str:
     if data[:2] == b"\xff\xd8":
