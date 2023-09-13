@@ -25,6 +25,7 @@ from arelle.FileSource import openFileStream
 from arelle.UrlUtil import scheme, decodeBase64DataImage
 from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
+from arelle.ValidateFilingText import imgDataMediaBase64Pattern
 from arelle.ValidateXbrl import ValidateXbrl
 from typing import Any, Dict, List, Optional, Union, cast
 from arelle.ModelDocument import ModelDocument
@@ -32,7 +33,6 @@ from arelle.typing import TypeGetText
 from collections import defaultdict
 
 _: TypeGetText  # Handle gettext
-imgDataMediaBase64Pattern = re.compile(r"data:image([^,;]*)(;base64)?,(.*)$", re.S)
 
 # check if a modelDocument URI is an extension URI (document URI)
 # also works on a uri passed in as well as modelObject
