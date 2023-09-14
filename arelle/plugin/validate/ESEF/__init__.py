@@ -73,6 +73,7 @@ from arelle.ModelObject import ModelObject
 from arelle.DisclosureSystem import DisclosureSystem
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelXbrl import ModelXbrl
+from arelle.ValidateFilingText import parseImageDataURL
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.formula.XPathContext import XPathContext
 from arelle.ModelRelationshipSet import ModelRelationshipSet
@@ -88,7 +89,6 @@ styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*
 styleCssHiddenPattern = re.compile(r"(.*[^\w]|^)display\s*:\s*none([^\w].*|$)")
 ifrsNsPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full")
 datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
-imgDataMediaBase64Pattern = re.compile(r"data:image([^,;]*)(;base64)?,(.*)$", re.S)
 ixErrorPattern = re.compile(r"ix11[.]|xmlSchema[:]|(?!xbrl.5.2.5.2|xbrl.5.2.6.2)xbrl[.]|xbrld[ti]e[:]|utre[:]")
 docTypeXhtmlPattern = re.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-//W3C//DTD\s+(X?HTML)\s)?.*>$", re.IGNORECASE)
 
@@ -457,25 +457,25 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                         _("Image file which isn't openable '%(src)s', error: %(error)s"),
                                         modelObject=elt, src=src, error=err)
                             else:
-                                m = imgDataMediaBase64Pattern.match(src)
-                                if not m or not m.group(2):
+                                dataURLParts = parseImageDataURL(src)
+                                if not dataURLParts or not dataURLParts.isBase64:
                                     modelXbrl.warning(f"{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
                                         _("Images included in the XHTML document SHOULD be base64 encoded: %(src)s."),
                                         modelObject=elt, src=src[:128])
-                                    if m and m.group(1) and m.group(3):
-                                        checkImageContents(modelXbrl, elt, m.group(1), False, m.group(3), val.consolidated)
+                                    if dataURLParts and dataURLParts.mimeSubtype and dataURLParts.data:
+                                        checkImageContents(modelXbrl, elt, dataURLParts.mimeSubtype, False, dataURLParts.data, val.consolidated)
                                 else:
-                                    if not m.group(1):
+                                    if not dataURLParts.mimeSubtype:
                                         modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.MIMETypeNotSpecified",
                                             _("Images included in the XHTML document MUST be saved with MIME type specifying PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
                                             modelObject=elt, src=src[:128])
-                                    elif m.group(1) not in ("/gif", "/jpeg", "/jpg", "/png", "/svg+xml"):
+                                    elif dataURLParts.mimeSubtype not in ("gif", "jpeg", "jpg", "png", "svg+xml"):
                                         modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.imageFormatNotSupported",
                                             _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
                                             modelObject=elt, src=src[:128])
                                     # check for malicious image contents
                                     try: # allow embedded newlines
-                                        checkImageContents(modelXbrl, elt, m.group(1), False, decodeBase64DataImage(m.group(3)), val.consolidated)
+                                        checkImageContents(modelXbrl, elt, dataURLParts.mimeSubtype, False, decodeBase64DataImage(dataURLParts.data), val.consolidated)
                                         imgContents = None # deref, may be very large
                                     except binascii.Error as err:
                                         modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
