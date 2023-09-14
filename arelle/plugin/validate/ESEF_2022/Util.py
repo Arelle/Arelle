@@ -25,7 +25,7 @@ from arelle.FileSource import openFileStream
 from arelle.UrlUtil import scheme, decodeBase64DataImage
 from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
-from arelle.ValidateFilingText import parseImageDataURL
+from arelle.ValidateFilingText import parseImageDataURL, validateGraphicHeaderType
 from arelle.ValidateXbrl import ValidateXbrl
 from typing import Any, Dict, List, Optional, Union, cast
 from arelle.ModelDocument import ModelDocument
@@ -144,24 +144,7 @@ def checkImageContents(baseURI: Optional[str], modelXbrl: ModelXbrl, imgElt: _El
                 _("Image SVG has XML error %(error)s"),
                 modelObject=imgElt, error=err)
     else:
-        if data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):
-            headerType = "gif"
-        elif data[:2] == b'\xff\xd8':
-            headerType = "jpg"
-        elif data[:8] == b"\x89PNG\r\n\x1a\n":
-            headerType = "png"
-        elif data[:2] in (b"MM", b"II"):
-            headerType = "tiff"
-        elif data[:2] in (b"BM", b"BA"):
-            headerType = "bmp"
-        elif data[:4] == b"\x00\x00\x01\x00":
-            headerType = "ico"
-        elif data[:4] == b"\x00\x00\x02\x00":
-            headerType = "cur"
-        elif len(data) == 0:
-            headerType = "none"
-        else:
-            headerType = "unrecognized"
+        headerType = validateGraphicHeaderType(data)  # type: ignore[arg-type]
         if (("gif" not in imgType and headerType == "gif") or
             ("jpeg" not in imgType and "jpg" not in imgType and headerType == "jpg") or
             ("png" not in imgType and headerType == "png")):
