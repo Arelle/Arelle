@@ -10,6 +10,7 @@ from urllib.request import pathname2url
 from urllib.parse import urldefrag, unquote, quote, urljoin
 from email.utils import parsedate
 from datetime import datetime
+from typing import overload
 
 def authority(url: str, includeScheme: bool=True) -> str:
     if url:
@@ -388,6 +389,10 @@ def relativeUri(baseUri: str, relativeUri: str) -> str: # return uri relative to
     return os.path.relpath(relativeUri, os.path.dirname(baseUri)).replace('\\','/')
 
 
+@overload
+def decodeBase64DataImage(imageData: None) -> None: ...
+@overload
+def decodeBase64DataImage(imageData: str) -> bytes: ...
 def decodeBase64DataImage(imageData: str | None) -> bytes | None:
     if imageData is None:
         return None
