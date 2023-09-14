@@ -27,7 +27,7 @@ namedEntityPattern = re.compile("&[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02
 
 inlinePattern = re.compile(r"xmlns:[\w.-]+=['\"]http://www.xbrl.org/2013/inlineXBRL['\"]")
 inlineSelfClosedElementPattern = re.compile(r"<(([\w.-]+:)?(\w+))([^\w/][^<]*)?/>")
-imgDataMediaBase64Pattern = re.compile(r"data:image(?P<mimeSubtype>[^,;]*)(?P<base64>;base64)?,(?P<data>.*)$", re.S)
+imgDataMediaBase64Pattern = re.compile(r"data:image/(?P<mimeSubtype>[^,;]*)(?P<base64>;base64)?,(?P<data>.*)$", re.S)
 
 edbodyDTD = None
 isInlineDTD = None
@@ -627,8 +627,8 @@ def validateTextBlockFacts(modelXbrl):
                                             dataURLParts = parseImageDataURL(attrValue)
                                             if (not allowedImageTypes["data-scheme"] or
                                                 not dataURLParts or not dataURLParts.mimeSubtype or not dataURLParts.isBase64
-                                                or dataURLParts.mimeSubtype[1:] not in allowedImageTypes["mime-types"]
-                                                or dataURLParts.mimeSubtype[1:] != validateGraphicHeaderType(decodeBase64DataImage(dataURLParts.data))):
+                                                or dataURLParts.mimeSubtype not in allowedImageTypes["mime-types"]
+                                                or dataURLParts.mimeSubtype != validateGraphicHeaderType(decodeBase64DataImage(dataURLParts.data))):
                                                 modelXbrl.error(("EFM.6.05.16.graphicDataUrl", "FERC.6.05.16.graphicDataUrl"),
                                                     _("Fact %(fact)s of context %(contextID)s references a graphics data URL which isn't accepted or valid '%(attribute)s' for <%(element)s>"),
                                                     modelObject=f1, fact=f1.qname, contextID=f1.contextID,
@@ -769,8 +769,8 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                             dataURLParts = parseImageDataURL(attrValue)
                             if (not allowedImageTypes["data-scheme"] or
                                 not dataURLParts or not dataURLParts.mimeSubtype or not dataURLParts.isBase64
-                                or dataURLParts.mimeSubtype[1:] not in allowedImageTypes["mime-types"]
-                                or dataURLParts.mimeSubtype[1:] != validateGraphicHeaderType(decodeBase64DataImage(dataURLParts.data))):
+                                or dataURLParts.mimeSubtype not in allowedImageTypes["mime-types"]
+                                or dataURLParts.mimeSubtype != validateGraphicHeaderType(decodeBase64DataImage(dataURLParts.data))):
                                 modelXbrl.error(messageCodePrefix + "graphicDataUrl",
                                     _("%(validatedObjectLabel)s references a graphics data URL which isn't accepted '%(attribute)s' for <%(element)s>"),
                                     modelObject=elt, validatedObjectLabel=validatedObjectLabel,

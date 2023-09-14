@@ -89,7 +89,7 @@ def validateImage(baseUrl:Optional[str], image: str, modelXbrl: ModelXbrl, val:V
                 modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.MIMETypeNotSpecified",
                                 _("Images included in the XHTML document MUST be saved with MIME type specifying PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
                                 modelObject=elt, src=image[:128], evaluatedMsg=evaluatedMsg)
-            elif dataURLParts.mimeSubtype not in ("/gif", "/jpeg", "/png", "/svg+xml"):
+            elif dataURLParts.mimeSubtype not in ("gif", "jpeg", "png", "svg+xml"):
                 modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.imageFormatNotSupported",
                                 _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
                                 modelObject=elt, src=image[:128], evaluatedMsg=evaluatedMsg)
