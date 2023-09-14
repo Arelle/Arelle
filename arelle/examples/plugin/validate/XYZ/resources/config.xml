@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DisclosureSystems
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../../../config/disclosuresystems.xsd">
+    <!-- see arelle/config/disclosuresystems.xml for full comments -->
+    <DisclosureSystem
+            names="XYZ 2023|XYZ-2023|xyz-2023|XYZ|xyz"
+            description="Checks for example XYZ validation plugin for year 2023"
+            validationType="XYZ"
+    />
+    <DisclosureSystem
+            names="XYZ 2022|XYZ-2022|xyz-2022"
+            description="Checks for example XYZ validation plugin for year 2022"
+            validationType="XYZ"
+    />
+</DisclosureSystems>

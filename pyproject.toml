@@ -140,6 +140,7 @@ module = [
     'arelle.XmlValidate',
     'arelle.XmlValidateConst',
     'arelle.XmlValidateSchema',
+    'arelle.examples.plugin.validate.*',
     'arelle.formula.FactAspectsCache',
     'arelle.formula.XPathContext',
     'arelle.formula.XPathParser',
