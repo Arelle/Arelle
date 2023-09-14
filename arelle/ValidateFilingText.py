@@ -628,7 +628,7 @@ def validateTextBlockFacts(modelXbrl):
                                             if (not allowedImageTypes["data-scheme"] or
                                                 not dataURLParts or not dataURLParts.mimeSubtype or not dataURLParts.isBase64
                                                 or dataURLParts.mimeSubtype not in allowedImageTypes["mime-types"]
-                                                or dataURLParts.mimeSubtype != validateGraphicHeaderType(decodeBase64DataImage(dataURLParts.data))):
+                                                or not dataURLParts.base64GraphicHeaderTypeMatchesMimeSubtype()):
                                                 modelXbrl.error(("EFM.6.05.16.graphicDataUrl", "FERC.6.05.16.graphicDataUrl"),
                                                     _("Fact %(fact)s of context %(contextID)s references a graphics data URL which isn't accepted or valid '%(attribute)s' for <%(element)s>"),
                                                     modelObject=f1, fact=f1.qname, contextID=f1.contextID,
@@ -770,7 +770,7 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                             if (not allowedImageTypes["data-scheme"] or
                                 not dataURLParts or not dataURLParts.mimeSubtype or not dataURLParts.isBase64
                                 or dataURLParts.mimeSubtype not in allowedImageTypes["mime-types"]
-                                or dataURLParts.mimeSubtype != validateGraphicHeaderType(decodeBase64DataImage(dataURLParts.data))):
+                                or not dataURLParts.base64GraphicHeaderTypeMatchesMimeSubtype()):
                                 modelXbrl.error(messageCodePrefix + "graphicDataUrl",
                                     _("%(validatedObjectLabel)s references a graphics data URL which isn't accepted '%(attribute)s' for <%(element)s>"),
                                     modelObject=elt, validatedObjectLabel=validatedObjectLabel,
@@ -930,6 +930,9 @@ class ImageDataURLParts:
     mimeSubtype: str
     isBase64: bool
     data: str
+    def base64GraphicHeaderTypeMatchesMimeSubtype(self) -> bool:
+        headerType = validateGraphicHeaderType(decodeBase64DataImage(self.data))
+        return headerType == self.mimeSubtype
 
 def parseImageDataURL(uri: str) -> ImageDataURLParts | None:
     m = imgDataMediaBase64Pattern.match(uri)
