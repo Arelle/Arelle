@@ -27,7 +27,7 @@ namedEntityPattern = re.compile("&[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02
 
 inlinePattern = re.compile(r"xmlns:[\w.-]+=['\"]http://www.xbrl.org/2013/inlineXBRL['\"]")
 inlineSelfClosedElementPattern = re.compile(r"<(([\w.-]+:)?(\w+))([^\w/][^<]*)?/>")
-imgDataMediaBase64Pattern = re.compile(r"data:image([^,;]*)(;base64)?,(.*)$", re.S)
+imgDataMediaBase64Pattern = re.compile(r"data:image(?P<mimeSubtype>[^,;]*)(?P<base64>;base64)?,(?P<data>.*)$", re.S)
 
 edbodyDTD = None
 isInlineDTD = None
@@ -934,9 +934,9 @@ class ImageDataURLParts:
 def parseImageDataURL(uri: str) -> ImageDataURLParts | None:
     m = imgDataMediaBase64Pattern.match(uri)
     return ImageDataURLParts(
-        mimeSubtype=m.group(1),
-        isBase64=bool(m.group(2)),
-        data=m.group(3),
+        mimeSubtype=m.group('mimeSubtype'),
+        isBase64=bool(m.group('base64')),
+        data=m.group('data'),
     ) if m else None
 
 def validateGraphicHeaderType(data: bytes) -> str:
