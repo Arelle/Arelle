@@ -1,6 +1,7 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+from __future__ import annotations
 #import xml.sax, xml.sax.handler
 from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, XMLSyntaxError, XMLParser
 from dataclasses import dataclass
@@ -27,7 +28,9 @@ namedEntityPattern = re.compile("&[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02
 
 inlinePattern = re.compile(r"xmlns:[\w.-]+=['\"]http://www.xbrl.org/2013/inlineXBRL['\"]")
 inlineSelfClosedElementPattern = re.compile(r"<(([\w.-]+:)?(\w+))([^\w/][^<]*)?/>")
-imgDataMediaBase64Pattern = re.compile(r"data:image/(?P<mimeSubtype>[^,;]*)(?P<base64>;base64)?,(?P<data>.*)$", re.S)
+# The ESEF 2022 conformance suite G2-5-1_2 TC3_invalid depends on optional "/".
+# <img src="data:image;base64,iVBOR...
+imgDataMediaBase64Pattern = re.compile(r"data:image(?:/(?P<mimeSubtype>[^,;]*))?(?P<base64>;base64)?,(?P<data>.*)$", re.S)
 
 edbodyDTD = None
 isInlineDTD = None
@@ -927,7 +930,7 @@ class TextBlockHandler(xml.sax.ContentHandler, xml.sax.ErrorHandler):
 
 @dataclass
 class ImageDataURLParts:
-    mimeSubtype: str
+    mimeSubtype: str | None
     isBase64: bool
     data: str
     def base64GraphicHeaderTypeMatchesMimeSubtype(self) -> bool:
