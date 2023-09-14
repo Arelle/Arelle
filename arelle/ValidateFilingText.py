@@ -932,7 +932,7 @@ class ImageDataURLParts:
     data: str
     def base64GraphicHeaderTypeMatchesMimeSubtype(self) -> bool:
         headerType = validateGraphicHeaderType(decodeBase64DataImage(self.data))
-        return headerType == self.mimeSubtype
+        return headerType == self.mimeSubtype or headerType == 'jpg' and self.mimeSubtype == 'jpeg'
 
 def parseImageDataURL(uri: str) -> ImageDataURLParts | None:
     m = imgDataMediaBase64Pattern.match(uri)
