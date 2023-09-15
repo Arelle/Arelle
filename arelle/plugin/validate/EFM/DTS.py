@@ -56,8 +56,8 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                     include=referencedDocument.basename)
         if (modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE)
             and referencedDocument.type == ModelDocument.Type.LINKBASE):
-            val.modelXbrl.error("EFM.6.03.12",
-                _("Linkbase reference from instance is not allowed"),
+            val.modelXbrl.warning("arelle:deprecatedLinkbaseRef",
+                _("Linkbase reference from instance is deprecated for XBRL OIM"),
                 modelObject=(referencedDocument,modelDocumentReference.referringModelObject))
         if referencedDocument not in visited and (
             referencedDocument.inDTS or referencedDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET) and ( # ignore EdgarRenderer added non-DTS documents
@@ -156,21 +156,21 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 prefix = None
                 val.modelXbrl.error(("EFM.6.07.07", "GFM.1.03.07"),
                     _("The schema does not supply a prefix for %(targetNamespace)s without an underscore character, in file %(schema)s. "
-                      "Please provide or change a prefix"),
+                      "Please provide or change a prefix."),
                     edgarCode="du-0707-Recommended-Prefix-Disallowed",
                     modelObject=modelDocument, schema=modelDocument.basename, targetNamespace=modelDocument.targetNamespace)
             else:
                 prefix = prefixes[0]
                 if len(prefixes) > 1:
-                    val.modelXbrl.error(("EFM.6.07.07", "GFM.1.03.07"),
-                        _("The schema does not supply a prefix for %(targetNamespace)s without an underscore character, in file %(schema)s. "
-                          "Please provide or change a prefix"),
-                        edgarCode="du-0707-Recommended-Prefix-Disallowed",
+                    val.modelXbrl.error(("EFM.6.07.07.multipleRecommendedPrefixes", "GFM.1.03.07.multiplePrefixes"),
+                        _("The schema must supply a single prefix for %(targetNamespace)s but there are %(count)s in file %(schema)s."),
+                        edgarCode="du-0707-Multiple-Recommended-Prefixes",
+                        count=len(prefixes),
                         modelObject=modelDocument, schema=modelDocument.basename, targetNamespace=modelDocument.targetNamespace, prefix=", ".join(prefixes))
                 elif "_" in prefix:
                     val.modelXbrl.error(("EFM.6.07.07", "GFM.1.03.07"),
                         _("The schema does not supply a prefix for %(targetNamespace)s without an underscore character, in file %(schema)s. "
-                          "Please provide or change a prefix"),
+                          "Please provide or change a prefix."),
                         edgarCode="du-0707-Recommended-Prefix-Disallowed",
                         modelObject=modelDocument, schema=modelDocument.basename, targetNamespace=modelDocument.targetNamespace, prefix=prefix)
 

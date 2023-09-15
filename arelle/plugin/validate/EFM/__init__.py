@@ -127,8 +127,10 @@ from arelle.PythonUtil import flattenSequence
 from arelle.UrlUtil import authority, relativeUri
 from arelle.ValidateFilingText import referencedFiles
 from arelle.Version import authorLabel, copyrightLabel
+from arelle.XmlValidateConst import VALID
 from .Document import checkDTSdocument
-from .Consts import feeTagEltsNotRelevelable, feeTagMessageCodesRelevelable, feeTaggingAttachmentDocumentTypePattern, supplementalAttachmentDocumentTypesPattern
+from .Consts import (feeTagEltsNotRelevelable, feeTagMessageCodesRelevelable, feeTaggingAttachmentDocumentTypePattern,
+                     supplementalAttachmentDocumentTypesPattern, exhibitTypesStrippingOnErrorPattern)
 from .Filing import validateFiling
 from .MessageNumericId import messageNumericId
 import regex as re
@@ -223,6 +225,14 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
             if paramName and paramName.localName == "ELOparams" and len(p) == 2 and p[1] not in ("null", "None", None):
                 try:
                     for key, value in json.loads(p[1]).items():
+                        if key == "feeRate":
+                            try:
+                                value = Decimal(value)
+                            except (ValueError, InvalidOperation):
+                                val.modelXbrl.error("arelle.Parameters",
+                                    _("parameter %(name)s has non-decimal value %(value)s"),
+                                    modelXbrl=val.modelXbrl, name=key, value=value)
+                                continue # don't use parameter
                         val.params[{"CIK":"cik"}.get(key,key)] = value # change upper case CIK to lower case
                 except (ValueError, AttributeError, TypeError):
                     val.modelXbrl.error("arelle.testcaseVariationParameters",
@@ -297,6 +307,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     if hasattr(modelManager, "efmFiling"):
         efmFiling = modelManager.efmFiling
         efmFiling.submissionType = val.params.get("submissionType")
+        efmFiling.attachmentDocumentType = val.params.get("attachmentDocumentType")
 
 def severityReleveler(modelXbrl, level, messageCode, args, **kwargs):
     if messageCode and feeTagMessageCodesRelevelable.match(messageCode) and level == "ERROR":
@@ -364,9 +375,13 @@ def filingStart(cntlr, options, filesource, entrypointFiles, sourceZipStream=Non
 
 def guiTestcasesStart(cntlr, modelXbrl, *args, **kwargs):
     modelManager = cntlr.modelManager
-    if (cntlr.hasGui and modelXbrl.modelDocument and modelXbrl.modelDocument.type in Type.TESTCASETYPES and
-         modelManager.validateDisclosureSystem and getattr(modelManager.disclosureSystem, "EFMplugin", False)):
-        modelManager.efmFiling = Filing(cntlr)
+    if cntlr.hasGui and modelManager.validateDisclosureSystem and getattr(modelManager.disclosureSystem, "EFMplugin", False):
+        for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Gui.Run"):
+            pluginXbrlMethod(cntlr, modelXbrl, *args,
+                             # pass plugin items to GUI mode of EdgarRenderer
+                             exhibitTypesStrippingOnErrorPattern=exhibitTypesStrippingOnErrorPattern, 
+                             setReportAttrs=setReportAttrs, **kwargs)
+
 def testcasesStart(cntlr, options, modelXbrl, *args, **kwargs):
     # a test or RSS cases run is starting, in which case testcaseVariation... events have unique efmFilings
     modelManager = cntlr.modelManager
@@ -405,8 +420,6 @@ def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args, **kwargs):
             _report.entryPoint = entryPoint
             if "accessionNumber" in entryPoint and not hasattr(efmFiling, "accessionNumber"):
                 efmFiling.accessionNumber = entryPoint["accessionNumber"]
-            if "attachmentDocumentType" in entryPoint and not hasattr(_report, "attachmentDocumentType"):
-                _report.attachmentDocumentType = entryPoint["attachmentDocumentType"]
             efmFiling.arelleUnitTests = modelXbrl.arelleUnitTests.copy() # allow unit tests to be used after instance processing finished
         elif modelXbrl.modelDocument.type == Type.RSSFEED:
             testcasesStart(cntlr, options, modelXbrl)
@@ -643,6 +656,7 @@ class Filing:
         self.arelleUnitTests = {} # copied from each instance loaded
         for pluginXbrlMethod in pluginClassMethods("Security.Crypt.Init"):
             pluginXbrlMethod(self, options, filesource, entrypointfiles, sourceZipStream)
+        self.exhibitTypesStrippingOnErrorPattern = exhibitTypesStrippingOnErrorPattern
 
     def setReportZipStreamMode(self, mode): # mode is 'w', 'r', 'a'
         # required to switch in-memory zip stream between write, read, and append modes
@@ -718,13 +732,24 @@ class Filing:
         with io.open(filepath, "wt" if isinstance(data, str) else "wb") as fh:
             fh.write(data)
 
+REPORT_ATTRS = {"DocumentType", "DocumentPeriodEndDate", "EntityRegistrantName",
+                "EntityCentralIndexKey", "CurrentFiscalYearEndDate", "DocumentFiscalYearFocus",
+                "FeeExhibitTp"}
+def lc(name):
+    if name == "DocumentType":
+        return "deiDocumentType" # special case to disambiguate from attachmentDocumentType
+    return name[0].lower() + name[1:]
+
+def setReportAttrs(report, modelXbrl):
+    for attrName in REPORT_ATTRS:
+        setattr(report, lc(attrName), None)
+    for f in modelXbrl.facts:
+        cntx = f.context
+        if cntx is not None and cntx.isStartEndPeriod and not cntx.hasSegment:
+            if f.qname is not None and f.qname.localName in REPORT_ATTRS and f.xValid >= VALID and f.xValue:
+                setattr(report, lc(f.qname.localName), f.xValue)
+
 class Report:
-    REPORT_ATTRS = {"DocumentType", "DocumentPeriodEndDate", "EntityRegistrantName",
-                    "EntityCentralIndexKey", "CurrentFiscalYearEndDate", "DocumentFiscalYearFocus"}
-    def lc(self, name):
-        if name == "DocumentType":
-            return "deiDocumentType" # special case to disambiguate from attachmentDocumentType
-        return name[0].lower() + name[1:]
 
     def __init__(self, modelXbrl):
         self.isInline = modelXbrl.modelDocument.type in (Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET)
@@ -742,14 +767,8 @@ class Report:
             self.basenames = [modelXbrl.modelDocument.basename]
             self.filepaths = [modelXbrl.modelDocument.filepath]
             self.reportedFiles.add(modelXbrl.modelDocument.basename)
-        for attrName in Report.REPORT_ATTRS:
-            setattr(self, self.lc(attrName), None)
         self.instanceName = self.basenames[0]
-        for f in modelXbrl.facts:
-            cntx = f.context
-            if cntx is not None and cntx.isStartEndPeriod and not cntx.hasSegment:
-                if f.qname is not None and f.qname.localName in Report.REPORT_ATTRS and f.xValue:
-                    setattr(self, self.lc(f.qname.localName), f.xValue)
+        setReportAttrs(self, modelXbrl)
         self.reportedFiles |= referencedFiles(modelXbrl)
         self.renderedFiles = set()
         self.hasUsGaapTaxonomy = False

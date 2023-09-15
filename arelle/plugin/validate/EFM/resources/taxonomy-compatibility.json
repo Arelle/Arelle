@@ -50,6 +50,7 @@
         "comment2": "latest us-gaap is compatible with prior year ifrs from Q1 to Q2, after Q2 must use same-year ifrs",
         "ecd/2022q4" : ["@stx-2022", "us-gaap/2022q3", "us-gaap/2022", "srt/2022q3", "srt/2022", "ifrs/2022", "cef/2022"],
         "ecd/2023" : ["@stx-2023", "us-gaap/2023", "srt/2023", "ifrs/2023", "cef/2023"],
+        "shr/2023" : ["@stx-2023", "us-gaap/2023", "srt/2023", "ifrs/2023", "cef/2023"], "comment.wch":"naive copy of ecd/2023 entry",
         "us-gaap/2022": ["us-gaap/2022q3", "@stx-2022", "srt/2022", "srt/2022q3", "ifrs/2022", "cef/2022"],
         "us-gaap/2022q3": ["us-gaap/2022", "@stx-2022", "srt/2022q3", "srt/2022", "ifrs/2022", "cef/2022"],
         "us-gaap/2023": ["@stx-2023", "srt/2023", "ifrs/2023", "cef/2023"],

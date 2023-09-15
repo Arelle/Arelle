@@ -191,6 +191,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         if _setParams:
             modelXbrl.info("info",_("Setting submission parameters: %(setParams)s"), setParams=", ".join(_setParams))
 
+        modelXbrl.efmSubmissionType = submissionType
+        modelXbrl.efmAttachmentDocumentType = attachmentDocumentType
         val.otherStandardTaxonomies = loadOtherStandardTaxonomies(modelXbrl, val)
         compatibleTaxonomies = loadTaxonomyCompatibility(modelXbrl)
     if isXbrlInstance:
@@ -2434,21 +2436,24 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 #         _("The financial period %(reportingPeriod)s does not match rxp:D in any facts."),
                 #         edgarCode="rxp-2327-Payment-Financial-Period-Existence",
                 #         modelObject=documentPeriodEndDateFact, reportingPeriod=documentPeriodEndDateFact.value)
-                for url,doc in modelXbrl.urlDocs.items():
-                    if (url not in disclosureSystem.standardTaxonomiesDict and
-                        doc.inDTS and # ignore EdgarRenderer-loaded non-DTS schemas
-                        doc.type == ModelDocument.Type.SCHEMA):
-                        for concept in XmlUtil.children(doc.xmlRootElement, XbrlConst.xsd, "element"):
-                            name = concept.name
-                            if not concept.isAbstract or concept.isHypercubeItem or concept.isDimensionItem:
-                                modelXbrl.error("EFM.6.05.58.customElementDeclaration",
-                                    _("%(schemaName)s contained a disallowed %(disallowance)s declaration for element %(concept)s.  "
-                                      "Use a standard RXP element instead."),
-                                    edgarCode="rxp-2312-Custom-Element-Declaration",
-                                    modelObject=concept, schemaName=doc.basename, concept=concept.qname,
-                                                disallowance="non-abstract" if not concept.isAbstract
-                                                             else "hypercube" if concept.isHypercubeItem
-                                                             else "dimension")
+
+                #no longer in EFM or RXP taxonomy guide
+                #for url,doc in modelXbrl.urlDocs.items():
+                #    if (url not in disclosureSystem.standardTaxonomiesDict and
+                #        doc.inDTS and # ignore EdgarRenderer-loaded non-DTS schemas
+                #        doc.type == ModelDocument.Type.SCHEMA):
+                #        for concept in XmlUtil.children(doc.xmlRootElement, XbrlConst.xsd, "element"):
+                #            name = concept.name
+                #            if not concept.isAbstract or concept.isHypercubeItem or concept.isDimensionItem:
+                #                modelXbrl.error("EFM.6.05.58.customElementDeclaration",
+                #                    _("%(schemaName)s contained a disallowed %(disallowance)s declaration for element %(concept)s.  "
+                #                      "Use a standard RXP element instead."),
+                #                    edgarCode="rxp-2312-Custom-Element-Declaration",
+                #                    modelObject=concept, schemaName=doc.basename, concept=concept.qname,
+                #                                disallowance="non-abstract" if not concept.isAbstract
+                #                                             else "hypercube" if concept.isHypercubeItem
+                #                                             else "dimension")
+
                 val.modelXbrl.profileActivity("... SD checks 6-13, 26-27", minTimeToShow=1.0)
                 dimDefRelSet = modelXbrl.relationshipSet(XbrlConst.dimensionDefault)
                 dimDomRelSet = modelXbrl.relationshipSet(XbrlConst.dimensionDomain)
@@ -3573,24 +3578,26 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     unallowedMembersUsedByFacts = set()
                     if unallowedMembers:
                         for f in modelXbrl.factsByDimMemQname(axisConcept.qname, None): # None also includes default members
-                            dimValueQname = f.context.dimMemberQname(axisConcept.qname) # include default members
-                            if dimValueQname in unallowedMembers:
-                                unallowedMembersUsedByFacts.add(dimValueQname)
-                                if dimValueQname.namespaceURI not in disclosureSystem.standardTaxonomiesDict: # is extension member concept
-                                    issue = {"No": "Extension members should not be used with this axis. ",
-                                             "Limited": "This extension member should not be used with this axis. ",
-                                             "Yes": "Extension member is not allowed by rule. "
-                                             }[rule["extensions-allowed"]]
-                                elif rule["axis-descendants"] == "None":
-                                    issue = "Only extension members can be used with this axis. "
-                                else:
-                                    issue = "Base taxonomy member is not allowed by rule. "
-                                if not any(f.isDuplicateOf(warnedFact) for warnedFact in warnedFactsByQn[f.qname]):
-                                    warnedFactsByQn[f.qname].append(f)
-                                    modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
-                                        modelObject=f, name=f.qname, value=strTruncate(f.value,128), axis=axisConcept.qname, member=dimValueQname, issue=issue,
-                                        contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
-                                        edgarCode=edgarCode, ruleElementId=id)
+                        for f in modelXbrl.factsByDimMemQname(axisConcept.qname, None): # None also includes default members
+                            if f.context is not None:
+                                dimValueQname = f.context.dimMemberQname(axisConcept.qname) # include default members
+                                if dimValueQname in unallowedMembers:
+                                    unallowedMembersUsedByFacts.add(dimValueQname)
+                                    if dimValueQname.namespaceURI not in disclosureSystem.standardTaxonomiesDict: # is extension member concept
+                                        issue = {"No": "Extension members should not be used with this axis. ",
+                                                 "Limited": "This extension member should not be used with this axis. ",
+                                                 "Yes": "Extension member is not allowed by rule. "
+                                                 }[rule["extensions-allowed"]]
+                                    elif rule["axis-descendants"] == "None":
+                                        issue = "Only extension members can be used with this axis. "
+                                    else:
+                                        issue = "Base taxonomy member is not allowed by rule. "
+                                    if not any(f.isDuplicateOf(warnedFact) for warnedFact in warnedFactsByQn[f.qname]):
+                                        warnedFactsByQn[f.qname].append(f)
+                                        modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
+                                            modelObject=f, name=f.qname, value=strTruncate(f.value,128), axis=axisConcept.qname, member=dimValueQname, issue=issue,
+                                            contextID=f.contextID, unitID=f.unitID or "(none)",
+                                            edgarCode=edgarCode, ruleElementId=id)
                     unusedUnallowed = unallowedMembers - unallowedMembersUsedByFacts
                     for unusedMember in unusedUnallowed: # report one member per message for result comparability to XBRL-US implementation
                         modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(dqcRule["message-unreported"])),
@@ -3677,7 +3684,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                         modelObject=b.values(), sumName=_sumLn, sumValue=str(sumValue),
                                         itemNames=", ".join(_itemLns), itemValues=" + ".join(str(v) for v in itemValues),
-                                        contextID=sumFact.context.id, unitID=sumFact.unit.id if sumFact.unit is not None else "(none)",
+                                        contextID=sumFact.contextID, unitID=sumFact.unitID or "(none)",
                                         edgarCode=edgarCode, ruleElementId=id)
                             except:
                                 print("exception")
@@ -3704,7 +3711,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                           date=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True),
                                           endDate=XmlUtil.dateunionValue(maxEndDate, subtractOneDay=True),
                                           axis=rule.get("axis"), member=rule.get("member"),
-                                          contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
+                                          contextID=f.contextID, unitID=f.unitID or "(none)",
                                           edgarCode=edgarCode + '-' + id, ruleElementId=id)
         elif (dqcRuleName == "DQC.US.0006"
               and deiDocumentType not in dqcRule["excluded-document-types"]
@@ -3715,7 +3722,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     def r6facts():
                         for n in rule["names"]:
                             for f in modelXbrl.factsByLocalName.get(n,()):
-                                yield f
+                                if f.context is not None:
+                                    yield f
                         for n in ("{http://www.xbrl.org/dtr/type/non-numeric}textBlockItemType",
                                   "{http://www.xbrl.org/dtr/type/2020-01-21}textBlockItemType"):
                             for f in modelXbrl.factsByDatatype(True, qname(n)):
@@ -3726,7 +3734,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                               modelObject=f, name=f.qname.localName, durationDays=durationDays, documentFiscalPeriodFocus=deiItems.get("DocumentFiscalPeriodFocus"),
                                               startDate=XmlUtil.dateunionValue(f.context.startDatetime), endDate=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True),
-                                              contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
+                                              contextID=f.contextID, unitID=f.unitID or "(none)",
                                               edgarCode=edgarCode, ruleElementId=id)
         elif dqcRuleName == "DQC.US.0008" and ugtRels:
             for id, rule in dqcRule["rules"].items():
@@ -3789,7 +3797,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             excludedConceptTypedDimensions = dqcRule.get("excluded-concept-typed-dimensions", EMPTY_DICT)
             warnedFactsByQn = defaultdict(list)
             for f in modelXbrl.facts:
-                if (f.qname in concepts and f.isNumeric and not f.isNil and f.xValid >= VALID and f.xValue < 0 and (
+                if (f.qname in concepts and f.isNumeric and not f.isNil and f.xValid >= VALID and f.xValue < 0 and f.context is not None and (
                     not isDQC0013 or f.context.contextDimAwareHash in posIncomeBeforeTax) and (
                     all((d.isTyped and # typed member exclusion
                          d.dimensionQname.localName not in excludedConceptTypedDimensions.get(f.qname.localName, EMPTY_SET)
@@ -3806,7 +3814,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         id = conceptRuleIDs.get(f.qname, 9999)
                         warnedFactsByQn[f.qname].append(f)
                         modelXbrl.warning("{}.{}".format(dqcRuleName, id), _(logMsg(msg)),
-                            modelObject=f, name=f.qname, value=f.value, contextID=f.contextID, unitID=f.unit.id if f.unit is not None else "(none)",
+                            modelObject=f, name=f.qname, value=f.value, contextID=f.contextID, unitID=f.unitID or "(none)",
                             incomeBeforeTax=posIncomeBeforeTax.get(f.context.contextDimAwareHash), # used by 0013 message
                             edgarCode=edgarCode, ruleElementId=id)
             del warnedFactsByQn # dereference objects
@@ -3816,11 +3824,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             for id, rule in dqcRule["rules"].items():
                 for n in rule["names"]:
                     for f in modelXbrl.factsByLocalName.get(n,()):
-                        if not dateUnionEqual(documentPeriodEndDate, f.context.endDatetime, instantEndDate=True):
+                        if f.context is not None and not dateUnionEqual(documentPeriodEndDate, f.context.endDatetime, instantEndDate=True):
                             modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                               modelObject=f, name=f.qname.localName, endDate=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True),
                                               documentPeriodEndDate=documentPeriodEndDate,
-                                              contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
+                                              contextID=f.contextID, unitID=f.unitID or "(none)",
                                               incomeBeforeTax=incomeBeforeTax,
                                               edgarCode=edgarCode, ruleElementId=id)
         elif dqcRuleName == "DQC.US.0036" and hasDocPerEndDateFact:
@@ -3881,7 +3889,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             for f in modelXbrl.factsByLocalName[name]:
                                 if f.xValue != 0:
                                     modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
-                                        modelObject=f, name=name, contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)", value=f.xValue,
+                                        modelObject=f, name=name, contextID=f.contextID, unitID=f.unitID or "(none)", value=f.xValue,
                                         activity=rule["activity"],
                                         edgarCode=edgarCode, ruleElementId=id)
                         if name not in visited:
@@ -4026,7 +4034,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                 modelObject=b.values(), name=eltLn, value=f.xValue,
                                 dependentElements=", ".join(depLns),
-                                contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
+                                contextID=f.contextID, unitID=f.unitID or "(none)",
                                 edgarCode=edgarCode, ruleElementId=id)
         elif dqcRuleName == "DQC.US.0071":
             # 0071 has only one id, rule
@@ -4089,7 +4097,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                         modelObject=f, name=f.qname,value=f.xValue, role=linkroleUri, table=cubeRoot.qname,
                                         member=f.context.qnameDims[dimConcept.qname].memberQname,
-                                        contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
+                                        contextID=f.contextID, unitID=f.unitID or "(none)",
                                         edgarCode=edgarCode, ruleElementId=id)
         elif dqcRuleName == "DQC.US.0073":
             # 0073 has only one id, rule
@@ -4105,7 +4113,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                         modelObject=f, name=f.qname,value=f.xValue,
                         allowableNames=", ".join(allowablePrimaryItems),
-                        contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
+                        contextID=f.contextID, unitID=f.unitID or "(none)",
                         edgarCode=edgarCode, ruleElementId=id)
         elif dqcRuleName == "DQC.US.0079":
             for id, rule in dqcRule["rules"].items():
