@@ -8,5 +8,6 @@ faq
 contributing
 build_docs
 license
+plugins/plugins
 genindex
 :::

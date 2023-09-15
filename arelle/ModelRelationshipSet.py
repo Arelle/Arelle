@@ -5,10 +5,11 @@ from __future__ import annotations
 
 # initialize object from loaded linkbases
 from collections import defaultdict
+from dataclasses import dataclass
 from typing import Any
 from arelle import ModelDtsObject, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
-from arelle.ModelDtsObject import ModelResource
+from arelle.ModelDtsObject import ModelRelationship, ModelResource
 from arelle.PrototypeDtsObject import LocPrototype, PrototypeObject
 from arelle.XbrlConst import consecutiveArcrole
 import sys
@@ -31,7 +32,7 @@ def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
                 toLabel = linkChild.get("{http://www.w3.org/1999/xlink}to")
                 for fromResource in modelLink.labeledResources[fromLabel]:
                     for toResource in modelLink.labeledResources[toLabel]:
-                        modelRel = ModelDtsObject.ModelRelationship(modelLink.modelDocument, linkChild, fromResource.dereference(), toResource.dereference())
+                        modelRel = ModelRelationship(modelLink.modelDocument, linkChild, fromResource.dereference(), toResource.dereference())
                         hashEquivalentRels[modelRel.equivalenceHash].append(modelRel)
     # determine ineffective relationships
     ineffectives = []
@@ -98,10 +99,19 @@ def baseSetRelationship(arcElement):
             return rel
     return None
 
+# For internal use by ModelRelationshipSet.label.
+@dataclass
+class _LangLabels:
+    lang: str
+    labels: list[ModelObject] | list[str] # list[str] if returnText
+
 class ModelRelationshipSet:
     __slots__ = ("isChanged", "modelXbrl", "arcrole", "linkrole", "linkqname", "arcqname",
                  "modelRelationshipsFrom", "modelRelationshipsTo", "modelConceptRoots", "modellinkRoleUris",
                  "modelRelationships", "_testHintedLabelLinkrole")
+
+    modelRelationshipsFrom: dict[Any, list[ModelRelationship]] | None
+    modelRelationshipsTo: dict[Any, list[ModelRelationship]] | None
 
     # arcrole can either be a single string or a tuple or frozenset of strings
     def __init__(self, modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
@@ -161,7 +171,7 @@ class ModelRelationshipSet:
                 for fromResource in modelLink.labeledResources[fromLabel]:
                     for toResource in modelLink.labeledResources[toLabel]:
                         if isinstance(fromResource,(ModelResource,LocPrototype)) and isinstance(toResource,(ModelResource,LocPrototype)):
-                            modelRel = ModelDtsObject.ModelRelationship(modelLink.modelDocument, arcElement, fromResource.dereference(), toResource.dereference())
+                            modelRel = ModelRelationship(modelLink.modelDocument, arcElement, fromResource.dereference(), toResource.dereference())
                             modelRelEquivalenceHash = modelRel.equivalenceHash
                             if modelRelEquivalenceHash not in relationships:
                                 relationships[modelRelEquivalenceHash] = modelRel
@@ -213,42 +223,41 @@ class ModelRelationshipSet:
             self.modellinkRoleUris = set(modelRel.linkrole for modelRel in self.modelRelationships)
         return self.modellinkRoleUris
 
-    def loadModelRelationshipsFrom(self):
-        if self.modelRelationshipsFrom is None:
-            self.modelRelationshipsFrom = defaultdict(list)
+    def loadModelRelationshipsFrom(self) -> dict[Any, list[ModelRelationship]]:
+        modelRelationshipsFrom = self.modelRelationshipsFrom
+        if modelRelationshipsFrom is None:
+            modelRelationshipsFrom = defaultdict(list)
             for modelRel in self.modelRelationships:
                 fromModelObject = modelRel.fromModelObject
                 if fromModelObject is not None: # none if concepts failed to load
-                    self.modelRelationshipsFrom[fromModelObject].append(modelRel)
+                    modelRelationshipsFrom[fromModelObject].append(modelRel)
+            self.modelRelationshipsFrom = modelRelationshipsFrom
+        return modelRelationshipsFrom
 
-    def loadModelRelationshipsTo(self):
-        if self.modelRelationshipsTo is None:
-            self.modelRelationshipsTo = defaultdict(list)
+    def loadModelRelationshipsTo(self) -> dict[Any, list[ModelRelationship]]:
+        modelRelationshipsTo = self.modelRelationshipsTo
+        if modelRelationshipsTo is None:
+            modelRelationshipsTo = defaultdict(list)
             for modelRel in self.modelRelationships:
                 toModelObject = modelRel.toModelObject
                 if toModelObject is not None:   # none if concepts failed to load
-                    self.modelRelationshipsTo[toModelObject].append(modelRel)
+                    modelRelationshipsTo[toModelObject].append(modelRel)
+            self.modelRelationshipsTo = modelRelationshipsTo
+        return modelRelationshipsTo
 
-    def fromModelObjects(self) -> dict[Any, list]:
-        self.loadModelRelationshipsFrom()
-        return self.modelRelationshipsFrom
+    def fromModelObjects(self) -> dict[Any, list[ModelRelationship]]:
+        return self.loadModelRelationshipsFrom()
 
-    def fromModelObject(self, modelFrom) -> list[Any]:
-        if self.modelRelationshipsFrom is None:
-            self.loadModelRelationshipsFrom()
-        return self.modelRelationshipsFrom.get(modelFrom, [])
+    def fromModelObject(self, modelFrom) -> list[ModelRelationship]:
+        return self.loadModelRelationshipsFrom().get(modelFrom, [])
 
-    def toModelObjects(self):
-        self.loadModelRelationshipsTo()
-        return self.modelRelationshipsTo
+    def toModelObjects(self) -> dict[Any, list[ModelRelationship]]:
+        return self.loadModelRelationshipsTo()
 
-    def toModelObject(self, modelTo) -> list[Any]:
-        if self.modelRelationshipsTo is None:
-            self.loadModelRelationshipsTo()
-        return self.modelRelationshipsTo.get(modelTo, [])
+    def toModelObject(self, modelTo) -> list[ModelRelationship]:
+        return self.loadModelRelationshipsTo().get(modelTo, [])
 
-    def fromToModelObjects(self, modelFrom, modelTo, checkBothDirections=False):
-        self.loadModelRelationshipsFrom()
+    def fromToModelObjects(self, modelFrom, modelTo, checkBothDirections=False) -> list[ModelRelationship]:
         rels = [rel for rel in self.fromModelObject(modelFrom) if rel.toModelObject is modelTo]
         if checkBothDirections:
             rels += [rel for rel in self.fromModelObject(modelTo) if rel.toModelObject is modelFrom]
@@ -257,19 +266,20 @@ class ModelRelationshipSet:
     @property
     def rootConcepts(self):
         if self.modelConceptRoots is None:
-            self.loadModelRelationshipsFrom()
-            self.loadModelRelationshipsTo()
+            modelRelationshipsFrom = self.loadModelRelationshipsFrom()
+            modelRelationshipsTo = self.loadModelRelationshipsTo()
             self.modelConceptRoots = [modelRelFrom
-                                      for modelRelFrom, relFrom in self.modelRelationshipsFrom.items()
-                                      if modelRelFrom not in self.modelRelationshipsTo or
+                                      for modelRelFrom, relFrom in modelRelationshipsFrom.items()
+                                      if modelRelFrom not in modelRelationshipsTo or
                                       (len(relFrom) == 1 and # root-level self-looping arc
-                                       len(self.modelRelationshipsTo[modelRelFrom]) == 1 and
+                                       len(modelRelationshipsTo[modelRelFrom]) == 1 and
                                        relFrom[0].fromModelObject == relFrom[0].toModelObject)]
         return self.modelConceptRoots
 
     # if modelFrom and modelTo are provided determine that they have specified relationship
     # if only modelFrom, determine that there are relationships present of specified axis
     def isRelated(self, modelFrom, axis, modelTo=None, visited=None, isDRS=False): # either model concept or qname
+        assert self.modelXbrl is not None
         if isinstance(modelFrom,ModelValue.QName):
             modelFrom = self.modelXbrl.qnameConcepts.get(modelFrom) # fails if None
         if isinstance(modelTo,ModelValue.QName):
@@ -313,10 +323,8 @@ class ModelRelationshipSet:
                     visited.discard(toConcept)
         return False
 
-    def label(self, modelFrom, role, lang, returnMultiple=False, returnText=True, linkroleHint=None):
+    def label(self, modelFrom, role, lang, returnMultiple=False, returnText=True, linkroleHint=None) -> str | ModelObject | list[str] | list[ModelObject] | None:
         _lang = lang.lower() if lang else lang # lang processing is case insensitive
-        shorterLangInLabel = longerLangInLabel = None
-        shorterLangLabels = longerLangLabels = None
         langLabels = []
         wildRole = role == '*'
         labels = self.fromModelObject(modelFrom)
@@ -342,6 +350,8 @@ class ModelRelationshipSet:
                 labels = (labelsHintedLink or labelsDefaultLink or labelsOtherLinks)
         if len(labels) > 1: # order by priority (ignoring equivalence of relationships)
             labels = sorted(labels, key=lambda rel: rel.priority, reverse=True)
+        shorter: _LangLabels | None = None
+        longer: _LangLabels | None = None
         for modelLabelRel in labels:
             label = modelLabelRel.toModelObject
             if wildRole or role == label.role:
@@ -355,24 +365,22 @@ class ModelRelationshipSet:
                         break
                 elif labelLang is not None:
                     if labelLang.startswith(_lang):
-                        if not longerLangInLabel or len(longerLangInLabel) > len(labelLang):
-                            longerLangInLabel = labelLang
-                            longerLangLabels = [text,]
+                        if not longer or len(longer.lang) > len(labelLang):
+                            longer = _LangLabels(labelLang, [text])
                         else:
-                            longerLangLabels.append(text)
+                            longer.labels.append(text)
                     elif lang.startswith(labelLang):
-                        if not shorterLangInLabel or len(shorterLangInLabel) < len(labelLang):
-                            shorterLangInLabel = labelLang
-                            shorterLangLabels = [text,]
+                        if not shorter or len(shorter.lang) < len(labelLang):
+                            shorter = _LangLabels(labelLang, [text])
                         else:
-                            shorterLangLabels.append(text)
+                            shorter.labels.append(text)
         if langLabels:
             if returnMultiple: return langLabels
             else: return langLabels[0]
-        if shorterLangLabels:  # more general has preference
-            if returnMultiple: return shorterLangLabels
-            else: return shorterLangLabels[0]
-        if longerLangLabels:
-            if returnMultiple: return longerLangLabels
-            else: return longerLangLabels[0]
+        if shorter:  # more general has preference
+            if returnMultiple: return shorter.labels
+            else: return shorter.labels[0]
+        if longer:
+            if returnMultiple: return longer.labels
+            else: return longer.labels[0]
         return None

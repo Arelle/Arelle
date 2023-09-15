@@ -371,6 +371,10 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 XmlValidateSchema.validate(doc, doc.xmlRootElement, doc.targetNamespace) # validate schema elements
             if hasattr(modelXbrl, "ixdsHtmlElements"):
                 inlineIxdsDiscover(modelXbrl, modelDocument) # compile cross-document IXDS references
+                for doc in modelDocument.referencesDocument.keys():
+                    for referencedDoc in doc.referencesDocument.keys():
+                        if referencedDoc.type == Type.SCHEMA:
+                            modelDocument.targetDocumentSchemaRefs.add(doc.relativeUri(referencedDoc.uri))
 
         if isEntry or isSupplemental:
             # re-order base set keys for entry point or supplemental linkbase addition
@@ -396,7 +400,7 @@ def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl)
             doc.inDTS = False
     return doc
 
-def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None, initialComment=None, base=None, discover=True, documentEncoding="utf-8") -> ModelDocument:
+def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None, initialComment=None, base=None, discover=True, documentEncoding="utf-8", xbrliNamespacePrefix=None) -> ModelDocument:
     """Returns a new modelDocument, created from scratch, with any necessary header elements
 
     (such as the schema, instance, or RSS feed top level elements)
@@ -424,14 +428,21 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
         Xml = '<nsmap>{}{}</nsmap>'.format(initialComment or '', initialXml or '')
     elif type == Type.INSTANCE:
         # modelXbrl.uriDir = os.path.dirname(normalizedUri)
+        if xbrliNamespacePrefix is not None:
+            xbrli_instance_namespace = f'<{xbrliNamespacePrefix}:xbrl xmlns:{xbrliNamespacePrefix}="http://www.xbrl.org/2003/instance"'
+        else:
+            xbrli_instance_namespace = '<xbrl xmlns="http://www.xbrl.org/2003/instance"'
         Xml = ('<nsmap>{}'
-               '<xbrl xmlns="http://www.xbrl.org/2003/instance"'
+               '{}'
                ' xmlns:link="http://www.xbrl.org/2003/linkbase"'
-               ' xmlns:xlink="http://www.w3.org/1999/xlink">').format(initialComment)
+               ' xmlns:xlink="http://www.w3.org/1999/xlink">').format(initialComment, xbrli_instance_namespace)
         if schemaRefs:
             for schemaRef in schemaRefs:
                 Xml += '<link:schemaRef xlink:type="simple" xlink:href="{0}"/>'.format(schemaRef.replace("\\","/"))
-        Xml += '</xbrl></nsmap>'
+        if xbrliNamespacePrefix is not None:
+            Xml += f'</{xbrliNamespacePrefix}:xbrl></nsmap>'
+        else:
+            Xml += '</xbrl></nsmap>'
     elif type == Type.SCHEMA:
         Xml = ('<nsmap>{}<schema xmlns="http://www.w3.org/2001/XMLSchema" /></nsmap>').format(initialComment)
     elif type == Type.RSSFEED:
@@ -687,6 +698,7 @@ class ModelDocument:
         self.hrefObjects = []
         self.schemaLocationElements = set()
         self.referencedNamespaces = set()
+        self.targetDocumentSchemaRefs = set()
         self.inDTS = False
         self.definesUTR = False
         self.isModified = False

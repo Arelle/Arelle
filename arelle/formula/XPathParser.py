@@ -490,7 +490,6 @@ def pushExpr(sourceStr: str, loc: int, toks: ParseResults) -> Expr:
     return expr
 
 
-ParserElement.enable_packrat()
 # define grammar
 variableRef = Regex(
     "[$]"  # variable prefix
@@ -526,25 +525,40 @@ qName = Regex(
 ncName = Word(alphas + '_', alphanums + '_-.')
 prefixOp = Literal(":")
 
+exponentLiteralStr = r"[eE]"
+plusorminusLiteralStr = r"[+-]"
+digitsStr = r"\d+"
+optionalDigitsStr = r"\d*"
+decimalPointStr = r"\."
+nanLiteralStr = r"NaN"
+integerLiteralStr = plusorminusLiteralStr + r"?" + digitsStr
+decimalFractionLiteralStr = plusorminusLiteralStr + "?" + decimalPointStr + digitsStr
+infLiteralStr = plusorminusLiteralStr + r"?INF"
+
 decimalPoint = Literal('.')
-exponentLiteral = CaselessLiteral('e')
+exponentLiteral = Regex(exponentLiteralStr)
 plusorminusLiteral = Literal('+') | Literal('-')
 digits = Word(nums)
-integerLiteral = Combine(Opt(plusorminusLiteral) + digits)
-decimalFractionLiteral = Combine(Opt(plusorminusLiteral) + decimalPoint + digits)
-infLiteral = Combine(Opt(plusorminusLiteral) + Literal("INF"))
-nanLiteral = Literal("NaN")
-floatLiteral = (
-    Combine(
-        integerLiteral
-        + ((decimalPoint + Opt(digits) + exponentLiteral + integerLiteral) | (exponentLiteral + integerLiteral))
-    )
-    | Combine(decimalFractionLiteral + exponentLiteral + integerLiteral)
-    | infLiteral
-    | nanLiteral
+integerLiteral = Regex(integerLiteralStr)
+decimalFractionLiteral = Regex(decimalFractionLiteralStr)
+infLiteral = Regex(infLiteralStr)
+nanLiteral = Regex(nanLiteralStr)
+floatLiteral = Regex(
+    integerLiteralStr
+    + r"(" + decimalPointStr + optionalDigitsStr + ")?"
+    + exponentLiteralStr + integerLiteralStr
+    + r"|"
+    + decimalFractionLiteralStr + exponentLiteralStr + integerLiteralStr
+    + r"|"
+    + infLiteralStr
+    + r"|"
+    + nanLiteralStr
 )
-decimalLiteral = Combine(integerLiteral + decimalPoint + Opt(digits)) | decimalFractionLiteral
-
+decimalLiteral = Regex(
+    integerLiteralStr + decimalPointStr + optionalDigitsStr
+    + r"|"
+    + decimalFractionLiteralStr
+)
 
 # emptySequence = Literal( "(" ) + Literal( ")" )
 lParen = Literal("(")

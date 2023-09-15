@@ -40,22 +40,31 @@ Need help with Arelle? Go check out [our documentation][read-the-docs].
 
 ## Features
 
-- Support for XBRL versioning. Validation tool for versioning reports and a
-  production tool to generate the basics of a versioning report that can be
-  inferred by diffing two DTSs.
-- Edgar and Global Filer Manual validation
-- ESEF Reporting Manual validation
-- Base Specification, Dimensions, Generic linkbase validation
-- Formula validation including support for extension modules
-- Instance creation is supported using forms defined by the table linkbase
-  (Eurofiling version).
-- RSS Watch facility
-- Users can explore the functionality and features from an interactive GUI,
-  command line interface, or web services, and can develop their own controller
-  interfaces as needed.
+- Fully-featured XBRL processor with GUI, CLI, Python API and Web Service API.
+- Support for the XBRL Standard, including:
+    - XBRL v2.1 and XBRL Dimensions v1.0
+    - XBRL Formula v1.0
+    - Taxonomy Packages v1.0
+    - xBRL-JSON v1.0 and xBRL-CSV v1.0
+    - Inline XBRL v1.1
+    - Units Registry v1.0
+- Certified by XBRL International as a [Validating Processor][certification].
+- Support for filing programme validation rules:
+    - Edgar Filer Manual validation (US SEC)
+    - ESEF Reporting Manual (EU)
+    - HMRC (UK)
+    - CIPC (South Africa)
+    - FERC (US Federal Energy Regulatory Commission)
+- Integrated support for [Arelle Inline XBRL Viewer][viewer].
+- Extensible plugin architecture.
+- Support for XF text-based Formula and XULE validation rules.
 - The Web Service API allows XBRL integration with applications, such as those in
   Excel, Java or Oracle.
-- QuickBooks is supported by XBRL-GL.
+- Instance creation is supported using forms defined by the table linkbase.
+- Support for reading/monitoring US SEC XBRL RSS feeds (RSS Watch).
+
+[viewer]: https://github.com/Arelle/ixbrl-viewer
+[certification]: https://software.xbrl.org/processor/arelle-arelle
 
 ## Need Support?
 

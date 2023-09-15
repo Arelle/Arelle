@@ -888,8 +888,7 @@ def addQnameValue(modelDocument: ModelDocument, qnameValue: QName | str) -> str:
         prefix = "{0}_{1}".format(qnameValue.prefix if qnameValue.prefix else '', dupNum)
         dupNum += 1
     setXmlns(modelDocument, prefix, ns)
-    assert isinstance(prefix, str)
-    return qnameValue.localName if len(prefix) == 0 else prefix + ':' + qnameValue.localName  # ModelValue type hints
+    return f'{prefix}:{qnameValue.localName}' if prefix else qnameValue.localName
 
 
 def setXmlns(modelDocument: etree._ElementTree | ModelDocument, prefix: str | None, namespaceURI: str) -> None:

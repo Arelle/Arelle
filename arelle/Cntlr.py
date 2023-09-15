@@ -9,7 +9,7 @@
    :synopsis: Common controller class to initialize for platform and setup common logger functions
 """
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING, TextIO, Mapping, cast
+from typing import Any, TYPE_CHECKING, TextIO, Mapping
 
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.typing import TypeGetText
@@ -19,6 +19,7 @@ from arelle import ModelManager
 from arelle.WebCache import WebCache
 from arelle.Locale import getLanguageCodes, setDisableRTL
 from arelle import PluginManager, PackageManager, XbrlConst
+from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, isCGI, isGAE, hasWebServer
 from collections import defaultdict
 
 _: TypeGetText
@@ -153,10 +154,13 @@ class Cntlr:
         }
         self.hasWin32gui = False
         self.hasGui = hasGui
-        self.hasFileSystem = True # no file system on Google App Engine servers
-        self.isGAE = False
-        self.isCGI = False
-        self.systemWordSize = int(round(math.log(sys.maxsize, 2)) + 1) # e.g., 32 or 64
+        self.hasFileSystem = hasFileSystem() # no file system on Google App Engine servers
+        self.isGAE = isGAE()
+        self.isCGI = isCGI()
+        platformOS = PlatformOS.getPlatformOS()
+        self.isMac = platformOS == PlatformOS.MACOS
+        self.isMSW = platformOS == PlatformOS.WINDOWS
+        self.systemWordSize = getSystemWordSize()  # e.g., 32 or 64
         self.uiLangDir = "ltr"
         self.disablePersistentConfig = disable_persistent_config
 
@@ -170,15 +174,6 @@ class Cntlr:
         if cxFrozen:
             # some cx_freeze versions set this variable, which is incompatible with matplotlib after v3.1
             os.environ.pop("MATPLOTLIBDATA", None)
-        serverSoftware = os.getenv("SERVER_SOFTWARE", "")
-        if serverSoftware.startswith("Google App Engine/") or serverSoftware.startswith("Development/"):
-            self.hasFileSystem = False # no file system, userAppDir does not exist
-            self.isGAE = True
-        else:
-            gatewayInterface = os.getenv("GATEWAY_INTERFACE", "")
-            if gatewayInterface.startswith("CGI/"):
-                self.isCGI = True
-
         configHomeDir = None  # look for path configDir/CONFIG_HOME in argv and environment parameters
         for i, arg in enumerate(sys.argv):  # check if config specified in a argv
             if arg.startswith("--xdgConfigHome="):
@@ -208,17 +203,13 @@ class Cntlr:
                 self.userAppDir = configHomeDir # use the XDG_CONFIG_HOME because cache is already a subdirectory
             else:
                 self.userAppDir = impliedAppDir
-        if sys.platform == "darwin":
-            self.isMac = True
-            self.isMSW = False
+        if self.isMac:
             if self.hasFileSystem and not configHomeDir:
                 self.userAppDir = os.path.expanduser("~") + "/Library/Application Support/Arelle"
             # note that cache is in ~/Library/Caches/Arelle
             self.contextMenuClick = "<Button-2>"
             self.hasClipboard = hasGui  # clipboard always only if Gui (not command line mode)
-        elif sys.platform.startswith("win"):
-            self.isMac = False
-            self.isMSW = True
+        elif self.isMSW:
             if self.hasFileSystem and not configHomeDir:
                 tempDir = tempfile.gettempdir()
                 if tempDir.lower().endswith('local\\temp'):
@@ -240,9 +231,7 @@ class Cntlr:
             else:
                 self.hasClipboard = False
             self.contextMenuClick = "<Button-3>"
-        else: # Unix/Linux
-            self.isMac = False
-            self.isMSW = False
+        else:  # Unix/Linux
             if self.hasFileSystem and not configHomeDir:
                     self.userAppDir = os.path.join( os.path.expanduser("~/.config"), "arelle")
             if hasGui:
@@ -254,11 +243,7 @@ class Cntlr:
             else:
                 self.hasClipboard = False
             self.contextMenuClick = "<Button-3>"
-        try:
-            from arelle import webserver
-            self.hasWebServer = True
-        except ImportError:
-            self.hasWebServer = False
+        self.hasWebServer = hasWebServer()
         # assert that app dir must exist
         self.config = None
         if self.hasFileSystem and not self.disablePersistentConfig:

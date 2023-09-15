@@ -65,7 +65,7 @@ jobs:
       zip_uploaded_artifact_name: ${{ github.event_name == 'pull_request' && needs.build-windows-pr.outputs.zip_uploaded_artifact_name || needs.build-windows-dispatch.outputs.zip_uploaded_artifact_name }}
     steps:
       - name: Checkout arelle
-        uses: actions/checkout@v3.5.3
+        uses: actions/checkout@v4.0.0
         with:
           fetch-depth: 0
       - name: Download installer artifact
@@ -129,21 +129,21 @@ jobs:
 
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: logs-${{ matrix.build-type }}
           path: 'c:\temp\testsmedia\*.txt'
       - name: Upload screenshots
         # screenshots are only taken on test failure
         if: failure()
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: screenshots-${{ matrix.build-type }}
           path: 'c:\temp\testsmedia\*.png'
       - name: Upload videos
         # videos are only saved on test failure
         if: failure()
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: videos-${{ matrix.build-type }}
           path: 'c:\temp\testsmedia\*.avi'
