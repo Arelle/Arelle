@@ -11,10 +11,9 @@ Returns nested list of secondary IXDSes and nested lists of modelXbrl.ixdsHtmlEl
 
 def isolateSeparateIXDSes(modelXbrl, args, **kwargs):
     separateIXDSes = []
-    
+
     for htmlElt in modelXbrl.ixdsHtmlElements:
         for elt in htmlElt.iterfind(f".//{{{htmlElt.modelDocument.ixNS}}}nonNumeric[@name='dei:DocumentType' or @name='ffd:SubmissnTp']"):
             print(f"trace {elt.tag} = {elt.text}")
-    
-    return separateIXDSes
 
+    return separateIXDSes

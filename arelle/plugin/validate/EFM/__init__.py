@@ -379,7 +379,7 @@ def guiTestcasesStart(cntlr, modelXbrl, *args, **kwargs):
         for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Gui.Run"):
             pluginXbrlMethod(cntlr, modelXbrl, *args,
                              # pass plugin items to GUI mode of EdgarRenderer
-                             exhibitTypesStrippingOnErrorPattern=exhibitTypesStrippingOnErrorPattern, 
+                             exhibitTypesStrippingOnErrorPattern=exhibitTypesStrippingOnErrorPattern,
                              setReportAttrs=setReportAttrs, **kwargs)
 
 def testcasesStart(cntlr, options, modelXbrl, *args, **kwargs):
