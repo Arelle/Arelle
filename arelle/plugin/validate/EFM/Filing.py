@@ -3578,7 +3578,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     unallowedMembersUsedByFacts = set()
                     if unallowedMembers:
                         for f in modelXbrl.factsByDimMemQname(axisConcept.qname, None): # None also includes default members
-                        for f in modelXbrl.factsByDimMemQname(axisConcept.qname, None): # None also includes default members
                             if f.context is not None:
                                 dimValueQname = f.context.dimMemberQname(axisConcept.qname) # include default members
                                 if dimValueQname in unallowedMembers:
@@ -3705,7 +3704,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 else:
                     continue
                 for f in facts:
-                    if maxEndDateComparedTo(f.context.endDatetime):
+                    if f.context is not None and maxEndDateComparedTo(f.context.endDatetime):
                         modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                           modelObject=f, name=f.qname.localName, value=f.xValue,
                                           date=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True),
@@ -3727,7 +3726,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         for n in ("{http://www.xbrl.org/dtr/type/non-numeric}textBlockItemType",
                                   "{http://www.xbrl.org/dtr/type/2020-01-21}textBlockItemType"):
                             for f in modelXbrl.factsByDatatype(True, qname(n)):
-                                yield f
+                                if f.context is not None:
+                                    yield f
                     for f in r6facts():
                         durationDays = (f.context.endDatetime - f.context.startDatetime).days
                         if not (focusRange[0] <= durationDays <= focusRange[1]):
@@ -3833,7 +3833,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                               edgarCode=edgarCode, ruleElementId=id)
         elif dqcRuleName == "DQC.US.0036" and hasDocPerEndDateFact:
             for id, rule in dqcRule["rules"].items():
-                if abs((documentPeriodEndDate + ONE_DAY - documentPeriodEndDateFact.context.endDatetime).days) > 1: # was 3
+                if f.context is not None and abs((documentPeriodEndDate + ONE_DAY - documentPeriodEndDateFact.context.endDatetime).days) > 1: # was 3
                     modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                       modelObject=f, name=documentPeriodEndDateFact.qname.localName,
                                       endDate=XmlUtil.dateunionValue(documentPeriodEndDateFact.context.endDatetime, subtractOneDay=True),
@@ -4088,10 +4088,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 factsWithDim = set()
                                 factsWithoutDim = set()
                                 for f in boundFacts.values():
-                                    if dimConcept.qname in f.context.qnameDims and f.context.qnameDims[dimConcept.qname].member in domDescendants:
-                                        factsWithDim.add(f)
-                                    else:
-                                        factsWithoutDim.add(f)
+                                    if f.context is not None:
+                                        if dimConcept.qname in f.context.qnameDims and f.context.qnameDims[dimConcept.qname].member in domDescendants:
+                                            factsWithDim.add(f)
+                                        else:
+                                            factsWithoutDim.add(f)
                                 if len(factsWithDim) == 1 and len(factsWithoutDim) == 0:
                                     f = factsWithDim.pop()
                                     modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
