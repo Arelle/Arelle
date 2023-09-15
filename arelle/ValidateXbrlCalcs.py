@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from math import (log10, isnan, isinf, fabs, floor, pow)
 import decimal
 from typing import TYPE_CHECKING
@@ -31,14 +31,32 @@ class ValidateCalcsMode:
     ROUND_TO_NEAREST = 4            # calculations 1.1 round-to-nearest mode
     TRUNCATION = 5                  # calculations 1.1 truncation mode
 
-    label = {
-        NONE: "No calculations linkbase checks",
-        XBRL_v2_1_INFER_PRECISION: "Pre-2010 XBRL 2.1 calculations validation inferring precision",
-        XBRL_v2_1:  "XBRL 2.1 calculations linkbase checks",
-        XBRL_v2_1_DEDUPLICATE: "XBRL v2.1 calculations linkbase with de-duplication",
-        ROUND_TO_NEAREST: "Calculations 1.1 round-to-nearest mode",
-        TRUNCATION: "Calculations 1.1 truncation mode"
-        }
+    @staticmethod
+    def label(enum): # must be dynamic using language choice when selecting enum choice
+        if enum == ValidateCalcsMode.NONE:
+            return  _("No calculations linkbase checks")
+        if enum == ValidateCalcsMode.XBRL_v2_1_INFER_PRECISION:
+            return  _("Pre-2010 XBRL 2.1 calculations validation inferring precision")
+        if enum == ValidateCalcsMode.XBRL_v2_1:
+            return   _("XBRL 2.1 calculations linkbase checks")
+        if enum == ValidateCalcsMode.XBRL_v2_1_DEDUPLICATE:
+            return  _("XBRL v2.1 calculations linkbase with de-duplication")
+        if enum == ValidateCalcsMode.ROUND_TO_NEAREST:
+            return  _("Calculations 1.1 round-to-nearest mode")
+        if enum == ValidateCalcsMode.TRUNCATION:
+            return  _("Calculations 1.1 truncation mode")
+
+    @staticmethod
+    def menu(): # must be dynamic class method to map to current language choice
+        return OrderedDict((
+            (_("No calculation checks"), ValidateCalcsMode.NONE),
+            # omit pre-2010 spec v2.1 mode, XBRL_v2_1_INFER_PRECISION
+            (_("Calc 1.0 calculations"), ValidateCalcsMode.XBRL_v2_1),
+            (_("Calc 1.0 with de-duplication"), ValidateCalcsMode.XBRL_v2_1_DEDUPLICATE),
+            (_("Calc 1.1 round-to-nearest mode"), ValidateCalcsMode.ROUND_TO_NEAREST),
+            (_("Calc 1.1 truncation mode"), ValidateCalcsMode.TRUNCATION)
+        ))
+
 
 oimXbrlxeBlockingErrorCodes = {
         "xbrlxe:nonDimensionalSegmentScenarioContent",
@@ -434,7 +452,7 @@ class ValidateXbrlCalcs:
             _inConsistent = (a == b and not(inclA and inclB)) or (a > b)
         if _excessDigitFacts:
             self.modelXbrl.error("calc11e:excessDigits",
-                "Calculations check stopped for excess digits in fact values %(element)s: %(values)s, %(contextIDs)s.",
+                _("Calculations check stopped for excess digits in fact values %(element)s: %(values)s, %(contextIDs)s."),
                 modelObject=fList, element=_excessDigitFacts[0].qname,
                 contextIDs=", ".join(sorted(set(f.contextID for f in _excessDigitFacts))),
                 values=", ".join(strTruncate(f.value,64) for f in _excessDigitFacts))
@@ -442,7 +460,7 @@ class ValidateXbrlCalcs:
         if _inConsistent:
             self.modelXbrl.error(
                 "calc11e:disallowedDuplicateFactsUsingTruncation" if self.calc11t else "oime:disallowedDuplicateFacts",
-                "Calculations check stopped for duplicate fact values %(element)s: %(values)s, %(contextIDs)s.",
+                _("Calculations check stopped for duplicate fact values %(element)s: %(values)s, %(contextIDs)s."),
                 modelObject=fList, element=fList[0].qname,
                 contextIDs=", ".join(sorted(set(f.contextID for f in fList))),
                 values=", ".join(strTruncate(f.value,64) for f in fList))

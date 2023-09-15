@@ -15,6 +15,7 @@ from arelle.UiUtil import gridCell, gridCombobox, label, checkbox
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isValidAbsolute
+from arelle.ValidateXbrlCalcs import ValidateCalcsMode as CalcsMode
 
 '''
 caller checks accepted, if True, caller retrieves url
@@ -115,16 +116,23 @@ class DialogRssWatch(Toplevel):
                     "validateXbrlRules"),
            checkbox(frame, 2, row+1,
                     "Selected disclosure system rules",
-                    "validateDisclosureSystemRules"),
-           checkbox(frame, 2, row+2,
-                    "Calculation linkbase roll-up",
-                    "validateCalcLinkbase"),
-           checkbox(frame, 2, row+3,
+                    "validateDisclosureSystemRules")
+        )
+        row += 2
+        self.calcModeMenu = CalcsMode.menu() # dynamic, may change after initialization if language changes
+        vals = list(self.calcModeMenu.keys())
+        keys = dict((v,k) for k,v in self.calcModeMenu.items())
+        self.validateCalcs = gridCombobox(frame, 2, row, keys.get(options.get("validateCalcs",0)), values=vals)
+        self.validateCalcs.grid(pady=2,padx=(44,0))
+        ToolTip(self.validateCalcs, text=_("Select calculations validation"), wraplength=240)
+        row += 1
+        self.checkboxes += (
+           checkbox(frame, 2, row,
                     "Formula assertions",
                     "validateFormulaAssertions"),
            # Note: if adding to this list keep ModelFormulaObject.FormulaOptions in sync
         )
-        row += 4
+        row += 1
         for pluginXbrlMethod in pluginClassMethods("DialogRssWatch.ValidateChoices"):
             pluginXbrlMethod(self, frame, row, options, mainWin)
             row += 1
@@ -241,6 +249,7 @@ class DialogRssWatch(Toplevel):
             self.options["latestPubDate"] = None
         for checkbox in self.checkboxes:
             self.options[checkbox.attr] = checkbox.value
+        self.options["validateCalcs"] = self.calcModeMenu[self.validateCalcs.value]
 
     def ok(self, event=None):
         if not self.checkEntries():

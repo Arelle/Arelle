@@ -158,11 +158,8 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.modelManager.validateCalcs = self.config.setdefault("validateCalcsEnum", CalcsMode.NONE)
         self.calcChoiceEnumVar = IntVar(self.parent, value=self.modelManager.validateCalcs)
         self.calcChoiceEnumVar.trace("w", self.setCalcChoiceEnumVar)
-        calcMenu.add_radiobutton(label=_('No calculation checks'), underline=0, var=self.calcChoiceEnumVar, value=CalcsMode.NONE)
-        calcMenu.add_radiobutton(label=_('Calc 1.0 calculations'), underline=0, var=self.calcChoiceEnumVar, value=CalcsMode.XBRL_v2_1)
-        calcMenu.add_radiobutton(label=_('Calc 1.0 with de-duplication'), underline=0, var=self.calcChoiceEnumVar, value=CalcsMode.XBRL_v2_1_DEDUPLICATE)
-        calcMenu.add_radiobutton(label=_('Calc 1.1 round-to-nearest mode'), underline=0, var=self.calcChoiceEnumVar, value=CalcsMode.ROUND_TO_NEAREST)
-        calcMenu.add_radiobutton(label=_('Calc 1.1 truncation mode'), underline=0, var=self.calcChoiceEnumVar, value=CalcsMode.TRUNCATION)
+        for calcChoiceMenuLabel, calcChoiceEnumValue in CalcsMode.menu().items():
+            calcMenu.add_radiobutton(label=calcChoiceMenuLabel, underline=0, var=self.calcChoiceEnumVar, value=calcChoiceEnumValue)
         toolsMenu.add_cascade(label=_("Calc linkbase"), menu=calcMenu, underline=0)
         self.modelManager.validateUtr = self.config.setdefault("validateUtr",True)
         self.validateUtr = BooleanVar(value=self.modelManager.validateUtr)
@@ -1285,7 +1282,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             if valType == ModelDocument.Type.VERSIONINGREPORT:
                 v = _("Validate versioning report")
             else:
-                c = "\n" + CalcsMode.label[self.modelManager.validateCalcs]
+                c = "\n" + CalcsMode.label(self.modelManager.validateCalcs)
                 if self.modelManager.validateUtr:
                     u = _("\nCheck unit type registry")
                 else:
