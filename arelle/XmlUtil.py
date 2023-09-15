@@ -38,7 +38,7 @@ xmlnsStripPattern = re.compile(r'\s*xmlns(:[\w.-]+)?="[^"]*"')
 nonSpacePattern = re.compile(r"\S+")
 
 class XmlDeclarationLocationException(Exception):
-    def __init__(self):
+    def __init__(self) -> None:
         super(XmlDeclarationLocationException, self).__init__("XML declaration is allowed only at the start of the document")
 
 def xmlns(element: ModelObject, prefix: str | None) -> str | None:
