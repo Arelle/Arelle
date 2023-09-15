@@ -204,6 +204,11 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                     error=str(err), exc_info=True)
             modelXbrl.urlUnloadableDocs[normalizedUri] = True  # not loadable due to parser issues
             return None
+    except XmlUtil.XmlDeclarationLocationException as err:
+        modelXbrl.error("xmlSyntax:xmlDeclarationError",
+                _("XML file syntax error: %(error)s, %(fileName)s"),
+                modelObject=(referringElement, os.path.basename(uri)), fileName=os.path.basename(uri), error=str(err))
+        return None
     except Exception as err:
         modelXbrl.error(type(err).__name__,
                 _("Unrecoverable error: %(error)s, %(fileName)s"),
