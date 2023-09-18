@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import importlib
 import inspect
-import pkgutil
 
 from arelle.examples.plugin import validate as exampleValidationPlugins
 from arelle.plugin import validate as validationPlugins
 from arelle.utils.validate.Decorator import getValidationAttributes
+from arelle.utils.validate.ValidationPlugin import moduleWalk
 
 KNOWN_IMPORT_FAILURES = frozenset([
     "arelle.plugin.validate.XFsyntax.xf",
@@ -22,7 +21,7 @@ def test_decoratorApplied():
     rulesMissingDecorator = []
     misnamedRuleFunctions = []
     for module in (exampleValidationPlugins, validationPlugins):
-        for mod in _moduleWalk(module):
+        for mod in moduleWalk(module, set(KNOWN_IMPORT_FAILURES)):
             for funcName, func in inspect.getmembers(
                 mod, inspect.isfunction
             ):
@@ -35,19 +34,3 @@ def test_decoratorApplied():
                     misnamedRuleFunctions.append(modName)
     assert not rulesMissingDecorator, 'Function names in validation plugin begin with "rule" validation prefix, but are missing @validation decorator.'
     assert not misnamedRuleFunctions, 'Functions in validation plugin with @validation decorator, but do not begin with "rule" function prefix.'
-
-
-def _moduleWalk(mod):
-    if inspect.ismodule(mod):
-        yield mod
-
-        path = getattr(mod, "__path__", None)
-        pkg = getattr(mod, "__package__", None)
-        if path is not None and pkg is not None:
-            for _, modname, _ in pkgutil.iter_modules(path):
-                subModName = f"{pkg}.{modname}"
-                if subModName in KNOWN_IMPORT_FAILURES:
-                    continue
-                subMod = importlib.import_module(subModName)
-                for m in _moduleWalk(subMod):
-                    yield m

@@ -214,7 +214,7 @@ class ValidationPlugin:
         return nonExcludedRules + includedRules
 
     def _discoverValidations(self) -> None:
-        modules = self._moduleWalk(self._validationsModules)
+        modules = moduleWalk(self._validationsModules)
         for mod in modules:
             for _, func in inspect.getmembers(mod, inspect.isfunction):
                 attributes = getValidationAttributes(func)
@@ -222,17 +222,6 @@ class ValidationPlugin:
                     self._storeValidationFunction(func, attributes)
         self._validationsDiscovered = True
 
-    def _moduleWalk(self, mod: ModuleType) -> Generator[ModuleType, None, None]:
-        if inspect.ismodule(mod):
-            yield mod
-
-            path = getattr(mod, "__path__", None)
-            pkg = getattr(mod, "__package__", None)
-            if path is not None and pkg is not None:
-                for _, modname, _ in pkgutil.iter_modules(path):
-                    subMod = importlib.import_module(f"{pkg}.{modname}")
-                    for m in self._moduleWalk(subMod):
-                        yield m
 
     def _storeValidationFunction(
         self,
@@ -249,3 +238,18 @@ class ValidationPlugin:
             rulesByDisclosureSystem = self._rulesByDisclosureSystemByHook.setdefault(hook, {})
             for disclosureSystem in disclosureSystems:
                 rulesByDisclosureSystem.setdefault(disclosureSystem, []).append(func)
+
+def moduleWalk(mod: ModuleType, subModsToSkip: set[str] | None = None) -> Generator[ModuleType, None, None]:
+    if inspect.ismodule(mod):
+        yield mod
+
+        path = getattr(mod, "__path__", None)
+        pkg = getattr(mod, "__package__", None)
+        if path is not None and pkg is not None:
+            for _, modname, _ in pkgutil.iter_modules(path):
+                subModName = f"{pkg}.{modname}"
+                if subModsToSkip is not None and subModName in subModsToSkip:
+                    continue
+                subMod = importlib.import_module(subModName)
+                for m in moduleWalk(subMod, subModsToSkip):
+                    yield m
