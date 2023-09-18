@@ -7,6 +7,7 @@ Created on Sep 13, 2011
 import os
 from datetime import timedelta
 from collections import OrderedDict
+from copy import deepcopy
 from lxml import etree
 from arelle import ViewFile
 from arelle.FormulaEvaluator import aspectMatches
@@ -794,7 +795,7 @@ class ViewRenderedGrid(ViewFile.View):
                                         if not isinstance(aspectValue, etree._Element):
                                             valueElt.text = xsString(None, None, addQnameValue(self.xmlDoc, aspectValue if not label or label != OPEN_ASPECT_ENTRY_SURROGATE else "\u00A0"))
                                         else:
-                                            valueElt.append(aspectValue)
+                                            valueElt.append(deepcopy(aspectValue))
                                 aspElt.text = aspectStr(aspect)
                     for aspect in getattr(strctNode.defnMdlNode, "deemedDefaultedDims", ()):
                         # deemed defaulted explicit dimensions when present in sibling str mdl nodes
