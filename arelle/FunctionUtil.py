@@ -73,7 +73,7 @@ def nodeArg(xc, args, i, type, missingArgFallback=None, emptyFallback=None):
     return item
 
 
-def testTypeCompatiblity(
+def testTypeCompatibility(
         xc: XPathContext,
         p: FormulaToken,
         op: str,
