@@ -12,7 +12,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from .. import DISCLOSURE_SYSTEM_2022
+from ..DisclosureSystems import DISCLOSURE_SYSTEM_2022
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText

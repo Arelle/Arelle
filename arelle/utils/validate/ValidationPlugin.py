@@ -3,10 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import importlib
 import inspect
-import pkgutil
-from collections.abc import Generator
 from pathlib import Path
 from types import ModuleType
 from typing import Any
@@ -30,7 +27,7 @@ class ValidationPlugin:
         name: str,
         disclosureSystemConfigUrl: Path,
         validationTypes: list[str],
-        validationRulesModule: ModuleType,
+        validationRuleModules: list[ModuleType],
     ) -> None:
         """
         Base validation plugin class. Can be initialized directly, or extended if you require additional plugin hooks.
@@ -47,7 +44,9 @@ class ValidationPlugin:
         self.name = name
         self._disclosureSystemConfigURL = disclosureSystemConfigUrl
         self._validationTypes = tuple(validationTypes)
-        self._validationsModules = validationRulesModule
+        if not validationRuleModules:
+            raise ValueError("At least one rules module must be provided.")
+        self._validationModules = validationRuleModules
         self._validationsDiscovered = False
         self._rulesByDisclosureSystemByHook: dict[
             ValidationHook, dict[str, list[ValidationFunction]]
@@ -232,14 +231,16 @@ class ValidationPlugin:
         return nonExcludedRules + includedRules
 
     def _discoverValidations(self) -> None:
-        modules = moduleWalk(self._validationsModules)
-        for mod in modules:
+        rulesFunctionDiscovered = False
+        for mod in self._validationModules:
             for _, func in inspect.getmembers(mod, inspect.isfunction):
                 attributes = getValidationAttributes(func)
                 if attributes is not None:
+                    rulesFunctionDiscovered = True
                     self._storeValidationFunction(func, attributes)
+        if not rulesFunctionDiscovered:
+            raise RuntimeError(f"No @validation rules found for '{self.name}' validation plugin.")
         self._validationsDiscovered = True
-
 
     def _storeValidationFunction(
         self,
@@ -256,18 +257,3 @@ class ValidationPlugin:
             rulesByDisclosureSystem = self._rulesByDisclosureSystemByHook.setdefault(hook, {})
             for disclosureSystem in disclosureSystems:
                 rulesByDisclosureSystem.setdefault(disclosureSystem, []).append(func)
-
-def moduleWalk(mod: ModuleType, subModsToSkip: set[str] | None = None) -> Generator[ModuleType, None, None]:
-    if inspect.ismodule(mod):
-        yield mod
-
-        path = getattr(mod, "__path__", None)
-        pkg = getattr(mod, "__package__", None)
-        if path is not None and pkg is not None:
-            for _, modname, _ in pkgutil.iter_modules(path):
-                subModName = f"{pkg}.{modname}"
-                if subModsToSkip is not None and subModName in subModsToSkip:
-                    continue
-                subMod = importlib.import_module(subModName)
-                for m in moduleWalk(subMod, subModsToSkip):
-                    yield m

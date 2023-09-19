@@ -3,7 +3,6 @@ See COPYRIGHT.md for copyright information.
 
 Filer Manual Guidelines: https://www.example.com/fake-xyz-filer-manual-v0.0.1.pdf
 """
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -11,20 +10,18 @@ from typing import Any
 
 from arelle.ModelDocument import LoadingException, ModelDocument
 from arelle.Version import authorLabel, copyrightLabel
-from . import rules
 from .ValidationPluginExtension import ValidationPluginExtension
+from .rules import rules01, rules02
 
 PLUGIN_NAME = "XYZ"
 DISCLOSURE_SYSTEM_VALIDATION_TYPE = PLUGIN_NAME
-DISCLOSURE_SYSTEM_2022 = f"{PLUGIN_NAME} 2022"
-DISCLOSURE_SYSTEM_2023 = f"{PLUGIN_NAME} 2023"
 
 
 validationPlugin = ValidationPluginExtension(
     name=PLUGIN_NAME,
     disclosureSystemConfigUrl=Path(__file__).parent / "resources" / "config.xml",
     validationTypes=[DISCLOSURE_SYSTEM_VALIDATION_TYPE],
-    validationRulesModule=rules,
+    validationRuleModules=[rules01, rules02],
 )
 
 

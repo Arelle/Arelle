@@ -31,18 +31,19 @@ need a rule to run before another you can either implement them with different h
 
 1. Copy the [XYZ validation plugin][example-plugin] from the examples directory into the [Arelle/plugins/validate directory][validations-directory].
 2. Rename the plugin module from `XYZ` to the name of the taxonomy or jurisdiction you're implementing validation rules for.
-3. Update the resources/config.xml disclosure system file with details for your plugin.
-4. Update the `__init__.py` module:
+3. Update the `resources/config.xml` disclosure system file with details for your plugin.
+4. Update `DisclosureSystems.py` with the names of your disclosure systems.
+5. Update the `__init__.py` module:
    1. If there's a filer manual or other documentation for the rules you're implementing available online,
       update the comment at the top of the `__init__.py` module with a link.
    2. Update the `__pluginInfo__` details with the name and description of your plugin.
    3. Update the `DISCLOSURE_SYSTEM_VALIDATION_TYPE` variable to match the validation type you used in resources/config.xml.
    4. Remove any of the plugin hooks you don't need, including the functions defined in the `ValidationPluginExtension` class.
-5. Update the `PluginValidationDataExtension` dataclass with any fields you need. This is passed between rules and is how
+6. Update the `PluginValidationDataExtension` dataclass with any fields you need. This is passed between rules and is how
    you should cache data. Note, you should'
-6. Implement the plugin specific validation rules in the rules directory using functions and the
+7. Implement the plugin specific validation rules in the rules directory using functions and the
    [@validation][validation-decorator] decorator.
-7. [Open a PR][contributing-code] to have your plugin merged into Arelle.
+8. [Open a PR][contributing-code] to have your plugin merged into Arelle.
 
 ## Example of a validation rule
 
