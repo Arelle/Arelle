@@ -37,12 +37,7 @@ def validation(
     :return: the registered validation function.
     """
     parsedIncluded = _wrapStrWithList(disclosureSystems)
-    if excludeDisclosureSystems is None:
-        parsedExcluded = []
-    elif isinstance(excludeDisclosureSystems, str):
-        parsedExcluded = [excludeDisclosureSystems]
-    else:
-        parsedIncluded = excludeDisclosureSystems
+    parsedExcluded = _wrapStrWithList(excludeDisclosureSystems) or []
     attributes = ValidationAttributes(hook, parsedIncluded, parsedExcluded)
 
     def decorator(f: ValidationFunction) -> ValidationFunction:

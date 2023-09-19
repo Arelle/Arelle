@@ -13,8 +13,8 @@ from arelle.Version import authorLabel, copyrightLabel
 from .ValidationPluginExtension import ValidationPluginExtension
 from .rules import rules01, rules02
 
-PLUGIN_NAME = "XYZ"
-DISCLOSURE_SYSTEM_VALIDATION_TYPE = PLUGIN_NAME
+PLUGIN_NAME = "Validate XYZ"
+DISCLOSURE_SYSTEM_VALIDATION_TYPE = "XYZ"
 
 
 validationPlugin = ValidationPluginExtension(
