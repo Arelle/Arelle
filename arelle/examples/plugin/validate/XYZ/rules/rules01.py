@@ -12,10 +12,9 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from .. import DISCLOSURE_SYSTEM_2022, DISCLOSURE_SYSTEM_2023
+from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
-
-POSITIVE_FACTS_PLUGIN_CACHE_KEY = "positiveFacts"
 
 
 # rule 01.01 (2022)
@@ -24,7 +23,7 @@ POSITIVE_FACTS_PLUGIN_CACHE_KEY = "positiveFacts"
     disclosureSystems=DISCLOSURE_SYSTEM_2022,
 )
 def rule01_01_2022(
-    pluginCache: dict[str, Any],
+    pluginData: PluginValidationDataExtension,
     val: ValidateXbrl,
     *args: Any,
     **kwargs: Any,
@@ -43,12 +42,12 @@ def rule01_01_2022(
     disclosureSystems=DISCLOSURE_SYSTEM_2023,
 )
 def rule01_01_2023(
-    pluginCache: dict[str, Any],
+    pluginData: PluginValidationDataExtension,
     val: ValidateXbrl,
     *args: Any,
     **kwargs: Any,
 ) -> Iterable[Validation] | None:
-    conceptLocalNamesWithPositiveFactValues = pretendExpensiveOperation(pluginCache, val)
+    conceptLocalNamesWithPositiveFactValues = pretendExpensiveOperation(pluginData, val)
     if "Cash" not in conceptLocalNamesWithPositiveFactValues:
         yield Validation.warning(
             codes="XYZ.01.01",
@@ -59,7 +58,7 @@ def rule01_01_2023(
 
 @validation(hook=ValidationHook.FINALLY)
 def rule01_02(
-    pluginCache: dict[str, Any],
+    pluginData: PluginValidationDataExtension,
     val: ValidateXbrl,
     *args: Any,
     **kwargs: Any,
@@ -79,12 +78,12 @@ def rule01_02(
     disclosureSystems=DISCLOSURE_SYSTEM_2023,
 )
 def rule01_03(
-    pluginCache: dict[str, Any],
+    pluginData: PluginValidationDataExtension,
     val: ValidateXbrl,
     *args: Any,
     **kwargs: Any,
 ) -> Iterable[Validation] | None:
-    conceptLocalNamesWithPositiveFactValues = pretendExpensiveOperation(pluginCache, val)
+    conceptLocalNamesWithPositiveFactValues = pretendExpensiveOperation(pluginData, val)
     if "UnitsSold" not in conceptLocalNamesWithPositiveFactValues:
         yield Validation.error(
             codes="XYZ.01.03",
@@ -94,18 +93,17 @@ def rule01_03(
 
 
 def pretendExpensiveOperation(
-    pluginCache: dict[str, Any], val: ValidateXbrl
+    pluginData: PluginValidationDataExtension,
+    val: ValidateXbrl,
 ) -> set[str]:
-    positiveFactConcepts: set[str] | None = pluginCache.get(
-        POSITIVE_FACTS_PLUGIN_CACHE_KEY
-    )
+    positiveFactConcepts = pluginData.positiveFactConcepts
     if positiveFactConcepts is None:
         positiveFactConcepts = {
-            fact.localName
+            fact.concept.name
             for fact in val.modelXbrl.facts
             if fact.isNumeric
             and getattr(fact, "xValid", 0) >= VALID
             and cast(int, fact.xValue) > 0
         }
-        pluginCache[POSITIVE_FACTS_PLUGIN_CACHE_KEY] = positiveFactConcepts
+        pluginData.positiveFactConcepts = positiveFactConcepts
     return positiveFactConcepts

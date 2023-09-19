@@ -14,13 +14,14 @@ from arelle.Version import authorLabel, copyrightLabel
 from . import rules
 from .ValidationPluginExtension import ValidationPluginExtension
 
-DISCLOSURE_SYSTEM_VALIDATION_TYPE = "XYZ"
-
-DISCLOSURE_SYSTEM_2022 = "XYZ 2022"
-DISCLOSURE_SYSTEM_2023 = "XYZ 2023"
+PLUGIN_NAME = "XYZ"
+DISCLOSURE_SYSTEM_VALIDATION_TYPE = PLUGIN_NAME
+DISCLOSURE_SYSTEM_2022 = f"{PLUGIN_NAME} 2022"
+DISCLOSURE_SYSTEM_2023 = f"{PLUGIN_NAME} 2023"
 
 
 validationPlugin = ValidationPluginExtension(
+    name=PLUGIN_NAME,
     disclosureSystemConfigUrl=Path(__file__).parent / "resources" / "config.xml",
     validationTypes=[DISCLOSURE_SYSTEM_VALIDATION_TYPE],
     validationRulesModule=rules,
@@ -56,7 +57,7 @@ def validateFinally(*args: Any, **kwargs: Any) -> None:
 
 
 __pluginInfo__ = {
-    "name": "Validate XYZ",
+    "name": PLUGIN_NAME,
     "version": "0.0.1",
     "description": "Example validation plugin for the fictitious XYZ taxonomy.",
     "license": "Apache-2",

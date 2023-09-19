@@ -21,11 +21,13 @@ from arelle.utils.validate.Decorator import (
     ValidationFunction,
     getValidationAttributes,
 )
+from arelle.utils.validate.PluginValidationData import PluginValidationData
 
 
 class ValidationPlugin:
     def __init__(
         self,
+        name: str,
         disclosureSystemConfigUrl: Path,
         validationTypes: list[str],
         validationRulesModule: ModuleType,
@@ -34,11 +36,15 @@ class ValidationPlugin:
         Base validation plugin class. Can be initialized directly, or extended if you require additional plugin hooks.
         This class is intended to be used in conjunction with the [@validation](#arelle.utils.validate.Decorator.validation) decorator.
 
+        If you need to cache or store data between rules, you should implement a dataclass that extends [PluginValidationData](#arelle.utils.validate.PluginValidationData.PluginValidationData)
+        and override the [newPluginData](#newPluginData) method to return your dataclass.
+
         :param disclosureSystemConfigUrl: A path to the plugin disclosure system xml config file.
         :param validationTypes: A list of validation types for the plugin. These should correspond to the validation types
                in your disclosure system xml file.
         :param validationRulesModule: The rules module which will be searched recursively for rule functions decorated with @validation.
         """
+        self.name = name
         self._disclosureSystemConfigURL = disclosureSystemConfigUrl
         self._validationTypes = tuple(validationTypes)
         self._validationsModules = validationRulesModule
@@ -49,7 +55,15 @@ class ValidationPlugin:
         self._excludedDisclosureSystemsByRulesByHook: dict[
             ValidationHook, dict[ValidationFunction, set[str]]
         ] = {}
-        self.pluginCache: dict[str, Any] = {}
+
+    def newPluginData(self) -> PluginValidationData:
+        """
+        Returns a dataclass intended to be overriden by plugins to facilitate caching and passing data between rule functions.
+        The default implementation doesn't provide any fields other than the plugin name.
+
+        :return: An instance of PluginValidationData.
+        """
+        return PluginValidationData(self.name)
 
     @property
     def validationTypes(self) -> tuple[str, ...]:
@@ -174,8 +188,12 @@ class ValidationPlugin:
         **kwargs: Any,
     ) -> None:
         if self.disclosureSystemFromPluginSelected(validateXbrl):
+            pluginData = validateXbrl.getPluginData(self.name)
+            if pluginData is None:
+                pluginData = self.newPluginData()
+                validateXbrl.setPluginData(pluginData)
             for rule in self._getValidations(validateXbrl.disclosureSystem, pluginHook):
-                validations = rule(self.pluginCache, validateXbrl, *args, **kwargs)
+                validations = rule(pluginData, validateXbrl, *args, **kwargs)
                 if validations is not None:
                     modelXbrl = validateXbrl.modelXbrl
                     for val in validations:

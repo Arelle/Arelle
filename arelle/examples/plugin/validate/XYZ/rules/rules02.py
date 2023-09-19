@@ -13,13 +13,14 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from .. import DISCLOSURE_SYSTEM_2022
+from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
 
 
 @validation(hook=ValidationHook.XBRL_DTS_DOCUMENT)
 def rule02_01(
-    pluginCache: dict[str, Any],
+    pluginData: PluginValidationDataExtension,
     val: ValidateXbrl,
     modelDocument: ModelDocument,
     isFilingDocument: bool,
@@ -44,7 +45,7 @@ def rule02_01(
     excludeDisclosureSystems=DISCLOSURE_SYSTEM_2022,
 )
 def rule02_02(
-    pluginCache: dict[str, Any],
+    pluginData: PluginValidationDataExtension,
     val: ValidateXbrl,
     *args: Any,
     **kwargs: Any,
