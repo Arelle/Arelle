@@ -527,7 +527,8 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                 childList.sort(key=lambda childStructuralNode:
                                childStructuralNode.header(lang=view.lang,
                                                           returnGenLabel=False,
-                                                          returnMsgFormatString=False)
+                                                          returnMsgFormatString=False,
+                                                          layoutMdlSortOrder=True)
                                or '') # exception on trying to sort if header returns None
 
                 # TBD if there is no abstract 'sub header' for these subOrdCntxs, move them in place of parent structuralNode

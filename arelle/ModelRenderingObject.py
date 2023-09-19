@@ -137,7 +137,7 @@ class StrctMdlNode:
             if grandchildStrctRollup:
                 return grandchildStrctRollup
         return None
-    def headerAndSource(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False, recurseParent=True, returnStdLabel=True):
+    def headerAndSource(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False, recurseParent=True, returnStdLabel=True, layoutMdlSortOrder=False):
         if self.defnMdlNode is None: # root
             return None, None
         if returnGenLabel:
@@ -166,8 +166,15 @@ class StrctMdlNode:
                             return XmlUtil.innerTextList(aspectValue.typedMember), "processor"
                 elif isinstance(aspectValue, ModelObject):
                     text = XmlUtil.innerTextList(aspectValue)
-                    if not text and XmlUtil.hasChild(aspectValue, aspectValue.namespaceURI, "forever"):
-                        text = "forever"
+                    if aspect == Aspect.PERIOD:
+                        cntx = aspectValue.getparent()
+                        if layoutMdlSortOrder:
+                            if cntx.isInstantPeriod: text = "1 " + text # sort inst first for conformance suite
+                            elif cntx.isStartEndPeriod: text = "2 " + text # sort startEnd second for conformance suite
+                            elif cntx.isForeverPeriod: text = "3 forever " # sort forever third for conformance suite
+                        elif cntx.isForeverPeriod: text = "forever"
+                    elif aspect == Aspect.UNIT:
+                        text = f"{aspectValue.objectIndex:05d} {text}" # conf suites use instance order of contexts
                     return text, "processor"
         # TODO for conformance, concept should not be contributing labels
         # if concept is not None:
@@ -178,8 +185,8 @@ class StrctMdlNode:
         if role and recurseParent and self.strctMdlParentNode is not None:
             return self.strctMdlParentNode.headerAndSource(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
         return None, None
-    def header(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False, recurseParent=True, returnStdLabel=True):
-        return self.headerAndSource(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent, returnStdLabel)[0]
+    def header(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False, recurseParent=True, returnStdLabel=True, layoutMdlSortOrder=False):
+        return self.headerAndSource(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent, returnStdLabel, layoutMdlSortOrder)[0]
     @property
     def isAbstract(self):
         try:

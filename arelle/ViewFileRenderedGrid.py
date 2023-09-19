@@ -82,6 +82,7 @@ class ViewRenderedGrid(ViewFile.View):
                 return self.value
         # context menu boolean vars (non-tkinter boolean
         self.ignoreDimValidity = nonTkBooleanVar(value=True)
+        self.openBreakdownLines = 0 # layout model conformance suite requires no open entry lines
 
 
     def tableModelQName(self, localName):
@@ -293,7 +294,10 @@ class ViewRenderedGrid(ViewFile.View):
                             if not any(e is not None for e in headerElt.iterchildren()):
                                 if headerElt.getparent() is not None:
                                     headerElt.getparent().remove(headerElt)
-                    self.bodyCells(self.dataFirstRow, yStrctNodes, xStrctNodes, zDiscrimAspectNodes[discriminator-1]) # zAspectStrctNodes)
+                    hasRows = self.bodyCells(self.dataFirstRow, yStrctNodes, xStrctNodes, zDiscrimAspectNodes[discriminator-1]) # zAspectStrctNodes)
+                    if self.type == XML and not hasRows:
+                        self.cellsZElt.remove(self.cellsYElt)
+
                 # find next choice structural node
                 '''
                 moreDiscriminators = False
@@ -772,12 +776,12 @@ class ViewRenderedGrid(ViewFile.View):
                                     aspectValue = getAspectValue(aspect)
                                     def format_aspect_value(aspectValue):
                                         if aspectValue is None: aspectValue = "(bound dynamically)"
-                                        if isinstance(aspectValue, ModelDimensionValue): # typed dimension value
+                                        elif isinstance(aspectValue, ModelDimensionValue): # typed dimension value
                                             if aspectValue.isExplicit:
                                                 aspectValue = aspectValue.memberQname
                                             else:
                                                 aspectValue = aspectValue.typedMember
-                                        if isinstance(aspectValue, QName) and aspectValue.prefix is None: # may be dynamic
+                                        elif isinstance(aspectValue, QName) and aspectValue.prefix is None: # may be dynamic
                                             try:
                                                 aspectValue = self.modelXbrl.qnameConcepts[aspectValue].qname # usually has a prefix
                                             except KeyError:
@@ -792,7 +796,10 @@ class ViewRenderedGrid(ViewFile.View):
                                     if (not isRollUpCell and
                                             self.modelXbrl.qnameDimensionDefaults.get(aspect) != aspectValue and
                                             aspectValue != XbrlConst.qnFormulaOccEmpty):
-                                        if not isinstance(aspectValue, etree._Element):
+                                        if aspect == Aspect.PERIOD and isinstance(aspectValue, ModelObject):
+                                            for perElt in aspectValue.iterchildren():
+                                                valueElt.append(deepcopy(perElt))
+                                        elif not isinstance(aspectValue, etree._Element):
                                             valueElt.text = xsString(None, None, addQnameValue(self.xmlDoc, aspectValue if not label or label != OPEN_ASPECT_ENTRY_SURROGATE else "\u00A0"))
                                         else:
                                             valueElt.append(deepcopy(aspectValue))
@@ -1049,6 +1056,7 @@ class ViewRenderedGrid(ViewFile.View):
 
 
     def bodyCells(self, row, yStrctNodes, xStrctNodes, zAspectStrctNodes):
+        hasRows = False
         if True: # yParentStrctNode is not None:
             dimDefaults = self.modelXbrl.qnameDimensionDefaults
             for yStrctNode in yStrctNodes: # yParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
@@ -1056,6 +1064,7 @@ class ViewRenderedGrid(ViewFile.View):
                 if not (yStrctNode.isAbstract or
                         (yStrctNode.strctMdlChildNodes and
                          not isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode))) and yStrctNode.isLabeled:
+                    hasColCells = False
                     if self.type == XML:
                         cellsParentElt = etree.SubElement(self.cellsYElt, self.tableModelQName("cells"),
                                                        attrib={"axis": "x"})
@@ -1086,6 +1095,8 @@ class ViewRenderedGrid(ViewFile.View):
                                         for asp in aspectRuleAspects[aspect]:
                                             if xStrctNode.hasAspect(asp):
                                                 realAspects.append(asp)
+                                        if not realAspects: # use top level aspect, e.g. PERIOD instead of PERIOD_START...
+                                            realAspects.append(aspect)
 
                                     for asp in realAspects:
                                         xAspectStrctNodes[asp].add(xStrctNode)
@@ -1151,6 +1162,7 @@ class ViewRenderedGrid(ViewFile.View):
                                         value = fact.effectiveValue
                                     justify = "right" if fact.isNumeric else "left"
                                     factsVals.append( (fact, value, justify) )
+                                    hasColCells = True
                         if justify is None:
                             justify = "right" if fp.isNumeric else "left"
                         if conceptNotAbstract:
@@ -1227,4 +1239,10 @@ class ViewRenderedGrid(ViewFile.View):
                                                  attrib={"abstract":"true"})
                         fp.clear()  # dereference
                     row += 1
-        # return row
+                    if self.type == XML:
+                        if hasColCells:
+                            hasRows = True
+                        else:
+                            cellsParentElt.getparent().remove(cellsParentElt) # remove empty element
+
+        return hasRows
