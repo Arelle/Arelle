@@ -14,7 +14,6 @@ from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import qname
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import ixbrlAll, xhtml
 from .Const import cipcModules # , mandatoryElements
@@ -25,12 +24,37 @@ cipcBlockedInlineHtmlElements = {
 namePattern = re.compile(r"^(.*) - ((18|19|20)\d{2}-[0-9]+-(06|07|08|09|10|12|20|21|22|23|24|25|26|30|31)) - (20[1-9]\d)$")
 reportingModulePattern = re.compile(r"http://xbrl.cipc.co.za/taxonomy/.*/\w*(ca_fas|full_ifrs|ifrs_for_smes)\w*[_-]20[12][0-9]-[0-9]{2}-[0-9]{2}.xsd")
 
+TRANSFORMATION_REGISTRY_3 = {
+    'namespace': 'http://www.xbrl.org/inlineXBRL/transformation/2015-02-26',
+    'boolean_transformations': {'booleanfalse', 'booleantrue'},
+    'version': '3'
+}
+
+TRANSFORMATION_REGISTRY_5 = {
+    'namespace': 'http://www.xbrl.org/inlineXBRL/transformation/2022-02-16',
+    'boolean_transformations': {'fixed-false', 'fixed-true'},
+    'version': '5'
+}
+
+TR3_IFRS_NAMESPACES = {
+    'http://xbrl.ifrs.org/taxonomy/2016-03-31/ifrs-full',
+    'http://xbrl.ifrs.org/taxonomy/2017-03-09/ifrs-full',
+    'http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full',
+    'http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full',
+    'http://xbrl.ifrs.org/taxonomy/2020-03-16/ifrs-full',
+    'http://xbrl.ifrs.org/taxonomy/2021-03-24/ifrs-full',
+    'https://xbrl.ifrs.org/taxonomy/2022-03-24/ifrs-full'
+}
+
+
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("CIPC", "CIPCplugin"),)
 
+
 def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
     return os.path.join(os.path.dirname(__file__), "config.xml")
+
 
 def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateCIPCplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "CIPCplugin", False)
@@ -65,6 +89,11 @@ def validateXbrlFinally(val, *args, **kwargs):
         footnoteRoleErrors = set()
         transformRegistryErrors = set()
         booleanFactsWithEmptyContent = set()
+        if any(ns in TR3_IFRS_NAMESPACES for ns in modelXbrl.prefixedNamespaces.values()):
+            transform_registry = TRANSFORMATION_REGISTRY_3
+        else:
+            transform_registry = TRANSFORMATION_REGISTRY_5
+
         def checkFootnote(elt, text):
             if text: # non-empty footnote must be linked to a fact if not empty
                 if not any(isinstance(rel.fromModelObject, ModelFact)
@@ -119,8 +148,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                     checkFootnote(elt, elt.value)
                 elif isinstance(elt, ModelInlineFact):
                     if elt.format is not None:
-                        if elt.format.namespaceURI == 'http://www.xbrl.org/inlineXBRL/transformation/2015-02-26':
-                            if elt.format.localName in {'booleanfalse', 'booleantrue'} and not elt.text:
+                        if elt.format.namespaceURI == transform_registry['namespace']:
+                            if elt.format.localName in transform_registry['boolean_transformations'] and not elt.text:
                                 booleanFactsWithEmptyContent.add(elt)
                         else:
                             transformRegistryErrors.add(elt)
@@ -201,8 +230,9 @@ def validateXbrlFinally(val, *args, **kwargs):
 
         if transformRegistryErrors:
             modelXbrl.warning("cipc:transformRegistry",
-                              _("Transformation Registry 3 should be for facts: %(elements)s."),
+                              _("Transformation Registry %(tr_version)s should be for facts: %(elements)s."),
                               modelObject=transformRegistryErrors,
+                              tr_version=transform_registry['version'],
                               elements=", ".join(sorted(str(fact.qname) for fact in transformRegistryErrors)))
 
         if booleanFactsWithEmptyContent:
