@@ -780,8 +780,11 @@ class ValidateXbrl:
                                     _("Fact %(fact)s context %(contextID)s is a numeric concept and must have either precision or decimals"),
                                     modelObject=f, fact=f.qname, contextID=f.contextID)
                             elif f.concept.instanceOfType(dtrNoDecimalsItemTypes) and inferredDecimals(f) > 0:
-                                self.modelXbrl.error("dtre:noDecimalsItemType",
-                                    _("Fact %(fact)s context %(contextID)s is a may not have inferred decimals value > 0: %(inferredDecimals)s"),
+                                if hasDecimals:
+                                    message = _("Fact %(fact)s context %(contextID)s must not have decimals value > 0: %(inferredDecimals)s")
+                                else:
+                                    message = _("Fact %(fact)s context %(contextID)s must not have inferred decimals value > 0: %(inferredDecimals)s")
+                                self.modelXbrl.error("dtre:noDecimalsItemType", message,
                                     modelObject=f, fact=f.qname, contextID=f.contextID, inferredDecimals=inferredDecimals(f))
                         else:
                             if hasPrecision or hasDecimals:
