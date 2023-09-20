@@ -780,7 +780,6 @@ class Report:
                 for ixDoc in doc.referencesDocument.keys():
                     if ixDoc.type == Type.INLINEXBRL:
                         addRefDocs(ixDoc)
-                return
             for refDoc in doc.referencesDocument.keys():
                 _file = refDoc.filepath
                 if refDoc.uri not in refDocUris:
