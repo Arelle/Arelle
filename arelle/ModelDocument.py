@@ -204,6 +204,11 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                     error=str(err), exc_info=True)
             modelXbrl.urlUnloadableDocs[normalizedUri] = True  # not loadable due to parser issues
             return None
+    except XmlUtil.XmlDeclarationLocationException as err:
+        modelXbrl.error("xmlSyntax:xmlDeclarationError",
+                _("XML file syntax error: %(error)s, %(fileName)s"),
+                modelObject=(referringElement, os.path.basename(uri)), fileName=os.path.basename(uri), error=str(err))
+        return None
     except Exception as err:
         modelXbrl.error(type(err).__name__,
                 _("Unrecoverable error: %(error)s, %(fileName)s"),
@@ -1452,9 +1457,10 @@ class ModelDocument:
 
 # inline document set level compilation
 # modelIxdsDocument is an inlineDocumentSet or entry inline document (if not a document set)
+#   note that multi-target and multi-instance facts may have html elements belonging to primary ixds instead of this instance ixds
 def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
     for pluginMethod in pluginClassMethods("ModelDocument.SelectIxdsTarget"):
-        pluginMethod(modelXbrl)
+        pluginMethod(modelXbrl, modelIxdsDocument)
     # extract for a single target document
     ixdsTarget = getattr(modelXbrl, "ixdsTarget", None)
     # compile inline result set
@@ -1616,16 +1622,16 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
             for elt in inlineElement.iterchildren("{http://www.xbrl.org/2003/instance}context"):
                 id = elt.get("id")
                 if id in contextRefs or (not ixdsTarget and id not in allContextRefs):
-                    mdlDoc.contextDiscover(elt)
+                    modelIxdsDocument.contextDiscover(elt)
             for elt in inlineElement.iterchildren("{http://www.xbrl.org/2003/instance}unit"):
                 id = elt.get("id")
                 if id in unitRefs or (not ixdsTarget and id not in allUnitRefs):
-                    mdlDoc.unitDiscover(elt)
+                    modelIxdsDocument.unitDiscover(elt)
             for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}roleRef"):
                 r = refElement.get("roleURI")
                 if r in targetRoleUris[ixdsTarget]:
                     modelXbrl.targetRoleRefs[r] = refElement
-                    if mdlDoc.discoverHref(refElement) is None: # discover role-defining schema file
+                    if modelIxdsDocument.discoverHref(refElement) is None: # discover role-defining schema file
                         modelXbrl.error("xmlSchema:requiredAttribute",
                                 _("Reference for roleURI href attribute missing or malformed"),
                                 modelObject=refElement)
@@ -1633,7 +1639,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                 r = refElement.get("arcroleURI")
                 if r in targetArcroleUris[ixdsTarget]:
                     modelXbrl.targetArcroleRefs[r] = refElement
-                    if mdlDoc.discoverHref(refElement) is None: # discover arcrole-defining schema file
+                    if modelIxdsDocument.discoverHref(refElement) is None: # discover arcrole-defining schema file
                         modelXbrl.error("xmlSchema:requiredAttribute",
                                 _("Reference for arcroleURI href attribute missing or malformed"),
                                 modelObject=refElement)
@@ -1755,7 +1761,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                             modelObject=modelInlineFact, qname=modelInlineFact.qname, localName=modelInlineFact.elementQname,
                             type=modelInlineFact.concept.baseXsdType)
         else:
-            mdlDoc.modelXbrl.factsInInstance.add( modelInlineFact )
+            modelIxdsDocument.modelXbrl.factsInInstance.add( modelInlineFact )
 
     _customTransforms = modelXbrl.modelManager.customTransforms or {}
     for htmlElement in modelXbrl.ixdsHtmlElements:
@@ -1932,7 +1938,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                 if linkrole in footnoteLinkPrototypes:
                     linkPrototype = footnoteLinkPrototypes[linkrole]
                 else:
-                    linkPrototype = LinkPrototype(mdlDoc, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole)
+                    linkPrototype = LinkPrototype(modelIxdsDocument, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole)
                     footnoteLinkPrototypes[linkrole] = linkPrototype
                     for baseSetKey in (("XBRL-footnotes",None,None,None),
                                        ("XBRL-footnotes",linkrole,None,None),
@@ -1942,7 +1948,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                         modelXbrl.baseSets[baseSetKey].append(linkPrototype)
                 # locs
                 for modelFact in footnoteRefs[footnoteID]:
-                    locPrototype = LocPrototype(mdlDoc, linkPrototype, footnoteLocLabel, modelFact)
+                    locPrototype = LocPrototype(modelIxdsDocument, linkPrototype, footnoteLocLabel, modelFact)
                     linkPrototype.childElements.append(locPrototype)
                     linkPrototype.labeledResources[footnoteLocLabel].append(locPrototype)
                 # resource
@@ -1957,7 +1963,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
             if isinstance(modelInlineRel,ModelObject):
                 linkrole = modelInlineRel.get("linkRole", XbrlConst.defaultLinkRole)
                 if linkrole not in linkPrototypes:
-                    linkPrototypes[linkrole] = LinkPrototype(mdlDoc, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole, sourceElement=modelInlineRel)
+                    linkPrototypes[linkrole] = LinkPrototype(modelIxdsDocument, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole, sourceElement=modelInlineRel)
 
 
     for htmlElement in modelXbrl.ixdsHtmlElements:
@@ -2038,7 +2044,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                                     modelObject=modelInlineRel, fromToMatchedIds=', '.join(sorted(fromToMatchedIds)))
                 for fromLabel in fromLabels:
                     for toLabel in toLabels: # toLabels is empty if no to fact or footnote is in target
-                        linkPrototype.childElements.append(ArcPrototype(mdlDoc, linkPrototype, XbrlConst.qnLinkFootnoteArc,
+                        linkPrototype.childElements.append(ArcPrototype(modelIxdsDocument, linkPrototype, XbrlConst.qnLinkFootnoteArc,
                                                                         fromLabel, toLabel,
                                                                         linkrole, arcrole,
                                                                         modelInlineRel.get("order", "1"), sourceElement=modelInlineRel))
@@ -2073,6 +2079,9 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
     if ixdsTarget in modelXbrl.ixTargetRootElements:
         modelIxdsDocument.targetXbrlRootElement = modelXbrl.ixTargetRootElements[ixdsTarget]
         modelIxdsDocument.targetXbrlElementTree = PrototypeElementTree(modelIxdsDocument.targetXbrlRootElement)
+
+    for pluginMethod in pluginClassMethods("ModelDocument.IxdsTargetDiscovered"):
+        pluginMethod(modelXbrl, modelIxdsDocument)
 
 class LoadingException(Exception):
     pass

@@ -8,11 +8,10 @@ from dataclasses import dataclass
 import os, io, base64
 import regex as re
 from arelle.XbrlConst import ixbrlAll, xhtml
-from arelle.XmlUtil import setXmlns, xmlstring
+from arelle.XmlUtil import setXmlns, xmlstring, xmlDeclarationPattern, XmlDeclarationLocationException
 from arelle.ModelObject import ModelObject
 from arelle.UrlUtil import decodeBase64DataImage, isHttpUrl, scheme
 
-XMLdeclaration = re.compile(r"<\?xml.*\?>", re.DOTALL)
 XMLpattern = re.compile(r".*(<|&lt;|&#x3C;|&#60;)[A-Za-z_]+[A-Za-z0-9_:]*[^>]*(/>|>|&gt;|/&gt;).*", re.DOTALL)
 CDATApattern = re.compile(r"<!\[CDATA\[(.+)\]\]")
 #EFM table 5-1 and all &xxx; patterns
@@ -469,9 +468,11 @@ def checkfile(modelXbrl, filepath):
                             _("Disallowed character '%(text)s' in file %(file)s at line %(line)s col %(column)s"),
                             modelDocument=filepath, text=text, file=os.path.basename(filepath), line=lineNum, column=match.start())
             if lineNum == 1:
-                xmlDeclarationMatch = XMLdeclaration.search(line)
+                xmlDeclarationMatch = xmlDeclarationPattern.match(line)
                 if xmlDeclarationMatch: # remove it for lxml
-                    start,end = xmlDeclarationMatch.span()
+                    if xmlDeclarationMatch.group(1) is not None:
+                        raise XmlDeclarationLocationException
+                    start,end = xmlDeclarationMatch.span(2)
                     line = line[0:start] + line[end:]
                     foundXmlDeclaration = True
             if _parser: # feed line after removal of xml declaration
@@ -497,9 +498,11 @@ def checkfile(modelXbrl, filepath):
             lineNum += 1
     result = ''.join(result)
     if not foundXmlDeclaration: # may be multiline, try again
-        xmlDeclarationMatch = XMLdeclaration.search(result)
+        xmlDeclarationMatch = xmlDeclarationPattern.match(result)
         if xmlDeclarationMatch: # remove it for lxml
-            start,end = xmlDeclarationMatch.span()
+            if xmlDeclarationMatch.group(1) is not None:
+                raise XmlDeclarationLocationException
+            start,end = xmlDeclarationMatch.span(2)
             result = result[0:start] + result[end:]
             foundXmlDeclaration = True
 

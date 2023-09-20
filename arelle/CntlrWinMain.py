@@ -158,11 +158,8 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.modelManager.validateCalcs = self.config.setdefault("validateCalcsEnum", CalcsMode.NONE)
         self.calcChoiceEnumVar = IntVar(self.parent, value=self.modelManager.validateCalcs)
         self.calcChoiceEnumVar.trace("w", self.setCalcChoiceEnumVar)
-        calcMenu.add_radiobutton(label=_('No calculation checks'), underline=0, var=self.calcChoiceEnumVar, value=CalcsMode.NONE)
-        calcMenu.add_radiobutton(label=_('Calc 1.0 calculations'), underline=0, var=self.calcChoiceEnumVar, value=CalcsMode.XBRL_v2_1)
-        calcMenu.add_radiobutton(label=_('Calc 1.0 with de-duplication'), underline=0, var=self.calcChoiceEnumVar, value=CalcsMode.XBRL_v2_1_DEDUPLICATE)
-        calcMenu.add_radiobutton(label=_('Calc 1.1 round-to-nearest mode'), underline=0, var=self.calcChoiceEnumVar, value=CalcsMode.ROUND_TO_NEAREST)
-        calcMenu.add_radiobutton(label=_('Calc 1.1 truncation mode'), underline=0, var=self.calcChoiceEnumVar, value=CalcsMode.TRUNCATION)
+        for calcChoiceMenuLabel, calcChoiceEnumValue in CalcsMode.menu().items():
+            calcMenu.add_radiobutton(label=calcChoiceMenuLabel, underline=0, var=self.calcChoiceEnumVar, value=calcChoiceEnumValue)
         toolsMenu.add_cascade(label=_("Calc linkbase"), menu=calcMenu, underline=0)
         self.modelManager.validateUtr = self.config.setdefault("validateUtr",True)
         self.validateUtr = BooleanVar(value=self.modelManager.validateUtr)
@@ -858,7 +855,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                                         (action, time.time() - startedAt)))
             self.showStatus(_("Loading terminated"), 15000)
 
-    def showLoadedXbrl(self, modelXbrl, attach, selectTopView=False):
+    def showLoadedXbrl(self, modelXbrl, attach, selectTopView=False, isSupplementalModelXbrl=False):
         startedAt = time.time()
         currentAction = "setting title"
         topView = None
@@ -948,12 +945,16 @@ class CntlrWinMain (Cntlr.Cntlr):
             modelXbrl.profileStat("view", viewTime)
             self.addToLog(format_string(self.modelManager.locale,
                                         _("views %.2f secs"), viewTime))
-            if selectTopView and topView:
-                topView.select()
-            self.currentView = topView
-            currentAction = "plugin method CntlrWinMain.Xbrl.Loaded"
-            for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Loaded"):
-                xbrlLoadedMethod(self, modelXbrl, attach) # runs in GUI thread
+            if hasattr(modelXbrl, "supplementalModelXbrls"):
+                for supplementalModelXbrl in modelXbrl.supplementalModelXbrls:
+                    self.showLoadedXbrl(supplementalModelXbrl, False, isSupplementalModelXbrl=True)
+            if not isSupplementalModelXbrl:
+                if selectTopView and topView:
+                    topView.select()
+                self.currentView = topView
+                currentAction = "plugin method CntlrWinMain.Xbrl.Loaded"
+                for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Loaded"):
+                    xbrlLoadedMethod(self, modelXbrl, attach) # runs in GUI thread
         except Exception as err:
             msg = _("Exception preparing {0}: {1}, at {2}").format(
                      currentAction,
@@ -961,7 +962,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                      traceback.format_tb(sys.exc_info()[2]))
             tkinter.messagebox.showwarning(_("Exception preparing view"),msg, parent=self.parent)
             self.addToLog(msg);
-        self.showStatus(_("Ready..."), 2000)
+        if not isSupplementalModelXbrl:
+            self.showStatus(_("Ready..."), 2000)
 
     def showFormulaOutputInstance(self, priorOutputInstance, currentOutputInstance):
         currentAction = "closing prior formula output instance"
@@ -1280,7 +1282,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             if valType == ModelDocument.Type.VERSIONINGREPORT:
                 v = _("Validate versioning report")
             else:
-                c = "\n" + CalcsMode.label[self.modelManager.validateCalcs]
+                c = "\n" + CalcsMode.label(self.modelManager.validateCalcs)
                 if self.modelManager.validateUtr:
                     u = _("\nCheck unit type registry")
                 else:

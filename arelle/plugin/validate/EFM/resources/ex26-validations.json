@@ -1,0 +1,255 @@
+{
+    "copyright": [
+        "This file was created by staff of the U.S. Securities and Exchange Commission.",
+        "Data and content created by government employees within the scope of their employment",
+        "are not subject to domestic copyright protection. 17 U.S.C. 105."
+    ],
+    "description": [
+        "Fee Tagging validations for EX-107 attachments.",
+        "",
+        "The format is as follows:",
+        "",
+        "A JSON object with objects named forms, validations and messages",
+        "",
+        "The sub-type-classes object contains forms arrayed for convenience of specifying validations",
+        "A form beginning with @ is a reference to the form-class following @ character.",
+        "A form-class and resolved references behave as a set (de-duplicating arrayed forms).",
+        "Where !not! appears in a set then validation applies if the argument is not in the set.",
+        "",
+        "The validations object contains an ordered array of validation objects.",
+        "whose keys name the preferred axes prefixed name (e.g., 'srt:CurrencyAxis'), ",
+        "and values are a regular expression pattern. ",
+        "",
+        "Each validation object contains the following entries:",
+        "  forms: arrayed forms or form references or single form or form reference,",
+        "  xbrl-names, elo-names, and severities may be array (plural) or individual",
+        "  xbrl-names: arrayed dei local names of XBRL elements,",
+        "  elo-names: optional corresponding arrayed ELO schema names of XML elements,",
+        "  xbrl-name: single local name of XBRL element,",
+        "  elo-name: optional single ELO schema name of XML element,",
+        "  store-db-name: optional ELO db name if elo value to be stored in EDGAR db",
+        "  store-db-object: optional ELO object for DB parameter passing, e.g., eloValuesFromFacts or submissionFacts",
+        "  efm: section in EFM, e.g., 6.5.21,",
+        "  validation: cell reference per FRD (replace below), required except for store-db-name entries",
+        "  axis: optional, when an element has an axis specification",
+        "  value: optional, when an element must have a certain value",
+        "  value-pattern: regex pattern",
+        "  where: optional, where same-dimensioned facts must have a value or match a pattern, ",
+        "         if value is a list and first entry is an sql regex  operator (~, ~*, !~, !~*) second entry is a regex pattern ",
+        "         else value is a list of matching values for the where-named object of same context as it's subject ",
+        "  value-for-reference-check: optional, when this fact must have a value for referenced fact condition check (default non-nil non-empty)",
+        "  references: optional, reference to another xbrl-name for dependent or co-dependent validations,",
+        "  references-value: optional, when a referenced fact must have a certain value",
+        "  references-where: optional, when where is needed on reference binding",
+        "  references-axes: optional, when a separate axes clause is needed for reference binding",
+        "  references-date-format: optional, applicable when using comparison validation with dates and the reference date is a string. ",
+        "         Specify as a datetime directive matching the reference string date format. eg. %m/%d/%y",
+        "  source: inline, non-inline or both",
+        "  elo-match-message: optional, overrides elo match message, default is dq-0540-{tag}-Value",
+        "  comment: optional, comment string",
+        "  skip-if-ft-json: set to true to skip writing validation message when modelXbrl object was loadedFromFtJson",
+        "",
+        "The messages object contains messages which may be referenced by validations",
+        "",
+        "The validation-legend object describes the codes in the validation object @validation value",
+        "form-mapping object shows the coded form type along with the english worded version of the form"
+    ],
+    "sub-type-classes": {
+    	"comment1": "EX-26 submission classes",
+		"EX-26": ["10-K", "10-K/A", "10-KT", "10-KT/A", "10-Q", "10-Q/A", "10-QT", "10-QT/A", "EX-26", "EX-26/A"],
+		"all": ["*"]
+    },
+    "sub-type-element-validations": [
+    {
+    	"comment": "Submission Table validations"
+    },
+	{	"sub-types": ["@EX-26"],
+		"xbrl-names": "DocumentType",
+		"efm": "6.5.20",
+		"validation": "xv",
+		"value": ["EX-26", "EX-26/A"],
+		"source": "inline",
+		"dei/cover": "dei"
+	},
+	{	"sub-types": ["@EX-26"],
+		"xbrl-names": "DocumentType",
+		"efm": "6.5.20",
+		"validation": "fw-unexpected",
+		"value": ["EX-26"],
+		"source": "non-inline",
+		"dei/cover": "dei",
+		"message": "dq-{efmSection}-InlineXBRL"
+	},
+	{
+		"comment": "submission table items"
+	},
+    {
+        "sub-types": ["@EX-26"],
+        "xbrl-names": "AmendmentFlag",
+        "efm": "6.5.20",
+        "validation": "r",
+        "source": "inline",
+        "dei/cover": "dei",
+        "comment": "when this is true a non-empty AmendmentDescription is required"
+    },
+    {
+        "sub-types": ["@EX-26"],
+        "xbrl-names": "AmendmentDescription",
+        "efm": "6.5.20",
+        "validation": "a",
+        "references": "AmendmentFlag",
+        "reference-value": true,
+        "source": "inline",
+        "dei/cover": "dei",
+        "comment": "if and only if non-empty, AmendmentFlag must be true"
+    },
+    {
+        "sub-types": ["@EX-26"],
+        "xbrl-names": "EntityRegistrantName",
+        "efm": "6.5.21",
+        "validation": "x",
+        "source": "inline",
+        "dei/cover": "cover",
+        "lang": "en.*",
+        "comment": "must be english"
+    },
+    {
+        "sub-types": ["@EX-26"],
+        "xbrl-names": "EntityRegistrantName",
+        "efm": "6.5.21",
+        "validation": "x",
+        "source": "inline",
+        "dei/cover": "dei",
+        "lang": "en.*",
+        "comment": "must be english"
+    },
+    {
+        "sub-types": ["@EX-26"],
+        "xbrl-names": "EntityCentralIndexKey",
+        "efm": "6.5.21",
+        "validation": "x",
+        "source": "inline",
+        "dei/cover": "dei"
+    },
+    {
+        "sub-types": ["@EX-26"],
+        "xbrl-names": "CurrentFiscalYearEndDate",
+        "efm": "6.5.20",
+        "validation": "o",
+        "source": "inline",
+        "dei/cover": "dei"
+    },
+    {
+        "sub-types": ["@EX-26"],
+        "xbrl-names": [],
+        "efm": "6.5.60.01",
+        "validation": "taxonomy-url-required-in-dts",
+        "value": "https://xbrl.sec.gov/shr/*/shr-exh-*.xsd",
+        "source": "both"
+    },
+    {
+        "sub-types": ["@all"],
+        "xbrl-names": [],
+        "efm": "(obtained from blank cell's row)",
+        "validation": "(blank-error)",
+        "comment4": "include names below should match exclude names in (blank) validation below",
+        "include-xbrl-names": [
+            ],
+        "source": "inline",
+        "comment": "This validation, (blank), must be last, efm is dynamically provided based on efm for a non-(blank) of actual element",
+        "comment2": "In 19.3 release, POS AM and POS EX were excluded from the blank tests, as of 20.1 all forms run the blank tests",
+        "comment3": "This used to have exclude-xbrl-names list EntityEmergingGrowthCompany and EntityExTransitionPeriod, but exclusion removed 2020-01-17"
+    },
+    {
+        "sub-types": ["@all"],
+        "xbrl-names": [],
+        "efm": "(obtained from blank cell's row)",
+        "validation": "(blank)",
+        "comment4": "exclude names below should match include names in (blank-error) validation above",
+        "exclude-xbrl-names": [
+            ],
+        "source": "inline",
+        "comment": "This validation, (blank), must be last, efm is dynamically provided based on efm for a non-(blank) of actual element",
+        "comment2": "In 19.3 release, POS AM and POS EX were excluded from the blank tests, as of 20.1 all forms run the blank tests",
+        "comment3": "This used to have exclude-xbrl-names list EntityEmergingGrowthCompany and EntityExTransitionPeriod, but exclusion removed 2020-01-17"
+    },
+    {
+        "sub-types": ["@all"],
+        "xbrl-names": [],
+        "efm": "(obtained from blank cell's row)",
+        "validation": "(elo-unexpected)",
+        "source": "inline",
+        "comment": "This validation, (blank), must be last, efm is dynamically provided based on efm for a non-(blank) of actual element"
+    }
+    ],
+    "validations": {
+		"(blank)": {
+			"message": "dq-{efmSection}-{tag}-Unexpected",
+			"severity": "warning",
+			"validation": "Blank – a non-null fact should not appear."
+		},
+ 		"(blank-error)": {
+			"message": "dq-{efmSection}-{tag}-Unexpected",
+			"severity": "error",
+			"validation": "Blank – a non-null fact should not appear."
+		},
+		"x": {
+			"message": "dq-{efmSection}-{tag}-Missing",
+			"severity": "error",
+			"validation": "X - A non-null fact must appear, otherwise it is an XBRL ERROR"
+		},
+		"r": {
+			"message": "dq-{efmSection}-{tag}-Missing",
+			"severity": "warning",
+			"validation": "R – A non-null fact should be present."
+		},
+		"o": {
+			"message": null,
+			"severity": "warning",
+			"validation": "O – A non-null fact may or may not appear."
+		},
+		"a": {
+			"message": "dq-{efmSection}-{tag}-{otherTag}-Dependent-Value",
+			"severity": "warning",
+			"validation": "When this fact is non-empty, referenced fact must have reference-value (AmendmentFlag, true)."
+		},
+		"xv": {
+			"message": "dq-{efmSection}-{tag}-Value",
+			"severity": "error",
+            "qualifier": "",
+			"validation": "X - A non-null fact must appear with specified value"
+		},
+ 		"(elo-unexpected)": {
+			"message": "dq-0540-{headerTag}-Unexpected",
+			"severity": "warning",
+			"validation": "Unexpected ELO header tag."
+		},
+        "taxonomy-url-required-in-dts": {
+            "message": "dq-{efmSection}-Taxonomy-Url-Required",
+            "severity": "error"
+        },
+        "fw-unexpected": {
+            "message": "dq-{efmSection}-{tag}-Unexpected",
+            "severity": "error"
+        }
+	},
+
+	"axis-validations": {
+		"": {
+			"axes": [],
+			"message": "dq-{efmSection}-{tag}-Missing"
+		}
+	},
+	"message-rule-axes-ordering": [
+	],
+	"messages": {
+		"dq-{efmSection}-{tag}-Missing": "Submission type {subType} {severityVerb} have a non-empty value for {tag} in the {context}.",
+        "dq-{efmSection}-{tag}-Unexpected": "Submission type {subType} {severityVerb} not have a value for {tag} in the {context}.",
+        "dq-{efmSection}-Taxonomy-Url-Required": "Submission type {subType} document type {docType} {severityVerb} contain a taxonomy URL matching {taxonomyPattern} in its DTS.",
+		"dq-{efmSection}-{tag}-Value": "In submission type {subType}, {tag} value, {value}, {severityVerb} be {qualifier}{expectedValue} in the {context}.",
+		"dq-{efmSection}-{tag}-{otherTag}-Dependent-Value": "In submission type {subType}, {tag} {severityVerb} be provided if and only if {otherTag} has value {value} in context {contextID}.",
+		"dq-0540-{headerTag}-Unexpected": "Header element {headerTag} value {value} is not applicable for {subType} submission type.",
+		"dq-{efmSection}-InlineXBRL": "The EX-26 attachment instance must be Inline XBRL."
+	}
+		
+}

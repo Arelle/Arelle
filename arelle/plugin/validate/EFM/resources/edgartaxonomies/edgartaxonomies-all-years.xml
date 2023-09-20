@@ -5,6 +5,47 @@ This file was created by staff of the U.S. Securities and Exchange Commission.
 Data and content created by government employees within the scope of their employment
 are not subject to domestic copyright protection. 17 U.S.C. 105.
 -->
+    <!-- SHR 2023 -->
+    <Loc>
+        <Family>SHR</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/shr/2023/shr-10b51-2023.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/shr-10b51/2023</Namespace>
+        <Prefix>shr-10b51</Prefix>
+    </Loc>
+    <Loc>
+        <Family>SHR</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/shr/2023/shr-exh-2023.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/shr-exh/2023</Namespace>
+        <Prefix>shr-exh</Prefix>
+    </Loc>
+    <Loc>
+        <Family>SHR</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/shr/2023/shr-narr-2023.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/shr-narr/2023</Namespace>
+        <Prefix>shr-narr</Prefix>
+    </Loc>
+    <Loc>
+        <Family>SHR</Family>
+        <Version>2023</Version>
+        <Href>https://xbrl.sec.gov/shr/2023/shr-2023.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/shr/2023</Namespace>
+        <Prefix>shr</Prefix>
+    </Loc>
     <Loc>
         <Family>BASE</Family>
         <Version>2023</Version>

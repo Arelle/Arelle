@@ -11,7 +11,7 @@ from arelle import XbrlConst
 from arelle.PythonUtil import attrdict, flattenSequence, pyObjectSize
 from arelle.ValidateXbrlCalcs import inferredDecimals, floatINF
 from arelle.XmlValidateConst import VALID
-from .Consts import standardNamespacesPattern, latestTaxonomyDocs, latestEntireUgt, feeTaggingExhibitTypePattern
+from .Consts import standardNamespacesPattern, latestTaxonomyDocs, latestEntireUgt, attachmentDocumentTypeValidationRulesFiles
 
 EMPTY_DICT = {}
 
@@ -111,9 +111,14 @@ class DateRange(ValueRange):
         self.v1 = dateTime(r[0], type=DATE)
         self.v2 = dateTime(r[1], type=DATE)
 
-def loadDeiValidations(modelXbrl, isInlineXbrl, exhibitType):
-    isFeeTagging = feeTaggingExhibitTypePattern.match(exhibitType)
-    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "ft-validations.json" if feeTaggingExhibitTypePattern.match(exhibitType) else "dei-validations.json"), 'rt', encoding='utf-8')
+def loadDeiValidations(modelXbrl, isInlineXbrl, attachmentDocumentType):
+    validationRulesFile = None
+    hasAttachmentDocumentTypeRules = False # non-dei exhibit specific rules
+    for (pattern, validationRulesFilename) in attachmentDocumentTypeValidationRulesFiles:
+        if pattern is not None and pattern.match(attachmentDocumentType or ""):
+            hasAttachmentDocumentTypeRules = True # non-dei exhibit type
+            break
+    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, validationRulesFilename), 'rt', encoding='utf-8')
     validations = json.load(_file) # {localName: date, ...}
     _file.close()
     #print ("original validations size {}".format(pyObjectSize(validations)))
@@ -148,13 +153,13 @@ def loadDeiValidations(modelXbrl, isInlineXbrl, exhibitType):
             continue
         for field in (
             ("xbrl-names",) if "store-db-name" in sev else
-            ("xbrl-names", "validation") if isFeeTagging else
+            ("xbrl-names", "validation") if hasAttachmentDocumentTypeRules else
             ("xbrl-names", "validation", "efm", "source")):
             if field not in sev:
                 modelXbrl.error("arelle:loadDeiValidations",
                                 _("Missing sub-type-element-validation[\"%(field)s\"] from %(validation)s."),
                                 field=field, validation=sev)
-        if "severity" in sev and not any(field.startswith("message") for field in sev) and not isFeeTagging:
+        if "severity" in sev and not any(field.startswith("message") for field in sev) and not hasAttachmentDocumentTypeRules:
             modelXbrl.error("arelle:loadDeiValidations",
                             _("Missing sub-type-element-validation[\"%(field)s\"] from %(validation)s."),
                             field="message*", validation=sev)
@@ -191,11 +196,11 @@ def loadDeiValidations(modelXbrl, isInlineXbrl, exhibitType):
         if "lang" in sev:
             sev["langPattern"] = re.compile(sev["lang"])
         s = sev.get("source")
-        if s is None and not validationCode and "store-db-name" in sev and not isFeeTagging:
+        if s is None and not validationCode and "store-db-name" in sev and not hasAttachmentDocumentTypeRules:
             pass # not a validation entry
-        elif s not in ("inline", "non-inline", "both") and not isFeeTagging:
+        elif s not in ("inline", "non-inline", "both") and not hasAttachmentDocumentTypeRules:
             modelXbrl.error("arelle:loadDeiValidations", _("Invalid source [\"%(source)s\"]."), source=s)
-        elif (isInlineXbrl and s in ("inline", "both")) or (not isInlineXbrl and s in ("non-inline", "both")) or isFeeTagging:
+        elif (isInlineXbrl and s in ("inline", "both")) or (not isInlineXbrl and s in ("non-inline", "both")) or (not s and hasAttachmentDocumentTypeRules):
             messageKey = sev.get("message")
             if messageKey and messageKey not in validations["messages"]:
                 modelXbrl.error("arelle:loadDeiValidations", _("Missing message[\"%(messageKey)s\"]."), messageKey=messageKey)

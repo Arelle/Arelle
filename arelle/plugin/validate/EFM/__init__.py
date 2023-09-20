@@ -10,11 +10,12 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
 
 
 [ {# current fields in JSON structure from Arelle Wrapper, per instance
-   "file": "file path to instance or html",
+   "file": "file path to instance or html"
+      or "ixds":[{"file": "file path to first html"},...]
    "cik": "1234567890",
    "cikNameList": { "cik1": "name1", "cik2":"name2", "cik3":"name3"...},
    "submissionType" : "SDR-A",
-   "exhibitType": "EX-99.K",
+   "exhibitType": "EX-99.K", # this is a legal term, separate from attachmentDocumentType (below)
    "itemsList": [] # array of items, e.g. ["5.03"] (either array of strings blank-separated items in string)
    "accessionNumber":"0001125840-15-000159" ,
    # new fields
@@ -48,12 +49,15 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
        (e.g. "DQC.US.00(04|15)" ), but not including the id suffix (which is not filterable)
        If parameter is absent and config.xml for disclosureSystem options specifies a dqc-rule-filter, it will be in effect
    # fee table instance validations (only):
-   "exhibitType": "EX-FILINGS-FEES",  # this field is mandatory for fee table instance validations else instance will be validated as a financial report
-   # exhibitType must match an entry in feeTaggingExhibitTypes (Consts.py) for instance to be recognized as a fee table instance
+   "attachmentDocumentType": "EX-FILINGS FEES",  # this field is mandatory for fee table instance validations else instance will be validated as a financial report
+   # attachmentDocumentType must match an entry in feeTaggingExhibitTypes (Consts.py) for instance to be recognized as a fee table instance
    "submissionType" : "S-1", # this field is mandatory for fee table instance validations
    "feeRate": "0.000130" # decimal number expressed in string - feeRate on the filing date
    "feeValuesFromFacts": true # save fee facts in json
    "saveFeeFacts": test environment file into which to save JSON output
+   # EX-26 attachment document types
+   "attachmentDocumentType": "EX-26",  # this field is mandatory for EX-26 validations else instance will be validated as a financial report
+   "fileNumber": "333-12345", # the file number for amending submission
    },
  {"file": "file 2"...
 ]
@@ -86,7 +90,7 @@ due to a Java bug on Windows shell interface (without the newlines for pretty pr
 "[{\"file\":\"z:\\Documents\\dir\\gpc_gd1-20130930.htm\",
     \"cik\": \"0000350001\",
     \"cikNameList\": {\"0000350001\":\"BIG FUND TRUST CO\"},
-    \"submissionType\":\"SDR-A\", \"exhibitType\":\"EX-99.K SDR.INS\"}]"
+    \"submissionType\":\"SDR-A\", \"attachmentDocumentType\":\"EX-99.K SDR.INS\"}]"
 
 To build cached deprecated concepts files (requires internet access):
    First delete any resources/*deprecated-concept.json which you want to rebuild
@@ -123,8 +127,10 @@ from arelle.PythonUtil import flattenSequence
 from arelle.UrlUtil import authority, relativeUri
 from arelle.ValidateFilingText import referencedFiles
 from arelle.Version import authorLabel, copyrightLabel
+from arelle.XmlValidateConst import VALID
 from .Document import checkDTSdocument
-from .Consts import feeTagEltsNotRelevelable, feeTagMessageCodesRelevelable, feeTaggingExhibitTypePattern, supplementalExhibitTypesPattern
+from .Consts import (feeTagEltsNotRelevelable, feeTagMessageCodesRelevelable, feeTaggingAttachmentDocumentTypePattern,
+                     supplementalAttachmentDocumentTypesPattern, exhibitTypesStrippingOnErrorPattern)
 from .Filing import validateFiling
 from .MessageNumericId import messageNumericId
 import regex as re
@@ -144,7 +150,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         return
 
     val.params = {}
-    parameterNames = ("CIK", "cik", "cikList", "cikNameList", "submissionType", "exhibitType", # CIK or cik both allowed
+    parameterNames = ("CIK", "cik", "cikList", "cikNameList", "submissionType", "exhibitType", "attachmentDocumentType", # CIK or cik both allowed
                       "itemsList", "accessionNumber", "entity.repFileNum",
                       "periodOfReport", "entityRegistration.fyEnd", "submissionHeader.fyEnd", "voluntaryFilerFlag",
                       "wellKnownSeasonedIssuerFlag", "shellCompanyFlag", "acceleratedFilerStatus", "smallBusinessFlag",
@@ -153,7 +159,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                       "rptIncludeAllClassesFlag", "rptSeriesClassInfo.classIds", "newClass2.classIds",
                       "eligibleFundFlag", "pursuantGeneralInstructionFlag", "filerNewRegistrantFlag",
                       "datetimeForTesting", "dqcRuleFilter", "saveCoverFacts",
-                      "feeRate", "feeValuesFromFacts", "saveFeeFacts", "fiscalYearEnd", "intrstRate", "issrNm")
+                      "feeRate", "feeValuesFromFacts", "saveFeeFacts", "fiscalYearEnd", "intrstRate", "issrNm", "fileNumber")
     boolParameterNames = {"voluntaryFilerFlag", "wellKnownSeasonedIssuerFlag", "shellCompanyFlag", "acceleratedFilerStatus",
                           "smallBusinessFlag", "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "rptIncludeAllSeriesFlag",
                           "filerNewRegistrantFlag", "pursuantGeneralInstructionFlag", "eligibleFundFlag"}
@@ -219,13 +225,21 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
             if paramName and paramName.localName == "ELOparams" and len(p) == 2 and p[1] not in ("null", "None", None):
                 try:
                     for key, value in json.loads(p[1]).items():
+                        if key == "feeRate":
+                            try:
+                                value = Decimal(value)
+                            except (ValueError, InvalidOperation):
+                                val.modelXbrl.error("arelle.Parameters",
+                                    _("parameter %(name)s has non-decimal value %(value)s"),
+                                    modelXbrl=val.modelXbrl, name=key, value=value)
+                                continue # don't use parameter
                         val.params[{"CIK":"cik"}.get(key,key)] = value # change upper case CIK to lower case
                 except (ValueError, AttributeError, TypeError):
                     val.modelXbrl.error("arelle.testcaseVariationParameters",
                         _("parameter ELOparams has malformed JSON %(json)s object"),
                         modelXbrl=val.modelXbrl, json=p[1][:100])
                 break
-    # parameters may also come from report entryPoint (such as exhibitType for SDR)
+    # parameters may also come from report entryPoint (such as attachmentDocumentType for SDR)
     if hasattr(val.modelXbrl.modelManager, "efmFiling"):
         efmFiling = val.modelXbrl.modelManager.efmFiling
         if efmFiling.reports: # possible that there are no reports
@@ -252,9 +266,9 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         val.params["cik"] = val.params["CIK"]
         del val.params["CIK"]
 
-    # exhibitType may be an attachmentType, if so remove ".INS"
-    if val.params.get("exhibitType", "").endswith(".INS"):
-        val.params["exhibitType"] = val.params["exhibitType"][:-4]
+    # attachmentType, if xBRL-XML, is suffixed ".INS", remove that
+    if val.params.get("attachmentDocumentType", "").endswith(".INS"):
+        val.params["attachmentDocumentType"] = val.params["attachmentDocumentType"][:-4]
 
     if isinstance(val.params.get("cikNameList", None), str):
         # cik1, cik2, cik3 in cikList and name1|Edgar|name2|Edgar|name3 in cikNameList strings
@@ -277,7 +291,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                 modelXbrl=val.modelXbrl, cikNameList=_filerNames)
             del val.params["cikNameList"] # can't process without cik's as keys
 
-    if val.params.get("exhibitType", "") == "EX-2.01": # only applicable for edgar production and parameterized testcases
+    if val.params.get("attachmentDocumentType",  val.params.get("exhibitType", "")).startswith("EX-2.01"): # only applicable for edgar production and parameterized testcases
         val.EFM60303 = "EFM.6.23.01"
     else:
         val.EFM60303 = "EFM.6.03.03"
@@ -293,6 +307,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     if hasattr(modelManager, "efmFiling"):
         efmFiling = modelManager.efmFiling
         efmFiling.submissionType = val.params.get("submissionType")
+        efmFiling.attachmentDocumentType = val.params.get("attachmentDocumentType")
 
 def severityReleveler(modelXbrl, level, messageCode, args, **kwargs):
     if messageCode and feeTagMessageCodesRelevelable.match(messageCode) and level == "ERROR":
@@ -302,12 +317,24 @@ def severityReleveler(modelXbrl, level, messageCode, args, **kwargs):
             modelObject = args.get("modelObject")
             if (isinstance(modelObject, ModelFact) and
                 str(modelObject.qname) not in feeTagEltsNotRelevelable):
-                    return "WARNING"
+                    level = "WARNING"
     # add message number
-    msgNum = messageNumericId(modelXbrl, level, messageCode, args)
+    messageCode, msgNum = messageNumericId(modelXbrl, level, messageCode, args)
     if msgNum:
         args["edgarMessageNumericId"] = msgNum
-    return level
+    return level, messageCode
+
+def isolateSeparateIXDSes(modelXbrl, *args, **kwargs):
+    separateIXDSes = defaultdict(list)
+    for htmlElt in modelXbrl.ixdsHtmlElements:
+        tp = "" # attachment document type inferred from document type and ffd:SubmissnTp
+        for qn in ("dei:DocumentType", "ffd:FeeExhibitTp"):
+            for elt in htmlElt.iterfind(f".//{{{htmlElt.modelDocument.ixNS}}}nonNumeric[@name='{qn}']"):
+                tp = elt.stringValue.strip()
+                if tp:
+                    break
+        separateIXDSes[tp if supplementalAttachmentDocumentTypesPattern.match(tp) else ""].append(htmlElt)
+    return [htmlElts for tp,htmlElts in sorted(separateIXDSes.items(), key=lambda i:i[0])]
 
 def validateXbrlFinally(val, *args, **kwargs):
     if not (val.validateEFMplugin):
@@ -348,9 +375,13 @@ def filingStart(cntlr, options, filesource, entrypointFiles, sourceZipStream=Non
 
 def guiTestcasesStart(cntlr, modelXbrl, *args, **kwargs):
     modelManager = cntlr.modelManager
-    if (cntlr.hasGui and modelXbrl.modelDocument and modelXbrl.modelDocument.type in Type.TESTCASETYPES and
-         modelManager.validateDisclosureSystem and getattr(modelManager.disclosureSystem, "EFMplugin", False)):
-        modelManager.efmFiling = Filing(cntlr)
+    if cntlr.hasGui and modelManager.validateDisclosureSystem and getattr(modelManager.disclosureSystem, "EFMplugin", False):
+        for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Gui.Run"):
+            pluginXbrlMethod(cntlr, modelXbrl, *args,
+                             # pass plugin items to GUI mode of EdgarRenderer
+                             exhibitTypesStrippingOnErrorPattern=exhibitTypesStrippingOnErrorPattern,
+                             setReportAttrs=setReportAttrs, **kwargs)
+
 def testcasesStart(cntlr, options, modelXbrl, *args, **kwargs):
     # a test or RSS cases run is starting, in which case testcaseVariation... events have unique efmFilings
     modelManager = cntlr.modelManager
@@ -366,15 +397,15 @@ def xbrlLoad(modelManager, filesource, entrypoint=None, **kwargs):
     # starting to load an instance
     if hasattr(modelManager, "efmFiling"):
         if entrypoint:
-            exhibitType = entrypoint.get("exhibitType")
-            if feeTaggingExhibitTypePattern.match(exhibitType or ""):
+            attachmentDocumentType = entrypoint.get("attachmentDocumentType")
+            if feeTaggingAttachmentDocumentTypePattern.match(attachmentDocumentType or ""):
                 # set html log title
                 modelManager.cntlr.logHandler.htmlTitle = "Fee Exhibit Message Log"
             modelManager.cntlr.addToLog(
-                f"Exhibit Type {exhibitType}",
+                f"Attachment Document Type {attachmentDocumentType}",
                 level="INFO-RESULT",
-                messageCode="EFM.exhibitType",
-                messageArgs={"exhibitType":exhibitType},
+                messageCode="EFM.attachmentDocumentType",
+                messageArgs={"attachmentDocumentType":attachmentDocumentType},
                 file=os.path.basename(entrypoint.get("file"))
                 )
 
@@ -389,8 +420,6 @@ def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args, **kwargs):
             _report.entryPoint = entryPoint
             if "accessionNumber" in entryPoint and not hasattr(efmFiling, "accessionNumber"):
                 efmFiling.accessionNumber = entryPoint["accessionNumber"]
-            if "exhibitType" in entryPoint and not hasattr(_report, "exhibitType"):
-                _report.exhibitType = entryPoint["exhibitType"]
             efmFiling.arelleUnitTests = modelXbrl.arelleUnitTests.copy() # allow unit tests to be used after instance processing finished
         elif modelXbrl.modelDocument.type == Type.RSSFEED:
             testcasesStart(cntlr, options, modelXbrl)
@@ -414,9 +443,9 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
         reports = efmFiling.reports
         # check for dup inline and regular instances
         # SDR checks
-        if any(report.documentType and report.documentType.endswith(" SDR")
+        if any(report.deiDocumentType and report.deiDocumentType.endswith(" SDR")
                for report in reports):
-            _kSdrs = [r for r in reports if r.documentType == "K SDR"]
+            _kSdrs = [r for r in reports if r.deiDocumentType == "K SDR"]
             if not _kSdrs and efmFiling.submissionType in ("SDR", "SDR-A"):
                 efmFiling.error("EFM.6.03.08.sdrHasNoKreports",
                                 _("SDR filing has no K SDR reports"))
@@ -428,7 +457,7 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
                                 (r.url for r in _kSdrs))
             _lSdrEntityReports = defaultdict(list)
             for r in reports:
-                if r.documentType == "L SDR":
+                if r.deiDocumentType == "L SDR":
                     _lSdrEntityReports[r.entityCentralIndexKey if r.entityCentralIndexKey != "0000000000"
                                        else r.entityRegistrantName].append(r)
             for lSdrEntity, lSdrEntityReports in _lSdrEntityReports.items():
@@ -451,37 +480,37 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
                 if not hasLbl: missingFiles += ", label linkbase"
                 if missingFiles:
                     efmFiling.error("EFM.6.03.02.sdrMissingFiles",
-                                    _("%(docType)s report missing files: %(missingFiles)s"),
-                                    {"docType": r.documentType, "missingFiles": missingFiles[2:],
+                                    _("%(deiDocumentType)s report missing files: %(missingFiles)s"),
+                                    {"deiDocumentType": r.deiDocumentType, "missingFiles": missingFiles[2:],
                                      "edgarCode": "cp-0302-Sdr-Missing-Files"},
                                     r.url)
                 if not r.hasUsGaapTaxonomy:
                     efmFiling.error("EFM.6.03.02.sdrMissingStandardSchema",
-                                    _("%(documentType)s submission must use a US GAAP standard schema"),
-                                    {"documentType": r.documentType,
+                                    _("%(deiDocumentType)s submission must use a US GAAP standard schema"),
+                                    {"deiDocumentType": r.deiDocumentType,
                                      "edgarCode": "cp-0302-Sdr-Missing-Standard-Schema"},
                                     r.url)
-                if hasattr(r, "exhibitType") and r.exhibitType not in ("EX-99.K SDR", "EX-99.L SDR", "EX-99.K SDR.INS", "EX-99.L SDR.INS"):
-                    efmFiling.error("EFM.6.03.02.sdrHasNonSdrExhibit",
-                                    _("An SDR filing contains non-SDR exhibit type %(exhibitType)s document type %(documentType)s"),
-                                    {"documentType": r.documentType, "exhibitType": r.exhibitType,
-                                     "edgarCode": "cp-0302-Sdr-Has-Non-Sdr-Exhibit"},
+                if hasattr(r, "attachmentDocumentType") and r.attachmentDocumentType not in ("EX-99.K SDR", "EX-99.L SDR", "EX-99.K SDR.INS", "EX-99.L SDR.INS"):
+                    efmFiling.error("EFM.6.03.02.sdrHasNonSdrAttachment",
+                                    _("An SDR filing contains non-SDR attachment document type %(attachmentDocumentType)s dei document type %(deiDocumentType)s"),
+                                    {"deiDocumentType": r.deiDocumentType, "attachmentDocumentType": r.attachmentDocumentType,
+                                     "edgarCode": "cp-0302-Sdr-Has-Non-Sdr-Attachment"},
                                     r.url)
-        _exhibitTypeReports = defaultdict(list)
+        _attachmentDocumentTypeReports = defaultdict(list)
         for r in reports:
-            if hasattr(r, "exhibitType") and r.exhibitType and not supplementalExhibitTypesPattern.match(r.exhibitType):
-                _exhibitTypeReports[r.exhibitType.partition(".")[0]].append(r)
-        if len(_exhibitTypeReports) > 1:
+            if hasattr(r, "attachmentDocumentType") and r.attachmentDocumentType and not supplementalAttachmentDocumentTypesPattern.match(r.attachmentDocumentType):
+                _attachmentDocumentTypeReports[r.attachmentDocumentType.partition(".")[0]].append(r)
+        if len(_attachmentDocumentTypeReports) > 1:
             efmFiling.error("EFM.6.03.08",
-                            _("A filling contains multiple exhibit types %(exhibitTypes)s."),
-                            {"exhibitTypes": ", ".join(_exhibitTypeReports.keys())},
+                            _("A filling contains multiple attachment document types %(attachmentDocumentType)s."),
+                            {"attachmentDocumentTypes": ", ".join(_attachmentDocumentTypeReports.keys())},
                             [r.url for r in reports])
-        for _exhibitType, _exhibitReports in _exhibitTypeReports.items():
-            if _exhibitType not in ("EX-99",) and len(_exhibitReports) > 1:
+        for _attachmentDocumentType, _exhibitReports in _attachmentDocumentTypeReports.items():
+            if _attachmentDocumentType not in ("EX-99",) and len(_attachmentDocumentTypeReports) > 1:
                 efmFiling.error("EFM.6.03.08.moreThanOneIns",
-                                _("A filing contains more than one instance for exhibit type %(exhibitType)s."),
-                                {"exhibitType": _exhibitType},
-                                [r.url for r in _exhibitReports])
+                                _("A filing contains more than one instance for attachment document type %(attachmentDocumentType)s."),
+                                {"attachmentDocumentType": _attachmentDocumentType},
+                                [r.url for r in _attachmentDocumentTypeReports])
 
 def roleTypeName(modelXbrl, roleURI, *args, **kwargs):
     modelManager = modelXbrl.modelManager
@@ -538,8 +567,8 @@ def testcaseVariationXbrlLoaded(testcaseModelXbrl, instanceModelXbrl, modelTestc
         # check for parameters on instance
         for _instanceElt in XmlUtil.descendants(modelTestcaseVariation, "*", "instance", "readMeFirst", "true", False):
             if instanceModelXbrl.modelDocument.uri.endswith(_instanceElt.text):
-                if _instanceElt.get("exhibitType"):
-                    _report.entryPoint["exhibitType"] = _report.exhibitType = _instanceElt.get("exhibitType")
+                if _instanceElt.get("attachmentDocumentType"):
+                    _report.entryPoint["attachmentDocumentType"] = _report.attachmentDocumentType = _instanceElt.get("attachmentDocumentType")
                 break
 
 def testcaseVariationXbrlValidated(testcaseModelXbrl, instanceModelXbrl, *args, **kwargs):
@@ -627,6 +656,7 @@ class Filing:
         self.arelleUnitTests = {} # copied from each instance loaded
         for pluginXbrlMethod in pluginClassMethods("Security.Crypt.Init"):
             pluginXbrlMethod(self, options, filesource, entrypointfiles, sourceZipStream)
+        self.exhibitTypesStrippingOnErrorPattern = exhibitTypesStrippingOnErrorPattern
 
     def setReportZipStreamMode(self, mode): # mode is 'w', 'r', 'a'
         # required to switch in-memory zip stream between write, read, and append modes
@@ -702,11 +732,24 @@ class Filing:
         with io.open(filepath, "wt" if isinstance(data, str) else "wb") as fh:
             fh.write(data)
 
+REPORT_ATTRS = {"DocumentType", "DocumentPeriodEndDate", "EntityRegistrantName",
+                "EntityCentralIndexKey", "CurrentFiscalYearEndDate", "DocumentFiscalYearFocus",
+                "FeeExhibitTp"}
+def lc(name):
+    if name == "DocumentType":
+        return "deiDocumentType" # special case to disambiguate from attachmentDocumentType
+    return name[0].lower() + name[1:]
+
+def setReportAttrs(report, modelXbrl):
+    for attrName in REPORT_ATTRS:
+        setattr(report, lc(attrName), None)
+    for f in modelXbrl.facts:
+        cntx = f.context
+        if cntx is not None and cntx.isStartEndPeriod and not cntx.hasSegment:
+            if f.qname is not None and f.qname.localName in REPORT_ATTRS and f.xValid >= VALID and f.xValue:
+                setattr(report, lc(f.qname.localName), f.xValue)
+
 class Report:
-    REPORT_ATTRS = {"DocumentType", "DocumentPeriodEndDate", "EntityRegistrantName",
-                    "EntityCentralIndexKey", "CurrentFiscalYearEndDate", "DocumentFiscalYearFocus"}
-    def lc(self, name):
-        return name[0].lower() + name[1:]
 
     def __init__(self, modelXbrl):
         self.isInline = modelXbrl.modelDocument.type in (Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET)
@@ -724,14 +767,8 @@ class Report:
             self.basenames = [modelXbrl.modelDocument.basename]
             self.filepaths = [modelXbrl.modelDocument.filepath]
             self.reportedFiles.add(modelXbrl.modelDocument.basename)
-        for attrName in Report.REPORT_ATTRS:
-            setattr(self, self.lc(attrName), None)
         self.instanceName = self.basenames[0]
-        for f in modelXbrl.facts:
-            cntx = f.context
-            if cntx is not None and cntx.isStartEndPeriod and not cntx.hasSegment:
-                if f.qname is not None and f.qname.localName in Report.REPORT_ATTRS and f.xValue:
-                    setattr(self, self.lc(f.qname.localName), f.xValue)
+        setReportAttrs(self, modelXbrl)
         self.reportedFiles |= referencedFiles(modelXbrl)
         self.renderedFiles = set()
         self.hasUsGaapTaxonomy = False
@@ -743,7 +780,6 @@ class Report:
                 for ixDoc in doc.referencesDocument.keys():
                     if ixDoc.type == Type.INLINEXBRL:
                         addRefDocs(ixDoc)
-                return
             for refDoc in doc.referencesDocument.keys():
                 _file = refDoc.filepath
                 if refDoc.uri not in refDocUris:
@@ -772,7 +808,7 @@ class Report:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
-    'version': '1.23.2.2', # SEC EDGAR release 23.2
+    'version': '1.23.3', # SEC EDGAR release 23.3
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'import': ('transforms/SEC',), # SEC inline can use SEC transformations
@@ -802,5 +838,6 @@ __pluginInfo__ = {
     'TestcaseVariation.Validated': testcaseVariationValidated,
     'FileSource.File': fileSourceFile,
     'FileSource.Exists': fileSourceExists,
-    'Logging.Severity.Releveler': severityReleveler
+    'Logging.Severity.Releveler': severityReleveler,
+    'InlineDocumentSet.IsolateSeparateIXDSes': isolateSeparateIXDSes
 }

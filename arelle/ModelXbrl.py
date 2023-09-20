@@ -1213,7 +1213,7 @@ class ModelXbrl:
             return
         if self.logHasRelevelerPlugin:
             for pluginXbrlMethod in pluginClassMethods("Logging.Severity.Releveler"):
-                level = pluginXbrlMethod(self, level, messageCode, args) # args must be passed as dict because it may contain modelXbrl or messageCode key value
+                level, messageCode = pluginXbrlMethod(self, level, messageCode, args) # args must be passed as dict because it may contain modelXbrl or messageCode key value
         if (messageCode and
               (not logger.messageCodeFilter or logger.messageCodeFilter.match(messageCode)) and
               (not logger.messageLevelFilter or logger.messageLevelFilter.match(level.lower()))):

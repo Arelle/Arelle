@@ -75,6 +75,7 @@
 		"10-12+20+40-FR": ["@10-12", "@20+40FR"],
 		"F-n": ["F-1", "F-1/A", "F-3", "F-3/A", "F-4", "F-4/A"],
 		"F-nX": ["F-1MEF", "F-3ASR", "F-3D", "F-3DPOS", "F-3MEF", "F-4 POS", "F-4EF", "F-4MEF", "F-10", "F-10/A", "F-10EF", "F-10POS"],
+		"F-SR": ["F-SR", "F-SR/A"],
 		"N": ["N-Q", "N-Q/A", "N-CSRS", "N-CSRS/A", "NCSR", "NCSR/A", "N-CSR", "N-CSR/A"],
         "N-1A": ["485POS§N-1A", "485APOS§N-1A", "485BPOS§N-1A", "485BXT§N-1A", "497§N-1A"],
         "N-2": ["N-2§N-2", "@N-2-a"],
@@ -88,7 +89,7 @@
         "N-346": ["@N-3", "@N-4", "@N-6"],
         "N-CSR": ["N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A"],
 		"POS": ["POS AM", "POS EX"],
-		"PvP": ["DEF 14A", "DEF 14C", "PRE 14A", "PRE 14C", "PREM14A", "PREM14C"],
+		"PvP": ["DEF 14A", "DEF 14C", "PRE 14A", "PRE 14C", "PREM14A",  "PREM14C"],
 		"RR": ["485APOS", "485BPOS", "485BXT", "497", "N-1A", "N-1A/A"],
 		"SP 15D2": ["SP 15D2", "SP 15D2/A"],
 		"S-n": ["S-1", "S-1/A", "S-3", "S-3/A", "S-4", "S-4/A", "S-11", "S-11/A"],
@@ -194,6 +195,8 @@
 	{"sub-types": ["F-10/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["F-10/A"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["F-10EF"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["F-10EF"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["F-10POS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["F-10POS"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["F-SR"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["F-SR"], "source": "inline", "dei/cover": "dei"},
+    {"sub-types": ["F-SR/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["F-SR", "F-SR/A"], "source": "inline", "dei/cover": "dei"},
     {"sub-types": ["N-1A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-1A"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["N-1A/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-1A/A"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["N-2"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-2"], "source": "both", "dei/cover": "dei"},
@@ -334,6 +337,15 @@
         "dei/cover": "dei"
     },
     {
+        "sub-types": ["@F-SR"],
+        "xbrl-names": "DocumentPeriodEndDate",
+        "elo-name": "periodOfReport",
+        "efm": "6.5.20",
+        "validation": "r",
+        "source": "inline",
+        "dei/cover": "dei"
+    },
+    {
     	"sub-types": ["@SD"],
         "xbrl-names": "DocumentPeriodEndDate",
         "store-db-name": "periodOfReport",
@@ -361,7 +373,7 @@
             "@all-FAST",
             "@POS", "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A",
             "@6-K", "@SP 15D2", "@RR", "@N-346", "@SDR",
-            "@N", "N-3", "N-4", "N-6", "@PvP"
+            "@N", "N-3", "N-4", "N-6", "@PvP", "@F-SR"
         ],
         "xbrl-names": "DocumentPeriodEndDate",
         "store-db-name": "periodOfReport",
@@ -470,7 +482,7 @@
         "elo-match-message" : "dq-0540-CurrentFiscalYearEndDate-Registrant-Value"
     },
     {
-        "sub-types": ["@20+40FR", "@8-K", "@N-CSR", "@SD"],
+        "sub-types": ["@20+40FR", "@8-K", "@N-CSR", "@SD", "@F-SR"],
         "xbrl-names": "CurrentFiscalYearEndDate",
         "elo-name": "entityRegistration.fyEnd",
         "efm": "6.5.21",
@@ -2452,7 +2464,10 @@
         "dei/cover": "cover"
     },
     {
-        "comment": "Following validationd must be last."
+        "comment": "SHR taxonomy elements"
+    },
+    {
+        "comment": "Following validation must be last."
     },
     {
         "sub-types": ["@all"],
@@ -2516,6 +2531,11 @@
         "taxonomy-url-required-in-dts": {
             "message": "dq-{efmSection}-Taxonomy-Url-Required",
             "severity": "error"
+        },
+        "taxonomy-url-unexpected-in-dts": {
+            "message": "dq-{efmSection}-Taxonomy-Url-Unexpected",
+            "severity": "error",
+            "severityVerb": "must not"
         },
 		"x": {
 			"message": "dq-{efmSection}-{tag}-Missing",
@@ -2819,6 +2839,7 @@
         "dq-{efmSection}-{taxonomy}-Facts-Unexpected": "Submission type {subType} {severityVerb} not report {taxonomy} namespace facts.",
         "dq-{efmSection}-{taxonomy}-Version-Required": "Submission type {subType} {severityVerb} use {taxonomy} version {earliestTaxonomy} or later.",
         "dq-{efmSection}-Taxonomy-Url-Required": "Submission type {subType} document type {docType} {severityVerb} contain a taxonomy URL matching {taxonomyPattern} in its DTS.",
+        "dq-{efmSection}-Taxonomy-Url-Unexpected": "Submission type {subType} document type {docType} {severityVerb} contain a taxonomy URL matching {taxonomyPattern} in its DTS.{msgCoda}",
 		"dq-{efmSection}-{tag}-{value}": "In submission type {subType}, {tag} value {severityVerb} have {value} in the {context}.",
 		"dq-{efmSection}-{tag}-{expectedValue}": "In submission type {subType}, {tag} value, {value}, {severityVerb} have {expectedValue} in the {context}.",
 		"dq-{efmSection}-{tag}-Value": "In submission type {subType}, {tag} value, {value}, {severityVerb} be {qualifier}{expectedValue} in the {context}.",

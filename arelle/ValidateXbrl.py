@@ -271,7 +271,7 @@ class ValidateXbrl:
 
         # instance checks
         modelXbrl.modelManager.showStatus(_("validating instance"))
-        assert modelXbrl.modelDocument is not None
+        assert modelXbrl.modelDocument is not None, _("Instance has no ModelDocument object")
         if modelXbrl.modelDocument.type in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
             self.checkFacts(modelXbrl.facts)
             self.checkContexts(self.modelXbrl.contexts.values())
@@ -406,7 +406,7 @@ class ValidateXbrl:
         modelXbrl.modelManager.showStatus(_("validating DTS"))
         self.DTSreferenceResourceIDs = {}
         checkedModelDocuments: set[ModelDocument] = set()
-        assert modelXbrl.modelDocument is not None
+        assert modelXbrl.modelDocument is not None, _("Instance has no ModelDocument object")
         ValidateXbrlDTS.checkDTS(self, modelXbrl.modelDocument, checkedModelDocuments)
         # ARELLE-220: check imported documents that aren't DTS discovered
         for importedModelDocument in (set(modelXbrl.urlDocs.values()) - checkedModelDocuments):
@@ -428,7 +428,7 @@ class ValidateXbrl:
 
         if self.validateIXDS:
             modelXbrl.modelManager.showStatus(_("Validating inline document set"))
-            assert modelXbrl.modelDocument is not None
+            assert modelXbrl.modelDocument is not None, _("Instance has no ModelDocument object")
             _ixNS = modelXbrl.modelDocument.ixNS
             ixdsIdObjects = defaultdict(list)
             for ixdsDoc in self.ixdsDocs:
@@ -602,11 +602,11 @@ class ValidateXbrl:
                                 resourceArcTos.append((toLabel, arcElt.get("use"), arcElt))
                         elif self.isGenericArc(arcElt):
                             arcrole = arcElt.get("{http://www.w3.org/1999/xlink}arcrole")
-                            assert arcrole is not None
-                            self.genericArcArcroles.add(arcrole)
-                            if arcrole in (XbrlConst.elementLabel, XbrlConst.elementReference):
-                                resourceArcTos.append((toLabel, arcrole, arcElt))
-                    # values of type (not needed for validating parsers)
+                            if arcrole is not None: # absent arcrole would have already raised XBRL error
+                                self.genericArcArcroles.add(arcrole)
+                                if arcrole in (XbrlConst.elementLabel, XbrlConst.elementReference):
+                                    resourceArcTos.append((toLabel, arcrole, arcElt))
+                   # values of type (not needed for validating parsers)
                     if xlinkType not in xlinkTypeValues: # ("", "simple", "extended", "locator", "arc", "resource", "title", "none"):
                         self.modelXbrl.error("xlink:type",
                             _("Xlink type %(xlinkType)s invalid in extended link %(linkrole)s"),
@@ -768,7 +768,7 @@ class ValidateXbrl:
                                     _("Fact %(fact)s context %(contextID)s is a fraction with invalid denominator %(denominator)"),
                                     modelObject=f, fact=f.qname, contextID=f.contextID, denominator=denominator)
                     else:
-                        assert self.modelXbrl.modelDocument is not None
+                        assert self.modelXbrl.modelDocument is not None, _("Instance has no ModelDocument object")
                         if self.modelXbrl.modelDocument.type not in (ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
                             for child in f.iterchildren():
                                 if isinstance(child,ModelObject):
@@ -876,8 +876,8 @@ class ValidateXbrl:
             if f.modelTupleFacts:
                 self.checkFacts(f.modelTupleFacts, inTuple=inTuple)
             if isinstance(f, ModelInlineFact) and (f.isTuple or f.tupleID):
-                assert inTuple is not None
-                del inTuple[f.qname]
+                if inTuple is not None:
+                    del inTuple[f.qname]
 
             # uncomment if anybody uses this
             #for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Fact"):
@@ -944,9 +944,9 @@ class ValidateXbrl:
                     self.modelXbrl.error("xbrl.4.7.2:contextDateError",
                         _("Context %(contextID)s instant date: %(error)s"),
                         modelObject=cntx, contextID=cntx.id, error=err)
-            assert cntx.id is not None
-            self.segmentScenario(cntx.segment, cntx.id, "segment", "4.7.3.2")
-            self.segmentScenario(cntx.scenario, cntx.id, "scenario", "4.7.4")
+            if cntx.id is not None: # user would already have gotten a XML Schema error for missing id
+                self.segmentScenario(cntx.segment, cntx.id, "segment", "4.7.3.2")
+                self.segmentScenario(cntx.scenario, cntx.id, "scenario", "4.7.4")
 
             for dim in cntx.qnameDims.values():
                 if dim.isTyped:
@@ -1058,7 +1058,7 @@ class ValidateXbrl:
             if element is None:
                 return  # nothing to check
         else:
-            assert element is not None
+            assert element is not None, _("Segment or scenario has null element.")
             if element.namespaceURI == XbrlConst.xbrli:
                 self.modelXbrl.error("xbrl.{0}:{1}XbrliElement".format(sect,name),
                     _("Context %(contextID)s %(contextElement)s cannot have xbrli element %(elementName)s"),

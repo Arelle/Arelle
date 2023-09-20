@@ -28,8 +28,6 @@ archiveFilenameSuffixes = {".zip", ".tar.gz", ".eis", ".xml", ".xfd", ".frm"}
 POST_UPLOADED_ZIP = os.sep + "POSTupload.zip"
 SERVER_WEB_CACHE = os.sep + "_HTTP_CACHE"
 
-XMLdeclaration = re.compile(r"<\?xml[^><\?]*\?>", re.DOTALL)
-
 TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD packages
 
 def openFileSource(
@@ -824,9 +822,11 @@ def openXmlFileStream(
     else:
         if stripDeclaration:
             # strip XML declaration
-            xmlDeclarationMatch = XMLdeclaration.search(text)
+            xmlDeclarationMatch = XmlUtil.xmlDeclarationPattern.match(text)
             if xmlDeclarationMatch: # remove it for lxml
-                start,end = xmlDeclarationMatch.span()
+                if xmlDeclarationMatch.group(1) is not None:
+                    raise XmlUtil.XmlDeclarationLocationException
+                start,end = xmlDeclarationMatch.span(2)
                 text = text[0:start] + text[end:]
         return (FileNamedStringIO(filepath, initial_value=text), encoding)
 

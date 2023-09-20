@@ -31,10 +31,15 @@ htmlEltUriAttrs: dict[str, Collection[str]] | None = None
 resolveHtmlUri: Callable[[ModelObject, str | bytes | None, str | bytes | None], str] | None = None
 datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*|"
                              r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})(Z|[+-][0-9]{2}:[0-9]{2})?\s*")
+xmlDeclarationPattern = re.compile(r"(\s+)?(<\?xml[^><\?]*\?>)", re.DOTALL)
 xmlEncodingPattern = re.compile(r"\s*<\?xml\s.*encoding=['\"]([^'\"]*)['\"].*\?>")
 xpointerFragmentIdentifierPattern = re.compile(r"([\w.]+)(\(([^)]*)\))?")
 xmlnsStripPattern = re.compile(r'\s*xmlns(:[\w.-]+)?="[^"]*"')
 nonSpacePattern = re.compile(r"\S+")
+
+class XmlDeclarationLocationException(Exception):
+    def __init__(self) -> None:
+        super(XmlDeclarationLocationException, self).__init__("XML declaration is allowed only at the start of the document")
 
 def xmlns(element: ModelObject, prefix: str | None) -> str | None:
     ns = element.nsmap.get(prefix)

@@ -32,17 +32,22 @@ class WatchRss:
         self.stopRequested = False
         rssModelXbrl.watchRss = self
         # cache modelManager options which dialog overrides
-        self.priorValidateCalcLB = self.priorFormulaRunIDs = None
+        self.priorValidateCalcs = self.priorFormulaRunIDs = None
 
     def start(self):
         import threading
+        if self.cntlr.webCache.workOffline:
+            self.rssModelXbrl.error("arelle.rssError",
+                _("RSS feed is not accessible in work offline mode."),
+                modelXbrl=self.rssModelXbrl)
+            return
         if not self.thread or not self.thread.is_alive():
             self.stopRequested = False
             self.priorValidateCalcLB = self.priorFormulaRunIDs = None
             rssWatchOptions = self.rssModelXbrl.modelManager.rssWatchOptions
-            if rssWatchOptions.get("validateCalcLinkbase") != self.rssModelXbrl.modelManager.validateCalcLB:
-                self.priorValidateCalcLB = self.rssModelXbrl.modelManager.validateCalcLB
-                self.rssModelXbrl.modelManager.validateCalcLB = rssWatchOptions.get("validateCalcLinkbase")
+            if rssWatchOptions.get("validateCalcs") != self.rssModelXbrl.modelManager.validateCalcs:
+                self.priorValidateCalcs = self.rssModelXbrl.modelManager.validateCalcs
+                self.rssModelXbrl.modelManager.validateCalcs = rssWatchOptions.get("validateCalcs")
             if (rssWatchOptions.get("validateFormulaAssertions") in (False,True) and
                 self.rssModelXbrl.modelManager.formulaOptions is not None):
                 self.priorFormulaRunIDs = self.rssModelXbrl.modelManager.formulaOptions.runIDs
@@ -102,7 +107,7 @@ class WatchRss:
             # anything to check new filings for
             if (rssWatchOptions.get("validateDisclosureSystemRules") or
                 rssWatchOptions.get("validateXbrlRules") or
-                rssWatchOptions.get("validateCalcLinkbase") or
+                rssWatchOptions.get("validateCalcs") or
                 rssWatchOptions.get("validateFormulaAssertions") or
                 rssWatchOptions.get("alertMatchedFactText") or
                 any(pluginXbrlMethod(rssWatchOptions)
@@ -235,8 +240,8 @@ class WatchRss:
             if self.stopRequested:
                 self.cntlr.showStatus(_("RSS watch, stop requested"), 10000)
                 # reset prior options for calc and formula running
-                if self.priorValidateCalcLB is not None:
-                    self.rssModelXbrl.modelManager.validateCalcLB = self.priorValidateCalcLB
+                if self.priorValidateCalcs is not None:
+                    self.rssModelXbrl.modelManager.validateCalcs = self.priorValidateCalcs
                 if self.priorFormulaRunIDs is not None:
                     self.rssModelXbrl.modelManager.formulaOptions.runIDs = self.priorFormulaRunIDs
             else:
