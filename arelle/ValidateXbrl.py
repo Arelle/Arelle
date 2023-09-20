@@ -22,6 +22,7 @@ from arelle.XhtmlValidate import ixMsgCode
 from arelle.XmlValidateConst import VALID
 from collections import defaultdict
 from arelle.typing import TypeGetText
+from arelle.utils.validate.PluginValidationData import PluginValidationData
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelFormulaObject import ModelCustomFunctionSignature
@@ -116,6 +117,7 @@ class ValidateXbrl:
                                  for concept in self.modelXbrl.nameConcepts.get("UTR",()))))
         self.validateIXDS = False # set when any inline document found
         self.validateEnum = bool(XbrlConst.enums & modelXbrl.namespaceDocs.keys())
+        self._pluginData: dict[str, PluginValidationData] = {}
 
         for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Start"):
             pluginXbrlMethod(self, parameters)
@@ -1108,3 +1110,18 @@ class ValidateXbrl:
     def executeCallTest(self, modelXbrl: ModelXbrl, name: str, callTuple: tuple[Any, ...], testTuple: tuple[Any, ...]) -> None:
         self.modelXbrl = modelXbrl
         ValidateFormula.executeCallTest(self, name, callTuple, testTuple)
+
+    def getPluginData(self, pluginName: str) -> PluginValidationData | None:
+        allPluginData = getattr(self, "_pluginData", None)
+        if allPluginData is None:
+            raise RuntimeError("PluginData can't be retrieved until validation has begun.")
+        pluginData: PluginValidationData = allPluginData.get(pluginName)
+        return pluginData
+
+    def setPluginData(self, pluginData: PluginValidationData) -> None:
+        allPluginData = getattr(self, "_pluginData", None)
+        if allPluginData is None:
+            raise RuntimeError("PluginData can't be set until validation has begun.")
+        if pluginData.name in allPluginData:
+            raise RuntimeError(f"PluginData already set on ValidateXbrl for {pluginData.name}.")
+        allPluginData[pluginData.name] = pluginData

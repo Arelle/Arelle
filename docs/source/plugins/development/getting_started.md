@@ -26,9 +26,27 @@ as a map with the following properties (some optional):
 
 Here is an example of what this might look like in Python code:
 ```python
-def exampleHook(arg):
-  # This will be called when Arelle searches for `Example.Hook` usages from plugins.
-  pass
+from optparse import OptionParser
+from typing import Any
+
+from arelle.utils.PluginHooks import PluginHooks
+
+
+class MyPlugin(PluginHooks):
+    @staticmethod
+    def cntlrCmdLineOptions(
+        parser: OptionParser,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        # This will be called when Arelle searches for `CntlrCmdLine.Options` usages from plugins.
+        parser.add_option(
+            '--my-plugin-command-line-option',
+            action='store',
+            dest='myPluginCommandLineOption',
+            help='Adds an option to the Arelle command line for my plugin.',
+        )
+
 
 __pluginInfo__ = {
     'name': 'My Plugin',
@@ -37,7 +55,7 @@ __pluginInfo__ = {
     'author': 'John Smith',
     'copyright': '(c) Copyright 2023 Example Inc., All rights reserved.',
     'import': ['../otherPlugin.py', '../otherPlugin2.py'],
-    'Example.Hook': exampleHook
+    'CntlrCmdLine.Options': MyPlugin.cntlrCmdLineOptions,
 }
 ```
 
@@ -45,11 +63,12 @@ __pluginInfo__ = {
 Arelle is configured to search for and run plugin code at predetermined places.
 These predetermined places are referred to as *hooks*.
 
-In the example above, when Arelle calls for the hypothetical hook named `Example.Hook`, it will call the `exampleHook` method.
+In the example above, when the plugin is enabled and Arelle calls for the hook named `CntlrCmdLine.Options`, it will call the `MyPlugin.cntlrCmdLineOptions` method which will add
+`--my-plugin-command-line-option` as an option to the Arelle command line.
 
 Hooks may or may not expect a value to be returned by your plugin's method,
 which may or may not prevent other plugins from running or cause Arelle's default behavior to be circumvented.
 
-See [Plugin Hooks][hooks] to find documentation on expected arguments, expected return values, and other behavior associated with specific hooks.
+See [Plugin Hooks][hooks] to find documentation on expected arguments, expected return values, and other behavior associated with specific hooks as well as documentation for the [PluginHooks](#arelle.utils.PluginHooks.PluginHooks) class that can help with writing plugins.
 
 [hooks]: project:hooks.md

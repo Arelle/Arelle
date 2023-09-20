@@ -538,9 +538,6 @@ def datemonthdayLongEnTR1(arg):
 def datemonthdayShortEnTR1(arg):
     return datedaymonth(arg, monthdayShortEnTR1Pattern, dy=2, mo=1)
 
-def datedaymonthel(arg):
-    return datedaymonth(arg, daymonthElPattern)
-
 def datedaymonthes(arg):
     return datedaymonth(arg, daymonthEsPattern)
 
@@ -679,9 +676,6 @@ def datemonthyeares(arg):
 
 def dateyearmonthen(arg):
     return datemonthyear(arg, yearmonthEnPattern, mo=2, yr=1)
-
-def datemonthyeares(arg):
-    return datemonthyear(arg, monthyearEsPattern)
 
 def datemonthyearet(arg):
     return datemonthyear(arg, monthyearEtPattern)

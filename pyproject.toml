@@ -120,8 +120,8 @@ ignore_errors = true
 # when the library is converted, the above entry will be replaced (strict is demanded)
 [[tool.mypy.overrides]]
 module = [
-    'arelle.Cntlr',
     'arelle.BetaFeatures',
+    'arelle.Cntlr',
     'arelle.FileSource',
     'arelle.Locale',
     'arelle.ModelObject',
@@ -140,6 +140,7 @@ module = [
     'arelle.XmlValidate',
     'arelle.XmlValidateConst',
     'arelle.XmlValidateSchema',
+    'arelle.examples.plugin.validate.*',
     'arelle.formula.FactAspectsCache',
     'arelle.formula.XPathContext',
     'arelle.formula.XPathParser',
@@ -147,6 +148,7 @@ module = [
     'arelle.plugin.functionsMath',
     'arelle.plugin.validate.ESEF.*',
     'arelle.plugin.validate.ESEF_2022.*',
+    'arelle.utils.*',
     'tests.integration_tests.*',
 ]
 ignore_errors = false

@@ -15,7 +15,7 @@ published plugins can be installed by your Python package manager of choice.
 
 Example:
 ```bash
-pipenv install ixbrl-viewer
+pip install ixbrl-viewer
 ```
 Activate plugins installed with this method [via the GUI using Select][gui-select] or [via CLI by name][cli-name].
 

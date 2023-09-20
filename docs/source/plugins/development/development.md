@@ -5,6 +5,7 @@
 
 :::{toctree}
 getting_started
-hooks
 publishing
+validation
+hooks
 :::

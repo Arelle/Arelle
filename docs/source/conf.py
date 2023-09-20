@@ -14,11 +14,18 @@ author = "support@arelle.org"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
+    "autodoc2",
     "myst_parser",
     "sphinx_copybutton",
 ]
 
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+
+autodoc2_packages = ["../../arelle"]
+autodoc2_render_plugin = "myst"
+suppress_warnings = [
+    "autodoc2.dup_item", # bottle and tkinter warnings
+]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
@@ -38,7 +45,10 @@ html_title = "Arelle <release>"
 html_favicon = "../../arelle/images/favicon.ico"
 html_logo = "../../arelle/images/arelle-rtd.png"
 
-myst_enable_extensions = ["colon_fence"]
+myst_enable_extensions = [
+    "colon_fence",
+    "fieldlist",
+]
 myst_heading_anchors = 6
 
 pygments_style = "xcode"

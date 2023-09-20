@@ -5,12 +5,12 @@
 
 (plug-in-manager)=
 ## Plug-in Manager
-:::{image} plugin_manager.png
+:::{image} /images/gui_plugin_manager.png
 :::
 Plugin configuration for the GUI is primarily done through the 'Plug-in Manager' dialog.
 With the GUI running, navigate to `Help > Manage plug-ins` in the toolbar to open the 'Plug-in Manager'.
 
-:::{image} manage_plugins.png
+:::{image} /images/gui_manage_plugins.png
 :width: 400
 :::
 
@@ -30,28 +30,28 @@ and not needed on subsequent uses of the GUI.
 ___
 ### Select
 With the [Plug-in Manager](#plug-in-manager) dialog open, click the 'Select' button.
-:::{image} select_button.png
+:::{image} /images/gui_plugin_manager_select_button.png
 :::
 Find your plugin in the list that opens, then click 'OK'.
-:::{image} select.png
+:::{image} /images/gui_plugin_manager_select.png
 :::
 
 ___
 ### Browse
 With the [Plug-in Manager](#plug-in-manager) dialog open, click the 'Browse' button.
-:::{image} browse_button.png
+:::{image} /images/gui_plugin_manager_browse_button.png
 :::
 Navigate to and select your plugin entry point (an individual script or `__init__.py`) and click 'Open'.
-:::{image} browse.png
+:::{image} /images/gui_plugin_manager_browse.png
 :::
 
 ___
 ### Web
 With the [Plug-in Manager](#plug-in-manager) dialog open, click the 'On Web' button.
-:::{image} web_button.png
+:::{image} /images/gui_plugin_manager_web_button.png
 :::
 Provide a URL to load your plugin from, then click 'OK'.
-:::{image} web.png
+:::{image} /images/gui_plugin_manager_web.png
 :::
 
 ___

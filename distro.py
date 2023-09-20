@@ -20,6 +20,10 @@ includeFiles = [
     (os.path.normcase("arelle/locale"), "locale"),
     (os.path.normcase("arelle/examples"), "examples"),
     (os.path.normcase("arelle/examples/plugin"), os.path.normcase("examples/plugin")),
+    (os.path.normcase("arelle/examples/plugin/validate"), os.path.normcase("examples/plugin/validate")),
+    (os.path.normcase("arelle/examples/plugin/validate/XYZ"), os.path.normcase("examples/plugin/validate/XYZ")),
+    (os.path.normcase("arelle/examples/plugin/validate/XYZ/resources"), os.path.normcase("examples/plugin/validate/XYZ/resources")),
+    (os.path.normcase("arelle/examples/plugin/validate/XYZ/rules"), os.path.normcase("examples/plugin/validate/XYZ/rules")),
     (
         os.path.normcase("arelle/examples/plugin/locale/fr/LC_MESSAGES"),
         os.path.normcase("examples/plugin/locale/fr/LC_MESSAGES"),
