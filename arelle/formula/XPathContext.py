@@ -95,7 +95,7 @@ boolean: Callable[[
     ContextItem | None,
     ResultStack,
 ], bool] | None = None
-testTypeCompatiblity: Callable[[
+testTypeCompatibility: Callable[[
     XPathContext,
     FormulaToken,
     str,
@@ -183,9 +183,9 @@ def create(
         inputXbrlInstance: ModelDocument | None = None,
         sourceElement: ModelObject | None = None,
 ) -> XPathContext:
-    global boolean, testTypeCompatiblity, Trace
+    global boolean, testTypeCompatibility, Trace
     if boolean is None:
-        from arelle.FunctionUtil import testTypeCompatiblity
+        from arelle.FunctionUtil import testTypeCompatibility
         from arelle.ModelFormulaObject import Trace
         from arelle.FunctionFn import boolean
 
@@ -358,8 +358,8 @@ class XPathContext:
                     else:
                         op1 = s1[0]
                         op2 = s2[0]
-                        assert testTypeCompatiblity is not None
-                        testTypeCompatiblity(self, p, op, op1, op2)
+                        assert testTypeCompatibility is not None
+                        testTypeCompatibility(self, p, op, op1, op2)
                         if type(op1) != type(op2) and op in (
                             '+',
                             '-',
@@ -414,10 +414,10 @@ class XPathContext:
                     s1 = self.atomize(p, resultStack.pop()) if len(resultStack) > 0 else []
                     s2 = self.atomize(p, self.evaluate(p.args, contextItem=contextItem))
                     result = []
-                    assert testTypeCompatiblity is not None
+                    assert testTypeCompatibility is not None
                     for op1 in s1:
                         for op2 in s2:
-                            testTypeCompatiblity(self, p, op, op1, op2)
+                            testTypeCompatibility(self, p, op, op1, op2)
                             if op == '>=':
                                 result = op1 >= op2
                             elif op == '>':
