@@ -476,7 +476,7 @@ def dayTimeDuration(value: Time | datetime.timedelta | str) -> DayTimeDuration:
 
 class DayTimeDuration(datetime.timedelta):
     def __new__(cls, days: int, hours: int, minutes: int, seconds: int) -> DayTimeDuration:
-        dyTm = datetime.timedelta.__new__(cls,days,hours,minutes,seconds)
+        dyTm = datetime.timedelta.__new__(cls, days=days, hours=hours, minutes=minutes, seconds=seconds)
         return dyTm
     def dayHrsMinsSecs(self) -> tuple[int, int, int, int]:
         days = int(self.days)
