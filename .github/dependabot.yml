@@ -17,17 +17,10 @@ updates:
         patterns:
           - "*"
     ignore:
-      - dependency-name: "astroid"
-        versions:
-          - ">=3"
       - dependency-name: "RDFLib"
         versions:
           - ">=6"
       - dependency-name: "cx_Freeze"
-      - dependency-name: "matplotlib"
-        versions:
-          - "3.7.2"
-      - dependency-name: "packaging"
   - package-ecosystem: docker
     directory: "/"
     schedule:
