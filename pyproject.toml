@@ -30,7 +30,7 @@ requires-python = ">=3.8"
 dependencies = [
     'certifi',
     'isodate==0.*',
-    'lxml==4.*',
+    'lxml>=4,<6',
     'numpy==1.*',
     'openpyxl==3.*',
     'pyparsing==3.*',
@@ -46,7 +46,7 @@ DB = [
     'pg8000==1.*',
     'PyMySQL==1.*',
     'pyodbc>=4,<6',
-    'rdflib==5.*',
+    'rdflib>=5,<8',
 ]
 EFM = [
     'holidays==0.*',

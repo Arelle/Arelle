@@ -43,6 +43,7 @@ includeLibs = [
     "pycountry",
     "pymysql",
     "regex",
+    "rdflib",
     "sqlite3",
     "tinycss2",
     "zlib",
