@@ -120,7 +120,7 @@ def anyAtomicType(xc, p, source):
     raise xsFunctionNotAvailable()
 
 def dateTime(xc, p, source):
-    if isinstance(source,datetime.datetime): return source
+    if isinstance(source,datetime.datetime) and source.dateOnly is False: return source
     return ModelValue.dateTime(source, type=ModelValue.DATETIME, castException=FORG0001)
 
 def dateTimeInstantEnd(xc, p, source):
