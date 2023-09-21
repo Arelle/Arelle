@@ -16,7 +16,8 @@ from arelle.ModelInstanceObject import ModelFact
 from arelle.FormulaEvaluator import (filterFacts as formulaEvaluatorFilterFacts,
                                      aspectsMatch, factsPartitions, VariableBinding)
 from arelle.PrototypeInstanceObject import FactPrototype
-OPEN_ASPECT_ENTRY_SURROGATE = '\uDBFF' # this need to be a utf-8 compatible char
+OPEN_ASPECT_ENTRY_SURROGATE = '\uDBFF' # this needs to be a utf-8 compatible char
+UNREPORTED_ASPECT_SORT_VALUE = '\uDBFE' # high sort order for unreported aspect
 EMPTY_SET = set()
 EMPTY_DICT = {}
 ROLLUP_SPECIFIES_MEMBER = 1
@@ -69,6 +70,7 @@ class StrctMdlNode:
         self.rollup = False # true when this is the rollup node among its siblings
         self.choiceNodeIndex = 0
         self.tagSelector = getattr(defnMdlNode, "tagSelector", None)
+        self.isUnreported = False
     @property
     def axis(self):
         return getattr(self, "_axis", self.strctMdlParentNode.axis if self.strctMdlParentNode else "")
@@ -164,6 +166,11 @@ class StrctMdlNode:
                             concept = aspectValue.member
                         elif aspectValue.isTyped:
                             return XmlUtil.innerTextList(aspectValue.typedMember), "processor"
+                    elif aspectValue is None:
+                        dimConcept = self.modelXbrl.qnameConcepts[aspect]
+                        if dimConcept.isTypedDimension:
+                            if layoutMdlSortOrder:
+                                return UNREPORTED_ASPECT_SORT_VALUE, "processor"
                 elif isinstance(aspectValue, ModelObject):
                     text = XmlUtil.innerTextList(aspectValue)
                     if aspect == Aspect.PERIOD:

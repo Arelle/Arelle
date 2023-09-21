@@ -849,6 +849,8 @@ class ModelXbrl:
                         fbdq[NONDEFAULT].add(fact) # set of all facts that have non-default value for dimension
                         if dimValue.isExplicit:
                             fbdq[dimValue.memberQname].add(fact) # set of facts that have this dim and mem
+                        elif dimValue.isTyped:
+                            fbdq[dimValue.typedMember.textValue].add(fact) # set of facts that have this dim and mem
                     else: # default typed dimension
                         fbdq[DEFAULT].add(fact)
             return fbdq[memQname]

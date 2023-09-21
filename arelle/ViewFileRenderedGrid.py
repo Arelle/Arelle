@@ -775,7 +775,8 @@ class ViewRenderedGrid(ViewFile.View):
                                 else:
                                     aspectValue = getAspectValue(aspect)
                                     def format_aspect_value(aspectValue):
-                                        if aspectValue is None: aspectValue = "(bound dynamically)"
+                                        if aspectValue is None: 
+                                            aspectValue = "(bound dynamically)"
                                         elif isinstance(aspectValue, ModelDimensionValue): # typed dimension value
                                             if aspectValue.isExplicit:
                                                 aspectValue = aspectValue.memberQname
@@ -799,6 +800,8 @@ class ViewRenderedGrid(ViewFile.View):
                                         if aspect == Aspect.PERIOD and isinstance(aspectValue, ModelObject):
                                             for perElt in aspectValue.iterchildren():
                                                 valueElt.append(deepcopy(perElt))
+                                        elif isinstance(aspect, QName) and aspectValue == "(bound dynamically)": # absent dimension
+                                            valueElt.text = ""
                                         elif not isinstance(aspectValue, etree._Element):
                                             valueElt.text = xsString(None, None, addQnameValue(self.xmlDoc, aspectValue if not label or label != OPEN_ASPECT_ENTRY_SURROGATE else "\u00A0"))
                                         else:

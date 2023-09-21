@@ -18,7 +18,8 @@ from arelle.ModelRenderingObject import (DefnMdlTable, DefnMdlBreakdown,
                                          DefnMdlConceptRelationshipNode, DefnMdlDimensionRelationshipNode,
                                          StrctMdlNode, StrctMdlTableSet, StrctMdlTable, StrctMdlBreakdown, StrctMdlStructuralNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_IMPLIES_DEFAULT_MEMBER,
-                                         ROLLUP_FOR_CONCEPT_RELATIONSHIP_NODE, ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE)
+                                         ROLLUP_FOR_CONCEPT_RELATIONSHIP_NODE, ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE,
+                                         UNREPORTED_ASPECT_SORT_VALUE)
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.PythonUtil import flattenSequence
 from arelle.XPathContext import XPathException, FunctionArgType
@@ -337,6 +338,8 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
             if not isinstance(defnMdlNode, DefnMdlAspectNode):
                 isCartesianProductExpanded = True
                 # note: reduced set of facts should always be passed to subsequent open nodes
+                childStrctNode = None
+                hasUnreportedChildStrctNode = False
                 for subtreeRel in subtreeRels:
                     childDefnMdlNode = subtreeRel.toModelObject
 
@@ -379,6 +382,12 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                         if not childContainsOpenNodes(childStrctNode) and not childDefnMdlNode.childrenCoverSameAspects:
                             # To be computed only if the structural node does not contain an open node
                             cartesianProductExpander(childStrctNode, *cartesianProductNestedArgs)
+                        if childStrctNode.isUnreported:
+                            hasUnreportedChildStrctNode = True
+                            strctMdlNode.strctMdlChildNodes.remove(childStrctNode)
+                if hasUnreportedChildStrctNode and not strctMdlNode.strctMdlChildNodes and childStrctNode is not None:
+                    # has all child nodes unreported, move group for header up to this level
+                    strctMdlNode.strctMdlChildNodes.extend(childStrctNode.strctMdlChildNodes)
                 # check if a children specify explicit dimensions and one is missing default
                 descendantDefMdlNodes = view.defnSubtreeRelSet.fromModelObject(defnMdlNode)
                 childDimsCovered = set( # defaulted dims in children
@@ -545,12 +554,18 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                                         _("Rule node %(xlinkLabel)s specifies concept %(concept)s does not refer to an existing primary item concept."),
                                         modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, concept=conceptQname)
                             elif isinstance(aspect, QName):
-                                memQname = defnMdlNode.aspectValue(view.rendrCntx, aspect)
-                                mem = view.modelXbrl.qnameConcepts.get(memQname)
-                                if isinstance(memQname, QName) and (mem is None or not mem.isDomainMember) and memQname != XbrlConst.qnFormulaDimensionSAV: # SAV is absent dimension member, reported in validateFormula:
-                                    view.modelXbrl.error("xbrlte:invalidQNameAspectValue",
-                                        _("Rule node %(xlinkLabel)s specifies domain member %(concept)s does not refer to an existing domain member concept."),
-                                        modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, concept=memQname)
+                                dimConcept = view.modelXbrl.qnameConcepts.get(aspect)
+                                dimVal = defnMdlNode.aspectValue(view.rendrCntx, aspect)
+                                if dimConcept is not None:
+                                    if dimConcept.isTypedDimension: # dimValue is the member node
+                                        if isinstance(dimVal, ModelObject) and not view.modelXbrl.factsByDimMemQname(aspect, dimVal.textValue):
+                                            strctMdlNode.isUnreported = True # typed Dim is unreported
+                                    else: # dimValue is a QName
+                                        mem = view.modelXbrl.qnameConcepts.get(dimVal)
+                                        if isinstance(dimVal, QName) and (mem is None or not mem.isDomainMember) and dimVal != XbrlConst.qnFormulaDimensionSAV: # SAV is absent dimension member, reported in validateFormula:
+                                            view.modelXbrl.error("xbrlte:invalidQNameAspectValue",
+                                                _("Rule node %(xlinkLabel)s specifies domain member %(concept)s does not refer to an existing domain member concept."),
+                                                modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, concept=dimVal)
                 #if not defnMdlNode.constraintSets:
                 #    view.modelXbrl.error("xbrlte:incompleteAspectRule",
                 #        _("Rule node %(xlinkLabel)s does not specify an aspect value."),

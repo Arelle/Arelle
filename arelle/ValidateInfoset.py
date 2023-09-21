@@ -227,7 +227,12 @@ def compareRenderingInfosetElts(modelXbrl, sourceElt, comparisonElt):
         cmpConstraints = {}
         for srcE, cstrts in ((sourceElt, srcConstraints),(comparisonElt, cmpConstraints)):
             for e in srcE.iter("{http://xbrl.org/2014/table/model}constraint"):
-                cstrts[e.findtext("{http://xbrl.org/2014/table/model}aspect")] = tuple((f.text or "").strip() for f in e.find("{http://xbrl.org/2014/table/model}value").iter())
+                cstrtAspect = e.findtext("{http://xbrl.org/2014/table/model}aspect")
+                if cstrtAspect:
+                    if e.find("{http://xbrl.org/2014/table/model}value") is None:
+                        cstrts[cstrtAspect] = ()
+                    else:
+                        cstrts[cstrtAspect] = tuple((f.text or "").strip() for f in e.find("{http://xbrl.org/2014/table/model}value") for f in e.iter())
         if "period" in srcConstraints and "period" in cmpConstraints:
             # remove end dates time parts if zero (because not consistently reported in conf suite expected outputs)
             srcConstraints["period"] = stripTime(srcConstraints["period"])
