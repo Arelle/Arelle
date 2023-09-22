@@ -748,8 +748,8 @@ class ViewRenderedGrid(ViewFile.View):
                                         aspectValue.text = f"{(instant + timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S.%f')}Z"
                                         valueElt.append(aspectValue)
                                     else:  # "forever":
-                                        # TODO
-                                        pass
+                                        aspectValue = etree.Element("{http://www.xbrl.org/2003/instance}forever")
+                                        valueElt.append(aspectValue)
                                     aspect = Aspect.PERIOD
                                 elif aspect in aspectRuleAspects[Aspect.ENTITY_IDENTIFIER]:
                                     aspectProcessed.add(Aspect.SCHEME)
@@ -1107,14 +1107,15 @@ class ViewRenderedGrid(ViewFile.View):
                         cellAspectValues = {}
                         matchableAspects = set()
                         for aspect in _DICT_SET(xAspectStrctNodes.keys()) | _DICT_SET(yAspectStrctNodes.keys()) | _DICT_SET(zAspectStrctNodes.keys()):
-                            aspectValue = yStrctNode.inheritedAspectValue(xStrctNode,
-                                               self, aspect, cellTagSelectors,
-                                               xAspectStrctNodes, yAspectStrctNodes, zAspectStrctNodes)
-                            # value is None for a dimension whose value is to be not reported in this slice
-                            if ((isinstance(aspect, _INT) and aspectValue is not None) or  # not a dimension
-                                dimDefaults.get(aspect) != aspectValue or # explicit dim defaulted will equal the value
-                                aspectValue is not None): # typed dim absent will be none
-                                cellAspectValues[aspect] = aspectValue
+                            for _aspect in aspectRuleAspects.get(aspect,(aspect,)):
+                                aspectValue = yStrctNode.inheritedAspectValue(xStrctNode,
+                                                   self, _aspect, cellTagSelectors,
+                                                   xAspectStrctNodes, yAspectStrctNodes, zAspectStrctNodes)
+                                # value is None for a dimension whose value is to be not reported in this slice
+                                if ((isinstance(_aspect, _INT) and aspectValue is not None) or  # not a dimension
+                                    dimDefaults.get(_aspect) != aspectValue or # explicit dim defaulted will equal the value
+                                    aspectValue is not None): # typed dim absent will be none
+                                    cellAspectValues[_aspect] = aspectValue
                             matchableAspects.add(aspectModelAspect.get(aspect,aspect)) #filterable aspect from rule aspect
                         cellDefaultedDims = _DICT_SET(dimDefaults) - _DICT_SET(cellAspectValues.keys())
                         priItemQname = cellAspectValues.get(Aspect.CONCEPT)

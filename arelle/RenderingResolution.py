@@ -516,8 +516,9 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                                 factsPartition = fp
                                 break
 
-                    # store the partition for later reuse when spreading facts in body cells
-                    childStructuralNode.factsPartition = factsPartition
+                    # store the partition for later reuse when spreading facts in body cells if no aspect filters involved
+                    if not defnMdlNode.filterRelationships:
+                        childStructuralNode.factsPartition = factsPartition
 
                     childStructuralNode.indent = 0
                     #TBD this is now computed, not an attribute

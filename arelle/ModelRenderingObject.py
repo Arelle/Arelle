@@ -488,7 +488,8 @@ class StrctMdlStructuralNode(StrctMdlNode):
     def inheritedAspectValue(self, otherAxisStructuralNode,
                              view, aspect, tagSelectors,
                              xAspectStructuralNodes, yAspectStructuralNodes, zAspectStructuralNodes):
-        aspectStructuralNodes = xAspectStructuralNodes.get(aspect, EMPTY_SET) | yAspectStructuralNodes.get(aspect, EMPTY_SET) | zAspectStructuralNodes.get(aspect, EMPTY_SET)
+        _aspect = aspectModelAspect.get(aspect, aspect)
+        aspectStructuralNodes = xAspectStructuralNodes.get(_aspect, EMPTY_SET) | yAspectStructuralNodes.get(_aspect, EMPTY_SET) | zAspectStructuralNodes.get(_aspect, EMPTY_SET)
         structuralNode = None
         if len(aspectStructuralNodes) == 1:
             structuralNode = aspectStructuralNodes.pop()
