@@ -17,7 +17,7 @@ from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, a
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.PythonUtil import OrderedSet
-from arelle.ModelRenderingObject import (StrctMdlBreakdown,
+from arelle.ModelRenderingObject import (StrctMdlBreakdown, StrctMdlStructuralNode,
                                          DefnMdlClosedDefinitionNode, DefnMdlRuleDefinitionNode, DefnMdlAspectNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE)
 from arelle.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
@@ -294,6 +294,9 @@ class ViewRenderedGrid(ViewFile.View):
                             if not any(e is not None for e in headerElt.iterchildren()):
                                 if headerElt.getparent() is not None:
                                     headerElt.getparent().remove(headerElt)
+                    # if no x axis nodes put a dummy one in
+                    if len(xStrctNodes) == 0:
+                        xStrctNodes.append(StrctMdlStructuralNode(strctMdlTable, None))
                     hasRows = self.bodyCells(self.dataFirstRow, yStrctNodes, xStrctNodes, zDiscrimAspectNodes[discriminator-1]) # zAspectStrctNodes)
                     if self.type == XML and not hasRows:
                         self.cellsZElt.remove(self.cellsYElt)

@@ -16,6 +16,7 @@ from arelle.ModelInstanceObject import ModelFact
 from arelle.FormulaEvaluator import (filterFacts as formulaEvaluatorFilterFacts,
                                      aspectsMatch, factsPartitions, VariableBinding)
 from arelle.PrototypeInstanceObject import FactPrototype
+NoneType = type(None)
 OPEN_ASPECT_ENTRY_SURROGATE = '\uDBFF' # this needs to be a utf-8 compatible char
 UNREPORTED_ASPECT_SORT_VALUE = '\uDBFE' # high sort order for unreported aspect
 EMPTY_SET = set()
@@ -26,6 +27,16 @@ ROLLUP_FOR_CONCEPT_RELATIONSHIP_NODE = 3
 ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE = 4
 ROLLUP_FOR_CLOSED_DEFINITION_NODE = 5
 ROLLUP_FOR_OPEN_DEFINITION_NODE = 5
+
+class ResolutionException(Exception):
+    def __init__(self, code, message, **kwargs):
+        self.kwargs = kwargs
+        self.code = code
+        self.message = message
+        self.args = ( self.__repr__(), )
+    def __repr__(self):
+        return _('[{0}] exception {1}').format(self.code, self.message % self.kwargs)
+
 class LayoutMdlHdrCells:
     def __init__(self, strctMdlNode):
         self.strctMdlNode = strctMdlNode
@@ -795,7 +806,7 @@ class DefnMdlClosedDefinitionNode(DefnMdlDefinitionNode):
             if selfAspectsCovered: # is roll up if self and descendants cover same aspects
                 return all(selfAspectsCovered == rel.toModelObject.aspectsCovered()
                            for rel in descendantRels
-                           if rel.toModelObject is not None)
+                           if not isinstance(rel.toModelObject,(NoneType,DefnMdlTable)))
             aDescendantAspectsCovered = None
             for rel in descendantRels: # no self aspects, find any descendant's aspects
                 if rel.toModelObject is not None:
@@ -1142,6 +1153,8 @@ class DefnMdlDimensionRelationshipNode(DefnMdlRelationshipNode):
         dimConcept = self.modelXbrl.qnameConcepts.get(self._dimensionQname)
         sourceConcepts = [self.modelXbrl.qnameConcepts.get(qn) for qn in self._sourceQnames]
         self._formulaAxis = (structuralNode.evaluate(self, self.evalFormulaAxis, handleXPathException=False) or "descendant-or-self" )
+        if self._formulaAxis not in ("descendant", "descendant-or-self", "child", "child-or-self"):
+            raise ResolutionException("xbrlte:expressionNotCastableToRequiredType",_("Dimension relationship contains an invalid axis specification"))
         isOrSelf = self._formulaAxis.endswith("-or-self")
         self._generations = (structuralNode.evaluate(self, self.evalGenerations, handleXPathException=False) or () )
         if self._generations == () and self._formulaAxis in ("child", "child-or-self"):

@@ -6,7 +6,7 @@ Created on Jun 6, 2012
 '''
 from arelle import XPathContext, XbrlConst, XmlUtil
 from arelle.ModelDocument import Type as ModelDocumentType
-from arelle.ModelFormulaObject import (aspectModels, aspectStr, Aspect, ModelTypedDimension)
+from arelle.ModelFormulaObject import (aspectModels, aspectStr, Aspect, ModelTypedDimension, ModelParameter)
 from arelle.ModelRenderingObject import (DefnMdlDefinitionNode,
                                          DefnMdlBreakdown,
                                          DefnMdlClosedDefinitionNode,
@@ -34,8 +34,8 @@ def init(modelXbrl):
                 hasXbrlTables = True
 
     # provide context for view
-    if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE:
-        instance = None # use instance of the entry pont
+    if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
+        instance = None # use instance of the entry point
     else: # need dummy instance
         instance = ModelDocument.create(modelXbrl, ModelDocument.Type.INSTANCE,
                                         "dummy.xml",  # fake URI and fake schemaRef
@@ -84,11 +84,19 @@ def init(modelXbrl):
             for tblParamRel in modelXbrl.relationshipSet((XbrlConst.tableParameter, XbrlConst.tableParameterMMDD)).fromModelObject(modelTable):
                 parameterName = tblParamRel.variableQname
                 if parameterName in parameterNames:
-                    modelXbrl.error("xbrlte:tableParameterNameClash ",
+                    modelXbrl.error("xbrlte:tableParameterNameClash",
                         _("Table %(xlinkLabel)s has parameter name clash for variable %(name)s"),
                         modelObject=(modelTable,tblParamRel,parameterNames[parameterName]), xlinkLabel=modelTable.xlinkLabel, name=parameterName)
                 else:
                     parameterNames[parameterName] = tblParamRel
+
+        if instance is not None: # no instance was provided, check for context-dependent XPath expressions
+            for paramQname, modelParameter in modelXbrl.qnameParameters.items():
+                if isinstance(modelParameter, ModelParameter):
+                    if any(p.name in XPathContext.PATH_OPS for p in modelParameter.selectProg):
+                        modelXbrl.error("arelle:tableParameterRequiresInstance",
+                            _("Parameter %(qname)s requires an instance as a context item for the XPath expression but no instance was provided."),
+                            modelObject=modelParameter, qname=paramQname)
 
         modelXbrl.profileStat(_("compileTables"))
 

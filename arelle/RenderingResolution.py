@@ -12,9 +12,9 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelResource, ModelRelationship
 from arelle.ModelValue import QName
 from arelle.ModelFormulaObject import Aspect, aspectStr
-from arelle.ModelRenderingObject import (DefnMdlTable, DefnMdlBreakdown,
+from arelle.ModelRenderingObject import (ResolutionException, DefnMdlTable, DefnMdlBreakdown,
                                          DefnMdlDefinitionNode, DefnMdlClosedDefinitionNode, DefnMdlRuleDefinitionNode,
-                                         DefnMdlRelationshipNode, DefnMdlAspectNode,
+                                         DefnMdlRelationshipNode, DefnMdlAspectNode, DefnMdlOpenDefinitionNode,
                                          DefnMdlConceptRelationshipNode, DefnMdlDimensionRelationshipNode,
                                          StrctMdlNode, StrctMdlTableSet, StrctMdlTable, StrctMdlBreakdown, StrctMdlStructuralNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_IMPLIES_DEFAULT_MEMBER,
@@ -31,15 +31,6 @@ TRACE_RESOLUTION = True
 TRACE_TABLE_STRUCTURE = True
 
 RENDER_UNITS_PER_CHAR = 16 # nominal screen units per char for wrapLength computation and adjustment
-
-class ResolutionException(Exception):
-    def __init__(self, code, message, **kwargs):
-        self.kwargs = kwargs
-        self.code = code
-        self.message = message
-        self.args = ( self.__repr__(), )
-    def __repr__(self):
-        return _('[{0}] exception {1}').format(self.code, self.message % self.kwargs)
 
 def resolveTableStructure(view, viewTblELR):
     if isinstance(viewTblELR, DefnMdlTable):
@@ -291,12 +282,17 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
         try:
             try:
                 ordCardinality, ordDepth = defnMdlNode.cardinalityAndDepth(strctMdlNode, handleXPathException=False)
-            except (XPathException, FunctionArgType) as ex:
+            except (XPathException, FunctionArgType, ResolutionException) as ex:
                 if (isinstance(defnMdlNode, DefnMdlRelationshipNode) and
                     type(ex) == FunctionArgType and ex.argNum == 5 and isinstance(ex.value, int) and ex.value >= 0):
                     view.modelXbrl.error("xbrlte:relationshipNodeTooManyGenerations",
                                          ex.expectedType,
                                          modelObject=(view.defnMdlTable,defnMdlNode), xlinkLabel=defnMdlNode.xlinkLabel, axis=defnMdlNode.localName)
+                elif isinstance(defnMdlNode, DefnMdlRelationshipNode) and type(ex) == ResolutionException:
+                    view.modelXbrl.error(ex.code,
+                    _("Relationship node %(xlinkLabel)s expression not castable to required type (%(error)s)"),
+                    modelObject=(view.defnMdlTable,defnMdlNode), xlinkLabel=defnMdlNode.xlinkLabel, axis=defnMdlNode.localName,
+                    error=ex.message)
                 else:
                     view.modelXbrl.error("xbrlte:expressionNotCastableToRequiredType",
                     _("Relationship node %(xlinkLabel)s expression not castable to required type (%(xpathError)s)"),
@@ -363,10 +359,10 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                                         aspect = set(aspect)
                                     childStrctNode.aspects[mergedAspect] = aspect
                             # print(childStrctNode.aspectsCovered())
-                    else:
+                    elif not isinstance(childDefnMdlNode, DefnMdlTable):
                         childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels)
                         descendantDefMdlNodes = view.defnSubtreeRelSet.fromModelObject(childDefnMdlNode)
-                        if not childDefnMdlNode.isAbstract and descendantDefMdlNodes and not isinstance(childDefnMdlNode, DefnMdlAspectNode):
+                        if not isinstance(childDefnMdlNode, DefnMdlAspectNode) and not childDefnMdlNode.isAbstract and descendantDefMdlNodes:
                             # contributes at least one child node
                             rollupAspectDefinitionNode = childDefnMdlNode
                             _rollup = ROLLUP_IMPLIES_DEFAULT_MEMBER
@@ -388,7 +384,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                         if not childContainsOpenNodes(childStrctNode) and not childDefnMdlNode.childrenCoverSameAspects:
                             # To be computed only if the structural node does not contain an open node
                             cartesianProductExpander(childStrctNode, *cartesianProductNestedArgs)
-                        if childStrctNode.isUnreported:
+                        if childStrctNode is not None and childStrctNode.isUnreported and isinstance(childDefnMdlNode, DefnMdlOpenDefinitionNode):
                             hasUnreportedChildStrctNode = True
                             strctMdlNode.strctMdlChildNodes.remove(childStrctNode)
                 if hasUnreportedChildStrctNode and not strctMdlNode.strctMdlChildNodes and childStrctNode is not None:
@@ -399,14 +395,14 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                 childDimsCovered = set( # defaulted dims in children
                     aspect
                     for rel in descendantDefMdlNodes
-                    if rel.toModelObject is not None
+                    if not isinstance(rel.toModelObject, (NoneType,DefnMdlTable))
                     for aspect in rel.toModelObject.aspectsCovered()
                     if isinstance(aspect, QName) and aspect in view.modelXbrl.qnameDimensionDefaults
                 )
                 # note child defnMdlNodes needing default dimension
                 for rel in descendantDefMdlNodes:
                     descDefnMdlNode = rel.toModelObject
-                    if descDefnMdlNode is not None:
+                    if not isinstance(descDefnMdlNode, (NoneType,DefnMdlTable)):
                         defaultedDims = childDimsCovered - descDefnMdlNode.aspectsCovered() - defnMdlNode.aspectsCovered()
                         if defaultedDims:
                             descDefnMdlNode.deemedDefaultedDims = defaultedDims
@@ -425,7 +421,6 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                         defaultedDims |= set(gStrctNode.aspectValue(Aspect.OMIT_DIMENSIONS))
                     if defaultedDims:
                         gStrctNode.defnMdlNode.deemedDefaultedDims = defaultedDims
-
             if isinstance(defnMdlNode, DefnMdlRelationshipNode):
                 rels = defnMdlNode.relationships(strctMdlParent)
                 if defnMdlNode.isOrSelfAxis:
@@ -459,7 +454,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                                 modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, count=len(networks), networks=str(networks))
                 elif isinstance(defnMdlNode, DefnMdlDimensionRelationshipNode):
                     dim = view.modelXbrl.qnameConcepts.get(defnMdlNode._dimensionQname)
-                    if (dim is None or not dim.isExplicitDimension) and len(view.modelXbrl.factsInInstance) > 0:
+                    if (dim is None or not dim.isExplicitDimension): #  and len(view.modelXbrl.factsInInstance) > 0:
                         view.modelXbrl.error("xbrlte:invalidExplicitDimensionQName",
                             _("Dimension relationship rule node %(xlinkLabel)s dimension %(dimension)s does not refer to an existing explicit dimension."),
                             modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, dimension=defnMdlNode._dimensionQname)
