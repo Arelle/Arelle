@@ -24,6 +24,8 @@ ROLLUP_SPECIFIES_MEMBER = 1
 ROLLUP_IMPLIES_DEFAULT_MEMBER = 2
 ROLLUP_FOR_CONCEPT_RELATIONSHIP_NODE = 3
 ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE = 4
+ROLLUP_FOR_CLOSED_DEFINITION_NODE = 5
+ROLLUP_FOR_OPEN_DEFINITION_NODE = 5
 class LayoutMdlHdrCells:
     def __init__(self, strctMdlNode):
         self.strctMdlNode = strctMdlNode
@@ -398,7 +400,7 @@ class StrctMdlStructuralNode(StrctMdlNode):
             return True
         if inherit:
             # block override of aspect rule aspects, e.g. don't inherit period duration aspects if this str node defines an instant aspect
-            if any(aspect in _aspectRuleAspects and self.hasAspect(_aspect)
+            if any(aspect in _aspectRuleAspects and self.hasAspect(_aspect, inherit=False)
                    for _aspect, _aspectRuleAspects in aspectRuleAspects.items()):
                 return False
             if ((isinstance(self.strctMdlParentNode, StrctMdlStructuralNode) and
@@ -488,8 +490,7 @@ class StrctMdlStructuralNode(StrctMdlNode):
     def inheritedAspectValue(self, otherAxisStructuralNode,
                              view, aspect, tagSelectors,
                              xAspectStructuralNodes, yAspectStructuralNodes, zAspectStructuralNodes):
-        _aspect = aspectModelAspect.get(aspect, aspect)
-        aspectStructuralNodes = xAspectStructuralNodes.get(_aspect, EMPTY_SET) | yAspectStructuralNodes.get(_aspect, EMPTY_SET) | zAspectStructuralNodes.get(_aspect, EMPTY_SET)
+        aspectStructuralNodes = xAspectStructuralNodes.get(aspect, EMPTY_SET) | yAspectStructuralNodes.get(aspect, EMPTY_SET) | zAspectStructuralNodes.get(aspect, EMPTY_SET)
         structuralNode = None
         if len(aspectStructuralNodes) == 1:
             structuralNode = aspectStructuralNodes.pop()
@@ -550,6 +551,9 @@ class DefnMdlTable(ModelFormulaResource):
         if getattr(self, "_rendrCntx"):
             self._rendrCntx.close()
         super(ModelTable, self).clear()  # delete children
+    @property
+    def parentTableNode(self):
+        return self
     @property
     def parentChildOrder(self):
         return parentChildOrder(self)
@@ -619,6 +623,14 @@ class DefnMdlBreakdown(ModelFormulaResource):
     def init(self, modelDocument):
         super(DefnMdlBreakdown, self).init(modelDocument)
     @property
+    def parentTableNode(self):
+        for rel in self.modelXbrl.relationshipSet("Table-rendering").toModelObject(self):
+            if rel.fromModelObject is not None:
+                p = rel.fromModelObject.parentTableNode
+                if p is not None:
+                    return p
+        return None
+    @property
     def parentChildOrder(self):
         return parentChildOrder(self)
     @property
@@ -657,7 +669,12 @@ class DefnMdlDefinitionNode(ModelFormulaResource):
     def init(self, modelDocument):
         super(DefnMdlDefinitionNode, self).init(modelDocument)
     @property
-    def parentDefinitionNode(self):
+    def parentTableNode(self):
+        for rel in self.modelXbrl.relationshipSet("Table-rendering").toModelObject(self):
+            if rel.fromModelObject is not None:
+                p = rel.fromModelObject.parentTableNode
+                if p is not None:
+                    return p
         return None
     @property
     def descendantArcroles(self):
@@ -743,6 +760,7 @@ class DefnMdlDefinitionNode(ModelFormulaResource):
     def definitionLabelsView(self):
         return defnMdlLabelsView(self)
 class DefnMdlClosedDefinitionNode(DefnMdlDefinitionNode):
+    strctMdlRollupType = ROLLUP_FOR_CLOSED_DEFINITION_NODE
     def init(self, modelDocument):
         super(DefnMdlClosedDefinitionNode, self).init(modelDocument)
     @property
@@ -810,13 +828,7 @@ class DefnMdlConstraintSet(ModelFormulaRules):
     def aspectsCovered(self):
         return _DICT_SET(self.aspectValues.keys()) | _DICT_SET(self.aspectProgs.keys())
     def aspectsModelCovered(self):
-        aspectModels = set()
-        for aspect in self.aspectsCovered():
-            if aspect in aspectModelAspect:
-                aspectModels.add(aspectModelAspect[aspect])
-            else:
-                aspectModels.add(aspect)
-        return aspectModels
+        return set(aspectModelAspect.get(aspect,aspect) for aspect in self.aspectsCovered())
     '''
     @property
     def primaryItemQname(self):
@@ -1173,6 +1185,7 @@ coveredAspectToken = {"concept": Aspect.CONCEPT,
                       "period-instant": Aspect.INSTANT, "period-instant-end": Aspect.INSTANT_END,
                       "unit": Aspect.UNIT}
 class DefnMdlOpenDefinitionNode(DefnMdlDefinitionNode):
+    strctMdlRollupType = ROLLUP_FOR_OPEN_DEFINITION_NODE
     def init(self, modelDocument):
         super(DefnMdlOpenDefinitionNode, self).init(modelDocument)
     @property
@@ -1195,11 +1208,15 @@ class DefnMdlAspectNode(DefnMdlOpenDefinitionNode):
             return self._filterRelationships
         except AttributeError:
             rels = [] # order so conceptName filter is first (if any) (may want more sorting in future)
-            for rel in self.modelXbrl.relationshipSet((XbrlConst.tableAspectNodeFilter, XbrlConst.tableAspectNodeFilterMMDD)).fromModelObject(self):
+            # fact space is filtered by both table filter and aspect filters, table first.
+            for rel in self.modelXbrl.relationshipSet((XbrlConst.tableAspectNodeFilterMMDD, XbrlConst.tableAspectNodeFilter)).fromModelObject(self):
                 if isinstance(rel.toModelObject, ModelConceptName):
                     rels.insert(0, rel)  # put conceptName filters first
                 else:
                     rels.append(rel)
+            tableNode = self.parentTableNode
+            if tableNode is not None:
+                rels.extend(tableNode.filterRelationships)
             self._filterRelationships = rels
             return rels
     def hasAspect(self, structuralNode, aspect):

@@ -19,6 +19,7 @@ from arelle.ModelRenderingObject import (DefnMdlTable, DefnMdlBreakdown,
                                          StrctMdlNode, StrctMdlTableSet, StrctMdlTable, StrctMdlBreakdown, StrctMdlStructuralNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_IMPLIES_DEFAULT_MEMBER,
                                          ROLLUP_FOR_CONCEPT_RELATIONSHIP_NODE, ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE,
+                                         ROLLUP_FOR_CLOSED_DEFINITION_NODE, ROLLUP_FOR_OPEN_DEFINITION_NODE,
                                          UNREPORTED_ASPECT_SORT_VALUE)
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.PythonUtil import flattenSequence
@@ -116,6 +117,10 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
         for tblBrkdnRel in axisBrkdnRels:
             defnMdlBreakdown = tblBrkdnRel.toModelObject
             strctMdlBreakdown = resolveDefinition(view, strctMdlTable, defnMdlBreakdown, 0, facts, 0, axisBrkdnRels, axis=axis)
+            # perform any supplemental leveling of child str mdl nodes
+            descendantDepths = [getDepth(d) for d in strctMdlBreakdown.strctMdlChildNodes]
+            if min(descendantDepths) != max (descendantDepths):
+                addDescendantRollups(strctMdlBreakdown)
             if axis == "x":
                 view.dataCols += strctMdlBreakdown.leafNodeCount
             elif axis == "y":
@@ -170,7 +175,9 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
                     o["rollup"] = {ROLLUP_SPECIFIES_MEMBER:"rollup specifies member",
                                    ROLLUP_IMPLIES_DEFAULT_MEMBER:"rollup implies default member",
                                    ROLLUP_FOR_CONCEPT_RELATIONSHIP_NODE:"rollup for concept relationship nesting",
-                                   ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE:"rollup for concept relationship nesting"}[obj.rollup]
+                                   ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE:"rollup for concept relationship nesting",
+                                   ROLLUP_FOR_CLOSED_DEFINITION_NODE:"rollup for closed definition node",
+                                   ROLLUP_FOR_OPEN_DEFINITION_NODE:"rollup for open definition node"}[obj.rollup]
                 o["structuralDepth"] = obj.structuralDepth
                 _aspectsCovered = obj.aspectsCovered()
                 if _aspectsCovered:
@@ -186,7 +193,6 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
                 o["defnMdlNode"] = str(obj.defnMdlNode)
             if obj.strctMdlChildNodes:
                 o["strctMdlChildNodes"] = obj.strctMdlChildNodes
-            # print(str(o))
             return o
         raise TypeError("Type {} is not supported for json output".format(type(obj).__name__))
     if TRACE_TABLE_STRUCTURE:
@@ -319,7 +325,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                             view.rowNonAbstractHdrSpanMin.append(0)
                     checkLabelWidth(view, strctMdlNode, subtreeRels, checkBoundFact=False)
                 hdrNonStdRoles = view.rowHdrNonStdRoles
-                print(f"id {defnMdlNode.id} depth {depth} y axis ordDepth {ordDepth} nestedDepth {nestedDepth} rowHdrCols {view.rowHdrCols}")
+                # print(f"id {defnMdlNode.id} depth {depth} y axis ordDepth {ordDepth} nestedDepth {nestedDepth} rowHdrCols {view.rowHdrCols}")
             if axis in ("x", "y"):
                 hdrNonStdPosition = -1  # where a match last occured
                 for rel in view.modelXbrl.relationshipSet(XbrlConst.elementLabel).fromModelObject(defnMdlNode):
@@ -356,7 +362,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                                     if isinstance(aspect, list):
                                         aspect = set(aspect)
                                     childStrctNode.aspects[mergedAspect] = aspect
-                            print(childStrctNode.aspectsCovered())
+                            # print(childStrctNode.aspectsCovered())
                     else:
                         childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels)
                         descendantDefMdlNodes = view.defnSubtreeRelSet.fromModelObject(childDefnMdlNode)
@@ -429,7 +435,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     rootOrSelfStructuralNodes = None
                 addRelationships(defnMdlNode, rels, strctMdlParent, rootOrSelfStructuralNodes)
                 trimAbstractNodes(strctMdlParent)
-                addRelationshipsRollups(strctMdlParent, getDepth(strctMdlParent))
+                addDescendantRollups(strctMdlParent)
                 # set up by defnMdlNode.relationships
                 if isinstance(defnMdlNode, DefnMdlConceptRelationshipNode):
                     if (defnMdlNode._sourceQnames != [XbrlConst.qnXfiRoot] and
@@ -453,7 +459,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                                 modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, count=len(networks), networks=str(networks))
                 elif isinstance(defnMdlNode, DefnMdlDimensionRelationshipNode):
                     dim = view.modelXbrl.qnameConcepts.get(defnMdlNode._dimensionQname)
-                    if dim is None or not dim.isExplicitDimension:
+                    if (dim is None or not dim.isExplicitDimension) and len(view.modelXbrl.factsInInstance) > 0:
                         view.modelXbrl.error("xbrlte:invalidExplicitDimensionQName",
                             _("Dimension relationship rule node %(xlinkLabel)s dimension %(dimension)s does not refer to an existing explicit dimension."),
                             modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, dimension=defnMdlNode._dimensionQname)
@@ -706,17 +712,19 @@ def getDepth(strctMdlParent, depth=0):
     return maxDepth
 
 
-def addRelationshipsRollups(strctMdlParent, maxDepth, depth=0):
+def addDescendantRollups(strctMdlParent, maxDepth=None, depth=0):
+    if maxDepth is None:
+        maxDepth = getDepth(strctMdlParent)
     # add roll-up nodes after the children were populated from top level
     needsChildRollup = 0 < depth < maxDepth and (not strctMdlParent.isAbstract or strctMdlParent.rollup)
     for childStrctMdlNode in strctMdlParent.strctMdlChildNodes:
-        addRelationshipsRollups(childStrctMdlNode, maxDepth, depth=depth+1)
+        addDescendantRollups(childStrctMdlNode, maxDepth, depth=depth+1)
     if needsChildRollup:
         rollUpStrctNode = StrctMdlStructuralNode(strctMdlParent, strctMdlParent.defnMdlNode)
         rollUpStrctNode.rollup = strctMdlParent.defnMdlNode.strctMdlRollupType
         strctMdlParent.hasChildRollup = True
         strctMdlParent.rollUpChildStrctMdlNode = rollUpStrctNode
-        if strctMdlParent.parentChildOrder == "parent-first":
+        if len(strctMdlParent.strctMdlChildNodes) > 1 and strctMdlParent.parentChildOrder == "parent-first":
             strctMdlParent.strctMdlChildNodes = strctMdlParent.strctMdlChildNodes[-1:] + strctMdlParent.strctMdlChildNodes[0:-1]
-        addRelationshipsRollups(rollUpStrctNode, maxDepth, depth=depth+1)
+        addDescendantRollups(rollUpStrctNode, maxDepth, depth=depth+1)
 

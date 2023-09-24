@@ -31,7 +31,7 @@ from arelle.XbrlConst import eurofilingModelNamespace, eurofilingModelPrefix
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 from arelle.XmlValidate import UNVALIDATED, validate as xmlValidate
 
-TRACE_TK = True # print trace messages of tk table interface
+TRACE_TK = False # print trace messages of tk table interface
 
 try:
     from tkinter import ttk

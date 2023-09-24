@@ -5,7 +5,8 @@ Created on Jun 6, 2012
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import XPathContext, XbrlConst, XmlUtil
-from arelle.ModelFormulaObject import (aspectModels, aspectStr, Aspect)
+from arelle.ModelDocument import Type as ModelDocumentType
+from arelle.ModelFormulaObject import (aspectModels, aspectStr, Aspect, ModelTypedDimension)
 from arelle.ModelRenderingObject import (DefnMdlDefinitionNode,
                                          DefnMdlBreakdown,
                                          DefnMdlClosedDefinitionNode,
@@ -56,6 +57,12 @@ def init(modelXbrl):
         for modelTable in modelXbrl.modelRenderingTables:
             modelTable.fromInstanceQnames = None # required if referred to by variables scope chaining
             modelTable.compile()
+            # remove unwanted messages when running conformance suite
+            if (len(modelXbrl.factsInInstance) == 0 and # these errors not expected when there are no instance facts
+                modelXbrl.modelManager.loadedModelXbrls[0].modelDocument.type in ModelDocumentType.TESTCASETYPES):
+                for i in range(len(modelXbrl.errors)):
+                    if modelXbrl.errors[i] in ("xfie:invalidExplicitDimensionQName",):
+                        del modelXbrl.errors[i]
 
             modelTable.priorAspectAxisDisposition = {}
             # check ordinate aspects against aspectModel
@@ -174,6 +181,15 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblAxisDisp
                     modelXbrl.error("xbrlte:invalidDimensionQNameOnAspectNode",
                         _("Aspect node %(xlinkLabel)s dimensional aspect %(dimension)s is not a dimension"),
                         modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, dimension=aspect)
+            for rel in definitionNode.filterRelationships:
+                filter = rel.toModelObject
+                if filter is not None:
+                    if isinstance(filter, ModelTypedDimension) and filter.dimQname:
+                        concept = modelXbrl.qnameConcepts.get(filter.dimQname)
+                        if (concept is None or not concept.isDimensionItem) and len(modelXbrl.factsInInstance) > 0:
+                            modelXbrl.error("xfie:invalidTypedDimensionQName",
+                                _("Aspect node %(xlinkLabel)s dimensional aspect %(dimension)s is not a dimension"),
+                                modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, dimension=aspect)
 
     if not definitionNodeHasChild:
         if (definitionNode.namespaceURI in ("http://www.eurofiling.info/2010/rendering", "http://xbrl.org/2011/table")

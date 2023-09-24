@@ -209,9 +209,10 @@ def compareRenderingInfosetElts(modelXbrl, sourceElt, comparisonElt):
     comparisonEltTag = comparisonElt.tag if comparisonElt is not None else '(no more elements)'
     if sourceEltTag != comparisonEltTag:
         modelXbrl.error("arelle:tableModelElementMismatch",
-            _("Table layout model expecting %(elt1)s found %(elt2)s source line %(elt1line)s comparison line %(elt2line)s"),
+            _("Table layout model expecting %(elt1)s found %(elt2)s source path %(elt1path)s comparison line %(elt2line)s path %(elt2path)s"),
             modelObject=modelXbrl, elt1=sourceEltTag, elt2=comparisonEltTag,
-            elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)
+            elt1path=sourceElt.getroottree().getpath(sourceElt), elt2path=comparisonElt.getroottree().getpath(comparisonElt),
+            elt2line=comparisonElt.sourceline)
     elif sourceEltTag == "{http://xbrl.org/2014/table/model}cell":
         ceSrcIter = sourceElt.iter("{http://xbrl.org/2014/table/model}fact",
                                    "{http://xbrl.org/2014/table/model}label")
@@ -239,9 +240,10 @@ def compareRenderingInfosetElts(modelXbrl, sourceElt, comparisonElt):
             cmpConstraints["period"] = stripTime(cmpConstraints["period"])
         if srcConstraints != cmpConstraints:
             modelXbrl.error("arelle:tableModelCnstraintsMismatch",
-                _("Table layout model constraints %(src)s expecting %(cmp)s"),
+                _("Table layout model constraints %(src)s expecting %(cmp)s source path %(elt1path)s comparison line %(elt2line)s path %(elt2path)s"),
                 modelObject=modelXbrl, src=",".join(str(s) for s in sorted(srcConstraints.items())), cmp=",".join(str(s) for s in sorted(cmpConstraints.items())),
-                elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)
+                elt1path=sourceElt.getroottree().getpath(sourceElt), elt2path=comparisonElt.getroottree().getpath(comparisonElt),
+                elt2line=comparisonElt.sourceline)
     else:
         text1 = (sourceElt.text or '').strip() or '(none)'
         text2 = (comparisonElt.text or '').strip() or '(none)'
@@ -264,8 +266,7 @@ def compareRenderingInfosetElts(modelXbrl, sourceElt, comparisonElt):
                 attrs1=', '.join('{0}="{1}"'.format(k,v) for k,v in sorted(attrs1.items())),
                 attrs2=', '.join('{0}="{1}"'.format(k,v) for k,v in sorted(attrs2.items())),
                 elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)
-            
-                    
+
 def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
     from lxml import etree
     try:
@@ -275,6 +276,9 @@ def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
             comparisonDoc = etree.parse(file)
         else:
             comparisonDoc = etree.parse(comparisonFile)
+        # uncomment to debug when layout model corrupted after creation
+        # with open("/Users/hermf/temp/temp2.xml", "wb") as fh:
+        #     fh.write(etree.tostring(sourceDoc, pretty_print=True))
         sourceIter = sourceDoc.iter()
         comparisonIter = comparisonDoc.iter()
         sourceElt = next(sourceIter, None)

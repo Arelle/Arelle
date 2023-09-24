@@ -775,7 +775,7 @@ class ViewRenderedGrid(ViewFile.View):
                                 else:
                                     aspectValue = getAspectValue(aspect)
                                     def format_aspect_value(aspectValue):
-                                        if aspectValue is None: 
+                                        if aspectValue is None:
                                             aspectValue = "(bound dynamically)"
                                         elif isinstance(aspectValue, ModelDimensionValue): # typed dimension value
                                             if aspectValue.isExplicit:
@@ -1107,15 +1107,14 @@ class ViewRenderedGrid(ViewFile.View):
                         cellAspectValues = {}
                         matchableAspects = set()
                         for aspect in _DICT_SET(xAspectStrctNodes.keys()) | _DICT_SET(yAspectStrctNodes.keys()) | _DICT_SET(zAspectStrctNodes.keys()):
-                            for _aspect in aspectRuleAspects.get(aspect,(aspect,)):
-                                aspectValue = yStrctNode.inheritedAspectValue(xStrctNode,
-                                                   self, _aspect, cellTagSelectors,
-                                                   xAspectStrctNodes, yAspectStrctNodes, zAspectStrctNodes)
-                                # value is None for a dimension whose value is to be not reported in this slice
-                                if ((isinstance(_aspect, _INT) and aspectValue is not None) or  # not a dimension
-                                    dimDefaults.get(_aspect) != aspectValue or # explicit dim defaulted will equal the value
-                                    aspectValue is not None): # typed dim absent will be none
-                                    cellAspectValues[_aspect] = aspectValue
+                            aspectValue = yStrctNode.inheritedAspectValue(xStrctNode,
+                                               self, aspect, cellTagSelectors,
+                                               xAspectStrctNodes, yAspectStrctNodes, zAspectStrctNodes)
+                            # value is None for a dimension whose value is to be not reported in this slice
+                            if ((isinstance(aspect, _INT) and aspectValue is not None) or  # not a dimension
+                                dimDefaults.get(aspect) != aspectValue or # explicit dim defaulted will equal the value
+                                aspectValue is not None): # typed dim absent will be none
+                                cellAspectValues[aspect] = aspectValue
                             matchableAspects.add(aspectModelAspect.get(aspect,aspect)) #filterable aspect from rule aspect
                         cellDefaultedDims = _DICT_SET(dimDefaults) - _DICT_SET(cellAspectValues.keys())
                         priItemQname = cellAspectValues.get(Aspect.CONCEPT)
@@ -1166,7 +1165,7 @@ class ViewRenderedGrid(ViewFile.View):
                                         value = fact.effectiveValue
                                     justify = "right" if fact.isNumeric else "left"
                                     factsVals.append( (fact, value, justify) )
-                                    hasColCells = True
+                            hasColCells = True
                         if justify is None:
                             justify = "right" if fp.isNumeric else "left"
                         if conceptNotAbstract:
