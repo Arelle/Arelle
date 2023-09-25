@@ -616,6 +616,13 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         setDisableRTL(options.disableRtl) # not saved to config
 
+        # Some options below (e.g. `packages`) may trigger web requests,
+        # so the `workOffline` flag needs to be set early on.
+        if options.internetConnectivity == "offline":
+            self.webCache.workOffline = True
+        elif options.internetConnectivity == "online":
+            self.webCache.workOffline = False
+
         if options.proxy:
             if options.proxy != "show":
                 proxySettings = proxyTuple(options.proxy)
@@ -795,10 +802,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.outputAttribution:
             self.modelManager.outputAttribution = options.outputAttribution
         self.modelManager.validateTestcaseSchema = options.validateTestcaseSchema
-        if options.internetConnectivity == "offline":
-            self.webCache.workOffline = True
-        elif options.internetConnectivity == "online":
-            self.webCache.workOffline = False
         if options.internetTimeout is not None:
             self.webCache.timeout = (options.internetTimeout or None)  # use None if zero specified to disable timeout
         if options.internetLogDownloads:
