@@ -709,57 +709,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                   moduleItem[0], moduleInfo.get("author"), moduleInfo.get("version"), moduleInfo.get("status"),
                                   moduleInfo.get("fileDate"), moduleInfo.get("description"), moduleInfo.get("license")),
                                   messageCode="info", file=moduleInfo.get("moduleURL"))
+
         if options.packages:
-            from arelle import PackageManager
-            savePackagesChanges = True
-            showPackages = False
-            for packageCmd in options.packages.split('|'):
-                cmd = packageCmd.strip()
-                if cmd == "show":
-                    showPackages = True
-                elif cmd == "temp":
-                    savePackagesChanges = False
-                elif cmd.startswith("+"):
-                    packageInfo = PackageManager.addPackage(self, cmd[1:], options.packageManifestName)
-                    if packageInfo:
-                        self.addToLog(_("Addition of package {0} successful.").format(packageInfo.get("name")),
-                                      messageCode="info", file=packageInfo.get("URL"))
-                    else:
-                        self.addToLog(_("Unable to load package."), messageCode="info", file=cmd[1:])
-                elif cmd.startswith("~"):
-                    if PackageManager.reloadPackageModule(self, cmd[1:]):
-                        self.addToLog(_("Reload of package successful."), messageCode="info", file=cmd[1:])
-                    else:
-                        self.addToLog(_("Unable to reload package."), messageCode="info", file=cmd[1:])
-                elif cmd.startswith("-"):
-                    if PackageManager.removePackageModule(self, cmd[1:]):
-                        self.addToLog(_("Deletion of package successful."), messageCode="info", file=cmd[1:])
-                    else:
-                        self.addToLog(_("Unable to delete package."), messageCode="info", file=cmd[1:])
-                else: # assume it is a module or package
-                    savePackagesChanges = False
-                    packageInfo = PackageManager.addPackage(self, cmd, options.packageManifestName)
-                    if packageInfo:
-                        self.addToLog(_("Activation of package {0} successful.").format(packageInfo.get("name")),
-                                      messageCode="info", file=packageInfo.get("URL"))
-                        resetPlugins = True
-                    else:
-                        self.addToLog(_("Unable to load package \"%(name)s\". "),
-                                      messageCode="arelle:packageLoadingError",
-                                      messageArgs={"name": cmd, "file": cmd}, level=logging.ERROR)
-            if PackageManager.packagesConfigChanged:
-                PackageManager.rebuildRemappings(self)
-            if savePackagesChanges:
-                PackageManager.save(self)
-            else:
-                PackageManager.packagesConfigChanged = False
-            if showPackages:
-                self.addToLog(_("Taxonomy packages:"), messageCode="info")
-                for packageInfo in PackageManager.orderedPackagesConfig()["packages"]:
-                    self.addToLog(_("Package: {0}; version: {1}; status: {2}; date: {3}; description: {4}.").format(
-                                  packageInfo.get("name"), packageInfo.get("version"), packageInfo.get("status"),
-                                  packageInfo.get("fileDate"), packageInfo.get("description")),
-                                  messageCode="info", file=packageInfo.get("URL"))
+            self.loadPackages(options.packages, options.packageManifestName)
 
         if options.showEnvironment:
             self.addToLog(_("Config directory: {0}").format(self.configDir))
@@ -1183,6 +1135,63 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 #with open("Z:\\temp\\trace.log", "at", encoding="utf-8") as fh:
                 #    fh.write("Status pipe exception {} {}\n".format(type(ex), ex))
                 system.exit()
+
+    def loadPackages(self, packages: str, packageManifestName: str):
+        """
+        Loads specified packages.
+
+        :param packages: Pipe-separated list of options. See CLI documentation for 'packages'.
+        :param packageManifestName: Unix shell style pattern used to find package manifest.
+        """
+        from arelle import PackageManager
+        savePackagesChanges = True
+        showPackages = False
+        for packageCmd in packages.split('|'):
+            cmd = packageCmd.strip()
+            if cmd == "show":
+                showPackages = True
+            elif cmd == "temp":
+                savePackagesChanges = False
+            elif cmd.startswith("+"):
+                packageInfo = PackageManager.addPackage(self, cmd[1:], packageManifestName)
+                if packageInfo:
+                    self.addToLog(_("Addition of package {0} successful.").format(packageInfo.get("name")),
+                                  messageCode="info", file=packageInfo.get("URL"))
+                else:
+                    self.addToLog(_("Unable to load package."), messageCode="info", file=cmd[1:])
+            elif cmd.startswith("~"):
+                if PackageManager.reloadPackageModule(self, cmd[1:]):
+                    self.addToLog(_("Reload of package successful."), messageCode="info", file=cmd[1:])
+                else:
+                    self.addToLog(_("Unable to reload package."), messageCode="info", file=cmd[1:])
+            elif cmd.startswith("-"):
+                if PackageManager.removePackageModule(self, cmd[1:]):
+                    self.addToLog(_("Deletion of package successful."), messageCode="info", file=cmd[1:])
+                else:
+                    self.addToLog(_("Unable to delete package."), messageCode="info", file=cmd[1:])
+            else:  # assume it is a module or package
+                savePackagesChanges = False
+                packageInfo = PackageManager.addPackage(self, cmd, packageManifestName)
+                if packageInfo:
+                    self.addToLog(_("Activation of package {0} successful.").format(packageInfo.get("name")),
+                                  messageCode="info", file=packageInfo.get("URL"))
+                else:
+                    self.addToLog(_("Unable to load package \"%(name)s\". "),
+                                  messageCode="arelle:packageLoadingError",
+                                  messageArgs={"name": cmd, "file": cmd}, level=logging.ERROR)
+        if PackageManager.packagesConfigChanged:
+            PackageManager.rebuildRemappings(self)
+        if savePackagesChanges:
+            PackageManager.save(self)
+        else:
+            PackageManager.packagesConfigChanged = False
+        if showPackages:
+            self.addToLog(_("Taxonomy packages:"), messageCode="info")
+            for packageInfo in PackageManager.orderedPackagesConfig()["packages"]:
+                self.addToLog(_("Package: {0}; version: {1}; status: {2}; date: {3}; description: {4}.").format(
+                    packageInfo.get("name"), packageInfo.get("version"), packageInfo.get("status"),
+                    packageInfo.get("fileDate"), packageInfo.get("description")),
+                    messageCode="info", file=packageInfo.get("URL"))
 
 if __name__ == "__main__":
     '''
