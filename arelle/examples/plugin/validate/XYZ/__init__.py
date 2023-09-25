@@ -41,6 +41,10 @@ def modelXbrlLoadComplete(*args: Any, **kwargs: Any) -> None:
     return validationPlugin.modelXbrlLoadComplete(*args, **kwargs)
 
 
+def validateXbrlStart(*args: Any, **kwargs: Any) -> None:
+    return validationPlugin.validateXbrlStart(*args, **kwargs)
+
+
 def validateXbrlFinally(*args: Any, **kwargs: Any) -> None:
     return validationPlugin.validateXbrlFinally(*args, **kwargs)
 
@@ -64,6 +68,7 @@ __pluginInfo__ = {
     "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
     "ModelDocument.PullLoader": modelDocumentPullLoader,
     "ModelXbrl.LoadComplete": modelXbrlLoadComplete,
+    "Validate.XBRL.Start": validateXbrlStart,
     "Validate.XBRL.Finally": validateXbrlFinally,
     "Validate.XBRL.DTS.document": validateXbrlDtsDocument,
     "Validate.Finally": validateFinally,
