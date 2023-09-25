@@ -51,6 +51,27 @@ def langCloseness(l1, l2):
             return i
     return _len
 
+
+def _parseFile(cntlr, parser, filepath, file, schemaUrl):
+    """
+    Returns tree from `file`, parsed with `parser`, and validated against the provided schema at `schemaUrl`.
+    :return: Tree if parsed and validated, None if `schemaUrl` could not be loaded.
+    """
+    tree = etree.parse(file, parser=parser)
+    # schema validate tp xml
+    if cntlr.workingOnlineOrInCache(schemaUrl):
+        xsdTree = etree.parse(schemaUrl, parser=parser)
+        etree.XMLSchema(xsdTree).assertValid(tree)
+    else:
+        cntlr.addToLog(_("File could not be validated against the schema (%(schemaUrl)s) because the schema was not "
+                         "found in the cache and Arelle is configured to work offline."),
+                       messageArgs={"schemaUrl": schemaUrl},
+                       messageCode="tpe:workingOffline",
+                       file=filepath,
+                       level=logging.ERROR)
+    return tree
+
+
 def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
     global ArchiveFileIOError
     if ArchiveFileIOError is None:
@@ -72,10 +93,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
     _file = filesource.file(metadataFile)[0] # URL in zip, plain file in file system or web
     parser = lxmlResolvingParser(cntlr)
     try:
-        tree = etree.parse(_file,parser=parser)
-        # schema validate tp xml
-        xsdTree = etree.parse(TP_XSD,parser=parser)
-        etree.XMLSchema(xsdTree).assertValid(tree)
+        tree = _parseFile(cntlr, parser, metadataFile, _file, TP_XSD)
     except (etree.XMLSyntaxError, etree.DocumentInvalid) as err:
         cntlr.addToLog(_("Taxonomy package file syntax error %(error)s"),
                        messageArgs={"error": str(err)},
@@ -166,10 +184,8 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
               "http://xbrl.org/REC/2016-04-19/taxonomy-package"):
         catalogFile = metadataFile.replace('taxonomyPackage.xml','catalog.xml')
         try:
-            rewriteTree = etree.parse(filesource.file(catalogFile)[0],parser=parser)
-            # schema validate tp xml
-            xsdTree = etree.parse(CAT_XSD,parser=parser)
-            etree.XMLSchema(xsdTree).assertValid(rewriteTree)
+            _file = filesource.file(catalogFile)[0]
+            rewriteTree = _parseFile(cntlr, parser, catalogFile, _file, CAT_XSD)
         except (etree.XMLSyntaxError, etree.DocumentInvalid) as err:
             cntlr.addToLog(_("Catalog file syntax error %(error)s"),
                            messageArgs={"error": str(err)},

@@ -301,7 +301,7 @@ class WebCache:
     def encodeForFilename(self, pathpart):
         return self.encodeFileChars.sub(lambda m: '^{0:03}'.format(ord(m.group(0))), pathpart)
 
-    def urlToCacheFilepath(self, url):
+    def urlToCacheFilepath(self, url: str) -> str:
         scheme, sep, path = url.partition("://")
         filepath = [self.cacheDir, scheme]
         pathparts = path.split('/')

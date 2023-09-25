@@ -604,6 +604,23 @@ class Cntlr:
             pass
         return 0
 
+    def workingOnlineOrInCache(self, url: str) -> bool:
+        """
+        Determines if the given URL should be requested based on the web cache's internet connectivity status
+        and whether the URL already exists in the cache.
+        :param url: Web URL
+        :return: True if the URL should be requested, False if not
+        """
+        if not self.webCache.workOffline:
+            # Working online, can proceed regardless of presence in cache
+            return True
+        cacheFilepath = self.webCache.urlToCacheFilepath(url)
+        if os.path.exists(cacheFilepath):
+            # The file exists in cache, we can proceed despite working offline
+            return True
+        return False
+
+
 def logRefsFileLines(refs: list[dict[str, Any]]) -> str:
     fileLines: defaultdict[Any, set[str]] = defaultdict(set)
     for ref in refs:
