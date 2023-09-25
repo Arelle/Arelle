@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DisclosureSystems
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../../../config/disclosuresystems.xsd">
+    <!-- see arelle/config/disclosuresystems.xml for full comments -->
+    <DisclosureSystem
+            names="NT18-preview|nt18-preview"
+            description="Checks for NT18 preview"
+            validationType="NL"
+    />
+    <DisclosureSystem
+            names="NT17-preview|nt17-preview"
+            description="Checks for NT17 preview"
+            validationType="NL"
+    />
+    <DisclosureSystem
+            names="NT16-preview|nt16-preview"
+            description="Checks for NT16 preview"
+            validationType="NL"
+    />
+</DisclosureSystems>
