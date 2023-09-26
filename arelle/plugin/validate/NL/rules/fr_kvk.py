@@ -3,9 +3,11 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import os
 from typing import Any, Iterable
+from urllib.parse import urlparse
 
-from arelle import ModelDocument
+from arelle import ModelDocument, UrlUtil
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -51,7 +53,6 @@ def rule_fr_kvk_1_01(
                 )
 
 
-
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
@@ -80,3 +81,43 @@ def rule_fr_kvk_2_01(
                     acceptedLangs=", ".join(ACCEPTED_LANGUAGES),
                     lang=lang,
                 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+    ],
+)
+def rule_fr_kvk_2_03(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-KVK-2.03: The attribute 'href' of the 'link:schemaRef' element MUST refer to the
+    full web location of the published entrypoint from the annual reporting taxonomy
+    """
+    modelXbrl = val.modelXbrl
+    for doc in modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            for refDoc, docRef in doc.referencesDocument.items():
+                if "href" not in docRef.referenceTypes:
+                    continue
+                if docRef.referringModelObject.localName != "schemaRef":
+                    continue
+                href = refDoc.uri
+                ext = None
+                if href:
+                    path = urlparse(href.lower()).path
+                    ext = os.path.splitext(path)[1]
+                if not UrlUtil.isAbsolute(href) or ext != '.xsd':
+                    yield Validation.error(
+                        codes='NL.FR-KVK-2.03',
+                        msg=_('The attribute "href" of the "link:schemaRef" element MUST refer to the '
+                              'full web location of the published entrypoint from the annual reporting taxonomy. Provided: %(href)s'),
+                        modelObject=doc,
+                        href=href,
+                    )
