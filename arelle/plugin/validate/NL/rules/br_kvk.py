@@ -105,3 +105,39 @@ def rule_br_kvk_2_04(
             previousDuration=[str(d) for d in previousDuration],
             instants=[str(d) for d in validInstants],
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+    ],
+)
+def rule_br_kvk_3_01(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    BR-KVK-3.01: A measure element with a namespace prefix that refers to the
+    "http://www.xbrl.org/2003/iso4217" namespace MUST appear exactly once in the instance document.
+    """
+    modelXbrl = val.modelXbrl
+    currencyUnitIds = set()
+    currencyMeasures = []
+    for unitId, unit in modelXbrl.units.items():
+        for measures in unit.measures:
+            for measure in measures:
+                if measure.namespaceURI == 'http://www.xbrl.org/2003/iso4217':
+                    currencyUnitIds.add(unitId)
+                    currencyMeasures.append(measure)
+    if len(currencyMeasures) != 1:
+        yield Validation.error(
+            codes='BR-KVK-3.01',
+            msg=_('A measure element with a namespace prefix that refers to the "http://www.xbrl.org/2003/iso4217" '
+                  'namespace MUST appear exactly once in the instance document. Units: %(unitIds)s, Measures: %(measures)s'),
+            unitIds=list(currencyUnitIds),
+            measures=[str(m) for m in currencyMeasures]
+        )
