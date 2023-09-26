@@ -216,6 +216,42 @@ def rule_br_kvk_4_10(
         DISCLOSURE_SYSTEM_NT17,
     ],
 )
+def rule_br_kvk_4_12(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    BR-KVK-4.12: For a corrected annual report, an annual report to be corrected
+    MUST be filed with the Trade Register.
+    If kvk-i:DocumentResubmissionDueToUnsurmountableInaccuracies is "Ja" (Yes),
+    then jenv-bw2-i:DocumentAdoptionStatus must be "Ja" (Yes).
+    """
+    modelXbrl = val.modelXbrl
+    resubmissionConceptQname = DOCUMENT_RESUBMISSION_UNSURMOUNTABLE_INACCURACIES_QN
+    if not any(f.value == 'Ja' for f in modelXbrl.factsByQname.get(resubmissionConceptQname, [])):
+        return
+    documentAdoptionStatusQname = DOCUMENTATION_ADOPTION_STATUS_QN
+    if not any(f.value == 'Ja' for f in modelXbrl.factsByQname.get(documentAdoptionStatusQname, [])):
+        yield Validation.error(
+            codes='BR-KVK-4.12',
+            msg=_('For a corrected annual report, an annual report to be corrected '
+                  'MUST be filed with the Trade Register. '
+                  'If %(resubmissionConceptQname)s is "Ja" (Yes), '
+                  'then %(documentAdoptionStatusQname)s must be "Ja" (Yes).'),
+            resubmissionConceptQname=resubmissionConceptQname,
+            documentAdoptionStatusQname=documentAdoptionStatusQname,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+    ],
+)
 def rule_br_kvk_4_16(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
