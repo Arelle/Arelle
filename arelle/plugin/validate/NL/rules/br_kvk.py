@@ -3,8 +3,8 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from datetime import datetime, timedelta
-from typing import Any, Iterable
+from datetime import date, datetime, timedelta
+from typing import Any, Iterable, TYPE_CHECKING
 
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
@@ -23,7 +23,18 @@ from ..DisclosureSystems import (
 )
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
+if TYPE_CHECKING:
+    from arelle import ModelXbrl
+    from arelle.ModelValue import QName
+
 _: TypeGetText
+
+
+def _getReportingPeriodDateValue(modelXbrl: ModelXbrl, qname: QName) -> date:
+    facts = modelXbrl.factsByQname.get(qname)
+    assert facts and len(facts) == 1, _('Exactly one fact must exist for reporting period concept: {0}').format(qname)
+    value = next(iter(facts)).value
+    return datetime.strptime(value, "%Y-%m-%d").date()
 
 
 @validation(
@@ -59,19 +70,13 @@ def rule_br_kvk_2_04(
     """
     modelXbrl = val.modelXbrl
 
-    def getDateValue(qname):
-        facts = modelXbrl.factsByQname.get(qname)
-        assert facts and len(facts) == 1, _('Exactly one fact must exist for reporting period concept: {0}').format(qname)
-        value = next(iter(facts)).value
-        return datetime.strptime(value, "%Y-%m-%d").date()
-
     currentDuration = (
-        getDateValue(FINANCIAL_REPORTING_PERIOD_CURRENT_START_DATE_QN),
-        getDateValue(FINANCIAL_REPORTING_PERIOD_CURRENT_END_DATE_QN)
+        _getReportingPeriodDateValue(modelXbrl, FINANCIAL_REPORTING_PERIOD_CURRENT_START_DATE_QN),
+        _getReportingPeriodDateValue(modelXbrl, FINANCIAL_REPORTING_PERIOD_CURRENT_END_DATE_QN)
     )
     previousDuration = (
-        getDateValue(FINANCIAL_REPORTING_PERIOD_PREVIOUS_START_DATE_QN),
-        getDateValue(FINANCIAL_REPORTING_PERIOD_PREVIOUS_END_DATE_QN)
+        _getReportingPeriodDateValue(modelXbrl, FINANCIAL_REPORTING_PERIOD_PREVIOUS_START_DATE_QN),
+        _getReportingPeriodDateValue(modelXbrl, FINANCIAL_REPORTING_PERIOD_PREVIOUS_END_DATE_QN)
     )
     validDurations = (currentDuration, previousDuration)
     validInstants = (
@@ -140,4 +145,33 @@ def rule_br_kvk_3_01(
                   'namespace MUST appear exactly once in the instance document. Units: %(unitIds)s, Measures: %(measures)s'),
             unitIds=list(currencyUnitIds),
             measures=[str(m) for m in currencyMeasures]
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+    ],
+)
+def rule_br_kvk_4_07(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    BR-KVK-4.07: The jenv-bw2-i:FinancialReportingPeriodCurrentEndDate MUST be before the date of filing.
+    """
+    modelXbrl = val.modelXbrl
+    currentPeriodEndDate = _getReportingPeriodDateValue(modelXbrl, FINANCIAL_REPORTING_PERIOD_CURRENT_END_DATE_QN)
+    filingDate = date.today()
+    if currentPeriodEndDate >= filingDate:
+        yield Validation.error(
+            codes='BR-KVK-4.07',
+            msg=_('The jenv-bw2-i:FinancialReportingPeriodCurrentEndDate (%(currentPeriodEndDate)s) '
+                  'MUST be before the date of filing (%(filingDate)s).'),
+            currentPeriodEndDate=currentPeriodEndDate,
+            filingDate=filingDate,
         )
