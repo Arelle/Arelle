@@ -709,7 +709,7 @@ def orderByAspect(xpCtx, facts, aspect):
     elif aspect in (Aspect.ENTITY_IDENTIFIER, Aspect.PERIOD) or isinstance(aspect, QName):
         return sorted(facts, key=lambda f: f.context.id)
     elif aspect == Aspect.UNIT:
-        return sorted(facts, key=lambda f: f.unit.id)
+        return sorted(facts, key=lambda f: f.unit.id if f.unit is not None else "")
     return facts
 
 def aspectsMatch(xpCtx, fact1, fact2, aspects):

@@ -1177,7 +1177,8 @@ class DefnMdlDimensionRelationshipNode(DefnMdlRelationshipNode):
                                            XbrlConst.domainMember,
                                            self._formulaAxis.replace('-or-self',''),
                                            self._generations),
-                                          True)
+                                          True,
+                                          targetRole=True)
                     if isOrSelf:
                         rels.append(srcRel)
                         if _rels:
@@ -1185,7 +1186,7 @@ class DefnMdlDimensionRelationshipNode(DefnMdlRelationshipNode):
                     elif _rels:
                         rels.extend(_rels) # return nested lists representing concept tree nesting)
                     return # found the starting source QName
-                for rel in self.modelXbrl.relationshipSet(XbrlConst.domainMember,linkrole).fromModelObject(srcRel.toModelObject):
+                for rel in self.modelXbrl.relationshipSet(XbrlConst.domainMember,srcRel.consecutiveLinkrole).fromModelObject(srcRel.toModelObject):
                     srcQnDims(rel, srcQn)
             for srcQn in self._sourceQnames or (None,):
                 for rel in sourceDimRels:

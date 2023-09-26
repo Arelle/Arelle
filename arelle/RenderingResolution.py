@@ -27,7 +27,7 @@ from arelle.XPathContext import XPathException, FunctionArgType
 NoneType = type(None)
 EMPTY_LIST = []
 
-TRACE_RESOLUTION = True
+TRACE_RESOLUTION = False
 TRACE_TABLE_STRUCTURE = True
 
 RENDER_UNITS_PER_CHAR = 16 # nominal screen units per char for wrapLength computation and adjustment
@@ -218,7 +218,7 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
         if iCodeRole >= 0 and len(hdrNonStdRoles) > 1 and iCodeRole < len(hdrNonStdRoles) - 1:
             del hdrNonStdRoles[iCodeRole]
             hdrNonStdRoles.append(hdrNonStdRole)
-    if TRACE_RESOLUTION: print (
+    if TRACE_RESOLUTION: print(
         f"dataCols {view.dataCols} dataRows {view.dataRows} dataFirstCol {view.dataFirstCol} dataFirstRow {view.dataFirstRow} "
         f"colHdrRows {view.colHdrRows} rowHdrCols {view.rowHdrCols} zAxisBreakdowns {view.zAxisBreakdowns} "
         f"colHdrTopRow {view.colHdrTopRow} colHdrRows {view.colHdrRows} colHdrNonStdRoles {len(view.colHdrNonStdRoles)} "

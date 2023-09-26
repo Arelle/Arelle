@@ -1020,7 +1020,7 @@ def fact_footnotes(xc, p, args):
         return relationshipSet.label(itemObj, footnoteroleURI, lang, returnMultiple=True) or ()
     return ()
 
-def concept_relationships(xc, p, args, nestResults=False): # nestResults if for table linkbase relationships
+def concept_relationships(xc, p, args, nestResults=False, targetRole=False): # nestResults if for table linkbase relationships
     lenArgs = len(args)
     if not 4 <= lenArgs <= 8: raise XPathContext.FunctionNumArgs()
     inst = instance(xc, p, args, 7)
@@ -1070,6 +1070,8 @@ def concept_relationships(xc, p, args, nestResults=False): # nestResults if for 
     else:
         qnArc = None
 
+    if arcroleURI == "XBRL-dimensions":
+        targetRole = True
     relationshipSet = inst.relationshipSet(arcroleURI, linkroleURI, qnLink, qnArc)
     if relationshipSet:
         result = []
@@ -1105,7 +1107,7 @@ def concept_relationships(xc, p, args, nestResults=False): # nestResults if for 
                     g += 2
                 indexOfSelfInRels = rels.index(relToSelf)
                 if indexOfSelfInRels >= 0:
-                    concept_relationships_step(xc, inst, relationshipSet, [relToSelf], 'descendant', g, result, visited, nestResults)
+                    concept_relationships_step(xc, inst, relationshipSet, [relToSelf], 'descendant', g, result, visited, nestResults, targetRole)
                     if len(result) >= 2 and isinstance(result[1], list): # contains [self, [descendants...]
                         if axis == 'sibling-or-descendant':
                             return rels[:indexOfSelfInRels] + result[1] + rels[indexOfSelfInRels+1:]
@@ -1127,7 +1129,7 @@ def concept_relationships(xc, p, args, nestResults=False): # nestResults if for 
                         g += 2
                     indexOfSelfInRoots = rootQNs.index(qnSource)
                     if indexOfSelfInRels >= 0:
-                        concept_relationships_step(xc, inst, relationshipSet, [relToSelf], 'descendant', g, result, visited, nestResults)
+                        concept_relationships_step(xc, inst, relationshipSet, [relToSelf], 'descendant', g, result, visited, nestResults, targetRole)
                         if len(result) >= 2 and isinstance(result[1], list): # contains [self, [descendants...]
                             if axis == 'sibling-or-descendant':
                                 return rootQNs[:indexOfSelfInRoots] + result[1] + rootQNs[indexOfSelfInRoots+1:]
@@ -1137,11 +1139,11 @@ def concept_relationships(xc, p, args, nestResults=False): # nestResults if for 
             else: # must be a root, never has any siblings
                 return []
         if rels:
-            concept_relationships_step(xc, inst, relationshipSet, rels, axis, generations, result, visited, nestResults)
+            concept_relationships_step(xc, inst, relationshipSet, rels, axis, generations, result, visited, nestResults, targetRole)
             return result
     return ()
 
-def concept_relationships_step(xc, inst, relationshipSet, rels, axis, generations, result, visited, nestResults):
+def concept_relationships_step(xc, inst, relationshipSet, rels, axis, generations, result, visited, nestResults, targetRole):
     if rels:
         for modelRel in rels:
             concept = modelRel.toModelObject if axis == 'descendant' else modelRel.fromModelObject
@@ -1152,14 +1154,14 @@ def concept_relationships_step(xc, inst, relationshipSet, rels, axis, generation
                 if generations == 0:
                     visited.add(conceptQname)
                 if axis == 'descendant':
-                    if relationshipSet.arcrole == "XBRL-dimensions":
-                        stepRelationshipSet = inst.relationshipSet("XBRL-dimensions", modelRel.consecutiveLinkrole)
+                    if targetRole:
+                        stepRelationshipSet = inst.relationshipSet(relationshipSet.arcrole, modelRel.consecutiveLinkrole)
                     else:
                         stepRelationshipSet = relationshipSet
                     stepRels = stepRelationshipSet.fromModelObject(concept)
                 else:
-                    if relationshipSet.arcrole == "XBRL-dimensions":
-                        stepRelationshipSet = inst.relationshipSet("XBRL-dimensions")
+                    if targetRole:
+                        stepRelationshipSet = inst.relationshipSet(relationshipSet.arcrole)
                         # search all incoming relationships for those with right consecutiveLinkrole
                         stepRels = [rel
                                     for rel in stepRelationshipSet.toModelObject(concept)
@@ -1171,7 +1173,7 @@ def concept_relationships_step(xc, inst, relationshipSet, rels, axis, generation
                     nestedList = []
                 else: # nested results flattened in top level results
                     nestedList = result
-                concept_relationships_step(xc, inst, stepRelationshipSet, stepRels, axis, nextGen, nestedList, visited, nestResults)
+                concept_relationships_step(xc, inst, stepRelationshipSet, stepRels, axis, nextGen, nestedList, visited, nestResults, targetRole)
                 if nestResults and nestedList:  # don't append empty nested results
                     result.append(nestedList)
                 if generations == 0:
