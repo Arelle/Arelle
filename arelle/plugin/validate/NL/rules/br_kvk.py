@@ -13,10 +13,12 @@ from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from . import (
     DOCUMENTATION_ADOPTION_DATE_QN,
+    DOCUMENTATION_ADOPTION_STATUS_QN,
+    DOCUMENT_RESUBMISSION_UNSURMOUNTABLE_INACCURACIES_QN,
     FINANCIAL_REPORTING_PERIOD_CURRENT_END_DATE_QN,
     FINANCIAL_REPORTING_PERIOD_CURRENT_START_DATE_QN,
     FINANCIAL_REPORTING_PERIOD_PREVIOUS_END_DATE_QN,
-    FINANCIAL_REPORTING_PERIOD_PREVIOUS_START_DATE_QN
+    FINANCIAL_REPORTING_PERIOD_PREVIOUS_START_DATE_QN,
 )
 from ..DisclosureSystems import (
     DISCLOSURE_SYSTEM_NT16,
@@ -205,3 +207,45 @@ def rule_br_kvk_4_10(
             documentAdoptionDate=documentAdoptionDate,
             filingDate=filingDate,
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+    ],
+)
+def rule_br_kvk_4_16(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    BR-KVK-4.16: A corrected financial statement MUST be established.
+    If kvk-i:DocumentResubmissionDueToUnsurmountableInaccuracies is "Ja" (Yes),
+    the following facts must be filled for a corrected financial statement:
+    jenv-bw2-i:DocumentAdoptionStatus
+    jenv-bw2-i:DocumentAdoptionDate
+    """
+    modelXbrl = val.modelXbrl
+    resubmissionConceptQname = DOCUMENT_RESUBMISSION_UNSURMOUNTABLE_INACCURACIES_QN
+    if not any(f.value == 'Ja' for f in modelXbrl.factsByQname.get(resubmissionConceptQname, [])):
+        return
+    requiredConceptQnames = (
+        DOCUMENTATION_ADOPTION_DATE_QN,
+        DOCUMENTATION_ADOPTION_STATUS_QN
+    )
+    for conceptQname in requiredConceptQnames:
+        if not any(f.value for f in modelXbrl.factsByQname.get(conceptQname, [])):
+            yield Validation.error(
+                codes='BR-KVK-4.16',
+                msg=_('A corrected financial statement MUST be established. '
+                      'If %(resubmissionConceptQname)s is "Ja" (Yes), '
+                      'the following facts must be filled for a corrected financial statement: '
+                      '%(requiredConceptQnames)s'),
+                resubmissionConceptQname=resubmissionConceptQname,
+                requiredConceptQnames=requiredConceptQnames,
+            )
+            return

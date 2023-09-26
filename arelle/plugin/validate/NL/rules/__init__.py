@@ -115,3 +115,7 @@ FINANCIAL_REPORTING_PERIOD_CURRENT_END_DATE_QN = qname(f'{{{JENV_BW2_DATA_NS}}}F
 FINANCIAL_REPORTING_PERIOD_PREVIOUS_START_DATE_QN = qname(f'{{{JENV_BW2_DATA_NS}}}FinancialReportingPeriodPreviousStartDate')
 FINANCIAL_REPORTING_PERIOD_PREVIOUS_END_DATE_QN = qname(f'{{{JENV_BW2_DATA_NS}}}FinancialReportingPeriodPreviousEndDate')
 DOCUMENTATION_ADOPTION_DATE_QN = qname(f'{{{JENV_BW2_DATA_NS}}}DocumentAdoptionDate')
+DOCUMENTATION_ADOPTION_STATUS_QN = qname(f'{{{JENV_BW2_DATA_NS}}}DocumentAdoptionStatus')
+
+KVK_I_NS = 'http://www.nltaxonomie.nl/nt16/kvk/20211208/dictionary/kvk-data'
+DOCUMENT_RESUBMISSION_UNSURMOUNTABLE_INACCURACIES_QN = qname(f'{{{KVK_I_NS}}}DocumentResubmissionDueToUnsurmountableInaccuracies')
