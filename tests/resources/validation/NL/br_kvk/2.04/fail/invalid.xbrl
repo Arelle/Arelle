@@ -37,6 +37,12 @@
     <jenv-bw2-i:FinancialReportingPeriodCurrentEndDate contextRef="ctx-1">2021-12-31</jenv-bw2-i:FinancialReportingPeriodCurrentEndDate>
     <jenv-bw2-i:FinancialReportingPeriodPreviousStartDate contextRef="ctx-1">2020-01-01</jenv-bw2-i:FinancialReportingPeriodPreviousStartDate>
     <jenv-bw2-i:FinancialReportingPeriodPreviousEndDate contextRef="ctx-1">2020-12-31</jenv-bw2-i:FinancialReportingPeriodPreviousEndDate>
+    <jenv-bw2-i:DocumentAdoptionDate contextRef="ctx-1">2022-01-01</jenv-bw2-i:DocumentAdoptionDate>
+    <jenv-bw2-i:DocumentAdoptionStatus contextRef="ctx-1">Ja</jenv-bw2-i:DocumentAdoptionStatus>
+    <kvk-i:DocumentResubmissionDueToUnsurmountableInaccuracies contextRef="ctx-1">Ja</kvk-i:DocumentResubmissionDueToUnsurmountableInaccuracies>
+    <kvk-i:DocumentResubmissionDueToUnsurmountableInaccuraciesExplanation contextRef="ctx-1">
+        Explanation
+    </kvk-i:DocumentResubmissionDueToUnsurmountableInaccuraciesExplanation>
 
     <xbrli:unit id="usd">
         <xbrli:measure>iso4217:USD</xbrli:measure>

@@ -3,9 +3,10 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from typing import Any, Iterable, TYPE_CHECKING
 
+from arelle import XmlUtil
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -36,8 +37,7 @@ _: TypeGetText
 def _getReportingPeriodDateValue(modelXbrl: ModelXbrl, qname: QName) -> date:
     facts = modelXbrl.factsByQname.get(qname)
     assert facts and len(facts) == 1, _('Exactly one fact must exist for reporting period concept: {0}').format(qname)
-    value = next(iter(facts)).value
-    return datetime.strptime(value, "%Y-%m-%d").date()
+    return XmlUtil.datetimeValue(next(iter(facts))).date()
 
 
 @validation(
@@ -84,21 +84,19 @@ def rule_br_kvk_2_04(
     validDurations = (currentDuration, previousDuration)
     validInstants = (
         currentDuration[1],
-        (currentDuration[0] + timedelta(days=-1)),
-        (previousDuration[0] + timedelta(days=-1))
+        (currentDuration[0] - timedelta(1)),
+        (previousDuration[0] - timedelta(1))
     )
 
     for contextId, context in modelXbrl.contexts.items():
         if context.isInstantPeriod:
-            # instantDatetime getter adds a day, we need to subtract for comparison
-            instantDate = (context.instantDatetime + timedelta(days=-1)).date()
+            instantDate = context.instantDate
             if instantDate in validInstants:
                 continue
         if context.isStartEndPeriod:
             contextDates = (
                 context.startDatetime.date(),
-                # endDatetime getter adds a day, we need to subtract for comparison
-                (context.endDatetime + timedelta(days=-1)).date()
+                context.endDate
             )
             if contextDates in validDurations:
                 continue
