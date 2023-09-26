@@ -12,6 +12,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from . import (
+    DOCUMENTATION_ADOPTION_DATE_QN,
     FINANCIAL_REPORTING_PERIOD_CURRENT_END_DATE_QN,
     FINANCIAL_REPORTING_PERIOD_CURRENT_START_DATE_QN,
     FINANCIAL_REPORTING_PERIOD_PREVIOUS_END_DATE_QN,
@@ -173,5 +174,34 @@ def rule_br_kvk_4_07(
             msg=_('The jenv-bw2-i:FinancialReportingPeriodCurrentEndDate (%(currentPeriodEndDate)s) '
                   'MUST be before the date of filing (%(filingDate)s).'),
             currentPeriodEndDate=currentPeriodEndDate,
+            filingDate=filingDate,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+    ],
+)
+def rule_br_kvk_4_10(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    BR-KVK-4.10: The jenv-bw2-i:DocumentAdoptionDate MUST NOT be after the date of filing.
+    """
+    modelXbrl = val.modelXbrl
+    documentAdoptionDate = _getReportingPeriodDateValue(modelXbrl, DOCUMENTATION_ADOPTION_DATE_QN)
+    filingDate = date.today()
+    if documentAdoptionDate > filingDate:
+        yield Validation.error(
+            codes='BR-KVK-4.10',
+            msg=_('The jenv-bw2-i:DocumentAdoptionDate (%(documentAdoptionDate)s) '
+                  'MUST NOT be after the date of filing (%(filingDate)s).'),
+            documentAdoptionDate=documentAdoptionDate,
             filingDate=filingDate,
         )
