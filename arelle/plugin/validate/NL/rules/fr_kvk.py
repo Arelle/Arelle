@@ -153,3 +153,33 @@ def rule_fr_kvk_5_01(
                 acceptedValues=ACCEPTED_DECIMAL_VALUES,
                 decimals=decimals,
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+    ],
+)
+def rule_fr_kvk_5_02(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-KVK-5.02: The attribute 'decimals' for non-monetary numeric facts MUST be filled with 'INF'.
+    """
+    modelXbrl = val.modelXbrl
+    for fact in modelXbrl.facts:
+        if not fact.concept.isNumeric or fact.concept.isMonetary:
+            continue
+        decimals = fact.decimals
+        if decimals != 'INF':
+            yield Validation.error(
+                codes='NL.FR-KVK-5.02',
+                msg=_('The attribute "decimals" for non-monetary numeric facts MUST be filled with "INF". Provided: %(decimals)s'),
+                modelObject=fact,
+                decimals=decimals,
+            )
