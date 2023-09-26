@@ -44,6 +44,8 @@ Client with curl:
 from __future__ import annotations
 import os
 import zipfile
+from pathlib import Path
+
 import regex as re
 from collections import defaultdict
 from math import isnan
@@ -113,7 +115,7 @@ def dislosureSystemTypes(disclosureSystem: DisclosureSystem, *args: Any, **kwarg
     return (("ESEF", "ESEFplugin"),)
 
 def disclosureSystemConfigURL(disclosureSystem: DisclosureSystem, *args: Any, **kwargs: Any) -> str:
-    return os.path.join(os.path.dirname(__file__), "config.xml")
+    return str(Path(__file__).parent / "resources" / "config.xml")
 
 def modelXbrlBeforeLoading(modelXbrl: ModelXbrl, normalizedUri: str, filepath: str, isEntry: bool=False, **kwargs: Any) -> ModelDocument.LoadingException | None:
     if getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
