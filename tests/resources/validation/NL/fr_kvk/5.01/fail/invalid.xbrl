@@ -45,5 +45,5 @@
             <instant>2021-12-31</instant>
         </period>
     </context>
-    <jenv-bw2-i:RightsGrantedExercisePrice contextRef="ctx-2" xml:lang="en" decimals="2" unitRef="usd">100.00</jenv-bw2-i:RightsGrantedExercisePrice>
+    <jenv-bw2-i:RightsGrantedExercisePrice contextRef="ctx-2" xml:lang="en" decimals="1" unitRef="usd">100.0</jenv-bw2-i:RightsGrantedExercisePrice>
 </xbrl>

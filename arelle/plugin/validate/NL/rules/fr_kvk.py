@@ -23,6 +23,7 @@ _: TypeGetText
 
 
 ACCEPTED_LANGUAGES = ('de', 'en', 'fr', 'nl')
+ACCEPTED_DECIMAL_VALUES = ('INF', '-9', '-6', '-3', '0', '2')
 
 
 @validation(
@@ -121,3 +122,34 @@ def rule_fr_kvk_2_03(
                         modelObject=doc,
                         href=href,
                     )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+    ],
+)
+def rule_fr_kvk_5_01(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-KVK-5.01: The attribute 'decimals' to monetary values MUST be filled with allowed values.
+    """
+    modelXbrl = val.modelXbrl
+    for fact in modelXbrl.facts:
+        if not fact.concept.isMonetary:
+            continue
+        decimals = fact.decimals
+        if decimals not in ACCEPTED_DECIMAL_VALUES:
+            yield Validation.error(
+                codes='NL.FR-KVK-5.01',
+                msg=_('The attribute "decimals" on monetary values MUST be filled with allowed values: %(acceptedValues)s. Provided: %(decimals)s'),
+                modelObject=fact,
+                acceptedValues=ACCEPTED_DECIMAL_VALUES,
+                decimals=decimals,
+            )
