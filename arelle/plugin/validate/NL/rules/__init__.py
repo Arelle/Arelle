@@ -1,3 +1,4 @@
+from arelle.ModelValue import qname
 from arelle.plugin.validate.NL.DisclosureSystems import DISCLOSURE_SYSTEM_NT16, DISCLOSURE_SYSTEM_NT17, DISCLOSURE_SYSTEM_NT18
 
 NT16_ENTRYPOINT_ROOT = 'http://www.nltaxonomie.nl/nt16/kvk/20211208/entrypoints/'
@@ -107,3 +108,9 @@ NL_ENTRYPOINTS = {
         'kvk-rpt-jaarverantwoording-2023-nlgaap-zorginstellingen.xsd',
     ]},
 }
+
+JENV_BW2_DATA_NS = 'http://www.nltaxonomie.nl/nt16/jenv/20211208/dictionary/jenv-bw2-data'
+FINANCIAL_REPORTING_PERIOD_CURRENT_START_DATE_QN = qname(f'{{{JENV_BW2_DATA_NS}}}FinancialReportingPeriodCurrentStartDate')
+FINANCIAL_REPORTING_PERIOD_CURRENT_END_DATE_QN = qname(f'{{{JENV_BW2_DATA_NS}}}FinancialReportingPeriodCurrentEndDate')
+FINANCIAL_REPORTING_PERIOD_PREVIOUS_START_DATE_QN = qname(f'{{{JENV_BW2_DATA_NS}}}FinancialReportingPeriodPreviousStartDate')
+FINANCIAL_REPORTING_PERIOD_PREVIOUS_END_DATE_QN = qname(f'{{{JENV_BW2_DATA_NS}}}FinancialReportingPeriodPreviousEndDate')
