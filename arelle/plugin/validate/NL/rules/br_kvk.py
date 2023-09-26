@@ -27,7 +27,7 @@ from ..DisclosureSystems import (
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 if TYPE_CHECKING:
-    from arelle import ModelXbrl
+    from arelle.ModelXbrl import ModelXbrl
     from arelle.ModelValue import QName
 
 _: TypeGetText
