@@ -34,10 +34,11 @@ if TYPE_CHECKING:
 _: TypeGetText
 
 
-def _getReportingPeriodDateValue(modelXbrl: ModelXbrl, qname: QName) -> date:
+def _getReportingPeriodDateValue(modelXbrl: ModelXbrl, qname: QName) -> date | None:
     facts = modelXbrl.factsByQname.get(qname)
-    assert facts and len(facts) == 1, _('Exactly one fact must exist for reporting period concept: {0}').format(qname)
-    return XmlUtil.datetimeValue(next(iter(facts))).date()
+    if facts and len(facts) == 1:
+        return XmlUtil.datetimeValue(next(iter(facts))).date()
+    return None
 
 
 @validation(
@@ -77,10 +78,14 @@ def rule_br_kvk_2_04(
         _getReportingPeriodDateValue(modelXbrl, FINANCIAL_REPORTING_PERIOD_CURRENT_START_DATE_QN),
         _getReportingPeriodDateValue(modelXbrl, FINANCIAL_REPORTING_PERIOD_CURRENT_END_DATE_QN)
     )
+    if None in currentDuration:
+        return
     previousDuration = (
         _getReportingPeriodDateValue(modelXbrl, FINANCIAL_REPORTING_PERIOD_PREVIOUS_START_DATE_QN),
         _getReportingPeriodDateValue(modelXbrl, FINANCIAL_REPORTING_PERIOD_PREVIOUS_END_DATE_QN)
     )
+    if None in previousDuration:
+        return
     validDurations = (currentDuration, previousDuration)
     validInstants = (
         currentDuration[1],
@@ -167,6 +172,8 @@ def rule_br_kvk_4_07(
     """
     modelXbrl = val.modelXbrl
     currentPeriodEndDate = _getReportingPeriodDateValue(modelXbrl, FINANCIAL_REPORTING_PERIOD_CURRENT_END_DATE_QN)
+    if currentPeriodEndDate is None:
+        return
     filingDate = date.today()
     if currentPeriodEndDate >= filingDate:
         yield Validation.error(
@@ -196,6 +203,8 @@ def rule_br_kvk_4_10(
     """
     modelXbrl = val.modelXbrl
     documentAdoptionDate = _getReportingPeriodDateValue(modelXbrl, DOCUMENTATION_ADOPTION_DATE_QN)
+    if documentAdoptionDate is None:
+        return
     filingDate = date.today()
     if documentAdoptionDate > filingDate:
         yield Validation.error(
