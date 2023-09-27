@@ -25,7 +25,7 @@
         </entity>
         <period>
             <startDate>2021-01-01</startDate>
-            <endDate>2021-12-31</endDate>
+            <endDate>2021-12-31T24:00:00</endDate>
         </period>
     </context>
     <nl-cd:LegalEntityName contextRef="ctx-1" xml:lang="en">Testing Entity Name</nl-cd:LegalEntityName>
@@ -56,7 +56,7 @@
             <identifier scheme="http://www.kvk.nl/kvk-id">12345678</identifier>
         </entity>
         <period>
-            <instant>2021-12-31</instant>
+            <instant>2022-01-01T00:00:00</instant>
         </period>
     </context>
     <jenv-bw2-i:RightsGrantedExercisePrice contextRef="ctx-2" xml:lang="en" decimals="2" unitRef="usd">100.00</jenv-bw2-i:RightsGrantedExercisePrice>

@@ -952,7 +952,7 @@ class ModelContext(ModelObject):
         try:
             return self._endDate
         except AttributeError:
-            self._endDate = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, ("endDate", "instant"))).date()
+            self._endDate = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, ("endDate", "instant")), subtractOneDay=True).date()
             return self._endDate
 
     @property
@@ -980,7 +980,7 @@ class ModelContext(ModelObject):
         try:
             return self._instantDate
         except AttributeError:
-            self._instantDate = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, "instant")).date()
+            self._instantDate = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, "instant"), subtractOneDay=True).date()
             return self._instantDate
 
     @property

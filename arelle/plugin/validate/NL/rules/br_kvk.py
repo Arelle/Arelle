@@ -95,8 +95,7 @@ def rule_br_kvk_2_04(
 
     for contextId, context in modelXbrl.contexts.items():
         if context.isInstantPeriod:
-            instantDate = context.instantDate
-            if instantDate in validInstants:
+            if context.instantDate in validInstants:
                 continue
         if context.isStartEndPeriod:
             contextDates = (

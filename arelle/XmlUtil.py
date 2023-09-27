@@ -959,8 +959,32 @@ def tzinfo(tz: str | None) -> datetime.timezone | None:
 def datetimeValue(
     element: ModelObject,
     addOneDay: bool = False,
-    none: str | None = None
+    none: str | None = None,
+    subtractOneDay: bool = False,
 ) -> datetime.datetime | None:
+    """
+    Parses text value from `element` as a datetime.
+
+    If element is None, returns None, unless `none` is provided:
+    "minyear": minimum datetime value
+    "maxyear": maximum datetime value
+
+    If the text value does not match a date/datetime pattern, returns None.
+
+    If the text value has a time portion with 24:00:00, the date is rolled forward to it's 00:00:00 equivalent.
+
+    If the text value has a time portion and `subtractOneDay` is True,
+    00:00:00 datetimes will cause a day to be subtracted from the result.
+
+    If the text value does not have a time portion and addOneDay is True,
+    a day will be added to the result.
+
+    :param element: Element that provides text value to be parsed.
+    :param addOneDay: If value does not have a time portion, add one day
+    :param none: Determines what to return if element is None. "minyear" or "maxyear"
+    :param subtractOneDay: If value has a zero-valued time portion, subtract one day
+    :return:
+    """
     if element is None:
         if none == "minyear":
             return DATETIME_MINYEAR
@@ -986,12 +1010,14 @@ def datetimeValue(
             if fracSec and fracSec[0] == ".":
                 ms = int(fracSec[1:7].ljust(6,'0'))
             result = datetime.datetime(int(match.group(1)),int(match.group(2)),int(match.group(3)),hour,min,sec,ms,tzinfo(tz))
+            if hour24:  #add one day
+                result += datetime.timedelta(1)
+            if subtractOneDay and hour == min == sec == ms == 0:
+                result += datetime.timedelta(-1)
         else:
             result = datetime.datetime(int(match.group(9)),int(match.group(10)),int(match.group(11)),0,0,0,0,tzinfo(match.group(12)))
-        if addOneDay and match.lastindex >= 11:
-            result += datetime.timedelta(1)
-        if hour24:  #add one day
-            result += datetime.timedelta(1)
+            if addOneDay and match.lastindex >= 11:
+                result += datetime.timedelta(1)
     except (ValueError, OverflowError, IndexError, AttributeError, AssertionError):
         if not "result" in locals(): # if not set yet, punt with max datetime
             result = DATETIME_MAXYEAR
