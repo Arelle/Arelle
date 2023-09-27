@@ -401,9 +401,9 @@ class StrctMdlStructuralNode(StrctMdlNode):
         if self.defnMdlNode is not None and hasattr(self.defnMdlNode, "aspectsCovered"):
             aspectsCovered |= self.defnMdlNode.aspectsCovered()
         if inherit and isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
-            aspectsCovered.update(self.strctMdlParentNode.aspectsCovered(inherit=inherit))
+            aspectsCovered |= self.strctMdlParentNode.aspectsCovered(inherit=inherit)
         elif (inherit and isinstance(self.strctMdlParentNode, StrctMdlStructuralNode)):
-            aspectsCovered.update(self.strctMdlParentNode.strctMdlParentNode.aspectsCovered(inherit=inherit))
+            aspectsCovered |= self.strctMdlParentNode.strctMdlParentNode.aspectsCovered(inherit=inherit)
         return aspectsCovered
     def hasAspect(self, aspect, inherit=True):
         if (aspect in self.aspects or
@@ -882,7 +882,7 @@ class DefnMdlRuleDefinitionNode(DefnMdlConstraintSet, DefnMdlClosedDefinitionNod
         return self.get("merge")
     @property
     def isMerged(self):
-        return self.merge == "true"
+        return self.merge in ("true","1")
     @property
     def constraintSets(self):
         try:

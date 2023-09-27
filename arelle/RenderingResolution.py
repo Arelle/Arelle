@@ -266,11 +266,11 @@ def checkLabelWidth(view, strctMdlNode, subtreeRels, checkBoundFact=False):
                     view.rowNonAbstractHdrSpanMin[strctMdlNode.depth] = widestWordLen
 
 #def resolveDefinition(view, strctMdlNode, depth, facts, i=None, tblAxisRels=None, processOpenDefinitionNode=True, rollUpNode=None):
-def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=None, axisBrkdnRels=None, rollUpNode=None, axis=None):
+def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=None, axisBrkdnRels=None, rollUpNode=None, axis=None, mergeAspects=None):
     if isinstance(defnMdlNode, (NoneType, DefnMdlBreakdown)):
         strctMdlNode = StrctMdlBreakdown(strctMdlParent, defnMdlNode, axis)
     else:
-        if isinstance(defnMdlNode, (DefnMdlRelationshipNode,DefnMdlAspectNode)):
+        if isinstance(defnMdlNode, (DefnMdlRelationshipNode,DefnMdlAspectNode)) or mergeAspects:
             strctMdlNode = strctMdlParent # all children are added during relationship navigatio below
         else:
             strctMdlNode = StrctMdlStructuralNode(strctMdlParent, defnMdlNode)
@@ -346,21 +346,40 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     childDefnMdlNode = subtreeRel.toModelObject
 
                     if getattr(childDefnMdlNode, "isMerged", False):
-                        if childDefnMdlNode.tagSelector is not None:
-                            strctMdlNode.tagSelector = childDefnMdlNode.tagSelector
+                        '''
                         childSubtreeRels = view.defnSubtreeRelSet.fromModelObject(childDefnMdlNode)
                         for childSubtreeRel in childSubtreeRels:
                             mergedChildDefnMdlNode = childSubtreeRel.toModelObject
-                            childStrctNode = resolveDefinition(view, strctMdlNode, mergedChildDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels)
+                            childStrctNode = resolveDefinition(view, strctMdlNode, mergedChildDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels, parentMerges=True)
+                            for gStrctNode in strctMdlNode.strctMdlChildNodes:
+                                for mergedAspect in childDefnMdlNode.aspectsCovered():
+                                    aspect = childDefnMdlNode.aspectValue(view.rendrCntx, mergedAspect)
+                                    if mergedAspect not in gStrctNode.aspects:
+                                        if isinstance(aspect, list):
+                                            aspect = set(aspect)
+                                        gStrctNode.aspects[mergedAspect] = aspect
+                                if childDefnMdlNode.tagSelector is not None and not gStrctNode.tagSelector:
+                                    gStrctNode.tagSelector = childDefnMdlNode.tagSelector
+                            # print(childStrctNode.aspectsCovered())
+                        '''
+                        childMergeAspects = mergeAspects.copy() if mergeAspects else {}
+                        for gStrctNode in strctMdlNode.strctMdlChildNodes:
                             for mergedAspect in childDefnMdlNode.aspectsCovered():
                                 aspect = childDefnMdlNode.aspectValue(view.rendrCntx, mergedAspect)
-                                if mergedAspect not in childStrctNode.aspects:
-                                    if isinstance(aspect, list):
-                                        aspect = set(aspect)
-                                    childStrctNode.aspects[mergedAspect] = aspect
-                            # print(childStrctNode.aspectsCovered())
+                                if isinstance(aspect, list):
+                                    aspect = set(aspect)
+                                childMergeAspects[mergedAspect] = aspect
+                            if childDefnMdlNode.tagSelector is not None:
+                                childMergeAspects["tagSelector"] = childDefnMdlNode.tagSelector
+                        childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels, mergeAspects=childMergeAspects)
                     elif not isinstance(childDefnMdlNode, DefnMdlTable):
                         childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels)
+                        for aspect in (mergeAspects or ()):
+                            if aspect == "tagSelector":
+                                if not childStrctNode.tagSelector:
+                                    childStrctNode.tagSelector = mergeAspects["tagSelector"]
+                            elif aspect not in childStrctNode.aspects:
+                                childStrctNode.aspects[aspect] = mergeAspects[aspect]
                         descendantDefMdlNodes = view.defnSubtreeRelSet.fromModelObject(childDefnMdlNode)
                         if not isinstance(childDefnMdlNode, DefnMdlAspectNode) and not childDefnMdlNode.isAbstract and descendantDefMdlNodes:
                             # contributes at least one child node
@@ -474,6 +493,13 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                 strctMdlNode.setHasOpenNode()
                 strctMdlNode.isLabeled = False
                 isCartesianProductExpanded = True
+                for aspect in (mergeAspects or ()):
+                    if aspect == "tagSelector":
+                        if not strctMdlNode.tagSelector:
+                            strctMdlNode.tagSelector = mergeAspects["tagSelector"]
+                    elif not defnMdlNode.hasAspect(aspect):
+                        strctMdlNode.aspect[aspect] = mergedAspects[aspect]
+
                 # strctMdlNode.abstract = True # spanning ordinate acts as a subtitle
                 aspectFactsPartitions = strctMdlNode.evaluate(defnMdlNode,
                                                                   defnMdlNode.filteredFactsPartitions,
@@ -484,6 +510,8 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     filteredFactsPartitions = strctMdlNode.evaluate(defnMdlNode,
                                                                   defnMdlNode.filteredFactsPartitions,
                                                                   evalArgs=(facts,))
+                    
+                # apply mergedAspects
 
                 if strctMdlNode._rendrCntx.formulaOptions.traceVariableFilterWinnowing:
                     view.modelXbrl.info("table:trace",

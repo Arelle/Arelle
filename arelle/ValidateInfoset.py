@@ -279,6 +279,11 @@ def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
         # uncomment to debug when layout model corrupted after creation
         # with open("/Users/hermf/temp/temp2.xml", "wb") as fh:
         #     fh.write(etree.tostring(sourceDoc, pretty_print=True))
+        # order comparison document headers in z - y - x order
+        headerElts = comparisonDoc.findall("//{http://xbrl.org/2014/table/model}headers")
+        if len(headerElts) == 3:
+            if headerElts[0].get("axis") == "y" and headerElts[2].get("axis") == "z":
+                headerElts[0].addprevious(headerElts[2])
         sourceIter = sourceDoc.iter()
         comparisonIter = comparisonDoc.iter()
         sourceElt = next(sourceIter, None)

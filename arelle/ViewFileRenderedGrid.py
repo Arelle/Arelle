@@ -147,7 +147,7 @@ class ViewRenderedGrid(ViewFile.View):
                             self.groupElts = {}
                             self.headerElts = {}
                             self.headerCells = defaultdict(list) # order #: (breakdownNode, xml element)
-                            for axis in ("z", "y", "x"):
+                            for axis in ("z", "y", "x", ):
                                 def listBreakdown(strctMdl, breakdownNodes):
                                     if isinstance(strctMdl, StrctMdlBreakdown) and \
                                             all(strctMdl.defnMdlNode is not None and strctMdl.defnMdlNode.id != bdn.defnMdlNode.id for bdn in breakdownNodes):
@@ -708,9 +708,10 @@ class ViewRenderedGrid(ViewFile.View):
                             return strctNode.aspectValue(aspect)
 
                         def aspectsCovered():
+                            ac = strctNode.aspectsCovered(inherit=False)
                             if tag:
-                                return constraint.aspectsCovered()
-                            return strctNode.aspectsCovered()
+                                ac |= constraint.aspectsCovered()
+                            return ac
 
                         for aspect in sorted(aspectsCovered(), key=lambda a: aspectStr(a)):
                             if hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
