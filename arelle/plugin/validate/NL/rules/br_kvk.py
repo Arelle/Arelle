@@ -286,9 +286,7 @@ def rule_br_kvk_4_16(
                 codes='BR-KVK-4.16',
                 msg=_('A corrected financial statement MUST be established. '
                       'If %(resubmissionConceptQname)s is "Ja" (Yes), '
-                      'the following facts must be filled for a corrected financial statement: '
-                      '%(requiredConceptQnames)s'),
+                      '%(conceptQname)s must be filled for a corrected financial statement.'),
                 resubmissionConceptQname=resubmissionConceptQname,
-                requiredConceptQnames=requiredConceptQnames,
+                conceptQname=conceptQname,
             )
-            return
