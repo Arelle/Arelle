@@ -148,8 +148,8 @@ def rule_br_kvk_3_01(
             codes='BR-KVK-3.01',
             msg=_('A measure element with a namespace prefix that refers to the "http://www.xbrl.org/2003/iso4217" '
                   'namespace MUST appear exactly once in the instance document. Units: %(unitIds)s, Measures: %(measures)s'),
-            unitIds=list(currencyUnitIds),
-            measures=[str(m) for m in currencyMeasures]
+            unitIds=sorted(currencyUnitIds),
+            measures=sorted([str(m) for m in currencyMeasures])
         )
 
 
