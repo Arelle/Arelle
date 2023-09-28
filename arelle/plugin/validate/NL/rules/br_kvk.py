@@ -12,15 +12,6 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from . import (
-    DOCUMENTATION_ADOPTION_DATE_QN,
-    DOCUMENTATION_ADOPTION_STATUS_QN,
-    DOCUMENT_RESUBMISSION_UNSURMOUNTABLE_INACCURACIES_QN,
-    FINANCIAL_REPORTING_PERIOD_CURRENT_END_DATE_QN,
-    FINANCIAL_REPORTING_PERIOD_CURRENT_START_DATE_QN,
-    FINANCIAL_REPORTING_PERIOD_PREVIOUS_END_DATE_QN,
-    FINANCIAL_REPORTING_PERIOD_PREVIOUS_START_DATE_QN,
-)
 from ..DisclosureSystems import (
     DISCLOSURE_SYSTEM_NT16,
     DISCLOSURE_SYSTEM_NT17,
@@ -75,14 +66,14 @@ def rule_br_kvk_2_04(
     modelXbrl = val.modelXbrl
 
     currentDuration = (
-        _getReportingPeriodDateValue(modelXbrl, FINANCIAL_REPORTING_PERIOD_CURRENT_START_DATE_QN),
-        _getReportingPeriodDateValue(modelXbrl, FINANCIAL_REPORTING_PERIOD_CURRENT_END_DATE_QN)
+        _getReportingPeriodDateValue(modelXbrl, pluginData.financialReportingPeriodCurrentStartDateQn),
+        _getReportingPeriodDateValue(modelXbrl, pluginData.financialReportingPeriodCurrentEndDateQn)
     )
     if None in currentDuration:
         return
     previousDuration = (
-        _getReportingPeriodDateValue(modelXbrl, FINANCIAL_REPORTING_PERIOD_PREVIOUS_START_DATE_QN),
-        _getReportingPeriodDateValue(modelXbrl, FINANCIAL_REPORTING_PERIOD_PREVIOUS_END_DATE_QN)
+        _getReportingPeriodDateValue(modelXbrl, pluginData.financialReportingPeriodPreviousStartDateQn),
+        _getReportingPeriodDateValue(modelXbrl, pluginData.financialReportingPeriodPreviousEndDateQn)
     )
     if None in previousDuration:
         return
@@ -170,7 +161,7 @@ def rule_br_kvk_4_07(
     BR-KVK-4.07: The jenv-bw2-i:FinancialReportingPeriodCurrentEndDate MUST be before the date of filing.
     """
     modelXbrl = val.modelXbrl
-    currentPeriodEndDate = _getReportingPeriodDateValue(modelXbrl, FINANCIAL_REPORTING_PERIOD_CURRENT_END_DATE_QN)
+    currentPeriodEndDate = _getReportingPeriodDateValue(modelXbrl, pluginData.financialReportingPeriodCurrentEndDateQn)
     if currentPeriodEndDate is None:
         return
     filingDate = date.today()
@@ -201,7 +192,7 @@ def rule_br_kvk_4_10(
     BR-KVK-4.10: The jenv-bw2-i:DocumentAdoptionDate MUST NOT be after the date of filing.
     """
     modelXbrl = val.modelXbrl
-    documentAdoptionDate = _getReportingPeriodDateValue(modelXbrl, DOCUMENTATION_ADOPTION_DATE_QN)
+    documentAdoptionDate = _getReportingPeriodDateValue(modelXbrl, pluginData.documentAdoptionDateQn)
     if documentAdoptionDate is None:
         return
     filingDate = date.today()
@@ -235,10 +226,10 @@ def rule_br_kvk_4_12(
     then jenv-bw2-i:DocumentAdoptionStatus must be "Ja" (Yes).
     """
     modelXbrl = val.modelXbrl
-    resubmissionConceptQname = DOCUMENT_RESUBMISSION_UNSURMOUNTABLE_INACCURACIES_QN
+    resubmissionConceptQname = pluginData.documentResubmissionUnsurmountableInaccuraciesQn
     if not any(f.value == 'Ja' for f in modelXbrl.factsByQname.get(resubmissionConceptQname, [])):
         return
-    documentAdoptionStatusQname = DOCUMENTATION_ADOPTION_STATUS_QN
+    documentAdoptionStatusQname = pluginData.documentAdoptionStatusQn
     if not any(f.value == 'Ja' for f in modelXbrl.factsByQname.get(documentAdoptionStatusQname, [])):
         yield Validation.error(
             codes='BR-KVK-4.12',
@@ -272,12 +263,12 @@ def rule_br_kvk_4_16(
     jenv-bw2-i:DocumentAdoptionDate
     """
     modelXbrl = val.modelXbrl
-    resubmissionConceptQname = DOCUMENT_RESUBMISSION_UNSURMOUNTABLE_INACCURACIES_QN
+    resubmissionConceptQname = pluginData.documentResubmissionUnsurmountableInaccuraciesQn
     if not any(f.value == 'Ja' for f in modelXbrl.factsByQname.get(resubmissionConceptQname, [])):
         return
     requiredConceptQnames = (
-        DOCUMENTATION_ADOPTION_DATE_QN,
-        DOCUMENTATION_ADOPTION_STATUS_QN
+        pluginData.documentAdoptionDateQn,
+        pluginData.documentAdoptionStatusQn
     )
     for conceptQname in requiredConceptQnames:
         if not any(f.value for f in modelXbrl.factsByQname.get(conceptQname, [])):

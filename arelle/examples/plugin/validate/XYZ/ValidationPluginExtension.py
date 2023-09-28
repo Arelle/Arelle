@@ -15,7 +15,7 @@ _: TypeGetText
 
 
 class ValidationPluginExtension(ValidationPlugin):
-    def newPluginData(self) -> PluginValidationDataExtension:
+    def newPluginData(self, validationXbrl) -> PluginValidationDataExtension:
         return PluginValidationDataExtension(self.name)
 
     def modelDocumentPullLoader(

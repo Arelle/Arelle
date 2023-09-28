@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from typing import Any, cast, Iterable
+from typing import Any, Iterable
 
 from arelle import ModelDocument
 from arelle.ValidateXbrl import ValidateXbrl
@@ -11,7 +11,6 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from . import NL_ENTRYPOINTS, NL_ENTRYPOINT_ROOTS
 from ..DisclosureSystems import (
     DISCLOSURE_SYSTEM_NT16,
     DISCLOSURE_SYSTEM_NT17,
@@ -101,8 +100,6 @@ def rule_fr_kvk_2_03(
     full web location of the published entrypoint from the annual reporting taxonomy
     """
     modelXbrl = val.modelXbrl
-    disclosureSystemName = cast(str, val.disclosureSystem.name)
-    validEntryPoints = NL_ENTRYPOINTS.get(disclosureSystemName, set())
     for doc in modelXbrl.urlDocs.values():
         if doc.type == ModelDocument.Type.INSTANCE:
             for refDoc, docRef in doc.referencesDocument.items():
@@ -111,7 +108,7 @@ def rule_fr_kvk_2_03(
                 if docRef.referringModelObject.localName != "schemaRef":
                     continue
                 href = refDoc.uri
-                if href not in validEntryPoints:
+                if href not in pluginData.entrypoints:
                     yield Validation.error(
                         codes='NL.FR-KVK-2.03',
                         msg=_('The attribute "href" of the "link:schemaRef" element MUST refer to the '
@@ -119,7 +116,7 @@ def rule_fr_kvk_2_03(
                               'Provided: %(href)s. See valid entry points at %(entryPointRoot)s'),
                         modelObject=doc,
                         href=href,
-                        entryPointRoot=NL_ENTRYPOINT_ROOTS.get(disclosureSystemName, 'N/A')
+                        entryPointRoot=pluginData.entrypointRoot,
                     )
 
 
