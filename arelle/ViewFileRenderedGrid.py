@@ -1090,7 +1090,8 @@ class ViewRenderedGrid(ViewFile.View):
                     for i, xStrctNode in enumerate(xStrctNodes):
                         xAspectStrctNodes = defaultdict(set)
                         for aspect in aspectModels["dimensional"]:
-                            if xStrctNode.hasAspect(aspect):
+                            if (xStrctNode.hasAspect(aspect) or 
+                                any(xStrctNode.hasAspect(a) for a in aspectRuleAspects.get(aspect,()))):
                                 if aspect == Aspect.DIMENSIONS:
                                     for dim in (xStrctNode.aspectValue(
                                             Aspect.DIMENSIONS) or emptyList):

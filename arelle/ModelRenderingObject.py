@@ -563,6 +563,9 @@ class DefnMdlTable(ModelFormulaResource):
             self._rendrCntx.close()
         super(ModelTable, self).clear()  # delete children
     @property
+    def isMerged(self):
+        return False
+    @property
     def parentTableNode(self):
         return self
     @property
@@ -634,6 +637,9 @@ class DefnMdlBreakdown(ModelFormulaResource):
     def init(self, modelDocument):
         super(DefnMdlBreakdown, self).init(modelDocument)
     @property
+    def isMerged(self):
+        return False
+    @property
     def parentTableNode(self):
         for rel in self.modelXbrl.relationshipSet("Table-rendering").toModelObject(self):
             if rel.fromModelObject is not None:
@@ -679,6 +685,9 @@ class DefnMdlDefinitionNode(ModelFormulaResource):
     aspectModel = "dimensional"
     def init(self, modelDocument):
         super(DefnMdlDefinitionNode, self).init(modelDocument)
+    @property
+    def isMerged(self):
+        return False
     @property
     def parentTableNode(self):
         for rel in self.modelXbrl.relationshipSet("Table-rendering").toModelObject(self):
@@ -822,6 +831,8 @@ class DefnMdlConstraintSet(ModelFormulaRules):
         super(DefnMdlConstraintSet, self).init(modelDocument)
         self.aspectValues = {} # only needed if error blocks compiling this node, replaced by compile()
         self.aspectProgs = {} # ditto
+    def isMerged(self):
+        return False
     def hasAspect(self, structuralNode, aspect, inherit=None):
         return self._hasAspect(structuralNode, aspect, inherit)
     def _hasAspect(self, structuralNode, aspect, inherit=None): # opaque from ModelRuleDefinitionNode

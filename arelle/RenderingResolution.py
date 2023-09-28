@@ -11,7 +11,7 @@ from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelResource, ModelRelationship
 from arelle.ModelValue import QName
-from arelle.ModelFormulaObject import Aspect, aspectStr
+from arelle.ModelFormulaObject import Aspect, aspectStr, aspectModelAspect
 from arelle.ModelRenderingObject import (ResolutionException, DefnMdlTable, DefnMdlBreakdown,
                                          DefnMdlDefinitionNode, DefnMdlClosedDefinitionNode, DefnMdlRuleDefinitionNode,
                                          DefnMdlRelationshipNode, DefnMdlAspectNode, DefnMdlOpenDefinitionNode,
@@ -230,17 +230,17 @@ def sortkey(obj):
         return obj.objectIndex
     return obj
 
-def childContainsOpenNodes(childStructuralNode):
-    if childStructuralNode is None:
+def childContainsOpenNodes(childStrctMdlNode):
+    if childStrctMdlNode is None:
         return False
-    if isinstance(childStructuralNode.defnMdlNode, DefnMdlAspectNode) \
-       and (childStructuralNode.isLabeled \
-            or any([node.isEntryPrototype(default=False) for node in childStructuralNode.strctMdlChildNodes])):
+    if isinstance(childStrctMdlNode.defnMdlNode, DefnMdlAspectNode) \
+       and (childStrctMdlNode.isLabeled \
+            or any([node.isEntryPrototype(default=False) for node in childStrctMdlNode.strctMdlChildNodes])):
         # either the child structural node has a concrete header or it contains a structure
         # that has not yet a concrete value
         return True
     else:
-        for node in childStructuralNode.strctMdlChildNodes:
+        for node in childStrctMdlNode.strctMdlChildNodes:
             if childContainsOpenNodes(node):
                 return True
     return False
@@ -270,7 +270,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
     if isinstance(defnMdlNode, (NoneType, DefnMdlBreakdown)):
         strctMdlNode = StrctMdlBreakdown(strctMdlParent, defnMdlNode, axis)
     else:
-        if isinstance(defnMdlNode, (DefnMdlRelationshipNode,DefnMdlAspectNode)) or mergeAspects:
+        if isinstance(defnMdlNode, (DefnMdlRelationshipNode,DefnMdlAspectNode)) or mergeAspects or defnMdlNode.isMerged:
             strctMdlNode = strctMdlParent # all children are added during relationship navigatio below
         else:
             strctMdlNode = StrctMdlStructuralNode(strctMdlParent, defnMdlNode)
@@ -345,7 +345,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                 for subtreeRel in subtreeRels:
                     childDefnMdlNode = subtreeRel.toModelObject
 
-                    if getattr(childDefnMdlNode, "isMerged", False):
+                    if childDefnMdlNode.isMerged:
                         '''
                         childSubtreeRels = view.defnSubtreeRelSet.fromModelObject(childDefnMdlNode)
                         for childSubtreeRel in childSubtreeRels:
@@ -363,22 +363,24 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                             # print(childStrctNode.aspectsCovered())
                         '''
                         childMergeAspects = mergeAspects.copy() if mergeAspects else {}
-                        for gStrctNode in strctMdlNode.strctMdlChildNodes:
-                            for mergedAspect in childDefnMdlNode.aspectsCovered():
-                                aspect = childDefnMdlNode.aspectValue(view.rendrCntx, mergedAspect)
-                                if isinstance(aspect, list):
-                                    aspect = set(aspect)
-                                childMergeAspects[mergedAspect] = aspect
-                            if childDefnMdlNode.tagSelector is not None:
-                                childMergeAspects["tagSelector"] = childDefnMdlNode.tagSelector
-                        childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels, mergeAspects=childMergeAspects)
+                        for mergedAspect in childDefnMdlNode.aspectsCovered():
+                            aspect = childDefnMdlNode.aspectValue(view.rendrCntx, mergedAspect)
+                            if isinstance(aspect, list):
+                                aspect = set(aspect)
+                            childMergeAspects[mergedAspect] = aspect
+                        if childDefnMdlNode.tagSelector is not None:
+                            childMergeAspects["tagSelector"] = childDefnMdlNode.tagSelector
+                        childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth, facts, iBrkdn, axisBrkdnRels, mergeAspects=childMergeAspects)
+                    elif defnMdlNode.isMerged and isinstance(childDefnMdlNode, (DefnMdlAspectNode,DefnMdlRelationshipNode)):
+                        # parent is a merged node and child is an aspect node
+                        childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth, facts, iBrkdn, axisBrkdnRels, mergeAspects=mergeAspects)
                     elif not isinstance(childDefnMdlNode, DefnMdlTable):
                         childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels)
                         for aspect in (mergeAspects or ()):
                             if aspect == "tagSelector":
                                 if not childStrctNode.tagSelector:
                                     childStrctNode.tagSelector = mergeAspects["tagSelector"]
-                            elif aspect not in childStrctNode.aspects:
+                            elif aspect not in childStrctNode.aspectsCovered(inherit=False):
                                 childStrctNode.aspects[aspect] = mergeAspects[aspect]
                         descendantDefMdlNodes = view.defnSubtreeRelSet.fromModelObject(childDefnMdlNode)
                         if not isinstance(childDefnMdlNode, DefnMdlAspectNode) and not childDefnMdlNode.isAbstract and descendantDefMdlNodes:
@@ -488,17 +490,18 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     view.modelXbrl.error("xbrlte:relationshipNodeTooManyGenerations ",
                         _("Relationship rule node %(xlinkLabel)s formulaAxis %(axis)s implies a single generation tree walk but generations %(generations)s is greater than one."),
                         modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, axis=defnMdlNode._formulaAxis, generations=defnMdlNode._generations)
+                for childStrctNode in strctMdlParent.strctMdlChildNodes:
+                    for aspect in (mergeAspects or ()):
+                        if aspect == "tagSelector":
+                            if not strctMdlParent.tagSelector:
+                                childStrctNode.tagSelector = mergeAspects["tagSelector"]
+                        elif not defnMdlNode.hasAspect(childStrctNode, aspect):
+                            childStrctNode.aspects[aspect] = mergeAspects[aspect]
 
             elif isinstance(defnMdlNode, DefnMdlAspectNode):
                 strctMdlNode.setHasOpenNode()
                 strctMdlNode.isLabeled = False
                 isCartesianProductExpanded = True
-                for aspect in (mergeAspects or ()):
-                    if aspect == "tagSelector":
-                        if not strctMdlNode.tagSelector:
-                            strctMdlNode.tagSelector = mergeAspects["tagSelector"]
-                    elif not defnMdlNode.hasAspect(aspect):
-                        strctMdlNode.aspect[aspect] = mergedAspects[aspect]
 
                 # strctMdlNode.abstract = True # spanning ordinate acts as a subtitle
                 aspectFactsPartitions = strctMdlNode.evaluate(defnMdlNode,
@@ -532,7 +535,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     for i in range(len(filteredFactsPartitions)):
                         filteredFactsPartitions[i] = set(filteredFactsPartitions[i])
                 for aspectPartition in aspectFactsPartitions:
-                    childStructuralNode = StrctMdlStructuralNode(strctMdlNode, defnMdlNode, contextItemFact=aspectPartition[0])
+                    childStrctMdlNode = StrctMdlStructuralNode(strctMdlNode, defnMdlNode, contextItemFact=aspectPartition[0])
                     aspectPartition = set(aspectPartition)
 
                     # find matching filterFactsPartition
@@ -547,24 +550,31 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
 
                     # store the partition for later reuse when spreading facts in body cells if no aspect filters involved
                     if not defnMdlNode.filterRelationships:
-                        childStructuralNode.factsPartition = factsPartition
+                        childStrctMdlNode.factsPartition = factsPartition
 
-                    childStructuralNode.indent = 0
+                    childStrctMdlNode.indent = 0
                     #TBD this is now computed, not an attribute
-                    #childStructuralNode.depth -= 1  # for label width; parent is merged/invisible
-                    checkLabelWidth(view, childStructuralNode, subtreeRels, checkBoundFact=True)
-                    #resolveDefinition(view, childStructuralNode, breakdownNode, defnMdlNode, depth, axis, factsPartition, processOpenDefinitionNode=False) #recurse
+                    #childStrctMdlNode.depth -= 1  # for label width; parent is merged/invisible
+                    checkLabelWidth(view, childStrctMdlNode, subtreeRels, checkBoundFact=True)
+                    #resolveDefinition(view, childStrctMdlNode, breakdownNode, defnMdlNode, depth, axis, factsPartition, processOpenDefinitionNode=False) #recurse
+                    
+                    for aspect in (mergeAspects or ()):
+                        if aspect == "tagSelector":
+                            if not childStrctMdlNode.tagSelector:
+                                childStrctMdlNode.tagSelector = mergeAspects["tagSelector"]
+                        elif not defnMdlNode.hasAspect(childStrctMdlNode, aspect):
+                            childStrctMdlNode.aspects[aspect] = mergeAspects[aspect]
 
                     if subtreeRels:
                         for subtreeRel in subtreeRels:
                             child2DefinitionNode = subtreeRel.toModelObject
-                            #child2StructuralNode = StrctMdlStructuralNode(childStructuralNode, child2DefinitionNode) # others are nested structuralNode
-                            #childStructuralNode.strctMdlChildNodes.append(child2StructuralNode)
+                            #child2StructuralNode = StrctMdlStructuralNode(childStrctMdlNode, child2DefinitionNode) # others are nested structuralNode
+                            #childStrctMdlNode.strctMdlChildNodes.append(child2StructuralNode)
                             #resolveDefinition(view, child2StructuralNode, child2DefinitionNode, depth+ordDepth, factsPartition, iBrkdn, axisBrkdnRels) #recurse
-                            resolveDefinition(view, childStructuralNode, child2DefinitionNode, depth+ordDepth, factsPartition, iBrkdn, axisBrkdnRels) #recurse
+                            resolveDefinition(view, childStrctMdlNode, child2DefinitionNode, depth+ordDepth, factsPartition, iBrkdn, axisBrkdnRels) #recurse
                 # sort by header (which is likely to be typed dim value, for example)
-                childList.sort(key=lambda childStructuralNode:
-                               childStructuralNode.header(lang=view.lang,
+                childList.sort(key=lambda childStrctMdlNode:
+                               childStrctMdlNode.header(lang=view.lang,
                                                           returnGenLabel=False,
                                                           returnMsgFormatString=False,
                                                           layoutMdlSortOrder=True)
@@ -628,16 +638,16 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
 
     return strctMdlNode
 
-def cartesianProductExpander(childStructuralNode, view, depth, axis, facts, axisBrkdnRels, iBrkdn):
+def cartesianProductExpander(childStrctMdlNode, view, depth, axis, facts, axisBrkdnRels, iBrkdn):
     if iBrkdn is not None: # recurse table relationships for cartesian product
         for j, axisBrkdnRel in enumerate(axisBrkdnRels[iBrkdn+1:]):
             brkdnDefnMdlNode = axisBrkdnRel.toModelObject
             if isinstance(brkdnDefnMdlNode, DefnMdlBreakdown):
-                subOrdTblCntx = childStructuralNode
+                subOrdTblCntx = childStrctMdlNode
                 # predefined axes need facts sub-filtered
-                if isinstance(childStructuralNode.defnMdlNode, DefnMdlClosedDefinitionNode):
-                    matchingFacts = childStructuralNode.evaluate(childStructuralNode.defnMdlNode,
-                                                        childStructuralNode.defnMdlNode.filteredFacts,
+                if isinstance(childStrctMdlNode.defnMdlNode, DefnMdlClosedDefinitionNode):
+                    matchingFacts = childStrctMdlNode.evaluate(childStrctMdlNode.defnMdlNode,
+                                                        childStrctMdlNode.defnMdlNode.filteredFacts,
                                                         evalArgs=(facts,))
                 else:
                     matchingFacts = facts
@@ -664,44 +674,44 @@ def addRelationship(relDefinitionNode, rel, strctMdlNode, rootOrSelfStructuralNo
             fromConceptQname = rel.fromModelObject.qname
         # is there an ordinate for this root object?
         if fromConceptQname in rootOrSelfStructuralNodes:
-            childStructuralNode = rootOrSelfStructuralNodes[fromConceptQname]
+            childStrctMdlNode = rootOrSelfStructuralNodes[fromConceptQname]
         else:
-            childStructuralNode = StrctMdlStructuralNode(strctMdlNode, relDefinitionNode)
-            rootOrSelfStructuralNodes[fromConceptQname] = childStructuralNode
+            childStrctMdlNode = StrctMdlStructuralNode(strctMdlNode, relDefinitionNode)
+            rootOrSelfStructuralNodes[fromConceptQname] = childStrctMdlNode
             if variableQname:
-                childStructuralNode.variables[variableQname] = []
+                childStrctMdlNode.variables[variableQname] = []
             if conceptQname:
-                childStructuralNode.variables[conceptQname] = fromConceptQname
-            childStructuralNode.aspects[coveredAspect] = fromConceptQname
+                childStrctMdlNode.variables[conceptQname] = fromConceptQname
+            childStrctMdlNode.aspects[coveredAspect] = fromConceptQname
             concept = relDefinitionNode.modelXbrl.qnameConcepts.get(fromConceptQname)
             if concept is not None and concept.isAbstract:
-                childStructuralNode.abstract = True
+                childStrctMdlNode.abstract = True
         if isinstance(rel, QName):
-            return childStructuralNode
-        relChildStructuralNode = StrctMdlStructuralNode(childStructuralNode, relDefinitionNode)
+            return childStrctMdlNode
+        relChildStrctMdlNode = StrctMdlStructuralNode(childStrctMdlNode, relDefinitionNode)
     else:
-        relChildStructuralNode = StrctMdlStructuralNode(strctMdlNode, relDefinitionNode)
+        relChildStrctMdlNode = StrctMdlStructuralNode(strctMdlNode, relDefinitionNode)
     if isinstance(rel, ModelRelationship):
         if isinstance(relDefinitionNode, DefnMdlConceptRelationshipNode):
             preferredLabel = rel.preferredLabel
             if preferredLabel == XbrlConst.periodStartLabel:
-                relChildStructuralNode.tagSelector = "table.periodStart"
+                relChildStrctMdlNode.tagSelector = "table.periodStart"
             elif preferredLabel == XbrlConst.periodEndLabel:
-                relChildStructuralNode.tagSelector = "table.periodEnd"
+                relChildStrctMdlNode.tagSelector = "table.periodEnd"
         elif isinstance(relDefinitionNode, DefnMdlDimensionRelationshipNode):
-            relChildStructuralNode.abstract = not rel.isUsable
+            relChildStrctMdlNode.abstract = not rel.isUsable
         toConceptQname = rel.toModelObject.qname
     else:
         toConceptQname = rel # QName
     if variableQname:
-        relChildStructuralNode.variables[variableQname] = rel
+        relChildStrctMdlNode.variables[variableQname] = rel
     if conceptQname:
-        relChildStructuralNode.variables[conceptQname] = toConceptQname
-    relChildStructuralNode.aspects[coveredAspect] = toConceptQname
+        relChildStrctMdlNode.variables[conceptQname] = toConceptQname
+    relChildStrctMdlNode.aspects[coveredAspect] = toConceptQname
     concept = relDefinitionNode.modelXbrl.qnameConcepts.get(toConceptQname)
     if isinstance(relDefinitionNode, DefnMdlConceptRelationshipNode) and concept is not None and concept.isAbstract:
-        relChildStructuralNode.abstract = True
-    return relChildStructuralNode
+        relChildStrctMdlNode.abstract = True
+    return relChildStrctMdlNode
 
 def addRelationships(relDefinitionNode, rels, strctMdlNode, rootOrSelfStructuralNodes=None):
     childStrctMdlNode = None # holder for nested relationships
