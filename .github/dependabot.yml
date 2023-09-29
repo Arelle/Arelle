@@ -17,6 +17,9 @@ updates:
         patterns:
           - "*"
     ignore:
+      - dependency-name: "astroid"
+        versions:
+          - ">=3"
       - dependency-name: "RDFLib"
         versions:
           - ">=6"
