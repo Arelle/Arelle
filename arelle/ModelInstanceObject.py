@@ -33,7 +33,7 @@
 """
 from __future__ import annotations
 from collections import defaultdict
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from lxml import etree
 from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
 from arelle.Aspect import Aspect
@@ -46,6 +46,9 @@ from arelle.ModelObject import ModelObject
 from decimal import Decimal, InvalidOperation
 from hashlib import md5
 from arelle.HashUtil import md5hash, Md5Sum
+
+if TYPE_CHECKING:
+    from datetime import date
 
 Type = None
 utrEntries = None
@@ -942,6 +945,17 @@ class ModelContext(ModelObject):
             xmlValidate(self.modelXbrl, elt)
 
     @property
+    def endDate(self) -> date:
+        """
+        :return: endDate or instant attribute as date, *not* adjusted by a day for midnight values
+        """
+        try:
+            return self._endDate
+        except AttributeError:
+            self._endDate = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, ("endDate", "instant")), subtractOneDay=True).date()
+            return self._endDate
+
+    @property
     def endDatetime(self):
         """(datetime) -- endDate or instant attribute, with adjustment to end-of-day midnight as needed"""
         try:
@@ -957,6 +971,17 @@ class ModelContext(ModelObject):
         if elt is not None:
             elt.text = XmlUtil.dateunionValue(value, subtractOneDay=True)
             xmlValidate(self.modelXbrl, elt)
+
+    @property
+    def instantDate(self) -> date:
+        """
+        :return: instant attribute as date, *not* adjusted by a day for midnight values
+        """
+        try:
+            return self._instantDate
+        except AttributeError:
+            self._instantDate = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, "instant"), subtractOneDay=True).date()
+            return self._instantDate
 
     @property
     def instantDatetime(self):

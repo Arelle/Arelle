@@ -44,7 +44,6 @@
         Explanation
     </kvk-i:DocumentResubmissionDueToUnsurmountableInaccuraciesExplanation>
 
-
     <xbrli:unit id="usd">
         <xbrli:measure>iso4217:USD</xbrli:measure>
     </xbrli:unit>

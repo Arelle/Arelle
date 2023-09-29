@@ -55,7 +55,7 @@ class ValidationPlugin:
             ValidationHook, dict[ValidationFunction, set[str]]
         ] = {}
 
-    def newPluginData(self) -> PluginValidationData:
+    def newPluginData(self, validateXbrl: ValidateXbrl) -> PluginValidationData:
         """
         Returns a dataclass intended to be overriden by plugins to facilitate caching and passing data between rule functions.
         The default implementation doesn't provide any fields other than the plugin name.
@@ -189,7 +189,7 @@ class ValidationPlugin:
         if self.disclosureSystemFromPluginSelected(validateXbrl):
             pluginData = validateXbrl.getPluginData(self.name)
             if pluginData is None:
-                pluginData = self.newPluginData()
+                pluginData = self.newPluginData(validateXbrl)
                 validateXbrl.setPluginData(pluginData)
             for rule in self._getValidations(validateXbrl.disclosureSystem, pluginHook):
                 validations = rule(pluginData, validateXbrl, *args, **kwargs)
