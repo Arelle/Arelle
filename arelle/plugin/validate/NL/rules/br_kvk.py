@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from datetime import date, timedelta
-from typing import Any, Iterable, TYPE_CHECKING
+from typing import Any, cast, Iterable, TYPE_CHECKING
 
 from arelle import XmlUtil
 from arelle.ValidateXbrl import ValidateXbrl
@@ -28,7 +28,9 @@ _: TypeGetText
 def _getReportingPeriodDateValue(modelXbrl: ModelXbrl, qname: QName) -> date | None:
     facts = modelXbrl.factsByQname.get(qname)
     if facts and len(facts) == 1:
-        return XmlUtil.datetimeValue(next(iter(facts))).date()
+        datetimeValue = XmlUtil.datetimeValue(next(iter(facts)))
+        if datetimeValue:
+            return datetimeValue.date()
     return None
 
 
@@ -80,8 +82,8 @@ def rule_br_kvk_2_04(
     validDurations = (currentDuration, previousDuration)
     validInstants = (
         currentDuration[1],
-        (currentDuration[0] - timedelta(1)),
-        (previousDuration[0] - timedelta(1))
+        (cast(date, currentDuration[0]) - timedelta(1)),
+        (cast(date, previousDuration[0]) - timedelta(1))
     )
 
     for contextId, context in modelXbrl.contexts.items():
