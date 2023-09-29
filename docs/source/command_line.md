@@ -51,7 +51,7 @@
 | \--utr                                                                                          | Select validation with respect to Unit Type Registry.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | \--utrUrl=`UTRURL` *or* <br/>\--utrurl=`UTRURL`                                                 | Used with \--utr flag.  Override disclosure systems Unit Type Registry.<br/>`UTRURL` is the location (URL or file path).                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | \--infoset                                                                                      | Select validation with respect testcase infosets.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-|
+
 ### Output Arguments
 
 These arguments can override the system language settings for the output options below.
@@ -154,7 +154,7 @@ For additional detail see the plug-in documentation.  A summary of standard plug
 
 | inlineDocumentSet | Specify an inline XBRL document set by JSON parameter: –file ‘[{“ixDocumentSet”:[{“file”:file1},{“file”:file2}…]}]’                                                                                                                                   |
 |-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| /--save-instance  | Provides a file name into which to save an XBRL instance document derived from a loaded manifest (Japan FSA) of a document set of inline documents, or loaded single inline document.  <br/>(Currently supports one target instance document only.)   |
+| \--save-instance  | Provides a file name into which to save an XBRL instance document derived from a loaded manifest (Japan FSA) of a document set of inline documents, or loaded single inline document.  <br/>(Currently supports one target instance document only.)   |
 
 | loadFromExcel  | Load from Excel file                                                                                         |
 |----------------|--------------------------------------------------------------------------------------------------------------|
@@ -168,16 +168,17 @@ For additional detail see the plug-in documentation.  A summary of standard plug
 |-----------------|---------------------------------------------------------------------------------------|
 | \--package-DTS. | Specifies a file into which to save a Taxonomy Package representing the loaded DTS.   |
 
-| saveHtmlEBAtables       | EBA Table Sets. |
-|-------------------------|-----------------|
-| \--save-EBA-tablesets.  | Specifies an index file (usually index.html) to represent an html page that holds a table of contents to the EBA tables generated for all loaded EBA Table Linkbase tables in the DTS.                |
+| saveHtmlEBAtables       | EBA Table Sets.                                                                                                                                                                        |
+|-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| \--save-EBA-tablesets.  | Specifies an index file (usually index.html) to represent an html page that holds a table of contents to the EBA tables generated for all loaded EBA Table Linkbase tables in the DTS. |
 
 | saveLoadableExcel      | Saves an Excel workbook                                                                                    |
 |------------------------|------------------------------------------------------------------------------------------------------------|
-| --save-loadable-excel  | Saves an Excel workbook representing the DTS (which can be subsequently loaded by loadFromExcel.py plugin. |
+| \--save-loadable-excel | Saves an Excel workbook representing the DTS (which can be subsequently loaded by loadFromExcel.py plugin. |
 
-| saveSKOS       | \--save-skos<br/> saves a SKOS (OMG standard OWL file) representing a semantic view of a DTS based on presentation linkbase entries (for US-GAAP, IFRS, and EDInet style taxonomies).  |
-|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| saveSKOS      | Saves a SKOS (OMG standard OWL file).                                                                                                                               |
+|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| \--save-skos  | Saves a SKOS (OMG standard OWL file) representing a semantic view of a DTS based on presentation linkbase entries (for US-GAAP, IFRS, and EDInet style taxonomies). |
  
 
 | xbrlDB                                                              | Saves XBRL data to a database.                                                                                                                                                                                                                                                                                          |
