@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from typing import Any, Iterable
+from typing import Any, cast, Iterable
 
 from arelle import ModelDocument
 from arelle.ValidateXbrl import ValidateXbrl
@@ -11,6 +11,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
+from . import NL_ENTRYPOINTS, NL_ENTRYPOINT_ROOTS
 from ..DisclosureSystems import (
     DISCLOSURE_SYSTEM_NT16,
     DISCLOSURE_SYSTEM_NT17,
@@ -21,6 +22,7 @@ _: TypeGetText
 
 
 ACCEPTED_LANGUAGES = ('de', 'en', 'fr', 'nl')
+ACCEPTED_DECIMAL_VALUES = ('INF', '-9', '-6', '-3', '0', '2')
 
 
 @validation(
@@ -51,7 +53,6 @@ def rule_fr_kvk_1_01(
                 )
 
 
-
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
@@ -80,3 +81,104 @@ def rule_fr_kvk_2_01(
                     acceptedLangs=", ".join(ACCEPTED_LANGUAGES),
                     lang=lang,
                 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+    ],
+)
+def rule_fr_kvk_2_03(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-KVK-2.03: The attribute 'href' of the 'link:schemaRef' element MUST refer to the
+    full web location of the published entrypoint from the annual reporting taxonomy
+    """
+    modelXbrl = val.modelXbrl
+    disclosureSystemName = cast(str, val.disclosureSystem.name)
+    validEntryPoints = NL_ENTRYPOINTS.get(disclosureSystemName, set())
+    for doc in modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            for refDoc, docRef in doc.referencesDocument.items():
+                if "href" not in docRef.referenceTypes:
+                    continue
+                if docRef.referringModelObject.localName != "schemaRef":
+                    continue
+                href = refDoc.uri
+                if href not in validEntryPoints:
+                    yield Validation.error(
+                        codes='NL.FR-KVK-2.03',
+                        msg=_('The attribute "href" of the "link:schemaRef" element MUST refer to the '
+                              'full web location of the published entrypoint from the annual reporting taxonomy. '
+                              'Provided: %(href)s. See valid entry points at %(entryPointRoot)s'),
+                        modelObject=doc,
+                        href=href,
+                        entryPointRoot=NL_ENTRYPOINT_ROOTS.get(disclosureSystemName, 'N/A')
+                    )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+    ],
+)
+def rule_fr_kvk_5_01(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-KVK-5.01: The attribute 'decimals' to monetary values MUST be filled with allowed values.
+    """
+    modelXbrl = val.modelXbrl
+    for fact in modelXbrl.facts:
+        if not fact.concept.isMonetary:
+            continue
+        decimals = fact.decimals
+        if decimals not in ACCEPTED_DECIMAL_VALUES:
+            yield Validation.error(
+                codes='NL.FR-KVK-5.01',
+                msg=_('The attribute "decimals" on monetary values MUST be filled with allowed values: %(acceptedValues)s. Provided: %(decimals)s'),
+                modelObject=fact,
+                acceptedValues=ACCEPTED_DECIMAL_VALUES,
+                decimals=decimals,
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+    ],
+)
+def rule_fr_kvk_5_02(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-KVK-5.02: The attribute 'decimals' for non-monetary numeric facts MUST be filled with 'INF'.
+    """
+    modelXbrl = val.modelXbrl
+    for fact in modelXbrl.facts:
+        if not fact.concept.isNumeric or fact.concept.isMonetary:
+            continue
+        decimals = fact.decimals
+        if decimals != 'INF':
+            yield Validation.error(
+                codes='NL.FR-KVK-5.02',
+                msg=_('The attribute "decimals" for non-monetary numeric facts MUST be filled with "INF". Provided: %(decimals)s'),
+                modelObject=fact,
+                decimals=decimals,
+            )

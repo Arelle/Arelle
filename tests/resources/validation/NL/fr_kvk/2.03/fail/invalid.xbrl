@@ -14,10 +14,9 @@
   xmlns:rj-dm="http://www.nltaxonomie.nl/nt16/rj/20211208/dictionary/rj-domains"
   xmlns:rj-i="http://www.nltaxonomie.nl/nt16/rj/20211208/dictionary/rj-data"
   xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
-  xmlns:xbrli="http://www.xbrl.org/2003/instance"
   xmlns:xlink="http://www.w3.org/1999/xlink">
     <link:schemaRef
-      xlink:href="http://www.nltaxonomie.nl/nt16/kvk/20211208/entrypoints/kvk-rpt-jaarverantwoording-2021-nlgaap-klein-publicatiestukken.xsd"
+      xlink:href="entrypoint.xsd"
       xlink:type="simple"/>
     <context id="ctx-1">
         <entity>
@@ -33,18 +32,4 @@
     <nl-cd:ChamberOfCommerceRegistrationNumber contextRef="ctx-1" xml:lang="en">12345678</nl-cd:ChamberOfCommerceRegistrationNumber>
     <kvk-i:BusinessNames contextRef="ctx-1" xml:lang="en">Testing Entity Name</kvk-i:BusinessNames>
     <kvk-i:LegalSizeCriteriaClassificationSmall contextRef="ctx-1" xml:lang="en">Klein</kvk-i:LegalSizeCriteriaClassificationSmall>
-
-    <xbrli:unit id="usd">
-        <xbrli:measure>iso4217:USD</xbrli:measure>
-    </xbrli:unit>
-    <context id="ctx-2">
-        <entity>
-            <identifier scheme="http://www.kvk.nl/kvk-id">12345678</identifier>
-        </entity>
-        <period>
-            <instant>2021-12-31</instant>
-        </period>
-    </context>
-    <jenv-bw2-i:RightsGrantedExercisePrice contextRef="ctx-2" xml:lang="en" decimals="2" unitRef="usd">100.00</jenv-bw2-i:RightsGrantedExercisePrice>
-    <jenv-bw2-i:AverageNumberEmployees contextRef="ctx-2" xml:lang="en" decimals="INF" unitRef="usd">100</jenv-bw2-i:AverageNumberEmployees>
 </xbrl>
