@@ -1,0 +1,27 @@
+name: Build Documentation
+
+on:
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  build-documentation:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4.1.0
+      - name: Install Python
+        uses: actions/setup-python@v4.7.0
+        with:
+          cache: 'pip'
+          check-latest: true
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements-docs.txt
+      - name: Build documentation
+        run: make -C docs html
