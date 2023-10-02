@@ -273,7 +273,8 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                 if fact.id:
                     attrs["id"] = fact.id
                 if fact.isNumeric:
-                    attrs["unitRef"] = fact.unitID
+                    if fact.unitID:
+                        attrs["unitRef"] = fact.unitID
                     if fact.get("decimals"):
                         attrs["decimals"] = fact.get("decimals")
                     if fact.get("precision"):
