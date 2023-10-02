@@ -19,7 +19,8 @@ from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.PythonUtil import OrderedSet
 from arelle.ModelRenderingObject import (StrctMdlBreakdown, StrctMdlStructuralNode,
                                          DefnMdlClosedDefinitionNode, DefnMdlRuleDefinitionNode, DefnMdlAspectNode,
-                                         OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE)
+                                         OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE,
+                                         aspectStrctNodes)
 from arelle.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import DEFAULT
@@ -190,13 +191,7 @@ class ViewRenderedGrid(ViewFile.View):
                                     for _brkdnNode, strctNode, headerCell in layoutMdlBrkdnCells:
                                         for j in range(int(headerCell.get("span","1"))):
                                             if not headerCell.get("rollup"):
-                                                for aspect in aspectModels["dimensional"]:
-                                                    if strctNode.hasAspect(aspect, inherit=True): #implies inheriting from other z axes
-                                                        if aspect == Aspect.DIMENSIONS:
-                                                            for dim in (strctNode.aspectValue(Aspect.DIMENSIONS, inherit=True) or emptyList):
-                                                                zDiscrimAspectNodes[i][dim] = {strctNode}
-                                                        else:
-                                                            zDiscrimAspectNodes[i][aspect] = {strctNode}
+                                                zDiscrimAspectNodes[i] = aspectStrctNodes(strctNode)
                                             i += 1
 
                             zColumns = self.headerCells
@@ -692,7 +687,7 @@ class ViewRenderedGrid(ViewFile.View):
                         elif "end" in tag:
                             orderKeys[tag] = 3
                         else:
-                            orderKeys[tag] = 4
+                            orderKeys[tag] = 0
 
                     for tag in sorted(strctNode.constraintTags(), key=lambda s: orderKeys[s]):
                         aspectProcessed = set()
@@ -1076,38 +1071,12 @@ class ViewRenderedGrid(ViewFile.View):
                         cellsParentElt = etree.SubElement(self.cellsYElt, self.tableModelQName("cells"),
                                                        attrib={"axis": "x"})
                     isEntryPrototype = yStrctNode.isEntryPrototype(default=False) # row to enter open aspects
-                    yAspectStrctNodes = defaultdict(set)
-                    for aspect in aspectModels["dimensional"]:
-                        if yStrctNode.hasAspect(aspect):
-                            if aspect == Aspect.DIMENSIONS:
-                                for dim in (yStrctNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
-                                    yAspectStrctNodes[dim].add(yStrctNode)
-                            else:
-                                yAspectStrctNodes[aspect].add(yStrctNode)
+                    yAspectStrctNodes = aspectStrctNodes(yStrctNode)
                     yTagSelectors = yStrctNode.tagSelectors
                     # data for columns of rows
                     ignoreDimValidity = self.ignoreDimValidity.get()
                     for i, xStrctNode in enumerate(xStrctNodes):
-                        xAspectStrctNodes = defaultdict(set)
-                        for aspect in aspectModels["dimensional"]:
-                            if (xStrctNode.hasAspect(aspect) or 
-                                any(xStrctNode.hasAspect(a) for a in aspectRuleAspects.get(aspect,()))):
-                                if aspect == Aspect.DIMENSIONS:
-                                    for dim in (xStrctNode.aspectValue(
-                                            Aspect.DIMENSIONS) or emptyList):
-                                        xAspectStrctNodes[dim].add(xStrctNode)
-                                else:
-                                    realAspects = [aspect]
-                                    if aspect in aspectRuleAspects:
-                                        realAspects = []
-                                        for asp in aspectRuleAspects[aspect]:
-                                            if xStrctNode.hasAspect(asp):
-                                                realAspects.append(asp)
-                                        if not realAspects: # use top level aspect, e.g. PERIOD instead of PERIOD_START...
-                                            realAspects.append(aspect)
-
-                                    for asp in realAspects:
-                                        xAspectStrctNodes[asp].add(xStrctNode)
+                        xAspectStrctNodes = aspectStrctNodes(xStrctNode)
                         cellTagSelectors = yTagSelectors | xStrctNode.tagSelectors
                         cellAspectValues = {}
                         matchableAspects = set()

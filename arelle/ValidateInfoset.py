@@ -209,10 +209,11 @@ def compareRenderingInfosetElts(modelXbrl, sourceElt, comparisonElt):
     comparisonEltTag = comparisonElt.tag if comparisonElt is not None else '(no more elements)'
     if sourceEltTag != comparisonEltTag:
         modelXbrl.error("arelle:tableModelElementMismatch",
-            _("Table layout model expecting %(elt1)s found %(elt2)s source path %(elt1path)s comparison line %(elt2line)s path %(elt2path)s"),
+            _("Table layout model expecting %(elt1)s found %(elt2)s source path %(elt1path)s comparison line %(elt2line)s path %(elt2path)s, srcElt %(elt1xml)s cmpElt %(elt2xml)s"),
             modelObject=modelXbrl, elt1=sourceEltTag, elt2=comparisonEltTag,
             elt1path=sourceElt.getroottree().getpath(sourceElt), elt2path=comparisonElt.getroottree().getpath(comparisonElt),
-            elt2line=comparisonElt.sourceline)
+            elt2line=comparisonElt.sourceline,
+            elt1xml=etree.tostring(sourceElt),elt2xml=etree.tostring(comparisonElt))
     elif sourceEltTag == "{http://xbrl.org/2014/table/model}cell":
         ceSrcIter = sourceElt.iter("{http://xbrl.org/2014/table/model}fact",
                                    "{http://xbrl.org/2014/table/model}label")
@@ -239,7 +240,7 @@ def compareRenderingInfosetElts(modelXbrl, sourceElt, comparisonElt):
             srcConstraints["period"] = stripTime(srcConstraints["period"])
             cmpConstraints["period"] = stripTime(cmpConstraints["period"])
         if srcConstraints != cmpConstraints:
-            modelXbrl.error("arelle:tableModelCnstraintsMismatch",
+            modelXbrl.error("arelle:tableModelConstraintsMismatch",
                 _("Table layout model constraints %(src)s expecting %(cmp)s source path %(elt1path)s comparison line %(elt2line)s path %(elt2path)s"),
                 modelObject=modelXbrl, src=",".join(str(s) for s in sorted(srcConstraints.items())), cmp=",".join(str(s) for s in sorted(cmpConstraints.items())),
                 elt1path=sourceElt.getroottree().getpath(sourceElt), elt2path=comparisonElt.getroottree().getpath(comparisonElt),

@@ -11,7 +11,7 @@ from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import qname, QName
 from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import (Trace, ModelFormulaResource, ModelFormulaRules, ModelConceptName,
-                                       ModelParameter, Aspect, aspectStr, aspectRuleAspects, aspectModelAspect)
+                                       ModelParameter, Aspect, aspectStr, aspectModels, aspectRuleAspects, aspectModelAspect)
 from arelle.ModelInstanceObject import ModelFact
 from arelle.FormulaEvaluator import (filterFacts as formulaEvaluatorFilterFacts,
                                      aspectsMatch, factsPartitions, VariableBinding)
@@ -26,7 +26,8 @@ ROLLUP_IMPLIES_DEFAULT_MEMBER = 2
 ROLLUP_FOR_CONCEPT_RELATIONSHIP_NODE = 3
 ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE = 4
 ROLLUP_FOR_CLOSED_DEFINITION_NODE = 5
-ROLLUP_FOR_OPEN_DEFINITION_NODE = 5
+ROLLUP_FOR_OPEN_DEFINITION_NODE = 6
+ROLLUP_FOR_DEFINITION_NODE = 7
 
 class ResolutionException(Exception):
     def __init__(self, code, message, **kwargs):
@@ -67,6 +68,28 @@ def parentChildOrder(node):
             if _parentChildOrder:
                 return _parentChildOrder
     return None
+def aspectStrctNodes(strctNode):
+    if strctNode is None:
+        return EMPTY_DICT
+    _aspectStrctNodes = defaultdict(set)
+    for aspect in aspectModels["dimensional"]:
+        if (strctNode.hasAspect(aspect) or 
+            any(strctNode.hasAspect(a) for a in aspectRuleAspects.get(aspect,()))):
+            if aspect == Aspect.DIMENSIONS:
+                for dim in (strctNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
+                    _aspectStrctNodes[dim].add(strctNode)
+            else:
+                realAspects = [aspect]
+                if aspect in aspectRuleAspects:
+                    realAspects = []
+                    for asp in aspectRuleAspects[aspect]:
+                        if strctNode.hasAspect(asp):
+                            realAspects.append(asp)
+                    if not realAspects: # use top level aspect, e.g. PERIOD instead of PERIOD_START...
+                        realAspects.append(aspect)
+                for asp in realAspects:
+                    _aspectStrctNodes[asp].add(strctNode)
+    return _aspectStrctNodes
 # Structural model
 class StrctMdlNode:
     def __init__(self, strctMdlParentNode, defnMdlNode=None):
@@ -108,7 +131,7 @@ class StrctMdlNode:
             return self._tagSelectors
         except AttributeError:
             if self.strctMdlParentNode is not None:
-                self._tagSelectors = self.strctMdlParentNode.tagSelectors
+                self._tagSelectors = self.strctMdlParentNode.tagSelectors.copy()
             else:
                 self._tagSelectors = set()
             if not self.rollup and isinstance(self.defnMdlNode, DefnMdlConceptRelationshipNode):
@@ -120,6 +143,9 @@ class StrctMdlNode:
             if self.tagSelector:
                 self._tagSelectors.add(self.tagSelector)
             return self._tagSelectors
+    @tagSelectors.setter
+    def tagSelectors(self, newValue):
+        self._tagSelectors = newValue
     @property
     def leafNodeCount(self):
         childLeafCount = 0
@@ -634,10 +660,13 @@ class DefnMdlTable(ModelFormulaResource):
     def definitionLabelsView(self):
         return defnMdlLabelsView(self)
 class DefnMdlBreakdown(ModelFormulaResource):
+    strctMdlRollupType = ROLLUP_FOR_DEFINITION_NODE
     def init(self, modelDocument):
         super(DefnMdlBreakdown, self).init(modelDocument)
     @property
     def isMerged(self):
+        return False
+    def hasAspect(self, *args):
         return False
     @property
     def parentTableNode(self):
@@ -661,6 +690,9 @@ class DefnMdlBreakdown(ModelFormulaResource):
         return False
     def aspectsCovered(self):
         return EMPTY_SET
+    @property
+    def constraintSets(self):
+        return EMPTY_DICT
     @property
     def isAbstract(self):
         return False

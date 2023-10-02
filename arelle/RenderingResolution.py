@@ -20,12 +20,15 @@ from arelle.ModelRenderingObject import (ResolutionException, DefnMdlTable, Defn
                                          OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_IMPLIES_DEFAULT_MEMBER,
                                          ROLLUP_FOR_CONCEPT_RELATIONSHIP_NODE, ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE,
                                          ROLLUP_FOR_CLOSED_DEFINITION_NODE, ROLLUP_FOR_OPEN_DEFINITION_NODE,
-                                         UNREPORTED_ASPECT_SORT_VALUE)
+                                         ROLLUP_FOR_DEFINITION_NODE,
+                                         UNREPORTED_ASPECT_SORT_VALUE,
+                                         aspectStrctNodes)
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.PythonUtil import flattenSequence
 from arelle.XPathContext import XPathException, FunctionArgType
 NoneType = type(None)
 EMPTY_LIST = []
+EMPTY_DICT = {}
 
 TRACE_RESOLUTION = False
 TRACE_TABLE_STRUCTURE = True
@@ -103,7 +106,7 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
     if facts:
         facts = defnMdlTable.filteredFacts(view.rendrCntx, view.modelXbrl.factsInInstance) # apply table filters
     # do z's first to set variables needed by x and y axes expressions
-    for axis in ("z", "x", "y"):
+    for axis in ("z", "y", "x"):
         axisBrkdnRels = [r for r in tblBrkdnRels if r.axis == axis]
         for tblBrkdnRel in axisBrkdnRels:
             defnMdlBreakdown = tblBrkdnRel.toModelObject
@@ -128,26 +131,43 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
             elif axis == "y":
                 view.dataRows += strctMdlBreakdown.leafNodeCount
                 strctMdlBreakdown.setHasOpenNode()
-    # height balance each breakdown
-    '''
-    for strctMdlBrkdn in strctMdlTable.strctMdlChildNodes:
-        def checkDepth(strctMdlNode, depth):
-            m = depth
-            for childStrctMdlNode in strctMdlNode.strctMdlChildNodes:
-                m = checkDepth(childStrctMdlNode, depth + 1)
-            return m
-        breakdownDepth = checkDepth(strctMdlBrkdn, 0)
-        # add roll up nodes to make axis depth uniform
-        def heightBalance(strctMdlNode, depth):
-            noChildren = True
-            if depth < breakdownDepth and not strctMdlNode.strctMdlChildNodes:
-                # add extra strct mdl child to be a rollup
-                balancingChild = StrctMdlStructuralNode(strctMdlNode, strMdlNode.defnMdlNode)
-                balancingChild.rollup = True
-            for childStrctMdlNode in strctMdlNode.strctMdlChildNodes:
-                heightBalance(childStrctMdlNode, depth + 1)
-        heightBalance(strctMdlBrkdn, 0)
-    '''
+    # check for clashing and unresolved tagSelectors
+    strctMdlAxisNodes = defaultdict(list)
+    def compileAlignedStrctNodes(strctNode):
+        childNodes = strctNode.strctMdlChildNodes
+        if not childNodes: # this is a leaf node
+            if not isinstance(strctNode, StrctMdlBreakdown) and not strctNode.defnMdlNode.isAbstract:
+                strctMdlAxisNodes[strctNode.axis].append(strctNode)
+        else:
+            for childStrctNode in childNodes:
+                compileAlignedStrctNodes(childStrctNode)
+    for axis in ("z", "y", "x"):
+        compileAlignedStrctNodes(strctMdlTable.strctMdlFirstAxisBreakdown(axis))
+
+    for zStrctMdlNode in strctMdlAxisNodes.get("z", [None]):
+        zAspectStrctNodes = aspectStrctNodes(zStrctMdlNode)
+        for yStrctMdlNode in strctMdlAxisNodes.get("y", [None]):
+            yAspectStrctNodes = aspectStrctNodes(yStrctMdlNode)
+            for xStrctMdlNode in strctMdlAxisNodes.get("x", [None]):
+                xAspectStrctNodes = aspectStrctNodes(xStrctMdlNode)
+                stNodes = (zStrctMdlNode, yStrctMdlNode, xStrctMdlNode)
+                cellTagSelectors = set(ts for sn in stNodes if sn for ts in sn.tagSelectors if ts)
+                if {"table.periodStart","table.periodEnd"} & cellTagSelectors:
+                    cellTagSelectors &= {"table.periodStart","table.periodEnd"}
+                foundTagSelectors = set()
+                for aspectStrctNode in set(flattenSequence((zAspectStrctNodes.values(), yAspectStrctNodes.values(), xAspectStrctNodes.values()))):
+                    strctNodeTags = aspectStrctNode.defnMdlNode.constraintSets.keys()
+                    foundTagSelectors |= strctNodeTags
+                    if len(cellTagSelectors & strctNodeTags) > 1:
+                        view.modelXbrl.error("xbrlte:tagSelectorClash",
+                            _("Cell has multiple tag selectors for same aspect %(clashingSelectors)s"),
+                            modelObject=stNodes, clashingSelectors=", ".join(cellTagSelectors & strctNodeTags))
+                missingConstraintSets = cellTagSelectors - foundTagSelectors
+                if missingConstraintSets:
+                    view.modelXbrl.error("xbrlte:noMatchingConstraintSet",
+                        _("Cell has missing constraint set for tag selectors %(missingConstraintSets)s"),
+                        modelObject=stNodes, missingConstraintSets=", ".join(missingConstraintSets))
+
     # uncomment below for debugging Definition and Structural Models
     def jsonStrctMdlEncoder(obj, indent="\n"):
         if isinstance(obj, StrctMdlNode):
@@ -168,7 +188,8 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
                                    ROLLUP_FOR_CONCEPT_RELATIONSHIP_NODE:"rollup for concept relationship nesting",
                                    ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE:"rollup for concept relationship nesting",
                                    ROLLUP_FOR_CLOSED_DEFINITION_NODE:"rollup for closed definition node",
-                                   ROLLUP_FOR_OPEN_DEFINITION_NODE:"rollup for open definition node"}[obj.rollup]
+                                   ROLLUP_FOR_OPEN_DEFINITION_NODE:"rollup for open definition node",
+                                   ROLLUP_FOR_DEFINITION_NODE:"rollup for definition node"}[obj.rollup]
                 o["structuralDepth"] = obj.structuralDepth
                 _aspectsCovered = obj.aspectsCovered()
                 if _aspectsCovered:
@@ -369,7 +390,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                                 aspect = set(aspect)
                             childMergeAspects[mergedAspect] = aspect
                         if childDefnMdlNode.tagSelector is not None:
-                            childMergeAspects["tagSelector"] = childDefnMdlNode.tagSelector
+                            childMergeAspects.setdefault("tagSelectors",set()).add(childDefnMdlNode.tagSelector)
                         childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth, facts, iBrkdn, axisBrkdnRels, mergeAspects=childMergeAspects)
                     elif defnMdlNode.isMerged and isinstance(childDefnMdlNode, (DefnMdlAspectNode,DefnMdlRelationshipNode)):
                         # parent is a merged node and child is an aspect node
@@ -377,9 +398,8 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     elif not isinstance(childDefnMdlNode, DefnMdlTable):
                         childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth+ordDepth, facts, iBrkdn, axisBrkdnRels)
                         for aspect in (mergeAspects or ()):
-                            if aspect == "tagSelector":
-                                if not childStrctNode.tagSelector:
-                                    childStrctNode.tagSelector = mergeAspects["tagSelector"]
+                            if aspect == "tagSelectors":
+                                childStrctNode.tagSelectors |= mergeAspects["tagSelectors"]
                             elif aspect not in childStrctNode.aspectsCovered(inherit=False):
                                 childStrctNode.aspects[aspect] = mergeAspects[aspect]
                         descendantDefMdlNodes = view.defnSubtreeRelSet.fromModelObject(childDefnMdlNode)
@@ -492,9 +512,8 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                         modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, axis=defnMdlNode._formulaAxis, generations=defnMdlNode._generations)
                 for childStrctNode in strctMdlParent.strctMdlChildNodes:
                     for aspect in (mergeAspects or ()):
-                        if aspect == "tagSelector":
-                            if not strctMdlParent.tagSelector:
-                                childStrctNode.tagSelector = mergeAspects["tagSelector"]
+                        if aspect == "tagSelectors":
+                            childStrctNode.tagSelectors |= mergeAspects["tagSelectors"]
                         elif not defnMdlNode.hasAspect(childStrctNode, aspect):
                             childStrctNode.aspects[aspect] = mergeAspects[aspect]
 
@@ -559,9 +578,8 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     #resolveDefinition(view, childStrctMdlNode, breakdownNode, defnMdlNode, depth, axis, factsPartition, processOpenDefinitionNode=False) #recurse
                     
                     for aspect in (mergeAspects or ()):
-                        if aspect == "tagSelector":
-                            if not childStrctMdlNode.tagSelector:
-                                childStrctMdlNode.tagSelector = mergeAspects["tagSelector"]
+                        if aspect == "tagSelectors":
+                            childStrctMdlNode.tagSelectors |= mergeAspects["tagSelectors"]
                         elif not defnMdlNode.hasAspect(childStrctMdlNode, aspect):
                             childStrctMdlNode.aspects[aspect] = mergeAspects[aspect]
 
@@ -587,12 +605,12 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     for aspect in _aspectsCovered:
                         if not constraintSet.aspectValueDependsOnVars(aspect):
                             if aspect == Aspect.CONCEPT:
-                                conceptQname = defnMdlNode.aspectValue(view.rendrCntx, Aspect.CONCEPT)
+                                conceptQname = constraintSet.aspectValue(view.rendrCntx, Aspect.CONCEPT)
                                 concept = view.modelXbrl.qnameConcepts.get(conceptQname)
                                 if concept is None or not concept.isItem or concept.isDimensionItem or concept.isHypercubeItem:
                                     view.modelXbrl.error("xbrlte:invalidQNameAspectValue",
                                         _("Rule node %(xlinkLabel)s specifies concept %(concept)s does not refer to an existing primary item concept."),
-                                        modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, concept=conceptQname)
+                                        modelObject=constraintSet, xlinkLabel=defnMdlNode.xlinkLabel, concept=conceptQname)
                             elif isinstance(aspect, QName):
                                 dimConcept = view.modelXbrl.qnameConcepts.get(aspect)
                                 dimVal = defnMdlNode.aspectValue(view.rendrCntx, aspect)

@@ -158,6 +158,9 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblAxisDisp
                     definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel, tag=tag)
             else:
                 tagConstraintSets[tag] = ruleSet
+            if aspect in ruleSet.aspectsCovered():
+                hasCoveredAspect = True
+                aspectsCovered.add(aspect)
         for tag, constraintSet in definitionNode.constraintSets.items():
             if otherConstraintSet is None:
                 otherConstraintSet = constraintSet
@@ -221,6 +224,10 @@ def checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblBrkdnRel, parentAspe
         if isinstance(definitionNode, DefnMdlDefinitionNode):
             for aspect in definitionNode.aspectsCovered():
                 aspectsCovered.add(aspect)
+            if isinstance(definitionNode, DefnMdlRuleDefinitionNode):
+                for ruleSet in XmlUtil.children(definitionNode, definitionNode.namespaceURI, "ruleSet"):
+                    for aspect in ruleSet.aspectsCovered():
+                        aspectsCovered.add(aspect)
             definitionNodeHasChild = False
             for axisSubtreeRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD)).fromModelObject(definitionNode):
                 checkBreakdownLeafNodeAspects(modelXbrl, modelTable, axisSubtreeRel, aspectsCovered, breakdownAspects)
