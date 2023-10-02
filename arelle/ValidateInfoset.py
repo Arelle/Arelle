@@ -229,16 +229,18 @@ def compareRenderingInfosetElts(modelXbrl, sourceElt, comparisonElt):
         cmpConstraints = {}
         for srcE, cstrts in ((sourceElt, srcConstraints),(comparisonElt, cmpConstraints)):
             for e in srcE.iter("{http://xbrl.org/2014/table/model}constraint"):
+                cstrtTag = e.get("tag","")
                 cstrtAspect = e.findtext("{http://xbrl.org/2014/table/model}aspect")
                 if cstrtAspect:
                     if e.find("{http://xbrl.org/2014/table/model}value") is None:
-                        cstrts[cstrtAspect] = ()
+                        cstrts[cstrtAspect,cstrtTag] = ()
                     else:
-                        cstrts[cstrtAspect] = tuple((f.text or "").strip() for f in e.find("{http://xbrl.org/2014/table/model}value") for f in e.iter())
-        if "period" in srcConstraints and "period" in cmpConstraints:
-            # remove end dates time parts if zero (because not consistently reported in conf suite expected outputs)
-            srcConstraints["period"] = stripTime(srcConstraints["period"])
-            cmpConstraints["period"] = stripTime(cmpConstraints["period"])
+                        cstrts[cstrtAspect,cstrtTag] = tuple((f.text or "").strip() for f in e.find("{http://xbrl.org/2014/table/model}value") for f in e.iter())
+        for c in (srcConstraints, cmpConstraints):
+            for k, v in c.items():
+                if isinstance(k, tuple) and k[0] == "period":
+                    # remove end dates time parts if zero (because not consistently reported in conf suite expected outputs)
+                    c[k] = stripTime(c[k])
         if srcConstraints != cmpConstraints:
             modelXbrl.error("arelle:tableModelConstraintsMismatch",
                 _("Table layout model constraints %(src)s expecting %(cmp)s source path %(elt1path)s comparison line %(elt2line)s path %(elt2path)s"),

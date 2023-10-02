@@ -29,6 +29,8 @@ ROLLUP_FOR_CLOSED_DEFINITION_NODE = 5
 ROLLUP_FOR_OPEN_DEFINITION_NODE = 6
 ROLLUP_FOR_DEFINITION_NODE = 7
 
+TABLE_PERIOD_SELECTORS = {"table.periodStart", "table.periodEnd"}
+
 class ResolutionException(Exception):
     def __init__(self, code, message, **kwargs):
         self.kwargs = kwargs
@@ -140,7 +142,7 @@ class StrctMdlNode:
             else:
                 self._tagSelectors = set()
             if not self.rollup and isinstance(self.defnMdlNode, DefnMdlConceptRelationshipNode):
-                self._tagSelectors -= {"table.periodStart", "table.periodEnd"} # these can't inherit
+                self._tagSelectors -= TABLE_PERIOD_SELECTORS # these can't inherit
             else:
                 _defnTagSelector = getattr(self.defnMdlNode, "tagSelector", None)
                 if _defnTagSelector:
@@ -415,6 +417,11 @@ class StrctMdlStructuralNode(StrctMdlNode):
         defnMdlNode = self.defnMdlNode
         if defnMdlNode is None:
             return None # root node
+        # may be both a period override and other in the selectors
+        if tagSelectors:
+            ts = set(tagSelectors)
+            if TABLE_PERIOD_SELECTORS & ts and len(ts & defnMdlNode.constraintSets.keys()) > 1:
+                return defnMdlNode.constraintSets[(TABLE_PERIOD_SELECTORS & ts & defnMdlNode.constraintSets.keys()).pop()]
         if tagSelectors:
             for tag in tagSelectors:
                 if tag in defnMdlNode.constraintSets:
