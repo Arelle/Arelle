@@ -4,6 +4,7 @@
 :::{toctree}
 :hidden:
 install
+command_line
 faq
 plugins/plugins
 contributing
