@@ -73,22 +73,27 @@ def aspectStrctNodes(strctNode):
         return EMPTY_DICT
     _aspectStrctNodes = defaultdict(set)
     for aspect in aspectModels["dimensional"]:
-        if (strctNode.hasAspect(aspect) or 
-            any(strctNode.hasAspect(a) for a in aspectRuleAspects.get(aspect,()))):
+        strctNodeDefiningAspect = strctNode.hasAspect(aspect)
+        if not strctNodeDefiningAspect:
+            for a in aspectRuleAspects.get(aspect,()):
+                strctNodeDefiningAspect = strctNode.hasAspect(a)
+                if strctNodeDefiningAspect:
+                    break
+        if strctNodeDefiningAspect:
             if aspect == Aspect.DIMENSIONS:
                 for dim in (strctNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
-                    _aspectStrctNodes[dim].add(strctNode)
+                    _aspectStrctNodes[dim].add(strctNodeDefiningAspect)
             else:
-                realAspects = [aspect]
                 if aspect in aspectRuleAspects:
-                    realAspects = []
+                    _strctNodeDefiningAspect = None
                     for asp in aspectRuleAspects[aspect]:
-                        if strctNode.hasAspect(asp):
-                            realAspects.append(asp)
-                    if not realAspects: # use top level aspect, e.g. PERIOD instead of PERIOD_START...
-                        realAspects.append(aspect)
-                for asp in realAspects:
-                    _aspectStrctNodes[asp].add(strctNode)
+                        _strctNodeDefiningAspect = strctNode.hasAspect(asp)
+                        if _strctNodeDefiningAspect:
+                            _aspectStrctNodes[asp].add(_strctNodeDefiningAspect)
+                    if not _strctNodeDefiningAspect: # use top level aspect, e.g. PERIOD instead of PERIOD_START...
+                        _aspectStrctNodes[aspect].add(strctNodeDefiningAspect)
+                else:
+                    _aspectStrctNodes[aspect].add(strctNodeDefiningAspect)
     return _aspectStrctNodes
 # Structural model
 class StrctMdlNode:
@@ -116,7 +121,7 @@ class StrctMdlNode:
     def aspectsCovered(self, inherit=False):
         return EMPTY_SET
     def hasAspect(self, aspect, inherit=True):
-        return False
+        return None # if aspect found would return its defining structural node
     @property
     def parentChildOrder(self):
         if self.defnMdlNode is not None:
@@ -434,18 +439,17 @@ class StrctMdlStructuralNode(StrctMdlNode):
     def hasAspect(self, aspect, inherit=True):
         if (aspect in self.aspects or
             (self.defnMdlNode is not None and self.defnMdlNode.hasAspect(self, aspect))):
-            return True
+            return self
         if inherit:
             # block override of aspect rule aspects, e.g. don't inherit period duration aspects if this str node defines an instant aspect
             if any(aspect in _aspectRuleAspects and self.hasAspect(_aspect, inherit=False)
                    for _aspect, _aspectRuleAspects in aspectRuleAspects.items()):
-                return False
-            if ((isinstance(self.strctMdlParentNode, StrctMdlStructuralNode) and
-                 self.strctMdlParentNode.hasAspect(aspect, inherit)) or
-                (isinstance(self.strctMdlParentNode, StrctMdlBreakdown) and
-                 self.strctMdlParentNode.strctMdlParentNode.hasAspect(aspect, inherit))):
-                return True
-        return False
+                return None
+            if isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
+                return self.strctMdlParentNode.hasAspect(aspect, inherit)
+            if isinstance(self.strctMdlParentNode, StrctMdlBreakdown):
+                return self.strctMdlParentNode.strctMdlParentNode.hasAspect(aspect, inherit)
+        return None
     def dimRAV(self, aspect, value): # dimensional rollup aspect value (None for a rollup node)
         if isinstance(value, QName) and self.rollup == ROLLUP_IMPLIES_DEFAULT_MEMBER and aspect in self.defnMdlNode.modelXbrl.qnameDimensionDefaults:
             return self.defnMdlNode.modelXbrl.qnameDimensionDefaults[aspect]
