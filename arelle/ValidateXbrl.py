@@ -79,7 +79,6 @@ class ValidateXbrl:
     ixdsRoleRefURIs: dict[Any, Any]
     ixdsArcroleRefURIs: dict[Any, Any]
     unconsolidated: bool
-    validateESEFplugin: bool
     priorFormulaOptionsRunIDs: str | None
     primaryItems: set[Any]
     remoteResourceLocElements: set[ModelObject]

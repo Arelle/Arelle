@@ -88,9 +88,6 @@ def etreeIterWithDepth(node: ModelObject | _Element, depth: int=0) -> Generator[
 
 
 def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
-    if not (val.validateESEFplugin):
-        return
-
     _xhtmlNs = "{{{}}}".format(xhtml)
     _xhtmlNsLen = len(_xhtmlNs)
     modelXbrl = val.modelXbrl

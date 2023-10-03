@@ -65,6 +65,8 @@ from .Util import loadAuthorityValidations
 
 _: TypeGetText
 
+ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY = "ESEFplugin"
+
 ixErrorPattern = re.compile(r"ix11[.]|xmlSchema[:]|(?!xbrl.5.2.5.2|xbrl.5.2.6.2)xbrl[.]|xbrld[ti]e[:]|utre[:]")
 
 
@@ -86,6 +88,10 @@ def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -
         pass
 
 
+def esefDisclosureSystemSelected(modelXbrl: ModelXbrl) -> bool:
+    return getattr(modelXbrl.modelManager.disclosureSystem, ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY, False)
+
+
 def is2021DisclosureSystem(modelXbrl: ModelXbrl) -> bool:
     return any("2021" in name for name in modelXbrl.modelManager.disclosureSystem.names)
 
@@ -97,7 +103,7 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> tuple[tuple[str, str], ...]:
-        return (("ESEF", "ESEFplugin"),)
+        return (("ESEF", ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY),)
 
     @staticmethod
     def disclosureSystemConfigURL(
@@ -117,27 +123,28 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> ModelDocumentClass | LoadingException | None:
-        if getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
-            if isEntry:
-                if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
-                    if not is2021DisclosureSystem(modelXbrl) and re.match(r'.*[.](7z|rar|tar|jar)', normalizedUri):
-                        modelXbrl.error("ESEF.Arelle.InvalidSubmissionFormat",
-                                        _("Unrecognized submission format."),
-                                        modelObject=modelXbrl)
-                        return LoadingException("Invalid submission format")
-                else:
-                    if modelXbrl.fileSource.isArchive:
-                        if (not isinstance(modelXbrl.fileSource.selection, list) and
-                            modelXbrl.fileSource.selection is not None and
-                            modelXbrl.fileSource.selection.endswith(".xml") and
-                            ModelDocument.Type.identify(modelXbrl.fileSource, cast(str, modelXbrl.fileSource.url)) in (
-                                ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
-                            return None  # allow zipped test case to load normally
-                        if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
-                            modelXbrl.error("ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage",
-                                _("Single reporting package with issuer's XBRL extension taxonomy files and Inline XBRL instance document must be compliant with the latest recommended version of the Taxonomy Packages specification (1.0)"),
-                                modelObject=modelXbrl)
-                            return LoadingException("Invalid taxonomy package")
+        if not esefDisclosureSystemSelected(modelXbrl):
+            return None
+        if isEntry:
+            if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
+                if not is2021DisclosureSystem(modelXbrl) and re.match(r'.*[.](7z|rar|tar|jar)', normalizedUri):
+                    modelXbrl.error("ESEF.Arelle.InvalidSubmissionFormat",
+                                    _("Unrecognized submission format."),
+                                    modelObject=modelXbrl)
+                    return LoadingException("Invalid submission format")
+            else:
+                if modelXbrl.fileSource.isArchive:
+                    if (not isinstance(modelXbrl.fileSource.selection, list) and
+                        modelXbrl.fileSource.selection is not None and
+                        modelXbrl.fileSource.selection.endswith(".xml") and
+                        ModelDocument.Type.identify(modelXbrl.fileSource, cast(str, modelXbrl.fileSource.url)) in (
+                            ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
+                        return None  # allow zipped test case to load normally
+                    if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
+                        modelXbrl.error("ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage",
+                            _("Single reporting package with issuer's XBRL extension taxonomy files and Inline XBRL instance document must be compliant with the latest recommended version of the Taxonomy Packages specification (1.0)"),
+                            modelObject=modelXbrl)
+                        return LoadingException("Invalid taxonomy package")
         return None
 
     @staticmethod
@@ -146,8 +153,9 @@ class ESEFPlugin(PluginHooks):
             *args: Any,
             **kwargs: Any,
     ) -> None:
-        if (getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False) and
-            (modelXbrl.modelDocument is None or modelXbrl.modelDocument.type not in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRY, ModelDocument.Type.RSSFEED))):
+        if not esefDisclosureSystemSelected(modelXbrl):
+            return None
+        if modelXbrl.modelDocument is None or modelXbrl.modelDocument.type not in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRY, ModelDocument.Type.RSSFEED):
             if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
 
                 if modelXbrl.modelDocument is None:
@@ -205,9 +213,8 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        val.validateESEFplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "ESEFplugin", False)
-        if not (val.validateESEFplugin):
-            return
+        if not esefDisclosureSystemSelected(val.modelXbrl) and val.validateDisclosureSystem:
+            return None
         modelXbrl = val.modelXbrl
         val.extensionImportedUrls = set()
         val.unconsolidated = any("unconsolidated" in n for n in val.disclosureSystem.names)
@@ -271,7 +278,11 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        return validateXbrlFinally2021(val, *args, **kwargs)
+        if not esefDisclosureSystemSelected(val.modelXbrl) and val.validateDisclosureSystem:
+            return None
+        if is2021DisclosureSystem(val.modelXbrl):
+            return validateXbrlFinally2021(val, *args, **kwargs)
+        return validateXbrlFinallyCurrent(val, *args, **kwargs)
 
     @staticmethod
     def validateFinally(
@@ -279,12 +290,10 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        if not (val.validateESEFplugin):
-            return
-
+        if not esefDisclosureSystemSelected(val.modelXbrl) and val.validateDisclosureSystem:
+            return None
         if val.unconsolidated:
-            return
-
+            return None
         modelXbrl = val.modelXbrl
         modelDocument = getattr(modelXbrl, "modelDocument")
         if (modelDocument is None or not modelXbrl.facts) and "ESEF.RTS.Art.6.a.noInlineXbrlTags" not in modelXbrl.errors:
@@ -319,9 +328,8 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        if not getattr(val, 'validateESEFplugin', False):
-            return
-
+        if not esefDisclosureSystemSelected(val.modelXbrl) and val.validateDisclosureSystem:
+            return None
         modelXbrl = val.modelXbrl
         if hasattr(val, 'priorFormulaOptionsRunIDs'):  # reset environment formula run IDs if they were saved
             modelXbrl.modelManager.formulaOptions.runIDs = val.priorFormulaOptionsRunIDs
@@ -347,9 +355,10 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        if getattr(val.modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
-            rptPkgIxdsOptions["lookOutsideReportsDirectory"] = True
-            rptPkgIxdsOptions["combineIntoSingleIxds"] = True
+        if not esefDisclosureSystemSelected(val.modelXbrl):
+            return None
+        rptPkgIxdsOptions["lookOutsideReportsDirectory"] = True
+        rptPkgIxdsOptions["combineIntoSingleIxds"] = True
 
 
 __pluginInfo__ = {
