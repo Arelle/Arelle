@@ -147,7 +147,12 @@ class RuntimeOptions:
         )
         return f"{self.__class__.__name__}({r})"
 
-    def __post_init__(self, pluginOptions: Optional[dict[str, RuntimeOptionValue]]) -> None:
+     def ensure_value(self, attr, value):
+        if not hasattr(self, attr) or getattr(self, attr) is None:
+            setattr(self, attr, value)
+        return getattr(self, attr)
+    
+     def __post_init__(self, pluginOptions: Optional[dict[str, RuntimeOptionValue]]) -> None:
         """
         This runs through the options object, verifies that the arguments are expected and sets the options appropriately
         :param pluginOptions: Options that are introduced via plugins
