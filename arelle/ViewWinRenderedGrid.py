@@ -66,12 +66,6 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     if not view.table.isInitialized: # unable to load or initialize tktable
         return None
 
-    # HF debugging, remove this
-    if "saveLayoutModel" in modelXbrl.modelManager.formulaOptions.parameterValues:
-        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl,
-              modelXbrl.modelManager.formulaOptions.parameterValues["saveLayoutModel"][1],
-              lang=lang)
-
     view.blockMenuEvents = 1
 
     menu = view.contextMenu()
