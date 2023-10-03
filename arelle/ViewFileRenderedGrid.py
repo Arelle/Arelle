@@ -125,7 +125,7 @@ class ViewRenderedGrid(ViewFile.View):
                         zCellTable = etree.SubElement(zRowCell, "{http://www.w3.org/1999/xhtml}table",
                                                       attrib={"border":"1", "cellspacing":"0", "cellpadding":"4", "style":"font-size:8pt;"})
                         self.rowElts = [etree.SubElement(zCellTable, "{http://www.w3.org/1999/xhtml}tr")
-                                        for r in range(self.dataFirstRow + self.dataRows)]
+                                        for r in range(self.dataFirstRow + self.dataRows + 2)] # TBD remove 2
                         etree.SubElement(self.rowElts[0], "{http://www.w3.org/1999/xhtml}th",
                                          attrib={"class":"tableHdr",
                                                  "style":"max-width:100em;",
@@ -717,7 +717,8 @@ class ViewRenderedGrid(ViewFile.View):
             isNonAbstract = not isAbstract
             isLabeled = yStrctNode.isLabeled
             nestRow, nextRow = self.yAxis(leftCol + isLabeled, row, yStrctNode, yStrctNodes,  # nested items before totals
-                                               childrenFirst, False)
+                                               True, # childrenFirst, 
+                                               False)
 
             topRow = row
             #if childrenFirst and isNonAbstract:
@@ -822,8 +823,8 @@ class ViewRenderedGrid(ViewFile.View):
                 nestedBottomRow = nestRow + (isNonAbstract and not childrenFirst)
             if row > nestedBottomRow:
                 nestedBottomRow = row
-            if not childrenFirst:
-                dummy, row = self.yAxis(leftCol + isLabeled, row, yStrctNode, yStrctNodes, renderNow, False) # render on this pass
+            #if not childrenFirst:
+            #    dummy, row = self.yAxis(leftCol + isLabeled, row, yStrctNode, yStrctNodes, renderNow, False) # render on this pass
         return (nestedBottomRow, row)
 
 
