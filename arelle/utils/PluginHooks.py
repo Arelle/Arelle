@@ -634,3 +634,29 @@ class PluginHooks(ABC):
         :return: None
         """
         raise NotImplementedError
+
+    @staticmethod
+    def modelTestcaseVariationReportPackageIxdsOptions(
+        val: ValidateXbrl,
+        rptPkgIxdsOptions: dict[str, bool],
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Plugin hook: `ModelTestcaseVariation.ReportPackageIxdsOptions`
+
+        Hook for other plugins to specify IXDS testcase variation options which will be passed to the inlineXbrlDocumentSet plugin.
+
+        Example:
+        ```python
+        rptPkgIxdsOptions["lookOutsideReportsDirectory"] = True
+        rptPkgIxdsOptions["combineIntoSingleIxds"] = True
+        ```
+
+        :param val: The [ValidateXBRL](#arelle.ValidateXbrl.ValidateXbrl) instance.
+        :param rptPkgIxdsOptions: the dict to set IXDS options on.
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: None
+        """
+        raise NotImplementedError
