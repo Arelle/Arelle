@@ -71,7 +71,6 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
         ViewFileRenderedGrid.viewRenderedGrid(modelXbrl,
               modelXbrl.modelManager.formulaOptions.parameterValues["saveLayoutModel"][1],
               lang=lang)
-    return None # HF DEbugging block table.
 
     view.blockMenuEvents = 1
 
@@ -100,9 +99,13 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view.viewFrame.bind("<1>", view.onClick, '+') # does not currently work (since tktable changes)
     view.viewFrame.bind("<Configure>", view.onConfigure, '+') # frame resized, redo column header wrap length ratios
     view.blockMenuEvents = 0
-    if "saveLayoutModel" in modelXbrl.modelManager.formulaOptions.parameterValues:
+    if "saveTableLayoutModel" in modelXbrl.modelManager.formulaOptions.parameterValues:
         ViewFileRenderedGrid.viewRenderedGrid(modelXbrl,
-              modelXbrl.modelManager.formulaOptions.parameterValues["saveLayoutModel"][1],
+              modelXbrl.modelManager.formulaOptions.parameterValues["saveTableLayoutModel"][1],
+              lang=lang, sourceView=view)
+    if "saveTableHtml" in modelXbrl.modelManager.formulaOptions.parameterValues:
+        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl,
+              modelXbrl.modelManager.formulaOptions.parameterValues["saveTableHtml"][1],
               lang=lang, sourceView=view)
     return view
 

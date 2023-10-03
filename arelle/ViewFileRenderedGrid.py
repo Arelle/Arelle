@@ -105,7 +105,7 @@ class ViewRenderedGrid(ViewFile.View):
             self.zOrdinateChoices = {}
 
             strctMdlTable = resolveTableStructure(self, tblELR)
-            zDiscrimAspectNodes = ()
+            zDiscrimAspectNodes = [{}]
             for discriminator in range(1, 65535):
                 # each table z production
                 defnMdlTable = strctMdlTable.defnMdlNode
@@ -176,7 +176,7 @@ class ViewRenderedGrid(ViewFile.View):
                                 else:
                                     tableElt.append(etree.Comment("No breakdown group for \"{0}\" axis".format(axis)))
                             zStrctNodes = []
-                            self.axis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
+                            self.layoutMdlAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
                                        zTopStrctNode, zStrctNodes, True, True, self.colHdrNonStdRoles)
                             # lay out choices for each discriminator
                             zCounts = [1]
@@ -237,18 +237,17 @@ class ViewRenderedGrid(ViewFile.View):
                     else:
                         self.zAxis(1, zTopStrctNode, zAspectStrctNodes, False)
                     if self.type == XML and (xTopStrctNode and xTopStrctNode.strctMdlChildNodes):
-                        self.axis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
+                        self.layoutMdlAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
                                    xTopStrctNode, xStrctNodes, True, True, self.colHdrNonStdRoles)
                     elif self.type == HTML and (xTopStrctNode and xTopStrctNode.strctMdlChildNodes):
                         self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
                                    xTopStrctNode, xStrctNodes, True, True)
                     if self.type == HTML: # table/tr goes by row
-                        self.yAxisByRow(0, self.dataFirstRow, yTopStrctNode, True, True)
+                        self.yAxis(0, self.dataFirstRow, yTopStrctNode, yStrctNodes, True, True)
                     elif self.type == XML and discriminator == 1: # infoset goes by col of row header
                         if yTopStrctNode and yTopStrctNode.strctMdlChildNodes: # no row header element if no rows
-                            self.axis(self.dataFirstRow, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
+                            self.layoutMdlAxis(self.dataFirstRow, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
                                        yTopStrctNode, yStrctNodes, True, True, self.rowHdrNonStdRoles)
-                            # self.yAxisByCol(0, self.dataFirstRow, yTopStrctNode, True, True)
                         # add header cells to header elements cycling through nested repeats
                         headerByPos = {}
                         for _position, breakdownCellElts in sorted(self.headerCells.items(), reverse=True):
@@ -326,299 +325,7 @@ class ViewRenderedGrid(ViewFile.View):
                     break
 
 
-
-    def zAxis(self, row, zStrctNode, zAspectStrctNodes, discriminatorsTable):
-        if zStrctNode is not None and zStrctNode.defnMdlNode is not None:
-            zDefnMdlNode = zStrctNode.defnMdlNode
-            label, source = zStrctNode.headerAndSource(lang=self.lang)
-            choiceLabel = None
-            effectiveStrctNode = zStrctNode
-            isRollUpParent = zDefnMdlNode.childrenCoverSameAspects
-            span = 1
-            if zStrctNode.strctMdlChildNodes: # same as combo box selection in GUI mode
-                if not discriminatorsTable:
-                    self.zStrNodesWithChoices.insert(0, zStrctNode) # iteration from last is first
-                try:
-                    effectiveStrctNode = zStrctNode.strctMdlChildNodes[zStrctNode.choiceNodeIndex]
-                    choiceLabel = effectiveStrctNode.header(lang=self.lang)
-                    if not label and choiceLabel:
-                        label = choiceLabel # no header for choice
-                        choiceLabel = None
-                except KeyError:
-                    pass
-            if choiceLabel:
-                if self.dataCols > 3:
-                    zLabelSpan = 2
-                else:
-                    zLabelSpan = 1
-                zChoiceLabelSpan = self.dataCols - zLabelSpan
-            else:
-                zLabelSpan = self.dataCols
-            if self.type == HTML:
-                etree.SubElement(self.rowElts[row-1], "{http://www.w3.org/1999/xhtml}th",
-                                 attrib={"class":"zAxisHdr",
-                                         "style":"max-width:200pt;text-align:left;border-bottom:.5pt solid windowtext",
-                                         "colspan": str(zLabelSpan)} # "2"}
-                                 ).text = label
-                if choiceLabel:
-                    etree.SubElement(self.rowElts[row-1], "{http://www.w3.org/1999/xhtml}th",
-                                     attrib={"class":"zAxisHdr",
-                                             "style":"max-width:200pt;text-align:left;border-bottom:.5pt solid windowtext",
-                                             "colspan": str(zChoiceLabelSpan)} # "2"}
-                                     ).text = choiceLabel
-            elif self.type == XML:
-                # headers element built for first pass on z axis
-                if discriminatorsTable:
-                    brkdownNode = zStrctNode.strctMdlAncestorBreakdownNode
-                    if zStrctNode.strctMdlChildNodes: # same as combo box selection in GUI mode
-                        # hdrElt.set("label", label)
-                        if discriminatorsTable:
-                            def zSpan(zNode, startNode=False):
-                                if startNode:
-                                    thisSpan = 0
-                                elif zStrctNode.strctMdlChildNodes:
-                                    thisSpan = len(zStrctNode.strctMdlChildNodes)
-                                else:
-                                    thisSpan = 1
-                                return sum(zSpan(z) for z in zNode.strctMdlChildNodes) + thisSpan
-                            span = zSpan(zStrctNode, True)
-                            for i, choiceStrctNode in enumerate(zStrctNode.strctMdlChildNodes):
-                                choiceLabel, source = choiceStrctNode.headerAndSource(lang=self.lang)
-                                cellElt = etree.Element(self.tableModelQName("cell"),
-                                                        attrib={"span": str(span)} if span > 1 else None)
-                                self.headerCells[i].append((brkdownNode, cellElt))
-                                # self.StrctNodeModelElements.append((zStrctNode, cellElt))
-                                elt = etree.SubElement(cellElt, self.tableModelQName("label"))
-                                if choiceLabel:
-                                    elt.text = choiceLabel
-                                    if source:
-                                        elt.set("source", source)
-                                for i, role in enumerate(self.colHdrNonStdRoles):
-                                    roleLabel, source = choiceStrctNode.headerAndSource(role=role, lang=self.lang, recurseParent=False) # infoset does not move parent label to decscndant
-                                    if roleLabel is not None:
-                                        cellElt.append(etree.Comment("Label role: {0}, lang {1}"
-                                                                     .format(os.path.basename(role), self.lang)))
-                                        labelElt = etree.SubElement(cellElt, self.tableModelQName("label"))
-                                        labelElt.text = roleLabel
-                                        if source:
-                                            labelElt.set("source", source)
-
-                                for aspect in sorted(choiceStrctNode.aspectsCovered(), key=lambda a: aspectStr(a)):
-                                    if choiceStrctNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
-                                        aspectValue = choiceStrctNode.aspectValue(aspect)
-                                        if aspectValue is None: aspectValue = "(bound dynamically)"
-                                        if isinstance(aspectValue, ModelObject): # typed dimension value
-                                            aspectValue = innerTextList(aspectValue)
-                                        if isinstance(aspectValue, QName) and aspectValue.prefix is None: # may be dynamic
-                                            try:
-                                                aspectValue = self.modelXbrl.qnameConcepts[aspectValue].qname # usually has a prefix
-                                            except KeyError:
-                                                pass
-                                        aspElt = etree.SubElement(cellElt, self.tableModelQName("constraint"))
-                                        etree.SubElement(aspElt, self.tableModelQName("aspect")
-                                                         ).text = aspectStr(aspect)
-                                        valueElt = etree.SubElement(aspElt, self.tableModelQName("value"))
-                                        if not isRollUpParent:
-                                            valueElt.text = xsString(None,None,addQnameValue(self.xmlDoc, aspectValue))
-                        #else: # choiceLabel from above
-                        #    etree.SubElement(hdrElt, self.tableModelQName("label")
-                        #                     ).text = choiceLabel
-                    else: # no combo choices, single label
-                        cellElt = etree.Element(self.tableModelQName("cell"))
-                        self.headerCells[0].append((brkdownNode, cellElt))
-                        # self.StrctNodeModelElements.append((zStrctNode, cellElt))
-                        elt = etree.SubElement(cellElt, self.tableModelQName("label"))
-                        if label:
-                            elt.text = label
-                            if source:
-                                elt.set("source", source)
-
-            for aspect in aspectModels["dimensional"]:
-                if effectiveStrctNode.hasAspect(aspect, inherit=True): #implies inheriting from other z axes
-                    if aspect == Aspect.DIMENSIONS:
-                        for dim in (effectiveStrctNode.aspectValue(Aspect.DIMENSIONS, inherit=True) or emptyList):
-                            zAspectStrctNodes[dim].add(effectiveStrctNode)
-                    else:
-                        zAspectStrctNodes[aspect].add(effectiveStrctNode)
-            for i in range(span):
-                for zChildStrctNode in zStrctNode.strctMdlChildNodes:
-                    self.zAxis(row + 1, zChildStrctNode, zAspectStrctNodes, discriminatorsTable)
-
-    def xAxis(self, leftCol, topRow, rowBelow, xParentStrctNode, xStrctNodes, renderNow, atTop):
-        if xParentStrctNode is not None:
-            parentRow = rowBelow
-            noDescendants = True
-            rightCol = leftCol
-            colsToSpanParent = 0
-            widthToSpanParent = 0
-            sideBorder = not xStrctNodes
-            rowsForThisBreakdown = 1 + xParentStrctNode.hasRollUpChild
-            for xStrctNode in xParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
-                xDefnMdlNode = xStrctNode.defnMdlNode
-                noDescendants = False
-                if isinstance(xStrctNode, StrctMdlBreakdown) and not xStrctNode.isLabeled:
-                    rowsForThisStrctNode = 0
-                else:
-                    rowsForThisStrctNode = rowsForThisBreakdown
-                rightCol, row, cols, width, leafNode = self.xAxis(leftCol, topRow + rowsForThisStrctNode, rowBelow, xStrctNode, xStrctNodes, # nested items before totals
-                                                                  True, False)
-                if row - 1 < parentRow:
-                    parentRow = row - 1
-                #if not leafNode:
-                #    rightCol -= 1
-                nonAbstract = not xStrctNode.isAbstract
-                if nonAbstract:
-                    width += 100 # width for this label
-                widthToSpanParent += width
-                if cols:
-                    colsToSpanParent += cols
-                else:
-                    colsToSpanParent += rightCol + 1 - leftCol
-                thisCol = leftCol
-                isRollUpParent = xDefnMdlNode.childrenCoverSameAspects
-                 #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
-                if renderNow:
-                    label, source = xStrctNode.headerAndSource(lang=self.lang,
-                                    returnGenLabel=isinstance(xStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode))
-                    if cols:
-                        columnspan = cols
-                    else:
-                        columnspan = rightCol - leftCol
-                    # if columnspan > 0 and nonAbstract: columnspan += 1
-                    elt = None
-                    if self.type == HTML and (xStrctNode.isLabeled or not isinstance(xStrctNode, StrctMdlBreakdown)):
-                        if rightCol == self.dataFirstCol + self.dataCols - 1:
-                            edgeBorder = "border-right:.5pt solid windowtext;"
-                        else:
-                            edgeBorder = ""
-                        attrib = {"class":"xAxisHdr",
-                                  "style":"text-align:center;max-width:{0}pt;{1}".format(width,edgeBorder)}
-                        if columnspan > 1:
-                            attrib["colspan"] = str(columnspan)
-                        if leafNode and row > topRow:
-                            rowspan = row - topRow + 1
-                            if rowspan > 1:
-                                attrib["rowspan"] = str(rowspan)
-                        elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
-                                            attrib=attrib)
-                        if isRollUpParent:
-                            rollUpCellElt = elt
-                        self.rowElts[topRow-1+rowsForThisBreakdown-isRollUpParent].insert(leftCol,elt)
-                    elif (self.type == XML and # is leaf or no sub-breakdown cardinality
-                          # TBD: determine why following clause is needed
-                          (True or xStrctNode.strctMdlChildNodes is None or columnspan > 0)): # ignore no-breakdown situation
-                        brkdownNode = xStrctNode.strctMdlAncestorBreakdownNode
-                        attrib = {}
-                        if columnspan > 1:
-                            attrib["span"] = str(columnspan)
-                        if isRollUpParent:
-                            attrib["rollup"] = "true"
-                        cellElt = etree.Element(self.tableModelQName("cell"), attrib)
-                        self.headerCells[thisCol].append((brkdownNode, cellElt))
-                        # self.StrctNodeModelElements.append((xStrctNode, cellElt))
-                        if isRollUpParent:
-                            # preceding header element contains cell and aspects for rollup
-                            rollUpHdrElt = etree.Element(self.tableModelQName("header"))
-                            rollUpCellElt = cellElt = etree.SubElement(rollUpHdrElt, self.tableModelQName("cell"), attrib)
-                            self.headerElts[brkdownNode].addprevious(rollUpHdrElt)
-                        elt = etree.SubElement(cellElt, self.tableModelQName("label"))
-                        #if nonAbstract or (leafNode and row > topRow):
-                        #    for rollUpCol in range(topRow - self.colHdrTopRow + 1, self.colHdrRows - 1):
-                        #        rollUpElt = etree.Element(self.tableModelQName("cell"),
-                        #                                  attrib={"rollup":"true"})
-                        #        self.headerCells[thisCol].append((brkdownNode, cellElt))
-                        for i, role in enumerate(self.colHdrNonStdRoles):
-                            roleLabel, source = xStrctNode.headerAndSource(role=role, lang=self.lang, recurseParent=False) # infoset does not move parent label to decscndant
-                            if roleLabel is not None:
-                                cellElt.append(etree.Comment("Label role: {0}, lang {1}"
-                                                             .format(os.path.basename(role), self.lang)))
-                                labelElt = etree.SubElement(cellElt, self.tableModelQName("label"))
-                                if source:
-                                    set(labelElt, "source", source)
-                                labelElt.text = roleLabel
-
-                        for aspect in sorted(xStrctNode.aspectsCovered(), key=lambda a: aspectStr(a)):
-                            if xStrctNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
-                                aspectValue = xStrctNode.aspectValue(aspect)
-                                if aspectValue is None: aspectValue = "(bound dynamically)"
-                                if isinstance(aspectValue, ModelObject): # typed dimension value
-                                    aspectValue = innerTextList(aspectValue)
-                                if isinstance(aspectValue, QName) and aspectValue.prefix is None: # may be dynamic
-                                    try:
-                                        aspectValue = self.modelXbrl.qnameConcepts[aspectValue].qname # usually has a prefix
-                                    except KeyError:
-                                        pass
-                                aspElt = etree.SubElement(cellElt, self.tableModelQName("constraint"))
-                                etree.SubElement(aspElt, self.tableModelQName("aspect")
-                                                 ).text = aspectStr(aspect)
-                                valueElt = etree.SubElement(aspElt, self.tableModelQName("value"))
-                                if not isRollUpParent:
-                                    valueElt.text = xsString(None,None,addQnameValue(self.xmlDoc, aspectValue))
-                    if elt is not None:
-                        elt.text = label if bool(label) and label != OPEN_ASPECT_ENTRY_SURROGATE else "\u00A0" #produces &nbsp;
-                        if source:
-                            elt.set("source", source)
-                    if nonAbstract or isRollUpParent:
-                        if self.type == HTML and (xStrctNode.isLabeled or not isinstance(xStrctNode, StrctMdlBreakdown)):
-                            if isRollUpParent:   # add spanned left leg portion one row down
-                                attrib= {"class":"xAxisSpanLeg",
-                                         "rowspan": str(rowBelow - row)}
-                                if columnspan > 1:
-                                    attrib["colspan"] = str(columnspan)
-                                if edgeBorder:
-                                    attrib["style"] = edgeBorder
-                                elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
-                                                    attrib=attrib)
-                                elt.text = "\u00A0"
-                                self.rowElts[topRow].append(elt)
-                            for i, role in enumerate(self.colHdrNonStdRoles):
-                                elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
-                                                    attrib={"class":"xAxisHdr",
-                                                            "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
-                                self.rowElts[self.dataFirstRow - len(self.colHdrNonStdRoles) + i].insert(thisCol,elt)
-                                elt.text = xStrctNode.header(role=role, lang=self.lang) or "\u00A0"
-                        '''
-                        if self.colHdrDocRow:
-                            doc = xStrctNode.header(role="http://www.xbrl.org/2008/role/documentation", lang=self.lang)
-                            if self.type == HTML:
-                                elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
-                                                    attrib={"class":"xAxisHdr",
-                                                            "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
-                                self.rowElts[self.dataFirstRow - 2 - self.rowHdrCodeCol].insert(thisCol,elt)
-                            elif self.type == XML:
-                                elt = etree.Element(self.tableModelQName("label"))
-                                self.colHdrElts[self.colHdrRows - 1].insert(thisCol,elt)
-                            elt.text = doc or "\u00A0"
-                        if self.colHdrCodeRow:
-                            code = xStrctNode.header(role="http://www.eurofiling.info/role/2010/coordinate-code")
-                            if self.type == HTML:
-                                elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
-                                                    attrib={"class":"xAxisHdr",
-                                                            "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
-                                self.rowElts[self.dataFirstRow - 2].insert(thisCol,elt)
-                            elif self.type == XML:
-                                elt = etree.Element(self.tableModelQName("label"))
-                                self.colHdrElts[self.colHdrRows - 1 + self.colHdrDocRow].insert(thisCol,elt)
-                            elt.text = code or "\u00A0"
-                        '''
-                    if nonAbstract:
-                        xStrctNodes.append(xStrctNode)
-                if nonAbstract:
-                    rightCol += 1
-            if xParentStrctNode.hasRollUpChild:
-                # insert roll up span header
-                label = xParentStrctNode.header(lang=self.lang,
-                                               returnGenLabel=isinstance(xStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode))
-                columnspan = colsToSpanParent
-                if self.type == HTML:
-                    if columnspan > 1:
-                        rollUpCellElt.set("colspan", str(columnspan))
-                elif self.type == XML:
-                    if columnspan > 1:
-                        rollUpCellElt.set("span", str(columnspan))
-            return (rightCol, parentRow, colsToSpanParent, widthToSpanParent, noDescendants)
-
-    def axis(self, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, renderNow, atTop, HdrNonStdRoles):
+    def layoutMdlAxis(self, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, renderNow, atTop, HdrNonStdRoles):
         # axis handling for xml export
         if parentStrctNode is not None:
             parentRow = rowBelow
@@ -633,7 +340,7 @@ class ViewRenderedGrid(ViewFile.View):
                     rowsForThisStrctNode = 0
                 else:
                     rowsForThisStrctNode = rowsForThisBreakdown
-                rightCol, row, cols, width, leafNode = self.axis(leftCol, topRow + rowsForThisStrctNode, rowBelow, strctNode, strctNodes, # nested items before totals
+                rightCol, row, cols, width, leafNode = self.layoutMdlAxis(leftCol, topRow + rowsForThisStrctNode, rowBelow, strctNode, strctNodes, # nested items before totals
                                                                   True, False, HdrNonStdRoles)
                 if row - 1 < parentRow:
                     parentRow = row - 1
@@ -823,7 +530,178 @@ class ViewRenderedGrid(ViewFile.View):
                     rightCol += 1
             return (rightCol, parentRow, colsToSpanParent, widthToSpanParent, noDescendants)
 
-    def yAxisByRow(self, leftCol, row, yParentStrctNode, renderNow, atLeft):
+    def zAxis(self, row, zStrctNode, zAspectStrctNodes, discriminatorsTable):
+        if zStrctNode is not None and zStrctNode.defnMdlNode is not None:
+            zDefnMdlNode = zStrctNode.defnMdlNode
+            label, source = zStrctNode.headerAndSource(lang=self.lang)
+            choiceLabel = None
+            effectiveStrctNode = zStrctNode
+            isRollUpParent = zDefnMdlNode.childrenCoverSameAspects
+            span = 1
+            if zStrctNode.strctMdlChildNodes: # same as combo box selection in GUI mode
+                if not discriminatorsTable:
+                    self.zStrNodesWithChoices.insert(0, zStrctNode) # iteration from last is first
+                try:
+                    effectiveStrctNode = zStrctNode.strctMdlChildNodes[zStrctNode.choiceNodeIndex]
+                    choiceLabel = effectiveStrctNode.header(lang=self.lang)
+                    if not label and choiceLabel:
+                        label = choiceLabel # no header for choice
+                        choiceLabel = None
+                except KeyError:
+                    pass
+            if choiceLabel:
+                if self.dataCols > 3:
+                    zLabelSpan = 2
+                else:
+                    zLabelSpan = 1
+                zChoiceLabelSpan = self.dataCols - zLabelSpan
+            else:
+                zLabelSpan = self.dataCols
+                
+            etree.SubElement(self.rowElts[row-1], "{http://www.w3.org/1999/xhtml}th",
+                             attrib={"class":"zAxisHdr",
+                                     "style":"max-width:200pt;text-align:left;border-bottom:.5pt solid windowtext",
+                                     "colspan": str(zLabelSpan)} # "2"}
+                             ).text = label
+            if choiceLabel:
+                etree.SubElement(self.rowElts[row-1], "{http://www.w3.org/1999/xhtml}th",
+                                 attrib={"class":"zAxisHdr",
+                                         "style":"max-width:200pt;text-align:left;border-bottom:.5pt solid windowtext",
+                                         "colspan": str(zChoiceLabelSpan)} # "2"}
+                                 ).text = choiceLabel
+
+            for aspect in aspectModels["dimensional"]:
+                if effectiveStrctNode.hasAspect(aspect, inherit=True): #implies inheriting from other z axes
+                    if aspect == Aspect.DIMENSIONS:
+                        for dim in (effectiveStrctNode.aspectValue(Aspect.DIMENSIONS, inherit=True) or emptyList):
+                            zAspectStrctNodes[dim].add(effectiveStrctNode)
+                    else:
+                        zAspectStrctNodes[aspect].add(effectiveStrctNode)
+            for i in range(span):
+                for zChildStrctNode in zStrctNode.strctMdlChildNodes:
+                    self.zAxis(row + 1, zChildStrctNode, zAspectStrctNodes, discriminatorsTable)
+
+    def xAxis(self, leftCol, topRow, rowBelow, xParentStrctNode, xStrctNodes, renderNow, atTop):
+        if xParentStrctNode is not None:
+            parentRow = rowBelow
+            noDescendants = True
+            rightCol = leftCol
+            colsToSpanParent = 0
+            widthToSpanParent = 0
+            sideBorder = not xStrctNodes
+            rowsForThisBreakdown = 1 + xParentStrctNode.hasRollUpChild
+            for xStrctNode in xParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
+                xDefnMdlNode = xStrctNode.defnMdlNode
+                noDescendants = False
+                if isinstance(xStrctNode, StrctMdlBreakdown) and not xStrctNode.isLabeled:
+                    rowsForThisStrctNode = 0
+                else:
+                    rowsForThisStrctNode = rowsForThisBreakdown
+                rightCol, row, cols, width, leafNode = self.xAxis(leftCol, topRow + rowsForThisStrctNode, rowBelow, xStrctNode, xStrctNodes, # nested items before totals
+                                                                  True, False)
+                if row - 1 < parentRow:
+                    parentRow = row - 1
+                #if not leafNode:
+                #    rightCol -= 1
+                nonAbstract = not xStrctNode.isAbstract
+                if nonAbstract:
+                    width += 100 # width for this label
+                widthToSpanParent += width
+                if cols:
+                    colsToSpanParent += cols
+                else:
+                    colsToSpanParent += rightCol + 1 - leftCol
+                thisCol = leftCol
+                isRollUpParent = xDefnMdlNode.childrenCoverSameAspects
+                 #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
+                if renderNow:
+                    label, source = xStrctNode.headerAndSource(lang=self.lang,
+                                    returnGenLabel=isinstance(xStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode))
+                    if cols:
+                        columnspan = cols
+                    else:
+                        columnspan = rightCol - leftCol
+                    # if columnspan > 0 and nonAbstract: columnspan += 1
+                    elt = None
+                    if xStrctNode.isLabeled or not isinstance(xStrctNode, StrctMdlBreakdown):
+                        if rightCol == self.dataFirstCol + self.dataCols - 1:
+                            edgeBorder = "border-right:.5pt solid windowtext;"
+                        else:
+                            edgeBorder = ""
+                        attrib = {"class":"xAxisHdr",
+                                  "style":"text-align:center;max-width:{0}pt;{1}".format(width,edgeBorder)}
+                        if columnspan > 1:
+                            attrib["colspan"] = str(columnspan)
+                        if leafNode and row > topRow:
+                            rowspan = row - topRow + 1
+                            if rowspan > 1:
+                                attrib["rowspan"] = str(rowspan)
+                        elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                            attrib=attrib)
+                        if isRollUpParent:
+                            rollUpCellElt = elt
+                        self.rowElts[topRow-1+rowsForThisBreakdown-isRollUpParent].insert(leftCol,elt)
+                    if elt is not None:
+                        elt.text = label if bool(label) and label != OPEN_ASPECT_ENTRY_SURROGATE else "\u00A0" #produces &nbsp;
+                        if source:
+                            elt.set("source", source)
+                    if nonAbstract or isRollUpParent:
+                        if xStrctNode.isLabeled or not isinstance(xStrctNode, StrctMdlBreakdown):
+                            if isRollUpParent:   # add spanned left leg portion one row down
+                                attrib= {"class":"xAxisSpanLeg",
+                                         "rowspan": str(rowBelow - row)}
+                                if columnspan > 1:
+                                    attrib["colspan"] = str(columnspan)
+                                if edgeBorder:
+                                    attrib["style"] = edgeBorder
+                                elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                                    attrib=attrib)
+                                elt.text = "\u00A0"
+                                self.rowElts[topRow].append(elt)
+                            for i, role in enumerate(self.colHdrNonStdRoles):
+                                elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                                    attrib={"class":"xAxisHdr",
+                                                            "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
+                                self.rowElts[self.dataFirstRow - len(self.colHdrNonStdRoles) + i].insert(thisCol,elt)
+                                elt.text = xStrctNode.header(role=role, lang=self.lang) or "\u00A0"
+                        '''
+                        if self.colHdrDocRow:
+                            doc = xStrctNode.header(role="http://www.xbrl.org/2008/role/documentation", lang=self.lang)
+                            if self.type == HTML:
+                                elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                                    attrib={"class":"xAxisHdr",
+                                                            "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
+                                self.rowElts[self.dataFirstRow - 2 - self.rowHdrCodeCol].insert(thisCol,elt)
+                            elif self.type == XML:
+                                elt = etree.Element(self.tableModelQName("label"))
+                                self.colHdrElts[self.colHdrRows - 1].insert(thisCol,elt)
+                            elt.text = doc or "\u00A0"
+                        if self.colHdrCodeRow:
+                            code = xStrctNode.header(role="http://www.eurofiling.info/role/2010/coordinate-code")
+                            if self.type == HTML:
+                                elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
+                                                    attrib={"class":"xAxisHdr",
+                                                            "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
+                                self.rowElts[self.dataFirstRow - 2].insert(thisCol,elt)
+                            elif self.type == XML:
+                                elt = etree.Element(self.tableModelQName("label"))
+                                self.colHdrElts[self.colHdrRows - 1 + self.colHdrDocRow].insert(thisCol,elt)
+                            elt.text = code or "\u00A0"
+                        '''
+                    if nonAbstract:
+                        xStrctNodes.append(xStrctNode)
+                if nonAbstract:
+                    rightCol += 1
+            if xParentStrctNode.hasRollUpChild:
+                # insert roll up span header
+                label = xParentStrctNode.header(lang=self.lang,
+                                               returnGenLabel=isinstance(xStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode))
+                columnspan = colsToSpanParent
+                if columnspan > 1:
+                    rollUpCellElt.set("colspan", str(columnspan))
+            return (rightCol, parentRow, colsToSpanParent, widthToSpanParent, noDescendants)
+
+    def yAxis(self, leftCol, row, yParentStrctNode, yStrctNodes, renderNow, atLeft):
         noDescendants = True
         nestedBottomRow = row
         rowspan = 1
@@ -838,7 +716,7 @@ class ViewRenderedGrid(ViewFile.View):
                            not isinstance(yDefnMdlNode, DefnMdlClosedDefinitionNode)))
             isNonAbstract = not isAbstract
             isLabeled = yStrctNode.isLabeled
-            nestRow, nextRow = self.yAxisByRow(leftCol + isLabeled, row, yStrctNode,  # nested items before totals
+            nestRow, nextRow = self.yAxis(leftCol + isLabeled, row, yStrctNode, yStrctNodes,  # nested items before totals
                                                childrenFirst, False)
 
             topRow = row
@@ -932,6 +810,8 @@ class ViewRenderedGrid(ViewFile.View):
                     '''
                 else:
                     self.rowElts[hdrRow].insert(leftCol, elt)
+                if isNonAbstract:
+                    yStrctNodes.append(yStrctNode)
             else: # no nodes
                 childrenFirst = False
             if isNonAbstract:
@@ -943,118 +823,8 @@ class ViewRenderedGrid(ViewFile.View):
             if row > nestedBottomRow:
                 nestedBottomRow = row
             if not childrenFirst:
-                dummy, row = self.yAxisByRow(leftCol + isLabeled, row, yStrctNode, renderNow, False) # render on this pass
+                dummy, row = self.yAxis(leftCol + isLabeled, row, yStrctNode, yStrctNodes, renderNow, False) # render on this pass
         return (nestedBottomRow, row)
-
-    def yAxisByCol(self, leftCol, row, yParentStrctNode, renderNow, atTop):
-        if yParentStrctNode is not None:
-            nestedBottomRow = row
-            rowsToSpanParent = 0
-            rowsForThisBreakdown = 1 + yParentStrctNode.hasRollUpChild
-            for yStrctNode in yParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
-                yDefnMdlNode = yStrctNode.defnMdlNode
-                nestRow, nextRow, rows = self.yAxisByCol(leftCol + 1, row, yStrctNode,  # nested items before totals
-                                                         True, False)
-                isAbstract = (yStrctNode.isAbstract or
-                              (yStrctNode.strctMdlChildNodes and
-                               not isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode)))
-                isNonAbstract = not isAbstract
-                isLabeled = yStrctNode.isLabeled
-                topRow = row
-                if isNonAbstract:
-                    row = nextRow
-                if rows:
-                    rowsToSpanParent += rows
-                else:
-                    rowsToSpanParent = nestRow - row
-                isRollUpParent = yDefnMdlNode.childrenCoverSameAspects
-                #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
-                if renderNow and isLabeled:
-                    label, source = yStrctNode.headerAndSource(lang=self.lang,
-                                                   returnGenLabel=isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode),
-                                                   recurseParent=not isinstance(yStrctNode.defnMdlNode, DefnMdlRuleDefinitionNode))
-                    brkdownNode = yStrctNode.strctMdlAncestorBreakdownNode
-                    attrib = {}
-                    if rows:
-                        rowspan = rows
-                    else:
-                        rowspan = nestRow - row
-                    if rowspan > 1:
-                        attrib["span"] = str(rowspan)
-                    if isRollUpParent:
-                        attrib["rollup"] = "true"
-                    cellElt = etree.Element(self.tableModelQName("cell"), attrib)
-                    elt = etree.SubElement(cellElt, self.tableModelQName("label"))
-                    if source:
-                        elt.set("source", source)
-                    # self.StrctNodeModelElements.append((yStrctNode, cellElt))
-                    ''' HF debug 2/22/22
-                    for rollUpCol in range(leftCol, self.rowHdrCols - 1):
-                        rollUpElt = etree.Element(self.tableModelQName("cell"),
-                                                  attrib={"rollup":"true"})
-                        self.headerCells[leftCol].append((brkdownNode, rollUpElt))
-                    '''
-                    if not isRollUpParent:
-                        elt.text = label if label != OPEN_ASPECT_ENTRY_SURROGATE else ""
-                        self.headerCells[leftCol].append((brkdownNode, cellElt))
-                        i = -1 # for case where no enumeration takes place
-                        for i, role in enumerate(self.rowHdrNonStdRoles):
-                            roleLabel, source = yStrctNode.headerAndSource(role=role, lang=self.lang, recurseParent=False)
-                            if roleLabel is not None:
-                                cellElt.append(etree.Comment("Label role: {0}, lang {1}"
-                                                             .format(os.path.basename(role), self.lang)))
-                                labelElt = etree.SubElement(cellElt, self.tableModelQName("label"),
-                                                            #attrib={"role":role,
-                                                            #        "lang":self.lang}
-                                    ).text = roleLabel
-                                if source:
-                                    labelElt.set("source", source)
-                                self.headerCells[leftCol].append((brkdownNode, cellElt))
-                        for aspect in sorted(yStrctNode.aspectsCovered(), key=lambda a: aspectStr(a)):
-                            if yStrctNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
-                                aspectValue = yStrctNode.aspectValue(aspect)
-                                if aspectValue is None: aspectValue = "(bound dynamically)"
-                                if isinstance(aspectValue, ModelObject): # typed dimension value
-                                    aspectValue = innerTextList(aspectValue)
-                                if isinstance(aspectValue, QName) and aspectValue.prefix is None: # may be dynamic
-                                    try:
-                                        aspectValue = self.modelXbrl.qnameConcepts[aspectValue].qname # usually has a prefix
-                                    except KeyError:
-                                        pass
-                                if isinstance(aspectValue, str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE):
-                                    continue  # not an aspect, position for a new entry
-                                elt = etree.SubElement(cellElt, self.tableModelQName("constraint"))
-                                etree.SubElement(elt, self.tableModelQName("aspect")
-                                                 ).text = aspectStr(aspect)
-                                etree.SubElement(elt, self.tableModelQName("value")
-                                                 ).text = xsString(None,None,addQnameValue(self.xmlDoc, aspectValue))
-                            '''
-                            if self.rowHdrDocCol:
-                                labelElt = etree.SubElement(cellElt, self.tableModelQName("label"),
-                                                            attrib={"span": str(rowspan)} if rowspan > 1 else None)
-                                elt.text = yStrctNode.header(role="http://www.xbrl.org/2008/role/documentation",
-                                                           lang=self.lang)
-                                self.rowHdrElts[self.rowHdrCols - 1].append(elt)
-                            if self.rowHdrCodeCol:
-                                elt = etree.Element(self.tableModelQName("label"),
-                                                    attrib={"span": str(rowspan)} if rowspan > 1 else None)
-                                elt.text = yStrctNode.header(role="http://www.eurofiling.info/role/2010/coordinate-code",
-                                                           lang=self.lang)
-                                self.rowHdrElts[self.rowHdrCols - 1 + self.rowHdrDocCol].append(elt)
-                            '''
-                if isNonAbstract:
-                    row += 1
-                else:
-                    row = nextRow
-                if nestRow > nestedBottomRow:
-                    nestedBottomRow = nestRow + isNonAbstract # and not childrenFirst)
-                if row > nestedBottomRow:
-                    nestedBottomRow = row
-                #if renderNow and not childrenFirst:
-                #    dummy, row = self.yAxis(leftCol + 1, row, yStrctNode, childrenFirst, True, False) # render on this pass
-                #if not childrenFirst:
-                #    dummy, row = self.yAxisByCol(leftCol + 1, row, yStrctNode, renderNow, False) # render on this pass
-            return (nestedBottomRow, row, rowsToSpanParent)
 
 
     def bodyCells(self, row, yStrctNodes, xStrctNodes, zAspectStrctNodes):
