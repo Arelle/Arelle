@@ -22,10 +22,10 @@ unknown   = 60000000 # no pattern match
 ignoredCodes = {
     "debug", "info", "info:profileStats", None}
 codesPatterns = (
-    (efmStart,  re_compile(r"EFM\.([0-9]+(.[0-9]+)*).*"), "."),
-    (ixStart,   re_compile(r"ix11\.([0-9]+(.[0-9]+)*).*"), "."),
-    (efmStart,  re_compile(r"xbrl\.([0-9]+(.[0-9]+)*).*"), "."),
-    (xbrlStart, re_compile(r"EFM\.([0-9]+(.[0-9]+)*).*"), "."),
+    (efmStart,  re_compile(r"EFM\.([0-9]+(\.[0-9]+)*).*"), "."),
+    (ixStart,   re_compile(r"ix11\.([0-9]+(\.[0-9]+)*).*"), "."),
+    (efmStart,  re_compile(r"xbrl\.([0-9]+(\.[0-9]+)*).*"), "."),
+    (xbrlStart, re_compile(r"EFM\.([0-9]+(\.[0-9]+)*).*"), "."),
     (xml1Start, re_compile(r"xmlSchema.valueError"), "."),
     (xml2Start, re_compile(r"xmlSchema"), "."),
     (xml3Start, re_compile(r"lxml.SCHEMA[A-Za-z_]*([0-9]+(_[0-9]+)*).*"), "_"),
