@@ -196,6 +196,8 @@ def validateXbrlStart(val: ValidateXbrl, parameters: dict[Any, Any] | None=None,
     authorityValidations = cast(Dict[Any, Any], authorityValidations)
 
     val.authParam = authorityValidations["default"]
+    for name in val.disclosureSystem.names:
+        val.authParam.update(authorityValidations.get(name, {}))
     val.authParam.update(authorityValidations.get(val.authority, {}))
     if parameters:
         overwiteParams = {}
