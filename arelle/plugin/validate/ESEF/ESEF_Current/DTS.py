@@ -18,9 +18,9 @@ from arelle.ModelDtsObject import ModelConcept, ModelType
 from arelle.ModelDocument import ModelDocument
 from arelle.ModelObject import ModelObject
 from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault
-from .Const import (qnDomainItemTypes, esefDefinitionArcroles, DefaultDimensionLinkroles,
+from ..Const import (qnDomainItemTypes, esefDefinitionArcroles, DefaultDimensionLinkroles,
                     linkbaseRefTypes, filenamePatterns, filenameRegexes)
-from .Util import isExtension, isChildOfNotes
+from ..Util import isExtension, isChildOfNotes
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 

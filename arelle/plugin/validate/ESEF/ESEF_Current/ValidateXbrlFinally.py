@@ -52,17 +52,19 @@ from arelle.XbrlConst import (
 from arelle.XmlValidate import lexicalPatterns
 from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
-from .Const import (
+from .DTS import checkFilingDTS
+from .Image import checkSVGContentElt, validateImage
+from ..Const import (
+    DefaultDimensionLinkroles,
+    LineItemsNotQualifiedLinkroles,
     esefMandatoryElementNames2020,
     esefPrimaryStatementPlaceholderNames,
     esefStatementsOfMonetaryDeclarationNames,
     mandatory,
     untransformableTypes,
 )
-from .DTS import checkFilingDTS
-from .Dimensions import checkFilingDimensions
-from .Image import checkSVGContentElt, validateImage
-from .Util import checkForMultiLangDuplicates, getEsefNotesStatementConcepts, hasEventHandlerAttributes, isExtension
+from ..Dimensions import checkFilingDimensions
+from ..Util import checkForMultiLangDuplicates, getEsefNotesStatementConcepts, hasEventHandlerAttributes, isExtension
 
 _: TypeGetText  # Handle gettext
 
@@ -155,7 +157,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         _("RTS on ESEF requires inline XBRL instances."),
                         modelObject=modelXbrl)
 
-    checkFilingDimensions(val) # sets up val.primaryItems and val.domainMembers
+    checkFilingDimensions(val, DefaultDimensionLinkroles, LineItemsNotQualifiedLinkroles) # sets up val.primaryItems and val.domainMembers
     val.hasExtensionSchema = val.hasExtensionPre = val.hasExtensionCal = val.hasExtensionDef = val.hasExtensionLbl = False
 
     # ModelDocument.load has None as a return type. For typing reasons, we need to guard against that here.
