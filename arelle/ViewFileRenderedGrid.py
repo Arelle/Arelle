@@ -574,9 +574,9 @@ class ViewRenderedGrid(ViewFile.View):
                 if effectiveStrctNode.hasAspect(aspect, inherit=True): #implies inheriting from other z axes
                     if aspect == Aspect.DIMENSIONS:
                         for dim in (effectiveStrctNode.aspectValue(Aspect.DIMENSIONS, inherit=True) or emptyList):
-                            zAspectStrctNodes[dim].add(effectiveStrctNode)
+                            zAspectStrctNodes[dim].append(effectiveStrctNode)
                     else:
-                        zAspectStrctNodes[aspect].add(effectiveStrctNode)
+                        zAspectStrctNodes[aspect].append(effectiveStrctNode)
             for i in range(span):
                 for zChildStrctNode in zStrctNode.strctMdlChildNodes:
                     self.zAxis(row + 1, zChildStrctNode, zAspectStrctNodes, discriminatorsTable)
@@ -703,11 +703,10 @@ class ViewRenderedGrid(ViewFile.View):
 
     def yAxis(self, leftCol, row, yParentStrctNode, yStrctNodes, renderNow, atLeft):
         noDescendants = True
-        nestedBottomRow = row
         rowspan = 1
         columnspan = 1
         nestedBottomRow = row
-        for yOrdinal, yStrctNode in enumerate(yParentStrctNode.strctMdlChildNodes): # strctMdlEffectiveChildNodes:
+        for yStrctNode in yParentStrctNode.strctMdlChildNodes:
             yDefnMdlNode = yStrctNode.defnMdlNode
             childrenFirst = yDefnMdlNode.parentChildOrder == "children-first"
             noDescendants = False
@@ -717,8 +716,8 @@ class ViewRenderedGrid(ViewFile.View):
             isNonAbstract = not isAbstract
             isLabeled = yStrctNode.isLabeled
             nestRow, nextRow = self.yAxis(leftCol + isLabeled, row, yStrctNode, yStrctNodes,  # nested items before totals
-                                               True, # childrenFirst, 
-                                               False)
+                                               False, # childrenFirst, 
+                                               True)
 
             topRow = row
             #if childrenFirst and isNonAbstract:
@@ -744,7 +743,7 @@ class ViewRenderedGrid(ViewFile.View):
                 # provide top or bottom borders
                 edgeBorder = ""
 
-                if childrenFirst:
+                if True: # childrenFirst:
                     if hdrRow == self.dataFirstRow:
                         edgeBorder = "border-top:.5pt solid windowtext;"
                 else:
@@ -823,8 +822,8 @@ class ViewRenderedGrid(ViewFile.View):
                 nestedBottomRow = nestRow + (isNonAbstract and not childrenFirst)
             if row > nestedBottomRow:
                 nestedBottomRow = row
-            #if not childrenFirst:
-            #    dummy, row = self.yAxis(leftCol + isLabeled, row, yStrctNode, yStrctNodes, renderNow, False) # render on this pass
+            if True: # not childrenFirst:
+                dummy, row = self.yAxis(leftCol + isLabeled, row, yStrctNode, yStrctNodes, renderNow, False) # render on this pass
         return (nestedBottomRow, row)
 
 
