@@ -371,36 +371,35 @@ class ValidateXbrlCalcs:
                     self.sumFacts[calcKey].append(f) # sum only for immediate parent
                     self.sumConceptBindKeys[concept].add(bindKey)
                     # calcKey is the last ancestor added (immediate parent of fact)
-                    if calcKey in self.duplicateKeyFacts and not f.isNil:
-                        fDup = self.duplicateKeyFacts[calcKey]
-                        if self.deDuplicate: # add lesser precision fact to consistentDupFacts
-                            if self.inferDecimals:
-                                d = inferredDecimals(f); dDup = inferredDecimals(fDup)
-                                dMin = min((d, dDup)); pMin = None
-                                hasAccuracy = (not isnan(d) and not isnan(dDup))
-                                fIsMorePrecise = (d > dDup)
-                            else:
-                                p = inferredPrecision(f); pDup = inferredPrecision(fDup)
-                                dMin = None; pMin = min((p, pDup))
-                                hasAccuracy = (p != 0)
-                                fIsMorePrecise = (p > pDup)
-                            if (hasAccuracy and
-                                roundValue(f.value,precision=pMin,decimals=dMin) ==
-                                roundValue(fDup.value,precision=pMin,decimals=dMin)):
-                                # consistent duplicate, f more precise than fDup, replace fDup with f
-                                if fIsMorePrecise: # works for inf and integer mixtures
-                                    self.duplicateKeyFacts[calcKey] = f
-                                    self.consistentDupFacts.add(fDup)
-                                else: # fDup is more precise or equally precise
-                                    self.consistentDupFacts.add(f)
-                            else: # invalid accuracy or inconsistent duplicates
+                    if self.xbrl21 and not f.isNil:
+                        fDup = self.duplicateKeyFacts.setdefault(calcKey, f)
+                        if fDup is not f:
+                            if self.deDuplicate: # add lesser precision fact to consistentDupFacts
+                                if self.inferDecimals:
+                                    d = inferredDecimals(f); dDup = inferredDecimals(fDup)
+                                    dMin = min((d, dDup)); pMin = None
+                                    hasAccuracy = (not isnan(d) and not isnan(dDup))
+                                    fIsMorePrecise = (d > dDup)
+                                else:
+                                    p = inferredPrecision(f); pDup = inferredPrecision(fDup)
+                                    dMin = None; pMin = min((p, pDup))
+                                    hasAccuracy = (p != 0)
+                                    fIsMorePrecise = (p > pDup)
+                                if (hasAccuracy and
+                                    roundValue(f.value,precision=pMin,decimals=dMin) ==
+                                    roundValue(fDup.value,precision=pMin,decimals=dMin)):
+                                    # consistent duplicate, f more precise than fDup, replace fDup with f
+                                    if fIsMorePrecise: # works for inf and integer mixtures
+                                        self.duplicateKeyFacts[calcKey] = f
+                                        self.consistentDupFacts.add(fDup)
+                                    else: # fDup is more precise or equally precise
+                                        self.consistentDupFacts.add(f)
+                                else: # invalid accuracy or inconsistent duplicates
+                                    self.duplicatedFacts.add(f)
+                                    self.duplicatedFacts.add(fDup)
+                            else: # add both this fact and matching calcKey'ed fact to duplicatedFacts
                                 self.duplicatedFacts.add(f)
                                 self.duplicatedFacts.add(fDup)
-                        else: # add both this fact and matching calcKey'ed fact to duplicatedFacts
-                            self.duplicatedFacts.add(f)
-                            self.duplicatedFacts.add(fDup)
-                    elif self.xbrl21 and not f.isNil:
-                        self.duplicateKeyFacts[calcKey] = f
                     if self.calc11:
                         self.calc11KeyFacts[calcKey].append(f)
                 elif concept.isTuple and not f.isNil and not self.calc11:
