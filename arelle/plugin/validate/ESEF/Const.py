@@ -10,9 +10,9 @@ from arelle.ModelValue import QName, qname
 
 browserMaxBase64ImageLength = 5242880  # 5MB
 
-esefTaxonomyNamespaceURIs = {
+esefTaxonomyNamespaceURIs = frozenset((
     "http://xbrl.ifrs.org/taxonomy/20",
-}
+))
 
 disallowedURIsPattern = re.compile(
     "http://xbrl.ifrs.org/taxonomy/[0-9-]{10}/full_ifrs/full_ifrs-cor_[0-9-]{10}[.]xsd|"
@@ -28,10 +28,10 @@ LineItemsNotQualifiedLinkrole = (
     "http://www.esma.europa.eu/xbrl/role/cor/esef_role-999999"
 )
 
-qnDomainItemTypes = {
+qnDomainItemTypes = frozenset((
     qname("{http://www.xbrl.org/dtr/type/non-numeric}nonnum:domainItemType"),
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonnum:domainItemType"),
-}
+))
 
 linkbaseRefTypes = {
     "http://www.xbrl.org/2003/role/calculationLinkbaseRef": "cal",
@@ -60,7 +60,7 @@ filenameRegexes = {
 mandatory: set[QName] = set()  # mandatory element qnames
 
 # hidden references
-untransformableTypes = {
+untransformableTypes = frozenset((
     "anyURI",
     "base64Binary",
     "hexBinary",
@@ -69,9 +69,9 @@ untransformableTypes = {
     "time",
     "token",
     "language",
-}
+))
 
-esefDefinitionArcroles = {
+esefDefinitionArcroles = frozenset((
     XbrlConst.all,
     XbrlConst.notAll,
     XbrlConst.hypercubeDimension,
@@ -79,7 +79,7 @@ esefDefinitionArcroles = {
     XbrlConst.domainMember,
     XbrlConst.dimensionDefault,
     XbrlConst.widerNarrower,
-}
+))
 
 esefPrimaryStatementPlaceholderNames = (
     # to be augmented with future IFRS releases as they come known, as well as further PFS placeholders
@@ -92,13 +92,13 @@ esefPrimaryStatementPlaceholderNames = (
     "StatementOfProfitOrLossAndOtherComprehensiveIncomeAbstract",
 )
 
-esefStatementsOfMonetaryDeclarationNames = {
+esefStatementsOfMonetaryDeclarationNames = frozenset((
     # from Annex II para 1
     "StatementOfFinancialPositionAbstract",
     "StatementOfProfitOrLossAndOtherComprehensiveIncomeAbstract"
     "StatementOfChangesInEquityAbstract",
     "StatementOfCashFlowsAbstract",
-}
+))
 
 esefMandatoryElementNames2020 = (
     "NameOfReportingEntityOrOtherMeansOfIdentification",
@@ -359,7 +359,7 @@ esefMandatoryElementNames2022 = (
     "StatementOfIFRSCompliance",
 )
 
-htmlEventHandlerAttributes = {
+htmlEventHandlerAttributes = frozenset((
     "onabort",
     "onafterprint",
     "onbeforeprint",
@@ -431,9 +431,9 @@ htmlEventHandlerAttributes = {
     "onvolumechange",
     "onwaiting",
     "onwheel",
-}
+))
 
-svgEventAttributes = {
+svgEventAttributes = frozenset((
     "onabort",
     "onactivate",
     "onafterprint",
@@ -513,4 +513,4 @@ svgEventAttributes = {
     "onvolumechange",
     "onwaiting",
     "onzoom",
-}
+))

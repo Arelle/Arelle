@@ -4,6 +4,9 @@ Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
+
+from collections.abc import Collection
+
 from lxml.etree import _Element
 from urllib.parse import unquote
 import os, json
@@ -137,7 +140,7 @@ def hasEventHandlerAttributes(elt: Any) -> bool:
 def hasSvgEventAttributes(elt: Any) -> bool:
     return _hasEventAttributes(elt, svgEventAttributes)
 
-def _hasEventAttributes(elt: Any, attributes: set[str]) -> bool:
+def _hasEventAttributes(elt: Any, attributes: Collection[str]) -> bool:
     if isinstance(elt, _Element):
         return any(a in attributes for a in elt.keys())
     return False
