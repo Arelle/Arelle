@@ -10,8 +10,13 @@ from arelle.ModelValue import QName, qname
 
 browserMaxBase64ImageLength = 5242880  # 5MB
 
+esefTaxonomyNamespaceURIs2021 = frozenset((
+    "http://xbrl.ifrs.org/taxonomy/20",
+))
+
 esefTaxonomyNamespaceURIs = frozenset((
     "http://xbrl.ifrs.org/taxonomy/20",
+    "https://xbrl.ifrs.org/taxonomy/20",
 ))
 
 disallowedURIsPattern = re.compile(
@@ -19,13 +24,26 @@ disallowedURIsPattern = re.compile(
     "http://www.esma.europa.eu/taxonomy/[0-9-]{10}/esef_all.xsd"
 )
 
+esefCorNsPattern = re.compile(
+    r"https?://www\.esma\.europa\.eu/taxonomy/[0-9-]{10}/esef_cor"
+)
 
-DefaultDimensionLinkroles = (
+DefaultDimensionLinkroles2021 = (
     "http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000",
 )
 
-LineItemsNotQualifiedLinkrole = (
+DefaultDimensionLinkroles = (
+    "https://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000",  # preferred, new spec
+    "http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000",
+)
+
+LineItemsNotQualifiedLinkrole2021 = (
     "http://www.esma.europa.eu/xbrl/role/cor/esef_role-999999"
+)
+
+LineItemsNotQualifiedLinkroles = (
+    "https://www.esma.europa.eu/xbrl/role/cor/esef_role-999999",  # preferred, new spec
+    "http://www.esma.europa.eu/xbrl/role/cor/esef_role-999999",
 )
 
 qnDomainItemTypes = frozenset((
@@ -98,6 +116,10 @@ esefStatementsOfMonetaryDeclarationNames = frozenset((
     "StatementOfProfitOrLossAndOtherComprehensiveIncomeAbstract"
     "StatementOfChangesInEquityAbstract",
     "StatementOfCashFlowsAbstract",
+))
+
+esefNotesStatementConcepts = frozenset((
+    "NotesAccountingPoliciesAndMandatoryTags",
 ))
 
 esefMandatoryElementNames2020 = (

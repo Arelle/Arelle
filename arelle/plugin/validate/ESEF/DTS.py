@@ -16,7 +16,7 @@ from arelle.ModelDtsObject import ModelConcept, ModelType
 from arelle.ModelDocument import ModelDocument
 from arelle.ModelObject import ModelObject
 from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault
-from .Const import (qnDomainItemTypes, esefDefinitionArcroles, DefaultDimensionLinkroles,
+from .Const import (qnDomainItemTypes, esefDefinitionArcroles, DefaultDimensionLinkroles2021,
                     linkbaseRefTypes, filenamePatterns, filenameRegexes)
 from .Util import isExtension
 from arelle.ValidateXbrl import ValidateXbrl
@@ -83,7 +83,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: lis
         widerNarrowerRelSet = val.modelXbrl.relationshipSet(XbrlConst.widerNarrower)
         generalSpecialRelSet = val.modelXbrl.relationshipSet(XbrlConst.generalSpecial)
         calcRelSet = val.modelXbrl.relationshipSet(XbrlConst.summationItem)
-        dimensionDefaults = val.modelXbrl.relationshipSet(dimensionDefault, DefaultDimensionLinkroles)
+        dimensionDefaults = val.modelXbrl.relationshipSet(dimensionDefault, DefaultDimensionLinkroles2021)
         labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
         if modelDocument.targetNamespace is not None:
             for modelConcept in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}element"):
