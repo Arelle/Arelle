@@ -1,68 +1,86 @@
-'''
-Filer Guidelines: esma32-60-254_esef_reporting_manual.pdf
-
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
-import regex as re
-from typing import Any, Callable
-from arelle.ModelValue import QName, qname
-from arelle.XbrlConst import all, notAll, hypercubeDimension, dimensionDomain, domainMember, dimensionDefault, widerNarrower
 
-browserMaxBase64ImageLength = 5242880 # 5MB
+import regex as re
+
+from arelle import XbrlConst
+from arelle.ModelValue import QName, qname
+
+browserMaxBase64ImageLength = 5242880  # 5MB
 
 esefTaxonomyNamespaceURIs = {
     "http://xbrl.ifrs.org/taxonomy/20",
     "http://xbrl.ifrs.org/taxonomy/20",
-    }
+}
 
 disallowedURIsPattern = re.compile(
     "http://xbrl.ifrs.org/taxonomy/[0-9-]{10}/full_ifrs/full_ifrs-cor_[0-9-]{10}[.]xsd|"
     "http://www.esma.europa.eu/taxonomy/[0-9-]{10}/esef_all.xsd"
-    )
+)
 
 
-DefaultDimensionLinkroles = ("http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000",)
-LineItemsNotQualifiedLinkrole = "http://www.esma.europa.eu/xbrl/role/cor/esef_role-999999"
+DefaultDimensionLinkroles = (
+    "http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000",
+)
 
-qnDomainItemTypes = {qname("{http://www.xbrl.org/dtr/type/non-numeric}nonnum:domainItemType"),
-                     qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonnum:domainItemType")}
+LineItemsNotQualifiedLinkrole = (
+    "http://www.esma.europa.eu/xbrl/role/cor/esef_role-999999"
+)
 
+qnDomainItemTypes = {
+    qname("{http://www.xbrl.org/dtr/type/non-numeric}nonnum:domainItemType"),
+    qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonnum:domainItemType"),
+}
 
 linkbaseRefTypes = {
     "http://www.xbrl.org/2003/role/calculationLinkbaseRef": "cal",
     "http://www.xbrl.org/2003/role/definitionLinkbaseRef": "def",
     "http://www.xbrl.org/2003/role/labelLinkbaseRef": "lab",
     "http://www.xbrl.org/2003/role/presentationLinkbaseRef": "pre",
-    "http://www.xbrl.org/2003/role/referenceLinkbaseRef": "ref"
-    }
+    "http://www.xbrl.org/2003/role/referenceLinkbaseRef": "ref",
+}
 
 filenamePatterns = {
     "cal": "{base}-{date}_cal.xml",
     "def": "{base}-{date}_def.xml",
     "lab": "{base}-{date}_lab-{lang}.xml",
     "pre": "{base}-{date}_pre.xml",
-    "ref": "{base}-{date}_ref.xml"
-    }
+    "ref": "{base}-{date}_ref.xml",
+}
 
 filenameRegexes = {
     "cal": r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_cal[.]xml$",
     "def": r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_def[.]xml$",
     "lab": r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_lab-[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*[.]xml$",
     "pre": r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_pre[.]xml$",
-    "ref": r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_ref[.]xml$"
-    }
+    "ref": r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_ref[.]xml$",
+}
 
-mandatory: set[QName] = set() # mandatory element qnames
+mandatory: set[QName] = set()  # mandatory element qnames
 
 # hidden references
-untransformableTypes = {"anyURI", "base64Binary", "hexBinary", "NOTATION", "QName", "time",
-                        "token", "language"}
+untransformableTypes = {
+    "anyURI",
+    "base64Binary",
+    "hexBinary",
+    "NOTATION",
+    "QName",
+    "time",
+    "token",
+    "language",
+}
 
 esefDefinitionArcroles = {
-    all, notAll, hypercubeDimension, dimensionDomain, domainMember, dimensionDefault,
-    widerNarrower
-    }
+    XbrlConst.all,
+    XbrlConst.notAll,
+    XbrlConst.hypercubeDimension,
+    XbrlConst.dimensionDomain,
+    XbrlConst.domainMember,
+    XbrlConst.dimensionDefault,
+    XbrlConst.widerNarrower,
+}
 
 esefPrimaryStatementPlaceholderNames = (
     # to be augmented with future IFRS releases as they come known, as well as further PFS placeholders
@@ -72,8 +90,8 @@ esefPrimaryStatementPlaceholderNames = (
     "StatementOfCashFlowsAbstract",
     "StatementOfChangesInEquityAbstract",
     "StatementOfChangesInNetAssetsAvailableForBenefitsAbstract",
-    "StatementOfProfitOrLossAndOtherComprehensiveIncomeAbstract"
-    )
+    "StatementOfProfitOrLossAndOtherComprehensiveIncomeAbstract",
+)
 
 esefStatementsOfMonetaryDeclarationNames = {
     # from Annex II para 1
@@ -81,7 +99,7 @@ esefStatementsOfMonetaryDeclarationNames = {
     "StatementOfProfitOrLossAndOtherComprehensiveIncomeAbstract"
     "StatementOfChangesInEquityAbstract",
     "StatementOfCashFlowsAbstract",
-    }
+}
 
 esefMandatoryElementNames2020 = (
     "NameOfReportingEntityOrOtherMeansOfIdentification",
@@ -93,8 +111,8 @@ esefMandatoryElementNames2020 = (
     "PrincipalPlaceOfBusiness",
     "DescriptionOfNatureOfEntitysOperationsAndPrincipalActivities",
     "NameOfParentEntity",
-    "NameOfUltimateParentOfGroup"
-    )
+    "NameOfUltimateParentOfGroup",
+)
 
 esefMandatoryElementNames2022 = (
     "AddressOfRegisteredOfficeOfEntity",
@@ -342,7 +360,7 @@ esefMandatoryElementNames2022 = (
     "StatementOfIFRSCompliance",
 )
 
-htmlEventHandlerAttributes = set((
+htmlEventHandlerAttributes = {
     "onabort",
     "onafterprint",
     "onbeforeprint",
@@ -414,9 +432,9 @@ htmlEventHandlerAttributes = set((
     "onvolumechange",
     "onwaiting",
     "onwheel",
-))
+}
 
-svgEventAttributes = set((
+svgEventAttributes = {
     "onabort",
     "onactivate",
     "onafterprint",
@@ -495,5 +513,5 @@ svgEventAttributes = set((
     "onunload",
     "onvolumechange",
     "onwaiting",
-    "onzoom"
-))
+    "onzoom",
+}
