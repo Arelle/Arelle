@@ -93,7 +93,7 @@ def validate(modelXbrl, validateCalcs) -> None:
 class ValidateXbrlCalcs:
     def __init__(self, modelXbrl, validateCalcs):
         self.modelXbrl = modelXbrl
-        self.inferDecimals = validateCalcs == ValidateCalcsMode.XBRL_v2_1
+        self.inferDecimals = validateCalcs != ValidateCalcsMode.XBRL_v2_1_INFER_PRECISION
         self.deDuplicate = validateCalcs == ValidateCalcsMode.XBRL_v2_1_DEDUPLICATE
         self.xbrl21 = validateCalcs in (ValidateCalcsMode.XBRL_v2_1_INFER_PRECISION, ValidateCalcsMode.XBRL_v2_1, ValidateCalcsMode.XBRL_v2_1_DEDUPLICATE)
         self.calc11 = validateCalcs in (ValidateCalcsMode.ROUND_TO_NEAREST, ValidateCalcsMode.TRUNCATION)
