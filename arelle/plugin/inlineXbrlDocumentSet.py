@@ -55,6 +55,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from arelle import FileSource, ModelXbrl, ValidateXbrlDimensions, XbrlConst
 DialogURL = None # dynamically imported when first used
+from arelle.CntlrCmdLine import filesourceEntrypointFiles
 from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.FileSource import archiveFilenameParts, archiveFilenameSuffixes
 from arelle.ModelInstanceObject import ModelInlineFootnote
@@ -441,8 +442,16 @@ def runOpenInlineDocumentSetMenuCommand(cntlr, filenames, runInBackground=False,
         from arelle.FileSource import openFileSource
         filesource = openFileSource(filenames[0], cntlr)
         if filesource.isArchive:
+            # identify entrypoint files
+            try:
+                entrypointFiles = filesourceEntrypointFiles(filesource, inlineOnly=True)
+                l = len(filesource.baseurl) + 1 # len of the base URL of the archive
+                selectFiles = [e["file"][l:] for e in entrypointFiles if "file" in e] + \
+                              [e["file"][l:] for i in entrypointFiles if "ixds" in i for e in i["ixds"] if "file" in e]
+            except FileSource.ArchiveFileIOError:
+                selectFiles = None
             from arelle import DialogOpenArchive
-            archiveEntries = DialogOpenArchive.askArchiveFile(cntlr, filesource, multiselect=True)
+            archiveEntries = DialogOpenArchive.askArchiveFile(cntlr, filesource, multiselect=True, selectFiles=selectFiles)
             if archiveEntries:
                 ixdsFirstFile = archiveEntries[0]
                 _archiveFilenameParts = archiveFilenameParts(ixdsFirstFile)
