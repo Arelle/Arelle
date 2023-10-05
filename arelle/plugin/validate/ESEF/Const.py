@@ -37,8 +37,8 @@ DefaultDimensionLinkroles = (
     "http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000",
 )
 
-LineItemsNotQualifiedLinkrole2021 = (
-    "http://www.esma.europa.eu/xbrl/role/cor/esef_role-999999"
+LineItemsNotQualifiedLinkroles2021 = (
+    "http://www.esma.europa.eu/xbrl/role/cor/esef_role-999999",
 )
 
 LineItemsNotQualifiedLinkroles = (

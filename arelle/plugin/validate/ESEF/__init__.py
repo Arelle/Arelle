@@ -65,7 +65,7 @@ from arelle.XbrlConst import (ixbrl11, xhtml, parentChild, summationItem, standa
                               all as hc_all, notAll as hc_notAll, dimensionDomain, domainMember,
                               qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote, iso17442)
 from arelle.ValidateUtr import ValidateUtr
-from .Const import (mandatory, untransformableTypes,
+from .Const import (DefaultDimensionLinkroles2021, LineItemsNotQualifiedLinkroles2021, mandatory, untransformableTypes,
                     esefPrimaryStatementPlaceholderNames, esefStatementsOfMonetaryDeclarationNames, esefMandatoryElementNames2020)
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
@@ -271,7 +271,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         _("RTS on ESEF requires inline XBRL instances."),
                         modelObject=modelXbrl)
 
-    checkFilingDimensions(val) # sets up val.primaryItems and val.domainMembers
+    checkFilingDimensions(val, DefaultDimensionLinkroles2021, LineItemsNotQualifiedLinkroles2021) # sets up val.primaryItems and val.domainMembers
     val.hasExtensionSchema = val.hasExtensionPre = val.hasExtensionCal = val.hasExtensionDef = val.hasExtensionLbl = False
 
     # ModelDocument.load has None as a return type. For typing reasons, we need to guard against that here.
