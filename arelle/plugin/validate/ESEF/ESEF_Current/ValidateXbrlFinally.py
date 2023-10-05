@@ -6,13 +6,12 @@ from __future__ import annotations
 import os
 import zipfile
 from collections import defaultdict
-from collections.abc import Generator
 from math import isnan
 from typing import Any, List, cast
 
 import regex as re
 import tinycss2  # type: ignore[import]
-from lxml.etree import EntityBase, _Comment, _Element, _ElementTree, _ProcessingInstruction
+from lxml.etree import EntityBase, _Comment, _ElementTree, _ProcessingInstruction
 
 from arelle import LeiUtil, ModelDocument, XbrlConst
 from arelle.FunctionIxt import ixtNamespaces
@@ -64,7 +63,7 @@ from ..Const import (
     untransformableTypes,
 )
 from ..Dimensions import checkFilingDimensions
-from ..Util import checkForMultiLangDuplicates, getEsefNotesStatementConcepts, hasEventHandlerAttributes, isExtension
+from ..Util import checkForMultiLangDuplicates, etreeIterWithDepth, getEsefNotesStatementConcepts, hasEventHandlerAttributes, isExtension
 
 _: TypeGetText  # Handle gettext
 
@@ -78,13 +77,6 @@ FOOTNOTE_LINK_CHILDREN = {qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl1
 PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
 IXT_NAMESPACES = {ixtNamespaces["ixt v4"], # only tr4 or newer REC is currently recommended
                   ixtNamespaces["ixt v5"]}
-
-
-def etreeIterWithDepth(node: ModelObject | _Element, depth: int=0) -> Generator[tuple[ModelObject | _Element, int], None, None]:
-    yield (node, depth)
-    for child in node.iterchildren():
-        for n_d in etreeIterWithDepth(child, depth+1):
-            yield n_d
 
 
 def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:

@@ -7,7 +7,7 @@ import json
 import os
 from collections import defaultdict
 from collections.abc import Collection
-from typing import Any, Dict, List, Union, cast
+from typing import Any, Dict, Generator, List, Union, cast
 
 from lxml.etree import _Element
 
@@ -169,3 +169,13 @@ def _hasEventAttributes(elt: Any, attributes: Collection[str]) -> bool:
     if isinstance(elt, _Element):
         return any(a in attributes for a in elt.keys())
     return False
+
+
+def etreeIterWithDepth(
+    node: ModelObject | _Element,
+    depth: int = 0,
+) -> Generator[tuple[ModelObject | _Element, int], None, None]:
+    yield node, depth
+    for child in node.iterchildren():
+        for n_d in etreeIterWithDepth(child, depth + 1):
+            yield n_d
