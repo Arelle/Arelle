@@ -36,7 +36,6 @@ def checkFilingDimensions(
         if isinstance(sourceDomMbr, ModelConcept) and sourceDomMbr not in membersSet:
             membersSet.add(sourceDomMbr)
             for domMbrRel in val.modelXbrl.relationshipSet(XbrlConst.domainMember, ELR).fromModelObject(sourceDomMbr):
-                #if domMbrRel.isUsable:
                 addDomMbrs(domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, membersSet)
 
     for hasHypercubeArcrole in (XbrlConst.all, XbrlConst.notAll):
@@ -85,18 +84,6 @@ def checkFilingDimensions(
                 hcPrimaryItems.clear()
                 hcMembers.clear()
 
-    # find primary items with other dimensions in
-    #for ELR, priItems in elrPrimaryItems.items():
-    #    if ELR in lineItemsNotQualifiedLinkroles:
-    #        # consider any pri item in not reported non-dimensionally
-    #        i = set(hcPrimaryItem
-    #                for hcPrimaryItem in (priItems & elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set()))
-    #                if not any(not f.context.qnameDims for f in val.modelXbrl.factsByQname.get(hcPrimaryItem.qname,())))
-    #        if i:
-    #            val.modelXbrl.warning("ESEF.3.4.2.extensionTaxonomyLineItemIncorrectlyLinkedToNonDimensionallyQualifiedHypercube",
-    #                _("Dimensional line item SHOULD NOT also be linked to \"not dimensionally qualified\" hypercube from %(linkrole)s, primary item %(qnames)s"),
-    #                modelObject=i, linkrole=ELR, qnames=", ".join(sorted(str(c.qname) for c in i)))
-
     # reported pri items not in LineItemsNotQualifiedLinkrole
     nsExcl = val.authParam.get("lineItemsNotDimQualExclusionNsPattern")
     if nsExcl:
@@ -113,17 +100,6 @@ def checkFilingDimensions(
         val.modelXbrl.error("ESEF.3.4.2.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
             _("Line items that do not require any dimensional information to tag data MUST be linked to the dedicated \"Line items not dimensionally qualified\" hypercube in %(linkrole)s declared in esef_cor.xsd, primary item %(qnames)s"),
             modelObject=i, linkrole=lineItemsNotQualifiedLinkroles[0], qnames=", ".join(sorted(str(c.qname) for c in i)))
-    # pri items in lineItemsNotQualifiedLinkroles which are not used in report non-dimensionally
-    # check no longer in Filer Manual as of 2021
-    #i = set(hcPrimaryItem
-    #       for hcPrimaryItem in elrPrimaryItems.get(lineItemsNotQualifiedLinkroles, set())
-    #       if not any(not f.context.qnameDims
-    #                  for f in val.modelXbrl.factsByQname.get(hcPrimaryItem.qname,())
-    #                  if f.context is not None))
-    #if i:
-    #    val.modelXbrl.warning("ESEF.3.4.2.extensionTaxonomyLineItemIncorrectlyLinkedToNonDimensionallyQualifiedHypercube",
-    #        _("Dimensional line item not reported non-dimensionally has no need to be linked to \"not dimensionally qualified\" hypercube %(linkrole)s, primary item %(qnames)s"),
-    #        modelObject=i, linkrole=lineItemsNotQualifiedLinkroles, qnames=", ".join(sorted(str(c.qname) for c in i)))
 
     # check ELRs with WiderNarrower relationships
     elrsContainingDimensionalRelationships = set(
