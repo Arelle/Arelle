@@ -2240,7 +2240,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         (comparison == "not equal" and f.xValue == g.xValue) or
                                         (comparison in ("less than or equal", "not greater") and f.xValue > g.xValue)):
                                         comparisonText = sev.get("comparisonText", deiValidations["validations"][sev["validation"]].get("comparisonText", comparison)).format(comparison=comparison)
-                                        sevMessage(sev, subType=submissionType, modelObject=(f,g), ftContext=ftContext(axisKey,g), comparison=comparisonText,
+                                        sevMessage(sev, subType=submissionType, modelObject=(f,g), ftContext=ftContext(axisKey,f), comparison=comparisonText,
                                                    tag=ftName(name1), label=ftLabel(name1), otherTag=ftName(name2), otherLabel=ftLabel(name2), value=f.xValue, otherValue=g.xValue)
                 elif validation == "calculation":
                     comparison = sev.get("comparison")

@@ -5,7 +5,18 @@ This file was created by staff of the U.S. Securities and Exchange Commission.
 Data and content created by government employees within the scope of their employment
 are not subject to domestic copyright protection. 17 U.S.C. 105.
 -->
-    <!-- SHR 2023 -->
+  <!-- FFD 2023 -->
+  <Loc>
+    <Family>FFD</Family>
+    <Version>2023</Version>
+    <Href>https://xbrl.sec.gov/ffd/2023/ffd-2023.xsd</Href>
+    <AttType>SCH</AttType>
+    <FileTypeName>Schema</FileTypeName>
+    <Elements>1</Elements>
+    <Namespace>http://xbrl.sec.gov/ffd/2023</Namespace>
+    <Prefix>ffd</Prefix>
+  </Loc>
+  <!-- SHR 2023 -->
     <Loc>
         <Family>SHR</Family>
         <Version>2023</Version>
