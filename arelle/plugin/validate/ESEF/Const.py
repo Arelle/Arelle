@@ -6,7 +6,28 @@ from __future__ import annotations
 import regex as re
 
 from arelle import XbrlConst
+from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelValue import QName, qname
+from arelle.XmlValidate import lexicalPatterns
+
+styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*")
+styleCssHiddenPattern = re.compile(r"(.*[^\w]|^)display\s*:\s*none([^\w].*|$)")
+datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
+docTypeXhtmlPattern = re.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-//W3C//DTD\s+(X?HTML)\s)?.*>$", re.IGNORECASE)
+
+FOOTNOTE_LINK_CHILDREN = frozenset((
+    XbrlConst.qnLinkLoc,
+    XbrlConst.qnLinkFootnoteArc,
+    XbrlConst.qnLinkFootnote,
+    XbrlConst.qnIXbrl11Footnote,
+))
+
+PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
+
+IXT_NAMESPACES = frozenset((
+    ixtNamespaces["ixt v4"],  # only tr4 or newer REC is currently recommended
+    ixtNamespaces["ixt v5"],
+))
 
 browserMaxBase64ImageLength = 5242880  # 5MB
 

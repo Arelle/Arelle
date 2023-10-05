@@ -14,7 +14,6 @@ import tinycss2  # type: ignore[import]
 from lxml.etree import EntityBase, _Comment, _ElementTree, _ProcessingInstruction
 
 from arelle import LeiUtil, ModelDocument, XbrlConst
-from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelContext
@@ -39,27 +38,28 @@ from arelle.XbrlConst import (
     ixbrl11,
     notAll as hc_notAll,
     parentChild,
-    qnIXbrl11Footnote,
-    qnLinkFootnote,
-    qnLinkFootnoteArc,
-    qnLinkLoc,
     standardLabel,
     summationItem,
     widerNarrower,
     xhtml,
 )
-from arelle.XmlValidate import lexicalPatterns
 from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
 from .DTS import checkFilingDTS
 from .Image import checkSVGContentElt, validateImage
 from ..Const import (
     DefaultDimensionLinkroles,
+    FOOTNOTE_LINK_CHILDREN,
+    IXT_NAMESPACES,
     LineItemsNotQualifiedLinkroles,
+    PERCENT_TYPE, datetimePattern,
+    docTypeXhtmlPattern,
     esefMandatoryElementNames2020,
     esefPrimaryStatementPlaceholderNames,
     esefStatementsOfMonetaryDeclarationNames,
     mandatory,
+    styleCssHiddenPattern,
+    styleIxHiddenPattern,
     untransformableTypes,
 )
 from ..Dimensions import checkFilingDimensions
@@ -67,16 +67,7 @@ from ..Util import checkForMultiLangDuplicates, etreeIterWithDepth, getEsefNotes
 
 _: TypeGetText  # Handle gettext
 
-styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*")
-styleCssHiddenPattern = re.compile(r"(.*[^\w]|^)display\s*:\s*none([^\w].*|$)")
 ifrsNsPattern = re.compile(r"https?://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full")
-datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
-docTypeXhtmlPattern = re.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-//W3C//DTD\s+(X?HTML)\s)?.*>$", re.IGNORECASE)
-
-FOOTNOTE_LINK_CHILDREN = {qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote}
-PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
-IXT_NAMESPACES = {ixtNamespaces["ixt v4"], # only tr4 or newer REC is currently recommended
-                  ixtNamespaces["ixt v5"]}
 
 
 def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
