@@ -43,7 +43,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import regex as re
+from lxml.etree import parse, XMLSyntaxError, XMLParser
 from arelle import ModelDocument, XhtmlValidate
+from arelle.FileSource import FileSource
 from arelle.ModelValue import qname
 from arelle.PackageManager import validateTaxonomyPackage
 from arelle.Version import authorLabel, copyrightLabel
@@ -63,36 +65,53 @@ _: TypeGetText  # Handle gettext
 ixErrorPattern = re.compile(r"ix11[.]|xmlSchema[:]|(?!xbrl.5.2.5.2|xbrl.5.2.6.2)xbrl[.]|xbrld[ti]e[:]|utre[:]")
 
 
+def is2021DisclosureSystem(modelXbrl: ModelXbrl) -> bool:
+    return any("2021" in name for name in modelXbrl.modelManager.disclosureSystem.names)
+
+
 def dislosureSystemTypes(disclosureSystem: DisclosureSystem, *args: Any, **kwargs: Any) -> tuple[tuple[str, str]]:
     # return ((disclosure system name, variable name), ...)
     return (("ESEF", "ESEFplugin"),)
 
+
 def disclosureSystemConfigURL(disclosureSystem: DisclosureSystem, *args: Any, **kwargs: Any) -> str:
     return str(Path(__file__).parent / "resources" / "config.xml")
 
+
 def modelXbrlBeforeLoading(modelXbrl: ModelXbrl, normalizedUri: str, filepath: str, isEntry: bool=False, **kwargs: Any) -> ModelDocument.LoadingException | None:
     if getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
-        if isEntry and not any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
-            if modelXbrl.fileSource.isArchive:
-                if (not isinstance(modelXbrl.fileSource.selection, list) and
-                    modelXbrl.fileSource.selection is not None and
-                    modelXbrl.fileSource.selection.endswith(".xml") and
-                    ModelDocument.Type.identify(modelXbrl.fileSource, cast(str, modelXbrl.fileSource.url)) in (
-                        ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
-                    return None # allow zipped test case to load normally
-                if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
-                    modelXbrl.error("ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage",
-                        _("Single reporting package with issuer's XBRL extension taxonomy files and Inline XBRL instance document must be compliant with the latest recommended version of the Taxonomy Packages specification (1.0)"),
-                        modelObject=modelXbrl)
-                    return ModelDocument.LoadingException("Invalid taxonomy package")
+        if isEntry:
+            if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
+                if not is2021DisclosureSystem(modelXbrl) and re.match(r'.*[.](7z|rar|tar|jar)', normalizedUri):
+                    modelXbrl.error("ESEF.Arelle.InvalidSubmissionFormat",
+                                    _("Unrecognized submission format."),
+                                    modelObject=modelXbrl)
+                    return ModelDocument.LoadingException("Invalid submission format")
+            else:
+                if modelXbrl.fileSource.isArchive:
+                    if (not isinstance(modelXbrl.fileSource.selection, list) and
+                        modelXbrl.fileSource.selection is not None and
+                        modelXbrl.fileSource.selection.endswith(".xml") and
+                        ModelDocument.Type.identify(modelXbrl.fileSource, cast(str, modelXbrl.fileSource.url)) in (
+                            ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
+                        return None  # allow zipped test case to load normally
+                    if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
+                        modelXbrl.error("ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage",
+                            _("Single reporting package with issuer's XBRL extension taxonomy files and Inline XBRL instance document must be compliant with the latest recommended version of the Taxonomy Packages specification (1.0)"),
+                            modelObject=modelXbrl)
+                        return ModelDocument.LoadingException("Invalid taxonomy package")
     return None
+
 
 def modelXbrlLoadComplete(modelXbrl: ModelXbrl) -> None:
     if (getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False) and
         (modelXbrl.modelDocument is None or modelXbrl.modelDocument.type not in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRY, ModelDocument.Type.RSSFEED))):
         if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
 
-            assert modelXbrl.modelDocument is not None
+            if modelXbrl.modelDocument is None:
+                modelXbrl.error("arelle-ESEF.InvalidSubmissionFormat",
+                    _("Unable to identify submission."))
+                return
 
             htmlElement = modelXbrl.modelDocument.xmlRootElement
             if htmlElement.namespaceURI == xhtml:
@@ -112,6 +131,49 @@ def modelXbrlLoadComplete(modelXbrl: ModelXbrl) -> None:
             modelXbrl.error("ESEF.RTS.Art.6.a.noInlineXbrlTags",
                             _("RTS on ESEF requires inline XBRL, no facts were reported."),
                             modelObject=modelXbrl)
+        if not is2021DisclosureSystem(modelXbrl):
+            if modelXbrl.fileSource.isArchive:
+                if modelXbrl.fileSource.dir is not None:
+                    for filename in modelXbrl.fileSource.dir:
+                        validateEntity(modelXbrl, filename, modelXbrl.fileSource)
+            else:
+                if isinstance(modelXbrl.fileSource.url, str):
+                    ixdsDocUrls = getattr(modelXbrl, "ixdsDocUrls", None)
+                    if ixdsDocUrls:
+                        for url in ixdsDocUrls:
+                            validateEntity(modelXbrl, url, modelXbrl.fileSource)
+                    else:
+                        validateEntity(modelXbrl, modelXbrl.fileSource.url, modelXbrl.fileSource)
+                elif isinstance(modelXbrl.fileSource.url, list):
+                    for filename in modelXbrl.fileSource.url:
+                        validateEntity(modelXbrl, filename, modelXbrl.fileSource)
+                if modelXbrl.modelDocument:
+                    # search for the zip of the taxonomy extension
+                    entrypointDocs = [referencedDoc for referencedDoc in modelXbrl.modelDocument.referencesDocument.keys() if referencedDoc.type == ModelDocument.Type.SCHEMA]
+                    for entrypointDoc in entrypointDocs: # usually only one
+                        for filesource in modelXbrl.fileSource.referencedFileSources.values():
+                            if filesource.exists(entrypointDoc.filepath) and filesource.dir is not None:
+                                for filename in filesource.dir:
+                                    validateEntity(modelXbrl, filename, filesource)
+
+
+def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -> None:
+    consolidated = not any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names)
+    contentOtherThanXHTMLGuidance = 'ESEF.2.5.1' if consolidated else 'ESEF.4.1.3'
+    fullname = filesource.basedUrl(filename)
+    file = filesource.file(fullname)
+    try:
+        parser = XMLParser(load_dtd=True, resolve_entities=False)
+        root = parse(file[0], parser=parser)
+        if root.docinfo.internalDTD:
+            for entity in root.docinfo.internalDTD.iterentities():  # type: ignore[attr-defined]
+                modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.maliciousCodePresent",
+                                _("Documents MUST NOT contain any malicious content. Dangerous XML entity found: %(element)s."),
+                                modelObject=filename, element=entity.name)
+    except (UnicodeDecodeError, XMLSyntaxError) as e:
+        # probably a image or a directory
+        pass
+
 
 def validateXbrlStart(val: ValidateXbrl, parameters: dict[Any, Any] | None=None, *args: Any, **kwargs: Any) -> None:
     val.validateESEFplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "ESEFplugin", False)
@@ -135,6 +197,18 @@ def validateXbrlStart(val: ValidateXbrl, parameters: dict[Any, Any] | None=None,
 
     val.authParam = authorityValidations["default"]
     val.authParam.update(authorityValidations.get(val.authority, {}))
+    if parameters:
+        overwiteParams = {}
+        for key, value in parameters.items():
+            if str(key) in val.authParam and len(value) == 2 and value[1] not in ("null", "None", None):
+                if isinstance(val.authParam[str(key)], int):
+                    try:
+                        overwiteParams[str(key)] = int(value[1])
+                    except ValueError:
+                        modelXbrl.error("Invalid Parameter", _("%(key)s should be a int, got (value)"), key=key, value=value)
+                else:
+                    overwiteParams[str(key)] = value[1]
+        val.authParam.update(overwiteParams)
     for convertListIntoSet in ("outdatedTaxonomyURLs", "effectiveTaxonomyURLs", "standardTaxonomyURIs", "additionalMandatoryTags"):
         if convertListIntoSet in val.authParam:
             val.authParam[convertListIntoSet] = set(val.authParam[convertListIntoSet])
@@ -160,6 +234,7 @@ def validateXbrlStart(val: ValidateXbrl, parameters: dict[Any, Any] | None=None,
     if not formulaOptions.runIDs and val.authParam["formulaRunIDs"]:
         formulaOptions.runIDs = val.authParam["formulaRunIDs"]
 
+
 def validateFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None: # runs all inline checks
     if not (val.validateESEFplugin):
         return
@@ -184,10 +259,12 @@ def validateFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None: # run
     # force reporting of unsatisfied assertions for which there are no messages
     traceUnmessagedUnsatisfiedAssertions = True
 
+
 def validateFormulaCompiled(modelXbrl: ModelXbrl, xpathContext: XPathContext) -> None:
     # request unsatisfied assertions without a message to print a trace
     # this is not conditional on validateESEFplugin so the flag is set even if DisclosureSystemChecks not requested upon compiling but set later in workflow
     xpathContext.formulaOptions.traceUnmessagedUnsatisfiedAssertions = True
+
 
 def validateFormulaFinished(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None: # runs *after* formula (which is different for test suite from other operation
     if not getattr(val, 'validateESEFplugin', False):
@@ -211,15 +288,17 @@ def validateFormulaFinished(val: ValidateXbrl, *args: Any, **kwargs: Any) -> Non
                         _("Target XBRL document SHOULD be valid against the assertions specified in ESEF taxonomy, %(numUnsatisfied)s with warnings."),
                         modelObject=modelXbrl, numUnsatisfied=sumWrnMsgs)
 
+
 def testcaseVariationReportPackageIxdsOptions(validate: ValidateXbrl, rptPkgIxdsOptions: dict[str, bool]) -> None:
     if getattr(validate.modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
         rptPkgIxdsOptions["lookOutsideReportsDirectory"] = True
         rptPkgIxdsOptions["combineIntoSingleIxds"] = True
 
+
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate ESMA ESEF',
-    'version': '1.2020.03',
+    'version': '1.2023.00',
     'description': '''ESMA ESEF Filer Manual and RTS Validations.''',
     'license': 'Apache-2',
     'author': authorLabel,
