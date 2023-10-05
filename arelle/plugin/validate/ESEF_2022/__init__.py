@@ -74,8 +74,9 @@ from .Const import (mandatory, untransformableTypes,
                     esefPrimaryStatementPlaceholderNames, esefStatementsOfMonetaryDeclarationNames, esefMandatoryElementNames2020)
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
+from .Image import validateImage, checkSVGContentElt
 from .Util import isExtension, loadAuthorityValidations, checkForMultiLangDuplicates,\
-    getEsefNotesStatementConcepts, hasEventHandlerAttributes, validateImage, checkSVGContentElt
+    getEsefNotesStatementConcepts, hasEventHandlerAttributes
 from arelle.typing import TypeGetText
 from arelle.ModelObject import ModelObject
 from arelle.DisclosureSystem import DisclosureSystem
