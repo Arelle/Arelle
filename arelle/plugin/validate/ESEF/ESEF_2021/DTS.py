@@ -15,7 +15,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import dimensionDefault, standardLabelRoles, xbrli
 from arelle.typing import TypeGetText
-from .Const import (
+from ..Const import (
     DefaultDimensionLinkroles2021,
     esefDefinitionArcroles,
     filenamePatterns,
@@ -23,7 +23,7 @@ from .Const import (
     linkbaseRefTypes,
     qnDomainItemTypes,
 )
-from .Util import isExtension
+from ..Util import isExtension
 
 _: TypeGetText  # Handle gettext
 

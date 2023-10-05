@@ -13,7 +13,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.UrlUtil import scheme
 from arelle.ValidateFilingText import validateGraphicHeaderType
 from arelle.typing import TypeGetText
-from .Util import hasSvgEventAttributes
+from ..Util import hasSvgEventAttributes
 
 _: TypeGetText
 

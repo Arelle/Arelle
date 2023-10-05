@@ -49,7 +49,7 @@ from arelle.PackageManager import validateTaxonomyPackage
 from arelle.Version import authorLabel, copyrightLabel
 
 from arelle.XbrlConst import xhtml
-from .ValidateXbrlFinally import validateXbrlFinally
+from .ESEF_2021.ValidateXbrlFinally import validateXbrlFinally
 from .Util import loadAuthorityValidations
 from arelle.typing import TypeGetText
 from arelle.DisclosureSystem import DisclosureSystem
