@@ -1,24 +1,23 @@
-'''
-Filer Guidelines: ESMA_ESEF Manula 2019.pdf
-
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
+import json
+import os
 from collections.abc import Collection
+from typing import Any, Dict, List, Union, cast
 
 from lxml.etree import _Element
-import os, json
-from arelle.ModelObject import ModelObject
-from .Const import esefTaxonomyNamespaceURIs, htmlEventHandlerAttributes, svgEventAttributes
+
 from arelle.FileSource import openFileStream
+from arelle.ModelDocument import ModelDocument
 from arelle.ModelManager import ModelManager
+from arelle.ModelObject import ModelObject
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
-from typing import Any, Dict, List, Union, cast
-from arelle.ModelDocument import ModelDocument
 from arelle.typing import TypeGetText
-
+from .Const import esefTaxonomyNamespaceURIs, htmlEventHandlerAttributes, svgEventAttributes
 
 _: TypeGetText  # Handle gettext
 
