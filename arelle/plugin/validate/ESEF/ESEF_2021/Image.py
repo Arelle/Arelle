@@ -13,15 +13,10 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.UrlUtil import scheme
 from arelle.ValidateFilingText import validateGraphicHeaderType
 from arelle.typing import TypeGetText
+from ..Const import supportedImgTypes
 from ..Util import hasSvgEventAttributes
 
 _: TypeGetText
-
-
-supportedImgTypes = {
-    True: ("gif", "jpg", "jpeg", "png"),  # file extensions
-    False: ("gif", "jpeg", "png")  # mime types: jpg is not a valid mime type
-}
 
 
 # check image contents against mime/file ext and for Steganography

@@ -10,6 +10,11 @@ from arelle.ModelValue import QName, qname
 
 browserMaxBase64ImageLength = 5242880  # 5MB
 
+supportedImgTypes = {
+    True: ("gif", "jpg", "jpeg", "png"),  # file extensions
+    False: ("gif", "jpeg", "png")  # mime types: jpg is not a valid mime type
+}
+
 esefTaxonomyNamespaceURIs2021 = frozenset((
     "http://xbrl.ifrs.org/taxonomy/20",
 ))

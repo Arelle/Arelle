@@ -16,15 +16,10 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.UrlUtil import decodeBase64DataImage, scheme
 from arelle.ValidateFilingText import parseImageDataURL, validateGraphicHeaderType
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.plugin.validate.ESEF.Const import supportedImgTypes
 from arelle.typing import TypeGetText
 
 _: TypeGetText  # Handle gettext
-
-
-supportedImgTypes = {
-    True: ("gif", "jpg", "jpeg", "png"),  # file extensions
-    False: ("gif", "jpeg", "png")  # mime types: jpg is not a valid mime type
-}
 
 
 # check image contents against mime/file ext and for Steganography
