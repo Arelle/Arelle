@@ -49,8 +49,6 @@ from arelle.XbrlConst import (
 from arelle.XmlValidate import lexicalPatterns
 from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
-from .DTS import checkFilingDTS
-from .Image import checkImageContents
 from .Const import (
     DefaultDimensionLinkroles2021,
     LineItemsNotQualifiedLinkroles2021,
@@ -60,7 +58,9 @@ from .Const import (
     mandatory,
     untransformableTypes,
 )
+from .DTS import checkFilingDTS
 from .Dimensions import checkFilingDimensions
+from .Image import checkImageContents
 from .Util import hasEventHandlerAttributes, isExtension
 
 _: TypeGetText  # Handle gettext
