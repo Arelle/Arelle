@@ -1,20 +1,21 @@
-'''
-Filer Guidelines: ESMA_ESEF Manula 2019.pdf
-
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
+
 from collections import defaultdict
 from typing import Any, List, cast
+
+import regex as re
+
+from arelle import XbrlConst
 from arelle.ModelDtsObject import ModelConcept, ModelLink
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
-from arelle import XbrlConst
-from .Const import LineItemsNotQualifiedLinkrole2021, DefaultDimensionLinkroles2021
-from .Util import isExtension, isInEsefTaxonomy
-import regex as re
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
+from .Const import DefaultDimensionLinkroles2021, LineItemsNotQualifiedLinkrole2021
+from .Util import isExtension, isInEsefTaxonomy
 
 _: TypeGetText  # Handle gettext
 
