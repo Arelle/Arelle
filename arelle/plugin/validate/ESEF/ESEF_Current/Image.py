@@ -16,8 +16,8 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.UrlUtil import decodeBase64DataImage, scheme
 from arelle.ValidateFilingText import parseImageDataURL, validateGraphicHeaderType
 from arelle.ValidateXbrl import ValidateXbrl
-from arelle.plugin.validate.ESEF.Const import supportedImgTypes
 from arelle.typing import TypeGetText
+from ..Const import supportedImgTypes
 
 _: TypeGetText  # Handle gettext
 
