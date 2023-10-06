@@ -71,7 +71,7 @@ TIMING = {f'esef_conformance_suite_2022/tests/inline_xbrl/{k}': v for k, v in {
 config = ConformanceSuiteConfig(
     approximate_relative_timing=TIMING,
     args=[
-        '--disclosureSystem', 'esef',
+        '--disclosureSystem', 'esef-2022',
         '--formula', 'run',
     ],
     expected_failure_ids=frozenset(f'esef_conformance_suite_2022/tests/{s}' for s in [
@@ -84,7 +84,7 @@ config = ConformanceSuiteConfig(
     info_url='https://www.esma.europa.eu/document/esef-conformance-suite-2022',
     local_filepath='esef_conformance_suite_2022.zip',
     name=PurePath(__file__).stem,
-    plugins=frozenset({'validate/ESEF_2022'}),
+    plugins=frozenset({'validate/ESEF'}),
     public_download_url='https://www.esma.europa.eu/sites/default/files/library/esef_conformance_suite_2022.zip',
     shards=5,
 )

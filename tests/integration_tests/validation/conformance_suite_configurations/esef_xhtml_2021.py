@@ -3,7 +3,7 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 
 config = ConformanceSuiteConfig(
     args=[
-        '--disclosureSystem', 'esef-unconsolidated',
+        '--disclosureSystem', 'esef-unconsolidated-2021',
         '--formula', 'none',
     ],
     file='esef_conformance_suite_2021/esef_conformance_suite_2021/index_pure_xhtml.xml',

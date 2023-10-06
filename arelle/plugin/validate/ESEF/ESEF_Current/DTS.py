@@ -1,28 +1,29 @@
-'''
-Version 2022 created on September 19, 2022
-
-Filer Guidelines: https://www.esma.europa.eu/sites/default/files/library/esma32-60-254_esef_reporting_manual.pdf
-
-Taxonomy Architecture:
-
-Taxonomy package expected to be installed:
-
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
+
 import unicodedata
-import regex as re
 from collections import defaultdict
-from arelle import XbrlConst, ModelDocument as ModelDocumentFile
-from arelle.ModelDtsObject import ModelConcept, ModelType
+
+import regex as re
+
+from arelle import ModelDocument as ModelDocumentFile, XbrlConst
 from arelle.ModelDocument import ModelDocument
+from arelle.ModelDtsObject import ModelConcept, ModelType
 from arelle.ModelObject import ModelObject
-from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault
-from .Const import (qnDomainItemTypes, esefDefinitionArcroles, DefaultDimensionLinkroles,
-                    linkbaseRefTypes, filenamePatterns, filenameRegexes)
-from .Util import isExtension, isChildOfNotes
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XbrlConst import dimensionDefault, standardLabelRoles, xbrli
 from arelle.typing import TypeGetText
+from ..Const import (
+    DefaultDimensionLinkroles,
+    esefDefinitionArcroles,
+    filenamePatterns,
+    filenameRegexes,
+    linkbaseRefTypes,
+    qnDomainItemTypes,
+)
+from ..Util import isChildOfNotes, isExtension
 
 _: TypeGetText  # Handle gettext
 

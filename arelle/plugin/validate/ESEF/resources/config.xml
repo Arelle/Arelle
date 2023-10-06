@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<DisclosureSystems
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../../../config/disclosuresystems.xsd">
+    <!-- see ../../../../config/disclosuresystem.xml for full comments -->
+
+    <DisclosureSystem
+            names="ESMA RTS on ESEF-2022|ESEF-2022|esef-2022|ESEF|esef"
+            description="ESMA RTS on ESEF-2022 Validation Checks for Consolidated Financial Statements"
+            validationType="ESEF"
+            exclusiveTypesPattern="EFM|GFM|FERC|HMRC|SBR.NL|EBA|EIOPA|ESEF"
+            blockDisallowedReferences="false"
+            validateFileText="false"
+            contextElement="scenario"
+    />
+
+    <DisclosureSystem
+            names="ESMA RTS on ESEF-2022 Unconsolidated|ESEF-Unconsolidated-2022|esef-unconsolidated-2022|ESEF-Unconsolidated|esef-unconsolidated"
+            description="ESMA RTS on ESEF-2022 Validation Checks for Unconsolidated Financial Statements"
+            validationType="ESEF"
+            exclusiveTypesPattern="EFM|GFM|FERC|HMRC|SBR.NL|EBA|EIOPA|ESEF"
+            blockDisallowedReferences="false"
+            validateFileText="false"
+            contextElement="scenario"
+    />
+
+    <DisclosureSystem
+            names="ESMA RTS on ESEF-2021|ESEF-2021|esef-2021"
+            description="ESMA RTS on ESEF-2021 Validation Checks for Consolidated Financial Statements"
+            validationType="ESEF"
+            exclusiveTypesPattern="EFM|GFM|FERC|HMRC|SBR.NL|EBA|EIOPA|ESEF"
+            blockDisallowedReferences="false"
+            validateFileText="false"
+            contextElement="scenario"
+    />
+
+    <DisclosureSystem
+            names="ESMA RTS on ESEF-2021 Unconsolidated|ESEF-Unconsolidated-2021|esef-unconsolidated-2021"
+            description="ESMA RTS on ESEF-2021 Validation Checks for Unconsolidated Financial Statements"
+            validationType="ESEF"
+            exclusiveTypesPattern="EFM|GFM|FERC|HMRC|SBR.NL|EBA|EIOPA|ESEF"
+            blockDisallowedReferences="false"
+            validateFileText="false"
+            contextElement="scenario"
+    />
+
+</DisclosureSystems>

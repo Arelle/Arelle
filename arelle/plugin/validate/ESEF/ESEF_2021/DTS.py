@@ -1,31 +1,39 @@
-'''
-Filer Guidelines: ESMA_ESEF Manula 2019.pdf
-
-Taxonomy Architecture:
-
-Taxonomy package expected to be installed:
-
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
+
 import unicodedata
-import regex as re
 from collections import defaultdict
-from arelle import XbrlConst, ModelDocument as ModelDocumentFile
-from arelle.ModelDtsObject import ModelConcept, ModelType
+
+import regex as re
+
+from arelle import ModelDocument as ModelDocumentFile, XbrlConst
 from arelle.ModelDocument import ModelDocument
+from arelle.ModelDtsObject import ModelConcept, ModelType
 from arelle.ModelObject import ModelObject
-from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault
-from .Const import (qnDomainItemTypes, esefDefinitionArcroles, DefaultDimensionLinkroles,
-                    linkbaseRefTypes, filenamePatterns, filenameRegexes)
-from .Util import isExtension
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XbrlConst import dimensionDefault, standardLabelRoles, xbrli
 from arelle.typing import TypeGetText
+from ..Const import (
+    DefaultDimensionLinkroles2021,
+    esefDefinitionArcroles,
+    filenamePatterns,
+    filenameRegexes,
+    linkbaseRefTypes,
+    qnDomainItemTypes,
+)
+from ..Util import isExtension
 
 _: TypeGetText  # Handle gettext
 
 
-def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: list[ModelDocument], hrefXlinkRole: str | None =None) -> None:
+def checkFilingDTS(
+    val: ValidateXbrl,
+    modelDocument: ModelDocument,
+    visited: list[ModelDocument],
+    hrefXlinkRole: str | None = None,
+) -> None:
     visited.append(modelDocument)
     for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
         if referencedDocument not in visited and referencedDocument.inDTS: # ignore non-DTS documents
@@ -83,7 +91,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: lis
         widerNarrowerRelSet = val.modelXbrl.relationshipSet(XbrlConst.widerNarrower)
         generalSpecialRelSet = val.modelXbrl.relationshipSet(XbrlConst.generalSpecial)
         calcRelSet = val.modelXbrl.relationshipSet(XbrlConst.summationItem)
-        dimensionDefaults = val.modelXbrl.relationshipSet(dimensionDefault, DefaultDimensionLinkroles)
+        dimensionDefaults = val.modelXbrl.relationshipSet(dimensionDefault, DefaultDimensionLinkroles2021)
         labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
         if modelDocument.targetNamespace is not None:
             for modelConcept in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}element"):

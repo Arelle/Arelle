@@ -72,7 +72,7 @@ TIMING = {f'esef_conformance_suite_2021/esef_conformance_suite_2021/tests/inline
 config = ConformanceSuiteConfig(
     approximate_relative_timing=TIMING,
     args=[
-        '--disclosureSystem', 'esef',
+        '--disclosureSystem', 'esef-2021',
         '--formula', 'run',
     ],
     file='esef_conformance_suite_2021/esef_conformance_suite_2021/index_inline_xbrl.xml',
