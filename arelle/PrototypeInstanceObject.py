@@ -39,6 +39,7 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
         else:
             self.unit = None
         self.factObjectId = None
+        v.modelXbrl.factPrototypeNextIndex = self.objectIndex = getattr(v.modelXbrl, "factPrototypeNextIndex", 0) + 1
 
     def clear(self):
         if self.context is not None:

@@ -12,9 +12,10 @@ import os, threading, time, logging
 from tkinter import Menu, BooleanVar, font as tkFont
 from arelle import (ViewWinTkTable, ModelDocument, ModelDtsObject, ModelInstanceObject, XbrlConst,
                     ModelXbrl, Locale, FunctionXfi,
-                    ValidateXbrlDimensions, ViewFileRenderedGrid)
+                    ValidateXbrlDimensions, ViewFileRenderedGrid, ViewFileRenderedLayout)
 from arelle.ModelValue import qname, QName
 from arelle.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
+from arelle.RenderingLayout import layoutTable
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectModelAspect
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelRenderingObject import (StrctMdlBreakdown, DefnMdlDefinitionNode,
@@ -93,8 +94,9 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view.viewFrame.bind("<1>", view.onClick, '+') # does not currently work (since tktable changes)
     view.viewFrame.bind("<Configure>", view.onConfigure, '+') # frame resized, redo column header wrap length ratios
     view.blockMenuEvents = 0
+    layoutTable(view)
     if "saveTableLayoutModel" in modelXbrl.modelManager.formulaOptions.parameterValues:
-        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl,
+        ViewFileRenderedLayout.viewRenderedLayout(modelXbrl,
               modelXbrl.modelManager.formulaOptions.parameterValues["saveTableLayoutModel"][1],
               lang=lang, sourceView=view)
     if "saveTableHtml" in modelXbrl.modelManager.formulaOptions.parameterValues:

@@ -8,7 +8,7 @@ import os, sys, traceback, re, logging
 from collections import defaultdict, OrderedDict
 from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlConst,
                ValidateXbrl, ValidateVersReport, ValidateFormula,
-               ValidateInfoset, RenderingEvaluator, ViewFileRenderedGrid, UrlUtil)
+               ValidateInfoset, RenderingEvaluator, ViewFileRenderedLayout, UrlUtil)
 from arelle.ModelDocument import Type, ModelDocumentReference, load as modelDocumentLoad
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact
@@ -401,7 +401,7 @@ class Validate:
                         if not any(alternativeValidation(modelXbrl, resultTableUri)
                                    for alternativeValidation in pluginClassMethods("Validate.TableInfoset")):
                             try:
-                                ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, resultTableUri, diffToFile=True)  # false to save infoset files
+                                ViewFileRenderedLayout.viewRenderedLayout(modelXbrl, resultTableUri, diffToFile=True)  # false to save infoset files
                             except Exception as err:
                                 modelXbrl.error("exception:" + type(err).__name__,
                                     _("Testcase table linkbase validation exception: %(error)s, instance: %(instance)s"),

@@ -40,23 +40,90 @@ class ResolutionException(Exception):
     def __repr__(self):
         return _('[{0}] exception {1}').format(self.code, self.message % self.kwargs)
 
-class LayoutMdlHdrCells:
-    def __init__(self, strctMdlNode):
-        self.strctMdlNode = strctMdlNode
-        self.layoutMdlCells = [] # contains LayoutMdlCell objects
-class LayoutMdlHdrCell:
-    def __init__(self, strctMdlNode):
-        self.strctMdlNode = strctMdlNode
-        self.parentLayoutMdlHdrCell = None
-class LayoutMdlBodyCells:
-    def __init__(self, strctMdlNode):
-        self.strctMdlNode = strctMdlNode
-        self.layoutMdlCells = [] # z body cells contain y's body cells; y body cells contain x's body cells; x's body cells contain individual cells
-class LayoutMdlBodyCell:
-    def __init__(self, strctMdlNode):
-        self.strctMdlNode = strctMdlNode
-        self.layoutMdlHdrCell = None # leaf header cell
-        self.facts = [] # bound facts
+class LytMdlTableModel:
+    def __init__(self, entryPointUrl):
+        self.entryPointUrl = entryPointUrl
+        self.lytMdlTableSets = []
+    def __repr__(self):
+        return (f"LytMdlTableModel[{self.entryPointUrl}]")
+class LytMdlTableSet:
+    def __init__(self, lytMdlTable, strctMdlTable, label, srcFile, srcLine, srcLinkrole):
+        self.lytMdlTable = lytMdlTable
+        self.strctMdlParentTable = strctMdlTable
+        self.label = label
+        self.srcFile = srcFile
+        self.srcLine = srcLine
+        self.srcLinkrole = srcLinkrole
+        lytMdlTable.lytMdlTableSets.append(self)
+        self.lytMdlTables = []
+    def __repr__(self):
+        return (f"LytMdlTableSet[{self.label}]")
+class LytMdlTable:
+    def __init__(self, lytMdlTableSet):
+        self.lytMdlParentTableSet = lytMdlTableSet
+        self.lytMdlHeaders = []
+        lytMdlTableSet.lytMdlTables.append(self)
+        self.lytMdlBodyChildren = []
+    def __repr__(self):
+        return (f"LytMdlTable[]")
+class LytMdlHeaders:
+    def __init__(self, lytMdlTable, axis):
+        self.lytMdlParentTable = lytMdlTable
+        self.axis = axis
+        lytMdlTable.lytMdlHeaders.append(self)
+        self.lytMdlGroups = []
+    def __repr__(self):
+        return (f"LytMdlHeaders[{self.axis}]")
+class LytMdlGroup:
+    def __init__(self, lytMdlHeaders, label, srcFile, srcLine):
+        self.lytMdlParentHeaders = lytMdlHeaders
+        self.label = label
+        self.srcFile = srcFile
+        self.srcLine = srcLine
+        lytMdlHeaders.lytMdlGroups.append(self)
+        self.lytMdlHeaders = []
+    def __repr__(self):
+        return (f"LytMdlGroup[{self.label}]")
+class LytMdlHeader:
+    def __init__(self, lytMdlGroup):
+        self.lytMdlParentGroup = lytMdlGroup
+        lytMdlGroup.lytMdlHeaders.append(self)
+        self.lytMdlCells = []
+    def __repr__(self):
+        return (f"LytMdlHeader[]")
+class LytMdlCell:
+    def __init__(self):
+        self.lytMdlParentHeader = None
+        self.labels = []
+        self.span = 1
+        self.rollup = self.id = self.isOpenAspectEntrySurrogate = None
+        self.lytMdlConstraints = []
+    def __repr__(self):
+        return (f"LytMdlCell[{self.labels}]")
+class LytMdlConstraint:
+    def __init__(self, lytMdlCell, tag):
+        self.lytMdlParentCell = lytMdlCell
+        self.tag = tag
+        self.aspect = self.value = None
+        lytMdlCell.lytMdlConstraints.append(self)
+    def __repr__(self):
+        return (f"LytMdlConstraint[{self.aspect}]")
+class LytMdlBodyCells:
+    def __init__(self, lytMdlParent, axis):
+        self.lytMdlParent = lytMdlParent
+        self.axis = axis
+        self.lytMdlBodyChildren = [] # z body cells contain y's body cells; y body cells contain x's body cells; x's body cells contain individual cells
+        lytMdlParent.lytMdlBodyChildren.append(self)
+    def __repr__(self):
+        return (f"LytMdlBodyCells[{self.axis}]")
+class LytMdlBodyCell:
+    def __init__(self, lytMdlParent, isOpenAspectEntrySurrogate=False):
+        self.lytMdlParent = lytMdlParent
+        self.isOpenAspectEntrySurrogate = isOpenAspectEntrySurrogate
+        lytMdlParent.lytMdlBodyChildren.append(self)
+        self.facts = () # bound facts
+    def __repr__(self):
+        return (f"LytMdlBodyCell[{self.axis}]")
 def definitionNodes(nodes):
     return [(ord.definitionNodeObject if isinstance(node, StrctMdlStructuralNode) else node) for node in nodes]
 def parentChildOrder(node):
@@ -174,6 +241,11 @@ class StrctMdlNode:
             return self.defnMdlNode.objectId(refId)
         return None
     @property
+    def xlinkLabel(self):
+        if self.defnMdlNode is not None:
+            return self.defnMdlNode.xlinkLabel
+        return None
+    @property
     def structuralDepth(self):
         return 0
     @property
@@ -193,7 +265,7 @@ class StrctMdlNode:
             if label:
                 return label, None # explicit is default source
         if self.isEntryAspect and role is None:
-            # True if open node bound to a prototype, false if boudn to a real fact
+            # True if open node bound to a prototype, false if bound to a real fact
             return OPEN_ASPECT_ENTRY_SURROGATE, None # sort pretty high, work ok for python 2.7/3.2 as well as 3.3
         # if there's a child roll up, check for it
         if self.childRollupStrctNode is not None:  # check the rolling-up child too
@@ -311,6 +383,8 @@ class StrctMdlNode:
                 structuralNode.defnMdlNode.hasValueExpression):
                 return self.evaluate(self.defnMdlNode, structuralNode.defnMdlNode.evalValueExpression, otherAxisStructuralNode=otherAxisStructuralNode, evalArgs=(fact,))
         return None
+    def __repr__(self):
+        return (f"{type(self).__name__}[{self.xlinkLabel}]")
 class StrctMdlTableSet(StrctMdlNode):
     def __init__(self, defnMdlTable):
         super(StrctMdlTableSet, self).__init__(None, defnMdlTable)
