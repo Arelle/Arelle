@@ -2,11 +2,11 @@
 See COPYRIGHT.md for copyright information.
 '''
 import os
-from arelle import ModelDocument, ModelValue, XmlUtil
-from arelle.ModelValue import qname
-from arelle.plugin.validate.EFM.Document import checkDTSdocument
-from arelle.plugin.validate.EFM.Filing import validateFiling
+
 from arelle.Version import authorLabel, copyrightLabel
+from ..EFM.Document import checkDTSdocument
+from ..EFM.Filing import validateFiling
+
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
