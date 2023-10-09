@@ -117,7 +117,7 @@ jobs:
           repository: Arelle/EdgarRenderer
           path: arelle/plugin/EdgarRenderer
       - name: Install Python 3
-        uses: actions/setup-python@v4.7.0
+        uses: actions/setup-python@v4.7.1
         with:
           cache: 'pip'
           check-latest: true
@@ -127,7 +127,7 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           pip install -r requirements-dev.txt
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4.0.0
+        uses: aws-actions/configure-aws-credentials@v4.0.1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}

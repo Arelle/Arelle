@@ -121,7 +121,7 @@ jobs:
     - shell: cmd
       run: move ixbrl-viewer\iXBRLViewerPlugin arelle\plugin\iXBRLViewerPlugin && rmdir /s /q ixbrl-viewer
     - name: Set up Python ${{ inputs.python_version }}
-      uses: actions/setup-python@v4.7.0
+      uses: actions/setup-python@v4.7.1
       with:
         cache: 'pip'
         check-latest: true
