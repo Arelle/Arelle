@@ -81,8 +81,12 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view.tablesMenuLength = 0
     view.menuAddLangs()
     saveMenu = Menu(view.viewFrame, tearoff=0)
-    saveMenu.add_command(label=_("HTML file"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="html"))
-    saveMenu.add_command(label=_("Layout model"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="xml"))
+    saveMenu.add_command(label=_("HTML table"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(
+        view=view, fileType="html", method=ViewFileRenderedGrid.viewRenderedGrid, caption=_("arelle - Save HTML-rendered Table")))
+    saveMenu.add_command(label=_("Layout model"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(
+        view=view, fileType="xml", method=ViewFileRenderedLayout.viewRenderedLayout, caption=_("arelle - Save Table Layout Model")))
+    saveMenu.add_command(label=_("Structural model"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(
+        view=view, fileType="json", method=ViewFileRenderedStructure.viewRenderedStructuralModel, caption=_("arelle - Save Table Structural Model")))
     saveMenu.add_command(label=_("XBRL instance"), underline=0, command=view.saveInstance)
     menu.add_cascade(label=_("Save"), menu=saveMenu, underline=0)
     view.view()
