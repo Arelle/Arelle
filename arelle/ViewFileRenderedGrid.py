@@ -89,7 +89,7 @@ class ViewRenderedGrid(ViewFile.View):
         self.view()
 
     def view(self, lytMdlTblMdl):
-        
+
         for lytMdlTableSet in lytMdlTblMdl.lytMdlTableSets:
             self.tblElt.append(etree.Comment(f"TableSet linkbase file: {lytMdlTableSet.srcFile}, line {lytMdlTableSet.srcLine}"))
             self.tblElt.append(etree.Comment(f"TableSet linkrole: {lytMdlTableSet.srcLinkrole}"))
@@ -97,88 +97,121 @@ class ViewRenderedGrid(ViewFile.View):
             etree.SubElement(tblSetHdr, "{http://www.w3.org/1999/xhtml}td").text = lytMdlTableSet.label
             for lytMdlTable in lytMdlTableSet.lytMdlTables:
                 # each Z is a separate table in the outer table
-                zTableRow = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")
-                zRowCell = etree.SubElement(zTableRow, "{http://www.w3.org/1999/xhtml}td")
-                zCellTable = etree.SubElement(zRowCell, "{http://www.w3.org/1999/xhtml}table",
-                                              attrib={"border":"1", "cellspacing":"0", "cellpadding":"4", "style":"font-size:8pt;"})
-                lytMdlXHdrs = lytMdlTable.lytMdlAxisHeaders("x")
-                lytMdlYHdrs = lytMdlTable.lytMdlAxisHeaders("y")
-                nbrXcolHdrs = sum(lytMdlHeader.maxNumLabels
-                                  for lytMdlGroup in lytMdlXHdrs.lytMdlGroups
-                                  for lytMdlHeader in lytMdlGroup.lytMdlHeaders
-                                  if not all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlHeader.lytMdlCells))
-                nbrYrowHdrs = sum(lytMdlHeader.maxNumLabels
-                                  for lytMdlGroup in lytMdlYHdrs.lytMdlGroups
-                                  for lytMdlHeader in lytMdlGroup.lytMdlHeaders)
-                # build y row headers
-                numYrows = max((sum(lytMdlCell.span
-                                   for ytMdlYHdr in lytMdlYGrp.lytMdlHeaders
-                                   for lytMdlCell in ytMdlYHdr.lytMdlCells)
-                                for lytMdlYGrp in lytMdlYHdrs.lytMdlGroups))
-                yRowHdrs = [[] for i in range(numYrows)] # list of list of row header elements for each row
-                for lytMdlYGrp in lytMdlYHdrs.lytMdlGroups:
-                    for lytMdlYHdr in lytMdlYGrp.lytMdlHeaders:
-                        yRow = 0
-                        if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlYHdr.lytMdlCells):
-                            continue # skip header with only open aspect entry surrogate
-                        for lytMdlYCell in lytMdlYHdr.lytMdlCells:
-                            for iLabel in range(lytMdlYHdr.maxNumLabels):
-                                if lytMdlYCell.isOpenAspectEntrySurrogate:
-                                    continue # strip all open aspect entry surrogates from layout model file
-                                attrib = {"style":"max-width:100em;"}
-                                if lytMdlYCell.rollup:
-                                    attrib["class"] = "yAxisTopSpanLeg"
-                                else:
-                                    attrib["class"] = "yAxisHdr"
-                                if lytMdlYCell.span > 1:
-                                    attrib["rowspan"] = str(lytMdlYCell.span)
-                                rowHdrElt = etree.Element("{http://www.w3.org/1999/xhtml}th", attrib=attrib)
-                                rowHdrElt.text = lytMdlYCell.labelXmlText(iLabel,"\u00a0")
-                                yRowHdrs[yRow].append(rowHdrElt)
-                            yRow += lytMdlYCell.span
-                firstColHdr = True
-                for lytMdlGroup in lytMdlXHdrs.lytMdlGroups:
-                    for lytMdlHeader in lytMdlGroup.lytMdlHeaders:
-                        if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlHeader.lytMdlCells):
-                            continue # skip header with only open aspect entry surrogate
-                        for iLabel in range(lytMdlHeader.maxNumLabels):
-                            rowElt = etree.SubElement(zCellTable, "{http://www.w3.org/1999/xhtml}tr")
-                            if firstColHdr:
-                                etree.SubElement(rowElt, "{http://www.w3.org/1999/xhtml}th",
-                                                 attrib={"class":"tableHdr",
-                                                         "style":"max-width:100em;",
-                                                         "colspan": str(nbrYrowHdrs),
-                                                         "rowspan": str(nbrXcolHdrs)}
-                                                 ).text = lytMdlTableSet.label
-                                firstColHdr = False
-                            for lytMdlCell in lytMdlHeader.lytMdlCells:
-                                if lytMdlCell.isOpenAspectEntrySurrogate:
-                                    continue # strip all open aspect entry surrogates from layout model file
-                                attrib = {"style":"max-width:100em;"}
-                                if lytMdlCell.rollup:
-                                    attrib["class"] = "xAxisSpanLeg"
-                                else:
-                                    attrib["class"] = "xAxisHdr"
-                                if lytMdlCell.span > 1:
-                                    attrib["colspan"] = str(lytMdlCell.span)
-                                etree.SubElement(rowElt, "{http://www.w3.org/1999/xhtml}th", attrib=attrib
-                                                 ).text = lytMdlCell.labelXmlText(iLabel,"\u00a0")
-                yRowNum = 0
-                for lytMdlZCell in lytMdlTable.lytMdlBodyChildren:
-                    for lytMdlYCell in lytMdlZCell.lytMdlBodyChildren:
-                        for lytMdlXCell in lytMdlYCell.lytMdlBodyChildren:
-                            if not any(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlXCell.lytMdlBodyChildren):
+                lytMdlZHdrs = lytMdlTable.lytMdlAxisHeaders("z")
+                if lytMdlZHdrs is not None:
+                    lytMdlZHdrGroups = lytMdlZHdrs.lytMdlGroups
+                    numZtbls = max((sum(lytMdlCell.span
+                                       for lytMdlZHdr in lytMdlZGrp.lytMdlHeaders
+                                       for lytMdlCell in lytMdlZHdr.lytMdlCells)
+                                    for lytMdlZGrp in lytMdlZHdrs.lytMdlGroups)
+                                ) or 1 # must have at least 1 z entry
+                    zHdrElts = [[] for i in range(numZtbls)]
+                    for lytMdlZGrp in lytMdlZHdrs.lytMdlGroups:
+                        for lytMdlZHdr in lytMdlZGrp.lytMdlHeaders:
+                            zRow = 0
+                            if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlZHdr.lytMdlCells):
+                                continue # skip header with only open aspect entry surrogate
+                            for lytMdlZCell in lytMdlZHdr.lytMdlCells:
+                                for iSpan in range(lytMdlZCell.span):
+                                    zHdrElts[zRow].append([lbl[0] for lbl in lytMdlZCell.labels])
+                                    zRow += 1
+                else:
+                    zHdrElts = [[]]
+                    numZtbls = 1
+                zTbl = 0
+                lytMdlZBodyCell = lytMdlTable.lytMdlBodyChildren[0] # examples only show one z cell despite number of tables
+                for lytMdlYBodyCell in lytMdlZBodyCell.lytMdlBodyChildren:
+                    zTableRow = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")
+                    zRowCell = etree.SubElement(zTableRow, "{http://www.w3.org/1999/xhtml}td")
+                    zCellTable = etree.SubElement(zRowCell, "{http://www.w3.org/1999/xhtml}table",
+                                                  attrib={"border":"1", "cellspacing":"0", "cellpadding":"4", "style":"font-size:8pt;"})
+                    lytMdlXHdrs = lytMdlTable.lytMdlAxisHeaders("x")
+                    lytMdlYHdrs = lytMdlTable.lytMdlAxisHeaders("y")
+                    nbrXcolHdrs = sum(lytMdlHeader.maxNumLabels
+                                      for lytMdlGroup in lytMdlXHdrs.lytMdlGroups
+                                      for lytMdlHeader in lytMdlGroup.lytMdlHeaders
+                                      if not all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlHeader.lytMdlCells))
+                    nbrYrowHdrs = sum(lytMdlHeader.maxNumLabels
+                                      for lytMdlGroup in lytMdlYHdrs.lytMdlGroups
+                                      for lytMdlHeader in lytMdlGroup.lytMdlHeaders)
+                    # build y row headers
+                    numYrows = max((sum(lytMdlCell.span
+                                       for lytMdlYHdr in lytMdlYGrp.lytMdlHeaders
+                                       for lytMdlCell in lytMdlYHdr.lytMdlCells)
+                                    for lytMdlYGrp in lytMdlYHdrs.lytMdlGroups))
+                    yRowHdrs = [[] for i in range(numYrows)] # list of list of row header elements for each row
+                    for lytMdlYGrp in lytMdlYHdrs.lytMdlGroups:
+                        for lytMdlYHdr in lytMdlYGrp.lytMdlHeaders:
+                            yRow = 0
+                            if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlYHdr.lytMdlCells):
+                                continue # skip header with only open aspect entry surrogate
+                            for lytMdlYCell in lytMdlYHdr.lytMdlCells:
+                                for iLabel in range(lytMdlYHdr.maxNumLabels):
+                                    if lytMdlYCell.isOpenAspectEntrySurrogate:
+                                        continue # strip all open aspect entry surrogates from layout model file
+                                    attrib = {"style":"max-width:100em;"}
+                                    if lytMdlYCell.rollup:
+                                        attrib["class"] = "yAxisTopSpanLeg"
+                                    else:
+                                        attrib["class"] = "yAxisHdr"
+                                    if lytMdlYCell.span > 1:
+                                        attrib["rowspan"] = str(lytMdlYCell.span)
+                                    rowHdrElt = etree.Element("{http://www.w3.org/1999/xhtml}th", attrib=attrib)
+                                    rowHdrElt.text = lytMdlYCell.labelXmlText(iLabel,"\u00a0")
+                                    yRowHdrs[yRow].append(rowHdrElt)
+                                yRow += lytMdlYCell.span
+                    firstColHdr = True
+                    for lytMdlGroup in lytMdlXHdrs.lytMdlGroups:
+                        for lytMdlHeader in lytMdlGroup.lytMdlHeaders:
+                            if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlHeader.lytMdlCells):
+                                continue # skip header with only open aspect entry surrogate
+                            for iLabel in range(lytMdlHeader.maxNumLabels):
                                 rowElt = etree.SubElement(zCellTable, "{http://www.w3.org/1999/xhtml}tr")
-                                if yRowNum < len(yRowHdrs):
-                                    for rowHdrElt in yRowHdrs[yRowNum]:
-                                        rowElt.append(rowHdrElt)
-                                for lytMdlCell in lytMdlXCell.lytMdlBodyChildren:
-                                    justify = "left"
-                                    for f, v, justify in lytMdlCell.facts:
-                                        break;
-                                    colElt = etree.SubElement(rowElt, "{http://www.w3.org/1999/xhtml}td",
-                                                              attrib={"class":"cell",
-                                                                      "style":f"text-align:{justify};width:8em;"}
-                                                     ).text = "\n".join(v for f, v, justify in lytMdlCell.facts)
-                                yRowNum += 1
-       
+                                if firstColHdr:
+                                    zHdrElt = etree.SubElement(rowElt, "{http://www.w3.org/1999/xhtml}th",
+                                                               attrib={"class":"tableHdr",
+                                                                       "style":"max-width:100em;",
+                                                                       "colspan": str(nbrYrowHdrs),
+                                                                       "rowspan": str(nbrXcolHdrs)})
+                                    if zHdrElts[zTbl]:
+                                        zHdrTblElt = etree.SubElement(zHdrElt,"{http://www.w3.org/1999/xhtml}table",
+                                                                      attrib={"style":"border-top:none;border-left:none;border-right:none;border-bottom:none;"})
+                                        for zHdrLblRow in zHdrElts[zTbl]:
+                                            zHdrRowElt = etree.SubElement(zHdrTblElt, "{http://www.w3.org/1999/xhtml}tr")
+                                            for lbl in zHdrLblRow:
+                                                etree.SubElement(zHdrRowElt, "{http://www.w3.org/1999/xhtml}th",
+                                                                 attrib={"class":"tableHdr","style":"max-width:100em;font-size:8pt;text-align:left;border-top:none;border-left:none;border-right:none;border-bottom:none;"}
+                                                                 ).text = lbl
+                                    else:
+                                        zHdrElt.text = '\u00a0'
+                                    firstColHdr = False
+                                for lytMdlCell in lytMdlHeader.lytMdlCells:
+                                    if lytMdlCell.isOpenAspectEntrySurrogate:
+                                        continue # strip all open aspect entry surrogates from layout model file
+                                    attrib = {"style":"max-width:100em;"}
+                                    if lytMdlCell.rollup:
+                                        attrib["class"] = "xAxisSpanLeg"
+                                    else:
+                                        attrib["class"] = "xAxisHdr"
+                                    if lytMdlCell.span > 1:
+                                        attrib["colspan"] = str(lytMdlCell.span)
+                                    etree.SubElement(rowElt, "{http://www.w3.org/1999/xhtml}th", attrib=attrib
+                                                     ).text = lytMdlCell.labelXmlText(iLabel,"\u00a0")
+                    yRowNum = 0
+                    for lytMdlXBodyCell in lytMdlYBodyCell.lytMdlBodyChildren:
+                        if not any(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlXBodyCell.lytMdlBodyChildren):
+                            rowElt = etree.SubElement(zCellTable, "{http://www.w3.org/1999/xhtml}tr")
+                            if yRowNum < len(yRowHdrs):
+                                for rowHdrElt in yRowHdrs[yRowNum]:
+                                    rowElt.append(rowHdrElt)
+                            for lytMdlCell in lytMdlXBodyCell.lytMdlBodyChildren:
+                                justify = "left"
+                                for f, v, justify in lytMdlCell.facts:
+                                    break;
+                                colElt = etree.SubElement(rowElt, "{http://www.w3.org/1999/xhtml}td",
+                                                          attrib={"class":"cell",
+                                                                  "style":f"text-align:{justify};width:8em;"}
+                                                 ).text = "\n".join(v for f, v, justify in lytMdlCell.facts)
+                            yRowNum += 1
+                    if zTbl < len(lytMdlZBodyCell.lytMdlBodyChildren) - 1:
+                        zTbl += 1

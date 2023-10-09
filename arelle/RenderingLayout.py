@@ -102,11 +102,13 @@ def layoutTable(view):
                     layoutAxis(view, view.dataFirstCol, view.colHdrTopRow, view.colHdrTopRow + view.colHdrRows - 1,
                                zTopStrctNode, zStrctNodes, True, True, view.colHdrNonStdRoles)
                     # lay out choices for each discriminator
-                    zCounts = [1]
+                    zCounts = []
                     for _position, layoutMdlBrkdnCells in sorted(view.headerCells.items()):
                         if layoutMdlBrkdnCells:
                             zCounts.append(sum((int(headerCell.span)
                                                 for _brkdnNode, _strNode, headerCell in layoutMdlBrkdnCells)))
+                    if not zCounts:
+                        zCounts = [1] # allow single z iteration
                     zDiscrimAspectNodes = [{} for i in range(max(zCounts))]
                     for _position, layoutMdlBrkdnCells in sorted(view.headerCells.items()):
                         if layoutMdlBrkdnCells:
@@ -136,18 +138,16 @@ def layoutTable(view):
                     #view.zAxis(1, strctMdlTable.strctMdlFirstAxisBreakdown("z"), zAspectStrctNodes, True)
                     view.cellsTableElt = lytMdlTbl
                     lytMdlZCells = LytMdlBodyCells(view.cellsTableElt, "z")
-                lytMdlYCells = LytMdlBodyCells(lytMdlZCells, "y")
-                # rows/cols only on firstTime for infoset XML, but on each time for xhtml
-                #view.zAxis(1, zTopStrctNode, zAspectStrctNodes, False)
-                xStrctNodes = []
-                yStrctNodes = []
-                zStrctNodes = []
-                zAspectStrctNodes = defaultdict(list)
+                    # rows/cols only on firstTime for infoset XML, but on each time for xhtml
+                    #view.zAxis(1, zTopStrctNode, zAspectStrctNodes, False)
+                    xStrctNodes = []
+                    yStrctNodes = []
+                    zStrctNodes = []
+                    zAspectStrctNodes = defaultdict(list)
 
-                if xTopStrctNode and xTopStrctNode.strctMdlChildNodes:
-                    layoutAxis(view, view.dataFirstCol, view.colHdrTopRow, view.colHdrTopRow + view.colHdrRows - 1,
-                               xTopStrctNode, xStrctNodes, True, True, view.colHdrNonStdRoles)
-                if discriminator == 1: # infoset goes by col of row header
+                    if xTopStrctNode and xTopStrctNode.strctMdlChildNodes:
+                        layoutAxis(view, view.dataFirstCol, view.colHdrTopRow, view.colHdrTopRow + view.colHdrRows - 1,
+                                   xTopStrctNode, xStrctNodes, True, True, view.colHdrNonStdRoles)
                     if yTopStrctNode and yTopStrctNode.strctMdlChildNodes: # no row header element if no rows
                         layoutAxis(view, view.dataFirstRow, view.colHdrTopRow, view.colHdrTopRow + view.colHdrRows - 1,
                                    yTopStrctNode, yStrctNodes, True, True, view.rowHdrNonStdRoles)
@@ -194,6 +194,7 @@ def layoutTable(view):
                 # if no x axis nodes put a dummy one in
                 if len(xStrctNodes) == 0:
                     xStrctNodes.append(StrctMdlStructuralNode(strctMdlTable, None))
+                lytMdlYCells = LytMdlBodyCells(lytMdlZCells, "y")
                 hasRows = bodyCells(view, view.dataFirstRow, yStrctNodes, xStrctNodes, zDiscrimAspectNodes[discriminator-1], lytMdlYCells) # zAspectStrctNodes)
                 if not hasRows:
                     lytMdlZCells.lytMdlBodyChildren.remove(lytMdlYCells)
