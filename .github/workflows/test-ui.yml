@@ -89,7 +89,7 @@ jobs:
 
       - name: Install Python
         if: matrix.build-type == 'source'
-        uses: actions/setup-python@v4.7.0
+        uses: actions/setup-python@v4.7.1
         with:
           cache: 'pip'
           check-latest: true
