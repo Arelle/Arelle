@@ -91,7 +91,6 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
             targetId = instanceElt.id
             self.targetDocumentId = targetId
             self.targetDocumentPreferredFilename = instanceElt.get('preferredFilename')
-            self.targetDocumentSchemaRefs = set()  # union all the instance schemaRefs
             for ixbrlElt in instanceElt.iter(tag="{http://disclosure.edinet-fsa.go.jp/2013/manifest}ixbrl"):
                 uri = ixbrlElt.textValue.strip()
                 if uri:
@@ -102,10 +101,6 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
                         referencedDocument = ModelDocumentReference("inlineDocument", instanceElt)
                         referencedDocument.targetId = targetId
                         self.referencesDocument[doc] = referencedDocument
-                        self.ixNS = doc.ixNS
-                        for referencedDoc in doc.referencesDocument.keys():
-                            if referencedDoc.type == Type.SCHEMA:
-                                self.targetDocumentSchemaRefs.add(doc.relativeUri(referencedDoc.uri))
         return True
 
 def loadDTS(modelXbrl, modelIxdsDocument):
@@ -166,7 +161,6 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
         xml.append("</instances>\n")
         ixdocset = create(modelXbrl, Type.INLINEXBRLDOCUMENTSET, docsetUrl, isEntry=True, initialXml="".join(xml))
         ixdocset.type = Type.INLINEXBRLDOCUMENTSET
-        ixdocset.targetDocumentSchemaRefs = set()  # union all the instance schemaRefs
         for i, elt in enumerate(ixdocset.xmlRootElement.iter(tag="instance")):
             # load ix document
             if ixdocs:
@@ -194,9 +188,6 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
             if ixdocs:
                 loadDTS(modelXbrl, ixdocset)
             inlineIxdsDiscover(modelXbrl, ixdocset) # compile cross-document IXDS references
-            for referencedDoc in ixdocset.referencesDocument.keys():
-                if referencedDoc.type == Type.SCHEMA:
-                    ixdocset.targetDocumentSchemaRefs.add(ixdoc.relativeUri(referencedDoc.uri))
             return ixdocset
     return None
 
@@ -791,6 +782,12 @@ def ixdsTargetDiscoveryCompleted(modelXbrl, modelIxdsDocument):
                                    useFileSource=modelXbrl.fileSource, ixdsTarget=target, ixdsHtmlElements=ixdsHtmlElements)
                 )
         modelXbrl.modelManager.loadedModelXbrls.extend(modelXbrl.supplementalModelXbrls)
+
+    # provide schema references for IXDS document
+    modelIxdsDocument.targetDocumentSchemaRefs = set()  # union all the instance schemaRefs
+    for referencedDoc in modelIxdsDocument.referencesDocument.keys():
+        if referencedDoc.type == Type.SCHEMA:
+            modelIxdsDocument.targetDocumentSchemaRefs.add(modelIxdsDocument.relativeUri(referencedDoc.uri))
 
 __pluginInfo__ = {
     'name': 'Inline XBRL Document Set',
