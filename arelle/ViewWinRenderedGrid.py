@@ -94,7 +94,6 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view.viewFrame.bind("<1>", view.onClick, '+') # does not currently work (since tktable changes)
     view.viewFrame.bind("<Configure>", view.onConfigure, '+') # frame resized, redo column header wrap length ratios
     view.blockMenuEvents = 0
-    layoutTable(view)
     if "saveTableStructuralModel" in modelXbrl.modelManager.formulaOptions.parameterValues:
         ViewFileRenderedStructure.viewRenderedStructuralModel(modelXbrl,
               modelXbrl.modelManager.formulaOptions.parameterValues["saveTableStructuralModel"][1],
@@ -223,7 +222,12 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         # remove old widgets
         self.viewFrame.clearGrid()
 
-        strctMdlTable = resolveTableStructure(self, viewTblELR)
+        layoutTable(self)
+        try:
+            strctMdlTable = self.lytMdlTblMdl.lytMdlTableSets[0].lytMdlTables[0].strctMdlTable
+        except IndexError:
+            if TRACE_TK: print("no table to display")
+            return # no table to display
 
         if len(self.zBreakdownStrctNodes) == 0:
             if clearZchoices: # also need first time initialization

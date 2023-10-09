@@ -59,8 +59,9 @@ class LytMdlTableSet:
     def __repr__(self):
         return (f"LytMdlTableSet[{self.label}]")
 class LytMdlTable:
-    def __init__(self, lytMdlTableSet):
+    def __init__(self, lytMdlTableSet, strctMdlTable):
         self.lytMdlParentTableSet = lytMdlTableSet
+        self.strctMdlTable = strctMdlTable
         self.lytMdlHeaders = []
         lytMdlTableSet.lytMdlTables.append(self)
         self.lytMdlBodyChildren = []
@@ -69,6 +70,19 @@ class LytMdlTable:
             if lytMdlHeader.axis == axis:
                 return lytMdlHeader
         return None
+    def headerDepth(self, axis, includeOpenAspectEntrySurrogates=False):
+        # number of column header rows or number, row header columns, etc
+        return sum(lytMdlHeader.maxNumLabels
+                   for lytMdlGroup in self.lytMdlAxisHeaders(axis).lytMdlGroups
+                   for lytMdlHeader in lytMdlGroup.lytMdlHeaders
+                   if includeOpenAspectEntrySurrogates or
+                      not all(lytMdlCell.isOpenAspectEntrySurrogate
+                              for lytMdlCell in lytMdlHeader.lytMdlCells))
+    def numBodyCells(self, axis):
+        return max((sum(lytMdlCell.span
+                        for lytMdlHdr in lytMdlGrp.lytMdlHeaders
+                        for lytMdlCell in lytMdlHdr.lytMdlCells)
+                    for lytMdlGrp in self.lytMdlAxisHeaders(axis).lytMdlGroups))
     def __repr__(self):
         return (f"LytMdlTable[]")
 class LytMdlHeaders:

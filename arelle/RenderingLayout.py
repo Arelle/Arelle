@@ -76,7 +76,7 @@ def layoutTable(view):
                     lytMdlTblSet = LytMdlTableSet(view.lytMdlTblMdl, strctMdlTable, tableLabel, defnMdlTable.modelDocument.basename, defnMdlTable.sourceline, tblELR)
                     zAspectStrctNodes = defaultdict(set)
 
-                    lytMdlTbl = LytMdlTable(lytMdlTblSet)
+                    lytMdlTbl = LytMdlTable(lytMdlTblSet, strctMdlTable)
                     brkdownNodeLytMdlGrp = {}
                     view.headerCells = defaultdict(list) # order #: (breakdownNode, xml element)
                     for axis in ("z", "y", "x", ):

@@ -100,11 +100,7 @@ class ViewRenderedGrid(ViewFile.View):
                 lytMdlZHdrs = lytMdlTable.lytMdlAxisHeaders("z")
                 if lytMdlZHdrs is not None:
                     lytMdlZHdrGroups = lytMdlZHdrs.lytMdlGroups
-                    numZtbls = max((sum(lytMdlCell.span
-                                       for lytMdlZHdr in lytMdlZGrp.lytMdlHeaders
-                                       for lytMdlCell in lytMdlZHdr.lytMdlCells)
-                                    for lytMdlZGrp in lytMdlZHdrs.lytMdlGroups)
-                                ) or 1 # must have at least 1 z entry
+                    numZtbls = lytMdlTable.numBodyCells("z") or 1 # must have at least 1 z entry
                     zHdrElts = [[] for i in range(numZtbls)]
                     for lytMdlZGrp in lytMdlZHdrs.lytMdlGroups:
                         for lytMdlZHdr in lytMdlZGrp.lytMdlHeaders:
@@ -127,18 +123,10 @@ class ViewRenderedGrid(ViewFile.View):
                                                   attrib={"border":"1", "cellspacing":"0", "cellpadding":"4", "style":"font-size:8pt;"})
                     lytMdlXHdrs = lytMdlTable.lytMdlAxisHeaders("x")
                     lytMdlYHdrs = lytMdlTable.lytMdlAxisHeaders("y")
-                    nbrXcolHdrs = sum(lytMdlHeader.maxNumLabels
-                                      for lytMdlGroup in lytMdlXHdrs.lytMdlGroups
-                                      for lytMdlHeader in lytMdlGroup.lytMdlHeaders
-                                      if not all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlHeader.lytMdlCells))
-                    nbrYrowHdrs = sum(lytMdlHeader.maxNumLabels
-                                      for lytMdlGroup in lytMdlYHdrs.lytMdlGroups
-                                      for lytMdlHeader in lytMdlGroup.lytMdlHeaders)
+                    nbrXcolHdrs = lytMdlTable.headerDepth("x")
+                    nbrYrowHdrs = lytMdlTable.headerDepth("y")
                     # build y row headers
-                    numYrows = max((sum(lytMdlCell.span
-                                       for lytMdlYHdr in lytMdlYGrp.lytMdlHeaders
-                                       for lytMdlCell in lytMdlYHdr.lytMdlCells)
-                                    for lytMdlYGrp in lytMdlYHdrs.lytMdlGroups))
+                    numYrows = lytMdlTable.numBodyCells("y")
                     yRowHdrs = [[] for i in range(numYrows)] # list of list of row header elements for each row
                     for lytMdlYGrp in lytMdlYHdrs.lytMdlGroups:
                         for lytMdlYHdr in lytMdlYGrp.lytMdlHeaders:
@@ -149,7 +137,7 @@ class ViewRenderedGrid(ViewFile.View):
                                 for iLabel in range(lytMdlYHdr.maxNumLabels):
                                     if lytMdlYCell.isOpenAspectEntrySurrogate:
                                         continue # strip all open aspect entry surrogates from layout model file
-                                    attrib = {"style":"max-width:100em;"}
+                                    attrib = {"style":"max-width:100em;text-align:left;"}
                                     if lytMdlYCell.rollup:
                                         attrib["class"] = "yAxisTopSpanLeg"
                                     else:
