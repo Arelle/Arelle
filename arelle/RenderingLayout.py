@@ -11,11 +11,8 @@ Created on Sep 13, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 import os
-from datetime import timedelta
 from collections import OrderedDict
-from copy import deepcopy
 from lxml import etree
-from arelle import ViewFile
 from arelle.FormulaEvaluator import aspectMatches
 from arelle.FunctionXs import xsString
 from arelle.ModelObject import ModelObject
@@ -29,7 +26,7 @@ from arelle.ModelRenderingObject import (StrctMdlBreakdown, StrctMdlStructuralNo
                                          aspectStrctNodes,
                                          LytMdlTableModel, LytMdlTableSet, LytMdlTable, LytMdlHeaders, LytMdlGroup,
                                          LytMdlHeader, LytMdlCell, LytMdlConstraint, LytMdlBodyCells, LytMdlBodyCell)
-from arelle.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
+from arelle.RenderingResolution import resolveTableStructure
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import DEFAULT
 from arelle import XbrlConst

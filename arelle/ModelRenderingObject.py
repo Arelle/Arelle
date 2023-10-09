@@ -64,6 +64,11 @@ class LytMdlTable:
         self.lytMdlHeaders = []
         lytMdlTableSet.lytMdlTables.append(self)
         self.lytMdlBodyChildren = []
+    def lytMdlAxisHeaders(self, axis):
+        for lytMdlHeader in self.lytMdlHeaders:
+            if lytMdlHeader.axis == axis:
+                return lytMdlHeader
+        return None
     def __repr__(self):
         return (f"LytMdlTable[]")
 class LytMdlHeaders:
@@ -89,6 +94,9 @@ class LytMdlHeader:
         self.lytMdlParentGroup = lytMdlGroup
         lytMdlGroup.lytMdlHeaders.append(self)
         self.lytMdlCells = []
+    @property
+    def maxNumLabels(self):
+        return max(len(lytMdlCell.labels) for lytMdlCell in self.lytMdlCells)
     def __repr__(self):
         return (f"LytMdlHeader[]")
 class LytMdlCell:
@@ -98,6 +106,10 @@ class LytMdlCell:
         self.span = 1
         self.rollup = self.id = self.isOpenAspectEntrySurrogate = None
         self.lytMdlConstraints = []
+    def labelXmlText(self, iLabel, default=""):
+        if iLabel < len(self.labels):
+            return self.labels[iLabel][0]
+        return default
     def __repr__(self):
         return (f"LytMdlCell[{self.labels}]")
 class LytMdlConstraint:
@@ -123,7 +135,7 @@ class LytMdlBodyCell:
         lytMdlParent.lytMdlBodyChildren.append(self)
         self.facts = () # bound facts
     def __repr__(self):
-        return (f"LytMdlBodyCell[{self.axis}]")
+        return (f"LytMdlBodyCell[{', '.join(v for f,v,j in self.facts)}]")
 def definitionNodes(nodes):
     return [(ord.definitionNodeObject if isinstance(node, StrctMdlStructuralNode) else node) for node in nodes]
 def parentChildOrder(node):

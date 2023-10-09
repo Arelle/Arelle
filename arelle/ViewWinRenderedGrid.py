@@ -12,7 +12,7 @@ import os, threading, time, logging
 from tkinter import Menu, BooleanVar, font as tkFont
 from arelle import (ViewWinTkTable, ModelDocument, ModelDtsObject, ModelInstanceObject, XbrlConst,
                     ModelXbrl, Locale, FunctionXfi,
-                    ValidateXbrlDimensions, ViewFileRenderedGrid, ViewFileRenderedLayout)
+                    ValidateXbrlDimensions, ViewFileRenderedGrid, ViewFileRenderedLayout, ViewFileRenderedStructure)
 from arelle.ModelValue import qname, QName
 from arelle.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
 from arelle.RenderingLayout import layoutTable
@@ -95,13 +95,17 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view.viewFrame.bind("<Configure>", view.onConfigure, '+') # frame resized, redo column header wrap length ratios
     view.blockMenuEvents = 0
     layoutTable(view)
+    if "saveTableStructuralModel" in modelXbrl.modelManager.formulaOptions.parameterValues:
+        ViewFileRenderedStructure.viewRenderedStructuralModel(modelXbrl,
+              modelXbrl.modelManager.formulaOptions.parameterValues["saveTableStructuralModel"][1],
+              lang=lang, sourceView=view)
     if "saveTableLayoutModel" in modelXbrl.modelManager.formulaOptions.parameterValues:
         ViewFileRenderedLayout.viewRenderedLayout(modelXbrl,
               modelXbrl.modelManager.formulaOptions.parameterValues["saveTableLayoutModel"][1],
               lang=lang, sourceView=view)
-    if "saveTableHtml" in modelXbrl.modelManager.formulaOptions.parameterValues:
+    if "saveTable" in modelXbrl.modelManager.formulaOptions.parameterValues:
         ViewFileRenderedGrid.viewRenderedGrid(modelXbrl,
-              modelXbrl.modelManager.formulaOptions.parameterValues["saveTableHtml"][1],
+              modelXbrl.modelManager.formulaOptions.parameterValues["saveTable"][1],
               lang=lang, sourceView=view)
     return view
 

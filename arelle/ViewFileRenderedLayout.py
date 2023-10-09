@@ -14,37 +14,11 @@ from arelle.FormulaEvaluator import aspectMatches
 from arelle.FunctionXs import xsString
 from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
-from arelle.ModelInstanceObject import ModelDimensionValue
-from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.PythonUtil import OrderedSet
-from arelle.ModelRenderingObject import (StrctMdlBreakdown, StrctMdlStructuralNode,
-                                         DefnMdlClosedDefinitionNode, DefnMdlRuleDefinitionNode, DefnMdlAspectNode,
-                                         OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE,
-                                         aspectStrctNodes)
-from arelle.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
+from arelle.RenderingResolution import resolveTableStructure
 from arelle.RenderingLayout import layoutTable
-from arelle.ModelValue import QName
-from arelle.ModelXbrl import DEFAULT
-from arelle.ViewFile import HTML, XML
-# change tableModel for namespace needed for consistency suite
-'''
-from arelle.XbrlConst import (tableModelMMDD as tableModelNamespace,
-                              tableModelMMDDQName as tableModelQName)
-'''
 from arelle import XbrlConst
-from arelle.XmlUtil import innerTextList, child, elementFragmentIdentifier, addQnameValue
-from collections import defaultdict
-
-emptySet = set()
-emptyList = []
-
-headerOmittedRollupAspects  = {
-    Aspect.CONCEPT,
-    Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO, Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO,
-    Aspect.VALUE, Aspect.SCHEME,
-    Aspect.PERIOD_TYPE, Aspect.START, Aspect.END, Aspect.INSTANT,
-    Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY}
-
+from arelle.XmlUtil import elementFragmentIdentifier, addQnameValue
 
 def viewRenderedLayout(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=None, diffToFile=False, cssExtras=""):
     modelXbrl.modelManager.showStatus(_("saving rendering"))
@@ -109,9 +83,9 @@ class ViewRenderedLayout(ViewFile.View):
             etree.SubElement(tableSetElt, self.tableModelQName("label")).text = lytMdlTableSet.label
             for lytMdlTable in lytMdlTableSet.lytMdlTables:
                 tableElt = etree.SubElement(tableSetElt, self.tableModelQName("table"))
-                for lytMdlHeader in lytMdlTable.lytMdlHeaders:
-                    hdrsElt = etree.SubElement(tableElt, self.tableModelQName("headers"), attrib={"axis": lytMdlHeader.axis})
-                    for lytMdlGroup in lytMdlHeader.lytMdlGroups:
+                for lytMdlHeaders in lytMdlTable.lytMdlHeaders:
+                    hdrsElt = etree.SubElement(tableElt, self.tableModelQName("headers"), attrib={"axis": lytMdlHeaders.axis})
+                    for lytMdlGroup in lytMdlHeaders.lytMdlGroups:
                         groupElt = etree.SubElement(hdrsElt, self.tableModelQName("group"))
                         groupElt.append(etree.Comment(f"Breakdown node file: {lytMdlGroup.srcFile}, line {lytMdlGroup.srcLine}"))
                         if lytMdlGroup.label:

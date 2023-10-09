@@ -168,48 +168,6 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
                         _("Cell has missing constraint set for tag selectors %(missingConstraintSets)s"),
                         modelObject=stNodes, missingConstraintSets=", ".join(missingConstraintSets))
 
-    # uncomment below for debugging Definition and Structural Models
-    def jsonStrctMdlEncoder(obj, indent="\n"):
-        if isinstance(obj, StrctMdlNode):
-            o = OrderedDict()
-            o["strctMdlNode"] = type(obj).__name__
-            if isinstance(obj, StrctMdlTable):
-                o["entryFile"] = obj.defnMdlNode.modelXbrl.modelDocument.basename,
-            if obj.axis:
-                o["axis"] = obj.axis
-            if obj.isAbstract:
-                o["abstract"] = True
-            if isinstance(obj, StrctMdlStructuralNode):
-                if obj.hasChildRollup:
-                    o["hasChildRollup"] = True
-                if obj.rollup:
-                    o["rollup"] = {ROLLUP_SPECIFIES_MEMBER:"rollup specifies member",
-                                   ROLLUP_IMPLIES_DEFAULT_MEMBER:"rollup implies default member",
-                                   ROLLUP_FOR_CONCEPT_RELATIONSHIP_NODE:"rollup for concept relationship nesting",
-                                   ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE:"rollup for concept relationship nesting",
-                                   ROLLUP_FOR_CLOSED_DEFINITION_NODE:"rollup for closed definition node",
-                                   ROLLUP_FOR_OPEN_DEFINITION_NODE:"rollup for open definition node",
-                                   ROLLUP_FOR_DEFINITION_NODE:"rollup for definition node"}[obj.rollup]
-                o["structuralDepth"] = obj.structuralDepth
-                _aspectsCovered = obj.aspectsCovered()
-                if _aspectsCovered:
-                    o["aspectsCovered"] = OrderedDict((aspectStr(a),
-                                                       str(v.stringValue if isinstance(v,ModelObject) else v
-                                                           ).replace(OPEN_ASPECT_ENTRY_SURROGATE, "OPEN_ASPECT_ENTRY_"))
-                                                      for a in _aspectsCovered
-                                                      if a != Aspect.DIMENSIONS
-                                                      for v in (obj.aspectValue(a),))
-            if obj.tagSelector:
-                o["tagSelector"] = obj.tagSelector
-            if obj.defnMdlNode is not None:
-                o["defnMdlNode"] = str(obj.defnMdlNode)
-            if obj.strctMdlChildNodes:
-                o["strctMdlChildNodes"] = obj.strctMdlChildNodes
-            return o
-        raise TypeError("Type {} is not supported for json output".format(type(obj).__name__))
-    if TRACE_TABLE_STRUCTURE:
-        with io.open(r"/Users/hermf/temp/test.json", 'wt') as fh:
-            json.dump(strctMdlTable, fh, ensure_ascii=False, indent=2, default=jsonStrctMdlEncoder)
     view.colHdrTopRow = view.zAxisBreakdowns # need rest if combobox used (2 if view.zAxisRows else 1)
     for i in range(view.rowHdrCols):
         if view.rowNonAbstractHdrSpanMin[i]:
