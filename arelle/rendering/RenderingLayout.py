@@ -17,7 +17,7 @@ from arelle.ModelRenderingObject import (StrctMdlBreakdown, StrctMdlStructuralNo
                                          aspectStrctNodes,
                                          LytMdlTableModel, LytMdlTableSet, LytMdlTable, LytMdlHeaders, LytMdlGroup,
                                          LytMdlHeader, LytMdlCell, LytMdlConstraint, LytMdlBodyCells, LytMdlBodyCell)
-from arelle.RenderingResolution import resolveTableStructure
+from arelle.rendering.RenderingResolution import resolveTableStructure
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import DEFAULT
 from arelle import XbrlConst
