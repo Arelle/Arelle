@@ -6,7 +6,7 @@ import regex as re
 from collections import defaultdict, OrderedDict
 from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlConst,
                ValidateXbrl, ValidateVersReport,
-               ValidateInfoset, RenderingEvaluator, ViewFileRenderedLayout, UrlUtil)
+               ValidateInfoset, ViewFileRenderedLayout, UrlUtil)
 from arelle.formula import ValidateFormula
 from arelle.ModelDocument import Type, ModelDocumentReference, load as modelDocumentLoad
 from arelle.ModelDtsObject import ModelResource
@@ -16,6 +16,7 @@ from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelTestcaseObject import testcaseVariationsByTarget
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
+from arelle.rendering import RenderingEvaluator
 from arelle.XmlUtil import collapseWhitespace, xmlstring
 
 def validate(modelXbrl):

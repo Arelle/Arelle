@@ -12,8 +12,8 @@ from arelle.ModelRenderingObject import (StrctMdlNode, StrctMdlTable, StrctMdlBr
                                          ROLLUP_FOR_CONCEPT_RELATIONSHIP_NODE, ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE,
                                          ROLLUP_FOR_CLOSED_DEFINITION_NODE, ROLLUP_FOR_OPEN_DEFINITION_NODE,
                                          ROLLUP_FOR_DEFINITION_NODE)
-from arelle.RenderingResolution import resolveTableStructure
-from arelle.RenderingLayout import layoutTable
+from arelle.rendering.RenderingResolution import resolveTableStructure
+from arelle.rendering.RenderingLayout import layoutTable
 from arelle.ModelValue import QName
 from arelle import XbrlConst
 

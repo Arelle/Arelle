@@ -699,8 +699,8 @@ class XbrlTable(TkTableWrapper.Table):
 
     def initHeaderCellValue(self, value, x, y, colspan, rowspan,
                             justification, objectId=None,
-                            hasLeftBorder=True, hasTopBorder=True, 
-                            hasRightBorder=True, hasBottomBorder=True, 
+                            hasLeftBorder=True, hasTopBorder=True,
+                            hasRightBorder=True, hasBottomBorder=True,
                             width=None):
         '''
         Initialise the read-only content of a header cell.
