@@ -7,8 +7,8 @@ from arelle import (ViewWinTkTable, ModelDocument, ModelDtsObject, ModelInstance
                     ModelXbrl, Locale, FunctionXfi,
                     ValidateXbrlDimensions, ViewFileRenderedGrid, ViewFileRenderedLayout, ViewFileRenderedStructure)
 from arelle.ModelValue import qname, QName
-from arelle.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
-from arelle.RenderingLayout import layoutTable
+from arelle.rendering.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
+from arelle.rendering.RenderingLayout import layoutTable
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectModelAspect
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelRenderingObject import (StrctMdlBreakdown, DefnMdlDefinitionNode,

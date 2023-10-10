@@ -44,7 +44,6 @@ from arelle import (DialogURL, DialogLanguage,
                     ModelDocument,
                     ModelManager,
                     PackageManager,
-                    RenderingEvaluator,
                     TableStructure,
                     ViewWinDTS,
                     ViewWinProperties, ViewWinConcepts, ViewWinRelationshipSet, ViewWinFormulae,
@@ -59,6 +58,7 @@ from arelle import (DialogURL, DialogLanguage,
                    )
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle.FileSource import openFileSource
+from arelle.rendering import RenderingEvaluator
 
 restartMain = True
 
