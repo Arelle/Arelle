@@ -2007,19 +2007,9 @@ class ModelRelationship(ModelObject):
             return self._isCovered
 
     @property
-    def axisDisposition(self):
-        """(str) -- Value of axisDisposition (on applicable table linkbase arcs"""
-        try:
-            return self._tableAxis
-        except AttributeError:
-            aType = (self.get("axis") or # XII 2013
-                     self.get("axisDisposition") or # XII 2011
-                     self.get("axisType"))  # Eurofiling
-            if aType in ("xAxis","x"): self._axisDisposition = "x"
-            elif aType in ("yAxis","y"): self._axisDisposition = "y"
-            elif aType in ("zAxis","z"): self._axisDisposition = "z"
-            else: self._axisDisposition = None
-            return self._axisDisposition
+    def axis(self):
+        """(str) -- Value of axis (on applicable table linkbase arcs)"""
+        return self.get("axis")
 
     @property
     def equivalenceHash(self): # not exact, use equivalenceKey if hashes are the same
