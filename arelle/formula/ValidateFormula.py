@@ -30,8 +30,8 @@ from arelle.ModelFormulaObject import (
     Trace,
 )
 from arelle.ModelRenderingObject import (
-    DefnMdlRuleDefinitionNode, 
-    DefnMdlRelationshipNode, 
+    DefnMdlRuleDefinitionNode,
+    DefnMdlRelationshipNode,
     DefnMdlAspectNode,
 )
 from arelle.ModelValue import QName, qname

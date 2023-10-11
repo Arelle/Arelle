@@ -84,7 +84,7 @@ class LytMdlTable:
                         for lytMdlCell in lytMdlHdr.lytMdlCells)
                     for lytMdlGrp in self.lytMdlAxisHeaders(axis).lytMdlGroups))
     def __repr__(self):
-        return (f"LytMdlTable[]")
+        return ("LytMdlTable[]")
 class LytMdlHeaders:
     def __init__(self, lytMdlTable, axis):
         self.lytMdlParentTable = lytMdlTable
@@ -112,7 +112,7 @@ class LytMdlHeader:
     def maxNumLabels(self):
         return max(len(lytMdlCell.labels) for lytMdlCell in self.lytMdlCells)
     def __repr__(self):
-        return (f"LytMdlHeader[]")
+        return ("LytMdlHeader[]")
 class LytMdlCell:
     def __init__(self):
         self.lytMdlParentHeader = None

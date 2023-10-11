@@ -487,7 +487,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     filteredFactsPartitions = strctMdlNode.evaluate(defnMdlNode,
                                                                   defnMdlNode.filteredFactsPartitions,
                                                                   evalArgs=(facts,))
-                    
+
                 # apply mergedAspects
 
                 if strctMdlNode._rendrCntx.formulaOptions.traceVariableFilterWinnowing:
@@ -531,7 +531,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     #childStrctMdlNode.depth -= 1  # for label width; parent is merged/invisible
                     checkLabelWidth(view, childStrctMdlNode, subtreeRels, checkBoundFact=True)
                     #resolveDefinition(view, childStrctMdlNode, breakdownNode, defnMdlNode, depth, axis, factsPartition, processOpenDefinitionNode=False) #recurse
-                    
+
                     for aspect in (mergeAspects or ()):
                         if aspect == "tagSelectors":
                             childStrctMdlNode.tagSelectors |= mergeAspects["tagSelectors"]
@@ -733,4 +733,3 @@ def addDescendantRollups(strctMdlParent, maxDepth=None, depth=0):
         if len(strctMdlParent.strctMdlChildNodes) > 1 and strctMdlParent.parentChildOrder == "parent-first":
             strctMdlParent.strctMdlChildNodes = strctMdlParent.strctMdlChildNodes[-1:] + strctMdlParent.strctMdlChildNodes[0:-1]
         addDescendantRollups(rollUpStrctNode, maxDepth, depth=depth+1)
-
