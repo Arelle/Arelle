@@ -4,10 +4,10 @@ See COPYRIGHT.md for copyright information.
 import os
 from collections import OrderedDict
 from lxml import etree
-from arelle.formula.FormulaEvaluator import aspectMatches
 from arelle.FunctionXs import xsString
 from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
+#from arelle.formula.FormulaEvaluator import aspectMatches
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.PythonUtil import OrderedSet
