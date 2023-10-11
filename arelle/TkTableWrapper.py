@@ -126,7 +126,7 @@ class Table(tkinter.Widget):
                 master.tk.call('package', 'require', 'Tktable')
                 _TKTABLE_LOADED = True
             except Exception as ex:
-                tkinter.messagebox.showerror(_("Exception"), 
+                tkinter.messagebox.showerror(_("Exception"),
                     _("Unable to locate or to load Tktable.  \n\n"
                       "GUI functions requiring tables, such as TableLinkbase, are likely to be unusable. \n\n"
                       "Environment parameter TKTABLE_LIBRARY may be used to specify the location of Tktable. \n\n"
