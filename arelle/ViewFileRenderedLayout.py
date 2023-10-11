@@ -7,11 +7,9 @@ from collections import OrderedDict
 from copy import deepcopy
 from lxml import etree
 from arelle import ViewFile
-from arelle.formula.FormulaEvaluator import aspectMatches
 from arelle.FunctionXs import xsString
 from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
-from arelle.PythonUtil import OrderedSet
 from arelle.rendering.RenderingResolution import resolveTableStructure
 from arelle.rendering.RenderingLayout import layoutTable
 from arelle import XbrlConst
