@@ -9,7 +9,6 @@ KNOWN_FAILURES = frozenset([
     'arelle.FunctionXfi',
     'arelle.PrototypeDtsObject',
     'arelle.ViewCsvRelationshipSet',
-    'arelle.ViewWinRenderedGrid',
     'arelle.examples.LoadSavePreLbCsv',
     'arelle.examples.SaveTableToExelle',
     'arelle.examples.TR3toTR4',
