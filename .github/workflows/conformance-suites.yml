@@ -133,6 +133,6 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           pip install -r requirements-dev.txt
       - name: Download from S3
-        run: aws s3 sync s3://arelle tests/resources
+        run: aws s3 sync s3://arelle/conformance_suites tests/resources/conformance_suites
       - name: Run integration tests with pytest
         run: pytest -s --disable-warnings --offline --name=${{ matrix.test.name }}${{ matrix.test.shard && format(' --shard={0}', matrix.test.shard) || '' }} tests/integration_tests/validation/test_conformance_suites.py
