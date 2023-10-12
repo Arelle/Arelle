@@ -91,24 +91,28 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: us-east-1
       - name: Download XBRL validation config
+        run: |
+          if aws s3api head-object --bucket arelle --key caches/${{ matrix.test.name }}.zip; then
+            aws s3api get-object --bucket arelle --key caches/${{ matrix.test.name }}.zip config.zip
+          else
+            curl -L "${{ secrets.XBRL_VALIDATION_CONFIG_URL }}" -o config.zip
+          fi
+      - name: Unpack XBRL validation config
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           mkdir -p "$XDG_CONFIG_HOME/arelle/cache"
-          curl -L "${{ secrets.XBRL_VALIDATION_CONFIG_URL }}" -o config.zip
           unzip -d "$XDG_CONFIG_HOME/arelle/cache" config.zip 'http/*' 'https/*'
           rm config.zip
-      - name: Download XBRL validation config
+      - name: Unpack XBRL validation config
         if: ${{ startsWith(matrix.os, 'macos') }}
         run: |
           mkdir -p ~/Library/Caches/Arelle
-          curl -L "${{ secrets.XBRL_VALIDATION_CONFIG_URL }}" -o config.zip
           unzip -d ~/Library/Caches/Arelle config.zip 'http/*' 'https/*'
           rm config.zip
-      - name: Download XBRL validation config
+      - name: Unpack XBRL validation config
         if: ${{ startsWith(matrix.os, 'windows') }}
         run: |
           mkdir -p $env:LOCALAPPDATA\Arelle\cache
-          curl "${{ secrets.XBRL_VALIDATION_CONFIG_URL }}" -o config.zip
           7z x config.zip -o"$env:LOCALAPPDATA\Arelle\cache" 'http/*' 'https/*'
           rm config.zip
       - uses: actions/checkout@v4.1.0
