@@ -57,7 +57,7 @@ def init(modelXbrl):
             modelTable.compile()
             # remove unwanted messages when running conformance suite
             if (len(modelXbrl.factsInInstance) == 0 and # these errors not expected when there are no instance facts
-                modelXbrl.modelManager.loadedModelXbrls[0].modelDocument.type in ModelDocumentType.TESTCASETYPES):
+                modelXbrl.modelManager.loadedModelXbrls[0].modelDocument.type in ModelDocument.Type.TESTCASETYPES):
                 for i in range(len(modelXbrl.errors)):
                     if modelXbrl.errors[i] in ("xfie:invalidExplicitDimensionQName",):
                         del modelXbrl.errors[i]
