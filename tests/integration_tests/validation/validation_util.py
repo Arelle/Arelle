@@ -27,16 +27,19 @@ def get_document_id(doc: ModelDocument.ModelDocument) -> str:
     file_source = doc.modelXbrl.fileSource
     basefile = getattr(file_source, 'basefile', None)
     if basefile is None:
-        file_source = next(iter(file_source.referencedFileSources.values()), None)
-        if file_source is not None:
-            basefile = file_source.basefile
+        ref_file_source = next(iter(file_source.referencedFileSources.values()), None)
+        if ref_file_source is not None:
+            basefile = ref_file_source.basefile
     if basefile is not None:
         doc_id = PurePath(doc.filepath).relative_to(basefile).as_posix()
-    else:
+    elif file_source.isZip:
         # give up
         parts = archiveFilenameParts(doc.filepath)
         assert parts is not None
         _, doc_id = parts
+    else:
+        dir = os.path.dirname(file_source.url) + os.sep
+        doc_id = doc.uri.replace(dir, '')
     return doc_id
 
 
