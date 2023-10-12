@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import re
-from typing import Any, cast, Iterable
+from typing import Any, Iterable
 
 from arelle import ModelDocument
 from arelle.ValidateXbrl import ValidateXbrl
@@ -56,7 +56,7 @@ def rule_fr_nl_2_06(
             # Because of this ambiguity, and to mirror the context that this validation
             # is designed for (CDATA within a SOAP request), it's preferable to check
             # the text as close as possible to its original form.
-            file, encoding = cast(tuple[Iterable[str], str | None], modelXbrl.fileSource.file(doc.filepath))
+            file = modelXbrl.fileSource.file(doc.filepath)[0]
             for i, line in enumerate(file):
                 for __ in re.finditer(pattern, line):
                     yield Validation.error(
