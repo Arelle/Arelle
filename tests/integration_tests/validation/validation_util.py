@@ -25,23 +25,21 @@ if TYPE_CHECKING:
 
 def get_document_id(doc: ModelDocument.ModelDocument) -> str:
     file_source = doc.modelXbrl.fileSource
-    basefile = getattr(file_source, 'basefile', None)
-    if basefile is None:
+    basepath = getattr(file_source, 'basefile', None)
+    if basepath is None:
+        # Try and find a basepath from referenced documents
         ref_file_source = next(iter(file_source.referencedFileSources.values()), None)
         if ref_file_source is not None:
-            basefile = ref_file_source.basefile
-    if basefile is not None:
-        doc_id = PurePath(doc.filepath).relative_to(basefile).as_posix()
-    elif file_source.isZip:
-        # give up
-        parts = archiveFilenameParts(doc.filepath)
-        assert parts is not None
-        _, doc_id = parts
-    else:
-        dir = os.path.dirname(file_source.url) + os.sep
-        doc_id = doc.uri.replace(dir, '')
-    return doc_id
-
+            basepath = ref_file_source.basefile
+    if basepath is None:
+        # Try and find a basepath based on archive in path
+        archivePathParts = archiveFilenameParts(doc.filepath)
+        if archivePathParts is not None:
+            return archivePathParts[1]
+    if basepath is None:
+        # Use file source URL as fallback if basepath not found
+        basepath = os.path.dirname(file_source.url) + os.sep
+    return PurePath(doc.filepath).relative_to(basepath).as_posix()
 
 def get_test_data(
         args: list[str],
