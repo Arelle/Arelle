@@ -91,6 +91,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: us-east-1
       - name: Download XBRL validation config
+        shell: bash
         run: |
           if aws s3api head-object --bucket arelle --key caches/${{ matrix.test.name }}.zip; then
             aws s3api get-object --bucket arelle --key caches/${{ matrix.test.name }}.zip config.zip
