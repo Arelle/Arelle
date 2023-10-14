@@ -7,7 +7,7 @@ from collections import OrderedDict
 from copy import deepcopy
 from lxml import etree
 from arelle import ViewFile
-from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
+from arelle.Aspect import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.PythonUtil import OrderedSet

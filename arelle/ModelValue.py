@@ -6,6 +6,7 @@ import datetime, isodate
 from decimal import Decimal
 from typing import Dict, List, TYPE_CHECKING, Any, cast, overload, Optional, Union
 from fractions import Fraction
+from arelle.UrlUtil import isValidUriReference
 
 if TYPE_CHECKING:
     from arelle.ModelObject import ModelObject
@@ -247,7 +248,9 @@ class QName:
         # QName object bool is false if there is no local name (even if there is a namespace URI).
         return bool(self.localName)
 
-def anyURI(value: str) -> AnyURI:
+def anyURI(value, castException: Exception | None = None):
+    if castException and not value or not isValidUriReference(value):
+        raise castException
     return AnyURI(value)
 
 class AnyURI(str):
