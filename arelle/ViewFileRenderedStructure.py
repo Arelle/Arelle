@@ -5,7 +5,7 @@ import os, io, json
 from collections import OrderedDict
 from arelle import ViewFile
 from arelle.ModelObject import ModelObject
-from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
+from arelle.Aspect import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelRenderingObject import (StrctMdlNode, StrctMdlTable, StrctMdlBreakdown, StrctMdlStructuralNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_IMPLIES_DEFAULT_MEMBER,

@@ -9,7 +9,7 @@ from lxml import etree
 from arelle import ViewFile
 from arelle.FunctionXs import xsString
 from arelle.ModelObject import ModelObject
-from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
+from arelle.Aspect import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
 from arelle.rendering.RenderingResolution import resolveTableStructure
 from arelle.rendering.RenderingLayout import layoutTable
 from arelle import XbrlConst

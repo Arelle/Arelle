@@ -18,7 +18,7 @@ from arelle.PythonUtil import strTruncate
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
     from arelle.ModelXbrl import ModelXbrl
-    from arelle.ModelDtsObject import ModelAny
+    from arelle.ModelDtsObject import ModelAny, ModelConcept
     from arelle.ModelDocument import ModelDocument
     from arelle.ModelInstanceObject import ModelFact
     from arelle.typing import TypeGetText
@@ -115,7 +115,8 @@ def validate(
     recurse: bool = True,
     attrQname: QName | None = None,
     ixFacts: bool = False,
-) -> None:
+    elementDeclarationType: ModelConcept | None = None,
+):
     global ModelInlineValueObject, ixMsgCode
     if ModelInlineValueObject is None:
         from arelle.ModelInstanceObject import ModelInlineValueObject
@@ -139,6 +140,9 @@ def validate(
                 isAbstract = True
             elif modelConcept.isFraction:
                 baseXsdType = "fraction"
+            elif elementDeclarationType is not None:
+                baseXsdType = elementDeclarationType.baseXsdType
+                facets = elementDeclarationType.facets
             else:
                 baseXsdType = modelConcept.baseXsdType
                 facets = modelConcept.facets

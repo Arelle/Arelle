@@ -169,63 +169,6 @@ arcroleChecks = {
         "xbrlte:aspectNodeFilterSourceError",
         "xbrlte:aspectNodeFilterTargetError",
     ),
-    XbrlConst.tableBreakdown201305: (XbrlConst.qnTableTable201305, XbrlConst.qnTableBreakdown201305, "xbrlte:info"),
-    XbrlConst.tableBreakdownTree201305: (
-        XbrlConst.qnTableBreakdown201305,
-        (XbrlConst.qnTableClosedDefinitionNode201305, XbrlConst.qnTableAspectNode201305),
-        "xbrlte:info",
-    ),
-    XbrlConst.tableDefinitionNodeSubtree201305: (
-        XbrlConst.qnTableClosedDefinitionNode201305,
-        XbrlConst.qnTableClosedDefinitionNode201305,
-        "xbrlte:info",
-    ),
-    XbrlConst.tableFilter201305: (XbrlConst.qnTableTable201305, XbrlConst.qnVariableFilter, "xbrlte:info"),
-    XbrlConst.tableAspectNodeFilter201305: (
-        XbrlConst.qnTableAspectNode201305,
-        XbrlConst.qnVariableFilter,
-        "xbrlte:info",
-    ),
-    XbrlConst.tableBreakdown201301: (
-        XbrlConst.qnTableTable201301,
-        (
-            XbrlConst.qnTableClosedDefinitionNode201301,
-            XbrlConst.qnTableFilterNode201301,
-            XbrlConst.qnTableSelectionNode201301,
-            XbrlConst.qnTableTupleNode201301,
-        ),
-        "xbrlte:info",
-    ),
-    XbrlConst.tableAxis2011: (
-        XbrlConst.qnTableTable2011,
-        (
-            XbrlConst.qnTablePredefinedAxis2011,
-            XbrlConst.qnTableFilterAxis2011,
-            XbrlConst.qnTableSelectionAxis2011,
-            XbrlConst.qnTableTupleAxis2011,
-        ),
-        "xbrlte:info",
-    ),
-    XbrlConst.tableFilter201301: (XbrlConst.qnTableTable201301, XbrlConst.qnVariableFilter, "xbrlte:info"),
-    XbrlConst.tableFilter2011: (XbrlConst.qnTableTable2011, XbrlConst.qnVariableFilter, "xbrlte:info"),
-    XbrlConst.tableDefinitionNodeSubtree201301: (
-        XbrlConst.qnTableClosedDefinitionNode201301,
-        XbrlConst.qnTableClosedDefinitionNode201301,
-        "xbrlte:info",
-    ),
-    XbrlConst.tableAxisSubtree2011: (
-        XbrlConst.qnTablePredefinedAxis2011,
-        XbrlConst.qnTablePredefinedAxis2011,
-        "xbrlte:info",
-    ),
-    XbrlConst.tableFilterNodeFilter2011: (XbrlConst.qnTableFilterNode201301, XbrlConst.qnVariableFilter, "xbrlte:info"),
-    XbrlConst.tableAxisFilter2011: (XbrlConst.qnTableFilterAxis2011, XbrlConst.qnVariableFilter, "xbrlte:info"),
-    XbrlConst.tableAxisFilter201205: (XbrlConst.qnTableFilterAxis2011, XbrlConst.qnVariableFilter, "xbrlte:info"),
-    XbrlConst.tableTupleContent201301: (
-        (XbrlConst.qnTableTupleNode201301, XbrlConst.qnTableTupleAxis2011),
-        (XbrlConst.qnTableRuleNode201301, XbrlConst.qnTableRuleAxis2011),
-        "xbrlte:info",
-    ),
 }
 
 

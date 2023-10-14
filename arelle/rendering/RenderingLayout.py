@@ -6,7 +6,7 @@ from collections import OrderedDict
 from lxml import etree
 from arelle.FunctionXs import xsString
 from arelle.ModelObject import ModelObject
-from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
+from arelle.Aspect import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
 from arelle.formula.FormulaEvaluator import aspectMatches
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.PrototypeInstanceObject import FactPrototype
@@ -440,7 +440,7 @@ def bodyCells(view, row, yStrctNodes, xStrctNodes, zAspectStrctNodes, lytMdlYCel
                                     value = fact.effectiveValue
                                 justify = "right" if fact.isNumeric else "left"
                                 factsVals.append( (fact, value, justify) )
-                        hasColCells = True
+                        hasColCells = bool(matchableAspects) # True
                     if justify is None:
                         justify = "right" if fp.isNumeric else "left"
                     if conceptNotAbstract:
