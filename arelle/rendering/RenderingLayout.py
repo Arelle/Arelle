@@ -7,7 +7,6 @@ from lxml import etree
 from arelle.FunctionXs import xsString
 from arelle.ModelObject import ModelObject
 from arelle.Aspect import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
-from arelle.formula.FormulaEvaluator import aspectMatches
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.PythonUtil import OrderedSet
@@ -18,6 +17,7 @@ from arelle.ModelRenderingObject import (StrctMdlBreakdown, StrctMdlStructuralNo
                                          LytMdlTableModel, LytMdlTableSet, LytMdlTable, LytMdlHeaders, LytMdlGroup,
                                          LytMdlHeader, LytMdlCell, LytMdlConstraint, LytMdlBodyCells, LytMdlBodyCell)
 from arelle.rendering.RenderingResolution import resolveTableStructure
+from arelle.formula.FormulaEvaluator import aspectMatches
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import DEFAULT
 from arelle import XbrlConst
