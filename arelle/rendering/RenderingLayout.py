@@ -68,13 +68,13 @@ def layoutTable(view):
                           view.roledefinition)
             # headers structure only build once for table
             lytMdlTblSet = LytMdlTableSet(view.lytMdlTblMdl, strctMdlTable, tableSetLabel, defnMdlTable.modelDocument.basename, defnMdlTable.sourceline, tblELR)
-            
+
             # determine number of tables based on cartesian product of multi-valued parameters
             paramSequenceValues = OrderedDict(( # order tables by lexicographic key order
                 (name, flattenSequence(view.rendrCntx.inScopeVars.get(name,())))
                 for name in sorted(view.modelXbrl.qnameParameters)))
             paramSeqIndx = dict((name,0) for name in paramSequenceValues)
-            for tblNum in range(prod((len(seqVal) or 1) 
+            for tblNum in range(prod((len(seqVal) or 1)
                                      for name, seqVal in paramSequenceValues.items())):
                 # set table parameters to sequence value for this table
                 lytMdlTbl = LytMdlTable(lytMdlTblSet, strctMdlTable)
@@ -88,7 +88,7 @@ def layoutTable(view):
                     view.StrctNodeModelElements = []
                     if discriminator == 1:
                         zAspectStrctNodes = defaultdict(set)
-    
+
                         brkdownNodeLytMdlGrp = {}
                         view.headerCells = defaultdict(list) # order #: (breakdownNode, xml element)
                         for axis in ("z", "y", "x", ):
@@ -96,10 +96,10 @@ def layoutTable(view):
                                 if isinstance(strctMdl, StrctMdlBreakdown) and \
                                         all(strctMdl.defnMdlNode is not None and strctMdl.defnMdlNode.id != bdn.defnMdlNode.id for bdn in breakdownNodes):
                                     breakdownNodes.append(strctMdl)
-    
+
                                 for node in strctMdl.strctMdlChildNodes:
                                     listBreakdown(node, breakdownNodes)
-    
+
                             breakdownNodes = []
                             breakdownNodesTop = [s for s in strctMdlTable.strctMdlChildNodes if s._axis == axis and s.defnMdlNode is not None]
                             for breakdownNode in breakdownNodesTop:
@@ -130,7 +130,7 @@ def layoutTable(view):
                                         if not headerCell.rollup:
                                             zDiscrimAspectNodes[i] = aspectStrctNodes(strctNode)
                                         i += 1
-    
+
                         zColumns = view.headerCells
                         zAspects = OrderedSet()
                         zAspectStrctNodeChoices = defaultdict(list)
@@ -156,7 +156,7 @@ def layoutTable(view):
                         yStrctNodes = []
                         zStrctNodes = []
                         zAspectStrctNodes = defaultdict(list)
-    
+
                         if xTopStrctNode and xTopStrctNode.strctMdlChildNodes:
                             layoutAxis(view, view.dataFirstCol, view.colHdrTopRow, view.colHdrTopRow + view.colHdrRows - 1,
                                        xTopStrctNode, xStrctNodes, True, True, view.colHdrNonStdRoles)
@@ -183,7 +183,7 @@ def layoutTable(view):
                                         #else:
                                         #    brkdownNodeLytMdlGrp[breakdownNode].lytMdlHeaders[-1].lytMdlCells.append(lytMdlCell)
                             view.headerCells[_position] = []
-    
+
                         for StrctNode,modelElt in view.StrctNodeModelElements: # must do after elements are all arragned
                             modelElt.addprevious(etree.Comment("{0}: label {1}, file {2}, line {3}"
                                                           .format(StrctNode.defnMdlNode.localName,
