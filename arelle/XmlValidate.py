@@ -116,7 +116,7 @@ def validate(
     attrQname: QName | None = None,
     ixFacts: bool = False,
     elementDeclarationType: ModelConcept | None = None,
-):
+)  -> None:
     global ModelInlineValueObject, ixMsgCode
     if ModelInlineValueObject is None:
         from arelle.ModelInstanceObject import ModelInlineValueObject

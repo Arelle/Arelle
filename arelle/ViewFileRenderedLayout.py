@@ -78,6 +78,8 @@ class ViewRenderedLayout(ViewFile.View):
             etree.SubElement(tableSetElt, self.tableModelQName("label")).text = lytMdlTableSet.label
             for lytMdlTable in lytMdlTableSet.lytMdlTables:
                 tableElt = etree.SubElement(tableSetElt, self.tableModelQName("table"))
+                for name, value in lytMdlTable.tblParamValues.items():
+                    tableElt.append(etree.Comment(f" ${name} = \"{value}\" "))
                 for lytMdlHeaders in lytMdlTable.lytMdlHeaders:
                     hdrsElt = etree.SubElement(tableElt, self.tableModelQName("headers"), attrib={"axis": lytMdlHeaders.axis})
                     for lytMdlGroup in lytMdlHeaders.lytMdlGroups:

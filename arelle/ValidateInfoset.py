@@ -279,6 +279,12 @@ def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
         # uncomment to debug when layout model corrupted after creation
         # with open("/Users/hermf/temp/temp2.xml", "wb") as fh:
         #     fh.write(etree.tostring(sourceDoc, pretty_print=True))
+        numSrcTblElts = len(sourceDoc.findall("//{http://xbrl.org/2014/table/model}table"))
+        numCmpTblElts = len(comparisonDoc.findall("//{http://xbrl.org/2014/table/model}table"))
+        if numSrcTblElts != numCmpTblElts:
+            modelXbrl.error("arelle:tableModelNumberOfTables",
+                _("Table layout model comparison expects %(numCmpTblElts)s table elements, layout has %(numSrcTblElts)s table elements"),
+                modelObject=modelXbrl, numSrcTblElts=numSrcTblElts, numCmpTblElts=numCmpTblElts)
         # order comparison document headers in z - y - x order
         headerElts = comparisonDoc.findall("//{http://xbrl.org/2014/table/model}headers")
         if len(headerElts) == 3:

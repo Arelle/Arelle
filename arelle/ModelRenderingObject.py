@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 import inspect, os
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from arelle import XmlUtil, XbrlConst, Locale
 from arelle.formula import XPathContext, XPathParser
 from arelle.ModelDtsObject import ModelResource
@@ -64,6 +64,7 @@ class LytMdlTable:
         self.lytMdlParentTableSet = lytMdlTableSet
         self.strctMdlTable = strctMdlTable
         self.lytMdlHeaders = []
+        self.tblParamValues = OrderedDict()
         lytMdlTableSet.lytMdlTables.append(self)
         self.lytMdlBodyChildren = []
     def lytMdlAxisHeaders(self, axis):
