@@ -248,7 +248,9 @@ class QName:
         # QName object bool is false if there is no local name (even if there is a namespace URI).
         return bool(self.localName)
 
-def anyURI(value, castException: Exception | None = None):
+def anyURI(value: str, 
+           castException: Exception | None = None
+) -> AnyURI | None:
     if castException and not value or not isValidUriReference(value):
         raise castException
     return AnyURI(value)
