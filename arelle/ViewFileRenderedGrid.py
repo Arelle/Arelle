@@ -90,6 +90,19 @@ class ViewRenderedGrid(ViewFile.View):
             tblSetHdr = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")
             etree.SubElement(tblSetHdr, "{http://www.w3.org/1999/xhtml}td").text = lytMdlTableSet.label
             for lytMdlTable in lytMdlTableSet.lytMdlTables:
+                if lytMdlTable.tblParamValues:
+                    # show any parameters
+                    pTableRow = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")
+                    pRowCell = etree.SubElement(pTableRow, "{http://www.w3.org/1999/xhtml}td")
+                    paramTable = etree.SubElement(pRowCell, "{http://www.w3.org/1999/xhtml}table",
+                                                  attrib={"border":"1", "cellspacing":"0", "cellpadding":"4", "style":"font-size:8pt;"})
+                    pHdrRow = etree.SubElement(paramTable, "{http://www.w3.org/1999/xhtml}tr")
+                    etree.SubElement(pHdrRow, "{http://www.w3.org/1999/xhtml}th").text = "parameter"
+                    etree.SubElement(pHdrRow, "{http://www.w3.org/1999/xhtml}th").text = "value"
+                    for name, value in lytMdlTable.tblParamValues.items():
+                        pTableRow = etree.SubElement(paramTable, "{http://www.w3.org/1999/xhtml}tr")
+                        etree.SubElement(pTableRow, "{http://www.w3.org/1999/xhtml}td").text = str(name)
+                        etree.SubElement(pTableRow, "{http://www.w3.org/1999/xhtml}td").text = str(value)
                 # each Z is a separate table in the outer table
                 lytMdlZHdrs = lytMdlTable.lytMdlAxisHeaders("z")
                 if lytMdlZHdrs is not None:
