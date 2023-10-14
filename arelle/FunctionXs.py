@@ -399,7 +399,7 @@ def hexBinary(xc, p, source):
     raise xsFunctionNotAvailable()
 
 def anyURI(xc, p, source):
-    return ModelValue.anyURI(source)
+    return ModelValue.anyURI(source, castException=FORG0001)
 
 def QName(xc, p, source):
     if isinstance(p, ProgHeader):

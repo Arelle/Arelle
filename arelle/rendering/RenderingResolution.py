@@ -7,7 +7,7 @@ from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelResource, ModelRelationship
 from arelle.ModelValue import QName
-from arelle.ModelFormulaObject import Aspect, aspectStr, aspectModelAspect
+from arelle.Aspect import Aspect, aspectStr, aspectModelAspect
 from arelle.ModelRenderingObject import (ResolutionException, DefnMdlTable, DefnMdlBreakdown,
                                          DefnMdlDefinitionNode, DefnMdlClosedDefinitionNode, DefnMdlRuleDefinitionNode,
                                          DefnMdlRelationshipNode, DefnMdlAspectNode, DefnMdlOpenDefinitionNode,
@@ -461,7 +461,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                                 _("Dimension relationship rule node %(xlinkLabel)s source %(source)s does not refer to an existing domain member."),
                                 modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, source=_sourceQname)
                 if (defnMdlNode._formulaAxis in ("child", "child-or-self", "parent", "parent-or-self", "sibling", "sibling-or-self") and
-                    (not isinstance(defnMdlNode._generations, _NUM_TYPES) or defnMdlNode._generations > 1)):
+                    (not isinstance(defnMdlNode._generations, Number) or defnMdlNode._generations > 1)):
                     view.modelXbrl.error("xbrlte:relationshipNodeTooManyGenerations ",
                         _("Relationship rule node %(xlinkLabel)s formulaAxis %(axis)s implies a single generation tree walk but generations %(generations)s is greater than one."),
                         modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel, axis=defnMdlNode._formulaAxis, generations=defnMdlNode._generations)

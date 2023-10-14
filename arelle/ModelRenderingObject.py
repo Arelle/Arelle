@@ -10,7 +10,8 @@ from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import qname, QName
 from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import (Trace, ModelFormulaResource, ModelFormulaRules, ModelConceptName,
-                                       ModelParameter, Aspect, aspectStr, aspectModels, aspectRuleAspects, aspectModelAspect)
+                                       ModelParameter)
+from arelle.Aspect import Aspect, aspectStr, aspectModels, aspectRuleAspects, aspectModelAspect
 from arelle.ModelInstanceObject import ModelFact
 from arelle.formula.FormulaEvaluator import (filterFacts as formulaEvaluatorFilterFacts,
                                              aspectsMatch, factsPartitions, VariableBinding)
@@ -1096,7 +1097,7 @@ class DefnMdlRelationshipNode(DefnMdlClosedDefinitionNode):
     @property
     def generations(self):
         try:
-            return _INT( XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD), "generations") )
+            return int( XmlUtil.childText(self, (XbrlConst.table, XbrlConst.tableMMDD), "generations") )
         except (TypeError, ValueError):
             if self.formulaAxis in ('sibling', 'sibling-or-self', 'child', 'parent'):
                 return 1

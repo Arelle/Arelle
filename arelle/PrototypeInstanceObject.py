@@ -13,7 +13,7 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
     def __init__(self, v, aspectValues=None) -> None:
         global Aspect
         if Aspect is None:
-            from arelle.ModelFormulaObject import Aspect
+            from arelle.Aspect import Aspect
         self.modelXbrl = v.modelXbrl
         if aspectValues is None:
             aspectValues = {}

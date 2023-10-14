@@ -3,7 +3,8 @@ See COPYRIGHT.md for copyright information.
 '''
 from arelle import XbrlConst, XmlUtil
 from arelle.formula import XPathContext
-from arelle.ModelFormulaObject import (aspectModels, aspectStr, Aspect, ModelTypedDimension, ModelParameter)
+from arelle.ModelFormulaObject import (ModelTypedDimension, ModelParameter)
+from arelle.Aspect import (aspectModels, aspectStr, Aspect)
 from arelle.ModelRenderingObject import (DefnMdlDefinitionNode,
                                          DefnMdlBreakdown,
                                          DefnMdlClosedDefinitionNode,

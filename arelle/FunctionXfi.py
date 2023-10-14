@@ -365,7 +365,7 @@ def uncovered_dimensional_aspects(xc, p, args):
     return uncovered_aspects(xc, p, args, dimensionAspects=True)
 
 def uncovered_aspects(xc, p, args, dimensionAspects=False):
-    from arelle.ModelFormulaObject import aspectToToken, Aspect
+    from arelle.Aspect import aspectToToken, Aspect
     from arelle.formula.FormulaEvaluator import uncoveredVariableSetAspects
     if len(args) != 0: raise XPathContext.FunctionNumArgs()
 
