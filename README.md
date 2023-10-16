@@ -152,3 +152,4 @@ Interested in contributing to Arelle? Awesome! Make sure to review our
 [Apache License 2.0][license]
 
 [license]: https://arelle.readthedocs.io/en/latest/license.html
+
