@@ -43,9 +43,6 @@ Here's how to set up your environment:
 
   [Click here](https://github.com/Arelle/Arelle/fork) to fork the Arelle repository. 
 
-  ![Alt text](https://github.com/Rjchauhan18/Rjchauhan18/blob/main/fork.gif)
-  <img src="https://github.com/Rjchauhan18/Rjchauhan18/blob/main/fork.gif">
-
 </details>
 
 <details>
