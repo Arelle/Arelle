@@ -23,10 +23,10 @@ PyCryptodome==3.19.0
 cx_Oracle==8.3.0
 pg8000==1.30.2
 PyMySQL==1.1.0
-pyodbc==4.0.39
+pyodbc==5.0.1
 RDFLib==5.0.0
 # other
 graphviz==0.20.1
-Pillow==10.0.1
+Pillow==10.1.0
 pywin32==306 ; sys_platform == "win32"
 tinycss2==1.2.1
