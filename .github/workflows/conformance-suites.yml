@@ -1,6 +1,7 @@
 name: Run Xbrl Conformance Suites
 
 on:
+  workflow_dispatch:
   pull_request_target:
     paths:
       - '.github/workflows/conformance-suites.yml'
