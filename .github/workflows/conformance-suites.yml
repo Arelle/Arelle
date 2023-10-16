@@ -1,6 +1,15 @@
 name: Run Xbrl Conformance Suites
 
-on: pull_request_target
+on:
+  workflow_dispatch:
+  pull_request_target:
+    paths:
+      - '.github/workflows/conformance-suites.yml'
+      - 'arelle/**'
+      - 'tests/**'
+      - '**.py'
+      - '**.pyw'
+      - 'requirements*.txt'
 
 permissions: {}
 
