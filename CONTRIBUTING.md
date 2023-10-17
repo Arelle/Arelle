@@ -52,7 +52,7 @@ Here's how to set up your environment:
 
 
   ```
-  git clone https://github.com/`<your-github-username>`/Arelle.git
+  git clone https://github.com/<your-github-username>/Arelle.git
   ```
 
 
