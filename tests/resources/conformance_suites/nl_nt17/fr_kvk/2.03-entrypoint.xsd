@@ -1,0 +1,6 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" id="kvk-rpt-p-k" targetNamespace="http://www.nltaxonomie.nl/nt17/kvk/20221214/entrypoints/kvk-rpt-jaarverantwoording-2021-nlgaap-klein-publicatiestukken">
+    <xs:annotation>
+        <xs:appinfo>
+        </xs:appinfo>
+    </xs:annotation>
+</xs:schema>

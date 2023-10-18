@@ -6,6 +6,9 @@ from tests.integration_tests.validation.conformance_suite_configurations.esef_ix
 from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2022 import config as esef_ixbrl_2022
 from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2021 import config as esef_xhtml_2021
 from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2022 import config as esef_xhtml_2022
+from tests.integration_tests.validation.conformance_suite_configurations.nl_nt16 import config as nl_nt16
+from tests.integration_tests.validation.conformance_suite_configurations.nl_nt17 import config as nl_nt17
+from tests.integration_tests.validation.conformance_suite_configurations.nl_nt18 import config as nl_nt18
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_2_1 import config as xbrl_2_1
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_calculations_1_1 import config as xbrl_calculations_1_1
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_dimensions_1_0 import config as xbrl_dimensions_1_0
@@ -33,6 +36,9 @@ ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     esef_ixbrl_2022,
     esef_xhtml_2021,
     esef_xhtml_2022,
+    nl_nt16,
+    nl_nt17,
+    nl_nt18,
     xbrl_2_1,
     xbrl_calculations_1_1,
     xbrl_dimensions_1_0,
