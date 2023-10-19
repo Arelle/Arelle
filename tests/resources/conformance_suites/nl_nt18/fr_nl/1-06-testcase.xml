@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="NL.FR-NL-1.06"
+  description="The file name of an XBRL instance document MUST NOT contain characters with different meanings on different platforms."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="invalid-filename" name="File with (.) in Filename">
+    <description>
+        The instance filename contains an invalid character (.).
+    </description>
+    <data>
+        <instance readMeFirst="true">1-06.invalid.xbrl</instance>
+    </data>
+    <result>
+      <error>NL.FR-NL-1.06</error>
+    </result>
+  </variation>
+</testcase>
