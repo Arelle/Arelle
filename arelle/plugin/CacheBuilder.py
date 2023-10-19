@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import atexit
 import os
 import zipfile
 from optparse import OptionParser
@@ -89,6 +90,7 @@ class CacheBuilderPlugin(PluginHooks):
         os.makedirs(Path(options.cacheBuilderPath).parent, exist_ok=True)
         mode = 'a' if options.cacheBuilderAppend else 'w'
         cacheZip = zipfile.ZipFile(options.cacheBuilderPath, cast(Literal, mode), zipfile.ZIP_DEFLATED)
+        atexit.register(cacheZip.close)
         CacheBuilderPlugin.cacheBuilder = CacheBuilder(cntlr, cacheZip)
 
     @staticmethod
