@@ -13,7 +13,7 @@
         The instance document does not have an .xbrl file extension.
     </description>
     <data>
-        <instance readMeFirst="true">1.01-invalid-file-extension.xml</instance>
+        <instance readMeFirst="true">1-01-invalid-file-extension.xml</instance>
     </data>
     <result> 
       <error>NL.FR-KVK-1.01</error>

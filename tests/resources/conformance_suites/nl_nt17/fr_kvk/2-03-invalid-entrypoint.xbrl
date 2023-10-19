@@ -17,7 +17,7 @@
   xmlns:xbrli="http://www.xbrl.org/2003/instance"
   xmlns:xlink="http://www.w3.org/1999/xlink">
     <link:schemaRef
-      xlink:href="2.03-entrypoint.xsd"
+      xlink:href="2-03-entrypoint.xsd"
       xlink:type="simple"/>
     <context id="ctx-1">
         <entity>

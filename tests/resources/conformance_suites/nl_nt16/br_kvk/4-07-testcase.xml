@@ -13,7 +13,7 @@
         The instance has a 'jenv-bw2-i:FinancialReportingPeriodCurrentEndDate' value later than the filing date.
     </description>
     <data>
-        <instance readMeFirst="true">4.07-invalid.xbrl</instance>
+        <instance readMeFirst="true">4-07-invalid.xbrl</instance>
     </data>
     <result>
       <error>NL.BR-KVK-4.07</error>

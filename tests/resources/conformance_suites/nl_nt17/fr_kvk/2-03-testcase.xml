@@ -13,7 +13,7 @@
         The instance imports an invalid entrypoint.
     </description>
     <data>
-        <instance readMeFirst="true">2.03-invalid-entrypoint.xbrl</instance>
+        <instance readMeFirst="true">2-03-invalid-entrypoint.xbrl</instance>
     </data>
     <result>
       <error>NL.FR-KVK-2.03</error>
