@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Iterable
 
 import regex
@@ -21,6 +22,38 @@ from ..DisclosureSystems import (
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18,
+    ],
+)
+def rule_fr_nl_1_06(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-1.06: The file name of an XBRL instance document MUST NOT contain characters with different meanings on different platforms.
+    Only characters [0-9], [az], [AZ], [-] and [_] (File names not including the extension and separator [.]).
+    """
+    pattern = regex.compile(r"^[0-9a-zA-Z_-]*$")
+    modelXbrl = val.modelXbrl
+    for doc in modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            stem = Path(doc.basename).stem
+            match = pattern.match(stem)
+            if not match:
+                yield Validation.error(
+                    codes='NL.FR-NL-1.06',
+                    msg=_('The file name of an XBRL instance document MUST NOT contain characters with different meanings on different platforms. ' +
+                          'Only A-Z, a-z, 0-9, "-", and "_" may be used (excluding file extension with period).'),
+                    fileName=doc.basename,
+                )
 
 
 @validation(
