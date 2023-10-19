@@ -35,22 +35,85 @@ You'll be working with Python. The Arelle implementation aims to support all sta
 versions of Python (not prerelease versions) that are [still receiving security support][python-supported-versions].
 Here's how to set up your environment:
 
-1. [Fork][fork-arelle] the Arelle repo
-2. Clone your fork: `git clone git@github.com:<your-github-username>/Arelle.git`
-3. Install [pyenv][pyenv-install]
-4. Install a supported version of Python.
-   For example, `pyenv install 3.11.5`
-5. Create a virtual env using the Python version you just installed.
-   For example, `PYENV_VERSION=3.11.5 pyenv exec python -m venv venv`
-6. Activate your environment: `source venv/bin/activate`
-7. Install dependencies: `pip install -r requirements-dev.txt`
-8. Verify you can run the app
-   1. GUI: `python arelleGUI.pyw`
-   2. CLI: `python arelleCmdLine.py`
+<details>
+
+  <summary>  Fork the Arelle repository  </summary>
+<br>
+
+
+  [Click here](https://github.com/Arelle/Arelle/fork) to fork the Arelle repository. 
+
+</details>
+
+<details>
+
+  <summary> Clone your fork </summary>
+<br>
+
+
+  ```
+  git clone https://github.com/<your-github-username>/Arelle.git
+  ```
+
+
+
+</details>
+
+<details>
+<summary> Create the Pyenv Virtual environment </summary>
+<br>
+
+
+  1. Install [pyenv][pyenv-install]
+  2. Install a supported version of Python.
+    For example, 
+    
+    pyenv install 3.11.5
+
+  3. Create a virtual env using the Python version you just installed.
+    For example, 
+
+    PYENV_VERSION=3.11.5 pyenv exec python -m venv venv
+  4. Activate your environment: 
+    
+    source venv/bin/activate
+    
+    
+
+</details>
+
+<details>
+
+  <summary> Install dependencies </summary>
+<br>
+
+
+  ```
+  pip install -r requirements-dev.txt
+  ```
+
+</details>
+<details>
+
+<summary> Verify you can run the app </summary>
+<br>
+
+  1. GUI: 
+  ``` 
+  python arelleGUI.pyw 
+  ```
+
+  2. CLI: 
+  ```
+  python arelleCmdLine.py
+  ```
+</details>
 
 [fork-arelle]: https://github.com/Arelle/Arelle/fork
 [pyenv-install]: https://github.com/pyenv/pyenv#installation
 [python-supported-versions]: https://devguide.python.org/versions/#supported-versions
+
+</details>
 
 ### Contributing Code
 
