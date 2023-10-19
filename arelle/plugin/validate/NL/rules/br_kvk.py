@@ -98,7 +98,7 @@ def rule_br_kvk_2_04(
             if contextDates in validDurations:
                 continue
         yield Validation.error(
-            codes='BR-KVK-2.04',
+            codes='NL.BR-KVK-2.04',
             msg=_('The period in the context MUST correspond to the period of the current (%(currentDuration)s) or '
                   'previous (%(previousDuration)s) financial reporting period, or one day before the start of the comparative '
                   'financial year (%(instants)s) where the context must be instant. Context: %(contextId)s'),
@@ -138,7 +138,7 @@ def rule_br_kvk_3_01(
                     currencyMeasures.append(measure)
     if len(currencyMeasures) != 1:
         yield Validation.error(
-            codes='BR-KVK-3.01',
+            codes='NL.BR-KVK-3.01',
             msg=_('A measure element with a namespace prefix that refers to the "http://www.xbrl.org/2003/iso4217" '
                   'namespace MUST appear exactly once in the instance document. Units: %(unitIds)s, Measures: %(measures)s'),
             unitIds=sorted(currencyUnitIds),
@@ -169,7 +169,7 @@ def rule_br_kvk_4_07(
     filingDate = date.today()
     if currentPeriodEndDate >= filingDate:
         yield Validation.error(
-            codes='BR-KVK-4.07',
+            codes='NL.BR-KVK-4.07',
             msg=_('The jenv-bw2-i:FinancialReportingPeriodCurrentEndDate (%(currentPeriodEndDate)s) '
                   'MUST be before the date of filing (%(filingDate)s).'),
             currentPeriodEndDate=currentPeriodEndDate,
@@ -200,7 +200,7 @@ def rule_br_kvk_4_10(
     filingDate = date.today()
     if documentAdoptionDate > filingDate:
         yield Validation.error(
-            codes='BR-KVK-4.10',
+            codes='NL.BR-KVK-4.10',
             msg=_('The jenv-bw2-i:DocumentAdoptionDate (%(documentAdoptionDate)s) '
                   'MUST NOT be after the date of filing (%(filingDate)s).'),
             documentAdoptionDate=documentAdoptionDate,
@@ -234,7 +234,7 @@ def rule_br_kvk_4_12(
     documentAdoptionStatusQname = pluginData.documentAdoptionStatusQn
     if not any(f.value == 'Ja' for f in modelXbrl.factsByQname.get(documentAdoptionStatusQname, [])):
         yield Validation.error(
-            codes='BR-KVK-4.12',
+            codes='NL.BR-KVK-4.12',
             msg=_('For a corrected annual report, an annual report to be corrected '
                   'MUST be filed with the Trade Register. '
                   'If %(resubmissionConceptQname)s is "Ja" (Yes), '
@@ -275,7 +275,7 @@ def rule_br_kvk_4_16(
     for conceptQname in requiredConceptQnames:
         if not any(f.value for f in modelXbrl.factsByQname.get(conceptQname, [])):
             yield Validation.error(
-                codes='BR-KVK-4.16',
+                codes='NL.BR-KVK-4.16',
                 msg=_('A corrected financial statement MUST be established. '
                       'If %(resubmissionConceptQname)s is "Ja" (Yes), '
                       '%(conceptQname)s must be filled for a corrected financial statement.'),

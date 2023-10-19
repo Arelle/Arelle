@@ -60,7 +60,7 @@ def rule_fr_nl_2_06(
             for i, line in enumerate(file):
                 for __ in re.finditer(pattern, line):
                     yield Validation.error(
-                        codes='FR-NL-2.06',
+                        codes='NL.FR-NL-2.06',
                         msg=_('A CDATA end sequence ("]]>") MAY NOT be used in an XBRL instance document. '
                               'Found at %(basename)s:%(lineNumber)s.'),
                         basename=doc.basename,
