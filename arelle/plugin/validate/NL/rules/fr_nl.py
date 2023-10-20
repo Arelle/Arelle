@@ -31,6 +31,36 @@ _: TypeGetText
         DISCLOSURE_SYSTEM_NT18,
     ],
 )
+def rule_fr_nl_1_01(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-1.01: A BOM character MUST NOT be used.
+    """
+    modelXbrl = val.modelXbrl
+    encoding = 'utf-8'
+    for doc in modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            with modelXbrl.fileSource.file(doc.filepath, encoding=encoding)[0] as file:
+                if file.read(1) == '\ufeff':
+                    yield Validation.error(
+                        codes='NL.FR-NL-1.01',
+                        msg=_('A BOM (byte order mark) character MUST NOT be used in an XBRL instance document.'),
+                        fileName=doc.basename,
+                    )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18,
+    ],
+)
 def rule_fr_nl_2_06(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
