@@ -198,6 +198,7 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[tuple[list[str], fro
 def get_conformance_suite_test_results(
         config: ConformanceSuiteConfig,
         shard: int | None,
+        build_cache: bool = False,
         log_to_file: bool = False,
         offline: bool = False) -> list[ParameterSet]:
     file_path = os.path.join(config.prefixed_local_filepath, config.file)
@@ -233,7 +234,10 @@ def get_conformance_suite_test_results(
             filename = file_path
             expected_empty_testcases = config.expected_empty_testcases
             expected_failure_ids = config.expected_failure_ids
-        plugins = config.plugins | additional_plugins
+        optional_plugins = set()
+        if build_cache:
+            optional_plugins.add('CacheBuilder')
+        plugins = config.plugins | additional_plugins | optional_plugins
         args = [
             '--file', filename,
             '--keepOpen',
@@ -241,10 +245,12 @@ def get_conformance_suite_test_results(
         ]
         if plugins:
             args.extend(['--plugins', '|'.join(sorted(plugins))])
+        shard_str = f'-s{shard}' if use_shards else ''
+        if build_cache:
+            args.extend(['--cache-builder-path', f'conf-{config.name}{shard_str}-cache.zip'])
         if config.capture_warnings:
             args.append('--testcaseResultsCaptureWarnings')
         if log_to_file:
-            shard_str = f'-s{shard}' if use_shards else ''
             args.extend([
                 '--csvTestReport', f'conf-{config.name}{shard_str}-report.csv',
                 '--logFile', f'conf-{config.name}{shard_str}-log.txt',
