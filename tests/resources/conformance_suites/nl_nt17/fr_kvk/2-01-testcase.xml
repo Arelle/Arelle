@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="NL.FR-KVK-2.01"
+  description="The XBRL instance root node MUST contain attribute 'xml:lang' with value 'nl', 'en', 'de' or 'fr'"
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="invalid-lang" name="Invalid Language">
+    <description>
+        The instance root note contains an invalid 'xml:lang' value.
+    </description>
+    <data>
+        <instance readMeFirst="true">2-01-invalid-lang.xbrl</instance>
+    </data>
+    <result>
+      <error>NL.FR-KVK-2.01</error>
+    </result>
+  </variation>
+  <variation id="missing-lang" name="Missing Language">
+    <description>
+      The instance root note is missing a value for 'xml:lang'.
+    </description>
+    <data>
+      <instance readMeFirst="true">2-01-missing-lang.xbrl</instance>
+    </data>
+    <result>
+      <error>NL.FR-KVK-2.01</error>
+    </result>
+  </variation>
+</testcase>

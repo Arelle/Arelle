@@ -1,16 +1,17 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <testcases name="NL-NT17">
-    <testcase uri='fr_kvk/1.01-testcase.xml' />
-    <testcase uri='fr_kvk/2.01-testcase.xml' />
-    <testcase uri='fr_kvk/2.03-testcase.xml' />
-    <testcase uri='fr_kvk/5.01-testcase.xml' />
-    <testcase uri='fr_kvk/5.02-testcase.xml' />
-    <testcase uri='br_kvk/2.04-testcase.xml' />
-    <testcase uri='br_kvk/3.01-testcase.xml' />
-    <testcase uri='br_kvk/4.07-testcase.xml' />
-    <testcase uri='br_kvk/4.10-testcase.xml' />
-    <testcase uri='br_kvk/4.12-testcase.xml' />
-    <testcase uri='br_kvk/4.16-testcase.xml' />
-    <testcase uri='fr_nl/1.01-testcase.xml' />
-    <testcase uri='fr_nl/2.06-testcase.xml' />
+    <testcase uri='fr_kvk/1-01-testcase.xml' />
+    <testcase uri='fr_kvk/2-01-testcase.xml' />
+    <testcase uri='fr_kvk/2-03-testcase.xml' />
+    <testcase uri='fr_kvk/5-01-testcase.xml' />
+    <testcase uri='fr_kvk/5-02-testcase.xml' />
+    <testcase uri='br_kvk/2-04-testcase.xml' />
+    <testcase uri='br_kvk/3-01-testcase.xml' />
+    <testcase uri='br_kvk/4-07-testcase.xml' />
+    <testcase uri='br_kvk/4-10-testcase.xml' />
+    <testcase uri='br_kvk/4-12-testcase.xml' />
+    <testcase uri='br_kvk/4-16-testcase.xml' />
+    <testcase uri='fr_nl/1-01-testcase.xml' />
+    <testcase uri='fr_nl/1-06-testcase.xml' />
+    <testcase uri='fr_nl/2-06-testcase.xml' />
 </testcases>
