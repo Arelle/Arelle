@@ -22,8 +22,9 @@ from ..Const import (
     filenameRegexes,
     linkbaseRefTypes,
     qnDomainItemTypes,
+    qnDomainItemTypes2023,
 )
-from ..Util import isChildOfNotes, isExtension
+from ..Util import isChildOfNotes, isExtension, is2022DisclosureSystem
 
 _: TypeGetText  # Handle gettext
 
@@ -38,7 +39,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
 
     isExtensionDoc = isExtension(val, modelDocument)
     filenamePattern = filenameRegex = None
-    anchorAbstractExtensionElements = val.authParam["extensionElementsAnchoring"] == "include abstract"
+    anchorAbstractExtensionElements = is2022DisclosureSystem(val.modelXbrl) and val.authParam["extensionElementsAnchoring"] == "include abstract"
     allowCapsInLc3Words = val.authParam["LC3AllowCapitalsInWord"]
 
     def lc3wordAdjust(word: str) -> str:
@@ -108,7 +109,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                         val.modelXbrl.error("ESEF.3.4.3.extensionTaxonomyDimensionNotAssignedDefaultMemberInDedicatedPlaceholder",
                             _("Each dimension in an issuer specific extension taxonomy MUST be assigned to a default member in the ELR with role URI http://www.esma.europa.eu/xbrl/role/core/ifrs-dim_role-990000 defined in esef_cor.xsd schema file. %(qname)s"),
                             modelObject=modelConcept, qname=modelConcept.qname)
-                    if modelConcept.isDomainMember and modelConcept in val.domainMembers and modelConcept.typeQname not in qnDomainItemTypes:
+                    if modelConcept.isDomainMember and modelConcept in val.domainMembers and ((is2022DisclosureSystem(val.modelXbrl) and modelConcept.typeQname not in qnDomainItemTypes) or (not is2022DisclosureSystem(val.modelXbrl) and modelConcept.typeQname not in qnDomainItemTypes2023)):
                         domainMembersWrongType.append(modelConcept)
                     if modelConcept.isPrimaryItem and not modelConcept.isAbstract:
                         if modelConcept not in val.primaryItems:

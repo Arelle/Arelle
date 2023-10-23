@@ -6,6 +6,7 @@ from __future__ import annotations
 import os
 import zipfile
 from collections import defaultdict
+from datetime import datetime
 from math import isnan
 from typing import Any, List, cast
 
@@ -63,7 +64,7 @@ from ..Const import (
     untransformableTypes,
 )
 from ..Dimensions import checkFilingDimensions
-from ..Util import checkForMultiLangDuplicates, etreeIterWithDepth, getEsefNotesStatementConcepts, hasEventHandlerAttributes, isExtension
+from ..Util import checkForMultiLangDuplicates, etreeIterWithDepth, getEsefNotesStatementConcepts, hasEventHandlerAttributes, isExtension, is2022DisclosureSystem
 
 _: TypeGetText  # Handle gettext
 
@@ -144,6 +145,39 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     assert modelXbrl.modelDocument is not None
     checkFilingDTS(val, modelXbrl.modelDocument, esefNotesConcepts, [])
     modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
+
+    if not is2022DisclosureSystem(modelXbrl):
+        instanceNumber = 0
+        if modelXbrl.fileSource.dir:
+            for file in modelXbrl.fileSource.dir:
+                if not file.endswith("/"):
+                    from arelle.ModelDocument import Type
+                    fileType = Type.identify(modelXbrl.fileSource, "{}/{}".format(modelXbrl.fileSource.basefile, file))
+                    if fileType == Type.INLINEXBRL:
+                        instanceNumber += 1
+            if instanceNumber > 1:
+                modelXbrl.error("ESEF.4.1.1.SingleXhtmlFiles",
+                                _("Only one XHTML file is allowed in a report package"),
+                                modelObject=modelXbrl)
+
+        esef_year = None
+        for url in val.extensionImportedUrls:
+            match = re.match("http[s]?://www.esma.europa.eu/taxonomy/(.*)/.*", url)
+            if match:
+                date = match.groups()[0]
+                esef_year = datetime.strptime(date, "%Y-%m-%d").year
+
+        for nameConcepts in modelXbrl.nameConcepts.values():
+            for concept in nameConcepts:
+                match = re.match("http[s]?://xbrl.ifrs.org/taxonomy/(.*)/.*", concept.qname.namespaceURI)
+                if match:
+                    date = match.groups()[0]
+                    ifrs_year = datetime.strptime(date, "%Y-%m-%d").year
+                    if ifrs_year != esef_year:
+                        # this check isn't precise enough, but the list of available concept isn't available in esef_cor
+                        modelXbrl.warning("ESEF.1.2.IFRSNotYetIncluded",
+                                        _("Elements available in the IFRS Taxonomy that were not yet included in the ESEF taxonomy sould not be used."),
+                                        modelObject=modelXbrl)
 
     if val.consolidated and not (val.hasExtensionSchema and val.hasExtensionPre and val.hasExtensionCal and val.hasExtensionDef and val.hasExtensionLbl):
         missingFiles = []
@@ -249,13 +283,15 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 _("Doctype SHALL NOT specify html validation: %(doctype)s"),
                                 modelObject=doc, doctype=docinfo.doctype)
 
+        reportIncorrectlyPlacedInPackageRef = "https://www.xbrl.org/Specification/report-package/CR-2023-05-03/report-package-CR-2023-05-03.html"
+        if is2022DisclosureSystem(modelXbrl):
+            reportIncorrectlyPlacedInPackageRef = "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14.html"
 
         if len(ixdsDocDirs) > 1 and val.consolidated:
             modelXbrl.error("ESEF.2.6.2.reportSetIncorrectlyPlacedInPackage",
                      _("Multiple Inline XBRL documents MUST be included within a ESEF report package as defined in "
-                       "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14.html: "
-                       "%(documentSets)s (Document files appear to be in multiple document sets)"),
-                modelObject=doc, documentSets=", ".join(sorted(ixdsDocDirs)))
+                       "%(url)s: %(documentSets)s (Document files appear to be in multiple document sets)"),
+                modelObject=doc, documentSets=", ".join(sorted(ixdsDocDirs)), url=reportIncorrectlyPlacedInPackageRef)
         ixTargetUsage = val.authParam["ixTargetUsage"]
         if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.UnknownXML):
             hiddenEltIds = {}
@@ -376,7 +412,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                     modelObject=elt, qname=elt.qname)
                         elif any(character in elt.stringValue for character in ['&lt;', '&amp;', '&', '<']):
                             if not (hasattr(elt, 'attrib')) or ('escape' not in elt.attrib or elt.attrib.get('escape').lower() != 'true'):
-                                modelXbrl.error("ESEF.2.2.6.escapedHTMLUsedInBlockTagWithSpecialCharacters",
+                                modelXbrl.error("ESEF.2.2.6.escapedHTMLUsedInBlockTagWithSpecialCharacters" if is2022DisclosureSystem(modelXbrl) else "ESEF.2.2.7.escapedHTMLUsedInBlockTagWithSpecialCharacters",
                                         _("A text block containing '&' or '<' character MUST have an 'escape' attribute: %(qname)s."),
                                         modelObject=elt, qname=elt.qname)
                         # Check that continuation elements are in the order of html text as rendered to user

@@ -51,6 +51,10 @@ def isInEsefTaxonomy(val: ValidateXbrl, modelObject: ModelObject | None) -> bool
     return (any(ns.startswith(esefNsPrefix) for esefNsPrefix in esefTaxonomyNamespaceURIs))
 
 
+def is2022DisclosureSystem(modelXbrl: ModelXbrl) -> bool:
+    return any("2022" in name for name in modelXbrl.modelManager.disclosureSystem.names)
+
+
 def resourcesFilePath(modelManager: ModelManager, fileName: str) -> str:
     # resourcesDir can be in cache dir (production) or in validate/EFM/resources (for development)
     _resourcesDir = os.path.join( os.path.dirname(__file__), "resources") # dev/testing location
