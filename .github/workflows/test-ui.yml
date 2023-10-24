@@ -65,7 +65,7 @@ jobs:
       zip_uploaded_artifact_name: ${{ github.event_name == 'pull_request' && needs.build-windows-pr.outputs.zip_uploaded_artifact_name || needs.build-windows-dispatch.outputs.zip_uploaded_artifact_name }}
     steps:
       - name: Checkout arelle
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
         with:
           fetch-depth: 0
       - name: Download installer artifact
