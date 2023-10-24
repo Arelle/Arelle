@@ -113,6 +113,7 @@ class ModelObject(ElementBase):
     sValue: TypeSValue
     xAttributes: dict[str, ModelAttribute]
     xValue: TypeXValue
+    xValueError: Exception | None
     xValid: int
     xlinkLabel: str
 
