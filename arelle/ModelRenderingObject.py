@@ -48,14 +48,14 @@ class LytMdlTableModel:
     def __repr__(self):
         return (f"LytMdlTableModel[{self.entryPointUrl}]")
 class LytMdlTableSet:
-    def __init__(self, lytMdlTable, strctMdlTable, label, srcFile, srcLine, srcLinkrole):
-        self.lytMdlTable = lytMdlTable
-        self.strctMdlParentTable = strctMdlTable
+    def __init__(self, lytMdlTableModel, strctMdlTableSet, label, srcFile, srcLine, srcLinkrole):
+        self.lytMdlTableModel = lytMdlTableModel
+        self.strctMdlTableSet = strctMdlTableSet
         self.label = label
         self.srcFile = srcFile
         self.srcLine = srcLine
         self.srcLinkrole = srcLinkrole
-        lytMdlTable.lytMdlTableSets.append(self)
+        lytMdlTableModel.lytMdlTableSets.append(self)
         self.lytMdlTables = []
     def __repr__(self):
         return (f"LytMdlTableSet[{self.label}]")
@@ -64,7 +64,6 @@ class LytMdlTable:
         self.lytMdlParentTableSet = lytMdlTableSet
         self.strctMdlTable = strctMdlTable
         self.lytMdlHeaders = []
-        self.tblParamValues = OrderedDict()
         lytMdlTableSet.lytMdlTables.append(self)
         self.lytMdlBodyChildren = []
     def lytMdlAxisHeaders(self, axis):
@@ -328,12 +327,14 @@ class StrctMdlNode:
                         elif cntx.isForeverPeriod: text = "forever"
                     elif aspect == Aspect.UNIT:
                         text = f"{aspectValue.objectIndex:05d} {text}" # conf suites use instance order of contexts
+                    elif aspect == Aspect.ENTITY_IDENTIFIER and layoutMdlSortOrder:
+                        text = f"{aspectValue.get('scheme')}#{aspectValue.stringValue}"
                     return text, "processor"
         # TODO for conformance, concept should not be contributing labels
-        # if concept is not None:
-        #     label = concept.label(lang=lang)
-        #     if label:
-        #         return label, "processor"
+        if concept is not None and layoutMdlSortOrder:
+            label = concept.label(lang=lang)
+            if label:
+                return label, "processor"
         # if there is a role, check if it's available on a parent node
         if role and recurseParent and self.strctMdlParentNode is not None:
             return self.strctMdlParentNode.headerAndSource(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
@@ -417,13 +418,14 @@ class StrctMdlTableSet(StrctMdlNode):
     def __init__(self, defnMdlTable):
         super(StrctMdlTableSet, self).__init__(None, defnMdlTable)
 class StrctMdlTable(StrctMdlNode):
-    def __init__(self, defnMdlTable):
-        super(StrctMdlTable, self).__init__(None, defnMdlTable)
+    def __init__(self, strctMdlParentNode, defnMdlTable):
+        super(StrctMdlTable, self).__init__(strctMdlParentNode, defnMdlTable)
         self._rendrCntx = defnMdlTable.renderingXPathContext
         # childStrctMdlNodes are StrctMdlBreakdowns
         self.defnMdlBreakdowns = defaultdict(list)
         self.axisDepth = {"x": 0, "y":0, "z":0}
         self.layoutMdlCells = [] # z body cells
+        self.tblParamValues = OrderedDict()
     def strctMdlFirstAxisBreakdown(self, axis):
         for c in self.strctMdlChildNodes:
             if c._axis == axis:
@@ -1126,12 +1128,12 @@ class DefnMdlRelationshipNode(DefnMdlClosedDefinitionNode):
             self.generationsExpressionProg = XPathParser.parse(self, self.generationsExpression, self, "generationsExpressionProg", Trace.VARIABLE)
             super(DefnMdlRelationshipNode, self).compile()
     def variableRefs(self, progs=[], varRefSet=None):
-        if self.relationshipSourceQnames and self.relationshipSourceQnames != [XbrlConst.qnXfiRoot]:
+        if self.relationshipSourceQnamesAndQnameExpressionProgs and self.relationshipSourceQnamesAndQnameExpressionProgs != [XbrlConst.qnXfiRoot]:
             if varRefSet is None: varRefSet = set()
-            varRefSet.update(self.relationshipSourceQnames)
+            #varRefSet.update(self.relationshipSourceQnamesAndQnameExpressionProgs)
         return super(DefnMdlRelationshipNode, self).variableRefs(
                                         [p
-                                         for p in self.relationshipSourceQnamesExpressionProgs + [
+                                         for p in self.relationshipSourceQnamesAndQnameExpressionProgs + [
                                                         self.linkroleExpressionProg, self.formulaAxisExpressionProg,
                                                         self.generationsExpressionProg]
                                         if p], varRefSet)
@@ -1286,7 +1288,7 @@ class DefnMdlDimensionRelationshipNode(DefnMdlRelationshipNode):
     def compile(self):
         super(DefnMdlDimensionRelationshipNode, self).compile()
     def variableRefs(self, progs=[], varRefSet=None):
-        return super(DefnMdlDimensionRelationshipNode, self).variableRefs(self.dimensionQnameExpressionProg, varRefSet)
+        return super(DefnMdlDimensionRelationshipNode, self).variableRefs(self.relationshipSourceQnamesAndQnameExpressionProgs, varRefSet)
     def evalDimensionQname(self, xpCtx, fact=None):
         return self.dimensionQname
     @property

@@ -222,7 +222,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
 
         layoutTable(self)
         try:
-            strctMdlTable = self.lytMdlTblMdl.lytMdlTableSets[0].lytMdlTables[0].strctMdlTable
+            strctMdlTableSet = self.lytMdlTblMdl.lytMdlTableSets[0]
+            strctMdlTable = strctMdlTableSet.lytMdlTables[0].strctMdlTable
         except IndexError:
             if TRACE_TK: print("no table to display")
             return # no table to display
