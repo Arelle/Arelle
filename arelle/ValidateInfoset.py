@@ -285,6 +285,10 @@ def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
             modelXbrl.error("arelle:tableModelNumberOfTables",
                 _("Table layout model comparison expects %(numCmpTblElts)s table elements, layout has %(numSrcTblElts)s table elements"),
                 modelObject=modelXbrl, numSrcTblElts=numSrcTblElts, numCmpTblElts=numCmpTblElts)
+        if False: #numCmpTblElts > 1 and comparisonFile.endswith("linkrole-parameter.xml"):
+            # reverse tables for this test case
+            tblElts = sourceDoc.findall("//{http://xbrl.org/2014/table/model}table")
+            tblElts[0].addprevious(tblElts[1])
         # order comparison document headers in z - y - x order
         headerElts = comparisonDoc.findall("//{http://xbrl.org/2014/table/model}headers")
         if len(headerElts) == 3:
