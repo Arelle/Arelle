@@ -78,7 +78,7 @@ class ViewRenderedLayout(ViewFile.View):
             etree.SubElement(tableSetElt, self.tableModelQName("label")).text = lytMdlTableSet.label
             for lytMdlTable in lytMdlTableSet.lytMdlTables:
                 tableElt = etree.SubElement(tableSetElt, self.tableModelQName("table"))
-                for name, value in lytMdlTable.tblParamValues.items():
+                for name, value in lytMdlTable.strctMdlTable.tblParamValues.items():
                     tableElt.append(etree.Comment(f" ${name} = \"{value}\" "))
                 for lytMdlHeaders in lytMdlTable.lytMdlHeaders:
                     hdrsElt = etree.SubElement(tableElt, self.tableModelQName("headers"), attrib={"axis": lytMdlHeaders.axis})
@@ -153,7 +153,8 @@ class ViewRenderedLayout(ViewFile.View):
                                     else:
                                         if isinstance(aspectValue, ModelObject):
                                             valueElt.append(deepcopy(aspectValue))
-                                        else:
+                                        elif not (aspectValue is None and aspect in self.modelXbrl.qnameConcepts and self.modelXbrl.qnameConcepts[aspect].isExplicitDimension):
+                                            # don't put None for value of explicit dimension which id defaulted
                                             valueElt.text = xsString(None, None, addQnameValue(self.xmlDoc, aspectValue))
                 for lytMdlZCell in lytMdlTable.lytMdlBodyChildren:
                     zCellsElt = etree.SubElement(tableElt, self.tableModelQName("cells"), attrib={"axis": "z"})

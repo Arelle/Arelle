@@ -37,12 +37,6 @@ headerOmittedRollupAspects  = {
     Aspect.PERIOD_TYPE, Aspect.START, Aspect.END, Aspect.INSTANT,
     Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY}
 
-def prod(seq):
-    p = 1
-    for n in seq:
-        p *= n
-    return p
-
 def layoutTable(view):
     view.modelXbrl.modelManager.showStatus(_("layout model generation"))
     viewTblELR = getattr(view, "tblELR", None)
@@ -55,34 +49,27 @@ def layoutTable(view):
     view.lytMdlTblMdl = LytMdlTableModel(view.modelXbrl.modelDocument.basename)
 
     for tblELR in tblELRs:
-        strctMdlTable = resolveTableStructure(view, tblELR)
+        strctMdlTableSet = resolveTableStructure(view, tblELR)
         # each table z production
-        defnMdlTable = strctMdlTable.defnMdlNode
+        defnMdlTable = strctMdlTableSet.defnMdlNode
         view.hasTableFilters = bool(view.defnMdlTable.filterRelationships)
 
-        xTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("x")
-        yTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("y")
-        zTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("z")
         if view.tblBrkdnRels:
             tableSetLabel = (defnMdlTable.genLabel(lang=view.lang, strip=True) or  # use table label, if any
                           view.roledefinition)
             # headers structure only build once for table
-            lytMdlTblSet = LytMdlTableSet(view.lytMdlTblMdl, strctMdlTable, tableSetLabel, defnMdlTable.modelDocument.basename, defnMdlTable.sourceline, tblELR)
+            lytMdlTblSet = LytMdlTableSet(view.lytMdlTblMdl, strctMdlTableSet, tableSetLabel, defnMdlTable.modelDocument.basename, defnMdlTable.sourceline, tblELR)
 
-            # determine number of tables based on cartesian product of multi-valued parameters
-            paramSequenceValues = OrderedDict(( # order tables by lexicographic key order
-                (name, flattenSequence(view.rendrCntx.inScopeVars.get(name,())))
-                for name in sorted(view.modelXbrl.qnameParameters)))
-            paramSeqIndx = dict((name,0) for name in paramSequenceValues)
-            for tblNum in range(prod((len(seqVal) or 1)
-                                     for name, seqVal in paramSequenceValues.items())):
+            for strctMdlTable in strctMdlTableSet.strctMdlChildNodes:
+                xTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("x")
+                yTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("y")
+                zTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("z")
+
                 # set table parameters to sequence value for this table
                 lytMdlTbl = LytMdlTable(lytMdlTblSet, strctMdlTable)
-                for name, seqVal in paramSequenceValues.items():
-                    if len(seqVal) > 0:
-                        thisSeqVal = seqVal[paramSeqIndx[name]]
-                        view.rendrCntx.inScopeVars[name] = [thisSeqVal]
-                        lytMdlTbl.tblParamValues[name] = thisSeqVal
+                for name, seqVal in strctMdlTable.tblParamValues.items():
+                    view.rendrCntx.inScopeVars[name] = [seqVal]
+
                 zDiscrimAspectNodes = [{}]
                 for discriminator in range(1, 65535):
                     view.StrctNodeModelElements = []
@@ -212,15 +199,6 @@ def layoutTable(view):
                         lytMdlZCells.lytMdlBodyChildren.remove(lytMdlYCells)
                     if discriminator >= len(zDiscrimAspectNodes):
                         break
-                # iterate paramSeqIndex
-                for name, seqVal in paramSequenceValues.items():
-                    paramSeqIndx[name] += 1
-                    if paramSeqIndx[name] < len(seqVal):
-                        view.rendrCntx.inScopeVars[name] = seqVal[paramSeqIndx[name]]
-                        break
-                    paramSeqIndx[name] = 0 # reset this param and set next one
-                    if len(seqVal) > 0:
-                        view.rendrCntx.inScopeVars[name] = seqVal[paramSeqIndx[name]]
 
 def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, renderNow, atTop, HdrNonStdRoles):
     # axis handling for xml export

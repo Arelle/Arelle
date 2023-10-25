@@ -32,6 +32,12 @@ TRACE_TABLE_STRUCTURE = True
 
 RENDER_UNITS_PER_CHAR = 16 # nominal screen units per char for wrapLength computation and adjustment
 
+def prod(seq):
+    p = 1
+    for n in seq:
+        p *= n
+    return p
+
 def resolveTableStructure(view, viewTblELR):
     if isinstance(viewTblELR, DefnMdlTable):
         # called with a defnMdlTable instead of an ELR
@@ -62,9 +68,33 @@ def resolveTableStructure(view, viewTblELR):
             view.roledefinition = os.path.basename(viewTblELR)
     try:
         for defnMdlTable in tblBrkdnRelSet.rootConcepts:
-            strctMdlTable = StrctMdlTable(defnMdlTable)
-            resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet)
-            return strctMdlTable
+            view.rendrCntx = defnMdlTable.renderingXPathContext
+            strctMdlTableSet = StrctMdlTableSet(defnMdlTable)
+            referencedVariables = defnMdlTable.variableRefs()
+            # determine number of tables based on cartesian product of multi-valued parameters
+            varSeqValues = OrderedDict(( # order tables by lexicographic key order
+                (name, flattenSequence(view.rendrCntx.inScopeVars.get(name,())))
+                for name in sorted(referencedVariables,reverse=True))) # want last variable to iterate first
+            varSeqIndx = dict((name,0) for name in varSeqValues)
+            for tblNum in range(prod((len(seqVal) or 1)
+                                     for name, seqVal in varSeqValues.items())):
+                strctMdlTable = StrctMdlTable(strctMdlTableSet, defnMdlTable)
+                for name, seqVal in varSeqValues.items():
+                    if len(seqVal) > 0:
+                        thisSeqVal = seqVal[varSeqIndx[name]]
+                        view.rendrCntx.inScopeVars[name] = [thisSeqVal]
+                        strctMdlTable.tblParamValues[name] = thisSeqVal
+                resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet)
+                # iterate paramSeqIndex
+                for name, seqVal in varSeqValues.items():
+                    varSeqIndx[name] += 1
+                    if varSeqIndx[name] < len(seqVal):
+                        view.rendrCntx.inScopeVars[name] = seqVal[varSeqIndx[name]]
+                        break
+                    varSeqIndx[name] = 0 # reset this param and set next one
+                    if len(seqVal) > 0:
+                        view.rendrCntx.inScopeVars[name] = seqVal[varSeqIndx[name]]
+            return strctMdlTableSet
     except ResolutionException as ex:
         #traceback.print_exc()
         view.modelXbrl.error(ex.code, ex.message, exc_info=True, **ex.kwargs);
@@ -90,7 +120,6 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
     view.zmostOrdCntx = None
     view.defnMdlTable = defnMdlTable = strctMdlTable.defnMdlNode
     view.aspectEntryObjectId = 0
-    view.rendrCntx = defnMdlTable.renderingXPathContext
 
     # must be cartesian product of top level relationships
     view.tblBrkdnRels = tblBrkdnRels = tblBrkdnRelSet.fromModelObject(defnMdlTable)
