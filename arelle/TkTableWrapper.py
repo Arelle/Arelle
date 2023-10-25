@@ -32,7 +32,7 @@ __author__ = "Guilherme Polo <ggpolo@gmail.com>"
 __all__ = ["ArrayVar", "Table"]
 
 import os
-import collections
+import collections.abc
 try:
     import tkinter
 except ImportError:
@@ -149,7 +149,7 @@ class Table(tkinter.Widget):
 
         res = ()
         for k, v in cnf.items():
-            if isinstance(v, collections.Callable):
+            if isinstance(v, collections.abc.Callable):
                 if k in self._tabsubst_commands:
                     v = "%s %s" % (self._register(v, self._tabsubst),
                                    ' '.join(self._tabsubst_format))
