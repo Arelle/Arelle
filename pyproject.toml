@@ -102,7 +102,7 @@ markers = [
 # Warn when a # type: ignore comment does not specify any error codes
 enable_error_code = "ignore-without-code"
 
-python_version = "3.11"
+python_version = "3.12"
 
 show_error_codes = true
 
