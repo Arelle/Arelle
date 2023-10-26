@@ -6,6 +6,8 @@ from __future__ import annotations
 from datetime import date, timedelta
 from typing import Any, cast, Iterable, TYPE_CHECKING
 
+from regex import regex
+
 from arelle import XmlUtil, XbrlConst
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidate import INVALID
@@ -302,13 +304,17 @@ def rule_br_kvk_4_20(
     BR-KVK-4.20: Each date in an XBRL instance MUST be a valid date. The date is in format YYYY-MM-DD.
     """
     modelXbrl = val.modelXbrl
+    pattern = regex.compile(r"\s*[0-9]{4}-[0-9]{2}-[0-9]{2}\s*$")
     # Check period date values
     for contextId, context in modelXbrl.contexts.items():
         for contextElement in context:
             if contextElement.elementQname != XbrlConst.qnXbrliPeriod:
                 continue
             for periodElement in contextElement:
-                if getattr(periodElement, 'xValid', None) == INVALID:
+                xValid = getattr(periodElement, 'xValid', None)
+                sValue = getattr(periodElement, 'sValue', None)
+                if (xValid == INVALID) or \
+                        (sValue is not None and pattern.match(str(sValue))) is None:
                     yield Validation.error(
                         codes='NL.BR-KVK-4.20',
                         msg=_('Each date in an XBRL instance MUST be a valid date. '
@@ -318,11 +324,12 @@ def rule_br_kvk_4_20(
                         contextId=contextId,
                         periodElement=periodElement.qname.localName,
                         periodValue=periodElement.sValue,
-                        valueError=periodElement.xValueError,
+                        valueError=getattr(periodElement, 'xValueError', None) or 'does not match YYYY-MM-DD',
                     )
     # Check date fact values
-    for fact in modelXbrl.factsByDatatype(notStrict=True, typeQname=XbrlConst.qnXbrliDateItemType):
-        if fact.xValid == INVALID:
+    for fact in modelXbrl.factsByDatatype(notStrict=True, typeQname=XbrlConst.qnXbrliDateItemType) or []:
+        if (fact.xValid == INVALID) or \
+                pattern.match(str(fact.sValue)) is None:
             yield Validation.error(
                 codes='NL.BR-KVK-4.20',
                 msg=_('Each date in an XBRL instance MUST be a valid date. '
@@ -330,5 +337,5 @@ def rule_br_kvk_4_20(
                 modelObject=fact,
                 factQname=fact.qname,
                 factValue=fact.sValue,
-                valueError=fact.xValueError,
+                valueError=fact.xValueError or 'does not match YYYY-MM-DD',
             )
