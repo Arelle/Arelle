@@ -2,6 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 import datetime
+import itertools
 import logging
 import time
 from collections import defaultdict
@@ -1688,36 +1689,22 @@ class VariableBinding:
 
     def matchesSubPartitions(self, partition, aspects):
         if self.var.matches == "true":
-            return [partition]
-        subpartition0 = []
-        subpartitions = [subpartition0]
-        matches = defaultdict(list)  # position: [matching facts]
+            yield partition
+            return
+
+        # Variables 4.1
+        # If the @matches attribute on the fact variable is omitted or is equal to false then the evaluation result MUST NOT contain any aspect-matched facts.
+
+        # group into aspect-match equivalence classes
+        groups = []
         for fact in partition:
-            matched = False
-            for i, fact2 in enumerate(subpartition0):
-                if aspectsMatch(self.xpCtx, fact, fact2, aspects):
-                    matches[i].append(fact)
-                    matched = True
+            for group in groups:
+                if aspectsMatch(self.xpCtx, fact, group[0], aspects):
+                    group.append(fact)
                     break
-            if not matched:
-                subpartition0.append(fact)
-        if matches:
-            matchIndices = sorted(matches.keys())
-            matchIndicesLen = len(matchIndices)
-
-            def addSubpartition(l):
-                if l == matchIndicesLen:
-                    subpartitions.append(subpartition0.copy())
-                else:
-                    i = matchIndices[l]
-                    for matchedFact in matches[i]:
-                        nextSubpartition = len(subpartitions)
-                        addSubpartition(l + 1)
-                        for j in range(nextSubpartition, len(subpartitions)):
-                            subpartitions[j][i] = matchedFact
-
-            addSubpartition(0)
-        return subpartitions
+            else:
+                groups.append([fact])
+        yield from itertools.product(*groups)
 
     @property
     def evaluationResults(self):

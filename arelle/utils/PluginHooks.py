@@ -7,6 +7,7 @@ from abc import ABC
 from enum import Enum
 from typing import Any, TYPE_CHECKING
 
+from arelle.RuntimeOptions import RuntimeOptions
 
 if TYPE_CHECKING:
     import io
@@ -59,6 +60,33 @@ class PluginHooks(ABC):
         ```
 
         :param parser: the parser class to add options to.
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: None
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def cntlrCmdLineUtilityRun(
+        cntlr: Cntlr,
+        options: RuntimeOptions,
+        *args: Any,
+        **kwargs: Any
+    ) -> None:
+        """
+        Plugin hook: `CntlrCmdLine.Utility.Run`
+
+        This hook is triggered after command line options have been parsed.
+        It can be used to handle values for parameters configured in `cntlrCmdLineOptions`.
+
+        Example:
+        ```python
+        if options.myOption:
+            myOptionEnabled = True
+        ```
+
+        :param cntlr: The [Cntlr](#arelle.Cntlr.Cntlr) being initialized.
+        :param options: Parsed options object.
         :param args: Argument capture to ensure new parameters don't break plugin hook.
         :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
         :return: None

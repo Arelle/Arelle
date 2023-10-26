@@ -44,7 +44,7 @@ Crypto = [
 DB = [
     'pg8000==1.*',
     'PyMySQL==1.*',
-    'pyodbc==4.*',
+    'pyodbc>=4,<6',
     'rdflib==5.*',
 ]
 EFM = [

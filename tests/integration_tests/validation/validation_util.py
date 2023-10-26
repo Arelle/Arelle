@@ -25,20 +25,21 @@ if TYPE_CHECKING:
 
 def get_document_id(doc: ModelDocument.ModelDocument) -> str:
     file_source = doc.modelXbrl.fileSource
-    basefile = getattr(file_source, 'basefile', None)
-    if basefile is None:
-        file_source = next(iter(file_source.referencedFileSources.values()), None)
-        if file_source is not None:
-            basefile = file_source.basefile
-    if basefile is not None:
-        doc_id = PurePath(doc.filepath).relative_to(basefile).as_posix()
-    else:
-        # give up
-        parts = archiveFilenameParts(doc.filepath)
-        assert parts is not None
-        _, doc_id = parts
-    return doc_id
-
+    basepath = getattr(file_source, 'basefile', None)
+    if basepath is None:
+        # Try and find a basepath from referenced documents
+        ref_file_source = next(iter(file_source.referencedFileSources.values()), None)
+        if ref_file_source is not None:
+            basepath = ref_file_source.basefile
+    if basepath is None:
+        # Try and find a basepath based on archive in path
+        archivePathParts = archiveFilenameParts(doc.filepath)
+        if archivePathParts is not None:
+            return archivePathParts[1]
+    if basepath is None:
+        # Use file source URL as fallback if basepath not found
+        basepath = os.path.dirname(file_source.url) + os.sep
+    return PurePath(doc.filepath).relative_to(basepath).as_posix()
 
 def get_test_data(
         args: list[str],
@@ -197,6 +198,7 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[tuple[list[str], fro
 def get_conformance_suite_test_results(
         config: ConformanceSuiteConfig,
         shard: int | None,
+        build_cache: bool = False,
         log_to_file: bool = False,
         offline: bool = False) -> list[ParameterSet]:
     file_path = os.path.join(config.prefixed_local_filepath, config.file)
@@ -232,7 +234,10 @@ def get_conformance_suite_test_results(
             filename = file_path
             expected_empty_testcases = config.expected_empty_testcases
             expected_failure_ids = config.expected_failure_ids
-        plugins = config.plugins | additional_plugins
+        optional_plugins = set()
+        if build_cache:
+            optional_plugins.add('CacheBuilder')
+        plugins = config.plugins | additional_plugins | optional_plugins
         args = [
             '--file', filename,
             '--keepOpen',
@@ -240,10 +245,12 @@ def get_conformance_suite_test_results(
         ]
         if plugins:
             args.extend(['--plugins', '|'.join(sorted(plugins))])
+        shard_str = f'-s{shard}' if use_shards else ''
+        if build_cache:
+            args.extend(['--cache-builder-path', f'conf-{config.name}{shard_str}-cache.zip'])
         if config.capture_warnings:
             args.append('--testcaseResultsCaptureWarnings')
         if log_to_file:
-            shard_str = f'-s{shard}' if use_shards else ''
             args.extend([
                 '--csvTestReport', f'conf-{config.name}{shard_str}-report.csv',
                 '--logFile', f'conf-{config.name}{shard_str}-log.txt',

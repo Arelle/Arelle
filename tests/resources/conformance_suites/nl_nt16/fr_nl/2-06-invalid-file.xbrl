@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--<![CDATA[Example 1: in comment]]>-->
+<!--Example 2: in comment, tail only]]>-->
+<xbrl
+  xmlns="http://www.xbrl.org/2003/instance">
+    <![CDATA[Example 3: in XML]]>
+    Example 4: in XML, tail only]]>
+</xbrl>
