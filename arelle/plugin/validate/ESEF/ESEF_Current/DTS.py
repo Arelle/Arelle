@@ -30,12 +30,12 @@ _: TypeGetText  # Handle gettext
 
 
 def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesConcepts: set[str],
-                   visited: list[ModelDocument], hrefXlinkRole: str | None =None) -> None:
+                   visited: list[ModelDocument], ifrsNses: list[str], hrefXlinkRole: str | None =None) -> None:
     visited.append(modelDocument)
     for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
         if referencedDocument not in visited and referencedDocument.inDTS: # ignore non-DTS documents
             checkFilingDTS(val, referencedDocument, esefNotesConcepts,
-                           visited, modelDocumentReference.referringXlinkRole)
+                           visited, ifrsNses, modelDocumentReference.referringXlinkRole)
 
     isExtensionDoc = isExtension(val, modelDocument)
     filenamePattern = filenameRegex = None
@@ -285,6 +285,17 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                         arcrole = arcElt.get("{http://www.w3.org/1999/xlink}arcrole")
                         if arcrole not in esefDefinitionArcroles:
                             disallowedArcroles[arcrole].append(arcElt)
+
+                if linkEltName in ("definitionLink", ) and getDisclosureSystemYear(val.modelXbrl) == 2023 and val.authParam["validate1_9_1"] in ("true", "True", 1):
+                    for locElt in linkElt.iterchildren("{http://www.xbrl.org/2003/linkbase}loc"):
+                        refObject = locElt.dereference()
+                        if (isinstance(refObject, ModelConcept)
+                                and refObject.qname.namespaceURI in ifrsNses
+                                and refObject.qname.localName == "DisclosureOfNotesAndOtherExplanatoryInformationExplanatory"):
+                            val.modelXbrl.warning(
+                                "ESEF.1.9.1.disclosureOfNotesAndOtherExplanatoryInformationExplanatoryDeprecated",
+                                _("Usage of concept 'DisclosureOfNotesAndOtherExplanatoryInformationExplanatory' is deprecated."),
+                                modelObject=locElt)
                 if linkEltName in ("labelLink", "referenceLink"):
                     # check for prohibited esef taxnonomy target elements
                     prohibitedArcFroms = defaultdict(list)

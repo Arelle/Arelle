@@ -143,7 +143,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
     # ModelDocument.load has None as a return type. For typing reasons, we need to guard against that here.
     assert modelXbrl.modelDocument is not None
-    checkFilingDTS(val, modelXbrl.modelDocument, esefNotesConcepts, [])
+    checkFilingDTS(val, modelXbrl.modelDocument, esefNotesConcepts, [], ifrsNses=_ifrsNses)
     modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
 
     if getDisclosureSystemYear(modelXbrl) >= 2023:

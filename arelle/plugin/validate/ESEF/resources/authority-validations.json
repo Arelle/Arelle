@@ -81,7 +81,8 @@
                 ["https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor-gen-en.xml"]
         },
         "formulaRunIDs": null,
-        "minExternalResourceSizekB": 0
+        "minExternalResourceSizekB": 0,
+        "validate1_9_1": "false"
     },
     "ESEF-2021": {
         "outdatedTaxonomyURLs": [
