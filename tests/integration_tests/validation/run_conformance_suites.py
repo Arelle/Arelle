@@ -24,6 +24,11 @@ ARGUMENTS: list[dict[str, Any]] = [
         "help": "Select all configured conformance suites"
     },
     {
+        "name": "--build-cache",
+        "action": "store_true",
+        "help": "Use CacheBuilder plugin to build cache from conformance suite usage"
+    },
+    {
         "name": "--download-overwrite",
         "action": "store_true",
         "help": "Download (and overwrite) selected conformance suite files"
@@ -98,6 +103,7 @@ def run_conformance_suites(
         select_option: str,
         test_option: bool,
         shard: int | None,
+        build_cache: bool = False,
         download_option: str | None = None,
         log_to_file: bool = False,
         offline_option: bool = False) -> list[ParameterSet]:
@@ -111,7 +117,7 @@ def run_conformance_suites(
     all_results = []
     if test_option:
         for config in conformance_suite_configs:
-            results = get_conformance_suite_test_results(config, shard=shard, log_to_file=log_to_file, offline=offline_option)
+            results = get_conformance_suite_test_results(config, shard=shard, build_cache=build_cache, log_to_file=log_to_file, offline=offline_option)
             all_results.extend(results)
     return all_results
 
@@ -125,6 +131,7 @@ def run_conformance_suites_options(options: Namespace) -> list[ParameterSet]:
         select_option=select_option,
         test_option=options.test,
         shard=options.shard,
+        build_cache=options.build_cache,
         download_option=download_option,
         log_to_file=options.log_to_file,
         offline_option=options.offline

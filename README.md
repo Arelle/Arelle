@@ -147,6 +147,19 @@ Interested in contributing to Arelle? Awesome! Make sure to review our
 
 [contribution guidelines]: https://arelle.readthedocs.io/en/latest/contributing.html
 
+
+
+## 👥 Contributors
+
+<div align="center">
+  <a href="https://github.com/Arelle/Arelle/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=Arelle/Arelle&max=100&columns=10" style="margin: 5px;" />
+  </a>
+  <p>Join our community and become a contributor today! 🚀 </p>
+</div>
+
+
+
 ## License
 
 [Apache License 2.0][license]

@@ -10,7 +10,7 @@ from math import isnan
 from typing import Any, List, cast
 
 import regex as re
-import tinycss2  # type: ignore[import]
+import tinycss2  # type: ignore[import-untyped]
 from lxml.etree import EntityBase, _Comment, _ElementTree, _ProcessingInstruction
 
 from arelle import LeiUtil, ModelDocument, XbrlConst
