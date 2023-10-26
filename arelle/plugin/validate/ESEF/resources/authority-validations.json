@@ -81,7 +81,8 @@
                 ["https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor-gen-en.xml"]
         },
         "formulaRunIDs": null,
-        "minExternalResourceSizekB": 0
+        "minExternalResourceSizekB": 0,
+        "validate1_9_1": "false"
     },
     "ESEF-2021": {
         "outdatedTaxonomyURLs": [
@@ -109,6 +110,22 @@
         "effectiveTaxonomyURLs": [
             "http://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
             "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
+            "http://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd",
+            "https://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd"
+        ]
+    },
+    "ESEF-2023": {
+        "outdatedTaxonomyURLs": [
+            "http://www.esma.europa.eu/taxonomy/2017-03-31/esef_cor.xsd",
+            "https://www.esma.europa.eu/taxonomy/2017-03-31/esef_cor.xsd",
+            "http://www.esma.europa.eu/taxonomy/2019-03-27/esef_cor.xsd",
+            "https://www.esma.europa.eu/taxonomy/2019-03-27/esef_cor.xsd",
+            "http://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor.xsd",
+            "https://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor.xsd",
+            "http://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
+            "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd"
+        ],
+        "effectiveTaxonomyURLs": [
             "http://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd",
             "https://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd"
         ]

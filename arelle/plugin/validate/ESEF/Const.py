@@ -77,6 +77,12 @@ qnDomainItemTypes = frozenset((
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonnum:domainItemType"),
 ))
 
+
+qnDomainItemTypes2023 = frozenset((
+    qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonnum:domainItemType"),
+))
+
+
 linkbaseRefTypes = {
     "http://www.xbrl.org/2003/role/calculationLinkbaseRef": "cal",
     "http://www.xbrl.org/2003/role/definitionLinkbaseRef": "def",
