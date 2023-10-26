@@ -29,7 +29,7 @@ from .Const import esefCorNsPattern, esefNotesStatementConcepts, esefTaxonomyNam
 _: TypeGetText
 
 YEAR_GROUP = "year"
-DISCLOSURE_SYSTEM_YEAR_PATTERN = re.compile(rf"esef-(?P<{YEAR_GROUP}>20\d\d)")
+DISCLOSURE_SYSTEM_YEAR_PATTERN = re.compile(rf"esef-(?:unconsolidated-)?(?P<{YEAR_GROUP}>20\d\d)")
 
 
 def getDisclosureSystemYear(modelXbrl: ModelXbrl) -> int:
