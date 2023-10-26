@@ -64,7 +64,7 @@ from ..Const import (
     untransformableTypes,
 )
 from ..Dimensions import checkFilingDimensions
-from ..Util import checkForMultiLangDuplicates, etreeIterWithDepth, getEsefNotesStatementConcepts, hasEventHandlerAttributes, isExtension, is2022DisclosureSystem
+from ..Util import checkForMultiLangDuplicates, etreeIterWithDepth, getEsefNotesStatementConcepts, hasEventHandlerAttributes, isExtension, getDisclosureSystemYear
 
 _: TypeGetText  # Handle gettext
 
@@ -146,7 +146,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     checkFilingDTS(val, modelXbrl.modelDocument, esefNotesConcepts, [])
     modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
 
-    if not is2022DisclosureSystem(modelXbrl):
+    if getDisclosureSystemYear(modelXbrl) >= 2023:
         instanceNumber = 0
         if modelXbrl.fileSource.dir:
             for file in modelXbrl.fileSource.dir:
@@ -284,7 +284,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 modelObject=doc, doctype=docinfo.doctype)
 
         reportIncorrectlyPlacedInPackageRef = "https://www.xbrl.org/Specification/report-package/CR-2023-05-03/report-package-CR-2023-05-03.html"
-        if is2022DisclosureSystem(modelXbrl):
+        if getDisclosureSystemYear(modelXbrl) < 2023:
             reportIncorrectlyPlacedInPackageRef = "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14.html"
 
         if len(ixdsDocDirs) > 1 and val.consolidated:
@@ -412,7 +412,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                     modelObject=elt, qname=elt.qname)
                         elif any(character in elt.stringValue for character in ['&lt;', '&amp;', '&', '<']):
                             if not (hasattr(elt, 'attrib')) or ('escape' not in elt.attrib or elt.attrib.get('escape').lower() != 'true'):
-                                modelXbrl.error("ESEF.2.2.6.escapedHTMLUsedInBlockTagWithSpecialCharacters" if is2022DisclosureSystem(modelXbrl) else "ESEF.2.2.7.escapedHTMLUsedInBlockTagWithSpecialCharacters",
+                                modelXbrl.error("ESEF.2.2.6.escapedHTMLUsedInBlockTagWithSpecialCharacters" if getDisclosureSystemYear(modelXbrl) < 2023 else "ESEF.2.2.7.escapedHTMLUsedInBlockTagWithSpecialCharacters",
                                         _("A text block containing '&' or '<' character MUST have an 'escape' attribute: %(qname)s."),
                                         modelObject=elt, qname=elt.qname)
                         # Check that continuation elements are in the order of html text as rendered to user

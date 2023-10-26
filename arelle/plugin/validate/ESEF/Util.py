@@ -8,6 +8,7 @@ import os
 from collections import defaultdict
 from collections.abc import Collection
 from typing import Any, Dict, Generator, List, Union, cast
+import regex as re
 
 from lxml.etree import _Element
 
@@ -26,6 +27,17 @@ from arelle.typing import TypeGetText
 from .Const import esefCorNsPattern, esefNotesStatementConcepts, esefTaxonomyNamespaceURIs, htmlEventHandlerAttributes, svgEventAttributes
 
 _: TypeGetText
+
+YEAR_GROUP = "year"
+DISCLOSURE_SYSTEM_YEAR_PATTERN = re.compile(rf"esef-(?P<{YEAR_GROUP}>20\d\d)")
+
+
+def getDisclosureSystemYear(modelXbrl: ModelXbrl) -> int:
+    for name in modelXbrl.modelManager.disclosureSystem.names:
+        disclosureSystemYear = DISCLOSURE_SYSTEM_YEAR_PATTERN.fullmatch(name)
+        if disclosureSystemYear:
+            return int(disclosureSystemYear.group(YEAR_GROUP))
+    raise ValueError(f"Unable to determine year of ESEF disclosure system matching pattern 'esef-20XX' from {modelXbrl.modelManager.disclosureSystem.names}")
 
 
 # check if a modelDocument URI is an extension URI (document URI)
@@ -49,10 +61,6 @@ def isInEsefTaxonomy(val: ValidateXbrl, modelObject: ModelObject | None) -> bool
     ns = modelObject.qname.namespaceURI
     assert ns is not None
     return (any(ns.startswith(esefNsPrefix) for esefNsPrefix in esefTaxonomyNamespaceURIs))
-
-
-def is2022DisclosureSystem(modelXbrl: ModelXbrl) -> bool:
-    return any("2022" in name for name in modelXbrl.modelManager.disclosureSystem.names)
 
 
 def resourcesFilePath(modelManager: ModelManager, fileName: str) -> str:

@@ -18,7 +18,7 @@ from arelle.ValidateFilingText import parseImageDataURL, validateGraphicHeaderTy
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from ..Const import supportedImgTypes
-from ..Util import is2022DisclosureSystem
+from ..Util import getDisclosureSystemYear
 
 _: TypeGetText  # Handle gettext
 
@@ -88,7 +88,7 @@ def validateImage(
                 checkImageContents(normalizedUri, modelXbrl, elt, os.path.splitext(image)[1], True, imgContents,
                                    val.consolidated, val)
                 imgContents = b""  # deref, may be very large
-            if is2022DisclosureSystem(modelXbrl) and imglen < minExternalRessourceSize:
+            if getDisclosureSystemYear(modelXbrl) < 2023 and imglen < minExternalRessourceSize:
                 modelXbrl.warning(
                     "%s.imageIncludedAndNotEmbeddedAsBase64EncodedString" % contentOtherThanXHTMLGuidance,
                     _("Images SHOULD be included in the XHTML document as a base64 encoded string unless their size exceeds the minimum size for the authority (%(maxImageSize)s): %(file)s."),
