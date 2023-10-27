@@ -6,8 +6,11 @@ from __future__ import annotations
 from datetime import date, timedelta
 from typing import Any, cast, Iterable, TYPE_CHECKING
 
-from arelle import XmlUtil
+from regex import regex
+
+from arelle import XmlUtil, XbrlConst
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XmlValidate import INVALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
@@ -92,7 +95,7 @@ def rule_br_kvk_2_04(
                 continue
         if context.isStartEndPeriod:
             contextDates = (
-                context.startDatetime.date(),
+                context.startDatetime.date() if context.startDatetime else None,
                 context.endDate
             )
             if contextDates in validDurations:
@@ -281,4 +284,58 @@ def rule_br_kvk_4_16(
                       '%(conceptQname)s must be filled for a corrected financial statement.'),
                 resubmissionConceptQname=resubmissionConceptQname,
                 conceptQname=conceptQname,
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+    ],
+)
+def rule_br_kvk_4_20(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    BR-KVK-4.20: Each date in an XBRL instance MUST be a valid date. The date is in format YYYY-MM-DD.
+    """
+    modelXbrl = val.modelXbrl
+    pattern = regex.compile(r"\s*[0-9]{4}-[0-9]{2}-[0-9]{2}\s*$")
+    # Check period date values
+    for contextId, context in modelXbrl.contexts.items():
+        for contextElement in context:
+            if contextElement.elementQname != XbrlConst.qnXbrliPeriod:
+                continue
+            for periodElement in contextElement:
+                xValid = getattr(periodElement, 'xValid', None)
+                sValue = getattr(periodElement, 'sValue', None)
+                if (xValid == INVALID) or \
+                        (sValue is not None and pattern.match(str(sValue))) is None:
+                    yield Validation.error(
+                        codes='NL.BR-KVK-4.20',
+                        msg=_('Each date in an XBRL instance MUST be a valid date. '
+                              'Date parsing for %(periodElement)s in context "%(contextId)s" with value "%(periodValue)s" '
+                              'failed with message: "%(valueError)s" '),
+                        modelObject=periodElement,
+                        contextId=contextId,
+                        periodElement=periodElement.qname.localName,
+                        periodValue=periodElement.sValue,
+                        valueError=getattr(periodElement, 'xValueError', None) or 'does not match YYYY-MM-DD',
+                    )
+    # Check date fact values
+    for fact in modelXbrl.factsByDatatype(notStrict=True, typeQname=XbrlConst.qnXbrliDateItemType) or []:
+        if (fact.xValid == INVALID) or \
+                pattern.match(str(fact.sValue)) is None:
+            yield Validation.error(
+                codes='NL.BR-KVK-4.20',
+                msg=_('Each date in an XBRL instance MUST be a valid date. '
+                      'Date parsing for fact %(factQname)s with value "%(factValue)s" failed with message: "%(valueError)s" '),
+                modelObject=fact,
+                factQname=fact.qname,
+                factValue=fact.sValue,
+                valueError=fact.xValueError or 'does not match YYYY-MM-DD',
             )

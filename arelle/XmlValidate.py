@@ -576,6 +576,7 @@ def validateValue(
                         xValue = value
                     sValue = value
         except (ValueError, InvalidOperation) as err:
+            elt.xValueError = err
             errElt: str | QName
             if ModelInlineValueObject is not None and isinstance(elt, ModelInlineValueObject):
                 errElt = "{0} fact {1}".format(elt.elementQname, elt.qname)
