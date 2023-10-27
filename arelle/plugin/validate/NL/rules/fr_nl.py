@@ -23,6 +23,34 @@ from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
 
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_1_05(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-1.05: The character encoding UTF-8 MUST be used in the filing instance document
+    """
+    for doc in val.modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            if 'UTF-8' != doc.xmlDocument.docinfo.encoding:
+                yield Validation.error(
+                    codes='FR-NL-1.05',
+                    msg=_('The XML character encoding \'UTF-8\' MUST be used in the filing instance document'),
+                    modelObject=val.modelXbrl.modelDocument
+                )
+
+
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
@@ -74,10 +102,9 @@ def rule_fr_nl_1_01(
     FR-NL-1.01: A BOM character MUST NOT be used.
     """
     modelXbrl = val.modelXbrl
-    encoding = 'utf-8'
     for doc in modelXbrl.urlDocs.values():
         if doc.type == ModelDocument.Type.INSTANCE:
-            with modelXbrl.fileSource.file(doc.filepath, encoding=encoding)[0] as file:
+            with modelXbrl.fileSource.file(doc.filepath)[0] as file:
                 if file.read(1) == '\ufeff':
                     yield Validation.error(
                         codes='NL.FR-NL-1.01',
