@@ -389,7 +389,7 @@ def validateValue(
             if whitespaceReplace:
                 value = normalizeWhitespacePattern.sub(' ', value) # replace tab, line feed, return with space
             elif whitespaceCollapse:
-                value = collapseWhitespacePattern.sub(' ', value).strip(' ') # collapse multiple spaces, tabs, line feeds and returns to single space
+                value = ' '.join(value.split())
             if baseXsdType == "noContent":
                 if len(value) > 0 and not entirelyWhitespacePattern.match(value): # only xml schema pattern whitespaces removed
                     raise ValueError("value content not permitted")
