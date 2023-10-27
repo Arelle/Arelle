@@ -17,7 +17,7 @@
   xmlns:xbrli="http://www.xbrl.org/2003/instance"
   xmlns:xlink="http://www.w3.org/1999/xlink">
     <link:schemaRef
-      xlink:href="http://www.nltaxonomie.nl/nt17/kvk/20221208/entrypoints/kvk-rpt-jaarverantwoording-2022-nlgaap-klein-publicatiestukken.xsd"
+      xlink:href="http://www.nltaxonomie.nl/nt17/kvk/20221214/entrypoints/kvk-rpt-jaarverantwoording-2022-nlgaap-klein-publicatiestukken.xsd"
       xlink:type="simple"/>
     <context id="ctx-invalid-format">
         <entity>
