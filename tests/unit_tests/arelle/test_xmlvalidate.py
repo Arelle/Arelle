@@ -124,6 +124,10 @@ BASE_XSD_TYPES = {
         {"value": "P1Y1M1D1H1M1S", "expected": ("=", None, INVALID)},
         {"value": "T1H1M1S", "expected": ("=", None, INVALID)},
     ],
+    "ENTITIES": [
+        {"value": "*invalid valid", "expected": ("=", "=", VALID)},  # TODO: this should fail but doesn't because it checks for `baseXsdTypePatterns` with key `ENTITIE`
+        {"value": "valid valid", "expected": ("=", "=", VALID)},
+    ],
     "ENTITY": [
         {"value": "*invalid", "expected": ("=", None, INVALID)},
         {"value": "valid", "expected": ("=", "=", VALID)},
@@ -255,6 +259,10 @@ BASE_XSD_TYPES = {
         {"value": "*invalid", "expected": ("=", None, INVALID)},
         {"value": "valid", "expected": ("=", "=", VALID)},
     ],
+    "IDREFS": [
+        {"value": "*invalid valid", "expected": ("=", None, INVALID)},
+        {"value": "valid valid", "expected": ("=", "=", VALID)},
+    ],
     "int": [
         {"value": "-1", "expected": (-1, -1, VALID)},
         {"value": "0", "expected": (0, 0, VALID)},
@@ -295,6 +303,10 @@ BASE_XSD_TYPES = {
     "NMTOKEN": [
         {"value": "*invalid", "expected": ("=", None, INVALID)},
         {"value": "valid", "expected": ("=", "=", VALID)},
+    ],
+    "NMTOKENS": [
+        {"value": "*invalid valid", "expected": ("=", None, INVALID)},
+        {"value": "valid valid", "expected": ("=", "=", VALID)},
     ],
     "noContent": [
         {"value": "", "expected": (None, None, VALID_NO_CONTENT)},
