@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from datetime import date, timedelta
+from dateutil import relativedelta
 from typing import Any, cast, Iterable, TYPE_CHECKING
 
 from regex import regex
@@ -285,6 +286,45 @@ def rule_br_kvk_4_16(
                 resubmissionConceptQname=resubmissionConceptQname,
                 conceptQname=conceptQname,
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+    ],
+)
+def rule_br_kvk_4_17(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    BR-KVK-4.17: The current and previous financial reporting period MUST be less than 2 years.
+    """
+    modelXbrl = val.modelXbrl
+    periodStart = _getReportingPeriodDateValue(modelXbrl, pluginData.financialReportingPeriodCurrentStartDateQn)
+    periodEnd = _getReportingPeriodDateValue(modelXbrl, pluginData.financialReportingPeriodCurrentEndDateQn)
+    previousPeriodStart = _getReportingPeriodDateValue(modelXbrl, pluginData.financialReportingPeriodPreviousStartDateQn)
+    previousPeriodEnd = _getReportingPeriodDateValue(modelXbrl, pluginData.financialReportingPeriodPreviousEndDateQn)
+    errors = dict()
+    if periodStart and periodEnd:
+        if periodStart >= periodEnd + relativedelta.relativedelta(years=+2):
+            errors.update({'current': [periodStart, periodEnd]})
+    if previousPeriodStart and previousPeriodEnd:
+        if previousPeriodStart >= previousPeriodEnd + relativedelta.relativedelta(years=+2):
+            errors.update({'previous': [previousPeriodStart, previousPeriodEnd]})
+    for period, dates in errors.items():
+        yield Validation.error(
+            codes='NL.BR-KVK-4.17',
+            msg=_('The %(period)s financial reporting period is not shorter than 2 years. '
+                  'Period Start: %(start)s  Period End: %(end)s '),
+            period=period,
+            start=dates[0],
+            end=dates[1]
+        )
 
 
 @validation(
