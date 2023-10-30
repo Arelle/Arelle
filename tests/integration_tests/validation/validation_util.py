@@ -65,6 +65,8 @@ def get_test_data(
         if model_document.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
             test_cases.append(model_document)
         elif model_document.type == ModelDocument.Type.TESTCASESINDEX:
+            model_errors = sorted(cntlr.modelManager.modelXbrl.errors)
+            assert 'IOerror' not in model_errors, f'One or more testcases referenced by testcases index "{model_document.filepath}" were not found.'
             referenced_documents = model_document.referencesDocument.keys()
             child_document_types = {doc.type for doc in referenced_documents}
             assert len(child_document_types) == 1, f'Multiple child document types found in {model_document.uri}: {child_document_types}.'
