@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import codecs
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -22,6 +23,24 @@ from ..DisclosureSystems import (
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
+
+
+BOM_BYTES = frozenset([
+    codecs.BOM,
+    codecs.BOM_BE,
+    codecs.BOM_LE,
+    codecs.BOM_UTF8,
+    codecs.BOM_UTF16,
+    codecs.BOM_UTF16_LE,
+    codecs.BOM_UTF16_BE,
+    codecs.BOM_UTF32,
+    codecs.BOM_UTF32_LE,
+    codecs.BOM_UTF32_BE,
+    codecs.BOM32_LE,
+    codecs.BOM32_BE,
+    codecs.BOM64_BE,
+    codecs.BOM64_LE,
+])
 
 
 @validation(
@@ -131,13 +150,16 @@ def rule_fr_nl_1_01(
     modelXbrl = val.modelXbrl
     for doc in modelXbrl.urlDocs.values():
         if doc.type == ModelDocument.Type.INSTANCE:
-            with modelXbrl.fileSource.file(doc.filepath)[0] as file:
-                if file.read(1) == '\ufeff':
-                    yield Validation.error(
-                        codes='NL.FR-NL-1.01',
-                        msg=_('A BOM (byte order mark) character MUST NOT be used in an XBRL instance document.'),
-                        fileName=doc.basename,
-                    )
+            with modelXbrl.fileSource.file(doc.filepath, binary=True)[0] as file:
+                firstLine = file.readline()
+                for bom in BOM_BYTES:
+                    if firstLine.startswith(bom):
+                        yield Validation.error(
+                            codes='NL.FR-NL-1.01',
+                            msg=_('A BOM (byte order mark) character MUST NOT be used in an XBRL instance document. Found %(bom)s.'),
+                            bom=bom,
+                            fileName=doc.basename,
+                        )
 
 
 @validation(
