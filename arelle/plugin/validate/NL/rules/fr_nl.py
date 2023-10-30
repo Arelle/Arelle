@@ -32,6 +32,33 @@ _: TypeGetText
         DISCLOSURE_SYSTEM_NT18
     ],
 )
+def rule_fr_nl_1_03(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-1.03: A DOCTYPE declaration MUST NOT be used in the filing instance document
+    """
+    for doc in val.modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            if doc.xmlDocument.docinfo.doctype:
+                yield Validation.error(
+                    codes='NL.FR-NL-1.03',
+                    msg=_('A DOCTYPE declaration MUST NOT be used in the filing instance document'),
+                    modelObject=val.modelXbrl.modelDocument
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
 def rule_fr_nl_1_05(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -45,7 +72,7 @@ def rule_fr_nl_1_05(
         if doc.type == ModelDocument.Type.INSTANCE:
             if 'UTF-8' != doc.xmlDocument.docinfo.encoding:
                 yield Validation.error(
-                    codes='FR-NL-1.05',
+                    codes='NL.FR-NL-1.05',
                     msg=_('The XML character encoding \'UTF-8\' MUST be used in the filing instance document'),
                     modelObject=val.modelXbrl.modelDocument
                 )
