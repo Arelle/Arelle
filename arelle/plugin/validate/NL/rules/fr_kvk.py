@@ -3,14 +3,18 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from typing import Any, Iterable
+from typing import Any, cast, Iterable
 
-from arelle import ModelDocument
+from arelle import ModelDocument, XbrlConst
+from arelle.ModelDtsObject import ModelResource
+from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.ModelObject import ModelObject
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
+from lxml.etree import _Element
 from ..DisclosureSystems import (
     DISCLOSURE_SYSTEM_NT16,
     DISCLOSURE_SYSTEM_NT17,
@@ -80,6 +84,39 @@ def rule_fr_kvk_2_01(
                     acceptedLangs=", ".join(ACCEPTED_LANGUAGES),
                     lang=lang,
                 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+    ],
+)
+def rule_fr_kvk_2_02(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-KVK-2.02: The attribute 'xml:lang' MUST contain the same value within an XBRL instance document
+    """
+    modelXbrl = val.modelXbrl
+    for doc in modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            lang = doc.xmlRootElement.get('{http://www.w3.org/XML/1998/namespace}lang')
+    for fact in modelXbrl.facts:
+        if fact.xmlLang and fact.xmlLang != lang:
+            yield Validation.error(
+                codes='NL.FR-KVK-2.02',
+                msg=_('The attribute \'xml:lang\' can be reported on different elements within an XBRL instance document.'
+                      'The attribute \'xml:lang\' must always contain the same value within an XBRL instance document. '
+                      'It is not allowed to report different values here. Document language: %(documentLang)s  Element language: %(additionalLang)s'),
+                modelObject=fact,
+                additionalLang=fact.xmlLang,
+                documentLang=lang,
+            )
 
 
 @validation(
