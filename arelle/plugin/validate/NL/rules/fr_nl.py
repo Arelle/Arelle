@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import codecs
 from pathlib import Path
-from typing import Any, Iterable, cast
+from typing import Any, BinaryIO, Iterable, cast
 
 import regex
 
@@ -288,10 +288,10 @@ def rule_fr_nl_1_01(
     modelXbrl = val.modelXbrl
     for doc in modelXbrl.urlDocs.values():
         if doc.type == ModelDocument.Type.INSTANCE:
-            with modelXbrl.fileSource.file(doc.filepath, binary=True)[0] as file:
-                firstLine = cast(bytes, file.readline())
+            with cast(BinaryIO, modelXbrl.fileSource.file(doc.filepath, binary=True)[0]) as file:
+                initialBytes = file.read(4)
                 for bom in BOM_BYTES:
-                    if firstLine.startswith(bom):
+                    if initialBytes.startswith(bom):
                         yield Validation.error(
                             codes='NL.FR-NL-1.01',
                             msg=_('A BOM (byte order mark) character MUST NOT be used in an XBRL instance document. Found %(bom)s.'),
