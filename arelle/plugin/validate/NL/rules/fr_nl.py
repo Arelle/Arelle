@@ -25,7 +25,7 @@ from ..PluginValidationDataExtension import PluginValidationDataExtension
 _: TypeGetText
 
 
-BOM_BYTES = frozenset([
+BOM_BYTES = sorted({
     codecs.BOM,
     codecs.BOM_BE,
     codecs.BOM_LE,
@@ -40,7 +40,7 @@ BOM_BYTES = frozenset([
     codecs.BOM32_BE,
     codecs.BOM64_BE,
     codecs.BOM64_LE,
-])
+}, key=lambda x: len(x), reverse=True)
 
 
 @validation(
@@ -160,6 +160,7 @@ def rule_fr_nl_1_01(
                             bom=bom,
                             fileName=doc.basename,
                         )
+                        return
 
 
 @validation(
