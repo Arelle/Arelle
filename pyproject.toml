@@ -49,6 +49,7 @@ DB = [
 ]
 EFM = [
     'holidays==0.*',
+    'pytz',
 ]
 ESEF = [
     'tinycss2==1.*',
