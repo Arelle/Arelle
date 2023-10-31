@@ -178,16 +178,13 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         if not isIncluded and namespace and namespace in XbrlConst.standardNamespaceSchemaLocations and uri != XbrlConst.standardNamespaceSchemaLocations[namespace]:
             return load(modelXbrl, XbrlConst.standardNamespaceSchemaLocations[namespace],
                         base, referringElement, isEntry, isDiscovered, isIncluded, namespace, reloadCache)
-        if modelXbrl.modelManager.abortOnMajorError and (isEntry or isDiscovered):
-            modelXbrl.error("IOerror",
-                _("%(fileName)s: file error: %(error)s \nLoading terminated."),
-                modelObject=referringElement, fileName=os.path.basename(uri), error=str(err))
-            raise LoadingException()
         #import traceback
         #print("traceback {}".format(traceback.format_tb(sys.exc_info()[2])))
         modelXbrl.error("IOerror",
                 _("%(fileName)s: file error: %(error)s"),
                 modelObject=referringElement, fileName=os.path.basename(uri), error=str(err))
+        if modelXbrl.modelManager.abortOnMajorError and (isEntry or isDiscovered):
+            raise LoadingException()
         modelXbrl.urlUnloadableDocs[normalizedUri] = True  # not loadable due to IO issue
         return None
     except (etree.LxmlError, etree.XMLSyntaxError,
