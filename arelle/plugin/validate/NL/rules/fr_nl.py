@@ -225,7 +225,6 @@ def rule_fr_nl_2_05(
         )
 
 
-
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[

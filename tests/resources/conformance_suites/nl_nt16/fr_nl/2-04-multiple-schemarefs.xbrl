@@ -16,8 +16,8 @@
   xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
   xmlns:xbrli="http://www.xbrl.org/2003/instance"
   xmlns:xlink="http://www.w3.org/1999/xlink">
-    <link:schemaRef xlink:href="2-03-entrypoint.xsd" xlink:type="simple"/> 
-    <link:schemaRef xlink:href="2-04-entrypoint.xsd" xlink:type="simple"/>
+    <link:schemaRef xlink:href="2-04-entrypoint-1.xsd" xlink:type="simple"/>
+    <link:schemaRef xlink:href="2-04-entrypoint-2.xsd" xlink:type="simple"/>
     <context id="ctx-1">
         <entity>
             <identifier scheme="http://www.kvk.nl/kvk-id">12345678</identifier>
