@@ -19,6 +19,9 @@ jobs:
     outputs:
       matrix: ${{ steps.build-test-matrix.outputs.matrix }}
     steps:
+      - if: github.event.pull_request.mergeable != 'true'
+        name: Exit if PR is not mergeable
+        run: exit 1
       - uses: actions/checkout@v4.1.1
         with:
           persist-credentials: false
