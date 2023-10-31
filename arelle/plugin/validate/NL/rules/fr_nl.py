@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import codecs
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, cast
 
 import regex
 
@@ -151,7 +151,7 @@ def rule_fr_nl_1_01(
     for doc in modelXbrl.urlDocs.values():
         if doc.type == ModelDocument.Type.INSTANCE:
             with modelXbrl.fileSource.file(doc.filepath, binary=True)[0] as file:
-                firstLine = file.readline()
+                firstLine = cast(bytes, file.readline())
                 for bom in BOM_BYTES:
                     if firstLine.startswith(bom):
                         yield Validation.error(
