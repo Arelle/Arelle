@@ -270,3 +270,29 @@ def rule_fr_nl_2_06(
                             fileName=doc.basename,
                             lineNumber=i + 1,
                         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_2_07(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-2.07: The attribute 'xsi:nil' MUST NOT be used
+    """
+    for fact in val.modelXbrl.facts:
+        if fact.get("{http://www.w3.org/2001/XMLSchema-instance}nil") is not None:
+            yield Validation.error(
+                codes='NL.FR-NL-2.07',
+                msg=_('The attribute \'xsi:nil\' must not be used.'),
+                modelObject=fact
+            )
