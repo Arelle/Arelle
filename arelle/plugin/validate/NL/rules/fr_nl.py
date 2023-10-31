@@ -199,6 +199,38 @@ def rule_fr_nl_2_04(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_2_05(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-2.05: The 'link:linkbaseRef' element MUST NOT occur
+    """
+    linkbase_ref_model_objects = []
+    for doc in val.modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            for refDoc, docRef in doc.referencesDocument.items():
+                if docRef.referringModelObject.localName == "linkbaseRef":
+                    linkbase_ref_model_objects.append(docRef.referringModelObject)
+    if len(linkbase_ref_model_objects) > 0:
+        yield Validation.error(
+            codes='NL.FR-NL-2.05',
+            msg=_('The \'link:linkbaseRef\' element must not occur.'),
+            modelObject=linkbase_ref_model_objects
+        )
+
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
         DISCLOSURE_SYSTEM_NT18,
     ],
 )
