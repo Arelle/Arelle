@@ -178,8 +178,6 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         if not isIncluded and namespace and namespace in XbrlConst.standardNamespaceSchemaLocations and uri != XbrlConst.standardNamespaceSchemaLocations[namespace]:
             return load(modelXbrl, XbrlConst.standardNamespaceSchemaLocations[namespace],
                         base, referringElement, isEntry, isDiscovered, isIncluded, namespace, reloadCache)
-        #import traceback
-        #print("traceback {}".format(traceback.format_tb(sys.exc_info()[2])))
         modelXbrl.error("IOerror",
                 _("%(fileName)s: file error: %(error)s"),
                 modelObject=referringElement, fileName=os.path.basename(uri), error=str(err))
