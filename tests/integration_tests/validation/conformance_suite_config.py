@@ -27,6 +27,7 @@ class ConformanceSuiteConfig:
     plugins: frozenset[str] = frozenset()
     public_download_url: str | None = None
     shards: int = 1
+    strict_testcase_index: bool = True
     url_replace: str | None = None
 
     def __post_init__(self) -> None:

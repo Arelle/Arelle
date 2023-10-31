@@ -13,6 +13,8 @@
     <testcase uri='br_kvk/4-16-testcase.xml' />
     <testcase uri='br_kvk/4-20-testcase.xml' />
     <testcase uri='fr_nl/1-01-testcase.xml' />
+    <testcase uri='fr_nl/1-03-testcase.xml' />
+    <testcase uri='fr_nl/1-05-testcase.xml' />
     <testcase uri='fr_nl/1-06-testcase.xml' />
     <testcase uri='fr_nl/2-06-testcase.xml' />
 </testcases>
