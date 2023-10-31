@@ -168,6 +168,37 @@ def rule_fr_nl_1_01(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_2_04(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-2.04: The 'link:schemaRef' element MUST NOT appear more than once
+    """
+    schema_ref_model_objects = []
+    for doc in val.modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            for refDoc, docRef in doc.referencesDocument.items():
+                if docRef.referringModelObject.localName == "schemaRef":
+                    schema_ref_model_objects.append(docRef.referringModelObject)
+    if len(schema_ref_model_objects) > 1:
+        yield Validation.error(
+            codes='NL.FR-NL-2.04',
+            msg=_('The \'link:schemaRef\' element must not appear more than once.'),
+            modelObject=schema_ref_model_objects
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
         DISCLOSURE_SYSTEM_NT18,
     ],
 )
