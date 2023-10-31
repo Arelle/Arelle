@@ -13,7 +13,7 @@
       The instance contains a BOM.
     </description>
     <data>
-      <instance readMeFirst="true">1.01-invalid-file.xbrl</instance>
+      <instance readMeFirst="true">1-01-invalid-file.xbrl</instance>
     </data>
     <result>
       <error>NL.FR-NL-1.01</error>
@@ -24,7 +24,7 @@
       The archive instance contains a BOM.
     </description>
     <data>
-      <instance readMeFirst="true">1.01-invalid-zip.zip/1.01-invalid-file.xbrl</instance>
+      <instance readMeFirst="true">1-01-invalid-zip.zip/1-01-invalid-file.xbrl</instance>
     </data>
     <result>
       <error>NL.FR-NL-1.01</error>
