@@ -5,6 +5,7 @@ This module is Arelle's controller in command line non-interactive mode
 
 See COPYRIGHT.md for copyright information.
 '''
+from __future__ import annotations
 from arelle import PythonUtil # define 2.x or 3.x string types
 import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging, platform
 from optparse import OptionGroup, OptionParser, SUPPRESS_HELP
@@ -30,6 +31,7 @@ from arelle.SystemInfo import getSystemInfo, getSystemWordSize, hasWebServer, is
 from pprint import pprint
 import logging
 from lxml import etree
+import glob
 win32file = win32api = win32process = pywintypes = None
 STILL_ACTIVE = 259 # MS Windows process status constants
 PROCESS_QUERY_INFORMATION = 0x400
@@ -317,11 +319,9 @@ def parseArgs(args):
                              "or ../examples/plugin/hello_dolly.py for relative use of examples directory) "
                              "Local python files do not require .py suffix, e.g., hello_dolly without .py is sufficient, "
                              "Packaged plug-in urls are their directory's url (e.g., --plugins EdgarRenderer or --plugins xbrlDB).  " ))
-    parser.add_option("--packages", "--package", action="store", dest="packages",
-                      help=_("Specify taxonomy packages configuration.  "
-                             "Enter 'show' to show current packages configuration.  "
-                             "Commands show, and module urls are '|' separated: "
-                             "url specifies a package by its url or filename, please use full paths. "
+    parser.add_option("--packages", "--package", action="append", dest="packages",
+                      help=_("Load taxonomy packages. Option can be repeated for multiple files. "
+                             "If a directory is specified, all .zip files in the directory will be loaded. "
                              "(Package settings from GUI are no longer shared with cmd line operation. "
                              "Cmd line package settings are not persistent.)  " ))
     parser.add_option("--packageManifestName", action="store", dest="packageManifestName",
@@ -1139,7 +1139,18 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 #    fh.write("Status pipe exception {} {}\n".format(type(ex), ex))
                 system.exit()
 
-    def loadPackages(self, packages: str, packageManifestName: str):
+    def loadPackage(self, package: str, packageManifestName: str):
+        from arelle import PackageManager
+        packageInfo = PackageManager.addPackage(self, package, packageManifestName)
+        if packageInfo:
+            self.addToLog(_("Activation of package {0} successful.").format(packageInfo.get("name")),
+                          messageCode="info", file=packageInfo.get("URL"))
+        else:
+            self.addToLog(_("Unable to load package \"%(name)s\". "),
+                          messageCode="arelle:packageLoadingError",
+                          messageArgs={"name": package, "file": package}, level=logging.ERROR)
+
+    def loadPackages(self, packages: list[str], packageManifestName: str):
         """
         Loads specified packages.
 
@@ -1149,7 +1160,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
         from arelle import PackageManager
         savePackagesChanges = True
         showPackages = False
-        for packageCmd in packages.split('|'):
+        # For backwards compatibility, we allow '|' separated filenames/URLs
+        # within a single --packages option.
+        for packageCmd in [cmd for p in packages for cmd in p.split('|')]:
             cmd = packageCmd.strip()
             if cmd == "show":
                 showPackages = True
@@ -1172,16 +1185,13 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     self.addToLog(_("Deletion of package successful."), messageCode="info", file=cmd[1:])
                 else:
                     self.addToLog(_("Unable to delete package."), messageCode="info", file=cmd[1:])
-            else:  # assume it is a module or package
+            elif os.path.isdir(cmd): # load all package files in a directory
                 savePackagesChanges = False
-                packageInfo = PackageManager.addPackage(self, cmd, packageManifestName)
-                if packageInfo:
-                    self.addToLog(_("Activation of package {0} successful.").format(packageInfo.get("name")),
-                                  messageCode="info", file=packageInfo.get("URL"))
-                else:
-                    self.addToLog(_("Unable to load package \"%(name)s\". "),
-                                  messageCode="arelle:packageLoadingError",
-                                  messageArgs={"name": cmd, "file": cmd}, level=logging.ERROR)
+                for package in glob.glob(os.path.join(cmd, "*.zip")):
+                    self.loadPackage(package, packageManifestName)
+            else: # assume it is a module or package
+                savePackagesChanges = False
+                self.loadPackage(cmd, packageManifestName)
         if PackageManager.packagesConfigChanged:
             PackageManager.rebuildRemappings(self)
         if savePackagesChanges:
