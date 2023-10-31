@@ -41,11 +41,14 @@ def get_document_id(doc: ModelDocument.ModelDocument) -> str:
         basepath = os.path.dirname(file_source.url) + os.sep
     return PurePath(doc.filepath).relative_to(basepath).as_posix()
 
+
 def get_test_data(
         args: list[str],
         expected_failure_ids: frozenset[str] = frozenset(),
         expected_empty_testcases: frozenset[str] = frozenset(),
-        expected_model_errors: frozenset[str] = frozenset()) -> list[ParameterSet]:
+        expected_model_errors: frozenset[str] = frozenset(),
+        strict_testcase_index: bool = True,
+) -> list[ParameterSet]:
     """
     Produces a list of Pytest Params that can be fed into a parameterized pytest function
 
@@ -53,6 +56,7 @@ def get_test_data(
     :param expected_failure_ids: The set of string test IDs that are expected to fail
     :param expected_empty_testcases: The set of paths of empty testcases, relative to the suite zip
     :param expected_model_errors: The set of error codes expected to be in the ModelXbrl errors
+    :param strict_testcase_index: Don't allow IOerrors when loading the testcase index
     :return: A list of PyTest Params that can be used to run a parameterized pytest function
     """
     cntlr = parseAndRun(args)  # type: ignore[no-untyped-call]
@@ -65,6 +69,9 @@ def get_test_data(
         if model_document.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
             test_cases.append(model_document)
         elif model_document.type == ModelDocument.Type.TESTCASESINDEX:
+            if strict_testcase_index:
+                model_errors = sorted(cntlr.modelManager.modelXbrl.errors)
+                assert 'IOerror' not in model_errors, f'One or more testcases referenced by testcases index "{model_document.filepath}" were not found.'
             referenced_documents = model_document.referencesDocument.keys()
             child_document_types = {doc.type for doc in referenced_documents}
             assert len(child_document_types) == 1, f'Multiple child document types found in {model_document.uri}: {child_document_types}.'
@@ -267,5 +274,6 @@ def get_conformance_suite_test_results(
                 args + config.args,
                 expected_failure_ids=expected_failure_ids,
                 expected_empty_testcases=expected_empty_testcases,
-                expected_model_errors=config.expected_model_errors
+                expected_model_errors=config.expected_model_errors,
+                strict_testcase_index=config.strict_testcase_index,
             )

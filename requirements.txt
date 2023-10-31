@@ -16,6 +16,7 @@ NumPy==1.24.4 ; python_version <= "3.8"
 NumPy==1.25.2 ; python_version > "3.8"
 Matplotlib==3.7.3
 holidays==0.35
+pytz==2023.3.post1
 Tornado==6.3.3
 # security plugin
 PyCryptodome==3.19.0
