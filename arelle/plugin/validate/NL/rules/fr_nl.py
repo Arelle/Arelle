@@ -296,3 +296,29 @@ def rule_fr_nl_2_07(
                 msg=_('The attribute \'xsi:nil\' must not be used.'),
                 modelObject=fact
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_5_06(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-5.06: The 'precision' attribute MUST NOT be used
+    """
+    for fact in val.modelXbrl.facts:
+        if fact.get("precision") is not None:
+            yield Validation.error(
+                codes='NL.FR-NL-5.06',
+                msg=_('The \'precision\' attribute must not be used.'),
+                modelObject=fact
+            )
