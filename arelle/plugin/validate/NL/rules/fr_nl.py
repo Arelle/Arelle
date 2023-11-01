@@ -25,6 +25,7 @@ from ..PluginValidationDataExtension import PluginValidationDataExtension
 _: TypeGetText
 
 
+ALLOWED_NAMED_CHARACTER_REFS = frozenset({'lt', 'gt', 'amp', 'apos', 'quot'})
 BOM_BYTES = sorted({
     codecs.BOM,
     codecs.BOM_BE,
@@ -68,6 +69,53 @@ def rule_fr_nl_1_03(
                     msg=_('A DOCTYPE declaration MUST NOT be used in the filing instance document'),
                     modelObject=val.modelXbrl.modelDocument
                 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18,
+    ],
+)
+def rule_fr_nl_1_04(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-1.04: Disallowed character references MUST NOT be used. The use of character references (e.g. &#1080;)
+    is not allowed unless it concerns numeric character references within the allowed set of characters and except
+    for the entity references listed here: &lt; &gt; &amp; &apos; &quot;
+    """
+    pattern = regex.compile(r"""
+          & \#     (?<dec>[0-9]+)         ;
+        | & \#[Xx] (?<hex>[0-9A-Fa-f]+)   ;
+        | &        (?<named>[0-9A-Za-z]+) ;
+    """, regex.VERBOSE)
+    modelXbrl = val.modelXbrl
+    sourceFileLines = []
+    for doc in modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            with modelXbrl.fileSource.file(doc.filepath)[0] as file:
+                for i, line in enumerate(file):
+                    for match in regex.finditer(pattern, line):
+                        if match.group('hex'):
+                            # hex matches (numeric character references) are allowed
+                            continue
+                        if match.group('named') in ALLOWED_NAMED_CHARACTER_REFS:
+                            # certain named references are allowed
+                            continue
+                        sourceFileLines.append((doc.filepath, i + 1))
+    if len(sourceFileLines) > 0:
+        yield Validation.error(
+            codes='NL.FR-NL-1.04',
+            msg=_('Disallowed character references MUST NOT be used. Only hexadecimal numeric character references '
+                  '(e.g. "&#x3A3;") and certain named references ("&lt;", "&gt;", "&amp;", "&apos;", and "&quot;") are allowed.'),
+            sourceFileLines=sourceFileLines
+        )
 
 
 @validation(
