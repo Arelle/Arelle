@@ -9,7 +9,7 @@ from typing import Any, Iterable, cast
 
 import regex
 
-from arelle import ModelDocument
+from arelle import ModelDocument, XbrlConst
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -41,6 +41,34 @@ BOM_BYTES = sorted({
     codecs.BOM64_BE,
     codecs.BOM64_LE,
 }, key=lambda x: len(x), reverse=True)
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_6_01(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-6.01: Footnotes MUST NOT appear in an XBRL instance document
+    """
+    for doc in val.modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            for elt in doc.xmlRootElement.iter():
+                if elt is not None and elt.qname == XbrlConst.qnLinkFootnote:
+                    yield Validation.error(
+                        codes='NL.FR-NL-6.01',
+                        msg=_('Footnotes must not appear in an XBRL instance document.'),
+                        modelObject=elt
+                    )
 
 
 @validation(
@@ -321,3 +349,31 @@ def rule_fr_nl_5_06(
                 msg=_('The \'precision\' attribute must not be used.'),
                 modelObject=fact
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_6_01(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-6.01: Footnotes MUST NOT appear in an XBRL instance document
+    """
+    for doc in val.modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            for elt in doc.xmlRootElement.iter():
+                if elt is not None and elt.qname == XbrlConst.qnLinkFootnote:
+                    yield Validation.error(
+                        codes='NL.FR-NL-6.01',
+                        msg=_('Footnotes must not appear in an XBRL instance document.'),
+                        modelObject=elt
+                    )
