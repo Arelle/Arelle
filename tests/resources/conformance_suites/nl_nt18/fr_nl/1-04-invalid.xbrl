@@ -1,0 +1,10 @@
+<xbrl xmlns="http://www.xbrl.org/2003/instance" title="Test&reg;"> <!-- CAUSE: disallowed named reference, in attribute -->
+    <!-- &#1080; &#1081; --> <!-- CAUSE: disallowed decimal references, in comment -->
+    <!-- &reg; &plus; --> <!-- CAUSE: disallowed named references, in comment -->
+    <!-- &apos; --> <!-- allowed named reference, in comment -->
+    <!-- &#x3A3; --> <!-- allowed hexadecimal reference, in comment -->
+    &#1080; &#1081; <!-- CAUSE: disallowed decimal references, in text -->
+    &reg; &plus; <!-- CAUSE: disallowed named references, in text -->
+    &apos; <!-- allowed named reference, in text -->
+    &#x3A3; <!-- allowed hexadecimal reference, in text -->
+</xbrl>

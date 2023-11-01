@@ -2,6 +2,7 @@
 <testcases name="NL-NT18">
     <testcase uri='fr_nl/1-01-testcase.xml' />
     <testcase uri='fr_nl/1-03-testcase.xml' />
+    <testcase uri='fr_nl/1-04-testcase.xml' />
     <testcase uri='fr_nl/1-05-testcase.xml' />
     <testcase uri='fr_nl/1-06-testcase.xml' />
     <testcase uri='fr_nl/2-06-testcase.xml' />
