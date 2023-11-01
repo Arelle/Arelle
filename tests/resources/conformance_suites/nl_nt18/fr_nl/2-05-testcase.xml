@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="NL.FR-NL-2.05"
+        description="The 'link:linkbaseRef' element MUST NOT occur."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid-linkbase-refs" name="link:linkbaseRef element must not occur">
+        <description>
+            The 'link:linkbaseRef' element MUST NOT occur.
+        </description>
+        <data>
+            <instance readMeFirst="true">2-05-invalid-linkbaseref.xbrl</instance>
+        </data>
+        <result>
+            <error>NL.FR-NL-2.05</error>
+        </result>
+    </variation>
+</testcase>

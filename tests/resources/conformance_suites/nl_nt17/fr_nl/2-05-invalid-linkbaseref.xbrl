@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xbrl
+  xml:lang="en"
+  xmlns="http://www.xbrl.org/2003/instance"
+  xmlns:bzk-wnt-i="http://www.nltaxonomie.nl/nt17/bzk/20221214/dictionary/bzk-wnt-data"
+  xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+  xmlns:jenv-bw2-dim="http://www.nltaxonomie.nl/nt17/jenv/20221214/dictionary/jenv-bw2-axes"
+  xmlns:jenv-bw2-dm="http://www.nltaxonomie.nl/nt17/jenv/20221214/dictionary/jenv-bw2-domains"
+  xmlns:jenv-bw2-i="http://www.nltaxonomie.nl/nt17/jenv/20221214/dictionary/jenv-bw2-data"
+  xmlns:kvk-i="http://www.nltaxonomie.nl/nt17/kvk/20221214/dictionary/kvk-data"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:nl-cd="http://www.nltaxonomie.nl/nt17/sbr/20220301/dictionary/nl-common-data"
+  xmlns:rj-dim="http://www.nltaxonomie.nl/nt17/rj/20221214/dictionary/rj-axes"
+  xmlns:rj-dm="http://www.nltaxonomie.nl/nt17/rj/20221214/dictionary/rj-domains"
+  xmlns:rj-i="http://www.nltaxonomie.nl/nt17/rj/20221214/dictionary/rj-data"
+  xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink">
+    <link:linkbaseRef xmlns:xlink="http://www.w3.org/1999/xlink" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="2-05-linkbase.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:type="simple"/>
+    <context id="ctx-1">
+        <entity>
+            <identifier scheme="http://www.kvk.nl/kvk-id">12345678</identifier>
+        </entity>
+        <period>
+            <startDate>2021-01-01</startDate>
+            <endDate>2021-12-31T24:00:00</endDate>
+        </period>
+    </context>
+    <nl-cd:LegalEntityName contextRef="ctx-1" xml:lang="en">Testing Entity Name</nl-cd:LegalEntityName>
+    <jenv-bw2-i:LegalEntityRegisteredOffice contextRef="ctx-1" xml:lang="en">Address</jenv-bw2-i:LegalEntityRegisteredOffice>
+    <nl-cd:ChamberOfCommerceRegistrationNumber contextRef="ctx-1" xml:lang="en">12345678</nl-cd:ChamberOfCommerceRegistrationNumber>
+    <kvk-i:BusinessNames contextRef="ctx-1" xml:lang="en">Testing Entity Name</kvk-i:BusinessNames>
+    <kvk-i:LegalSizeCriteriaClassificationSmall contextRef="ctx-1" xml:lang="en">Klein</kvk-i:LegalSizeCriteriaClassificationSmall>
+    <jenv-bw2-i:FinancialReportingPeriodCurrentStartDate contextRef="ctx-1">2021-01-01</jenv-bw2-i:FinancialReportingPeriodCurrentStartDate>
+    <jenv-bw2-i:FinancialReportingPeriodCurrentEndDate contextRef="ctx-1">2021-12-31</jenv-bw2-i:FinancialReportingPeriodCurrentEndDate>
+    <jenv-bw2-i:FinancialReportingPeriodPreviousStartDate contextRef="ctx-1">2020-01-01</jenv-bw2-i:FinancialReportingPeriodPreviousStartDate>
+    <jenv-bw2-i:FinancialReportingPeriodPreviousEndDate contextRef="ctx-1">2020-12-31</jenv-bw2-i:FinancialReportingPeriodPreviousEndDate>
+    <jenv-bw2-i:DocumentAdoptionDate contextRef="ctx-1">2022-01-01</jenv-bw2-i:DocumentAdoptionDate>
+    <jenv-bw2-i:DocumentAdoptionStatus contextRef="ctx-1">Ja</jenv-bw2-i:DocumentAdoptionStatus>
+    <kvk-i:DocumentResubmissionDueToUnsurmountableInaccuracies contextRef="ctx-1">Ja</kvk-i:DocumentResubmissionDueToUnsurmountableInaccuracies>
+    <kvk-i:DocumentResubmissionDueToUnsurmountableInaccuraciesExplanation contextRef="ctx-1">
+        Explanation
+    </kvk-i:DocumentResubmissionDueToUnsurmountableInaccuraciesExplanation>
+
+    <xbrli:unit id="usd">
+        <xbrli:measure>iso4217:USD</xbrli:measure>
+    </xbrli:unit>
+    <xbrli:unit id="pure">
+        <xbrli:measure>xbrli:pure</xbrli:measure>
+    </xbrli:unit>
+    <context id="ctx-2">
+        <entity>
+            <identifier scheme="http://www.kvk.nl/kvk-id">12345678</identifier>
+        </entity>
+        <period>
+            <instant>2022-01-01T00:00:00</instant>
+        </period>
+    </context>
+    <jenv-bw2-i:RightsGrantedExercisePrice contextRef="ctx-2" xml:lang="en" decimals="2" unitRef="usd">100.00</jenv-bw2-i:RightsGrantedExercisePrice>
+    <jenv-bw2-i:ShareCapitalInTheCurrencyOfDenominationWhenDifferentPresentationCurrencyExchangeRateUsed contextRef="ctx-2" xml:lang="en" decimals="INF" unitRef="pure">1.1</jenv-bw2-i:ShareCapitalInTheCurrencyOfDenominationWhenDifferentPresentationCurrencyExchangeRateUsed>
+</xbrl>

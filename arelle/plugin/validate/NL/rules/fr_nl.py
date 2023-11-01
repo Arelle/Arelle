@@ -168,6 +168,68 @@ def rule_fr_nl_1_01(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_2_04(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-2.04: The 'link:schemaRef' element MUST NOT appear more than once
+    """
+    schema_ref_model_objects = []
+    for doc in val.modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            for refDoc, docRef in doc.referencesDocument.items():
+                if docRef.referringModelObject.localName == "schemaRef":
+                    schema_ref_model_objects.append(docRef.referringModelObject)
+    if len(schema_ref_model_objects) > 1:
+        yield Validation.error(
+            codes='NL.FR-NL-2.04',
+            msg=_('The \'link:schemaRef\' element must not appear more than once.'),
+            modelObject=schema_ref_model_objects
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_2_05(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-2.05: The 'link:linkbaseRef' element MUST NOT occur
+    """
+    linkbase_ref_model_objects = []
+    for doc in val.modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            for refDoc, docRef in doc.referencesDocument.items():
+                if docRef.referringModelObject.localName == "linkbaseRef":
+                    linkbase_ref_model_objects.append(docRef.referringModelObject)
+    if len(linkbase_ref_model_objects) > 0:
+        yield Validation.error(
+            codes='NL.FR-NL-2.05',
+            msg=_('The \'link:linkbaseRef\' element must not occur.'),
+            modelObject=linkbase_ref_model_objects
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
         DISCLOSURE_SYSTEM_NT18,
     ],
 )
@@ -207,3 +269,55 @@ def rule_fr_nl_2_06(
                             fileName=doc.basename,
                             lineNumber=i + 1,
                         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_2_07(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-2.07: The attribute 'xsi:nil' MUST NOT be used
+    """
+    for fact in val.modelXbrl.facts:
+        if fact.get("{http://www.w3.org/2001/XMLSchema-instance}nil") is not None:
+            yield Validation.error(
+                codes='NL.FR-NL-2.07',
+                msg=_('The attribute \'xsi:nil\' must not be used.'),
+                modelObject=fact
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_5_06(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-5.06: The 'precision' attribute MUST NOT be used
+    """
+    for fact in val.modelXbrl.facts:
+        if fact.get("precision") is not None:
+            yield Validation.error(
+                codes='NL.FR-NL-5.06',
+                msg=_('The \'precision\' attribute must not be used.'),
+                modelObject=fact
+            )
