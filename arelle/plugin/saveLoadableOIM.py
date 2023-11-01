@@ -97,6 +97,9 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None,
         qnOimPeriodAspect}
 
     def oimValue(object, decimals=None):
+        if isinstance(object, list):
+            # set-valued enumeration fact
+            return " ".join([ oimValue(o) for o in object ])
         if isinstance(object, QName):
             if object.namespaceURI not in namespacePrefixes:
                 if object.prefix:
