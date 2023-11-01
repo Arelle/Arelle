@@ -19,10 +19,13 @@ jobs:
     outputs:
       matrix: ${{ steps.build-test-matrix.outputs.matrix }}
     steps:
+      - if: github.event.pull_request.mergeable != 'true'
+        name: Exit if PR is not mergeable
+        run: exit 1
       - uses: actions/checkout@v4.1.1
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - id: build-test-matrix
         run: |
@@ -128,7 +131,7 @@ jobs:
       - uses: actions/checkout@v4.1.1
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Checkout EdgarRenderer
         if: ${{ matrix.test.name == 'efm_current' }}
