@@ -249,6 +249,7 @@ def rule_fr_nl_2_06(
     """
     pattern = regex.compile(r"]]>")
     modelXbrl = val.modelXbrl
+    sourceFileLines = []
     for doc in modelXbrl.urlDocs.values():
         if doc.type == ModelDocument.Type.INSTANCE:
             # By default, etree parsing replaces CDATA sections with their text content,
@@ -262,13 +263,13 @@ def rule_fr_nl_2_06(
             with modelXbrl.fileSource.file(doc.filepath)[0] as file:
                 for i, line in enumerate(file):
                     for __ in regex.finditer(pattern, line):
-                        yield Validation.error(
-                            codes='NL.FR-NL-2.06',
-                            msg=_('A CDATA end sequence ("]]>") MAY NOT be used in an XBRL instance document. '
-                                  'Found at %(fileName)s:%(lineNumber)s.'),
-                            fileName=doc.basename,
-                            lineNumber=i + 1,
-                        )
+                        sourceFileLines.append((doc.filepath, i + 1))
+    if len(sourceFileLines) > 0:
+        yield Validation.error(
+            codes='NL.FR-NL-2.06',
+            msg=_('A CDATA end sequence ("]]>") MAY NOT be used in an XBRL instance document.'),
+            sourceFileLines=sourceFileLines,
+        )
 
 
 @validation(
