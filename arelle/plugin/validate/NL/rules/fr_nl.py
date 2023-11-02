@@ -388,6 +388,32 @@ def rule_fr_nl_3_03(
         DISCLOSURE_SYSTEM_NT18
     ],
 )
+def rule_fr_nl_4_02(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-4.02: An XBRL instance document MUST NOT contain unused 'xbrli:unit' elements
+    """
+    unused_units = set(val.modelXbrl.units.values()) - {fact.unit for fact in val.modelXbrl.facts}
+    for unit in unused_units:
+        yield Validation.error(
+            codes='NL.FR-NL-4.02',
+            msg=_('Unused unit must not exist in the XBRL instance document'),
+            modelObject=unit
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
 def rule_fr_nl_5_06(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
