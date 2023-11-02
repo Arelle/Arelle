@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xbrl
+  xml:lang="en"
+  xmlns="http://www.xbrl.org/2003/instance"
+  xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+  xmlns:jenv-bw2-i="http://www.nltaxonomie.nl/nt17/jenv/20221214/dictionary/jenv-bw2-data"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink">
+    <link:schemaRef xlink:href="http://www.nltaxonomie.nl/nt17/jenv/20221214/dictionary/jenv-bw2-data.xsd" xlink:type="simple"/>
+    <context id="ctx-1">
+        <entity>
+            <identifier scheme="http://www.kvk.nl/kvk-id">12345678</identifier>
+        </entity>
+        <period>
+        	<forever></forever>
+        </period>
+    </context>
+    <jenv-bw2-i:LegalEntityRegisteredOffice contextRef="ctx-1" xml:lang="en">Address</jenv-bw2-i:LegalEntityRegisteredOffice>
+</xbrl>
