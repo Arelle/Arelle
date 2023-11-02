@@ -19,12 +19,15 @@ jobs:
     outputs:
       matrix: ${{ steps.build-test-matrix.outputs.matrix }}
     steps:
-      - if: github.event.pull_request.mergeable != 'true'
-        name: Exit if PR is not mergeable
+      - name: Mergeability check
+        # If this is running on a PR (not workflow_dispatch) and a test merge commit does not exist, fail.
+        # This ensures that a merged version of the PR is available so the checkout won't fall back to an un-merged version.
+        if: ${{ github.event.pull_request.head.sha && !github.event.pull_request.merge_commit_sha }}
         run: exit 1
       - uses: actions/checkout@v4.1.1
         with:
           persist-credentials: false
+          # If this is a workflow_dispatch run, merge_commit_sha will be empty and this action will default to the branch sha.
           ref: ${{ github.event.pull_request.merge_commit_sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - id: build-test-matrix
