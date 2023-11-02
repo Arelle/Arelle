@@ -305,6 +305,32 @@ def rule_fr_nl_2_07(
         DISCLOSURE_SYSTEM_NT18
     ],
 )
+def rule_fr_nl_3_03(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-3.03: An XBRL instance document MUST NOT contain unused contexts
+    """
+    unused_contexts = set(val.modelXbrl.contexts.values()) - set(val.modelXbrl.contextsInUse)
+    for context in unused_contexts:
+        yield Validation.error(
+            codes='NL.FR-NL-3.03',
+            msg=_('Unused context must not exist in XBRL instance document'),
+            modelObject=context
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
 def rule_fr_nl_5_06(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
