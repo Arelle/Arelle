@@ -47,6 +47,48 @@ UNICODE_CHARACTER_DECIMAL_RANGES = frozenset({
     (160, 255),  # 00A0 - 00FF: Latin-1 Supplement
     (8352, 8399),  # 20A0 - 20CF: Currency Symbols
 })
+UNICODE_CHARACTER_RANGES_PATTERN = regex.compile(r"([^\u0020-\u007F\u00A0-\u00FF\u20A0-\u20CF\n])")
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18,
+    ],
+)
+def rule_fr_nl_1_02(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-1.02: Characters MUST be from the Unicode ranges Basic Latin, Latin Supplement and Currency Symbols
+    Only Unicode characters (version 9.0.0) from the ranges Basic Latin, Latin Supplement, Currency Symbols.
+    (32, 127), 0020 - 007F: Basic Latin
+    (160, 255), 00A0 - 00FF: Latin-1 Supplement
+    (8352, 8399), 20A0 - 20CF: Currency Symbols
+    """
+    modelXbrl = val.modelXbrl
+    foundChars = set()
+    sourceFileLines = []
+    for doc in modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            with modelXbrl.fileSource.file(doc.filepath)[0] as file:
+                for i, line in enumerate(file):
+                    for match in regex.finditer(UNICODE_CHARACTER_RANGES_PATTERN, line):
+                        foundChars.add(match.group())
+                        sourceFileLines.append((doc.filepath, i + 1))
+    if len(sourceFileLines) > 0:
+        yield Validation.error(
+            codes='NL.FR-NL-1.02',
+            msg=_('Characters MUST be from the Unicode ranges Basic Latin, Latin Supplement and Currency Symbols. '
+                  'Found disallowed characters: %(foundChars)s'),
+            foundChars=foundChars,
+            sourceFileLines=sourceFileLines,
+        )
 
 
 @validation(
