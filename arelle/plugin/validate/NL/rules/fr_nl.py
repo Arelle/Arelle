@@ -42,6 +42,11 @@ BOM_BYTES = sorted({
     codecs.BOM64_BE,
     codecs.BOM64_LE,
 }, key=lambda x: len(x), reverse=True)
+UNICODE_CHARACTER_DECIMAL_RANGES = frozenset({
+    (32, 127),  # 0020 - 007F: Basic Latin
+    (160, 255),  # 00A0 - 00FF: Latin-1 Supplement
+    (8352, 8399),  # 20A0 - 20CF: Currency Symbols
+})
 
 
 @validation(
@@ -102,12 +107,18 @@ def rule_fr_nl_1_04(
             with modelXbrl.fileSource.file(doc.filepath)[0] as file:
                 for i, line in enumerate(file):
                     for match in regex.finditer(pattern, line):
-                        if match.group('hex'):
-                            # hex matches (numeric character references) are allowed
-                            continue
-                        if match.group('named') in ALLOWED_NAMED_CHARACTER_REFS:
-                            # certain named references are allowed
-                            continue
+                        decimalValue = None
+                        if (numericMatch := match.group('hex')) is not None:
+                            decimalValue = int(numericMatch, 16)
+                        if (numericMatch := match.group('dec')) is not None:
+                            decimalValue = int(numericMatch)
+                        if decimalValue is not None:
+                            if any(min <= decimalValue <= max
+                                   for min, max in UNICODE_CHARACTER_DECIMAL_RANGES):
+                                continue  # numeric references in certain ranges are allowed
+                        if (namedMatch := match.group('named')) is not None:
+                            if namedMatch in ALLOWED_NAMED_CHARACTER_REFS:
+                                continue  # certain named references are allowed
                         sourceFileLines.append((doc.filepath, i + 1))
     if len(sourceFileLines) > 0:
         yield Validation.error(
