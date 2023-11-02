@@ -9,7 +9,7 @@ from typing import Any, Iterable, cast
 
 import regex
 
-from arelle import ModelDocument
+from arelle import ModelDocument, XbrlConst, XmlUtil
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -294,6 +294,37 @@ def rule_fr_nl_2_07(
                 codes='NL.FR-NL-2.07',
                 msg=_('The attribute \'xsi:nil\' must not be used.'),
                 modelObject=fact
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_3_01(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-3.01: Date elements in an 'xbrli:period' element MUST be included without time
+
+    Based on section 3.2.7.1 of the XML Schema (https://www.w3.org/TR/xmlschema-2),
+    'T' is a separator indicating that time-of-day follows the date
+    """
+    for context in val.modelXbrl.contexts.values():
+        elt_start = XmlUtil.child(context.period, XbrlConst.xbrli, "startDate")
+        elt_end = XmlUtil.child(context.period, XbrlConst.xbrli, "endDate")
+        if (elt_start is not None and 'T' in elt_start.text) or (elt_end is not None and 'T' in elt_end.text):
+            yield Validation.error(
+                codes='NL.FR-NL-3.01',
+                msg=_('Date elements in an \'xbrli:period\' element must be included without time'),
+                modelObject=context
             )
 
 

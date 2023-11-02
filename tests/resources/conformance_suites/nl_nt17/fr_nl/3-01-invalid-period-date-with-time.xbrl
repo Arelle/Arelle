@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xbrl
+  xml:lang="en"
+  xmlns="http://www.xbrl.org/2003/instance"
+  xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+  xmlns:jenv-bw2-i="http://www.nltaxonomie.nl/nt17/jenv/20221214/dictionary/jenv-bw2-data"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:nl-cd="http://www.nltaxonomie.nl/nt17/sbr/20221214/dictionary/nl-common-data"
+  xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink">
+    <link:schemaRef xlink:href="http://www.nltaxonomie.nl/nt17/jenv/20221214/dictionary/jenv-bw2-data.xsd" xlink:type="simple"/>
+    <context id="ctx-1">
+        <entity>
+            <identifier scheme="http://www.kvk.nl/kvk-id">12345678</identifier>
+        </entity>
+        <period>
+            <startDate>2021-01-01</startDate>
+            <endDate>2021-12-31T12:00:00</endDate>
+        </period>
+    </context>
+    <context id="ctx-2">
+        <entity>
+            <identifier scheme="http://www.kvk.nl/kvk-id">12345678</identifier>
+        </entity>
+        <period>
+            <startDate>2023-01-01</startDate>
+            <endDate>2023-12-31</endDate>
+        </period>
+    </context>
+    <nl-cd:LegalEntityName contextRef="ctx-1" xml:lang="en">Testing Entity Name</nl-cd:LegalEntityName>
+    <jenv-bw2-i:LegalEntityRegisteredOffice contextRef="ctx-2" xml:lang="en">Address</jenv-bw2-i:LegalEntityRegisteredOffice>
+</xbrl>
