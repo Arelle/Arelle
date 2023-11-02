@@ -29,6 +29,7 @@ classifiers = [
 requires-python = ">=3.8"
 dependencies = [
     'certifi',
+    'python-dateutil==2.*',
     'isodate==0.*',
     'lxml==4.*',
     'numpy==1.*',
