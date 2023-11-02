@@ -305,6 +305,32 @@ def rule_fr_nl_2_07(
         DISCLOSURE_SYSTEM_NT18
     ],
 )
+def rule_fr_nl_3_02(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-3.02: The element 'xbrli:forever' MUST NOT be used
+    """
+    for context in val.modelXbrl.contexts.values():
+        if context.isForeverPeriod:
+            yield Validation.error(
+                codes='NL.FR-NL-3.02',
+                msg=_('The element \'xbrli:forever\' must not be used'),
+                modelObject=context
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
 def rule_fr_nl_5_06(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
