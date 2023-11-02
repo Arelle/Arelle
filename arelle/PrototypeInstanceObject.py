@@ -82,6 +82,7 @@ class ContextPrototype():  # behaves like a context
         self.entityIdentifierHash = None
         self.entityIdentifier = (None, None)
         self.isStartEndPeriod = self.isInstantPeriod = self.isForeverPeriod = False
+        self.startDatetime = self.endDatetime = self.instantDatetime = None
 
         for aspect, aspectValue in aspectValues.items():
             if aspect == Aspect.PERIOD_TYPE:
