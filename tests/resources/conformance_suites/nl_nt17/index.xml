@@ -22,5 +22,6 @@
     <testcase uri='fr_nl/2-07-testcase.xml' />
     <testcase uri='fr_nl/3-01-testcase.xml' />
     <testcase uri='fr_nl/3-02-testcase.xml' />
+    <testcase uri='fr_nl/3-03-testcase.xml' />
     <testcase uri='fr_nl/5-06-testcase.xml' />
 </testcases>
