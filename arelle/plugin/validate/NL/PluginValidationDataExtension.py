@@ -15,6 +15,7 @@ class PluginValidationDataExtension(PluginValidationData):
     financialReportingPeriodCurrentEndDateQn: QName
     financialReportingPeriodPreviousStartDateQn: QName
     financialReportingPeriodPreviousEndDateQn: QName
+    formattedExplanationItemTypeQn: QName
     documentAdoptionDateQn: QName
     documentAdoptionStatusQn: QName
     documentResubmissionUnsurmountableInaccuraciesQn: QName
