@@ -25,6 +25,7 @@ from ..PluginValidationDataExtension import PluginValidationDataExtension
 _: TypeGetText
 
 
+ALLOWED_NAMED_CHARACTER_REFS = frozenset({'lt', 'gt', 'amp', 'apos', 'quot'})
 BOM_BYTES = sorted({
     codecs.BOM,
     codecs.BOM_BE,
@@ -41,6 +42,58 @@ BOM_BYTES = sorted({
     codecs.BOM64_BE,
     codecs.BOM64_LE,
 }, key=lambda x: len(x), reverse=True)
+UNICODE_CHARACTER_DECIMAL_RANGES = (
+    (0x0000, 0x007F),  # Basic Latin
+    (0x0080, 0x00FF),  # Latin-1 Supplement
+    (0x20A0, 0x20CF),  # Currency Symbols
+)
+UNICODE_CHARACTER_RANGES_PATTERN = regex.compile(
+    r"[^" +
+    ''.join(fr"\u{min:04x}-\u{max:04x}" for min, max in UNICODE_CHARACTER_DECIMAL_RANGES) +
+    "]")
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18,
+    ],
+)
+def rule_fr_nl_1_02(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-1.02: Characters MUST be from the Unicode ranges Basic Latin, Latin Supplement and Currency Symbols
+    Only Unicode characters (version 9.0.0) from the ranges Basic Latin, Latin Supplement, Currency Symbols.
+    (32, 127), 0020 - 007F: Basic Latin
+    (160, 255), 00A0 - 00FF: Latin-1 Supplement
+    (8352, 8399), 20A0 - 20CF: Currency Symbols
+    """
+    modelXbrl = val.modelXbrl
+    foundChars = set()
+    sourceFileLines = []
+    for doc in modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            with modelXbrl.fileSource.file(doc.filepath)[0] as file:
+                for i, line in enumerate(file):
+                    for match in regex.finditer(UNICODE_CHARACTER_RANGES_PATTERN, line):
+                        foundChars.add(match.group())
+                        sourceFileLines.append((doc.filepath, i + 1))
+    if len(sourceFileLines) > 0:
+        yield Validation.error(
+            codes='NL.FR-NL-1.02',
+            msg=_('Characters MUST be from the Unicode ranges Basic Latin, Latin Supplement and Currency Symbols '
+                  '(ranges %(ranges)s). '
+                  'Found disallowed characters: %(foundChars)s'),
+            foundChars=sorted(foundChars),
+            ranges=', '.join(f'{hex(min)}-{hex(max)}' for min, max in UNICODE_CHARACTER_DECIMAL_RANGES),
+            sourceFileLines=sourceFileLines,
+        )
 
 
 @validation(
@@ -68,6 +121,65 @@ def rule_fr_nl_1_03(
                     msg=_('A DOCTYPE declaration MUST NOT be used in the filing instance document'),
                     modelObject=val.modelXbrl.modelDocument
                 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18,
+    ],
+)
+def rule_fr_nl_1_04(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-1.04: Disallowed character references MUST NOT be used. The use of character references (e.g. &#1080;)
+    is not allowed unless it concerns numeric character references within the allowed set of characters and except
+    for the entity references listed here: &lt; &gt; &amp; &apos; &quot;
+    """
+    pattern = regex.compile(r"""
+          & \#     (?<dec>[0-9]+)         ;
+        | & \#[Xx] (?<hex>[0-9A-Fa-f]+)   ;
+        | &        (?<named>[0-9A-Za-z]+) ;
+    """, regex.VERBOSE)
+    modelXbrl = val.modelXbrl
+    foundChars = set()
+    sourceFileLines = []
+    for doc in modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            with modelXbrl.fileSource.file(doc.filepath)[0] as file:
+                for i, line in enumerate(file):
+                    for match in regex.finditer(pattern, line):
+                        decimalValue = None
+                        if (numericMatch := match.group('hex')) is not None:
+                            decimalValue = int(numericMatch, 16)
+                        if (numericMatch := match.group('dec')) is not None:
+                            decimalValue = int(numericMatch)
+                        if decimalValue is not None:
+                            if any(min <= decimalValue <= max
+                                   for min, max in UNICODE_CHARACTER_DECIMAL_RANGES):
+                                continue  # numeric references in certain ranges are allowed
+                        if (namedMatch := match.group('named')) is not None:
+                            if namedMatch in ALLOWED_NAMED_CHARACTER_REFS:
+                                continue  # certain named references are allowed
+                        foundChars.add(match.group())
+                        sourceFileLines.append((doc.filepath, i + 1))
+    if len(sourceFileLines) > 0:
+        yield Validation.error(
+            codes='NL.FR-NL-1.04',
+            msg=_('Disallowed character references MUST NOT be used. Only numeric character references within certain ranges '
+                  '(%(ranges)s) and certain named references (%(allowedNames)s) are allowed. '
+                  'Found disallowed characters: %(foundChars)s'),
+            allowedNames=', '.join(sorted(f'"&{name};"' for name in ALLOWED_NAMED_CHARACTER_REFS)),
+            foundChars=sorted(foundChars),
+            ranges=', '.join(f'{hex(min)}-{hex(max)}' for min, max in UNICODE_CHARACTER_DECIMAL_RANGES),
+            sourceFileLines=sourceFileLines
+        )
 
 
 @validation(
@@ -249,6 +361,7 @@ def rule_fr_nl_2_06(
     """
     pattern = regex.compile(r"]]>")
     modelXbrl = val.modelXbrl
+    sourceFileLines = []
     for doc in modelXbrl.urlDocs.values():
         if doc.type == ModelDocument.Type.INSTANCE:
             # By default, etree parsing replaces CDATA sections with their text content,
@@ -262,13 +375,13 @@ def rule_fr_nl_2_06(
             with modelXbrl.fileSource.file(doc.filepath)[0] as file:
                 for i, line in enumerate(file):
                     for __ in regex.finditer(pattern, line):
-                        yield Validation.error(
-                            codes='NL.FR-NL-2.06',
-                            msg=_('A CDATA end sequence ("]]>") MAY NOT be used in an XBRL instance document. '
-                                  'Found at %(fileName)s:%(lineNumber)s.'),
-                            fileName=doc.basename,
-                            lineNumber=i + 1,
-                        )
+                        sourceFileLines.append((doc.filepath, i + 1))
+    if len(sourceFileLines) > 0:
+        yield Validation.error(
+            codes='NL.FR-NL-2.06',
+            msg=_('A CDATA end sequence ("]]>") MAY NOT be used in an XBRL instance document.'),
+            sourceFileLines=sourceFileLines,
+        )
 
 
 @validation(

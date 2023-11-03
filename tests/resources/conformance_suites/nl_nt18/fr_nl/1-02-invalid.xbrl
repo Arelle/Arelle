@@ -1,0 +1,4 @@
+<xbrl xmlns="http://www.xbrl.org/2003/instance" title="Test∓"> <!-- CAUSE: disallowed character in attribute -->
+    и й  ⃐ ∓ <!-- CAUSE: disallowed characters -->
+     ÿ ⃏ ' " ₠ <!-- CAUSE: allowed characters -->
+</xbrl>
