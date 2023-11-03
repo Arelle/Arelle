@@ -4152,7 +4152,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if isinf(minDec):
                     maxDiff = 0
                 elif minDec == 0 and immaterialDifferenceFlag:
-                    maxDiff == Decimal(abs(facts[0].xValue)) * Decimal("0.01")
+                    maxDiff = Decimal(abs(facts[0].xValue)) * Decimal("0.01")
                 else:
                     maxDiff = pow(10, -minDec) * tolerance * (len(facts) - 2)
                 if difference > maxDiff:

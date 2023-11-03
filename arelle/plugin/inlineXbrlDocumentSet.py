@@ -167,6 +167,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
         ixdocset = create(modelXbrl, Type.INLINEXBRLDOCUMENTSET, docsetUrl, isEntry=True, initialXml="".join(xml))
         ixdocset.type = Type.INLINEXBRLDOCUMENTSET
         ixdocset.targetDocumentSchemaRefs = set()  # union all the instance schemaRefs
+        ixdocset.targetDocumentPreferredFilename = None # possibly no inline docs in this doc set
         for i, elt in enumerate(ixdocset.xmlRootElement.iter(tag="instance")):
             # load ix document
             if ixdocs:
@@ -180,7 +181,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
                     referencedDocument = ModelDocumentReference("inlineDocument", elt)
                     ixdocset.referencesDocument[ixdoc] = referencedDocument
                     ixdocset.ixNS = ixdoc.ixNS # set docset ixNS
-                    if i == 0:
+                    if ixdocset.targetDocumentPreferredFilename is None:
                         ixdocset.targetDocumentPreferredFilename = os.path.splitext(ixdoc.uri)[0] + ".xbrl"
                     ixdoc.inDTS = True # behaves like an entry
                 else:
@@ -487,6 +488,9 @@ def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFil
     if modelDocument.type == Type.INLINEXBRLDOCUMENTSET:
         targetFilename = modelDocument.targetDocumentPreferredFilename
         targetSchemaRefs = modelDocument.targetDocumentSchemaRefs
+        if targetFilename is None:
+            cntlr.addToLog("No inline XBRL document in the inline XBRL document set.")
+            return
     else:
         filepath, fileext = os.path.splitext(modelDocument.filepath)
         if fileext not in (".xml", ".xbrl"):
