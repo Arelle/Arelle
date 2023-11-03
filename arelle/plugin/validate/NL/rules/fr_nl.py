@@ -87,9 +87,11 @@ def rule_fr_nl_1_02(
     if len(sourceFileLines) > 0:
         yield Validation.error(
             codes='NL.FR-NL-1.02',
-            msg=_('Characters MUST be from the Unicode ranges Basic Latin, Latin Supplement and Currency Symbols. '
+            msg=_('Characters MUST be from the Unicode ranges Basic Latin, Latin Supplement and Currency Symbols '
+                  '(ranges %(ranges)s). '
                   'Found disallowed characters: %(foundChars)s'),
-            foundChars=foundChars,
+            foundChars=sorted(foundChars),
+            ranges=', '.join(f'{hex(min)}-{hex(max)}' for min, max in UNICODE_CHARACTER_DECIMAL_RANGES),
             sourceFileLines=sourceFileLines,
         )
 
@@ -146,6 +148,7 @@ def rule_fr_nl_1_04(
         | &        (?<named>[0-9A-Za-z]+) ;
     """, regex.VERBOSE)
     modelXbrl = val.modelXbrl
+    foundChars = set()
     sourceFileLines = []
     for doc in modelXbrl.urlDocs.values():
         if doc.type == ModelDocument.Type.INSTANCE:
@@ -164,12 +167,17 @@ def rule_fr_nl_1_04(
                         if (namedMatch := match.group('named')) is not None:
                             if namedMatch in ALLOWED_NAMED_CHARACTER_REFS:
                                 continue  # certain named references are allowed
+                        foundChars.add(match.group())
                         sourceFileLines.append((doc.filepath, i + 1))
     if len(sourceFileLines) > 0:
         yield Validation.error(
             codes='NL.FR-NL-1.04',
-            msg=_('Disallowed character references MUST NOT be used. Only hexadecimal numeric character references '
-                  '(e.g. "&#x3A3;") and certain named references ("&lt;", "&gt;", "&amp;", "&apos;", and "&quot;") are allowed.'),
+            msg=_('Disallowed character references MUST NOT be used. Only numeric character references within certain ranges '
+                  '(%(ranges)s) and certain named references (%(allowedNames)s) are allowed. '
+                  'Found disallowed characters: %(foundChars)s'),
+            allowedNames=', '.join(sorted(f'"&{name};"' for name in ALLOWED_NAMED_CHARACTER_REFS)),
+            foundChars=sorted(foundChars),
+            ranges=', '.join(f'{hex(min)}-{hex(max)}' for min, max in UNICODE_CHARACTER_DECIMAL_RANGES),
             sourceFileLines=sourceFileLines
         )
 
