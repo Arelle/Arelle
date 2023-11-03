@@ -320,7 +320,8 @@ def rule_fr_nl_3_01(
     for context in val.modelXbrl.contexts.values():
         elt_start = XmlUtil.child(context.period, XbrlConst.xbrli, "startDate")
         elt_end = XmlUtil.child(context.period, XbrlConst.xbrli, "endDate")
-        if (elt_start is not None and 'T' in elt_start.text) or (elt_end is not None and 'T' in elt_end.text):
+        if ((elt_start is not None and 'T' in getattr(elt_start, 'text')) or
+                (elt_end is not None and 'T' in getattr(elt_end, 'text'))):
             yield Validation.error(
                 codes='NL.FR-NL-3.01',
                 msg=_('Date elements in an \'xbrli:period\' element must be included without time'),
@@ -398,8 +399,9 @@ def rule_fr_nl_4_02(
     """
     FR-NL-4.02: An XBRL instance document MUST NOT contain unused 'xbrli:unit' elements
     """
-    unused_units = list(set(val.modelXbrl.units.values()) - {fact.unit for fact in val.modelXbrl.facts})
-    unused_units.sort(key=lambda x: x.id)
+    unused_units_set = set(val.modelXbrl.units.values()) - {fact.unit for fact in val.modelXbrl.facts if fact.unit is not None}
+    unused_units = list(unused_units_set)
+    unused_units.sort(key=lambda x: x.hash)
     for unit in unused_units:
         yield Validation.error(
             codes='NL.FR-NL-4.02',
