@@ -42,12 +42,15 @@ BOM_BYTES = sorted({
     codecs.BOM64_BE,
     codecs.BOM64_LE,
 }, key=lambda x: len(x), reverse=True)
-UNICODE_CHARACTER_DECIMAL_RANGES = frozenset({
-    (32, 127),  # 0020 - 007F: Basic Latin
-    (160, 255),  # 00A0 - 00FF: Latin-1 Supplement
-    (8352, 8399),  # 20A0 - 20CF: Currency Symbols
-})
-UNICODE_CHARACTER_RANGES_PATTERN = regex.compile(r"([^\u0020-\u007F\u00A0-\u00FF\u20A0-\u20CF\n])")
+UNICODE_CHARACTER_DECIMAL_RANGES = (
+    (0x0000, 0x007F),  # Basic Latin
+    (0x0080, 0x00FF),  # Latin-1 Supplement
+    (0x20A0, 0x20CF),  # Currency Symbols
+)
+UNICODE_CHARACTER_RANGES_PATTERN = regex.compile(
+    r"[^" +
+    ''.join(fr"\u{min:04x}-\u{max:04x}" for min, max in UNICODE_CHARACTER_DECIMAL_RANGES) +
+    "]")
 
 
 @validation(
