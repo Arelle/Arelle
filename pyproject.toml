@@ -130,6 +130,7 @@ module = [
     'arelle.ModelObjectFactory',
     'arelle.ModelValue',
     'arelle.ModelXbrl',
+    'arelle.PluginUtils',
     'arelle.RuntimeOptions',
     'arelle.SocketUtils',
     'arelle.SystemInfo',
