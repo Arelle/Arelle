@@ -29,12 +29,12 @@ classifiers = [
 requires-python = ">=3.8"
 dependencies = [
     'certifi',
-    'python-dateutil==2.*',
     'isodate==0.*',
     'lxml==4.*',
     'numpy==1.*',
     'openpyxl==3.*',
     'pyparsing==3.*',
+    'python-dateutil==2.*',
     'regex',
 ]
 
