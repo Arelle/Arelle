@@ -168,6 +168,35 @@ def rule_fr_nl_1_01(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18,
+    ],
+)
+def rule_fr_nl_2_03(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-2.03: The language of a report MUST be included in the 'xml:lang' attribute of the 'xbrli:xbrl' root element
+    """
+    modelXbrl = val.modelXbrl
+    for doc in modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            lang = doc.xmlRootElement.get('{http://www.w3.org/XML/1998/namespace}lang')
+            if not lang:
+                yield Validation.error(
+                    codes='NL.FR-NL-2.03',
+                    msg=_('The language of a report MUST be included in the "xml:lang" attribute of the "xbrli:xbrl" root element.'),
+                    modelObject=doc,
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
         DISCLOSURE_SYSTEM_NT18
     ],
 )

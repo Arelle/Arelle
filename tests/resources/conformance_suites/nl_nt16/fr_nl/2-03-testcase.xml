@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="NL.FR-NL-2.03"
+        description="The language of a report MUST be included in the 'xml:lang' attribute of the 'xbrli:xbrl' root element."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="missing-lang" name="Missing Language">
+    <description>
+      The instance root note is missing a value for 'xml:lang'.
+    </description>
+    <data>
+      <instance readMeFirst="true">2-03-missing-lang.xbrl</instance>
+    </data>
+    <result>
+      <error>NL.FR-NL-2.03</error>
+    </result>
+  </variation>
+</testcase>
