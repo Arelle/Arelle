@@ -532,6 +532,36 @@ def rule_fr_nl_3_03(
         DISCLOSURE_SYSTEM_NT18
     ],
 )
+def rule_fr_nl_3_04(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-3.04: An XBRL instance document MUST NOT contain duplicate 'xbrli:context' elements
+    """
+    def context_compare(context, test_context):
+        return context.isEqualTo(test_context)
+
+    duplicates = duplicate_check(val.modelXbrl.contexts.values(), context_compare)
+    for duplicate_contexts in duplicates.values():
+        if len(duplicate_contexts) > 1:
+            yield Validation.error(
+                codes='NL.FR-NL-3.04',
+                msg=_('An XBRL instance document MUST NOT contain duplicate \'context\' elements'),
+                modelObject=duplicate_contexts
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
 def rule_fr_nl_4_02(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -604,3 +634,26 @@ def rule_fr_nl_6_01(
                         msg=_('Footnotes must not appear in an XBRL instance document.'),
                         modelObject=elt
                     )
+
+
+def duplicate_check(elements, compare_funtion):
+    """
+    Compares each of the elements in the elements iterable based on the compare function to see if there are duplicates
+
+    :param elements: The iterable of elements to check for duplication
+    type: elements: list
+    :param compare_funtion: The function to test duplicity
+    :type compare_funtion: function
+    :return: A dict of element to a list of elements that are duplicates of each other
+    """
+    duplicates = {}
+    for element in elements:
+        is_duplicate = False
+        for test_element in duplicates.keys():
+            if compare_funtion(element, test_element):
+                duplicates[test_element].append(element)
+                is_duplicate = True
+                break
+        if not is_duplicate:
+            duplicates[element] = [element]
+    return duplicates
