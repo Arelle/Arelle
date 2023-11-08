@@ -30,7 +30,7 @@ import tkinter.simpledialog
 from arelle.Locale import format_string, setApplicationLocale
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import XbrlConst
-from arelle.PluginManager import pluginClassMethods
+from arelle.PluginManager import pluginClassMethods, prunePlugins
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlCalcs import ValidateCalcsMode as CalcsMode
 from arelle.Version import copyrightLabel
@@ -92,6 +92,7 @@ class CntlrWinMain (Cntlr.Cntlr):
 
         tkinter.CallWrapper = TkinterCallWrapper
 
+        prunePlugins(self)
 
         imgpath = self.imagesDir + os.sep
 
