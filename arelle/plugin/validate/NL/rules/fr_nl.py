@@ -5,13 +5,14 @@ from __future__ import annotations
 
 import codecs
 from pathlib import Path
-from typing import Any, Iterable, cast
+from typing import Any, Iterable, Callable, cast
 
 import regex
 from lxml import etree
 from lxml.etree import XMLSyntaxError
 
 from arelle import ModelDocument, XbrlConst, XmlUtil
+from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -557,7 +558,7 @@ def rule_fr_nl_3_04(
     """
     FR-NL-3.04: An XBRL instance document MUST NOT contain duplicate 'xbrli:context' elements
     """
-    def context_compare(context, test_context):
+    def context_compare(context: ModelContext, test_context: ModelContext) -> bool:
         return context.isEqualTo(test_context)
 
     duplicates = duplicate_check(val.modelXbrl.contexts.values(), context_compare)
@@ -587,7 +588,7 @@ def rule_fr_nl_4_01(
     """
     FR-NL-4.01: An XBRL instance document MUST NOT contain duplicate 'xbrli:unit' elements
     """
-    def unit_compare(unit, test_unit):
+    def unit_compare(unit: ModelUnit, test_unit: ModelUnit) -> bool:
         return unit.isEqualTo(test_unit)
 
     duplicates = duplicate_check(val.modelXbrl.units.values(), unit_compare)
@@ -645,7 +646,7 @@ def rule_fr_nl_5_01(
     """
     FR-NL-5.01: An XBRL instance document MUST NOT contain duplicate facts
     """
-    def fact_compare(fact, test_fact):
+    def fact_compare(fact: ModelFact, test_fact: ModelFact) -> bool:
         return fact.unitID == test_fact.unitID and fact.contextID == test_fact.contextID
 
     for qname, facts in val.modelXbrl.factsByQname.items():
@@ -810,7 +811,7 @@ def rule_fr_nl_6_01(
                     )
 
 
-def duplicate_check(elements, compare_funtion):
+def duplicate_check(elements: Iterable[Any], compare_funtion: Callable[[Any, Any], bool]) -> dict[Any, list[Any]]:
     """
     Compares each of the elements in the elements iterable based on the compare function to see if there are duplicates
 
@@ -820,7 +821,7 @@ def duplicate_check(elements, compare_funtion):
     :type compare_funtion: function
     :return: A dict of element to a list of elements that are duplicates of each other
     """
-    duplicates = {}
+    duplicates: dict[Any, list[Any]] = {}
     for element in elements:
         is_duplicate = False
         for test_element in duplicates.keys():
