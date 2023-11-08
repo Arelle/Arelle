@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Any, Iterable, cast
 
 import regex
+from lxml import etree
+from lxml.etree import XMLSyntaxError
 
 from arelle import ModelDocument, XbrlConst, XmlUtil
 from arelle.ValidateXbrl import ValidateXbrl
@@ -94,6 +96,20 @@ def rule_fr_nl_1_02(
             ranges=', '.join(f'{hex(min)}-{hex(max)}' for min, max in UNICODE_CHARACTER_DECIMAL_RANGES),
             sourceFileLines=sourceFileLines,
         )
+
+XHTML_ALLOWED_STYLES = {
+    'font-family',
+    'font-size',
+    'color'
+}
+XHTML_ALLOWED_TAGS = frozenset({
+    'b', 'br', 'div', 'em', 'i', 'li', 'ol', 'p',
+    'pre', 's', 'small', 'strong', 'sub', 'sup',
+    'table', 'td', 'th', 'tr', 'u', 'ul'})
+XHTML_ALLOWED_TYPES = {
+    'ol': frozenset({'1', 'a', 'A', 'i', 'I'}),
+    'ul': frozenset({None, '', 'circle', 'square'}),
+}
 
 
 @validation(
@@ -586,6 +602,103 @@ def rule_fr_nl_5_06(
         DISCLOSURE_SYSTEM_NT18
     ],
 )
+def rule_fr_nl_5_11(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-5.11: Formatting using a limited set of 'escaped XHTML' elements MAY ONLY be included in
+    fact values of facts tagged with concepts of type 'formattedExplanationItemType'.
+    Only certain tags are allowed (see manual). "ul" and "ol" tags have a restriction on the "type" attribute".
+    Any valid tag may have a style attribute, but only certain style properties may be used. (font-family, font-size, color)
+    The manual specifies general readabilty in styling, but that is not practically enforced here.
+    - No font smaller than "3" (font size can be altered in many ways that depend on browser support)
+    - No white text on white background (many potential "color" values are not easily readable)
+    """
+    invalidTypeFacts = []
+    typeQname = pluginData.formattedExplanationItemTypeQn
+    for fact in val.modelXbrl.facts:
+        validType = fact.concept.instanceOfType(typeQname)
+        wrappedContent = f'<div>{fact.textValue}</div>'  # Single root element required, wrap in valid div element
+        invalidTags = set()
+        invalidStyles = set()
+        hasElts = False
+        try:
+            eltIter = etree.fromstring(wrappedContent).iter()
+        except XMLSyntaxError as exc:
+            # If we can't easily parse the text as XML, warn and give up
+            if validType:
+                yield Validation.warning(
+                    codes='NL.FR-NL-5.11',
+                    msg=_('Encountered XHTML syntax error while parsing "%(typeQname)s" fact value. '
+                          'Could not validate for allowed XHTML usage.'),
+                    typeQname=typeQname,
+                    modelObject=fact
+                )
+            continue
+        for elt in eltIter:
+            if hasElts and not validType:
+                # `hasElts` skips over wrapping "div" element.
+                #  If additional elements are found and this fact is of an invalid type, trigger an error
+                invalidTypeFacts.append(fact)
+                break
+            hasElts = True
+            tag = elt.tag
+            if tag not in XHTML_ALLOWED_TAGS:
+                # Collect for single error generated later, move on.
+                invalidTags.add(tag)
+                continue
+            if tag in XHTML_ALLOWED_TYPES:
+                typeAttr = elt.get('type')
+                if typeAttr not in XHTML_ALLOWED_TYPES[tag]:
+                    invalidTags.add(f'{tag} (type:"{typeAttr}")')
+                    continue
+            styleAttr = elt.get('style')
+            if styleAttr:
+                styles = [x.split(':') for x in styleAttr.split(';')]
+                for styleValues in styles:
+                    if len(styleValues) > 1:
+                        styleProperty = styleValues[0].strip()
+                        if styleProperty not in XHTML_ALLOWED_STYLES:
+                            invalidStyles.add(styleProperty)
+        # Generate tag/styling errors per-fact so helpful information about fact contents can be reported
+        if len(invalidTags) > 0:
+            yield Validation.error(
+                codes='NL.FR-NL-5.11',
+                msg=_('Only a limited set of XHTML tags (see manual) are allowed in escaped XHTML. '
+                      'Found invalid tags: %(invalidTags)s'),
+                invalidTags=sorted(invalidTags),
+                modelObject=fact
+            )
+        if len(invalidStyles) > 0:
+            yield Validation.error(
+                codes='NL.FR-NL-5.11',
+                msg=_('Only a limited set of style properties (%(allowedStyles)s) are allowed in escaped XHTML. '
+                      'Found invalid style properties: %(invalidStyles)s'),
+                allowedStyles=', '.join(sorted(XHTML_ALLOWED_STYLES)),
+                invalidStyles=sorted(invalidStyles),
+                modelObject=fact
+            )
+    if len(invalidTypeFacts) > 0:
+        yield Validation.warning(
+            codes='NL.FR-NL-5.11',
+            msg=_('Formatting using "escaped XHTML" elements MAY ONLY be included in '
+                  'fact values of facts tagged with concepts of type "%(typeQname)s"'),
+            typeQname=typeQname,
+            modelObject=invalidTypeFacts,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
 def rule_fr_nl_6_01(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -598,7 +711,7 @@ def rule_fr_nl_6_01(
     for doc in val.modelXbrl.urlDocs.values():
         if doc.type == ModelDocument.Type.INSTANCE:
             for elt in doc.xmlRootElement.iter():
-                if elt is not None and elt.qname == XbrlConst.qnLinkFootnote:
+                if elt is not None and hasattr(elt, 'qname') and elt.qname == XbrlConst.qnLinkFootnote:
                     yield Validation.error(
                         codes='NL.FR-NL-6.01',
                         msg=_('Footnotes must not appear in an XBRL instance document.'),
