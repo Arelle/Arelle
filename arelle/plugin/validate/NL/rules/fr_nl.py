@@ -562,6 +562,36 @@ def rule_fr_nl_3_04(
         DISCLOSURE_SYSTEM_NT18
     ],
 )
+def rule_fr_nl_4_01(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-4.01: An XBRL instance document MUST NOT contain duplicate 'xbrli:unit' elements
+    """
+    def unit_compare(unit, test_unit):
+        return unit.isEqualTo(test_unit)
+
+    duplicates = duplicate_check(val.modelXbrl.units.values(), unit_compare)
+    for duplicate_units in duplicates.values():
+        if len(duplicate_units) > 1:
+            yield Validation.error(
+                codes='NL.FR-NL-4.01',
+                msg=_('An XBRL instance document MUST NOT contain duplicate \'xbrli:unit\' elements'),
+                modelObject=duplicate_units
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
 def rule_fr_nl_4_02(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,

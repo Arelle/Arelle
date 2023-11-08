@@ -9,4 +9,5 @@
     <testcase uri='fr_nl/2-03-testcase.xml' />
     <testcase uri='fr_nl/2-06-testcase.xml' />
     <testcase uri='fr_nl/3-04-testcase.xml' />
+    <testcase uri='fr_nl/4-01-testcase.xml' />
 </testcases>
