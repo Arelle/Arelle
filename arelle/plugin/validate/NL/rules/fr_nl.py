@@ -9,7 +9,7 @@ from typing import Any, Iterable, cast
 
 import regex
 
-from arelle import ModelDocument, XbrlConst
+from arelle import ModelDocument, XbrlConst, XmlUtil
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -437,6 +437,119 @@ def rule_fr_nl_2_07(
                 msg=_('The attribute \'xsi:nil\' must not be used.'),
                 modelObject=fact
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_3_01(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-3.01: Date elements in an 'xbrli:period' element MUST be included without time
+
+    Based on section 3.2.7.1 of the XML Schema (https://www.w3.org/TR/xmlschema-2),
+    'T' is a separator indicating that time-of-day follows the date
+    """
+    for context in val.modelXbrl.contexts.values():
+        elt_start = XmlUtil.child(context.period, XbrlConst.xbrli, "startDate")
+        elt_end = XmlUtil.child(context.period, XbrlConst.xbrli, "endDate")
+        if ((elt_start is not None and 'T' in getattr(elt_start, 'text')) or
+                (elt_end is not None and 'T' in getattr(elt_end, 'text'))):
+            yield Validation.error(
+                codes='NL.FR-NL-3.01',
+                msg=_('Date elements in an \'xbrli:period\' element must be included without time'),
+                modelObject=context
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_3_02(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-3.02: The element 'xbrli:forever' MUST NOT be used
+    """
+    for context in val.modelXbrl.contexts.values():
+        if context.isForeverPeriod:
+            yield Validation.error(
+                codes='NL.FR-NL-3.02',
+                msg=_('The element \'xbrli:forever\' must not be used'),
+                modelObject=context
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_3_03(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-3.03: An XBRL instance document MUST NOT contain unused contexts
+    """
+    unused_contexts = list(set(val.modelXbrl.contexts.values()) - set(val.modelXbrl.contextsInUse))
+    unused_contexts.sort(key=lambda x: x.id)
+    for context in unused_contexts:
+        yield Validation.error(
+            codes='NL.FR-NL-3.03',
+            msg=_('Unused context must not exist in XBRL instance document'),
+            modelObject=context
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_4_02(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-4.02: An XBRL instance document MUST NOT contain unused 'xbrli:unit' elements
+    """
+    unused_units_set = set(val.modelXbrl.units.values()) - {fact.unit for fact in val.modelXbrl.facts if fact.unit is not None}
+    unused_units = list(unused_units_set)
+    unused_units.sort(key=lambda x: x.hash)
+    for unit in unused_units:
+        yield Validation.error(
+            codes='NL.FR-NL-4.02',
+            msg=_('Unused unit must not exist in the XBRL instance document'),
+            modelObject=unit
+        )
 
 
 @validation(
