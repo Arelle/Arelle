@@ -4,11 +4,12 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import codecs
-from lxml import etree
 from pathlib import Path
 from typing import Any, Iterable, cast
 
 import regex
+from lxml import etree
+from lxml.etree import XMLSyntaxError
 
 from arelle import ModelDocument, XbrlConst
 from arelle.ValidateXbrl import ValidateXbrl
@@ -475,13 +476,27 @@ def rule_fr_nl_5_11(
     - No white text on white background (many potential "color" values are not easily readable)
     """
     invalidTypeFacts = []
+    typeQname = pluginData.formattedExplanationItemTypeQn
     for fact in val.modelXbrl.facts:
-        validType = fact.concept.instanceOfType(pluginData.formattedExplanationItemTypeQn)
+        validType = fact.concept.instanceOfType(typeQname)
         wrappedContent = f'<div>{fact.textValue}</div>'  # Single root element required, wrap in valid div element
         invalidTags = set()
         invalidStyles = set()
         hasElts = False
-        for elt in etree.fromstring(wrappedContent).iter():
+        try:
+            eltIter = etree.fromstring(wrappedContent).iter()
+        except XMLSyntaxError as exc:
+            # If we can't easily parse the text as XML, warn and give up
+            if validType:
+                yield Validation.warning(
+                    codes='NL.FR-NL-5.11',
+                    msg=_('Encountered XHTML syntax error while parsing "%(typeQname)s" fact value. '
+                          'Could not validate for allowed XHTML usage.'),
+                    typeQname=typeQname,
+                    modelObject=fact
+                )
+            continue
+        for elt in eltIter:
             if hasElts and not validType:
                 # `hasElts` skips over wrapping "div" element.
                 #  If additional elements are found and this fact is of an invalid type, trigger an error
@@ -525,11 +540,12 @@ def rule_fr_nl_5_11(
                 modelObject=fact
             )
     if len(invalidTypeFacts) > 0:
-        yield Validation.error(
+        yield Validation.warning(
             codes='NL.FR-NL-5.11',
             msg=_('Formatting using "escaped XHTML" elements MAY ONLY be included in '
-                  'fact values of facts tagged with concepts of type "formattedExplanationItemType"'),
-            modelObject=invalidTypeFacts
+                  'fact values of facts tagged with concepts of type "%(typeQname)s"'),
+            typeQname=typeQname,
+            modelObject=invalidTypeFacts,
         )
 
 

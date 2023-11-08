@@ -54,4 +54,7 @@
     &lt;code&gt;A&lt;/code&gt;
     &lt;/div&gt;
   </mock:FormattedExplanation> <!-- CAUSE: span, tbody, code elements not allowed -->
+  <mock:FormattedExplanation contextRef="ctx-1">
+    H&lt;
+  </mock:FormattedExplanation>
 </xbrl>
