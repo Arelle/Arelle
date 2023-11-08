@@ -620,6 +620,37 @@ def rule_fr_nl_4_02(
         DISCLOSURE_SYSTEM_NT18
     ],
 )
+def rule_fr_nl_5_01(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-5.01: An XBRL instance document MUST NOT contain duplicate facts
+    """
+    def fact_compare(fact, test_fact):
+        return fact.unitID == test_fact.unitID and fact.contextID == test_fact.contextID
+
+    for qname, facts in val.modelXbrl.factsByQname.items():
+        duplicates = duplicate_check(facts, fact_compare)
+        for duplicate_facts in duplicates.values():
+            if len(duplicate_facts) > 1:
+                yield Validation.error(
+                    codes='NL.FR-NL-5.01',
+                    msg=_('An XBRL instance document must not contain duplicate facts'),
+                    modelObject=duplicate_facts
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
 def rule_fr_nl_5_06(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
