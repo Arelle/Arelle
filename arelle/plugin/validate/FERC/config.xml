@@ -19,7 +19,7 @@
      allowedImageTypes = '{
         "data-scheme": true,
         "img-file-extensions": [],
-        "mime-types": ["gif", "jpeg", "png"]
+        "mime-types": ["gif", "jpeg"]
      }'
      contextElement="segment"
      utrUrl="http://www.xbrl.org/utr/utr.xml resources/ferc-utr.xml"
@@ -41,7 +41,7 @@
      allowedImageTypes = '{
         "data-scheme": true,
         "img-file-extensions": [],
-        "mime-types": ["gif", "jpeg", "png"]
+        "mime-types": ["gif", "jpeg"]
      }'
      contextElement="segment"
      utrUrl=""
