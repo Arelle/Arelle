@@ -10,29 +10,29 @@
   xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
   xmlns:xbrli="http://www.xbrl.org/2003/instance"
   xmlns:xlink="http://www.w3.org/1999/xlink">
-    <link:schemaRef xlink:href="http://www.nltaxonomie.nl/nt17/jenv/20221214/dictionary/jenv-bw2-data.xsd" xlink:type="simple"/>
-    <context id="ctx-1">
-        <entity>
-            <identifier scheme="http://www.kvk.nl/kvk-id">12345678</identifier>
-        </entity>
-        <period>
-            <startDate>2021-01-01</startDate>
-            <endDate>2021-12-31T24:00:00</endDate>
-        </period>
-    </context>
-    <context id="ctx-2">
-        <entity>
-            <identifier scheme="http://www.kvk.nl/kvk-id">12345678</identifier>
-        </entity>
-        <period>
-            <instant>2022-01-01T00:00:00</instant>
-        </period>
-    </context>
-    <jenv-bw2-i:LegalEntityRegisteredOffice contextRef="ctx-1" xml:lang="en">Address</jenv-bw2-i:LegalEntityRegisteredOffice>
-    <jenv-bw2-i:LegalEntityRegisteredOffice contextRef="ctx-1" xml:lang="en">Number</jenv-bw2-i:LegalEntityRegisteredOffice>
-    <jenv-bw2-i:LegalEntityRegisteredOffice contextRef="ctx-1" xml:lang="en">Street</jenv-bw2-i:LegalEntityRegisteredOffice>
-    <jenv-bw2-i:LegalEntityRegisteredOffice contextRef="ctx-2" xml:lang="en">City</jenv-bw2-i:LegalEntityRegisteredOffice>
-    <jenv-bw2-i:LegalEntityRegisteredOffice contextRef="ctx-2" xml:lang="en">State</jenv-bw2-i:LegalEntityRegisteredOffice>
-    <jenv-bw2-i:DocumentAdoptionDate contextRef="ctx-1">2022-01-01</jenv-bw2-i:DocumentAdoptionDate>
-    <jenv-bw2-i:DocumentAdoptionStatus contextRef="ctx-1">Ja</jenv-bw2-i:DocumentAdoptionStatus>
+	<link:schemaRef xlink:href="http://www.nltaxonomie.nl/nt17/jenv/20221214/dictionary/jenv-bw2-data.xsd" xlink:type="simple"/>
+	<context id="ctx-1">
+		<entity>
+			<identifier scheme="http://www.kvk.nl/kvk-id">12345678</identifier>
+		</entity>
+		<period>
+			<startDate>2021-01-01</startDate>
+			<endDate>2021-12-31T24:00:00</endDate>
+		</period>
+	</context>
+	<context id="ctx-2">
+		<entity>
+			<identifier scheme="http://www.kvk.nl/kvk-id">12345678</identifier>
+		</entity>
+		<period>
+			<instant>2022-01-01T00:00:00</instant>
+		</period>
+	</context>
+	<jenv-bw2-i:LegalEntityRegisteredOffice contextRef="ctx-1" xml:lang="en">Address</jenv-bw2-i:LegalEntityRegisteredOffice>
+	<jenv-bw2-i:LegalEntityRegisteredOffice contextRef="ctx-1" xml:lang="en">Number</jenv-bw2-i:LegalEntityRegisteredOffice>
+	<jenv-bw2-i:LegalEntityRegisteredOffice contextRef="ctx-1" xml:lang="en">Street</jenv-bw2-i:LegalEntityRegisteredOffice>
+	<jenv-bw2-i:LegalEntityRegisteredOffice contextRef="ctx-2" xml:lang="en">City</jenv-bw2-i:LegalEntityRegisteredOffice>
+	<jenv-bw2-i:LegalEntityRegisteredOffice contextRef="ctx-2" xml:lang="en">State</jenv-bw2-i:LegalEntityRegisteredOffice>
+	<jenv-bw2-i:DocumentAdoptionDate contextRef="ctx-1">2022-01-01</jenv-bw2-i:DocumentAdoptionDate>
+	<jenv-bw2-i:DocumentAdoptionStatus contextRef="ctx-1">Ja</jenv-bw2-i:DocumentAdoptionStatus>
 </xbrl>

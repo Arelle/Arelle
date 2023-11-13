@@ -5,14 +5,16 @@ from __future__ import annotations
 
 import codecs
 from pathlib import Path
-from typing import Any, Iterable, Callable, cast
+from typing import Any, Iterable, cast
 
 import regex
+
+from collections import defaultdict
+
 from lxml import etree
 from lxml.etree import XMLSyntaxError
 
 from arelle import ModelDocument, XbrlConst, XmlUtil
-from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -558,10 +560,9 @@ def rule_fr_nl_3_04(
     """
     FR-NL-3.04: An XBRL instance document MUST NOT contain duplicate 'xbrli:context' elements
     """
-    def context_compare(context: ModelContext, test_context: ModelContext) -> bool:
-        return context.isEqualTo(test_context)
-
-    duplicates = duplicate_check(val.modelXbrl.contexts.values(), context_compare)
+    duplicates = defaultdict(list)
+    for context in val.modelXbrl.contexts.values():
+        duplicates[context.contextDimAwareHash].append(context)
     for duplicate_contexts in duplicates.values():
         if len(duplicate_contexts) > 1:
             yield Validation.error(
@@ -588,10 +589,9 @@ def rule_fr_nl_4_01(
     """
     FR-NL-4.01: An XBRL instance document MUST NOT contain duplicate 'xbrli:unit' elements
     """
-    def unit_compare(unit: ModelUnit, test_unit: ModelUnit) -> bool:
-        return unit.isEqualTo(test_unit)
-
-    duplicates = duplicate_check(val.modelXbrl.units.values(), unit_compare)
+    duplicates = defaultdict(list)
+    for unit in val.modelXbrl.units.values():
+        duplicates[unit.hash].append(unit)
     for duplicate_units in duplicates.values():
         if len(duplicate_units) > 1:
             yield Validation.error(
@@ -645,19 +645,21 @@ def rule_fr_nl_5_01(
 ) -> Iterable[Validation] | None:
     """
     FR-NL-5.01: An XBRL instance document MUST NOT contain duplicate facts
-    """
-    def fact_compare(fact: ModelFact, test_fact: ModelFact) -> bool:
-        return fact.unitID == test_fact.unitID and fact.contextID == test_fact.contextID
 
-    for qname, facts in val.modelXbrl.factsByQname.items():
-        duplicates = duplicate_check(facts, fact_compare)
-        for duplicate_facts in duplicates.values():
-            if len(duplicate_facts) > 1:
-                yield Validation.error(
-                    codes='NL.FR-NL-5.01',
-                    msg=_('An XBRL instance document must not contain duplicate facts'),
-                    modelObject=duplicate_facts
-                )
+    Duplicate facts are evaluated on concept, context and unit. Lang does not matter because of FR.KVK-2.02,
+    which states that an instance document can only have one lang. Value also doesn't matter because the filing
+    manual makes no distinction between consistent or inconsistent duplicate facts.
+    """
+    duplicates = defaultdict(list)
+    for fact in val.modelXbrl.facts:
+        duplicates[fact.conceptContextUnitHash].append(fact)
+    for duplicate_facts in duplicates.values():
+        if len(duplicate_facts) > 1:
+            yield Validation.error(
+                codes='NL.FR-NL-5.01',
+                msg=_('An XBRL instance document must not contain duplicate facts'),
+                modelObject=duplicate_facts
+            )
 
 
 @validation(
@@ -809,26 +811,3 @@ def rule_fr_nl_6_01(
                         msg=_('Footnotes must not appear in an XBRL instance document.'),
                         modelObject=elt
                     )
-
-
-def duplicate_check(elements: Iterable[Any], compare_funtion: Callable[[Any, Any], bool]) -> dict[Any, list[Any]]:
-    """
-    Compares each of the elements in the elements iterable based on the compare function to see if there are duplicates
-
-    :param elements: The iterable of elements to check for duplication
-    type: elements: list
-    :param compare_funtion: The function to test duplicity
-    :type compare_funtion: function
-    :return: A dict of element to a list of elements that are duplicates of each other
-    """
-    duplicates: dict[Any, list[Any]] = {}
-    for element in elements:
-        is_duplicate = False
-        for test_element in duplicates.keys():
-            if compare_funtion(element, test_element):
-                duplicates[test_element].append(element)
-                is_duplicate = True
-                break
-        if not is_duplicate:
-            duplicates[element] = [element]
-    return duplicates

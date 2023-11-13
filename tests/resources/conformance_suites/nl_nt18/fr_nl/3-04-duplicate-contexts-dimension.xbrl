@@ -3,14 +3,14 @@
   xml:lang="en"
   xmlns="http://www.xbrl.org/2003/instance"
   xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
-  xmlns:jenv-bw2-dim="http://www.nltaxonomie.nl/nt16/jenv/20211208/dictionary/jenv-bw2-axes"
-  xmlns:jenv-bw2-dm="http://www.nltaxonomie.nl/nt16/jenv/20211208/dictionary/jenv-bw2-domains"
-  xmlns:jenv-bw2-i="http://www.nltaxonomie.nl/nt16/jenv/20211208/dictionary/jenv-bw2-data"
+  xmlns:jenv-bw2-dim="http://www.nltaxonomie.nl/nt18/jenv/20231213.b/dictionary/jenv-bw2-axes"
+  xmlns:jenv-bw2-dm="http://www.nltaxonomie.nl/nt18/jenv/20231213.b/dictionary/jenv-bw2-domains"
+  xmlns:jenv-bw2-i="http://www.nltaxonomie.nl/nt18/jenv/20231213.b/dictionary/jenv-bw2-data"
   xmlns:link="http://www.xbrl.org/2003/linkbase"
   xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
   xmlns:xbrli="http://www.xbrl.org/2003/instance"
   xmlns:xlink="http://www.w3.org/1999/xlink">
-    <link:schemaRef xlink:href="http://www.nltaxonomie.nl/nt16/jenv/20211208/dictionary/jenv-bw2-data.xsd" xlink:type="simple"/>
+	<link:schemaRef xlink:href="http://www.nltaxonomie.nl/nt18/jenv/20231213.b/dictionary/jenv-bw2-data.xsd" xlink:type="simple"/>
 
 	<context id="ctx-3A">
 		<entity>
@@ -73,13 +73,13 @@
 	</context>
 
 
-    <xbrli:unit id="usd">
-        <xbrli:measure>iso4217:USD</xbrli:measure>
-    </xbrli:unit>
-    <xbrli:unit id="pure">
-        <xbrli:measure>xbrli:pure</xbrli:measure>
-    </xbrli:unit>
-    
-    <jenv-bw2-i:RightsGrantedExercisePrice contextRef="ctx-3A" xml:lang="en" decimals="2" unitRef="usd">100.00</jenv-bw2-i:RightsGrantedExercisePrice>
-    <jenv-bw2-i:ShareCapitalInTheCurrencyOfDenominationWhenDifferentPresentationCurrencyExchangeRateUsed contextRef="ctx-3A" xml:lang="en" decimals="INF" unitRef="pure">1.1</jenv-bw2-i:ShareCapitalInTheCurrencyOfDenominationWhenDifferentPresentationCurrencyExchangeRateUsed>
+	<xbrli:unit id="usd">
+		<xbrli:measure>iso4217:USD</xbrli:measure>
+	</xbrli:unit>
+	<xbrli:unit id="pure">
+		<xbrli:measure>xbrli:pure</xbrli:measure>
+	</xbrli:unit>
+
+	<jenv-bw2-i:RightsGrantedExercisePrice contextRef="ctx-3A" xml:lang="en" decimals="2" unitRef="usd">100.00</jenv-bw2-i:RightsGrantedExercisePrice>
+	<jenv-bw2-i:ShareCapitalInTheCurrencyOfDenominationWhenDifferentPresentationCurrencyExchangeRateUsed contextRef="ctx-3A" xml:lang="en" decimals="INF" unitRef="pure">1.1</jenv-bw2-i:ShareCapitalInTheCurrencyOfDenominationWhenDifferentPresentationCurrencyExchangeRateUsed>
 </xbrl>

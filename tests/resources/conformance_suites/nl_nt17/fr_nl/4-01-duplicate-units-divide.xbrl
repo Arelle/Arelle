@@ -10,61 +10,61 @@
   xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
   xmlns:xbrli="http://www.xbrl.org/2003/instance"
   xmlns:xlink="http://www.w3.org/1999/xlink">
-    <link:schemaRef xlink:href="http://www.nltaxonomie.nl/nt17/jenv/20221214/dictionary/jenv-bw2-data.xsd" xlink:type="simple"/>
-    <context id="ctx-1">
-        <entity>
-            <identifier scheme="http://www.kvk.nl/kvk-id">12345678</identifier>
-        </entity>
-        <period>
+	<link:schemaRef xlink:href="http://www.nltaxonomie.nl/nt17/jenv/20221214/dictionary/jenv-bw2-data.xsd" xlink:type="simple"/>
+	<context id="ctx-1">
+		<entity>
+			<identifier scheme="http://www.kvk.nl/kvk-id">12345678</identifier>
+		</entity>
+		<period>
 			<instant>2021-02-12</instant>
 		</period>
-    </context>
+	</context>
 
-    <xbrli:unit id="unit-2A">
-    	<xbrli:divide>
-    		<xbrli:unitNumerator>
-    			<xbrli:measure>iso4217:USD</xbrli:measure>
-    		</xbrli:unitNumerator>
-    		<xbrli:unitDenominator>
-    			<xbrli:measure>xbrli:shares</xbrli:measure>
-    		</xbrli:unitDenominator>
-    	</xbrli:divide>
-    </xbrli:unit>
+	<xbrli:unit id="unit-2A">
+		<xbrli:divide>
+			<xbrli:unitNumerator>
+				<xbrli:measure>iso4217:USD</xbrli:measure>
+			</xbrli:unitNumerator>
+			<xbrli:unitDenominator>
+				<xbrli:measure>xbrli:shares</xbrli:measure>
+			</xbrli:unitDenominator>
+		</xbrli:divide>
+	</xbrli:unit>
 
-    <xbrli:unit id="unit-2B">
-    	<xbrli:divide>
-    		<xbrli:unitNumerator>
-    			<xbrli:measure>iso4217:USD</xbrli:measure>
-    		</xbrli:unitNumerator>
-    		<xbrli:unitDenominator>
-    			<xbrli:measure>xbrli:shares</xbrli:measure>
-    		</xbrli:unitDenominator>
-    	</xbrli:divide>
-    </xbrli:unit>
+	<xbrli:unit id="unit-2B">
+		<xbrli:divide>
+			<xbrli:unitNumerator>
+				<xbrli:measure>iso4217:USD</xbrli:measure>
+			</xbrli:unitNumerator>
+			<xbrli:unitDenominator>
+				<xbrli:measure>xbrli:shares</xbrli:measure>
+			</xbrli:unitDenominator>
+		</xbrli:divide>
+	</xbrli:unit>
 
-    <xbrli:unit id="unit-2D">
-    	<xbrli:divide>
-    		<xbrli:unitNumerator>
-    			<xbrli:measure>iso4217:CAD</xbrli:measure>
-    		</xbrli:unitNumerator>
-    		<xbrli:unitDenominator>
-    			<xbrli:measure>xbrli:shares</xbrli:measure>
-    		</xbrli:unitDenominator>
-    	</xbrli:divide>
-    </xbrli:unit>
+	<xbrli:unit id="unit-2D">
+		<xbrli:divide>
+			<xbrli:unitNumerator>
+				<xbrli:measure>iso4217:CAD</xbrli:measure>
+			</xbrli:unitNumerator>
+			<xbrli:unitDenominator>
+				<xbrli:measure>xbrli:shares</xbrli:measure>
+			</xbrli:unitDenominator>
+		</xbrli:divide>
+	</xbrli:unit>
 
-    <xbrli:unit id="unit-2E">
-    	<xbrli:divide>
-    		<xbrli:unitNumerator>
-    			<xbrli:measure>iso4217:USD</xbrli:measure>
-    		</xbrli:unitNumerator>
-    		<xbrli:unitDenominator>
-    			<xbrli:measure>iso4217:CAD</xbrli:measure>
-    		</xbrli:unitDenominator>
-    	</xbrli:divide>
-    </xbrli:unit>
-    
-    
-    <jenv-bw2-i:RightsGrantedExercisePrice contextRef="ctx-1" xml:lang="en" decimals="2" unitRef="unit-2A">100.00</jenv-bw2-i:RightsGrantedExercisePrice>
-    <jenv-bw2-i:ShareCapitalInTheCurrencyOfDenominationWhenDifferentPresentationCurrencyExchangeRateUsed contextRef="ctx-1" xml:lang="en" decimals="INF" unitRef="unit-2B">1.1</jenv-bw2-i:ShareCapitalInTheCurrencyOfDenominationWhenDifferentPresentationCurrencyExchangeRateUsed>
+	<xbrli:unit id="unit-2E">
+		<xbrli:divide>
+			<xbrli:unitNumerator>
+				<xbrli:measure>iso4217:USD</xbrli:measure>
+			</xbrli:unitNumerator>
+			<xbrli:unitDenominator>
+				<xbrli:measure>iso4217:CAD</xbrli:measure>
+			</xbrli:unitDenominator>
+		</xbrli:divide>
+	</xbrli:unit>
+
+
+	<jenv-bw2-i:RightsGrantedExercisePrice contextRef="ctx-1" xml:lang="en" decimals="2" unitRef="unit-2A">100.00</jenv-bw2-i:RightsGrantedExercisePrice>
+	<jenv-bw2-i:ShareCapitalInTheCurrencyOfDenominationWhenDifferentPresentationCurrencyExchangeRateUsed contextRef="ctx-1" xml:lang="en" decimals="INF" unitRef="unit-2B">1.1</jenv-bw2-i:ShareCapitalInTheCurrencyOfDenominationWhenDifferentPresentationCurrencyExchangeRateUsed>
 </xbrl>
