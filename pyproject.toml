@@ -29,12 +29,12 @@ classifiers = [
 requires-python = ">=3.8"
 dependencies = [
     'certifi',
-    'python-dateutil==2.*',
     'isodate==0.*',
     'lxml==4.*',
     'numpy==1.*',
     'openpyxl==3.*',
     'pyparsing==3.*',
+    'python-dateutil==2.*',
     'regex',
 ]
 
@@ -130,6 +130,7 @@ module = [
     'arelle.ModelObjectFactory',
     'arelle.ModelValue',
     'arelle.ModelXbrl',
+    'arelle.PluginUtils',
     'arelle.RuntimeOptions',
     'arelle.SocketUtils',
     'arelle.SystemInfo',
@@ -142,6 +143,7 @@ module = [
     'arelle.XmlValidate',
     'arelle.XmlValidateConst',
     'arelle.XmlValidateSchema',
+    'arelle.examples.plugin.multi',
     'arelle.examples.plugin.validate.*',
     'arelle.formula.FactAspectsCache',
     'arelle.formula.XPathContext',
