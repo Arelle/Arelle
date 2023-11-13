@@ -1,2 +1,4 @@
 # Removed trailing whitespace from the entire codebase
 956cfcca1aaa18dd2521172a851da3375abd2978
+# Fixed whitespace in arelle/plugin/validate/FERC/config.xml
+32529af727261eb1e9bf51a78280e558ef80f580
