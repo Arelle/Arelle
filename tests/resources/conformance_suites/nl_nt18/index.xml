@@ -8,6 +8,9 @@
     <testcase uri='fr_nl/1-06-testcase.xml' />
     <testcase uri='fr_nl/2-03-testcase.xml' />
     <testcase uri='fr_nl/2-06-testcase.xml' />
+    <testcase uri='fr_nl/3-04-testcase.xml' />
+    <testcase uri='fr_nl/4-01-testcase.xml' />
+    <testcase uri='fr_nl/5-01-testcase.xml' />
     <testcase uri='fr_nl/5-11-testcase.xml' />
     <testcase uri='fr_nl/6-01-testcase.xml' />
 </testcases>

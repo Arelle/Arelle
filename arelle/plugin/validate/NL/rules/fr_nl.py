@@ -8,6 +8,9 @@ from pathlib import Path
 from typing import Any, Iterable, cast
 
 import regex
+
+from collections import defaultdict
+
 from lxml import etree
 from lxml.etree import XMLSyntaxError
 
@@ -548,6 +551,64 @@ def rule_fr_nl_3_03(
         DISCLOSURE_SYSTEM_NT18
     ],
 )
+def rule_fr_nl_3_04(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-3.04: An XBRL instance document MUST NOT contain duplicate 'xbrli:context' elements
+    """
+    duplicates = defaultdict(list)
+    for context in val.modelXbrl.contexts.values():
+        duplicates[context.contextDimAwareHash].append(context)
+    for duplicate_contexts in duplicates.values():
+        if len(duplicate_contexts) > 1:
+            yield Validation.error(
+                codes='NL.FR-NL-3.04',
+                msg=_('An XBRL instance document MUST NOT contain duplicate \'context\' elements'),
+                modelObject=duplicate_contexts
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_4_01(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-4.01: An XBRL instance document MUST NOT contain duplicate 'xbrli:unit' elements
+    """
+    duplicates = defaultdict(list)
+    for unit in val.modelXbrl.units.values():
+        duplicates[unit.hash].append(unit)
+    for duplicate_units in duplicates.values():
+        if len(duplicate_units) > 1:
+            yield Validation.error(
+                codes='NL.FR-NL-4.01',
+                msg=_('An XBRL instance document MUST NOT contain duplicate \'xbrli:unit\' elements'),
+                modelObject=duplicate_units
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
 def rule_fr_nl_4_02(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -566,6 +627,39 @@ def rule_fr_nl_4_02(
             msg=_('Unused unit must not exist in the XBRL instance document'),
             modelObject=unit
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_5_01(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-5.01: An XBRL instance document MUST NOT contain duplicate facts
+
+    Duplicate facts are evaluated on concept, context and unit. Lang does not matter because of FR.KVK-2.02,
+    which states that an instance document can only have one lang. Value also doesn't matter because the filing
+    manual makes no distinction between consistent or inconsistent duplicate facts.
+    """
+    duplicates = defaultdict(list)
+    for fact in val.modelXbrl.facts:
+        duplicates[fact.conceptContextUnitHash].append(fact)
+    for duplicate_facts in duplicates.values():
+        if len(duplicate_facts) > 1:
+            yield Validation.error(
+                codes='NL.FR-NL-5.01',
+                msg=_('An XBRL instance document must not contain duplicate facts'),
+                modelObject=duplicate_facts
+            )
 
 
 @validation(

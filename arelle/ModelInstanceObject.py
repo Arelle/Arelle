@@ -152,7 +152,7 @@ class ModelFact(ModelObject):
         return self.elementDeclaration()  # logical (fact) declaration in own modelXbrl, not physical element (if inline)
 
     @property
-    def contextID(self):
+    def contextID(self) -> str:
         """(str) -- contextRef attribute"""
         return self.get("contextRef")
 
@@ -172,7 +172,7 @@ class ModelFact(ModelObject):
         return self.modelXbrl.units.get(self.unitID)
 
     @property
-    def unitID(self):
+    def unitID(self) -> str:
         """(str) -- unitRef attribute"""
         return self.getStripped("unitRef")
 
@@ -1239,7 +1239,7 @@ class ModelContext(ModelObject):
         """(bool) -- True if entityIdentifier values are equal (scheme and text value)"""
         return self.entityIdentifierHash == cntx2.entityIdentifierHash
 
-    def isEqualTo(self, cntx2, dimensionalAspectModel=None):
+    def isEqualTo(self, cntx2, dimensionalAspectModel=None) -> bool:
         if dimensionalAspectModel is None: dimensionalAspectModel = self.modelXbrl.hasXDT
         try:
             return self._isEqualTo[(cntx2,dimensionalAspectModel)]
