@@ -19,6 +19,7 @@ class ValidationPluginExtension(ValidationPlugin):
         if disclosureSystem == DISCLOSURE_SYSTEM_NT16:
             jenvNamespace = 'http://www.nltaxonomie.nl/nt16/jenv/20211208/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt16/kvk/20211208/dictionary/kvk-data'
+            nlTypesNamespace = 'http://www.nltaxonomie.nl/nt16/sbr/20210301/dictionary/nl-types'
             entrypointRoot = 'http://www.nltaxonomie.nl/nt16/kvk/20211208/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2021-ifrs-full.xsd',
@@ -54,6 +55,7 @@ class ValidationPluginExtension(ValidationPlugin):
         elif disclosureSystem == DISCLOSURE_SYSTEM_NT17:
             jenvNamespace = 'http://www.nltaxonomie.nl/nt17/jenv/20221214/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt17/kvk/20221214/dictionary/kvk-data'
+            nlTypesNamespace = 'http://www.nltaxonomie.nl/nt17/sbr/20220301/dictionary/nl-types'
             entrypointRoot = 'http://www.nltaxonomie.nl/nt17/kvk/20221214/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2022-ifrs-full.xsd',
@@ -90,6 +92,7 @@ class ValidationPluginExtension(ValidationPlugin):
         elif disclosureSystem == DISCLOSURE_SYSTEM_NT18:
             jenvNamespace = 'http://www.nltaxonomie.nl/nt18/jenv/20231213.b/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt18/kvk/20231213.b/dictionary/kvk-data'
+            nlTypesNamespace = 'http://www.nltaxonomie.nl/nt18/sbr/20230301/dictionary/nl-types'
             entrypointRoot = 'http://www.nltaxonomie.nl/nt18/kvk/20231213.b/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2023-ifrs-full.xsd',
@@ -131,6 +134,7 @@ class ValidationPluginExtension(ValidationPlugin):
             financialReportingPeriodCurrentEndDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodCurrentEndDate'),
             financialReportingPeriodPreviousStartDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodPreviousStartDate'),
             financialReportingPeriodPreviousEndDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodPreviousEndDate'),
+            formattedExplanationItemTypeQn=qname(f'{{{nlTypesNamespace}}}formattedExplanationItemType'),
             documentAdoptionDateQn=qname(f'{{{jenvNamespace}}}DocumentAdoptionDate'),
             documentAdoptionStatusQn=qname(f'{{{jenvNamespace}}}DocumentAdoptionStatus'),
             documentResubmissionUnsurmountableInaccuraciesQn=qname(f'{{{kvkINamespace}}}DocumentResubmissionDueToUnsurmountableInaccuracies'),

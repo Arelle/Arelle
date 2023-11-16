@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="NL.FR-NL-4.01"
+        description="An XBRL instance document MUST NOT contain duplicate 'xbrli:unit' elements."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="duplicate-units-measure" name="Instance document MUST NOT contain duplicate unit elements">
+        <description>
+            An XBRL instance document MUST NOT contain duplicate 'xbrli:unit' elements.
+        </description>
+        <data>
+            <instance readMeFirst="true">4-01-duplicate-units-measure.xbrl</instance>
+        </data>
+        <result>
+            <error>NL.FR-NL-4.01</error>
+        </result>
+    </variation>
+    <variation id="duplicate-units-divide" name="Instance document MUST NOT contain duplicate unit elements">
+        <description>
+            An XBRL instance document MUST NOT contain duplicate 'xbrli:unit' elements.
+        </description>
+        <data>
+            <instance readMeFirst="true">4-01-duplicate-units-divide.xbrl</instance>
+        </data>
+        <result>
+            <error>NL.FR-NL-4.01</error>
+        </result>
+    </variation>
+</testcase>

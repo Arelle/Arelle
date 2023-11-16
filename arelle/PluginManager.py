@@ -474,6 +474,31 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
                     name=name, error=err, traceback=traceback.format_tb(sys.exc_info()[2]))
             logPluginTrace(_msg, logging.ERROR)
 
+
+def prunePlugins(cntlr: Cntlr) -> None:
+    if not pluginConfig:
+        return
+    removeModules = set()
+    for moduleName, moduleInfo in pluginConfig["modules"].items():
+        if moduleInfo["status"] != "enabled":
+            continue  # User can avoid pruning by disabling plugin
+        if moduleName not in modulePluginInfos:
+            loadModule(moduleInfo)
+            if moduleName not in modulePluginInfos:
+                # If module name is still not in modulePluginInfos, it failed to load
+                removeModules.add(moduleName)
+    for moduleName in removeModules:
+        logPluginTrace(_("Removing plugin that failed loading: {}").format(moduleName), logging.INFO)
+        removePluginModule(moduleName)
+    save(cntlr)
+    # Try re-adding plugin modules by name
+    for moduleName in removeModules:
+        addPluginModule(moduleName)
+        if moduleName in modulePluginInfos:
+            logPluginTrace(_("Reloaded plugin that failed loading: {}").format(moduleName), logging.INFO)
+    save(cntlr)
+
+
 def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
     if pluginConfig:
         try:
