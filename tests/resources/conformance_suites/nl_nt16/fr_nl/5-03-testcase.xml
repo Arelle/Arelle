@@ -8,7 +8,7 @@
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
-    <variation id="invalid-precision" name="precision attribute must not be used">
+    <variation id="null-fact" name="null string concepts must not be used.">
         <description>
             An XBRL instance document MUST NOT contain empty item concepts that are of string item type.
         </description>
