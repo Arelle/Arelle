@@ -327,7 +327,7 @@ class XPathContext:
                         elif op.unprefixed or ns == XbrlConst.fn:
                             result = FunctionFn.call(self, p, localname, contextItem, args)
                         elif ns == XbrlConst.xfi or ns == XbrlConst.xff:
-                            result = FunctionXfi.call(self, p, localname, args)
+                            result = FunctionXfi.call(self, p, op, args)
                         elif ns == XbrlConst.xsd:
                             result = FunctionXs.call(self, p, localname, args)
                         elif ns in FunctionIxt.ixtNamespaceFunctions:
