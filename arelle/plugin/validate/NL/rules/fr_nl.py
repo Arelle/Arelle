@@ -683,7 +683,7 @@ def rule_fr_nl_5_03(
         if fact.concept.instanceOfType(XbrlConst.qnXbrliStringItemType) and not fact.xValue:
             yield Validation.error(
                 codes='NL.FR-NL-5.03',
-                msg=_('In an XBRL instance document MUST NOT contain an empty string concept.'),
+                msg=_('An XBRL instance document MUST NOT contain empty item concepts.'),
                 modelObject=fact
             )
 
