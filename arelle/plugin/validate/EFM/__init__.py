@@ -421,6 +421,8 @@ def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args, **kwargs):
             if "accessionNumber" in entryPoint and not hasattr(efmFiling, "accessionNumber"):
                 efmFiling.accessionNumber = entryPoint["accessionNumber"]
             efmFiling.arelleUnitTests = modelXbrl.arelleUnitTests.copy() # allow unit tests to be used after instance processing finished
+            for supplementalXbrl in getattr(modelXbrl, "supplementalModelXbrls", []):
+                xbrlLoaded(cntlr, options, supplementalXbrl, entryPoint)
         elif modelXbrl.modelDocument.type == Type.RSSFEED:
             testcasesStart(cntlr, options, modelXbrl)
 
@@ -430,8 +432,8 @@ def xbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     if (hasattr(modelManager, "efmFiling") and modelXbrl.modelDocument and
         modelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET)):
         efmFiling = modelManager.efmFiling
-        _report = efmFiling.reports[-1]
-        if True: # HF TESTING: not (options.abortOnMajorError and len(modelXbrl.errors) > 0):
+        _report = efmFiling.getReport(modelXbrl)
+        if _report is not None: # HF TESTING: not (options.abortOnMajorError and len(modelXbrl.errors) > 0):
             for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Xbrl.Run"):
                 pluginXbrlMethod(cntlr, options, modelXbrl, modelManager.efmFiling, _report)
 
@@ -576,9 +578,10 @@ def testcaseVariationXbrlValidated(testcaseModelXbrl, instanceModelXbrl, *args, 
     if (hasattr(modelManager, "efmFiling") and
         instanceModelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET)):
         efmFiling = modelManager.efmFiling
-        _report = modelManager.efmFiling.reports[-1]
-        for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Xbrl.Run"):
-            pluginXbrlMethod(modelManager.cntlr, efmFiling.options, instanceModelXbrl, efmFiling, _report)
+        _report = efmFiling.getReport(modelXbrl)
+        if _report is not None: # HF TESTING: not (options.abortOnMajorError and len(modelXbrl.errors) > 0):
+            for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Xbrl.Run"):
+                pluginXbrlMethod(modelManager.cntlr, efmFiling.options, instanceModelXbrl, efmFiling, _report)
 
 def testcaseVariationValidated(testcaseModelXbrl, instanceModelXbrl, errors=None, *args, **kwargs):
     modelManager = instanceModelXbrl.modelManager
@@ -657,6 +660,12 @@ class Filing:
         for pluginXbrlMethod in pluginClassMethods("Security.Crypt.Init"):
             pluginXbrlMethod(self, options, filesource, entrypointfiles, sourceZipStream)
         self.exhibitTypesStrippingOnErrorPattern = exhibitTypesStrippingOnErrorPattern
+
+    def getReport(self, modelXbrl):
+        for report in self.reports:
+            if modelXbrl == report.modelXbrl:
+                return report
+        return None
 
     def setReportZipStreamMode(self, mode): # mode is 'w', 'r', 'a'
         # required to switch in-memory zip stream between write, read, and append modes
@@ -752,6 +761,7 @@ def setReportAttrs(report, modelXbrl):
 class Report:
 
     def __init__(self, modelXbrl):
+        self.modelXbrl = modelXbrl
         self.isInline = modelXbrl.modelDocument.type in (Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET)
         self.url = modelXbrl.modelDocument.uri
         self.reportedFiles = set()
