@@ -578,7 +578,7 @@ def testcaseVariationXbrlValidated(testcaseModelXbrl, instanceModelXbrl, *args, 
     if (hasattr(modelManager, "efmFiling") and
         instanceModelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET)):
         efmFiling = modelManager.efmFiling
-        _report = efmFiling.getReport(modelXbrl)
+        _report = efmFiling.getReport(instanceModelXbrl)
         if _report is not None: # HF TESTING: not (options.abortOnMajorError and len(modelXbrl.errors) > 0):
             for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Xbrl.Run"):
                 pluginXbrlMethod(modelManager.cntlr, efmFiling.options, instanceModelXbrl, efmFiling, _report)
