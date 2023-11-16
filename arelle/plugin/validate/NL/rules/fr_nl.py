@@ -645,6 +645,7 @@ def rule_fr_nl_5_01(
 ) -> Iterable[Validation] | None:
     """
     FR-NL-5.01: An XBRL instance document MUST NOT contain duplicate facts
+
     Duplicate facts are evaluated on concept, context and unit. Lang does not matter because of FR.KVK-2.02,
     which states that an instance document can only have one lang. Value also doesn't matter because the filing
     manual makes no distinction between consistent or inconsistent duplicate facts.
@@ -682,7 +683,7 @@ def rule_fr_nl_5_03(
         if fact.concept.instanceOfType(XbrlConst.qnXbrliStringItemType) and not fact.xValue:
             yield Validation.error(
                 codes='NL.FR-NL-5.03',
-                msg=_('In an XBRL instance document MUST NOT contain an empty string concept'),
+                msg=_('In an XBRL instance document MUST NOT contain an empty string concept.'),
                 modelObject=fact
             )
 
