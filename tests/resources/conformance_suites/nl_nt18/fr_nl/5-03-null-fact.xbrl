@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrli:xbrl 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:jenv-bw2-i="http://www.nltaxonomie.nl/nt18/jenv/20231213.b/dictionary/jenv-bw2-data"
+  xmlns:rj-i="http://www.nltaxonomie.nl/nt18/rj/20231213.b/dictionary/rj-data"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xml="http://www.w3.org/XML/1998/namespace"
+  xml:lang="nl">
+  <link:schemaRef xlink:href="http://www.nltaxonomie.nl/nt18/jenv/20231213.b/dictionary/jenv-bw2-data.xsd" xlink:type="simple"/>
+  <xbrli:context id="c-1">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.kvk.nl/kvk-id/">32123456</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2021-01-01</xbrli:startDate>
+      <xbrli:endDate>2021-12-31</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <jenv-bw2-i:ChangeAccountingPoliciesDescription contextRef="c-1" xml:lang="en"></jenv-bw2-i:ChangeAccountingPoliciesDescription>
+</xbrli:xbrl>

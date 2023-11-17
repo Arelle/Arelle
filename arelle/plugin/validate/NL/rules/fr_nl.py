@@ -670,11 +670,37 @@ def rule_fr_nl_5_01(
         DISCLOSURE_SYSTEM_NT18
     ],
 )
-def rule_fr_nl_5_06(
+def rule_fr_nl_5_03(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FR-NL-5.03: An XBRL instance document MUST NOT contain empty item concepts
+    """
+    for fact in val.modelXbrl.facts:
+        if fact.concept.instanceOfType(XbrlConst.qnXbrliStringItemType) and not fact.xValue:
+            yield Validation.error(
+                codes='NL.FR-NL-5.03',
+                msg=_('An XBRL instance document MUST NOT contain empty item concepts.'),
+                modelObject=fact
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
+    ],
+)
+def rule_fr_nl_5_06(
+    pluginData: PluginValidationDataExtension,
+    val: ValidateXbrl,
+    *args: Any,
+    **kwargs: Any,
 ) -> Iterable[Validation] | None:
     """
     FR-NL-5.06: The 'precision' attribute MUST NOT be used

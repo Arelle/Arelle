@@ -14,7 +14,7 @@
 
 	<context id="ctx-3A">
 	  <entity>
-		<identifier scheme="ttp://www.kvk.nl/kvk-id">0001445305</identifier>
+		<identifier scheme="http://www.kvk.nl/kvk-id">0001445305</identifier>
 		<segment>
 		  <xbrldi:explicitMember dimension="jenv-bw2-dim:BasisOfPreparationAxis">jenv-bw2-dm:AdvancesReceivedMember</xbrldi:explicitMember>
 		</segment>
@@ -26,7 +26,7 @@
 
 	<context id="ctx-3B">
 	  <entity>
-		<identifier scheme="ttp://www.kvk.nl/kvk-id">0001445305</identifier>
+		<identifier scheme="http://www.kvk.nl/kvk-id">0001445305</identifier>
 		<segment>
 		  <xbrldi:explicitMember dimension="jenv-bw2-dim:BasisOfPreparationAxis">jenv-bw2-dm:AdvancesReceivedMember</xbrldi:explicitMember>
 		</segment>
@@ -38,7 +38,7 @@
 
 	<context id="ctx-13">
 	  <entity>
-		<identifier scheme="ttp://www.kvk.nl/kvk-id">000144</identifier>
+		<identifier scheme="http://www.kvk.nl/kvk-id">000144</identifier>
 		<segment>
 		  <xbrldi:explicitMember dimension="jenv-bw2-dim:BasisOfPreparationAxis">jenv-bw2-dm:AdvancesReceivedMember</xbrldi:explicitMember>
 		</segment>
@@ -50,7 +50,7 @@
 
 	<context id="ctx-13D">
 	  <entity>
-		<identifier scheme="ttp://www.kvk.nl/kvk-id">0001445305</identifier>
+		<identifier scheme="http://www.kvk.nl/kvk-id">0001445305</identifier>
 		<segment>
 		  <xbrldi:explicitMember dimension="jenv-bw2-dim:BasisOfPreparationAxis">jenv-bw2-dm:AccrualsAndDeferredIncomeMember</xbrldi:explicitMember>
 		</segment>
@@ -62,7 +62,7 @@
 
 	<context id="ctx-13F">
 	  <entity>
-		<identifier scheme="ttp://www.kvk.nl/kvk-id">0001445305</identifier>
+		<identifier scheme="http://www.kvk.nl/kvk-id">0001445305</identifier>
 		<segment>
 		  <xbrldi:explicitMember dimension="jenv-bw2-dim:BasisOfPreparationAxis">jenv-bw2-dm:AdvancesReceivedMember</xbrldi:explicitMember>
 		</segment>
