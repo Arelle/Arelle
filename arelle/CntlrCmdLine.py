@@ -1017,7 +1017,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             startedAt = time.time()
                             if options.formulaAction: # don't automatically run formulas
                                 modelXbrl.hasFormulae = False
-                            self.modelManager.validate()
+                            from arelle import Validate
+                            Validate.validate(modelXbrl)
                             if options.formulaAction: # restore setting
                                 modelXbrl.hasFormulae = hasFormulae
                             self.addToLog(format_string(self.modelManager.locale,
