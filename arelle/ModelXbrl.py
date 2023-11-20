@@ -299,6 +299,7 @@ class ModelXbrl:
     _factsByDatatype: dict[bool | tuple[bool, QName], set[ModelFact]]
     _factsByLocalName: dict[str, set[ModelFact]]
     _factsByPeriodType: dict[str, set[ModelFact]]
+    _factById: dict[str, ModelFact]
     _nonNilFactsInInstance: set[ModelFact]
     _startedProfiledActivity: float
     _startedTimeStat: float
@@ -857,6 +858,20 @@ class ModelXbrl:
                     else: # default typed dimension
                         fbdq[DEFAULT].add(fact)
             return fbdq[memQname]
+
+    @property
+    def factById(self) -> dict[str, ModelFact]:  # indexed by fact id
+        """Facts in the instance indexed by their id, cached
+        """
+        try:
+            return self._factById
+        except AttributeError:
+            fbid: dict[str, ModelFact]
+            self._factById = fbud = {}
+            for f in self.factsInInstance:
+                if f.id is not None:
+                    fbid[f.id] = f
+            return fbid
 
     @property
     def contextsInUse(self) -> Any:

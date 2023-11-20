@@ -60,6 +60,42 @@ ENTITY_NA_QNAME = ("https://xbrl.org/entities", "NA")
 csvOpenMode = 'w'
 csvOpenNewline = ''
 
+def oimPeriodValue(cntx):
+    if cntx.isStartEndPeriod:
+        s = cntx.startDatetime
+        e = cntx.endDatetime
+    else: # instant
+        s = e = cntx.instantDatetime
+    return({str(qnOimPeriodAspect):
+            ("{0:04}-{1:02}-{2:02}T{3:02}:{4:02}:{5:02}{6}/".format(
+                     s.year, s.month, s.day, s.hour, s.minute, s.second, tzinfoStr(s))
+                if cntx.isStartEndPeriod else "") +
+            "{0:04}-{1:02}-{2:02}T{3:02}:{4:02}:{5:02}{6}".format(
+                     e.year, e.month, e.day, e.hour, e.minute, e.second, tzinfoStr(e))
+            })
+
+def oimUnitValue(unit, measureFn, measureSep, denominatorSep, useParensForMeasures):
+    _mMul, _mDiv = unit.measures
+    _sMul = measureSep.join(measureFn(m) for m in sorted(_mMul, key=lambda m: measureFn(m)))
+    if _mDiv:
+        _sDiv = measureSep.join(measureFn(m) for m in sorted(_mDiv, key=lambda m: measureFn(m)))
+        if not useParensForMeasures:
+            _sUnit = f"{_sMul}{denominatorSep}{_sDiv}"
+        elif len(_mDiv) > 1:
+            if len(_mMul) > 1:
+                _sUnit = f"({_sMul}){denominatorSep}(_sDiv{})"
+            else:
+                _sUnit = f"{_sMul}{denominatorSep}({_sDiv})"
+        else:
+            if len(_mMul) > 1:
+                _sUnit = f"({_sMul}){denominatorSep}{_sDiv}"
+            else:
+                _sUnit = f"{_sMul}{denominatorSep}{_sDiv}"
+    else:
+        _sUnit = _sMul
+    if _sUnit in ("xbrli:pure", "{http://www.xbrl.org/2003/instance}pure"):
+        return None
+    return _sUnit
 
 def saveLoadableOIM(modelXbrl, oimFile, outputZip=None,
                     # arguments to add extension features to OIM document
@@ -128,19 +164,6 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None,
             return str(object)
         return object
 
-    def oimPeriodValue(cntx):
-        if cntx.isStartEndPeriod:
-            s = cntx.startDatetime
-            e = cntx.endDatetime
-        else: # instant
-            s = e = cntx.instantDatetime
-        return({str(qnOimPeriodAspect):
-                ("{0:04}-{1:02}-{2:02}T{3:02}:{4:02}:{5:02}{6}/".format(
-                         s.year, s.month, s.day, s.hour, s.minute, s.second, tzinfoStr(s))
-                    if cntx.isStartEndPeriod else "") +
-                "{0:04}-{1:02}-{2:02}T{3:02}:{4:02}:{5:02}{6}".format(
-                         e.year, e.month, e.day, e.hour, e.minute, e.second, tzinfoStr(e))
-                })
 
     hasId = False
     hasTuple = False
@@ -331,26 +354,9 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None,
                     else:
                         dimVal = dim.typedMember.stringValue
                 aspects[str(dim.dimensionQname)] = dimVal
-        unit = fact.unit
-        if unit is not None:
-            _mMul, _mDiv = unit.measures
-            _sMul = '*'.join(oimValue(m) for m in sorted(_mMul, key=lambda m: oimValue(m)))
-            if _mDiv:
-                _sDiv = '*'.join(oimValue(m) for m in sorted(_mDiv, key=lambda m: oimValue(m)))
-                if len(_mDiv) > 1:
-                    if len(_mMul) > 1:
-                        _sUnit = "({})/({})".format(_sMul,_sDiv)
-                    else:
-                        _sUnit = "{}/({})".format(_sMul,_sDiv)
-                else:
-                    if len(_mMul) > 1:
-                        _sUnit = "({})/{}".format(_sMul,_sDiv)
-                    else:
-                        _sUnit = "{}/{}".format(_sMul,_sDiv)
-            else:
-                _sUnit = _sMul
-            if _sUnit != "xbrli:pure":
-                aspects[str(qnOimUnitAspect)] = _sUnit
+        _sUnit = oimUnitValue(fact.unit, oimValue, "*", "/", True)
+        if _sUnit is not None:
+            aspects[str(qnOimUnitAspect)] = _sUnit
         # Tuples removed from xBRL-JSON
         #if parent.qname != XbrlConst.qnXbrliXbrl:
         #    aspects[str(qnOimTupleParentAspect)] = parent.id if parent.id else "f{}".format(parent.objectIndex)

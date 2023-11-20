@@ -1403,42 +1403,6 @@ def negative_filing_indicator(xc, p, args):
     if ind is None: raise XPathContext.FunctionArgType(1,"xs:string")
     return ind in filingIndicatorValues(xc.modelXbrl, "false")
 
-'''
-def  oim_r_distinct_dimension_values(xc, p, args):
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    qn = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
-        
-def  oim_r_default_dimension_value(xc, p, args):
-def  oim_r_defaulted_dimensions(xc, p, args):
-def  oim_r_parse_clark(xc, p, args):
-def  oim_r_entity_string_scheme(xc, p, args):
-def  oim_r_entity_string_identifier(xc, p, args):
-def  oim_r_period_string_start(xc, p, args):
-def  oim_r_period_string_end(xc, p, args):
-def  oim_r_unit_string_numerators(xc, p, args):
-def  oim_r_unit_string_denominators(xc, p, args):
-def  oim_r_fact_with_id(xc, p, args):
-def  oim_f_period(xc, p, args):
-def  oim_f_period_type(xc, p, args):
-def  oim_f_period_is_instant(xc, p, args):
-def  oim_f_period_is_duration(xc, p, args):
-def  oim_f_period_start(xc, p, args):
-def  oim_f_period_end(xc, p, args):
-def  oim_f_period_instant(xc, p, args):
-def  oim_f_has_dimension(xc, p, args):
-def  oim_f_dimension_value(xc, p, args):
-def  oim_f_taxonomy_defined_dimensions(xc, p, args):
-def  oim_f_notes(xc, p, args):
-def  oim_f_linked_facts(xc, p, args):
-def  oim_f_entity_identifier(xc, p, args):
-def  oim_f_entity_scheme(xc, p, args):
-def  oim_f_unit_numerators(xc, p, args):
-def  oim_f_unit_denominators(xc, p, args):
-def  oim_f_unit(xc, p, args):
-def  oim_f_decimals(xc, p, args):
-def  oim_f_id(xc, p, args):
-'''
-
 xffFunctions = {
     'uncovered-aspect' : uncovered_aspect,
     'has-fallback-value' : has_fallback_value,
@@ -1563,48 +1527,8 @@ xfiFunctions = {
     'negative-filing-indicator': negative_filing_indicator,
     }
 
-'''
-oimRFunctions = {
-    'distinct-dimension-values': oim_r_distinct_dimension_values,
-    'default-dimension-value': oim_r_default_dimension_value,
-    'defaulted-dimensions': oim_r_defaulted_dimensions,
-    'parse-clark': parse_clark,
-    'entity-string-scheme': oim_r_entity_string_scheme,
-    'entity-string-identifier': oim_r_entity_string_identifier,
-    'period-string-start': oim_r_period_string_start,
-    'period-string-end': oim_r_period_string_end,
-    'unit-string-numerators': oim_r_unit_string_numerators,
-    'unit-string-denominators': oim_r_unit_string_denominators,
-    'fact-with-id': oim_r_fact_with_id,
-    
-    }
 
-oimFFunctions = {
-    'period': oim_f_period,
-    'period-type': oim_f_period_type,
-    'period-is-instant': oim_f_period_is_instant,
-    'period-is-duration': oim_f_period_is_duration,
-    'period-start': oim_f_period_start,
-    'period-end': oim_f_period_end,
-    'period-instant': oim_f_period_instant,
-    'has-dimension': oim_f_has_dimension,
-    'dimension-value': oim_f_dimension_value,
-    'taxonomy-defined-dimensions': oim_f_taxonomy_defined_dimensions,
-    'notes': oim_f_notes,
-    'linked-facts': oim_f_linked_facts,
-    'entity-identifier': oim_f_entity_identifier,
-    'entity-scheme': oim_f_entity_scheme,
-    'unit-numerators': oim_f_unit_numerators,
-    'unit-denominators': oim_f_unit_denominators,
-    'unit': oim_f_unit,
-    'decimals': oim_f_decimals,
-    'id': oim_f_id,
-    }
-
-'''
 functionsRegistryFunctions = {
     XbrlConst.xff: xffFunctions,
     XbrlConst.xfi: xfiFunctions,
-    # XbrlConst.oim_r: oimRFunctions,
-    # XbrlConst.oim_f: oimFFunctions,
     }

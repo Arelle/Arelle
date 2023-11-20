@@ -326,7 +326,7 @@ class XPathContext:
                             result = self.stepAxis(parentOp, p, resultStack.pop())
                         elif op.unprefixed or ns == XbrlConst.fn:
                             result = FunctionFn.call(self, p, localname, contextItem, args)
-                        elif ns == XbrlConst.xfi or ns == XbrlConst.xff:
+                        elif ns in functionsRegistryFunctions:
                             result = FunctionXfi.call(self, p, op, args)
                         elif ns == XbrlConst.xsd:
                             result = FunctionXs.call(self, p, localname, args)
