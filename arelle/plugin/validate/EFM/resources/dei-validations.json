@@ -76,6 +76,8 @@
 		"F-n": ["F-1", "F-1/A", "F-3", "F-3/A", "F-4", "F-4/A"],
 		"F-nX": ["F-1MEF", "F-3ASR", "F-3D", "F-3DPOS", "F-3MEF", "F-4 POS", "F-4EF", "F-4MEF", "F-10", "F-10/A", "F-10EF", "F-10POS"],
 		"F-SR": ["F-SR", "F-SR/A"],
+		"N-8B-2": ["N-8B-2", "N-8B-2/A"],
+		"S-6": ["S-6", "S-6/A"],
 		"N": ["N-Q", "N-Q/A", "N-CSRS", "N-CSRS/A", "NCSR", "NCSR/A", "N-CSR", "N-CSR/A"],
         "N-1A": ["485POS§N-1A", "485APOS§N-1A", "485BPOS§N-1A", "485BXT§N-1A", "497§N-1A"],
         "N-2": ["N-2§N-2", "@N-2-a"],
@@ -146,13 +148,14 @@
     {"sub-types": ["424B7"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["424B7"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["424B8"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["424B8"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["485POS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["485POS", "N-3", "N-4", "N-6", "N-1A"], "source": "both", "dei/cover": "dei"},
-    {"sub-types": ["485APOS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["485APOS", "N-3", "N-4", "N-6", "N-1A"], "source": "both", "dei/cover": "dei"},
-    {"sub-types": ["485BPOS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["485BPOS", "N-3", "N-4", "N-6", "N-1A"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["485APOS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["485APOS", "N-3", "N-4", "N-6", "N-1A", "S-6"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["485BPOS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["485BPOS", "N-3", "N-4", "N-6", "N-1A", "S-6"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["485BXT"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["485BXT", "N-3", "N-4", "N-6", "N-1A"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["486APOS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-2"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["486BPOS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-2"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["486BXT"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-2"], "source": "both", "dei/cover": "dei"},
-	{"sub-types": ["497"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["497", "N-3", "N-4", "N-6", "N-1A"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["487"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-4", "N-6", "S-6"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["497"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["497", "N-3", "N-4", "N-6", "N-1A", "S-6"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["6-K"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["6-K"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["6-K/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["6-K/A"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["8-K"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["8-K"], "source": "both", "dei/cover": "cover"},
@@ -210,6 +213,8 @@
     {"sub-types": ["N-4/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-4/A"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["N-6"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-6"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["N-6/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-6/A"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["N-8B-2"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-8B-2"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["N-8B-2/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-8B-2/A", "N-8B-2"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["N-ASR"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-ASR"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["N-CSR"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-CSR"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["N-CSR/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-CSR", "N-CSR/A"], "source": "both", "dei/cover": "dei"},
@@ -249,6 +254,8 @@
 	{"sub-types": ["S-4/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["S-4/A"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["S-4EF"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["S-4EF"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["S-4MEF"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["S-4MEF"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["S-6"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["S-6"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["S-6/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["S-6/A", "S-6"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["SC 13E3"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["SC 13E3"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["SC 13E3/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["SC 13E3/A"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["SD"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["2.01 SD"], "source": "both", "dei/cover": "dei"},
@@ -346,6 +353,15 @@
         "dei/cover": "dei"
     },
     {
+        "sub-types": ["@N-8B-2", "@S-6", "487"],
+        "xbrl-names": "DocumentPeriodEndDate",
+        "elo-name": "periodOfReport",
+        "efm": "6.5.20",
+        "validation": "r",
+        "source": "inline",
+        "dei/cover": "dei"
+    },
+    {
     	"sub-types": ["@SD"],
         "xbrl-names": "DocumentPeriodEndDate",
         "store-db-name": "periodOfReport",
@@ -373,7 +389,8 @@
             "@all-FAST",
             "@POS", "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A",
             "@6-K", "@SP 15D2", "@RR", "@N-346", "@SDR",
-            "@N", "N-3", "N-4", "N-6", "@PvP", "@F-SR"
+            "@N", "N-3", "N-4", "N-6", "@PvP", "@F-SR", 
+            "@N-8B-2", "@S-6", "487"
         ],
         "xbrl-names": "DocumentPeriodEndDate",
         "store-db-name": "periodOfReport",
@@ -1952,6 +1969,14 @@
         "dei/cover": "cover"
     },
     {
+        "sub-types": ["@N-8B-2", "@S-6", "487"],
+        "xbrl-names": "EntityWellKnownSeasonedIssuer",
+        "efm": "6.5.21",
+        "validation": "o",
+        "source": "both",
+        "dei/cover": "cover"
+    },
+    {
         "sub-types": ["@10-K+KT", "@20+40-F"],
         "xbrl-names": "IcfrAuditorAttestationFlag",
         "store-db-name": "icfrAuditorAttestationFlag",
@@ -2319,7 +2344,7 @@
         "xbrl-names": [],
         "efm": "6.5.56",
         "validation": "taxonomy-url-required-in-dts",
-        "value": "https://xbrl.sec.gov/rr/*/rr-*.xsd|https://xbrl.sec.gov/oef/*/oef-rr*.xsd",
+        "value": "https://xbrl.sec.gov/rr/*/rr-*.xsd|https://xbrl.sec.gov/oef/*/oef-rr*.xsd|https://xbrl.sec.gov/fnd/*/fnd-oef-*.xsd",
         "source": "both"
     },
     {
@@ -2328,7 +2353,7 @@
         "efm": "6.5.55",
         "validation": "taxonomy-url-required-in-dts",
         "earliest-taxonomy": "dei/2023",
-        "value": "https://xbrl.sec.gov/cef/*/cef-*_pre.xsd",
+        "value": "https://xbrl.sec.gov/cef/*/cef-*_pre.xsd|https://xbrl.sec.gov/fnd/*/fnd-cef-*_pre.xsd",
         "source": "both",
         "comment": "check not applied to submissions with dei before 2023"
     },
@@ -2354,6 +2379,22 @@
         "efm": "6.5.56",
         "validation": "taxonomy-url-required-in-dts",
         "value": "https://xbrl.sec.gov/vip/*/vip-n6-*.xsd",
+        "source": "both"
+    },
+    {
+        "sub-types": ["@N-8B-2"],
+        "xbrl-names": "fnd-uit:*",
+        "efm": "6.5.56",
+        "validation": "taxonomy-url-required-in-dts",
+        "value": "https://xbrl.sec.gov/fnd/*/fnd-uit-*.xsd",
+        "source": "both"
+    },
+    {
+        "sub-types": ["@S-6"],
+        "xbrl-names": "fnd-uit:*",
+        "efm": "6.5.56",
+        "validation": "taxonomy-url-required-in-dts",
+        "value": "https://xbrl.sec.gov/fnd/*/fnd-uit-*.xsd",
         "source": "both"
     },
     {
