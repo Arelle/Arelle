@@ -15,6 +15,7 @@ from lxml import etree
 from lxml.etree import XMLSyntaxError
 
 from arelle import ModelDocument, XbrlConst, XmlUtil
+from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -56,6 +57,19 @@ UNICODE_CHARACTER_RANGES_PATTERN = regex.compile(
     r"[^" +
     ''.join(fr"\u{min:04x}-\u{max:04x}" for min, max in UNICODE_CHARACTER_DECIMAL_RANGES) +
     "]")
+XHTML_ALLOWED_STYLES = {
+    'font-family',
+    'font-size',
+    'color'
+}
+XHTML_ALLOWED_TAGS = frozenset({
+    'b', 'br', 'div', 'em', 'i', 'li', 'ol', 'p',
+    'pre', 's', 'small', 'strong', 'sub', 'sup',
+    'table', 'td', 'th', 'tr', 'u', 'ul'})
+XHTML_ALLOWED_TYPES = {
+    'ol': frozenset({'1', 'a', 'A', 'i', 'I'}),
+    'ul': frozenset({None, '', 'circle', 'square'}),
+}
 
 
 @validation(
@@ -80,16 +94,23 @@ def rule_fr_nl_1_02(
     (8352, 8399), 20A0 - 20CF: Currency Symbols
     """
     modelXbrl = val.modelXbrl
+    errorObjects: list[ModelObject] = []
     foundChars = set()
-    sourceFileLines = []
     for doc in modelXbrl.urlDocs.values():
         if doc.type == ModelDocument.Type.INSTANCE:
-            with modelXbrl.fileSource.file(doc.filepath)[0] as file:
-                for i, line in enumerate(file):
-                    for match in regex.finditer(UNICODE_CHARACTER_RANGES_PATTERN, line):
+            for elt in doc.xmlRootElement.iter():
+                if isinstance(elt, ModelComment):
+                    texts = [getattr(elt, 'text')]
+                else:
+                    texts = [elt.elementAttributesStr, elt.textValue]
+                matched = False
+                for text in texts:
+                    for match in regex.finditer(UNICODE_CHARACTER_RANGES_PATTERN, text):
+                        matched = True
                         foundChars.add(match.group())
-                        sourceFileLines.append((doc.filepath, i + 1))
-    if len(sourceFileLines) > 0:
+                if matched:
+                    errorObjects.append(elt)
+    if len(errorObjects) > 0:
         yield Validation.error(
             codes='NL.FR-NL-1.02',
             msg=_('Characters MUST be from the Unicode ranges Basic Latin, Latin Supplement and Currency Symbols '
@@ -97,22 +118,8 @@ def rule_fr_nl_1_02(
                   'Found disallowed characters: %(foundChars)s'),
             foundChars=sorted(foundChars),
             ranges=', '.join(f'{hex(min)}-{hex(max)}' for min, max in UNICODE_CHARACTER_DECIMAL_RANGES),
-            sourceFileLines=sourceFileLines,
+            modelObject=errorObjects,
         )
-
-XHTML_ALLOWED_STYLES = {
-    'font-family',
-    'font-size',
-    'color'
-}
-XHTML_ALLOWED_TAGS = frozenset({
-    'b', 'br', 'div', 'em', 'i', 'li', 'ol', 'p',
-    'pre', 's', 'small', 'strong', 'sub', 'sup',
-    'table', 'td', 'th', 'tr', 'u', 'ul'})
-XHTML_ALLOWED_TYPES = {
-    'ol': frozenset({'1', 'a', 'A', 'i', 'I'}),
-    'ul': frozenset({None, '', 'circle', 'square'}),
-}
 
 
 @validation(
