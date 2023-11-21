@@ -794,12 +794,18 @@ class ValidateXbrl:
                                     modelObject=f, fact=f.qname, contextID=f.contextID)
                             if getattr(f,"xValid", 0) == 4:
                                 if f.concept.instanceOfType(dtrSQNameItemTypes):
-                                    if not f.nsmap.get(cast(str, f.xValue).rpartition(":")[0]):
+                                    qn = qname(cast(str, f.xValue), f.nsmap)
+                                    if qn is not None:
+                                        f.oValue = qn.clarkNotation
+                                    else:
                                         self.modelXbrl.error("dtre:SQNameItemType",
                                             _("Fact %(fact)s context %(contextID)s must have an in-scope prefix: %(value)s"),
                                             modelObject=f, fact=f.qname, contextID=f.contextID, value=cast(str, f.xValue)[:200])
                                 elif f.concept.instanceOfType(dtrSQNamesItemTypes):
-                                    if not all(f.nsmap.get(n.rpartition(":")[0]) for n in cast(str, f.xValue).split()):
+                                    qns = [qname(n, f.nsmap) for n in cast(str, f.xValue).split()]
+                                    if None not in qns:
+                                        f.oValue = " ".join(qn.clarkNotation for qn in qns)
+                                    else:
                                         self.modelXbrl.error("dtre:SQNamesItemType",
                                             _("Fact %(fact)s context %(contextID)s must have an in-scope prefix: %(value)s"),
                                             modelObject=f, fact=f.qname, contextID=f.contextID, value=cast(str, f.xValue)[:200])
@@ -829,18 +835,20 @@ class ValidateXbrl:
                                 modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue, concept=f.qname,
                                 messageCodes=("enumie:InvalidFactValue", "enumie:InvalidListFactValue",
                                               "enum2ie:InvalidEnumerationValue", "enum2ie:InvalidEnumerationSetValue"))
-                        if concept.instanceOfType(XbrlConst.qnEnumerationSetItemTypes) and len(qnEnums) > len(set(qnEnums)):
+                        elif concept.instanceOfType(XbrlConst.qnEnumerationSetItemTypes) and len(qnEnums) > len(set(qnEnums)):
                             self.modelXbrl.error(("enum2ie:" if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes)
                                                   else "enumie:") +
                                                  "RepeatedEnumerationSetValue",
                                 _("Fact %(fact)s context %(contextID)s enumeration has non-unique values %(value)s"),
                                 modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue, concept=f.qname,
                                 messageCodes=("enumie:RepeatedEnumerationSetValue", "enum2ie:RepeatedEnumerationSetValue"))
-                        if concept.instanceOfType(XbrlConst.qnEnumerationSetItemTypes) and any(
+                        elif concept.instanceOfType(XbrlConst.qnEnumerationSetItemTypes) and any(
                                 qnEnum < qnEnums[i] for i, qnEnum in enumerate(qnEnums[1:])):
                             self.modelXbrl.error("enum2ie:InvalidEnumerationSetOrder",
                                 _("Fact %(fact)s context %(contextID)s enumeration is not in lexicographical order %(value)s"),
                                 modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue, concept=f.qname)
+                        else:
+                            f.oValue = qnEnums
 
                 elif concept.isTuple:
                     if f.contextID:

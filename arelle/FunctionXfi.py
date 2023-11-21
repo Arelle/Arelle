@@ -38,6 +38,9 @@ def call(
         _function = functionsRegistryFunctions[qn.namespaceURI][qn.localName]
     except KeyError:
         raise XPathContext.FunctionNotAvailable(str(qn))
+    if xc.oimCompatible and qn.localName in oimUnsupportedFunctions:
+        raise XPathContext.XPathException(p, "oimfe:oimIncompatibleRegistryFunction",
+                                          _("Function {} MUST NOT be used within OIM-compatible XBRL formula").format(qn.localName))
     return _function(xc, p, args)
 
 def instance(xc, p, args, i=0):
@@ -1531,4 +1534,62 @@ xfiFunctions = {
 functionsRegistryFunctions = {
     XbrlConst.xff: xffFunctions,
     XbrlConst.xfi: xfiFunctions,
+    }
+
+
+oimUnsupportedFunctions = {
+    'context',
+    'unit',
+    'unit-numerator',
+    'unit-denominator',
+    'measure-name',
+    'period',
+    'context-period',
+    'is-start-end-period',
+    'is-forever-period',
+    'is-duration-period',
+    'is-instant-period',
+    'period-start',
+    'period-end',
+    'period-instant',
+    'entity',
+    'context-entity',
+    'identifier',
+    'context-identifier',
+    'entity-identifier',
+    'identifier-value',
+    'identifier-scheme',
+    'segment',
+    'entity-segment',
+    'context-segment',
+    'scenario',
+    'context-scenario',
+    'identical-nodes',
+    's-equal',
+    'u-equal',
+    'v-equal',
+    'c-equal',
+    'identical-node-set',
+    's-equal-set',
+    'v-equal-set',
+    'c-equal-set',
+    'u-equal-set',
+    'x-equal',
+    'duplicate-item',
+    'duplicate-tuple',
+    'p-equal',
+    'cu-equal',
+    'pc-equal',
+    'pcu-equal',
+    'start-equal',
+    'end-equal',
+    'any-start-date',
+    'any-instant-date',
+    'tuples-in-instance',
+    'items-in-tuple',
+    'fact-segment-remainder',
+    'fact-scenario-remainder',
+    'fact-typed-dimension-value',
+    'fact-dimension-s-equal2',
+    'fact-footnotes',
     }

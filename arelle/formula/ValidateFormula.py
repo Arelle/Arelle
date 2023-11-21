@@ -28,6 +28,7 @@ from arelle.ModelFormulaObject import (
     ModelVariableSet,
     ModelVariableSetAssertion,
     Trace,
+    oimIncompatibleFilterQnames
 )
 from arelle.ModelRenderingObject import (
     ModelFilterDefinitionNode,
@@ -522,6 +523,11 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                             input=result,
                         )
                     xpathContext.inScopeVars[paramQname] = result  # make visible to subsequent parameter expression
+                    if paramQname.localName == "oim-compatible-formula":
+                        if result in (True, 1, "1", "true") and xpathContext.oimCompatible in (None, True):
+                            xpathContext.oimCompatible = True
+                        else:
+                            xpathContext.oimCompatible = False
                 elif modelParameter.isRequired:
                     val.modelXbrl.error(
                         "xbrlve:missingParameterValue",
@@ -547,6 +553,11 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                             result=result,
                         )
                     xpathContext.inScopeVars[paramQname] = result  # make visible to subsequent parameter expression
+                    if paramQname.localName == "oim-compatible-formula":
+                        if result in (True, 1, "1", "true") and xpathContext.oimCompatible in (None, True):
+                            xpathContext.oimCompatible = True
+                        else:
+                            xpathContext.oimCompatible = False
             except XPathContext.XPathException as err:
                 val.modelXbrl.error(
                     "xbrlve:parameterTypeMismatch" if err.code == "err:FORG0001" else err.code,
@@ -1374,6 +1385,13 @@ def checkVariablesScopeVisibleQnames(val, nameVariables, definedNamesSet, modelV
 
 def checkFilterAspectModel(val, variableSet, filterRelationships, xpathContext, uncoverableAspects=None):
     result = set()  # all of the aspects found to be covered
+    if xpathContext.oimCompatible and variableSet.aspectModel == 'non-dimensional':
+        val.modelXbrl.error(
+            "oimfe:oimUnsupportedAspectModel",
+            _("Variable set %(xlinkLabel)s, aspect model %(aspectModel)s is inconsistent with OIM mode."),
+            modelObject=variableSet,
+            xlinkLabel=variableSet.xlinkLabel,
+            aspectModel=variableSet.aspectModel)
     if uncoverableAspects is None:
         # protect 2.7 conversion
         oppositeAspectModel = ({'dimensional', 'non-dimensional'} - {variableSet.aspectModel}).pop()
@@ -1385,6 +1403,15 @@ def checkFilterAspectModel(val, variableSet, filterRelationships, xpathContext, 
     for varFilterRel in filterRelationships:
         _filter = varFilterRel.toModelObject  # use _filter instead of filter to prevent 2to3 confusion
         isAllAspectCoverFilter = False
+        if xpathContext.oimCompatible and (
+            _filter.qname in oimIncompatibleFilterQnames or
+            (_filter.qname == XbrlConst.qnTypedDimension and _filter.test)):
+            val.modelXbrl.error(
+                "oimfe:unsupportedFilter",
+                _("Variable set %(xlinkLabel)s, filter %(filterLabel)s, is not supported in OIM mode."),
+                modelObject=variableSet,
+                xlinkLabel=variableSet.xlinkLabel,
+                filterLabel=_filter.xlinkLabel)
         if isinstance(_filter, ModelAspectCover):
             for aspect in _filter.aspectsCovered(None, xpathContext):
                 if aspect in acfAspectsCovering:

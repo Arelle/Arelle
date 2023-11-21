@@ -240,6 +240,7 @@ class XPathContext:
         ] = {}
         for pluginXbrlMethod in pluginClassMethods("Formula.CustomFunctions"):
             self.customFunctions.update(pluginXbrlMethod())
+        self.oimCompatible: bool | None = None # set to a bool value when processing parameters
 
     def copy(self) -> XPathContext:  # shallow copy (for such as for Table LB table processiong
         xpCtxCpy = XPathContext(self.modelXbrl, self.inputXbrlInstance, self.sourceElement, self.inScopeVars.copy())
@@ -326,7 +327,7 @@ class XPathContext:
                             result = self.stepAxis(parentOp, p, resultStack.pop())
                         elif op.unprefixed or ns == XbrlConst.fn:
                             result = FunctionFn.call(self, p, localname, contextItem, args)
-                        elif ns in functionsRegistryFunctions:
+                        elif ns == XbrlConst.xfi or ns == XbrlConst.xff:
                             result = FunctionXfi.call(self, p, op, args)
                         elif ns == XbrlConst.xsd:
                             result = FunctionXs.call(self, p, localname, args)
@@ -571,6 +572,9 @@ class XPathContext:
                     result = self.evaluate(opDef.args, contextItem=contextItem)
                 elif op == '.':
                     result = contextItem
+                    if self.oimCompatible and result != self.inputXbrlInstance.targetXbrlRootElement:
+                        raise XPathException(p, "oimfe:unsupportedContextNode",
+                                            _("OIM compatible XBRL formula MUST NOT attempt to access the context node."))
                 elif op == '..':
                     result = XmlUtil.parent(cast(ModelObject, contextItem))
                 elif op in PATH_OPS:
@@ -877,6 +881,8 @@ class XPathContext:
                     return []
                 try:
                     if e.xValid >= VALID:
+                        if self.oimCompatible and hasattr(e, "oValue"):
+                            return e.oValue # oim value for OIM-Compatible Formula sect 2.4.1
                         return e.xValue
                 except AttributeError:
                     pass

@@ -35,6 +35,9 @@ def call(
 ) -> XPathContext.RecursiveContextItem:
     try:
         if localname not in fnFunctions: raise fnFunctionNotAvailable
+        if xc.oimCompatible and localname in oimIncompatibleFunctions:
+            raise XPathContext.XPathException(p, "oimfe:oimIncompatibleXPathFunctionOrOperator",
+                                              _("Function {} MUST NOT be used within OIM-compatible XBRL formula").format(localname))
         return fnFunctions[localname](xc, p, contextItem, args)
     except fnFunctionNotAvailable:
         raise XPathContext.FunctionNotAvailable("fn:{0}".format(localname))
@@ -932,4 +935,14 @@ fnFunctions = {
     'default-collation': default_collation,
     'static-base-uri': static_base_uri,
     'format-number': format_number,
+    }
+
+oimIncompatibleFunctions = {
+    'is-same-node',
+    'root',
+    'id',
+    'idref',
+    'element-with-id',
+    'doc',
+    'doc-available'
     }

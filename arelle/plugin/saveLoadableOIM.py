@@ -83,7 +83,7 @@ def oimUnitValue(unit, measureFn, measureSep, denominatorSep, useParensForMeasur
             _sUnit = f"{_sMul}{denominatorSep}{_sDiv}"
         elif len(_mDiv) > 1:
             if len(_mMul) > 1:
-                _sUnit = f"({_sMul}){denominatorSep}(_sDiv{})"
+                _sUnit = f"({_sMul}){denominatorSep}({_sDiv})"
             else:
                 _sUnit = f"{_sMul}{denominatorSep}({_sDiv})"
         else:

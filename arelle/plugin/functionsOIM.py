@@ -9,16 +9,29 @@ from regex import compile as rc_compile
 from collections.abc import Callable
 
 from arelle.formula import XPathContext
+from arelle.formula.XPathContext import XPathException as OIMFunctionException
 from arelle.FunctionUtil import qnameArg, stringArg
 from arelle.ModelValue import QName, qname, AnyURI, DateTime, DATETIME
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.formula.XPathParser import OperationDef
 from arelle.typing import EmptyTuple
-from loadFromOIM import PeriodPattern
-from saveLoadableOIM import oimPeriodValue, oimUnitValue
+from arelle.plugin.loadFromOIM import PeriodPattern
+from arelle.plugin.saveLoadableOIM import oimPeriodValue, oimUnitValue
 
 ClarkPattern = rc_compile(r"\{([^}]+)\}(.+)$")
 ExpandedUnitStrPattern = rc_compile(r"\{\w+\}\w+(\ \{\w+\}\w+)*(\ /\ \{\w+\}\w+(\ \{\w+\}\w+)*)?$")
+
+def checkArgs(
+    xc: XPathContext.XPathContext,
+    p: OperationDef,
+    contextItem: XPathContext.ContextItem,
+    args: XPathContext.ResultStack,
+    numArgs: int,
+) -> None:
+    if not xc.oimCompatible:
+        raise OIMFunctionException(p, "oimfe:oimIncompatibleRegistryFunction",
+                                   _("Function {} requires OIM-compatible mode.").format(p.name))
+    if len(args) != numArgs: raise XPathContext.FunctionNumArgs()
 
 def r_distinct_dimension_values(
     xc: XPathContext.XPathContext,
@@ -26,11 +39,11 @@ def r_distinct_dimension_values(
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
 ) -> list[Any] | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     qn = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
     if not (qn in qnOimCoreDimensions or
             (qn in xc.modelXbrl.qnameConcepts and xc.modelXbrl.qnameConcepts[qn].isDimensionItem)):
-        raise OIMFunctionException("re:invalidDimension", p,
+        raise OIMFunctionException(p, "re:invalidDimension",
                                    _("QName {} does not correspond to either an OIM Core Dimension, or a taxonomy-defined dimension defined in the DTS of the report.")
                                    .format(qn))
     if qn == qnOimConcept:
@@ -58,12 +71,12 @@ def r_default_dimension_value(
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
 ) -> QName | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     qn = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
     if qn in qnOimCoreDimensions:
         return ()
     if not (qn in xc.modelXbrl.qnameConcepts and xc.modelXbrl.qnameConcepts[qn].isDimensionItem):
-        raise OIMFunctionException("re:invalidDimension", p,
+        raise OIMFunctionException(p, "re:invalidDimension",
                                    _("QName {} does not correspond to either an OIM Core Dimension, or a taxonomy-defined dimension defined in the DTS of the report.")
                                    .format(qn))
     return xc.modelXbrl.qnameDimensionDefaults.get(dimQname, ())
@@ -83,11 +96,11 @@ def r_parse_clark(
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
 ) -> tuple[AnyURI, str] | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     cn = stringArg(xc, p, args, 0, 'ClarkName', emptyFallback=None)
     match = ClarkPattern.match(cn)
     if not match:
-        raise OIMFunctionException("re:invalidClarkValue", p,
+        raise OIMFunctionException(p, "re:invalidClarkValue",
                                    _("Provided value \"{}\"is not a valid Clark Notation string.")
                                    .format(cn))
     return tuple(match.group(1), match.group(2))
@@ -115,11 +128,11 @@ def r_period_string(
     args: XPathContext.ResultStack,
     start: bool,
 ) -> DateTime | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     period = stringArg(xc, p, args, 0, 'Period String Representation', emptyFallback=None)
     match = PeriodPattern.match(period)
     if not match:
-        raise OIMFunctionException("re:invalidPeriodRepresentation", p,
+        raise OIMFunctionException(p, "re:invalidPeriodRepresentation",
                                    _("Provided value \"{}\"is not a valid Period String Representation string.")
                                    .format(period))
     _start, _sep, _end = period.rpartition('/')
@@ -152,13 +165,13 @@ def r_unit_string(
     args: XPathContext.ResultStack,
     numerator: bool,
 ) -> list[QName] | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     expandedUnitStr = stringArg(xc, p, args, 0, 'Expanded Unit String', emptyFallback=None)
     if not expandedUnitStr:
         return [XbrlConst.qnXbrliPure]
     match = ExpandedUnitStrPattern.match(expandedUnitStr)
     if not match:
-        raise OIMFunctionException("re:invalidExpandedUnitStringRepresentation", p,
+        raise OIMFunctionException(p, "re:invalidExpandedUnitStringRepresentation",
                                    _("Provided value \"{}\"is not a valid Expanded Unit String.")
                                    .format(expandedUnitStr))
     _num, _sep, _denom = expandedUnitStr.rpartition(' / ')
@@ -193,9 +206,8 @@ def r_fact_with_id(
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    start: bool,
 ) -> ModelFact | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     id = stringArg(xc, p, args, 0, 'Id', emptyFallback=None)
     return xc.modelXbrl.factById.get(id, ())
 
@@ -204,9 +216,8 @@ def f_period(
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    identifier: bool,
 ) -> str | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
     if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
     if fact.context is not None:
@@ -218,9 +229,8 @@ def f_period_type(
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    identifier: bool,
 ) -> str | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
     if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
     if fact.context is not None:
@@ -235,9 +245,8 @@ def f_period_is_instant(
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    identifier: bool,
 ) -> bool | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
     if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
     return fact.context is not None and fact.context.isInstantPeriod
@@ -247,9 +256,8 @@ def f_period_is_duration(
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    identifier: bool,
 ) -> bool | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
     if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
     return fact.context is not None and (fact.context.isStartEndPeriod or fact.context.isForeverPeriod)
@@ -259,13 +267,12 @@ def f_period_start(
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    identifier: bool,
 ) -> DateTime | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
     if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
     if fact.context is None:
-        raise OIMFunctionException("fe:noPeriod", p,
+        raise OIMFunctionException(p, "fe:noPeriod",
                                    _("Fact has no period."))
     return fact.context.startDatetime if fact.context.isStartEndPeriod else fact.context.instantDatetime
 
@@ -274,13 +281,12 @@ def f_period_end(
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    identifier: bool,
 ) -> DateTime | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
     if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
     if fact.context is None:
-        raise OIMFunctionException("fe:noPeriod", p,
+        raise OIMFunctionException(p, "fe:noPeriod",
                                    _("Fact has no period."))
     return fact.context.endDatetime
 
@@ -290,13 +296,12 @@ def f_period_instant(
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    identifier: bool,
 ) -> DateTime | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
     if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
     if fact.context is None or not fact.context.isInstantPeriod:
-        raise OIMFunctionException("fe:periodIsNotInstant", p,
+        raise OIMFunctionException(p, "fe:periodIsNotInstant",
                                    _("Fact does not have an instant period."))
     return fact.context.instantDatetime
 
@@ -305,7 +310,6 @@ def f_has_dimension(
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    identifier: bool,
 ) -> bool | EmptyTuple:
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
@@ -329,7 +333,6 @@ def f_dimension_value(
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    identifier: bool,
 ) -> AnyType | EmptyTuple:
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
@@ -355,14 +358,13 @@ def f_dimension_value(
         return d.dimensionQname if d.isExplicit else d.typedMember.stringVaue
     return ()
 
-def f_taxonomy_defined_dimensions(def f_dimension_value(
+def f_taxonomy_defined_dimensions(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    identifier: bool,
 ) -> list[QName] | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
     if fact.context is not None:
         return fact.context.qnameDims.keys()
@@ -381,7 +383,7 @@ def f_entity(
     args: XPathContext.ResultStack,
     identifier: bool,
 ) -> str | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
     if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
     if fact.context is not None:
@@ -393,7 +395,6 @@ def f_entity_identifier(
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    identifier: bool,
 ) -> str | EmptyTuple:
     return f_entity(xc, p, args, True)
 
@@ -403,21 +404,20 @@ def f_entity_scheme(
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    identifier: bool,
 ) -> str | EmptyTuple:
     return f_entity(xc, p, args, False)
 
-def f_unit(
+def f_unit_measures(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
     denominator: bool,
-) -> int | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+) -> list[QName] | EmptyTuple:
+    checkArgs(xc, p, args, 1)
     fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
     if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
-    if fact.isNumeric fact.unit is not None:
+    if fact.isNumeric and fact.unit is not None:
         return fact.unit.measures[denominator]
 
 def f_unit_numerators(
@@ -425,30 +425,27 @@ def f_unit_numerators(
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    start: bool,
 ) -> list[QName] | EmptyTuple:
-    return f_unit(xc, p, args, False)
+    return f_unit_measures(xc, p, args, False)
 
 def f_unit_denominators(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    start: bool,
 ) -> list[QName] | EmptyTuple:
-    return f_unit(xc, p, args, True)
+    return f_unit_measures(xc, p, args, True)
 
 def f_unit(
     xc: XPathContext.XPathContext,
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    start: bool,
 ) -> int | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
     if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
-    if fact.isNumeric fact.unit is not None:
+    if fact.isNumeric and fact.unit is not None:
         return oimUnitValue(unit, lambda u: u.clarkNotation, " ", " / ", False)
     return ()
 
@@ -457,9 +454,8 @@ def f_decimals(
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    start: bool,
 ) -> int | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
     if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
     if fact.isNumeric and fact.decimals not in (None, "INF"):
@@ -471,14 +467,13 @@ def f_id(
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-    start: bool,
 ) -> str | EmptyTuple:
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    checkArgs(xc, p, args, 1)
     fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
     if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
     return fact.id
 
-def xfmOIMFunctions() -> dict[
+def oimFunctions() -> dict[
     QName, Callable[[
         XPathContext.XPathContext,
         OperationDef,
@@ -490,7 +485,7 @@ def xfmOIMFunctions() -> dict[
         # report functions
         qname("{https://xbrl.org/WGWD/YYYY-MM-DD/function/report}default-dimension-value"): r_default_dimension_value,
         qname("{https://xbrl.org/WGWD/YYYY-MM-DD/function/report}defaulted-dimensions"): r_defaulted_dimensions,
-        qname("{https://xbrl.org/WGWD/YYYY-MM-DD/function/report}parse-clark"): parse_clark,
+        qname("{https://xbrl.org/WGWD/YYYY-MM-DD/function/report}parse-clark"): r_parse_clark,
         qname("{https://xbrl.org/WGWD/YYYY-MM-DD/function/report}entity-string-scheme"): r_entity_string_scheme,
         qname("{https://xbrl.org/WGWD/YYYY-MM-DD/function/report}entity-string-identifier"): r_entity_string_identifier,
         qname("{https://xbrl.org/WGWD/YYYY-MM-DD/function/report}period-string-start"): r_period_string_start,
@@ -522,7 +517,6 @@ def xfmOIMFunctions() -> dict[
     }
 
 
-
 __pluginInfo__ = {
     'name': 'Formula OIM Functions',
     'version': '1.0',
@@ -531,5 +525,5 @@ __pluginInfo__ = {
     'author': authorLabel,
     'copyright': copyrightLabel,
     # classes of mount points (required)
-    'Formula.CustomFunctions': xfmOIMFunctions,
+    'Formula.CustomFunctions': oimFunctions,
 }
