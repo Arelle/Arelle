@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       matrix: ${{ steps.build-test-matrix.outputs.matrix }}
+    environment: integration-tests
     steps:
       - uses: actions/checkout@v4.1.1
         with:
