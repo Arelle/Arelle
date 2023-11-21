@@ -305,26 +305,18 @@ def rule_br_kvk_4_17(
     BR-KVK-4.17: The current and previous financial reporting period MUST be less than 2 years.
     """
     modelXbrl = val.modelXbrl
-    periodStart = _getReportingPeriodDateValue(modelXbrl, pluginData.financialReportingPeriodCurrentStartDateQn)
-    periodEnd = _getReportingPeriodDateValue(modelXbrl, pluginData.financialReportingPeriodCurrentEndDateQn)
-    previousPeriodStart = _getReportingPeriodDateValue(modelXbrl, pluginData.financialReportingPeriodPreviousStartDateQn)
-    previousPeriodEnd = _getReportingPeriodDateValue(modelXbrl, pluginData.financialReportingPeriodPreviousEndDateQn)
-    errors = dict()
-    if periodStart and periodEnd:
-        if periodStart >= periodEnd + relativedelta.relativedelta(years=+2):
-            errors.update({'current': [periodStart, periodEnd]})
-    if previousPeriodStart and previousPeriodEnd:
-        if previousPeriodStart >= previousPeriodEnd + relativedelta.relativedelta(years=+2):
-            errors.update({'previous': [previousPeriodStart, previousPeriodEnd]})
-    for period, dates in errors.items():
-        yield Validation.error(
-            codes='NL.BR-KVK-4.17',
-            msg=_('The %(period)s financial reporting period is not shorter than 2 years. '
-                  'Period Start: %(start)s  Period End: %(end)s '),
-            period=period,
-            start=dates[0],
-            end=dates[1]
-        )
+    current_period_end = _getReportingPeriodDateValue(modelXbrl, pluginData.financialReportingPeriodCurrentEndDateQn)
+    previous_period_start = _getReportingPeriodDateValue(modelXbrl, pluginData.financialReportingPeriodPreviousStartDateQn)
+    if current_period_end is not None and previous_period_start is not None:
+        delta = relativedelta.relativedelta(current_period_end, previous_period_start)
+        if (delta.years == 2 and (delta.months > 0 or delta.days > 0)) or delta.years > 2:
+            yield Validation.error(
+                codes='NL.BR-KVK-4.17',
+                msg=_('The current and previous financial reporting period MUST be less than 2 years. '
+                      'Previous Period Start: %(start)s  Current Period End: %(end)s '),
+                start=previous_period_start,
+                end=current_period_end
+            )
 
 
 @validation(
