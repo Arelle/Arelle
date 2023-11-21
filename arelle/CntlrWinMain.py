@@ -30,7 +30,7 @@ import tkinter.simpledialog
 from arelle.Locale import format_string, setApplicationLocale
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import XbrlConst
-from arelle.PluginManager import pluginClassMethods, prunePlugins
+from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlCalcs import ValidateCalcsMode as CalcsMode
 from arelle.Version import copyrightLabel
@@ -67,6 +67,9 @@ DOCUMENTATION_URL = "https://arelle.readthedocs.io/"
 class CntlrWinMain (Cntlr.Cntlr):
 
     def __init__(self, parent):
+        # Background processes communicate with UI thread through this queue
+        # Prepare before calling super so messages encountered during initialization can be queued for logging
+        self.uiThreadQueue = queue.Queue()
         super(CntlrWinMain, self).__init__(hasGui=True)
         self.parent = parent
         self.filename = None
@@ -75,10 +78,6 @@ class CntlrWinMain (Cntlr.Cntlr):
         localeSetupMessage = self.modelManager.setLocale() # set locale before GUI for menu strings, pass any msg to logger after log pane starts up
         self.labelLang = overrideLang if overrideLang else self.modelManager.defaultLang
         self.data = {}
-
-        # Background processes communicate with UI thread through this queue
-        # Prepare early so messages encountered during initialization can be queued for logging
-        self.uiThreadQueue = queue.Queue()
 
         if self.isMac: # mac Python fonts bigger than other apps (terminal, text edit, Word), and to windows Arelle
             _defaultFont = tkFont.nametofont("TkDefaultFont") # label, status bar, treegrid
@@ -91,8 +90,6 @@ class CntlrWinMain (Cntlr.Cntlr):
             toolbarButtonPadding = 4
 
         tkinter.CallWrapper = TkinterCallWrapper
-
-        prunePlugins(self)
 
         imgpath = self.imagesDir + os.sep
 

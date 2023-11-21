@@ -188,8 +188,8 @@ def modulesWithNewerFileDates():
 
 def freshenModuleInfos():
     # for modules with different date-times, re-load module info
-    for moduleName in pluginConfig["modules"].keys():
-        moduleInfo = pluginConfig["modules"][moduleName]
+    missingEnabledModules = []
+    for moduleName, moduleInfo in pluginConfig["modules"].items():
         freshenedFilename = _cntlr.webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
         try: # check if moduleInfo cached may differ from referenced moduleInfo
             if os.path.isdir(freshenedFilename): # if freshenedFilename is a directory containing an __ini__.py file, open that instead
@@ -202,6 +202,9 @@ def freshenModuleInfos():
                     freshenedModuleInfo = moduleModuleInfo(moduleInfo["moduleURL"], reload=True)
                     if freshenedModuleInfo is not None:
                         pluginConfig["modules"][moduleName] = freshenedModuleInfo
+            # User can avoid pruning by disabling plugin
+            elif moduleInfo["status"] == "enabled":
+                missingEnabledModules.append(moduleName)
             else:
                 _msg = _("File not found for '{name}' plug-in when attempting to update module info. Path: '{path}'")\
                     .format(name=moduleName, path=freshenedFilename)
@@ -209,6 +212,17 @@ def freshenModuleInfos():
         except Exception as err:
             _msg = _("Exception at plug-in method freshenModuleInfos: {error}").format(error=err)
             logPluginTrace(_msg, logging.ERROR)
+    for moduleName in missingEnabledModules:
+        removePluginModule(moduleName)
+        # Try re-adding plugin modules by name (for plugins that moved from built-in to pip installed)
+        moduleInfo = addPluginModule(moduleName)
+        if moduleInfo:
+            pluginConfig["modules"][moduleName] = moduleInfo
+            loadModule(moduleInfo)
+            logPluginTrace(_("Reloaded plugin that failed loading: {} {}").format(moduleName, moduleInfo), logging.INFO)
+        else:
+            logPluginTrace(_("Removed plugin that failed loading (plugin may have been archived): {}").format(moduleName), logging.ERROR)
+    save(_cntlr)
 
 def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
     #TODO several directories, eg User Application Data
@@ -473,30 +487,6 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
             _msg = _("Exception loading plug-in {name}: {error}\n{traceback}").format(
                     name=name, error=err, traceback=traceback.format_tb(sys.exc_info()[2]))
             logPluginTrace(_msg, logging.ERROR)
-
-
-def prunePlugins(cntlr: Cntlr) -> None:
-    if not pluginConfig:
-        return
-    removeModules = set()
-    for moduleName, moduleInfo in pluginConfig["modules"].items():
-        if moduleInfo["status"] != "enabled":
-            continue  # User can avoid pruning by disabling plugin
-        if moduleName not in modulePluginInfos:
-            loadModule(moduleInfo)
-            if moduleName not in modulePluginInfos:
-                # If module name is still not in modulePluginInfos, it failed to load
-                removeModules.add(moduleName)
-    for moduleName in removeModules:
-        logPluginTrace(_("Removing plugin that failed loading: {}").format(moduleName), logging.INFO)
-        removePluginModule(moduleName)
-    save(cntlr)
-    # Try re-adding plugin modules by name
-    for moduleName in removeModules:
-        addPluginModule(moduleName)
-        if moduleName in modulePluginInfos:
-            logPluginTrace(_("Reloaded plugin that failed loading: {}").format(moduleName), logging.INFO)
-    save(cntlr)
 
 
 def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
