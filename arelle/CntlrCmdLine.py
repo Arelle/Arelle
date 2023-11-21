@@ -1007,76 +1007,77 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                 traceback.format_tb(sys.exc_info()[2])))
             if success:
                 try:
-                    modelXbrl = self.modelManager.modelXbrl
-                    hasFormulae = modelXbrl.hasFormulae
-                    isAlreadyValidated = False
-                    for pluginXbrlMethod in pluginClassMethods("ModelDocument.IsValidated"):
-                        if pluginXbrlMethod(modelXbrl): # e.g., streaming extensions already has validated
-                            isAlreadyValidated = True
-                    if options.validate and not isAlreadyValidated:
-                        startedAt = time.time()
-                        if options.formulaAction: # don't automatically run formulas
-                            modelXbrl.hasFormulae = False
-                        self.modelManager.validate()
-                        if options.formulaAction: # restore setting
-                            modelXbrl.hasFormulae = hasFormulae
-                        self.addToLog(format_string(self.modelManager.locale,
-                                                    _("validated in %.2f secs"),
-                                                    time.time() - startedAt),
-                                                    messageCode="info", file=self.entrypointFile)
-                    if (modelXbrl.modelDocument.type not in ModelDocument.Type.TESTCASETYPES and
-                            options.formulaAction in ("validate", "run") and  # do nothing here if "none"
-                            not isAlreadyValidated):  # formulas can't run if streaming has validated the instance
-                        from arelle import ValidateXbrlDimensions
-                        from arelle.formula import ValidateFormula
-                        startedAt = time.time()
-                        if not options.validate:
-                            ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
-                        # setup fresh parameters from formula optoins
-                        modelXbrl.parameters = fo.typedParameters(modelXbrl.prefixedNamespaces)
-                        ValidateFormula.validate(modelXbrl, compileOnly=(options.formulaAction != "run"))
-                        self.addToLog(format_string(self.modelManager.locale,
-                                                    _("formula validation and execution in %.2f secs")
-                                                    if options.formulaAction == "run"
-                                                    else _("formula validation only in %.2f secs"),
-                                                    time.time() - startedAt),
-                                                    messageCode="info", file=self.entrypointFile)
+                    for modelXbrl in [self.modelManager.modelXbrl] + getattr(self.modelManager.modelXbrl, "supplementalModelXbrls", []):
+                        hasFormulae = modelXbrl.hasFormulae
+                        isAlreadyValidated = False
+                        for pluginXbrlMethod in pluginClassMethods("ModelDocument.IsValidated"):
+                            if pluginXbrlMethod(modelXbrl): # e.g., streaming extensions already has validated
+                                isAlreadyValidated = True
+                        if options.validate and not isAlreadyValidated:
+                            startedAt = time.time()
+                            if options.formulaAction: # don't automatically run formulas
+                                modelXbrl.hasFormulae = False
+                            from arelle import Validate
+                            Validate.validate(modelXbrl)
+                            if options.formulaAction: # restore setting
+                                modelXbrl.hasFormulae = hasFormulae
+                            self.addToLog(format_string(self.modelManager.locale,
+                                                        _("validated in %.2f secs"),
+                                                        time.time() - startedAt),
+                                                        messageCode="info", file=self.entrypointFile)
+                        if (modelXbrl.modelDocument.type not in ModelDocument.Type.TESTCASETYPES and
+                                options.formulaAction in ("validate", "run") and  # do nothing here if "none"
+                                not isAlreadyValidated):  # formulas can't run if streaming has validated the instance
+                            from arelle import ValidateXbrlDimensions
+                            from arelle.formula import ValidateFormula
+                            startedAt = time.time()
+                            if not options.validate:
+                                ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
+                            # setup fresh parameters from formula optoins
+                            modelXbrl.parameters = fo.typedParameters(modelXbrl.prefixedNamespaces)
+                            ValidateFormula.validate(modelXbrl, compileOnly=(options.formulaAction != "run"))
+                            self.addToLog(format_string(self.modelManager.locale,
+                                                        _("formula validation and execution in %.2f secs")
+                                                        if options.formulaAction == "run"
+                                                        else _("formula validation only in %.2f secs"),
+                                                        time.time() - startedAt),
+                                                        messageCode="info", file=self.entrypointFile)
 
 
-                    if options.testReport:
-                        ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport, options.testReportCols)
+                        if options.testReport:
+                            ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport, options.testReportCols)
 
-                    if options.rssReport:
-                        ViewFileRssFeed.viewRssFeed(self.modelManager.modelXbrl, options.rssReport, options.rssReportCols)
+                        if options.rssReport:
+                            ViewFileRssFeed.viewRssFeed(self.modelManager.modelXbrl, options.rssReport, options.rssReportCols)
 
-                    if options.DTSFile:
-                        ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)
-                    if options.factsFile:
-                        ViewFileFactList.viewFacts(modelXbrl, options.factsFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factListCols)
-                    if options.factTableFile:
-                        ViewFileFactTable.viewFacts(modelXbrl, options.factTableFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factTableCols)
-                    if options.conceptsFile:
-                        ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, labelrole=options.labelRole, lang=options.labelLang)
-                    if options.preFile:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", XbrlConst.parentChild, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
-                    if options.tableFile:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.tableFile, "Table Linkbase", "Table-rendering", labelrole=options.labelRole, lang=options.labelLang)
-                    if options.calFile:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", XbrlConst.summationItem, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
-                    if options.dimFile:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
-                    if options.anchFile:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.anchFile, "Anchoring", XbrlConst.widerNarrower, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
-                    if options.formulaeFile:
-                        ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)
-                    if options.viewArcrole and options.viewFile:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.viewFile, os.path.basename(options.viewArcrole), options.viewArcrole, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
-                    if options.roleTypesFile:
-                        ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.roleTypesFile, "Role Types", isArcrole=False, lang=options.labelLang)
-                    if options.arcroleTypesFile:
-                        ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=options.labelLang)
-                    for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
-                        pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
+                        if options.DTSFile:
+                            ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)
+                        if options.factsFile:
+                            ViewFileFactList.viewFacts(modelXbrl, options.factsFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factListCols)
+                        if options.factTableFile:
+                            ViewFileFactTable.viewFacts(modelXbrl, options.factTableFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factTableCols)
+                        if options.conceptsFile:
+                            ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, labelrole=options.labelRole, lang=options.labelLang)
+                        if options.preFile:
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", XbrlConst.parentChild, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
+                        if options.tableFile:
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.tableFile, "Table Linkbase", "Table-rendering", labelrole=options.labelRole, lang=options.labelLang)
+                        if options.calFile:
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", XbrlConst.summationItem, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
+                        if options.dimFile:
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
+                        if options.anchFile:
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.anchFile, "Anchoring", XbrlConst.widerNarrower, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
+                        if options.formulaeFile:
+                            ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)
+                        if options.viewArcrole and options.viewFile:
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.viewFile, os.path.basename(options.viewArcrole), options.viewArcrole, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
+                        if options.roleTypesFile:
+                            ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.roleTypesFile, "Role Types", isArcrole=False, lang=options.labelLang)
+                        if options.arcroleTypesFile:
+                            ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=options.labelLang)
+                        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
+                            pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
 
                 except (IOError, EnvironmentError) as err:
                     self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err),

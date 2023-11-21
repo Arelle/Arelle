@@ -1022,16 +1022,22 @@ class CntlrWinMain (Cntlr.Cntlr):
                 thread = threading.Thread(target=self.backgroundValidate, daemon=True).start()
 
     def backgroundValidate(self):
+        from arelle import Validate
         startedAt = time.time()
-        modelXbrl = self.modelManager.modelXbrl
-        priorOutputInstance = modelXbrl.formulaOutputInstance
-        modelXbrl.formulaOutputInstance = None # prevent closing on background thread by validateFormula
-        self.modelManager.validate()
-        self.addToLog(format_string(self.modelManager.locale,
-                                    _("validated in %.2f secs"),
-                                    time.time() - startedAt))
-        if not modelXbrl.isClosed and (priorOutputInstance or modelXbrl.formulaOutputInstance):
-            self.uiThreadQueue.put((self.showFormulaOutputInstance, [priorOutputInstance, modelXbrl.formulaOutputInstance]))
+        for modelXbrl in [self.modelManager.modelXbrl] + getattr(self.modelManager.modelXbrl, "supplementalModelXbrls", []):
+            priorOutputInstance = modelXbrl.formulaOutputInstance
+            modelXbrl.formulaOutputInstance = None # prevent closing on background thread by validateFormula
+            try:
+                Validate.validate(modelXbrl)
+            except Exception as err:
+                self.addToLog(_("[exception] Validation exception: {0} at {1}").format(
+                               err,
+                               traceback.format_tb(sys.exc_info()[2])))
+            self.addToLog(format_string(self.modelManager.locale,
+                                        _("validated in %.2f secs"),
+                                        time.time() - startedAt))
+            if not modelXbrl.isClosed and (priorOutputInstance or modelXbrl.formulaOutputInstance):
+                self.uiThreadQueue.put((self.showFormulaOutputInstance, [priorOutputInstance, modelXbrl.formulaOutputInstance]))
 
         self.uiThreadQueue.put((self.logSelect, []))
 
