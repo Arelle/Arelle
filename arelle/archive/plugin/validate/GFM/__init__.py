@@ -4,8 +4,8 @@ See COPYRIGHT.md for copyright information.
 import os
 
 from arelle.Version import authorLabel, copyrightLabel
-from ..EFM.Document import checkDTSdocument
-from ..EFM.Filing import validateFiling
+from .....plugin.validate.EFM.Document import checkDTSdocument
+from .....plugin.validate.EFM.Filing import validateFiling
 
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
