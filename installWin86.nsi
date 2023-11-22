@@ -125,6 +125,7 @@ Section "Uninstall"
   Delete "$INSTDIR\Uninstall.exe"
   Delete "$INSTDIR\*.*"
 
+  RMDir /r "$INSTDIR\archive"
   RMDir /r "$INSTDIR\config"
   RMDir /r "$INSTDIR\images"
   RMDir /r "$INSTDIR\examples"
