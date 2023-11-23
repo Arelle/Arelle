@@ -1,11 +1,11 @@
-'''
-Filer Guidelines:
-    https://www.revenue.ie/en/online-services/support/documents/ixbrl/ixbrl-technical-note.pdf
-    https://www.revenue.ie/en/online-services/support/documents/ixbrl/error-messages.pdf
-    https://www.revenue.ie/en/online-services/support/documents/ixbrl/ixbrl-style-guide.pdf
-
+"""
 See COPYRIGHT.md for copyright information.
-'''
+
+Filer Guidelines:
+- [Technical Note](https://www.revenue.ie/en/online-services/support/documents/ixbrl/ixbrl-technical-note.pdf)
+- [Error Messages](https://www.revenue.ie/en/online-services/support/documents/ixbrl/error-messages.pdf)
+- [Style Guide](https://www.revenue.ie/en/online-services/support/documents/ixbrl/ixbrl-style-guide.pdf)
+"""
 import os
 import regex as re
 from collections import defaultdict

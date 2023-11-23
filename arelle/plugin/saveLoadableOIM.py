@@ -1,28 +1,47 @@
-# -*- coding: utf-8 -*-
-
-'''
-saveLoadableOIM.py is an example of a plug-in that will save a re-loadable JSON or CSV instance.
-
-When run from GUI a save-as dialog defaults to save .json but can also save .csv and .xlsx files.
-
-When run from command line interface in single-instance mode (a single instance is loaded):
-   --saveLoadableOIM oim-file-path
-   specifies file name or full path to save with .json, .csv or .xlsx sufffix
-When used to augment test case operation to save oim files when running a test suite
-   --saveTestcaseOimFileSuffix oim-file-suffix
-   specifies characters to add to read-me-first file when saving oim file
-
-CSV saving produces a single row-per-fact table.
-
-Extensions can be added to the results in the following manner:
-
-    extensionPrefixes - optional dict of prefix/name pairs to extend saved metadata
-    extensionReportObjects - optional dict of extension report objects
-    extensionFactPropertiesMethod - method to add extension properties to oimFact
-    extensionReportFinalizeMethod - (JSON only) method to finalize json object, for example change facts from object to array.
-
+"""
 See COPYRIGHT.md for copyright information.
-'''
+
+## Overview
+
+The Save Loadable OIM plugin facilitates the saving of re-loadable instances in JSON or CSV formats, adhering to the
+Open Information Model (OIM) XBRL Specification. It is designed to work seamlessly with the Load From OIM plugin,
+allowing for efficient data handling in Arelle.
+
+## Key Features
+
+- **Multiple Formats**: Enables saving data in JSON and CSV OIM formats as well as XLSX.
+- **Seamless Integration**: Compatible with the Load From OIM plugin for saving and loading reports.
+- **GUI and CLI Compatibility**: Available for use in both GUI and CLI modes.
+- **Test Case Augmentation**: Allows saving OIM files with a custom suffix during test suite runs.
+
+## Usage Instructions
+
+### Command Line Usage
+
+- **Single-Instance Mode**:
+  Save a file in single-instance mode by specifying the file path and extension:
+  ```bash
+  python arelleCmdLine.py --plugins saveLoadableOIM --file filing-documents.zip --saveLoadableOIM example.json
+  ```
+
+- **Test Case Operation**:
+  Augment test case operations by specifying a suffix for the read-me-first file in a test suite:
+  ```bash
+  python arelleCmdLine.py --plugins saveLoadableOIM --file filing-documents.zip --saveTestcaseOimFileSuffix -savedOim.csv
+  ```
+
+### GUI Usage
+
+- **Save Re-Loadable Output**:
+  1. Load the desired report in Arelle.
+  2. Go to `Tools` > `Save Loadable OIM`.
+  3. Specify a filename and choose the desired file format (JSON, CSV, or XLSX).
+
+## Additional Notes
+
+If the loaded report refers to a taxonomy on the local file system, the OIM instance needs to be saved in the same
+directory to maintain the validity of the relative file system path to the taxonomy.
+"""
 import sys, os, io, time, json, csv, zipfile
 import regex as re
 from decimal import Decimal

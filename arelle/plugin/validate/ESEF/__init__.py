@@ -1,42 +1,38 @@
 """
-Filer Guidelines:
-  RTS: https://eur-lex.europa.eu/legal-content/EN/TXT/?qid=1563538104990&uri=CELEX:32019R0815
-  ESEF Filer Manual https://www.esma.europa.eu/sites/default/files/library/esma32-60-254_esef_reporting_manual.pdf
-
-Taxonomy Architecture:
-
-Taxonomy package expected to be installed:
-
 See COPYRIGHT.md for copyright information.
 
-GUI operation
+Filer Guidelines:
+- [RTS](https://eur-lex.europa.eu/legal-content/EN/TXT/?qid=1563538104990&uri=CELEX:32019R0815)
+- [ESEF Filer Manual](https://www.esma.europa.eu/sites/default/files/library/esma32-60-254_esef_reporting_manual.pdf)
 
-   install plugin validate/ESEF and optionally applicable taxonomy packages
-
-   Under tools->formula add parameters eps_threshold and optionally authority
+GUI operation:
+- Enable the validate/ESEF plugin and optionally install ESEF taxonomy packages.
+- From the `Tools` menu > `Formula` > `Parameters` set the eps_threshold and optionally the authority.
 
 Command line operation:
+`python arelleCmdLine.py --plugins validate/ESEF --packages {my-package-directory}/esef_taxonomy.zip --disclosureSystem esef --validate --file {my-report-package-zip-file}`
 
-   arelleCmdLine.exe --plugins validate/ESEF --packages {my-package-directory}/esef_taxonomy_2019.zip
-     --disclosureSystem esef -v -f {my-report-package-zip-file}
-   Adding checks for formulas not automatically included:
-     --parameters "eps_threshold=.01"
-   Dimensional validations required by some auditors may require
-    --import http://www.esma.europa.eu/taxonomy/2020-03-16/esef_all-for.xml
-    and likely --skipLoading *esef_all-cal.xml
-    because the esef_all-cal.xml calculations are reported to be problematical for some filings
+Adding checks for formulas not automatically included:
+`--parameters "eps_threshold=.01"`
+Dimensional validations required by some auditors may require
+`--import http://www.esma.europa.eu/taxonomy/2020-03-16/esef_all-for.xml`
+and likely `--skipLoading *esef_all-cal.xml` because the esef_all-cal.xml calculations are reported to be problematic for some filings.
 
 Authority specific validations are enabled by formula parameter authority, e.g. for Denmark or UKSEF and eps_threshold specify:
-     --parameters "eps_threshold=.01,authority=DK"
-     --parameters "eps_threshold=.01,authority=UK"
+- `--parameters "eps_threshold=.01,authority=DK"`
+- `--parameters "eps_threshold=.01,authority=UK"`
 
 Using arelle as a web server:
 
-   arelleCmdLine.exe --webserver localhost:8080:cheroot --plugins validate/ESEF --packages {my-package-directory}/esef_taxonomy_2019.zip
+```bash
+python arelleCmdLine.py --webserver localhost:8080:cheroot --plugins validate/ESEF --packages {my-package-directory}/esef_taxonomy.zip
+```
 
 Client with curl:
 
-   curl -X POST "-HContent-type: application/zip" -T TC1_valid.zip "http://localhost:8080/rest/xbrl/validation?disclosureSystem=esef&media=text"
+```bash
+curl -X POST "-HContent-type: application/zip" -T TC1_valid.zip "http://localhost:8080/rest/xbrl/validation?disclosureSystem=esef&media=text"
+```
 """
 from __future__ import annotations
 

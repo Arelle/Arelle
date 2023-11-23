@@ -1,21 +1,41 @@
-'''
-loadFromOIM.py is an example of a plug-in that will load an extension taxonomy from OIM
-input (JSON, CSV or Excel bearing CSV) and optionally save an xBRL-XML instance thereof.
-
+"""
 See COPYRIGHT.md for copyright information.
 
-Example to run from web server:
+## Overview
 
-1) POSTing excel in a zip, getting instance and log back in zip:
+The Load From OIM plugin is designed to load reports in Arelle from JSON and CSV that adhere to the Open Information
+Model (OIM) XBRL Specification. It also offers the option to save a loaded report as an xBRL-XML instance. It is
+designed to work seamlessly with the Save Loadable OIM plugin, allowing for efficient data handling in Arelle.
 
-   curl -k -v -X POST "-HContent-type: application/zip" -T /Users/hermf/Documents/blahblah.xlsx.zip "localhost:8080/rest/xbrl/open?media=zip&file=WIP_DETAILED_3.xlsx&plugins=loadFromOIM&saveOIMinstance=myinstance.xbrl" -o out.zip
+## Key Features
 
-2) POSTing json within an archive of XII test cases and log and instance back in zip
+- **Multiple Formats**: Enables loading data from JSON and CSV OIM formats as well as XLSX.
+- **Seamless Integration**: Compatible with the Save Loadable OIM plugin for saving and loading reports.
+- **GUI and CLI Compatibility**: Available for use in both GUI and CLI modes.
+- **Save xBRL-XML Instance**: Optionally save the data as an xBRL-XML instance.
 
-   curl -k -v -X POST "-HContent-type: application/zip" -T test.zip  "localhost:8080/rest/xbrl/open?media=zip&file=100-json/helloWorld.json&plugins=loadFromOIM&saveOIMinstance=myinstance.xbrl" -o out.zip
+## Usage Instructions
 
+### Command Line Usage
 
-'''
+- **Load OIM Report**:
+  To load an OIM report, specify the file path to the JSON, CSV, or XLSX file:
+  ```bash
+  python arelleCmdLine.py --plugins loadFromOIM --file filing-document.json
+  ```
+
+- **Save xBRL-XML Instance**:
+  Use the `--saveOIMinstance` argument to save an xBRL-XML instance from an OIM report:
+  ```bash
+  python arelleCmdLine.py --plugins loadFromOIM --file filing-document.json --saveOIMinstance example.xbrl
+  ```
+
+### GUI Usage
+
+* **Load OIM Report**:
+  1. Using the normal `File` menu `Open File...` dialog, select the CSV, JSON, or XLSX file.
+  2. Provide a name for the XBRL-XML instance to save.
+"""
 import os, sys, io, time, traceback, json, csv, logging, zipfile, datetime, isodate
 from math import isnan, log10
 from regex import compile as re_compile, match as re_match, sub as re_sub, DOTALL as re_DOTALL

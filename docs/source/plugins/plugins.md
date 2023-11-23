@@ -12,5 +12,6 @@ Looking to build a new XBRL tool or application? An Arelle plugin is a good plac
 installation
 using_with_gui
 using_with_cli
+popular/popular_plugins
 development/development
 :::

@@ -1,6 +1,8 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+
+EBA (2.3), EIOPA (2.0.0) Filing Rules Validation
+"""
 import os, sys
 import regex as re
 from arelle import PluginManager

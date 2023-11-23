@@ -1,58 +1,81 @@
-'''
-Inline XBRL Document Set plug-in.
-
-Supports opening manifest file that identifies inline documents of a document set or an
-Inline XBRL Document Set ("IXDS") identified by multiple files.
-
-Saves extracted instance document for the ixdsTarget (if specified) or default target (if no ixdsTarget).
-(For SEC-compatible inline extractions from command line please specify --encodeSavedXmlChars or use
-EdgarRenderer plugin features to save extracted instance with characters &#x80; and above encoded.)
-
-(Does not simultaneously load/extract multiple target instance documents in a document set.)
-
-CmdLine allows --file '[{"ixds":[{"file":file1},{"file":file2}...]}]'
-
-If there are non-default target documents, the target document identifier can be specified by ixdsTarget
-
-    --file '[{"ixds":[{"file":file1},{"file":file2}...],"ixdsTarget":"xyz"}]'
-
-If the file source is a zip, CmdLine will discover the inline files in the zip as thus:
-    --file '[{"ixds":[{"file":file1.zip}]}]'
-
-If the file source is a local directory, CmdLine will discover the inline files in the directory as thus:
-    --file '[{"ixds":[{"file":dir1}]}]'
-
-If there is a JSON structure in --file without ixdsTarget the default target is assumed.
-
-If no JSON structure then formula parameter ixdsTarget may be used to specify a non-default target or the
-special value "(default)" for the default target (e.g., resources with no @target attribute).
-
-For GUI instance loading a pop up selection dialog is provided when there is no formula parameter and there are multiple targets.
-
-Example to load multi-document IXDS and save extracted xBRL-XML target document:
-
-  For GUI using ix11 conformance suite directory multi-io test case "PASS-multiple-input-multiple-output"
-     File->Open File Inline Doc Set->multi-select PASS-multiple-input-multiple-output-ID1.html and PASS-multiple-input-multiple-output-ID2.html
-     Select Target -> (default)
-     Tools->Save Target Document
-     new file PASS-multiple-input-multiple-output-ID1_extracted.xbrl has (default) target xBRL-XML instance
-     close instance
-     Reopen as above and Select Target -> TARGET
-     Tools->Save Target Document
-     replaced file PASS-multiple-input-multiple-output-ID1_extracted.xbrl now has TARGET target xBRL-XML instance
-  For Command Line:
-     arelleCmdLine --plugin inlineXbrlDocumentSet
-                   --file '[{"ixds":[{"file":".../PASS-multiple-input-multiple-output-ID1.html"},
-                                     {"file":".../PASS-multiple-input-multiple-output-ID2.html"}],
-                             "ixdsTarget":"(default)"}]'
-                   --saveInstance
-     For second target specify "ixdsTarget":"TARGET"
-     For default target either omit ixdsTarget or specify (default).
-     File will be saved as PASS-multiple-input-multiple-output-ID1_extracted.xbrl regardless of ixdsTarget parameter
-     For EDGAR style encoding of non-ASCII characters add --encodeSavedXmlChars
-
+"""
 See COPYRIGHT.md for copyright information.
-'''
+
+## Overview
+
+The Inline XBRL Document Set (IXDS) plugin facilitates the handling of inline XBRL documents.
+It allows for opening and extracting XBRL data from document sets, either defined as an Inline XBRL Document Set or in a
+manifest file (such as JP FSA) that identifies inline XBRL documents.
+
+## Key Features
+
+- **XBRL Document Set Detection**: Detect and load iXBRL documents from a zip file or directory.
+- **Target Document Selection**: Load one or more Target Documents from an Inline Document Set.
+- **Extract XML Instance**: Extract and save XML Instance of a Target Document.
+- **Command Line Support**: Detailed syntax for file and target selection.
+- **GUI Interaction**: Selection dialog for loading inline documents and saving target documents.
+
+## Usage Instructions
+
+### Command Line Usage
+
+- **Loading Inline XBRL Documents from a Zip File**:
+  ```bash
+  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "filing-documents.zip"}]}]'
+  ```
+  This command loads all inline XBRL documents within a zip file as an Inline XBRL Document Set.
+
+- **Loading Inline XBRL Documents from a Directory**:
+  ```bash
+  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "filing-documents-directory"}]}]'
+  ```
+  This command loads all inline XBRL documents within a specified directory.
+
+- **Loading with Default Target Document**:
+  ```bash
+  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file1": "document-1.html", "file2": "document-2.html"}]}]'
+  ```
+  Load two inline XBRL documents using the default Target Document.
+
+- **Specifying a Different Target Document**:
+  ```bash
+  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file1": "document-1.html", "file2": "document-2.html"}], "ixdsTarget": "DKGAAP"}]'
+  ```
+  Load two inline XBRL documents using the `DKGAAP` Target Document.
+
+- **Loading Multiple Document Sets**:
+  ```bash
+  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "filing-documents-1.zip"}]}, {"ixds": [{"file": "filing-documents-2.zip"}]}]'
+  ```
+  Load two separate Inline XBRL Document Sets.
+
+- **Extracting and Saving XML Instance**:
+  ```bash
+  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "filing-documents.zip"}]}] --saveInstance'
+  ```
+  Extract and save the XML Instance of the default Target Document from an Inline XBRL Document Set.
+
+### GUI Usage
+
+- **Loading Inline Documents as an IXDS**:
+  1. Navigate to the `File` menu.
+  2. Select `Open File Inline Doc Set`.
+  3. Command/Control select multiple files to load them as an Inline XBRL Document Set.
+
+- **Extracting and Saving XML Instance**:
+  1. Load the Inline XBRL Document Set.
+  2. Navigate to `Tools` in the menu.
+  3. Select `Save target document` to save the XML Instance.
+
+## Additional Notes
+
+- Windows users must escape quotes and backslashes within the JSON file parameter structure:
+`.\\arelleCmdLine.exe --plugins inlineXbrlDocumentSet --file "[{""ixds"":[{""file"":""C:\\\\filing-documents.zip""}], ""ixdsTarget"":""DKGAAP""}]" --package "C:\\taxonomy-package.zip"`
+- If a JSON structure is specified in the `--file` option without an `ixdsTarget`, the default target is assumed.
+- To specify a non-default target in the absence of a JSON file argument, use the formula parameter `ixdsTarget`.
+- For EDGAR style encoding of non-ASCII characters, use the `--encodeSavedXmlChars` argument.
+- Extracted XML instance is saved to the same directory as the IXDS with the suffix `_extracted.xbrl`.
+"""
 from arelle import FileSource, ModelXbrl, ValidateXbrlDimensions, XbrlConst
 DialogURL = None # dynamically imported when first used
 from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype

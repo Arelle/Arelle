@@ -1,12 +1,15 @@
-'''
-Filer Guidelines: http://www.cipc.co.za/files/8615/1333/0514/25082017_Guidelines_for_Filing__AFSs_in_XBRL_by_Client_Companies_Technical_Aspects_v1-7_HVMZ.pdf
-
-Taxonomy Architecture: http://www.cipc.co.za/files/1715/1325/5802/CIPC_XBRL_Taxonomy_Framework_Architecture_-_2017-12-15.pdf
-
-Taxonomy package expected to be installed: http://xbrl.cipc.co.za/cipc_2017-12-15.zip
-
+"""
 See COPYRIGHT.md for copyright information.
-'''
+
+Filer Guidelines:
+- [Technical Aspects](https://www.cipc.co.za/wp-content/uploads/2022/06/25082017_Guidelines_for_Filing_-AFSs_in_XBRL_by_Client_Companies_Technical_Aspects-v1-24-HV.pdf)
+
+Taxonomy Architecture:
+- [CIPC XBRL Taxonomy 2021 Framework architecture document](https://www.cipc.co.za/wp-content/uploads/2021/09/Taxonomy_Architecture_Framework.pdf)
+
+Taxonomy packages:
+- [CIPC 2023](https://www.cipc.co.za/wp-content/uploads/2023/08/cipc_2023-09-07.zip)
+"""
 import os
 import regex as re
 from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction
