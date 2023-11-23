@@ -2,10 +2,6 @@ from pathlib import PurePath
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--plugin', 'loadFromOIM',
-        '--plugin', '../../arelle/examples/plugin/testcaseCalc11ValidateSetup.py',
-    ],
     expected_failure_ids=frozenset(f'calculation-1.1-conformance-2023-02-22/{s}' for s in [
         # The loadFromOIM plugin is required to load the conformance suite json
         # files. However, OIM validation raises xbrlxe:unsupportedTuple for
@@ -37,4 +33,5 @@ config = ConformanceSuiteConfig(
     local_filepath='calculation-1.1-conformance-2023-02-22.zip',
     membership_url='https://www.xbrl.org/join',
     name=PurePath(__file__).stem,
+    plugins=frozenset({'loadFromOIM', '../../arelle/examples/plugin/testcaseCalc11ValidateSetup.py'}),
 )

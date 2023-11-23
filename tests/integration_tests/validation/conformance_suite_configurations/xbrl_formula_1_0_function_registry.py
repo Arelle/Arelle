@@ -3,7 +3,6 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 
 config = ConformanceSuiteConfig(
     args=[
-        '--plugin', 'formulaXPathChecker|functionsMath',
         '--check-formula-restricted-XPath',
         '--noValidateTestcaseSchema',
     ],
@@ -11,5 +10,6 @@ config = ConformanceSuiteConfig(
     info_url='https://specifications.xbrl.org/release-history-formula-1.0-formula-conf.html',
     local_filepath='formula.zip',
     name=PurePath(__file__).stem,
+    plugins=frozenset({'formulaXPathChecker', 'functionsMath'}),
     strict_testcase_index=False,
 )
