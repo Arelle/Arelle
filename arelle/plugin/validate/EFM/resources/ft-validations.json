@@ -1,7 +1,7 @@
 {
     "copyright": [
         "This file was created by staff of the U.S. Securities and Exchange Commission.",
-        "Data and content created by government employees within the scope of their employment", 
+        "Data and content created by government employees within the scope of their employment",
         "are not subject to domestic copyright protection. 17 U.S.C. 105."
     ],
     "description": [
@@ -22,12 +22,12 @@
         "",
         "Each validation object contains the following entries:",
         "  forms: arrayed forms or form references or single form or form reference,",
-        "  xbrl-names, elo-names, and severities may be array (plural) or individual", 
+        "  xbrl-names, elo-names, and severities may be array (plural) or individual",
         "  xbrl-names: arrayed dei local names of XBRL elements,",
         "  elo-names: optional corresponding arrayed ELO schema names of XML elements,",
         "  xbrl-name: single local name of XBRL element,",
         "  elo-name: optional single ELO schema name of XML element,",
-        "  store-db-name: optional ELO db name if elo value to be stored in EDGAR db", 
+        "  store-db-name: optional ELO db name if elo value to be stored in EDGAR db",
         "  store-db-object: optional ELO object for DB parameter passing, e.g., eloValuesFromFacts or submissionFacts",
         "  efm: section in EFM, e.g., 6.5.21,",
         "  validation: cell reference per FRD (replace below), required except for store-db-name entries",
@@ -45,14 +45,14 @@
         "  references-date-format: optional, applicable when using comparison validation with dates and the reference date is a string. ",
         "         Specify as a datetime directive matching the reference string date format. eg. %m/%d/%y",
         "  source: inline or both",
-        "  elo-match-message: optional, overrides elo match message, default is dq-0540-{tag}-Value", 
+        "  elo-match-message: optional, overrides elo match message, default is dq-0540-{tag}-Value",
         "  comment: optional, comment string",
         "  skip-if-ft-json: set to true to skip writing validation message when modelXbrl object was loadedFromFtJson",
         "",
         "The messages object contains messages which may be referenced by validations",
         "",
         "The validation-legend object describes the codes in the validation object @validation value",
-        "form-mapping object shows the coded form type along with the english worded version of the form"        
+        "form-mapping object shows the coded form type along with the english worded version of the form"
     ],
     "sub-type-classes": {
     	"comment1": "Fee Tag submission classes",
@@ -60,7 +60,7 @@
     		"424I"
     	],
 		"G-3": [
-			"S-1", "S-3", "S-3ASR", "S-3D", "S-11", "N-2", "N-2ASR", 
+			"S-1", "S-3", "S-3ASR", "S-3D", "S-11", "N-2", "N-2ASR",
 			"F-1", "F-3", "F-3ASR", "F-3D", "SF-1", "SF-3"
 		],
 		"G-4": [
@@ -112,57 +112,57 @@
 			],
 		"457r-Comment": "Derived from 457(r) Comments column on validation spreadsheet",
 		"457r": [
-			"F-3ASR", "N-2ASR", "S-3ASR", "N-2 POSASR", "POSASR",  "424B1", "424B2", "424B3", "424B4", "424B5", "424B7", "424B8" 
+			"F-3ASR", "N-2ASR", "S-3ASR", "N-2 POSASR", "POSASR",  "424B1", "424B2", "424B3", "424B4", "424B5", "424B7", "424B8"
 		],
 		"457s-Comment": "Derived from 457(s) Comments column on validation spreadsheet",
 		"457s": [
-			"SF-3", "SF-3/A",  "424B1", "424B2", "424B3", "424B4", "424B5", "424B7", "424B8", "424H", "424H/A" 
+			"SF-3", "SF-3/A",  "424B1", "424B2", "424B3", "424B4", "424B5", "424B7", "424B8", "424H", "424H/A"
 		],
 		"457u-Comment": "Derived from 457(u) Comments column on validation spreadsheet",
 		"457u": [
-			"F-1",  "F-3", "F-3D", "S-1", "S-3", "S-3D", "F-1/A", "F-3/A", "S-1/A", "S-3/A" 
+			"F-1",  "F-3", "F-3D", "S-1", "S-3", "S-3D", "F-1/A", "F-3/A", "S-1/A", "S-3/A"
 		],
 		"457f-Comment": "Derived from Table 5-1, rule 457(f) column, note other Table 5-1 comment below",
 		"457f": [
-			"424B1", "424B2", "424B3", "424B4", "424B5", "424B7", "424B8", "F-1", "F-1/A", "F-1MEF", 
-			"F-4", "F-4/A", "F-4MEF", "N-14 8C", "N-14 8C/A", "N-14MEF", "POS AM", 
+			"424B1", "424B2", "424B3", "424B4", "424B5", "424B7", "424B8", "F-1", "F-1/A", "F-1MEF",
+			"F-4", "F-4/A", "F-4MEF", "N-14 8C", "N-14 8C/A", "N-14MEF", "POS AM",
 			"S-1", "S-1/A", "S-11", "S-11/A", "S-11MEF", "S-1MEF", "S-4", "S-4/A", "S-4EF", "S-4MEF"
 		],
 		"415a6-Comment1": "Derived from Table 5-1, groups 3 4 5 6 9 10 11 excluding ",
 		"415a6-Comment2": "SF-1, SF-1/A, F-10, F-10/A, F-10EF, N-14 8C, N-14 8C/A, N-14MEF, SF-1MEF",
 		"415a6": [
-			"424B1", "424B2", "424B3", "424B4", "424B5", "424B7", "424B8", "424H", "424H/A", "F-1", "F-1/A", "F-1MEF", 
-			"F-3", "F-3/A", "F-3ASR", "F-3D", "F-3MEF", "F-4", "F-4/A", "F-4MEF", "N-2", "N-2 POSASR", "N-2/A", "N-2ASR", 
-			"N-2MEF", "POS AM", "POSASR", "S-1", "S-1/A", "S-11", "S-11/A", "S-11MEF", "S-1MEF", "S-3", "S-3/A", "S-3ASR", 
+			"424B1", "424B2", "424B3", "424B4", "424B5", "424B7", "424B8", "424H", "424H/A", "F-1", "F-1/A", "F-1MEF",
+			"F-3", "F-3/A", "F-3ASR", "F-3D", "F-3MEF", "F-4", "F-4/A", "F-4MEF", "N-2", "N-2 POSASR", "N-2/A", "N-2ASR",
+			"N-2MEF", "POS AM", "POSASR", "S-1", "S-1/A", "S-11", "S-11/A", "S-11MEF", "S-1MEF", "S-3", "S-3/A", "S-3ASR",
 			"S-3D", "S-3MEF", "S-4", "S-4/A", "S-4EF", "S-4MEF", "SF-3", "SF-3/A", "SF-3MEF"
 		],
 		"429-Comment": "Derived from Table 5-2, rule 429 column, note other Table 5-2 comment below",
 		"429": [
-			"424B1", "424B2", "424B3", "424B4", "424B5", "424B7", "424B8", "424H", "424H/A", "F-1", "F-1/A", "F-10", "F-10/A", "F-10EF", 
-			"F-1MEF", "F-3", "F-3/A", "F-3ASR", "F-3D", "F-3MEF", "F-4", "F-4/A", "F-4MEF", "N-14 8C", "N-14 8C/A", "N-14MEF", 
-			"N-2", "N-2 POSASR", "N-2/A", "N-2ASR", "N-2MEF", "POS AM", "POSASR", "S-1", "S-1/A", "S-11", "S-11/A", "S-11MEF", "S-1MEF", 
+			"424B1", "424B2", "424B3", "424B4", "424B5", "424B7", "424B8", "424H", "424H/A", "F-1", "F-1/A", "F-10", "F-10/A", "F-10EF",
+			"F-1MEF", "F-3", "F-3/A", "F-3ASR", "F-3D", "F-3MEF", "F-4", "F-4/A", "F-4MEF", "N-14 8C", "N-14 8C/A", "N-14MEF",
+			"N-2", "N-2 POSASR", "N-2/A", "N-2ASR", "N-2MEF", "POS AM", "POSASR", "S-1", "S-1/A", "S-11", "S-11/A", "S-11MEF", "S-1MEF",
 			"S-3", "S-3/A", "S-3ASR", "S-3D", "S-3MEF", "S-4", "S-4/A", "S-4EF", "S-4MEF", "SF-1", "SF-1/A", "SF-1MEF", "SF-3", "SF-3/A", "SF-3MEF"
 		],
 		"all": [
-		    "@all-Ixbrl", 
+		    "@all-Ixbrl",
 		    "@non-Ixbrl"
 		    ],
         "table-3-1": [
-        	"24F-2NT", "424B1", "424B2", "424B3", "424B4", "424B5", "424B6", "424B7", "424B8", "424H", "424H/A", "424I", 
-        	"F-1", "F-1/A", "F-10", "F-10 MEF", "F-10/A", "F-10EF", "F-10EF/A", "F-1MEF", "F-2MEF", "F-3", "F-3/A", 
-        	"F-3ASR", "F-3D", "F-3MEF", "F-4", "F-4/A", "F-4EF", "F-4EF/A", "F-4MEF", "F-6", "F-6/A", "F-6EF", "F-7", 
-        	"F-7/A", "F-8", "F-8/A", "F-80", "F-80/A", "F-9 MEF", "N-14 8C", "N-14 8C/A", "N-14MEF", "N-2", "N-2 POSASR", 
-        	"N-2/A", "N-2ASR", "N-2MEF", "N-5", "N-5/A", "POS AM", "POSASR", "PRE 14A", "PRE 14C", "PREM14A", "PREM14C", 
-        	"PRER14A", "PRER14C", "S-1", "S-1/A", "S-11", "S-11/A", "S-11MEF", "S-1MEF", "S-20", "S-20/A", "S-2MEF", 
-        	"S-3", "S-3/A", "S-3ASR", "S-3D", "S-3MEF", "S-4", "S-4/A", "S-4EF", "S-4EF/A", "S-4MEF", "S-8", "S-8 POS", 
-        	"S-B", "S-B/A", "SB-1MEF", "SB-2MEF", "SC 13E1", "SC 13E1/A", "SC 13E3", "SC 13E3/A", "SC 13E4", "SC 13E4/A", 
-        	"SC 14D1", "SC 14D1/A", "SC TO-I", "SC TO-I/A", "SC TO-T", "SC TO-T/A", "SC13E4F", "SC13E4F/A", "SC14D1F", 
+        	"24F-2NT", "424B1", "424B2", "424B3", "424B4", "424B5", "424B6", "424B7", "424B8", "424H", "424H/A", "424I",
+        	"F-1", "F-1/A", "F-10", "F-10 MEF", "F-10/A", "F-10EF", "F-10EF/A", "F-1MEF", "F-2MEF", "F-3", "F-3/A",
+        	"F-3ASR", "F-3D", "F-3MEF", "F-4", "F-4/A", "F-4EF", "F-4EF/A", "F-4MEF", "F-6", "F-6/A", "F-6EF", "F-7",
+        	"F-7/A", "F-8", "F-8/A", "F-80", "F-80/A", "F-9 MEF", "N-14 8C", "N-14 8C/A", "N-14MEF", "N-2", "N-2 POSASR",
+        	"N-2/A", "N-2ASR", "N-2MEF", "N-5", "N-5/A", "POS AM", "POSASR", "PRE 14A", "PRE 14C", "PREM14A", "PREM14C",
+        	"PRER14A", "PRER14C", "S-1", "S-1/A", "S-11", "S-11/A", "S-11MEF", "S-1MEF", "S-20", "S-20/A", "S-2MEF",
+        	"S-3", "S-3/A", "S-3ASR", "S-3D", "S-3MEF", "S-4", "S-4/A", "S-4EF", "S-4EF/A", "S-4MEF", "S-8", "S-8 POS",
+        	"S-B", "S-B/A", "SB-1MEF", "SB-2MEF", "SC 13E1", "SC 13E1/A", "SC 13E3", "SC 13E3/A", "SC 13E4", "SC 13E4/A",
+        	"SC 14D1", "SC 14D1/A", "SC TO-I", "SC TO-I/A", "SC TO-T", "SC TO-T/A", "SC13E4F", "SC13E4F/A", "SC14D1F",
         	"SC14D1F/A", "SF-1", "SF-1/A", "SF-1MEF", "SF-3", "SF-3/A", "SF-3MEF"
         	],
         "table-3-1-form-types-comment": "Small variations between form types and submission types",
         "table-3-1-form-types": [
-            "F-1", "F-10", "F-2", "F-3", "F-4", "F-6", "F-7", "F-8", "F-80", "F-9", "F 24F-2", "N-14", "N-2", "N-5", "R 13E-1", 
-            "R 424", "R 424I", "S-1", "S-11", "S-2", "S-20", "S-3", "S-4", "SB", "S-B", "SC 13E-3", "SC 13E-4F", "SC 14A", 
+            "F-1", "F-10", "F-2", "F-3", "F-4", "F-6", "F-7", "F-8", "F-80", "F-9", "F 24F-2", "N-14", "N-2", "N-5", "R 13E-1",
+            "R 424", "R 424I", "S-1", "S-11", "S-2", "S-20", "S-3", "S-4", "SB", "S-B", "SC 13E-3", "SC 13E-4F", "SC 14A",
             "SC 14C", "SC 14D-1F", "SC TO", "SF-1", "SF-3"
             ],
         "ASR-comment": "Automatic Shelf Registration per User Story 10",
@@ -184,7 +184,7 @@
     },
     "form-fields": ["ffd:FormTp", "ffd:SubmissnTp", "ffd:CfwdFormTp", "ffd:OffsetPrrFormTp", "ffd:Rule429EarlierFormTp"],
     "sub-type-element-validations": [
-    { 
+    {
     	"comment": "Submission Table validations"
     },
 	{"sub-types": ["424B1"], "xbrl-names": "ffd:FormTp", "efm": "6.5.20", "validation": "xv", "value": ["S-3", "S-4", "F-3", "F-4", "SF-3", "N-2"], "dei/cover": "dei"},
@@ -374,7 +374,7 @@
         "message": "ft-{tag}-TtlPrevslyPdAmt-Presence",
         "comment": "any time a value is provided on G-8 TtlPrevslyPdAmt this info message is produced."
     },
-    { 
+    {
     	"comment": "Offering Table validations"
     },
     {
@@ -458,7 +458,7 @@
     },
     {
         "sub-types": [
-			"F-1MEF", "F-3MEF", "F-4", "F-4/A", "F-4MEF", "N-2", "N-2/A", "N-2MEF", "POS AM", 
+			"F-1MEF", "F-3MEF", "F-4", "F-4/A", "F-4MEF", "N-2", "N-2/A", "N-2MEF", "POS AM",
 			"S-11", "S-11/A", "S-11MEF", "S-1MEF", "S-3MEF", "S-4", "S-4/A", "S-4EF", "S-4MEF", "SF-3MEF"
 		],
         "xbrl-names": [
@@ -492,7 +492,7 @@
     },
     {
         "sub-types": [
-			"PREM14A", "PREM14C", "PRER14A", "PRER14C", "SC 13E1", "SC 13E1/A", "SC 13E3", "SC 13E3/A", 
+			"PREM14A", "PREM14C", "PRER14A", "PRER14C", "SC 13E1", "SC 13E1/A", "SC 13E3", "SC 13E3/A",
 			"SC TO-I", "SC TO-I/A", "SC TO-T", "SC TO-T/A", "SC13E4F", "SC13E4F/A", "SC14D1F", "SC14D1F/A"
         ],
         "xbrl-names": [
@@ -603,7 +603,7 @@
         "comment": "warn if UAS is specified for form not in subtypes above"
     },
     {
-        "sub-types": ["F-3", "F-3/A", "F-3MEF", "F-3ASR", "F-4", "F-4/A", "F-4MEF","N-2", "N-2/A", "N-2ASR", "POSASR", "N-2MEF", "S-3", "S-3/A", "S-3ASR", "S-3MEF", "S-4", "S-4/A", "S-4MEF"],
+        "sub-types": ["F-3", "F-3/A", "F-3MEF", "F-3ASR", "F-4", "F-4/A", "F-4MEF","N-2", "N-2/A", "N-2ASR", "N-2 POSASR", "POSASR", "N-2MEF", "S-3", "S-3/A", "S-3ASR", "S-3MEF", "S-4", "S-4/A", "S-4MEF"],
         "xbrl-names": ["ffd:OfferingSctyTp"],
         "where": {"ffd:OfferingSctyTp": ["Unallocated (Universal) Shelf"]},
         "efm": "ft.usrSty9",
@@ -634,9 +634,9 @@
         	"ffd:PrevslyPdFlg",
         	"ffd:OfferingSctyTp",
             "ffd:OfferingSctyTitl",
-        	"ffd:AmtSctiesRegd", 
-        	"ffd:MaxOfferingPricPerScty", 
-        	"ffd:MaxAggtOfferingPric", 
+        	"ffd:AmtSctiesRegd",
+        	"ffd:MaxOfferingPricPerScty",
+        	"ffd:MaxAggtOfferingPric",
         	"ffd:FeeAmt"
         ],
         "efm": "ft.ofOptFlds",
@@ -647,7 +647,7 @@
     },
     {
         "sub-types": ["@G-3-4-5-6-9-10-11-12"],
-        "xbrl-names": "ffd:FeeRate", 
+        "xbrl-names": "ffd:FeeRate",
         "where": {"ffd:PrevslyPdFlg": ["absent", false]},
         "efm": "ft.ofOptFlds",
         "validation": "skip-if-absent",
@@ -718,7 +718,7 @@
         "efm": "ft.r457aRqdFlds",
         "validation": "fdepflag-present",
         "references": [
-        	"ffd:AmtSctiesRegd", 
+        	"ffd:AmtSctiesRegd",
         	"ffd:MaxOfferingPricPerScty",
         	"ffd:MaxAggtOfferingPric",
             "ffd:FeeAmt"
@@ -844,7 +844,7 @@
         "efm": "ft.r457oNewRqdFlds",
         "validation": "fdepflag-present",
         "where": {
-            "ffd:PrevslyPdFlg": ["absent", false], 
+            "ffd:PrevslyPdFlg": ["absent", false],
             "ffd:OfferingSctyTp": ["!anotherLine!", "!not!", "Unallocated (Universal) Shelf"],
             "ffd:FeeAmt": ["!not!", "absent"]
         },
@@ -949,7 +949,7 @@
         "sub-types": ["@457r"],
         "where": {"ffd:Rule457rFlg": [true]},
         "xbrl-names": [
-        	"ffd:FeeRate", 
+        	"ffd:FeeRate",
         	"ffd:FeeAmt"
         ],
         "efm": "ft.r457rOptFlds",
@@ -1057,7 +1057,7 @@
         "sub-types": ["@457s"],
         "where": {"ffd:Rule457sFlg": [true]},
         "xbrl-names": [
-        	"ffd:FeeRate", 
+        	"ffd:FeeRate",
         	"ffd:FeeAmt"
         ],
         "efm": "ft.r457sOptFlds",
@@ -1165,7 +1165,7 @@
         	"ffd:AmtSctiesRegd",
         	"ffd:MaxOfferingPricPerScty",
         	"ffd:MaxAggtOfferingPric",
-        	"ffd:FeeRate", 
+        	"ffd:FeeRate",
         	"ffd:FeeAmt"
         ],
         "reference-value": ["absent"],
@@ -1184,7 +1184,7 @@
         "message": "ft-{tag}-SecurityTypeOrOther-Value",
         "axis": "o",
         "references": ["ffd:OfferingSctyTp"],
-        "references-where": {"ffd:Rule457uFlg": [true], "ffd:OfferingSctyTp": ["Exchange-Traded Vehicle Securities"], 
+        "references-where": {"ffd:Rule457uFlg": [true], "ffd:OfferingSctyTp": ["Exchange-Traded Vehicle Securities"],
             "ffd:Rule457aFlg": ["!anotherLine!", "!not!", true], "ffd:Rule457oFlg": ["!anotherLine!", "!not!", true],
             "ffd:Rule457rFlg": ["!anotherLine!", "!not!", true], "ffd:Rule457sFlg": ["!anotherLine!", "!not!", true]
         },
@@ -1385,7 +1385,7 @@
     	"comment": "other rule validations"
     },
     {
-        "sub-types": ["@G-4-6-8-11"],
+        "sub-types": ["@G-3-4-5-6-9-10-11-12"],
         "xbrl-names": "ffd:FeesOthrRuleFlg",
         "efm": "ft.otherRqdFlds",
         "validation": "fdepflag-present",
@@ -1426,7 +1426,7 @@
         "validation": "fdepflag-ref-value",
         "axis": "of",
         "references": ["ffd:FeeAmt"],
-        "reference-value": ["absent", 0],
+        "reference-value": [0],
         "msgCoda": " Since there is no ffd:MaxAggtOfferingPric and consequentially no fee amount the value of this ffd:FeeAmt should be zero."
     },
     {
@@ -1589,7 +1589,7 @@
         "axis": "of"
     },
     {
-        "sub-types": ["@415a6"], 
+        "sub-types": ["@415a6"],
         "xbrl-names": "ffd:CfwdFormTp",
         "efm": "ft.usrSty50",
         "validation": "ov",
@@ -1609,7 +1609,7 @@
         "axis": "of"
     },
     {
-    	
+
     	"comment": "rule 457(f) validations across 457(a), 457(u), other"
     },
     {
@@ -1798,10 +1798,10 @@
         "sub-types": ["F-10", "F-10/A", "F-10EF"],
         "xbrl-names": "ffd:ValSctiesRcvd",
         "where": {"ffd:GnlInstrIIhiFlg": [true]},
-        "efm": "ft.usrSty33valSecRcvd",
+        "efm": "ft.usrSty3334valSecRcvd",
         "validation": "tmult",
         "axis": "of",
-        "references": ["ffd:AmtSecuritiesPredecessorCos", "ffd:ValueEqSecRcvdByUsResPerShare"],
+        "references": ["ffd:AmtSctiesRcvd", "ffd:ValSctiesRcvdPerShr"],
         "tolerance": 1.00,
         "store-db-name": "@lcName",
         "store-db-object": "offeringTable"
@@ -1819,7 +1819,7 @@
         "sub-types": ["F-10", "F-10/A", "F-10EF"],
         "xbrl-names": "ffd:FeeNoteMaxAggtOfferingPric",
         "where": {"ffd:GnlInstrIIhiFlg": [true]},
-        "efm": "ft.r457fMAOP",
+        "efm": "ft.usrSty3334MAOP",
         "validation": "tdiff",
         "axis": "of",
         "references": ["ffd:ValSctiesRcvd", "ffd:CshRcvdByRegistrantInTx", "ffd:CshPdByRegistrantInTx"],
@@ -1832,14 +1832,14 @@
         "sub-types": ["F-10", "F-10/A", "F-10EF"],
         "xbrl-names": "ffd:FeeNoteMaxAggtOfferingPric",
         "where": {"ffd:GnlInstrIIhiFlg": [true]},
-        "efm": "ft.usrSty33MAOPsums",
+        "efm": "ft.usrSty3334MAOPsums",
         "validation": "asum-two-cols-of",
         "axis": "of",
         "references": ["ffd:MaxAggtOfferingPric"],
         "references-where":  {"ffd:GnlInstrIIhiFlg": [true]},
         "references-axes": "of",
         "comparison": "equal",
-        "msgCoda": "",
+        "msgCoda": " The sum of MAOP value(s) in General Instruction II.H fee note(s) is not equal to the sum of MAOP for all lines in Table 1 that reference General Instruction II.H in the fee note. Please ensure that the MAOP values both in Table 1 and the fee note match.",
         "tolerance": 1.00
     },
     {
@@ -1850,7 +1850,7 @@
         "validation": "fo",
         "axis": "of"
     },
-    { 
+    {
     	"comment": "Offset Table validations"
     },
     {
@@ -1861,12 +1861,12 @@
     },
     {
         "sub-types": [
-			"424B1", "424B2", "424B3", "424B4", "424B5", "424B7", "424B8", "F-1", "F-1/A", "F-10", "F-10/A", "F-10EF", "F-1MEF", 
-			"F-3", "F-3/A", "F-3ASR", "F-3MEF", "F-4", "F-4/A", "F-4MEF", "N-14 8C", "N-14 8C/A", "N-14MEF", 
-			"N-2", "N-2 POSASR", "N-2/A", "N-2ASR", "N-2MEF", "POS AM", "POSASR", "S-1", "S-1/A", "S-11", "S-11/A", "S-11MEF", 
+			"424B1", "424B2", "424B3", "424B4", "424B5", "424B7", "424B8", "F-1", "F-1/A", "F-10", "F-10/A", "F-10EF", "F-1MEF",
+			"F-3", "F-3/A", "F-3ASR", "F-3MEF", "F-4", "F-4/A", "F-4MEF", "N-14 8C", "N-14 8C/A", "N-14MEF",
+			"N-2", "N-2 POSASR", "N-2/A", "N-2ASR", "N-2MEF", "POS AM", "POSASR", "S-1", "S-1/A", "S-11", "S-11/A", "S-11MEF",
 			"S-1MEF", "S-3", "S-3/A", "S-3ASR", "S-3MEF", "S-4", "S-4/A", "S-4EF", "S-4MEF", "424I"
 		],
-        "xbrl-names": [     
+        "xbrl-names": [
           	"ffd:Rule011a2OffsetFlg",
         	"ffd:Rule457bOffsetFlg",
         	"ffd:Rule457pOffsetFlg"
@@ -1882,7 +1882,7 @@
         "sub-types": [
 			"424H", "424H/A", "F-3D", "S-3D", "SF-1", "SF-1/A", "SF-1MEF", "SF-3", "SF-3/A", "SF-3MEF"
 		],
-        "xbrl-names": [     
+        "xbrl-names": [
         	"ffd:Rule457bOffsetFlg",
         	"ffd:Rule457pOffsetFlg"
         ],
@@ -1895,10 +1895,10 @@
     },
     {
         "sub-types": [
-			"PREM14A", "PREM14C", "PRER14A", "PRER14C", "SC 13E1", "SC 13E1/A", "SC 13E3", "SC 13E3/A", "SC TO-I", 
+			"PREM14A", "PREM14C", "PRER14A", "PRER14C", "SC 13E1", "SC 13E1/A", "SC 13E3", "SC 13E3/A", "SC TO-I",
 			"SC TO-I/A", "SC TO-T", "SC TO-T/A", "SC13E4F", "SC13E4F/A", "SC14D1F", "SC14D1F/A"
 		],
-        "xbrl-names": [     
+        "xbrl-names": [
           	"ffd:Rule011a2OffsetFlg"
         ],
         "efm": "ft.oRqdFlds",
@@ -1911,7 +1911,7 @@
         "sub-types": [
 			"S-8", "424I"
 		],
-        "xbrl-names": [     
+        "xbrl-names": [
         	"ffd:Rule457pOffsetFlg"
         ],
         "efm": "ft.oRqdFlds",
@@ -2132,7 +2132,7 @@
     },
     {
         "sub-types": ["@offset-p"],
-        "xbrl-names": [     
+        "xbrl-names": [
         	"ffd:Rule457bOffsetFlg",
         	"ffd:Rule457pOffsetFlg",
           	"ffd:Rule011a2OffsetFlg"
@@ -2246,7 +2246,7 @@
         "references": ["ffd:OffsetPrrFilerNm", "ffd:OffsetPrrFileNb", "ffd:OffsetClmInitlFilgDt", "ffd:OffsetClmdAmt", "ffd:TermntnCmpltnWdrwl"],
         "reference-value": ["!not!", "absent"]
     },
-    { 
+    {
     	"comment": "Combined Prospectus Table validations"
     },
     {
@@ -2256,7 +2256,7 @@
         "validation": "of-rule",
         "value": [true],
         "axis": "cp",
-        "message": "ft-CustomMsg",        
+        "message": "ft-CustomMsg",
         "msgCoda": " there {severityVerb} be a {tags} with a value of {value}.",
         "store-db-name": "@lcName",
         "store-db-object": "cmbndPrspctsTable"
@@ -2449,7 +2449,7 @@
         "reference-value": ["Asset-Backed Securities", "Debt Convertible into Equity", "Debt", "Equity", "Exchange-Traded Vehicle Securities", "Face Amount Certificates", "Limited Partnership Interests", "Mortgage Backed Securities", "Non-Convertible Debt", "Other", "Unallocated (Universal) Shelf"],
         "axis": "cp"
     },
-    { 
+    {
     	"comment": "Securities 424I Table validations"
     },
     {
@@ -2676,17 +2676,13 @@
     {
         "sub-types": ["424I"],
         "xbrl-names": ["ffd:AmtRedCdts"],
-        "bind-if-absent": true,
         "where": {"comparison": [true]},
         "comparison-names": ["ffd:AggtSalesPricFsclYr"],
         "comparison-ref-names": ["ffd:AggtRedRpPricFsclYr", "ffd:AggtRedRpPricPrrFsclYr"],
         "comparison-operator": "less than",
         "efm": "ft.r424iRqdRdmtCr",
-        "validation": "fdepflag-present",
-        "axis": "s424i",
-        "references": ["ffd:AmtRedCdts"],
-        "reference-value": ["!not!", "absent"],
-        "references-axes": "s424i"
+        "validation": "fw",
+        "axis": "s424i"
     },
     {
         "sub-types": ["424I"],
@@ -2735,6 +2731,7 @@
         "efm": "ft.r424iIntDue",
         "validation": "calculation",
         "comparison": "equal",
+        "tolerance": 1.00,
         "references": ["ffd:TtlFeeAmt", "header:intrstRate", "function:getNumberofDaysLate"],
         "references-operators": ["*", "*(", "/365)"],
         "function-arguments": ["ffd:CeasedOprsDt"],
@@ -2758,7 +2755,7 @@
         "references": ["ffd:FeeIntrstAmt"],
         "comment": "Required when the 424I is filed more than 90 days after the end of the issuer's fiscal year and Net Sales amount is greater than zero."
     },
-    { 
+    {
     	"comment": "Fees Table validations"
     },
     {
@@ -2782,6 +2779,19 @@
         "references": [
         	"ffd:TtlOfferingAmt",
 		    "ffd:TtlFeeAmt"
+        ],
+        "reference-value": ["!not!", "absent"]
+    },
+    {
+        "sub-types": ["@G-7", "@G-8"],
+        "xbrl-names": "ffd:NrrtvDsclsr",
+        "bind-if-absent": true,
+        "value": ["absent"],
+        "efm": "ft.ttlRqdFlds",
+        "validation": "fdepflag-present",
+        "references": [
+        	"ffd:TtlTxValtn",
+            "ffd:TtlFeeAmt"
         ],
         "reference-value": ["!not!", "absent"]
     },
@@ -2962,14 +2972,14 @@
         "store-db-object": "feesSummaryTable",
         "store-db-inner-text-truncate": 2500
     },
-    { 
+    {
     	"comment": "Debt Validation Rules"
     },
     {
         "sub-types": ["F-1", "F-3", "F-3D", "S-3", "S-3D", "S-11", "S-4", "S-4EF", "N-14 8C", "F-4", "F-10", "F-10EF", "S-8"],
         "xbrl-names": "ffd:TtlOfferingAmt",
         "bind-if-absent": true,
-        "where": {"ffd:TtlOfferingAmt": [0, "absent"],
+        "where": {"ffd:TtlOfferingAmt": ["less than or equal", 0, "absent"],
         		  "header:entity.repFileNum": ["~", "^(?!811).*$"],
         		  "ffd:Rule429CmbndPrspctsFlg axis cp": ["!anotherLine!", "!not!", true]},
         "efm": "ft.dbtVal4",
@@ -3023,7 +3033,7 @@
         "sub-types": ["@G-9", "@G-10"],
         "xbrl-names": "ffd:TtlOfferingAmt",
         "bind-if-absent": true,
-        "where": {"ffd:TtlOfferingAmt": [0, "absent"]},
+        "where": {"ffd:TtlOfferingAmt": ["less than or equal", 0, "absent"]},
         "efm": "ft.dbtVal7",
         "validation": "fdep-not-flag-any-gt-zero",
         "references": [{"name": "ffd:Rule457aFlg", "where-key":"where-457a"},
@@ -3038,7 +3048,7 @@
         "sub-types": ["@G-11"],
         "xbrl-names": "ffd:TtlOfferingAmt",
         "bind-if-absent": true,
-        "where": {"ffd:TtlOfferingAmt": [0, "absent"]},
+        "where": {"ffd:TtlOfferingAmt": ["less than or equal", 0, "absent"]},
         "efm": "ft.dbtVal8",
         "validation": "fdep-not-flag-any-gt-zero",
         "references": [{"name": "ffd:NrrtvDsclsr", "axis": "", "where-key":"where-nd"},
@@ -3052,7 +3062,7 @@
         "references-axes": "of",
         "severity": "error"
     },
-    { 
+    {
     	"comment": "EDGAR string and value pattern checks (without submission type concern)"
     },
     {
@@ -3094,7 +3104,7 @@
         ],
         "efm": "ft.dateFldRange",
         "validation": "ov",
-        "axis": "of-o-cp-s424i",
+        "axis": "tot-of-o-cp",
         "value-date-range": ["1980-01-01", "2050-12-31"]
     },
     {
@@ -3167,7 +3177,7 @@
         "axis": "tot-of-o-cp-s424i",
         "value-numeric-range": ["0", "999999999999.99"]
     },
-    { 
+    {
     	"comment": "Validations applicable across all tables."
     },
     {
@@ -3178,7 +3188,7 @@
         "axis": "of-o-cp-s424i",
         "comment": "duplicate item check is done at the axis level. No xbrl-names apply."
     },
-    { 
+    {
     	"comment": "Blank cell validation"
     },
     {
@@ -3371,7 +3381,7 @@
         "fdep-not-flag-any-gt-zero": {
             "message": "ft-{tag}-Value",
             "severity": "warning",
-            "severityVerb": "should be",
+            "severityVerb": "should",
             "expectedValue": "greater than zero",
             "qualifier": ""
         },
@@ -3573,7 +3583,7 @@
 		}
 	},
 	"message-rule-axes-ordering": [
-		"SecurityItemAxis", 
+		"SecurityItemAxis",
 		"ffd:OfferingAxis", "ffd:OffsetAxis", "ffd:CmbndPrspctsItemAxis"
 	],
 	"messages": {
@@ -3602,5 +3612,5 @@
         "ft-{tag}-{otherTag}-RefValue": "for submission type {subType}, {ftContext}, {tag} value {value} {severityVerb} be provided when {otherTag} value is {otherValue}.",
         "ft-{context}-{otherContext}-Duplicate": "{ftContext} is a duplicate of {otherftContext}."
 	}
-		
+
 }
