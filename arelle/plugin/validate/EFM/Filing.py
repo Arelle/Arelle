@@ -1497,7 +1497,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     c.append(str(axesVals[i]))
                                     for f in sorted(modelXbrl.factsByDimMemQname(axisConcept.qname, str(axesVals[i])),
                                                     key=lambda f:f.qname.localName):
-                                        if f.qname.localName.endswith("Flg") and "Rule" in f.qname.localName and f.xValue == True:
+                                        if f.qname.localName.endswith("Flg") and ("Rule" in f.qname.localName or "GnlInstr" in f.qname.localName) and f.xValue == True:
                                             c[-1] += ","
                                             c.append(f.concept.label(XbrlConst.terseLabel))
                     except IndexError: # variable expression for dimension arguments
@@ -1983,6 +1983,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                    value=f"{monthsDuration:.1f} months", expectedValue=f"{value} months", contextID=val.requiredContext.id)
                 # fee tagging
                 elif validation in ("fe", "fw","fo"): # note where clauses are incompatible with this validation
+                    def find_fact_in_context(contextID):
+                        for fact in modelXbrl.facts:
+                            if fact.contextID == contextID:
+                                return fact
                     instDurNames = defaultdict(list)
                     for name in names:
                         concept = modelXbrl.qnameConcepts.get(qname(name, deiDefaultPrefixedNamespaces))
@@ -1996,10 +2000,17 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 mbrValCntxIds[mbrValKey] = cntx.id
                         for name in instDurNames:
                             usedMbrVals = set(axesValsKey(axisKey, f.context)
-                                              for f in sevFacts(sev, name, whereKey="where"))
+                                            for f in sevFacts(sev, name))
                             for mbrVal, cntxId in mbrValCntxIds.items():
                                 if mbrVal not in usedMbrVals and validation in ("fe", "fw"):
-                                    sevMessage(sev, subType=submissionType, modelObject=None, tag=ftName(name), label=ftLabel(name), ftContext=ftContext(axisKey,mbrVal), contextID=cntxId)
+                                    if sev.get("where"):
+                                        # used an existing fact in the same context to check
+                                        # that the where condition is true
+                                        fact = find_fact_in_context(cntxId)
+                                        if not sevFact(sev, ftName(fact), otherFact=fact, whereKey="where") is None:
+                                            sevMessage(sev, subType=submissionType, modelObject=None, tag=ftName(name), label=ftLabel(name), ftContext=ftContext(axisKey,mbrVal), contextID=cntxId)
+                                    else:
+                                        sevMessage(sev, subType=submissionType, modelObject=None, tag=ftName(name), label=ftLabel(name), ftContext=ftContext(axisKey,mbrVal), contextID=cntxId)
                 elif validation in ("of-rule",):
                     mbfValFacts = defaultdict(list)
                     requiredContextPeriod = sev.get("period") == "required-context" and deiDocumentType
@@ -2240,7 +2251,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         (comparison == "not equal" and f.xValue == g.xValue) or
                                         (comparison in ("less than or equal", "not greater") and f.xValue > g.xValue)):
                                         comparisonText = sev.get("comparisonText", deiValidations["validations"][sev["validation"]].get("comparisonText", comparison)).format(comparison=comparison)
-                                        sevMessage(sev, subType=submissionType, modelObject=(f,g), ftContext=ftContext(axisKey,g), comparison=comparisonText,
+                                        sevMessage(sev, subType=submissionType, modelObject=(f,g), ftContext=ftContext(axisKey,f), comparison=comparisonText,
                                                    tag=ftName(name1), label=ftLabel(name1), otherTag=ftName(name2), otherLabel=ftLabel(name2), value=f.xValue, otherValue=g.xValue)
                 elif validation == "calculation":
                     comparison = sev.get("comparison")
