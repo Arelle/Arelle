@@ -33,5 +33,5 @@ config = ConformanceSuiteConfig(
     local_filepath='calculation-1.1-conformance-2023-02-22.zip',
     membership_url='https://www.xbrl.org/join',
     name=PurePath(__file__).stem,
-    plugins=frozenset({'loadFromOIM', '../../arelle/examples/plugin/testcaseCalc11ValidateSetup.py'}),
+    plugins=frozenset({'loadFromOIM', '../../tests/plugin/testcaseCalc11ValidateSetup.py'}),
 )
