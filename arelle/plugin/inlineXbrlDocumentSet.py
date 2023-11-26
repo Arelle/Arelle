@@ -363,7 +363,11 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
     return targetInstance
 
 def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRefs, outputZip=None, filingFiles=None, xbrliNamespacePrefix=None, *args, **kwargs):
-    targetUrl = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(targetDocumentFilename, modelXbrl.modelDocument.filepath)
+    if not os.path.isabs(targetDocumentFilename) and modelXbrl.fileSource.isArchive:
+        baseFile = modelXbrl.fileSource.basefile # can't store extracted file inside archive zip
+    else:
+        baseFile = modelXbrl.modelDocument.filepath
+    targetUrl = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(targetDocumentFilename, baseFile)
     targetUrlParts = targetUrl.rpartition(".")
     targetUrl = targetUrlParts[0] + "_extracted." + targetUrlParts[2]
     modelXbrl.modelManager.showStatus(_("Extracting instance ") + os.path.basename(targetUrl))
