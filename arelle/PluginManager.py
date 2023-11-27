@@ -190,6 +190,7 @@ def freshenModuleInfos():
     # for modules with different date-times, re-load module info
     missingEnabledModules = []
     for moduleName, moduleInfo in pluginConfig["modules"].items():
+        moduleEnabled = moduleInfo["status"] == "enabled"
         freshenedFilename = _cntlr.webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
         try: # check if moduleInfo cached may differ from referenced moduleInfo
             if os.path.isdir(freshenedFilename): # if freshenedFilename is a directory containing an __ini__.py file, open that instead
@@ -199,11 +200,16 @@ def freshenModuleInfos():
                 freshenedFilename += ".py" # extension module without .py suffix
             if os.path.exists(freshenedFilename):
                 if moduleInfo["fileDate"] != time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
-                    freshenedModuleInfo = moduleModuleInfo(moduleInfo["moduleURL"], reload=True)
+                    freshenedModuleInfo = moduleModuleInfo(moduleURL=moduleInfo["moduleURL"], reload=True)
                     if freshenedModuleInfo is not None:
-                        pluginConfig["modules"][moduleName] = freshenedModuleInfo
+                        if freshenedModuleInfo["name"] == moduleName:
+                            pluginConfig["modules"][moduleName] = freshenedModuleInfo
+                        else:
+                            # Module has been re-named
+                            if moduleEnabled:
+                                missingEnabledModules.append(moduleName)
             # User can avoid pruning by disabling plugin
-            elif moduleInfo["status"] == "enabled":
+            elif moduleEnabled:
                 missingEnabledModules.append(moduleName)
             else:
                 _msg = _("File not found for '{name}' plug-in when attempting to update module info. Path: '{path}'")\
@@ -216,6 +222,7 @@ def freshenModuleInfos():
         removePluginModule(moduleName)
         # Try re-adding plugin modules by name (for plugins that moved from built-in to pip installed)
         moduleInfo = addPluginModule(moduleName)
+        moduleName = moduleInfo["name"]
         if moduleInfo:
             pluginConfig["modules"][moduleName] = moduleInfo
             loadModule(moduleInfo)
