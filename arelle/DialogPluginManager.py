@@ -474,7 +474,7 @@ class DialogPluginManager(Toplevel):
         if selectedPath:
             if selectedPath.startswith(self.cntlr.pluginDir):
                 selectedPath = selectedPath[len(self.cntlr.pluginDir)+1:]
-            moduleInfo = PluginManager.moduleModuleInfo(selectedPath)
+            moduleInfo = PluginManager.moduleModuleInfo(moduleURL=selectedPath)
             self.loadFoundModuleInfo(moduleInfo, selectedPath)
 
     def browseLocally(self):
@@ -493,14 +493,14 @@ class DialogPluginManager(Toplevel):
             #    os.path.isfile(filename)):
             #    filename = os.path.dirname(filename) # refer to the package instead
             self.cntlr.config["pluginOpenDir"] = os.path.dirname(filename)
-            moduleInfo = PluginManager.moduleModuleInfo(filename)
+            moduleInfo = PluginManager.moduleModuleInfo(moduleURL=filename)
             self.loadFoundModuleInfo(moduleInfo, filename)
 
 
     def findOnWeb(self):
         url = DialogURL.askURL(self)
         if url:  # url is the in-cache or local file
-            moduleInfo = PluginManager.moduleModuleInfo(url)
+            moduleInfo = PluginManager.moduleModuleInfo(moduleURL=url)
             self.cntlr.showStatus("") # clear web loading status
             self.loadFoundModuleInfo(moduleInfo, url)
 
@@ -607,7 +607,7 @@ class DialogPluginManager(Toplevel):
         if self.selectedModule in self.pluginConfig["modules"]:
             url = self.pluginConfig["modules"][self.selectedModule].get("moduleURL")
             if url:
-                moduleInfo = PluginManager.moduleModuleInfo(url, reload=True)
+                moduleInfo = PluginManager.moduleModuleInfo(moduleURL=url, reload=True)
                 if moduleInfo:
                     if self.checkIfImported(moduleInfo):
                         return;

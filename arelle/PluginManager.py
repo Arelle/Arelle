@@ -11,7 +11,7 @@ import importlib.util
 import logging
 
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Iterator, Callable
+from typing import TYPE_CHECKING, Any, Iterator, Callable, cast
 from arelle.Locale import getLanguageCodes
 import arelle.FileSource
 from arelle.UrlUtil import isAbsolute
@@ -231,134 +231,231 @@ def freshenModuleInfos():
             logPluginTrace(_("Removed plugin that failed loading (plugin may have been archived): {}").format(moduleName), logging.ERROR)
     save(_cntlr)
 
-def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
+
+def normalizeModuleFilename(moduleFilename: str) -> str | None:
+    """
+    Attempts to find python script as plugin entry point.
+    A value will be returned
+      if `moduleFilename` exists as-is,
+      if `moduleFilename` is a directory containing __init__.py, or
+      if `moduleFilename` with .py extension added exists
+    :param moduleFilename:
+    :return: Normalized filename, if exists
+    """
+    if os.path.isfile(moduleFilename):
+        # moduleFilename exists as-is, use it
+        return moduleFilename
+    if os.path.isdir(moduleFilename):
+        # moduleFilename is a directory, only valid script is __init__.py contained inside
+        initPath = os.path.join(moduleFilename, "__init__.py")
+        if os.path.isfile(initPath):
+            return initPath
+        else:
+            return None
+    if not moduleFilename.endswith(".py"):
+        # moduleFilename is not a file or directory, try adding .py
+        pyPath = moduleFilename + ".py"
+        if os.path.exists(pyPath):
+            return pyPath
+    return None
+
+
+def getModuleFilename(moduleURL: str, reload: bool, normalize: bool, base: str | None) -> tuple[str | None, EntryPoint | None]:
     #TODO several directories, eg User Application Data
-    moduleFilename = _cntlr.webCache.getfilename(moduleURL, reload=reload, normalize=True, base=_pluginBase)
+    moduleFilename = _cntlr.webCache.getfilename(moduleURL, reload=reload, normalize=normalize, base=base)
     if moduleFilename:
-        f = None
-        try:
-            # if moduleFilename is a directory containing an __ini__.py file, open that instead
-            if os.path.isdir(moduleFilename):
-                if os.path.isfile(os.path.join(moduleFilename, "__init__.py")):
-                    moduleFilename = os.path.join(moduleFilename, "__init__.py")
-                else: # impossible to get a moduleinfo from a directory without an __init__.py
-                    return None
-            elif not moduleFilename.endswith(".py") and not os.path.exists(moduleFilename) and os.path.exists(moduleFilename + ".py"):
-                moduleFilename += ".py" # extension module without .py suffix
-            moduleDir, moduleName = os.path.split(moduleFilename)
-            logPluginTrace("Scanning module for plug-in info: {}".format(moduleFilename), logging.INFO)
-            f = arelle.FileSource.openFileStream(_cntlr, moduleFilename)
-            tree = ast.parse(f.read(), filename=moduleFilename)
-            constantStrings = {}
-            functionDefNames = set()
-            methodDefNamesByClass = defaultdict(set)
-            moduleImports = []
-            for item in tree.body:
-                if isinstance(item, ast.Assign):
-                    attr = item.targets[0].id
-                    if attr == "__pluginInfo__":
-                        f.close()
-                        moduleInfo = {"name":None}
-                        classMethods = []
-                        importURLs = []
-                        for i, key in enumerate(item.value.keys):
-                            _key = key.s
-                            _value = item.value.values[i]
-                            _valueType = _value.__class__.__name__
-                            if _key == "import":
-                                if _valueType == 'Constant':
-                                    importURLs.append(_value.s)
-                                elif _valueType in ("List", "Tuple"):
-                                    for elt in _value.elts:
-                                        importURLs.append(elt.s)
-                            elif _valueType == 'Constant':
-                                moduleInfo[_key] = _value.s
-                            elif _valueType == 'Name':
-                                if _value.id in constantStrings:
-                                    moduleInfo[_key] = constantStrings[_value.id]
-                                elif _value.id in functionDefNames:
-                                    classMethods.append(_key)
-                            elif _valueType == 'Attribute':
-                                if _value.attr in methodDefNamesByClass[_value.value.id]:
-                                    classMethods.append(_key)
-                            elif _key == "imports" and _valueType in ("List", "Tuple"):
-                                importURLs = [elt.s for elt in _value.elts]
-                        moduleInfo['classMethods'] = classMethods
-                        moduleInfo["moduleURL"] = moduleURL
-                        moduleInfo["status"] = 'enabled'
-                        moduleInfo["fileDate"] = time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(moduleFilename)))
-                        mergedImportURLs = []
-                        _moduleImportsSubtree = False
-                        for _url in importURLs:
-                            if _url.startswith("module_import"):
-                                for moduleImport in moduleImports:
-                                    mergedImportURLs.append(moduleImport + ".py")
-                                if _url == "module_import_subtree":
-                                    _moduleImportsSubtree = True
-                            elif _url == "module_subtree":
-                                for _dir in os.listdir(moduleDir):
-                                    _subtreeModule = os.path.join(moduleDir,_dir)
-                                    if os.path.isdir(_subtreeModule) and _dir != "__pycache__":
-                                        mergedImportURLs.append(_subtreeModule)
-                            else:
-                                mergedImportURLs.append(_url)
-                        if parentImportsSubtree and not _moduleImportsSubtree:
-                            _moduleImportsSubtree = True
-                            for moduleImport in moduleImports:
-                                mergedImportURLs.append(moduleImport + ".py")
-                        imports = []
-                        for _url in mergedImportURLs:
-                            if isAbsolute(_url) or os.path.isabs(_url):
-                                _importURL = _url # URL is absolute http or local file system
-                            else: # check if exists relative to this module's directory
-                                _importURL = os.path.join(os.path.dirname(moduleURL), os.path.normpath(_url))
-                                if not os.path.exists(_importURL): # not relative to this plugin, assume standard plugin base
-                                    _importURL = _url # moduleModuleInfo adjusts relative URL to plugin base
-                            _importModuleInfo = moduleModuleInfo(_importURL, reload, _moduleImportsSubtree)
-                            if _importModuleInfo:
-                                _importModuleInfo["isImported"] = True
-                                imports.append(_importModuleInfo)
-                        moduleInfo["imports"] =  imports
-                        return moduleInfo
-                    elif isinstance(item.value, ast.Str): # possible constant used in plugininfo, such as VERSION
-                        for assignmentName in item.targets:
-                            constantStrings[assignmentName.id] = item.value.s
-                elif isinstance(item, ast.ImportFrom):
-                    if item.level == 1: # starts with .
-                        if item.module is None:  # from . import module1, module2, ...
-                            for importee in item.names:
-                                if importee.name == '*': #import all submodules
-                                    for _file in os.listdir(moduleDir):
-                                        if _file != moduleFile and os.path.isfile(_file) and _file.endswith(".py"):
-                                            moduleImports.append(_file)
-                                elif (os.path.isfile(os.path.join(moduleDir, importee.name + ".py"))
-                                      and importee.name not in moduleImports):
-                                    moduleImports.append(importee.name)
+        # `moduleURL` was mapped to a local filepath
+        moduleFilename = normalizeModuleFilename(moduleFilename)
+        if moduleFilename:
+            # `moduleFilename` normalized to an existing script
+            return moduleFilename, None
+    # `moduleFilename` did not map to a local filepath or did not normalize to a script
+    # Try using `moduleURL` to search for pip-installed entry point
+    entryPointRef = EntryPointRef.get(moduleURL)
+    if entryPointRef is not None:
+        return entryPointRef.moduleFilename, entryPointRef.entryPoint
+    return None, None
+
+
+def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint | None) -> dict | None:
+    moduleDir, moduleName = os.path.split(moduleFilename)
+    f = arelle.FileSource.openFileStream(_cntlr, moduleFilename)
+    tree = ast.parse(f.read(), filename=moduleFilename)
+    constantStrings = {}
+    functionDefNames = set()
+    methodDefNamesByClass = defaultdict(set)
+    moduleImports = []
+    moduleInfo = {"name":None}
+    isPlugin = False
+    for item in tree.body:
+        if isinstance(item, ast.Assign):
+            attr = item.targets[0].id
+            if attr == "__pluginInfo__":
+                isPlugin = True
+                f.close()
+                classMethods = []
+                importURLs = []
+                for i, key in enumerate(item.value.keys):
+                    _key = key.s
+                    _value = item.value.values[i]
+                    _valueType = _value.__class__.__name__
+                    if _key == "import":
+                        if _valueType == 'Constant':
+                            importURLs.append(_value.s)
+                        elif _valueType in ("List", "Tuple"):
+                            for elt in _value.elts:
+                                importURLs.append(elt.s)
+                    elif _valueType == 'Constant':
+                        moduleInfo[_key] = _value.s
+                    elif _valueType == 'Name':
+                        if _value.id in constantStrings:
+                            moduleInfo[_key] = constantStrings[_value.id]
+                        elif _value.id in functionDefNames:
+                            classMethods.append(_key)
+                    elif _valueType == 'Attribute':
+                        if _value.attr in methodDefNamesByClass[_value.value.id]:
+                            classMethods.append(_key)
+                    elif _valueType in ("List", "Tuple"):
+                        values = [elt.s for elt in _value.elts]
+                        if _key == "imports":
+                            importURLs = values
                         else:
-                            modulePkgs = item.module.split('.')
-                            modulePath = os.path.join(*modulePkgs)
-                            if (os.path.isfile(os.path.join(moduleDir, modulePath) + ".py")
-                                and modulePath not in moduleImports):
-                                    moduleImports.append(modulePath)
-                            for importee in item.names:
-                                _importeePfxName = os.path.join(modulePath, importee.name)
-                                if (os.path.isfile(os.path.join(moduleDir, _importeePfxName) + ".py")
-                                    and _importeePfxName not in moduleImports):
-                                        moduleImports.append(_importeePfxName)
-                elif isinstance(item, ast.FunctionDef): # possible functionDef used in plugininfo
-                    functionDefNames.add(item.name)
-                elif isinstance(item, ast.ClassDef):  # possible ClassDef used in plugininfo
-                    for classItem in item.body:
-                        if isinstance(classItem, ast.FunctionDef):
-                            methodDefNamesByClass[item.name].add(classItem.name)
+                            moduleInfo[_key] = values
+
+                moduleInfo['classMethods'] = classMethods
+                moduleInfo['importURLs'] = importURLs
+                moduleInfo["moduleURL"] = moduleURL
+                moduleInfo["path"] = moduleFilename
+                moduleInfo["status"] = 'enabled'
+                moduleInfo["fileDate"] = time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(moduleFilename)))
+                if entryPoint:
+                    moduleInfo["moduleURL"] = moduleFilename  # pip-installed plugins need absolute filepath
+                    moduleInfo["entryPoint"] = {
+                        "module": entryPoint.module,
+                        "name": entryPoint.name,
+                        "version": entryPoint.dist.version,
+                    }
+                    if not moduleInfo.get("version"):
+                        moduleInfo["version"] = entryPoint.dist.version  # If no explicit version, retrieve from entry point
+            elif isinstance(item.value, ast.Str): # possible constant used in plugininfo, such as VERSION
+                for assignmentName in item.targets:
+                    constantStrings[assignmentName.id] = item.value.s
+        elif isinstance(item, ast.ImportFrom):
+            if item.level == 1: # starts with .
+                if item.module is None:  # from . import module1, module2, ...
+                    for importee in item.names:
+                        if importee.name == '*': #import all submodules
+                            for _file in os.listdir(moduleDir):
+                                if _file != moduleName and os.path.isfile(_file) and _file.endswith(".py"):
+                                    moduleImports.append(_file)
+                        elif (os.path.isfile(os.path.join(moduleDir, importee.name + ".py"))
+                              and importee.name not in moduleImports):
+                            moduleImports.append(importee.name)
+                else:
+                    modulePkgs = item.module.split('.')
+                    modulePath = os.path.join(*modulePkgs)
+                    if (os.path.isfile(os.path.join(moduleDir, modulePath) + ".py")
+                            and modulePath not in moduleImports):
+                        moduleImports.append(modulePath)
+                    for importee in item.names:
+                        _importeePfxName = os.path.join(modulePath, importee.name)
+                        if (os.path.isfile(os.path.join(moduleDir, _importeePfxName) + ".py")
+                                and _importeePfxName not in moduleImports):
+                            moduleImports.append(_importeePfxName)
+        elif isinstance(item, ast.FunctionDef): # possible functionDef used in plugininfo
+            functionDefNames.add(item.name)
+        elif isinstance(item, ast.ClassDef):  # possible ClassDef used in plugininfo
+            for classItem in item.body:
+                if isinstance(classItem, ast.FunctionDef):
+                    methodDefNamesByClass[item.name].add(classItem.name)
+    moduleInfo["moduleImports"] = moduleImports
+    f.close()
+    return moduleInfo if isPlugin else None
+
+
+def moduleModuleInfo(
+        moduleURL: str | None = None,
+        entryPoint: EntryPoint | None = None,
+        reload: bool = False,
+        parentImportsSubtree: bool = False) -> dict | None:
+    """
+    Generates a module info dict based on the provided `moduleURL` or `entryPoint`
+    Exactly one of "moduleURL" or "entryPoint" must be provided, otherwise a RuntimeError will be thrown.
+
+    When `moduleURL` is provided, it will be treated as a file path and will attempt to be normalized and
+    mapped to an existing plugin based on file location. If `moduleURL` fails to be mapped to an existing
+    plugin on its own, it will instead be used to search for an entry point. If found, this function will
+    proceed as if that entry point was provided for `entryPoint`.
+
+    When `entryPoint` is provided, it's location and other details will be used to generate the module info
+    dictionary.
+
+    :param moduleURL: A URL that loosely maps to the file location of a plugin (may be transformed)
+    :param entryPoint: An `EntryPoint` instance
+    :param reload:
+    :param parentImportsSubtree:
+    :return:s
+    """
+    if (moduleURL is None) == (entryPoint is None):
+        raise RuntimeError('Exactly one of "moduleURL" or "entryPoint" must be provided')
+    if entryPoint:
+        # If entry point is provided, use it to retrieve `moduleFilename`
+        moduleFilename = moduleURL = entryPoint.load()()
+    else:
+        # Otherwise, we will verify the path before continuing
+        moduleFilename, entryPoint = getModuleFilename(moduleURL, reload=reload, normalize=True, base=_pluginBase)
+
+    if moduleFilename:
+        try:
+            logPluginTrace("Scanning module for plug-in info: {}".format(moduleFilename), logging.INFO)
+            moduleInfo = parsePluginInfo(moduleURL, moduleFilename, entryPoint)
+            if moduleInfo is None:
+                return None
+
+            moduleDir, moduleName = os.path.split(moduleFilename)
+            importURLs = moduleInfo["importURLs"]
+            del moduleInfo["importURLs"]
+            moduleImports = moduleInfo["moduleImports"]
+            del moduleInfo["moduleImports"]
+            _moduleImportsSubtree = False
+            mergedImportURLs = []
+
+            for _url in importURLs:
+                if _url.startswith("module_import"):
+                    for moduleImport in moduleImports:
+                        mergedImportURLs.append(moduleImport + ".py")
+                    if _url == "module_import_subtree":
+                        _moduleImportsSubtree = True
+                elif _url == "module_subtree":
+                    for _dir in os.listdir(moduleDir):
+                        _subtreeModule = os.path.join(moduleDir,_dir)
+                        if os.path.isdir(_subtreeModule) and _dir != "__pycache__":
+                            mergedImportURLs.append(_subtreeModule)
+                else:
+                    mergedImportURLs.append(_url)
+            if parentImportsSubtree and not _moduleImportsSubtree:
+                _moduleImportsSubtree = True
+                for moduleImport in moduleImports:
+                    mergedImportURLs.append(moduleImport + ".py")
+            imports = []
+            for _url in mergedImportURLs:
+                if isAbsolute(_url) or os.path.isabs(_url):
+                    _importURL = _url # URL is absolute http or local file system
+                else: # check if exists relative to this module's directory
+                    _importURL = os.path.join(os.path.dirname(moduleURL), os.path.normpath(_url))
+                    if not os.path.exists(_importURL): # not relative to this plugin, assume standard plugin base
+                        _importURL = _url # moduleModuleInfo adjusts relative URL to plugin base
+                _importModuleInfo = moduleModuleInfo(moduleURL=_importURL, reload=reload, parentImportsSubtree=_moduleImportsSubtree)
+                if _importModuleInfo:
+                    _importModuleInfo["isImported"] = True
+                    imports.append(_importModuleInfo)
+            moduleInfo["imports"] = imports
             logPluginTrace(f"Successful module plug-in info: {moduleFilename}", logging.INFO)
+            return moduleInfo
         except Exception as err:
             _msg = _("Exception obtaining plug-in module info: {moduleFilename}\n{error}\n{traceback}").format(
                     error=err, moduleFilename=moduleFilename, traceback=traceback.format_tb(sys.exc_info()[2]))
             logPluginTrace(_msg, logging.ERROR)
-
-        if f:
-            f.close()
     return None
 
 
@@ -543,7 +640,7 @@ def reloadPluginModule(name):
     if name in pluginConfig["modules"]:
         url = pluginConfig["modules"][name].get("moduleURL")
         if url:
-            moduleInfo = moduleModuleInfo(url, reload=True)
+            moduleInfo = moduleModuleInfo(moduleURL=url, reload=True)
             if moduleInfo:
                 addPluginModule(url)
                 return True
