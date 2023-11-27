@@ -858,7 +858,7 @@ class XPathContext:
         if isinstance(x, ModelFact):
             if x.isTuple:
                 raise XPathException(p, 'err:FOTY0012', _('Atomizing tuple {0} that does not have a typed value').format(x))
-            if x.isNil:
+            if x.isNil or x.concept is None:
                 return []
             baseXsdType = x.concept.baseXsdType
             v = x.value  # resolves default value
