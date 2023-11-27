@@ -116,6 +116,7 @@ class ModelObject(ElementBase):
     xValueError: Exception | None
     xValid: int
     xlinkLabel: str
+    targetModelXbrl: ModelXbrl
 
     def _init(self) -> None:
         self.isChanged = False
