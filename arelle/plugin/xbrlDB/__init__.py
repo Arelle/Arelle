@@ -323,9 +323,12 @@ class LogToDbHandler(logging.Handler):
 
 
 __pluginInfo__ = {
-    'name': 'XBRL Database',
+    'name': 'xbrlDB',
     'version': '0.9',
     'description': "This plug-in implements the XBRL Public Postgres, Abstract Model and DPM Databases.  ",
+    'aliases': [
+        'XBRL Database',
+    ],
     'license': 'Apache-2 (Arelle plug-in), BSD license (pg8000 library)',
     'author': authorLabel,
     'copyright': f'{copyrightLabel} \n'

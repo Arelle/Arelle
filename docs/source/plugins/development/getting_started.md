@@ -16,12 +16,13 @@ as a map with the following properties (some optional):
 | **name**     | (Required) Name of plugin for display purposes.                               |
 | **version**  | (Required) Version of plugin for display purposes.                            |
 | description  | Description displayed in the GUI.                                             |
+| aliases      | Collection of names (in addition to "name") that match this plug-in.          |
 | localeURL    | L10N internationalization for this module (subdirectory if relative).         |
 | localeDomain | Domain for L10N internationalization (e.g., 'arelle').                        |
 | license      | License information to display with plugin.                                   |
 | author       | Author to be listed in the GUI.                                               |
 | copyright    | Copyright information to be listed in the GUI.                                |
-| import       | `str`, `list` or `tuple` of URLs or relative file names of imported plug-ins. |
+| import       | `str`, `list` or `tuple` of plug-in URLs, relative paths, names, or aliases.  |
 | (hook)       | See Plugin Functionality below.                                               |
 
 Here is an example of what this might look like in Python code:

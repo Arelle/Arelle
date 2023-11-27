@@ -87,7 +87,7 @@ def selectPlugin(parent, pluginChoices):
                                PLUGIN,
                                filesource,
                                pluginChoices,
-                               _("File"),
+                               _("Name"),
                                _("Select Plug-in Module"))
     if dialog and dialog.accepted:
         return filesource.selection
@@ -298,10 +298,8 @@ class DialogOpenArchive(Toplevel):
                 self.treeView.column("instDoc", width=200, anchor="w", stretch=False)
                 self.treeView.heading("instDoc", text="Instance Document")
             elif openType == PLUGIN:
-                self.treeView.column("#0", width=150, anchor="w")
-                self.treeView["columns"] = ("name", "vers", "descr", "license")
-                self.treeView.column("name", width=150, anchor="w", stretch=False)
-                self.treeView.heading("name", text="Name")
+                self.treeView.column("#0", width=250, anchor="w")
+                self.treeView["columns"] = ("vers", "descr", "license")
                 self.treeView.column("vers", width=60, anchor="w", stretch=False)
                 self.treeView.heading("vers", text="Version")
                 self.treeView.column("descr", width=300, anchor="w", stretch=False)
@@ -344,7 +342,6 @@ class DialogOpenArchive(Toplevel):
                     self.treeView.set(node, "date", date)
                     self.treeView.set(node, "instDoc", os.path.basename(instDoc))
                 elif openType == PLUGIN:
-                    self.treeView.set(node, "name", name)
                     self.treeView.set(node, "vers", vers)
                     self.treeView.set(node, "descr", descr)
                     self.treeView.set(node, "license", license)
