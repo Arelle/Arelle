@@ -162,7 +162,7 @@ class LogHandler(logging.Handler):
 
 
 __pluginInfo__ = {
-    'name': 'XBRL Database',
+    'name': 'Logging - Save Messages',
     'version': '1.2',
     'description': "This plug-in saves logger messages of instances for post processing.  ",
     'license': 'Apache-2 (Arelle plug-in), BSD license (pg8000 library)',
