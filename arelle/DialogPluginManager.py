@@ -380,55 +380,6 @@ class DialogPluginManager(Toplevel):
             self.moduleRemoveButton.config(state=DISABLED)
 
     @staticmethod
-    def _discoverBuiltInPluginChoices(choices: list[dict], directory: str):
-        """
-        Recursively discovers plugins (within directory) before generating choice dict and adding to provided list.
-        :param choices: List of choices to add on to
-        :param directory: Directory to search for plugins
-        :return:
-        """
-        for fileName in sorted(os.listdir(directory)):
-            if fileName in (".", "..", "__pycache__", "__init__.py"):
-                continue  # Ignore these entries
-            filePath = os.path.join(directory, fileName)
-            initFilePath = os.path.join(filePath, "__init__.py")
-            moduleInfo = None
-            if ((os.path.isdir(filePath) and os.path.exists(initFilePath)) or
-                    (os.path.isfile(filePath) and fileName.endswith(".py"))):
-                moduleInfo = PluginManager.moduleModuleInfo(filePath)
-            children = []
-            if os.path.isdir(filePath) and fileName not in ("DQC_US_Rules",) and not fileName.startswith("ixviewer"):
-                DialogPluginManager._discoverBuiltInPluginChoices(children, filePath)
-            if moduleInfo or children:
-                choices.append({
-                    "name": fileName,
-                    "path": filePath,
-                    "info": moduleInfo,
-                    "children": children,
-                })
-
-    @staticmethod
-    def _discoverInstalledPluginChoices(choices: list[dict], moduleInfo: dict):
-        """
-        Recursively discovers plugins (from moduleInfo imports) before generating choice dict and adding to provided list.
-        :param choices: List of choices to add on to
-        :param moduleInfo: Module info to add and discover child plugins from
-        :return:
-        """
-        moduleUrl = moduleInfo.get('moduleURL')
-        if moduleUrl and not os.path.isdir(moduleUrl):
-            moduleUrl = os.path.dirname(moduleUrl)
-        children = []
-        for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
-            DialogPluginManager._discoverInstalledPluginChoices(children, importModuleInfo)
-        choices.append({
-            "name": moduleInfo.get("name"),
-            "path": moduleUrl,
-            "info": moduleInfo,
-            "children": children,
-        })
-
-    @staticmethod
     def _choiceSortOrder(entryPointRef: EntryPointRef):
         moduleInfoMap = entryPointRef.moduleInfo
         key = moduleInfoMap["name"]
