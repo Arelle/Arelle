@@ -364,6 +364,11 @@ class ESEFPlugin(PluginHooks):
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     "name": "Validate ESMA ESEF",
+    "aliases": [
+        # Aliases for when ESEF validation was handled by multiple plugins.
+        "Validate ESMA ESEF-2022",
+        "validate/ESEF_2022",
+    ],
     "version": "1.2023.00",
     "description": """ESMA ESEF Filer Manual and RTS Validations.""",
     "license": "Apache-2",
