@@ -301,9 +301,11 @@ class WebCache:
     def encodeForFilename(self, pathpart):
         return self.encodeFileChars.sub(lambda m: '^{0:03}'.format(ord(m.group(0))), pathpart)
 
-    def urlToCacheFilepath(self, url: str) -> str:
+    def urlToCacheFilepath(self, url: str, cacheDir: str | None = None) -> str:
+        if cacheDir is None:
+            cacheDir = self.cacheDir
         scheme, sep, path = url.partition("://")
-        filepath = [self.cacheDir, scheme]
+        filepath = [cacheDir, scheme]
         pathparts = path.split('/')
         user, sep, server = pathparts[0].partition("@")
         if not sep:
@@ -320,8 +322,10 @@ class WebCache:
             filepath.append(DIRECTORY_INDEX_FILE)
         return os.sep.join(filepath)
 
-    def cacheFilepathToUrl(self, cacheFilepath):
-        urlparts = cacheFilepath[len(self.cacheDir)+1:].split(os.sep)
+    def cacheFilepathToUrl(self, cacheFilepath: str, cacheDir: str | None = None) -> str:
+        if cacheDir is None:
+            cacheDir = self.cacheDir
+        urlparts = cacheFilepath[len(cacheDir)+1:].split(os.sep)
         urlparts[0] += ':/'  # add separator between http and file parts, less one '/'
         if len(urlparts) > 2:
             if urlparts[2].startswith("^port"):
