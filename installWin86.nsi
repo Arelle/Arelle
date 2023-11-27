@@ -67,8 +67,10 @@ Section "Arelle" SecArelle
 
   SetOutPath "$INSTDIR"
 
-  ;REMOVE OBSOLETE PLUGINS
-  RMDir /r "$INSTDIR\plugin\validate\ESMA"
+  ;CLEAN INSTALL DIRECTORY
+  Delete "$INSTDIR\*.*"
+
+  RMDir /r "$INSTDIR\*"
   
   ;ADD YOUR OWN FILES HERE...
   File /r $%BUILD_PATH%\*.*
@@ -125,14 +127,7 @@ Section "Uninstall"
   Delete "$INSTDIR\Uninstall.exe"
   Delete "$INSTDIR\*.*"
 
-  RMDir /r "$INSTDIR\archive"
-  RMDir /r "$INSTDIR\config"
-  RMDir /r "$INSTDIR\images"
-  RMDir /r "$INSTDIR\examples"
-  RMDir /r "$INSTDIR\locale"
-  RMDir /r "$INSTDIR\scripts"
-  RMDir /r "$INSTDIR\tcl"
-  RMDir /r "$INSTDIR\tk"
+  RMDir /r "$INSTDIR\*"
   RMDir "$INSTDIR"
 
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
