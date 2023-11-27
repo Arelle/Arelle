@@ -702,14 +702,6 @@ def addPluginModuleInfo(plugin_module_info: dict[str, Any]) -> dict[str, Any] | 
     return plugin_module_info
 
 
-def entryPointToModuleInfo(entryPoint: EntryPoint) -> dict:
-    """
-    Given an EntryPoint instance, evaluates the plugin to retrieve a module information dictionary.
-    :param entryPoint: EntryPoint instance
-    :return: Module information dictionary
-    """
-    pluginUrl = entryPoint.load()
-    return moduleModuleInfo(pluginUrl())
 _entryPointRefCache: list[EntryPointRef] | None = None
 _entryPointRefAliasCache: dict[str, list[EntryPointRef]] | None = None
 _entryPointRefSearchTermEndings = [
@@ -719,19 +711,6 @@ _entryPointRefSearchTermEndings = [
 ]
 
 
-def discoverPluginEntryPoints(name: str | None = None) -> list[EntryPoint]:
-    """
-    Retrieve entry point information. Optionally provide `name` to retrieve a specific entry point.
-    :param name: Only retrieve entry points with the given name. May return multiple items.
-    :return: List of EntryPoints
-    """
-    if sys.version_info < (3, 10):
-        return [e for e in entry_points().get('arelle.plugin', []) if name is None or e.name == name]
-    else:
-        matches = entry_points(group='arelle.plugin')
-        if name is not None:
-            matches = matches.select(name=name)
-        return list(matches)
 @dataclass
 class EntryPointRef:
     aliases: set[str]
