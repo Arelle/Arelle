@@ -145,6 +145,8 @@ class ModelObject(ElementBase):
 
     @property
     def modelXbrl(self) -> ModelXbrl | None:
+        if hasattr(self, "targetModelXbrl"):
+            return self.targetModelXbrl
         modelDocument = getattr(self, "modelDocument", None)
         return modelDocument.modelXbrl if modelDocument is not None else None
 
