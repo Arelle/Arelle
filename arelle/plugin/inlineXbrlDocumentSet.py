@@ -770,10 +770,12 @@ def selectTargetDocument(modelXbrl, modelIxdsDocument):
                 dlg = TargetChoiceDialog(modelXbrl.modelManager.cntlr.parent, _targets)
                 _target = dlg.selection
         else:
+            # load all targets (supplemental are accessed from first via modelXbrl.loadedModelXbrls)
+            modelXbrl.targetIXDSesToLoad.insert(0, [_targets[1:],modelXbrl.ixdsHtmlElements])
             _target = _targets[0]
-            modelXbrl.warning("arelle:unspecifiedTargetDocument",
-                              _("Target document not specified, loading %(target)s, found targets %(targets)s"),
-                              modelObject=modelXbrl, target=_target, targets=_targets)
+            #modelXbrl.warning("arelle:unspecifiedTargetDocument",
+            #                  _("Target document not specified, loading %(target)s, found targets %(targets)s"),
+            #                  modelObject=modelXbrl, target=_target, targets=_targets)
         modelXbrl.ixdsTarget = None if _target == DEFAULT_TARGET else _target or None
         # load referenced schemas and linkbases (before validating inline HTML
         loadDTS(modelXbrl, modelIxdsDocument)
