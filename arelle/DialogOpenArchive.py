@@ -161,7 +161,7 @@ class DialogOpenArchive(Toplevel):
                                   .format(', '.join(metadataFiles)))
                 '''
                 metadataFile = metadataFiles[0]
-                metadata = filesource.url + os.sep + metadataFile
+                metadata = filesource.basefile + os.sep + metadataFile
                 self.metadataFilePrefix = os.sep.join(os.path.split(metadataFile)[:-1])
                 if self.metadataFilePrefix:
                     self.metadataFilePrefix += "/"  # zip contents have /, never \ file seps
