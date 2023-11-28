@@ -406,7 +406,7 @@ class WebCache:
 
         # Download without checking age if configured to do so or file does not exist
         if reload or not os.path.exists(filepath):
-            return self._downloadFile(url, filepath, False)
+            return filepath if self._downloadFile(url, filepath) else None
 
         # Determine if file has aged out of cache, return filepath if not
         if url in self.cachedUrlCheckTimes and not checkModifiedTime:
@@ -419,7 +419,9 @@ class WebCache:
 
         # If we determine that the web version is newer, download it
         if self._checkIfNewerOnWeb(url, filepath):
-            return self._downloadFile(url, filepath, True)
+            self._downloadFile(url, filepath, retrievingDueToRecheckInterval=True)
+            # Whether the download is successful or not, we know `filepath` exists, so return it.
+            return filepath
         # Otherwise, use existing file
         self.cachedUrlCheckTimes[url] = WebCache._getTimeString(timeNow)
         self.cachedUrlCheckTimesModified = True
@@ -463,15 +465,15 @@ class WebCache:
             self,
             url: str,
             filepath: str,
-            retrievingDueToRecheckInterval: bool,
-            retryCount: int = 5) -> str | None:
+            retrievingDueToRecheckInterval: bool = False,
+            retryCount: int = 5) -> bool:
         """
         Downloads the file at `url` to a temporary location before copying it to `filepath`.
         :param url: Web resource to download.
         :param filepath: End destination for downloaded file.
         :param retrievingDueToRecheckInterval: Determines how errors are handled when download is part of a cache recheck.
         :param retryCount: Number of times to retry download.
-        :return: Filepath to successfully downloaded file, otherwise None.
+        :return: Whether `filepath` should now be used.
         """
         tempFilepath = filepath + ".tmp"
         fileExt = os.path.splitext(filepath)[1]
@@ -498,9 +500,9 @@ class WebCache:
                 if fileExt in {".xsd", ".xml", ".xbrl"}:
                     if b"<html" in initialBytes:
                         if retrievingDueToRecheckInterval:
-                            return self.internetRecheckFailedRecovery(filepath, url,
-                                                                      "file contents appear to be an html logon request",
-                                                                      timeNowStr)
+                            err = "file contents appear to be an html logon request"
+                            self.internetRecheckFailedRecovery(url, err, timeNowStr)
+                            return True
                         response = None  # found possible logon request
                         if self.cntlr.hasGui:
                             response = self.cntlr.internet_logon(url, quotedUrl,
@@ -515,12 +517,13 @@ class WebCache:
                                                 messageCode="webCache:invalidRetrieval",
                                                 messageArgs={"URL": url, "contents": initialBytes},
                                                 level=logging.ERROR)
-                            return None
+                            return False
 
                 retryCount = 0
             except (ContentTooShortError, IncompleteRead) as err:
                 if retrievingDueToRecheckInterval:
-                    return self.internetRecheckFailedRecovery(filepath, url, err, timeNowStr)
+                    self.internetRecheckFailedRecovery(url, err, timeNowStr)
+                    return True
                 if retryCount > 1:
                     self.cntlr.addToLog(_("%(error)s \nunsuccessful retrieval of %(URL)s \n%(retryCount)s retries remaining"),
                                         messageCode="webCache:retryingOperation",
@@ -534,7 +537,7 @@ class WebCache:
                                     level=logging.ERROR)
                 if os.path.exists(tempFilepath):
                     os.remove(tempFilepath)
-                return None
+                return False
                 # handle file is bad
             except (HTTPError, URLError) as err:
                 try:
@@ -574,7 +577,8 @@ class WebCache:
                                                     messageArgs={"scheme": scheme, "realm": realm, "URL": url, "error": err},
                                                     level=logging.ERROR)
                     if retrievingDueToRecheckInterval:
-                        return self.internetRecheckFailedRecovery(filepath, url, err, timeNowStr)
+                        self.internetRecheckFailedRecovery(url, err, timeNowStr)
+                        return True
                     if tryWebAuthentication:
                         # check if single signon is requested (on first retry)
                         if retryCount == RETRIEVAL_RETRY_COUNT:
@@ -599,18 +603,19 @@ class WebCache:
                                                 messageCode="webCache:authenticationRequired",
                                                 messageArgs={"URL": url},
                                                 level=logging.ERROR)
-                            return None
+                            return False
 
                 except AttributeError:
                     pass
                 if retrievingDueToRecheckInterval:
-                    return self.internetRecheckFailedRecovery(filepath, url, err, timeNowStr)
+                    self.internetRecheckFailedRecovery(url, err, timeNowStr)
+                    return True
                 self.cntlr.addToLog(_("%(error)s \nretrieving %(URL)s"),
                                     messageCode="webCache:retrievalError",
                                     messageArgs={"error": err.reason if hasattr(err, "reason") else err,
                                                  "URL": url},
                                     level=logging.ERROR)
-                return None
+                return False
 
             except Exception as err:
                 if retryCount > 1:
@@ -621,7 +626,8 @@ class WebCache:
                     retryCount -= 1
                     continue
                 if retrievingDueToRecheckInterval:
-                    return self.internetRecheckFailedRecovery(filepath, url, err, timeNowStr)
+                    self.internetRecheckFailedRecovery(url, err, timeNowStr)
+                    return True
                 if self.cntlr.hasGui:
                     self.cntlr.addToLog(_("%(error)s \nunsuccessful retrieval of %(URL)s \nswitching to work offline"),
                                         messageCode="webCache:attemptingOfflineOperation",
@@ -629,7 +635,7 @@ class WebCache:
                                         level=logging.ERROR)
                     # try working offline
                     self.workOffline = True
-                    return filepath
+                    return False
                 else:  # don't switch offline unexpectedly in scripted (batch) operation
                     self.cntlr.addToLog(_("%(error)s \nunsuccessful retrieval of %(URL)s"),
                                         messageCode="webCache:unsuccessfulRetrieval",
@@ -637,7 +643,7 @@ class WebCache:
                                         level=logging.ERROR)
                     if os.path.exists(tempFilepath):
                         os.remove(tempFilepath)
-                    return None
+                    return False
 
             # rename temporarily named downloaded file to desired name
             if os.path.exists(filepath):
@@ -668,10 +674,10 @@ class WebCache:
                 os.utime(filepath,(webFileTime,webFileTime))
             self.cachedUrlCheckTimes[url] = timeNowStr
             self.cachedUrlCheckTimesModified = True
-            return filepath
-        return None
+            return True
+        return False
 
-    def internetRecheckFailedRecovery(self, filepath, url, err, timeNowStr):
+    def internetRecheckFailedRecovery(self, url: str, err: str | Exception, timeNowStr: str) -> None:
         self.cntlr.addToLog(_("During refresh of web file ignoring error: %(error)s for %(URL)s"),
                             messageCode="webCache:unableToRefreshFile",
                             messageArgs={"URL": url, "error": err},
@@ -679,7 +685,6 @@ class WebCache:
         # skip this checking cycle, act as if retrieval was ok
         self.cachedUrlCheckTimes[url] = timeNowStr
         self.cachedUrlCheckTimesModified = True
-        return filepath
 
     def reportProgress(self, blockCount, blockSize, totalSize):
         if totalSize > 0:
