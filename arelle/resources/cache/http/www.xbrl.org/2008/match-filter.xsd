@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved.   
+ 
+This version is non-normative - it should be identical to the normative version that is contained in Appendix A of the relevant specification except for this comment.
+
+Following the schema maintenance policy of XBRL International, it is the intent (but is not guaranteed) that the location of non-normative versions of these schemas on the web will be as follows:
+
+1)	While any schema is the most current RECOMMENDED version and until it is superseded by any additional errata corrections a non-normative version will reside on the web in the directory http://www.xbrl.org/2008/ - during the drafting process for this specification this directory should contain a copy of the most recent published version of the schema at http://www.xbrl.org/2008/match-filter.xsd.
+
+2)	A non-normative version of each schema as corrected by any update to the RECOMMENDATION will be archived in perpetuity on the web in a directory that will contain a unique identification indicating the date of the update.
+
+-->
+<schema 
+  targetNamespace="http://xbrl.org/2008/filter/match"
+  elementFormDefault="qualified"
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:mf="http://xbrl.org/2008/filter/match" 
+  xmlns:variable="http://xbrl.org/2008/variable" 
+>
+
+  <import namespace="http://www.xbrl.org/2003/XLink" 
+    schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd"/>
+
+  <import namespace="http://xbrl.org/2008/variable" 
+    schemaLocation="../2008/variable.xsd"/>
+
+  <complexType name="match.model" mixed="true">
+    <complexContent mixed="true">
+      <extension base="variable:resource.type">
+        <attribute name="variable" type="variable:QName" use="required"/>
+        <attribute name="matchAny" type="boolean" default="false" use="optional"/>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <complexType name="dimension.match.model" mixed="true">
+    <complexContent mixed="true">
+      <extension base="mf:match.model">
+        <attribute name="dimension" type="QName" use="required"/>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <element id="xml-match-concept-filter"
+  name="matchConcept" 
+  type="mf:match.model" 
+  substitutionGroup="variable:filter"/>
+
+  <element id="xml-match-location-filter"
+  name="matchLocation" 
+  type="mf:match.model" 
+  substitutionGroup="variable:filter"/>
+
+  <element id="xml-match-unit-filter"
+  name="matchUnit" 
+  type="mf:match.model" 
+  substitutionGroup="variable:filter"/>
+
+  <element id="xml-match-entity-identifier-filter"
+  name="matchEntityIdentifier" 
+  type="mf:match.model" 
+  substitutionGroup="variable:filter"/>
+
+  <element id="xml-match-period-filter"
+  name="matchPeriod" 
+  type="mf:match.model" 
+  substitutionGroup="variable:filter"/>
+
+  <element id="xml-match-complete-segment-filter"
+  name="matchSegment" 
+  type="mf:match.model" 
+  substitutionGroup="variable:filter"/>
+
+  <element id="xml-match-complete-scenario-filter"
+  name="matchScenario" 
+  type="mf:match.model" 
+  substitutionGroup="variable:filter"/>
+
+  <element id="xml-match-nonxdt-segment-filter"
+  name="matchNonXDTSegment" 
+  type="mf:match.model" 
+  substitutionGroup="variable:filter"/>
+
+  <element id="xml-match-nonxdt-scenario-filter"
+  name="matchNonXDTScenario" 
+  type="mf:match.model" 
+  substitutionGroup="variable:filter"/>
+
+  <element id="xml-match-dimension-filter"
+  name="matchDimension" 
+  type="mf:dimension.match.model" 
+  substitutionGroup="variable:filter"/>
+
+</schema>

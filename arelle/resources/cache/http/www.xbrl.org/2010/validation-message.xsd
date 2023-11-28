@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2009 XBRL International. All Rights Reserved.  
+ 
+This version is non-normative - it should be identical to the normative version that is contained in Appendix A of the relevant specification except for this comment.
+
+Following the schema maintenance policy of XBRL International, it is the intent (but is not guaranteed) that the location of non-normative versions of these schemas on the web will be as follows:
+
+1)      While any schema is the most current RECOMMENDED version and until it is superseded by any additional errata corrections a non-normative version will reside on the web in the directory http://www.xbrl.org/2008/ - during the drafting process for this specification this directory should contain a copy of the most recent published version of the schema at http://www.xbrl.org/2010/validation-message.xsd.
+
+2)      A non-normative version of each schema as corrected by any update to the RECOMMENDATION will be archived in perpetuity on the web in a directory that will contain a unique identification indicating the date of the update.
+
+-->
+<schema 
+  targetNamespace="http://xbrl.org/2010/message/validation"
+  elementFormDefault="qualified"
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:gen="http://xbrl.org/2008/generic" 
+  xmlns:xl="http://www.xbrl.org/2003/XLink"   
+  xmlns:valm="http://xbrl.org/2010/message/validation" 
+>
+
+  <import 
+    namespace="http://xbrl.org/2008/generic"
+    schemaLocation="http://www.xbrl.org/2008/generic-link.xsd" />
+
+  <import namespace="http://www.xbrl.org/2003/XLink" 
+    schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd"/>  
+
+  <annotation>
+    <appinfo>
+      
+      <link:arcroleType id="assertion-satisfied-message"
+        cyclesAllowed="undirected" 
+        arcroleURI="http://xbrl.org/arcrole/2010/assertion-satisfied-message">
+        <link:definition>assertion has message for satisfied evaluations</link:definition>
+        <link:usedOn>gen:arc</link:usedOn>
+      </link:arcroleType>
+      
+      <link:arcroleType id="assertion-unsatisfied-message"
+        cyclesAllowed="undirected" 
+        arcroleURI="http://xbrl.org/arcrole/2010/assertion-unsatisfied-message">
+        <link:definition>assertion has message for unsatisfied evaluations</link:definition>
+        <link:usedOn>gen:arc</link:usedOn>
+      </link:arcroleType>
+      
+    </appinfo>
+  </annotation>
+  
+</schema>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2013-2016 XBRL International. All Rights Reserved. 
+     http://www.XBRL.org/legal/ This document may be copied and furnished to
+     others, and derivative works that comment on or otherwise explain it or
+     assist in its implementation may be prepared, copied, published and
+     distributed, in whole or in part, without restriction of any kind,
+     provided that the above copyright notice and this paragraph are included
+     on all such copies and derivative works. XBRL(r), is a trademark or
+     service mark of XBRL International, Inc., registered in the United States
+     and in other countries. -->
+<xsd:schema xmlns:tp="http://xbrl.org/2016/taxonomy-package" 
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+    xmlns:xml="http://www.w3.org/XML/1998/namespace" 
+    attributeFormDefault="unqualified" elementFormDefault="qualified" 
+    targetNamespace="http://xbrl.org/2016/taxonomy-package"
+>
+
+<xsd:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="http://www.w3.org/2001/03/xml.xsd"/> 
+
+  <xsd:element name="taxonomyPackage" type="tp:taxonomyPackageType" />
+  
+  <xsd:complexType name="taxonomyPackageType">
+    <xsd:sequence>
+      <xsd:element name="identifier" type="tp:uriType" minOccurs="1" maxOccurs="1"/>    
+      <xsd:group ref="tp:documentationGroup" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="version" type="tp:stringType" minOccurs="0" maxOccurs="1"/>    
+      <xsd:element name="license" type="tp:licenseType" minOccurs="0" maxOccurs="1"/>    
+      <xsd:element name="publisher" type="tp:stringType" minOccurs="0" maxOccurs="unbounded"/>    
+      <xsd:element name="publisherURL" type="tp:uriType" minOccurs="0" maxOccurs="1"/>    
+      <xsd:element name="publisherCountry" type="tp:countryType" minOccurs="0" maxOccurs="1"/>    
+      <xsd:element name="publicationDate" type="tp:dateType" minOccurs="0" maxOccurs="1"/>    
+      <xsd:element name="entryPoints" type="tp:entryPointsType" minOccurs="0" maxOccurs="1" />
+      <xsd:element name="supersededTaxonomyPackages" type="tp:supersededTaxonomyPackagesType" minOccurs="0" maxOccurs="1" />
+      <xsd:element name="versioningReports" type="tp:versioningReportsType" minOccurs="0" maxOccurs="1" />
+      <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute namespace="##any" processContents="lax" />
+  </xsd:complexType>
+  
+  <xsd:complexType name="licenseType">
+    <xsd:sequence>
+    </xsd:sequence>
+    <xsd:attribute name="href" type="xsd:anyURI" use="required" />
+    <xsd:attribute name="name" type="xsd:string" use="required" />
+    <xsd:anyAttribute namespace="##any" processContents="lax" />
+  </xsd:complexType>
+  
+  <xsd:complexType name="entryPointsType">
+    <xsd:sequence>
+      <xsd:element name="entryPoint" type="tp:entryPointType" minOccurs="0" maxOccurs="unbounded" /> 
+      <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute namespace="##any" processContents="lax" />
+  </xsd:complexType>
+  
+  <xsd:complexType name="entryPointType">
+    <xsd:sequence>
+      <xsd:group ref="tp:documentationGroup" minOccurs="0" maxOccurs="unbounded" />
+      <xsd:element name="version" type="tp:stringType" minOccurs="0" maxOccurs="1"/>    
+      <xsd:element name="entryPointDocument" type="tp:documentReferenceType" minOccurs="1" maxOccurs="unbounded" />
+      <xsd:element name="languages" type="tp:languagesType" minOccurs="0" maxOccurs="1" />
+      <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute namespace="##any" processContents="lax" />
+  </xsd:complexType>
+  
+  <xsd:complexType name="documentReferenceType">
+    <xsd:sequence minOccurs="0" maxOccurs="unbounded">
+      <xsd:any namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:attribute name="href" type="xsd:anyURI" use="required" />
+    <xsd:anyAttribute namespace="##any" processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:complexType name="supersededTaxonomyPackagesType">
+    <xsd:sequence>
+      <xsd:element name="taxonomyPackageRef" type="tp:uriType" minOccurs="0" maxOccurs="unbounded" />
+      <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax" /> 
+    </xsd:sequence>
+    <xsd:anyAttribute namespace="##any" processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:complexType name="versioningReportsType">
+    <xsd:sequence>
+      <xsd:element name="versioningReport" type="tp:documentReferenceType" minOccurs="0" maxOccurs="unbounded" />
+      <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax" /> 
+    </xsd:sequence>
+    <xsd:anyAttribute namespace="##any" processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:group name="documentationGroup">
+    <xsd:choice>
+      <xsd:element name="name" type="tp:stringType" />
+      <xsd:element name="description" type="tp:stringType" />
+    </xsd:choice>
+  </xsd:group>
+
+  <xsd:complexType name="languagesType">
+    <xsd:sequence>
+      <xsd:element name="language" type="tp:languageType" minOccurs="0" maxOccurs="unbounded"/>    
+      <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute namespace="##any" processContents="lax" />
+  </xsd:complexType>
+  
+  <xsd:complexType name="stringType">
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:string">
+        <xsd:anyAttribute namespace="##any" processContents="lax" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="countryType">
+    <xsd:simpleContent>
+      <xsd:extension base="tp:countrySimpleType">
+        <xsd:anyAttribute namespace="##any" processContents="lax" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="languageType">
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:language">
+        <xsd:anyAttribute namespace="##any" processContents="lax" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:simpleType name="countrySimpleType">
+    <xsd:restriction base="xsd:string">
+      <xsd:length value="2" />
+      <xsd:pattern value="[A-Z]{2}" />
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:complexType name="uriType">
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:anyURI">
+        <xsd:anyAttribute namespace="##any" processContents="lax" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="dateType">
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:date">
+        <xsd:anyAttribute namespace="##any" processContents="lax" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  
+</xsd:schema>
+

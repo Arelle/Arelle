@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema targetNamespace="http://www.xbrl.org/taxonomy/int/lei/2020-07-02" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:lei="http://www.xbrl.org/taxonomy/int/lei/2020-07-02" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <xsd:annotation>
+    <xsd:appinfo>
+      <link:linkbaseRef xlink:type="simple" xlink:href="lei-formula.xml" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+      <link:linkbaseRef xlink:type="simple" xlink:href="lei-label.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+    </xsd:appinfo>
+  </xsd:annotation>
+  <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xsd:element name="LEI" id="lei_LEI" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="duration" type="lei:leiItemType" />
+  <xsd:complexType name="leiItemType">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:stringItemType">
+        <xsd:pattern value="[0-9A-Z]{18}[0-9]{2}"/>
+        <xsd:length value="20"/>
+        <xsd:attributeGroup ref="xbrli:nonNumericItemAttrs"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:element abstract="false" id="LEIDomain" name="LEIDomain" nillable="false" type="lei:leiType"/>
+
+  <xsd:simpleType name="leiType">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="[0-9A-Z]{18}[0-9]{2}"/>
+      <xsd:length value="20"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2013-2023 XBRL International. All Rights Reserved. 
+     http://www.XBRL.org/legal/ This document may be copied and furnished to
+     others, and derivative works that comment on or otherwise explain it or
+     assist in its implementation may be prepared, copied, published and
+     distributed, in whole or in part, without restriction of any kind,
+     provided that the above copyright notice and this paragraph are included
+     on all such copies and derivative works. XBRL(r), is a trademark or
+     service mark of XBRL International, Inc., registered in the United States
+     and in other countries. -->
+<xsd:schema 
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+    xmlns:xml="http://www.w3.org/XML/1998/namespace" 
+    xmlns:link="http://www.xbrl.org/2003/linkbase"
+    attributeFormDefault="unqualified" elementFormDefault="qualified" 
+    targetNamespace="https://xbrl.org/2023/calculation-1.1"
+>
+  <xsd:annotation>
+    <xsd:appinfo>
+      <link:arcroleType arcroleURI="https://xbrl.org/2023/arcrole/summation-item" id="summation-item" cyclesAllowed="undirected">
+        <link:definition>Calculation v1.1 summation-item arcrole</link:definition>
+        <link:usedOn>link:calculationArc</link:usedOn>
+	  </link:arcroleType> 
+	</xsd:appinfo>
+  </xsd:annotation>
+</xsd:schema>
+

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. 
+ 
+This version is non-normative - it should be identical to the normative version that is contained in Appendix A of the relevant specification except for this comment.
+
+Following the schema maintenance policy of XBRL International, it is the intent (but is not guaranteed) that the location of non-normative versions of these schemas on the web will be as follows:
+
+1)	While any schema is the most current RECOMMENDED version and until it is superseded by any additional errata corrections a non-normative version will reside on the web in the directory http://www.xbrl.org/2010/ - during the drafting process for this specification this directory should contain a copy of the most recent published version of the schema at http://www.xbrl.org/2010/concept-relation-filter.xsd.
+
+2)	A non-normative version of each schema as corrected by any update to the RECOMMENDATION will be archived in perpetuity on the web in a directory that will contain a unique identification indicating the date of the update.
+
+-->
+<schema 
+  targetNamespace="http://xbrl.org/2010/filter/concept-relation"
+  elementFormDefault="qualified"
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:crf="http://xbrl.org/2010/filter/concept-relation" 
+  xmlns:variable="http://xbrl.org/2008/variable"
+>
+
+  <import namespace="http://www.xbrl.org/2003/XLink" 
+    schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd"/>
+
+  <import namespace="http://xbrl.org/2008/variable" 
+    schemaLocation="../2008/variable.xsd"/>
+
+  <!--
+  <complexType id="xml-test-attribute-model" name="test.attribute.model">
+    <complexType mixed="true">
+      <complexContent>
+        <extension base="variable:expression">
+        <attribute name="qname" type="QName"/>
+        <attribute name="complement" type="boolean"/>
+    </choice>
+  </complexType>
+
+  <complexType id="xml-test-elementname-model" name="test.elementname.model">
+    <complexType mixed="true">
+      <complexContent>
+        <extension base="variable:expression">
+        <attribute name="complement" type="boolean"/>
+    </choice>
+  </complexType>
+  -->
+
+  <element id="xml-concept-relation-filter"
+  name="conceptRelation" substitutionGroup="variable:filter">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="variable:resource.type">
+          <sequence>
+            <choice>
+              <element name="variable" type="variable:QName"/>
+              <element name="qname" type="QName"/>
+              <element name="qnameExpression" type="variable:expression"/>
+            </choice>
+            <choice>
+              <element name="linkrole" type="anyURI"/>
+              <element name="linkroleExpression" type="variable:expression"/>
+            </choice>
+            <choice minOccurs='0'>
+              <element name="linkname" type="QName"/>
+              <element name="linknameExpression" type="variable:expression"/>
+            </choice>
+            <choice>
+              <element name="arcrole" type="anyURI"/>
+              <element name="arcroleExpression" type="variable:expression"/>
+            </choice>
+            <choice minOccurs='0'>
+              <element name="arcname" type="QName"/>
+              <element name="arcnameExpression" type="variable:expression"/>
+            </choice>
+            <!--
+            <sequence minOccurs="0" maxOccurs="unbounded">
+                <choice>
+                  <element name="arcAttribute" type="crf:test.attribute.model"/>
+                  <element name="arcQName" type="crf:test.elementname.model"/>
+                  <element name="linkAttribute" type="crf:test.attribute.model"/>
+                  <element name="linkQName" type="crf:test.elementname.model"/>
+                </choice>
+            </sequence>
+            -->
+            <element name="axis">
+              <simpleType>
+                <restriction base="token">
+                  <enumeration value="child-or-self"/>
+                  <enumeration value="child"/>
+                  <enumeration value="descendant-or-self"/>
+                  <enumeration value="descendant"/>
+                  <enumeration value="parent-or-self"/>
+                  <enumeration value="parent"/>
+                  <enumeration value="ancestor-or-self"/>
+                  <enumeration value="ancestor"/>
+                  <enumeration value="sibling"/>
+                  <enumeration value="sibling-or-self"/>
+                  <enumeration value="sibling-or-descendant"/>
+                </restriction>
+              </simpleType>
+            </element>
+            <element name="generations" type="nonNegativeInteger"  minOccurs="0" /> 
+          </sequence>
+          <attribute name="test" type="variable:expression" use="optional"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+  
+</schema>
