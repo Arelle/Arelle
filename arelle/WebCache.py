@@ -113,6 +113,7 @@ class WebCache:
                 self.encodeFileChars = re.compile(r'[<>:"\\|?*^]')
             else:
                 self.encodeFileChars = re.compile(r'[:^]')
+        self.builtInCacheDir = os.path.abspath(os.path.join(__file__, '..', 'resources', 'cache'))
         self.decodeFileChars = re.compile(r'\^[0-9]{3}')
         self.workOffline: bool = False
         self._logDownloads = False
@@ -261,21 +262,24 @@ class WebCache:
         #self.opener.close()
         #self.opener = WebCacheUrlOpener(self.cntlr, proxyDirFmt(httpProxyTuple))
 
-    def normalizeFilepath(self, filepath: str, url: str) -> str:
+    def normalizeFilepath(self, filepath: str, url: str, cacheDir: str = None) -> str:
         """
         Perform any necessary transformations to filepath.
         :param filepath: Filepath to normalize.
         :param url: Original URL (for http/https redirect).
+        :param cacheDir: Cache root directory.
         :return: Normalized filepath.
         """
+        if cacheDir is None:
+            cacheDir = self.cacheDir
         if self.httpsRedirect:
             if not os.path.exists(filepath):
                 # if enabled, check for missing files in their inverse http/https cache directory
                 redirect = None
                 if url.startswith('http://'):
-                    redirect = self.urlToCacheFilepath('https' + url[4:])
+                    redirect = self.urlToCacheFilepath('https' + url[4:], cacheDir=cacheDir)
                 elif url.startswith('https://'):
-                    redirect = self.urlToCacheFilepath('http' + url[5:])
+                    redirect = self.urlToCacheFilepath('http' + url[5:], cacheDir=cacheDir)
                 if redirect and os.path.exists(redirect):
                     filepath = redirect
         if filepath.endswith("/"):
@@ -325,6 +329,12 @@ class WebCache:
         return self.encodeFileChars.sub(lambda m: '^{0:03}'.format(ord(m.group(0))), pathpart)
 
     def urlToCacheFilepath(self, url: str, cacheDir: str | None = None) -> str:
+        """
+        Converts `url` into the corresponding cache filepath in `cacheDir.
+        :param url: URL to convert.
+        :param cacheDir: Cache root directory.
+        :return: Cache filepath.
+        """
         if cacheDir is None:
             cacheDir = self.cacheDir
         scheme, sep, path = url.partition("://")
@@ -399,13 +409,20 @@ class WebCache:
 
         # Make any necessary transformations to filepath
         filepath = self.normalizeFilepath(filepath, url)
+        filepathExists = os.path.exists(filepath)
+
+        # If cache filepath does not exist, try built-in cache
+        if self.workOffline and not filepathExists:
+            builtInFilepath = self.normalizeFilepath(self.urlToCacheFilepath(url, cacheDir=self.builtInCacheDir), url)
+            if os.path.exists(builtInFilepath):
+                return builtInFilepath
 
         # Return filepath now if configured not to download
         if self.workOffline or filenameOnly:
             return filepath
 
         # Download without checking age if configured to do so or file does not exist
-        if reload or not os.path.exists(filepath):
+        if reload or not filepathExists:
             return filepath if self._downloadFile(url, filepath) else None
 
         # Determine if file has aged out of cache, return filepath if not
