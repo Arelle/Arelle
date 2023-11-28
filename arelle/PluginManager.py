@@ -223,9 +223,8 @@ def freshenModuleInfos():
         removePluginModule(moduleName)
         # Try re-adding plugin modules by name (for plugins that moved from built-in to pip installed)
         moduleInfo = addPluginModule(moduleName)
-        moduleName = moduleInfo["name"]
         if moduleInfo:
-            pluginConfig["modules"][moduleName] = moduleInfo
+            pluginConfig["modules"][moduleInfo["name"]] = moduleInfo
             loadModule(moduleInfo)
             logPluginTrace(_("Reloaded plugin that failed loading: {} {}").format(moduleName, moduleInfo), logging.INFO)
         else:

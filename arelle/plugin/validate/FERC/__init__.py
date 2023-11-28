@@ -1,12 +1,29 @@
-'''
-Filer Guidelines:
-    Basically EFM 5.2.2.1, 5.2.2.6,  5.2.2.10,  5.2.5.4, 5.2.5.5(Inline XBRL), 5.2.5.6(Inline XBRL),
-                  5.2.5.7, 5.2.5.8, 5.2.5.9, 5.2.5.10,
-                  6.5.3, 6.5.4, 6.5.7, 6.5.8, 6.5.14, 6.5.15, 6.5.16, 6.5.17
-    Filers can only submit an instance so EFM DTS checks are not needed.
-
+"""
 See COPYRIGHT.md for copyright information.
-'''
+
+Filer Guidelines:
+Basically EFM
+- 5.2.2.1
+- 5.2.2.6
+- 5.2.2.10
+- 5.2.5.4
+- 5.2.5.5 (Inline XBRL)
+- 5.2.5.6 (Inline XBRL)
+- 5.2.5.7
+- 5.2.5.8
+- 5.2.5.9
+- 5.2.5.10
+- 6.5.3
+- 6.5.4
+- 6.5.7
+- 6.5.8
+- 6.5.14
+- 6.5.15
+- 6.5.16
+- 6.5.17
+
+Filers can only submit an instance so EFM DTS checks are not needed.
+"""
 import os
 import regex as re
 from arelle import ModelDocument, ValidateFilingText, XmlUtil

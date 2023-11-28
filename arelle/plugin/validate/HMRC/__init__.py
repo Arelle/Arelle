@@ -1,14 +1,12 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 
 References:
-  https://xbrl.frc.org.uk (taxonomies, filing requirements, consistency checks)
-  https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434597/joint-filing-validation-checks.pdf
-  https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/893127/Joint-Filing-Common-Validation-Checks-v4.0.pdf
 
-  Style Guide: https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434588/xbrl-style-guide.pdf
-
-'''
+- <https://xbrl.frc.org.uk> (taxonomies, filing requirements, consistency checks)
+- [Joint Filing Common Validation Checks](https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434597/joint-filing-validation-checks.pdf)
+- [HMRC CT Inline XBRL Style Guide](https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434588/xbrl-style-guide.pdf)
+"""
 import os
 from math import isnan
 from arelle import ModelDocument, XmlUtil

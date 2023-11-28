@@ -1,6 +1,10 @@
 # Getting Started
 
+:::{index} Plugins Getting Started
+:::
+
 ## Entry Point
+
 There are two primary ways to create an Arelle plugin: via a standalone script or a module (directory).
 
 If using the script approach, your plugin's *entry point* is the script itself (`myplugin.py`)
@@ -61,6 +65,7 @@ __pluginInfo__ = {
 ```
 
 ## Plugin Functionality
+
 Arelle is configured to search for and run plugin code at predetermined places.
 These predetermined places are referred to as *hooks*.
 

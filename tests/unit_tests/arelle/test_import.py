@@ -10,15 +10,15 @@ KNOWN_FAILURES = frozenset([
     'arelle.PrototypeDtsObject',
     'arelle.ViewCsvRelationshipSet',
     'arelle.ViewWinRenderedGrid',
-    'arelle.examples.LoadSavePreLbCsv',
-    'arelle.examples.SaveTableToExelle',
-    'arelle.examples.TR3toTR4',
+    'arelle.archive.LoadSavePreLbCsv',
+    'arelle.archive.SaveTableToExelle',
+    'arelle.archive.TR3toTR4',
+    'arelle.archive.plugin.loadFromOIM-2018',
+    'arelle.archive.plugin.sphinx.SphinxEvaluator',
+    'arelle.archive.plugin.validate.XFsyntax.xf',
     'arelle.formula.FormulaEvaluator',
-    'arelle.plugin.loadFromOIM-2018',
-    'arelle.plugin.sphinx.SphinxEvaluator',
     'arelle.plugin.validate.EFM-htm.Const',
     'arelle.plugin.validate.EFM-htm.__init__',
-    'arelle.plugin.validate.XFsyntax.xf',
 ])
 MODULE_NAMES = [
     g.replace('/', '.').replace('\\', '.').replace('.py', '')

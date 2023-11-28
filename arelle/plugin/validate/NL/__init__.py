@@ -1,14 +1,12 @@
 """
 See COPYRIGHT.md for copyright information.
 
-Filer Manual Guidelines: https://www.sbr-nl.nl/werken-met-sbr/taxonomie/documentatie-nederlandse-taxonomie
-
-https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/20220101%20KvK%20Filing%20Rules%20NT%2016%20v1_0.pdf
-https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/20230101%20KvK%20Filing%20Rules%20NT17%20v1_1.pdf
-
-https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/SBR%20Filing%20Rules%20NT16%20-%2020210301_0.pdf
-https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/SBR%20Filing%20Rules%20NT17%20-%2020220301__.pdf
-https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/SBR%20Filing%20Rules%20NT18%20-%2020230301_.pdf
+- [Filer Manual Guidelines](https://www.sbr-nl.nl/werken-met-sbr/taxonomie/documentatie-nederlandse-taxonomie)
+- [Kamer van Koophandel Filing Rules - NT16](https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/20220101%20KvK%20Filing%20Rules%20NT%2016%20v1_0.pdf)
+- [Kamer van Koophandel Filing Rules - NT17](https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/20230101%20KvK%20Filing%20Rules%20NT17%20v1_1.pdf)
+- [SBR Filing Rules - NT16](https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/SBR%20Filing%20Rules%20NT16%20-%2020210301_0.pdf)
+- [SBR Filing Rules - NT17](https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/SBR%20Filing%20Rules%20NT17%20-%2020220301__.pdf)
+- [SBR Filing Rules - NT18](https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/SBR%20Filing%20Rules%20NT18%20-%2020230301_.pdf)
 """
 from __future__ import annotations
 

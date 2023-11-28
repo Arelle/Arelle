@@ -151,7 +151,7 @@ jobs:
           echo MAC_BUILD_CERTIFICATE_NAME="$MAC_BUILD_CERTIFICATE_NAME"
 
           # Move python modules to Resources
-          for f in config doc examples images locale plugin scripts Tktable2.11 ;
+          for f in archive config doc examples images locale plugin scripts Tktable2.11 ;
             do
               mv build/Arelle.app/Contents/MacOS/$f build/Arelle.app/Contents/Resources/
             done

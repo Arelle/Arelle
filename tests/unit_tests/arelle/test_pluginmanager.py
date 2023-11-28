@@ -94,14 +94,14 @@ def test_plugin_manager_reset():
         # Test case 2
         (
             # Test data
-            ("arelle/plugin/", "sphinx/__init__.py", "xyz"),
+            ("arelle/plugin/", "xbrlDB/__init__.py", "xyz"),
             # Expected result
-            ("sphinx", "arelle/plugin", "sphinx.")
+            ("xbrlDB", "arelle/plugin", "xbrlDB.")
         ),
         # Test case 3
         (
             # Test data
-            ("plugin/sphinx", None, "xyz"),
+            ("plugin/xbrlDB", None, "xyz"),
             # Expected result
             (None, None, None)
         ),
