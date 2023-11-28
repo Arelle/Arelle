@@ -261,6 +261,29 @@ class WebCache:
         #self.opener.close()
         #self.opener = WebCacheUrlOpener(self.cntlr, proxyDirFmt(httpProxyTuple))
 
+    def normalizeFilepath(self, filepath: str, url: str) -> str:
+        """
+        Perform any necessary transformations to filepath.
+        :param filepath: Filepath to normalize.
+        :param url: Original URL (for http/https redirect).
+        :return: Normalized filepath.
+        """
+        if self.httpsRedirect:
+            if not os.path.exists(filepath):
+                # if enabled, check for missing files in their inverse http/https cache directory
+                redirect = None
+                if url.startswith('http://'):
+                    redirect = self.urlToCacheFilepath('https' + url[4:])
+                elif url.startswith('https://'):
+                    redirect = self.urlToCacheFilepath('http' + url[5:])
+                if redirect and os.path.exists(redirect):
+                    filepath = redirect
+        if filepath.endswith("/"):
+            filepath += DIRECTORY_INDEX_FILE
+        if os.sep == '\\':
+            filepath = filepath.replace('/', '\\')
+        return filepath
+
     def normalizeUrl(self, url: Optional[str], base: Optional[str] = None) -> Any:
         if url:
             if url.startswith("file://"): url = url[7:]
@@ -348,71 +371,68 @@ class WebCache:
             return url
         if base is not None or normalize:
             url = self.normalizeUrl(url, base)
-        urlScheme, schemeSep, urlSchemeSpecificPart = url.partition("://")
-        if schemeSep and urlScheme in ("http", "https"):
-            # is this a mapped archive file contents?
-            _archiveFileNameParts = archiveFilenameParts(url)
-            if _archiveFileNameParts:
-                _archiveFilename = self.getfilename(_archiveFileNameParts[0], reload=reload, checkModifiedTime=checkModifiedTime)
-                if _archiveFilename:
-                    return os.path.join(_archiveFilename, _archiveFileNameParts[1])
-                return None
-            # form cache file name (substituting _ for any illegal file characters)
-            filepath = self.urlToCacheFilepath(url)
-            if self.httpsRedirect:
-                if not os.path.exists(filepath):
-                    # if enabled, check for missing files in their inverse http/https cache directory
-                    redirect = None
-                    if url.startswith('http://'):
-                        redirect = self.urlToCacheFilepath('https' + url[4:])
-                    elif url.startswith('https://'):
-                        redirect = self.urlToCacheFilepath('http' + url[5:])
-                    if redirect and os.path.exists(redirect):
-                        filepath = redirect
-            if self.cacheDir == SERVER_WEB_CACHE:
-                # server web-cached files are downloaded when opening to prevent excessive memcache api calls
-                return filepath
-            # handle default directory requests
-            if filepath.endswith("/"):
-                filepath += DIRECTORY_INDEX_FILE
-            if os.sep == '\\':
-                filepath = filepath.replace('/', '\\')
-            if self.workOffline or filenameOnly:
-                return filepath
-            timeNow = time.time()
-            timeNowStr = WebCache._getTimeString(timeNow)
-            retrievingDueToRecheckInterval = False
-            if not reload and os.path.exists(filepath):
-                if url in self.cachedUrlCheckTimes and not checkModifiedTime:
-                    cachedTime = calendar.timegm(time.strptime(self.cachedUrlCheckTimes[url], '%Y-%m-%dT%H:%M:%S UTC'))
-                else:
-                    cachedTime = 0
-                if timeNow - cachedTime > self.maxAgeSeconds:
-                    # weekly check if newer file exists
-                    newerOnWeb = False
-                    # quotedUrl has scheme-specific-part quoted except for parameter separators
-                    quotedUrl = WebCache._quotedUrl(url)
-                    try: # no provision here for proxy authentication!!!
-                        remoteFileTime = lastModifiedTime( self.getheaders(quotedUrl) )
-                        if remoteFileTime and remoteFileTime > os.path.getmtime(filepath):
-                            newerOnWeb = True
-                    except:
-                        pass # for now, forget about authentication here
-                    if not newerOnWeb:
-                        # update ctime by copying file and return old file
-                        self.cachedUrlCheckTimes[url] = timeNowStr
-                        self.cachedUrlCheckTimesModified = True
-                        return filepath
-                    retrievingDueToRecheckInterval = True
-                else:
-                    return filepath
-            return self._downloadFile(url, filepath, retrievingDueToRecheckInterval)
 
-        if url.startswith("file://"): url = url[7:]
-        elif url.startswith("file:\\"): url = url[6:]
-        if os.sep == '\\':
-            url = url.replace('/', '\\')
-        return url
+        # Handle non-http, non-https URLS
+        urlScheme, schemeSep, urlSchemeSpecificPart = url.partition("://")
+        if not schemeSep or urlScheme not in ("http", "https"):
+            if url.startswith("file://"): url = url[7:]
+            elif url.startswith("file:\\"): url = url[6:]
+            if os.sep == '\\':
+                url = url.replace('/', '\\')
+            return url
+
+        # Handle archive URLs with recursive call
+        _archiveFileNameParts = archiveFilenameParts(url)
+        if _archiveFileNameParts:
+            _archiveFilename = self.getfilename(_archiveFileNameParts[0], reload=reload, checkModifiedTime=checkModifiedTime)
+            if _archiveFilename:
+                return os.path.join(_archiveFilename, _archiveFileNameParts[1])
+            return None
+
+        # Generate cache filepath from url
+        filepath = self.urlToCacheFilepath(url)
+
+        # Handle server web cache
+        if self.cacheDir == SERVER_WEB_CACHE:
+            # server web-cached files are downloaded when opening to prevent excessive memcache api calls
+            return filepath
+
+        # Make any necessary transformations to filepath
+        filepath = self.normalizeFilepath(filepath, url)
+
+        # Return filepath now if configured not to download
+        if self.workOffline or filenameOnly:
+            return filepath
+
+        # Download without checking age if configured to do so or file does not exist
+        if reload or not os.path.exists(filepath):
+            return self._downloadFile(url, filepath, False)
+
+        # Determine if file has aged out of cache, return filepath if not
+        if url in self.cachedUrlCheckTimes and not checkModifiedTime:
+            cachedTime = calendar.timegm(time.strptime(self.cachedUrlCheckTimes[url], '%Y-%m-%dT%H:%M:%S UTC'))
+        else:
+            cachedTime = 0
+        timeNow = time.time()
+        if timeNow - cachedTime <= self.maxAgeSeconds:
+            return filepath
+
+        # weekly check if newer file exists
+        newerOnWeb = False
+        # quotedUrl has scheme-specific-part quoted except for parameter separators
+        quotedUrl = WebCache._quotedUrl(url)
+        try: # no provision here for proxy authentication!!!
+            remoteFileTime = lastModifiedTime( self.getheaders(quotedUrl) )
+            if remoteFileTime and remoteFileTime > os.path.getmtime(filepath):
+                newerOnWeb = True
+        except:
+            pass # for now, forget about authentication here
+        if not newerOnWeb:
+            # update ctime by copying file and return old file
+            self.cachedUrlCheckTimes[url] = WebCache._getTimeString(timeNow)
+            self.cachedUrlCheckTimesModified = True
+            return filepath
+        return self._downloadFile(url, filepath, True)
 
     @staticmethod
     def _getTimeString(timeValue: time.time) -> str:
