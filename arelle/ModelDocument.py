@@ -1609,18 +1609,10 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False):
                             for _target in sourceFactTargets:
                                 targetRoleUris[_target].add(footnoteRole)
 
-    allContextRefs = set()
-    targetsShareContexts = False
-    for contextRefs in factTargetContextRefs.values():
-        if contextRefs & allContextRefs:
-            targetsShareContexts = True
-        allContextRefs |= contextRefs
-    allUnitRefs = set()
-    targetsShareUnits = False
-    for unitRefs in factTargetUnitRefs.values():
-        if unitRefs & allUnitRefs:
-            targetsShareUnits = True
-        allUnitRefs |= unitRefs
+    contextRefs = factTargetContextRefs[ixdsTarget]
+    unitRefs = factTargetUnitRefs[ixdsTarget]
+    allContextRefs = set.union(*factTargetContextRefs.values())
+    allUnitRefs = set.union(*factTargetUnitRefs.values())
 
     # discovery of contexts, units and roles which are used by target document
     for htmlElement in modelXbrl.ixdsHtmlElements:
@@ -1628,8 +1620,6 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False):
         ixNStag = mdlDoc.ixNStag
 
         for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "resources"):
-            contextRefs = factTargetContextRefs[ixdsTarget]
-            unitRefs = factTargetUnitRefs[ixdsTarget]
             for elt in inlineElement.iterchildren("{http://www.xbrl.org/2003/instance}context"):
                 id = elt.get("id")
                 if id in contextRefs or (not ixdsTarget and id not in allContextRefs):
