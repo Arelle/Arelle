@@ -422,6 +422,8 @@ def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args, **kwargs):
                 efmFiling.accessionNumber = entryPoint["accessionNumber"]
             efmFiling.arelleUnitTests = modelXbrl.arelleUnitTests.copy() # allow unit tests to be used after instance processing finished
             for supplementalXbrl in getattr(modelXbrl, "supplementalModelXbrls", []):
+                if hasattr(supplementalXbrl, "ixdsDocUrls"):
+                    entryPoint = {"ixds":[{"file":f} for f in supplementalXbrl.ixdsDocUrls]}
                 xbrlLoaded(cntlr, options, supplementalXbrl, entryPoint)
         elif modelXbrl.modelDocument.type == Type.RSSFEED:
             testcasesStart(cntlr, options, modelXbrl)

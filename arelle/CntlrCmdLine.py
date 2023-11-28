@@ -1043,13 +1043,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                                         time.time() - startedAt),
                                                         messageCode="info", file=self.entrypointFile)
 
-
                         if options.testReport:
                             ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport, options.testReportCols)
-
+    
                         if options.rssReport:
                             ViewFileRssFeed.viewRssFeed(self.modelManager.modelXbrl, options.rssReport, options.rssReportCols)
-
+    
                         if options.DTSFile:
                             ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)
                         if options.factsFile:
