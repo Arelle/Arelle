@@ -188,6 +188,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
         if hasattr(modelXbrl, "ixdsHtmlElements"): # has any inline root elements
             if ixdocs:
                 loadDTS(modelXbrl, ixdocset)
+                modelXbrl.isSupplementalIxdsTarget = True
             inlineIxdsDiscover(modelXbrl, ixdocset, bool(ixdocs)) # compile cross-document IXDS references
             return ixdocset
     return None

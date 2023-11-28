@@ -249,12 +249,16 @@ class ModelRelationshipSet:
         return self.loadModelRelationshipsFrom()
 
     def fromModelObject(self, modelFrom) -> list[ModelRelationship]:
+        if getattr(self.modelXbrl, "isSupplementalIxdsTarget", False) and modelFrom is not None and modelFrom.modelXbrl != self.modelXbrl:
+            modelFrom = self.modelXbrl.qnameConcepts.get(modelFrom.qname, None)
         return self.loadModelRelationshipsFrom().get(modelFrom, [])
 
     def toModelObjects(self) -> dict[Any, list[ModelRelationship]]:
         return self.loadModelRelationshipsTo()
 
     def toModelObject(self, modelTo) -> list[ModelRelationship]:
+        if getattr(self.modelXbrl, "isSupplementalIxdsTarget", False) and modelTo is not None and modelTo.modelXbrl != self.modelXbrl:
+            modelFrom = self.modelXbrl.qnameConcepts.get(modelTo.qname, None)
         return self.loadModelRelationshipsTo().get(modelTo, [])
 
     def fromToModelObjects(self, modelFrom, modelTo, checkBothDirections=False) -> list[ModelRelationship]:
@@ -280,6 +284,11 @@ class ModelRelationshipSet:
     # if only modelFrom, determine that there are relationships present of specified axis
     def isRelated(self, modelFrom, axis, modelTo=None, visited=None, isDRS=False): # either model concept or qname
         assert self.modelXbrl is not None
+        if getattr(self.modelXbrl, "isSupplementalIxdsTarget", False):
+            if modelFrom is not None and modelFrom.modelXbrl != self.modelXbrl:
+                modelFrom = modelFrom.qname
+            if modelTo is not None and modelTo.modelXbrl != self.modelXbrl:
+                modelTo = modelTo.qname
         if isinstance(modelFrom,ModelValue.QName):
             modelFrom = self.modelXbrl.qnameConcepts.get(modelFrom) # fails if None
         if isinstance(modelTo,ModelValue.QName):
