@@ -417,22 +417,30 @@ class WebCache:
         if timeNow - cachedTime <= self.maxAgeSeconds:
             return filepath
 
-        # weekly check if newer file exists
-        newerOnWeb = False
+        # If we determine that the web version is newer, download it
+        if self._checkIfNewerOnWeb(url, filepath):
+            return self._downloadFile(url, filepath, True)
+        # Otherwise, use existing file
+        self.cachedUrlCheckTimes[url] = WebCache._getTimeString(timeNow)
+        self.cachedUrlCheckTimesModified = True
+        return filepath
+
+    def _checkIfNewerOnWeb(self, url: str, filepath: str) -> bool:
+        """
+
+        :param url: URL to retrieve web timestamp from
+        :param filepath: Filepath to retrieve local timestamp from
+        :return:
+        """
         # quotedUrl has scheme-specific-part quoted except for parameter separators
         quotedUrl = WebCache._quotedUrl(url)
-        try: # no provision here for proxy authentication!!!
-            remoteFileTime = lastModifiedTime( self.getheaders(quotedUrl) )
+        try:  # no provision here for proxy authentication!!!
+            remoteFileTime = lastModifiedTime(self.getheaders(quotedUrl))
             if remoteFileTime and remoteFileTime > os.path.getmtime(filepath):
-                newerOnWeb = True
+                return True
         except:
-            pass # for now, forget about authentication here
-        if not newerOnWeb:
-            # update ctime by copying file and return old file
-            self.cachedUrlCheckTimes[url] = WebCache._getTimeString(timeNow)
-            self.cachedUrlCheckTimesModified = True
-            return filepath
-        return self._downloadFile(url, filepath, True)
+            pass  # for now, forget about authentication here
+        return False
 
     @staticmethod
     def _getTimeString(timeValue: time.time) -> str:
