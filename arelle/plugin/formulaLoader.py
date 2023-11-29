@@ -1332,8 +1332,8 @@ def compileXfsGrammar( cntlr, debugParsing ):
                   "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*)"
                   ).set_name("ncName").set_debug(debugParsing)
 
-    dateTime = Regex("([0-9]{4})-([0-9]{2})-([0-9]{2})[T ](24:00:00(\.0+)?|(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9]))|"
-                     "([0-9]{4})-([0-9]{2})-([0-9]{2})")
+    dateTime = Regex(r"([0-9]{4})-([0-9]{2})-([0-9]{2})[T ](24:00:00(\.0+)?|(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9]))|"
+                     r"([0-9]{4})-([0-9]{2})-([0-9]{2})")
 
 
     decimalPoint = Literal('.')

@@ -19,7 +19,7 @@ class DialogAbout(Toplevel):
     def __init__(self, parent, title, imageFile, body):
         super(DialogAbout, self).__init__(parent)
         self.parent = parent
-        parentGeometry = re_match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
+        parentGeometry = re_match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
         self.transient(self.parent)

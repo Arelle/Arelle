@@ -154,7 +154,7 @@ def transformationTesterMenuExtender(cntlr, menu, *args, **kwargs):
             parent = self.mainWin.parent
             super(DialogTransformTester, self).__init__(parent)
             self.parent = parent
-            parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
+            parentGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
             dialogX = int(parentGeometry.group(3))
             dialogY = int(parentGeometry.group(4))
             self.selectedGroup = None
