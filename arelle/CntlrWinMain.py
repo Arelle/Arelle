@@ -392,7 +392,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             w = screenW
             h = screenH
         else:
-            priorGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)",self.config.get('windowGeometry'))
+            priorGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)",self.config.get('windowGeometry'))
             if priorGeometry and priorGeometry.lastindex >= 4:
                 try:
                     w = int(priorGeometry.group(1))

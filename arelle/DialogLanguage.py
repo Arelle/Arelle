@@ -25,7 +25,7 @@ class DialogLanguage(Toplevel):
         super(DialogLanguage, self).__init__(mainWin.parent)
         self.mainWin = mainWin
         self.parent = mainWin.parent
-        parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", self.parent.geometry())
+        parentGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", self.parent.geometry())
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
         self.transient(self.parent)

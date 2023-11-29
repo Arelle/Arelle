@@ -21,7 +21,7 @@ Arelle uses 9.1, via Python DB API 2.0 interface, using the pg8000 library.
 Information for the 'official' XBRL US-maintained database (this schema, containing SEC filings):
     Database Name: edgar_db
     Database engine: Postgres version 8.4
-    \Host: public.xbrl.us
+    Host: public.xbrl.us
     Port: 5432
 
 to use from command line:
