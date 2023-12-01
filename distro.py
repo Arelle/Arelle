@@ -88,6 +88,11 @@ elif sys.platform == MACOS_PLATFORM:
     options["bdist_mac"] = {
         "iconfile": "arelle/images/arelle.icns",
         "bundle_name": "Arelle",
+        "codesign_identity": "Developer ID Application: Workiva Inc. (5ZF66U48UD)",
+        "codesign_deep": True,
+        "codesign_timestamp": True,
+        "codesign_verify": True,
+        "codesign_options": "runtime",
     }
 elif sys.platform == WINDOWS_PLATFORM:
     guiExecutable = Executable(
