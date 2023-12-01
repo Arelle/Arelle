@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. 
+ 
+This version is non-normative - it should be identical to the normative version that is contained in Appendix A of the relevant specification except for this comment.
+
+Following the schema maintenance policy of XBRL International, it is the intent (but is not guaranteed) that the location of non-normative versions of these schemas on the web will be as follows:
+
+1)	While any schema is the most current RECOMMENDED version and until it is superseded by any additional errata corrections a non-normative version will reside on the web in the directory http://www.xbrl.org/2008/ - during the drafting process for this specification this directory should contain a copy of the most recent published version of the schema at http://www.xbrl.org/2008/concept-filter.xsd.
+
+2)	A non-normative version of each schema as corrected by any update to the RECOMMENDATION will be archived in perpetuity on the web in a directory that will contain a unique identification indicating the date of the update.
+
+-->
+<schema 
+  targetNamespace="http://xbrl.org/2008/filter/concept"
+  elementFormDefault="qualified"
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:cf="http://xbrl.org/2008/filter/concept" 
+  xmlns:variable="http://xbrl.org/2008/variable"
+>
+
+  <import namespace="http://www.xbrl.org/2003/XLink" 
+    schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd"/>
+
+  <import namespace="http://xbrl.org/2008/variable" 
+    schemaLocation="variable.xsd"/>
+
+  <complexType name="qname.model">
+    <choice>
+      <element name="qname" type="QName"/>
+      <element name="qnameExpression" type="variable:expression"/>
+    </choice>
+  </complexType>
+
+  <element id="xml-concept-name-filter"
+  name="conceptName" substitutionGroup="variable:filter">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="variable:resource.type">
+          <sequence minOccurs="1" maxOccurs="unbounded">
+            <element name="concept" type="cf:qname.model"/>
+          </sequence>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+  
+  <element id="xml-concept-period-type-filter"
+  name="conceptPeriodType" substitutionGroup="variable:filter">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="variable:resource.type">
+          <attribute name="periodType" use="required">
+            <simpleType>
+              <restriction base="token">
+                <enumeration value="instant"/>
+                <enumeration value="duration"/>
+              </restriction>
+            </simpleType>
+          </attribute>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+  
+  <element id="xml-concept-balance-filter"
+  name="conceptBalance" substitutionGroup="variable:filter">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="variable:resource.type">
+          <attribute name="balance" use="required">
+            <simpleType>
+              <restriction base="token">
+                <enumeration value="debit"/>
+                <enumeration value="credit"/>
+                <enumeration value="none"/>
+              </restriction>
+            </simpleType>
+          </attribute>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-concept-custom-attribute-filter"
+  name="conceptCustomAttribute" substitutionGroup="variable:filter">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="variable:resource.type">
+          <sequence>
+            <element name="attribute" type="cf:qname.model"/>
+          </sequence>
+          <attribute name="value" 
+          type="variable:expression" use="optional"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-concept-data-type-filter"
+  name="conceptDataType" substitutionGroup="variable:filter">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="variable:resource.type">
+          <sequence>
+            <element name="type" type="cf:qname.model"/>
+          </sequence>
+          <attribute name="strict" type="boolean" use="required"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-concept-substitution-group-filter"
+  name="conceptSubstitutionGroup" substitutionGroup="variable:filter">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="variable:resource.type">
+          <sequence>
+            <element name="substitutionGroup" type="cf:qname.model"/>
+          </sequence>
+          <attribute name="strict" type="boolean" use="required"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+</schema>

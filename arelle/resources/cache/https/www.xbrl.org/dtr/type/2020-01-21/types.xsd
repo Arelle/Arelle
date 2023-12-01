@@ -1,0 +1,812 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns:xbrli="http://www.xbrl.org/2003/instance"
+        xmlns="http://www.w3.org/2001/XMLSchema"
+        xmlns:dtr-types="http://www.xbrl.org/dtr/type/2020-01-21"
+        xmlns:link="http://www.xbrl.org/2003/linkbase"
+        xmlns:dtr="http://www.xbrl.org/2009/dtr"
+        elementFormDefault="qualified"
+        targetNamespace="http://www.xbrl.org/dtr/type/2020-01-21">
+  <annotation>
+      <documentation>Schema for types from the XBRL Data Types Registry</documentation>
+  </annotation>
+  <import namespace="http://www.xbrl.org/2003/instance"
+           schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <complexType id="domainItemType" name="domainItemType">
+      <annotation>
+         <documentation>The domain member item type indicates that an element is a domain member.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>ACK</dtr:status>
+               <dtr:requirement>Interoperable Taxonomy Architecture (ITA) initiative
+                      requirement for alignment of the EDINET, IFRS and US GAAP taxonomies.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:stringItemType">
+            <length fixed="true" value="0"/>
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="escapedItemType" id="escapedItemType">
+      <annotation>
+         <documentation>escapedItemType specializes string. There is no constraint on
+                  whether the resulting unescaped content is well-formed or not; this base type 
+                  exists so that processors know what to do with the content. It is a suitable base
+                  type for a data type whose unescaped content must be valid HTML 4.0 (which is not
+                  XML).</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>Interoperable Taxonomy Architecture (ITA) initiative
+                      requirement for alignment of the EDINET, IFRS and US GAAP taxonomies.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:stringItemType">
+            <attributeGroup ref="xbrli:nonNumericItemAttrs"/>
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="xmlNodesItemType" id="xmlNodesItemType">
+      <annotation>
+         <documentation>xmlNodesItemType specializes escapedItemType. The unescaped
+                  content MUST be a sequence of XML text and well-formed XML nodes. This content
+                  constraint cannot be captured by a finite length regular expression.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>Interoperable Taxonomy Architecture (ITA) initiative
+                      requirement for alignment of the EDINET, IFRS and US GAAP taxonomies.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="dtr-types:escapedItemType">
+            <attributeGroup ref="xbrli:nonNumericItemAttrs"/>
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="xmlItemType" id="xmlItemType">
+      <annotation>
+         <documentation>xmlItemType specializes xmlNodesItemType. The unescaped content MUST be well-formed XML. This
+        is a suitable base type for elements whose content must conform to a specific XML Schema or DTD. </documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>Interoperable Taxonomy Architecture (ITA) initiative
+                      requirement for alignment of the EDINET, IFRS and US GAAP taxonomies.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="dtr-types:xmlNodesItemType">
+            <attributeGroup ref="xbrli:nonNumericItemAttrs"/>
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="textBlockItemType" id="textBlockItemType">
+      <annotation>
+        <documentation>textBlockItemType specializes xmlNodesItemType. The unescaped content MUST have mixed content 
+          containing a simple string, or a fragment of XHTML or a mixture of both.</documentation>
+        <appinfo>
+            <dtr:typeAnnotation>
+              <dtr:status>REC</dtr:status>
+              <dtr:requirement>Interoperable Taxonomy Architecture (ITA) initiative
+                      requirement for alignment of the EDINET, IFRS and US GAAP taxonomies.</dtr:requirement>
+            </dtr:typeAnnotation>
+        </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="dtr-types:xmlNodesItemType">
+            <attributeGroup ref="xbrli:nonNumericItemAttrs"/>
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="percentItemType">
+      <annotation>
+         <documentation>The percent item type is used to indicate that the value of
+                  the element is intended to be presented as a percentage. This does not contravene
+                  Specification section 4.8.2, which requires that percentages not be multiplied by
+                  100.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+                <dtr:status>REC</dtr:status>
+                <dtr:requirement>Interoperable Taxonomy Architecture (ITA) initiative
+                          requirement for alignment of the EDINET, IFRS and US GAAP taxonomies.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:pureItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="perShareItemType">
+      <annotation>
+         <documentation>The per share item type indicates a monetary amount divided by
+                  a number of shares. The per share item type has a Decimal base.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>Interoperable Taxonomy Architecture (ITA) initiative
+                      requirement for alignment of the EDINET, IFRS and US GAAP taxonomies.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="areaItemType">
+      <annotation>
+         <documentation>The area item type is used to indicate that an element
+                  represents an area.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>Interoperable Taxonomy Architecture (ITA) initiative
+                      requirement for alignment of the EDINET, IFRS and US GAAP taxonomies.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="volumeItemType">
+      <annotation>
+         <documentation>The Volume item type is used to indicate that an element
+                  represents a volume and can be used to express the volume of any substance, whether
+                  solid, liquid, or gas.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>Interoperable Taxonomy Architecture (ITA) initiative
+                      requirement for alignment of the EDINET, IFRS and US GAAP taxonomies.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="massItemType">
+      <annotation>
+         <documentation>The mass item type represents the mass of an object which can
+                  be measured.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>Interoperable Taxonomy Architecture (ITA) initiative
+                      requirement for alignment of the EDINET, IFRS and US GAAP taxonomies.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="weightItemType">
+      <annotation>
+         <documentation>The weight item type represents the weight of an object which
+                  can be measured.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>Interoperable Taxonomy Architecture (ITA) initiative
+                      requirement for alignment of the EDINET, IFRS and US GAAP taxonomies.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="energyItemType">
+      <annotation>
+         <documentation>The energy item type represents a unit of energy.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>Interoperable Taxonomy Architecture (ITA) initiative
+                      requirement for alignment of the EDINET, IFRS and US GAAP taxonomies.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="powerItemType">
+      <annotation>
+         <documentation>Measures a rate of energy use or energy production and is
+                  equivalent to the use or production of energy during a period of time. I.e. a watt
+                  is the equal to one joule of energy per second.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>Interoperable Taxonomy Architecture (ITA) initiative
+                      requirement for alignment of the EDINET, IFRS and US GAAP taxonomies.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="lengthItemType">
+      <annotation>
+         <documentation>The length item type is a measure of distance.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>Interoperable Taxonomy Architecture (ITA) initiative
+                      requirement for alignment of the EDINET, IFRS and US GAAP taxonomies.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="memoryItemType">
+      <annotation>
+         <documentation>The memory item type is a measure of memory typically used in
+                  the IT industry.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>Interoperable Taxonomy Architecture (ITA) initiative
+                      requirement for alignment of the EDINET, IFRS and US GAAP taxonomies.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="noDecimalsMonetaryItemType" id="dtr_NoDecimalsMonetaryItemType">
+     <annotation>
+         <documentation>The NoDecimalsMonetaryItemType is a restriction on the xbrli:monetaryItemType in that it does not allow cents on the monetary value. Facts using this type MUST have an (inferred) decimals attribute value that is less than or equal to zero.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>SBR-NL request for regulatory agencies which prohibit monetary cents to be reported.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+     </annotation>
+     <simpleContent>
+        <restriction base="xbrli:monetaryItemType">
+           <fractionDigits value="0"/>
+           <attributeGroup ref="xbrli:numericItemAttrs"/> 
+        </restriction>
+     </simpleContent>
+  </complexType>
+  <complexType name="nonNegativeMonetaryItemType" id="dtr_nonNegativeMonetaryItemType">
+     <annotation>
+         <documentation>The nonNegativeMonetaryItemType is a restriction on the xbrli:monetaryItemType in that it does not allow negative values on the monetary value.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>SBR-NL request for regulatory agencies which prohibit negative monetary values to be reported.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+     </annotation>
+     <simpleContent>
+        <restriction base="xbrli:monetaryItemType">
+           <minInclusive value="0"/>
+           <attributeGroup ref="xbrli:numericItemAttrs"/> 
+        </restriction>
+     </simpleContent>
+  </complexType>
+  <complexType name="nonNegativeNoDecimalsMonetaryItemType"
+                id="dtr_nonNegativeNoDecimalsMonetaryItemType">
+     <annotation>
+         <documentation>The nonNegativeNoDecimalsMonetaryItemType is a restriction on the xbrli:monetaryItemType in that it does not allow cents or negative values on the monetary value.  Facts using this type MUST have an (inferred) decimals attribute value that is less than or equal to zero.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>SBR-NL request for regulatory agencies which prohibit cents AND negative values to be reported.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+     </annotation>
+     <simpleContent>
+        <restriction base="xbrli:monetaryItemType">
+           <minInclusive value="0"/>
+           <fractionDigits value="0"/>
+           <attributeGroup ref="xbrli:numericItemAttrs"/> 
+        </restriction>
+     </simpleContent>
+  </complexType>
+  <complexType name="insolationItemType">
+      <annotation>
+         <documentation> The insolation item type is used to represent a measure of energy per area over a period of time. </documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement> Insolation is used as a measure by the solar industry.  Solar irradiance integrated over time is called solar irradiation, solar exposure or insolation.  </dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="temperatureItemType">
+      <annotation>
+         <documentation>The temperature item type is used to represent a measure of temperature either in absolute terms or as a difference between two temperatures.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="pressureItemType">
+      <annotation>
+         <documentation> The pressure item type is used to represent a measure of the force applied perpendicular to the surface of an object per unit area over which that force is distributed. Units include Pascal, PSI and Bar. </documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="frequencyItemType">
+      <annotation>
+         <documentation> The frequency item type is used to represent a measure of the number of occurrences of a repeating event per unit time. </documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="irradianceItemType">
+      <annotation>
+         <documentation> The irradiance item type is used to represent a measure irradiance (power per unit area)</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="speedItemType">
+      <annotation>
+         <documentation> The speed item type is used to represent a measure of speed (distance travelled by an object per unit time). Units include knots, mach, and metres per second.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="planeAngleItemType">
+      <annotation>
+         <documentation>The angle item type is used to represent the measurement of an angle. Units include radians, degrees and gradians.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="voltageItemType">
+      <annotation>
+         <documentation>  The voltage item type is used to represent a measure of voltage (the difference in electric potential energy between two points per unit electric charge).</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="electricCurrentItemType">
+      <annotation>
+         <documentation>The electric current item type is used to represent a measure of electric current (the flow of electric charge over a circuit).</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="forceItemType">
+      <annotation>
+         <documentation>The force item type is used to represent a measure of a physical force.  Units include newtons. </documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="electricChargeItemType">
+      <annotation>
+         <documentation>  The electric charge item is used to represent a measure of electric charge (the physical property of matter that causes it to experience a force when placed in an electromagnetic field) </documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="guidanceItemType">
+      <annotation>
+         <documentation>The purpose of the guidance item type is to identify "guidance items" which provide general guidance for users of a taxonomy, particularly preparers of XBRL reports.  Guidance items are abstract elements positioned in appropriate locations in the presentation tree, and are intended to help users who view the taxonomy through displays based on the presentation tree.  Guidance items provide general guidance which is not limited to the application of a specific tag to an individual item of data.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>This type is based on a custom type in use in the UK Financial Reporting Council (FRC) taxonomies.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:stringItemType">
+            <attributeGroup ref="xbrli:nonNumericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="noLangTokenItemType">
+      <annotation>
+         <documentation>noLangTokenItemType is a derivation of tokenItemType and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings.  Any in-scope xml:lang declaration is ignored for facts using this type.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>This item type is referenced by the XBRL Open Information Model to identify values to which the Language Core Aspect is not applicable.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:tokenItemType">
+            <attributeGroup ref="xbrli:nonNumericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="noLangStringItemType">
+      <annotation>
+         <documentation>noLangStringItemType is a derivation of stringItemType and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings.  Any in-scope xml:lang declaration is ignored for facts using this type.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>This item type is referenced by the XBRL Open Information Model to identify values to which the Language Core Aspect is not applicable.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:stringItemType">
+            <attributeGroup ref="xbrli:nonNumericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+
+  <complexType name="prefixedContentItemType">
+      <annotation>
+         <documentation>prefixedContentItemType denotes values that rely for correct interpretation on namespace-prefix bindings in scope at the point of use. All item types that involve prefixed content should derive (directly or indirectly) from QNameItemType or prefixedContentItemType. Processors MUST raise an error if they encounter a fact with a type that is a subtype of prefixedContentItemType that they do not recognise (unless that subtype is itself derived from a subtype that is recognised) as knowledge of the structure of the prefixed content is required to correctly preserve and present such content.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>This data type acts as a supertype for all custom types that rely on namespace-prefix bindings. It allows processors to 'fail fast' if presented with prefixed content that they do not understand, rather than silently breaking or changing the semantics of such values.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="dtr-types:noLangTokenItemType">
+            <attributeGroup ref="xbrli:nonNumericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <simpleType name="prefixedContentType">
+      <annotation>
+         <documentation>prefixedContentType provides a simple type equivalent to prefixedContentItemType. This can be used to define typed dimensions domains that contain prefixed content. As for prefixedContentItemType, processors MUST raise an error if they encounter a value with a type that is a subtype of prefixedContentType that they do not recognise (unless that subtype is itself derived from a subtype that is recognised) as knowledge of the structure of the prefixed content is required to correctly preserve and present such content.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>This data type acts as a supertype for all custom types that rely on namespace-prefix bindings. It allows processors to 'fail fast' if presented with prefixed content that they do not understand, rather than silently breaking or changing the semantics of such values.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <restriction base="token">
+    </restriction>
+  </simpleType>
+
+  <complexType name="SQNameItemType">
+      <annotation>
+         <documentation>SQNameItemType denotes values that are Simplified QNames, as defined in the Open Information Model (Common) specification.  SQNames are very similar to QNames, and have the format "prefix:localname" but relax the restriction the format of the localpart to allow any non-whitespace characters.  This allows SQNames to be used to concisely denote namespaced values where the localpart starts with a number.  The prefix used in an SQName MUST correspond to a namespace prefix that is in scope at the point of use.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>This data type is required in order to validate and correctly process SQName values.  As SQNames rely on the in-scope namespace prefixes, it is important that consuming software can unambiguously identify values that are SQNames.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="dtr-types:prefixedContentItemType">
+            <pattern value="[^:\s0-9][^:\s]*:\S+"/>
+            <attributeGroup ref="xbrli:nonNumericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <simpleType name="SQNameType">
+      <annotation>
+         <documentation>SQNameType provides a simple type equivalent to SQNameItemType.  This can be used to define typed dimensions domains that take SQName values.  As for SQNameItemType, the prefix used in an SQName MUST correspond to a namespace prefix that is in scope at the point of use.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>This data type is required in order to validate and correctly process SQName values.  As SQNames rely on the in-scope namespace prefixes, it is important that consuming software can unambiguously identify values that are SQNames.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <restriction base="dtr-types:prefixedContentType">
+         <pattern value="[^:\s0-9][^:\s]*:\S+"/>
+      </restriction>
+  </simpleType>
+
+  <complexType name="SQNamesItemType">
+      <annotation>
+         <documentation>SQNamesItemType denotes values that are a collection of Simplified QNames, as defined in the Open Information Model (Common) specification.  SQNames are very similar to QNames, and have the format "prefix:localname" but relax the restriction the format of the localpart to allow any non-whitespace characters.  This allows SQNames to be used to concisely denote namespaced values where the localpart starts with a number.  The prefix used in an SQName MUST correspond to a namespace prefix that is in scope at the point of use. SQNamesItemType imposes no further constraints on the SQNames within it. In particular, it does not constrain ordering or the presence of duplicates. Subtypes of SQNamesItemType may be introduced in a future version of the Data Types Registry to provide list and set semantics.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>This data type is required in order to validate and correctly process a collection of SQName values.  As SQNames rely on the in-scope namespace prefixes, it is important that consuming software can unambiguously identify values that are SQNames.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="dtr-types:prefixedContentItemType">
+            <pattern value="([^:\s0-9][^:\s]*:\S+)?(\s+[^:\s0-9][^:\s]*:\S+)*"/>
+            <attributeGroup ref="xbrli:nonNumericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <simpleType name="SQNamesType">
+      <annotation>
+         <documentation>SQNamesType provides a simple type equivalent to SQNamesItemType.  This can be used to define typed dimensions domains that take a collection of SQName values.  As for SQNamesItemType, the prefix used in an SQName MUST correspond to a namespace prefix that is in scope at the point of use.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>This data type is required in order to validate and correctly process a collection of SQName values.  As SQNames rely on the in-scope namespace prefixes, it is important that consuming software can unambiguously identify values that are SQNames.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <restriction base="dtr-types:prefixedContentType">
+         <pattern value="([^:\s0-9][^:\s]*:\S+)?(\s+[^:\s0-9][^:\s]*:\S+)*"/>
+      </restriction>
+  </simpleType>
+
+  <complexType name="gYearListItemType">
+      <annotation>
+         <documentation>This datatype allows the reporting of a list of xsd:gYear values as a single value</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>Financial reports may have a requirement to report a list of years as a single fact.  For example, a preparer may need to disclose the list of tax years that are still subject to investigation.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:tokenItemType">
+            <pattern value="\s*(-?[0-9]{4,}(\s+-?[0-9]{4,})*)?\s*"/>
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="flowItemType" id="flowItemType">
+      <annotation>
+         <documentation xml:lang="en">The flow item type is used to represent a measure of volumetric flow rate.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+  <complexType name="massFlowItemType" id="massFlowItemType">
+      <annotation>
+         <documentation xml:lang="en">The mass flow item type is used to represent a measure of mass flow rate.</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+
+  <complexType name="monetaryPerLengthItemType">
+      <annotation>
+         <documentation>The monetary per length item type is used to represent a measure of price or cost per unit length</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values that are expressed as a price per unit for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+
+  <complexType name="monetaryPerAreaItemType">
+      <annotation>
+         <documentation>The monetary per area item type is used to represent a measure of price or cost per unit area</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values that are expressed as a price per unit for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+
+  <complexType name="monetaryPerVolumeItemType">
+      <annotation>
+         <documentation>The monetary per volume item type is used to represent a measure of price or cost per unit volume</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values that are expressed as a price per unit for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+
+  <complexType name="monetaryPerDurationItemType">
+      <annotation>
+         <documentation>The monetary per duration item type is used to represent a measure of price or cost per unit duration</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values that are expressed as a price per unit for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+
+  <complexType name="monetaryPerEnergyItemType">
+      <annotation>
+         <documentation>The monetary per energy item type is used to represent a measure of price or cost per unit energy</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values that are expressed as a price per unit for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+
+  <complexType name="monetaryPerMassItemType">
+      <annotation>
+         <documentation>The monetary per mass item type is used to represent a measure of price or cost per unit mass</documentation>
+         <appinfo>
+            <dtr:typeAnnotation>
+               <dtr:status>REC</dtr:status>
+               <dtr:requirement>These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values that are expressed as a price per unit for various physical measures, and reflect industry-specific common practice.</dtr:requirement>
+            </dtr:typeAnnotation>
+         </appinfo>
+      </annotation>
+      <simpleContent>
+         <restriction base="xbrli:decimalItemType">
+            <attributeGroup ref="xbrli:numericItemAttrs"/> 
+         </restriction>
+      </simpleContent>
+  </complexType>
+
+</schema>

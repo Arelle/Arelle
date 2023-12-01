@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved.  
+ 
+This version is non-normative - it should be identical to the normative version that is contained in Appendix A of the relevant specification except for this comment.
+
+Following the schema maintenance policy of XBRL International, it is the intent (but is not guaranteed) that the location of non-normative versions of these schemas on the web will be as follows:
+
+1)	While any schema is the most current RECOMMENDED version and until it is superseded by any additional errata corrections a non-normative version will reside on the web in the directory http://www.xbrl.org/2008/ - during the drafting process for this specification this directory should contain a copy of the most recent published version of the schema at http://www.xbrl.org/2008/formula.xsd.
+
+2)	A non-normative version of each schema as corrected by any update to the RECOMMENDATION will be archived in perpetuity on the web in a directory that will contain a unique identification indicating the date of the update.
+
+-->
+<schema 
+  targetNamespace="http://xbrl.org/2008/formula"
+  elementFormDefault="qualified"
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:variable="http://xbrl.org/2008/variable" 
+>
+
+  <import namespace="http://xbrl.org/2008/variable" 
+    schemaLocation="variable.xsd"/>
+
+  <complexType name="qname.model">
+    <choice>
+      <element name="qname" type="QName"/>
+      <element name="qnameExpression" type="variable:expression"/>
+    </choice>
+  </complexType>
+
+  <element id="xml-formula"
+  name="formula" 
+  substitutionGroup="variable:variableSet">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="variable:variableSet.type">
+          <sequence>
+            <choice minOccurs="0">
+              <element name="precision" type="variable:expression" />
+              <element name="decimals" type="variable:expression" />
+            </choice>
+            <element ref="formula:aspects" minOccurs="0" maxOccurs="unbounded"/>
+          </sequence>
+          <attribute name="value" type="variable:expression" use="required"/>
+          <attribute name="source" type="variable:QName" use="optional"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-aspects" 
+  name="aspects">
+    <complexType>
+      <sequence>
+        <element ref="formula:abstract.aspect" 
+        minOccurs="1" maxOccurs="unbounded"/>
+      </sequence>
+      <attribute name="source" type="variable:QName" use="optional"/>
+    </complexType>
+  </element>
+
+  <complexType name="abstract.aspect.type">
+    <attribute name="source" type="variable:QName" use="optional"/>
+  </complexType>
+  
+  <element id="xml-abstract-aspect" 
+  name="abstract.aspect" 
+  abstract="true"
+  type="formula:abstract.aspect.type"/>
+
+  <element id="xml-concept"
+  name="concept" 
+  substitutionGroup="formula:abstract.aspect">
+    <complexType>
+      <complexContent>
+        <extension base="formula:abstract.aspect.type">
+          <choice minOccurs="0">
+            <element name="qname" type="QName"/>
+            <element name="qnameExpression" type="variable:expression"/>
+          </choice>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-entity-identifier" 
+  name="entityIdentifier"
+  substitutionGroup="formula:abstract.aspect">
+    <complexType>
+      <complexContent>
+        <extension base="formula:abstract.aspect.type">
+          <attribute name="scheme" type="variable:expression" use="optional" />
+          <attribute name="value" type="variable:expression" use="optional" />
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-period" 
+  name="period" 
+  substitutionGroup="formula:abstract.aspect">
+    <complexType>
+      <complexContent>
+        <extension base="formula:abstract.aspect.type">
+          <choice minOccurs="0">
+            <element id="xml-forever" name="forever">
+              <complexType/>
+            </element>
+            <element id="xml-instant" name="instant">
+              <complexType>
+                <attribute name="value" type="variable:expression" use="optional" />
+              </complexType>
+            </element>
+            <element id="xml-duration" name="duration">
+              <complexType>
+                <attribute name="start" type="variable:expression" use="optional" />
+                <attribute name="end" type="variable:expression" use="optional" />
+              </complexType>
+            </element>
+          </choice>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-unit"
+  name="unit" 
+  substitutionGroup="formula:abstract.aspect">
+    <complexType>
+      <complexContent>
+        <extension base="formula:abstract.aspect.type">
+          <sequence>
+            <element id="xml-multiplyBy" name="multiplyBy" minOccurs="0" maxOccurs="unbounded">
+              <complexType>
+                <attribute name="measure" type="variable:expression" use="optional" />
+                <attribute name="source" type="variable:QName" use="optional"/>
+              </complexType>
+            </element>
+            <element id="xml-divideBy"
+            name="divideBy" minOccurs="0" maxOccurs="unbounded">
+              <complexType>
+                <attribute name="measure" type="variable:expression" use="optional" />            
+                <attribute name="source" type="variable:QName" use="optional"/>
+              </complexType>
+            </element>
+          </sequence>
+          <attribute name="augment" type="boolean" default="true"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <complexType name="abstract.occ.aspect.type">
+    <complexContent>
+      <extension base="formula:abstract.aspect.type">
+        <attribute name="occ" use="required">
+          <simpleType>
+            <restriction base="token">
+              <enumeration value="segment"/>
+              <enumeration value="scenario"/>
+            </restriction>
+          </simpleType>
+        </attribute>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <element id="xml-abstract-occ-aspect"
+  name="abstract.occ.aspect"
+  abstract="true"
+  substitutionGroup="formula:abstract.aspect"
+  type="formula:abstract.occ.aspect.type"/>
+
+  <element id="xml-occ-empty"
+  name="occEmpty" 
+  type="formula:abstract.occ.aspect.type"
+  substitutionGroup="formula:abstract.occ.aspect"/>
+
+  <element id="xml-occ-fragments"
+  name="occFragments"
+  substitutionGroup="formula:abstract.occ.aspect">
+    <complexType>
+      <complexContent>
+        <extension base="formula:abstract.occ.aspect.type">
+          <sequence>
+            <any minOccurs="0" maxOccurs="unbounded"/>
+          </sequence>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-occ-xpath"
+  name="occXpath" 
+  substitutionGroup="formula:abstract.occ.aspect">
+    <complexType>
+      <complexContent>
+        <extension base="formula:abstract.occ.aspect.type">
+	       <attribute name="select" type="variable:expression" use="optional"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-abstract-dimension-aspect"
+  name="abstract.dimension.aspect"
+  substitutionGroup="formula:abstract.aspect"
+  type="formula:abstract.dimension.aspect.type"
+  abstract="true"/>
+
+  <complexType name="abstract.dimension.aspect.type">
+    <complexContent>
+      <extension base="formula:abstract.aspect.type">
+        <attribute name="dimension" type="QName" use="required"/>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <element id="xml-explicit-dimension"
+  name="explicitDimension" 
+  substitutionGroup="formula:abstract.dimension.aspect">
+    <complexType>
+      <complexContent>
+        <extension base="formula:abstract.dimension.aspect.type">
+          <choice>
+            <element name="member" type="formula:qname.model" minOccurs="0"/>
+            <element name="omit" minOccurs="0">
+              <complexType/>
+            </element>
+          </choice>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-typed-dimension"
+  name="typedDimension" 
+  substitutionGroup="formula:abstract.dimension.aspect">
+    <complexType>
+      <complexContent>
+        <extension base="formula:abstract.dimension.aspect.type">
+          <choice minOccurs="0" maxOccurs="1">
+            <element name="xpath" type="string"/>
+            <element name="value">
+              <complexType>
+                <sequence>
+                  <any minOccurs="1" maxOccurs="1"/>
+                </sequence>
+              </complexType>
+            </element>
+            <element name="omit">
+              <complexType/>
+            </element>
+          </choice>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+
+</schema>

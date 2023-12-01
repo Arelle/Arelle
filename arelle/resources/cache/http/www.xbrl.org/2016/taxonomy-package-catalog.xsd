@@ -1,0 +1,38 @@
+<!--
+This schema is derived from the non-normative schema for XML Catalog files
+provided in the XML Catalogs specification:
+
+  https://www.oasis-open.org/committees/download.php/14809/xml-catalogs.html
+
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:er="urn:oasis:names:tc:entity:xmlns:xml:catalog"
+           targetNamespace="urn:oasis:names:tc:entity:xmlns:xml:catalog"
+           elementFormDefault="qualified">
+
+  <xs:complexType name="catalog">
+    <xs:choice minOccurs="1" maxOccurs="unbounded">
+      <xs:element ref="er:rewriteURI"/>
+      <xs:any namespace="##other" processContents="skip"/>
+    </xs:choice>
+    <xs:attribute name="id" type="xs:ID"/>
+    <xs:anyAttribute namespace="##other" processContents="lax"/>
+  </xs:complexType>
+
+  <xs:complexType name="rewriteURI">
+    <xs:complexContent>
+      <xs:restriction base="xs:anyType">
+        <xs:attribute name="uriStartString"
+                       type="xs:string"
+                       use="required"/>
+        <xs:attribute name="rewritePrefix" type="xs:string" use="required"/>
+        <xs:attribute name="id" type="xs:ID"/>
+        <xs:anyAttribute namespace="##other" processContents="lax"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="rewriteURI" type="er:rewriteURI"/>
+  <xs:element name="catalog" type="er:catalog"/>
+
+</xs:schema>

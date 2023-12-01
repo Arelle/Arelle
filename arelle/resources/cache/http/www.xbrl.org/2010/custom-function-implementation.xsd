@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved.   
+ 
+This version is non-normative - it should be identical to the normative version that is contained in Appendix A of the relevant specification except for this comment.
+
+Following the schema maintenance policy of XBRL International, it is the intent (but is not guaranteed) that the location of non-normative versions of these schemas on the web will be as follows:
+
+1)	While any schema is the most current RECOMMENDED version and until it is superseded by any additional errata corrections a non-normative version will reside on the web in the directory http://www.xbrl.org/2010/ - during the drafting process for this specification this directory should contain a copy of the most recent published version of the schema at http://www.xbrl.org/2010/custom-function-implementation.xsd.
+
+2)	A non-normative version of each schema as corrected by any update to the RECOMMENDATION will be archived in perpetuity on the web in a directory that will contain a unique identification indicating the date of the update.
+
+-->
+<schema 
+  targetNamespace="http://xbrl.org/2010/custom-function"
+  elementFormDefault="qualified"
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:cfi="http://xbrl.org/2010/custom-function" 
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:gen="http://xbrl.org/2008/generic"
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+>
+
+  <import namespace="http://www.xbrl.org/2003/XLink" 
+    schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd"/>
+
+  <import namespace="http://xbrl.org/2008/variable" 
+    schemaLocation="../2008/variable.xsd"/>
+
+  <annotation>
+    <appinfo>
+
+      <link:arcroleType id="cfi-implementation"
+            cyclesAllowed="none" 
+            arcroleURI="http://xbrl.org/arcrole/2010/function-implementation">
+        <link:definition>custom function signature has implementation</link:definition>
+        <link:usedOn>gen:arc</link:usedOn>
+      </link:arcroleType>
+
+    </appinfo>
+  </annotation>
+
+  <element id="xml-implementation"
+  name="implementation" 
+  substitutionGroup="variable:resource">
+    <complexType mixed="true">
+      <complexContent>
+        <extension base="variable:resource.type">
+          <sequence>
+            <element id="xml-input" name="input" minOccurs="0" maxOccurs="unbounded">
+              <complexType>
+                <attribute name="name" type="variable:QName" use="required"/>
+              </complexType>
+            </element>
+            <element id="xml-step" name="step" minOccurs="0" maxOccurs="unbounded">
+              <complexType>
+                <simpleContent>
+                  <extension base="variable:expression">
+                    <attribute name="name" type="variable:QName" use="required"/>
+                  </extension>
+                </simpleContent>
+              </complexType>
+            </element>
+            <element id="xml-output" name="output" type="variable:expression"
+            minOccurs="1" maxOccurs="1"/>
+          </sequence>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+</schema>

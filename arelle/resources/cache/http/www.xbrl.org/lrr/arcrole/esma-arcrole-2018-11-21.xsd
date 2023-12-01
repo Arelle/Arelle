@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xs:schema elementFormDefault="qualified"
+	targetNamespace="http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower" 
+    xmlns:link="http://www.xbrl.org/2003/linkbase"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:annotation>
+        <xs:appinfo>
+			<link:arcroleType id="wider-narrower" cyclesAllowed="undirected" arcroleURI="http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower">
+				<link:definition>An anchoring mechanism that links source concepts of wider scope and meaning to target concepts with narrower scope and meaning where one end of the link is identified as an extension concept and the other end as a base taxonomy concept. This arcrole is intended for use on reporting concepts, and is not intended for use between domain members or other dimensional components.</link:definition>
+				<link:usedOn>link:definitionArc</link:usedOn>
+			</link:arcroleType>	 			
+        </xs:appinfo>
+    </xs:annotation>
+</xs:schema>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Role schema for references -->
+<xsd:schema targetNamespace="http://www.xbrl.org/2009/role/reference" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:reference="http://www.xbrl.org/2009/role/reference" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <xsd:annotation>
+    <xsd:appinfo>
+      <link:roleType roleURI="http://www.xbrl.org/2009/role/commonPracticeRef" id="commonPracticeRef">
+        <link:definition>Common practice reference</link:definition>
+        <link:usedOn>link:reference</link:usedOn>
+	  </link:roleType> 
+      <link:roleType roleURI="http://www.xbrl.org/2009/role/nonauthoritativeLiteratureRef" id="nonauthoritativeLiteratureRef">
+        <link:definition>Non-authoritative literature reference</link:definition>
+        <link:usedOn>link:reference</link:usedOn>
+	  </link:roleType> 
+      <link:roleType roleURI="http://www.xbrl.org/2009/role/recognitionRef" id="recognitionRef">
+        <link:definition>Recognition reference</link:definition>
+        <link:usedOn>link:reference</link:usedOn>
+	  </link:roleType> 	  
+		</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:import namespace="http://www.xbrl.org/2003/linkbase" schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"/>
+</xsd:schema>

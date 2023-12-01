@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved.   
+ 
+This version is non-normative - it should be identical to the normative version that is contained in Appendix A of the relevant specification except for this comment.
+
+Following the schema maintenance policy of XBRL International, it is the intent (but is not guaranteed) that the location of non-normative versions of these schemas on the web will be as follows:
+
+1)	While any schema is the most current RECOMMENDED version and until it is superseded by any additional errata corrections a non-normative version will reside on the web in the directory http://www.xbrl.org/2008/ - during the drafting process for this specification this directory should contain a copy of the most recent published version of the schema at http://www.xbrl.org/2008/variable.xsd.
+
+2)	A non-normative version of each schema as corrected by any update to the RECOMMENDATION will be archived in perpetuity on the web in a directory that will contain a unique identification indicating the date of the update.
+
+-->
+<schema 
+  targetNamespace="http://xbrl.org/2008/variable" 
+  elementFormDefault="qualified"
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:variable="http://xbrl.org/2008/variable" 
+  xmlns:gen="http://xbrl.org/2008/generic" 
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xl="http://www.xbrl.org/2003/XLink"
+>
+
+  <import namespace="http://www.xbrl.org/2003/XLink" 
+    schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd"/>
+
+  <import namespace="http://www.w3.org/1999/xlink" 
+    schemaLocation="http://www.xbrl.org/2003/xlink-2003-12-31.xsd"/>
+
+  <import namespace="http://xbrl.org/2008/generic" 
+    schemaLocation="generic-link.xsd"/>
+
+  <annotation>
+    <appinfo>
+
+      <link:arcroleType id="equality-definition"
+            cyclesAllowed="undirected" 
+            arcroleURI="http://xbrl.org/arcrole/2008/equality-definition">
+        <link:definition>typed-dimension domain definition has equality definition</link:definition>
+        <link:usedOn>gen:arc</link:usedOn>
+      </link:arcroleType>
+
+      <link:arcroleType id="variable-set"
+            cyclesAllowed="undirected" 
+            arcroleURI="http://xbrl.org/arcrole/2008/variable-set">
+        <link:definition>variable set has variable</link:definition>
+        <link:usedOn>variable:variableArc</link:usedOn>
+      </link:arcroleType>
+
+      <link:arcroleType id="variable-filter"
+            cyclesAllowed="undirected" 
+            arcroleURI="http://xbrl.org/arcrole/2008/variable-filter">
+        <link:definition>variable has filter</link:definition>
+        <link:usedOn>variable:variableFilterArc</link:usedOn>
+      </link:arcroleType>
+
+      <link:arcroleType id="variable-set-filter"
+      cyclesAllowed="undirected" 
+      arcroleURI="http://xbrl.org/arcrole/2008/variable-set-filter">
+        <link:definition>fact variables in variable set have filter</link:definition>
+        <link:usedOn>variable:variableSetFilterArc</link:usedOn>
+      </link:arcroleType>
+
+      <link:arcroleType id="variable-set-precondition"
+            cyclesAllowed="undirected" 
+            arcroleURI="http://xbrl.org/arcrole/2008/variable-set-precondition">
+        <link:definition>variable set has precondition</link:definition>
+        <link:usedOn>gen:arc</link:usedOn>
+      </link:arcroleType>
+
+    </appinfo>
+  </annotation>
+
+  <simpleType name="expression">
+    <restriction base="string">
+      <pattern value="[\s]*[\S]+[\s\S]*" />
+    </restriction>
+  </simpleType>
+
+  <simpleType name="QName">
+    <restriction base="Name">
+      <pattern value="([^:]+:)?[^:]+"/>      
+    </restriction> 
+  </simpleType>
+
+  <attributeGroup id="naming.attribute.group" name="naming.attribute.group">
+    <attribute name="name" type="variable:QName" use="required"/>
+  </attributeGroup>
+
+  <complexType name="resource.type">
+    <complexContent mixed="true">
+      <extension base="xl:resourceType">
+        <anyAttribute namespace="http://www.w3.org/XML/1998/namespace" processContents="lax"/>
+      </extension>
+    </complexContent>
+  </complexType>
+  
+  <element name="resource" abstract="true" 
+  substitutionGroup="xl:resource" type="variable:resource.type"/>
+
+  <element id="xml-custom-function-signature"
+  name="function" substitutionGroup="variable:resource">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="variable:resource.type">
+          <sequence minOccurs="0" maxOccurs="unbounded">
+            <element name="input">
+              <complexType>
+                <attribute name="type" type="string" use="required"/>
+              </complexType>
+            </element>
+          </sequence>
+          <attribute name="name" type="QName" use="required"/>
+          <attribute name="output" type="string" use="required"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-parameter"
+  name="parameter" substitutionGroup="variable:resource">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="variable:resource.type">
+          <attribute name="name" type="QName" use="required"/>
+          <attribute name="select" type="variable:expression" use="optional"/>
+          <attribute name="required" type="boolean" use="optional"/>
+          <attribute name="as" type="QName" use="optional"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-equality-definition"
+  name="equalityDefinition" substitutionGroup="variable:resource">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="variable:resource.type">
+          <attribute name="test" type="variable:expression" use="required"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-abstract-variable" 
+  name="variable" abstract="true"
+  type="variable:resource.type" 
+  substitutionGroup="variable:resource"/>
+
+  <element id="xml-abstract-filter" 
+  name="filter" abstract="true"
+  type="variable:resource.type" 
+  substitutionGroup="variable:resource"/>
+
+  <complexType name="variableSet.type">
+    <complexContent mixed="true">
+      <extension base="variable:resource.type">
+        <attribute name="aspectModel" type="token" use="required"/>
+        <attribute name="implicitFiltering" type="boolean" use="required"/>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <element id="xml-abstract-variable-set" 
+  name="variableSet" abstract="true"
+  substitutionGroup="variable:resource"
+  type="variable:variableSet.type"/>
+
+  <element id="xml-general-variable"
+  name="generalVariable" substitutionGroup="variable:variable">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="variable:resource.type">
+          <attribute name="select" type="variable:expression" use="required" />
+          <attribute name="bindAsSequence" type="boolean" use="required"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-fact-variable"
+  name="factVariable" substitutionGroup="variable:variable">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="variable:resource.type">
+          <attribute name="nils" type="boolean" use="optional"/>
+          <attribute name="matches" type="boolean" use="optional"/>
+          <attribute name="fallbackValue" type="variable:expression" use="optional"/>
+          <attribute name="bindAsSequence" type="boolean" use="required"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-variable-filter-arc"
+  name="variableFilterArc" substitutionGroup="gen:arc">
+    <complexType>
+      <complexContent>
+        <extension base="gen:genericArcType">
+          <attribute name="complement" type="boolean" use="required"/>
+          <attribute name="cover" type="boolean" use="required"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-variable-set-filter-arc"
+  name="variableSetFilterArc" substitutionGroup="gen:arc">
+    <complexType>
+      <complexContent>
+        <extension base="gen:genericArcType">
+          <attribute name="complement" type="boolean" use="required"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-variable-arc"
+  name="variableArc" substitutionGroup="gen:arc">
+    <complexType>
+      <complexContent>
+        <extension base="gen:genericArcType">
+          <attributeGroup ref="variable:naming.attribute.group"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <element id="xml-precondition"
+  name="precondition" substitutionGroup="variable:resource">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="variable:resource.type">
+          <attribute name="test" 
+            type="variable:expression" use="required" />
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+</schema>
