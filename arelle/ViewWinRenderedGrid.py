@@ -1,7 +1,7 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import os, threading, time, logging
+import os, threading, time, logging, sys, traceback
 from tkinter import Menu, BooleanVar, font as tkFont
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectModelAspect
 from arelle import (ViewWinTkTable, ModelDocument, ModelDtsObject, ModelInstanceObject, XbrlConst,
@@ -226,6 +226,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             strctMdlTable = strctMdlTableSet.lytMdlTables[0].strctMdlTable
         except IndexError:
             if TRACE_TK: print("no table to display")
+            self.blockMenuEvents -= 1
             return # no table to display
 
         if len(self.zBreakdownStrctNodes) == 0:
@@ -236,16 +237,15 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 self.zBreakdownLeafParents = [None] * self.zAxisBreakdowns
                 viewTblELR = self.tblELR
 
-        if not self.tblELR:
+        if not self.tblELR or not self.tblBrkdnRels or not viewTblELR:
+            self.blockMenuEvents -= 1
             return  # no table to display
-        if not viewTblELR:
-            viewTblELR = self.tblELR
 
         if TRACE_TK: print(f"resizeTable rows {self.dataFirstRow+self.dataRows} cols {self.dataFirstCol+self.dataCols} titleRows {self.dataFirstRow} titleColumns {self.dataFirstCol})")
         self.table.resizeTable(self.dataFirstRow+self.dataRows, self.dataFirstCol+self.dataCols, titleRows=self.dataFirstRow, titleColumns=self.dataFirstCol)
         self.hasTableFilters = bool(self.defnMdlTable.filterRelationships)
 
-        if self.tblBrkdnRels:
+        try:
             # review row header wrap widths and limit to 2/3 of the frame width (all are screen units)
             fontWidth = tkFont.Font(font='TkTextFont').configure()['size']
             fontWidth = fontWidth * 3 // 2
@@ -300,6 +300,11 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
 
             # data cells
             #print("body cells done")
+        except Exception as err: 
+            self.modelXbrl.error(f"exception: {type(err).__name__}",
+                "Table Linkbase GUI rendering exception: %(error)s at %(traceback)s",
+                modelXbrl=self.modelXbrl, error=err,
+                traceback=traceback.format_tb(sys.exc_info()[2]))
 
         self.modelXbrl.profileStat("viewTable_" + os.path.basename(viewTblELR), time.time() - startedAt)
 
