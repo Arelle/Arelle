@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved.  
+ 
+This version is non-normative - it should be identical to the normative version that is contained in Appendix A of the relevant specification except for this comment.
+
+Following the schema maintenance policy of XBRL International, it is the intent (but is not guaranteed) that the location of non-normative versions of these schemas on the web will be as follows:
+
+1)  While any schema is the most current RECOMMENDED version and until it is superseded by any additional errata corrections a non-normative version will reside on the web in the directory http://www.xbrl.org/2008/ - during the drafting process for this specification this directory should contain a copy of the most recent published version of the schema at http://www.xbrl.org/2008/general-filter.xsd.
+
+2)  A non-normative version of each schema as corrected by any update to the RECOMMENDATION will be archived in perpetuity on the web in a directory that will contain a unique identification indicating the date of the update.
+
+-->
+<xs:schema 
+xmlns="http://xbrl.org/2008/conformance/function" 
+xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+xmlns:reg="http://xbrl.org/2008/registry" 
+xmlns:conf="http://xbrl.org/2008/conformance" 
+targetNamespace="http://xbrl.org/2008/conformance/function" 
+elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+  <xs:import 
+  namespace="http://xbrl.org/2008/conformance" 
+  schemaLocation="conformance.xsd"/>
+
+  <xs:import 
+  namespace="http://xbrl.org/2008/registry" 
+  schemaLocation="registry.xsd"/>
+
+  <xs:element id="xml-call" 
+  name="call" type="input.call.elt.type" substitutionGroup="conf:input"/>
+
+  <xs:complexType name="input.call.elt.type">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="file" type="xs:IDREF" use="optional"/>
+        <xs:attributeGroup ref="reg:common.attribute.group"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:element id="xml-test" name="test" type="output.test.elt.type" substitutionGroup="conf:output"/>
+
+  <xs:complexType name="output.test.elt.type">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attributeGroup ref="reg:common.attribute.group"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+</xs:schema>

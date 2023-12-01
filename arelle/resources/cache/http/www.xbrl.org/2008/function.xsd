@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved.  
+ 
+This version is non-normative - it should be identical to the normative version that is contained in Appendix A of the relevant specification except for this comment.
+
+Following the schema maintenance policy of XBRL International, it is the intent (but is not guaranteed) that the location of non-normative versions of these schemas on the web will be as follows:
+
+1)      While any schema is the most current RECOMMENDED version and until it is superseded by any additional errata corrections a non-normative version will reside on the web in the directory http://www.xbrl.org/2008/ - during the drafting process for this specification this directory should contain a copy of the most recent published version of the schema at http://www.xbrl.org/2008/general-filter.xsd.
+
+2)      A non-normative version of each schema as corrected by any update to the RECOMMENDATION will be archived in perpetuity on the web in a directory that will contain a unique identification indicating the date of the update.
+
+-->
+<schema 
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  targetNamespace="http://xbrl.org/2008/function"
+  xmlns:fcn="http://xbrl.org/2008/function"
+  xmlns:reg="http://xbrl.org/2008/registry"
+  elementFormDefault="qualified"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.w3.org/2001/XMLSchema http://www.w3.org/2001/XMLSchema.xsd">
+
+  <import 
+  namespace="http://xbrl.org/2008/registry" 
+  schemaLocation="registry.xsd"/>
+
+  <element id="xml-function"
+  name="function">
+    <complexType>
+      <sequence>
+        <element id="xml-last-updated" name="lastUpdated" type="reg:date.elt.type"/>
+        <sequence maxOccurs="unbounded">
+          <element id="xml-owners" name="owners" type="reg:owners.elt.type"/>
+          <element id="xml-summary" name="summary" type="string"/>
+          <element id="xml-documentation" name="documentation" type="reg:documentation.elt.type" minOccurs="0" />
+          <element id="xml-reference" name="reference" type="reg:url.elt.type" minOccurs="0" maxOccurs="unbounded"/>
+          <element id="xml-signature" name="signature" type="fcn:signature.elt.type" maxOccurs="unbounded"/>
+          <element id="xml-error" name="error" type="fcn:error.elt.type" minOccurs="0" maxOccurs="unbounded"/>
+          <element id="xml-example" name="example" type="fcn:example.elt.type" minOccurs="0" maxOccurs="unbounded"/>
+          <element id="xml-conformance-test" name="conformanceTest" type="reg:url.elt.type" minOccurs="0" maxOccurs="unbounded"/>
+          <element id="xml-revisions" name="revisions" type="reg:revisions.elt.type"/>
+        </sequence>
+      </sequence>
+      <attributeGroup ref="reg:common.attribute.group"/>
+    </complexType>
+  </element>
+
+  <complexType name="signature.elt.type">
+    <sequence>
+      <element id="xml-input" name="input" type="fcn:input.elt.type" minOccurs="0" maxOccurs="unbounded"/>
+      <element id="xml-output" name="output" type="fcn:output.elt.type" />
+    </sequence>
+    <attribute name="name" type="QName" use="required"/>
+    <attributeGroup ref="reg:common.attribute.group"/>
+  </complexType>
+
+  <complexType name="input.elt.type">
+    <sequence>
+      <any namespace="http://www.w3.org/1999/xhtml" processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="type" type="string" use="required"/>
+    <attribute name="name" type="string" use="required"/>
+    <attributeGroup ref="reg:common.attribute.group"/>
+  </complexType>
+
+  <complexType name="output.elt.type">
+    <sequence>
+      <any namespace="http://www.w3.org/1999/xhtml" processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="type" type="string" use="required"/>
+    <attributeGroup ref="reg:common.attribute.group"/>
+  </complexType>
+
+  <complexType name="error.elt.type">
+    <sequence>
+      <any namespace="http://www.w3.org/1999/xhtml" processContents="skip" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="code" type="QName" use="required"/>
+    <attributeGroup ref="reg:common.attribute.group"/>
+  </complexType>
+
+  <complexType name="example.elt.type">
+    <sequence>
+      <any namespace="http://www.w3.org/1999/xhtml" processContents="skip" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="title" type="QName" use="required"/>
+    <attribute name="usage" type="QName" use="required"/>
+    <attributeGroup ref="reg:common.attribute.group"/>
+  </complexType>
+
+</schema>

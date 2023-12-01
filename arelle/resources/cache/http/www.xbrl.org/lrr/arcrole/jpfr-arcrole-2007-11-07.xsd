@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance"  elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<annotation>
+		<appinfo>
+			<link:arcroleType arcroleURI="http://info.edinet-fsa.go.jp/jp/fr/gaap/role/arcrole/Gross-Net" cyclesAllowed="none" id="ArcroleGrossNet">
+				<link:definition>The arcrole to relate gross element to net element.</link:definition>
+				<link:usedOn>link:definitionArc</link:usedOn>
+			</link:arcroleType>
+			<link:arcroleType arcroleURI="http://info.edinet-fsa.go.jp/jp/fr/gaap/role/arcrole/Gross-Allowance" cyclesAllowed="none" id="ArcroleGrossAllowance">
+				<link:definition>The arcrole to relate gross element to allowance element.</link:definition>
+				<link:usedOn>link:definitionArc</link:usedOn>
+			</link:arcroleType>
+			<link:arcroleType arcroleURI="http://info.edinet-fsa.go.jp/jp/fr/gaap/role/arcrole/Gross-AccumulatedDepreciation" cyclesAllowed="none" id="ArcroleGrossAccumulatedDepreciation">
+				<link:definition>The arcrole to relate gross element to accumulated depreciation element.</link:definition>
+				<link:usedOn>link:definitionArc</link:usedOn>
+			</link:arcroleType>
+			<link:arcroleType arcroleURI="http://info.edinet-fsa.go.jp/jp/fr/gaap/role/arcrole/Gross-AccumulatedImpairmentLoss" cyclesAllowed="none" id="ArcroleGrossAccumulatedImpairmentLoss">
+				<link:definition>The arcrole to relate gross element to accumulated impairment loss element.</link:definition>
+				<link:usedOn>link:definitionArc</link:usedOn>
+			</link:arcroleType>
+			<link:arcroleType arcroleURI="http://info.edinet-fsa.go.jp/jp/fr/gaap/role/arcrole/Gross-AccumulatedDepreciationAndImpairmentLoss" cyclesAllowed="none" id="ArcroleGrossAccumulatedDepreciationAndImpairmentLoss">
+				<link:definition>The arcrole to relate gross element to accumulated depreciation and impairment loss element.</link:definition>
+				<link:usedOn>link:definitionArc</link:usedOn>
+			</link:arcroleType>
+		</appinfo>
+	</annotation>
+</schema>

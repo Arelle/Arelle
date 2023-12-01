@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schema 
+  xmlns:table="http://xbrl.org/2014/table" 
+  xmlns:model="http://xbrl.org/2014/table/model" 
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  targetNamespace="http://xbrl.org/2014/table/model" 
+  elementFormDefault="qualified">
+
+  <import namespace="http://xbrl.org/2014/table" schemaLocation="table.xsd"/>
+
+  <element id="xml-table-model" name="tableModel">
+    <annotation>
+      <documentation>
+        This is the top level element representing a table model containing zero or more table sets,
+        each derived from a single table definition in the table linkbase.
+      </documentation>
+    </annotation>
+    <complexType>
+      <sequence>
+        <element id="xml-rendering-table-set" name="tableSet" type="model:tableSet.type" minOccurs="0" maxOccurs="unbounded"/>
+      </sequence>
+      <anyAttribute namespace="http://www.w3.org/XML/1998/namespace" processContents="lax"/>
+    </complexType>
+  </element>
+
+  <complexType name="tableSet.type">
+    <sequence>
+      <element id="xml-rendering-table-label" name="label" type="model:label.type" minOccurs="0" maxOccurs="unbounded"/>
+      <element id="xml-rendering-table" name="table" type="model:table.type" minOccurs="1" maxOccurs="unbounded"/>
+    </sequence>
+  </complexType>
+
+  <complexType name="table.type">
+    <annotation>
+      <documentation>
+        This type represents a table. A table has fixed axes as described by the table headers.
+      </documentation>
+    </annotation>
+    <choice minOccurs="1" maxOccurs="unbounded">
+      <sequence>
+        <element id="xml-rendering-table-headers" name="headers" type="model:headers.type" minOccurs="1" maxOccurs="unbounded"/>
+        <element id="xml-rendering-table-cells" name="cells" type="model:cells.type" minOccurs="1" maxOccurs="1"/>
+      </sequence>
+    </choice>
+    <anyAttribute namespace="http://www.w3.org/XML/1998/namespace" processContents="lax"/>
+  </complexType>
+
+  <complexType name="headers.type">
+    <annotation>
+      <documentation>
+        This type represents the headers for a single axis (x, y or z) of a table.
+      </documentation>
+    </annotation>
+    <sequence>
+      <element id="xml-rendering-table-group" name="group" type="model:group.type" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attributeGroup ref="model:commonAttributes.group"/>
+  </complexType>
+
+  <complexType name="group.type">
+    <annotation>
+      <documentation>
+        This type represents groups levels in a set of headers for a single axis, for labelling purposes.
+      </documentation>
+    </annotation>
+    <sequence>
+      <element id="xml-rendering-table-group-label" name="label" type="model:label.type" minOccurs="0" maxOccurs="unbounded"/>
+      <element id="xml-rendering-table-header" name="header" type="model:header.type" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+  </complexType>
+
+  <complexType name="header.type">
+    <annotation>
+      <documentation>
+        This type represents a single level in a set of headers for a single axis.
+        It contains a series of header labels.
+      </documentation>
+    </annotation>
+    <sequence>
+      <element id="xml-rendering-cell" name="cell" type="model:headerCell.type" minOccurs="1" maxOccurs="unbounded"/>
+    </sequence>
+  </complexType>
+
+  <complexType name="headerCell.type">
+    <sequence>
+      <element id="xml-rendering-header-cell-label" name="label" type="model:label.type" minOccurs="0" maxOccurs="unbounded"/>
+      <element id="xml-rendering-header-cell-constraint" name="constraint" type="model:constraint.type" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="span" type="integer" use="optional" default="1"/>
+    <attribute name="rollup" type="boolean" use="optional" default="false"/>
+  </complexType>
+
+  <complexType name="label.type">
+    <simpleContent>
+      <extension base="string">
+        <attribute name="source" type="model:labelSource.type" use="optional" default="explicit"/>
+      </extension>
+    </simpleContent>
+  </complexType>
+
+  <complexType name="constraint.type">
+    <sequence>
+      <element id="xml-rendering-constraint-aspect" name="aspect" type="model:aspect.type" minOccurs="1" maxOccurs="1"/>
+      <element id="xml-rendering-constraint-value" name="value" type="model:value.type" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+    <attribute name="tag" type="NCName" use="optional"/>
+  </complexType>
+
+  <simpleType name="labelSource.type">
+    <restriction base="token">
+      <enumeration value="explicit"/>
+      <enumeration value="processor"/>
+    </restriction>
+  </simpleType>
+
+  <simpleType name="aspect.type">
+    <union memberTypes="QName">
+      <simpleType>
+        <restriction base="token">
+          <enumeration value="concept"/>
+          <enumeration value="entity-identifier"/>
+          <enumeration value="period"/>
+          <enumeration value="unit"/>
+          <!-- non-XDT or complete depending on the aspect model -->
+          <enumeration value="segment"/>
+          <enumeration value="scenario"/>
+        </restriction>
+      </simpleType>
+    </union>
+  </simpleType>
+   
+  <complexType name="value.type" mixed="true">
+    <sequence>
+      <any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/> 
+    </sequence>
+  </complexType>
+
+  <complexType name="cells.type">
+    <choice minOccurs="0" maxOccurs="unbounded">
+      <element name="cells" type="model:cells.type"/>
+      <element id="xml-rendering-table-cell" name="cell" type="model:cell.type"/>
+    </choice>
+    <attributeGroup ref="model:commonAttributes.group"/>
+  </complexType>
+
+  <complexType name="cell.type">
+    <sequence>
+      <element id="xml-rendering-table-fact" name="fact" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="abstract" type="boolean" use="optional" default="false"/>
+  </complexType>
+
+  <attributeGroup name="commonAttributes.group">
+    <attribute name="axis" type="table:axis.type" use="required"/>
+  </attributeGroup>
+</schema>

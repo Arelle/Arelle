@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Arcrole schema for deprecated arcroles -->
+<xsd:schema targetNamespace="http://www.xbrl.org/2009/arcrole/deprecated" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:deprecated="http://www.xbrl.org/2009/arcrole/deprecated" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <xsd:annotation>
+    <xsd:appinfo>
+		<link:arcroleType arcroleURI="http://www.xbrl.org/2009/arcrole/dep-concept-deprecatedConcept" cyclesAllowed="undirected" id="dep-concept-deprecatedConcept">
+		<link:definition>Deprecated: concept - deprecated concept</link:definition>
+		<link:usedOn>link:definitionArc</link:usedOn>
+		</link:arcroleType>
+		<link:arcroleType arcroleURI="http://www.xbrl.org/2009/arcrole/dep-aggregateConcept-deprecatedPartConcept" cyclesAllowed="undirected" id="dep-aggregateConcept-deprecatedPartConcept">
+		<link:definition>Deprecated: aggreate concept - deprecated part concept</link:definition>
+		<link:usedOn>link:definitionArc</link:usedOn>
+		</link:arcroleType>		
+		<link:arcroleType arcroleURI="http://www.xbrl.org/2009/arcrole/dep-dimensionallyQualifiedConcept-deprecatedConcept" cyclesAllowed="undirected" id="dep-dimensionallyQualifiedConcept-deprecatedConcept">
+		<link:definition>Deprecated: dimensionally qualified concept - deprecated concept</link:definition>
+		<link:usedOn>link:definitionArc</link:usedOn>
+		</link:arcroleType>
+		<link:arcroleType arcroleURI="http://www.xbrl.org/2009/arcrole/dep-mutuallyExclusiveConcept-deprecatedConcept" cyclesAllowed="undirected" id="dep-mutuallyExclusiveConcept-deprecatedConcept">
+		<link:definition>Deprecated: mutually exclusive concept - deprecated concept</link:definition>
+		<link:usedOn>link:definitionArc</link:usedOn>
+		</link:arcroleType>		
+		<link:arcroleType arcroleURI="http://www.xbrl.org/2009/arcrole/dep-partConcept-deprecatedAggregateConcept" cyclesAllowed="undirected" id="dep-partConcept-deprecatedAggregateConcept">
+		<link:definition>Deprecated: part concept - deprecated aggregate concept</link:definition>
+		<link:usedOn>link:definitionArc</link:usedOn>
+		</link:arcroleType>
+    </xsd:appinfo>
+  </xsd:annotation>
+  <xsd:import namespace="http://www.xbrl.org/2003/linkbase" schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"/>
+</xsd:schema>

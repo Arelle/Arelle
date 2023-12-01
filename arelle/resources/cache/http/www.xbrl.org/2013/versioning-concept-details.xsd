@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  Copyright 2007-2013 XBRL International. All Rights Reserved.   
+-->
+
+<xs:schema 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  xmlns:ver="http://xbrl.org/2013/versioning-base"
+  xmlns:vercu="http://xbrl.org/2013/versioning-concept-use"
+  xmlns:vercd="http://xbrl.org/2013/versioning-concept-details"
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  targetNamespace="http://xbrl.org/2013/versioning-concept-details" 
+  elementFormDefault="qualified">
+
+  <xs:import namespace="http://xbrl.org/2013/versioning-base" schemaLocation="versioning-base.xsd"/>
+  <xs:import namespace="http://xbrl.org/2013/versioning-concept-use" schemaLocation="versioning-concept-use.xsd"/>
+
+<!-- custom attributes nodes on concepts (not in xs, xbrli or xdt namespace) -->
+  <xs:element name="fromCustomAttribute" type="ver:name.type" id="xml-from-custom-attribute"/>
+  <xs:element name="toCustomAttribute" type="ver:name.type" id="xml-to-custom-attribute"/>
+
+<!-- To address resources in the to-DTS and from-DTS (two nodes for the changeResourceEvent) -->
+  <xs:element name="toResource" type="ver:uri.type"/>
+  <xs:element name="fromResource" type="ver:uri.type"/>
+  
+<!-- add-delete custom attribute event nodes, NO change since there is only a QName -->
+  <xs:complexType id="xml-add.attribute.event.type" name="add.attribute.event.type">
+    <xs:complexContent>
+      <xs:extension base="ver:event.type">
+        <xs:sequence>
+            <xs:element ref="vercu:toConcept"/>
+            <xs:element ref="vercd:toCustomAttribute"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  
+  <!-- change custom attribute definition.  Apply globally to attribute definitions, not on specific concepts. -->
+
+  <xs:complexType id="xml-change.attribute.definition.event.type" name="change.attribute.definition.event.type">
+    <xs:complexContent>
+      <xs:extension base="ver:event.type">
+        <xs:sequence>
+            <xs:element ref="vercd:fromCustomAttribute"/> 
+            <xs:element ref="vercd:toCustomAttribute"/> 
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+ 
+  <xs:complexType id="xml-delete.attribute.event.type" name="delete.attribute.event.type">
+    <xs:complexContent>
+      <xs:extension base="ver:event.type">
+        <xs:sequence>
+            <xs:element ref="vercu:fromConcept"/>
+            <xs:element ref="vercd:fromCustomAttribute"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType id="xml-change.attribute.event.type" name="change.attribute.event.type">
+    <xs:complexContent>
+      <xs:extension base="ver:event.type">
+        <xs:sequence>
+            <xs:element ref="vercu:fromConcept"/>
+            <xs:element ref="vercd:fromCustomAttribute"/> 
+            <xs:element ref="vercu:toConcept"/>
+            <xs:element ref="vercd:toCustomAttribute"/> 
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+<!-- add-delete-change xlink resource event nodes -->
+  <xs:complexType id="xml-add.resource.event.type" name="add.resource.event.type">
+    <xs:complexContent>
+      <xs:extension base="ver:event.type">
+        <xs:sequence>
+          <xs:element ref="vercu:toConcept"/>
+          <xs:element ref="vercd:toResource"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType id="xml-delete.resource.event.type" name="delete.resource.event.type">
+    <xs:complexContent>
+      <xs:extension base="ver:event.type">
+        <xs:sequence>
+            <xs:element ref="vercu:fromConcept"/>
+            <xs:element ref="vercd:fromResource"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType id="xml-change.resource.event.type" name="change.resource.event.type">
+    <xs:complexContent>
+      <xs:extension base="ver:event.type">
+        <xs:sequence>
+            <xs:element ref="vercu:fromConcept"/>
+            <xs:element ref="vercd:fromResource"/>
+            <xs:element ref="vercu:toConcept"/>
+            <xs:element ref="vercd:toResource"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+
+<!-- Concept XSD/XBRLI/XDT attribute events -->
+  <xs:element id="xml-concept.id.event" name="conceptIDChange" type="vercu:change.element.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.type.event" name="conceptTypeChange" type="vercu:change.element.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.substitution.group.event" name="conceptSubstitutionGroupChange" type="vercu:change.element.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.default.event" name="conceptDefaultChange" type="vercu:change.element.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.nillable.event" name="conceptNillableChange" type="vercu:change.element.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.abstract.event" name="conceptAbstractChange" type="vercu:change.element.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.block.event" name="conceptBlockChange" type="vercu:change.element.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.fixed.event" name="conceptFixedChange" type="vercu:change.element.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.final.event" name="conceptFinalChange" type="vercu:change.element.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.period.type.event" name="conceptPeriodTypeChange" type="vercu:change.element.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.balance.event" name="conceptBalanceChange" type="vercu:change.element.event.type" substitutionGroup="ver:event"/>
+<!-- Concept custom attribute events -->
+  <xs:element id="xml-concept.add.attribute.event" name="conceptAttributeAdd" type="vercd:add.attribute.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.delete.attribute.event" name="conceptAttributeDelete" type="vercd:delete.attribute.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.change.attribute.event" name="conceptAttributeChange" type="vercd:change.attribute.event.type" substitutionGroup="ver:event"/>
+  
+<!-- Global custom attribute definition events -->
+  <xs:element id="xml-concept.change.attribute.definition.event" name="attributeDefinitionChange" type="vercd:change.attribute.definition.event.type" substitutionGroup="ver:event"/>
+  
+<!-- Concept tuple children events -->
+  <xs:element id="xml-tuple.change.content.model.event" name="tupleContentModelChange" type="vercu:change.element.event.type" substitutionGroup="ver:event"/>
+<!-- Label resource events -->
+  <xs:element id="xml-concept.add.label.event" name="conceptLabelAdd" type="vercd:add.resource.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.delete.label.event" name="conceptLabelDelete" type="vercd:delete.resource.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.change.label.event" name="conceptLabelChange" type="vercd:change.resource.event.type" substitutionGroup="ver:event"/>
+<!-- Reference resource events -->
+  <xs:element id="xml-concept.add.reference.event" name="conceptReferenceAdd" type="vercd:add.resource.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.delete.reference.event" name="conceptReferenceDelete" type="vercd:delete.resource.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.change.reference.event" name="conceptReferenceChange" type="vercd:change.resource.event.type" substitutionGroup="ver:event"/>
+
+</xs:schema>

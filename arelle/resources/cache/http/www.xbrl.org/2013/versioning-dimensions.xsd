@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  Copyright 2007-2013 XBRL International. All Rights Reserved.   
+-->
+<xs:schema 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  xmlns:verdim="http://xbrl.org/2013/versioning-dimensions"
+  xmlns:ver="http://xbrl.org/2013/versioning-base"
+  targetNamespace="http://xbrl.org/2013/versioning-dimensions" 
+  elementFormDefault="qualified">
+
+  <xs:import namespace="http://xbrl.org/2013/versioning-base" schemaLocation="versioning-base.xsd"/>
+
+<!-- Aspect models of instance facts -->
+  <xs:simpleType name="aspect.relationships.axis.type">
+    <xs:restriction base="xs:token">
+        <xs:enumeration value="child-or-self"/>
+        <xs:enumeration value="child"/>
+        <xs:enumeration value="descendant"/>
+        <xs:enumeration value="descendant-or-self"/>
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <!-- Aspect model of instance facts -->
+  <xs:complexType id="xml-aspect.aspects.type" name="aspect-model.aspects.type">
+    <xs:choice>
+        <xs:sequence>
+            <!-- Concept container element exactly once -->
+            <xs:element name="concepts" id="xml-change.concepts.aspect" type="verdim:aspect.concepts.type" />
+            <!-- Any event in the aspect substitution group -->
+            <xs:element ref="verdim:aspect" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+        <xs:sequence>
+            <!-- Any event in the aspect substitution group. No concept aspect, so min 
+            occurs is now 1 to prevent empty aspect change. -->
+            <xs:element ref="verdim:aspect" minOccurs="1" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:choice>
+    <xs:attributeGroup ref="ver:common.attributes"/>
+  </xs:complexType>
+
+<!-- Types for aspect model events-->
+  <xs:complexType id="xml-change.aspect-model.element.event.type" name="aspect-model-change.event.type">
+    <xs:complexContent>
+      <xs:extension base="ver:event.type">
+        <xs:sequence>
+          <xs:element name="fromAspects" type="verdim:aspect-model.aspects.type"/>
+          <xs:element name="toAspects" type="verdim:aspect-model.aspects.type"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>  
+
+  <xs:complexType id="xml-add.aspect-model.element.event.type" name="aspect-model-add.event.type">
+    <xs:complexContent>
+      <xs:extension base="ver:event.type">
+        <xs:sequence>
+          <xs:element name="toAspects" type="verdim:aspect-model.aspects.type"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>  
+
+  <xs:complexType id="xml-delete.aspect-model.element.event.type" name="aspect-model-delete.event.type">
+    <xs:complexContent>
+      <xs:extension base="ver:event.type">
+        <xs:sequence>
+          <xs:element name="fromAspects" type="verdim:aspect-model.aspects.type"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>  
+  
+
+<!-- Types for concrete aspect model identifiers-->
+
+  <xs:complexType id="xml-aspect.concepts.type" name="aspect.concepts.type">
+    <xs:complexContent>
+        <xs:extension base="verdim:aspect.type">
+            <xs:sequence>
+              <xs:element name="concept" type="verdim:aspect.concept.type" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType id="xml-aspect.concept.type" name="aspect.concept.type">
+    <xs:choice minOccurs="0">
+        <xs:element name="network" type="verdim:aspect.network.type"/>
+        <xs:element name="drsNetwork" type="verdim:aspect.drsnetwork.type"/>
+    </xs:choice>
+    <xs:attribute name="name" type="xs:QName"/>
+    <!-- optional attributes when specifying a hierarchy of concepts applies to this concept aspect -->
+    <xs:attributeGroup ref="ver:common.attributes"/>
+  </xs:complexType>
+  
+  <xs:complexType id="xml-aspect.dimensionMember.type" name="aspect.dimensionMember.type">
+    <xs:choice minOccurs="0">
+        <xs:element name="drsNetwork" type="verdim:aspect.drsnetwork.type"/>
+    </xs:choice>
+    <xs:attribute name="name" type="xs:QName" use="required"/>
+    <xs:attributeGroup ref="ver:common.attributes"/>
+  </xs:complexType>
+  
+    <xs:complexType id="xml-aspect.network.type" name="aspect.network.type">
+    <xs:complexContent>
+        <xs:extension base="verdim:aspect.drsnetwork.type">
+        <xs:attribute name="arcrole" type="xs:anyURI" use="required"/>
+        <xs:attribute name="arc" type="xs:QName" use="optional"/>
+        <xs:attribute name="link" type="xs:QName" use="optional"/>
+        </xs:extension>
+      </xs:complexContent>
+  </xs:complexType>
+  
+  <xs:complexType id="xml-aspect.drsnetwork.type" name="aspect.drsnetwork.type">
+        <xs:attribute name="axis" type="verdim:aspect.relationships.axis.type" use="required"/>
+        <xs:attribute name="linkrole" type="xs:anyURI" use="required"/>
+        <xs:attributeGroup ref="ver:common.attributes"/>
+  </xs:complexType>
+  
+  <xs:complexType id="xml-aspect.explicitDimension.type" name="aspect.explicitDimension.type">
+      <xs:complexContent>
+          <xs:extension base="verdim:aspect.type">
+            <xs:sequence>
+               <xs:element name="member" type="verdim:aspect.dimensionMember.type" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="name" type="xs:QName" use="required" />
+          </xs:extension>
+      </xs:complexContent>
+  </xs:complexType>
+  
+  <xs:complexType id="xml-aspect.typedDimension.type" name="aspect.typedDimension.type">
+      <xs:complexContent>
+          <xs:extension base="verdim:aspect.type">
+            <!-- the contents of the typedDimension that is being mapped -->
+            <xs:sequence>
+              <xs:any minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute name="name" type="xs:QName" use="required" />
+          </xs:extension>
+      </xs:complexContent>
+  </xs:complexType>
+
+<!-- Elements for aspect events -->
+  <xs:element id="xml-aspect-model-change.element.event" name="aspectModelChange" type="verdim:aspect-model-change.event.type" substitutionGroup="ver:event" />
+  <xs:element id="xml-aspect-model-add.element.event" name="aspectModelAdd" type="verdim:aspect-model-add.event.type" substitutionGroup="ver:event" />
+  <xs:element id="xml-aspect-model-delete.element.event" name="aspectModelDelete" type="verdim:aspect-model-delete.event.type" substitutionGroup="ver:event" />
+    
+<!-- Elements for concrete aspect identifiers defined in the Versioning Dimensions spec.
+These are the aspects identified by example in requirement U1702 -->
+
+<xs:element name="explicitDimension" id="xml-change.explicit.dimension.aspect" type="verdim:aspect.explicitDimension.type" substitutionGroup="verdim:aspect" />
+<xs:element name="typedDimension" id="xml-change.typed.dimension.aspect" type="verdim:aspect.typedDimension.type" substitutionGroup="verdim:aspect" />
+
+<!-- Abstract supertype for all aspect identifiers -->
+<xs:element id="xml-change.aspect" name="aspect" type="verdim:aspect.type" abstract="true"/>
+<xs:complexType id="xml-aspect.type" name="aspect.type">
+    <xs:attributeGroup ref="ver:common.attributes"/>
+</xs:complexType>
+  
+
+</xs:schema>

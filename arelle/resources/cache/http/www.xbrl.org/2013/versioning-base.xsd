@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  Copyright 2007-2013 XBRL International. All Rights Reserved.   
+-->
+
+<xs:schema 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xl="http://www.xbrl.org/2003/XLink" 
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:gen="http://xbrl.org/2008/generic"
+  xmlns:ver="http://xbrl.org/2013/versioning-base"
+  targetNamespace="http://xbrl.org/2013/versioning-base" 
+  elementFormDefault="qualified">
+
+  <xs:import namespace="http://www.xbrl.org/2003/linkbase" schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"/>
+  <xs:import namespace="http://www.xbrl.org/2003/XLink" schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd"/>
+  <xs:import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://www.xbrl.org/2003/xlink-2003-12-31.xsd"/>
+
+<!-- general nodes needed -->
+  <xs:attributeGroup id="xml-common.attributes" name="common.attributes">
+    <xs:attribute name="id" type="xs:ID" use="optional"/>
+    <xs:anyAttribute processContents="lax" namespace="##other"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup id="xml-required.common.attributes" name="required.common.attributes">
+    <xs:attribute name="id" type="xs:ID" use="required"/>
+    <xs:anyAttribute processContents="lax" namespace="##other"/>
+  </xs:attributeGroup>
+
+  <xs:complexType id="xml-name.type" name="name.type">
+    <xs:attribute name="name" type="xs:QName" use="required"/>
+    <xs:attributeGroup ref="ver:common.attributes"/>
+  </xs:complexType>
+
+  <xs:complexType id="xml-idref.type" name="idref.type">
+    <xs:attribute name="ref" type="xs:IDREF" use="required"/>
+    <xs:attributeGroup ref="ver:common.attributes"/>
+  </xs:complexType>
+
+<!-- report node -->
+  <xs:element id="xml-report" name="report">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="link:linkbaseRef" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="ver:reportRef" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="ver:fromDTS" minOccurs="1" maxOccurs="1"/>
+        <xs:element ref="ver:toDTS" minOccurs="1" maxOccurs="1"/>
+        <xs:element ref="ver:assignment" minOccurs="0" maxOccurs="unbounded"/> 
+        <xs:element ref="ver:action" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="ver:common.attributes"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element id="xml-reportref" name="reportRef">
+    <xs:complexType>
+      <xs:attribute name="href" type="xs:anyURI" use="required"/>
+      <xs:attributeGroup ref="ver:common.attributes"/>
+    </xs:complexType>
+  </xs:element>
+
+<!-- fromDTS and toDTS node -->
+  <xs:element id="xml-from-dts" name="fromDTS" type="ver:dts.type" substitutionGroup="ver:dts.identifier"/>
+  <xs:element id="xml-to-dts" name="toDTS" type="ver:dts.type" substitutionGroup="ver:dts.identifier"/>
+
+  <xs:element id="xml-dts-identifier" name="dts.identifier" type="ver:dts.type" abstract="true"/>
+
+  <xs:complexType id="xml-dts.type" name="dts.type">
+    <xs:choice minOccurs="1" maxOccurs="unbounded">
+      <xs:element ref="link:linkbaseRef"/> 
+      <xs:element ref="link:schemaRef"/>
+    </xs:choice>
+    <xs:attributeGroup ref="ver:common.attributes"/>
+  </xs:complexType>
+  
+<!-- predefined categories -->
+  <xs:element id="xml-errata.category" name="errataCategory" type="ver:category.type" substitutionGroup="ver:category"/>
+  <xs:element id="xml-business.category" name="businessCategory" type="ver:category.type" substitutionGroup="ver:category"/>
+  <xs:element id="xml-technical.category" name="technicalCategory" type="ver:category.type" substitutionGroup="ver:category"/>
+
+<!-- category node -->
+  <xs:element id="xml-category" name="category" type="ver:category.type" abstract="true"/>
+  
+  <xs:complexType id="xml-category.type" name="category.type">
+    <xs:attributeGroup ref="ver:common.attributes"/>    
+  </xs:complexType>
+
+<!-- assignment node -->
+  <xs:element id="xml-assignment" name="assignment">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ver:category" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="ver:required.common.attributes"/>
+    </xs:complexType>
+  </xs:element>
+  
+<!-- action node -->
+  <xs:element id="xml-action" name="action">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ver:assignmentRef" minOccurs="1" maxOccurs="unbounded"/>
+        <xs:element ref="ver:event" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="ver:common.attributes"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element id="xml-assignmentref" name="assignmentRef" type="ver:idref.type"/>
+  
+<!-- event nodes -->
+  <xs:element id="xml-namespace.rename" name="namespaceRename" type="ver:uri.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-role.change" name="roleChange" type="ver:uri.event.type" substitutionGroup="ver:event"/>
+
+  <xs:complexType id="xml-uri.event.type" name="uri.event.type">
+    <xs:complexContent>
+      <xs:extension base="ver:event.type">
+        <xs:sequence>
+          <xs:element ref="ver:fromURI"/>
+          <xs:element ref="ver:toURI"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element id="xml-from.uri" name="fromURI" type="ver:uri.type"/>
+  <xs:element id="xml-to.uri" name="toURI" type="ver:uri.type"/>
+
+  <xs:complexType id="xml-uri.type" name="uri.type">
+    <xs:attribute name="value" type="xs:anyURI" use="required"/>
+    <xs:attributeGroup ref="ver:common.attributes"/>
+  </xs:complexType>
+  
+<!-- event node -->
+  <xs:element id="xml-event" name="event" type="ver:event.type" abstract="true"/>
+
+  <xs:complexType name="event.type">
+    <xs:attributeGroup ref="ver:common.attributes"/>
+  </xs:complexType>
+
+</xs:schema>

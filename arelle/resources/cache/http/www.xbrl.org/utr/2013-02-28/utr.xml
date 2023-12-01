@@ -1,0 +1,5180 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="./render.xsl"?>
+<utr lastUpdated="2013-02-28" version="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2009/utr utr.xsd" xmlns="http://www.xbrl.org/2009/utr">
+  <units>
+    <unit id="u00001">
+      <unitId>acre</unitId>
+      <unitName>Acre</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>areaItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>a</symbol>
+      <definition>Acre</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>4046.86</mn>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>2</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>4046.86</cn>
+            <apply>
+              <power/>
+              <ci>m</ci>
+              <cn>2</cn>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00004">
+      <unitId>sqft</unitId>
+      <unitName>Square Foot</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>areaItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>ft²</symbol>
+      <definition>Square Foot</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>0.09290304</mn>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>2</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>0.09290304</cn>
+            <apply>
+              <power/>
+              <ci>m</ci>
+              <cn>2</cn>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00007">
+      <unitId>sqmi</unitId>
+      <unitName>Square Mile</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>areaItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>mi²</symbol>
+      <definition>Square Miles</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>2589988.110336</mn>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>2</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>2589988.110336</cn>
+            <apply>
+              <power/>
+              <ci>m</ci>
+              <cn>2</cn>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00008">
+      <unitId>sqyd</unitId>
+      <unitName>Square Yard</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>areaItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>yd²</symbol>
+      <definition>Square Yard</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>0.83612736</mn>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>2</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>0.83612736</cn>
+            <apply>
+              <power/>
+              <ci>m</ci>
+              <cn>2</cn>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00010">
+      <unitId>Boe</unitId>
+      <unitName>Barrel of Oil Equivalent</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>Boe</symbol>
+      <definition>Barrel of Oil Equivalent</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>6117863200</mn>
+            <mo>*</mo>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>6117863200</cn>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00011">
+      <unitId>Btu</unitId>
+      <unitName>British Thermal Unit</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>BTU</symbol>
+      <definition>British Thermal Unit</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1.0545</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>3</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1.0545</cn>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>3</cn>
+            </apply>
+            <cn>J</cn>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00013">
+      <unitId>ft_lb</unitId>
+      <unitName>Foot-Pound</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>ft-lb</symbol>
+      <definition>Foot-Pound Force</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1.3558179483314</mn>
+            <mo>*</mo>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1.3558179483314</cn>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00017">
+      <unitId>MBoe</unitId>
+      <unitName>Thousand Barrels of Oil Equivalent</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>MBoe</symbol>
+      <definition>Thousand Barrels of Oil Equivalent</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>6.1178632</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>12</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>6.1178632</cn>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>12</cn>
+            </apply>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00018">
+      <unitId>Mcfe</unitId>
+      <unitName>Thousand Cubic Foot Equivalent</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>Mcfe</symbol>
+      <definition>Thousand Cubic Foot Equivalent</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1.0872</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>9</mn>
+            </msup>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1.0872</cn>
+            <power/>
+            <cn>10</cn>
+            <cn>9</cn>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00020">
+      <unitId>MMBoe</unitId>
+      <unitName>Millions of Barrels of Oil Equivalent</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>MMBoe</symbol>
+      <definition>Millions of Barrels of Oil Equivalent</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>6.1178632</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>15</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>6.1178632</cn>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>15</cn>
+            </apply>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00021">
+      <unitId>MMBTU</unitId>
+      <unitName>Millions of BTU</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>MMBTU</symbol>
+      <definition>Millions of BTU</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1.0545</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>9</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1.0545</cn>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>9</cn>
+            </apply>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00029">
+      <unitId>ft</unitId>
+      <unitName>Foot</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>lengthItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>ft</symbol>
+      <definition>Twelve Inches</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>0.3048</mn>
+            <mo>*</mo>
+            <mi>m</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>0.3048</cn>
+            <ci>m</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00030">
+      <unitId>in</unitId>
+      <unitName>Inch</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>lengthItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>in</symbol>
+      <definition>Inch</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>25.4</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>-3</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>m</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>25.4</cn>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>-3</cn>
+            </apply>
+            <ci>m</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00033">
+      <unitId>mi</unitId>
+      <unitName>Mile</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>lengthItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>mi</symbol>
+      <definition>5280 Feet</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1609.344</mn>
+            <mo>*</mo>
+            <mi>m</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1609.344</cn>
+            <ci>m</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00035">
+      <unitId>nmi</unitId>
+      <unitName>Nautical Mile</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>lengthItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>nmi</symbol>
+      <definition>1.15078 Miles (One Minute of Arc Latitude)</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1852</mn>
+            <mo>*</mo>
+            <mi>m</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1852</cn>
+            <ci>m</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00036">
+      <unitId>yd</unitId>
+      <unitName>Yard</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>lengthItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>yd</symbol>
+      <definition>Three Feet</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>0.914400000</mn>
+            <mo>*</mo>
+            <mi>m</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>0.914400000</cn>
+            <ci>m</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00039">
+      <unitId>lb</unitId>
+      <unitName>Pound</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>massItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>lb</symbol>
+      <definition>Pound of Mass, as Used in Commerce
+        (http://en.wikipedia.org/wiki/Pound_(mass)#Use_in_Commerce))</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>0.45359237</mn>
+            <mo>*</mo>
+            <mi>kg</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>.45359237</cn>
+            <ci>kg</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00041">
+      <unitId>oz</unitId>
+      <unitName>Ounce</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>massItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>oz</symbol>
+      <definition>US Ounce</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>0.028</mn>
+            <mo>*</mo>
+            <mi>kg</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>0.028</cn>
+            <ci>kg</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00042">
+      <unitId>ozt</unitId>
+      <unitName>Troy Ounce</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>massItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>ozt</symbol>
+      <definition>Troy Ounce</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>0.0311034768</mn>
+            <mo>*</mo>
+            <mi>kg</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>0.0311034768</cn>
+            <ci>kg</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00043">
+      <unitId>T</unitId>
+      <unitName>Ton</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>massItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>T</symbol>
+      <definition>US Ton</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>907.18474</mn>
+            <mo>*</mo>
+            <mi>kg</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>907.18474</cn>
+            <ci>kg</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00230">
+      <unitId>hp</unitId>
+      <unitName>Horsepower</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>powerItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>hp</symbol>
+      <definition>Horsepower (Foot-pound per Second)</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>745.7</mn>
+            <mo>*</mo>
+            <mi>W</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>745.7</cn>
+            <ci>W</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00240">
+      <unitId>bbl</unitId>
+      <unitName>Barrel</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>volumeItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>bbl</symbol>
+      <definition>Barrel (of Oil)</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>0.1589873</mn>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>3</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>0.1589873</cn>
+            <apply>
+              <power/>
+              <ci>m</ci>
+              <cn>3</cn>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00241">
+      <unitId>ft3</unitId>
+      <unitName>Cubic Foot</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>volumeItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>ft³</symbol>
+      <definition>Cubic Foot</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>0.028316846592</mn>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>3</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>0.028316846592</cn>
+            <apply>
+              <power/>
+              <ci>m</ci>
+              <cn>3</cn>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00242">
+      <unitId>gal</unitId>
+      <unitName>Gallon</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>volumeItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>gal</symbol>
+      <definition>US Gallon</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>0.003785412</mn>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>3</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>0.003785412</cn>
+            <apply>
+              <power/>
+              <ci>m</ci>
+              <cn>3</cn>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00245">
+      <unitId>MBbls</unitId>
+      <unitName>Thousand Barrels</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>volumeItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>MBbls</symbol>
+      <definition>Thousands of Barrels (of Oil)</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>158.98729493</mn>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>3</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>158.98729493</cn>
+            <apply>
+              <power/>
+              <ci>m</ci>
+              <cn>6</cn>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00246">
+      <unitId>Mcf</unitId>
+      <unitName>Thousands Cubic Feet</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>volumeItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>Mcf</symbol>
+      <definition>Thousands of Cubic Feet</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>28316.846592</mn>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>3</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>28316.846592</cn>
+            <apply>
+              <power/>
+              <ci>m</ci>
+              <cn>3</cn>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00247">
+      <unitId>MMBbls</unitId>
+      <unitName>Million Barrels</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>volumeItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>MMBbls</symbol>
+      <definition>Millions of Barrels (of Oil)</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>158987.294933</mn>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>3</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>158987.294933</cn>
+            <apply>
+              <power/>
+              <ci>m</ci>
+              <cn>3</cn>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00248">
+      <unitId>MMcf</unitId>
+      <unitName>Millions Cubic Feet</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>volumeItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>MMcf</symbol>
+      <definition>Millions of Cubic Feet</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>28316.846592</mn>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>3</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>28316.846592</cn>
+            <apply>
+              <power/>
+              <ci>m</ci>
+              <cn>3</cn>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00050">
+      <unitId>AED</unitId>
+      <unitName>U.A.E. dirham</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>United Arab Emirates dirham</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00051">
+      <unitId>AFN</unitId>
+      <unitName>Afghan afghani</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Afghan afghani</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00052">
+      <unitId>ALL</unitId>
+      <unitName>Albanian lek</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Albanian lek</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00053">
+      <unitId>AMD</unitId>
+      <unitName>Armenian dram</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Armenian dram</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00054">
+      <unitId>ANG</unitId>
+      <unitName>Netherlands Antillean guilder</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Netherlands Antillean guilder</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00055">
+      <unitId>AOA</unitId>
+      <unitName>Angolan kwanza</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Angolan kwanza</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00056">
+      <unitId>ARS</unitId>
+      <unitName>Argentine peso</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Argentine peso</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00057">
+      <unitId>AUD</unitId>
+      <unitName>Australian dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Australian dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00058">
+      <unitId>AWG</unitId>
+      <unitName>Aruban florin</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Aruban florin</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00059">
+      <unitId>AZN</unitId>
+      <unitName>Azerbaijani manat</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Azerbaijani manat</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00060">
+      <unitId>BAM</unitId>
+      <unitName>Bosnia and Herzegovina convertible mark</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Bosnia and Herzegovina convertible mark</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00061">
+      <unitId>BBD</unitId>
+      <unitName>Barbados dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Barbados dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00062">
+      <unitId>BDT</unitId>
+      <unitName>Bangladeshi taka</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Bangladeshi taka</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00063">
+      <unitId>BGN</unitId>
+      <unitName>Bulgarian lev</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Bulgarian lev</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00064">
+      <unitId>BHD</unitId>
+      <unitName>Bahraini dinar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Bahraini dinar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00065">
+      <unitId>BIF</unitId>
+      <unitName>Burundian franc</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Burundian franc</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00066">
+      <unitId>BMD</unitId>
+      <unitName>Bermuda Dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Bermudian dollar (customarily known as Bermuda dollar)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00067">
+      <unitId>BND</unitId>
+      <unitName>Brunei dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Brunei dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00068">
+      <unitId>BOB</unitId>
+      <unitName>Boliviano</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Boliviano</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00069">
+      <unitId>BOV</unitId>
+      <unitName>Bolivian Mvdol</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Bolivian Mvdol (funds code)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00070">
+      <unitId>BRL</unitId>
+      <unitName>Brazilian real</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Brazilian real</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00071">
+      <unitId>BSD</unitId>
+      <unitName>Bahamian dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Bahamian dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00072">
+      <unitId>BTN</unitId>
+      <unitName>Bhutanese ngultrum</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Bhutanese ngultrum</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00073">
+      <unitId>BWP</unitId>
+      <unitName>Botswana pula</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Botswana pula</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00074">
+      <unitId>BYR</unitId>
+      <unitName>Belarusian ruble</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Belarusian ruble</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00075">
+      <unitId>BZD</unitId>
+      <unitName>Belize dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Belize dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00076">
+      <unitId>CAD</unitId>
+      <unitName>Canadian dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Canadian dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00077">
+      <unitId>CDF</unitId>
+      <unitName>Congolese franc</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Congolese franc</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00078">
+      <unitId>CHE</unitId>
+      <unitName>WIR Bank</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>WIR Bank (complementary currency)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00079">
+      <unitId>CHF</unitId>
+      <unitName>Swiss franc</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>SFr</symbol>
+      <definition>Swiss franc</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00080">
+      <unitId>CHW</unitId>
+      <unitName>WIR Bank</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>WIR Bank (complementary currency)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00081">
+      <unitId>CLF</unitId>
+      <unitName>Unidad de Fomento</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Unidad de Fomento (funds code)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00082">
+      <unitId>CLP</unitId>
+      <unitName>Chilean peso</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Chilean peso</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00083">
+      <unitId>CNY</unitId>
+      <unitName>Chinese yuan</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>¥</symbol>
+      <definition>Chinese yuan (renmibi)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00084">
+      <unitId>COP</unitId>
+      <unitName>Colombian peso</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Colombian peso</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00085">
+      <unitId>COU</unitId>
+      <unitName>Unidad de Valor Real</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Unidad de Valor Real</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00086">
+      <unitId>CRC</unitId>
+      <unitName>Costa Rican colon</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Costa Rican colon</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00087">
+      <unitId>CUC</unitId>
+      <unitName>Cuban convertible peso</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Cuban convertible peso</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00088">
+      <unitId>CUP</unitId>
+      <unitName>Cuban peso</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Cuban peso</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00089">
+      <unitId>CVE</unitId>
+      <unitName>Cape Verde escudo</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Cape Verde escudo</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00090">
+      <unitId>CZK</unitId>
+      <unitName>Czech koruna</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Czech koruna</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00091">
+      <unitId>DJF</unitId>
+      <unitName>Djiboutian franc</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Djiboutian franc</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00092">
+      <unitId>DKK</unitId>
+      <unitName>Danish krone</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Danish krone</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00093">
+      <unitId>DOP</unitId>
+      <unitName>Dominican peso</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Dominican peso</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00094">
+      <unitId>DZD</unitId>
+      <unitName>Algerian dinar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Algerian dinar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00095">
+      <unitId>EEK</unitId>
+      <unitName>Estonian kroon</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Estonian kroon</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00096">
+      <unitId>EGP</unitId>
+      <unitName>Egyptian pound</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Egyptian pound</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00097">
+      <unitId>ERN</unitId>
+      <unitName>Eritrean nakfa</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Eritrean nakfa</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00098">
+      <unitId>ETB</unitId>
+      <unitName>Ethiopian birr</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Ethiopian birr</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00099">
+      <unitId>EUR</unitId>
+      <unitName>Euro</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>€</symbol>
+      <definition>Euro</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00100">
+      <unitId>FJD</unitId>
+      <unitName>Fiji dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Fiji dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00101">
+      <unitId>FKP</unitId>
+      <unitName>Falkland Islands pound</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Falkland Islands pound</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00102">
+      <unitId>GBP</unitId>
+      <unitName>Pound sterling</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>£</symbol>
+      <definition>Great Britain Pound sterling</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00103">
+      <unitId>GEL</unitId>
+      <unitName>Georgian lari</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Georgian lari</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00104">
+      <unitId>GHS</unitId>
+      <unitName>Ghanaian cedi</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Ghanaian cedi</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00105">
+      <unitId>GIP</unitId>
+      <unitName>Gibraltar pound</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Gibraltar pound</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00106">
+      <unitId>GMD</unitId>
+      <unitName>Gambian dalasi</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Gambian dalasi</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00107">
+      <unitId>GNF</unitId>
+      <unitName>Guinean franc</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Guinean franc</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00108">
+      <unitId>GTQ</unitId>
+      <unitName>Guatemalan quetzal</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Guatemalan quetzal</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00109">
+      <unitId>GYD</unitId>
+      <unitName>Guyanese dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Guyanese dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00110">
+      <unitId>HKD</unitId>
+      <unitName>Hong Kong dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Hong Kong dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00111">
+      <unitId>HNL</unitId>
+      <unitName>Honduran lempira</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Honduran lempira</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00112">
+      <unitId>HRK</unitId>
+      <unitName>Croatian kuna</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Croatian kuna</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00113">
+      <unitId>HTG</unitId>
+      <unitName>Haitian gourde</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Haitian gourde</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00114">
+      <unitId>HUF</unitId>
+      <unitName>Hungarian forint</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Hungarian forint</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00115">
+      <unitId>IDR</unitId>
+      <unitName>Indonesian rupiah</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Indonesian rupiah</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00116">
+      <unitId>ILS</unitId>
+      <unitName>Israeli new sheqel</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>₪</symbol>
+      <definition>Israeli new sheqel</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00117">
+      <unitId>INR</unitId>
+      <unitName>Indian rupee</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>₨</symbol>
+      <definition>Indian rupee</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00118">
+      <unitId>IQD</unitId>
+      <unitName>Iraqi dinar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Iraqi dinar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00119">
+      <unitId>IRR</unitId>
+      <unitName>Iranian rial</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Iranian rial</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00120">
+      <unitId>ISK</unitId>
+      <unitName>Icelandic króna</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Icelandic króna</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00121">
+      <unitId>JMD</unitId>
+      <unitName>Jamaican dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Jamaican dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00122">
+      <unitId>JOD</unitId>
+      <unitName>Jordanian dinar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Jordanian dinar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00123">
+      <unitId>JPY</unitId>
+      <unitName>Japanese yen</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>¥</symbol>
+      <definition>Japanese yen</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00124">
+      <unitId>KES</unitId>
+      <unitName>Kenyan shilling</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Kenyan shilling</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00125">
+      <unitId>KGS</unitId>
+      <unitName>Kyrgyzstani som</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Kyrgyzstani som</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00126">
+      <unitId>KHR</unitId>
+      <unitName>Cambodian riel</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Cambodian riel</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00127">
+      <unitId>KMF</unitId>
+      <unitName>Comoro franc</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>₣</symbol>
+      <definition>Comoro franc</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00128">
+      <unitId>KPW</unitId>
+      <unitName>North Korean won</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>North Korean won</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00129">
+      <unitId>KRW</unitId>
+      <unitName>South Korean won</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>₩</symbol>
+      <definition>South Korean won</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00130">
+      <unitId>KWD</unitId>
+      <unitName>Kuwaiti dinar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Kuwaiti dinar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00131">
+      <unitId>KYD</unitId>
+      <unitName>Cayman Islands dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Cayman Islands dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00132">
+      <unitId>KZT</unitId>
+      <unitName>Kazakhstani tenge</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Kazakhstani tenge</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00133">
+      <unitId>LAK</unitId>
+      <unitName>Lao kip</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>₭</symbol>
+      <definition>Lao kip</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00134">
+      <unitId>LBP</unitId>
+      <unitName>Lebanese pound</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Lebanese pound</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00135">
+      <unitId>LKR</unitId>
+      <unitName>Sri Lanka rupee</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Sri Lanka rupee</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00136">
+      <unitId>LRD</unitId>
+      <unitName>Liberian dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Liberian dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00137">
+      <unitId>LSL</unitId>
+      <unitName>Lesotho loti</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Lesotho loti</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00138">
+      <unitId>LTL</unitId>
+      <unitName>Lithuanian litas</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Lithuanian litas</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00139">
+      <unitId>LVL</unitId>
+      <unitName>Latvian lats</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Latvian lats</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00140">
+      <unitId>LYD</unitId>
+      <unitName>Libyan dinar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Libyan dinar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00141">
+      <unitId>MAD</unitId>
+      <unitName>Moroccan dirham</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Moroccan dirham</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00142">
+      <unitId>MDL</unitId>
+      <unitName>Moldovan leu</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Moldovan leu</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00143">
+      <unitId>MGA</unitId>
+      <unitName>Malagasy ariary</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Malagasy ariary</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00144">
+      <unitId>MKD</unitId>
+      <unitName>Macedonian denar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Macedonian denar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00145">
+      <unitId>MMK</unitId>
+      <unitName>Myanma kyat</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Myanma kyat</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00146">
+      <unitId>MNT</unitId>
+      <unitName>Mongolian tugrik</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>₮</symbol>
+      <definition>Mongolian tugrik</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00147">
+      <unitId>MOP</unitId>
+      <unitName>Macanese pataca</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Macanese pataca</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00148">
+      <unitId>MRO</unitId>
+      <unitName>Mauritanian ouguiya</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Mauritanian ouguiya</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00149">
+      <unitId>MUR</unitId>
+      <unitName>Mauritian rupee</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Mauritian rupee</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00150">
+      <unitId>MVR</unitId>
+      <unitName>Maldivian rufiyaa</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Maldivian rufiyaa</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00151">
+      <unitId>MWK</unitId>
+      <unitName>Malawian kwacha</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Malawian kwacha</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00152">
+      <unitId>MXN</unitId>
+      <unitName>Mexican peso</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Mexican peso</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00153">
+      <unitId>MXV</unitId>
+      <unitName>Mexican UDI</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Mexican Unidad de Inversion (UDI) (funds code)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00154">
+      <unitId>MYR</unitId>
+      <unitName>Malaysian ringgit</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Malaysian ringgit</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00155">
+      <unitId>MZN</unitId>
+      <unitName>Mozambican metical</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Mozambican metical</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00156">
+      <unitId>NAD</unitId>
+      <unitName>Namibian dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Namibian dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00157">
+      <unitId>NGN</unitId>
+      <unitName>Nigerian naira</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Nigerian naira</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00158">
+      <unitId>NIO</unitId>
+      <unitName>Cordoba oro</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Cordoba oro</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00159">
+      <unitId>NOK</unitId>
+      <unitName>Norwegian krone</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Norwegian krone</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00160">
+      <unitId>NPR</unitId>
+      <unitName>Nepalese rupee</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Nepalese rupee</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00161">
+      <unitId>NZD</unitId>
+      <unitName>New Zealand dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>New Zealand dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00162">
+      <unitId>OMR</unitId>
+      <unitName>Omani rial</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Omani rial</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00163">
+      <unitId>PAB</unitId>
+      <unitName>Panamanian balboa</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Panamanian balboa</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00164">
+      <unitId>PEN</unitId>
+      <unitName>Peruvian nuevo sol</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Peruvian nuevo sol</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00165">
+      <unitId>PGK</unitId>
+      <unitName>Papua New Guinean kina</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Papua New Guinean kina</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00166">
+      <unitId>PHP</unitId>
+      <unitName>Philippine peso</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Philippine peso</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00167">
+      <unitId>PKR</unitId>
+      <unitName>Pakistani rupee</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Pakistani rupee</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00168">
+      <unitId>PLN</unitId>
+      <unitName>Polish złoty</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Polish złoty</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00169">
+      <unitId>PYG</unitId>
+      <unitName>Paraguayan guaraní</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Paraguayan guaraní</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00170">
+      <unitId>QAR</unitId>
+      <unitName>Qatari rial</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Qatari rial</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00171">
+      <unitId>RON</unitId>
+      <unitName>Romanian new leu</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Romanian new leu</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00172">
+      <unitId>RSD</unitId>
+      <unitName>Serbian dinar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Serbian dinar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00173">
+      <unitId>RUB</unitId>
+      <unitName>Rouble</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Russian rouble</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00174">
+      <unitId>RWF</unitId>
+      <unitName>Rwandan franc</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Rwandan franc</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00175">
+      <unitId>SAR</unitId>
+      <unitName>Riyal</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Saudi riyal</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00176">
+      <unitId>SBD</unitId>
+      <unitName>Solomon Islands dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Solomon Islands dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00177">
+      <unitId>SCR</unitId>
+      <unitName>Seychelles rupee</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Seychelles rupee</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00178">
+      <unitId>SDG</unitId>
+      <unitName>Sudanese pound</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Sudanese pound</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00179">
+      <unitId>SEK</unitId>
+      <unitName>Swedish krona</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Swedish krona/kronor</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00180">
+      <unitId>SGD</unitId>
+      <unitName>Singapore dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Singapore dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00181">
+      <unitId>SHP</unitId>
+      <unitName>Saint Helena pound</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Saint Helena pound</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00182">
+      <unitId>SLL</unitId>
+      <unitName>Leone</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Sierra Leonean leone</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00183">
+      <unitId>SOS</unitId>
+      <unitName>Somali shilling</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Somali shilling</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00184">
+      <unitId>SRD</unitId>
+      <unitName>Surinamese dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Surinamese dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00185">
+      <unitId>STD</unitId>
+      <unitName>São Tomé and Príncipe dobra</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>São Tomé and Príncipe dobra</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00186">
+      <unitId>SYP</unitId>
+      <unitName>Syrian pound</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Syrian pound</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00187">
+      <unitId>SZL</unitId>
+      <unitName>Lilangeni</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Swaziland Lilangeni</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00188">
+      <unitId>THB</unitId>
+      <unitName>Baht</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Thai baht</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00189">
+      <unitId>TJS</unitId>
+      <unitName>Tajikistani somoni</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Tajikistani somoni</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00190">
+      <unitId>TMT</unitId>
+      <unitName>Turkmenistani manat</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Turkmenistani manat</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00191">
+      <unitId>TND</unitId>
+      <unitName>Tunisian dinar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Tunisian dinar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00192">
+      <unitId>TOP</unitId>
+      <unitName>Pa'anga</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Tongan pa'anga</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00193">
+      <unitId>TRY</unitId>
+      <unitName>Turkish lira</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Turkish lira</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00194">
+      <unitId>TTD</unitId>
+      <unitName>Trinidad and Tobago dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Trinidad and Tobago dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00195">
+      <unitId>TWD</unitId>
+      <unitName>New Taiwan dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>New Taiwan dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00196">
+      <unitId>TZS</unitId>
+      <unitName>Tanzanian shilling</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Tanzanian shilling</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00197">
+      <unitId>UAH</unitId>
+      <unitName>Hryvinia</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Ukrainian hryvnia</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00198">
+      <unitId>UGX</unitId>
+      <unitName>Ugandan shilling</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Ugandan shilling</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00199">
+      <unitId>USD</unitId>
+      <unitName>US Dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>$</symbol>
+      <definition>United States dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00200">
+      <unitId>USN</unitId>
+      <unitName>Next Day US Dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>$</symbol>
+      <definition>United States dollar (next day) (funds code)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00201">
+      <unitId>USS</unitId>
+      <unitName>Same Day US Dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>$</symbol>
+      <definition>United States dollar (same day) (funds code)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00202">
+      <unitId>UYU</unitId>
+      <unitName>Uruguayan peso</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Uruguayan peso</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00203">
+      <unitId>UZS</unitId>
+      <unitName>Som</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Uzbekistan som</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00204">
+      <unitId>VEB</unitId>
+      <unitName>Venezualan Bolivar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Venezuelan bolívar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00205">
+      <unitId>VEF</unitId>
+      <unitName>Venezuelan Bolivar Fuerte</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Venezuelan bolívar fuerte (equals 1000 VEB)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00206">
+      <unitId>VND</unitId>
+      <unitName>đồng</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>₫</symbol>
+      <definition>Vietnamese đồng</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00207">
+      <unitId>VUV</unitId>
+      <unitName>Vanuatu vatu</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Vanuatu vatu</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00208">
+      <unitId>WST</unitId>
+      <unitName>Samoan tala</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Samoan tala</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00209">
+      <unitId>XAF</unitId>
+      <unitName>CFA Franc BEAC</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>CFA franc BEAC</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00210">
+      <unitId>XAG</unitId>
+      <unitName>Silver</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Silver (one troy ounce)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00211">
+      <unitId>XAU</unitId>
+      <unitName>Gold</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Gold (one troy ounce)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00212">
+      <unitId>XBA</unitId>
+      <unitName>EURCO</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>European Composite Unit (EURCO) (bond market unit)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00213">
+      <unitId>XBB</unitId>
+      <unitName>E.M.U.-6</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>European Monetary Unit (E.M.U.-6) (bond market unit)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00214">
+      <unitId>XBC</unitId>
+      <unitName>E.U.A.-9</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>European Unit of Account 9 (E.U.A.-9) (bond market unit)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00215">
+      <unitId>XBD</unitId>
+      <unitName>E.U.A.-17</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>European Unit of Account 17 (E.U.A.-17) (bond market unit)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00216">
+      <unitId>XCD</unitId>
+      <unitName>East Caribbean dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>East Caribbean dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00217">
+      <unitId>XDR</unitId>
+      <unitName>Special Drawing Rights</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Special Drawing Rights</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00218">
+      <unitId>XFU</unitId>
+      <unitName>UIC Franc</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>UIC franc (special settlement currency)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00219">
+      <unitId>XOF</unitId>
+      <unitName>CFA Franc BCEAO</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>CFA Franc BCEAO</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00220">
+      <unitId>XPD</unitId>
+      <unitName>Palladium</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Palladium (one troy ounce)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00221">
+      <unitId>XPF</unitId>
+      <unitName>CFP Franc</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>CFP franc</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00222">
+      <unitId>XPT</unitId>
+      <unitName>Platinum</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Platinum (one troy ounce)</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00223">
+      <unitId>YER</unitId>
+      <unitName>Yemeni rial</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Yemeni rial</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00224">
+      <unitId>ZAR</unitId>
+      <unitName>South African rand</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>South African rand</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00225">
+      <unitId>ZMK</unitId>
+      <unitName>Zambian kwacha</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Zambian kwacha</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00226">
+      <unitId>ZWL</unitId>
+      <unitName>Zimbabwe dollar</unitName>
+      <nsUnit>http://www.xbrl.org/2003/iso4217</nsUnit>
+      <itemType>monetaryItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Zimbabwe dollar</definition>
+      <baseStandard>ISO4217</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00012">
+      <unitId>Cal</unitId>
+      <unitName>Calorie</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>Cal</symbol>
+      <definition>Calorie</definition>
+      <baseStandard>Non-SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>4.184</mn>
+            <mo>*</mo>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>4.184</cn>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00044">
+      <unitId>t</unitId>
+      <unitName>Tonne</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>massItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>t</symbol>
+      <definition>Tonne (Metric Tonne, Metric Ton)</definition>
+      <baseStandard>Non-SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>3</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>kg</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>3</cn>
+            </apply>
+            <ci>kg</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00045">
+      <unitId>B</unitId>
+      <unitName>Byte</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>memoryItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>B</symbol>
+      <definition>8 adjacent bits of Memory per IEEE 1541-2002</definition>
+      <baseStandard>Non-SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>2</mn>
+              <mn>3</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>bit</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>2</cn>
+              <cn>3</cn>
+            </apply>
+            <ci>bit</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00046">
+      <unitId>GB</unitId>
+      <unitName>Gigabyte</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>memoryItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>GB</symbol>
+      <definition>Gigabytes of Memory per IEEE 1541-2002</definition>
+      <baseStandard>Non-SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>9</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>B</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>2</cn>
+              <cn>30</cn>
+            </apply>
+            <ci>B</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00047">
+      <unitId>kB</unitId>
+      <unitName>Kilobyte</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>memoryItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>kB</symbol>
+      <definition>Kilobytes of Memory per IEEE 1541-2002</definition>
+      <baseStandard>Non-SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>3</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>B</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>3</cn>
+            </apply>
+            <ci>B</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00048">
+      <unitId>MB</unitId>
+      <unitName>Megabyte</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>memoryItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>MB</symbol>
+      <definition>Megabytes of Memory per IEEE 1541-2002</definition>
+      <baseStandard>Non-SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>6</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>B</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>6</cn>
+            </apply>
+            <ci>B</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00049">
+      <unitId>TB</unitId>
+      <unitName>Terabyte</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>memoryItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>TB</symbol>
+      <definition>Terabytes of Memory per IEEE 1541-2002</definition>
+      <baseStandard>Non-SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>12</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>B</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>12</cn>
+            </apply>
+            <ci>B</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00002">
+      <unitId>ha</unitId>
+      <unitName>Hectare</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>areaItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>ha</symbol>
+      <definition>Hectare</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1000</mn>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>2</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1000</cn>
+            <apply>
+              <power/>
+              <ci>m</ci>
+              <cn>2</cn>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00005">
+      <unitId>sqkm</unitId>
+      <unitName>Square km</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>areaItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>km²</symbol>
+      <definition>Square Kilometer</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1000000</mn>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>2</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1000000</cn>
+            <apply>
+              <power/>
+              <ci>m</ci>
+              <cn>2</cn>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00006">
+      <unitId>sqm</unitId>
+      <unitName>Square metre</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>areaItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>m²</symbol>
+      <definition>Square Metre</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <msup>
+            <mi>m</mi>
+            <mn>2</mn>
+          </msup>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <power/>
+            <ci>m</ci>
+            <cn>2</cn>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00009">
+      <unitId>A</unitId>
+      <unitName>Ampere</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>electricCurrentItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>A</symbol>
+      <definition>Ampere</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1</mn>
+            <mo>*</mo>
+            <mi>A</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1</cn>
+            <ci>A</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00014">
+      <unitId>J</unitId>
+      <unitName>Joule</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>J</symbol>
+      <definition>Joule</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mfrac>
+            <mrow>
+              <mn>1</mn>
+              <mo>*</mo>
+              <mi>kg</mi>
+              <mo>*</mo>
+              <msup>
+                <mi>m</mi>
+                <mn>2</mn>
+              </msup>
+            </mrow>
+            <msup>
+              <mi>s</mi>
+              <mn>-2</mn>
+            </msup>
+          </mfrac>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci>kg</ci>
+            <apply>
+              <power/>
+              <ci>m</ci>
+              <cn>2</cn>
+            </apply>
+            <apply>
+              <power/>
+              <ci>s</ci>
+              <cn>-2</cn>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00015">
+      <unitId>kJ</unitId>
+      <unitName>Kilojoule</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>kJ</symbol>
+      <definition>Thousand Joules</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>3</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>3</cn>
+            </apply>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00016">
+      <unitId>kWh</unitId>
+      <unitName>Kilowatt-Hours</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>kWh</symbol>
+      <definition>Kilowatt-Hours of Energy</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>3.6</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>6</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>3.6</cn>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>6</cn>
+            </apply>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00019">
+      <unitId>mJ</unitId>
+      <unitName>mJ</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>mJ</symbol>
+      <definition>Millijoules</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>-3</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>-3</cn>
+            </apply>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00022">
+      <unitId>MWh</unitId>
+      <unitName>Megawatt-Hour</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>MWh</symbol>
+      <definition>Megawatt-Hour</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>3.6</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>9</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>3.6</cn>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>9</cn>
+            </apply>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00025">
+      <unitId>V</unitId>
+      <unitName>Volt</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>voltageItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>V</symbol>
+      <definition>Electromotive Force</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mfrac>
+            <mrow>
+              <mi>kg</mi>
+              <mo>*</mo>
+              <msup>
+                <mi>m</mi>
+                <mn>2</mn>
+              </msup>
+            </mrow>
+            <mrow>
+              <msup>
+                <mi>s</mi>
+                <mn>3</mn>
+              </msup>
+              <mo>*</mo>
+              <mi>a</mi>
+            </mrow>
+          </mfrac>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci>kg</ci>
+              <apply>
+                <power/>
+                <ci>m</ci>
+                <cn>2</cn>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci>a</ci>
+              <apply>
+                <power/>
+                <ci>s</ci>
+                <cn>3</cn>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00026">
+      <unitId>Hz</unitId>
+      <unitName>Hertz</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>frequencyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>Hz</symbol>
+      <definition>Frequency or Number of Cycles per Second</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mfrac>
+            <mn>1</mn>
+            <mi>s</mi>
+          </mfrac>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <power/>
+            <cn>s</cn>
+            <ci>-1</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00027">
+      <unitId>cm</unitId>
+      <unitName>Centimetre</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>lengthItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>cm</symbol>
+      <definition>One-hundreth of Metre</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>-2</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>m</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <ci>-2</ci>
+            </apply>
+            <cn>m</cn>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00028">
+      <unitId>dm</unitId>
+      <unitName>Decimetre</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>lengthItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>dm</symbol>
+      <definition>Decimetre</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>-1</mn>
+            </msup>
+            <mi>m</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <ci>-1</ci>
+            </apply>
+            <cn>m</cn>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00031">
+      <unitId>km</unitId>
+      <unitName>Kilometre</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>lengthItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>km</symbol>
+      <definition>Thousand Metres</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>3</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>m</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>m</cn>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <ci>3</ci>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00032">
+      <unitId>m</unitId>
+      <unitName>Metre</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>lengthItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>m</symbol>
+      <definition>Metre</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1</mn>
+            <mo>*</mo>
+            <mi>m</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci>1</ci>
+            <cn>m</cn>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00034">
+      <unitId>mm</unitId>
+      <unitName>Millimetre</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>lengthItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>mm</symbol>
+      <definition>One-thousandth of Metre</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>-3</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>m</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <ci>-3</ci>
+            </apply>
+            <cn>m</cn>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00037">
+      <unitId>g</unitId>
+      <unitName>Gram</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>massItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>g</symbol>
+      <definition>Gram</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>-3</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>kg</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <ci>-3</ci>
+            </apply>
+            <cn>kg</cn>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00038">
+      <unitId>kg</unitId>
+      <unitName>Kilogram</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>massItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>kg</symbol>
+      <definition>Kilogram</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1</mn>
+            <mo>*</mo>
+            <mi>kg</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1</cn>
+            <cn>kg</cn>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00229">
+      <unitId>GW</unitId>
+      <unitName>Gigawatt</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>powerItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>GW</symbol>
+      <definition>Thousand Million Watts</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>9</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>W</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <ci>9</ci>
+            </apply>
+            <cn>W</cn>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00231">
+      <unitId>kW</unitId>
+      <unitName>Kilowatt</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>powerItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>kW</symbol>
+      <definition>Thousand Watts</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>3</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>W</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <ci>3</ci>
+            </apply>
+            <cn>W</cn>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00232">
+      <unitId>MW</unitId>
+      <unitName>Megawatt</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>powerItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>MW</symbol>
+      <definition>Million Watts</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>6</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>W</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <ci>6</ci>
+            </apply>
+            <cn>W</cn>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00233">
+      <unitId>TW</unitId>
+      <unitName>Terawatt</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>powerItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>TW</symbol>
+      <definition>Million Million Watts</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>12</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>W</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>12</cn>
+            </apply>
+            <cn>W</cn>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00234">
+      <unitId>W</unitId>
+      <unitName>Watt</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>powerItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>W</symbol>
+      <definition>Watt</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mfrac>
+            <mrow>
+              <mn>1</mn>
+              <mo>*</mo>
+              <mi>J</mi>
+            </mrow>
+            <mi>s</mi>
+          </mfrac>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <cn>1</cn>
+              <ci>J</ci>
+            </apply>
+            <ci>s</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00239">
+      <unitId>kV</unitId>
+      <unitName>Kilovolt</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>voltageItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>kV</symbol>
+      <definition>Thousand Volts of Electromotive Force</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>3</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>V</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>3</cn>
+            </apply>
+            <ci>V</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00243">
+      <unitId>l</unitId>
+      <unitName>Litre</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>volumeItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>l</symbol>
+      <definition>Litre</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1</mn>
+            <mo>*</mo>
+            <msup>
+              <mi>dm</mi>
+              <mn>3</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1</cn>
+            <apply>
+              <power/>
+              <ci>dm</ci>
+              <cn>3</cn>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00244">
+      <unitId>m3</unitId>
+      <unitName>Cubic Metre</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>volumeItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>m³</symbol>
+      <definition>Cubic Metre</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1</mn>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>3</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1</cn>
+            <apply>
+              <power/>
+              <ci>m</ci>
+              <cn>3</cn>
+            </apply>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00250">
+      <unitId>bu</unitId>
+      <unitName>Bushel</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>volumeItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>bu</symbol>
+      <definition>US Bushel</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>35.2391</mn>
+            <mo>*</mo>
+            <mi>l</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>35.2391</cn>
+            <ci>l</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00259">
+      <unitId>aft</unitId>
+      <unitName>Acre-Foot</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>volumeItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>acre ft</symbol>
+      <definition>Volume of one acre of surface area to a depth of one foot using a US survey foot</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1233.4892384681</mn>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>3</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <times/>
+          <cn>1233.4892384681</cn>
+          <apply>
+            <power/>
+            <ci>m</ci>
+            <cn>3</cn>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>PROPOSED</status>
+      <versionDate>2012-11-30</versionDate>
+    </unit>
+    <unit id="u00227">
+      <unitId>Monetary_per_Share</unitId>
+      <unitName>Monetary/share</unitName>
+      <itemType>perShareItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <numeratorItemType>monetaryItemType</numeratorItemType>
+      <nsNumeratorItemType>http://www.xbrl.org/2003/instance</nsNumeratorItemType>
+      <denominatorItemType>sharesItemType</denominatorItemType>
+      <nsDenominatorItemType>http://www.xbrl.org/2003/instance</nsDenominatorItemType>
+      <definition>Monetary Unit / Share</definition>
+      <baseStandard>XBRL</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00228">
+      <unitId>Monetary_per_Decimal</unitId>
+      <unitName>Monetary/Decimal</unitName>
+      <itemType>perUnitItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <numeratorItemType>monetaryItemType</numeratorItemType>
+      <nsNumeratorItemType>http://www.xbrl.org/2003/instance</nsNumeratorItemType>
+      <denominatorItemType>decimalItemType</denominatorItemType>
+      <nsDenominatorItemType>http://www.xbrl.org/2003/instance</nsDenominatorItemType>
+      <definition>Monetary Unit / Anything</definition>
+      <baseStandard>XBRL</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00235">
+      <unitId>Monetary_per_Monetary</unitId>
+      <unitName>Monetary/Monetary</unitName>
+      <itemType>pureItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <numeratorItemType>monetaryItemType</numeratorItemType>
+      <nsNumeratorItemType>http://www.xbrl.org/2003/instance</nsNumeratorItemType>
+      <denominatorItemType>monetaryItemType</denominatorItemType>
+      <nsDenominatorItemType>http://www.xbrl.org/2003/instance</nsDenominatorItemType>
+      <definition>Exchange Rate Expressed as: Monetary Unit / Monetary Unit</definition>
+      <baseStandard>XBRL</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00236">
+      <unitId>pure</unitId>
+      <unitName>pure</unitName>
+      <nsUnit>http://www.xbrl.org/2003/instance</nsUnit>
+      <itemType>pureItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Dimensionless (Pure) Number</definition>
+      <baseStandard>XBRL</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00237">
+      <unitId>Rate</unitId>
+      <unitName>Rate</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>pureItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Rate</definition>
+      <baseStandard>XBRL</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00238">
+      <unitId>shares</unitId>
+      <unitName>Share</unitName>
+      <nsUnit>http://www.xbrl.org/2003/instance</nsUnit>
+      <itemType>sharesItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <definition>Unit of Ownership (Stock)</definition>
+      <baseStandard>XBRL</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00252">
+      <unitId>Y</unitId>
+      <unitName>Year</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>durationItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>yr</symbol>
+      <definition>Gregorian calendar year. Use only as a denominator because durationItemType is not numeric and has no
+        units.</definition>
+      <baseStandard>Customary</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00253">
+      <unitId>M</unitId>
+      <unitName>Month</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>durationItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>mo</symbol>
+      <definition>Gregorian calendar month. Use only as a denominator because durationItemType is not numeric and has no
+        units.</definition>
+      <baseStandard>Customary</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00254">
+      <unitId>D</unitId>
+      <unitName>Day</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>durationItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>d</symbol>
+      <definition>Day. Use only as a denominator because durationItemType is not numeric and has no units.</definition>
+      <baseStandard>Customary</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00258">
+      <unitId>H</unitId>
+      <unitName>Hour</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>durationItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>h</symbol>
+      <definition>Hour. Use only as a denominator because durationItemType is not numeric and has no units.</definition>
+      <baseStandard>Customary</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00255">
+      <unitId>MM</unitId>
+      <unitName>Minute</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>durationItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>m</symbol>
+      <definition>Minute. Use only as a denominator because durationItemType is not numeric and has no
+        units.</definition>
+      <baseStandard>Customary</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00256">
+      <unitId>S</unitId>
+      <unitName>Second</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>durationItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>s</symbol>
+      <definition>Second. Use only as a denominator because durationItemType is not numeric and has no
+        units.</definition>
+      <baseStandard>SI</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00257">
+      <unitId>Volume_per_Duration</unitId>
+      <unitName>Volume/Duration</unitName>
+      <itemType>flowItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <numeratorItemType>volumeItemType</numeratorItemType>
+      <nsNumeratorItemType>http://www.xbrl.org/2009/utr</nsNumeratorItemType>
+      <denominatorItemType>durationItemType</denominatorItemType>
+      <nsDenominatorItemType>http://www.xbrl.org/2003/instance</nsDenominatorItemType>
+      <definition>Flow rate, as Volume per Duration</definition>
+      <baseStandard>Customary</baseStandard>
+      <status>REC</status>
+      <versionDate>2012-10-31</versionDate>
+    </unit>
+    <unit id="u00260">
+      <unitId>MV</unitId>
+      <unitName>Megavolt</unitName><nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>voltageItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>MV</symbol><definition>One million volts</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>6</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>V</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>6</cn>
+            </apply>
+            <ci>V</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit>
+    <unit id="u00261">
+      <unitId>GV</unitId>
+      <unitName>Gigavolt</unitName><nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>voltageItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>GV</symbol><definition>One thousand million volts</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>9</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>V</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>9</cn>
+            </apply>
+            <ci>V</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit>
+
+    <unit id="u00262">
+      <unitId>Bcf</unitId>
+      <unitName>Billions of cubic feet</unitName><nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>volumeItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>Bcf</symbol><definition>One thousand million cubic feet</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>2.832</mn>
+            <msup>
+              <mn>10</mn>
+              <mn>7</mn>
+            </msup>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>3</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>2.832</cn>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>7</cn>
+            </apply>
+            <power/>
+            <ci>m</ci>
+            <cn>3</cn>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit>
+    <unit id="u00263">
+      <unitId>Tcf</unitId>
+      <unitName>Trillions of cubic feet</unitName><nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>volumeItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>Tcf</symbol>
+      <definition>One trillion cubic feet</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>2.832</mn>
+            <msup>
+              <mn>10</mn>
+              <mn>10</mn>
+            </msup>
+            <mo>*</mo>
+            <msup>
+              <mi>m</mi>
+              <mn>3</mn>
+            </msup>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>2.832</cn>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>10</cn>
+            </apply>
+            <power/>
+            <ci>m</ci>
+            <cn>3</cn>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit><unit id="u00264">
+      <unitId>GWh</unitId>
+      <unitName>Gigawatt-Hour</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>GWh</symbol>
+      <definition>Gigawatt-Hour</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>3.6</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>12</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>3.6</cn>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>12</cn>
+            </apply>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit>
+    <unit id="u00265">
+      <unitId>TWh</unitId>
+      <unitName>Terawatt-Hour</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>TWh</symbol>
+      <definition>Terawatt-Hour</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>3.6</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>15</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>3.6</cn>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>15</cn>
+            </apply>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit>
+
+    <unit id="u00266">
+      <unitId>Q</unitId>
+      <unitName>Quarter</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>durationItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>qtr</symbol>
+      <definition>Gregorian Calendar Quarter (three months). Use only as a denominator because durationItemType is not numeric and has no units.</definition>
+      <baseStandard>Customary</baseStandard>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit>
+
+    <unit id="u00267">
+      <unitId>WK</unitId>
+      <unitName>Week</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>durationItemType</itemType>
+      <nsItemType>http://www.xbrl.org/2003/instance</nsItemType>
+      <itemTypeDate>2003-12-31</itemTypeDate>
+      <symbol>wk</symbol>
+      <definition>Gregorian Calendar Week. Use only as a denominator because durationItemType is not numeric and has no units.</definition>
+      <baseStandard>Customary</baseStandard>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit>
+
+    <unit id="u00268">
+      <unitId>MMcfe</unitId>
+      <unitName>Million Cubic Foot Equivalent</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>MMcfe</symbol>
+      <definition>Million cubic feet of natural gas equivalent</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1.0872</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>12</mn>
+            </msup>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1.0872</cn>
+            <power/>
+            <cn>10</cn>
+            <cn>12</cn>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit>
+
+    <unit id="u00269">
+      <unitId>Bcfe</unitId>
+      <unitName>Billion Cubic Foot Equivalent</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>Bcfe</symbol>
+      <definition>Thousand million cubic feet of natural gas equivalent</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1.0872</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>15</mn>
+            </msup>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1.0872</cn>
+            <power/>
+            <cn>10</cn>
+            <cn>15</cn>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit>
+
+    <unit id="u00270">
+      <unitId>Tcfe</unitId>
+      <unitName>Trillion Cubic Foot Equivalent</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>Tcfe</symbol>
+      <definition>Trillion cubic feet of natural gas equivalent</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1.0872</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>18</mn>
+            </msup>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1.0872</cn>
+            <power/>
+            <cn>10</cn>
+            <cn>18</cn>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit>
+
+    <unit id="u00271">
+      <unitId>kT</unitId>
+      <unitName>Thousand Tons</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>massItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>kT</symbol>
+      <definition>One thousand US tons</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>907.18474</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>3</mn>
+            </msup>
+            <mi>kg</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>907.18474</cn>
+            <power/>
+            <cn>10</cn>
+            <cn>3</cn>
+            <ci>kg</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit>
+
+    <unit id="u00272">
+      <unitId>MT</unitId>
+      <unitName>Million Tons</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>massItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>MT</symbol>
+      <definition>One million US tons</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>907.18474</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>6</mn>
+            </msup>
+            <mi>kg</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>907.18474</cn>
+            <power/>
+            <cn>10</cn>
+            <cn>6</cn>
+            <ci>kg</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit>
+    <unit id="u00273">
+      <unitId>GT</unitId>
+      <unitName>Billion Tons</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>massItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>GT</symbol>
+      <definition>One thousand million US tons</definition>
+      <baseStandard>Customary</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>907.18474</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>9</mn>
+            </msup>
+            <mi>kg</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>907.18474</cn>
+            <power/>
+            <cn>10</cn>
+            <cn>9</cn>
+            <ci>kg</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit>
+    <unit id="u00274">
+      <unitId>kt</unitId>
+      <unitName>Kilotonne</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>massItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>kt</symbol>
+      <definition>Thousand Tonnes (Metric Tonnes, Metric Tons)</definition>
+      <baseStandard>Non-SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>6</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>kg</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>6</cn>
+            </apply>
+            <ci>kg</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit>
+    <unit id="u00275">
+      <unitId>Mt</unitId>
+      <unitName>Megatonne</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>massItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>Mt</symbol>
+      <definition>Million Tonnes (Metric Tonnes, Metric Tons)</definition>
+      <baseStandard>Non-SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>9</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>kg</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>9</cn>
+            </apply>
+            <ci>kg</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit>
+
+    <unit id="u00276">
+      <unitId>Gt</unitId>
+      <unitName>Gigatonne</unitName>
+      <nsUnit>http://www.xbrl.org/2009/utr</nsUnit>
+      <itemType>massItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>Gt</symbol>
+      <definition>Thousand Million Tonnes (Metric Tonnes, Metric Tons)</definition>
+      <baseStandard>Non-SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <msup>
+              <mn>10</mn>
+              <mn>12</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>kg</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>12</cn>
+            </apply>
+            <ci>kg</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>PROPOSED</status>
+      <versionDate>2013-02-28</versionDate>
+    </unit>
+    
+  </units>
+</utr>

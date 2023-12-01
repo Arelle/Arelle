@@ -1,0 +1,21 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://www.w3.org/2002/06/xhtml2/">
+
+  <xs:annotation>
+    <xs:documentation>
+      A minimal XML Schema for XHTML 2.0
+      $Id: xhtml2.xsd,v 1.4 2005/06/14 15:28:27 mimasa Exp $
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:element name="html">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:any namespace="##any" processContents="skip"
+          minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:anyAttribute namespace="##any" processContents="skip"/>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

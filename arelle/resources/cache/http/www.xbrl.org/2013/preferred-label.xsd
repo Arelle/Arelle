@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- (c) 2013 XBRL International. All Rights Reserved. http://www.XBRL.org/legal/ 
+     This document may be copied and furnished to others, and derivative works that 
+     comment on or otherwise explain it or assist in its implementation may be 
+     prepared, copied, published and distributed, in whole or in part, without 
+     restriction of any kind, provided that the above copyright notice and this
+     paragraph are included on all such copies and derivative works. XBRL(r), is a
+     trademark or service mark of XBRL International, Inc., registered in the
+     United States and in other countries. -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:gpl="http://xbrl.org/2013/preferred-label" targetNamespace="http://xbrl.org/2013/preferred-label" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:attribute name="preferredLabel" type="xs:anyURI"/>
+</xs:schema>

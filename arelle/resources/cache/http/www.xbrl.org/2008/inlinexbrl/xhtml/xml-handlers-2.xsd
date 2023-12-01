@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema 
+    targetNamespace="http://www.w3.org/2001/xml-events" 
+    xmlns="http://www.w3.org/2001/xml-events" 
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://www.w3.org/2001/XMLSchema 
+                        http://www.w3.org/2001/XMLSchema.xsd" 
+    elementFormDefault="unqualified" 
+    blockDefault="#all" 
+    finalDefault="#all" 
+    attributeFormDefault="unqualified">
+
+  <xs:annotation>
+    <xs:documentation>
+      This is the XML Schema for XML Events
+
+      URI: http://www.w3.org/MarkUp/SCHEMA/xml-handlers-2.xsd
+      $Id: xml-handlers-2.xsd,v 1.1 2007/02/15 23:03:14 jean-gui Exp $
+    </xs:documentation>
+    <xs:documentation source="xml-events-copyright-2.xsd"/>
+  </xs:annotation>
+
+  <xs:attributeGroup name="action.attlist">
+    <xs:attribute name="event" use="required" type="xs:NMTOKEN"/>
+    <xs:attribute name="observer" type="xs:IDREF"/>
+    <xs:attribute name="target" type="xs:IDREF"/>
+    <xs:attribute name="handler" type="xs:anyURI"/>
+    <xs:attribute name="condition" type="xs:normalizedString"/>
+    <xs:attribute name="phase" default="default">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="capture"/>
+          <xs:enumeration value="default"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="propagate" default="continue">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="stop"/>
+          <xs:enumeration value="continue"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="defaultAction" default="perform">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="cancel"/>
+          <xs:enumeration value="perform"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="id" type="xs:ID"/>
+  </xs:attributeGroup>
+
+  <xs:complexType name="action.type">
+    <xs:attributeGroup ref="action.attlist"/>
+  </xs:complexType>
+
+  <xs:element name="action" type="action.type"/>
+
+  <xs:complexType name="script.type">
+    <xs:attributeGroup ref="script.attlist"/>
+  </xs:complexType>
+
+  <xs:element name="script" type="script.type"/>
+
+  <xs:complexType name="dispatchEvent.type">
+    <xs:attributeGroup ref="dispatchEvent.attlist"/>
+  </xs:complexType>
+
+  <xs:element name="dispatchEvent" type="dispatchEvent.type"/>
+
+  <xs:complexType name="addEventListener.type">
+    <xs:attributeGroup ref="addEventListener.attlist"/>
+  </xs:complexType>
+
+  <xs:element name="addEventListener" type="addEventListener.type"/>
+
+  <xs:complexType name="removeEventListener.type">
+    <xs:attributeGroup ref="removeEventListener.attlist"/>
+  </xs:complexType>
+
+  <xs:element name="removeEventListener" type="removeEventListener.type"/>
+
+  <xs:complexType name="stopPropagation.type">
+    <xs:attributeGroup ref="stopPropagation.attlist"/>
+  </xs:complexType>
+
+  <xs:element name="stopPropagation" type="stopPropagation.type"/>
+
+  <xs:complexType name="preventDefault.type">
+    <xs:attributeGroup ref="preventDefault.attlist"/>
+  </xs:complexType>
+
+  <xs:element name="preventDefault" type="stopPropagation.type"/>
+</xs:schema>

@@ -1,0 +1,15 @@
+<xsd:schema targetNamespace="http://xbrl.org/2022/role/property" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:reference="http://www.xbrl.org/2009/role/reference" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <xsd:annotation>
+    <xsd:appinfo>
+      <link:roleType roleURI="https://xbrl.org/2022/role/property" id="property">
+        <link:definition>Structured information about a component defined in a taxonomy specified as a key-value pair, for properties that are not language-specific.</link:definition>
+        <link:usedOn>link:reference</link:usedOn>
+	  </link:roleType> 
+      <link:roleType roleURI="https://xbrl.org/2022/role/propertyWithLang" id="propertyWithLang">
+        <link:definition>Structured information about a component defined in a taxonomy specified as a key-value pair, for properties that can be specified in multiple languages.</link:definition>
+        <link:usedOn>link:reference</link:usedOn>
+	  </link:roleType> 	  
+	</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:import namespace="http://www.xbrl.org/2003/linkbase" schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"/>
+</xsd:schema>

@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://www.w3.org/1999/xhtml"
+           xmlns="http://www.w3.org/1999/xhtml">
+
+  <xs:annotation>
+    <xs:documentation>
+      This XML Schema declares changes to the content models
+      of modules included in XHTML11
+      $Id: xhtml11-module-redefines-1.xsd,v 1.1 2003/09/23 21:12:52 speruvem Exp $
+    </xs:documentation>
+    <xs:documentation source="xhtml-copyright-1.xsd"/>
+  </xs:annotation>
+  
+  <xs:annotation>
+    <xs:documentation>
+      Module Content Model Redefinitions 
+      
+      This schema describes the changes (Redefinitions) to
+      content model of individual modules as they are instantiated as part of 
+      XHTML11 document type
+    </xs:documentation>
+  </xs:annotation>
+
+
+  <!-- Changes to Structural Module -->
+  <xs:redefine schemaLocation="xhtml-struct-1.xsd">
+  
+     <xs:group name="head.content">
+       <xs:annotation>
+         <xs:documentation>
+           Redefinition by Base module
+         </xs:documentation>
+       </xs:annotation>     
+        <xs:sequence>
+           <xs:group ref="HeadOpts.mix" minOccurs="0" maxOccurs="unbounded"/>
+           <xs:choice>
+             <xs:sequence>
+                <xs:element ref="title"/>
+                <xs:group ref="HeadOpts.mix" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="base" minOccurs="0"/>                
+             </xs:sequence>
+             <xs:sequence>
+               <xs:element ref="base"/>
+               <xs:group ref="HeadOpts.mix" minOccurs="0" maxOccurs="unbounded"/>               
+               <xs:element ref="title"/>
+             </xs:sequence>           
+           </xs:choice>
+           <xs:group ref="HeadOpts.mix" minOccurs="0" maxOccurs="unbounded"/>           
+         </xs:sequence>
+      </xs:group>
+
+     <xs:attributeGroup name="version.attrib">
+       <xs:annotation>
+         <xs:documentation>
+            Redefinition by the XHTML11 Markup (for value of version attr)
+         </xs:documentation>
+       </xs:annotation>          
+       <xs:attribute name="version" type="FPI" fixed="-//W3C//DTD XHTML 1.1//EN"/>
+     </xs:attributeGroup>
+     
+    <xs:attributeGroup name="body.attlist">
+      <xs:attributeGroup ref="body.attlist">
+          <xs:annotation>
+            <xs:documentation>
+              Original Body Attlist
+            </xs:documentation>
+          </xs:annotation>  
+      </xs:attributeGroup>      
+      <xs:attributeGroup ref="body.events.attlist">
+          <xs:annotation>
+            <xs:documentation>
+              Redefinition by XHTML Event Attribute Module
+            </xs:documentation>
+          </xs:annotation>  
+      </xs:attributeGroup>      
+    </xs:attributeGroup>
+     
+  </xs:redefine>
+   
+  <!-- Changes to HyperText Core Module -->
+  <xs:redefine schemaLocation="xhtml-hypertext-1.xsd">
+    <xs:attributeGroup name="a.attlist">
+        <xs:attributeGroup ref="a.attlist" />
+        <xs:attributeGroup ref="a.csim.attlist">        
+          <xs:annotation>
+            <xs:documentation>
+              Redefinition by Client Side Image Map Module
+            </xs:documentation>
+          </xs:annotation>  
+        </xs:attributeGroup> 
+        <xs:attributeGroup ref="a.events.attlist">        
+          <xs:annotation>
+            <xs:documentation>
+              Redefinition by XHTML Event Attribute Module
+            </xs:documentation>
+          </xs:annotation>  
+        </xs:attributeGroup>    
+    </xs:attributeGroup>    
+  </xs:redefine>
+
+
+  <!-- Changes to XHTML Form Module -->  
+  <xs:redefine schemaLocation="xhtml-form-1.xsd">  
+
+     <xs:attributeGroup name="form.attlist">
+        <xs:annotation>
+          <xs:documentation>
+            Changes to XHTML Form Attlist
+          </xs:documentation>
+        </xs:annotation>
+        <xs:attributeGroup ref="form.attlist">
+           <xs:annotation>
+             <xs:documentation>
+                Original Form Attributes (declared in Forms Module)
+             </xs:documentation>
+           </xs:annotation>
+        </xs:attributeGroup>                
+        <xs:attributeGroup ref="form.events.attlist">
+           <xs:annotation>
+             <xs:documentation>
+                XHTML Events Module - Attribute additions
+             </xs:documentation>
+           </xs:annotation>
+        </xs:attributeGroup>
+     </xs:attributeGroup>
+  
+     <xs:attributeGroup name="input.attlist">
+        <xs:annotation>
+          <xs:documentation>
+            Changes to XHTML Form Input Element
+          </xs:documentation>
+        </xs:annotation>    
+        <xs:attributeGroup ref="input.attlist">
+           <xs:annotation>
+             <xs:documentation>
+                Original Input Attributes (in Forms Module)
+             </xs:documentation>
+           </xs:annotation>
+        </xs:attributeGroup>
+      
+        <xs:attributeGroup ref="input.csim.attlist">
+           <xs:annotation>
+             <xs:documentation>
+                Redefinition by Client Side Image Map Module
+             </xs:documentation>
+           </xs:annotation>
+        </xs:attributeGroup>      
+        
+        <xs:attributeGroup ref="input.ssimap.attlist">
+           <xs:annotation>
+             <xs:documentation>
+                Redefinition by Server Side Image Map Module
+             </xs:documentation>
+           </xs:annotation>
+        </xs:attributeGroup>      
+        
+      
+        <xs:attributeGroup ref="input.events.attlist">      
+           <xs:annotation>
+             <xs:documentation>
+               Redefinition by Event Attribute Module
+             </xs:documentation>
+           </xs:annotation>      
+        </xs:attributeGroup>
+     </xs:attributeGroup>            
+    
+    
+     <xs:attributeGroup name="label.attlist">
+        <xs:attributeGroup ref="label.attlist">
+           <xs:annotation>
+             <xs:documentation>
+                Original Label Attributes (in Forms Module)
+             </xs:documentation>
+           </xs:annotation>           
+        </xs:attributeGroup>           
+        <xs:attributeGroup ref="label.events.attlist">
+           <xs:annotation>
+             <xs:documentation>
+               Redefinition by Event Attribute Module
+             </xs:documentation>
+           </xs:annotation>              
+        </xs:attributeGroup>
+     </xs:attributeGroup>        
+
+     <xs:attributeGroup name="select.attlist">
+        <xs:attributeGroup ref="select.attlist">
+           <xs:annotation>
+             <xs:documentation>
+                Original Select Attributes (in Forms Module)
+             </xs:documentation>
+           </xs:annotation>           
+        </xs:attributeGroup>      
+        <xs:attributeGroup ref="select.events.attlist">
+           <xs:annotation>
+             <xs:documentation>
+               Redefinition by Event Attribute Module
+             </xs:documentation>
+           </xs:annotation>       
+        </xs:attributeGroup>
+     </xs:attributeGroup>        
+
+     <xs:attributeGroup name="textarea.attlist">
+        <xs:attributeGroup ref="textarea.attlist">
+           <xs:annotation>
+             <xs:documentation>
+                Original TextArea Attributes (in Forms Module)
+             </xs:documentation>
+           </xs:annotation>           
+        </xs:attributeGroup>              
+        <xs:attributeGroup ref="textarea.events.attlist">
+           <xs:annotation>
+             <xs:documentation>
+               Redefinition by Event Attribute Module
+             </xs:documentation>
+           </xs:annotation>               
+        </xs:attributeGroup>
+     </xs:attributeGroup>        
+
+     <xs:attributeGroup name="button.attlist">
+        <xs:attributeGroup ref="button.attlist">
+           <xs:annotation>
+             <xs:documentation>
+                Original Button Attributes (in Forms Module)
+             </xs:documentation>
+           </xs:annotation>           
+        </xs:attributeGroup>              
+        <xs:attributeGroup ref="button.events.attlist">
+           <xs:annotation>
+             <xs:documentation>
+               Redefinition by Event Attribute Module
+             </xs:documentation>
+           </xs:annotation>       
+        </xs:attributeGroup>   
+     </xs:attributeGroup>
+
+  </xs:redefine>
+
+
+  <!-- Changes to Client Side Map -->
+  <xs:redefine schemaLocation="xhtml-csismap-1.xsd">
+    <xs:attributeGroup name="area.attlist">
+        <xs:attributeGroup ref="area.attlist">
+           <xs:annotation>
+             <xs:documentation>
+                Original Area Attributes (in CSI Module)
+             </xs:documentation>
+           </xs:annotation>           
+        </xs:attributeGroup>              
+        <xs:attributeGroup ref="area.events.attlist">
+           <xs:annotation>
+             <xs:documentation>
+                Redefinition by Events Attribute Module
+             </xs:documentation>
+           </xs:annotation>           
+        </xs:attributeGroup>     
+    </xs:attributeGroup>
+  </xs:redefine>
+
+
+  <!-- Changes to Image Module -->
+  <xs:redefine schemaLocation="xhtml-image-1.xsd">
+    <xs:attributeGroup name="img.attlist">
+       <xs:attributeGroup ref="img.attlist">
+           <xs:annotation>
+             <xs:documentation>
+                Original Image Attributes (in Image Module)
+             </xs:documentation>
+           </xs:annotation>           
+       </xs:attributeGroup>                    
+       <xs:attributeGroup ref="img.csim.attlist">
+           <xs:annotation>
+             <xs:documentation>
+                Redefinition by Client Side Image Map Module
+             </xs:documentation>
+           </xs:annotation>           
+        </xs:attributeGroup>                    
+       <xs:attributeGroup ref="img.ssimap.attlist">      
+           <xs:annotation>
+             <xs:documentation>
+                Redefinition by Server Side Image Module
+             </xs:documentation>
+           </xs:annotation>           
+        </xs:attributeGroup>     
+    </xs:attributeGroup>
+  </xs:redefine>
+    
+
+  <!-- Changes to Link Module -->
+  <xs:redefine schemaLocation="xhtml-link-1.xsd">
+    <xs:attributeGroup name="link.attlist">
+        <xs:attributeGroup ref="link.attlist">
+           <xs:annotation>
+             <xs:documentation>
+                Original Link Attributes
+             </xs:documentation>
+           </xs:annotation>           
+        </xs:attributeGroup>                      
+    </xs:attributeGroup>
+  </xs:redefine>
+
+
+  <xs:redefine schemaLocation="xhtml-base-1.xsd">
+    <xs:attributeGroup name="base.attlist">
+      <xs:attributeGroup ref="base.attlist">
+           <xs:annotation>
+             <xs:documentation>
+                Original Base Attributes
+             </xs:documentation>
+           </xs:annotation>           
+        </xs:attributeGroup>                    
+    </xs:attributeGroup>
+  </xs:redefine>
+  
+  <!-- Changes to Object Module -->
+  <xs:redefine schemaLocation="xhtml-object-1.xsd">
+    <xs:attributeGroup name="object.attlist">
+        <xs:attributeGroup ref="object.attlist">
+           <xs:annotation>
+             <xs:documentation>
+                Original Object Attlist
+              </xs:documentation>
+           </xs:annotation>                 
+        </xs:attributeGroup>           
+        <xs:attributeGroup ref="object.csim.attlist">
+           <xs:annotation>
+              <xs:documentation>
+                Redefinition by Client Image Map Module
+              </xs:documentation>
+           </xs:annotation>      
+        </xs:attributeGroup>
+    </xs:attributeGroup>      
+  </xs:redefine>
+  
+</xs:schema>

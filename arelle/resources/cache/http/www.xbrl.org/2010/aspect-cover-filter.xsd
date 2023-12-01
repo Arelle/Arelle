@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. 
+ 
+This version is non-normative - it should be identical to the normative version that is contained in Appendix A of the relevant specification except for this comment.
+
+Following the schema maintenance policy of XBRL International, it is the intent (but is not guaranteed) that the location of non-normative versions of these schemas on the web will be as follows:
+
+1)	While any schema is the most current RECOMMENDED version and until it is superseded by any additional errata corrections a non-normative version will reside on the web in the directory http://www.xbrl.org/2010/ - during the drafting process for this specification this directory should contain a copy of the most recent published version of the schema at http://www.xbrl.org/2010/aspect-cover-filter.xsd.
+
+2)	A non-normative version of each schema as corrected by any update to the RECOMMENDATION will be archived in perpetuity on the web in a directory that will contain a unique identification indicating the date of the update.
+
+-->
+<schema 
+  targetNamespace="http://xbrl.org/2010/filter/aspect-cover"
+  elementFormDefault="qualified"
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:acf="http://xbrl.org/2010/filter/aspect-cover" 
+  xmlns:variable="http://xbrl.org/2008/variable"
+>
+
+  <import namespace="http://www.xbrl.org/2003/XLink" 
+    schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd"/>
+
+  <import namespace="http://xbrl.org/2008/variable" 
+    schemaLocation="http://www.xbrl.org/2008/variable.xsd"/>
+
+  <complexType id="xml-dimension-model" name="dimension.model">
+    <choice>
+      <element name="qname" type="QName"/>
+      <element name="qnameExpression" type="variable:expression"/>
+    </choice>
+  </complexType>
+
+  <element id="xml-aspect-cover-filter"
+  name="aspectCover" substitutionGroup="variable:filter">
+    <complexType mixed="true">
+      <complexContent mixed="true">
+        <extension base="variable:resource.type">
+          <sequence minOccurs="1" maxOccurs="unbounded">
+            <choice>
+              <element name="aspect">
+                <simpleType>
+                  <restriction base="token">
+                    <enumeration value="all"/>
+                    <enumeration value="concept"/>
+                    <enumeration value="entity-identifier"/>
+                    <enumeration value="location"/>
+                    <enumeration value="period"/>
+                    <enumeration value="unit"/>
+                    <enumeration value="complete-segment"/>
+                    <enumeration value="complete-scenario"/>
+                    <enumeration value="non-XDT-segment"/>
+                    <enumeration value="non-XDT-scenario"/>
+                    <enumeration value="dimensions"/>
+                  </restriction>
+                </simpleType>
+              </element>
+              <element name="dimension" type="acf:dimension.model"/>
+              <element name="excludeDimension" type="acf:dimension.model"/>
+            </choice>
+          </sequence>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+  
+</schema>
