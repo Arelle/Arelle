@@ -116,6 +116,7 @@ class ModelObject(ElementBase):
     xValueError: Exception | None
     xValid: int
     xlinkLabel: str
+    targetModelXbrl: ModelXbrl
 
     def _init(self) -> None:
         self.isChanged = False
@@ -145,6 +146,8 @@ class ModelObject(ElementBase):
 
     @property
     def modelXbrl(self) -> ModelXbrl | None:
+        if hasattr(self, "targetModelXbrl"):
+            return self.targetModelXbrl
         modelDocument = getattr(self, "modelDocument", None)
         return modelDocument.modelXbrl if modelDocument is not None else None
 

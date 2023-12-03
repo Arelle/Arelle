@@ -1458,7 +1458,7 @@ class ModelDocument:
 # inline document set level compilation
 # modelIxdsDocument is an inlineDocumentSet or entry inline document (if not a document set)
 #   note that multi-target and multi-instance facts may have html elements belonging to primary ixds instead of this instance ixds
-def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
+def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False):
     for pluginMethod in pluginClassMethods("ModelDocument.SelectIxdsTarget"):
         pluginMethod(modelXbrl, modelIxdsDocument)
     # extract for a single target document
@@ -1609,16 +1609,17 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                             for _target in sourceFactTargets:
                                 targetRoleUris[_target].add(footnoteRole)
 
+    contextRefs = factTargetContextRefs[ixdsTarget]
+    unitRefs = factTargetUnitRefs[ixdsTarget]
+    allContextRefs = set.union(*factTargetContextRefs.values())
+    allUnitRefs = set.union(*factTargetUnitRefs.values())
+
     # discovery of contexts, units and roles which are used by target document
     for htmlElement in modelXbrl.ixdsHtmlElements:
         mdlDoc = htmlElement.modelDocument
         ixNStag = mdlDoc.ixNStag
 
         for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "resources"):
-            contextRefs = factTargetContextRefs[ixdsTarget]
-            allContextRefs = set.union(*factTargetContextRefs.values())
-            unitRefs = factTargetUnitRefs[ixdsTarget]
-            allUnitRefs = set.union(*factTargetUnitRefs.values())
             for elt in inlineElement.iterchildren("{http://www.xbrl.org/2003/instance}context"):
                 id = elt.get("id")
                 if id in contextRefs or (not ixdsTarget and id not in allContextRefs):
@@ -1751,6 +1752,8 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                 checkTupleIxDescendants(tupleFact, childElt)
 
     def addItemFactToTarget(modelInlineFact):
+        if setTargetModelXbrl:
+            modelInlineFact.targetModelXbrl = modelXbrl # fact's owning IXDS overrides initial loading document IXDS
         if modelInlineFact.concept is None:
                 modelXbrl.error(ixMsgCode("missingReferences", modelInlineFact, name="references", sect="validation"),
                                 _("Instance fact missing schema definition: %(qname)s of Inline Element %(localName)s"),
@@ -2079,6 +2082,17 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
     if ixdsTarget in modelXbrl.ixTargetRootElements:
         modelIxdsDocument.targetXbrlRootElement = modelXbrl.ixTargetRootElements[ixdsTarget]
         modelIxdsDocument.targetXbrlElementTree = PrototypeElementTree(modelIxdsDocument.targetXbrlRootElement)
+
+    # set dimension and unit targetModelXbrl to first DTS defining the concept/measure QNames
+    for cntx in modelXbrl.contexts.values():
+        for dim in cntx.qnameDims.values():
+            if not hasattr(dim, "targetModelXbrl"):
+                dim.targetModelXbrl = modelXbrl
+                if hasattr(dim, "_dimension") and dim._dimension is None:
+                    del dim._dimension
+    for unit in modelXbrl.units.values():
+        if not hasattr(unit, "targetModelXbrl"):
+            unit.targetModelXbrl = modelXbrl
 
     for pluginMethod in pluginClassMethods("ModelDocument.IxdsTargetDiscovered"):
         pluginMethod(modelXbrl, modelIxdsDocument)

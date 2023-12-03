@@ -1234,7 +1234,7 @@ class ModelConceptDataType(ModelConceptFilterWithQnameExpression):
         return set(fact for fact in facts
                    for qn in (self.evalQname(xpCtx,fact),)
                    for c in (fact.concept,)
-                   if cmplmt ^ (c.typeQname == qn or (notStrict and c.type.isDerivedFrom(qn))))
+                   if c is not None and cmplmt ^ (c.typeQname == qn or (notStrict and c.type.isDerivedFrom(qn))))
 
     @property
     def propertyView(self):
@@ -1264,7 +1264,7 @@ class ModelConceptSubstitutionGroup(ModelConceptFilterWithQnameExpression):
             return set(fact for fact in facts
                        if cmplmt ^ (fact.concept.substitutionGroupQname == self.evalQname(xpCtx,fact)))
         return set(fact for fact in facts
-                   if cmplmt ^ fact.concept.substitutesForQname(self.evalQname(xpCtx,fact)))
+                   if fact.concept is not None and cmplmt ^ fact.concept.substitutesForQname(self.evalQname(xpCtx,fact)))
 
     @property
     def propertyView(self):
