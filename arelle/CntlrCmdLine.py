@@ -1017,10 +1017,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             startedAt = time.time()
                             if options.formulaAction: # don't automatically run formulas
                                 modelXbrl.hasFormulae = False
-                            self.addToLog(format_string(self.modelManager.locale,
-                                                        _("validated in %.2f secs"),
-                                                        time.time() - startedAt),
-                                                        messageCode="info", file=self.entrypointFile)
                             from arelle import Validate
                             Validate.validate(modelXbrl)
                             if options.formulaAction: # restore setting
