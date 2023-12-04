@@ -484,6 +484,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     if xpathContext is None:
         xpathContext = XPathContext.create(val.modelXbrl)
     xpathContext.parameterQnames = parameterQnames  # needed for formula filters to determine variable dependencies
+    oimCompatValueCounts = {}
+    oimCompatParameters = []
     for paramQname in orderedParameters:
         modelParameter = val.modelXbrl.qnameParameters[paramQname]
         if not isinstance(modelParameter, ModelInstance):
@@ -524,10 +526,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                         )
                     xpathContext.inScopeVars[paramQname] = result  # make visible to subsequent parameter expression
                     if paramQname.localName == "oim-compatible-formula":
-                        if result in (True, 1, "1", "true") and xpathContext.oimCompatible in (None, True):
-                            xpathContext.oimCompatible = True
-                        else:
-                            xpathContext.oimCompatible = False
+                        oimCompatValueCounts[result] = oimCompatValueCounts.get(result, 0) + 1
+                        oimCompatParameters.append(modelParameter)
                 elif modelParameter.isRequired:
                     val.modelXbrl.error(
                         "xbrlve:missingParameterValue",
@@ -554,10 +554,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                         )
                     xpathContext.inScopeVars[paramQname] = result  # make visible to subsequent parameter expression
                     if paramQname.localName == "oim-compatible-formula":
-                        if result in (True, 1, "1", "true") and xpathContext.oimCompatible in (None, True):
-                            xpathContext.oimCompatible = True
-                        else:
-                            xpathContext.oimCompatible = False
+                        oimCompatValueCounts[result] = oimCompatValueCounts.get(result, 0) + 1
+                        oimCompatParameters.append(modelParameter)
             except XPathContext.XPathException as err:
                 val.modelXbrl.error(
                     "xbrlve:parameterTypeMismatch" if err.code == "err:FORG0001" else err.code,
@@ -567,6 +565,23 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                     error=err.message,
                     messageCodes=("xbrlve:parameterTypeMismatch", "err:FORG0001"),
                 )
+    if oimCompatParameters:
+        countCompaatible = oimCompatValueCounts.get("compatible", 0)
+        countIncompaatible = oimCompatValueCounts.get("incompatible", 0)
+        countExclusive = oimCompatValueCounts.get("exclusive", 0)
+        if countIncompaatible > 0 and countExclusive > 0:
+            val.modelXbrl.error(
+                "oimfe:unsupportedOIMStatusCombination",
+                _("There are %(countIncompatible)s `incompatible` flags and %(countExclusive)s `exclusive` flag"),
+                modelObject=oimCompatParameters,
+                countIncompatible=oimCompatValueCounts.get("incompatible", 0),
+                countExclusive=oimCompatValueCounts.get("exclusive", 0))
+        elif countExclusive > 0:
+            val.modelXbrl.oimMode = True
+        elif countIncompaatible > 0:
+            val.modelXbrl.oimMode = False # overrides processor setting oimMode due to presence of oim inputs or any othe rreason
+        #else use the flag as set by processor
+
         ''' Removed as per WG discussion 2012-12-20. This duplication checking unfairly presupposes URI based
            implementation and exceeds the scope of linkbase validation
         elif not parametersOnly: # is a modelInstance
@@ -1385,7 +1400,7 @@ def checkVariablesScopeVisibleQnames(val, nameVariables, definedNamesSet, modelV
 
 def checkFilterAspectModel(val, variableSet, filterRelationships, xpathContext, uncoverableAspects=None):
     result = set()  # all of the aspects found to be covered
-    if xpathContext.oimCompatible and variableSet.aspectModel == 'non-dimensional':
+    if xpathContext.oimMode and variableSet.aspectModel == 'non-dimensional':
         val.modelXbrl.error(
             "oimfe:oimUnsupportedAspectModel",
             _("Variable set %(xlinkLabel)s, aspect model %(aspectModel)s is inconsistent with OIM mode."),
@@ -1403,7 +1418,7 @@ def checkFilterAspectModel(val, variableSet, filterRelationships, xpathContext, 
     for varFilterRel in filterRelationships:
         _filter = varFilterRel.toModelObject  # use _filter instead of filter to prevent 2to3 confusion
         isAllAspectCoverFilter = False
-        if xpathContext.oimCompatible and (
+        if xpathContext.oimMode and (
             _filter.qname in oimIncompatibleFilterQnames or
             (_filter.qname == XbrlConst.qnTypedDimension and _filter.test)):
             val.modelXbrl.error(

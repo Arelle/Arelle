@@ -6,6 +6,7 @@ from __future__ import annotations
 import math
 import regex as re
 from arelle.ModelObject import ModelObject, ModelAttribute
+from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTimeDuration,
                          YearMonthDuration, DayTimeDuration, time, Time)
 from arelle.FunctionUtil import anytypeArg, atomicArg, stringArg, numericArg, integerArg, qnameArg, nodeArg
@@ -35,7 +36,7 @@ def call(
 ) -> XPathContext.RecursiveContextItem:
     try:
         if localname not in fnFunctions: raise fnFunctionNotAvailable
-        if xc.oimCompatible and localname in oimIncompatibleFunctions:
+        if xc.oimMode and localname in oimIncompatibleFunctions:
             raise XPathContext.XPathException(p, "oimfe:oimIncompatibleXPathFunctionOrOperator",
                                               _("Function {} MUST NOT be used within OIM-compatible XBRL formula").format(localname))
         return fnFunctions[localname](xc, p, contextItem, args)
@@ -45,6 +46,9 @@ def call(
 def node_name(xc, p, contextItem, args):
     node = nodeArg(xc, args, 0, "node()?", missingArgFallback=contextItem, emptyFallback=())
     if node != ():
+        if xc.oimMode and isinstance(node, ModelFact):
+            raise XPathContext.XPathException(p, "oimfe:unsupportedFactOperation",
+                                              _("Function node-name MUST NOT be used on an OIM fact object"))
         return qname(node)
     return ()
 
@@ -73,11 +77,19 @@ def base_uri(xc, p, contextItem, args):
     item = anytypeArg(xc, args, 0, "node()?", missingArgFallback=contextItem)
     if item == ():
         return ''
+    if isinstance(item, ModelFact):
+        raise XPathContext.XPathException(p, "oimfe:oimIncompatibleXPathExpression",
+                                          _("Function base-uri MUST NOT be used on an OIM fact object"))
+
     if isinstance(item, (ModelObject, ModelDocument)):
         return UrlUtil.ensureUrl(item.modelDocument.uri)
     return ''
 
 def document_uri(xc, p, contextItem, args):
+    node = anytypeArg(xc, args, 0, "node()?", missingArgFallback=())
+    if node != () and xc.oimMode and isinstance(node, ModelFact):
+        raise XPathContext.XPathException(p, "oimfe:unsupportedFactOperation",
+                                          _("Function document-uri MUST NOT be used on an OIM fact object"))
     return xc.modelXbrl.modelDocument.uri
 
 def error(xc, p, contextItem, args):

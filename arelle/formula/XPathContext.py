@@ -12,6 +12,7 @@ from typing import Any, Callable, Iterable, MutableSequence, Sequence, TYPE_CHEC
 from lxml import etree
 
 from arelle import XbrlConst, XmlUtil
+from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelInlineFact, ModelUnit
 from arelle.ModelObject import ModelAttribute, ModelObject
 from arelle.ModelValue import (
@@ -240,6 +241,7 @@ class XPathContext:
         ] = {}
         for pluginXbrlMethod in pluginClassMethods("Formula.CustomFunctions"):
             self.customFunctions.update(pluginXbrlMethod())
+        self.oimMode: bool = getattr(modelXbrl, "oimMode", False)
         self.oimCompatible: bool | None = None # set to a bool value when processing parameters
 
     def copy(self) -> XPathContext:  # shallow copy (for such as for Table LB table processiong
@@ -572,7 +574,7 @@ class XPathContext:
                     result = self.evaluate(opDef.args, contextItem=contextItem)
                 elif op == '.':
                     result = contextItem
-                    if self.oimCompatible and result != self.inputXbrlInstance.targetXbrlRootElement:
+                    if self.oimMode and not isinstance(result, (ModelFact, ModelRelationship)):
                         raise XPathException(p, "oimfe:unsupportedContextNode",
                                             _("OIM compatible XBRL formula MUST NOT attempt to access the context node."))
                 elif op == '..':

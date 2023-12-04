@@ -38,7 +38,7 @@ def call(
         _function = functionsRegistryFunctions[qn.namespaceURI][qn.localName]
     except KeyError:
         raise XPathContext.FunctionNotAvailable(str(qn))
-    if xc.oimCompatible and qn.localName in oimUnsupportedFunctions:
+    if xc.oimMode and qn.localName in oimUnsupportedFunctions:
         raise XPathContext.XPathException(p, "oimfe:oimIncompatibleRegistryFunction",
                                           _("Function {} MUST NOT be used within OIM-compatible XBRL formula").format(qn.localName))
     return _function(xc, p, args)

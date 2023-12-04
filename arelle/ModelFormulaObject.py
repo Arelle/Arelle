@@ -2872,10 +2872,11 @@ elementSubstitutionModelClass.update((
      ))
 
 oimIncompatibleFilterQnames = {
-    XbrlConst.qnAncestorFilter, XbrlConst.qnLocationFilter, 
+    XbrlConst.qnAncestorFilter, XbrlConst.qnLocationFilter,
     XbrlConst.qnSiblingFilter, XbrlConst.qnParentFilter,
     XbrlConst.qnSegmentFilter, XbrlConst.qnScenarioFilter,
-    XbrlConst.qnConceptCustomAttribute, XbrlConst.qnPeriod, XbrlConst.qnMatchUnit}
+    XbrlConst.qnConceptCustomAttribute, XbrlConst.qnPeriod,
+    XbrlConst.qnGeneralMeasures, XbrlConst.qnMatchUnit}
 
 # import after other modules resolved to prevent circular references
 from arelle.formula.FormulaEvaluator import filterFacts, aspectsMatch, aspectMatches

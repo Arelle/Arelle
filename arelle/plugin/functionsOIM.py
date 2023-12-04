@@ -10,7 +10,8 @@ from collections.abc import Callable
 
 from arelle.formula import XPathContext
 from arelle.formula.XPathContext import XPathException as OIMFunctionException
-from arelle.FunctionUtil import qnameArg, stringArg
+from arelle.FunctionUtil import qnameArg, stringArg, anytypeArg
+from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelValue import QName, qname, AnyURI, DateTime, DATETIME
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.formula.XPathParser import OperationDef
@@ -24,11 +25,10 @@ ExpandedUnitStrPattern = rc_compile(r"\{\w+\}\w+(\ \{\w+\}\w+)*(\ /\ \{\w+\}\w+(
 def checkArgs(
     xc: XPathContext.XPathContext,
     p: OperationDef,
-    contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
     numArgs: int,
 ) -> None:
-    if not xc.oimCompatible:
+    if not xc.oimMode:
         raise OIMFunctionException(p, "oimfe:oimIncompatibleRegistryFunction",
                                    _("Function {} requires OIM-compatible mode.").format(p.name))
     if len(args) != numArgs: raise XPathContext.FunctionNumArgs()
@@ -218,8 +218,8 @@ def f_period(
     args: XPathContext.ResultStack,
 ) -> str | EmptyTuple:
     checkArgs(xc, p, args, 1)
-    fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
-    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
+    fact = anytypeArg(xc, args, 0, "Fact", missingArgFallback=None)
+    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(0,"xbrl:item")
     if fact.context is not None:
         return oimPeriodValue(fact.context)
     return ()
@@ -231,8 +231,8 @@ def f_period_type(
     args: XPathContext.ResultStack,
 ) -> str | EmptyTuple:
     checkArgs(xc, p, args, 1)
-    fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
-    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
+    fact = anytypeArg(xc, args, 0, "Fact", missingArgFallback=None)
+    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(0,"xbrl:item")
     if fact.context is not None:
         if fact.context.isStartEndPeriod or fact.context.isForeverPeriod:
             return "duration"
@@ -247,8 +247,8 @@ def f_period_is_instant(
     args: XPathContext.ResultStack,
 ) -> bool | EmptyTuple:
     checkArgs(xc, p, args, 1)
-    fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
-    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
+    fact = anytypeArg(xc, args, 0, "Fact", missingArgFallback=None)
+    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(0,"xbrl:item")
     return fact.context is not None and fact.context.isInstantPeriod
 
 def f_period_is_duration(
@@ -258,8 +258,8 @@ def f_period_is_duration(
     args: XPathContext.ResultStack,
 ) -> bool | EmptyTuple:
     checkArgs(xc, p, args, 1)
-    fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
-    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
+    fact = anytypeArg(xc, args, 0, "Fact", missingArgFallback=None)
+    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(0,"xbrl:item")
     return fact.context is not None and (fact.context.isStartEndPeriod or fact.context.isForeverPeriod)
 
 def f_period_start(
@@ -269,8 +269,8 @@ def f_period_start(
     args: XPathContext.ResultStack,
 ) -> DateTime | EmptyTuple:
     checkArgs(xc, p, args, 1)
-    fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
-    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
+    fact = anytypeArg(xc, args, 0, "Fact", missingArgFallback=None)
+    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(0,"xbrl:item")
     if fact.context is None:
         raise OIMFunctionException(p, "fe:noPeriod",
                                    _("Fact has no period."))
@@ -283,8 +283,8 @@ def f_period_end(
     args: XPathContext.ResultStack,
 ) -> DateTime | EmptyTuple:
     checkArgs(xc, p, args, 1)
-    fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
-    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
+    fact = anytypeArg(xc, args, 0, "Fact", missingArgFallback=None)
+    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(0,"xbrl:item")
     if fact.context is None:
         raise OIMFunctionException(p, "fe:noPeriod",
                                    _("Fact has no period."))
@@ -298,8 +298,8 @@ def f_period_instant(
     args: XPathContext.ResultStack,
 ) -> DateTime | EmptyTuple:
     checkArgs(xc, p, args, 1)
-    fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
-    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
+    fact = anytypeArg(xc, args, 0, "Fact", missingArgFallback=None)
+    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(0,"xbrl:item")
     if fact.context is None or not fact.context.isInstantPeriod:
         raise OIMFunctionException(p, "fe:periodIsNotInstant",
                                    _("Fact does not have an instant period."))
@@ -312,7 +312,7 @@ def f_has_dimension(
     args: XPathContext.ResultStack,
 ) -> bool | EmptyTuple:
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
-    fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
+    fact = anytypeArg(xc, args, 0, "Fact", missingArgFallback=None)
     qn = qnameArg(xc, p, args, 1, 'QName', emptyFallback=None)
     if qn == qnOimConcept:
         return True
@@ -335,7 +335,7 @@ def f_dimension_value(
     args: XPathContext.ResultStack,
 ) -> AnyType | EmptyTuple:
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
-    fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
+    fact = anytypeArg(xc, args, 0, "Fact", missingArgFallback=None)
     qn = qnameArg(xc, p, args, 1, 'QName', emptyFallback=None)
     if qn == qnOimConcept:
         return fact.qname
@@ -365,7 +365,7 @@ def f_taxonomy_defined_dimensions(
     args: XPathContext.ResultStack,
 ) -> list[QName] | EmptyTuple:
     checkArgs(xc, p, args, 1)
-    fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
+    fact = anytypeArg(xc, args, 0, "Fact", missingArgFallback=None)
     if fact.context is not None:
         return fact.context.qnameDims.keys()
     return ()
@@ -384,8 +384,8 @@ def f_entity(
     identifier: bool,
 ) -> str | EmptyTuple:
     checkArgs(xc, p, args, 1)
-    fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
-    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
+    fact = anytypeArg(xc, args, 0, "Fact", missingArgFallback=None)
+    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(0,"xbrl:item")
     if fact.context is not None:
         return fact.context.entityIdentifier[identifier]
     return ()
@@ -415,8 +415,8 @@ def f_unit_measures(
     denominator: bool,
 ) -> list[QName] | EmptyTuple:
     checkArgs(xc, p, args, 1)
-    fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
-    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
+    fact = anytypeArg(xc, args, 0, "Fact", missingArgFallback=None)
+    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(0,"xbrl:item")
     if fact.isNumeric and fact.unit is not None:
         return fact.unit.measures[denominator]
 
@@ -443,10 +443,10 @@ def f_unit(
     args: XPathContext.ResultStack,
 ) -> int | EmptyTuple:
     checkArgs(xc, p, args, 1)
-    fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
-    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
+    fact = anytypeArg(xc, args, 0, "Fact", missingArgFallback=None)
+    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(0,"xbrl:item")
     if fact.isNumeric and fact.unit is not None:
-        return oimUnitValue(unit, lambda u: u.clarkNotation, " ", " / ", False)
+        return oimUnitValue(fact.unit, lambda u: u.clarkNotation, " ", " / ", False)
     return ()
 
 def f_decimals(
@@ -456,8 +456,8 @@ def f_decimals(
     args: XPathContext.ResultStack,
 ) -> int | EmptyTuple:
     checkArgs(xc, p, args, 1)
-    fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
-    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
+    fact = anytypeArg(xc, args, 0, "Fact", missingArgFallback=None)
+    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(0,"xbrl:item")
     if fact.isNumeric and fact.decimals not in (None, "INF"):
         return fact.decimals
     return ()
@@ -469,8 +469,8 @@ def f_id(
     args: XPathContext.ResultStack,
 ) -> str | EmptyTuple:
     checkArgs(xc, p, args, 1)
-    fact = atomicArg(xc, p, args, 0, 'Fact', emptyFallback=None)
-    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(1,"xbrl:item")
+    fact = anytypeArg(xc, args, 0, "Fact", missingArgFallback=None)
+    if not isinstance(fact, ModelFact): raise XPathContext.FunctionArgType(0,"xbrl:item")
     return fact.id
 
 def oimFunctions() -> dict[

@@ -84,7 +84,8 @@ class FormulaXPathChecker:
             if prog:
                 self.evalProg(prog)
         except XPathException as err:
-            self.modelXbrl.warning("arelle:formulaRestrictedXPath",
+            self.modelXbrl.log("ERROR" if getattr(self.modelXbrl, "oimMode", False) else "WARNING",
+                err.code,
                 _("%(object)s id %(id)s label %(label)s %(attrName)s \nWarning: %(error)s \nExpression: %(expression)s"),
                 modelObject=fObj, object=fObj.qname, id=fObj.id, label=fObj.xlinkLabel, attrName=sourceAttr, error=err.message, expression=err.line)
 
@@ -93,13 +94,13 @@ class FormulaXPathChecker:
                 axis = p.axis
                 if p.isAttribute:
                     if p.localName != "id":
-                        raise XPathException(self.progHeader, 'navigateAttr', 'Axis step {} to {}'.format(op, p.localName))
+                        raise XPathException(self.progHeader, 'oimfe:oimIncompatibleXPathExpression', 'Axis step {} to {}'.format(op, p.localName))
                 elif op in ('/', '//', '..') or op is None:
-                    raise XPathException(self.progHeader, 'navigateStep', 'Operation {} Axis step {} to {}'.format(op or "", axis or "", p.localName))
+                    raise XPathException(self.progHeader, 'oimfe:oimIncompatibleXPathExpression', 'Operation {} Axis step {} to {}'.format(op or "", axis or "", p.localName))
             elif isinstance(p, OperationDef) and isinstance(p.name,QNameDef):
-                raise XPathException(p, 'navigate', 'Operation {} Axis step {} to {}'.format(op, p, p.name.localName))
+                raise XPathException(p, 'oimfe:oimIncompatibleXPathExpression', 'Operation {} Axis step {} to {}'.format(op, p, p.name.localName))
             else:
-                raise XPathException(p, 'navigate', 'Operation {} Axis step to {}'.format(op, p))
+                raise XPathException(p, 'oimfe:oimIncompatibleXPathExpression', 'Operation {} Axis step to {}'.format(op, p))
 
     def evaluateRangeVars(self, op, p, args):
         if isinstance(p, RangeDecl):
@@ -129,7 +130,7 @@ class FormulaXPathChecker:
                         # step axis operation
                         self.stepAxis(parentOp, p)
                     elif (op.unprefixed or ns == XbrlConst.fn) and localname in FNs_BLOCKED:
-                        raise XPathException(p, 'function is restricted', 'Function is restricted {}'.format(p))
+                        raise XPathException(p, "oimfe:oimIncompatibleXPathFunctionOrOperator", 'Function is restricted {}'.format(p))
                 elif op in VALUE_OPS:
                     self.evalProg(p.args)
                 elif op in GENERALCOMPARISON_OPS:
@@ -137,7 +138,9 @@ class FormulaXPathChecker:
                     self.evalProg(p.args)
                 elif op in NODECOMPARISON_OPS:
                     # node comparisons
-                    s2 = self.evalProg(p.args)
+                    # s2 = self.evalProg(p.args)
+                    raise XPathException(p, "oimfe:oimIncompatibleXPathFunctionOrOperator",
+                                            _("Node comparison {} MUST NOT be used within OIM-compatible XBRL formula").format(p))
                 elif op in COMBINING_OPS:
                     # node comparisons
                     self.evalProg(p.args)
@@ -156,7 +159,9 @@ class FormulaXPathChecker:
                     self.evalProg(p.args[1].args) # evaluate both arguments
                     self.evalProg(p.args[2].args)
                 elif op in PATH_OPS:
-                    self.evalProg(p.args, parentOp=op)
+                    # self.evalProg(p.args, parentOp=op)
+                    raise XPathException(p, "oimfe:oimIncompatibleXPathExpression",
+                                            _("Node navigation {} MUST NOT be used within OIM-compatible XBRL formula").format(p))
             elif isinstance(p,ProgHeader):
                 self.progHeader = p
                 setProgHeader = True
@@ -272,7 +277,7 @@ def checkFormulaXPathCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwar
 
 
 def validateFormulaCompiled(modelXbrl, xpathContext):
-    if getattr(modelXbrl, "checkFormulaRestrictedXPath", True): # true allows it to always work for GUI
+    if getattr(modelXbrl, "checkFormulaRestrictedXPath", getattr(modelXbrl, "oimMode", False)):
         try:
             FormulaXPathChecker(modelXbrl)
         except Exception as ex:

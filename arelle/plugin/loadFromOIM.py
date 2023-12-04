@@ -2963,6 +2963,7 @@ def validateFinally(val, *args, **kwargs):
             modelXbrl.error("oime:invalidTaxonomy",
                                 _("XBRL validation errors were logged for this instance."),
                                 modelObject=modelXbrl)
+        modelXbrl.oimMode = True
     else:
         # validate xBRL-XML instances
         fractionFacts = []
@@ -3084,6 +3085,7 @@ def validateFinally(val, *args, **kwargs):
                     val.modelXbrl.error("xbrlxe:unsupportedLinkbaseReference",
                                         _("Linkbase reference not allowed from instance document."),
                                         modelObject=(modelXbrl.modelDocument,doc))
+        modelXbrl.oimMode = True
 
 def excelLoaderOptionExtender(parser, *args, **kwargs):
     parser.add_option("--saveOIMinstance",
