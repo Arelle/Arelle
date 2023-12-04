@@ -28,7 +28,7 @@ PACKAGE = 5
 
 reportIxdsPattern = re.compile(r"^([^/]+/reports/[^/]+)/[^/]+$")
 
-def askArchiveFile(parent, filesource, multiselect=False):
+def askArchiveFile(parent, filesource, multiselect=False, selectFiles=None):
     try:
         filenames = filesource.dir
         if filenames is not None:   # an IO or other error can return None
@@ -48,7 +48,8 @@ def askArchiveFile(parent, filesource, multiselect=False):
                                            filenames,
                                            _("Select Archive File"),
                                            _("File"),
-                                           multiselect=multiselect)
+                                           multiselect=multiselect,
+                                           selectFiles=selectFiles)
             if dialog.accepted:
                 return filesource.url
     except Exception as e:
@@ -108,7 +109,7 @@ def selectPackage(parent, packageChoices):
 
 
 class DialogOpenArchive(Toplevel):
-    def __init__(self, parent, openType, filesource, filenames, title, colHeader, showAltViewButton=False, multiselect=False):
+    def __init__(self, parent, openType, filesource, filenames, title, colHeader, showAltViewButton=False, multiselect=False, selectFiles=None):
         if isinstance(parent, Cntlr):
             cntlr = parent
             parent = parent.parent # parent is cntlrWinMain
@@ -117,6 +118,7 @@ class DialogOpenArchive(Toplevel):
         super(DialogOpenArchive, self).__init__(parent)
         self.parent = parent
         self.showAltViewButton = showAltViewButton
+        self.selectFiles = selectFiles
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
@@ -159,7 +161,7 @@ class DialogOpenArchive(Toplevel):
                                   .format(', '.join(metadataFiles)))
                 '''
                 metadataFile = metadataFiles[0]
-                metadata = filesource.url + os.sep + metadataFile
+                metadata = filesource.basefile + os.sep + metadataFile
                 self.metadataFilePrefix = os.sep.join(os.path.split(metadataFile)[:-1])
                 if self.metadataFilePrefix:
                     self.metadataFilePrefix += "/"  # zip contents have /, never \ file seps
@@ -275,7 +277,7 @@ class DialogOpenArchive(Toplevel):
     def loadTreeView(self, openType, title, colHeader):
         self.title(title)
         self.openType = openType
-        selectedNode = None
+        selectedNodes = []
 
         # clear previous treeview entries
         for previousNode in self.treeView.get_children(""):
@@ -349,8 +351,11 @@ class DialogOpenArchive(Toplevel):
                     self.treeView.set(node, "vers", vers)
                     self.treeView.set(node, "descr", descr)
                     self.treeView.set(node, "license", license)
-                if self.selection == filename:
-                    selectedNode = node
+                if self.selectFiles:
+                    if filename in self.selectFiles:
+                        selectedNodes.append(node)
+                elif self.selection == filename:
+                    selectedNodes.append(node)
                 loadedPaths.append(path)
 
         elif openType == ENTRY_POINTS:
@@ -373,9 +378,9 @@ class DialogOpenArchive(Toplevel):
             self.hasToolTip = True
         else: # unknown openType
             return None
-        if selectedNode:
-            self.treeView.see(selectedNode)
-            self.treeView.selection_set(selectedNode)
+        if selectedNodes:
+            self.treeView.see(selectedNodes[0])
+            self.treeView.selection_set(selectedNodes)
 
         if self.showAltViewButton:
             self.altViewButton.config(text=_("Show Files") if openType == ENTRY_POINTS else _("Show Entries"))

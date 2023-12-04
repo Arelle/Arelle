@@ -506,7 +506,7 @@ def configAndRunCntlr(options, arellePluginModules):
         return cntlr
 
 
-def filesourceEntrypointFiles(filesource, entrypointFiles=[]):
+def filesourceEntrypointFiles(filesource, entrypointFiles=[], inlineOnly=False):
     if filesource.isArchive:
         if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
             filesource.loadTaxonomyPackageMappings()
@@ -525,7 +525,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[]):
                 if identifiedType in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.HTML):
                     urlsByType.setdefault(identifiedType, []).append(filesource.url)
         # use inline instances, if any, else non-inline instances
-        for identifiedType in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE):
+        for identifiedType in ((ModelDocument.Type.INLINEXBRL,) if inlineOnly else (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE)):
             for url in urlsByType.get(identifiedType, []):
                 entrypointFiles.append({"file":url})
             if entrypointFiles:
@@ -534,7 +534,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[]):
                         pluginXbrlMethod(filesource, entrypointFiles) # group into IXDS if plugin feature is available
                 break # found inline (or non-inline) entrypoint files, don't look for any other type
         # for ESEF non-consolidated xhtml documents accept an xhtml entry point
-        if not entrypointFiles:
+        if not entrypointFiles and not inlineOnly:
             for url in urlsByType.get(ModelDocument.Type.HTML, []):
                 entrypointFiles.append({"file":url})
 
