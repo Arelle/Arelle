@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  Copyright 2007-2013 XBRL International. All Rights Reserved.   
+-->
+
+<xs:schema 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  xmlns:vercu="http://xbrl.org/2013/versioning-concept-use"
+  xmlns:ver="http://xbrl.org/2013/versioning-base"
+  targetNamespace="http://xbrl.org/2013/versioning-concept-use"
+  elementFormDefault="qualified">
+  
+
+  <xs:import namespace="http://xbrl.org/2013/versioning-base" schemaLocation="versioning-base.xsd"/>
+
+<!-- Parents of the events -->
+  <xs:element name="fromConcept" type="ver:name.type"  id="xml-from-e"/>
+  <xs:element name="toConcept" type="ver:name.type" id="xml-to-e"/>
+  
+<!-- Common attribute. Note that this is wrapped in a group to allow it to remain unqualified. -->  
+  <xs:attributeGroup name="physicalAttributeGroup">
+    <xs:attribute name="physical" type="xs:boolean" default="true"/>
+  </xs:attributeGroup>
+
+<!-- complexTypes event nodes-->
+  <xs:complexType id="xml-add.element.event.type" name="add.element.event.type">
+    <xs:complexContent>
+      <xs:extension base="ver:event.type">
+        <xs:sequence>
+          <xs:element ref="vercu:toConcept"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="vercu:physicalAttributeGroup"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>  
+
+  <xs:complexType id="xml-delete.element.event.type" name="delete.element.event.type">
+    <xs:complexContent>
+      <xs:extension base="ver:event.type">
+        <xs:sequence>
+          <xs:element ref="vercu:fromConcept"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="vercu:physicalAttributeGroup"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType id="xml-change.element.event.type" name="change.element.event.type">
+    <xs:complexContent>
+      <xs:extension base="ver:event.type">
+        <xs:sequence>
+          <xs:element ref="vercu:fromConcept"/>
+          <xs:element ref="vercu:toConcept"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+<!-- Concept events -->
+  <xs:element id="xml-concept.add.event" name="conceptAdd" type="vercu:add.element.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.delete.event" name="conceptDelete" type="vercu:delete.element.event.type" substitutionGroup="ver:event"/>
+  <xs:element id="xml-concept.rename.event" name="conceptRename" type="vercu:change.element.event.type" substitutionGroup="ver:event"/>
+
+</xs:schema>

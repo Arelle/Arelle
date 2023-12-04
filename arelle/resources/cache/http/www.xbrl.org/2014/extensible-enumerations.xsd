@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema 
+  targetNamespace="http://xbrl.org/2014/extensible-enumerations"
+  xmlns:enum="http://xbrl.org/2014/extensible-enumerations"
+  elementFormDefault="qualified"
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <annotation>
+    <documentation>
+      enumerationItemType specializes QNameItemType. The content of a fact of this type MUST be a QName denoting an xbrl concept
+      in the xbrli:item substitution group and which appears in the domain of enumeration values identified by the attributes on the enumerationItemType.
+    </documentation>
+  </annotation>
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  
+  <attribute name="domain" type="QName"/>
+  <attribute name="linkrole" type="anyURI"/>
+  <attribute name="headUsable" type="boolean" default="false"/>
+
+  <complexType name="enumerationItemType" id="enumerationItemType" >
+    <simpleContent>
+      <restriction base="xbrli:QNameItemType">
+        <attributeGroup ref="xbrli:nonNumericItemAttrs" />
+      </restriction>
+    </simpleContent>
+  </complexType>
+</schema>

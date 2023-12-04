@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2008 XBRL International. All Rights Reserved. http://www.XBRL.org/legal/ 
+     This document may be copied and furnished to others, and derivative works that 
+     comment on or otherwise explain it or assist in its implementation may be 
+     prepared, copied, published and distributed, in whole or in part, without 
+     restriction of any kind, provided that the above copyright notice and this
+     paragraph are included on all such copies and derivative works. XBRL(r), is a
+     trademark or service mark of XBRL International, Inc., registered in the
+     United States and in other countries. -->
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.xbrl.org/role/fr/RestatedLabel/2008-07-31" xmlns:restated="http://www.xbrl.org/role/fr/RestatedLabel/2008-07-31" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<annotation>
+		<appinfo>
+			<link:roleType roleURI="http://www.xbrl.org/2006/role/restatedLabel" id="restatedLabel">
+				<link:definition>The label for a concept when presenting values that have been restated from their value as originally reported.</link:definition>
+				<link:usedOn>link:label</link:usedOn>
+			</link:roleType>
+		</appinfo>
+	</annotation>
+</schema>

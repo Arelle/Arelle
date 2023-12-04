@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2008 XBRL International. All Rights Reserved. http://www.XBRL.org/legal/ 
+     This document may be copied and furnished to others, and derivative works that 
+     comment on or otherwise explain it or assist in its implementation may be 
+     prepared, copied, published and distributed, in whole or in part, without 
+     restriction of any kind, provided that the above copyright notice and this
+     paragraph are included on all such copies and derivative works. XBRL(r), is a
+     trademark or service mark of XBRL International, Inc., registered in the
+     United States and in other countries. -->
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://info.edinet-fsa.go.jp/jp/fr/gaap/role/2007-11-07" xmlns:jpfr-role="http://info.edinet-fsa.go.jp/jp/fr/gaap/role/2007-11-07" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<annotation>
+		<appinfo>
+			<link:roleType roleURI="http://info.edinet-fsa.go.jp/jp/fr/gaap/role/periodStartNegativeLabel" id="RolePeriodStartNegativeLabel">
+				<link:definition>Label used for a negative value at the beginning of the period. For example, "Deficit at the beginning of the period".</link:definition>
+				<link:usedOn>link:label</link:usedOn>
+			</link:roleType>
+			<link:roleType roleURI="http://info.edinet-fsa.go.jp/jp/fr/gaap/role/periodEndNegativeLabel" id="RolePeriodEndNegativeLabel">
+				<link:definition>Label used for a negative value at the end of the period. For example, "Deficit at the end of the period".</link:definition>
+				<link:usedOn>link:label</link:usedOn>
+			</link:roleType>
+			<link:roleType roleURI="http://info.edinet-fsa.go.jp/jp/fr/gaap/role/positiveOrNegativeLabel" id="RolePositiveOrNegativeLabel">
+				<link:definition>Label used for a positive value or negative value. For example, "Operating profit or operating loss"</link:definition>
+				<link:usedOn>link:label</link:usedOn>
+			</link:roleType>
+			<link:roleType roleURI="http://info.edinet-fsa.go.jp/jp/fr/gaap/role/periodStartPositiveOrNegativeLabel" id="RolePeriodStartPositiveOrNegativeLabel">
+				<link:definition>Label used for a positive value or negative value at the beginning of the period. For example, "Surplus at the beginning of the period and deficit at the beginning of the period".</link:definition>
+				<link:usedOn>link:label</link:usedOn>
+			</link:roleType>
+			<link:roleType roleURI="http://info.edinet-fsa.go.jp/jp/fr/gaap/role/periodEndPositiveOrNegativeLabel" id="RolePeriodEndPositiveOrNegativeLabel">
+				<link:definition>Label used for a positive value or negative value at the end of the period. For example, "Surplus at the end of the period and deficit at the end of the period".</link:definition>
+				<link:usedOn>link:label</link:usedOn>
+			</link:roleType>
+			<link:roleType roleURI="http://info.edinet-fsa.go.jp/jp/fr/gaap/role/NotesNumber" id="RoleNotesNumber">
+				<link:definition>Footnote that shows note number.</link:definition>
+				<link:usedOn>link:footnote</link:usedOn>
+			</link:roleType>
+			<link:roleType roleURI="http://info.edinet-fsa.go.jp/jp/fr/gaap/role/NotesNumberPeriodStart" id="RoleNotesNumberPeriodStart">
+				<link:definition>Footnote that shows note number at the beginning of the period.</link:definition>
+				<link:usedOn>link:footnote</link:usedOn>
+			</link:roleType>
+			<link:roleType roleURI="http://info.edinet-fsa.go.jp/jp/fr/gaap/role/NotesNumberPeriodEnd" id="RoleNotesNumberPeriodEnd">
+				<link:definition>Footnote that shows note number at the end of the period.</link:definition>
+				<link:usedOn>link:footnote</link:usedOn>
+			</link:roleType>
+		</appinfo>
+	</annotation>
+</schema>

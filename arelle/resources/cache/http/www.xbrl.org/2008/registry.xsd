@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved.  
+ 
+This version is non-normative - it should be identical to the normative version that is contained in Appendix A of the relevant specification except for this comment.
+
+Following the schema maintenance policy of XBRL International, it is the intent (but is not guaranteed) that the location of non-normative versions of these schemas on the web will be as follows:
+
+1)	While any schema is the most current RECOMMENDED version and until it is superseded by any additional errata corrections a non-normative version will reside on the web in the directory http://www.xbrl.org/2008/ - during the drafting process for this specification this directory should contain a copy of the most recent published version of the schema at http://www.xbrl.org/2008/general-filter.xsd.
+
+2)	A non-normative version of each schema as corrected by any update to the RECOMMENDATION will be archived in perpetuity on the web in a directory that will contain a unique identification indicating the date of the update.
+
+-->
+<schema 
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  targetNamespace="http://xbrl.org/2008/registry"
+  xmlns:reg="http://xbrl.org/2008/registry"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  elementFormDefault="qualified"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.w3.org/2001/XMLSchema http://www.w3.org/2001/XMLSchema.xsd">
+
+  <import 
+  namespace="http://www.w3.org/1999/xlink"
+  schemaLocation="http://www.xbrl.org/2003/xlink-2003-12-31.xsd"/>
+
+  <element id="xml-registry"
+  name="registry">
+    <complexType>
+      <sequence>
+        <element id="xml-last-updated" name="lastUpdated" type="reg:date.elt.type"/>
+        <element id="xml-name" name="name" type="reg:string.elt.type"/>
+        <element id="xml-documentation" name="documentation" type="reg:documentation.elt.type" minOccurs="0"/>
+        <sequence maxOccurs="unbounded">
+          <element id="xml-entry" name="entry" type="reg:entry.elt.type"/>
+        </sequence>
+      </sequence>
+      <attributeGroup ref="reg:common.attribute.group"/>
+    </complexType>
+  </element>
+
+  <complexType name="date.elt.type">
+    <attributeGroup ref="reg:date.attribute.group"/>
+    <attributeGroup ref="reg:common.attribute.group"/>
+  </complexType>
+
+  <complexType name="entry.elt.type">
+    <sequence>
+      <element id="xml-entry-added" name="added" type="reg:date.elt.type"/>
+      <!-- URL MUST be resolved against the effective xml:base to get an absolute URI -->
+      <element id="xml-entry-status" name="status" type="reg:status.elt.type"/>
+      <element id="xml-entry-url" name="url" type="reg:url.elt.type"/>
+    </sequence>
+    <attributeGroup ref="reg:common.attribute.group"/>
+  </complexType>
+
+  <complexType name="string.elt.type">
+    <simpleContent>
+      <extension base="string">
+        <attributeGroup ref="reg:common.attribute.group"/>
+      </extension>
+    </simpleContent>
+  </complexType>
+
+  <complexType name="url.elt.type">
+    <simpleContent>
+      <extension base="string">
+        <attribute ref="xlink:type" use="required" fixed="simple"/>
+        <attribute ref="xlink:href" use="required" />
+        <attributeGroup ref="reg:common.attribute.group"/>
+      </extension>
+    </simpleContent>
+  </complexType>
+
+  <complexType name="status.elt.type">
+    <simpleContent>
+      <extension base="reg:status.simple.type">
+        <attributeGroup ref="reg:common.attribute.group"/>
+      </extension>
+    </simpleContent>
+  </complexType>
+
+  <simpleType name="status.simple.type">
+    <restriction base="token">
+      <enumeration value="IWD"/>
+      <enumeration value="DPWD"/>
+      <enumeration value="PWD"/>
+      <enumeration value="CR"/>
+      <enumeration value="REC"/>
+    </restriction>
+  </simpleType>
+
+  <attributeGroup name="date.attribute.group">
+    <attribute name="moment" type="dateTime"/>
+  </attributeGroup>
+
+  <attributeGroup name="common.attribute.group">
+    <attribute name="id" type="ID"/>
+    <anyAttribute namespace="http://www.w3.org/XML/1998/namespace" processContents="lax"/>
+  </attributeGroup>
+
+  <complexType name="documentation.elt.type">
+    <choice>
+      <element name="url" type="reg:url.elt.type"/>
+      <any namespace="http://www.w3.org/1999/xhtml" processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+    </choice>
+    <attributeGroup ref="reg:common.attribute.group"/>
+  </complexType>
+
+  <complexType name="owners.elt.type">
+    <sequence>
+      <element name="owner" type="reg:owner.elt.type" maxOccurs="unbounded"/>
+    </sequence>
+    <attributeGroup ref="reg:common.attribute.group"/>
+  </complexType>
+
+  <complexType id="xml-owner" name="owner.elt.type">
+    <sequence>
+      <element id="xml-owner-name" name="name" type="reg:string.elt.type"/>
+      <element id="xml-owner-affiliation" name="affiliation" type="reg:string.elt.type"/>
+      <element id="xml-owner-email" name="email" type="reg:string.elt.type"/>
+      <element id="xml-owner-assumed-ownership" name="assumedOwnership" type="reg:date.elt.type"/>
+      <element id="xml-owner-relinquished-ownership" name="relinquishedOwnership" type="reg:date.elt.type" minOccurs="0"/>
+    </sequence>
+    <attributeGroup ref="reg:common.attribute.group"/>
+  </complexType>
+
+  <complexType name="revisions.elt.type">
+    <sequence>
+      <element name="revision" type="reg:revision.elt.type" maxOccurs="unbounded"/>
+    </sequence>
+    <attributeGroup ref="reg:common.attribute.group"/>
+  </complexType>
+
+  <complexType id="xml-revision" name="revision.elt.type">
+    <complexContent>
+      <extension base="reg:documentation.elt.type">
+        <attribute name="on" type="dateTime"/>
+        <attribute name="by" type="IDREF"/>
+      </extension>
+    </complexContent>
+  </complexType>
+  
+  <element id="xml-test" name="test" abstract="true"/>
+
+</schema>

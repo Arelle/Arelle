@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved.  
+ 
+This version is non-normative - it should be identical to the normative version that is contained in Appendix A of the relevant specification except for this comment.
+
+Following the schema maintenance policy of XBRL International, it is the intent (but is not guaranteed) that the location of non-normative versions of these schemas on the web will be as follows:
+
+1)  While any schema is the most current RECOMMENDED version and until it is superseded by any additional errata corrections a non-normative version will reside on the web in the directory http://www.xbrl.org/2008/ - during the drafting process for this specification this directory should contain a copy of the most recent published version of the schema at http://www.xbrl.org/2008/general-filter.xsd.
+
+2)  A non-normative version of each schema as corrected by any update to the RECOMMENDATION will be archived in perpetuity on the web in a directory that will contain a unique identification indicating the date of the update.
+
+-->
+<xs:schema 
+xmlns="http://xbrl.org/2008/conformance" 
+xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+xmlns:reg="http://xbrl.org/2008/registry" 
+xmlns:xlink="http://www.w3.org/1999/xlink"
+targetNamespace="http://xbrl.org/2008/conformance" 
+elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+  <xs:import 
+  namespace="http://xbrl.org/2008/registry" 
+  schemaLocation="registry.xsd"/>
+
+  <xs:import 
+  namespace="http://www.w3.org/1999/xlink"
+  schemaLocation="http://www.xbrl.org/2003/xlink-2003-12-31.xsd"/>
+
+  <xs:element id="xml-testcase" name="testcase" substitutionGroup="reg:test">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element id="xml-owners" name="owners" type="reg:owners.elt.type" minOccurs="0"/>
+        <xs:element id="xml-number" name="number" type="number.elt.type"/>
+        <xs:element id="xml-name" name="name" type="name.elt.type"/>
+        <xs:element id="xml-documentation" name="documentation" type="reg:documentation.elt.type"/>
+        <xs:element id="xml-reference" name="reference" type="reg:url.elt.type" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element id="xml-variation" name="variation" type="variation.elt.type" maxOccurs="unbounded"/>
+        <xs:element id="xml-revisions" name="revisions" type="reg:revisions.elt.type" minOccurs="0"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="reg:common.attribute.group"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="number.elt.type">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attributeGroup ref="reg:common.attribute.group"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="name.elt.type">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attributeGroup ref="reg:common.attribute.group"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="variation.elt.type">
+    <xs:sequence>
+      <xs:element name="owners" type="reg:owners.elt.type" minOccurs="0"/>
+      <xs:element name="number" type="number.elt.type" minOccurs="0"/>
+      <xs:element name="name" type="name.elt.type" minOccurs="0"/>
+      <xs:element name="documentation" type="reg:documentation.elt.type"/>
+      <xs:element name="reference" type="reg:url.elt.type" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element id="xml-inputs" name="inputs" type="inputs.elt.type"/>
+      <xs:element id="xml-outputs" name="outputs" type="outputs.elt.type"/>
+    </xs:sequence>
+    <xs:attributeGroup ref="reg:common.attribute.group"/>
+  </xs:complexType>
+
+  <xs:complexType name="inputs.elt.type">
+    <xs:sequence>
+      <xs:element ref="input" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attributeGroup ref="reg:common.attribute.group"/>
+  </xs:complexType>
+
+  <xs:element name="input" abstract="true"/>
+
+  <xs:element name="schema" type="input.file.elt.type" substitutionGroup="input"/>
+  <xs:element name="linkbase" type="input.file.elt.type" substitutionGroup="input"/>
+  <xs:element name="instance" type="input.file.elt.type" substitutionGroup="input"/>
+
+  <xs:complexType name="input.file.elt.type">
+    <xs:complexContent>
+      <xs:extension base="xs:anyType">
+        <xs:attribute ref="xlink:type" use="required" fixed="simple"/>
+        <xs:attribute ref="xlink:href" use="required" />
+        <xs:attribute name="readMeFirst" type="xs:boolean" use="optional" default="false"/>
+        <xs:attributeGroup ref="reg:common.attribute.group"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="outputs.elt.type">
+    <xs:sequence>
+      <xs:element ref="output" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attributeGroup ref="reg:common.attribute.group"/>
+  </xs:complexType>
+
+  <xs:element name="output" abstract="true"/>
+
+  <xs:element name="error" type="output.error.elt.type" substitutionGroup="output"/>
+
+  <xs:complexType name="output.error.elt.type">
+    <xs:simpleContent>
+      <xs:extension base="xs:QName">
+        <xs:attributeGroup ref="reg:common.attribute.group"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+</xs:schema>

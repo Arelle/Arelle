@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+ xmlns:xs="http://www.w3.org/2001/XMLSchema"
+ elementFormDefault="qualified"
+ xmlns:xh11d="http://www.w3.org/1999/xhtml/datatypes/"
+>
+    <xs:import namespace="http://www.w3.org/1999/xhtml/datatypes/" 
+               schemaLocation="xhtml-datatypes-1.xsd" />
+  <xs:annotation>
+    <xs:documentation>
+      This is the XML Schema Miscellaneous Legacy 
+      Markup module for XHTML
+      $Id: xhtml-misc-1.xsd,v 1.2 2005/09/26 22:54:53 ahby Exp $
+    </xs:documentation>
+    <xs:documentation source="xhtml-copyright-1.xsd"/>
+  </xs:annotation>
+
+  <xs:annotation>
+    <xs:documentation>
+      XHTML Miscellaneous Legacy Markup   
+        font, basefont, center, s, strike, u,
+        dir, menu, isindex
+      
+      This is to allow XHTML documents to be transformed for
+      display on HTML browsers where CSS support is inconsistent
+      or unavailable.
+      
+      The module also declares legacy attributes for elements
+      in other module. Note: This module only declares the
+      attribute list, and it is up to the document type to
+      redefine the model of affected modules.
+    </xs:documentation>
+    <xs:documentation 
+         source="http://www.w3.org/TR/2001/REC-xhtml-modularization-20010410/abstract_modules.html#s_legacymodule"/>
+  </xs:annotation>
+
+  <xs:attributeGroup name="xhtml.font.attlist">
+    <xs:attributeGroup ref="xhtml.Core.attrib"/>
+    <xs:attributeGroup ref="xhtml.I18n.attrib"/>
+    <xs:attribute name="size" type="xh11d:CDATA"/>
+    <xs:attribute name="color" type="xh11d:Color"/>
+    <xs:attribute name="face" type="xh11d:CDATA"/>
+  </xs:attributeGroup>
+  
+  <xs:group name="xhtml.font.content">
+     <xs:sequence>
+       <xs:group ref="xhtml.Inline.mix" minOccurs="0" maxOccurs="unbounded"/>
+     </xs:sequence>
+  </xs:group>  
+
+  <xs:complexType name="xhtml.font.type" mixed="true">
+     <xs:group ref="xhtml.font.content"/>
+     <xs:attributeGroup ref="xhtml.font.attlist"/>
+  </xs:complexType>
+
+  <xs:attributeGroup name="xhtml.basefont.attlist">
+    <xs:attributeGroup ref="xhtml.id"/>
+    <xs:attribute name="size" type="xh11d:CDATA" use="required"/>
+    <xs:attribute name="color" type="xh11d:Color"/>
+    <xs:attribute name="face" type="xh11d:CDATA"/>
+  </xs:attributeGroup>
+  
+  <xs:group name="xhtml.basefont.content">
+     <xs:sequence/>
+  </xs:group>    
+
+  <xs:complexType name="xhtml.basefont.type">
+    <xs:group ref="xhtml.basefont.content"/>  
+    <xs:attributeGroup ref="xhtml.basefont.attlist"/>
+  </xs:complexType>
+
+  <xs:attributeGroup name="xhtml.center.attlist">
+    <xs:attributeGroup ref="xhtml.Common.attrib"/>
+  </xs:attributeGroup>
+  
+  <xs:group name="xhtml.center.content">
+     <xs:sequence>
+       <xs:group ref="xhtml.Flow.mix" minOccurs="0" maxOccurs="unbounded"/>
+     </xs:sequence>
+  </xs:group>  
+  
+  <xs:complexType name="xhtml.center.type" mixed="true">
+    <xs:group ref="xhtml.center.content"/>
+    <xs:attributeGroup ref="xhtml.center.attlist"/>
+  </xs:complexType>
+
+  <xs:attributeGroup name="xhtml.s.attlist">
+    <xs:attributeGroup ref="xhtml.Common.attrib"/>
+  </xs:attributeGroup>
+  
+  <xs:group name="xhtml.s.content">
+     <xs:sequence>
+       <xs:group ref="xhtml.Inline.mix" minOccurs="0" maxOccurs="unbounded"/>
+     </xs:sequence>
+  </xs:group>  
+  
+  <xs:complexType name="xhtml.s.type" mixed="true">
+    <xs:group ref="xhtml.s.content"/>
+    <xs:attributeGroup ref="xhtml.s.attlist"/>
+  </xs:complexType>
+
+  <xs:attributeGroup name="xhtml.strike.attlist">
+    <xs:attributeGroup ref="xhtml.Common.attrib"/>
+  </xs:attributeGroup>
+  
+  <xs:group name="xhtml.strike.content">
+     <xs:sequence>
+       <xs:group ref="xhtml.Inline.mix" minOccurs="0" maxOccurs="unbounded"/>
+     </xs:sequence>
+  </xs:group>    
+
+  <xs:complexType name="xhtml.strike.type" mixed="true">
+    <xs:group ref="xhtml.strike.content"/>
+    <xs:attributeGroup ref="xhtml.strike.attlist"/>
+  </xs:complexType>
+
+  <xs:attributeGroup name="xhtml.u.attlist">
+    <xs:attributeGroup ref="xhtml.Common.attrib"/>
+  </xs:attributeGroup>
+  
+  <xs:group name="xhtml.u.content">
+     <xs:sequence>
+       <xs:group ref="xhtml.Inline.mix" minOccurs="0" maxOccurs="unbounded"/>
+     </xs:sequence>
+  </xs:group>      
+
+  <xs:complexType name="xhtml.u.type" mixed="true">
+    <xs:group ref="xhtml.u.content"/>
+    <xs:attributeGroup ref="xhtml.u.attlist"/>
+  </xs:complexType>
+
+  <xs:attributeGroup name="xhtml.dir.attlist">
+    <xs:attributeGroup ref="xhtml.Common.attrib"/>
+    <xs:attribute name="compact">
+       <xs:simpleType>
+         <xs:restriction base="xs:NMTOKEN">
+           <xs:enumeration value="compact"/>
+         </xs:restriction>
+       </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+  
+  <xs:group name="xhtml.dir.content">
+    <xs:sequence>
+      <xs:element ref="li" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:group>      
+
+  <xs:complexType name="xhtml.dir.type" mixed="true">
+    <xs:group ref="xhtml.dir.content"/>
+    <xs:attributeGroup ref="xhtml.dir.attlist"/>
+  </xs:complexType>
+
+  <xs:attributeGroup name="xhtml.menu.attlist">
+    <xs:attributeGroup ref="xhtml.Common.attrib"/>
+    <xs:attribute name="compact">
+       <xs:simpleType>
+         <xs:restriction base="xs:NMTOKEN">
+           <xs:enumeration value="compact"/>
+         </xs:restriction>
+       </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+ 
+  <xs:group name="xhtml.menu.content">
+    <xs:sequence>
+      <xs:element ref="li" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:group>  
+
+  <xs:complexType name="xhtml.menu.type" mixed="true">
+    <xs:group ref="xhtml.menu.content"/>
+    <xs:attributeGroup ref="xhtml.menu.attlist"/>
+  </xs:complexType>
+
+  <xs:attributeGroup name="xhtml.isindex.attlist">
+    <xs:attributeGroup ref="xhtml.Core.attrib"/>
+    <xs:attributeGroup ref="xhtml.I18n.attrib"/>
+    <xs:attribute name="prompt" type="xh11d:Text"/>
+  </xs:attributeGroup>
+  
+  <xs:group name="xhtml.isindex.content">
+    <xs:sequence/>
+  </xs:group>  
+ 
+  <xs:complexType name="xhtml.isindex.type">
+    <xs:group ref="xhtml.isindex.content"/>
+    <xs:attributeGroup ref="xhtml.isindex.attlist"/>
+  </xs:complexType>
+
+  <xs:annotation>
+    <xs:documentation>
+      Attribute redefinitions
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:attributeGroup name="xhtml.align.legacy.attlist">
+    <xs:attribute name="align">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="left"/>
+          <xs:enumeration value="center"/>
+          <xs:enumeration value="right"/>
+          <xs:enumeration value="justify"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+
+  <!-- add 'target' attribute to 'a' element -->
+  <xs:attributeGroup name="xhtml.a.legacy.attlist">
+    <xs:attribute name="target" type="xh11d:FrameTarget"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.applet.legacy.attlist">
+    <xs:attribute name="align">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="top"/>
+          <xs:enumeration value="middle"/>
+          <xs:enumeration value="bottom"/>
+          <xs:enumeration value="left"/>
+          <xs:enumeration value="right"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="hspace" type="xh11d:Pixels"/>
+    <xs:attribute name="vspace" type="xh11d:Pixels"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.body.legacy.attlist">
+    <xs:attribute name="background" type="xh11d:URI"/>
+    <xs:attribute name="bgcolor" type="xh11d:Color"/>
+    <xs:attribute name="text" type="xh11d:Color"/>
+    <xs:attribute name="link" type="xh11d:Color"/>
+    <xs:attribute name="vlinke" type="xh11d:Color"/>
+    <xs:attribute name="alink" type="xh11d:Color"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.br.legacy.attlist">
+    <xs:attribute name="clear" default="none">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="left"/>
+          <xs:enumeration value="all"/>
+          <xs:enumeration value="right"/>
+          <xs:enumeration value="none"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.caption.legacy.attlist">
+    <xs:attributeGroup ref="xhtml.align.legacy.attlist"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.hr.legacy.attlist">
+    <xs:attribute name="align">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="left"/>
+          <xs:enumeration value="center"/>
+          <xs:enumeration value="right"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="noshade">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="noshade"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>    
+    <xs:attribute name="size" type="xh11d:Pixels"/>
+    <xs:attribute name="width" type="xh11d:Length"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.img.legacy.attlist">
+    <xs:attribute name="align">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="top"/>
+          <xs:enumeration value="middle"/>
+          <xs:enumeration value="bottom"/>
+          <xs:enumeration value="left"/>
+          <xs:enumeration value="right"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="border" type="xh11d:Pixels"/>
+    <xs:attribute name="hspace" type="xh11d:Pixels"/>
+    <xs:attribute name="vspace" type="xh11d:Pixels"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.input.legacy.attlist">
+    <xs:attribute name="align">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="top"/>
+          <xs:enumeration value="middle"/>
+          <xs:enumeration value="bottom"/>
+          <xs:enumeration value="left"/>
+          <xs:enumeration value="right"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.legend.legacy.attlist">
+    <xs:attribute name="align">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="top"/>
+          <xs:enumeration value="bottom"/>
+          <xs:enumeration value="left"/>
+          <xs:enumeration value="right"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.li.legacy.attlist">
+    <xs:attribute name="type" type="xh11d:CDATA"/>
+    <xs:attribute name="value" type="xh11d:Number"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.object.legacy.attlist">
+    <xs:attribute name="align">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="top"/>
+          <xs:enumeration value="middle"/>
+          <xs:enumeration value="bottom"/>
+          <xs:enumeration value="left"/>
+          <xs:enumeration value="right"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="border" type="xh11d:Pixels"/>
+    <xs:attribute name="hspace" type="xh11d:Pixels"/>
+    <xs:attribute name="vspace" type="xh11d:Pixels"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.ol.legacy.attlist">
+    <xs:attribute name="type" type="xh11d:Text"/>
+    <xs:attribute name="compact">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="compact"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>    
+    <xs:attribute name="start" type="xh11d:Number"/>
+  </xs:attributeGroup>
+  
+  <xs:attributeGroup name="xhtml.dl.legacy.attlist">
+      <xs:attribute name="compact">
+        <xs:simpleType>
+           <xs:restriction base="xs:NMTOKEN">
+              <xs:enumeration value="compact"/>
+           </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+  </xs:attributeGroup>
+  
+
+  <xs:attributeGroup name="xhtml.div.legacy.attlist">
+    <xs:attributeGroup ref="xhtml.align.legacy.attlist"/>
+  </xs:attributeGroup>
+  
+  <xs:attributeGroup name="xhtml.heading.legacy.attlist">
+    <xs:attributeGroup ref="xhtml.align.legacy.attlist"/>
+  </xs:attributeGroup>  
+  
+  <xs:attributeGroup name="xhtml.p.legacy.attlist">
+    <xs:attributeGroup ref="xhtml.align.legacy.attlist"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.pre.legacy.attlist">
+    <xs:attribute name="width" type="xh11d:Length"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.script.legacy.attlist">
+    <xs:attribute name="language" type="xh11d:ContentType"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.table.legacy.attlist">
+    <xs:attribute name="align">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="left"/>
+          <xs:enumeration value="center"/>
+          <xs:enumeration value="right"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>     
+    <xs:attribute name="bgcolor" type="xh11d:Color"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.tr.legacy.attlist">
+    <xs:attribute name="bgcolor" type="xh11d:Color"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.th.legacy.attlist">
+    <xs:attribute name="nowrap">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="nowrap"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>     
+    <xs:attribute name="bgcolor" type="xh11d:Color"/>
+    <xs:attribute name="width" type="xh11d:Length"/>
+    <xs:attribute name="height" type="xh11d:Length"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.td.legacy.attlist">
+    <xs:attribute name="nowrap">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="nowrap"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>     
+    <xs:attribute name="bgcolor" type="xh11d:Color"/>
+    <xs:attribute name="width" type="xh11d:Length"/>
+    <xs:attribute name="height" type="xh11d:Length"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.ul.legacy.attlist">
+    <xs:attribute name="type" type="xh11d:CDATA"/>
+    <xs:attribute name="compact">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="compact"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>         
+  </xs:attributeGroup>
+
+</xs:schema>

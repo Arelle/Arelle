@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.w3.org/2002/06/xframes/"
+    xmlns="http://www.w3.org/2002/06/xframes/"
+    xmlns:xml="http://www.w3.org/XML/1998/namespace"
+    elementFormDefault="qualified">
+
+  <xs:annotation>
+    <xs:documentation xml:lang="en">
+      This is XFrames - an XML application for composing documents together.
+      URI: http://www.w3.org/MarkUp/SCHEMA/xframes-1.xsd
+     
+      Copyright ©2002-2005 W3C (MIT, ERCIM, Keio), All Rights Reserved.
+
+        Editor:   Masayasu Ishikawa (mimasa@w3.org)
+        Revision: $Id: xframes-1.xsd,v 1.9 2005/10/05 23:56:45 mimasa Exp $
+
+      Permission to use, copy, modify and distribute this XML Schema for
+      XFrames and its accompanying documentation for any purpose and without
+      fee is hereby granted in perpetuity, provided that the above copyright
+      notice and this paragraph appear in all copies. The copyright holders
+      make no representation about the suitability of this XML Schema
+      for any purpose.
+
+      It is provided "as is" without expressed or implied warranty.
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:import namespace="http://www.w3.org/XML/1998/namespace"
+    schemaLocation="http://www.w3.org/2001/xml.xsd">
+    <xs:annotation>
+      <xs:documentation xml:lang="en">
+        Get access to the XML namespace
+      </xs:documentation>
+    </xs:annotation>
+  </xs:import>
+
+  <xs:annotation>
+    <xs:documentation xml:lang="en">
+      Datatypes
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:simpleType name="ContentType.datatype">
+    <xs:annotation>
+      <xs:documentation xml:lang="en">
+        media type, as per [RFC2045]
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+
+  <xs:simpleType name="MediaDesc.datatype">
+    <xs:annotation>
+      <xs:documentation>
+        A comma-separated list of media descriptors as described by [CSS2].
+        The default is all.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[^,]+(,\s*[^,]+)*"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="QName.datatype">
+    <xs:annotation>
+      <xs:documentation>
+        An [XMLNS]-qualified name.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:QName"/>
+  </xs:simpleType>
+
+  <xs:simpleType name="URI.datatype">
+    <xs:annotation>
+      <xs:documentation xml:lang="en">
+        An Internationalized Resource Identifier Reference, as defined
+        by [IRI].
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:anyURI"/>
+  </xs:simpleType>
+
+  <xs:attributeGroup name="Common.attrib">
+    <xs:annotation>
+      <xs:documentation xml:lang="en">
+        Common attributes
+      </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="class" type="xs:NMTOKENS"/>
+    <xs:attribute ref="xml:id"/>
+    <xs:attribute name="title" type="xs:string"/>
+  </xs:attributeGroup>
+
+  <xs:element name="frames">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="1" ref="head"/>
+        <xs:choice>
+          <xs:element ref="group"/>
+          <xs:element minOccurs="1" maxOccurs="unbounded" ref="frame"/>
+        </xs:choice>
+      </xs:sequence>
+      <xs:attributeGroup ref="Common.attrib"/>
+      <xs:attribute ref="xml:base"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="head">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="title"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="style"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="Common.attrib"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="title">
+    <xs:complexType mixed="true">
+      <xs:attributeGroup ref="Common.attrib"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="style">
+    <xs:complexType mixed="true">
+      <xs:attributeGroup ref="Common.attrib"/>
+      <xs:attribute name="type" type="ContentType.datatype" use="required"/>
+      <xs:attribute name="media" type="MediaDesc.datatype"/>
+      <xs:attribute name="source" type="URI.datatype"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="group">
+    <xs:complexType>
+      <xs:choice minOccurs="1" maxOccurs="unbounded">
+        <xs:element ref="group"/>
+        <xs:element ref="frame"/>
+      </xs:choice>
+      <xs:attributeGroup ref="Common.attrib"/>
+      <xs:attribute name="compose" default="vertical">
+        <xs:simpleType>
+          <xs:union memberTypes="QName.datatype">
+            <xs:simpleType>
+             <xs:restriction base="xs:token">
+               <xs:enumeration value="vertical"/>
+               <xs:enumeration value="horizontal"/>
+               <xs:enumeration value="single"/>
+               <xs:enumeration value="free"/>
+             </xs:restriction>
+           </xs:simpleType>
+          </xs:union>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="frame">
+    <xs:complexType>
+      <xs:attributeGroup ref="Common.attrib"/>
+      <xs:attribute name="source" type="URI.datatype"/>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

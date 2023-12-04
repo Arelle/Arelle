@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Arcrole schema for generic presentation (parent-child) -->
+<xsd:schema targetNamespace="http://www.xbrl.org/2013/arcrole/parent-child" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:gen="http://xbrl.org/2008/generic" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:link="http://www.xbrl.org/2003/linkbase">
+  <xsd:annotation>
+    <xsd:appinfo>
+      <link:arcroleType arcroleURI="http://www.xbrl.org/2013/arcrole/parent-child" cyclesAllowed="undirected" id="parent-child">
+        <link:usedOn>gen:arc</link:usedOn>
+      </link:arcroleType>
+    </xsd:appinfo>
+  </xsd:annotation>
+  <xsd:import namespace="http://www.xbrl.org/2003/linkbase" schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"/>
+</xsd:schema>

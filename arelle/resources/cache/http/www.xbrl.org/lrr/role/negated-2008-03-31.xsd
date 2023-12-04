@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xs:schema elementFormDefault="qualified"
+    targetNamespace="http://xbrl.us/us-gaap/negated/2008-03-31"
+    xmlns:negated="http://xbrl.us/us-gaap/negated/2008-03-31"
+    xmlns:link="http://www.xbrl.org/2003/linkbase"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:annotation>
+        <xs:appinfo>
+            <link:roleType id="negated" roleURI="http://xbrl.us/us-gaap/role/label/negated">
+                <link:definition>Negated</link:definition>
+                <link:usedOn>link:label</link:usedOn>
+            </link:roleType>
+            <link:roleType id="negatedTotal"
+                roleURI="http://xbrl.us/us-gaap/role/label/negatedTotal">
+                <link:definition>Negated Total</link:definition>
+                <link:usedOn>link:label</link:usedOn>
+            </link:roleType>
+            <link:roleType id="negatedPeriodStart"
+                roleURI="http://xbrl.us/us-gaap/role/label/negatedPeriodStart">
+                <link:definition>Negated Period Start</link:definition>
+                <link:usedOn>link:label</link:usedOn>
+            </link:roleType>
+            <link:roleType id="negatedPeriodEnd"
+                roleURI="http://xbrl.us/us-gaap/role/label/negatedPeriodEnd">
+                <link:definition>Negated Period End</link:definition>
+                <link:usedOn>link:label</link:usedOn>
+            </link:roleType>
+        </xs:appinfo>
+    </xs:annotation>
+</xs:schema>

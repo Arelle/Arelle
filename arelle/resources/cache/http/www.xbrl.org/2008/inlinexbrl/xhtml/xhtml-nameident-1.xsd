@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+ xmlns:xs="http://www.w3.org/2001/XMLSchema"
+ elementFormDefault="qualified"
+ xmlns:xh11d="http://www.w3.org/1999/xhtml/datatypes/"
+>
+    <xs:import namespace="http://www.w3.org/1999/xhtml/datatypes/" 
+               schemaLocation="xhtml-datatypes-1.xsd" />
+  <xs:annotation>
+    <xs:documentation>
+      This is the XML Schema Name Identifier module for XHTML
+      $Id: xhtml-nameident-1.xsd,v 1.2 2005/09/26 22:54:53 ahby Exp $
+    </xs:documentation>
+    <xs:documentation source="xhtml-copyright-1.xsd"/>
+  </xs:annotation>
+
+  <xs:annotation>
+    <xs:documentation>
+      Name Identifier
+    
+        * 'name' attribute on form, img, a, map, applet, frame, iframe
+    
+      This module declares the 'name' attribute on element types when 
+      it is used as a node identifier for legacy linking and scripting 
+      support. This does not include those instances when 'name' is used 
+      as a container for form control, property or metainformation names.
+         
+      This module should be instantiated following all modules it modifies.
+    </xs:documentation>
+    <xs:documentation 
+        source="http://www.w3.org/TR/2001/REC-xhtml-modularization-20010410/abstract_modules.html#s_nameidentmodule"/>
+  </xs:annotation>
+
+
+  <xs:attributeGroup name="xhtml.form.name.attlist">
+    <xs:attribute name="name" type="xh11d:CDATA"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.img.name.attlist">
+    <xs:attribute name="name" type="xh11d:CDATA"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.a.name.attlist">
+    <xs:attribute name="name" type="xh11d:CDATA"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.map.name.attlist">
+    <xs:attribute name="name" type="xh11d:CDATA"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.applet.name.attlist">
+    <xs:attribute name="name" type="xh11d:CDATA"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.frame.name.attlist">
+    <xs:attribute name="name" type="xh11d:CDATA"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="xhtml.iframe.name.attlist">
+    <xs:attribute name="name" type="xh11d:CDATA"/>
+  </xs:attributeGroup>
+
+</xs:schema>

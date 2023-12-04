@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema 
+  targetNamespace="http://xbrl.org/2020/extensible-enumerations-2.0"
+  xmlns:enum2="http://xbrl.org/2020/extensible-enumerations-2.0"
+  elementFormDefault="qualified"
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  xmlns:dtr="http://www.xbrl.org/dtr/type/2020-01-21">
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <import namespace="http://www.xbrl.org/dtr/type/2020-01-21" schemaLocation="https://www.xbrl.org/dtr/type/2020-01-21/types.xsd"/>
+  
+  <attribute name="domain" type="QName"/>
+  <attribute name="linkrole" type="anyURI"/>
+  <attribute name="headUsable" type="boolean" default="false"/>
+
+
+  <complexType name="enumerationItemType" id="enumerationItemType" >
+    <annotation>
+      <documentation>
+        enumerationItemType defines an XBRL item type which takes an XML Name in the format 'namespace-uri#localname' as
+        a value.
+      </documentation>
+    </annotation>
+    <simpleContent>
+      <restriction base="dtr:noLangTokenItemType">
+        <pattern value="[A-Za-z][-A-Za-z0-9+-.]*:\S+#[\i-[:]][\c-[:]]*" />
+        <attributeGroup ref="xbrli:nonNumericItemAttrs" />
+      </restriction>
+    </simpleContent>
+  </complexType>
+
+
+  <complexType name="enumerationSetItemType" id="enumerationSetItemType" >
+    <annotation>
+      <documentation>
+        enumerationSetItemType is a set equivalent of enumerationItemType.  Its
+        format is intended to be equivalent to an XML Schema list of enumerationItemType.
+        The XBRL v2.1 specifications prevents the derivation of item types that uses
+        XML Schema lists, so this type simulates it using a token-based type.
+      </documentation>
+    </annotation>
+    <simpleContent>
+      <restriction base="dtr:noLangTokenItemType">
+        <pattern value="([A-Za-z][-A-Za-z0-9+-.]*:\S+#[\i-[:]][\c-[:]]*( [A-Za-z][-A-Za-z0-9+-.]*:\S+#[\i-[:]][\c-[:]]*)*)?" />
+        <attributeGroup ref="xbrli:nonNumericItemAttrs" />
+      </restriction>
+    </simpleContent>
+  </complexType>
+
+</schema>

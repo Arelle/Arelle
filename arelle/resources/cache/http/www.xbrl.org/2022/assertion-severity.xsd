@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<schema 
+    xmlns="http://www.w3.org/2001/XMLSchema" 
+    xmlns:gen="http://xbrl.org/2008/generic" 
+    xmlns:link="http://www.xbrl.org/2003/linkbase" 
+    xmlns:sev="http://xbrl.org/2022/assertion-severity" 
+    xmlns:xl="http://www.xbrl.org/2003/XLink" 
+    xmlns:variable="http://xbrl.org/2008/variable"
+    elementFormDefault="qualified" targetNamespace="http://xbrl.org/2022/assertion-severity">
+	
+	<import namespace="http://www.xbrl.org/2003/XLink" schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd"/>
+	<import namespace="http://xbrl.org/2008/variable" schemaLocation="http://www.xbrl.org/2008/variable.xsd"/>
+
+	<annotation>
+		<appinfo>
+			<link:arcroleType arcroleURI="http://xbrl.org/arcrole/2022/assertion-unsatisfied-severity" cyclesAllowed="undirected" id="assertion-unsatisfied-severity">
+				<link:definition>
+					assertion severity for unsatisfied evaluations
+				</link:definition>
+				<link:usedOn>
+					gen:arc
+				</link:usedOn>
+				<link:usedOn>
+					sev:arc
+				</link:usedOn>
+			</link:arcroleType>
+		</appinfo>
+	</annotation>
+
+	<element id="error" name="error" substitutionGroup="xl:resource" type="xl:resourceType" />
+	<element id="warning" name="warning" substitutionGroup="xl:resource" type="xl:resourceType" />
+	<element id="ok" name="ok" substitutionGroup="xl:resource" type="xl:resourceType" />
+	<element id="expression" name="expression" substitutionGroup="xl:resource">
+		<complexType mixed="true">
+			<complexContent mixed="true">
+				<extension base="variable:resource.type">
+					<attribute name="severity" type="variable:expression" use="required"/>
+				</extension>
+			</complexContent>
+		</complexType>
+	</element>
+
+</schema>

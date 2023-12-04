@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+ xmlns:xs="http://www.w3.org/2001/XMLSchema"
+ elementFormDefault="qualified"
+ xmlns:xh11d="http://www.w3.org/1999/xhtml/datatypes/"
+>
+    <xs:import namespace="http://www.w3.org/1999/xhtml/datatypes/" 
+               schemaLocation="xhtml-datatypes-1.xsd" />
+  <xs:annotation>
+    <xs:documentation>
+      This is the XML Schema Frames module for XHTML
+      $Id: xhtml-frames-1.xsd,v 1.2 2005/09/26 22:54:53 ahby Exp $
+    </xs:documentation>
+    <xs:documentation source="xhtml-copyright-1.xsd"/>
+  </xs:annotation>
+
+  <xs:annotation>
+    <xs:documentation>
+      Frames 
+  
+        * frameset, frame, noframes
+  
+      This module declares frame-related element types and attributes.
+    </xs:documentation>
+    <xs:documentation 
+         source="http://www.w3.org/TR/2001/REC-xhtml-modularization-20010410/abstract_modules.html#s_framesmodule"/>    
+  </xs:annotation>
+
+  <xs:attributeGroup name="xhtml.frameset.attlist">
+    <xs:attributeGroup ref="xhtml.Core.attrib"/>
+    <xs:attribute name="rows" type="xh11d:MultiLengths"/>
+    <xs:attribute name="cols" type="xh11d:MultiLengths"/>
+  </xs:attributeGroup>
+
+  <xs:group name="xhtml.frameset.content">
+    <xs:sequence>
+      <xs:choice minOccurs="1" maxOccurs="unbounded">
+        <xs:element ref="frameset"/>
+        <xs:element ref="frame"/>
+      </xs:choice>
+      <xs:element ref="noframes" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:group>
+
+  <xs:complexType name="xhtml.frameset.type" mixed="true">
+    <xs:group ref="xhtml.frameset.content"/>
+    <xs:attributeGroup ref="xhtml.frameset.attlist"/>
+  </xs:complexType>
+
+<!-- 
+    reserved frame names start with "_" 
+    otherwise starts with letter 
+-->
+  <xs:attributeGroup name="xhtml.frame.attlist">
+    <xs:attributeGroup ref="xhtml.Core.attrib"/>
+    <xs:attribute name="longdesc" type="xh11d:URI"/>
+    <xs:attribute name="src" type="xh11d:URI"/>
+    <xs:attribute name="frameborder" default="1">
+      <xs:simpleType>
+        <xs:restriction base="xs:nonNegativeInteger">
+          <xs:enumeration value="1"/>
+          <xs:enumeration value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="marginwidth" type="xh11d:Pixels"/>
+    <xs:attribute name="marginheight" type="xh11d:Pixels"/>
+    <xs:attribute name="noresize">
+       <xs:simpleType>
+          <xs:restriction base="xs:NMTOKEN">
+             <xs:enumeration value="noresize"/>
+          </xs:restriction>
+       </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="scrolling" default="auto">
+      <xs:simpleType>
+        <xs:restriction base="xs:NMTOKEN">
+          <xs:enumeration value="yes"/>
+          <xs:enumeration value="no"/>
+          <xs:enumeration value="auto"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+  
+  <xs:group name="xhtml.frame.content">
+     <xs:sequence/>
+  </xs:group>  
+
+  <xs:complexType name="xhtml.frame.type">
+    <xs:group ref="xhtml.frame.content"/>
+    <xs:attributeGroup ref="xhtml.frame.attlist"/>
+  </xs:complexType>
+
+<!-- 
+noframes 
+-->
+  <xs:group name="xhtml.noframes.content">
+    <xs:sequence>
+      <xs:element ref="body"/>
+    </xs:sequence>
+  </xs:group>
+
+  <xs:attributeGroup name="xhtml.noframes.attlist">
+    <xs:attributeGroup ref="xhtml.Common.attrib"/>
+  </xs:attributeGroup>
+
+  <xs:complexType name="xhtml.noframes.type" mixed="true">
+    <xs:group ref="xhtml.noframes.content"/>
+    <xs:attributeGroup ref="xhtml.noframes.attlist"/>
+  </xs:complexType>
+
+</xs:schema>

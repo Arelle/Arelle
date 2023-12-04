@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://www.w3.org/1999/xhtml"
+           xmlns="http://www.w3.org/1999/xhtml">
+
+  <xs:annotation>
+    <xs:documentation>
+      This XML Schema declares changes to the content models
+      of modules included in XHTML Basic1.0
+      $Id: xhtml-basic10-module-redefines-1.xsd,v 1.1 2003/09/23 21:12:52 speruvem Exp $
+    </xs:documentation>
+    <xs:documentation source="xhtml-copyright-1.xsd"/>
+  </xs:annotation>
+  
+  <xs:annotation>
+    <xs:documentation>
+      Module Content Model Redefinitions 
+      
+      This schema describes the changes (Redefinitions) to
+      content model of individual modules as they are instantiated as part of 
+      XHTML Basic 1.0 Document
+    </xs:documentation>
+  </xs:annotation>
+
+
+  <!-- Changes to Structural Module -->
+  <xs:redefine schemaLocation="xhtml-struct-1.xsd">
+     <xs:group name="head.content">
+       <xs:annotation>
+         <xs:documentation>
+           Redefinition by Base module
+         </xs:documentation>
+       </xs:annotation>      
+       <xs:sequence>
+           <xs:group ref="HeadOpts.mix" minOccurs="0" maxOccurs="unbounded"/>
+           <xs:choice>
+             <xs:sequence>
+                <xs:element ref="title"/>
+                <xs:group ref="HeadOpts.mix" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="base" minOccurs="0"/>                
+             </xs:sequence>
+             <xs:sequence>
+               <xs:element ref="base"/>
+               <xs:group ref="HeadOpts.mix" minOccurs="0" maxOccurs="unbounded"/>               
+               <xs:element ref="title"/>
+             </xs:sequence>           
+           </xs:choice>
+           <xs:group ref="HeadOpts.mix" minOccurs="0" maxOccurs="unbounded"/>           
+       </xs:sequence>
+     </xs:group>
+
+     <xs:attributeGroup name="version.attrib">
+       <xs:annotation>
+         <xs:documentation>
+            Redefinition by the XHTML11 Markup (for value of version attr)
+         </xs:documentation>
+       </xs:annotation>         
+       <xs:attribute name="version" type="FPI" fixed="-//W3C//DTD XHTML Basic 1.0//EN"/>
+     </xs:attributeGroup>
+  </xs:redefine>  
+</xs:schema>

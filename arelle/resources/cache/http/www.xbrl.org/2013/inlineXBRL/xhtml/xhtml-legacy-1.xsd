@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+ xmlns:xs="http://www.w3.org/2001/XMLSchema"
+ elementFormDefault="qualified"
+ xmlns:xh11d="http://www.w3.org/1999/xhtml/datatypes/"
+>
+    <xs:import namespace="http://www.w3.org/1999/xhtml/datatypes/" 
+               schemaLocation="xhtml-datatypes-1.xsd" />
+  <xs:annotation>
+    <xs:documentation>
+      This is the XML Schema Module for HTML Legacy Markup
+ 
+        font, basefont, center, s, strike, u,
+        dir, menu, isindex
+        (plus additional datatypes and legacy attributes)
+
+       This optional module declares additional markup for simple
+       presentation-related markup based on features found in the
+       HTML 4 Transitional and Frameset DTDs.
+       
+       The legacy module also include frames module, iframe module
+       and target module. (Note: This module expects find the schema files
+       of that declare these module)
+
+       Elements/Attributes defined in frame, iframe and targer modules are
+       
+          * frameset, frame, noframes, att:target, iframe       
+       
+       $Id: xhtml-legacy-1.xsd,v 1.2 2005/09/26 22:54:53 ahby Exp $
+    </xs:documentation>
+    <xs:documentation source="xhtml-copyright-1.xsd"/>
+    <xs:documentation 
+        source="http://www.w3.org/TR/2001/REC-xhtml-modularization-20010410/abstract_modules.html#s_legacymodule"/>    
+    <xs:documentation 
+        source="http://www.w3.org/TR/2001/REC-xhtml-modularization-20010410/abstract_modules.html#s_framesmodule"/>
+    <xs:documentation 
+        source="http://www.w3.org/TR/2001/REC-xhtml-modularization-20010410/abstract_modules.html#s_targetmodule"/>
+    <xs:documentation 
+        source="http://www.w3.org/TR/2001/REC-xhtml-modularization-20010410/abstract_modules.html#s_iframemodule"/>      
+  </xs:annotation>
+
+  <xs:include schemaLocation="xhtml-misc-1.xsd">
+    <xs:annotation>
+      <xs:documentation>
+        Miscellaneous module
+        Attributes defined here:
+
+          * font, basefont, center, s, strike, u, dir, menu, isindex
+            (plus additional datatypes and attributes)
+  
+      </xs:documentation>
+    </xs:annotation>
+  </xs:include>
+    
+  <xs:include schemaLocation="xhtml-frames-1.xsd">
+    <xs:annotation>
+      <xs:documentation>
+        Frames module
+
+        Elements defined here:
+
+          * frameset, frame, noframes
+      </xs:documentation>
+      <xs:documentation 
+        source="http://www.w3.org/TR/2001/REC-xhtml-modularization-20010410/abstract_modules.html#s_framesmodule"/>    
+    </xs:annotation>
+  </xs:include>
+
+  <xs:include schemaLocation="xhtml-target-1.xsd">
+    <xs:annotation>
+      <xs:documentation>
+        Target module
+
+        Attributes defined here:
+
+          * target
+      </xs:documentation>
+      <xs:documentation 
+        source="http://www.w3.org/TR/2001/REC-xhtml-modularization-20010410/abstract_modules.html#s_targetmodule"/>      
+    </xs:annotation>
+  </xs:include>
+
+  <xs:include schemaLocation="xhtml-iframe-1.xsd">
+    <xs:annotation>
+      <xs:documentation>
+        Iframe module
+
+        Elements defined here:
+
+          * iframe
+      </xs:documentation>
+      <xs:documentation 
+        source="http://www.w3.org/TR/2001/REC-xhtml-modularization-20010410/abstract_modules.html#s_iframemodule"/>      
+    </xs:annotation>
+  </xs:include>  
+
+</xs:schema>

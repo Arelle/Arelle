@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Arcrole schema for fact - explanatory fact arcrole -->
+<xsd:schema targetNamespace="http://www.xbrl.org/2009/arcrole/fact-explanatoryFact" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:deprecated="http://www.xbrl.org/2009/arcrole/fact-explanatoryFact" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <xsd:annotation>
+    <xsd:appinfo>
+		<link:arcroleType arcroleURI="http://www.xbrl.org/2009/arcrole/fact-explanatoryFact" cyclesAllowed="none" id="fact-explanatoryFact">
+		<link:definition>Fact - explanatory fact arcrole</link:definition>
+		<link:usedOn>link:footnoteArc</link:usedOn>
+		</link:arcroleType>
+    </xsd:appinfo>
+  </xsd:annotation>
+  <xsd:import namespace="http://www.xbrl.org/2003/linkbase" schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"/>
+</xsd:schema>

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
-  <link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
-    <link:loc xlink:type="locator" xlink:href="lei.xsd#lei_LEI" xlink:label="LegalEntityIdentifier" xlink:title="LegalEntityIdentifier"/>
-    <link:label xlink:type="resource" xlink:label="label_LegalEntityIdentifier" xlink:role="http://www.xbrl.org/2003/role/label" xlink:title="label_LegalEntityIdentifier" xml:lang="en" id="label_LegalEntityIdentifier">Legal Entity Identifier</link:label>
-    <link:label xlink:type="resource" xlink:label="label_LegalEntityIdentifier" xlink:role="http://www.xbrl.org/2003/role/documentation" xlink:title="label_LegalEntityIdentifier" xml:lang="en" id="documentation_LegalEntityIdentifier">Legal Entity Identifier (LEI) for the reporting entity.</link:label>
-    <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="LegalEntityIdentifier" xlink:to="label_LegalEntityIdentifier" xlink:title="label: LegalEntityIdentifier to label_LegalEntityIdentifier"/>
-  </link:labelLink>
-</link:linkbase>
