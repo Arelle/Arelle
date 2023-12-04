@@ -1871,10 +1871,10 @@ def isExcelLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
 
 def excelLoaderFilingStart(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     global excludeDesignatedEnumerations, annotateEnumerationsDocumentation, annotateElementDocumentation, saveXmlLang
-    excludeDesignatedEnumerations = options.ensure_value("excludeDesignatedEnumerations", False)
-    annotateEnumerationsDocumentation = options.ensure_value("annotateEnumerationsDocumentation", False)
-    annotateElementDocumentation = options.ensure_value("annotateElementDocumentation", False)
-    saveXmlLang = options.ensure_value("saveLang", None)
+    excludeDesignatedEnumerations = options.excludeDesignatedEnumerations
+    annotateEnumerationsDocumentation = options.annotateEnumerationsDocumentation
+    annotateElementDocumentation = options.annotateElementDocumentation
+    saveXmlLang = options.saveLang
 
 def excelLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     if not isExcelLoadable(modelXbrl, mappedUri, None, filepath):
@@ -1944,14 +1944,17 @@ def excelLoaderOptionExtender(parser, *args, **kwargs):
     parser.add_option("--exclude-designated-enumerations",
                       action="store_true",
                       dest="excludeDesignatedEnumerations",
+                      default=False,
                       help=_("Save a DTS loaded from Excel into this directory."))
     parser.add_option("--annotate-enumerations-documentation",
                       action="store_true",
                       dest="annotateEnumerationsDocumentation",
+                      default=False,
                       help=_("Save a DTS loaded from Excel into this directory."))
     parser.add_option("--annotate-element-documentation",
                       action="store_true",
                       dest="annotateElementDocumentation",
+                      default=False,
                       help=_("Save a DTS loaded from Excel into this directory."))
     parser.add_option("--save-lang",
                       action="store",
