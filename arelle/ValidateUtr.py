@@ -11,7 +11,7 @@ DIVISOR = "*DIV*"
 
 class UtrEntry(): # use slotted class for execution efficiency
     __slots__ = ("id", "unitId", "unitName", "nsUnit", "itemType", "nsItemType", "isSimple",
-                 "numeratorItemType", "nsNumeratorItemType",
+                 "numeratorItemType", "nsNumeratorItemType", "definition",
                  "denominatorItemType", "nsDenominatorItemType", "symbol",
                  "status")
 
@@ -62,6 +62,7 @@ def loadUtr(modelXbrl, statusFilters=None): # Build a dictionary of item types t
                 u.nsDenominatorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsDenominatorItemType")
                 u.isSimple = all(e is None for e in (u.numeratorItemType, u.nsNumeratorItemType, u.denominatorItemType, u.nsDenominatorItemType))
                 u.symbol = unitElt.findtext("{http://www.xbrl.org/2009/utr}symbol")
+                u.definition = unitElt.findtext("{http://www.xbrl.org/2009/utr}definition")
                 u.status = unitElt.findtext("{http://www.xbrl.org/2009/utr}status")
                 if u.status in statusFilters:
                     # TO DO: This indexing scheme assumes that there are no name clashes in item types of the registry.
