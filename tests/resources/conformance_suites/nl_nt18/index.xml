@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <testcases name="NL-NT18">
+    <testcase uri='fg_nl/04-testcase.xml' />
     <testcase uri='fr_nl/1-01-testcase.xml' />
     <testcase uri='fr_nl/1-02-testcase.xml' />
     <testcase uri='fr_nl/1-03-testcase.xml' />
