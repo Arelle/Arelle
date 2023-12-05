@@ -10,6 +10,7 @@ config = ConformanceSuiteConfig(
     info_url='https://specifications.xbrl.org/release-history-formula-1.0-formula-conf.html',
     local_filepath='formula.zip',
     name=PurePath(__file__).stem,
+    network_or_cache_required=False,
     plugins=frozenset({'formulaXPathChecker', 'functionsMath'}),
     strict_testcase_index=False,
 )

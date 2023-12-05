@@ -7,5 +7,6 @@ config = ConformanceSuiteConfig(
     local_filepath='lrr-conf-pwd-2005-06-21.zip',
     membership_url='https://www.xbrl.org/join',
     name=PurePath(__file__).stem,
+    network_or_cache_required=False,
     url_replace='file:///c:/temp/conf/'
 )

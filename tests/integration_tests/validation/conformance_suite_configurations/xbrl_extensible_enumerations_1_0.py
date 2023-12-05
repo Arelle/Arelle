@@ -6,5 +6,6 @@ config = ConformanceSuiteConfig(
     info_url='https://specifications.xbrl.org/work-product-index-extensible-enumerations-extensible-enumerations-1.0.html',
     local_filepath='extensible-enumerations-CONF-2014-10-29.zip',
     name=PurePath(__file__).stem,
+    network_or_cache_required=False,
     public_download_url='https://www.xbrl.org/2014/extensible-enumerations-CONF-2014-10-29.zip',
 )

@@ -14,5 +14,6 @@ config = ConformanceSuiteConfig(
     info_url='https://specifications.xbrl.org/work-product-index-registries-units-registry-1.0.html',
     local_filepath=ZIP_PATH,
     name=PurePath(__file__).stem,
+    network_or_cache_required=False,
     public_download_url='https://www.xbrl.org/2013/utr-structure-conf-cr-2013-11-18.zip'
 )

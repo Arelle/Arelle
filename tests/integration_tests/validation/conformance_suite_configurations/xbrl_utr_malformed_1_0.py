@@ -25,6 +25,7 @@ configs = [
         info_url='https://specifications.xbrl.org/work-product-index-registries-units-registry-1.0.html',
         local_filepath=structure_config.local_filepath,
         name=PurePath(__file__).stem,
+        network_or_cache_required=False,
         public_download_url=structure_config.public_download_url,
     )
     for malformed_utr_file, expected_model_errors in MALFORMED_UTR_FILES.items()

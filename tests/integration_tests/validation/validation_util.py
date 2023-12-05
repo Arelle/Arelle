@@ -262,7 +262,7 @@ def get_conformance_suite_test_results(
                 '--csvTestReport', f'conf-{config.name}{shard_str}-report.csv',
                 '--logFile', f'conf-{config.name}{shard_str}-log.txt',
             ])
-        if offline:
+        if offline or not config.network_or_cache_required:
             args.extend(['--internetConnectivity', 'offline'])
         context_manager: ContextManager[Any]
         if config.url_replace:

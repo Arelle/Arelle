@@ -15,5 +15,6 @@ config = ConformanceSuiteConfig(
     local_filepath='oim-conformance-2023-04-19.zip',
     membership_url='https://www.xbrl.org/join',
     name=PurePath(__file__).stem,
+    network_or_cache_required=False,
     plugins=frozenset({'loadFromOIM'}),
 )

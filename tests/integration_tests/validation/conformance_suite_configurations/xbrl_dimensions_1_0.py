@@ -24,5 +24,6 @@ config = ConformanceSuiteConfig(
     info_url='https://specifications.xbrl.org/work-product-index-group-dimensions-dimensions.html',
     local_filepath='xdt-conf-cr4-2009-10-06.zip',
     name=PurePath(__file__).stem,
+    network_or_cache_required=False,
     public_download_url='https://www.xbrl.org/2009/xdt-conf-cr4-2009-10-06.zip',
 )
