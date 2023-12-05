@@ -16,4 +16,6 @@
                 substitutionGroup="xbrli:item" type="xbrli:stringItemType" xbrli:periodType="duration"/>
     <xs:element abstract="false" id="mock_FormattedExplanation" name="FormattedExplanation" nillable="false"
                 substitutionGroup="xbrli:item" type="nl-types:formattedExplanationItemType" xbrli:periodType="duration"/>
+    <xs:element abstract="false" id="mock_Monetary" name="Monetary" nillable="false"
+                substitutionGroup="xbrli:item" type="xbrli:monetaryItemType" xbrli:periodType="duration"/>
 </xs:schema>
