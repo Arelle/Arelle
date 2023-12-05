@@ -6,8 +6,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 
-from arelle.ModelDtsObject import ModelFact
-from arelle.ModelInstanceObject import ModelUnit, ModelContext
+from arelle.ModelInstanceObject import ModelUnit, ModelContext, ModelFact
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.utils.validate.PluginValidationData import PluginValidationData
