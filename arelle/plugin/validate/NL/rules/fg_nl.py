@@ -92,3 +92,29 @@ def rule_fg_nl_04(
             beforeName=qname(beforeName),
             afterName=qname(afterName),
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18,
+    ],
+)
+def rule_fg_nl_09(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FG-NL-09: A fact SHOULD NOT contain an 'id' attribute.
+    """
+    facts = [f for f in val.modelXbrl.facts if f.id is not None]
+    if len(facts) > 0:
+        yield Validation.warning(
+            codes='NL.FG-NL-09',
+            msg=_('A fact SHOULD NOT contain an "id" attribute'),
+            modelObject=facts,
+        )
