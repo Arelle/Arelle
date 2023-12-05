@@ -64,26 +64,31 @@ def rule_fg_nl_04(
     """
     errors = defaultdict(list)
     for doc in val.modelXbrl.urlDocs.values():
-        if doc.type == ModelDocument.Type.INSTANCE:
-            currentName = list(INSTANCE_ELEMENT_ORDER.keys())[0]
-            currentIndex = INSTANCE_ELEMENT_ORDER[currentName]
-            for elt in doc.xmlRootElement.iter():
-                if not isinstance(elt, ModelObject):
-                    continue
-                if isinstance(elt, ModelFact):
-                    thisName = 'fact'
-                else:
-                    thisName = elt.elementQname.clarkNotation
-                if thisName not in INSTANCE_ELEMENT_ORDER:
-                    continue
-                thisIndex = INSTANCE_ELEMENT_ORDER[thisName]
-                if thisIndex == currentIndex:
-                    continue
-                if thisIndex > currentIndex:
-                    currentIndex = thisIndex
-                    currentName = thisName
-                else:
-                    errors[(thisName, currentName)].append(elt)
+        if doc.type != ModelDocument.Type.INSTANCE:
+            continue
+        # Tracks the lower "bound" of the element order starting with the first element.
+        boundName = next(iter(INSTANCE_ELEMENT_ORDER))
+        boundIndex = INSTANCE_ELEMENT_ORDER[boundName]
+        for elt in doc.xmlRootElement.iter():
+            if not isinstance(elt, ModelObject):
+                continue
+            if isinstance(elt, ModelFact):
+                eltName = 'fact'
+            else:
+                eltName = elt.elementQname.clarkNotation
+            if eltName not in INSTANCE_ELEMENT_ORDER:
+                continue
+            eltNameIndex = INSTANCE_ELEMENT_ORDER[eltName]
+            if eltNameIndex == boundIndex:
+                # This element matches the current position of the bound, move on.
+                continue
+            if eltNameIndex > boundIndex:
+                # This element is of a type positioned later in the order, move bound.
+                boundIndex = eltNameIndex
+                boundName = eltName
+                continue
+            # This element is of a type positioned earlier in the order, generate an error.
+            errors[(eltName, boundName)].append(elt)
     for names, elts in errors.items():
         beforeName, afterName = names
         yield Validation.warning(
