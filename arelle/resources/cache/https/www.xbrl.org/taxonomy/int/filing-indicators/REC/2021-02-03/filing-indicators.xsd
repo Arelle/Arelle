@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Filing Indicator Taxonomy -->
+
+<xsd:schema targetNamespace="http://www.xbrl.org/taxonomy/int/filing-indicators/REC/2021-02-03"
+            elementFormDefault="qualified"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:fi="http://www.xbrl.org/taxonomy/int/filing-indicators/REC/2021-02-03"
+            xmlns:link="http://www.xbrl.org/2003/linkbase"
+            xmlns:xbrli="http://www.xbrl.org/2003/instance"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            xmlns:xbrldt="http://xbrl.org/2005/xbrldt">
+	<xsd:annotation>
+		<xsd:appinfo>
+			<link:linkbaseRef xlink:type="simple"
+			                  xlink:href="filing-indicators-label.xml"
+			                  xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"
+			                  xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+
+			<link:linkbaseRef xlink:type="simple"
+			                  xlink:href="filing-indicators-def.xml"
+			                  xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"
+			                  xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+
+			<link:roleType id="fi_templateFiled"
+			               roleURI="http://www.xbrl.org/taxonomy/int/filing-indicators/REC/2021-02-03/roles/templateFiled">
+				<link:definition>Template Filed</link:definition>
+				<link:usedOn>link:definitionLink</link:usedOn>
+			</link:roleType>
+
+		</xsd:appinfo>
+	</xsd:annotation>
+	<xsd:import namespace="http://www.xbrl.org/2003/instance"
+	            schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<xsd:import namespace="http://xbrl.org/2005/xbrldt"
+	            schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+
+	<xsd:element id="fi_filed"
+	             name="filed"
+	             substitutionGroup="xbrli:item"
+	             nillable="true"
+	             xbrli:periodType="instant"
+	             type="xbrli:booleanItemType" />
+
+	<xsd:element abstract="true"
+	             id="fi_template"
+	             name="template"
+	             nillable="true"
+	             substitutionGroup="xbrldt:dimensionItem"
+	             xbrldt:typedDomainRef="#fi_templateDomain"
+	             xbrli:periodType="duration"
+	             type="xbrli:stringItemType"/>
+
+	<xsd:element abstract="false"
+	             id="fi_templateDomain"
+	             name="templateDomain"
+	             nillable="false"
+	             type="xsd:token"/>
+
+	<xsd:element abstract="true"
+	             id="fi_hypercube"
+	             name="hypercube"
+	             substitutionGroup="xbrldt:hypercubeItem"
+	             nillable="true"
+	             xbrli:periodType="duration"
+	             type="xbrli:stringItemType" />
+
+</xsd:schema>
