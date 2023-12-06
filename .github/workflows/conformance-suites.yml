@@ -103,12 +103,7 @@ jobs:
       - name: Download XBRL validation config
         if: ${{ matrix.test.cache }}
         shell: bash
-        run: |
-          if aws s3api head-object --bucket arelle --key caches/${{ matrix.test.name }}.zip; then
-            aws s3api get-object --bucket arelle --key caches/${{ matrix.test.name }}.zip config.zip
-          else
-            curl -L "${{ secrets.XBRL_VALIDATION_CONFIG_URL }}" -o config.zip
-          fi
+        run: aws s3api get-object --bucket arelle --key caches/${{ matrix.test.name }}.zip config.zip
       - name: Unpack XBRL validation config
         if: ${{ matrix.test.cache && startsWith(matrix.os, 'ubuntu') }}
         run: |
