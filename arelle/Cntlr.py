@@ -614,10 +614,13 @@ class Cntlr:
         if not self.webCache.workOffline:
             # Working online, can proceed regardless of presence in cache
             return True
-        cacheFilepath = self.webCache.urlToCacheFilepath(url)
-        if os.path.exists(cacheFilepath):
-            # The file exists in cache, we can proceed despite working offline
-            return True
+        cacheDirs = (self.webCache.cacheDir, self.webCache.builtInCacheDir)
+        for cacheDir in cacheDirs:
+            cacheFilepath = self.webCache.urlToCacheFilepath(url, cacheDir=cacheDir)
+            normalizedCacheFilepath = self.webCache.normalizeFilepath(cacheFilepath, url)
+            if os.path.exists(normalizedCacheFilepath):
+                # The file exists in cache, we can proceed despite working offline
+                return True
         return False
 
 
