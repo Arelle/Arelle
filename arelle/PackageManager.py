@@ -543,6 +543,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                 return None
             package = {'name': ", ".join(packageNames),
                        'status': 'enabled',
+                       'identifier': parsedPackage.get('identifier'),
                        'version': parsedPackage.get('version'),
                        'license': parsedPackage.get('license'),
                        'fileDate': time.strftime('%Y-%m-%dT%H:%M:%S UTC', fileDateTuple),
@@ -619,13 +620,12 @@ def mappedUrl(url):
 
 def addPackage(cntlr, url, packageManifestName=None):
     newPackageInfo = packageInfo(cntlr, url, packageManifestName=packageManifestName)
-    if newPackageInfo and newPackageInfo.get("name"):
-        name = newPackageInfo.get("name")
-        version = newPackageInfo.get("version")
+    if newPackageInfo and newPackageInfo.get("identifier"):
+        identifier = newPackageInfo.get("identifier")
         j = -1
         packagesList = packagesConfig["packages"]
         for i, _packageInfo in enumerate(packagesList):
-            if _packageInfo['name'] == name and _packageInfo['version'] == version:
+            if _packageInfo['identifier'] == identifier:
                 j = i
                 break
         if 0 <= j < len(packagesList): # replace entry
