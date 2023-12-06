@@ -10,4 +10,5 @@ config = ConformanceSuiteConfig(
     local_filepath='taxonomy-package-conformance.zip',
     membership_url='https://www.xbrl.org/join',
     name=PurePath(__file__).stem,
+    network_or_cache_required=False,
 )

@@ -10,6 +10,7 @@ config = ConformanceSuiteConfig(
     info_url='https://www.esma.europa.eu/document/conformance-suite-2022',
     local_filepath='esef_conformance_suite_2022.zip',
     name=PurePath(__file__).stem,
+    network_or_cache_required=False,
     plugins=frozenset({'validate/ESEF'}),
     public_download_url='https://www.esma.europa.eu/sites/default/files/library/esef_conformance_suite_2022.zip',
 )

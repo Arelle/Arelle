@@ -17,6 +17,7 @@ config = ConformanceSuiteConfig(
     info_url='https://specifications.xbrl.org/work-product-index-inline-xbrl-inline-xbrl-1.1.html',
     local_filepath=ZIP_PATH,
     name=PurePath(__file__).stem,
+    network_or_cache_required=False,
     plugins=frozenset({'inlineXbrlDocumentSet', '../../tests/plugin/testcaseIxExpectedHtmlFixup.py'}),
     public_download_url='https://www.xbrl.org/2020/inlineXBRL-1.1-conformanceSuite-2020-04-08.zip',
 )

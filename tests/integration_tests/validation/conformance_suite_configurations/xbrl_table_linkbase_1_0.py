@@ -292,5 +292,6 @@ config = ConformanceSuiteConfig(
     info_url='https://specifications.xbrl.org/work-product-index-table-linkbase-table-linkbase-1.0.html',
     local_filepath='table-linkbase-conf-2015-08-12.zip',
     name=PurePath(__file__).stem,
+    network_or_cache_required=False,
     public_download_url='https://www.xbrl.org/2015/table-linkbase-conf-2015-08-12.zip'
 )

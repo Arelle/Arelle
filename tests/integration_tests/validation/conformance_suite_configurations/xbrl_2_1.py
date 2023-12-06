@@ -30,5 +30,6 @@ config = ConformanceSuiteConfig(
     info_url='https://specifications.xbrl.org/work-product-index-group-base-spec-base-spec.html',
     local_filepath='XBRL-CONF-2014-12-10.zip',
     name=PurePath(__file__).stem,
+    network_or_cache_required=False,
     public_download_url='https://www.xbrl.org/2014/XBRL-CONF-2014-12-10.zip',
 )

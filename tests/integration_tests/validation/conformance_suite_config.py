@@ -29,6 +29,7 @@ class ConformanceSuiteConfig:
     shards: int = 1
     strict_testcase_index: bool = True
     url_replace: str | None = None
+    network_or_cache_required: bool = True
 
     def __post_init__(self) -> None:
         redundant_plugins = [(prefix, overlap)

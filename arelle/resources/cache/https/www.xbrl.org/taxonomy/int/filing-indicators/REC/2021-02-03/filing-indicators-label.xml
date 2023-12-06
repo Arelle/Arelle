@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Filing Indicator Taxonomy Label File-->
+
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"
+               xmlns:link="http://www.xbrl.org/2003/linkbase"
+               xmlns:xlink="http://www.w3.org/1999/xlink"
+               xmlns:xbrli="http://www.xbrl.org/2003/instance">
+	<link:labelLink xlink:type="extended"
+	                xlink:role="http://www.xbrl.org/2003/role/link">
+		<link:loc xlink:type="locator"
+		          xlink:href="filing-indicators.xsd#fi_filed"
+		          xlink:label="filed"
+		          xlink:title="filed"/>
+
+		<link:label xlink:type="resource"
+		            xlink:label="label_filed"
+		            xlink:role="http://www.xbrl.org/2003/role/label"
+		            xlink:title="label_filed"
+		            xml:lang="en"
+		            id="label_filed">Filing Indicator</link:label>
+
+		<link:label xlink:type="resource"
+		            xlink:label="label_filed"
+		            xlink:role="http://www.xbrl.org/2003/role/documentation"
+		            xlink:title="label_filed"
+		            xml:lang="en"
+		            id="documentation_filed">Filing Indicator to explicitly state whether the template has been reported or not</link:label>
+
+		<link:labelArc xlink:type="arc"
+		               xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+		               xlink:from="filed"
+		               xlink:to="label_filed"
+		               xlink:title="label: filed to label_filed"/>
+
+
+
+		<link:loc xlink:type="locator"
+		          xlink:href="filing-indicators.xsd#fi_template"
+		          xlink:label="template"
+		          xlink:title="template"/>
+
+		<link:label xlink:type="resource"
+		            xlink:label="label_template"
+		            xlink:role="http://www.xbrl.org/2003/role/label"
+		            xlink:title="label_template"
+		            xml:lang="en"
+		            id="label_template">Template Dimension</link:label>
+
+		<link:label xlink:type="resource"
+		            xlink:label="label_template"
+		            xlink:role="http://www.xbrl.org/2003/role/documentation"
+		            xlink:title="label_template"
+		            xml:lang="en"
+		            id="documentation_template">Template typed dimension to differentiate information reported about each template</link:label>
+
+		<link:labelArc xlink:type="arc"
+		               xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+		               xlink:from="template"
+		               xlink:to="label_template"
+		               xlink:title="label: template to label_template"/>
+
+
+		<link:loc xlink:type="locator"
+		          xlink:href="filing-indicators.xsd#fi_hypercube"
+		          xlink:label="hypercube"
+		          xlink:title="hypercube"/>
+
+		<link:label xlink:type="resource"
+		            xlink:label="label_hypercube"
+		            xlink:role="http://www.xbrl.org/2003/role/label"
+		            xlink:title="label_hypercube"
+		            xml:lang="en"
+		            id="label_hypercube">Filing Indicators</link:label>
+
+		<link:labelArc xlink:type="arc"
+		               xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+		               xlink:from="hypercube"
+		               xlink:to="label_hypercube"
+		               xlink:title="label: hypercube to label_hypercube"/>
+
+
+	</link:labelLink>
+</link:linkbase>

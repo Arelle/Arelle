@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--(C) Eurofiling Foundation p.f.
+Version History
+1.0.0 original version
+1.0.1 2017-11-19 includes version numbering and commenting
+-->
+<?version 1.0.1?>
+<xs:schema targetNamespace="http://www.eurofiling.info/xbrl/ext/filing-indicators" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:find="http://www.eurofiling.info/xbrl/ext/filing-indicators" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <xs:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xs:element name="fIndicators" id="find_fIndicators" substitutionGroup="xbrli:tuple">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="find:filingIndicator"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="xbrli:tupleAttrs"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="filingIndicator" id="find_filingIndicator" type="xbrli:stringItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <xs:attribute default="true" name="filed" type="xs:boolean"/>
+</xs:schema>
