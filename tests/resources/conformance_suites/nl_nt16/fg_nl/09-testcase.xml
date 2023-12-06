@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="NL.FG-NL-09"
+  description="A fact SHOULD NOT contain an 'id' attribute."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="fact-with-id" name="Fact with ID">
+    <description>
+        The instance has facts with an "id" attribute.
+    </description>
+    <data>
+        <instance readMeFirst="true">09-invalid.xbrl</instance>
+    </data>
+    <result>
+      <error>NL.FG-NL-09</error>
+    </result>
+  </variation>
+</testcase>
