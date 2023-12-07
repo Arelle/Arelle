@@ -7,7 +7,7 @@ config = ConformanceSuiteConfig(
         '--formula', 'none',
     ],
     file='esef_conformance_suite_2022/index_pure_xhtml.xml',
-    info_url='https://www.esma.europa.eu/document/conformance-suite-2022',
+    info_url='https://www.esma.europa.eu/document/esef-conformance-suite-2022',
     local_filepath='esef_conformance_suite_2022.zip',
     name=PurePath(__file__).stem,
     network_or_cache_required=False,
