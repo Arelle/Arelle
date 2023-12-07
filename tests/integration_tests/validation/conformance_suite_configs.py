@@ -4,8 +4,10 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 from tests.integration_tests.validation.conformance_suite_configurations.efm_current import config as efm_current
 from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2021 import config as esef_ixbrl_2021
 from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2022 import config as esef_ixbrl_2022
+from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2023 import config as esef_ixbrl_2023
 from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2021 import config as esef_xhtml_2021
 from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2022 import config as esef_xhtml_2022
+from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2023 import config as esef_xhtml_2023
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt16 import config as nl_nt16
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt17 import config as nl_nt17
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt18 import config as nl_nt18
@@ -34,8 +36,10 @@ ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     efm_current,
     esef_ixbrl_2021,
     esef_ixbrl_2022,
+    esef_ixbrl_2023,
     esef_xhtml_2021,
     esef_xhtml_2022,
+    esef_xhtml_2023,
     nl_nt16,
     nl_nt17,
     nl_nt18,
