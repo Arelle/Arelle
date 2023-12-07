@@ -10,6 +10,7 @@ from typing import Any, cast, Iterable, TYPE_CHECKING
 from regex import regex
 
 from arelle import XmlUtil, XbrlConst
+from arelle.ModelObject import ModelObject
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidate import INVALID
 from arelle.typing import TypeGetText
@@ -339,12 +340,16 @@ def rule_br_kvk_4_20(
     pattern = regex.compile(r"\s*[0-9]{4}-[0-9]{2}-[0-9]{2}\s*$")
     # Check period date values
     for contextId, context in modelXbrl.contexts.items():
-        for contextElement in context:
-            if contextElement.elementQname != XbrlConst.qnXbrliPeriod:
+        for contextChild in context:
+            if not isinstance(contextChild, ModelObject):
                 continue
-            for periodElement in contextElement:
-                xValid = getattr(periodElement, 'xValid', None)
-                sValue = getattr(periodElement, 'sValue', None)
+            if contextChild.elementQname != XbrlConst.qnXbrliPeriod:
+                continue
+            for periodChild in contextChild:
+                if not isinstance(periodChild, ModelObject):
+                    continue
+                xValid = getattr(periodChild, 'xValid', None)
+                sValue = getattr(periodChild, 'sValue', None)
                 if (xValid == INVALID) or \
                         (sValue is not None and pattern.match(str(sValue))) is None:
                     yield Validation.error(
@@ -352,11 +357,11 @@ def rule_br_kvk_4_20(
                         msg=_('Each date in an XBRL instance MUST be a valid date. '
                               'Date parsing for %(periodElement)s in context "%(contextId)s" with value "%(periodValue)s" '
                               'failed with message: "%(valueError)s" '),
-                        modelObject=periodElement,
+                        modelObject=periodChild,
                         contextId=contextId,
-                        periodElement=periodElement.qname.localName,
-                        periodValue=periodElement.sValue,
-                        valueError=getattr(periodElement, 'xValueError', None) or 'does not match YYYY-MM-DD',
+                        periodElement=periodChild.qname.localName,
+                        periodValue=periodChild.sValue,
+                        valueError=getattr(periodChild, 'xValueError', None) or 'does not match YYYY-MM-DD',
                     )
     # Check date fact values
     for fact in modelXbrl.factsByDatatype(notStrict=True, typeQname=XbrlConst.qnXbrliDateItemType) or []:
