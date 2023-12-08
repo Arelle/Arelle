@@ -1345,3 +1345,19 @@ class ModelXbrl:
                   _("DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s"),
                 modelObject=self,
                 entryFile=os.path.basename(entryFilename), packageOutputFile=pkgFilename, numberOfFiles=numFiles)
+
+    @property
+    def qnameUtrUnits(self):
+        try:
+            return self._qnameUtrUnits
+        except AttributeError:
+            from arelle.ValidateUtr import ValidateUtr
+            utrEntries = ValidateUtr(self).utrItemTypeEntries
+            qnameUtrUnits = {}
+            for unitType, unitMap in utrEntries.items():
+                for unitId, unit in unitMap.items():
+                    unitQName = unit.qname()
+                    if unitQName:
+                        qnameUtrUnits[unitQName] = unit
+            self._qnameUtrUnits = qnameUtrUnits
+            return self._qnameUtrUnits
