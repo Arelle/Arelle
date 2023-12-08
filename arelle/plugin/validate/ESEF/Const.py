@@ -23,6 +23,14 @@ FOOTNOTE_LINK_CHILDREN = frozenset((
 ))
 
 PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
+PERCENT_TYPE_2020 = qname("{http://www.xbrl.org/dtr/type/2020-01-21}dtr-types:percentItemType")
+PERCENT_TYPE_2022 = qname("{http://www.xbrl.org/dtr/type/2022-03-31}dtr-types:percentItemType")
+PERCENT_TYPES = {
+    PERCENT_TYPE,
+    PERCENT_TYPE_2020,
+    PERCENT_TYPE_2022,
+}
+
 
 IXT_NAMESPACES = frozenset((
     ixtNamespaces["ixt v4"],  # only tr4 or newer REC is currently recommended
