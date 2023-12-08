@@ -5,6 +5,7 @@ from lxml import etree
 from arelle import ModelDocument
 from collections import defaultdict
 
+from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 
 DIVISOR = "*DIV*"
@@ -14,6 +15,12 @@ class UtrEntry(): # use slotted class for execution efficiency
                  "numeratorItemType", "nsNumeratorItemType", "definition",
                  "denominatorItemType", "nsDenominatorItemType", "symbol",
                  "status")
+
+    def qname(self) -> QName | None:
+        if not self.nsUnit:
+            return None
+        prefix = self.nsUnit.split('/')[-1]
+        return QName(prefix=prefix, namespaceURI=self.nsUnit, localName=self.unitId)
 
     def __repr__(self):
         return "utrEntry({})".format(', '.join("{}={}".format(n, getattr(self,n))
