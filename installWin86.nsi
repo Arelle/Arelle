@@ -124,11 +124,8 @@ Section "Uninstall"
 
   ;ADD YOUR OWN FILES HERE...
 
-  Delete "$INSTDIR\Uninstall.exe"
-  Delete "$INSTDIR\*.*"
-
-  RMDir /r "$INSTDIR\*"
-  RMDir "$INSTDIR"
+  RMDir /r "$INSTDIR"
+  RMDir /r "$LOCALAPPDATA\Arelle"
 
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
     
