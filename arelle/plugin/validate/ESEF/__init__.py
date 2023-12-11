@@ -126,13 +126,18 @@ class ESEFPlugin(PluginHooks):
                                     modelObject=modelXbrl)
                     return LoadingException("Invalid submission format")
             else:
-                if modelXbrl.fileSource.isArchive:
-                    if (not isinstance(modelXbrl.fileSource.selection, list) and
-                        modelXbrl.fileSource.selection is not None and
-                        modelXbrl.fileSource.selection.endswith(".xml") and
-                        ModelDocument.Type.identify(modelXbrl.fileSource, cast(str, modelXbrl.fileSource.url)) in (
-                            ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
+                if isinstance(modelXbrl.fileSource.url, str) and modelXbrl.fileSource.url.endswith(".xml"):
+                    documentType = ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url)
+                    if documentType in {ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE}:
                         return None  # allow zipped test case to load normally
+
+                if disclosureSystemYear >= 2023 and not modelXbrl.fileSource.isZip:
+                    modelXbrl.error("ESEF.2.6.1.disallowedReportPackageFileExtension",
+                                    _("A report package MUST conform to the .ZIP File Format Specification and MUST have a .zip extension."),
+                                    fileSourceType=modelXbrl.fileSource.type,
+                                    modelObject=modelXbrl)
+                    return LoadingException("ESEF Report Package must be .ZIP File Format")
+                if modelXbrl.fileSource.isArchive:
                     if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
                         modelXbrl.error("ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage",
                             _("Single reporting package with issuer's XBRL extension taxonomy files and Inline XBRL instance document must be compliant with the latest recommended version of the Taxonomy Packages specification (1.0)"),
