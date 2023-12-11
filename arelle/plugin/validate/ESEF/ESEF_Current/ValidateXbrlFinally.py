@@ -147,13 +147,12 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
 
     if getDisclosureSystemYear(modelXbrl) >= 2023:
-        instanceNumber = 0
-        if modelXbrl.fileSource.dir:
+        if val.unconsolidated and modelXbrl.fileSource.dir:
+            instanceNumber = 0
             for file in modelXbrl.fileSource.dir:
                 if not file.endswith("/"):
-                    from arelle.ModelDocument import Type
-                    fileType = Type.identify(modelXbrl.fileSource, "{}/{}".format(modelXbrl.fileSource.basefile, file))
-                    if fileType == Type.INLINEXBRL:
+                    fileType = ModelDocument.Type.identify(modelXbrl.fileSource, "{}/{}".format(modelXbrl.fileSource.basefile, file))
+                    if fileType == ModelDocument.Type.INLINEXBRL:
                         instanceNumber += 1
             if instanceNumber > 1:
                 modelXbrl.error("ESEF.4.1.1.SingleXhtmlFiles",
