@@ -627,16 +627,9 @@ class FileSource:
         elif self.filesDir is not None:
             return self.filesDir
         elif self.isZip:
-            files: list[str] = []
-
             assert isinstance(self.fs, zipfile.ZipFile)
-            for zipinfo in self.fs.infolist():
-                f = zipinfo.filename
-                if '\\' in f:
-                    self.isZipBackslashed = True
-                    f = f.replace("\\", "/")
-                files.append(f)
-            self.filesDir = files
+            self.isZipBackslashed = any('\\' in zinfo.orig_filename for zinfo in self.fs.infolist())
+            self.filesDir = self.fs.namelist()
         elif self.isTarGz:
             assert isinstance(self.fs, tarfile.TarFile)
             self.filesDir = self.fs.getnames()
