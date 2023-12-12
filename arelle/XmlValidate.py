@@ -507,10 +507,6 @@ def validateValue(
                     sValue = value
                 elif baseXsdType in ("XBRLI_DECIMALSUNION", "XBRLI_PRECISIONUNION"):
                     xValue = sValue = value if value == "INF" else int(value)
-                elif baseXsdType in ("XBRLI_NONZERODECIMAL"):
-                    xValue = sValue = int(value)
-                    if xValue == 0:
-                        raise ValueError("invalid value")
                 elif baseXsdType == "xsd-pattern":
                     # for facet compiling
                     try:

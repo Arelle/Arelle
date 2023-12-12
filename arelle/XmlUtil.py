@@ -634,9 +634,7 @@ def schemaBaseTypeDerivedFrom(
                            "{http://www.w3.org/2001/XMLSchema}simpleType",
                            "{http://www.w3.org/2001/XMLSchema}complexContent",
                            "{http://www.w3.org/2001/XMLSchema}simpleContent"):
-            qn = schemaBaseTypeDerivedFrom(cast(ModelObject, child))
-            if qn is not None:
-                return qn  # QName
+            return schemaBaseTypeDerivedFrom(cast(ModelObject, child))
     return None
 
 def schemaFacets(
