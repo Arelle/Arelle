@@ -57,7 +57,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import PluginHooks
 from .ESEF_2021.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinally2021
 from .ESEF_Current.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinallyCurrent
-from .Util import loadAuthorityValidations
+from .Util import getDisclosureSystemYear, loadAuthorityValidations
 
 _: TypeGetText
 
@@ -86,10 +86,6 @@ def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -
 
 def esefDisclosureSystemSelected(modelXbrl: ModelXbrl) -> bool:
     return getattr(modelXbrl.modelManager.disclosureSystem, ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY, False)
-
-
-def is2021DisclosureSystem(modelXbrl: ModelXbrl) -> bool:
-    return any("2021" in name for name in modelXbrl.modelManager.disclosureSystem.names)
 
 
 class ESEFPlugin(PluginHooks):
@@ -121,21 +117,27 @@ class ESEFPlugin(PluginHooks):
     ) -> ModelDocumentClass | LoadingException | None:
         if not esefDisclosureSystemSelected(modelXbrl):
             return None
+        disclosureSystemYear = getDisclosureSystemYear(modelXbrl)
         if isEntry:
             if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
-                if not is2021DisclosureSystem(modelXbrl) and re.match(r'.*[.](7z|rar|tar|jar)', normalizedUri):
+                if disclosureSystemYear > 2021 and re.match(r'.*[.](7z|rar|tar|jar)', normalizedUri):
                     modelXbrl.error("ESEF.Arelle.InvalidSubmissionFormat",
                                     _("Unrecognized submission format."),
                                     modelObject=modelXbrl)
                     return LoadingException("Invalid submission format")
             else:
-                if modelXbrl.fileSource.isArchive:
-                    if (not isinstance(modelXbrl.fileSource.selection, list) and
-                        modelXbrl.fileSource.selection is not None and
-                        modelXbrl.fileSource.selection.endswith(".xml") and
-                        ModelDocument.Type.identify(modelXbrl.fileSource, cast(str, modelXbrl.fileSource.url)) in (
-                            ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
+                if isinstance(modelXbrl.fileSource.url, str) and modelXbrl.fileSource.url.endswith(".xml"):
+                    documentType = ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url)
+                    if documentType in {ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE}:
                         return None  # allow zipped test case to load normally
+
+                if disclosureSystemYear >= 2023 and not modelXbrl.fileSource.isZip:
+                    modelXbrl.error("ESEF.2.6.1.disallowedReportPackageFileExtension",
+                                    _("A report package MUST conform to the .ZIP File Format Specification and MUST have a .zip extension."),
+                                    fileSourceType=modelXbrl.fileSource.type,
+                                    modelObject=modelXbrl)
+                    return LoadingException("ESEF Report Package must be .ZIP File Format")
+                if modelXbrl.fileSource.isArchive:
                     if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
                         modelXbrl.error("ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage",
                             _("Single reporting package with issuer's XBRL extension taxonomy files and Inline XBRL instance document must be compliant with the latest recommended version of the Taxonomy Packages specification (1.0)"),
@@ -151,6 +153,7 @@ class ESEFPlugin(PluginHooks):
     ) -> None:
         if not esefDisclosureSystemSelected(modelXbrl):
             return None
+        disclosureSystemYear = getDisclosureSystemYear(modelXbrl)
         if modelXbrl.modelDocument is None or modelXbrl.modelDocument.type not in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRY, ModelDocument.Type.RSSFEED):
             if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
 
@@ -177,7 +180,7 @@ class ESEFPlugin(PluginHooks):
                 modelXbrl.error("ESEF.RTS.Art.6.a.noInlineXbrlTags",
                                 _("RTS on ESEF requires inline XBRL, no facts were reported."),
                                 modelObject=modelXbrl)
-            if not is2021DisclosureSystem(modelXbrl):
+            if disclosureSystemYear > 2021:
                 if modelXbrl.fileSource.isArchive:
                     if modelXbrl.fileSource.dir is not None:
                         for filename in modelXbrl.fileSource.dir:
@@ -276,7 +279,8 @@ class ESEFPlugin(PluginHooks):
     ) -> None:
         if not esefDisclosureSystemSelected(val.modelXbrl) and val.validateDisclosureSystem:
             return None
-        if is2021DisclosureSystem(val.modelXbrl):
+        disclosureSystemYear = getDisclosureSystemYear(val.modelXbrl)
+        if disclosureSystemYear == 2021:
             return validateXbrlFinally2021(val, *args, **kwargs)
         return validateXbrlFinallyCurrent(val, *args, **kwargs)
 

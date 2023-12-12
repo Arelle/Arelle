@@ -53,7 +53,7 @@ from ..Const import (
     FOOTNOTE_LINK_CHILDREN,
     IXT_NAMESPACES,
     LineItemsNotQualifiedLinkroles,
-    PERCENT_TYPE, datetimePattern,
+    PERCENT_TYPES, datetimePattern,
     docTypeXhtmlPattern,
     esefMandatoryElementNames2020,
     esefPrimaryStatementPlaceholderNames,
@@ -147,13 +147,12 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
 
     if getDisclosureSystemYear(modelXbrl) >= 2023:
-        instanceNumber = 0
-        if modelXbrl.fileSource.dir:
+        if val.unconsolidated and modelXbrl.fileSource.dir:
+            instanceNumber = 0
             for file in modelXbrl.fileSource.dir:
                 if not file.endswith("/"):
-                    from arelle.ModelDocument import Type
-                    fileType = Type.identify(modelXbrl.fileSource, "{}/{}".format(modelXbrl.fileSource.basefile, file))
-                    if fileType == Type.INLINEXBRL:
+                    fileType = ModelDocument.Type.identify(modelXbrl.fileSource, "{}/{}".format(modelXbrl.fileSource.basefile, file))
+                    if fileType == ModelDocument.Type.INLINEXBRL:
                         instanceNumber += 1
             if instanceNumber > 1:
                 modelXbrl.error("ESEF.4.1.1.SingleXhtmlFiles",
@@ -655,7 +654,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 if f.isNumeric and f.concept is not None and getattr(f, "xValid", 0) >= VALID:
                     numFactsByConceptContextUnit[(f.qname, mapContext.get(f.context,f.context), mapUnit.get(f.unit, f.unit))].append(f)
                     if not f.isNil and cast(int, f.xValue) > 1 and f.concept.type is not None and (
-                        f.concept.type.qname == PERCENT_TYPE or f.concept.type.isDerivedFrom(PERCENT_TYPE)):
+                        f.concept.type.qname in PERCENT_TYPES
+                        or any(f.concept.type.isDerivedFrom(percentType) for percentType in PERCENT_TYPES)):
                         modelXbrl.warning("ESEF.2.2.2.percentGreaterThan100",
                             _("A percent fact should have value <= 100: %(element)s in context %(context)s value %(value)s"),
                             modelObject=f, element=f.qname, context=f.context.id, value=f.xValue)
