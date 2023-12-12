@@ -85,7 +85,7 @@ def archiveFilenameParts(filename: str | None, checkIfXmlIsEis: bool = False) ->
             fileDir = filenameParts[0] + archiveSep[:-1]
             if (isHttpUrl(fileDir) or
                 os.path.isfile(fileDir)): # if local, be sure it is not a directory name
-                return (fileDir, filenameParts[2])
+                return (fileDir, filenameParts[2].replace('\\', '/'))
     return None
 
 class FileNamedStringIO(io.StringIO):  # provide string IO in memory but behave as a fileName string
