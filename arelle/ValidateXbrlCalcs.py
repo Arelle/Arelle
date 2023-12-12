@@ -250,6 +250,8 @@ class ValidateXbrlCalcs:
                                                 x1, x2, iX1, iX2 = boundIntervals.get(itemBindKey, ZERO_RANGE)
                                                 y1 *= w
                                                 y2 *= w
+                                                if y2 < y1:
+                                                    y1, y2 = y2, y1
                                                 boundIntervals[itemBindKey] = (x1 + y1, x2 + y2, iX1 and iY1, iX2 and iY2)
                                                 boundIntervalItems[itemBindKey].extend(_itemFacts)
                             for sumBindKey in boundSumKeys:
