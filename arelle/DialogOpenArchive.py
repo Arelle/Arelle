@@ -12,7 +12,7 @@ import regex as re
 from arelle.Cntlr import Cntlr
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UrlUtil import isHttpUrl
-from arelle.PackageManager import parsePackage
+from arelle.PackageManager import parseTaxonomyPackage
 from arelle.PythonUtil import attrdict
 from arelle import PluginManager
 
@@ -32,7 +32,7 @@ def askArchiveFile(parent, filesource, multiselect=False, selectFiles=None):
     try:
         filenames = filesource.dir
         if filenames is not None:   # an IO or other error can return None
-            if filesource.isTaxonomyPackage:
+            if filesource.isTaxonomyPackage or filesource.isReportPackage:
                 dialog = DialogOpenArchive(parent,
                                            ENTRY_POINTS,
                                            filesource,
@@ -160,20 +160,22 @@ class DialogOpenArchive(Toplevel):
                     raise IOError(_("Taxonomy package contained more than one metadata file: {0}.")
                                   .format(', '.join(metadataFiles)))
                 '''
-                metadataFile = metadataFiles[0]
-                metadata = filesource.basefile + os.sep + metadataFile
-                self.metadataFilePrefix = os.sep.join(os.path.split(metadataFile)[:-1])
-                if self.metadataFilePrefix:
-                    self.metadataFilePrefix += "/"  # zip contents have /, never \ file seps
-                self.taxonomyPkgMetaInf = '{}/META-INF/'.format(
-                            os.path.splitext(os.path.basename(filesource.url))[0])
+                if metadataFiles:
+                    metadataFile = metadataFiles[0]
+                    metadata = filesource.basefile + os.sep + metadataFile
+                    self.metadataFilePrefix = os.sep.join(os.path.split(metadataFile)[:-1])
+                    if self.metadataFilePrefix:
+                        self.metadataFilePrefix += "/"  # zip contents have /, never \ file seps
+                    self.taxonomyPkgMetaInf = '{}/META-INF/'.format(
+                                os.path.splitext(os.path.basename(filesource.url))[0])
+
+                    self.taxonomyPackage = parseTaxonomyPackage(cntlr, filesource, metadata,
+                                                        os.sep.join(os.path.split(metadata)[:-1]) + os.sep)
+                else:
+                    self.taxonomyPackage = {}
 
 
-                self.taxonomyPackage = parsePackage(cntlr, filesource, metadata,
-                                                    os.sep.join(os.path.split(metadata)[:-1]) + os.sep)
-
-
-                if self.taxonomyPackage["entryPoints"]:
+                if "entryPoints" in self.taxonomyPackage or filesource.isReportPackage:
                     # may have instance documents too
                     self.packageContainedInstances = []
                     self.packageContainedIXDSes = defaultdict(list)
@@ -370,7 +372,7 @@ class DialogOpenArchive(Toplevel):
                 self.treeView.insert("", "end", fileUrl,
                                      values=fileType,
                                      text=fileUrl or urls[0][2])
-            for name, urls in sorted(self.taxonomyPackage["entryPoints"].items(), key=lambda i:i[0][2]):
+            for name, urls in sorted(self.taxonomyPackage.get("entryPoints", {}).items(), key=lambda i:i[0][2]):
                 self.treeView.insert("", "end", name,
                                      values="\n".join(url[1] for url in urls),
                                      text=name or urls[0][2])

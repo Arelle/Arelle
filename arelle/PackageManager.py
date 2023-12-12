@@ -72,7 +72,7 @@ def _parseFile(cntlr, parser, filepath, file, schemaUrl):
     return tree
 
 
-def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
+def parseTaxonomyPackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
     global ArchiveFileIOError
     if ArchiveFileIOError is None:
         from arelle.FileSource import ArchiveFileIOError
@@ -442,6 +442,42 @@ def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]) -> bo
                            file=os.path.basename(filesource.url),
                            level=logging.ERROR)
             errors.append("tpe:metadataFileNotFound")
+        return len(errors) == numErrorsOnEntry
+
+def validateReportPackage(cntlr, filesource, errors=[]) -> bool:
+        numErrorsOnEntry = len(errors)
+        _dir = filesource.dir
+        _dir = filesource.dir
+        if not _dir:
+            cntlr.addToLog(_("Empty report package file"),
+                           messageCode="rpe:invalidDirectoryStructure",
+                           file=os.path.basename(filesource.url),
+                           level=logging.ERROR)
+            errors.append("rpe:invalidDirectoryStructure")
+            return False
+        if filesource.isZipBackslashed:
+            # see 4.4.17.1 in https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
+            cntlr.addToLog(_("Taxonomy package directory uses '\\' as file separator"),
+                           messageCode="rpe:invalidArchiveFormat",
+                           file=os.path.basename(filesource.url),
+                           level=logging.ERROR)
+            errors.append("rpe:invalidArchiveFormat")
+            return False
+        rptPkgFile = filesource.reportPackageFile
+        rptPkgObj = {"documentInfo":{"documentType":"https://xbrl.org/report-package/2023"}} #default doc type
+        if rptPkgFile:
+            _file = filesource.file(f"{filesource.basefile}/{rptPkgFile}")[0]
+            rptPkgObj = json.load(_file)
+        docTypeUri = rptPkgObj.get("documentInfo",{}).get("documentType")
+        if docTypeUri not in ("https://xbrl.org/report-package/2023/xbri",
+                              "https://xbrl.org/report-package/2023/xbr",
+                              "https://xbrl.org/report-package/2023"):
+            cntlr.addToLog(_("Unsupported report package document type: %(docTypeUri)s"),
+                           messageCode="rpe:unsupportedReportPackageVersion",
+                           file=os.path.basename(filesource.url),
+                           messageArgs={"docTypeUri": docTypeUri},
+                           level=logging.ERROR)
+            errors.append("rpe:unsupportedReportPackageVersion")
         return len(errors) == numErrorsOnEntry
 
 def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):

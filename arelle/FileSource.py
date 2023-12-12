@@ -20,15 +20,19 @@ if TYPE_CHECKING:
     from _typeshed import SupportsRead
 
 
-archivePathSeparators = (".zip" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
-                        ((".zip/", ".tar.gz/", ".eis/", ".xml/", ".xfd/", ".frm/", '.taxonomyPackage.xml/') if os.sep != "/" else ()) #acomodate windows and http styles
+archivePathSeparators = (".zip" + os.sep, ".ZIP" + os.sep, ".xbr" + os.sep, ".xbri" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
+                        ((".zip/", ".ZIP/" + os.sep, ".xbr/" + os.sep, ".xbri/" + os.sep, ".tar.gz/", ".eis/", ".xml/", ".xfd/", ".frm/", '.taxonomyPackage.xml/') if os.sep != "/" else ()) #acomodate windows and http styles
 
-archiveFilenameSuffixes = {".zip", ".tar.gz", ".eis", ".xml", ".xfd", ".frm"}
+archiveFilenameSuffixes = {".zip", ".ZIP", ".xbr", ".xbri", ".tar.gz", ".eis", ".xml", ".xfd", ".frm"}
+
+zipFilenamePattern = re.compile(r".*[.](zip|ZIP|xbr|xbri)$") # zip or report package suffix
 
 POST_UPLOADED_ZIP = os.sep + "POSTupload.zip"
 SERVER_WEB_CACHE = os.sep + "_HTTP_CACHE"
 
 TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD packages
+
+isReportPackageDirPattern = re.compile(r"^[^/]+/META_INF/reportPackage.json$|^[^/]+/reports/")
 
 def openFileSource(
     filename: str | None,
@@ -61,7 +65,7 @@ def openFileSource(
                 and sourceFileSource.dir is not None
                 and sourceFileSource.isArchive
                 and selection in sourceFileSource.dir
-                and selection.endswith(".zip")
+                and zipFilenamePattern.match(selection)
             ):
                 assert cntlr is not None
                 filesource = FileSource(filename, cntlr)
@@ -148,7 +152,7 @@ class FileSource:
         self.isTarGz = self.type == ".tar.gz"
         if not self.isTarGz:
             self.type = self.type[3:]
-        self.isZip = self.type == ".zip"
+        self.isZip = bool(zipFilenamePattern.match(self.url))
         self.isZipBackslashed = False # windows style backslashed paths
         self.isEis = self.type == ".eis"
         self.isXfd = (self.type == ".xfd" or self.type == ".frm")
@@ -182,9 +186,12 @@ class FileSource:
                         self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
                     pass
 
-    def logError(self, err: Exception) -> None:
+    def logError(self, err: Exception, messageCode: str | None) -> None:
         if self.cntlr:
-            self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
+            if messageCode:
+                self.cntlr.addToLog(str(err), messageCode=messageCode)
+            else:
+                self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
 
     def open(self, reloadCache: bool = False) -> None:
         if not self.isOpen:
@@ -205,6 +212,9 @@ class FileSource:
                 except EnvironmentError as err:
                     self.logError(err)
                     pass
+                except zipfile.BadZipFile as err:
+                    self.logError(err, messageCode="tpe:invalidArchiveFormat")
+                    raise # re-raise to calling environment to abort operation
             elif self.isTarGz:
                 try:
                     assert isinstance(self.basefile, str)
@@ -336,7 +346,7 @@ class FileSource:
             if PackageManager.validateTaxonomyPackage(self.cntlr, self, errors=errors):
                 assert isinstance(self.baseurl, str)
                 metadata = self.baseurl + os.sep + self.taxonomyPackageMetadataFiles[0]
-                self.taxonomyPackage = PackageManager.parsePackage(self.cntlr, self, metadata,  # type: ignore[no-untyped-call]
+                self.taxonomyPackage = PackageManager.parseTaxonomyPackage(self.cntlr, self, metadata,  # type: ignore[no-untyped-call]
                                                                    os.sep.join(os.path.split(metadata)[:-1]) + os.sep,
                                                                    errors=errors)
 
@@ -403,6 +413,17 @@ class FileSource:
             if f.endswith("/META-INF/taxonomyPackage.xml"): # must be in a sub directory in the zip
                 return [f]  # standard package
         return [f for f in (self.dir or []) if os.path.split(f)[-1] in TAXONOMY_PACKAGE_FILE_NAMES]
+
+    @property
+    def isReportPackage(self) -> bool:
+        return self.isZip and any(isReportPackageDirPattern.match(f) for f in (self.dir or ()))
+
+    @property
+    def reportPackageFile(self) -> str | None:
+        for f in (self.dir or []):
+            if f.endswith("/META-INF/reportPackage.json"):
+                return f  # report package
+        return None
 
     def isInArchive(self, filepath: str | None, checkExistence: bool = False) -> bool:
         archiveFileSource = self.fileSourceContainingFilepath(filepath)

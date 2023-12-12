@@ -85,9 +85,9 @@ def csvTestcaseLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
             doc.testcaseDiscover(testcase, modelXbrl.modelManager.validateTestcaseSchema)
 
     except csv.Error as ex:
-        error("arelle:testcaseCsvError", str(ex), href=filepath, **kwargs)
+        modelXbrl.error("arelle:testcaseCsvError", str(ex), href=filepath, **kwargs)
     except Exception as ex:
-        error("arelle:testcaseException", str(ex), href=filepath, **kwargs)
+        modelXbrl.error("arelle:testcaseException", str(ex), href=filepath, **kwargs)
         
     return doc
 

@@ -510,20 +510,23 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[], inlineOnly=False):
     if filesource.isArchive:
         if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
             filesource.loadTaxonomyPackageMappings()
+        if filesource.isReportPackage:
+            validateReportPackage(filesource.cntlr, filesource)
         del entrypointFiles[:] # clear out archive from entrypointFiles
         # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
         for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
-            if _archiveFile.endswith(".xhtml") or _archiveFile.endswith(".html"):
+            if not _archiveFile.startswith("/") and (_archiveFile.endswith(".xhtml") or _archiveFile.endswith(".html")):
                 filesource.select(_archiveFile)
                 if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                     entrypointFiles.append({"file":filesource.url})
         urlsByType = {}
         if not entrypointFiles:
             for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
-                filesource.select(_archiveFile)
-                identifiedType = ModelDocument.Type.identify(filesource, filesource.url)
-                if identifiedType in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.HTML):
-                    urlsByType.setdefault(identifiedType, []).append(filesource.url)
+                if not _archiveFile.startswith("/"): # archive must contain relative files
+                    filesource.select(_archiveFile)
+                    identifiedType = ModelDocument.Type.identify(filesource, filesource.url)
+                    if identifiedType in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.HTML):
+                        urlsByType.setdefault(identifiedType, []).append(filesource.url)
         # use inline instances, if any, else non-inline instances
         for identifiedType in ((ModelDocument.Type.INLINEXBRL,) if inlineOnly else (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE)):
             for url in urlsByType.get(identifiedType, []):
@@ -915,6 +918,11 @@ class CntlrCmdLine(Cntlr.Cntlr):
             filesource = FileSource.openFileSource(_entryPoints[0].get("file",None), self, checkIfXmlIsEis=_checkIfXmlIsEis)
         _entrypointFiles = _entryPoints
         if filesource and not filesource.selection:
+            if filesource.isArchive: # check archive for report package purposes
+                if not filesource.dir:
+                    self.addToLog(_("Archive has no files"), messageCode="rpe:invalidDirectoryStructure")
+                elif any (f.startswith("/") for f in filesource.dir):
+                    self.addToLog(_("Archive must not contain absolute path references"), messageCode="rpe:invalidArchiveFormat")
             if not (sourceZipStream and len(_entrypointFiles) > 0):
                 filesourceEntrypointFiles(filesource, _entrypointFiles)
 
