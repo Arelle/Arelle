@@ -9,6 +9,7 @@ import sys, os, io, time, json, logging
 from collections import defaultdict
 from fnmatch import fnmatch
 from lxml import etree
+import regex as re
 from urllib.parse import urljoin
 openFileSource = None
 from arelle import Locale, XmlUtil
@@ -27,6 +28,10 @@ if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
 
 EMPTYDICT = {}
+
+TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD packages
+
+reportPackageDirPattern = re.compile(r"^[^/]+/META_INF/reportPackage.json$|^[^/]+/reports/")
 
 def baseForElement(element):
     base = ""
@@ -699,3 +704,44 @@ def removePackageModule(cntlr, name):
         global packagesConfigChanged
         packagesConfigChanged = True
     return result
+
+invalidZipDirEntryPattern = re.compile(r"^/|^.*\\")
+forbiddenDirEntryPattern = re.compile(r"^..?$|^..?/|^.*/..?/|^.*//")
+def validatePackageEntries(filesource):
+    if filesource is not None and filesource.isArchive:
+        pathCounts = {}
+        for f in filesource.dir:
+            pathCounts[f] = pathCounts.get(f,0) + 1
+        if not filesource.dir:
+            filesource.cntlr.addToLog(_("Archive has no files"), 
+                                      messageCode="rpe:invalidDirectoryStructure",
+                                      level=logging.ERROR,
+                                      file=filesource.url)
+        elif any (invalidZipDirEntryPattern.match(f) for f in filesource.dir):
+            filesource.cntlr.addToLog(_("Archive must not contain absolute path references"), 
+                                      messageCode="rpe:invalidArchiveFormat",
+                                      level=logging.ERROR,
+                                      file=filesource.url)
+        elif any (forbiddenDirEntryPattern.match(f) for f in filesource.dir):
+            for f in filesource.dir:
+                if forbiddenDirEntryPattern.match(f):
+                    filesource.cntlr.addToLog(_("Archive contains forbidden file name \"%(name)s\""), 
+                                              messageCode="rpe:invalidArchiveFormat",
+                                              messageArgs={"name":f},
+                                              level=logging.ERROR,
+                                              file=filesource.url)
+        elif count("reportPackage.json" in f for f in filesource.dir) > 1:
+            filesource.cntlr.addToLog(_("Archive has duplicate reportPackage.json entries"), 
+                                      messageCode="rpe:invalidDirectoryStructure",
+                                      level=logging.ERROR,
+                                      file=filesource.url)
+        elif any(c > 1 for c in pathCounts.values()):
+            for f, c in pathCounts.items():
+                filesource.cntlr.addToLog(_("Archive has %(count)s entries for %(name)s"), 
+                                          messageCode="rpe:invalidDirectoryStructure",
+                                          level=logging.ERROR,
+                                          messageArgs={"name":f, "count":c},
+                                          file=filesource.url)
+        else:
+            return True # valid
+    return False # invalid package entries

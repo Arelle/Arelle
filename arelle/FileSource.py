@@ -30,10 +30,6 @@ zipFilenamePattern = re.compile(r".*[.](zip|ZIP|xbr|xbri)$") # zip or report pac
 POST_UPLOADED_ZIP = os.sep + "POSTupload.zip"
 SERVER_WEB_CACHE = os.sep + "_HTTP_CACHE"
 
-TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD packages
-
-isReportPackageDirPattern = re.compile(r"^[^/]+/META_INF/reportPackage.json$|^[^/]+/reports/")
-
 def openFileSource(
     filename: str | None,
     cntlr: Cntlr | None = None,
@@ -169,7 +165,7 @@ class FileSource:
         # for SEC xml files, check if it's an EIS anyway
         if (not (self.isZip or self.isEis or self.isXfd or self.isRss) and
             self.type == ".xml"):
-            if os.path.split(self.url)[-1] in TAXONOMY_PACKAGE_FILE_NAMES:
+            if os.path.split(self.url)[-1] in PackageManager.TAXONOMY_PACKAGE_FILE_NAMES:
                 self.isInstalledTaxonomyPackage = True
             elif checkIfXmlIsEis:
                 try:
@@ -412,11 +408,11 @@ class FileSource:
         for f in (self.dir or []):
             if f.endswith("/META-INF/taxonomyPackage.xml"): # must be in a sub directory in the zip
                 return [f]  # standard package
-        return [f for f in (self.dir or []) if os.path.split(f)[-1] in TAXONOMY_PACKAGE_FILE_NAMES]
+        return [f for f in (self.dir or []) if os.path.split(f)[-1] in PackageManager.TAXONOMY_PACKAGE_FILE_NAMES]
 
     @property
     def isReportPackage(self) -> bool:
-        return self.isZip and any(isReportPackageDirPattern.match(f) for f in (self.dir or ()))
+        return self.isZip and any(PackageMananger.reportPackageDirPattern.match(f) for f in (self.dir or ()))
 
     @property
     def reportPackageFile(self) -> str | None:
@@ -598,7 +594,7 @@ class FileSource:
                 if filepath.startswith(archiveFileSource.basefile):
                     assert archiveFileSource.basefile is not None
                     l = len(archiveFileSource.basefile)
-                    for f in TAXONOMY_PACKAGE_FILE_NAMES:
+                    for f in PackageManager.TAXONOMY_PACKAGE_FILE_NAMES:
                         if filepath[l - len(f):l] == f:
                             filepath = filepath[0:l - len(f) - 1] + filepath[l:]
                             break

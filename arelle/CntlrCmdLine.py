@@ -918,11 +918,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
             filesource = FileSource.openFileSource(_entryPoints[0].get("file",None), self, checkIfXmlIsEis=_checkIfXmlIsEis)
         _entrypointFiles = _entryPoints
         if filesource and not filesource.selection:
-            if filesource.isArchive: # check archive for report package purposes
-                if not filesource.dir:
-                    self.addToLog(_("Archive has no files"), messageCode="rpe:invalidDirectoryStructure")
-                elif any (f.startswith("/") for f in filesource.dir):
-                    self.addToLog(_("Archive must not contain absolute path references"), messageCode="rpe:invalidArchiveFormat")
+            if (filesource.isArchive # check archive for report package purposes
+                and PackageManager.validatePackageEntries(filesource)
+                and x x x
             if not (sourceZipStream and len(_entrypointFiles) > 0):
                 filesourceEntrypointFiles(filesource, _entrypointFiles)
 
