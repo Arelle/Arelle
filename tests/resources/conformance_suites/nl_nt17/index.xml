@@ -16,6 +16,7 @@
     <testcase uri='fg_nl/04-testcase.xml' />
     <testcase uri='fg_nl/05-testcase.xml' />
     <testcase uri='fg_nl/09-testcase.xml' />
+    <testcase uri='fg_nl/11-testcase.xml' />
     <testcase uri='fr_nl/1-01-testcase.xml' />
     <testcase uri='fr_nl/1-02-testcase.xml' />
     <testcase uri='fr_nl/1-03-testcase.xml' />

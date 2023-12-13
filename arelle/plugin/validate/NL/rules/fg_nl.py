@@ -10,6 +10,7 @@ from arelle import ModelDocument
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, qnameEltPfxName
+from arelle.ValidateUtr import ValidateUtr
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import qnLinkSchemaRef, qnLinkLinkbaseRef, qnLinkRoleRef, qnLinkArcroleRef, qnXbrliContext, qnXbrliUnit, qnEnumerationItemTypes
 from arelle import XmlUtil
@@ -193,3 +194,39 @@ def rule_fg_nl_09(
             msg=_('A fact SHOULD NOT contain an "id" attribute'),
             modelObject=facts,
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18,
+    ],
+)
+def rule_fg_nl_11(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FG-NL-11: XBRL instance file Should only contain standard units based on the XBRL units Registry.
+    """
+    modelXbrl = val.modelXbrl
+    utrItemTypeEntries = ValidateUtr(modelXbrl).utrItemTypeEntries
+    validUtrUnits = set()
+    for entries in utrItemTypeEntries.values():
+        for entry in entries.values():
+            if entry.nsUnit and entry.unitId:
+                validUtrUnits.add((entry.nsUnit, entry.unitId))
+    for unitId, unit in modelXbrl.units.items():
+        for measures in unit.measures:
+            for measure in measures:
+                if (measure.namespaceURI, measure.localName) not in validUtrUnits:
+                    yield Validation.warning(
+                        codes='NL.FG-NL-11',
+                        msg=_('Standard units SHOULD be used. "%(modelUnit)s" is not a standard unit.'),
+                        modelObject=unit,
+                        modelUnit=measure,
+                    )

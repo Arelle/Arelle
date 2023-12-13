@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="NL.FG-NL-11"
+  description="Default units SHOULD be used in measure elements, a.k.a. should not be using a custom unit."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="custom-unit-used" name="Custom Unit Used">
+    <description>
+      Default units SHOULD be used in measure elements, a.k.a. should not be using a custom unit.
+    </description>
+    <data>
+        <instance readMeFirst="true">11-custom-unit.xbrl</instance>
+    </data>
+    <result>
+      <error>NL.FG-NL-11</error>
+    </result>
+  </variation>
+</testcase>
