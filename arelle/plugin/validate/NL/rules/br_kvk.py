@@ -134,17 +134,20 @@ def rule_br_kvk_3_01(
     modelXbrl = val.modelXbrl
     currencyUnitIds = set()
     currencyMeasures = []
+    units = set()
     for unitId, unit in modelXbrl.units.items():
         for measures in unit.measures:
             for measure in measures:
                 if measure.namespaceURI == 'http://www.xbrl.org/2003/iso4217':
                     currencyUnitIds.add(unitId)
                     currencyMeasures.append(measure)
+                    units.add(unit)
     if len(currencyMeasures) != 1:
         yield Validation.error(
             codes='NL.BR-KVK-3.01',
             msg=_('A measure element with a namespace prefix that refers to the "http://www.xbrl.org/2003/iso4217" '
                   'namespace MUST appear exactly once in the instance document. Units: %(unitIds)s, Measures: %(measures)s'),
+            modelObject=units,
             unitIds=sorted(currencyUnitIds),
             measures=sorted([str(m) for m in currencyMeasures])
         )
