@@ -1,18 +1,25 @@
-'''
+"""
 This module is a local copy of python locale in order to allow
 passing in localconv as an argument to functions without affecting
 system-wide settings.  (The system settings can remain in 'C' locale.)
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
+
 from __future__ import annotations
-import sys, subprocess
-import regex as re
-from typing import Generator, cast, Any, Callable
-from fractions import Fraction
-from arelle.typing import TypeGetText, LocaleDict
-from collections.abc import Mapping
+
+import locale
+import subprocess
+import sys
 import unicodedata
+from collections.abc import Mapping
+from decimal import Decimal
+from fractions import Fraction
+from typing import Any, Callable, Generator, cast
+
+import regex as re
+
+from arelle.typing import LocaleDict, TypeGetText
 
 _: TypeGetText
 
@@ -42,7 +49,6 @@ def _getUserLocaleUnsafe(localeCode: str = '') -> tuple[LocaleDict, str | None]:
     :param localeCode: The locale code to use to retrieve conventions. Defaults to system default.
     :return: Tuple of local conventions dictionary and a user-directed setup message
     """
-    import locale
     conv = None
     localeSetupMessage = None
     localeCode = localeCode.replace('-', '_')
@@ -89,7 +95,6 @@ def getUserLocale(localeCode: str = '') -> tuple[LocaleDict, str | None]:
     :param localeCode: The locale code to use to retrieve conventions. Defaults to system default.
     :return: Tuple of local conventions dictionary and a user-directed setup message
     """
-    import locale
     currentLocale = locale.setlocale(locale.LC_ALL)
     try:
         return _getUserLocaleUnsafe(localeCode)
@@ -102,13 +107,13 @@ def getLanguageCode() -> str:
         localeQueryResult = subprocess.getstatusoutput("defaults read -g AppleLocale")  # MacOS only
         if localeQueryResult[0] == 0 and localeQueryResult[1]: # successful
             return localeQueryResult[1][:5].replace("_","-")
-    import locale
     languageCode, encoding = locale.getdefaultlocale()
     # language code and encoding may be None if their values cannot be determined.
     if isinstance(languageCode, str):
         return languageCode.replace("_","-")
     from arelle.XbrlConst import defaultLocale
     return defaultLocale # XBRL international default locale
+
 
 def getLanguageCodes(lang: str | None = None) -> list[str]:
     if lang is None:
@@ -161,15 +166,20 @@ def getLocaleList() -> list[str]:
 
 
 _availableLocales = None
+
+
 def availableLocales() -> set[str]:
     global _availableLocales
     if _availableLocales is not None:
         return _availableLocales
     else:
-        _availableLocales = {locale.partition(".")[0].replace("_", "-") for locale in getLocaleList()}
+        _availableLocales = {loc.partition(".")[0].replace("_", "-") for loc in getLocaleList()}
         return _availableLocales
 
+
 _languageCodes = None
+
+
 def languageCodes() -> dict[str, str]:  # dynamically initialize after gettext is loaded
     global _languageCodes
     if _languageCodes is not None:
@@ -293,14 +303,16 @@ def setApplicationLocale() -> None:
     (e.g., `arelleCmdLine`, `arelleGUI`.)
     :return:
     """
-    import locale
     locale.setlocale(locale.LC_ALL, 'C')
 
 
-_disableRTL: bool = False # disable for implementations where tkinter supports rtl
+_disableRTL: bool = False  # disable for implementations where tkinter supports rtl
+
+
 def setDisableRTL(disableRTL: bool) -> None:
     global _disableRTL
     _disableRTL = disableRTL
+
 
 def rtlString(source: str, lang: str | None) -> str:
     if lang and source and lang[0:2] in {"ar","he"} and not _disableRTL:
@@ -338,6 +350,7 @@ def rtlString(source: str, lang: str | None) -> str:
     else:
         return source
 
+
 # Iterate over grouping intervals
 def _grouping_intervals(grouping: list[int]) -> Generator[int, None, None]:
     last_interval = 3 # added to prevent compile error but not necessary semantically
@@ -352,7 +365,8 @@ def _grouping_intervals(grouping: list[int]) -> Generator[int, None, None]:
         yield interval
         last_interval = interval
 
-#perform the grouping from right to left
+
+# perform the grouping from right to left
 def _group(conv: LocaleDict, s: str, monetary: bool = False) -> tuple[str, int]:
     thousands_sep = conv[monetary and 'mon_thousands_sep' or 'thousands_sep']
     grouping = conv[monetary and 'mon_grouping' or 'grouping']
@@ -384,6 +398,7 @@ def _group(conv: LocaleDict, s: str, monetary: bool = False) -> tuple[str, int]:
         len(thousands_sep) * (len(groups) - 1)
     )
 
+
 # Strip a given amount of excess padding from the given string
 def _strip_padding(s: str, amount: int) -> str:
     lpos = 0
@@ -396,8 +411,10 @@ def _strip_padding(s: str, amount: int) -> str:
         amount -= 1
     return s[lpos:rpos+1]
 
+
 _percent_re = re.compile(r'%(?:\((?P<key>.*?)\))?'
                          r'(?P<modifiers>[-#0-9 +*.hlL]*?)[eEfFgGdiouxXcrs%]')
+
 
 def format(
     conv: LocaleDict,
@@ -419,6 +436,7 @@ def format(
             raise ValueError(("format() must be given exactly one %%char "
                              "format specifier, %s not valid") % repr(percent))
     return _format(conv, percent, value, grouping, monetary, *additional)
+
 
 def _format(
     conv: LocaleDict,
@@ -457,6 +475,7 @@ def _format(
         if seps:
             formatted = _strip_padding(formatted, seps)
     return formatted
+
 
 def format_string(
     conv: LocaleDict,
@@ -497,6 +516,7 @@ def format_string(
     val = tuple(new_val)
 
     return cast(str, new_f % val)
+
 
 def currency(
     conv: LocaleDict,
@@ -548,9 +568,11 @@ def currency(
 
     return s.replace('<', '').replace('>', '')
 
+
 def ftostr(conv: LocaleDict, val: Any) -> str:
     """Convert float to integer, taking the locale into account."""
     return format(conv, "%.12g", val)
+
 
 def atof(conv: LocaleDict, string: str, func: Callable[[str], Any] = float) -> Any:  # return type depends on func param, it is used to return float, int, and str
     "Parses a string as a float according to the locale settings."
@@ -565,12 +587,11 @@ def atof(conv: LocaleDict, string: str, func: Callable[[str], Any] = float) -> A
     #finally, parse the string
     return func(string)
 
+
 def atoi(conv: LocaleDict, str: str) -> int:
     "Converts a string to an integer according to the locale settings."
     return cast(int, atof(conv, str, int))
 
-# decimal formatting
-from decimal import Decimal
 
 def format_picture(conv: LocaleDict, value: Any, picture: str) -> str:
     monetary = False
@@ -658,6 +679,7 @@ def format_picture(conv: LocaleDict, value: Any, picture: str) -> str:
                           neg=prefix if negPic else prefix + minus_sign,
                           trailpos=suffix,
                           trailneg=suffix)
+
 
 def format_decimal(
     conv: LocaleDict | None,

@@ -1,18 +1,18 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
-import os
-from tkinter import Toplevel, StringVar, N, S, E, W, EW, messagebox
+"""
+from tkinter import E, EW, N, S, Toplevel, W, messagebox
+
 try:
     from tkinter.ttk import Frame, Button, Label, Entry
 except ImportError:
     from ttk import Frame, Button, Label, Entry
-from arelle.CntlrWinTooltip import ToolTip
-from arelle.Locale import setDisableRTL
-from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox
-import gettext
+
 import regex as re
-from arelle.Locale import getLanguageCodes, languageCodes, getUserLocale, availableLocales
+
+from arelle import Locale
+from arelle.CntlrWinTooltip import ToolTip
+from arelle.UiUtil import checkbox, gridCombobox, gridHdr, label
 
 '''
 allow user to override system language codes for user interface and labels
@@ -30,11 +30,11 @@ class DialogLanguage(Toplevel):
         dialogY = int(parentGeometry.group(4))
         self.transient(self.parent)
         self.title(_("arelle - User Interface and Labels language code settings"))
-        self.languageCodes = languageCodes()
+        self.languageCodes = Locale.languageCodes()
         langs = (["System default language ({0})".format(mainWin.modelManager.defaultLang)] +
                  sorted(self.languageCodes.keys() if self.mainWin.isMSW else
                         [k
-                         for avail in [availableLocales()] # unix/Mac locale -a supported locale codes
+                         for avail in [Locale.availableLocales()] # unix/Mac locale -a supported locale codes
                          for k, v in self.languageCodes.items()
                          if v.partition(" ")[0] in avail]
                         ))
@@ -97,7 +97,7 @@ class DialogLanguage(Toplevel):
     def ok(self, event=None):
         self.mainWin.disableRtl= self.cbDisableRtl.value
         self.mainWin.config['disableRtl']= self.cbDisableRtl.value
-        setDisableRTL(self.cbDisableRtl.value)
+        Locale.setDisableRTL(self.cbDisableRtl.value)
         labelLangIndex = self.cbLabelLang.valueIndex
         if labelLangIndex >= 0 and labelLangIndex != self.labelLangIndex: # changed
             if labelLangIndex == 0:
@@ -114,7 +114,7 @@ class DialogLanguage(Toplevel):
             else:
                 langCode = self.languageCodes[self.cbUiLang.value]
 
-            newLocale = getUserLocale(langCode)
+            newLocale = Locale.getUserLocale(langCode)
             if newLocale is not None:
                 self.mainWin.modelManager.locale = newLocale
             else:
