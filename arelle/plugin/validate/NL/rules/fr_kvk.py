@@ -103,6 +103,7 @@ def rule_fr_kvk_2_02(
     FR-KVK-2.02: The attribute 'xml:lang' MUST contain the same value within an XBRL instance document
     """
     modelXbrl = val.modelXbrl
+    lang = None
     for doc in modelXbrl.urlDocs.values():
         if doc.type == ModelDocument.Type.INSTANCE:
             lang = doc.xmlRootElement.get('{http://www.w3.org/XML/1998/namespace}lang')
