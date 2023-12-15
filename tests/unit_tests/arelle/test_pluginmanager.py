@@ -119,7 +119,7 @@ def test_function_get_name_dir_prefix(
 
         def __init__(self) -> None:
             """Init controller with logging."""
-            super().__init__(logFileName="logToPrint")
+            super().__init__(logFileName="logToBuffer")
 
     cntlr = Controller()
 
@@ -151,7 +151,7 @@ def test_function_loadModule():
 
         def __init__(self) -> None:
             """Init controller with logging."""
-            super().__init__(logFileName="logToPrint")
+            super().__init__(logFileName="logToBuffer")
 
     Controller()
 
