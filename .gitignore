@@ -49,3 +49,4 @@ tests/resources/conformance_suites/*
 
 # Visual Studio
 .vs/
+.test
