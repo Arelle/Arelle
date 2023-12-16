@@ -331,9 +331,9 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
                 if entryPoint:
                     moduleInfo["moduleURL"] = moduleFilename  # pip-installed plugins need absolute filepath
                     moduleInfo["entryPoint"] = {
-                        "module": entryPoint.module,
+                        "module": getattr(entryPoint, 'module', None),  # TODO: Simplify after Python 3.8 retired
                         "name": entryPoint.name,
-                        "version": entryPoint.dist.version,
+                        "version": entryPoint.dist.version if hasattr(entryPoint, 'dist') else None,
                     }
                     if not moduleInfo.get("version"):
                         moduleInfo["version"] = entryPoint.dist.version  # If no explicit version, retrieve from entry point
