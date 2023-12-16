@@ -31,7 +31,12 @@ EMPTYDICT = {}
 
 TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD packages
 
-reportPackageDirPattern = re.compile(r"^[^/]+/META_INF/reportPackage.json$|^[^/]+/reports/")
+reportPackageDirPattern = re.compile(r"^[^/]+/META-INF/reportPackage.json$|^[^/]+/reports/")
+
+UTF_7_16_Bytes_Pattern = re.compile(br"(?P<utf16>(^([\x00][^\x00])+$)|(^([^\x00][\x00])+$))|(?P<utf7>^\s*\+AHs-)")
+EBCDIC_Bytes_Pattern = re.compile(b"^[\x40\x4a-\x4f\x50\x5a-\x5f\x60-\x61\x6a-\x6f\x79-\x7f\x81-\x89\x8f\x91-\x99\xa1-\xa9\xb0\xba-\xbb\xc1-\xc9\xd1-\xd9\xe0\xe2-\xe9\xf0-\xf9\xff\x0a\x0d]+$")
+NEVER_EBCDIC_Bytes_Pattern = re.compile(b"[\x30-\x31\x3e\x41-\x49\x51-\x59\x62-\x69\x70-\x78\x80\x8a-\x8e\x90\x9a-\x9f\xa0\xaa-\xaf\xb1-\xb9\xbc-\xbf\xca-\xcf\xda-\xdf\xe1\xea-\xef\xfa-\xfe]")
+
 
 def baseForElement(element):
     base = ""
@@ -399,17 +404,6 @@ def packageNamesWithNewerFileDates():
 
 def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]) -> bool:
         numErrorsOnEntry = len(errors)
-        _dir = filesource.dir
-        if not _dir:
-            raise IOError(_("Unable to open taxonomy package: {0}.").format(filesource.url))
-        if filesource.isZipBackslashed:
-            # see 4.4.17.1 in https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
-            cntlr.addToLog(_("Taxonomy package directory uses '\\' as file separator"),
-                           messageCode="tpe:invalidArchiveFormat",
-                           file=os.path.basename(filesource.url),
-                           level=logging.ERROR)
-            errors.append("tpe:invalidArchiveFormat")
-            return False
         # single top level directory
         topLevels = set(f.partition('/')[0] for f in _dir)
         topLevelFiles = set(f for f in topLevels if f in _dir) # have no trailing /, not a directory
@@ -449,35 +443,72 @@ def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]) -> bo
             errors.append("tpe:metadataFileNotFound")
         return len(errors) == numErrorsOnEntry
 
-def validateReportPackage(cntlr, filesource, errors=[]) -> bool:
+def validateReportPackage(filesource, errors=[]) -> bool:
         numErrorsOnEntry = len(errors)
-        _dir = filesource.dir
-        _dir = filesource.dir
-        if not _dir:
-            cntlr.addToLog(_("Empty report package file"),
-                           messageCode="rpe:invalidDirectoryStructure",
-                           file=os.path.basename(filesource.url),
-                           level=logging.ERROR)
-            errors.append("rpe:invalidDirectoryStructure")
-            return False
-        if filesource.isZipBackslashed:
-            # see 4.4.17.1 in https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
-            cntlr.addToLog(_("Taxonomy package directory uses '\\' as file separator"),
-                           messageCode="rpe:invalidArchiveFormat",
-                           file=os.path.basename(filesource.url),
-                           level=logging.ERROR)
-            errors.append("rpe:invalidArchiveFormat")
-            return False
         rptPkgFile = filesource.reportPackageFile
         rptPkgObj = {"documentInfo":{"documentType":"https://xbrl.org/report-package/2023"}} #default doc type
+        def loadDict(keyValuePairs):
+            _dict = {}
+            for key, value in keyValuePairs:
+                if key not in _dict:
+                    _dict[key] = value
+                else:
+                    filesource.cntlr.addToLog(_("JSON duplicated key %(key)s"),
+                                   messageCode="rpe:invalidJSONStructure",
+                                   file=os.path.basename(filesource.url),
+                                   messageArgs={"key": key},
+                                   level=logging.ERROR)
+                    errors.append("rpe:invalidJSONStructure")
+            return _dict
         if rptPkgFile:
-            _file = filesource.file(f"{filesource.basefile}/{rptPkgFile}")[0]
-            rptPkgObj = json.load(_file)
-        docTypeUri = rptPkgObj.get("documentInfo",{}).get("documentType")
-        if docTypeUri not in ("https://xbrl.org/report-package/2023/xbri",
+            pkgFilePath = f"{filesource.basefile}/{rptPkgFile}"
+            _file = filesource.file(pkgFilePath, binary=True)[0]
+            bytes = _file.read(16) # test encoding
+            m = EBCDIC_Bytes_Pattern.match(bytes)
+            if m and not NEVER_EBCDIC_Bytes_Pattern.findall(bytes):
+                filesource.cntlr.addToLog(_("reportPackage.json file MUST use utf-8 encoding, appears to be EBCDIC"),
+                               messageCode="rpe:invalidJSON",
+                               file=os.path.basename(filesource.url),
+                               level=logging.ERROR)
+                return False
+            m = UTF_7_16_Bytes_Pattern.match(bytes)
+            if m:
+                filesource.cntlr.addToLog(_("reportPackage.json file MUST use utf-8 encoding, appears to be %(encoding)s"),
+                               messageCode="rpe:invalidJSON",
+                               messageArgs={"encoding": m.lastgroup},
+                               file=os.path.basename(filesource.url),
+                               level=logging.ERROR)
+                return False
+            _file.close()
+            _file = filesource.file(pkgFilePath, encoding='utf-8-sig')[0]
+            try:
+                rptPkgObj = json.load(_file, object_pairs_hook=loadDict)
+            except json.JSONDecodeError as ex:
+                filesource.cntlr.addToLog(_("JSON syntax error %(error)s"),
+                               messageCode="rpe:invalidJSONStructure",
+                               file=os.path.basename(filesource.url),
+                               messageArgs={"error": str(ex)},
+                               level=logging.ERROR)
+                return False
+            except UnicodeDecodeError as ex:
+                filesource.cntlr.addToLog(_("reportPackage.json file MUST use utf-8 encoding, appears to be %(encoding)s"),
+                               messageCode="rpe:invalidJSON",
+                               messageArgs={"encoding": m.lastgroup if m else "unknown"},
+                               file=os.path.basename(filesource.url),
+                               level=logging.ERROR)
+                return False
+        docTypeUri = rptPkgObj.get("documentInfo",{}).get("documentType") if isinstance(rptPkgObj,dict) else None
+        if not isinstance(docTypeUri, str):
+            filesource.cntlr.addToLog(_("Unsupported documentType type: %(docTypeType)s"),
+                           messageCode="rpe:invalidJSONStructure",
+                           file=os.path.basename(filesource.url),
+                           messageArgs={"docTypeType": type(docTypeUri).__name__},
+                           level=logging.ERROR)
+            errors.append("rpe:invalidJSONStructure")
+        elif docTypeUri not in ("https://xbrl.org/report-package/2023/xbri",
                               "https://xbrl.org/report-package/2023/xbr",
                               "https://xbrl.org/report-package/2023"):
-            cntlr.addToLog(_("Unsupported report package document type: %(docTypeUri)s"),
+            filesource.cntlr.addToLog(_("Unsupported report package document type: %(docTypeUri)s"),
                            messageCode="rpe:unsupportedReportPackageVersion",
                            file=os.path.basename(filesource.url),
                            messageArgs={"docTypeUri": docTypeUri},
@@ -718,10 +749,13 @@ def validatePackageEntries(filesource):
                                       level=logging.ERROR,
                                       file=filesource.url)
         elif any (invalidZipDirEntryPattern.match(f) for f in filesource.dir):
-            filesource.cntlr.addToLog(_("Archive must not contain absolute path references"), 
-                                      messageCode="rpe:invalidArchiveFormat",
-                                      level=logging.ERROR,
-                                      file=filesource.url)
+            for f in filesource.dir:
+                if invalidZipDirEntryPattern.match(f):
+                    filesource.cntlr.addToLog(_("Archive must not contain absolute path references or backslashes \"%(name)s\""), 
+                                              messageCode="rpe:invalidArchiveFormat",
+                                              messageArgs={"name":f},
+                                              level=logging.ERROR,
+                                              file=filesource.url)
         elif any (forbiddenDirEntryPattern.match(f) for f in filesource.dir):
             for f in filesource.dir:
                 if forbiddenDirEntryPattern.match(f):
@@ -730,7 +764,7 @@ def validatePackageEntries(filesource):
                                               messageArgs={"name":f},
                                               level=logging.ERROR,
                                               file=filesource.url)
-        elif count("reportPackage.json" in f for f in filesource.dir) > 1:
+        elif sum("reportPackage.json" in f for f in filesource.dir) > 1:
             filesource.cntlr.addToLog(_("Archive has duplicate reportPackage.json entries"), 
                                       messageCode="rpe:invalidDirectoryStructure",
                                       level=logging.ERROR,

@@ -511,7 +511,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[], inlineOnly=False):
         if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
             filesource.loadTaxonomyPackageMappings()
         if filesource.isReportPackage:
-            validateReportPackage(filesource.cntlr, filesource)
+            validateReportPackage(filesource)
         del entrypointFiles[:] # clear out archive from entrypointFiles
         # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
         for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
@@ -920,8 +920,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if filesource and not filesource.selection:
             if (filesource.isArchive # check archive for report package purposes
                 and PackageManager.validatePackageEntries(filesource)
-                and x x x
-            if not (sourceZipStream and len(_entrypointFiles) > 0):
+                and not (sourceZipStream and len(_entrypointFiles) > 0)):
                 filesourceEntrypointFiles(filesource, _entrypointFiles)
 
         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Start"):

@@ -768,13 +768,11 @@ class CntlrWinMain (Cntlr.Cntlr):
                                         checkIfXmlIsEis=self.modelManager.disclosureSystem and
                                         self.modelManager.disclosureSystem.validationType == "EFM")
             if filesource.isArchive:
-                if not filesource.dir:
-                    self.addToLog(_("Archive has no files"), messageCode="rpe:invalidDirectoryStructure", level=logging.ERROR)
+                if not PackageManager.validatePackageEntries(filesource):
                     return
-                elif any (f.startswith("/") for f in filesource.dir):
-                    self.addToLog(_("Archive must not contain absolute path references"), messageCode="rpe:invalidArchiveFormat", level=logging.ERROR)
+                if filesource.isReportPackage and not PackageManager.validateReportPackage(filesource):
                     return
-                elif not filesource.selection: # or filesource.isRss:
+                if not filesource.selection: # or filesource.isRss:
                     from arelle import DialogOpenArchive
                     filename = DialogOpenArchive.askArchiveFile(self, filesource)
                     if filename and filesource.basefile and not isHttpUrl(filesource.basefile):

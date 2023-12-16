@@ -149,7 +149,6 @@ class FileSource:
         if not self.isTarGz:
             self.type = self.type[3:]
         self.isZip = bool(zipFilenamePattern.match(self.url))
-        self.isZipBackslashed = False # windows style backslashed paths
         self.isEis = self.type == ".eis"
         self.isXfd = (self.type == ".xfd" or self.type == ".frm")
         self.isRss = (self.type == ".rss" or self.url.endswith(".rss.xml"))
@@ -367,7 +366,7 @@ class FileSource:
             self.fs.close()
             self.fs = None
             self.isOpen = False
-            self.isZip = self.isZipBackslashed = False
+            self.isZip = False
         if self.isTarGz and self.isOpen:
             assert self.fs is not None
             self.fs.close()
@@ -412,7 +411,7 @@ class FileSource:
 
     @property
     def isReportPackage(self) -> bool:
-        return self.isZip and any(PackageMananger.reportPackageDirPattern.match(f) for f in (self.dir or ()))
+        return self.isZip and any(PackageManager.reportPackageDirPattern.match(f) for f in (self.dir or ()))
 
     @property
     def reportPackageFile(self) -> str | None:
@@ -504,10 +503,7 @@ class FileSource:
                 archiveFileName = filepath[len(archiveFileSource.baseurl) + 1:]
             if archiveFileSource.isZip:
                 try:
-                    if archiveFileSource.isZipBackslashed:
-                        f = archiveFileName.replace("/", "\\")
-                    else:
-                        f = archiveFileName.replace("\\","/")
+                    f = archiveFileName.replace("\\","/")
 
                     assert isinstance(archiveFileSource.fs, zipfile.ZipFile)
                     b = archiveFileSource.fs.read(f)
@@ -649,9 +645,6 @@ class FileSource:
             assert isinstance(self.fs, zipfile.ZipFile)
             for zipinfo in self.fs.infolist():
                 f = zipinfo.filename
-                if '\\' in f:
-                    self.isZipBackslashed = True
-                    f = f.replace("\\", "/")
                 files.append(f)
             self.filesDir = files
         elif self.isTarGz:
