@@ -422,6 +422,8 @@ def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args, **kwargs):
                 efmFiling.accessionNumber = entryPoint["accessionNumber"]
             efmFiling.arelleUnitTests = modelXbrl.arelleUnitTests.copy() # allow unit tests to be used after instance processing finished
             for supplementalXbrl in getattr(modelXbrl, "supplementalModelXbrls", []):
+                if hasattr(supplementalXbrl, "ixdsDocUrls"):
+                    entryPoint = {"ixds":[{"file":f} for f in supplementalXbrl.ixdsDocUrls]}
                 xbrlLoaded(cntlr, options, supplementalXbrl, entryPoint)
         elif modelXbrl.modelDocument.type == Type.RSSFEED:
             testcasesStart(cntlr, options, modelXbrl)
@@ -818,7 +820,7 @@ class Report:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
-    'version': '1.23.3', # SEC EDGAR release 23.3
+    'version': '1.23.4', # SEC EDGAR release 23.4
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'import': ('transforms/SEC',), # SEC inline can use SEC transformations

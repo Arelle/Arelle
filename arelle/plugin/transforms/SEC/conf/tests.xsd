@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  targetNamespace="http://xbrl.org/2011/conformance-rendering/transforms" 
+  xmlns:conf="http://xbrl.org/2011/conformance-rendering/transforms" 
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+        <xs:element name="testcase">
+                <xs:complexType>
+                        <xs:sequence>
+                                <xs:element ref="conf:transform" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                        <xs:attribute name="target" type="xs:string"/>
+                </xs:complexType>
+        </xs:element>
+        <xs:element name="transform">
+                <xs:complexType>
+                        <xs:sequence>
+                                <xs:element ref="conf:variation" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                        <xs:attribute name="name" type="xs:string"/>
+                        <xs:attribute name="outputType" type="xs:QName"/>
+                </xs:complexType>
+        </xs:element>
+        <xs:element name="variation">
+                <xs:complexType>
+                        <xs:attribute name="input" type="xs:string"  use="required"/>
+                        <xs:attribute name="output" type="xs:string" use="required"/>
+                        <xs:attribute name="result" use="optional">
+                                <xs:simpleType>
+                                        <xs:restriction base="xs:token">
+                                                <xs:enumeration value="valid"/>
+                                                <xs:enumeration value="invalid"/>
+                                        </xs:restriction>
+                                </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="description" type="xs:string" use="optional"/>
+                </xs:complexType>
+        </xs:element>
+
+        <!-- used when extracting valid/invalid variations --> 
+        <xs:element name="variations">
+                <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="input" type="xs:string" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                        <xs:attribute name="result" use="optional"/>
+                </xs:complexType>
+        </xs:element>
+</xs:schema>

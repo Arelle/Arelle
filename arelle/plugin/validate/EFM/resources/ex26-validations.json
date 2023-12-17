@@ -56,7 +56,7 @@
     ],
     "sub-type-classes": {
     	"comment1": "EX-26 submission classes",
-		"EX-26": ["10-K", "10-K/A", "10-KT", "10-KT/A", "10-Q", "10-Q/A", "10-QT", "10-QT/A", "EX-26", "EX-26/A"],
+		"EX-26": ["10-K", "10-K/A", "10-KT", "10-KT/A", "10-Q", "10-Q/A", "10-QT", "10-QT/A", "EX-26"],
 		"all": ["*"]
     },
     "sub-type-element-validations": [
@@ -67,7 +67,7 @@
 		"xbrl-names": "DocumentType",
 		"efm": "6.5.20",
 		"validation": "xv",
-		"value": ["EX-26", "EX-26/A"],
+		"value": ["EX-26"],
 		"source": "inline",
 		"dei/cover": "dei"
 	},

@@ -1043,7 +1043,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                                         time.time() - startedAt),
                                                         messageCode="info", file=self.entrypointFile)
 
-
                         if options.testReport:
                             ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport, options.testReportCols)
 

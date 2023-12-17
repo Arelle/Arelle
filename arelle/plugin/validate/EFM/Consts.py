@@ -267,10 +267,10 @@ linkbaseValidations = {
         elrPre = re.compile("http://xbrl.sec.gov/cef/role/N2"),
         elrPreDocTypes = ("N-2", "N-2/A"), # only these doc types are checked
         elrDefInNs = re.compile("http://xbrl.sec.gov/cef/role/N2"),
-        elrDefExNs = re.compile("http://xbrl.sec.gov/cef/role/(Security|Risk)Only"),
+        elrDefExNs = re.compile("http://xbrl.sec.gov/cef/role/(Security|Risk|Coregistrant)Only"),
         elrDefRoleSrc = None,
         elrDefNoTgtRole = False,
-        preSources = ("AllSecuritiesMember", "AllRisksMember", "ClassOfStockDomain", "DebtInstrumentNameDomain"),
+        preSources = ("AllCoregistrantsMember", "AllSecuritiesMember", "AllRisksMember", "ClassOfStockDomain", "DebtInstrumentNameDomain"),
         preCustELRs = False
     ),
     "vip": attrdict(
