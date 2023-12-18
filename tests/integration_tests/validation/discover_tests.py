@@ -26,6 +26,24 @@ OS_CORES = {
     MACOS: 3,
     WINDOWS: 2,
 }
+FAST_CONFIG_NAMES = {
+    'esef_xhtml_2021',
+    'esef_xhtml_2022',
+    'esef_xhtml_2023',
+    'xbrl_calculations_1_1',
+    'xbrl_dimensions_1_0',
+    'xbrl_extensible_enumerations_1_0',
+    'xbrl_extensible_enumerations_2_0',
+    'xbrl_formula_1_0_assertion_severity_2_0',
+    'xbrl_formula_1_0_function_registry',
+    'xbrl_link_role_registry_1_0',
+    'xbrl_oim_1_0',
+    'xbrl_taxonomy_packages_1_0',
+    'xbrl_transformation_registry_3',
+    'xbrl_utr_malformed_1_0',
+    'xbrl_utr_registry_1_0',
+    'xbrl_utr_structure_1_0',
+}
 
 
 class Entry(TypedDict, total=False):
@@ -74,6 +92,22 @@ def generate_config_entries(config: ConformanceSuiteConfig, os: str, python_vers
 def main() -> None:
     output: list[Entry] = []
     config_names_seen: set[str] = set()
+    for config in ALL_CONFORMANCE_SUITE_CONFIGS:
+        if config.name in FAST_CONFIG_NAMES:
+            assert not config.network_or_cache_required
+            assert config.shards == 1
+            config_names_seen.add(config.name)
+    assert not (FAST_CONFIG_NAMES - config_names_seen), \
+        f'Missing some fast configurations: {sorted(FAST_CONFIG_NAMES - config_names_seen)}'
+    for os in [LINUX, MACOS, WINDOWS]:
+        output.append(generate_config_entry(
+            name=','.join(sorted(FAST_CONFIG_NAMES)),
+            network_or_cache_required=False,
+            os=os,
+            python_version=LATEST_PYTHON_VERSION,
+            shard=None,
+        ))
+
     for config in ALL_CONFORMANCE_SUITE_CONFIGS:
         # configurations don't necessarily have unique names, e.g. malformed UTR
         if config.name in config_names_seen:
