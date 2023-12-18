@@ -32,65 +32,13 @@ jobs:
           echo EOF >> $GITHUB_OUTPUT
 
   run-conformance-suite:
-    name: ${{ matrix.test.name }}${{ matrix.test.shard && format(':{0}', matrix.test.shard) || '' }} - ${{ matrix.os }} - ${{ matrix.python-version }}
+    name: ${{ matrix.test.name }}${{ matrix.test.shard && format(':{0}', matrix.test.shard) || '' }} - ${{ matrix.test.os }} - ${{ matrix.test.python_version }}
     needs: find-tests
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.test.os }}
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-22.04
-        python-version:
-          - '3.11'
         test: ${{ fromJson(needs.find-tests.outputs.matrix) }}
-        include:
-          - os: windows-2022
-            python-version: '3.8'
-            test:
-              name: xbrl_2_1
-          - os: macos-12
-            python-version: '3.8'
-            test:
-              name: xbrl_2_1
-          - os: ubuntu-22.04
-            python-version: '3.8'
-            test:
-              name: xbrl_2_1
-
-          - os: windows-2022
-            python-version: '3.9'
-            test:
-              name: xbrl_2_1
-          - os: macos-12
-            python-version: '3.9'
-            test:
-              name: xbrl_2_1
-          - os: ubuntu-22.04
-            python-version: '3.9'
-            test:
-              name: xbrl_2_1
-
-          - os: windows-2022
-            python-version: '3.10'
-            test:
-              name: xbrl_2_1
-          - os: macos-12
-            python-version: '3.10'
-            test:
-              name: xbrl_2_1
-          - os: ubuntu-22.04
-            python-version: '3.10'
-            test:
-              name: xbrl_2_1
-
-          - os: windows-2022
-            python-version: '3.11'
-            test:
-              name: xbrl_2_1
-          - os: macos-12
-            python-version: '3.11'
-            test:
-              name: xbrl_2_1
 
     environment: integration-tests
     steps:
@@ -105,19 +53,19 @@ jobs:
         shell: bash
         run: aws s3api get-object --bucket arelle --key caches/${{ matrix.test.name }}.zip config.zip
       - name: Unpack XBRL validation config
-        if: ${{ matrix.test.cache && startsWith(matrix.os, 'ubuntu') }}
+        if: ${{ matrix.test.cache && startsWith(matrix.test.os, 'ubuntu') }}
         run: |
           mkdir -p "$XDG_CONFIG_HOME/arelle/cache"
           unzip -d "$XDG_CONFIG_HOME/arelle/cache" config.zip 'http/*' 'https/*'
           rm config.zip
       - name: Unpack XBRL validation config
-        if: ${{ matrix.test.cache && startsWith(matrix.os, 'macos') }}
+        if: ${{ matrix.test.cache && startsWith(matrix.test.os, 'macos') }}
         run: |
           mkdir -p ~/Library/Caches/Arelle
           unzip -d ~/Library/Caches/Arelle config.zip 'http/*' 'https/*'
           rm config.zip
       - name: Unpack XBRL validation config
-        if: ${{ matrix.test.cache && startsWith(matrix.os, 'windows') }}
+        if: ${{ matrix.test.cache && startsWith(matrix.test.os, 'windows') }}
         run: |
           mkdir -p $env:LOCALAPPDATA\Arelle\cache
           7z x config.zip -o"$env:LOCALAPPDATA\Arelle\cache" 'http/*' 'https/*'
@@ -138,7 +86,7 @@ jobs:
         with:
           cache: 'pip'
           check-latest: true
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.test.python_version }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools wheel
