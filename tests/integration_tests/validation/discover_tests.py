@@ -19,6 +19,13 @@ ALL_PYTHON_VERSIONS = (
     '3.11',
 )
 LATEST_PYTHON_VERSION = '3.11'
+# number of cores on the runners
+# https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
+OS_CORES = {
+    LINUX: 2,
+    MACOS: 3,
+    WINDOWS: 2,
+}
 
 
 class Entry(TypedDict, total=False):
@@ -41,7 +48,7 @@ def generate_config_entry(name: str, network_or_cache_required: bool, os: str, p
     return e
 
 
-def generate_config_entries(config: ConformanceSuiteConfig, os: str, python_version: str) -> Iterable[Entry]:
+def generate_config_entries(config: ConformanceSuiteConfig, os: str, python_version: str, minimal: bool = False) -> Iterable[Entry]:
     if config.shards == 1:
         yield generate_config_entry(
             name=config.name,
@@ -51,13 +58,16 @@ def generate_config_entries(config: ConformanceSuiteConfig, os: str, python_vers
             shard=None,
         )
     else:
-        for i in range(config.shards):
+        ncores = OS_CORES[os]
+        shard_range = [0] if minimal else range(0, config.shards, ncores)
+        for start in shard_range:
+            end = min(config.shards, start + ncores)
             yield generate_config_entry(
                 name=config.name,
                 network_or_cache_required=config.network_or_cache_required,
                 os=os,
                 python_version=python_version,
-                shard=str(i),
+                shard=f'{start}-{end}',
             )
 
 
