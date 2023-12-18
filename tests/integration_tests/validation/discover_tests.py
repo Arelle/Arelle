@@ -6,6 +6,7 @@ from typing import TypedDict
 
 from .conformance_suite_config import ConformanceSuiteConfig
 from .conformance_suite_configs import ALL_CONFORMANCE_SUITE_CONFIGS
+from .conformance_suite_configurations.efm_current import config as efm_current
 from .conformance_suite_configurations.xbrl_2_1 import config as xbrl_2_1
 
 
@@ -119,6 +120,9 @@ def main() -> None:
             if os == LINUX and python_version == LATEST_PYTHON_VERSION:
                 continue
             output.extend(generate_config_entries(xbrl_2_1, os=os, python_version=python_version))
+    for os in [MACOS, WINDOWS]:
+        output.extend(generate_config_entries(efm_current, os=os, python_version=LATEST_PYTHON_VERSION, minimal=True))
+
     json.dump(output, sys.stdout, indent=4)
     print()
 
