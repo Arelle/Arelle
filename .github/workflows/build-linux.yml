@@ -149,7 +149,7 @@ jobs:
         run: |
           echo "ARTIFACT_NAME=arelle-ubuntu.tgz" >> $GITHUB_ENV
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3.1.3
+        uses: actions/upload-artifact@v4.0.0
         with:
           name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
           if-no-files-found: error
