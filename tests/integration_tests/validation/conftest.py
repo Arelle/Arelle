@@ -18,7 +18,6 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     """
     config = metafunc.config
     options = config.option
-    options.log_to_file = False
     options.test = True
     results = run_conformance_suites_options(options)
     metafunc.parametrize("conformance_suite_results", results)

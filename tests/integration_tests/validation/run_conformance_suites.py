@@ -66,8 +66,7 @@ ARGUMENTS: list[dict[str, Any]] = [
     {
         "name": "--shard",
         "action": "store",
-        "help": "0-indexed shard to run",
-        "type": int,
+        "help": "comma separated list of 0-indexed shards to run",
     },
     {
         "name": "--test",
@@ -102,7 +101,7 @@ def _get_conformance_suite_names(select_option: str) -> tuple[ConformanceSuiteCo
 def run_conformance_suites(
         select_option: str,
         test_option: bool,
-        shard: int | None,
+        shard: str,
         build_cache: bool = False,
         download_option: str | None = None,
         log_to_file: bool = False,
@@ -117,7 +116,14 @@ def run_conformance_suites(
     all_results = []
     if test_option:
         for config in conformance_suite_configs:
-            results = get_conformance_suite_test_results(config, shard=shard, build_cache=build_cache, log_to_file=log_to_file, offline=offline_option)
+            shards: list[int] = []
+            if shard:
+                for part in shard.split(','):
+                    if '-' in part:
+                        shards.extend(range(*map(int, part.split('-'))))
+                    else:
+                        shards.append(int(part))
+            results = get_conformance_suite_test_results(config, shards=shards, build_cache=build_cache, log_to_file=log_to_file, offline=offline_option)
             all_results.extend(results)
     return all_results
 

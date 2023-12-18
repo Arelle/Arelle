@@ -1,9 +1,10 @@
 from __future__ import annotations
+import multiprocessing
 import os.path
 import pytest
 import tempfile
 from collections import Counter, defaultdict
-from contextlib import nullcontext
+from contextlib import ExitStack, nullcontext
 from dataclasses import dataclass
 from heapq import heapreplace
 from lxml import etree
@@ -149,6 +150,11 @@ def normalize_url_function(config: ConformanceSuiteConfig) -> Callable[[WebCache
     return normalize_url
 
 
+def get_test_data_mp_wrapper(args_kws: tuple[list[Any], dict[str, Any]]) -> list[ParameterSet]:
+    args, kws = args_kws
+    return get_test_data(args, **kws)
+
+
 def get_test_shards(config: ConformanceSuiteConfig) -> list[tuple[list[str], frozenset[str]]]:
     test_path_prefix = PurePosixPath(config.file).parent
     with ZipFile(config.prefixed_local_filepath) as zip_file:
@@ -241,15 +247,15 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
 
 def get_conformance_suite_test_results(
         config: ConformanceSuiteConfig,
-        shard: int | None,
+        shards: list[int],
         build_cache: bool = False,
         log_to_file: bool = False,
         offline: bool = False) -> list[ParameterSet]:
-    assert shard is None or config.shards != 1, \
+    assert len(shards) == 0 or config.shards != 1, \
         'Conformance suite configuration must specify shards if --shard is passed'
-    if shard is not None:
+    if shards:
         return get_conformance_suite_test_results_with_shards(
-            config=config, shard=shard, build_cache=build_cache, log_to_file=log_to_file, offline=offline
+            config=config, shards=shards, build_cache=build_cache, log_to_file=log_to_file, offline=offline
         )
     else:
         return get_conformance_suite_test_results_without_shards(
@@ -259,42 +265,48 @@ def get_conformance_suite_test_results(
 
 def get_conformance_suite_test_results_with_shards(  # type: ignore[return]
         config: ConformanceSuiteConfig,
-        shard: int,
+        shards: list[int],
         build_cache: bool = False,
         log_to_file: bool = False,
         offline: bool = False) -> list[ParameterSet]:
-    with tempfile.NamedTemporaryFile(dir='.', mode='wb', suffix='.xml') as testcase_file:
-        shards = get_test_shards(config)
-        test_paths, additional_plugins = shards[shard]
-        zip_path = config.prefixed_local_filepath
-        all_test_paths = {path for test_paths, _ in shards for path in test_paths}
-        unrecognized_expected_empty_testcases = config.expected_empty_testcases - all_test_paths
-        assert not unrecognized_expected_empty_testcases, f'Unrecognized expected empty testcases: {unrecognized_expected_empty_testcases}'
-        expected_empty_testcases = config.expected_empty_testcases.intersection(test_paths)
-        unrecognized_expected_failure_ids = {id.rsplit(':', 1)[0] for id in config.expected_failure_ids} - all_test_paths
-        assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
-        expected_failure_ids = frozenset(id for id in config.expected_failure_ids if id.rsplit(':', 1)[0] in test_paths)
+    tempfiles: list[Any] = []
+    with ExitStack() as exit_stack:
+        tempfiles.extend(exit_stack.enter_context(tempfile.NamedTemporaryFile(dir='.', mode='wb', suffix='.xml')) for _ in shards)
+        tasks = []
+        for shard, testcase_file in zip(shards, tempfiles):
+            test_shards = get_test_shards(config)
+            test_paths, additional_plugins = test_shards[shard]
+            zip_path = config.prefixed_local_filepath
+            all_test_paths = {path for test_paths, _ in test_shards for path in test_paths}
+            unrecognized_expected_empty_testcases = config.expected_empty_testcases - all_test_paths
+            assert not unrecognized_expected_empty_testcases, f'Unrecognized expected empty testcases: {unrecognized_expected_empty_testcases}'
+            expected_empty_testcases = config.expected_empty_testcases.intersection(test_paths)
+            unrecognized_expected_failure_ids = {id.rsplit(':', 1)[0] for id in config.expected_failure_ids} - all_test_paths
+            assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
+            expected_failure_ids = frozenset(id for id in config.expected_failure_ids if id.rsplit(':', 1)[0] in test_paths)
 
-        root = etree.Element('testcases')
-        tree = etree.ElementTree(root)
-        pathlib_zip_path = PurePath(zip_path)
-        for test_path in test_paths:
-            etree.SubElement(root, 'testcase', uri=str((pathlib_zip_path / test_path).as_posix()))
-        tree.write(testcase_file, encoding='utf-8', pretty_print=True, xml_declaration=True)
-        testcase_file.flush()
-        filename = testcase_file.name
-        args, kws = get_conformance_suite_arguments(
-            config=config, filename=filename, additional_plugins=additional_plugins,
-            build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=shard,
-            expected_failure_ids=expected_failure_ids, expected_empty_testcases=expected_empty_testcases,
-        )
+            root = etree.Element('testcases')
+            tree = etree.ElementTree(root)
+            pathlib_zip_path = PurePath(zip_path)
+            for test_path in test_paths:
+                etree.SubElement(root, 'testcase', uri=str((pathlib_zip_path / test_path).as_posix()))
+            tree.write(testcase_file, encoding='utf-8', pretty_print=True, xml_declaration=True)
+            testcase_file.flush()
+            filename = testcase_file.name
+            args = get_conformance_suite_arguments(
+                config=config, filename=filename, additional_plugins=additional_plugins,
+                build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=shard,
+                expected_failure_ids=expected_failure_ids, expected_empty_testcases=expected_empty_testcases,
+            )
+            tasks.append(args)
         url_context_manager: ContextManager[Any]
         if config.url_replace:
             url_context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
         else:
             url_context_manager = nullcontext()
-        with url_context_manager:
-            return get_test_data(args, **kws)
+        with url_context_manager, multiprocessing.Pool() as pool:
+            results = pool.map(get_test_data_mp_wrapper, tasks)
+            return [x for l in results for x in l]
 
 
 def get_conformance_suite_test_results_without_shards(
