@@ -5,7 +5,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import sys, os, io, time, json, logging
+import sys, os, io, time, json, logging, zipfile
 from collections import defaultdict
 from fnmatch import fnmatch
 from lxml import etree
@@ -32,6 +32,12 @@ EMPTYDICT = {}
 TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD packages
 
 reportPackageDirPattern = re.compile(r"^[^/]+/META-INF/reportPackage.json$|^[^/]+/reports/")
+
+reportPackageDocTypeExtensions = {
+    "https://xbrl.org/report-package/2023/xbri": (".xbri",),
+    "https://xbrl.org/report-package/2023/xbr":  (".xbr",),
+    "https://xbrl.org/report-package/2023":      (".zip", ".ZIP")
+    }
 
 UTF_7_16_Bytes_Pattern = re.compile(br"(?P<utf16>(^([\x00][^\x00])+$)|(^([^\x00][\x00])+$))|(?P<utf7>^\s*\+AHs-)")
 EBCDIC_Bytes_Pattern = re.compile(b"^[\x40\x4a-\x4f\x50\x5a-\x5f\x60-\x61\x6a-\x6f\x79-\x7f\x81-\x89\x8f\x91-\x99\xa1-\xa9\xb0\xba-\xbb\xc1-\xc9\xd1-\xd9\xe0\xe2-\xe9\xf0-\xf9\xff\x0a\x0d]+$")
@@ -405,6 +411,7 @@ def packageNamesWithNewerFileDates():
 def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]) -> bool:
         numErrorsOnEntry = len(errors)
         # single top level directory
+        _dir = filesource.dir
         topLevels = set(f.partition('/')[0] for f in _dir)
         topLevelFiles = set(f for f in topLevels if f in _dir) # have no trailing /, not a directory
         topLevelDirectories = topLevels - topLevelFiles
@@ -445,6 +452,7 @@ def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]) -> bo
 
 def validateReportPackage(filesource, errors=[]) -> bool:
         numErrorsOnEntry = len(errors)
+        rptPkgExt = os.path.splitext(filesource.baseurl)[1]
         rptPkgFile = filesource.reportPackageFile
         rptPkgObj = {"documentInfo":{"documentType":"https://xbrl.org/report-package/2023"}} #default doc type
         def loadDict(keyValuePairs):
@@ -454,11 +462,11 @@ def validateReportPackage(filesource, errors=[]) -> bool:
                     _dict[key] = value
                 else:
                     filesource.cntlr.addToLog(_("JSON duplicated key %(key)s"),
-                                   messageCode="rpe:invalidJSONStructure",
-                                   file=os.path.basename(filesource.url),
+                                   messageCode="rpe:invalidJSON",
+                                   file=os.path.basename(filesource.baseurl),
                                    messageArgs={"key": key},
                                    level=logging.ERROR)
-                    errors.append("rpe:invalidJSONStructure")
+                    errors.append("rpe:invalidJSON")
             return _dict
         if rptPkgFile:
             pkgFilePath = f"{filesource.basefile}/{rptPkgFile}"
@@ -468,16 +476,18 @@ def validateReportPackage(filesource, errors=[]) -> bool:
             if m and not NEVER_EBCDIC_Bytes_Pattern.findall(bytes):
                 filesource.cntlr.addToLog(_("reportPackage.json file MUST use utf-8 encoding, appears to be EBCDIC"),
                                messageCode="rpe:invalidJSON",
-                               file=os.path.basename(filesource.url),
+                               file=os.path.basename(filesource.baseurl),
                                level=logging.ERROR)
+                errors.append("rpe:invalidJSON")
                 return False
             m = UTF_7_16_Bytes_Pattern.match(bytes)
             if m:
                 filesource.cntlr.addToLog(_("reportPackage.json file MUST use utf-8 encoding, appears to be %(encoding)s"),
                                messageCode="rpe:invalidJSON",
                                messageArgs={"encoding": m.lastgroup},
-                               file=os.path.basename(filesource.url),
+                               file=os.path.basename(filesource.baseurl),
                                level=logging.ERROR)
+                errors.append("rpe:invalidJSON")
                 return False
             _file.close()
             _file = filesource.file(pkgFilePath, encoding='utf-8-sig')[0]
@@ -485,35 +495,49 @@ def validateReportPackage(filesource, errors=[]) -> bool:
                 rptPkgObj = json.load(_file, object_pairs_hook=loadDict)
             except json.JSONDecodeError as ex:
                 filesource.cntlr.addToLog(_("JSON syntax error %(error)s"),
-                               messageCode="rpe:invalidJSONStructure",
-                               file=os.path.basename(filesource.url),
+                               messageCode="rpe:invalidJSON",
+                               file=os.path.basename(filesource.baseurl),
                                messageArgs={"error": str(ex)},
                                level=logging.ERROR)
+                errors.append("rpe:invalidJSON")
                 return False
             except UnicodeDecodeError as ex:
                 filesource.cntlr.addToLog(_("reportPackage.json file MUST use utf-8 encoding, appears to be %(encoding)s"),
                                messageCode="rpe:invalidJSON",
                                messageArgs={"encoding": m.lastgroup if m else "unknown"},
-                               file=os.path.basename(filesource.url),
+                               file=os.path.basename(filesource.baseurl),
                                level=logging.ERROR)
+                errors.append("rpe:invalidJSON")
                 return False
-        docTypeUri = rptPkgObj.get("documentInfo",{}).get("documentType") if isinstance(rptPkgObj,dict) else None
+        docTypeUri = rptPkgObj["documentInfo"].get("documentType") if isinstance(rptPkgObj,dict) and isinstance(rptPkgObj.get("documentInfo"),dict) else None
         if not isinstance(docTypeUri, str):
             filesource.cntlr.addToLog(_("Unsupported documentType type: %(docTypeType)s"),
                            messageCode="rpe:invalidJSONStructure",
-                           file=os.path.basename(filesource.url),
+                           file=os.path.basename(filesource.baseurl),
                            messageArgs={"docTypeType": type(docTypeUri).__name__},
                            level=logging.ERROR)
             errors.append("rpe:invalidJSONStructure")
-        elif docTypeUri not in ("https://xbrl.org/report-package/2023/xbri",
-                              "https://xbrl.org/report-package/2023/xbr",
-                              "https://xbrl.org/report-package/2023"):
+        elif docTypeUri not in reportPackageDocTypeExtensions:
             filesource.cntlr.addToLog(_("Unsupported report package document type: %(docTypeUri)s"),
                            messageCode="rpe:unsupportedReportPackageVersion",
-                           file=os.path.basename(filesource.url),
+                           file=os.path.basename(filesource.baseurl),
                            messageArgs={"docTypeUri": docTypeUri},
                            level=logging.ERROR)
             errors.append("rpe:unsupportedReportPackageVersion")
+        elif rptPkgExt in (".xbri", ".xbr") and rptPkgFile is None:
+            filesource.cntlr.addToLog(_("The report package file extension %(extension)s MUST have a report package type specified, but it is absent."),
+                           messageCode="rpe:documentTypeFileExtensionMismatch",
+                           file=os.path.basename(filesource.baseurl),
+                           messageArgs={"extension": rptPkgExt},
+                           level=logging.ERROR)
+            errors.append("rpe:documentTypeFileExtensionMismatch")
+        elif rptPkgExt not in reportPackageDocTypeExtensions[docTypeUri]:
+            filesource.cntlr.addToLog(_("The report package file extension MUST match the report package type specified by the report package document type URI, %(docTypeUri)s"),
+                           messageCode="rpe:documentTypeFileExtensionMismatch",
+                           file=os.path.basename(filesource.baseurl),
+                           messageArgs={"docTypeUri": docTypeUri},
+                           level=logging.ERROR)
+            errors.append("rpe:documentTypeFileExtensionMismatch")
         return len(errors) == numErrorsOnEntry
 
 def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
@@ -738,17 +762,25 @@ def removePackageModule(cntlr, name):
 
 invalidZipDirEntryPattern = re.compile(r"^/|^.*\\")
 forbiddenDirEntryPattern = re.compile(r"^..?$|^..?/|^.*/..?/|^.*//")
-def validatePackageEntries(filesource):
+def validatePackageEntries(filesource, errors=None):
+    result = False
     if filesource is not None and filesource.isArchive:
+        filesource.setLogErrors(errors)
         pathCounts = {}
-        for f in filesource.dir:
+        try:
+            _dir = filesource.dir
+        except zipfile.BadZipFile:
+            filesource.setLogErrors(None)
+            return False
+        for f in _dir:
             pathCounts[f] = pathCounts.get(f,0) + 1
-        if not filesource.dir:
+        if not _dir:
             filesource.cntlr.addToLog(_("Archive has no files"), 
                                       messageCode="rpe:invalidDirectoryStructure",
                                       level=logging.ERROR,
                                       file=filesource.url)
-        elif any (invalidZipDirEntryPattern.match(f) for f in filesource.dir):
+            if errors is not None: errors.append("rpe:invalidDirectoryStructure")
+        elif any (invalidZipDirEntryPattern.match(f) for f in _dir):
             for f in filesource.dir:
                 if invalidZipDirEntryPattern.match(f):
                     filesource.cntlr.addToLog(_("Archive must not contain absolute path references or backslashes \"%(name)s\""), 
@@ -756,19 +788,22 @@ def validatePackageEntries(filesource):
                                               messageArgs={"name":f},
                                               level=logging.ERROR,
                                               file=filesource.url)
-        elif any (forbiddenDirEntryPattern.match(f) for f in filesource.dir):
+                    if errors is not None: errors.append("rpe:invalidArchiveFormat")
+        elif any (forbiddenDirEntryPattern.match(f) for f in _dir):
             for f in filesource.dir:
                 if forbiddenDirEntryPattern.match(f):
                     filesource.cntlr.addToLog(_("Archive contains forbidden file name \"%(name)s\""), 
-                                              messageCode="rpe:invalidArchiveFormat",
+                                              messageCode="rpe:invalidDirectoryStructure",
                                               messageArgs={"name":f},
                                               level=logging.ERROR,
                                               file=filesource.url)
-        elif sum("reportPackage.json" in f for f in filesource.dir) > 1:
+                    if errors is not None: errors.append("rpe:invalidDirectoryStructure")
+        elif sum("reportPackage.json" in f for f in _dir) > 1:
             filesource.cntlr.addToLog(_("Archive has duplicate reportPackage.json entries"), 
                                       messageCode="rpe:invalidDirectoryStructure",
                                       level=logging.ERROR,
                                       file=filesource.url)
+            if errors is not None: errors.append("rpe:invalidDirectoryStructure")
         elif any(c > 1 for c in pathCounts.values()):
             for f, c in pathCounts.items():
                 filesource.cntlr.addToLog(_("Archive has %(count)s entries for %(name)s"), 
@@ -776,6 +811,8 @@ def validatePackageEntries(filesource):
                                           level=logging.ERROR,
                                           messageArgs={"name":f, "count":c},
                                           file=filesource.url)
+                if errors is not None: errors.append("rpe:invalidDirectoryStructure")
         else:
-            return True # valid
-    return False # invalid package entries
+            result = True # valid
+        filesource.setLogErrors(None)
+    return result # invalid package entries

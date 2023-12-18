@@ -205,10 +205,15 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 modelObject=(referringElement, os.path.basename(uri)), fileName=os.path.basename(uri), error=str(err))
         return None
     except Exception as err:
-        modelXbrl.error(type(err).__name__,
-                _("Unrecoverable error: %(error)s, %(fileName)s"),
-                modelObject=referringElement, fileName=os.path.basename(uri),
-                error=str(err), exc_info=True)
+        if len(err.args) >= 2 and err.args[0] == "rpe:unsupportedFileExtension":
+            modelXbrl.error(err.args[0],
+                _("Unsupported file extension for zip contents: %(fileName)s"),
+                modelObject=referringElement, fileName=os.path.basename(uri))
+        else:
+            modelXbrl.error(type(err).__name__,
+                    _("Unrecoverable error: %(error)s, %(fileName)s"),
+                    modelObject=referringElement, fileName=os.path.basename(uri),
+                    error=str(err), exc_info=True)
         modelXbrl.urlUnloadableDocs[normalizedUri] = True  # not loadable due to exception issue
         return None
 

@@ -5,7 +5,7 @@ import os, sys, traceback, logging
 import regex as re
 from collections import defaultdict, OrderedDict
 from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlConst,
-               ValidateXbrl, ValidateVersReport,
+               ValidateXbrl, ValidateVersReport, PackageManager,
                ValidateInfoset, RenderingEvaluator, ViewFileRenderedGrid, UrlUtil)
 from arelle.formula import ValidateFormula
 from arelle.ModelDocument import Type, ModelDocumentReference, load as modelDocumentLoad
@@ -218,7 +218,7 @@ class Validate:
                             DTSdoc.referencesDocument[doc] = ModelDocumentReference("import", DTSdoc.xmlRootElement)  #fake import
                             doc.inDTS = True
                     elif resultIsTaxonomyPackage:
-                        from arelle import PackageManager, PrototypeInstanceObject
+                        from arelle import PrototypeInstanceObject
                         dtsName = readMeFirstUri
                         modelXbrl = PrototypeInstanceObject.XbrlPrototype(self.modelXbrl.modelManager, readMeFirstUri)
                         PackageManager.packageInfo(self.modelXbrl.modelManager.cntlr, readMeFirstUri, reload=True, errors=modelXbrl.errors)
@@ -252,7 +252,8 @@ class Validate:
                             if newSourceFileSource:
                                 sourceFileSource.close()
                             _errors = [] # accumulate pre-loading errors, such as during taxonomy package loading
-                            if filesource and not filesource.selection and filesource.isArchive:
+                            if (filesource and not filesource.selection and filesource.isArchive
+                                and PackageManager.validatePackageEntries(filesource, _errors)):
                                 try:
                                     if filesource.isTaxonomyPackage or expectTaxonomyPackage:
                                         _rptPkgIxdsOptions = {}
@@ -270,11 +271,16 @@ class Validate:
                                             for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
                                                 pluginXbrlMethod(self, filesource,entrypoints)
                                             filesource.select(entrypoints[0].get("file", None) )
+                                    if filesource.isReportPackage:
+                                        PackageManager.validateReportPackage(filesource, _errors)
                                 except Exception as err:
                                     self.modelXbrl.error("exception:" + type(err).__name__,
                                         _("Testcase variation validation exception: %(error)s, entry URL: %(instance)s"),
                                         modelXbrl=self.modelXbrl, instance=readMeFirstUri, error=err)
                                     continue # don't try to load this entry URL
+                            if _errors: # don't try to load this entry URL
+                                self.determineTestStatus(modelTestcaseVariation, _errors)
+                                continue
                             modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
                                                        filesource,
                                                        _("validating"),

@@ -14,7 +14,7 @@ from arelle import (Cntlr, FileSource, ModelDocument, RenderingEvaluator, XmlUti
                     ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts,
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
                     ViewFileRoleTypes,
-                    ModelManager)
+                    ModelManager, PackageManager)
 from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.ModelValue import qname
@@ -508,11 +508,13 @@ def configAndRunCntlr(options, arellePluginModules):
 
 def filesourceEntrypointFiles(filesource, entrypointFiles=[], inlineOnly=False):
     if filesource.isArchive:
+        del entrypointFiles[:] # clear out archive from entrypointFiles
+        if not PackageManager.validatePackageEntries(filesource):
+            return
         if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
             filesource.loadTaxonomyPackageMappings()
         if filesource.isReportPackage:
-            validateReportPackage(filesource)
-        del entrypointFiles[:] # clear out archive from entrypointFiles
+            PackageManager.validateReportPackage(filesource)
         # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
         for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
             if not _archiveFile.startswith("/") and (_archiveFile.endswith(".xhtml") or _archiveFile.endswith(".html")):
@@ -919,7 +921,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
         _entrypointFiles = _entryPoints
         if filesource and not filesource.selection:
             if (filesource.isArchive # check archive for report package purposes
-                and PackageManager.validatePackageEntries(filesource)
                 and not (sourceZipStream and len(_entrypointFiles) > 0)):
                 filesourceEntrypointFiles(filesource, _entrypointFiles)
 
