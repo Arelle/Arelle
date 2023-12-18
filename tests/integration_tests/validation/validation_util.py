@@ -202,78 +202,119 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[tuple[list[str], fro
     return shards
 
 
+def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: str,
+        additional_plugins: frozenset[str], build_cache: bool, offline: bool, log_to_file: bool,
+        expected_failure_ids: frozenset[str], expected_empty_testcases: frozenset[str],
+        shard: int | None) -> tuple[list[Any], dict[str, Any]]:
+    use_shards = shard is not None
+    optional_plugins = set()
+    if build_cache:
+        optional_plugins.add('CacheBuilder')
+    plugins = config.plugins | additional_plugins | optional_plugins
+    args = [
+        '--file', filename,
+        '--keepOpen',
+        '--validate',
+    ]
+    if plugins:
+        args.extend(['--plugins', '|'.join(sorted(plugins))])
+    shard_str = f'-s{shard}' if use_shards else ''
+    if build_cache:
+        args.extend(['--cache-builder-path', f'conf-{config.name}{shard_str}-cache.zip'])
+    if config.capture_warnings:
+        args.append('--testcaseResultsCaptureWarnings')
+    if log_to_file:
+        args.extend([
+            '--csvTestReport', f'conf-{config.name}{shard_str}-report.csv',
+            '--logFile', f'conf-{config.name}{shard_str}-log.txt',
+        ])
+    if offline or not config.network_or_cache_required:
+        args.extend(['--internetConnectivity', 'offline'])
+    kws = dict(
+        expected_failure_ids=expected_failure_ids,
+        expected_empty_testcases=expected_empty_testcases,
+        expected_model_errors=config.expected_model_errors,
+        strict_testcase_index=config.strict_testcase_index,
+    )
+    return args + config.args, kws
+
+
 def get_conformance_suite_test_results(
         config: ConformanceSuiteConfig,
         shard: int | None,
         build_cache: bool = False,
         log_to_file: bool = False,
         offline: bool = False) -> list[ParameterSet]:
-    file_path = os.path.join(config.prefixed_local_filepath, config.file)
     assert shard is None or config.shards != 1, \
         'Conformance suite configuration must specify shards if --shard is passed'
-    use_shards = shard is not None
-    testcase_file_cm: Callable[[], ContextManager[Any]] = \
-        (lambda: tempfile.NamedTemporaryFile(dir='.', mode='wb', suffix='.xml')) if use_shards else nullcontext  # type: ignore[assignment]
-    with testcase_file_cm() as testcase_file:
-        if use_shards:
-            assert shard is not None
-            shards = get_test_shards(config)
-            test_paths, additional_plugins = shards[shard]
-            zip_path = config.prefixed_local_filepath
-            all_test_paths = {path for test_paths, _ in shards for path in test_paths}
-            unrecognized_expected_empty_testcases = config.expected_empty_testcases - all_test_paths
-            assert not unrecognized_expected_empty_testcases, f'Unrecognized expected empty testcases: {unrecognized_expected_empty_testcases}'
-            expected_empty_testcases = config.expected_empty_testcases.intersection(test_paths)
-            unrecognized_expected_failure_ids = {id.rsplit(':', 1)[0] for id in config.expected_failure_ids} - all_test_paths
-            assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
-            expected_failure_ids = frozenset(id for id in config.expected_failure_ids if id.rsplit(':', 1)[0] in test_paths)
+    if shard is not None:
+        return get_conformance_suite_test_results_with_shards(
+            config=config, shard=shard, build_cache=build_cache, log_to_file=log_to_file, offline=offline
+        )
+    else:
+        return get_conformance_suite_test_results_without_shards(
+            config=config, build_cache=build_cache, log_to_file=log_to_file, offline=offline
+        )
 
-            root = etree.Element('testcases')
-            tree = etree.ElementTree(root)
-            pathlib_zip_path = PurePath(zip_path)
-            for test_path in test_paths:
-                etree.SubElement(root, 'testcase', uri=str((pathlib_zip_path / test_path).as_posix()))
-            tree.write(testcase_file, encoding='utf-8', pretty_print=True, xml_declaration=True)
-            testcase_file.flush()
-            filename = testcase_file.name
-        else:
-            additional_plugins = frozenset().union(*(plugins for _, plugins in config.additional_plugins_by_prefix))
-            filename = file_path
-            expected_empty_testcases = config.expected_empty_testcases
-            expected_failure_ids = config.expected_failure_ids
-        optional_plugins = set()
-        if build_cache:
-            optional_plugins.add('CacheBuilder')
-        plugins = config.plugins | additional_plugins | optional_plugins
-        args = [
-            '--file', filename,
-            '--keepOpen',
-            '--validate',
-        ]
-        if plugins:
-            args.extend(['--plugins', '|'.join(sorted(plugins))])
-        shard_str = f'-s{shard}' if use_shards else ''
-        if build_cache:
-            args.extend(['--cache-builder-path', f'conf-{config.name}{shard_str}-cache.zip'])
-        if config.capture_warnings:
-            args.append('--testcaseResultsCaptureWarnings')
-        if log_to_file:
-            args.extend([
-                '--csvTestReport', f'conf-{config.name}{shard_str}-report.csv',
-                '--logFile', f'conf-{config.name}{shard_str}-log.txt',
-            ])
-        if offline or not config.network_or_cache_required:
-            args.extend(['--internetConnectivity', 'offline'])
-        context_manager: ContextManager[Any]
+
+def get_conformance_suite_test_results_with_shards(  # type: ignore[return]
+        config: ConformanceSuiteConfig,
+        shard: int,
+        build_cache: bool = False,
+        log_to_file: bool = False,
+        offline: bool = False) -> list[ParameterSet]:
+    with tempfile.NamedTemporaryFile(dir='.', mode='wb', suffix='.xml') as testcase_file:
+        shards = get_test_shards(config)
+        test_paths, additional_plugins = shards[shard]
+        zip_path = config.prefixed_local_filepath
+        all_test_paths = {path for test_paths, _ in shards for path in test_paths}
+        unrecognized_expected_empty_testcases = config.expected_empty_testcases - all_test_paths
+        assert not unrecognized_expected_empty_testcases, f'Unrecognized expected empty testcases: {unrecognized_expected_empty_testcases}'
+        expected_empty_testcases = config.expected_empty_testcases.intersection(test_paths)
+        unrecognized_expected_failure_ids = {id.rsplit(':', 1)[0] for id in config.expected_failure_ids} - all_test_paths
+        assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
+        expected_failure_ids = frozenset(id for id in config.expected_failure_ids if id.rsplit(':', 1)[0] in test_paths)
+
+        root = etree.Element('testcases')
+        tree = etree.ElementTree(root)
+        pathlib_zip_path = PurePath(zip_path)
+        for test_path in test_paths:
+            etree.SubElement(root, 'testcase', uri=str((pathlib_zip_path / test_path).as_posix()))
+        tree.write(testcase_file, encoding='utf-8', pretty_print=True, xml_declaration=True)
+        testcase_file.flush()
+        filename = testcase_file.name
+        args, kws = get_conformance_suite_arguments(
+            config=config, filename=filename, additional_plugins=additional_plugins,
+            build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=shard,
+            expected_failure_ids=expected_failure_ids, expected_empty_testcases=expected_empty_testcases,
+        )
+        url_context_manager: ContextManager[Any]
         if config.url_replace:
-            context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
+            url_context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
         else:
-            context_manager = nullcontext()
-        with context_manager:
-            return get_test_data(
-                args + config.args,
-                expected_failure_ids=expected_failure_ids,
-                expected_empty_testcases=expected_empty_testcases,
-                expected_model_errors=config.expected_model_errors,
-                strict_testcase_index=config.strict_testcase_index,
-            )
+            url_context_manager = nullcontext()
+        with url_context_manager:
+            return get_test_data(args, **kws)
+
+
+def get_conformance_suite_test_results_without_shards(
+        config: ConformanceSuiteConfig,
+        build_cache: bool = False,
+        log_to_file: bool = False,
+        offline: bool = False) -> list[ParameterSet]:
+    additional_plugins = frozenset().union(*(plugins for _, plugins in config.additional_plugins_by_prefix))
+    filename = os.path.join(config.prefixed_local_filepath, config.file)
+    expected_empty_testcases = config.expected_empty_testcases
+    expected_failure_ids = config.expected_failure_ids
+    args, kws = get_conformance_suite_arguments(
+        config=config, filename=filename, additional_plugins=additional_plugins,
+        build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=None,
+        expected_failure_ids=expected_failure_ids, expected_empty_testcases=expected_empty_testcases,
+    )
+    url_context_manager: ContextManager[Any]
+    if config.url_replace:
+        url_context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
+    else:
+        url_context_manager = nullcontext()
+    with url_context_manager:
+        return get_test_data(args, **kws)
