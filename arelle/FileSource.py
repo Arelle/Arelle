@@ -139,6 +139,7 @@ class FileSource:
     url: str | list[str] | None
     basefile: str | list[str] | None
     xfdDocument: etree._ElementTree | None
+    errors: list[str] | None # for validation logging of error codes
 
     def __init__(self, url: str, cntlr: Cntlr | None = None, checkIfXmlIsEis: bool = False) -> None:
         self.url = str(url)  # allow either string or FileNamedStringIO
@@ -181,10 +182,15 @@ class FileSource:
                         self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
                     pass
 
+    def setLogErrors(self, errors: list[str] | None) -> None:
+        self.errors = errors
+
     def logError(self, err: Exception, messageCode: str | None) -> None:
         if self.cntlr:
             if messageCode:
                 self.cntlr.addToLog(str(err), messageCode=messageCode)
+                if self.errors is not None:
+                    self.errors.append(messageCode)
             else:
                 self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
 
@@ -411,7 +417,9 @@ class FileSource:
 
     @property
     def isReportPackage(self) -> bool:
-        return self.isZip and any(PackageManager.reportPackageDirPattern.match(f) for f in (self.dir or ()))
+        return self.isZip and (
+            any(PackageManager.reportPackageDirPattern.match(f) for f in (self.dir or ()))
+            or os.path.splitext(self.baseurl)[1] in (".xbri", ".xbr"))
 
     @property
     def reportPackageFile(self) -> str | None:
@@ -817,6 +825,8 @@ def openXmlFileStream(
     encoding = XmlUtil.encoding(hdrBytes,
                                 default=cntlr.modelManager.disclosureSystem.defaultXmlEncoding
                                         if cntlr else 'utf-8')
+    if encoding == "zip":
+        raise Exception("rpe:unsupportedFileExtension", filepath)
     # encoding default from disclosure system could be None
     if encoding.lower() in ('utf-8','utf8','utf-8-sig') and (cntlr is None or not cntlr.isGAE) and not stripDeclaration:
         text = None

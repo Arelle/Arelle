@@ -43,6 +43,8 @@ testcaseElementXml = '''<testcase
 />'''
 
 def csvTestcaseLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
+    if not filepath.endswith(".csv"):
+        return None # not pull loadable CSV file
     doc = None
     testcase = None
     try:
@@ -50,7 +52,7 @@ def csvTestcaseLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
         for rowIndex, row in enumerate(csv.reader(_file, "excel")):
             if rowIndex == 0:
                 if row != ["input", "errors" , "report_count", "description"]:
-                    break # not a CSV testcase file
+                    return None # not a CSV testcase file
                 modelXbrl.modelDocument = doc = createModelDocument(
                   modelXbrl,
                   Type.TESTCASE,
