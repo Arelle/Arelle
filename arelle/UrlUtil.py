@@ -39,11 +39,16 @@ absoluteUrlPattern = None
 #   HF - 2020/10/07: add neg lookahead term to first path seg if relative, disallowing : in first path of regular expression, e.g., ":", "123:", 123:foo or 123:foo/bar
 # This regular expression is only partial validation.
 relativeUrlPattern = re.compile(r"^(urn:|(([a-zA-Z][a-zA-Z0-9.+-]+):)?(//([^/\?#]*))?(?![^:/]*:[^/]*(/|$)))([^\?#]*)(\?([^#]*))?(#([^#]*))?$")
+windowsDriveLetterPathPattern = re.compile(r'^(?P<driveLetter>[a-zA-Z])(?P<rest>:\\.*)')
 
 def splitDecodeFragment(url: str) -> tuple[str, str]:
     if url is None: # urldefrag returns byte strings for none, instead of unicode strings
         return "", ""
     urlPart, fragPart = urldefrag(url)
+    if len(url) >= 3 and url[1] == ':' and (m := windowsDriveLetterPathPattern.match(urlPart)):
+        # might get a Windows path with a drive letter,
+        # which I guess is lowercased as the scheme.
+        urlPart = m.group('driveLetter').upper() + m.group('rest')
     return (urlPart, unquote(fragPart, "utf-8"))
 
 def anyUriQuoteForPSVI(uri: str) -> str:
