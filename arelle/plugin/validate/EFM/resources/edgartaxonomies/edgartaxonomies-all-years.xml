@@ -2278,6 +2278,16 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
     <Loc>
         <Family>US GAAP</Family>
         <Version>2020</Version>
+        <Href>https://xbrl.sec.gov/country/2016/country-2016-01-31.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/country/2016-01-31</Namespace>
+        <Prefix>country</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2020</Version>
         <Href>http://xbrl.fasb.org/us-gaap/2020/elts/us-types-2020-01-31.xsd</Href>
         <AttType>SCH</AttType>
         <FileTypeName>Schema</FileTypeName>
@@ -7546,12 +7556,41 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
     <Loc>
         <Family>US GAAP</Family>
         <Version>2014</Version>
+        <Href>http://xbrl.fasb.org/us-gaap/2014/elts/us-gaap-2014-01-31.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://fasb.org/us-gaap/2014-01-31</Namespace>
+        <Prefix>us-gaap</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2014</Version>
         <Href>http://xbrl.sec.gov/dei/2014/dei-2014-01-31.xsd</Href>
         <AttType>SCH</AttType>
         <FileTypeName>Schema</FileTypeName>
         <Elements>1</Elements>
         <Namespace>http://xbrl.sec.gov/dei/2014-01-31</Namespace>
         <Prefix>dei</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2014</Version>
+        <Href>http://xbrl.fasb.org/us-gaap/2014/elts/us-types-2014-01-31.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://fasb.org/us-types/2014-01-31</Namespace>
+        <Prefix>us-types</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2014</Version>
+        <Href>http://xbrl.fasb.org/us-gaap/2014/elts/us-roles-2014-01-31.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Roles/Arcroles</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://fasb.org/us-roles/2014-01-31</Namespace>
     </Loc>
     <Loc>
         <Family>US GAAP</Family>
@@ -7592,6 +7631,16 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
         <Elements>1</Elements>
         <Namespace>http://xbrl.sec.gov/country/2013-01-31</Namespace>
         <Prefix>country</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2014</Version>
+        <Href>http://xbrl.sec.gov/exch/2014/exch-2014-01-31.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/exch/2014-01-31</Namespace>
+        <Prefix>exch</Prefix>
     </Loc>
     <Loc>
         <Family>US GAAP</Family>
@@ -7742,6 +7791,16 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
     <Loc>
         <Family>US GAAP</Family>
         <Version>2013</Version>
+        <Href>http://xbrl.sec.gov/currency/2012/currency-2012-01-31.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/currency/2012-01-31</Namespace>
+        <Prefix>currency</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2013</Version>
         <Href>http://xbrl.sec.gov/exch/2013/exch-2013-01-31.xsd</Href>
         <AttType>SCH</AttType>
         <FileTypeName>Schema</FileTypeName>
@@ -7874,6 +7933,26 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
         <Elements>1</Elements>
         <Namespace>http://xbrl.sec.gov/invest/2012-01-31</Namespace>
         <Prefix>invest</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2012</Version>
+        <Href>http://xbrl.sec.gov/country/2012/country-2012-01-31.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/country/2012-01-31</Namespace>
+        <Prefix>country</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2012</Version>
+        <Href>http://xbrl.sec.gov/currency/2012/currency-2012-01-31.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/currency/2012-01-31</Namespace>
+        <Prefix>currency</Prefix>
     </Loc>
     <Loc>
         <Family>US GAAP</Family>
@@ -8922,12 +9001,41 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
     <Loc>
         <Family>US GAAP</Family>
         <Version>2014 IM</Version>
+        <Href>http://xbrl.fasb.org/us-gaap/2014/elts/us-gaap-2014-01-31.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://fasb.org/us-gaap/2014-01-31</Namespace>
+        <Prefix>us-gaap</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2014 IM</Version>
         <Href>http://xbrl.sec.gov/dei/2014/dei-2014-01-31.xsd</Href>
         <AttType>SCH</AttType>
         <FileTypeName>Schema</FileTypeName>
         <Elements>1</Elements>
         <Namespace>http://xbrl.sec.gov/dei/2014-01-31</Namespace>
         <Prefix>dei</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2014 IM</Version>
+        <Href>http://xbrl.fasb.org/us-gaap/2014/elts/us-types-2014-01-31.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://fasb.org/us-types/2014-01-31</Namespace>
+        <Prefix>us-types</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2014 IM</Version>
+        <Href>http://xbrl.fasb.org/us-gaap/2014/elts/us-roles-2014-01-31.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Roles/Arcroles</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://fasb.org/us-roles/2014-01-31</Namespace>
     </Loc>
     <Loc>
         <Family>US GAAP</Family>
@@ -8968,6 +9076,16 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
         <Elements>1</Elements>
         <Namespace>http://xbrl.sec.gov/currency/2014-01-31</Namespace>
         <Prefix>currency</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2014 IM</Version>
+        <Href>http://xbrl.sec.gov/exch/2014/exch-2014-01-31.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/exch/2014-01-31</Namespace>
+        <Prefix>exch</Prefix>
     </Loc>
     <Loc>
         <Family>US GAAP</Family>
@@ -9108,6 +9226,16 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
     <Loc>
         <Family>US GAAP</Family>
         <Version>2013 IM</Version>
+        <Href>http://xbrl.sec.gov/currency/2012/currency-2012-01-31.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/currency/2012-01-31</Namespace>
+        <Prefix>currency</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2013 IM</Version>
         <Href>http://xbrl.sec.gov/exch/2013/exch-2013-01-31.xsd</Href>
         <AttType>SCH</AttType>
         <FileTypeName>Schema</FileTypeName>
@@ -9221,6 +9349,26 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
         <Elements>0</Elements>
         <Namespace>http://www.xbrl.org/dtr/type/numeric</Namespace>
         <Prefix>num</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2012 IM</Version>
+        <Href>http://xbrl.sec.gov/country/2012/country-2012-01-31.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/country/2012-01-31</Namespace>
+        <Prefix>country</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2012 IM</Version>
+        <Href>http://xbrl.sec.gov/currency/2012/currency-2012-01-31.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/currency/2012-01-31</Namespace>
+        <Prefix>currency</Prefix>
     </Loc>
     <Loc>
         <Family>US GAAP</Family>
@@ -9706,6 +9854,38 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
     <Loc>
         <Family>SOI</Family>
         <Version>2008</Version>
+        <Href>http://xbrl.us/us-gaap/1.0/non-gaap/dei-lab-2008-03-31.xml</Href>
+        <AttType>LAB</AttType>
+        <FileTypeName>Labels, Standard</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>SOI</Family>
+        <Version>2008</Version>
+        <Href>http://xbrl.us/us-gaap/1.0/non-gaap/dei-pre-2008-03-31.xml</Href>
+        <AttType>PRE</AttType>
+        <FileTypeName>Presentation</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>SOI</Family>
+        <Version>2008</Version>
+        <Href>http://xbrl.us/us-gaap/1.0/non-gaap/us-gaap-doc-di-def-2008-03-31.xml</Href>
+        <AttType>DEF</AttType>
+        <FileTypeName>Definition, Dimensions</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>SOI</Family>
+        <Version>2008</Version>
+        <Href>http://xbrl.us/us-gaap/1.0/non-gaap/us-gaap-doc-ent-def-2008-03-31.xml</Href>
+        <AttType>DEF</AttType>
+        <FileTypeName>Definition, Dimensions</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>SOI</Family>
+        <Version>2008</Version>
         <Href>http://xbrl.us/us-gaap/1.0/non-gaap/dei-ent-2008-03-31.xsd</Href>
         <AttType>SCH</AttType>
         <FileTypeName>Entry Point</FileTypeName>
@@ -9822,6 +10002,38 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
         <Prefix>dei-ent</Prefix>
     </Loc>
     <Loc>
+        <Family>RR</Family>
+        <Version>2008</Version>
+        <Href>http://xbrl.us/us-gaap/1.0/non-gaap/dei-lab-2008-03-31.xml</Href>
+        <AttType>LAB</AttType>
+        <FileTypeName>Labels, Standard</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>RR</Family>
+        <Version>2008</Version>
+        <Href>http://xbrl.us/us-gaap/1.0/non-gaap/dei-pre-2008-03-31.xml</Href>
+        <AttType>PRE</AttType>
+        <FileTypeName>Presentation</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>RR</Family>
+        <Version>2008</Version>
+        <Href>http://xbrl.us/us-gaap/1.0/non-gaap/us-gaap-doc-di-def-2008-03-31.xml</Href>
+        <AttType>DEF</AttType>
+        <FileTypeName>Definition, Dimensions</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>RR</Family>
+        <Version>2008</Version>
+        <Href>http://xbrl.us/us-gaap/1.0/non-gaap/us-gaap-doc-ent-def-2008-03-31.xml</Href>
+        <AttType>DEF</AttType>
+        <FileTypeName>Definition, Dimensions</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
         <Family>US GAAP</Family>
         <Version>1.0</Version>
         <Href>http://xbrl.us/us-gaap/1.0/elts/us-gaap-2008-03-31.xsd</Href>
@@ -9869,6 +10081,38 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
         <Elements>0</Elements>
         <Namespace>http://xbrl.us/dei-std/2008-03-31</Namespace>
         <Prefix>dei-std</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>1.0</Version>
+        <Href>http://xbrl.us/us-gaap/1.0/non-gaap/dei-lab-2008-03-31.xml</Href>
+        <AttType>LAB</AttType>
+        <FileTypeName>Labels, Standard</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>1.0</Version>
+        <Href>http://xbrl.us/us-gaap/1.0/non-gaap/dei-pre-2008-03-31.xml</Href>
+        <AttType>PRE</AttType>
+        <FileTypeName>Presentation</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>1.0</Version>
+        <Href>http://xbrl.us/us-gaap/1.0/non-gaap/us-gaap-doc-di-def-2008-03-31.xml</Href>
+        <AttType>DEF</AttType>
+        <FileTypeName>Definition, Dimensions</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>1.0</Version>
+        <Href>http://xbrl.us/us-gaap/1.0/non-gaap/us-gaap-doc-ent-def-2008-03-31.xml</Href>
+        <AttType>DEF</AttType>
+        <FileTypeName>Definition, Dimensions</FileTypeName>
+        <Elements>0</Elements>
     </Loc>
     <Loc>
         <Family>US GAAP</Family>
@@ -10387,6 +10631,46 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
        not for submission to EDGAR -->
     <Loc>
         <Family>IFRS</Family>
+        <Version>2013</Version>
+        <Href>http://xbrl.ifrs.org/taxonomy/2013-09-09/ifrs-cor_2013-09-09.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.ifrs.org/taxonomy/2013-09-09/ifrs</Namespace>
+        <Prefix>currency</Prefix>
+    </Loc>
+    <Loc>
+        <Family>IFRS</Family>
+        <Version>2014</Version>
+        <Href>http://xbrl.ifrs.org/taxonomy/2014-03-05/full_ifrs/full_ifrs-cor_2014-03-05.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.ifrs.org/taxonomy/2014-03-05/ifrs-full</Namespace>
+        <Prefix>currency</Prefix>
+    </Loc>
+    <Loc>
+        <Family>IFRS</Family>
+        <Version>2014</Version>
+        <Href>http://xbrl.ifrs.org/taxonomy/2014-03-05/ifrs_for_smes/ifrs_for_smes-cor_2014-03-05.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.ifrs.org/taxonomy/2014-03-05/ifrs-smes</Namespace>
+        <Prefix>currency</Prefix>
+    </Loc>
+    <Loc>
+        <Family>IFRS</Family>
+        <Version>2015</Version>
+        <Href>http://xbrl.ifrs.org/taxonomy/2015-03-11/full_ifrs/full_ifrs-cor_2015-03-11.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.ifrs.org/taxonomy/2015-03-11/ifrs-full</Namespace>
+        <Prefix>ifrs</Prefix>
+    </Loc>
+    <Loc>
+        <Family>IFRS</Family>
         <Version>2016</Version>
         <Href>http://xbrl.ifrs.org/taxonomy/2016-03-31/full_ifrs/full_ifrs-cor_2016-03-31.xsd</Href>
         <AttType>SCH</AttType>
@@ -10398,4 +10682,14 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
     <!-- Arelle taxonomy for cover documents
        required standard taxonomy by database loader
        (generated by Arelle, not for submission to EDGAR) -->
+    <Loc>
+        <Family>Arelle</Family>
+        <Version>2014</Version>
+        <Href>http://arelle.org/2014/doc-2014-01-31.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://arelle.org/doc/2014-01-31</Namespace>
+        <Prefix>doc</Prefix>
+    </Loc>
 </Erxl>
