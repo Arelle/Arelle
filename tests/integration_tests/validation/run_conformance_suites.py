@@ -120,7 +120,8 @@ def run_conformance_suites(
             if shard:
                 for part in shard.split(','):
                     if '-' in part:
-                        shards.extend(range(*map(int, part.split('-'))))
+                        start, end = part.split('-')
+                        shards.extend(range(int(start), int(end) + 1))
                     else:
                         shards.append(int(part))
             results = get_conformance_suite_test_results(config, shards=shards, build_cache=build_cache, log_to_file=log_to_file, offline=offline_option)
