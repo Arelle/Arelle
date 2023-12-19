@@ -49,15 +49,17 @@ FAST_CONFIG_NAMES = {
 
 class Entry(TypedDict, total=False):
     name: str
+    short_name: str
     cache: bool
     os: str
     python_version: str
     shard: str
 
 
-def generate_config_entry(name: str, network_or_cache_required: bool, os: str, python_version: str, shard: str | None) -> Entry:
+def generate_config_entry(name: str, short_name: str, network_or_cache_required: bool, os: str, python_version: str, shard: str | None) -> Entry:
     e: Entry = {
         'name': name,
+        'short_name': short_name,
         'cache': network_or_cache_required,
         'os': os,
         'python_version': python_version,
@@ -71,6 +73,7 @@ def generate_config_entries(config: ConformanceSuiteConfig, os: str, python_vers
     if config.shards == 1:
         yield generate_config_entry(
             name=config.name,
+            short_name=config.name,
             network_or_cache_required=config.network_or_cache_required,
             os=os,
             python_version=python_version,
@@ -83,6 +86,7 @@ def generate_config_entries(config: ConformanceSuiteConfig, os: str, python_vers
             end = min(config.shards, start + ncores)
             yield generate_config_entry(
                 name=config.name,
+                short_name=config.name,
                 network_or_cache_required=config.network_or_cache_required,
                 os=os,
                 python_version=python_version,
@@ -103,6 +107,7 @@ def main() -> None:
     for os in [LINUX, MACOS, WINDOWS]:
         output.append(generate_config_entry(
             name=','.join(sorted(FAST_CONFIG_NAMES)),
+            short_name='miscellaneous suites',
             network_or_cache_required=False,
             os=os,
             python_version=LATEST_PYTHON_VERSION,

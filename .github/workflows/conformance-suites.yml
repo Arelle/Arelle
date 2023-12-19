@@ -32,7 +32,7 @@ jobs:
           echo EOF >> $GITHUB_OUTPUT
 
   run-conformance-suite:
-    name: ${{ matrix.test.name }}${{ matrix.test.shard && format(':{0}', matrix.test.shard) || '' }} - ${{ matrix.test.os }} - ${{ matrix.test.python_version }}
+    name: ${{ matrix.test.short_name }}${{ matrix.test.shard && format(':{0}', matrix.test.shard) || '' }} - ${{ matrix.test.os }} - ${{ matrix.test.python_version }}
     needs: find-tests
     runs-on: ${{ matrix.test.os }}
     strategy:
@@ -101,7 +101,7 @@ jobs:
       - id: build-artifact-name
         shell: bash
         run: |
-          printf 'artifact-name=%.50s %s %s %s logs' "${{ matrix.test.name }}" "${{ matrix.test.shard && format(' {0}', matrix.test.shard) || '' }}" "${{ matrix.test.os }}" "${{ matrix.test.python_version }}" >> $GITHUB_OUTPUT
+          printf 'artifact-name=%s%s %s %s logs' "${{ matrix.test.short_name }}" "${{ matrix.test.shard && format(' {0}', matrix.test.shard) || '' }}" "${{ matrix.test.os }}" "${{ matrix.test.python_version }}" >> $GITHUB_OUTPUT
       - name: Upload logs and reports
         if: always()
         uses: actions/upload-artifact@v4.0.0
