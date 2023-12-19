@@ -382,8 +382,9 @@ def loadUgtRelQnames(modelXbrl, dqcRules):
     _file = openFileStream(modelXbrl.modelManager.cntlr, _ugtRelsFileName, 'rt', encoding='utf-8')
     ugtRels = json.load(_file) # {localName: date, ...}
     _file.close()
+    prefixedNamespaces = modelXbrl.prefixedNamespaces
     def qn(nsPrefix, localName):
-        return qname(nsPrefix + ":" + localName, modelXbrl.prefixedNamespaces)
+        return qname(nsPrefix + ":" + localName, prefixedNamespaces)
     ugtCalcsByQnames = defaultdict(dict) # store as concept indices to avoid using memory for repetitive strings
     for wgt, fromNSes in ugtRels["calcs"].items():
         calcWgtObj = ugtCalcsByQnames.setdefault(float(wgt), {}) # json weight object needs to be float
