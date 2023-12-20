@@ -1,3 +1,4 @@
+import re
 from pathlib import PurePath
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 
@@ -13,4 +14,7 @@ config = ConformanceSuiteConfig(
     network_or_cache_required=False,
     plugins=frozenset({'formulaXPathChecker', 'functionsMath'}),
     strict_testcase_index=False,
+    required_locale_by_ids={f'formula/function-registry/{t}': p for t, p in [
+        ('xbrl/90701 xfi.format-number/90701 xfi.format-number testcase.xml:V-05', re.compile(r"^(en|English).*$")),
+    ]},
 )
