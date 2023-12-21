@@ -746,6 +746,25 @@ def isNumericXsdType(xsdType: str) -> bool:
     }
 
 
+def isDecimalXsdType(xsdType: str) -> bool:
+    return xsdType in {
+        "integer",
+        "positiveInteger",
+        "negativeInteger",
+        "nonNegativeInteger",
+        "nonPositiveInteger",
+        "long",
+        "unsignedLong",
+        "int",
+        "unsignedInt",
+        "short",
+        "unsignedShort",
+        "byte",
+        "unsignedByte",
+        "decimal",
+    }
+
+
 def isIntegerXsdType(xsdType: str) -> bool:
     return xsdType in {
         "integer",
