@@ -178,11 +178,16 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         if not isIncluded and namespace and namespace in XbrlConst.standardNamespaceSchemaLocations and uri != XbrlConst.standardNamespaceSchemaLocations[namespace]:
             return load(modelXbrl, XbrlConst.standardNamespaceSchemaLocations[namespace],
                         base, referringElement, isEntry, isDiscovered, isIncluded, namespace, reloadCache)
+        if modelXbrl.modelManager.abortOnMajorError and (isEntry or isDiscovered):
+            modelXbrl.error("IOerror",
+                _("%(fileName)s: file error: %(error)s \nLoading terminated."),
+                modelObject=referringElement, fileName=os.path.basename(uri), error=str(err))
+            raise LoadingException()
+        #import traceback
+        #print("traceback {}".format(traceback.format_tb(sys.exc_info()[2])))
         modelXbrl.error("IOerror",
                 _("%(fileName)s: file error: %(error)s"),
                 modelObject=referringElement, fileName=os.path.basename(uri), error=str(err))
-        if modelXbrl.modelManager.abortOnMajorError and (isEntry or isDiscovered):
-            raise LoadingException()
         modelXbrl.urlUnloadableDocs[normalizedUri] = True  # not loadable due to IO issue
         return None
     except (etree.LxmlError, etree.XMLSyntaxError,
@@ -205,10 +210,15 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 modelObject=(referringElement, os.path.basename(uri)), fileName=os.path.basename(uri), error=str(err))
         return None
     except Exception as err:
-        modelXbrl.error(type(err).__name__,
-                _("Unrecoverable error: %(error)s, %(fileName)s"),
-                modelObject=referringElement, fileName=os.path.basename(uri),
-                error=str(err), exc_info=True)
+        if len(err.args) >= 2 and err.args[0] == "rpe:unsupportedFileExtension":
+            modelXbrl.error(err.args[0],
+                _("Unsupported file extension for zip contents: %(fileName)s"),
+                modelObject=referringElement, fileName=os.path.basename(uri))
+        else:
+            modelXbrl.error(type(err).__name__,
+                    _("Unrecoverable error: %(error)s, %(fileName)s"),
+                    modelObject=referringElement, fileName=os.path.basename(uri),
+                    error=str(err), exc_info=True)
         modelXbrl.urlUnloadableDocs[normalizedUri] = True  # not loadable due to exception issue
         return None
 
@@ -419,7 +429,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
     if initialComment:
         initialComment = "<!--" + initialComment + "-->"
     # XML document has nsmap root element to replace nsmap as new xmlns entries are required
-    if initialXml and type in (Type.INSTANCE, Type.SCHEMA, Type.LINKBASE, Type.RSSFEED):
+    if initialXml and type in (Type.INSTANCE, Type.SCHEMA, Type.LINKBASE, Type.RSSFEED, Type.TESTCASE):
         Xml = '<nsmap>{}{}</nsmap>'.format(initialComment or '', initialXml or '')
     elif type == Type.INSTANCE:
         # modelXbrl.uriDir = os.path.dirname(normalizedUri)
@@ -1274,7 +1284,7 @@ class ModelDocument:
                     modelObject=undefFacts,
                     elements=", ".join(sorted(set(str(f.prefixedName) for f in undefFacts))))
 
-    def contextDiscover(self, modelContext) -> None:
+    def contextDiscover(self, modelContext, targetModelXbrl=None) -> None:
         if not self.skipDTS:
             xmlValidate(self.modelXbrl, modelContext) # validation may have not completed due to errors elsewhere
         id = modelContext.id
@@ -1288,7 +1298,10 @@ class ModelDocument:
                         if sElt.namespaceURI == XbrlConst.xbrldi and sElt.localName in ("explicitMember","typedMember"):
                             dimQn = sElt.dimensionQname
                             if dimQn: # may be null if schema error omits dimension element
-                                #xmlValidate(self.modelXbrl, sElt)
+                                if targetModelXbrl is not None: # ixds possibly-shared context
+                                    sElt.targetModelXbrl = targetModelXbrl
+                                    if hasattr(sElt, "_dimension") and sElt._dimension is None:
+                                        del sElt._dimension
                                 modelContext.qnameDims[dimQn] = sElt # both seg and scen
                                 if not self.skipDTS:
                                     dimension = sElt.dimension
@@ -1299,10 +1312,12 @@ class ModelDocument:
                         else:
                             containerNonDimValues.append(sElt)
 
-    def unitDiscover(self, unitElement) -> None:
+    def unitDiscover(self, unitElement, targetModelXbrl=None) -> None:
         if not self.skipDTS:
             xmlValidate(self.modelXbrl, unitElement) # validation may have not completed due to errors elsewhere
         self.modelXbrl.units[unitElement.id] = unitElement
+        if targetModelXbrl is not None: # ixds possibly-shared context
+            unitElement.targetModelXbrl = targetModelXbrl
 
     def inlineXbrlDiscover(self, htmlElement):
         ixNS = None
@@ -1485,6 +1500,12 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False):
     modelXbrl.targetRoleRefs = {} # roleRefs used by selected target
     modelXbrl.targetArcroleRefs = {}  # arcroleRefs used by selected target
     modelXbrl.targetRelationships = set() # relationship elements used by selected target
+    targetModelXbrl = modelXbrl if setTargetModelXbrl else None # modelXbrl of target for contexts/units in multi-target/multi-instance situation
+    assignUnusedContextsUnits = (not setTargetModelXbrl and not ixdsTarget and
+                                 not getattr(modelXbrl, "supplementalModelXbrls", ()) and (
+                                    not getattr(modelXbrl, "targetIXDSesToLoad", ()) or
+                                    set(e.modelDocument for e in modelXbrl.ixdsHtmlElements) ==
+                                    set(x.modelDocument for e in getattr(modelXbrl, "targetIXDSesToLoad", ()) for x in e[1])))
     hasResources = hasHeader = False
     for htmlElement in modelXbrl.ixdsHtmlElements:
         mdlDoc = htmlElement.modelDocument
@@ -1617,12 +1638,12 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False):
         for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "resources"):
             for elt in inlineElement.iterchildren("{http://www.xbrl.org/2003/instance}context"):
                 id = elt.get("id")
-                if id in contextRefs or (not ixdsTarget and id not in allContextRefs):
-                    modelIxdsDocument.contextDiscover(elt)
+                if id in contextRefs or (assignUnusedContextsUnits and id not in allContextRefs):
+                    modelIxdsDocument.contextDiscover(elt, targetModelXbrl=targetModelXbrl)
             for elt in inlineElement.iterchildren("{http://www.xbrl.org/2003/instance}unit"):
                 id = elt.get("id")
-                if id in unitRefs or (not ixdsTarget and id not in allUnitRefs):
-                    modelIxdsDocument.unitDiscover(elt)
+                if id in unitRefs or (assignUnusedContextsUnits and id not in allUnitRefs):
+                    modelIxdsDocument.unitDiscover(elt, targetModelXbrl=targetModelXbrl)
             for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}roleRef"):
                 r = refElement.get("roleURI")
                 if r in targetRoleUris[ixdsTarget]:
@@ -2077,17 +2098,6 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False):
     if ixdsTarget in modelXbrl.ixTargetRootElements:
         modelIxdsDocument.targetXbrlRootElement = modelXbrl.ixTargetRootElements[ixdsTarget]
         modelIxdsDocument.targetXbrlElementTree = PrototypeElementTree(modelIxdsDocument.targetXbrlRootElement)
-
-    # set dimension and unit targetModelXbrl to first DTS defining the concept/measure QNames
-    for cntx in modelXbrl.contexts.values():
-        for dim in cntx.qnameDims.values():
-            if not hasattr(dim, "targetModelXbrl"):
-                dim.targetModelXbrl = modelXbrl
-                if hasattr(dim, "_dimension") and dim._dimension is None:
-                    del dim._dimension
-    for unit in modelXbrl.units.values():
-        if not hasattr(unit, "targetModelXbrl"):
-            unit.targetModelXbrl = modelXbrl
 
     for pluginMethod in pluginClassMethods("ModelDocument.IxdsTargetDiscovered"):
         pluginMethod(modelXbrl, modelIxdsDocument)
