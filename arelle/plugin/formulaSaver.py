@@ -470,7 +470,7 @@ class GenerateXbrlFormula:
 
 def saveXfMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Save Xbrl Formula file",
+    menu.add_command(label="Save Formula as XF...",
                      underline=0,
                      command=lambda: saveXfMenuCommand(cntlr) )
 
@@ -494,10 +494,10 @@ def saveXfMenuCommand(cntlr):
 
     modelXbrl = cntlr.modelManager.modelXbrl
     try:
-        GenerateXbrlFormula(cntlr, modelXbrl, xbrlFormulaFile, mode)
+        GenerateXbrlFormula(cntlr, modelXbrl, xbrlFormulaFile)
     except Exception as ex:
-        dts.error("exception",
-            _("Xbrl Formula file generation exception: %(error)s"), error=ex,
+        modelXbrl.error("exception",
+            _("XF file generation exception: %(error)s"), error=ex,
             modelXbrl=modelXbrl,
             exc_info=True)
 
