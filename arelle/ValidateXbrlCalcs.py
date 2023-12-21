@@ -224,7 +224,7 @@ class ValidateXbrlCalcs:
                                                 _("The source and target of a Calculations v1.1 relationship MUST both be decimal concepts: %(sumConcept)s, %(itemConcept)s, link role %(linkrole)s"),
                                                 modelObject=(sumConcept, itemConcept, modelRel), linkrole=modelRel.linkrole,
                                                 sumConcept=sumConcept.qname, itemConcept=itemConcept.qname)
-                                            
+
                             # add up rounded items
                             boundSums = defaultdict(decimal.Decimal) # sum of facts meeting factKey
                             boundIntervals = {} # interval sum of facts meeting factKey
