@@ -5,7 +5,8 @@ from __future__ import annotations
 import regex as re
 from typing import Any, List, Set, Union, cast
 from arelle import (XmlUtil, XbrlUtil, XbrlConst,
-                ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateUtr)
+                    ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateUtr, ValidateDuplicateFacts)
+from arelle.PythonUtil import strTruncate
 from arelle.formula import ValidateFormula
 from arelle.ModelDocument import ModelDocument, Type as ModelDocumentType
 from arelle import FunctionIxt
@@ -116,6 +117,7 @@ class ValidateXbrl:
                                  for concept in self.modelXbrl.nameConcepts.get("UTR",()))))
         self.validateIXDS = False # set when any inline document found
         self.validateEnum = bool(XbrlConst.enums & modelXbrl.namespaceDocs.keys())
+        self.validateDuplicateFacts = modelXbrl.modelManager.validateDuplicateFacts
         self._pluginData: dict[str, PluginValidationData] = {}
 
         for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Start"):
@@ -275,6 +277,7 @@ class ValidateXbrl:
             self.checkFacts(modelXbrl.facts)
             self.checkContexts(self.modelXbrl.contexts.values())
             self.checkUnits(self.modelXbrl.units.values())
+            self.checkDuplicateFacts(modelXbrl.facts, self.validateDuplicateFacts)
 
             modelXbrl.profileStat(_("validateInstance"))
 
@@ -679,6 +682,21 @@ class ValidateXbrl:
                                 modelObject=arcElt,
                                 linkrole=modelLink.role,
                                 xlinkLabel=resourceArcToLabel)
+
+    def checkDuplicateFacts(self, facts: list[ModelFact], duplicateType: ValidateDuplicateFacts.DuplicateType) -> None:
+        duplicateFactSets = ValidateDuplicateFacts.getDuplicateFactSetsOfType(facts, duplicateType)
+        if not duplicateFactSets:
+            return
+        for duplicateFactSet in duplicateFactSets:
+            self.modelXbrl.error(
+                "arelle:disallowedDuplicateFacts",
+                "Duplicate facts (%(duplicateType)s) %(qname)s: %(values)s, Example pair: %(contextIDs)s.",
+                modelObject=duplicateFactSet.facts,
+                duplicateType=" or ".join(str(t.name).lower() for t in (duplicateFactSet.duplicateType or duplicateType)),
+                qname=duplicateFactSet.facts[0].qname,
+                contextIDs=", ".join(sorted(set(f.contextID for f in duplicateFactSet.facts))),
+                values=", ".join(strTruncate(f.value, 64) for f in duplicateFactSet.facts),
+            )
 
     def checkFacts(self, facts: list[ModelFact], inTuple: dict[Any, Any] | None = None) -> None:  # do in document order
         for f in facts:

@@ -6,7 +6,7 @@ This module is Arelle's controller in command line non-interactive mode
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from arelle import PythonUtil # define 2.x or 3.x string types
+from arelle import PythonUtil, ValidateDuplicateFacts  # define 2.x or 3.x string types
 import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging, platform
 from optparse import OptionGroup, OptionParser, SUPPRESS_HELP
 import regex as re
@@ -130,6 +130,10 @@ def parseArgs(args):
                              "are individually so validated. "
                              "If formulae are present they will be validated and run unless --formula=none is specified. "
                              ))
+    parser.add_option("--validateDuplicateFacts", "--validateduplicatefacts",
+                      choices=[a.value for a in ValidateDuplicateFacts.DUPLICATE_TYPE_ARG_MAP],
+                      dest="validateDuplicateFacts",
+                      help=_("Select which types of duplicates should trigger warnings."))
     parser.add_option("--noValidateTestcaseSchema", "--novalidatetestcaseschema", action="store_false", dest="validateTestcaseSchema", default=True,
                       help=_("Validate testcases against their schemas."))
     betaGroup = OptionGroup(parser, "Beta Features",
@@ -748,6 +752,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
         else:
             self.modelManager.disclosureSystem.select(None) # just load ordinary mappings
             self.modelManager.validateDisclosureSystem = False
+        if options.validateDuplicateFacts:
+            duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(options.validateDuplicateFacts)
+            duplicateType = duplicateTypeArg.duplicateType()
+            self.modelManager.validateDuplicateFacts = duplicateType
         if options.utrUrl:  # override disclosureSystem utrUrl
             self.modelManager.disclosureSystem.utrUrl = [options.utrUrl]
             # can be set now because the utr is first loaded at validation time
