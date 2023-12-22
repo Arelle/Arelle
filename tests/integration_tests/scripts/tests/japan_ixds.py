@@ -15,8 +15,8 @@ args = parse_args(
 arelle_command = args.arelle
 arelle_offline = args.offline
 working_directory = Path(args.working_directory)
-arelle_log_file1 = prepare_logfile(working_directory, this_file, number=1)
-arelle_log_file2 = prepare_logfile(working_directory, this_file, number=2)
+arelle_log_file1 = prepare_logfile(working_directory, this_file, name="save")
+arelle_log_file2 = prepare_logfile(working_directory, this_file, name="validate")
 report_zip_path = working_directory.joinpath('report.zip')
 report_directory = working_directory.joinpath('report')
 manifest_path = report_directory.joinpath("manifest.xml")
@@ -61,7 +61,7 @@ errors += validate_log_file(arelle_log_file2)
 
 assert_result(errors)
 
-print(f"Cleaning up")
+print("Cleaning up")
 cleanup(
     working_directory,
     [

@@ -32,10 +32,6 @@ def cleanup(
             path.unlink()
 
 
-def get_standard_logfile_path(path: Path) -> Path:
-    return Path(f"{path.stem}.logfile.xml")
-
-
 def parse_args(
     name: str,
     description: str,
@@ -74,9 +70,9 @@ def parse_args(
     return parsed_args
 
 
-def prepare_logfile(working_directory: Path, script_path: Path, number: int | None = None) -> Path:
-    number_part = "" if number is None else f".{number}"
-    logfile_path = working_directory.joinpath(f"{script_path.stem}{number_part}.logfile.xml")
+def prepare_logfile(working_directory: Path, script_path: Path, name: str | None = None) -> Path:
+    name_part = "" if name is None else f".{name}"
+    logfile_path = working_directory.joinpath(script_path.stem).with_suffix(f"{name_part}.logfile.xml")
     logfile_path.unlink(missing_ok=True)
     return logfile_path
 

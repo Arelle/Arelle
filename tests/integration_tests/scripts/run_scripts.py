@@ -100,8 +100,6 @@ def run_script_options(options: Namespace) -> list[ParameterSet]:
             marks=[],
         )
         all_results.append(param)
-        # if returncode != 0:
-        #     print(f"Failed: {script.stem}. Return code: {returncode}\n{stderr}", file=sys.stderr)
     return all_results
 
 

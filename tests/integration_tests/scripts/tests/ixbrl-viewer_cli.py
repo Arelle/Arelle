@@ -50,7 +50,7 @@ errors += validate_log_file(arelle_log_file)
 
 assert_result(errors)
 
-print(f"Cleaning up")
+print("Cleaning up")
 cleanup(
     working_directory,
     [
