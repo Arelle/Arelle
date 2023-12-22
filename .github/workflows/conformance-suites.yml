@@ -96,9 +96,11 @@ jobs:
       - name: Run integration tests with pytest
         run: pytest -s --disable-warnings --offline --log-to-file --name=${{ matrix.test.name }}${{ matrix.test.shard && format(' --shard={0}', matrix.test.shard) || '' }} tests/integration_tests/validation/test_conformance_suites.py
       - name: Cat logs
+        if: always()
         shell: bash
         run: tail -n+1 conf-*log.txt
       - id: build-artifact-name
+        if: always()
         shell: bash
         run: |
           printf 'artifact-name=%s%s %s %s logs' "${{ matrix.test.short_name }}" "${{ matrix.test.shard && format(' {0}', matrix.test.shard) || '' }}" "${{ matrix.test.os }}" "${{ matrix.test.python_version }}" >> $GITHUB_OUTPUT
