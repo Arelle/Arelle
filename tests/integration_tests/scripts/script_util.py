@@ -60,15 +60,15 @@ def parse_args(
                         help=f"Whether or not to download and apply cache.")
     parser.add_argument("--offline", action="store_true",
                         help="True if Arelle should run in offline mode.")
-    default_directory = Path(".test").joinpath(name)
-    parser.add_argument("--working-directory", action="store", default=default_directory.as_posix(),
+    parser.add_argument("--working-directory", action="store", default=".test",
                         help="Directory to place temporary files and log output.")
     parsed_args = parser.parse_args()
     if cache and parsed_args.download_cache:
         download_and_apply_cache(f"scripts/{cache}")
         print(f"Downloaded and applied cache: {cache}")
     if working_directory:
-        directory = Path(parsed_args.working_directory).absolute()
+        directory = Path(parsed_args.working_directory).joinpath(name).absolute()
+        parsed_args.working_directory = directory
         directory.mkdir(parents=True, exist_ok=True)
         print(f"Set working directory: {directory}")
     return parsed_args
