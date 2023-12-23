@@ -40,7 +40,8 @@ def askArchiveFile(parent, filesource, multiselect=False, selectFiles=None):
                                            _("Select Entry Point"),
                                            _("File"),
                                            showAltViewButton=True,
-                                           multiselect=multiselect)
+                                           multiselect=multiselect,
+                                           selectFiles=selectFiles)
             else:
                 dialog = DialogOpenArchive(parent,
                                            ARCHIVE,
@@ -368,10 +369,15 @@ class DialogOpenArchive(Toplevel):
             self.treeView.column("url", width=300, anchor="w")
             self.treeView.heading("url", text="URL")
 
-            for fileType, fileUrl in getattr(self, "packageContainedInstances", ()):
-                self.treeView.insert("", "end", fileUrl,
-                                     values=fileType,
-                                     text=fileUrl or urls[0][2])
+            for fileUrl, fileType in getattr(self, "packageContainedInstances", ()):
+                node = self.treeView.insert("", "end", fileType,
+                                     values=fileUrl,
+                                     text=fileType or urls[0][2])
+                if self.selectFiles:
+                    if any(f.startswith(fileUrl) for f in self.selectFiles): # ixds files are within the ixds directory
+                        selectedNodes.append(node)
+                elif self.selection == filename:
+                    selectedNodes.append(node)
             for name, urls in sorted(self.taxonomyPackage.get("entryPoints", {}).items(), key=lambda i:i[0][2]):
                 self.treeView.insert("", "end", name,
                                      values="\n".join(url[1] for url in urls),
