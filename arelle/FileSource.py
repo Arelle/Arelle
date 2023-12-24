@@ -418,15 +418,8 @@ class FileSource:
     @property
     def isReportPackage(self) -> bool:
         return self.isZip and (
-            any(PackageManager.reportPackageDirPattern.match(f) for f in (self.dir or ()))
+            any(PackageManager.reportPackageExistencePattern.match(f) for f in (self.dir or ()))
             or os.path.splitext(self.baseurl)[1] in (".xbri", ".xbr"))
-
-    @property
-    def reportPackageFile(self) -> str | None:
-        for f in (self.dir or []):
-            if f.endswith("/META-INF/reportPackage.json"):
-                return f  # report package
-        return None
 
     def isInArchive(self, filepath: str | None, checkExistence: bool = False) -> bool:
         archiveFileSource = self.fileSourceContainingFilepath(filepath)

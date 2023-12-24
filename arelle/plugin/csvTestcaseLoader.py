@@ -63,7 +63,7 @@ def csvTestcaseLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                   base=modelXbrl.entryLoadingUrl,
                   initialXml=testcaseElementXml
                 )
-                testcase = doc.xmlRootElement    
+                testcase = doc.xmlRootElement
             else:
                 input, errors, report_count, description = row
                 id = os.path.splitext(input)[0]
@@ -71,7 +71,7 @@ def csvTestcaseLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                 XmlUtil.addChild(var, qname(testNS, "description"), text=description)
                 # guess at data element type
                 if input.endswith(".xs") or input.endswith(".xsd"):
-                    dataElt = "schema" 
+                    dataElt = "schema"
                 elif input.endswith(".xbrl"):
                     dataElt = "instance"
                 elif input.endswith(".zip"):
@@ -90,7 +90,7 @@ def csvTestcaseLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
         modelXbrl.error("arelle:testcaseCsvError", str(ex), href=filepath, **kwargs)
     except Exception as ex:
         modelXbrl.error("arelle:testcaseException", str(ex), href=filepath, **kwargs)
-        
+
     return doc
 
 def isCsvTestcase(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):

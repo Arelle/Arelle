@@ -271,8 +271,14 @@ class Validate:
                                             for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
                                                 pluginXbrlMethod(self, filesource,entrypoints)
                                             filesource.select(entrypoints[0].get("file", None) )
+                                        else:
+                                            filesource.select(None)
                                     if filesource.isReportPackage:
-                                        PackageManager.validateReportPackage(filesource, _errors)
+                                        if (PackageManager.validateReportPackage(filesource, _errors)
+                                            and filesource.url == None):
+                                            # valid report package but nothing to load
+                                            self.determineTestStatus(modelTestcaseVariation, _errors)
+                                            continue # don't attempt to load instance-less report package
                                 except Exception as err:
                                     self.modelXbrl.error("exception:" + type(err).__name__,
                                         _("Testcase variation validation exception: %(error)s, entry URL: %(instance)s"),
