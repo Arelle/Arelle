@@ -165,6 +165,10 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateUtr = BooleanVar(value=self.modelManager.validateUtr)
         self.validateUtr.trace("w", self.setValidateUtr)
         validateMenu.add_checkbutton(label=_("Unit Type Registry validation"), underline=0, variable=self.validateUtr, onvalue=True, offvalue=False)
+        self.modelManager.validateRptPkg = self.config.setdefault("validateRptPkg",False)
+        self.validateRptPkg = BooleanVar(value=self.modelManager.validateRptPkg)
+        self.validateRptPkg.trace("w", self.setValidateRptPkg)
+        validateMenu.add_checkbutton(label=_("Report package zip validation"), underline=0, variable=self.validateRptPkg, onvalue=True, offvalue=False)
         for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.Validation"):
             pluginMenuExtender(self, validateMenu)
 
@@ -770,7 +774,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             if filesource.isArchive:
                 if not PackageManager.validatePackageEntries(filesource):
                     return
-                if filesource.isReportPackage and not PackageManager.validateReportPackage(filesource):
+                if (filesource.isReportPackage or self.modelManager.validateRptPkg) and not PackageManager.validateReportPackage(filesource):
                     return
                 if not filesource.selection: # or filesource.isRss:
                     from arelle import DialogOpenArchive
@@ -1301,6 +1305,10 @@ class CntlrWinMain (Cntlr.Cntlr):
                     u = _("\nCheck unit type registry")
                 else:
                     u = ""
+                if self.modelManager.validateRptPkg:
+                    u = _("\nReport package required")
+                else:
+                    u = ""
                 if self.modelManager.validateDisclosureSystem:
                     v = _("Validate {0}\nCheck disclosure system rules\n{1}{2}{3}").format(
                            valName, self.modelManager.disclosureSystem.selection,c,u)
@@ -1319,6 +1327,12 @@ class CntlrWinMain (Cntlr.Cntlr):
     def setValidateUtr(self, *args):
         self.modelManager.validateUtr = self.validateUtr.get()
         self.config["validateUtr"] = self.modelManager.validateUtr
+        self.saveConfig()
+        self.setValidateTooltipText()
+
+    def setValidateRptPkg(self, *args):
+        self.modelManager.validateRptPkg = self.validateRptPkg.get()
+        self.config["validateRptPkg"] = self.modelManager.validateRptPkg
         self.saveConfig()
         self.setValidateTooltipText()
 

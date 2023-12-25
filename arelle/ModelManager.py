@@ -44,6 +44,11 @@ class ModelManager:
 
         True for validation of unit type registry
 
+        .. attribute:: validateRptPkg
+
+        True to require validation of all zips as Report Package
+        False allows flat zips of XBRL files such as instances and inline documents
+
         .. attribute:: defaultLang
 
         The default language code for labels selection and views (e.g. 'en-US'), set from the operating system defaults on startup.
@@ -59,6 +64,7 @@ class ModelManager:
         self.validateCalcs = 0 # ValidateXbrlCalcs.ValidateCalcsMode
         self.validateInfoset = False
         self.validateUtr = False
+        self.validateRptPkg = False
         self.validateTestcaseSchema = True
         self.skipDTS = False
         self.skipLoading = None

@@ -541,6 +541,13 @@ def validateReportPackage(filesource, errors=[]) -> bool:
             return False
     if rptPkgFile:
         pkgFilePath = f"{filesource.basefile}/{rptPkgFile}"
+    elif rptDir is None:
+        if cntlr.modelManager.validateRptPkg:
+            cntlr.addToLog(_("Zip file is not a report package and is not processed further"),
+                           messageCode="arelle:notReportPackage",
+                           file=os.path.basename(filesource.baseurl),
+                           level=logging.INFO)
+        return False # not a report package, might be a taxonomy package
     docTypeUri = rptPkgObj["documentInfo"].get("documentType") if isinstance(rptPkgObj,dict) and isinstance(rptPkgObj.get("documentInfo"),dict) else None
     if not isinstance(docTypeUri, str):
         cntlr.addToLog(_("Unsupported documentType type: %(docTypeType)s"),

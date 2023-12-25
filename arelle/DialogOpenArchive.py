@@ -376,8 +376,8 @@ class DialogOpenArchive(Toplevel):
                 if self.selectFiles:
                     if any(f.startswith(fileUrl) for f in self.selectFiles): # ixds files are within the ixds directory
                         selectedNodes.append(node)
-                elif self.selection == filename:
-                    selectedNodes.append(node)
+                else:
+                    selectedNodes.append(node) # just select instances
             for name, urls in sorted(self.taxonomyPackage.get("entryPoints", {}).items(), key=lambda i:i[0][2]):
                 self.treeView.insert("", "end", name,
                                      values="\n".join(url[1] for url in urls),
