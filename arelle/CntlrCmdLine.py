@@ -153,6 +153,8 @@ def parseArgs(args):
                       help=_("Deprecated - pre-2010 XBRL v2.1 calculation linkbase validation inferring precision."))
     parser.add_option("--calcDeduplicate", "--calcdeduplicate", action="store_true", dest="calcDeduplicate",
                       help=_("Deprecaated -  de-duplication of consistent facts when performing calculation validation, chooses most accurate fact."))
+    parser.add_option("--reportPackage", "--reportpackage", action="store_true", dest="validateRptPkg",
+                      help=_("Zip archives require report package validation.  When not specified zip archives may contain flat XBRL inputs such as instance files."))
     parser.add_option("--efm", action="store_true", dest="validateEFM",
                       help=_("Select Edgar Filer Manual (U.S. SEC) disclosure system validation (strict)."))
     parser.add_option("--efm-skip-calc-tree", action="store_false", default=True, dest="validateEFMCalcTree",
@@ -513,7 +515,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[], inlineOnly=False):
             return
         if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
             filesource.loadTaxonomyPackageMappings()
-        if filesource.isReportPackage:
+        if (filesource.isReportPackage or filesource.cntlr.modelManager.validateRptPkg):
             PackageManager.validateReportPackage(filesource)
         # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
         for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
@@ -798,6 +800,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                               messageCode="info", file=options.entrypointFile)
         if options.utrValidate:
             self.modelManager.validateUtr = True
+        if options.validateRptPkg:
+            self.modelManager.validateRptPkg = True
         if options.infosetValidate:
             self.modelManager.validateInfoset = True
         if options.abortOnMajorError:
