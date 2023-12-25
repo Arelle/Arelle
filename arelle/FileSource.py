@@ -85,7 +85,7 @@ def archiveFilenameParts(filename: str | None, checkIfXmlIsEis: bool = False) ->
             fileDir = filenameParts[0] + archiveSep[:-1]
             if (isHttpUrl(fileDir) or
                 os.path.isfile(fileDir)): # if local, be sure it is not a directory name
-                return (fileDir, filenameParts[2].replace('\\', '/'))
+                return (fileDir, filenameParts[2])
     return None
 
 class FileNamedStringIO(io.StringIO):  # provide string IO in memory but behave as a fileName string
@@ -641,6 +641,7 @@ class FileSource:
         elif self.filesDir is not None:
             return self.filesDir
         elif self.isZip:
+            files: list[str] = []
             assert isinstance(self.fs, zipfile.ZipFile)
             for zipinfo in self.fs.infolist():
                 f = zipinfo.filename
