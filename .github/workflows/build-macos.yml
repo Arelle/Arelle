@@ -103,7 +103,7 @@ jobs:
           repository: Workiva/ixbrl-viewer
           path: tmp/ixbrl-viewer
           ref: ${{ inputs.ixbrl_viewer_ref }}
-      - uses: actions/setup-node@v4.0.0
+      - uses: actions/setup-node@v4.0.1
         with:
           node-version: ${{ inputs.node_version }}
       - run: |
