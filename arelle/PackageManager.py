@@ -35,7 +35,7 @@ TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD 
 # allow for future report packages which might have META-INF at root level
 reportPackageExistencePattern = re.compile(r"^(?:[^/]+/)?META-INF/reportPackage.json$|^[^/]+/reports/")
 reportPackageFilePattern = re.compile(r"^(?:([^/]+)/)?META-INF/reportPackage.json$")
-reportPackageReportsPattern = re.compile(r"^([^/]+/reports/)")
+reportPackageReportsPattern = re.compile(r"^(([^/]+)/reports/)")
 
 reportPackageDocTypeExtensions = {
     "https://xbrl.org/report-package/2023/xbri": (".xbri",),
@@ -532,6 +532,7 @@ def validateReportPackage(filesource, errors=[]) -> bool:
             m = reportPackageReportsPattern.match(f)
             if m:
                 rptDir = m.group(1)
+                STLD = m.group(2)
                 break
     rptPkgObj = {"documentInfo":{"documentType":"https://xbrl.org/report-package/2023"}} #default doc type
     if rptPkgFile is not None:
@@ -548,6 +549,13 @@ def validateReportPackage(filesource, errors=[]) -> bool:
                        messageArgs={"docTypeType": type(docTypeUri).__name__},
                        level=logging.ERROR)
         errors.append("rpe:invalidJSONStructure")
+    elif rptPkgExt in (".xbri", ".xbr") and rptPkgFile is None:
+        cntlr.addToLog(_("The report package file extension %(extension)s MUST have a report package type specified, but it is absent."),
+                       messageCode="rpe:documentTypeFileExtensionMismatch",
+                       file=os.path.basename(filesource.baseurl),
+                       messageArgs={"extension": rptPkgExt},
+                       level=logging.ERROR)
+        errors.append("rpe:documentTypeFileExtensionMismatch")
     elif STLD is None:
         cntlr.addToLog(_("Unsupported META-INF as STLD."),
                        messageCode="rpe:unsupportedReportPackageVersion",
@@ -561,13 +569,6 @@ def validateReportPackage(filesource, errors=[]) -> bool:
                        messageArgs={"docTypeUri": docTypeUri},
                        level=logging.ERROR)
         errors.append("rpe:unsupportedReportPackageVersion")
-    elif rptPkgExt in (".xbri", ".xbr") and rptPkgFile is None:
-        cntlr.addToLog(_("The report package file extension %(extension)s MUST have a report package type specified, but it is absent."),
-                       messageCode="rpe:documentTypeFileExtensionMismatch",
-                       file=os.path.basename(filesource.baseurl),
-                       messageArgs={"extension": rptPkgExt},
-                       level=logging.ERROR)
-        errors.append("rpe:documentTypeFileExtensionMismatch")
     elif rptPkgExt not in reportPackageDocTypeExtensions[docTypeUri]:
         cntlr.addToLog(_("The report package file extension MUST match the report package type specified by the report package document type URI, %(docTypeUri)s"),
                        messageCode="rpe:documentTypeFileExtensionMismatch",
@@ -589,12 +590,12 @@ def validateReportPackage(filesource, errors=[]) -> bool:
     else:
         rptInRptDirPtrn = re.compile(f"{rptDir}[^/.]*[.](xbrl|xhtml|html|htm|json)$")
         rptSubdirPtrn = re.compile(f"{rptDir}([^/]+)/")
-        rptInRptSubdirPtrn = re.compile(f"{rptDir}[^/]+/[^/.]*[.](xbrl|xhtml|html|jtm|json)$")
         rpts = [f for f in dir if rptInRptDirPtrn.match(f)] # each file is separate report/IXDS even if inline
         if not rpts: # if no top level reports look in subdirectories
             subdirs = sorted(set(m.group(1) for f in dir for m in (rptSubdirPtrn.match(f),) if m is not None))
             for subdir in subdirs:
-                rptsInSubdir = [f for s in (f"{rptDir}{subdir}/",) for f in dir if f.startswith(s)]
+                rptInRptSubdirPtrn = re.compile(f"{rptDir}{subdir}/[^/.]*[.](xbrl|xhtml|html|jtm|json)$")
+                rptsInSubdir = [f for f in dir if rptInRptSubdirPtrn.match(f)]
                 if not (all(os.path.splitext(f)[1] in inlineExtensions for f in rptsInSubdir) or
                         0 <= sum(os.path.splitext(f)[1] in allExtensions for f in rptsInSubdir) <= 1):
                     cntlr.addToLog(_("A report package reports subdirectory MUST no more than one xbrl report, %(dir)s"),
@@ -864,6 +865,7 @@ def removePackageModule(cntlr, name):
     return result
 
 invalidZipDirEntryPattern = re.compile(r"^/|^.*\\")
+topLevelDirPattern = re.compile(r"([^/]+)/")
 forbiddenDirEntryPattern = re.compile(r"^..?$|^..?/|^.*/..?/|^.*//")
 def validatePackageEntries(filesource, errors=None):
     result = False
@@ -883,7 +885,14 @@ def validatePackageEntries(filesource, errors=None):
                                       level=logging.ERROR,
                                       file=filesource.url)
             if errors is not None: errors.append("rpe:invalidDirectoryStructure")
-        elif any (invalidZipDirEntryPattern.match(f) for f in _dir):
+        elif len(set(topLevelDirPattern.match(f).group(1) for f in _dir if topLevelDirPattern.match(f))) > 1:
+            filesource.cntlr.addToLog(_("Archive must not contain multiple top level directories but %(count)s were found"),
+                                      messageCode="rpe:invalidDirectoryStructure",
+                                      messageArgs={"count":len(set(topLevelDirPattern.match(f) for f in _dir))},
+                                      level=logging.ERROR,
+                                      file=filesource.url)
+            if errors is not None: errors.append("rpe:invalidDirectoryStructure")
+        elif any(invalidZipDirEntryPattern.match(f) for f in _dir):
             for f in filesource.dir:
                 if invalidZipDirEntryPattern.match(f):
                     filesource.cntlr.addToLog(_("Archive must not contain absolute path references or backslashes \"%(name)s\""),

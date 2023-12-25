@@ -279,6 +279,10 @@ class Validate:
                                             # valid report package but nothing to load
                                             self.determineTestStatus(modelTestcaseVariation, _errors)
                                             continue # don't attempt to load instance-less report package
+                                    if filesource.isTaxonomyPackage and filesource.url == None:
+                                        # valid taxonomy package but nothing to load
+                                        self.determineTestStatus(modelTestcaseVariation, _errors)
+                                        continue # don't attempt to load instance-less report package
                                 except Exception as err:
                                     self.modelXbrl.error("exception:" + type(err).__name__,
                                         _("Testcase variation validation exception: %(error)s, entry URL: %(instance)s"),
