@@ -541,7 +541,7 @@ def validateReportPackage(filesource, errors=[]) -> bool:
             return False
     if rptPkgFile:
         pkgFilePath = f"{filesource.basefile}/{rptPkgFile}"
-    elif rptDir is None:
+    elif rptDir is None and rptPkgExt not in (".xbri", ".xbr"):
         if cntlr.modelManager.validateRptPkg:
             cntlr.addToLog(_("Zip file is not a report package and is not processed further"),
                            messageCode="arelle:notReportPackage",
