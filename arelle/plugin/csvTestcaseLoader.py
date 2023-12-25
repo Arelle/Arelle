@@ -8,6 +8,8 @@ and if so returns a ModelDocument with ModelTestcaseObjects as if loaded from xm
 
 Note: please add expected testcase error xmlns elements to testcaseElementXml below
 
+Run with --testcaseDataElement to specify the readMeFirst element name, e.g. reportPackage
+
 """
 
 import csv, io, os
@@ -42,6 +44,8 @@ testcaseElementXml = '''<testcase
   xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd"
 />'''
 
+testcaseDataElementName = "instance"
+
 def csvTestcaseLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     if not filepath.endswith(".csv"):
         return None # not pull loadable CSV file
@@ -69,17 +73,8 @@ def csvTestcaseLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                 id = os.path.splitext(input)[0]
                 var = XmlUtil.addChild(testcase, qname(testNS, "variation"), attributes={"id": id, "name":id})
                 XmlUtil.addChild(var, qname(testNS, "description"), text=description)
-                # guess at data element type
-                if input.endswith(".xs") or input.endswith(".xsd"):
-                    dataElt = "schema"
-                elif input.endswith(".xbrl"):
-                    dataElt = "instance"
-                elif input.endswith(".zip"):
-                    dataElt = "taxonomyPackage"
-                else: # doesn't matter between instance and linkbase
-                    dataElt = "instance"
                 XmlUtil.addChild(XmlUtil.addChild(var, qname(testNS, "data")),
-                                 qname(testNS, dataElt), text=input, attributes={"readMeFirst": "true"})
+                                 qname(testNS, testcaseDataElementName), text=input, attributes={"readMeFirst": "true"})
                 result = XmlUtil.addChild(var, qname(testNS, "result"))
                 for error in errors.split():
                     XmlUtil.addChild(result, qname(testNS, "error"), text=error)
@@ -101,6 +96,18 @@ def isCsvTestcase(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
                 return True
     return False
 
+def commandLineOptionExtender(parser, *args, **kwargs):
+    # extend command line options with a save DTS option
+    parser.add_option("--testcaseDataElement",
+                      action="store",
+                      dest="testcaseDataElement",
+                      help=_("Testcase Data Element Name"))
+    
+def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
+    global testcaseDataElementName
+    if getattr(options, "testcaseDataElement") is not None:
+        testcaseDataElementName = getattr(options, "testcaseDataElement")
+
 __pluginInfo__ = {
     'name': 'Load CSV Testcase',
     'version': '1.0',
@@ -109,6 +116,8 @@ __pluginInfo__ = {
     'author': authorLabel,
     'copyright': copyrightLabel,
     # classes of mount points (required)
+    'CntlrCmdLine.Options': commandLineOptionExtender,
+    'CntlrCmdLine.Filing.Start': commandLineFilingStart,
     'ModelDocument.IsPullLoadable': isCsvTestcase,
     'ModelDocument.PullLoader': csvTestcaseLoader
 }
