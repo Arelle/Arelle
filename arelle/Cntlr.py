@@ -167,6 +167,7 @@ class Cntlr:
         self.isMac = platformOS == PlatformOS.MACOS
         self.isMSW = platformOS == PlatformOS.WINDOWS
         self.systemWordSize = getSystemWordSize()  # e.g., 32 or 64
+        self._uiLocale: str | None = None
         self.disablePersistentConfig = disable_persistent_config
 
         # sys.setrecursionlimit(10000) # 1000 default exceeded in some inline documents
@@ -287,6 +288,14 @@ class Cntlr:
     @property
     def uiLangDir(self) -> str:
         return 'rtl' if getattr(self, 'uiLang', '')[0:2].lower() in {"ar", "he"} else 'ltr'
+
+    @property
+    def uiLocale(self) -> str | None:
+        return self._uiLocale
+
+    @uiLocale.setter
+    def uiLocale(self, uiLocale: str | None) -> None:
+        self._uiLocale = Locale.findCompatibleLocale(uiLocale)
 
     def postLoggingInit(self, localeSetupMessage: str | None = None) -> None:
         if not self.modelManager.isLocaleSet:

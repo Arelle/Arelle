@@ -114,20 +114,21 @@ class DialogLanguage(Toplevel):
             else:
                 langCode = self.languageCodes[self.cbUiLang.value]
 
-            newLocale = Locale.getUserLocale(langCode)
-            if newLocale is not None:
+            localeCode = Locale.findCompatibleLocale(langCode)
+            if localeCode is not None:
+                newLocale = Locale.getUserLocale(localeCode)
                 self.mainWin.modelManager.locale = newLocale
             else:
                 messagebox.showerror(_("User interface locale error"),
                                      _("Locale setting {0} is not supported on this system")
-                                     .format(langCode),
+                                     .format(localeCode),
                                      parent=self)
                 return
             if uiLangIndex != 0: # not the system default
-                self.mainWin.config["userInterfaceLangOverride"] = langCode
+                self.mainWin.config["userInterfaceLangOverride"] = localeCode
             else: # use system default
                 self.mainWin.config.pop("userInterfaceLangOverride", None)
-            self.mainWin.setUiLanguage(langCode)
+            self.mainWin.setUiLanguage(localeCode)
 
             if messagebox.askyesno(
                     _("User interface language changed"),
