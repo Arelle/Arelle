@@ -202,7 +202,7 @@ class FileSource:
                 self.basefile = self.cntlr.webCache.getfilename(self.url, reload=reloadCache)
             else:
                 self.basefile = self.url
-            self.baseurl = self.url # url gets changed by selection
+            self.baseurl = str(self.url) # url gets changed by selection
             if not self.basefile:
                 return  # an error should have been logged
             if self.isZip:
@@ -359,7 +359,7 @@ class FileSource:
         if not self.isOpen:
             assert isinstance(self.url, str)
             self.basefile = self.url
-            self.baseurl = self.url # url gets changed by selection
+            self.baseurl = str(self.url) # url gets changed by selection
             self.fs = zipfile.ZipFile(sourceZipStream, mode="r")
             self.isOpen = True
 
