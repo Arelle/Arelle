@@ -309,12 +309,9 @@ class Cntlr:
 
     def setUiLanguage(self, locale: str | None, fallbackToDefault: bool = False) -> None:
         try:
-            self.uiLocale = locale
             langCodes = Locale.getLanguageCodes(locale)
             gettext.translation("arelle", self.localeDir, langCodes).install()
             self.uiLang = langCodes[0]
-            if not locale and self.uiLang:
-                self.uiLocale = self.uiLang
         except Exception as ex:
             if fallbackToDefault and not locale and langCodes:
                 locale = langCodes[0]
@@ -323,9 +320,8 @@ class Cntlr:
                     self.uiLang = locale  # may be en other than defaultLocale
                 else:
                     self.uiLang = XbrlConst.defaultLocale  # must work with gettext or will raise an exception
-                if not self.uiLocale:
-                    self.uiLocale = self.uiLang
                 gettext.install("arelle", self.localeDir)
+        self.uiLocale = locale or getattr(self, "uiLang", None)
 
     def startLogging(
         self,
