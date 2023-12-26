@@ -9,18 +9,25 @@
    :synopsis: Common controller class to initialize for platform and setup common logger functions
 """
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING, TextIO, Mapping
 
-from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
-from arelle.typing import TypeGetText
-import tempfile, os, io, sys, logging, gettext, json, subprocess, math
-import regex as re
-from arelle import ModelManager
-from arelle.WebCache import WebCache
-from arelle.Locale import getLanguageCodes, setDisableRTL
-from arelle import PluginManager, PackageManager, XbrlConst
-from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, isCGI, isGAE, hasWebServer
+import gettext
+import io
+import json
+import logging
+import os
+import subprocess
+import sys
+import tempfile
 from collections import defaultdict
+from typing import Any, Mapping, TYPE_CHECKING, TextIO
+
+import regex as re
+
+from arelle import Locale, ModelManager, PackageManager, PluginManager, XbrlConst
+from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
+from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, hasWebServer, isCGI, isGAE
+from arelle.WebCache import WebCache
+from arelle.typing import TypeGetText
 
 _: TypeGetText
 
@@ -264,7 +271,7 @@ class Cntlr:
 
         # start language translation for domain
         self.setUiLanguage(uiLang or self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
-        setDisableRTL(self.config.get('disableRtl', False))
+        Locale.setDisableRTL(self.config.get('disableRtl', False))
 
         self.webCache = WebCache(self, self.config.get("proxySettings"))
 
@@ -292,27 +299,24 @@ class Cntlr:
     def setUiLanguage(self, locale: str | None, fallbackToDefault: bool = False) -> None:
         try:
             self.uiLocale = locale
-            langCodes = getLanguageCodes(locale)
-            gettext.translation("arelle",
-                                self.localeDir,
-                                langCodes).install()
+            langCodes = Locale.getLanguageCodes(locale)
+            gettext.translation("arelle", self.localeDir, langCodes).install()
             self.uiLang = langCodes[0]
             if not locale and self.uiLang:
                 self.uiLocale = self.uiLang
-            self.uiLangDir = 'rtl' if self.uiLang[0:2].lower() in {"ar","he"} else 'ltr'
+            self.uiLangDir = 'rtl' if self.uiLang[0:2].lower() in {"ar", "he"} else 'ltr'
         except Exception as ex:
             if fallbackToDefault and not locale and langCodes:
                 locale = langCodes[0]
             if fallbackToDefault or (locale and locale.lower().startswith("en")):
                 if locale and len(locale) == 5 and locale.lower().startswith("en"):
-                    self.uiLang = locale # may be en other than defaultLocale
+                    self.uiLang = locale  # may be en other than defaultLocale
                 else:
-                    self.uiLang = XbrlConst.defaultLocale # must work with gettext or will raise an exception
+                    self.uiLang = XbrlConst.defaultLocale  # must work with gettext or will raise an exception
                 if not self.uiLocale:
                     self.uiLocale = self.uiLang
                 self.uiLangDir = "ltr"
-                gettext.install("arelle",
-                                self.localeDir)
+                gettext.install("arelle", self.localeDir)
 
     def startLogging(
         self,
