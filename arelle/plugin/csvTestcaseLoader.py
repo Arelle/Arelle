@@ -102,7 +102,7 @@ def commandLineOptionExtender(parser, *args, **kwargs):
                       action="store",
                       dest="testcaseDataElement",
                       help=_("Testcase Data Element Name"))
-    
+
 def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     global testcaseDataElementName
     if getattr(options, "testcaseDataElement") is not None:
