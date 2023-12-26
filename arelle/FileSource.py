@@ -137,6 +137,7 @@ class FileSource:
     rssDocument: etree._ElementTree | None
     selection: str | list[str] | None
     url: str | list[str] | None
+    baseurl: str
     basefile: str | list[str] | None
     xfdDocument: etree._ElementTree | None
     errors: list[str] | None # for validation logging of error codes
@@ -185,7 +186,7 @@ class FileSource:
     def setLogErrors(self, errors: list[str] | None) -> None:
         self.errors = errors
 
-    def logError(self, err: Exception, messageCode: str | None) -> None:
+    def logError(self, err: Exception, messageCode: str | None = None) -> None:
         if self.cntlr:
             if messageCode:
                 self.cntlr.addToLog(str(err), messageCode=messageCode)
