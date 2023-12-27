@@ -5,7 +5,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
-from arelle import PythonUtil # define 2.x or 3.x string types
+from arelle import ValidateDuplicateFacts
 import os, sys, subprocess, pickle, time, locale, fnmatch, platform, webbrowser
 import regex as re
 
@@ -165,6 +165,10 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateUtr = BooleanVar(value=self.modelManager.validateUtr)
         self.validateUtr.trace("w", self.setValidateUtr)
         validateMenu.add_checkbutton(label=_("Unit Type Registry validation"), underline=0, variable=self.validateUtr, onvalue=True, offvalue=False)
+
+        self.validateDuplicateFacts = None
+        self.buildValidateDuplicateFactsMenu(validateMenu)
+
         for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.Validation"):
             pluginMenuExtender(self, validateMenu)
 
@@ -452,6 +456,20 @@ class CntlrWinMain (Cntlr.Cntlr):
             lastArg = arg
         self.setValidateTooltipText()
 
+    def buildValidateDuplicateFactsMenu(self, validateMenu: Menu) -> None:
+        validateDuplicateFactsStr = self.config.setdefault("validateDuplicateFacts", ValidateDuplicateFacts.DisallowMode.DISALLOW_NONE.name)
+        self.validateDuplicateFacts = StringVar(value=validateDuplicateFactsStr)
+        self.modelManager.validateDuplicateFacts = ValidateDuplicateFacts.DisallowMode[validateDuplicateFactsStr]
+        self.validateDuplicateFacts.trace("w", self.setValidateDuplicateFacts)
+        duplicateFactWarningMenu = Menu(validateMenu, tearoff=0)
+        for disallowMode in ValidateDuplicateFacts.DisallowMode:
+            duplicateFactWarningMenu.add_checkbutton(
+                label=disallowMode.toArg().title(),
+                variable=self.validateDuplicateFacts,
+                underline=0,
+                onvalue=disallowMode.name
+            )
+        validateMenu.add_cascade(label="Warn on duplicate facts", menu=duplicateFactWarningMenu, underline=0)
 
     def onTabChanged(self, event, *args):
         try:
@@ -1124,6 +1142,14 @@ class CntlrWinMain (Cntlr.Cntlr):
 
     def restart(self, event=None):
         self.quit(event, restartAfterQuit=True)
+
+    def setValidateDuplicateFacts(self, *args):
+        value = self.validateDuplicateFacts.get()
+        self.modelManager.validateDuplicateFacts = ValidateDuplicateFacts.DisallowMode[value]
+        self.config["validateDuplicateFacts"] = value
+        self.addToLog('ModelManager.validateDuplicateFacts = {}'.format(
+            self.modelManager.validateDuplicateFacts), messageCode='debug', level=logging.DEBUG)
+        self.saveConfig()
 
     def setWorkOffline(self, *args):
         self.webCache.workOffline = self.workOffline.get()
