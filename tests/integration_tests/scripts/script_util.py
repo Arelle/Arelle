@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import os
 import shlex
-import shutil
 import subprocess
 import sys
 from os import linesep
@@ -17,19 +16,6 @@ from tests.integration_tests.download_cache import download_and_apply_cache
 
 def assert_result(errors: list[str]) -> None:
     assert len(errors) == 0, f"Errors encountered during test:\n{linesep.join(errors)}"
-
-
-def cleanup(
-        working_directory: Path,
-        paths: list[Path]
-) -> None:
-    for path in paths:
-        assert working_directory in path.parents, \
-            f'Attempted to cleanup directory "{path}" not within working directory "{working_directory}"'
-        if path.is_dir():
-            shutil.rmtree(path)
-        else:
-            path.unlink()
 
 
 def parse_args(
@@ -63,10 +49,10 @@ def parse_args(
         download_and_apply_cache(f"scripts/{cache}")
         print(f"Downloaded and applied cache: {cache}")
     if working_directory:
-        directory = Path(parsed_args.working_directory).joinpath(name).absolute()
-        parsed_args.working_directory = directory
-        directory.mkdir(parents=True, exist_ok=True)
-        print(f"Set working directory: {directory}")
+        test_directory = Path(parsed_args.working_directory).joinpath(name).absolute()
+        parsed_args.test_directory = test_directory
+        test_directory.mkdir(parents=True, exist_ok=True)
+        print(f"Set test directory: {test_directory}")
     return parsed_args
 
 
@@ -95,10 +81,7 @@ def run_arelle(
     args.extend(additional_args or [])
     if logFile:
         args.extend(["--logFile", str(logFile)])
-    if os.name == 'nt':
-        result = subprocess.run(args, capture_output=True, shell=True)
-    else:
-        result = subprocess.run(args, capture_output=True)
+    result = subprocess.run(args, capture_output=True)
     assert result.returncode == 0, result.stderr.decode().strip()
 
 

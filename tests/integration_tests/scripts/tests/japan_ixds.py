@@ -1,9 +1,11 @@
+import os
 import urllib.request
 import zipfile
 
 from pathlib import Path
+from shutil import rmtree
 
-from tests.integration_tests.scripts.script_util import run_arelle, parse_args, validate_log_file, assert_result, cleanup, prepare_logfile
+from tests.integration_tests.scripts.script_util import run_arelle, parse_args, validate_log_file, assert_result, prepare_logfile
 
 errors = []
 this_file = Path(__file__)
@@ -15,12 +17,13 @@ args = parse_args(
 arelle_command = args.arelle
 arelle_offline = args.offline
 working_directory = Path(args.working_directory)
-arelle_log_file1 = prepare_logfile(working_directory, this_file, name="save")
-arelle_log_file2 = prepare_logfile(working_directory, this_file, name="validate")
-report_zip_path = working_directory.joinpath('report.zip')
-report_directory = working_directory.joinpath('report')
-manifest_path = report_directory.joinpath("manifest.xml")
-extracted_path = report_directory.joinpath("tse-acedjpfr-19990-2023-06-30-01-2023-08-18_extracted.xbrl")
+test_directory = Path(args.test_directory)
+arelle_log_file1 = prepare_logfile(test_directory, this_file, name="save")
+arelle_log_file2 = prepare_logfile(test_directory, this_file, name="validate")
+report_zip_path = test_directory / 'report.zip'
+report_directory = test_directory / 'report'
+manifest_path = report_directory / "manifest.xml"
+extracted_path = report_directory / "tse-acedjpfr-19990-2023-06-30-01-2023-08-18_extracted.xbrl"
 report_zip_url = "https://arelle-public.s3.amazonaws.com/ci/packages/JapaneseXBRLReport.zip"
 
 print(f"Downloading report: {report_zip_url}")
@@ -62,10 +65,5 @@ errors += validate_log_file(arelle_log_file2)
 assert_result(errors)
 
 print("Cleaning up")
-cleanup(
-    working_directory,
-    [
-        report_directory,
-        report_zip_path,
-    ]
-)
+rmtree(working_directory / 'japan_ixds' / 'report')
+os.unlink(working_directory / 'japan_ixds' / 'report.zip')

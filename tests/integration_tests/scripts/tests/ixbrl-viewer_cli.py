@@ -1,9 +1,11 @@
+import os
 import urllib.request
 import zipfile
 
 from pathlib import Path
+from shutil import rmtree
 
-from tests.integration_tests.scripts.script_util import run_arelle, parse_args, validate_log_file, assert_result, cleanup, prepare_logfile
+from tests.integration_tests.scripts.script_util import run_arelle, parse_args, validate_log_file, assert_result, prepare_logfile
 
 errors = []
 this_file = Path(__file__)
@@ -15,11 +17,12 @@ args = parse_args(
 arelle_command = args.arelle
 arelle_offline = args.offline
 working_directory = Path(args.working_directory)
-arelle_log_file = prepare_logfile(working_directory, this_file)
-samples_zip_path = working_directory.joinpath('samples.zip')
-samples_directory = working_directory.joinpath('samples')
-target_path = samples_directory.joinpath("samples/src/ixds-test/document1.html")
-viewer_path = working_directory.joinpath("viewer.html")
+test_directory = Path(args.test_directory)
+arelle_log_file = prepare_logfile(test_directory, this_file)
+samples_zip_path = test_directory / 'samples.zip'
+samples_directory = test_directory / 'samples'
+target_path = samples_directory / "samples/src/ixds-test/document1.html"
+viewer_path = test_directory / "viewer.html"
 
 
 print(f"Downloading samples: {samples_zip_path}")
@@ -51,12 +54,7 @@ errors += validate_log_file(arelle_log_file)
 assert_result(errors)
 
 print("Cleaning up")
-cleanup(
-    working_directory,
-    [
-        samples_directory,
-        samples_zip_path,
-        viewer_path,
-        working_directory.joinpath("ixbrlviewer.js")
-    ]
-)
+rmtree(working_directory / 'ixbrl-viewer_cli' / 'samples')
+os.unlink(working_directory / 'ixbrl-viewer_cli' / 'samples.zip')
+os.unlink(working_directory / 'ixbrl-viewer_cli' / 'viewer.html')
+os.unlink(working_directory / 'ixbrl-viewer_cli' / 'ixbrlviewer.js')
