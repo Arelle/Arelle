@@ -487,7 +487,7 @@ def checkfile(modelXbrl, filepath):
             if mayBeInline and inlinePattern.search(line):
                 mayBeInline = False
                 isInline = True
-            if isInline:
+            if isInline and '/>' in line:
                 for match in inlineSelfClosedElementPattern.finditer(line):
                     selfClosedLocalName = match.group('localName')
                     if selfClosedLocalName not in elementsWithNoContent:
