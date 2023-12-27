@@ -124,7 +124,6 @@ class Cntlr:
     isCGI: bool
     systemWordSize: int
     uiLang: str
-    uiLangDir: str
     configDir: str
     imagesDir: str
     localeDir: str
@@ -168,7 +167,6 @@ class Cntlr:
         self.isMac = platformOS == PlatformOS.MACOS
         self.isMSW = platformOS == PlatformOS.WINDOWS
         self.systemWordSize = getSystemWordSize()  # e.g., 32 or 64
-        self.uiLangDir = "ltr"
         self.disablePersistentConfig = disable_persistent_config
 
         # sys.setrecursionlimit(10000) # 1000 default exceeded in some inline documents
@@ -286,6 +284,10 @@ class Cntlr:
 
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
 
+    @property
+    def uiLangDir(self) -> str:
+        return 'rtl' if getattr(self, 'uiLang', '')[0:2].lower() in {"ar", "he"} else 'ltr'
+
     def postLoggingInit(self, localeSetupMessage: str | None = None) -> None:
         if not self.modelManager.isLocaleSet:
             localeSetupMessage = self.modelManager.setLocale() # set locale after logger started
@@ -304,7 +306,6 @@ class Cntlr:
             self.uiLang = langCodes[0]
             if not locale and self.uiLang:
                 self.uiLocale = self.uiLang
-            self.uiLangDir = 'rtl' if self.uiLang[0:2].lower() in {"ar", "he"} else 'ltr'
         except Exception as ex:
             if fallbackToDefault and not locale and langCodes:
                 locale = langCodes[0]
@@ -315,7 +316,6 @@ class Cntlr:
                     self.uiLang = XbrlConst.defaultLocale  # must work with gettext or will raise an exception
                 if not self.uiLocale:
                     self.uiLocale = self.uiLang
-                self.uiLangDir = "ltr"
                 gettext.install("arelle", self.localeDir)
 
     def startLogging(
