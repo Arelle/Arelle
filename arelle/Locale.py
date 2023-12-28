@@ -49,6 +49,8 @@ BCP47_LANGUAGE_REGION_SEPARATOR = '-'
 POSIX_LANGUAGE_REGION_SEPARATOR = '_'
 POSIX_LOCALE_ENCODING_SEPARATOR = '.'
 
+BCP47_LANGUAGE_TAG = re.compile(r"^[a-zA-Z]{2,3}(-[a-zA-Z]{2,3}(\-[a-zA-Z0-9]{1,8})*)?$")
+
 
 def _getUserLocaleUnsafe(localeCode: str = '') -> tuple[LocaleDict, str | None]:
     """
@@ -116,7 +118,9 @@ def getUserLocale(posixLocale: str | None = None) -> tuple[LocaleDict, str | Non
 
 def getLanguageCode() -> str:
     if posixLocale := getLocale():
-        return posixLocaleToBCP47Lang(posixLocale)
+        languageTag = posixLocaleToBCP47Lang(posixLocale)
+        if re.match(BCP47_LANGUAGE_TAG, languageTag):
+            return languageTag
     from arelle.XbrlConst import defaultLocale
     return defaultLocale  # XBRL international default locale
 
