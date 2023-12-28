@@ -141,6 +141,7 @@ class DuplicateType(Flag):
     NONE = 0
     INCONSISTENT = auto()
     CONSISTENT = auto()
+    INCOMPLETE = auto()
     COMPLETE = auto()
 
     # Flags before 3.11 did not support iterating Flag values,
@@ -158,6 +159,7 @@ class DuplicateTypeArg(Enum):
     NONE = 'none'
     INCONSISTENT = 'inconsistent'
     CONSISTENT = 'consistent'
+    INCOMPLETE = 'incomplete'
     COMPLETE = 'complete'
     ALL = 'all'
 
@@ -169,6 +171,7 @@ DUPLICATE_TYPE_ARG_MAP = {
     DuplicateTypeArg.NONE: DuplicateType.NONE,
     DuplicateTypeArg.INCONSISTENT: DuplicateType.INCONSISTENT,
     DuplicateTypeArg.CONSISTENT: DuplicateType.CONSISTENT,
+    DuplicateTypeArg.INCOMPLETE: DuplicateType.INCOMPLETE,
     DuplicateTypeArg.COMPLETE: DuplicateType.COMPLETE,
     DuplicateTypeArg.ALL: DuplicateType.INCONSISTENT | DuplicateType.CONSISTENT,
 }
@@ -184,14 +187,18 @@ def areDuplicatesOfType(duplicateFacts: DuplicateFactSet, duplicateType: Duplica
     """
     inconsistent = DuplicateType.INCONSISTENT in duplicateType
     consistent = DuplicateType.CONSISTENT in duplicateType
+    incomplete = DuplicateType.INCOMPLETE in duplicateType
     complete = DuplicateType.COMPLETE in duplicateType
+    if (inconsistent and consistent) or (incomplete and complete):
+        return True
     if inconsistent:
-        if consistent:
-            return True
         if duplicateFacts.areInconsistentDuplicates:
             return True
     if consistent:
         if duplicateFacts.areConsistentDuplicates:
+            return True
+    if incomplete:
+        if not duplicateFacts.areCompleteDuplicates:
             return True
     if complete:
         if duplicateFacts.areCompleteDuplicates:
