@@ -42,6 +42,9 @@ defaultLocaleCodes = {
     "sk": "SK", "sl": "SI", "sq": "AL", "sr": "RS", "sv": "SE", "th": "TH",
     "tr": "TR", "uk": "UA", "ur": "PK", "vi": "VN", "zh": "CN"}
 
+MACOS_PLATFORM = "darwin"
+WINDOWS_PLATFORM = "win32"
+
 BCP47_LANGUAGE_REGION_SEPARATOR = '-'
 POSIX_LANGUAGE_REGION_SEPARATOR = '_'
 POSIX_LOCALE_ENCODING_SEPARATOR = '.'
@@ -112,16 +115,10 @@ def getUserLocale(posixLocale: str | None = None) -> tuple[LocaleDict, str | Non
 
 
 def getLanguageCode() -> str:
-    if sys.platform == "darwin": # MacOS doesn't provide correct language codes
-        localeQueryResult = subprocess.getstatusoutput("defaults read -g AppleLocale")  # MacOS only
-        if localeQueryResult[0] == 0 and localeQueryResult[1]: # successful
-            return posixLocaleToBCP47Lang(localeQueryResult[1][:5])
-    languageCode, encoding = locale.getdefaultlocale()
-    # language code and encoding may be None if their values cannot be determined.
-    if isinstance(languageCode, str):
-        return posixLocaleToBCP47Lang(languageCode)
+    if posixLocale := getLocale():
+        return posixLocaleToBCP47Lang(posixLocale)
     from arelle.XbrlConst import defaultLocale
-    return defaultLocale # XBRL international default locale
+    return defaultLocale  # XBRL international default locale
 
 
 def getLanguageCodes(lang: str | None = None) -> list[str]:
@@ -230,6 +227,41 @@ def _getPosixLocaleLangRegionAndEncoding(posixLocale: str) -> tuple[str, str | N
     languageAndRegion, _, encoding = posixLocale.partition(POSIX_LOCALE_ENCODING_SEPARATOR)
     language, _, region = languageAndRegion.partition(POSIX_LANGUAGE_REGION_SEPARATOR)
     return language, region or None, encoding or None
+
+
+_locale = None
+
+
+def getLocale() -> str | None:
+    global _locale
+    if _locale:
+        return _locale
+    # Try getting locale language code from system on macOS and Windows before resorting to the less reliable locale.getlocale.
+    systemLocale = None
+    if sys.platform == MACOS_PLATFORM:
+        systemLocale = _tryRunShellCommand("defaults read -g AppleLocale")
+    elif sys.platform == WINDOWS_PLATFORM:
+        systemLocale = _tryRunShellCommand("pwsh", "-Command", "Get-Culture | Select -ExpandProperty IetfLanguageTag")
+    if pythonCompatibleLocale := findCompatibleLocale(systemLocale):
+        _locale = pythonCompatibleLocale
+    elif sys.version_info < (3, 12):
+        # Using locale.setlocale(...) because getlocale() in Python versions prior to 3.12 incorrectly aliased C.UTF-8 to en_US.UTF-8.
+        # https://github.com/python/cpython/issues/74940
+        _locale = locale.setlocale(locale.LC_CTYPE).partition(POSIX_LOCALE_ENCODING_SEPARATOR)[0]
+    else:
+        _locale = locale.getlocale()[0]
+    return _locale
+
+
+def _tryRunShellCommand(*args: str) -> str | None:
+    """
+    Tries to return the results of the provided shell command.
+    Returns stdout or None if the command exists with a non-zero code.
+    """
+    try:
+        return subprocess.run(args, capture_output=True, check=True, shell=True, text=True).stdout.strip()
+    except subprocess.SubprocessError:
+        return None
 
 
 iso3region = {
