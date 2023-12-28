@@ -150,6 +150,16 @@ jobs:
     - name: Delete .git
       shell: cmd
       run: if exist "${{ env.BUILD_PATH }}\.git" rmdir /s /q ${{ env.BUILD_PATH }}\.git
+    - name: "[Test] Test build"
+      run: |
+        pip install -r requirements-dev.txt
+        pytest -s --disable-warnings --all --download-cache --offline --arelle="${{ env.BUILD_PATH }}\arelleCmdLine.exe" tests/integration_tests/scripts/test_scripts.py
+    - name: "[Test] Upload test artifacts"
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: 'test logs'
+        path: '.test/**/*.logfile.xml'
     - name: Make installer
       run: makensis installWin64.nsi
     - name: Version installer

@@ -145,6 +145,24 @@ jobs:
           [[ $(echo dist/*.tgz) =~ -([0-9]+\.[0-9]+\.[0-9]+)\.tgz$ ]] && echo "artifact_versioned_name=arelle-ubuntu-${BASH_REMATCH[1]}.tgz" >> $GITHUB_OUTPUT
           echo "BUILD_ARTIFACT_PATH=$(echo dist/*.tgz)" >> $GITHUB_ENV
           echo "uploaded_artifact_name=ubuntu distribution" >> $GITHUB_OUTPUT
+      - name: "[Test] Set up Python ${{ inputs.python_version }}"
+        uses: actions/setup-python@v5.0.0
+        with:
+          cache: 'pip'
+          check-latest: true
+          python-version: ${{ inputs.python_version }}
+      - name: "[Test] Test build artifact"
+        run : |
+          mkdir .test_build
+          tar -xvzf "${{ env.BUILD_ARTIFACT_PATH }}" -C .test_build
+          pip install -r requirements-dev.txt
+          pytest -s --disable-warnings --all --download-cache --offline --arelle=".test_build/arelleCmdLine" tests/integration_tests/scripts/test_scripts.py
+      - name: "[Test] Upload test artifacts"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'test logs'
+          path: '.test/**/*.logfile.xml'
       - name: Capture build env
         run: |
           echo "ARTIFACT_NAME=arelle-ubuntu.tgz" >> $GITHUB_ENV
