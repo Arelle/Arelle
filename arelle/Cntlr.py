@@ -247,8 +247,7 @@ class Cntlr:
         # assert that app dir must exist
         self.config = None
         if self.hasFileSystem and not self.disablePersistentConfig:
-            if not os.path.exists(self.userAppDir):
-                os.makedirs(self.userAppDir)
+            os.makedirs(self.userAppDir, exist_ok=True)
             # load config if it exists
             self.configJsonFile = self.userAppDir + os.sep + "config.json"
             if os.path.exists(self.configJsonFile):
