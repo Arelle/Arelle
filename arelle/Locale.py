@@ -306,21 +306,32 @@ iso3region = {
 "US": "usa"}
 
 
+_systemLocales = None
+
+
 def getLocaleList() -> list[str]:
-    process = subprocess.run(['locale', '-a'], capture_output=True, encoding='iso8859-1', text=True)
-    return process.stdout.splitlines() if process.returncode == 0 else []
-
-
-_availableLocales = None
+    """
+    Attempts to a return a list of locales from `locale -a` with a fallback of an empty list.
+    """
+    global _systemLocales
+    if _systemLocales is not None:
+        return _systemLocales
+    if sys.platform != WINDOWS_PLATFORM and (locales := _tryRunShellCommand("locale -a")):
+        _systemLocales = locales.splitlines()
+    else:
+        _systemLocales = []
+    return _systemLocales
 
 
 def availableLocales() -> set[str]:
-    global _availableLocales
-    if _availableLocales is not None:
-        return _availableLocales
-    else:
-        _availableLocales = {posixLocaleToBCP47Lang(loc.partition(POSIX_LOCALE_ENCODING_SEPARATOR)[0]) for loc in getLocaleList()}
-        return _availableLocales
+    """
+    Returns a set of available system languages (POSIX format without encoding).
+    On Windows system locales can't be easily determined and an empty set is returned.
+    """
+    return {
+        posixLocaleToBCP47Lang(loc.partition(POSIX_LOCALE_ENCODING_SEPARATOR)[0])
+        for loc in getLocaleList()
+    }
 
 
 _languageCodes = None
