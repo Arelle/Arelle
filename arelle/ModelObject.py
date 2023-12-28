@@ -146,10 +146,13 @@ class ModelObject(ElementBase):
 
     @property
     def modelXbrl(self) -> ModelXbrl | None:
-        if hasattr(self, "targetModelXbrl"):
+        try:
             return self.targetModelXbrl
-        modelDocument = getattr(self, "modelDocument", None)
-        return modelDocument.modelXbrl if modelDocument is not None else None
+        except AttributeError:
+            try:
+                return cast("ModelXbrl", self.modelDocument.modelXbrl)
+            except AttributeError:
+                return None
 
     def attr(self, attrname: str) -> str | None:
         return self.get(attrname)

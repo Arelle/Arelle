@@ -7,6 +7,7 @@ from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _Processing
 from dataclasses import dataclass
 import os, io, base64
 import regex as re
+import string
 from arelle.XbrlConst import ixbrlAll, xhtml
 from arelle.XmlUtil import setXmlns, xmlstring, xmlDeclarationPattern, XmlDeclarationLocationException
 from arelle.ModelObject import ModelObject
@@ -15,7 +16,10 @@ from arelle.UrlUtil import decodeBase64DataImage, isHttpUrl, scheme
 XMLpattern = re.compile(r".*(<|&lt;|&#x3C;|&#60;)[A-Za-z_]+[A-Za-z0-9_:]*[^>]*(/>|>|&gt;|/&gt;).*", re.DOTALL)
 CDATApattern = re.compile(r"<!\[CDATA\[(.+)\]\]")
 #EFM table 5-1 and all &xxx; patterns
-docCheckPattern = re.compile(r"&\w+;|[^0-9A-Za-z`~!@#$%&\*\(\)\.\-+ \[\]\{\}\|\\:;\"'<>,_?/=\t\n\r\f]") # won't match &#nnn;
+allowedCharacters =                  string.digits + string.ascii_letters + R"""`~!@#$%&*().-+ {}[]|\:;"'<>,_?/=""" + '\t\n\r\f'
+disallowedCharactersPattern = re.compile(r"""[^0-9          A-Za-z              `~!@#$%&*(). + {}  | :;"'<>,_?/=       \t\n\r\f  \-\[\]\\]""")
+allowedCharactersTranslationDict = dict.fromkeys(map(ord, allowedCharacters))
+disallowedEntityPattern = re.compile(r'&\w+;') # won't match &#nnn;
 namedEntityPattern = re.compile("&[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
                                 r"[_\-\.:"
                                 "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*;")
@@ -26,7 +30,7 @@ namedEntityPattern = re.compile("&[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02
 #                                "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*;")
 
 inlinePattern = re.compile(r"xmlns:[\w.-]+=['\"]http://www.xbrl.org/2013/inlineXBRL['\"]")
-inlineSelfClosedElementPattern = re.compile(r"<(([\w.-]+:)?(\w+))([^\w/][^<]*)?/>")
+inlineSelfClosedElementPattern = re.compile(r"<(?P<element>([\w.-]+:)?(?P<localName>\w+))([^\w/][^<]*)?/>")
 # The ESEF 2022 conformance suite G2-5-1_2 TC3_invalid depends on optional "/".
 # <img src="data:image;base64,iVBOR...
 imgDataMediaBase64Pattern = re.compile(r"data:image(?:/(?P<mimeSubtype>[^,;]*))?(?P<base64>;base64)?,(?P<data>.*)$", re.S)
@@ -450,14 +454,17 @@ def checkfile(modelXbrl, filepath):
             if line == "":
                 break;
             # check for disallowed characters or entity codes
-            for match in docCheckPattern.finditer(line):
+            for match in disallowedEntityPattern.finditer(line):
                 text = match.group()
-                if text.startswith("&"):
-                    if not text in xhtmlEntities:
-                        modelXbrl.error(("EFM.5.02.02.06", "GFM.1.01.02", "FERC.5.02.02.06"),
-                            _("Disallowed entity code %(text)s in file %(file)s line %(line)s column %(column)s"),
-                            modelDocument=filepath, text=text, file=os.path.basename(filepath), line=lineNum, column=match.start())
-                elif validateEntryText and not _isTestcase:
+                if not text in xhtmlEntities:
+                    modelXbrl.error(("EFM.5.02.02.06", "GFM.1.01.02", "FERC.5.02.02.06"),
+                        _("Disallowed entity code %(text)s in file %(file)s line %(line)s column %(column)s"),
+                        modelDocument=filepath, text=text, file=os.path.basename(filepath), line=lineNum, column=match.start())
+            # Finding disallowed characters with a large negated character class can be fairly slow on long lines.
+            # Only run it if there are disallowed characters to find.
+            if validateEntryText and not _isTestcase and line.translate(allowedCharactersTranslationDict):
+                for match in disallowedCharactersPattern.finditer(line):
+                    text = match.group()
                     if len(text) == 1:
                         modelXbrl.error(("EFM.5.02.01.01", "FERC.5.02.01.01"),
                             _("Disallowed character '%(text)s' (%(unicodeIndex)s) in file %(file)s at line %(line)s col %(column)s"),
@@ -487,13 +494,13 @@ def checkfile(modelXbrl, filepath):
             if mayBeInline and inlinePattern.search(line):
                 mayBeInline = False
                 isInline = True
-            if isInline:
+            if isInline and '/>' in line:
                 for match in inlineSelfClosedElementPattern.finditer(line):
-                    selfClosedLocalName = match.group(3)
+                    selfClosedLocalName = match.group('localName')
                     if selfClosedLocalName not in elementsWithNoContent:
                         modelXbrl.warning("ixbrl:selfClosedTagWarning",
                                           _("Self-closed element \"%(element)s\" may contain text or other elements and should not use self-closing tag syntax (/>) when empty; change these to end-tags in file %(file)s line %(line)s column %(column)s"),
-                                          modelDocument=filepath, element=match.group(1), file=os.path.basename(filepath), line=lineNum, column=match.start())
+                                          modelDocument=filepath, element=match.group('element'), file=os.path.basename(filepath), line=lineNum, column=match.start())
             result.append(line)
             lineNum += 1
     result = ''.join(result)
