@@ -13,12 +13,18 @@ import regex as re
 from arelle import Locale
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UiUtil import checkbox, gridCombobox, gridHdr, label
+from arelle.typing import TypeGetText
+
+_: TypeGetText
 
 '''
 allow user to override system language codes for user interface and labels
 '''
+
+
 def askLanguage(mainWin):
     DialogLanguage(mainWin)
+
 
 class DialogLanguage(Toplevel):
     def __init__(self, mainWin):
@@ -31,20 +37,23 @@ class DialogLanguage(Toplevel):
         self.transient(self.parent)
         self.title(_("arelle - User Interface and Labels language code settings"))
         self.languageCodes = Locale.languageCodes()
-        langs = (["System default language ({0})".format(mainWin.modelManager.defaultLang)] +
-                 sorted(self.languageCodes.keys() if self.mainWin.isMSW else
-                        [k
-                         for avail in [Locale.availableLocales()] # unix/Mac locale -a supported locale codes
-                         for k, v in self.languageCodes.items()
-                         if Locale.bcp47LangToPosixLocale(v.partition(" ")[0]) in avail]
-                        ))
-        self.uiLang = mainWin.config.get("userInterfaceLangOverride", "")
+        if systemLocales := Locale.availableLocales():  # unix/Mac locale -a supported locale codes
+            localeOptionTitles = [
+                title
+                for title, labelCode in self.languageCodes.items()
+                if Locale.bcp47LangToPosixLocale(labelCode) in systemLocales
+            ]
+        else:
+            localeOptionTitles = self.languageCodes.keys()
+        localeOptions = (_("System default locale ({0})").format(mainWin.modelManager.defaultLang), *sorted(localeOptionTitles))
+        labelLanguageOptions = (_("System default language ({0})").format(mainWin.modelManager.defaultLang), *sorted(self.languageCodes.keys()))
+        self.uiLang = Locale.posixLocaleToBCP47Lang(mainWin.config.get("userInterfaceLangOverride", ""))
         if self.uiLang == "" or self.uiLang == mainWin.modelManager.defaultLang:
             self.uiLangIndex = 0
         else:
             self.uiLangIndex = None
-            for i, langName in enumerate(langs):
-                if i > 0 and self.uiLang in self.languageCodes[langName]:
+            for i, langName in enumerate(localeOptions):
+                if i > 0 and self.uiLang == self.languageCodes.get(langName):
                     self.uiLangIndex = i
                     break
         self.labelLang = mainWin.config.get("labelLangOverride", "")
@@ -52,16 +61,16 @@ class DialogLanguage(Toplevel):
             self.labelLangIndex = 0
         else:
             self.labelLangIndex = None
-            for i, langName in enumerate(langs):
-                if i > 0 and self.labelLang in self.languageCodes[langName]:
+            for i, langName in enumerate(labelLanguageOptions):
+                if i > 0 and self.labelLang == self.languageCodes.get(langName):
                     self.labelLangIndex = i
                     break
 
         frame = Frame(self)
 
         defaultLanguage = mainWin.modelManager.defaultLang
-        for langName, langCodes in self.languageCodes.items():
-            if mainWin.modelManager.defaultLang in langCodes:
+        for langName, langCode in self.languageCodes.items():
+            if mainWin.modelManager.defaultLang == langCode:
                 defaultLanguage += ", " + langName
                 break
         gridHdr(frame, 0, 0, _(
@@ -70,9 +79,9 @@ class DialogLanguage(Toplevel):
                 defaultLanguage),
               columnspan=5, wraplength=400)
         label(frame, 0, 1, _("User Interface:"))
-        self.cbUiLang = gridCombobox(frame, 1, 1, values=langs, selectindex=self.uiLangIndex, columnspan=4)
+        self.cbUiLang = gridCombobox(frame, 1, 1, values=localeOptions, selectindex=self.uiLangIndex, columnspan=4)
         label(frame, 0, 2, _("Labels:"))
-        self.cbLabelLang = gridCombobox(frame, 1, 2, values=langs, selectindex=self.labelLangIndex, columnspan=4)
+        self.cbLabelLang = gridCombobox(frame, 1, 2, values=labelLanguageOptions, selectindex=self.labelLangIndex, columnspan=4)
         self.cbUiLang.focus_set()
         self.cbDisableRtl = checkbox(frame, 0, 3,  _('Disable rtl String'), 'disableRtlSting')
         ToolTip(self.cbDisableRtl, _('Disable reversing string read order for right to left languages, useful for some locale settings.'), wraplength=240)
@@ -95,15 +104,14 @@ class DialogLanguage(Toplevel):
         self.wait_window(self)
 
     def ok(self, event=None):
-        self.mainWin.disableRtl= self.cbDisableRtl.value
-        self.mainWin.config['disableRtl']= self.cbDisableRtl.value
+        self.mainWin.config['disableRtl'] = self.cbDisableRtl.value
         Locale.setDisableRTL(self.cbDisableRtl.value)
         labelLangIndex = self.cbLabelLang.valueIndex
         if labelLangIndex >= 0 and labelLangIndex != self.labelLangIndex: # changed
             if labelLangIndex == 0:
                 langCode = self.mainWin.modelManager.defaultLang
             else:
-                langCode, sep, localeCode = self.languageCodes[self.cbLabelLang.value].partition(" ")
+                langCode = self.languageCodes[self.cbLabelLang.value]
             self.mainWin.config["labelLangOverride"] = langCode
             self.mainWin.labelLang = langCode
 
