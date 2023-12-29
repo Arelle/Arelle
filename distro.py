@@ -90,6 +90,14 @@ elif sys.platform == MACOS_PLATFORM:
         "iconfile": "arelle/images/arelle.icns",
         "bundle_name": "Arelle",
     }
+    if codesignIdentity := os.environ.get('CODESIGN_IDENTITY'):
+        options["bdist_mac"].update({
+            "codesign_identity": codesignIdentity,
+            "codesign_deep": True,
+            "codesign_timestamp": True,
+            "codesign_verify": True,
+            "codesign_options": "runtime",
+        })
 elif sys.platform == WINDOWS_PLATFORM:
     guiExecutable = Executable(
         script="arelleGUI.pyw",
