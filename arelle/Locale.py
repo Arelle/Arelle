@@ -125,11 +125,25 @@ def getLanguageCode() -> str:
     return defaultLocale  # XBRL international default locale
 
 
-def getLanguageCodes(lang: str | None = None) -> list[str]:
-    if lang is None:
-        lang = getLanguageCode()
-    # allow searching on the lang with country part, either python or standard form, or just language
-    return [lang, bcp47LangToPosixLocale(lang), lang.partition(BCP47_LANGUAGE_REGION_SEPARATOR)[0]]
+def getLanguageCodes(configLang: str | None = None) -> list[str]:
+    """
+    Returns a list of language code formats that can be used with gettext to look up translation files.
+    configLang is user specified and may be in the BCP 47 format (en-US) or POSIX locale (en_US.utf-8).
+    The translation files can also be user generated and in any of these formats.
+    We do our best to work with both formats.
+    [en_US, en-US, en]
+    [fr]
+    """
+    configLang = configLang or getLanguageCode()
+    # strip encoding if present
+    lang, _, _ = configLang.partition(POSIX_LOCALE_ENCODING_SEPARATOR)
+    if POSIX_LANGUAGE_REGION_SEPARATOR in lang:
+        return [lang, posixLocaleToBCP47Lang(lang), lang.partition(POSIX_LANGUAGE_REGION_SEPARATOR)[0]]
+    if BCP47_LANGUAGE_REGION_SEPARATOR in lang:
+        return [bcp47LangToPosixLocale(lang), lang, lang.partition(BCP47_LANGUAGE_REGION_SEPARATOR)[0]]
+    if defaultRegion := defaultLocaleCodes.get(lang):
+        return [lang, _buildPosixLocale(lang, region=defaultRegion), _buildBCP47LanguageTag(lang, region=defaultRegion)]
+    return [lang]
 
 
 def _unsafeIsLocaleCompatible(localeValue: str) -> bool:
