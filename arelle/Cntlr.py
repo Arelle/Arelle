@@ -308,12 +308,12 @@ class Cntlr:
             pluginMethod(self)
 
     def setUiLanguage(self, locale: str | None, fallbackToDefault: bool = False) -> None:
+        langCodes = Locale.getLanguageCodes(locale)
         try:
-            langCodes = Locale.getLanguageCodes(locale)
             gettext.translation("arelle", self.localeDir, langCodes).install()
             self.uiLang = langCodes[0]
-        except Exception as ex:
-            if fallbackToDefault and not locale and langCodes:
+        except OSError:
+            if fallbackToDefault and not locale:
                 locale = langCodes[0]
             if fallbackToDefault or (locale and locale.lower().startswith("en")):
                 if locale and len(locale) == 5 and locale.lower().startswith("en"):
