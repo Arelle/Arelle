@@ -52,51 +52,20 @@ POSIX_LOCALE_ENCODING_SEPARATOR = '.'
 BCP47_LANGUAGE_TAG = re.compile(r"^[a-zA-Z]{2,3}(-[a-zA-Z]{2,3}(\-[a-zA-Z0-9]{1,8})*)?$")
 
 
-def _getUserLocaleUnsafe(localeCode: str = '') -> tuple[LocaleDict, str | None]:
+def _getUserLocaleUnsafe(posixLocale: str = '') -> tuple[LocaleDict, str | None]:
     """
     Get locale conventions dictionary. May change the global locale if called directly.
-    :param localeCode: The locale code to use to retrieve conventions. Defaults to system default.
+    :param posixLocale: The locale code to use to retrieve conventions. Defaults to system default.
     :return: Tuple of local conventions dictionary and a user-directed setup message
     """
-    conv = None
     localeSetupMessage = None
-    localeCode = bcp47LangToPosixLocale(localeCode)
-    localeCodeWithDefault = (
-        f"{localeCode}_{defaultLocaleCodes[localeCode]}"
-        if localeCode in defaultLocaleCodes else None)
-    candidateLocaleCodes = [localeCode] + ([localeCodeWithDefault] if localeCodeWithDefault else [])
-    for candidateLocaleCode in candidateLocaleCodes:
-        try:
-            locale.setlocale(locale.LC_ALL, candidateLocaleCode)
-            conv = locale.localeconv()
-            if candidateLocaleCode == localeCodeWithDefault:
-                localeSetupMessage = _('Locale code "{}" is not available on this system. "{}" loaded instead.').format(localeCode, candidateLocaleCode)
-            break
-        except locale.Error:
-            pass
-    else:
-        # Like above, but avoids a fork unless the earlier options don't work out.
-        try:
-            localeCodes = getLocaleList()
-            # Don't die because we couldn't find a locale command or parse its output.
-        except:
-            localeCodes = []
-        matchingLocaleCodes = sorted(
-            (c for c in localeCodes if c.startswith(localeCode)),
-            # prioritize localeCodeWithDefault prefix and UTF-8
-            key=lambda c: (localeCodeWithDefault and not c.startswith(localeCodeWithDefault), not re.search(r'utf-?8$', c)))
-        for candidateLocaleCode in matchingLocaleCodes:
-            try:
-                locale.setlocale(locale.LC_ALL, candidateLocaleCode)
-                conv = locale.localeconv()
-                localeSetupMessage = _('Locale code "{}" is not available on this system. "{}" loaded instead.').format(localeCode, candidateLocaleCode)
-                break
-            except locale.Error:
-                pass
-    if conv is None:  # some other issue prevents getting culture code, use 'C' defaults (no thousands sep, no currency, etc)
+    try:
+        locale.setlocale(locale.LC_ALL, posixLocale)
+    except locale.Error:
         locale.setlocale(locale.LC_ALL, 'C')
-        localeSetupMessage = _('Locale code "{}" is not available on this system.').format(localeCode)
-        conv = locale.localeconv() # use 'C' environment, e.g., en_US
+        localeSetupMessage = _('Locale code "{}" is not available on this system.').format(posixLocale)
+    finally:
+        conv = locale.localeconv()
     return cast(LocaleDict, conv), localeSetupMessage
 
 
@@ -202,6 +171,13 @@ def _candidateLocaleCodes(posixLocale: str) -> list[str]:
         candidateLocaleCodes.append(_buildPosixLocale(language, region=defaultRegion, encoding=encoding))
         if encoding != defaultEncoding:
             candidateLocaleCodes.append(_buildPosixLocale(language, region=defaultRegion, encoding=defaultEncoding))
+    # Additional locale candidates on Linux and macOS.
+    compatibleSystemLocales = sorted({
+        code for code in getLocaleList()
+        if code.startswith(posixLocale)
+        and code not in candidateLocaleCodes
+    })
+    candidateLocaleCodes.extend(compatibleSystemLocales)
     return candidateLocaleCodes
 
 
