@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import itertools
 import os
+import re
 from dataclasses import dataclass, field
 
 
@@ -30,6 +31,7 @@ class ConformanceSuiteConfig:
     strict_testcase_index: bool = True
     url_replace: str | None = None
     network_or_cache_required: bool = True
+    required_locale_by_ids: dict[str, re.Pattern[str]] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         redundant_plugins = [(prefix, overlap)
@@ -49,6 +51,9 @@ class ConformanceSuiteConfig:
         assert plugin_combinations <= self.shards, \
             'Too few shards to accommodate the number of plugin combinations:' \
             f' combinations={plugin_combinations} shards={self.shards}'
+        overlapping_expected_testcase_ids = self.expected_failure_ids.intersection(self.required_locale_by_ids)
+        assert not overlapping_expected_testcase_ids, \
+            f'Testcase IDs in both expected failures and required locales: {sorted(overlapping_expected_testcase_ids)}'
 
     @property
     def prefixed_extract_filepath(self) -> str | None:

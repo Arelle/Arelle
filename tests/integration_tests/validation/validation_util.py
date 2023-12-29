@@ -125,6 +125,7 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
         expected_failure_ids=expected_failure_ids,
         expected_empty_testcases=expected_empty_testcases,
         expected_model_errors=config.expected_model_errors,
+        required_locale_by_ids=config.required_locale_by_ids,
         strict_testcase_index=config.strict_testcase_index,
     )
     return args + config.args, kws
