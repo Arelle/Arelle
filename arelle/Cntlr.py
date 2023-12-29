@@ -19,7 +19,7 @@ import subprocess
 import sys
 import tempfile
 from collections import defaultdict
-from typing import Any, Mapping, TYPE_CHECKING, TextIO
+from typing import Any, Mapping, TYPE_CHECKING, TextIO, cast
 
 import regex as re
 
@@ -315,11 +315,9 @@ class Cntlr:
         except OSError:
             if fallbackToDefault and not locale:
                 locale = langCodes[0]
-            if fallbackToDefault or (locale and locale.lower().startswith("en")):
-                if locale and len(locale) == 5 and locale.lower().startswith("en"):
-                    self.uiLang = locale  # may be en other than defaultLocale
-                else:
-                    self.uiLang = XbrlConst.defaultLocale  # must work with gettext or will raise an exception
+            isEnglishLocale = locale and locale.lower().startswith('en')
+            if fallbackToDefault or isEnglishLocale:
+                self.uiLang = cast(str, locale) if isEnglishLocale else XbrlConst.defaultLocale
                 gettext.install("arelle", self.localeDir)
         self.uiLocale = locale or getattr(self, "uiLang", None)
 
