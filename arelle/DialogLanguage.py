@@ -36,7 +36,7 @@ class DialogLanguage(Toplevel):
                         [k
                          for avail in [Locale.availableLocales()] # unix/Mac locale -a supported locale codes
                          for k, v in self.languageCodes.items()
-                         if v.partition(" ")[0] in avail]
+                         if Locale.bcp47LangToPosixLocale(v.partition(" ")[0]) in avail]
                         ))
         self.uiLang = mainWin.config.get("userInterfaceLangOverride", "")
         if self.uiLang == "" or self.uiLang == mainWin.modelManager.defaultLang:

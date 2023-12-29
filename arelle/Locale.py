@@ -343,7 +343,7 @@ def availableLocales() -> set[str]:
     On Windows system locales can't be easily determined and an empty set is returned.
     """
     return {
-        posixLocaleToBCP47Lang(loc.partition(POSIX_LOCALE_ENCODING_SEPARATOR)[0])
+        loc.partition(POSIX_LOCALE_ENCODING_SEPARATOR)[0]
         for loc in getLocaleList()
     }
 
