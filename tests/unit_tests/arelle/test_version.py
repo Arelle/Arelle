@@ -1,10 +1,9 @@
-from datetime import datetime
+import subprocess
+
 import mock
 
 import arelle.Version
-from arelle.Version import getVersion, getGitHash, getDefaultVersion
-
-expected_copyright_year = datetime.now().year
+from arelle.Version import getDefaultVersion, getGitHash, getVersion
 
 
 def test_version_dot_py_exists():
@@ -38,9 +37,16 @@ def test_git_not_installed_fallback():
         build_version.return_value = None
         #  Mock 'git rev-parse HEAD' result
         with mock.patch("subprocess.run") as mock_subproc_run:
-            process_mock = mock.Mock(
-                stdout='',
-                stderr="FileNotFoundError: [Errno 2] No such file or directory: 'git'"
-            )
-            mock_subproc_run.return_value = process_mock
+            mock_subproc_run.side_effect = FileNotFoundError
+            assert getVersion() == getDefaultVersion() == expected_version
+
+
+def test_git_error():
+    expected_version = '0.0.0'
+
+    with mock.patch('arelle.Version.getBuildVersion') as build_version:
+        build_version.return_value = None
+        #  Mock 'git rev-parse HEAD' result
+        with mock.patch("subprocess.run") as mock_subproc_run:
+            mock_subproc_run.side_effect = subprocess.SubprocessError("fatal: not a git repository (or any of the parent directories): .git")
             assert getVersion() == getDefaultVersion() == expected_version
