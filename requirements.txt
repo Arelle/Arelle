@@ -1,26 +1,26 @@
 # core modules
 certifi==2023.11.17
-lxml==4.9.3
+lxml==5.0.0
 OpenPyXL==3.1.2
 pyparsing==3.1.1
-regex==2023.10.3
+regex==2023.12.25
 isodate==0.6.1
 aniso8601==9.0.1
-CherryPy==18.8.0
+CherryPy==18.9.0
 Cheroot==10.0.0
 python-dateutil==2.8.2
 # special note: pip install --no-cache --use-pep517 pycountry
-pycountry==22.3.5
+pycountry==23.12.11
 # plugins
 # EdgarRenderer plugin
 NumPy==1.24.4 ; python_version <= "3.8"
 NumPy==1.25.2 ; python_version > "3.8"
 Matplotlib==3.7.4
-holidays==0.36
+holidays==0.39
 pytz==2023.3.post1
-Tornado==6.3.3
+Tornado==6.4
 # security plugin
-PyCryptodome==3.19.0
+PyCryptodome==3.19.1
 # xbrlDB plugin
 cx_Oracle==8.3.0
 pg8000==1.30.3
