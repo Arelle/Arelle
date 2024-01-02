@@ -213,16 +213,6 @@ jobs:
           ditto -c -k --keepParent "build/Arelle.app" "notarization.zip"
           xcrun notarytool submit "notarization.zip" -v --apple-id "$USERNAME" --password "$PASSWORD" --team-id "$TEAM_ID" --wait --timeout 30m --output-format json
           xcrun stapler staple -v "build/Arelle.app"
-      - name: "[Test] Test build artifact"
-        run : |
-          pip install -r requirements-dev.txt
-          pytest -s --disable-warnings --all --download-cache --offline --arelle="build/Arelle.app/Contents/MacOS/arelleCmdLine" tests/integration_tests/scripts/test_scripts.py
-      - name: "[Test] Upload test artifacts"
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: 'test logs'
-          path: '.test/**/*.logfile.xml'
       - name: Build DMG
         run: |
           pwd
@@ -271,3 +261,13 @@ jobs:
           name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
           if-no-files-found: error
           path: ${{ env.DMG_BUILD_ARTIFACT_PATH }}
+      - name: "[Test] Test build artifact"
+        run : |
+          pip install -r requirements-dev.txt
+          pytest -s --disable-warnings --all --download-cache --offline --arelle="build/Arelle.app/Contents/MacOS/arelleCmdLine" tests/integration_tests/scripts/test_scripts.py
+      - name: "[Test] Upload test artifacts"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'test logs'
+          path: '.test/**/*.logfile.xml'
