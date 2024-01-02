@@ -6,7 +6,7 @@ on:
       codesign_and_notarize:
         description: 'Sign and notarize code'
         required: false
-        default: 'true'
+        default: true
         type: boolean
       edgar_renderer_ref:
         description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
@@ -42,7 +42,7 @@ on:
       codesign_and_notarize:
         description: 'Sign and notarize code'
         required: false
-        default: 'true'
+        default: true
         type: boolean
       edgar_renderer_ref:
         description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
@@ -136,7 +136,7 @@ jobs:
       - name: Remove git directories
         run: find build/Arelle.app/Contents -name .git -exec rm -fR {} \;
       - name: Install certificate and sign code
-        if: ${{ inputs.codesign_and_notarize == 'true' }}
+        if: ${{ inputs.codesign_and_notarize }}
         env:
           MAC_BUILD_CERTIFICATE_BASE64: ${{ secrets.MAC_BUILD_CERTIFICATE_BASE64 }}
           MAC_BUILD_CERTIFICATE_NAME: 'Developer ID Application: Workiva Inc. (5ZF66U48UD)'
@@ -204,7 +204,7 @@ jobs:
           codesign --options runtime --force --deep --timestamp -s "$MAC_BUILD_CERTIFICATE_NAME" build/Arelle.app/Contents/MacOS/arelleCmdLine
           codesign --options runtime --force --deep --timestamp -s "$MAC_BUILD_CERTIFICATE_NAME" build/Arelle.app/Contents/MacOS/arelleGUI
       - name: Notarize app
-        if: ${{ inputs.codesign_and_notarize == 'true' }}
+        if: ${{ inputs.codesign_and_notarize }}
         env:
           USERNAME: ${{ secrets.MAC_BUILD_NOTARIZATION_USERNAME }}
           PASSWORD: ${{ secrets.MAC_BUILD_NOTARIZATION_PASSWORD }}
