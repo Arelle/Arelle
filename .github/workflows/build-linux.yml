@@ -145,6 +145,15 @@ jobs:
           [[ $(echo dist/*.tgz) =~ -([0-9]+\.[0-9]+\.[0-9]+)\.tgz$ ]] && echo "artifact_versioned_name=arelle-ubuntu-${BASH_REMATCH[1]}.tgz" >> $GITHUB_OUTPUT
           echo "BUILD_ARTIFACT_PATH=$(echo dist/*.tgz)" >> $GITHUB_ENV
           echo "uploaded_artifact_name=ubuntu distribution" >> $GITHUB_OUTPUT
+      - name: Capture build env
+        run: |
+          echo "ARTIFACT_NAME=arelle-ubuntu.tgz" >> $GITHUB_ENV
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
+          if-no-files-found: error
+          path: ${{ env.BUILD_ARTIFACT_PATH }}
       - name: "[Test] Set up Python ${{ inputs.python_version }}"
         uses: actions/setup-python@v5.0.0
         with:
@@ -163,12 +172,3 @@ jobs:
         with:
           name: 'test logs'
           path: '.test/**/*.logfile.xml'
-      - name: Capture build env
-        run: |
-          echo "ARTIFACT_NAME=arelle-ubuntu.tgz" >> $GITHUB_ENV
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4.0.0
-        with:
-          name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
-          if-no-files-found: error
-          path: ${{ env.BUILD_ARTIFACT_PATH }}

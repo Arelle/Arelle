@@ -6,7 +6,7 @@ on:
       codesign_and_notarize:
         description: 'Sign and notarize code'
         required: false
-        default: 'true'
+        default: true
         type: boolean
       edgar_renderer_ref:
         description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
@@ -42,7 +42,7 @@ on:
       codesign_and_notarize:
         description: 'Sign and notarize code'
         required: false
-        default: 'true'
+        default: true
         type: boolean
       edgar_renderer_ref:
         description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
@@ -136,7 +136,7 @@ jobs:
       - name: Remove git directories
         run: find build/Arelle.app/Contents -name .git -exec rm -fR {} \;
       - name: Install certificate and sign code
-        if: ${{ inputs.codesign_and_notarize == 'true' }}
+        if: ${{ inputs.codesign_and_notarize }}
         env:
           MAC_BUILD_CERTIFICATE_BASE64: ${{ secrets.MAC_BUILD_CERTIFICATE_BASE64 }}
           MAC_BUILD_CERTIFICATE_NAME: 'Developer ID Application: Workiva Inc. (5ZF66U48UD)'
@@ -204,7 +204,7 @@ jobs:
           codesign --options runtime --force --deep --timestamp -s "$MAC_BUILD_CERTIFICATE_NAME" build/Arelle.app/Contents/MacOS/arelleCmdLine
           codesign --options runtime --force --deep --timestamp -s "$MAC_BUILD_CERTIFICATE_NAME" build/Arelle.app/Contents/MacOS/arelleGUI
       - name: Notarize app
-        if: ${{ inputs.codesign_and_notarize == 'true' }}
+        if: ${{ inputs.codesign_and_notarize }}
         env:
           USERNAME: ${{ secrets.MAC_BUILD_NOTARIZATION_USERNAME }}
           PASSWORD: ${{ secrets.MAC_BUILD_NOTARIZATION_PASSWORD }}
@@ -213,16 +213,6 @@ jobs:
           ditto -c -k --keepParent "build/Arelle.app" "notarization.zip"
           xcrun notarytool submit "notarization.zip" -v --apple-id "$USERNAME" --password "$PASSWORD" --team-id "$TEAM_ID" --wait --timeout 30m --output-format json
           xcrun stapler staple -v "build/Arelle.app"
-      - name: "[Test] Test build artifact"
-        run : |
-          pip install -r requirements-dev.txt
-          pytest -s --disable-warnings --all --download-cache --offline --arelle="build/Arelle.app/Contents/MacOS/arelleCmdLine" tests/integration_tests/scripts/test_scripts.py
-      - name: "[Test] Upload test artifacts"
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: 'test logs'
-          path: '.test/**/*.logfile.xml'
       - name: Build DMG
         run: |
           pwd
@@ -271,3 +261,13 @@ jobs:
           name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
           if-no-files-found: error
           path: ${{ env.DMG_BUILD_ARTIFACT_PATH }}
+      - name: "[Test] Test build artifact"
+        run : |
+          pip install -r requirements-dev.txt
+          pytest -s --disable-warnings --all --download-cache --offline --arelle="build/Arelle.app/Contents/MacOS/arelleCmdLine" tests/integration_tests/scripts/test_scripts.py
+      - name: "[Test] Upload test artifacts"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'test logs'
+          path: '.test/**/*.logfile.xml'
