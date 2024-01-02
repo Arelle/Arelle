@@ -7,11 +7,6 @@ on:
         description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
-      node_version:
-        default: '20'
-        description: 'Node.js version to use'
-        required: false
-        type: string
       python_version:
         default: '3.11'
         description: 'Python version to use'
@@ -39,11 +34,6 @@ on:
       edgar_renderer_ref:
         description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
         required: false
-        type: string
-      node_version:
-        default: '20'
-        description: 'Node.js version to use'
-        required: true
         type: string
       python_version:
         default: '3.11'

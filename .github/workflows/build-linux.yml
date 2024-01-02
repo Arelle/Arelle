@@ -12,11 +12,6 @@ on:
         description: 'OpenSSL version to use'
         required: false
         type: string
-      node_version:
-        default: '20'
-        description: 'Node.js version to use'
-        required: false
-        type: string
       python_version:
         default: '3.11.5'
         description: 'Python version to use'
@@ -42,11 +37,6 @@ on:
       openssl_version:
         default: '1.1.1s'
         description: 'OpenSSL version to use'
-        required: true
-        type: string
-      node_version:
-        default: '20'
-        description: 'Node.js version to use'
         required: true
         type: string
       python_version:
