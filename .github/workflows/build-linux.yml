@@ -170,5 +170,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: 'test logs'
+          name: 'linux test logs'
           path: '.test/**/*.logfile.xml'
