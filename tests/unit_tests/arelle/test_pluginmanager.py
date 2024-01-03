@@ -4,7 +4,7 @@ import os
 import sys
 
 import pytest
-from mock import Mock
+from unittest.mock import Mock
 
 from arelle import PluginManager
 from arelle.Cntlr import Cntlr

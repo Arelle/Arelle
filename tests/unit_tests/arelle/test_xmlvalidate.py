@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 import regex
-from mock import Mock
+from unittest.mock import Mock
 
 from arelle.ModelValue import QName, DateTime, Time, isoDuration, gDay, gMonth, gMonthDay, gYear, gYearMonth
 from arelle.XmlValidate import validateValue, VALID, UNKNOWN, INVALID, VALID_ID, NMTOKENPattern, namePattern, NCNamePattern, VALID_NO_CONTENT

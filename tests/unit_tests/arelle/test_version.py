@@ -1,6 +1,6 @@
 import subprocess
 
-import mock
+from unittest import mock
 
 import arelle.Version
 from arelle.Version import getDefaultVersion, getGitHash, getVersion
