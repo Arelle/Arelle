@@ -628,7 +628,7 @@ def logRefsFileLines(refs: list[dict[str, Any]]) -> str:
     for ref in refs:
         href = ref.get("href")
         if href:
-            fileLines[href.partition("#")[0]].add(ref.get("sourceLine", 0))
+            fileLines[href.partition("#")[0]].add(ref.get("sourceLine", 0) if ref.get("sourceLine") else 0)
     return ", ".join(file + " " + ', '.join(str(line)
                                             for line in sorted(lines, key=lambda l: l)
                                             if line)
@@ -724,7 +724,7 @@ class LogHandlerWithXml(logging.Handler):
         msg = self.format(logRec)
         if logRec.args and isinstance(logRec.args, Mapping):
             args = "".join([' {0}="{1}"'.format(ncNameEncode(n), entityEncode(v,
-                                                truncateAt=(65535 if n in ("json",) else 128)))
+                                                truncateAt=(4096000 if n in ("json",) else 128)))
                             for n, v in logRec.args.items()])
         else:
             args = ""
@@ -923,11 +923,12 @@ class LogToXmlHandler(LogHandlerWithXml):
         ]
         if self.logRecordBuffer:
             for logRec in self.logRecordBuffer:
-                html.append(self.recordToHtml(logRec))
+                if all(p(logRec) for p in PluginManager.pluginClassMethods("Cntlr.Log.RecFilter.Html")):
+                    html.append(self.recordToHtml(logRec))
             if clearLogBuffer:
                 self.clearLogBuffer()
             html.append("</tbody>\n</table>\n</body>\n</html>\n")
-        else:
+        if len(html) < 3: # no entries were added to log. Display no log errors message
             html = ["""<!doctype html>
             <html>
             <head>

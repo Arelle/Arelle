@@ -1474,7 +1474,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False):
     # extract for a single target document
     ixdsTarget = getattr(modelXbrl, "ixdsTarget", None)
     # compile inline result set
-    ixdsEltById = defaultdict(list)
+    ixdsEltById = modelXbrl.ixdsEltById = defaultdict(list)
     for htmlElement in modelXbrl.ixdsHtmlElements:
         for elt in htmlElement.iterfind(".//*[@id]"):
             if isinstance(elt,ModelObject) and elt.id:
