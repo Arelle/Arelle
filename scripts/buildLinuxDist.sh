@@ -25,15 +25,16 @@ cp -p arelle/scripts-unix/* "${DISTRO_DIR}/"
 cp -pR libs/linux/Tktable2.11 "${DISTRO_DIR}/lib/"
 
 SITE_PACKAGES=$(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
-cp -pR "${SITE_PACKAGES}/mpl_toolkits" "${DISTRO_DIR}/lib/"
-cp -pR "${SITE_PACKAGES}/numpy.libs" "${DISTRO_DIR}/lib/"
-cp -pR "${SITE_PACKAGES}/Pillow.libs" "${DISTRO_DIR}/lib/"
 
-cp -p "$(find /lib /usr -name libexslt.so.0)" "${DISTRO_DIR}/"
-cp -p "$(find /lib /usr -name libxml2.so)" "${DISTRO_DIR}/"
-cp -p "$(find /lib /usr -name libxml2.so.2)" "${DISTRO_DIR}/"
-cp -p "$(find /lib /usr -name libxslt.so.1)" "${DISTRO_DIR}/"
-cp -p "$(find /lib /usr -name libz.so.1)" "${DISTRO_DIR}/"
+for pythonLib in "mpl_toolkits" "numpy.libs" "pillow.libs"; do
+  pythonLibFullPath=$(find "${SITE_PACKAGES}" -maxdepth 1 -type d -iname "${pythonLib}")
+  cp -pR "${pythonLibFullPath}" "${DISTRO_DIR}/lib/"
+done
+
+for lib in "libexslt.so.0" "libxml2.so" "libxml2.so.2" "libxslt.so.1" "libz.so.1"; do
+  libFullPath=$(find /lib /usr -name ${lib})
+  cp -p "${libFullPath}" "${DISTRO_DIR}/"
+done
 
 VERSION=$(python3 -c "import arelle._version; print(arelle._version.version)")
 
