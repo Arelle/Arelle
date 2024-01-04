@@ -95,7 +95,7 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
         if modelObject is not None:
             mdl.attr("node", style="") # white classes
             if isUML:
-                _properties = "".join("+{} {}\l".format(rel.toModelObject.qname.localName, rel.toModelObject.niceType)
+                _properties = "".join(r"+{} {}\l".format(rel.toModelObject.qname.localName, rel.toModelObject.niceType)
                                                         for rel in propertiesRelationshipSet.fromModelObject(modelObject)
                                                         if rel.toModelObject is not None)
                 mdl.node(id, "{{{}|{}}}".format(modelObject.qname.localName, _properties))

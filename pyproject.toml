@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools~=68.0", "wheel~=0.40", "setuptools_scm[toml]~=7.1"]
+requires = ["setuptools~=69.0", "wheel~=0.42", "setuptools_scm[toml]~=8.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -23,6 +23,7 @@ classifiers = [
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
     'Operating System :: OS Independent',
     'Topic :: Text Processing :: Markup :: XML'
 ]
@@ -30,7 +31,7 @@ requires-python = ">=3.8"
 dependencies = [
     'certifi',
     'isodate==0.*',
-    'lxml==4.*',
+    'lxml>=4,<6',
     'numpy==1.*',
     'openpyxl==3.*',
     'pyparsing==3.*',
@@ -46,7 +47,7 @@ DB = [
     'pg8000==1.*',
     'PyMySQL==1.*',
     'pyodbc>=4,<6',
-    'rdflib==5.*',
+    'rdflib>=5,<8',
 ]
 EFM = [
     'holidays==0.*',
@@ -102,7 +103,7 @@ markers = [
 # Warn when a # type: ignore comment does not specify any error codes
 enable_error_code = "ignore-without-code"
 
-python_version = "3.11"
+python_version = "3.12"
 
 show_error_codes = true
 

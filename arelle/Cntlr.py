@@ -9,18 +9,25 @@
    :synopsis: Common controller class to initialize for platform and setup common logger functions
 """
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING, TextIO, Mapping
 
-from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
-from arelle.typing import TypeGetText
-import tempfile, os, io, sys, logging, gettext, json, subprocess, math
-import regex as re
-from arelle import ModelManager
-from arelle.WebCache import WebCache
-from arelle.Locale import getLanguageCodes, setDisableRTL
-from arelle import PluginManager, PackageManager, XbrlConst
-from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, isCGI, isGAE, hasWebServer
+import gettext
+import io
+import json
+import logging
+import os
+import subprocess
+import sys
+import tempfile
 from collections import defaultdict
+from typing import Any, Mapping, TYPE_CHECKING, TextIO, cast
+
+import regex as re
+
+from arelle import Locale, ModelManager, PackageManager, PluginManager, XbrlConst
+from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
+from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, hasWebServer, isCGI, isGAE
+from arelle.WebCache import WebCache
+from arelle.typing import TypeGetText
 
 _: TypeGetText
 
@@ -117,7 +124,6 @@ class Cntlr:
     isCGI: bool
     systemWordSize: int
     uiLang: str
-    uiLangDir: str
     configDir: str
     imagesDir: str
     localeDir: str
@@ -161,7 +167,7 @@ class Cntlr:
         self.isMac = platformOS == PlatformOS.MACOS
         self.isMSW = platformOS == PlatformOS.WINDOWS
         self.systemWordSize = getSystemWordSize()  # e.g., 32 or 64
-        self.uiLangDir = "ltr"
+        self._uiLocale: str | None = None
         self.disablePersistentConfig = disable_persistent_config
 
         # sys.setrecursionlimit(10000) # 1000 default exceeded in some inline documents
@@ -264,7 +270,7 @@ class Cntlr:
 
         # start language translation for domain
         self.setUiLanguage(uiLang or self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
-        setDisableRTL(self.config.get('disableRtl', False))
+        Locale.setDisableRTL(self.config.get('disableRtl', False))
 
         self.webCache = WebCache(self, self.config.get("proxySettings"))
 
@@ -279,6 +285,18 @@ class Cntlr:
 
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
 
+    @property
+    def uiLangDir(self) -> str:
+        return 'rtl' if getattr(self, 'uiLang', '')[0:2].lower() in {"ar", "he"} else 'ltr'
+
+    @property
+    def uiLocale(self) -> str | None:
+        return self._uiLocale
+
+    @uiLocale.setter
+    def uiLocale(self, uiLocale: str | None) -> None:
+        self._uiLocale = Locale.findCompatibleLocale(uiLocale)
+
     def postLoggingInit(self, localeSetupMessage: str | None = None) -> None:
         if not self.modelManager.isLocaleSet:
             localeSetupMessage = self.modelManager.setLocale() # set locale after logger started
@@ -290,29 +308,18 @@ class Cntlr:
             pluginMethod(self)
 
     def setUiLanguage(self, locale: str | None, fallbackToDefault: bool = False) -> None:
+        langCodes = Locale.getLanguageCodes(locale)
         try:
-            self.uiLocale = locale
-            langCodes = getLanguageCodes(locale)
-            gettext.translation("arelle",
-                                self.localeDir,
-                                langCodes).install()
+            gettext.translation("arelle", self.localeDir, langCodes).install()
             self.uiLang = langCodes[0]
-            if not locale and self.uiLang:
-                self.uiLocale = self.uiLang
-            self.uiLangDir = 'rtl' if self.uiLang[0:2].lower() in {"ar","he"} else 'ltr'
-        except Exception as ex:
-            if fallbackToDefault and not locale and langCodes:
+        except OSError:
+            if fallbackToDefault and not locale:
                 locale = langCodes[0]
-            if fallbackToDefault or (locale and locale.lower().startswith("en")):
-                if locale and len(locale) == 5 and locale.lower().startswith("en"):
-                    self.uiLang = locale # may be en other than defaultLocale
-                else:
-                    self.uiLang = XbrlConst.defaultLocale # must work with gettext or will raise an exception
-                if not self.uiLocale:
-                    self.uiLocale = self.uiLang
-                self.uiLangDir = "ltr"
-                gettext.install("arelle",
-                                self.localeDir)
+            isEnglishLocale = locale and locale.lower().startswith('en')
+            if fallbackToDefault or isEnglishLocale:
+                self.uiLang = cast(str, locale) if isEnglishLocale else XbrlConst.defaultLocale
+                gettext.install("arelle", self.localeDir)
+        self.uiLocale = locale or getattr(self, "uiLang", None)
 
     def startLogging(
         self,

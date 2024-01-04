@@ -43,6 +43,7 @@ includeLibs = [
     "pycountry",
     "pymysql",
     "regex",
+    "rdflib",
     "sqlite3",
     "tinycss2",
     "zlib",
@@ -89,6 +90,14 @@ elif sys.platform == MACOS_PLATFORM:
         "iconfile": "arelle/images/arelle.icns",
         "bundle_name": "Arelle",
     }
+    if codesignIdentity := os.environ.get('CODESIGN_IDENTITY'):
+        options["bdist_mac"].update({
+            "codesign_identity": codesignIdentity,
+            "codesign_deep": True,
+            "codesign_timestamp": True,
+            "codesign_verify": True,
+            "codesign_options": "runtime",
+        })
 elif sys.platform == WINDOWS_PLATFORM:
     guiExecutable = Executable(
         script="arelleGUI.pyw",
@@ -112,7 +121,7 @@ else:
 setup(
     executables=[guiExecutable, cliExecutable],
     options=options,
-    setup_requires=["setuptools_scm~=7.1"],
+    setup_requires=["setuptools_scm~=8.0"],
     use_scm_version={
         "tag_regex": r"^(?:[\w-]+-?)?(?P<version>[vV]?\d+(?:\.\d+){0,2}[^\+]*)(?:\+.*)?$",
         "write_to": os.path.normcase("arelle/_version.py"),

@@ -6,8 +6,6 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from datetime import datetime
-
 
 def getBuildVersion() -> str | None:
     try:
@@ -19,10 +17,10 @@ def getBuildVersion() -> str | None:
 
 def getGitHash() -> str | None:
     import subprocess
-    p = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, encoding='utf-8')
-    if not p.stderr:
-        return p.stdout.strip()
-    return None
+    try:
+        return subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, check=True, text=True).stdout.strip()
+    except (FileNotFoundError, subprocess.SubprocessError):
+        return None
 
 
 def getDefaultVersion() -> str:

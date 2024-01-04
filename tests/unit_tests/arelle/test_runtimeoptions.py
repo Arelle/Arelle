@@ -1,7 +1,7 @@
 import pytest
 import re
 
-from mock import patch
+from unittest.mock import patch
 from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
 
 

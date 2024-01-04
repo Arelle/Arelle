@@ -12,7 +12,7 @@ on:
         required: false
         type: string
       openssl_version:
-        default: '1.1.1s'
+        default: '1.1.1w'
         description: 'OpenSSL version to use'
         required: false
         type: string
@@ -22,7 +22,7 @@ on:
         required: false
         type: string
       python_version:
-        default: '3.11.5'
+        default: '3.11.7'
         description: 'Python version to use'
         required: false
         type: string
@@ -48,7 +48,7 @@ on:
         required: false
         type: string
       openssl_version:
-        default: '1.1.1s'
+        default: '1.1.1w'
         description: 'OpenSSL version to use'
         required: true
         type: string
@@ -58,7 +58,7 @@ on:
         required: true
         type: string
       python_version:
-        default: '3.11.5'
+        default: '3.11.7'
         description: 'Python version to use'
         required: true
         type: string
