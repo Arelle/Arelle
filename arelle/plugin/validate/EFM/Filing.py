@@ -27,7 +27,7 @@ from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
 from arelle.PythonUtil import pyNamedObject, strTruncate, normalizeSpace, lcStr, flattenSequence, flattenToSet, OrderedSet
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue, roundValue, ONE
-from arelle.XmlValidate import VALID
+from arelle.XmlValidate import VALID, INVALID
 from .DTS import checkFilingDTS
 from .Consts import submissionTypesAllowingSeriesClasses, \
                     submissionTypesRequiringOefClasses, invCompanyTypesRequiringOefClasses, \
@@ -1570,6 +1570,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
                 return max((datetimeNowAtSEC - dueDate).days, 0)
 
+            def find_fact_in_context(contextID, name=None):
+                for fact in modelXbrl.facts:
+                    if fact.contextID == contextID:
+                        if not name:
+                            return fact
+                        if name == ftName(fact):
+                            return fact
+
             unexpectedDeiNameEfmSects = defaultdict(set) # name and sev(s)
             expectedDeiNames = defaultdict(set)
             coverVisibleQNames = {}  # true if error, false if warning when not visible
@@ -1598,6 +1606,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 storeDbObject = sev.get("store-db-object")
                 storeDbAction = sev.get("store-db-action")
                 storeDbInnerTextTruncate = sev.get("store-db-inner-text-truncate")
+                storeDbInnerTextOnly = sev.get("store-db-inner-text-truncate")
                 efmSection = sev.get("efm")
                 validation = sev.get("validation")
                 checkAfter = sev.get("check-after")
@@ -1921,6 +1930,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                             else (not value.inRange(f.xValue)) if isinstance(value, ValueRange)
                                             else (value is not None and f.xValue != value)):
                                 sevMessage(sev, subType=submissionType, modelObject=f, efmSection=efmSection, tag=ftName(name), label=ftLabel(name), value=("(none)" if f is None else f.xValue), expectedValue=value, ftContext=ftContext(axisKey,f))
+                                if validation.startswith("ov") and (sev.get("value-numeric-range") or sev.get("value-pattern") or sev.get("value-date-range")):
+                                    # avoid writing to store-db-object since this is an invalid value
+                                    f.xValid = INVALID
                             if f is None and name in eloValueFactNames:
                                 missingReqInlineTag = True
                 elif validation  == "not-in-future":
@@ -1982,11 +1994,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         sevMessage(sev, subType=submissionType, modelObject=val.requiredContext, tag="Required Context Period Duration",
                                    value=f"{monthsDuration:.1f} months", expectedValue=f"{value} months", contextID=val.requiredContext.id)
                 # fee tagging
-                elif validation in ("fe", "fw","fo"): # note where clauses are incompatible with this validation
-                    def find_fact_in_context(contextID):
-                        for fact in modelXbrl.facts:
-                            if fact.contextID == contextID:
-                                return fact
+                elif validation in ("fe", "fw","fo"):
                     instDurNames = defaultdict(list)
                     for name in names:
                         concept = modelXbrl.qnameConcepts.get(qname(name, deiDefaultPrefixedNamespaces))
@@ -2236,6 +2244,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     comparison = sev.get("comparison")
                     for name1 in names:
                         for f in sevFacts(sev, name1, deduplicate=True, whereKey="where"): # these all are sum facts
+                            if sev.get("comparison-element-match"):
+                                mainFactElementMatch = {}
+                                for elemName in sev.get("comparison-element-match"):
+                                    mainFact = find_fact_in_context(f.contextID, name=elemName)
+                                    if mainFact is not None:
+                                        mainFactElementMatch[elemName] = mainFact.xValue
                             for name2 in referenceTag:
                                 for g in sevFacts(sev, name2, f, axisKey=sev.get("references-axes"), deduplicate=True, whereKey="references-where"):
                                     if "references-date-format" in sev:
@@ -2247,12 +2261,20 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         if "%d" not in sev.get("references-date-format").lower():
                                             referenceDate = referenceDate.replace(year=f.xValue.day)
                                         g.xValue = ModelValue.dateTime(referenceDate.date().isoformat(), type=ModelValue.DATE)
+                                    if sev.get("comparison-element-match"):
+                                        otherFactElementMatch = {}
+                                        for elemName in sev.get("comparison-element-match"):
+                                            otherFact = find_fact_in_context(g.contextID, name=elemName)
+                                            if otherFact is not None:
+                                                otherFactElementMatch[elemName] = otherFact.xValue
+                                        if mainFactElementMatch != otherFactElementMatch:
+                                            continue
                                     if ((comparison == "equal" and f.xValue != g.xValue) or
                                         (comparison == "not equal" and f.xValue == g.xValue) or
                                         (comparison in ("less than or equal", "not greater") and f.xValue > g.xValue)):
                                         comparisonText = sev.get("comparisonText", deiValidations["validations"][sev["validation"]].get("comparisonText", comparison)).format(comparison=comparison)
                                         sevMessage(sev, subType=submissionType, modelObject=(f,g), ftContext=ftContext(axisKey,f), comparison=comparisonText,
-                                                   tag=ftName(name1), label=ftLabel(name1), otherTag=ftName(name2), otherLabel=ftLabel(name2), value=f.xValue, otherValue=g.xValue)
+                                                   tag=ftName(name1), label=ftLabel(name1), otherTag=ftName(name2), otherLabel=ftLabel(name2), value=f.xValue, otherValue=g.xValue, otherftContext=ftContext(axisKey,g))
                 elif validation == "calculation":
                     comparison = sev.get("comparison")
                     operators = sev.get("references-operators")
@@ -2362,8 +2384,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 if qname(_axis, deiDefaultPrefixedNamespaces) == dim.dimensionQname
                                 )
                             if storeDbName:
-                                storeDbObjectFacts.setdefault(storeDbObject,{}).setdefault(_axisKey,{})[
-                                    _storeDbName] = getStoreDBValue(ftName(f), eloValueOfFact(names[0], f.xValue))
+                                if not (storeDbInnerTextOnly and storeDbInnerTextTruncate): # only write truncated inner text to output file
+                                    storeDbObjectFacts.setdefault(storeDbObject,{}).setdefault(_axisKey,{})[
+                                        _storeDbName] = getStoreDBValue(ftName(f), eloValueOfFact(names[0], f.xValue))
                                 if storeDbInnerTextTruncate:
                                     storeDbObjectFacts.setdefault(storeDbObject,{}).setdefault(_axisKey,{})[
                                         f"{_storeDbName}InnerText"] = strTruncate(normalizeSpace(XmlUtil.innerText(f,
@@ -3262,14 +3285,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     for _rel in parentChildRels.fromModelObject(relTo))):
                                         modelXbrl.warning("EFM.6.12.08",
                                             _("In \"%(linkrole)s\" axis %(axis)s has no domain element children, which effectively filters out every fact."),
-                                            modelObject=(relFrom,relTo), axis=relFrom.qname,
+                                            modelObject=(relFrom,relTo), axis=relTo.qname,
                                             linkrole=ELR, linkroleDefinition=modelXbrl.roleTypeDefinition(ELR), linkroleName=modelXbrl.roleTypeName(ELR))
                                 if (relFrom.isExplicitDimension and not any(
                                     isinstance(_rel.toModelObject, ModelConcept) and _rel.toModelObject.type is not None and _rel.toModelObject.type.isDomainItemType
                                     for _rel in siblingRels)):
                                         modelXbrl.warning("EFM.6.12.08",
                                             _("In \"%(linkrole)s\" axis %(axis)s has no domain element children, which effectively filters out every fact."),
-                                            modelObject=relFrom, axis=relFrom.qname,
+                                            modelObject=relFrom, axis=relTo.qname,
                                             linkrole=ELR, linkroleDefinition=modelXbrl.roleTypeDefinition(ELR), linkroleName=modelXbrl.roleTypeName(ELR))
                         targetConceptPreferredLabels.clear()
                         orderRels.clear()

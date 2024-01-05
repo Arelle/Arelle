@@ -88,7 +88,8 @@ ftValidations = {
     "r457uSecType": 12, "rqdFileNb": 13, "ttlFeeAmt": 14, "ttlOfAmt": 15, "ttlOfstAmt": 16, "ttlOfstLeTotFee": 17,
     "ttlRqdFlds": 18, "ttlTxValtn": 19, "txtFldChars": 20, "usrSty27": 21, "usrSty30": 22, "usrSty32": 23,
     "usrSty3334MAOP": 24, "usrSty3334MAOPsums": 25, "usrSty3334valSecRcvd": 26, "usrSty3334RqdFlds": 87, "usrSty42": 30, "usrSty43": 31, "usrSty50": 32, "usrSty6a": 33, "usrSty6b": 34, "usrSty6c": 35,
-    "usrSty9": 36, "uusFileNb": 37, "uusNAflds": 38, "usrSty2": 41, "usrSty10": 40
+    "usrSty9": 36, "uusFileNb": 37, "uusNAflds": 38, "usrSty2": 41, "usrSty10": 40, "uusRqdChild": 42, "footNoteLen": 27,
+    "subTpMismatch": 1, "numRate": 66, "r415a6FileNb": 51
 }
 
 def messageNumericId(modelXbrl, level, messageCode, args):

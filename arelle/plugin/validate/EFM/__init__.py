@@ -375,7 +375,7 @@ def filingStart(cntlr, options, filesource, entrypointFiles, sourceZipStream=Non
 
 def guiTestcasesStart(cntlr, modelXbrl, *args, **kwargs):
     modelManager = cntlr.modelManager
-    if cntlr.hasGui and modelManager.validateDisclosureSystem and getattr(modelManager.disclosureSystem, "EFMplugin", False):
+    if cntlr.hasGui: # enable EdgarRenderer to initiate ixviewer irregardless of whether an EFM disclosure system is active
         for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Gui.Run"):
             pluginXbrlMethod(cntlr, modelXbrl, *args,
                              # pass plugin items to GUI mode of EdgarRenderer
