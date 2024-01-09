@@ -687,9 +687,9 @@ class ValidateXbrl:
         for duplicateFactSet in ValidateDuplicateFacts.getDuplicateFactSetsWithType(facts, duplicateType):
             self.modelXbrl.warning(
                 "arelle:duplicateFacts",
-                "Duplicate fact set with%(duplicateType)s duplicate(s) %(qname)s: %(values)s, %(contextIDs)s.",
+                "Duplicate fact set with %(duplicateType)s duplicate(s) %(qname)s: %(values)s, %(contextIDs)s.",
                 modelObject=duplicateFactSet.facts,
-                duplicateType=f" {duplicateType.name.lower()}" if duplicateType.name else "",
+                duplicateType=duplicateType.description,
                 qname=duplicateFactSet.facts[0].qname,
                 contextIDs=", ".join(sorted(set(f.contextID for f in duplicateFactSet.facts))),
                 values=", ".join(strTruncate(f.value, 64) for f in duplicateFactSet.facts),

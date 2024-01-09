@@ -185,6 +185,10 @@ class DuplicateType(Flag):
             yield DuplicateType(b)
             num ^= b
 
+    @property
+    def description(self) -> str:
+        return '|'.join([str(n.name) for n in self if n.name]).lower()
+
 
 class DuplicateTypeArg(Enum):
     NONE = 'none'
