@@ -24,20 +24,20 @@ class DuplicateFactSet:
         return iter(self.facts)
 
     @cached_property
-    def areCompleteDuplicates(self) -> bool:
+    def areAllComplete(self) -> bool:
         """
         Returns whether these duplicates are complete duplicates.
         :return: True if complete, False if incomplete consistent, or inconsistent.
         """
-        return self.areDecimalsEqual and self.areValueEqual
+        return self.areAllDecimalsEqual and self.areAllValueEqual
 
     @cached_property
-    def areConsistentDuplicates(self) -> bool:
+    def areAllConsistent(self) -> bool:
         """
         Returns whether these duplicates are consistent with each other.
         :return: True if consistent or complete, False if incomplete inconsistent.
         """
-        if self.areCompleteDuplicates:
+        if self.areAllComplete:
             return True
         if self.areNumeric:
             # If facts are numeric but NOT complete duplicates,
@@ -47,7 +47,7 @@ class DuplicateFactSet:
         return False
 
     @cached_property
-    def areDecimalsEqual(self) -> bool:
+    def areAllDecimalsEqual(self) -> bool:
         """
         :return: Whether these facts have matching decimals values.
         """
@@ -59,16 +59,16 @@ class DuplicateFactSet:
         return True
 
     @cached_property
-    def areInconsistentDuplicates(self) -> bool:
+    def areAnyInconsistent(self) -> bool:
         """
         Returns whether these duplicates are inconsistent with each other.
         :return: True if inconsistent, False if consistent or complete.
         """
         if self.areNumeric:
             # If facts are numeric, they are inconsistent if they are not consistent
-            return not self.areConsistentDuplicates
+            return not self.areAllConsistent
         # If facts are not numeric, they are inconsistent if they are not fact-value equal
-        return not self.areValueEqual
+        return not self.areAllValueEqual
 
     @cached_property
     def areNumeric(self) -> bool:
@@ -78,7 +78,7 @@ class DuplicateFactSet:
         return self.facts[0].isNumeric
 
     @cached_property
-    def areValueEqual(self) -> bool:
+    def areAllValueEqual(self) -> bool:
         """
         :return: Whether all facts in this set are fact-value equal.
         """
@@ -128,11 +128,11 @@ class DuplicateFactSet:
         """
         # Access __dict__ directly to check if given properties have been evaluated
         # and, if so, what the evaluated value is.
-        if self.__dict__.get('areCompleteDuplicates'):
+        if self.__dict__.get('areAllComplete'):
             return DuplicateType.COMPLETE
-        if self.__dict__.get('areConsistentDuplicates'):
+        if self.__dict__.get('areAllConsistent'):
             return DuplicateType.CONSISTENT
-        if self.__dict__.get('areInconsistentDuplicates'):
+        if self.__dict__.get('areAnyInconsistent'):
             return DuplicateType.INCONSISTENT
         return None
 
@@ -191,18 +191,14 @@ def areDuplicatesOfType(duplicateFacts: DuplicateFactSet, duplicateType: Duplica
     complete = DuplicateType.COMPLETE in duplicateType
     if (inconsistent and consistent) or (incomplete and complete):
         return True
-    if inconsistent:
-        if duplicateFacts.areInconsistentDuplicates:
-            return True
-    if consistent:
-        if duplicateFacts.areConsistentDuplicates:
-            return True
-    if incomplete:
-        if not duplicateFacts.areCompleteDuplicates:
-            return True
-    if complete:
-        if duplicateFacts.areCompleteDuplicates:
-            return True
+    if inconsistent and duplicateFacts.areAnyInconsistent:
+        return True
+    if consistent and duplicateFacts.areAllConsistent:
+        return True
+    if incomplete and not duplicateFacts.areAllComplete:
+        return True
+    if complete and duplicateFacts.areAllComplete:
+        return True
     return False
 
 
