@@ -136,6 +136,7 @@ module = [
     'arelle.SystemInfo',
     'arelle.Updater',
     'arelle.UrlUtil',
+    'arelle.ValidateDuplicateFacts',
     'arelle.ValidateXbrl',
     'arelle.XbrlConst',
     'arelle.XbrlUtil',

@@ -3,16 +3,17 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+from _decimal import Decimal
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import auto, Flag, Enum
 from functools import cached_property
 from math import isnan
-from typing import cast, Iterator, Any
+from typing import cast, Iterator, Any, SupportsFloat
 
 from arelle import XmlValidateConst
 from arelle.ModelInstanceObject import ModelFact, ModelContext, ModelUnit
-from arelle.ModelValue import DateTime, QName
+from arelle.ModelValue import DateTime, QName, TypeXValue
 from arelle.ValidateXbrlCalcs import rangeValue, inferredDecimals
 
 
@@ -20,7 +21,7 @@ from arelle.ValidateXbrlCalcs import rangeValue, inferredDecimals
 class DuplicateFactSet:
     facts: list[ModelFact]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[ModelFact]:
         return iter(self.facts)
 
     @cached_property
@@ -76,7 +77,7 @@ class DuplicateFactSet:
         Returns whether these duplicates are complete duplicates.
         :return: True if complete, False if incomplete consistent, or inconsistent.
         """
-        decimalsValueMap = defaultdict(set)
+        decimalsValueMap: dict[float | int, set[TypeFactValueEqualityKey]] = defaultdict(set)
         for fact in self.facts:
             decimals = inferredDecimals(fact)
             value = getFactValueEqualityKey(fact)
@@ -99,7 +100,7 @@ class DuplicateFactSet:
         if not self.areNumeric:
             # Non-numeric and incompete: inconsistent
             return False
-        ranges = []
+        ranges: list[tuple[Decimal, Decimal, float | int]] = []
         for fact in self.facts:
             decimalsA = inferredDecimals(fact)
             lowerA, upperA, __, __ = rangeValue(fact.xValue, decimalsA)
@@ -140,19 +141,19 @@ class DuplicateFactSet:
         """
         :return: Whether the duplicate set consists of numeric facts.
         """
-        return self.facts[0].isNumeric
+        return cast(bool, self.facts[0].isNumeric)
 
     @cached_property
     def areWithinRoundingError(self) -> bool:
         """
         :return: Whether the set of numeric fact values are within rounding error of each other.
         """
-        maxLower = float("-inf")
-        minUpper = float("inf")
-        decimalValues = {}
+        maxLower = Decimal("-Infinity")
+        minUpper = Decimal("Infinity")
+        decimalValues: dict[float | int, TypeXValue] = {}
         for fact in self.facts:
             value = fact.xValue
-            if isnan(value):
+            if isnan(cast(SupportsFloat, value)):
                 # NaN values are not comparable, can't be equal/consistent.
                 return False
             decimals = inferredDecimals(fact)
@@ -182,7 +183,7 @@ class DuplicateType(Flag):
 
     # Flags before 3.11 did not support iterating Flag values,
     # so we have to override with our own iterator. Remove when we no longer support 3.10
-    def __iter__(self):
+    def __iter__(self) -> Iterator[DuplicateType]:
         # num must be a positive integer
         num = self.value
         while num:
@@ -255,11 +256,11 @@ def getAspectEqualFacts(hashEquivalentFacts: list[ModelFact]) -> Iterator[list[M
     :param hashEquivalentFacts:
     :return: Lists of aspect-equal facts.
     """
-    aspectEqualFacts: dict[tuple[QName, str], dict[tuple[ModelContext, ModelUnit], list[ModelFact]]] = defaultdict(dict)
+    aspectEqualFacts: dict[tuple[QName, str | None], dict[tuple[ModelContext, ModelUnit], list[ModelFact]]] = defaultdict(dict)
     for fact in hashEquivalentFacts:  # check for hash collision by value checks on context and unit
         contextUnitDict = aspectEqualFacts[(
             fact.qname,
-            (fact.xmlLang or "").lower() if fact.concept.type.isWgnStringFactType else None
+            cast(str, fact.xmlLang or "").lower() if fact.concept.type.isWgnStringFactType else None
         )]
         _matched = False
         for (context, unit), contextUnitFacts in contextUnitDict.items():
@@ -313,7 +314,10 @@ class FactValueEqualityType(Enum):
     LANGUAGE = 'language'
 
 
-def getFactValueEqualityKey(fact: ModelFact) -> tuple[FactValueEqualityType, tuple[Any, ...]]:
+TypeFactValueEqualityKey = tuple[FactValueEqualityType, tuple[Any, ...]]
+
+
+def getFactValueEqualityKey(fact: ModelFact) -> TypeFactValueEqualityKey:
     """
     Returns whether the given facts are value-equal
     :param fact:
@@ -323,10 +327,10 @@ def getFactValueEqualityKey(fact: ModelFact) -> tuple[FactValueEqualityType, tup
         return FactValueEqualityType.DEFAULT, (None,)
     xValue = fact.xValue
     if fact.isNumeric:
-        if isnan(xValue):
+        if isnan(cast(SupportsFloat, xValue)):
             return FactValueEqualityType.DEFAULT, (float("nan"),)
     if fact.concept.isLanguage:
-        return FactValueEqualityType.LANGUAGE, (xValue.lower() if xValue is not None else None,)
+        return FactValueEqualityType.LANGUAGE, (cast(str, xValue).lower() if xValue is not None else None,)
     if isinstance(xValue, DateTime):  # with/without time makes values unequal
         return FactValueEqualityType.DATETIME, (xValue, xValue.dateOnly)
     return FactValueEqualityType.DEFAULT, (fact.value,)
