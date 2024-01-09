@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from enum import auto, Flag, Enum
 from functools import cached_property
 from math import isnan
-from typing import cast, Iterator
+from typing import cast, Iterator, Any
 
 from arelle import XmlValidateConst
 from arelle.ModelInstanceObject import ModelFact, ModelContext, ModelUnit
@@ -209,23 +209,7 @@ def areFactsValueEqual(factA: ModelFact, factB: ModelFact) -> bool:
     :param factB:
     :return: True if the given facts are value-equal
     """
-    if factA.context is None or factA.concept is None:
-        return False  # need valid context and concept for v-Equality of nonTuple
-    if factA.isNil:
-        return factB.isNil
-    if factB.isNil:
-        return False
-    if not factA.context.isEqualTo(factB.context):
-        return False
-    xValueA = factA.xValue
-    xValueB = factB.xValue
-    if isinstance(xValueA, type(xValueB)):
-        if factA.concept.isLanguage and factB.concept.isLanguage and xValueA is not None and xValueB is not None:
-            return xValueA.lower() == xValueB.lower()  # required to handle case insensitivity
-        if isinstance(xValueA, DateTime):  # with/without time makes values unequal
-            return xValueA.dateOnly == cast(DateTime, xValueB).dateOnly and xValueA == xValueB
-        return xValueA == xValueB  # required to handle date/time with 24 hrs.
-    return factA.value == factB.value
+    return getFactValueEqualityKey(factA) == getFactValueEqualityKey(factB)
 
 
 def getAspectEqualFacts(hashEquivalentFacts: list[ModelFact]) -> Iterator[list[ModelFact]]:
@@ -286,6 +270,31 @@ def getDuplicateFactSetsOfType(facts: list[ModelFact], duplicateType: DuplicateT
     for duplicateFactSet in getDuplicateFactSets(facts):
         if areDuplicatesOfType(duplicateFactSet, duplicateType):
             yield duplicateFactSet
+
+
+class FactValueEqualityType(Enum):
+    DEFAULT = 'default'
+    DATETIME = 'datetime'
+    LANGUAGE = 'language'
+
+
+def getFactValueEqualityKey(fact: ModelFact) -> tuple[FactValueEqualityType, tuple[Any, ...]]:
+    """
+    Returns whether the given facts are value-equal
+    :param fact:
+    :return: True if the given facts are value-equal
+    """
+    if fact.isNil:
+        return FactValueEqualityType.DEFAULT, (None,)
+    xValue = fact.xValue
+    if fact.isNumeric:
+        if isnan(xValue):
+            return FactValueEqualityType.DEFAULT, (float("nan"),)
+    if fact.concept.isLanguage:
+        return FactValueEqualityType.LANGUAGE, (xValue.lower() if xValue is not None else None,)
+    if isinstance(xValue, DateTime):  # with/without time makes values unequal
+        return FactValueEqualityType.DATETIME, (xValue, xValue.dateOnly)
+    return FactValueEqualityType.DEFAULT, (fact.value,)
 
 
 def getHashEquivalentFactGroups(facts: list[ModelFact]) -> list[list[ModelFact]]:
