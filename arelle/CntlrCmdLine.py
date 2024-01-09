@@ -134,6 +134,13 @@ def parseArgs(args):
                       choices=[a.value for a in ValidateDuplicateFacts.DUPLICATE_TYPE_ARG_MAP],
                       dest="validateDuplicateFacts",
                       help=_("Select which types of duplicates should trigger warnings."))
+    parser.add_option("--deduplicateFacts", "--deduplicatefacts",
+                      choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
+                      dest="deduplicateFacts",
+                      help=_("When using '--saveDeduplicatedInstance' to save a deduplicated instance, check for duplicates of this type."))
+    parser.add_option("--saveDeduplicatedInstance", "--savededuplicatedinstance",
+                      dest="saveDeduplicatedInstance",
+                      help=_("Save an instance document with duplicates of the provided type ('--deduplicateFacts') deduplicated."))
     parser.add_option("--noValidateTestcaseSchema", "--novalidatetestcaseschema", action="store_false", dest="validateTestcaseSchema", default=True,
                       help=_("Validate testcases against their schemas."))
     betaGroup = OptionGroup(parser, "Beta Features",
@@ -1083,6 +1090,16 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.roleTypesFile, "Role Types", isArcrole=False, lang=options.labelLang)
                         if options.arcroleTypesFile:
                             ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=options.labelLang)
+                        if options.saveDeduplicatedInstance:
+                            if options.deduplicateFacts:
+                                deduplicateFactsArg = ValidateDuplicateFacts.DeduplicationType(options.deduplicateFacts)
+                            else:
+                                deduplicateFactsArg = ValidateDuplicateFacts.DeduplicationType.COMPLETE
+                            if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE:
+                                ValidateDuplicateFacts.saveDeduplicatedInstance(modelXbrl, deduplicateFactsArg, options.saveDeduplicatedInstance)
+                        else:
+                            assert not options.deduplicateFacts, "'deduplicateFacts' can only be used with 'saveDeduplicatedInstance'"
+
                         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
                             pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
 

@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+from arelle.ValidateDuplicateFacts import DeduplicationType
 from arelle.typing import TypeGetText
 from arelle.SystemInfo import hasWebServer
 from dataclasses import InitVar, dataclass
@@ -35,6 +37,7 @@ class RuntimeOptions:
     calcs: Optional[str] = None
     collectProfileStats: Optional[bool] = None
     conceptsFile: Optional[str] = None
+    deduplicateFacts: Optional[DeduplicationType] = None
     diagnostics: Optional[bool] = None
     diffFile: Optional[str] = None
     dimFile: Optional[str] = None
@@ -107,6 +110,7 @@ class RuntimeOptions:
     roleTypesFile: Optional[str] = None
     rssReport: Optional[str] = None
     rssReportCols: Optional[int] = None
+    saveDeduplicatedInstance: Optional[bool] = None
     showEnvironment: Optional[bool] = None
     showOptions: Optional[bool] = None
     skipDTS: Optional[bool] = None
