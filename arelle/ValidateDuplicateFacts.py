@@ -27,16 +27,14 @@ class DuplicateFactSet:
     @cached_property
     def areAllComplete(self) -> bool:
         """
-        Returns whether these duplicates are complete duplicates.
-        :return: True if complete, False if incomplete consistent, or inconsistent.
+        :return: Whether all facts in the set are complete duplicates of each other.
         """
         return self.areAllDecimalsEqual and self.areAllValueEqual
 
     @cached_property
     def areAllConsistent(self) -> bool:
         """
-        Returns whether these duplicates are consistent with each other.
-        :return: True if consistent or complete, False if incomplete inconsistent.
+        :return: Whether all facts in the set are consistent duplicates of each other.
         """
         if self.areAllComplete:
             return True
@@ -50,7 +48,7 @@ class DuplicateFactSet:
     @cached_property
     def areAllDecimalsEqual(self) -> bool:
         """
-        :return: Whether these facts have matching decimals values.
+        :return: Whether all facts have matching decimals values.
         """
         firstFact = self.facts[0]
         for fact in self.facts[1:]:
@@ -62,7 +60,7 @@ class DuplicateFactSet:
     @cached_property
     def areAllValueEqual(self) -> bool:
         """
-        :return: Whether all facts in this set are fact-value equal.
+        :return: Whether all facts in this set are fact-value equal with each other.
         """
         firstFact = self.facts[0]
         for fact in self.facts[1:]:
@@ -74,8 +72,7 @@ class DuplicateFactSet:
     @cached_property
     def areAnyComplete(self) -> bool:
         """
-        Returns whether these duplicates are complete duplicates.
-        :return: True if complete, False if incomplete consistent, or inconsistent.
+        :return: Whether any facts in the set are complete duplicates of each other.
         """
         decimalsValueMap: dict[float | int, set[TypeFactValueEqualityKey]] = defaultdict(set)
         for fact in self.facts:
@@ -90,8 +87,7 @@ class DuplicateFactSet:
     @cached_property
     def areAnyConsistent(self) -> bool:
         """
-        Returns whether these duplicates are consistent with each other.
-        :return: True if consistent or complete, False if incomplete inconsistent.
+        :return: Whether any facts in the set are consistent duplicates of each other.
         """
         # Checking for any complete duplicates is inexpensive,
         # so check for that before worrying about decimal ranges.
@@ -119,16 +115,14 @@ class DuplicateFactSet:
     @cached_property
     def areAnyIncomplete(self) -> bool:
         """
-        Returns whether these duplicates are inconsistent with each other.
-        :return: True if inconsistent, False if consistent or complete.
+        :return: Whether any facts in the set are not complete duplicates of each other.
         """
         return not self.areAllComplete
 
     @cached_property
     def areAnyInconsistent(self) -> bool:
         """
-        Returns whether these duplicates are inconsistent with each other.
-        :return: True if inconsistent, False if consistent or complete.
+        :return: Whether any facts in the set are not consistent duplicates of each other.
         """
         if self.areNumeric:
             # If facts are numeric, they are inconsistent if they are not consistent
@@ -146,7 +140,7 @@ class DuplicateFactSet:
     @cached_property
     def areWithinRoundingError(self) -> bool:
         """
-        :return: Whether the set of numeric fact values are within rounding error of each other.
+        :return: Whether all fact values are within rounding error of each other.
         """
         maxLower = Decimal("-Infinity")
         minUpper = Decimal("Infinity")
@@ -214,13 +208,11 @@ DUPLICATE_TYPE_ARG_MAP = {
 }
 
 
-def areDuplicatesOfType(duplicateFacts: DuplicateFactSet, duplicateType: DuplicateType) -> bool:
+def doesSetHaveDuplicateType(duplicateFacts: DuplicateFactSet, duplicateType: DuplicateType) -> bool:
     """
-    Returns whether or not the given duplicate facts should be disallowed
-    based on the disallowed mode.
     :param duplicateFacts:
     :param duplicateType:
-    :return: True if disallowed, False if allowed.
+    :return: Whether the given duplicate fact set has any duplicates of the given type.
     """
     inconsistent = DuplicateType.INCONSISTENT in duplicateType
     consistent = DuplicateType.CONSISTENT in duplicateType
@@ -287,9 +279,8 @@ def getAspectEqualFacts(hashEquivalentFacts: list[ModelFact]) -> Iterator[list[M
 
 def getDuplicateFactSets(facts: list[ModelFact]) -> Iterator[DuplicateFactSet]:
     """
-    Yields each pairing of facts from the provided set that are duplicates of the given type(s).
     :param facts: Facts to find duplicate sets from.
-    :return: Yields duplicate fact sets.
+    :return: Each set of duplicate facts from the given list.
     """
     hashEquivalentFactGroups = getHashEquivalentFactGroups(facts)
     for hashEquivalentFacts in hashEquivalentFactGroups:
@@ -300,11 +291,16 @@ def getDuplicateFactSets(facts: list[ModelFact]) -> Iterator[DuplicateFactSet]:
             yield duplicateFactSet
 
 
-def getDuplicateFactSetsOfType(facts: list[ModelFact], duplicateType: DuplicateType) -> Iterator[DuplicateFactSet]:
+def getDuplicateFactSetsWithType(facts: list[ModelFact], duplicateType: DuplicateType) -> Iterator[DuplicateFactSet]:
+    """
+    :param facts: Facts to find duplicate sets from.
+    :param duplicateType: Type of duplicate to filter duplicate sets by.
+    :return: Each set of duplicate facts from the given list of facts that contain the given duplicate type.
+    """
     if duplicateType == DuplicateType.NONE:
         return
     for duplicateFactSet in getDuplicateFactSets(facts):
-        if areDuplicatesOfType(duplicateFactSet, duplicateType):
+        if doesSetHaveDuplicateType(duplicateFactSet, duplicateType):
             yield duplicateFactSet
 
 
@@ -319,9 +315,8 @@ TypeFactValueEqualityKey = tuple[FactValueEqualityType, tuple[Any, ...]]
 
 def getFactValueEqualityKey(fact: ModelFact) -> TypeFactValueEqualityKey:
     """
-    Returns whether the given facts are value-equal
     :param fact:
-    :return: True if the given facts are value-equal
+    :return: A key to be used for fact-value-equality comparison.
     """
     if fact.isNil:
         return FactValueEqualityType.DEFAULT, (None,)

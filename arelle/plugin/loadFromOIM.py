@@ -50,7 +50,7 @@ from arelle.ModelValue import qname, dateTime, DateTime, DATETIME, yearMonthDura
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict, flattenToSet, strTruncate
 from arelle.UrlUtil import isHttpUrl, isAbsolute as isAbsoluteUri, isValidUriReference
-from arelle.ValidateDuplicateFacts import DuplicateTypeArg, getDuplicateFactSetsOfType
+from arelle.ValidateDuplicateFacts import DuplicateTypeArg, getDuplicateFactSetsWithType
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import (xbrli, qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole, footnote, factFootnote, isStandardRole,
@@ -677,7 +677,7 @@ def oimEquivalentFacts(f1, f2):
 
 def checkForDuplicates(modelXbrl, allowedDups, footnoteIDs):
     duplicateTypeArg = DuplicateTypeArgMap[allowedDups]
-    for duplicateFactSet in getDuplicateFactSetsOfType(modelXbrl.facts, duplicateTypeArg.duplicateType()):
+    for duplicateFactSet in getDuplicateFactSetsWithType(modelXbrl.facts, duplicateTypeArg.duplicateType()):
         fList = duplicateFactSet.facts
         f0 = fList[0]
         modelXbrl.error("oime:disallowedDuplicateFacts",
