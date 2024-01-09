@@ -59,6 +59,71 @@ class DuplicateFactSet:
         return True
 
     @cached_property
+    def areAllValueEqual(self) -> bool:
+        """
+        :return: Whether all facts in this set are fact-value equal.
+        """
+        firstFact = self.facts[0]
+        for fact in self.facts[1:]:
+            if not areFactsValueEqual(firstFact, fact):
+                # If facts are not value-equal, they are not complete
+                return False
+        return True
+
+    @cached_property
+    def areAnyComplete(self) -> bool:
+        """
+        Returns whether these duplicates are complete duplicates.
+        :return: True if complete, False if incomplete consistent, or inconsistent.
+        """
+        decimalsValueMap = defaultdict(set)
+        for fact in self.facts:
+            decimals = inferredDecimals(fact)
+            value = getFactValueEqualityKey(fact)
+            decimalsValues = decimalsValueMap[decimals]
+            if value in decimalsValues:
+                return True
+            decimalsValues.add(value)
+        return False
+
+    @cached_property
+    def areAnyConsistent(self) -> bool:
+        """
+        Returns whether these duplicates are consistent with each other.
+        :return: True if consistent or complete, False if incomplete inconsistent.
+        """
+        # Checking for any complete duplicates is inexpensive,
+        # so check for that before worrying about decimal ranges.
+        if self.areAnyComplete:
+            return True
+        if not self.areNumeric:
+            # Non-numeric and incompete: inconsistent
+            return False
+        ranges = []
+        for fact in self.facts:
+            decimalsA = inferredDecimals(fact)
+            lowerA, upperA, __, __ = rangeValue(fact.xValue, decimalsA)
+            for lowerB, upperB, decimalsB in ranges:
+                if decimalsB == decimalsA:
+                    # We've already checked for complete duplicates,
+                    # so any facts with matching decimals can not have matching values
+                    # Different values, same decimals: not consistent
+                    continue
+                if lowerB <= upperA and upperB >= lowerA:
+                    # Different values, different decimals, ranges overlap: consistent
+                    return True
+            ranges.append((lowerA, upperA, decimalsA))
+        return False
+
+    @cached_property
+    def areAnyIncomplete(self) -> bool:
+        """
+        Returns whether these duplicates are inconsistent with each other.
+        :return: True if inconsistent, False if consistent or complete.
+        """
+        return not self.areAllComplete
+
+    @cached_property
     def areAnyInconsistent(self) -> bool:
         """
         Returns whether these duplicates are inconsistent with each other.
@@ -76,18 +141,6 @@ class DuplicateFactSet:
         :return: Whether the duplicate set consists of numeric facts.
         """
         return self.facts[0].isNumeric
-
-    @cached_property
-    def areAllValueEqual(self) -> bool:
-        """
-        :return: Whether all facts in this set are fact-value equal.
-        """
-        firstFact = self.facts[0]
-        for fact in self.facts[1:]:
-            if not areFactsValueEqual(firstFact, fact):
-                # If facts are not value-equal, they are not complete
-                return False
-        return True
 
     @cached_property
     def areWithinRoundingError(self) -> bool:
@@ -118,23 +171,6 @@ class DuplicateFactSet:
                 # One fact's upper bound is less than another fact's lower bound, not consistent
                 return False
         return True
-
-    @property
-    def duplicateType(self) -> DuplicateType | None:
-        """
-        Determines type of duplicate based on previously evaluated conditions.
-        If duplicate type status has not been evaluated, returns None.
-        :return: Duplicate type, or None
-        """
-        # Access __dict__ directly to check if given properties have been evaluated
-        # and, if so, what the evaluated value is.
-        if self.__dict__.get('areAllComplete'):
-            return DuplicateType.COMPLETE
-        if self.__dict__.get('areAllConsistent'):
-            return DuplicateType.CONSISTENT
-        if self.__dict__.get('areAnyInconsistent'):
-            return DuplicateType.INCONSISTENT
-        return None
 
 
 class DuplicateType(Flag):
@@ -193,11 +229,11 @@ def areDuplicatesOfType(duplicateFacts: DuplicateFactSet, duplicateType: Duplica
         return True
     if inconsistent and duplicateFacts.areAnyInconsistent:
         return True
-    if consistent and duplicateFacts.areAllConsistent:
+    if consistent and duplicateFacts.areAnyConsistent:
         return True
-    if incomplete and not duplicateFacts.areAllComplete:
+    if incomplete and duplicateFacts.areAnyIncomplete:
         return True
-    if complete and duplicateFacts.areAllComplete:
+    if complete and duplicateFacts.areAnyComplete:
         return True
     return False
 
@@ -244,9 +280,8 @@ def getAspectEqualFacts(hashEquivalentFacts: list[ModelFact]) -> Iterator[list[M
             contextUnitDict[(fact.context, fact.unit)] = [fact]
     for contextUnitDict in aspectEqualFacts.values():  # dups by qname, lang
         for duplicateFacts in contextUnitDict.values():  # dups by equal-context equal-unit
-            if len(duplicateFacts) < 2:
-                continue
-            yield duplicateFacts
+            if len(duplicateFacts) > 1:
+                yield duplicateFacts
 
 
 def getDuplicateFactSets(facts: list[ModelFact]) -> Iterator[DuplicateFactSet]:
