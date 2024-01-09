@@ -684,15 +684,12 @@ class ValidateXbrl:
                                 xlinkLabel=resourceArcToLabel)
 
     def checkDuplicateFacts(self, facts: list[ModelFact], duplicateType: ValidateDuplicateFacts.DuplicateType) -> None:
-        duplicateFactSets = ValidateDuplicateFacts.getDuplicateFactSetsOfType(facts, duplicateType)
-        if not duplicateFactSets:
-            return
-        for duplicateFactSet in duplicateFactSets:
-            self.modelXbrl.error(
-                "arelle:disallowedDuplicateFacts",
-                "Duplicate facts (%(duplicateType)s) %(qname)s: %(values)s, Example pair: %(contextIDs)s.",
+        for duplicateFactSet in ValidateDuplicateFacts.getDuplicateFactSetsOfType(facts, duplicateType):
+            self.modelXbrl.warning(
+                "arelle:duplicateFacts",
+                "Duplicate fact set with%(duplicateType)s duplicate(s) %(qname)s: %(values)s, %(contextIDs)s.",
                 modelObject=duplicateFactSet.facts,
-                duplicateType=" or ".join(str(t.name).lower() for t in (duplicateFactSet.duplicateType or duplicateType)),
+                duplicateType=f" {duplicateType.name.lower()}" if duplicateType.name else "",
                 qname=duplicateFactSet.facts[0].qname,
                 contextIDs=", ".join(sorted(set(f.contextID for f in duplicateFactSet.facts))),
                 values=", ".join(strTruncate(f.value, 64) for f in duplicateFactSet.facts),
