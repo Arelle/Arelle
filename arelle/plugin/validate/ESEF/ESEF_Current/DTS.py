@@ -204,9 +204,13 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                 _("Extension taxonomy MUST NOT define typed dimensions: %(concepts)s."),
                 modelObject=typedDimsInExtTxmy, concepts=", ".join(str(c.qname) for c in typedDimsInExtTxmy))
         if domainMembersWrongType:
+            xbrlReference322 = "https://www.xbrl.org/dtr/type/2020-01-21/types.xsd"
+            if getDisclosureSystemYear(val.modelXbrl) < 2023:
+                xbrlReference322 = "http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd"
             val.modelXbrl.error("ESEF.3.2.2.domainMemberWrongDataType",
-                _("Domain members MUST have domainItemType data type as defined in \"http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd\": concept %(concepts)s."),
-                modelObject=domainMembersWrongType, concepts=", ".join(str(c.qname) for c in domainMembersWrongType))
+                _("Domain members MUST have domainItemType data type as defined in \"%(xbrlReference)s\": concept %(concepts)s."),
+                modelObject=domainMembersWrongType, xbrlReference=xbrlReference322,
+                concepts=", ".join(str(c.qname) for c in domainMembersWrongType))
         # HF - think this is only about reported line items, not ext line items (?)
         #if extLineItemsWithoutHypercube:
         #    val.modelXbrl.error("ESEF.3.4.2.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
