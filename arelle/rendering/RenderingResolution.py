@@ -279,7 +279,8 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
             strctMdlNode = strctMdlParent # all children are added during relationship navigatio below
         else:
             strctMdlNode = StrctMdlStructuralNode(strctMdlParent, defnMdlNode)
-    axis = strctMdlParent.axis
+    if strctMdlParent.axis:
+        axis = strctMdlParent.axis
 
     subtreeRels = view.defnSubtreeRelSet.fromModelObject(defnMdlNode)
 
@@ -320,7 +321,15 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
             elif axis == "y":
                 if ordDepth:
                     if nestedDepth > view.rowHdrCols:
-                        view.rowHdrCols = nestedDepth - 1
+                        view.rowHdrCols = nestedDepth
+                        if not isinstance(defnMdlNode, DefnMdlRelationshipNode):
+                            # not quite sure of this condition, but Solvency (rule node) need one less col than a relationship node (german taxonomy)
+                            view.rowHdrCols -= 1
+                        for j in range(1 + ordDepth):
+                            view.rowHdrColWidth.append(RENDER_UNITS_PER_CHAR)  # min width for 'tail' of nonAbstract coordinate
+                            view.rowNonAbstractHdrSpanMin.append(0)
+                    elif isinstance(strctMdlNode, StrctMdlBreakdown):
+                        view.rowHdrCols = view.rowHdrCols + nestedDepth
                         for j in range(1 + ordDepth):
                             view.rowHdrColWidth.append(RENDER_UNITS_PER_CHAR)  # min width for 'tail' of nonAbstract coordinate
                             view.rowNonAbstractHdrSpanMin.append(0)

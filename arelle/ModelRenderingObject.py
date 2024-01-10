@@ -296,7 +296,9 @@ class StrctMdlNode:
             return OPEN_ASPECT_ENTRY_SURROGATE, None # sort pretty high, work ok for python 2.7/3.2 as well as 3.3
         # if there's a child roll up, check for it
         if self.childRollupStrctNode is not None:  # check the rolling-up child too
-            return self.childRollupStrctNode.headerAndSource(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
+            label, typ = self.childRollupStrctNode.headerAndSource(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
+            if label:
+                return label, typ
         # if aspect is a concept of dimension, return its standard label
         concept = None
         if role is None and returnStdLabel:
@@ -434,13 +436,30 @@ class StrctMdlTable(StrctMdlNode):
 class StrctMdlBreakdown(StrctMdlNode):
     # breakdown also acts as the layout model group containing headers of cells
     def __init__(self, strctMdlParentNode, defnMdlBreakdown, axis):
-        super(StrctMdlBreakdown, self).__init__(strctMdlParentNode, defnMdlBreakdown)
+        super(StrctMdlBreakdown, self).__init__(None, defnMdlBreakdown)
         self._rendrCntx = strctMdlParentNode._rendrCntx # copy from parent except at root
         self._axis = axis
         self.rendrCntx = strctMdlParentNode._rendrCntx
         self.hasOpenNode = False
         self.isLabeled = False
         self.layoutMdlHdrCells = [] # layoutMdlHeaderCells objects
+
+        # find all leaf not of the parent to add it to them (see 9.3.2)
+        self.strctMdlParentNode = strctMdlParentNode
+        if isinstance(strctMdlParentNode, StrctMdlBreakdown):
+            self._addBreakdownToLeafs(strctMdlParentNode, set())
+        else:
+            strctMdlParentNode.strctMdlChildNodes.append(self)
+
+    def _addBreakdownToLeafs(self, sn, alreadyAddedTo: set):
+        if not sn.strctMdlChildNodes:
+            if sn not in alreadyAddedTo:
+                sn.strctMdlChildNodes.append(self)
+                alreadyAddedTo.add(sn)
+        else:
+            for c in sn.strctMdlChildNodes:
+                self._addBreakdownToLeafs(c, alreadyAddedTo)
+
     def siblingBreakdownNode(self):
         if self.strctMdlParentNode is not None:
             for sibling in self.strctMdlParentNode.strctMdlChildNodes[
