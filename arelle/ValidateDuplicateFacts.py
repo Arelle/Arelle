@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from enum import auto, Flag, Enum
 from functools import cached_property
 from math import isnan
-from typing import cast, Iterator, Any, SupportsFloat
+from typing import cast, Iterator, Any, SupportsFloat, Tuple
 
 from arelle import XmlValidateConst
 from arelle.ModelInstanceObject import ModelFact, ModelContext, ModelUnit
@@ -314,7 +314,7 @@ class FactValueEqualityType(Enum):
     LANGUAGE = 'language'
 
 
-TypeFactValueEqualityKey = tuple[FactValueEqualityType, tuple[Any, ...]]
+TypeFactValueEqualityKey = Tuple[FactValueEqualityType, Tuple[Any, ...]]
 
 
 def getFactValueEqualityKey(fact: ModelFact) -> TypeFactValueEqualityKey:
