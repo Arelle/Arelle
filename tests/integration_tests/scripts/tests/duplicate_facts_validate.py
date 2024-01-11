@@ -80,5 +80,5 @@ for arg, expected_errors in test_cases.items():
 assert_result(errors)
 
 print("Cleaning up")
-rmtree(working_directory / 'fact_deduplication' / 'report')
-os.unlink(working_directory / 'fact_deduplication' / 'report.zip')
+rmtree(working_directory / 'duplicate_facts_validate' / 'report')
+os.unlink(working_directory / 'duplicate_facts_validate' / 'report.zip')
