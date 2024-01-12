@@ -149,6 +149,13 @@
     "CZ": {
         "name": "Czechia"
     },
+    "DBA": {
+        "name": "Danish Business Authority",
+        "reportPackageMaxMB": "2000",
+        "reportPackageMeasurement": "unzipped",
+        "ixTargetUsage": "allowed",
+        "formulaRunIDs": "(?!con_IdentifierSchemeMustBeLEI|lei-identifier-scheme)"
+    },
     "DE": {
         "name": "Germany"
     },
