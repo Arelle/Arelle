@@ -94,9 +94,10 @@ def validateImage(
                     _("Images SHOULD be included in the XHTML document as a base64 encoded string unless their size exceeds the minimum size for the authority (%(maxImageSize)s): %(file)s."),
                     modelObject=elt, maxImageSize=minExternalRessourceSize, file=os.path.basename(normalizedUri), evaluatedMsg=evaluatedMsg)
         except IOError as err:
+            fileReferencingImage = os.path.basename(baseUrl) if baseUrl else ''
             modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.imageFileCannotBeLoaded",
-                            _("Error opening the file '%(src)s': %(error)s"),
-                            modelObject=elt, src=image, error=err, evaluatedMsg=evaluatedMsg)
+                            _("Error opening the file '%(src)s' referenced by '%(fileReferencingImage)s': %(error)s"),
+                            modelObject=elt, src=image, fileReferencingImage=fileReferencingImage, error=err, evaluatedMsg=evaluatedMsg)
 
 
 def checkImageContents(
