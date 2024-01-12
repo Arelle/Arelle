@@ -25,30 +25,38 @@ styleImgUrlPattern = re.compile(r"[a-z]+-image:\s*url[(][^)]+[)]")
 EMPTYDICT = {}
 _6_APR_2008 = dateTime("2008-04-06", type=DATE)
 
-commonMandatoryItems = {
+COMMON_MANDATORY_ITEMS = {
     "EntityCurrentLegalOrRegisteredName", "StartDateForPeriodCoveredByReport",
     "EndDateForPeriodCoveredByReport", "BalanceSheetDate"}
 
-COMMON_MANDATORY_FRS_ITEMS = commonMandatoryItems | {
+COMMON_MANDATORY_FRS_ITEMS = COMMON_MANDATORY_ITEMS | {
     "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements",
     "EntityDormantTruefalse", "EntityTradingStatus",
     "AccountingStandardsApplied", "AccountsStatusAuditedOrUnaudited",
+
     "LegalFormEntity", "DescriptionPrincipalActivities"
 }
 mandatoryItems = {
-    "ukGAAP": commonMandatoryItems | {
+    "ukGAAP": COMMON_MANDATORY_ITEMS | {
         "DateApprovalAccounts", "NameDirectorSigningAccounts", "EntityDormant", "EntityTrading",
         "DateSigningDirectorsReport", "DirectorSigningReport"
         },
-    "charities": commonMandatoryItems | {
+    "charities": COMMON_MANDATORY_ITEMS | {
         "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements",
         "EntityDormantTruefalse", "EntityTradingStatus",
-        "AccountingStandardsApplied", "AccountingStandardsApplied"},
-    "ukIFRS": commonMandatoryItems | {
+        "AccountingStandardsApplied", "AccountsStatusAuditedOrUnaudited"},
+    "ukIFRS": COMMON_MANDATORY_ITEMS | {
         "DateAuthorisationFinancialStatementsForIssue", "ExplanationOfBodyOfAuthorisation",
         "EntityDormant", "EntityTrading", "DateSigningDirectorsReport", "DirectorSigningReport"},
     "FRS": COMMON_MANDATORY_FRS_ITEMS | {"AccountsTypeFullOrAbbreviated"},
     "FRS-2022": COMMON_MANDATORY_FRS_ITEMS | {"AccountsType"}
+}
+
+MUST_HAVE_ONE_ITEM = {
+    "charities": {
+        "CharityRegistrationNumberEnglandWales", "CharityRegistrationNumberScotland",
+        "CharityRegistrationNumberNorthernIreland",
+    }
 }
 
 genericDimensionValidation = {
@@ -168,11 +176,11 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         ns = doc.targetNamespace
         if not ns:
             continue
-        if ns.startswith("http://www.xbrl.org/uk/char/"):
+        if ns.startswith("http://www.xbrl.org/uk/char/") or ns.startswith("http://xbrl.frc.org.uk/char/"):
             val.txmyType = "charities"
         elif ns.startswith("http://www.xbrl.org/uk/gaap/"):
             val.txmyType = "ukGAAP"
-        elif ns.startswith("http://www.xbrl.org/uk/ifrs/"):
+        elif ns.startswith("http://www.xbrl.org/uk/ifrs/") or ns.startswith("https://xbrl.frc.org.uk/IFRS/"):
             val.txmyType = "ukIFRS"
         elif ns.startswith(FRC_URL_DOMAIN):
             val.txmyType = "FRS"
@@ -212,7 +220,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             scheme, identifier = c1.entityIdentifier
             if scheme == "http://www.companieshouse.gov.uk/":
                 companyReferenceNumberContexts[identifier].append(c1.id)
-
+        atLeastOneFacts = {}
         uniqueFacts = {}  # key = (qname, context hash, unit hash, lang)
         mandatoryFacts = {}
         mandatoryGDV = defaultdict(set)
@@ -265,6 +273,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                     factLocalName = f.qname.localName
                     if factLocalName in mandatoryItems[val.txmyType]:
                         mandatoryFacts[factLocalName] = f
+                    if val.txmyType in MUST_HAVE_ONE_ITEM and factLocalName in MUST_HAVE_ONE_ITEM[val.txmyType]:
+                        atLeastOneFacts[factLocalName] = f
                     if factLocalName == "UKCompaniesHouseRegisteredNumber" and val.isAccounts:
                         if hasCompaniesHouseContext:
                             mandatoryFacts[factLocalName] = f
@@ -345,6 +355,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                 modelXbrl.error("JFCVC.3312",
                     _("Facts are MANDATORY: %(missingItems)s"),
                     modelObject=modelXbrl, missingItems=", ".join(sorted(_missingItems)))
+            if not atLeastOneFacts and val.txmyType in MUST_HAVE_ONE_ITEM:
+                modelXbrl.error("JFCVC.3312.atLeastOne",
+                                _("At least one of the facts is MANDATORY: %(missingItems)s"),
+                                modelObject=modelXbrl, missingItems=", ".join(sorted(MUST_HAVE_ONE_ITEM[val.txmyType])))
 
             ''' removed with JFCVC v4.0 2020-06-09
             f = mandatoryFacts.get("StartDateForPeriodCoveredByReport")
