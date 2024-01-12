@@ -236,7 +236,6 @@ latestDqcrtDocs = {
     }
 '''
 latestEntireUgt = {
-    "us-gaap/2019": ["http://xbrl.fasb.org/us-gaap/2019/entire/us-gaap-entryPoint-std-2019-01-31.xsd", None],
     "us-gaap/2020": ["http://xbrl.fasb.org/us-gaap/2020/entire/us-gaap-entryPoint-std-2020-01-31.xsd",
                      # use 2021 DQCRT for 2020 us-gaap checks
                      "http://xbrl.fasb.org/us-gaap/2021/dqcrules/dqcrules-2021-01-31.xsd"],
