@@ -159,6 +159,8 @@ def encoding(xml: str | bytes, default: str = "utf-8") -> str:
             return 'utf-32'
         if s.startswith(b'# -*- coding: utf-8 -*-'):
             return 'utf-8'  # python utf=encoded
+        if s.startswith(b'PK\x03\x04'):
+            return "zip"
         if b"x\0m\0l" in s:
             str = s.decode("utf-16")
         else:

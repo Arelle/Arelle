@@ -14,7 +14,7 @@ from arelle import (Cntlr, FileSource, ModelDocument, RenderingEvaluator, XmlUti
                     ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts,
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
                     ViewFileRoleTypes,
-                    ModelManager)
+                    ModelManager, PackageManager)
 from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.ModelValue import qname
@@ -153,6 +153,8 @@ def parseArgs(args):
                       help=_("Deprecated - pre-2010 XBRL v2.1 calculation linkbase validation inferring precision."))
     parser.add_option("--calcDeduplicate", "--calcdeduplicate", action="store_true", dest="calcDeduplicate",
                       help=_("Deprecaated -  de-duplication of consistent facts when performing calculation validation, chooses most accurate fact."))
+    parser.add_option("--reportPackage", "--reportpackage", action="store_true", dest="validateRptPkg",
+                      help=_("Zip archives require report package validation.  When not specified zip archives may contain flat XBRL inputs such as instance files."))
     parser.add_option("--efm", action="store_true", dest="validateEFM",
                       help=_("Select Edgar Filer Manual (U.S. SEC) disclosure system validation (strict)."))
     parser.add_option("--efm-skip-calc-tree", action="store_false", default=True, dest="validateEFMCalcTree",
@@ -508,22 +510,27 @@ def configAndRunCntlr(options, arellePluginModules):
 
 def filesourceEntrypointFiles(filesource, entrypointFiles=[], inlineOnly=False):
     if filesource.isArchive:
+        del entrypointFiles[:] # clear out archive from entrypointFiles
+        if not PackageManager.validatePackageEntries(filesource):
+            return
         if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
             filesource.loadTaxonomyPackageMappings()
-        del entrypointFiles[:] # clear out archive from entrypointFiles
+        if (filesource.isReportPackage or filesource.cntlr.modelManager.validateRptPkg):
+            PackageManager.validateReportPackage(filesource)
         # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
         for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
-            if _archiveFile.endswith(".xhtml") or _archiveFile.endswith(".html"):
+            if not _archiveFile.startswith("/") and (_archiveFile.endswith(".xhtml") or _archiveFile.endswith(".html")):
                 filesource.select(_archiveFile)
                 if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                     entrypointFiles.append({"file":filesource.url})
         urlsByType = {}
         if not entrypointFiles:
             for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
-                filesource.select(_archiveFile)
-                identifiedType = ModelDocument.Type.identify(filesource, filesource.url)
-                if identifiedType in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.HTML):
-                    urlsByType.setdefault(identifiedType, []).append(filesource.url)
+                if not _archiveFile.startswith("/"): # archive must contain relative files
+                    filesource.select(_archiveFile)
+                    identifiedType = ModelDocument.Type.identify(filesource, filesource.url)
+                    if identifiedType in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.HTML):
+                        urlsByType.setdefault(identifiedType, []).append(filesource.url)
         # use inline instances, if any, else non-inline instances
         for identifiedType in ((ModelDocument.Type.INLINEXBRL,) if inlineOnly else (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE)):
             for url in urlsByType.get(identifiedType, []):
@@ -793,6 +800,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                               messageCode="info", file=options.entrypointFile)
         if options.utrValidate:
             self.modelManager.validateUtr = True
+        if options.validateRptPkg:
+            self.modelManager.validateRptPkg = True
         if options.infosetValidate:
             self.modelManager.validateInfoset = True
         if options.abortOnMajorError:
@@ -915,7 +924,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             filesource = FileSource.openFileSource(_entryPoints[0].get("file",None), self, checkIfXmlIsEis=_checkIfXmlIsEis)
         _entrypointFiles = _entryPoints
         if filesource and not filesource.selection:
-            if not (sourceZipStream and len(_entrypointFiles) > 0):
+            if (filesource.isArchive # check archive for report package purposes
+                and not (sourceZipStream and len(_entrypointFiles) > 0)):
                 filesourceEntrypointFiles(filesource, _entrypointFiles)
 
         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Start"):

@@ -126,6 +126,7 @@ class RuntimeOptions:
     validateEFM: Optional[bool] = None
     validateEFMCalcTree: Optional[bool] = None
     validateHMRC: Optional[bool] = None
+    validateRptPkg: Optional[bool] = None
     validateTestcaseSchema: Optional[bool] = None
     versReportFile: Optional[str] = None
     viewArcrole: Optional[bool] = None

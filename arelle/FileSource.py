@@ -20,15 +20,15 @@ if TYPE_CHECKING:
     from _typeshed import SupportsRead
 
 
-archivePathSeparators = (".zip" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
-                        ((".zip/", ".tar.gz/", ".eis/", ".xml/", ".xfd/", ".frm/", '.taxonomyPackage.xml/') if os.sep != "/" else ()) #acomodate windows and http styles
+archivePathSeparators = (".zip" + os.sep, ".ZIP" + os.sep, ".xbr" + os.sep, ".xbri" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
+                        ((".zip/", ".ZIP/" + os.sep, ".xbr/" + os.sep, ".xbri/" + os.sep, ".tar.gz/", ".eis/", ".xml/", ".xfd/", ".frm/", '.taxonomyPackage.xml/') if os.sep != "/" else ()) #acomodate windows and http styles
 
-archiveFilenameSuffixes = {".zip", ".tar.gz", ".eis", ".xml", ".xfd", ".frm"}
+archiveFilenameSuffixes = {".zip", ".ZIP", ".xbr", ".xbri", ".tar.gz", ".eis", ".xml", ".xfd", ".frm"}
+
+zipFilenamePattern = re.compile(r".*[.](zip|ZIP|xbr|xbri)$") # zip or report package suffix
 
 POST_UPLOADED_ZIP = os.sep + "POSTupload.zip"
 SERVER_WEB_CACHE = os.sep + "_HTTP_CACHE"
-
-TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD packages
 
 def openFileSource(
     filename: str | None,
@@ -61,7 +61,7 @@ def openFileSource(
                 and sourceFileSource.dir is not None
                 and sourceFileSource.isArchive
                 and selection in sourceFileSource.dir
-                and selection.endswith(".zip")
+                and zipFilenamePattern.match(selection)
             ):
                 assert cntlr is not None
                 filesource = FileSource(filename, cntlr)
@@ -85,7 +85,7 @@ def archiveFilenameParts(filename: str | None, checkIfXmlIsEis: bool = False) ->
             fileDir = filenameParts[0] + archiveSep[:-1]
             if (isHttpUrl(fileDir) or
                 os.path.isfile(fileDir)): # if local, be sure it is not a directory name
-                return (fileDir, filenameParts[2].replace('\\', '/'))
+                return (fileDir, filenameParts[2])
     return None
 
 class FileNamedStringIO(io.StringIO):  # provide string IO in memory but behave as a fileName string
@@ -137,8 +137,10 @@ class FileSource:
     rssDocument: etree._ElementTree | None
     selection: str | list[str] | None
     url: str | list[str] | None
+    baseurl: str
     basefile: str | list[str] | None
     xfdDocument: etree._ElementTree | None
+    errors: list[str] | None # for validation logging of error codes
 
     def __init__(self, url: str, cntlr: Cntlr | None = None, checkIfXmlIsEis: bool = False) -> None:
         self.url = str(url)  # allow either string or FileNamedStringIO
@@ -148,8 +150,7 @@ class FileSource:
         self.isTarGz = self.type == ".tar.gz"
         if not self.isTarGz:
             self.type = self.type[3:]
-        self.isZip = self.type == ".zip"
-        self.isZipBackslashed = False # windows style backslashed paths
+        self.isZip = bool(zipFilenamePattern.match(self.url))
         self.isEis = self.type == ".eis"
         self.isXfd = (self.type == ".xfd" or self.type == ".frm")
         self.isRss = (self.type == ".rss" or self.url.endswith(".rss.xml"))
@@ -165,7 +166,7 @@ class FileSource:
         # for SEC xml files, check if it's an EIS anyway
         if (not (self.isZip or self.isEis or self.isXfd or self.isRss) and
             self.type == ".xml"):
-            if os.path.split(self.url)[-1] in TAXONOMY_PACKAGE_FILE_NAMES:
+            if os.path.split(self.url)[-1] in PackageManager.TAXONOMY_PACKAGE_FILE_NAMES:
                 self.isInstalledTaxonomyPackage = True
             elif checkIfXmlIsEis:
                 try:
@@ -182,9 +183,17 @@ class FileSource:
                         self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
                     pass
 
-    def logError(self, err: Exception) -> None:
+    def setLogErrors(self, errors: list[str] | None) -> None:
+        self.errors = errors
+
+    def logError(self, err: Exception, messageCode: str | None = None) -> None:
         if self.cntlr:
-            self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
+            if messageCode:
+                self.cntlr.addToLog(str(err), messageCode=messageCode)
+                if self.errors is not None:
+                    self.errors.append(messageCode)
+            else:
+                self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
 
     def open(self, reloadCache: bool = False) -> None:
         if not self.isOpen:
@@ -193,7 +202,7 @@ class FileSource:
                 self.basefile = self.cntlr.webCache.getfilename(self.url, reload=reloadCache)
             else:
                 self.basefile = self.url
-            self.baseurl = self.url # url gets changed by selection
+            self.baseurl = str(self.url) # url gets changed by selection
             if not self.basefile:
                 return  # an error should have been logged
             if self.isZip:
@@ -205,6 +214,9 @@ class FileSource:
                 except EnvironmentError as err:
                     self.logError(err)
                     pass
+                except zipfile.BadZipFile as err:
+                    self.logError(err, messageCode="tpe:invalidArchiveFormat")
+                    raise # re-raise to calling environment to abort operation
             elif self.isTarGz:
                 try:
                     assert isinstance(self.basefile, str)
@@ -336,7 +348,7 @@ class FileSource:
             if PackageManager.validateTaxonomyPackage(self.cntlr, self, errors=errors):
                 assert isinstance(self.baseurl, str)
                 metadata = self.baseurl + os.sep + self.taxonomyPackageMetadataFiles[0]
-                self.taxonomyPackage = PackageManager.parsePackage(self.cntlr, self, metadata,  # type: ignore[no-untyped-call]
+                self.taxonomyPackage = PackageManager.parseTaxonomyPackage(self.cntlr, self, metadata,  # type: ignore[no-untyped-call]
                                                                    os.sep.join(os.path.split(metadata)[:-1]) + os.sep,
                                                                    errors=errors)
 
@@ -347,7 +359,7 @@ class FileSource:
         if not self.isOpen:
             assert isinstance(self.url, str)
             self.basefile = self.url
-            self.baseurl = self.url # url gets changed by selection
+            self.baseurl = str(self.url) # url gets changed by selection
             self.fs = zipfile.ZipFile(sourceZipStream, mode="r")
             self.isOpen = True
 
@@ -361,7 +373,7 @@ class FileSource:
             self.fs.close()
             self.fs = None
             self.isOpen = False
-            self.isZip = self.isZipBackslashed = False
+            self.isZip = False
         if self.isTarGz and self.isOpen:
             assert self.fs is not None
             self.fs.close()
@@ -402,7 +414,13 @@ class FileSource:
         for f in (self.dir or []):
             if f.endswith("/META-INF/taxonomyPackage.xml"): # must be in a sub directory in the zip
                 return [f]  # standard package
-        return [f for f in (self.dir or []) if os.path.split(f)[-1] in TAXONOMY_PACKAGE_FILE_NAMES]
+        return [f for f in (self.dir or []) if os.path.split(f)[-1] in PackageManager.TAXONOMY_PACKAGE_FILE_NAMES]
+
+    @property
+    def isReportPackage(self) -> bool:
+        return self.isZip and (
+            any(PackageManager.reportPackageExistencePattern.match(f) for f in (self.dir or ()))
+            or os.path.splitext(self.baseurl)[1] in (".xbri", ".xbr"))
 
     def isInArchive(self, filepath: str | None, checkExistence: bool = False) -> bool:
         archiveFileSource = self.fileSourceContainingFilepath(filepath)
@@ -487,10 +505,7 @@ class FileSource:
                 archiveFileName = filepath[len(archiveFileSource.baseurl) + 1:]
             if archiveFileSource.isZip:
                 try:
-                    if archiveFileSource.isZipBackslashed:
-                        f = archiveFileName.replace("/", "\\")
-                    else:
-                        f = archiveFileName.replace("\\","/")
+                    f = archiveFileName.replace("\\","/")
 
                     assert isinstance(archiveFileSource.fs, zipfile.ZipFile)
                     b = archiveFileSource.fs.read(f)
@@ -577,7 +592,7 @@ class FileSource:
                 if filepath.startswith(archiveFileSource.basefile):
                     assert archiveFileSource.basefile is not None
                     l = len(archiveFileSource.basefile)
-                    for f in TAXONOMY_PACKAGE_FILE_NAMES:
+                    for f in PackageManager.TAXONOMY_PACKAGE_FILE_NAMES:
                         if filepath[l - len(f):l] == f:
                             filepath = filepath[0:l - len(f) - 1] + filepath[l:]
                             break
@@ -627,9 +642,12 @@ class FileSource:
         elif self.filesDir is not None:
             return self.filesDir
         elif self.isZip:
+            files: list[str] = []
             assert isinstance(self.fs, zipfile.ZipFile)
-            self.isZipBackslashed = any('\\' in zinfo.orig_filename for zinfo in self.fs.infolist())
-            self.filesDir = self.fs.namelist()
+            for zipinfo in self.fs.infolist():
+                f = zipinfo.filename
+                files.append(f)
+            self.filesDir = files
         elif self.isTarGz:
             assert isinstance(self.fs, tarfile.TarFile)
             self.filesDir = self.fs.getnames()
@@ -800,6 +818,8 @@ def openXmlFileStream(
     encoding = XmlUtil.encoding(hdrBytes,
                                 default=cntlr.modelManager.disclosureSystem.defaultXmlEncoding
                                         if cntlr else 'utf-8')
+    if encoding == "zip":
+        raise Exception("rpe:unsupportedFileExtension", filepath)
     # encoding default from disclosure system could be None
     if encoding.lower() in ('utf-8','utf8','utf-8-sig') and (cntlr is None or not cntlr.isGAE) and not stripDeclaration:
         text = None
