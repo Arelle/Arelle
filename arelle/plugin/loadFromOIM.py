@@ -50,6 +50,7 @@ from arelle.ModelValue import qname, dateTime, DateTime, DATETIME, yearMonthDura
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict, flattenToSet, strTruncate
 from arelle.UrlUtil import isHttpUrl, isAbsolute as isAbsoluteUri, isValidUriReference
+from arelle.ValidateDuplicateFacts import DuplicateTypeArg, getDuplicateFactSetsWithType
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import (xbrli, qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole, footnote, factFootnote, isStandardRole,
@@ -257,6 +258,7 @@ CONSISTENT = 3
 ALL = 4
 AllowedDuplicatesFeatureValues = {"none": NONE, "complete": COMPLETE, "consistent": CONSISTENT, "all": ALL}
 DisallowedDescription = {NONE: "Disallowed", COMPLETE: "Non-complete", CONSISTENT: "Inconsistent", ALL: "Allowed"}
+DuplicateTypeArgMap = {NONE: DuplicateTypeArg.ALL, COMPLETE: DuplicateTypeArg.INCOMPLETE, CONSISTENT: DuplicateTypeArg.INCONSISTENT, ALL: DuplicateTypeArg.NONE}
 
 class SQNameType:
     pass # fake class for detecting SQName type in JSON structure check
@@ -672,95 +674,18 @@ def oimEquivalentFacts(f1, f2):
             return f1.xValue == f2.xValue # required to handle date/time with 24 hrs.
         return f1.value == f2.value
 
-def checkForDuplicates(modelXbrl, allowedDups, footnoteIDs):
-    # intended to be use after loading OIM or possibly in future for xBRL-XML
-    if allowedDups != ALL:
-        factForConceptContextUnitHash = defaultdict(list)
-        for f in modelXbrl.factsInInstance:
-            if (f.isNil or getattr(f,"xValid", 0) >= 4) and f.context is not None and f.concept is not None and f.concept.type is not None:
-                factForConceptContextUnitHash[f.conceptContextUnitHash].append(f)
-        aspectEqualFacts = defaultdict(dict) # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact]
-        decVals = {}
-        for hashEquivalentFacts in factForConceptContextUnitHash.values():
-            if len(hashEquivalentFacts) > 1:
-                for f in hashEquivalentFacts: # check for hash collision by value checks on context and unit
-                    cuDict = aspectEqualFacts[(f.qname,
-                                               (f.xmlLang or "").lower() if f.concept.type.isWgnStringFactType else None)]
-                    _matched = False
-                    for (_cntx,_unit),fList in cuDict.items():
-                        if (((_cntx is None and f.context is None) or (f.context is not None and f.context.isEqualTo(_cntx))) and
-                            ((_unit is None and f.unit is None) or (f.unit is not None and f.unit.isEqualTo(_unit)))):
-                            _matched = True
-                            fList.append(f)
-                            break
-                    if not _matched:
-                        cuDict[(f.context,f.unit)] = [f]
-                for cuDict in aspectEqualFacts.values(): # dups by qname, lang
-                    for fList in cuDict.values():  # dups by equal-context equal-unit
-                        if len(fList) > 1:
-                            f0 = fList[0]
-                            if allowedDups == NONE:
-                                _inConsistent = True
-                            elif allowedDups == CONSISTENT and f0.concept.isNumeric:
-                                if any(f.isNil for f in fList):
-                                    _inConsistent = not all(f.isNil for f in fList)
-                                else: # not all have same decimals
-                                    _d = inferredDecimals(f0)
-                                    _v = f0.xValue
-                                    _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
-                                    decVals[_d] = _v
-                                    aMax, bMin, _inclA, _inclB = rangeValue(_v, _d)
-                                    for f in fList[1:]:
-                                        _d = inferredDecimals(f)
-                                        _v = f.xValue
-                                        if isnan(_v) or _inConsistent: # may have been inconsistent from f0.value
-                                            _inConsistent = True
-                                            break
-                                        if _d in decVals:
-                                            _inConsistent |= _v != decVals[_d]
-                                        else:
-                                            decVals[_d] = _v
-                                        a, b, _inclA, _inclB = rangeValue(_v, _d)
-                                        if a > aMax: aMax = a
-                                        if b < bMin: bMin = b
-                                    if not _inConsistent:
-                                        _inConsistent = (bMin < aMax)
-                                    decVals.clear()
-                            else: # includes COMPLETE
-                                _inConsistent = any(not oimEquivalentFacts(f0, f) for f in fList[1:])
-                            if _inConsistent:
-                                modelXbrl.error("oime:disallowedDuplicateFacts",
-                                    "%(disallowance)s duplicate fact values %(element)s: %(values)s, %(contextIDs)s.",
-                                    modelObject=fList, disallowance=DisallowedDescription[allowedDups], element=f0.qname,
-                                    contextIDs=", ".join(sorted(set(f.contextID for f in fList))),
-                                    values=", ".join(strTruncate(f.value,64) for f in fList))
-                aspectEqualFacts.clear()
-        del factForConceptContextUnitHash, aspectEqualFacts
 
-        ''' impossible to have dup footnotes (?)
-        aspectEqualFootnotes = defaultdict(list) # dict [lang] of footnotes
-        for footnoteID in  footnoteIDs:
-            f = modelXbrl.modelDocument.idObjects[footnoteID]
-            aspectEqualFootnotes[f.xmlLang.lower()].append(f)
-        for lang, footnotes in aspectEqualFootnotes.items():
-            fByValue = sorted(footnotes, key=lambda f: f.viewText())
-            lenF = len(fByValue)
-            for i, f in enumerate(fByValue):
-                if i == 0:
-                    fText = f.viewText()
-                else:
-                    fText = fNext
-                if i < lenF - 1:
-                    f2 = fByValue[i+1]
-                    fNext = f2.viewText()
-                    if fText == fNext:
-                        modelXbrl.error("oime:disallowedDuplicateFacts",
-                            "%(disallowance)s duplicate footnote ids %(IDs)s: value: %(value)s.",
-                            modelObject=(f, f2), disallowance=DisallowedDescription[allowedDups],
-                            IDs="{}, {}".format(f.id, f2.id),
-                            value=fText[:64])
-        del aspectEqualFootnotes
-        '''
+def checkForDuplicates(modelXbrl, allowedDups, footnoteIDs):
+    duplicateTypeArg = DuplicateTypeArgMap[allowedDups]
+    for duplicateFactSet in getDuplicateFactSetsWithType(modelXbrl.facts, duplicateTypeArg.duplicateType()):
+        fList = duplicateFactSet.facts
+        f0 = fList[0]
+        modelXbrl.error("oime:disallowedDuplicateFacts",
+                        "%(disallowance)s duplicate fact values %(element)s: %(values)s, %(contextIDs)s.",
+                        modelObject=fList, disallowance=DisallowedDescription[allowedDups], element=f0.qname,
+                        contextIDs=", ".join(sorted(set(f.contextID for f in fList))),
+                        values=", ".join(strTruncate(f.value,64) for f in fList))
+
 
 def getTaxonomyContextElement(modelXbrl):
     # https://www.xbrl.org/Specification/xbrl-xml/REC-2021-10-13/xbrl-xml-REC-2021-10-13.html#sec-dimensions
@@ -2884,6 +2809,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                   _("These footnote groups are not defined in footnoteGroups: %(ftGroups)s."),
                   modelObject=modelXbrl, ftGroups=", ".join(sorted(undefinedFootnoteGroups)))
 
+        currentAction = "checking for duplicates"
         checkForDuplicates(modelXbrl, allowedDuplicatesFeature, footnotesIdTargets)
 
         currentAction = "done loading facts and footnotes"

@@ -123,6 +123,7 @@ class RuntimeOptions:
     utrUrl: Optional[str] = None
     utrValidate: Optional[bool] = None
     validate: Optional[bool] = None
+    validateDuplicateFacts: Optional[str] = None
     validateEFM: Optional[bool] = None
     validateEFMCalcTree: Optional[bool] = None
     validateHMRC: Optional[bool] = None
