@@ -15,6 +15,8 @@ from arelle import XmlValidateConst, ModelXbrl
 from arelle.ModelInstanceObject import ModelFact, ModelContext, ModelUnit
 from arelle.ModelValue import DateTime, QName, TypeXValue
 from arelle.ValidateXbrlCalcs import rangeValue, inferredDecimals
+from arelle.typing import TypeGetText
+_: TypeGetText
 
 
 @dataclass(frozen=True)
@@ -475,7 +477,9 @@ def saveDeduplicatedInstance(modelXbrl: ModelXbrl.ModelXbrl, deduplicationType: 
     deduplicatedFacts = frozenset(getDeduplicatedFacts(modelXbrl.facts, deduplicationType))
     duplicateFacts = set(modelXbrl.facts) - deduplicatedFacts
     for fact in duplicateFacts:
-        fact.getparent().remove(fact)
+        parent = fact.getparent()
+        assert parent is not None
+        parent.remove(fact)
         modelXbrl.info(
             "info:deduplicatedFact",
             _("Duplicate fact was excluded from deduplicated instance: %(fact)s, value=%(value)s, decimals=%(decimals)s"),
