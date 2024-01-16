@@ -1,4 +1,5 @@
 cx-Freeze==6.15.12
 requests-negotiate-sspi==0.5.2 ; sys_platform == 'win32'
 
+-r requirements-plugins.txt
 -r requirements.txt

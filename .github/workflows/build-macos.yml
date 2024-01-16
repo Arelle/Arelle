@@ -12,15 +12,6 @@ on:
         description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
-      ixbrl_viewer_ref:
-        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
-        required: false
-        type: string
-      node_version:
-        default: '20'
-        description: 'Node.js version to use'
-        required: false
-        type: string
       python_version:
         default: '3.11'
         description: 'Python version to use'
@@ -47,15 +38,6 @@ on:
       edgar_renderer_ref:
         description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
         required: false
-        type: string
-      ixbrl_viewer_ref:
-        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
-        required: false
-        type: string
-      node_version:
-        default: '20'
-        description: 'Node.js version to use'
-        required: true
         type: string
       python_version:
         default: '3.11'
@@ -106,22 +88,6 @@ jobs:
           mv tmp/plugin/validate/* arelle/plugin/validate/
           rm -rf tmp/plugin/validate
           mv tmp/plugin/* arelle/plugin/
-          rm -rf tmp
-      - uses: actions/checkout@v4.1.1
-        with:
-          fetch-depth: 0
-          repository: Workiva/ixbrl-viewer
-          path: tmp/ixbrl-viewer
-          ref: ${{ inputs.ixbrl_viewer_ref }}
-      - uses: actions/setup-node@v4.0.1
-        with:
-          node-version: ${{ inputs.node_version }}
-      - run: |
-          cd tmp/ixbrl-viewer
-          npm install
-          make prod
-          cd ../..
-          mv tmp/ixbrl-viewer/iXBRLViewerPlugin arelle/plugin/
           rm -rf tmp
       - name: Capture build version
         run: echo "BUILD_VERSION=$(python -W ignore distro.py --version)" >> $GITHUB_ENV
