@@ -257,5 +257,5 @@ config = ConformanceSuiteConfig(
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/EFM', 'inlineXbrlDocumentSet'}),
     public_download_url='https://www.sec.gov/files/edgar/efm-68d-231120.zip',
-    shards=20,
+    shards=40,
 )

@@ -81,5 +81,5 @@ config = ConformanceSuiteConfig(
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/ESEF'}),
     public_download_url='https://www.esma.europa.eu/sites/default/files/library/esef_conformance_suite_2021.zip',
-    shards=4,
+    shards=8,
 )
