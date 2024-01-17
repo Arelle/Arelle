@@ -121,6 +121,7 @@ mandatory: set[QName] = set()  # mandatory element qnames
 untransformableTypes = frozenset((
     "anyURI",
     "base64Binary",
+    "duration",
     "hexBinary",
     "NOTATION",
     "QName",
