@@ -1091,15 +1091,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.roleTypesFile, "Role Types", isArcrole=False, lang=options.labelLang)
                         if options.arcroleTypesFile:
                             ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=options.labelLang)
-                        if options.saveDeduplicatedInstance:
-                            if options.deduplicateFacts:
-                                deduplicateFactsArg = ValidateDuplicateFacts.DeduplicationType(options.deduplicateFacts)
-                            else:
-                                deduplicateFactsArg = ValidateDuplicateFacts.DeduplicationType.COMPLETE
-                            if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE:
-                                ValidateDuplicateFacts.saveDeduplicatedInstance(modelXbrl, deduplicateFactsArg, options.saveDeduplicatedInstance)
-                        else:
-                            assert not options.deduplicateFacts, "'deduplicateFacts' can only be used with 'saveDeduplicatedInstance'"
 
                         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
                             pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
@@ -1119,6 +1110,22 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                   level=logging.CRITICAL)
                     success = False
             if modelXbrl:
+                if success and options.saveDeduplicatedInstance:
+                    if options.deduplicateFacts:
+                        deduplicateFactsArg = ValidateDuplicateFacts.DeduplicationType(options.deduplicateFacts)
+                    else:
+                        deduplicateFactsArg = ValidateDuplicateFacts.DeduplicationType.COMPLETE
+                    if modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE:
+                        self.addToLog(_("Provided file must be a traditional XBRL instance document to save a deduplicated instance."),
+                                      messageCode="error", file=modelXbrl.modelDocument.uri)
+                    else:
+                        # Deduplication modifies the underlying lxml tree and leaves the model in an undefined state.
+                        # Anything depending on the ModelXbrl that runs after this may encounter unexpected behavior,
+                        # so we'll run it as a final step in the CLI controller flow.
+                        ValidateDuplicateFacts.saveDeduplicatedInstance(modelXbrl, deduplicateFactsArg, options.saveDeduplicatedInstance)
+                else:
+                    assert not options.deduplicateFacts, "'deduplicateFacts' can only be used with 'saveDeduplicatedInstance'"
+
                 modelXbrl.profileStat(_("total"), time.time() - firstStartedAt)
                 if options.collectProfileStats and modelXbrl:
                     modelXbrl.logProfileStats()
