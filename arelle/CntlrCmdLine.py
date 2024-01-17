@@ -137,7 +137,8 @@ def parseArgs(args):
     parser.add_option("--deduplicateFacts", "--deduplicatefacts",
                       choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
                       dest="deduplicateFacts",
-                      help=_("When using '--saveDeduplicatedInstance' to save a deduplicated instance, check for duplicates of this type."))
+                      help=_("When using '--saveDeduplicatedInstance' to save a deduplicated instance, check for duplicates of this type. "
+                             "Defaults to 'complete'."))
     parser.add_option("--saveDeduplicatedInstance", "--savededuplicatedinstance",
                       dest="saveDeduplicatedInstance",
                       help=_("Save an instance document with duplicates of the provided type ('--deduplicateFacts') deduplicated."))
