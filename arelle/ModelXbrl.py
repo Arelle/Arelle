@@ -349,7 +349,7 @@ class ModelXbrl:
         self.hasTableIndexing: bool = False
         self.hasFormulae: bool = False
         self.formulaOutputInstance: ModelXbrl | None = None
-        self.logger: Any = logging.getLogger("arelle")
+        self.logger: logging.Logger | None = self.modelManager.cntlr.logger
         self.logRefObjectProperties: bool = getattr(self.logger, "logRefObjectProperties", False)
         self.logRefHasPluginAttrs: bool = any(True for m in pluginClassMethods("Logging.Ref.Attributes"))
         self.logRefHasPluginProperties: bool = any(True for m in pluginClassMethods("Logging.Ref.Properties"))
@@ -1021,6 +1021,10 @@ class ModelXbrl:
     # isLoggingEffectiveFor( messageCodes= messageCode= level= )
     def isLoggingEffectiveFor(self, **kwargs: Any) -> bool:  # args can be messageCode(s) and level
         logger = self.logger
+        if logger is None:
+            return False
+        assert hasattr(logger, 'messageCodeFilter'), 'messageCodeFilter not set on controller logger.'
+        assert hasattr(logger, 'messageLevelFilter'), 'messageLevelFilter not set on controller logger.'
         if "messageCodes" in kwargs or "messageCode" in kwargs:
             if "messageCodes" in kwargs:
                 messageCodes = kwargs["messageCodes"]
@@ -1206,6 +1210,10 @@ class ModelXbrl:
         """Same as error(), but level passed in as argument
         """
         logger = self.logger
+        if logger is None:
+            return
+        assert hasattr(logger, 'messageCodeFilter'), 'messageCodeFilter not set on controller logger.'
+        assert hasattr(logger, 'messageLevelFilter'), 'messageLevelFilter not set on controller logger.'
         # determine logCode
         messageCode = self.effectiveMessageCode(codes)
         if messageCode == "asrtNoLog":
