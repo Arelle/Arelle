@@ -24,9 +24,9 @@ LATEST_PYTHON_VERSION = '3.12'
 # number of cores on the runners
 # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
 OS_CORES = {
-    LINUX: 2,
+    LINUX: 4,
     MACOS: 3,
-    WINDOWS: 2,
+    WINDOWS: 4,
 }
 FAST_CONFIG_NAMES = {
     'esef_xhtml_2021',
