@@ -1019,7 +1019,7 @@ class ModelXbrl:
         return effectiveMessageCode
 
     # isLoggingEffectiveFor( messageCodes= messageCode= level= )
-    def isLoggingEffectiveFor(self, **kwargs: Any) -> QName | str | bool | None:  # args can be messageCode(s) and level
+    def isLoggingEffectiveFor(self, **kwargs: Any) -> bool:  # args can be messageCode(s) and level
         logger = self.logger
         if "messageCodes" in kwargs or "messageCode" in kwargs:
             if "messageCodes" in kwargs:
@@ -1035,7 +1035,7 @@ class ModelXbrl:
             levelEffective = logger.messageLevelFilter.match(kwargs["level"].lower())
         else:
             levelEffective = True
-        return codeEffective and levelEffective
+        return bool(codeEffective and levelEffective)
 
     def logArguments(self, messageCode: str, msg: str, codedArgs: dict[str, str]) -> Any:
         # Prepares arguments for logger function as per info() below.
