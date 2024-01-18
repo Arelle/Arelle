@@ -328,6 +328,8 @@ def doesSetHaveDuplicateType(duplicateFacts: DuplicateFactSet, duplicateType: Du
     :param duplicateType:
     :return: Whether the given duplicate fact set has any duplicates of the given type.
     """
+    if len(duplicateFacts.facts) < 2:
+        return False
     inconsistent = DuplicateType.INCONSISTENT in duplicateType
     consistent = DuplicateType.CONSISTENT in duplicateType
     incomplete = DuplicateType.INCOMPLETE in duplicateType
@@ -355,11 +357,12 @@ def areFactsValueEqual(factA: ModelFact, factB: ModelFact) -> bool:
     return getFactValueEqualityKey(factA) == getFactValueEqualityKey(factB)
 
 
-def getAspectEqualFacts(hashEquivalentFacts: list[ModelFact]) -> Iterator[list[ModelFact]]:
+def getAspectEqualFacts(hashEquivalentFacts: list[ModelFact], includeSingles: bool) -> Iterator[list[ModelFact]]:
     """
     Given a list of concept/context/unit hash-equivalent facts,
     yields sublists of aspect-equal facts from this list.
     :param hashEquivalentFacts:
+    :param includeSingles: Whether to include lists of single facts (with no duplicates).
     :return: Lists of aspect-equal facts.
     """
     aspectEqualFacts: dict[tuple[QName, str | None], dict[tuple[ModelContext, ModelUnit], list[ModelFact]]] = defaultdict(dict)
@@ -387,14 +390,16 @@ def getAspectEqualFacts(hashEquivalentFacts: list[ModelFact]) -> Iterator[list[M
             contextUnitDict[(fact.context, fact.unit)] = [fact]
     for contextUnitDict in aspectEqualFacts.values():  # dups by qname, lang
         for duplicateFacts in contextUnitDict.values():  # dups by equal-context equal-unit
-            if len(duplicateFacts) > 1:
+            if includeSingles or len(duplicateFacts) > 1:
                 yield duplicateFacts
 
 
 def getDeduplicatedFacts(facts: list[ModelFact], deduplicationType: DeduplicationType) -> list[ModelFact]:
     results = []
-    for duplicateFactSet in getDuplicateFactSets(facts):
-        if deduplicationType == DeduplicationType.COMPLETE:
+    for duplicateFactSet in getDuplicateFactSets(facts, includeSingles=True):
+        if len(duplicateFactSet.facts) < 2:
+            results.extend(duplicateFactSet.facts)
+        elif deduplicationType == DeduplicationType.COMPLETE:
             results.extend(duplicateFactSet.deduplicateCompleteSubsets())
         elif deduplicationType == DeduplicationType.CONSISTENT_PAIRS:
             results.extend(duplicateFactSet.deduplicateConsistentPairs())
@@ -405,18 +410,18 @@ def getDeduplicatedFacts(facts: list[ModelFact], deduplicationType: Deduplicatio
     return results
 
 
-def getDuplicateFactSets(facts: list[ModelFact]) -> Iterator[DuplicateFactSet]:
+def getDuplicateFactSets(facts: list[ModelFact], includeSingles: bool) -> Iterator[DuplicateFactSet]:
     """
     :param facts: Facts to find duplicate sets from.
+    :param includeSingles: Whether to include lists of single facts (with no duplicates).
     :return: Each set of duplicate facts from the given list.
     """
     hashEquivalentFactGroups = getHashEquivalentFactGroups(facts)
     for hashEquivalentFacts in hashEquivalentFactGroups:
-        if len(hashEquivalentFacts) < 2:
+        if not includeSingles and len(hashEquivalentFacts) < 2:
             continue
-        for duplicateFactList in getAspectEqualFacts(hashEquivalentFacts):  # dups by equal-context equal-unit
-            duplicateFactSet = DuplicateFactSet(facts=duplicateFactList)
-            yield duplicateFactSet
+        for duplicateFactList in getAspectEqualFacts(hashEquivalentFacts, includeSingles=includeSingles):  # dups by equal-context equal-unit
+            yield DuplicateFactSet(facts=duplicateFactList)
 
 
 def getDuplicateFactSetsWithType(facts: list[ModelFact], duplicateType: DuplicateType) -> Iterator[DuplicateFactSet]:
@@ -427,7 +432,7 @@ def getDuplicateFactSetsWithType(facts: list[ModelFact], duplicateType: Duplicat
     """
     if duplicateType == DuplicateType.NONE:
         return
-    for duplicateFactSet in getDuplicateFactSets(facts):
+    for duplicateFactSet in getDuplicateFactSets(facts, includeSingles=False):
         if doesSetHaveDuplicateType(duplicateFactSet, duplicateType):
             yield duplicateFactSet
 
