@@ -712,13 +712,26 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
             etreeXMLSchema = etree.XMLSchema(xsdTree)
             etreeXMLSchema.assertValid(docTree)
         except etree.DocumentInvalid as err:
+            nsmap = {
+                key: val
+                for key, val in docTree.getroot().nsmap.items()
+                if key
+            }
             for e in err.error_log:  # type: ignore[attr-defined]
                 if not any(s in e.message for s in (": The QName value", "is not a valid value of the atomic type 'xs:QName'")):
                     # do newer lxml validations have QName whitespace collapsing issue?
+                    userFriendlyElementPath = ''
+                    errorElements = docTree.xpath(e.path, namespaces=nsmap)
+                    if len(errorElements) == 1:
+                        userFriendlyElementPath = docTree.getelementpath(errorElements[0])
+                        for prefix, namespace in docTree.getroot().nsmap.items():
+                            replacementText = f"{prefix}:" if prefix else ''
+                            userFriendlyElementPath = userFriendlyElementPath.replace(f"{{{namespace}}}", replacementText)
                     msgCode = f"lxml.{e.type_name}"
-                    cntlr.addToLog(_("XML file syntax error %(error)s, line %(sourceLine)s, path %(path)s"),
+                    cntlr.addToLog(_("XML file syntax error %(error)s, line %(sourceLine)s, path '%(path)s', xpath '%(xpath)s'"),
                                    messageArgs={"error": e.message,
-                                                "path": e.path,
+                                                "path": userFriendlyElementPath,
+                                                "xpath": e.path,
                                                 "sourceLine": e.line},
                                    messageCode=msgCode,
                                    file=modelDocument.basename,
