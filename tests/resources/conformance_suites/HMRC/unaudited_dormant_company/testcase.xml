@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="Unaudited Dormant Company"
+  description="Unaudited dormant company filings must meet certain criteria."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="valid" name="Valid">
+    <description>
+      The document is valid.
+    </description>
+    <data>
+        <instance readMeFirst="true">valid.xbrl</instance>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation id="valid-welsh" name="Valid Welsh">
+    <description>
+      The document is valid with Welsh language.
+    </description>
+    <data>
+      <instance readMeFirst="true">valid-welsh.xbrl</instance>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation id="co-auditnr" name="Fails Co.AuditNR">
+    <description>
+      StatementThatMembersHaveNotRequiredCompanyToObtainAnAudit fact is missing required text.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-auditnr.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.AuditNR</error>
+    </result>
+  </variation>
+  <variation id="co-dirresp" name="Fails Co.DirResp">
+    <description>
+      StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct fact is missing required text.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-dirresp.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.DirResp</error>
+    </result>
+  </variation>
+  <variation id="co-micro" name="Fails Co.Micro and Co.SmCo">
+    <description>
+      StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime fact is missing required text.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-micro.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.Micro</error>
+      <error>Co.SmCo</error>
+    </result>
+  </variation>
+  <variation id="co-sec480" name="Fails Co.Sec480">
+    <description>
+      StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies fact is missing required text.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-sec480.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.Sec480</error>
+    </result>
+  </variation>
+  <variation id="missing" name="Fails Co.Sec480 - Missing">
+    <description>
+      StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies is missing.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-missing.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.MissingElement</error>
+      <error>Co.Sec480</error>
+    </result>
+  </variation>
+</testcase>
