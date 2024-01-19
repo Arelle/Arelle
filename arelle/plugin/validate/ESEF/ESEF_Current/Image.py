@@ -196,7 +196,7 @@ def checkSVGContentElt(
             rootElement = False
         eltTag = elt.tag.rpartition("}")[2] # strip namespace
         if eltTag == "image":
-            imgElts.insert(0, elt)
+            imgElts = [*imgElts, elt]
             validateImage(baseUrl, getHref(elt), modelXbrl, val, imgElts, "", guidance)
         if eltTag in ("object", "script", "audio", "foreignObject", "iframe", "image", "use", "video"):
             href = elt.get("href","")
