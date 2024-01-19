@@ -11,9 +11,10 @@ from functools import cached_property
 from math import isnan
 from typing import cast, Iterator, Any, SupportsFloat, Tuple
 
-from arelle import XmlValidateConst, ModelXbrl
+from arelle import XmlValidateConst
 from arelle.ModelInstanceObject import ModelFact, ModelContext, ModelUnit
 from arelle.ModelValue import DateTime, QName, TypeXValue
+from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrlCalcs import rangeValue, inferredDecimals
 from arelle.typing import TypeGetText
 _: TypeGetText
@@ -229,15 +230,17 @@ class DuplicateFactSet:
                     results.remove(factA)
         return list(results)
 
-    def deduplicateConsistentSet(self) -> list[ModelFact]:
+    def deduplicateConsistentSet(self) -> tuple[list[ModelFact], str | None]:
         """
         :return: If this set is numeric and fully consistent, a list containing only the highest-precision fact.
         Otherwise, deduplication of complete duplicates.
         """
-        if not self.areNumeric or not self.areAllConsistent:
+        if not self.areNumeric:
             # Consistency is equivalent to completeness for non-numeric facts
+            return self.deduplicateCompleteSubsets(), None
+        if not self.areAllConsistent:
             # If facts are not all consistent, we will only perform complete deduplication
-            return self.deduplicateCompleteSubsets()
+            return self.deduplicateCompleteSubsets(), 'Set has inconsistent facts'
         selectedFact = self.facts[0]
         maxDecimals = self.getDecimals(selectedFact)
         assert maxDecimals is not None
@@ -247,7 +250,7 @@ class DuplicateFactSet:
             if decimals > maxDecimals:
                 maxDecimals = decimals
                 selectedFact = fact
-        return [selectedFact]
+        return [selectedFact], None
 
     def getDecimals(self, fact: ModelFact) -> float | int | None:
         """
@@ -396,19 +399,26 @@ def getAspectEqualFacts(hashEquivalentFacts: list[ModelFact], includeSingles: bo
                 yield duplicateFacts
 
 
-def getDeduplicatedFacts(facts: list[ModelFact], deduplicationType: DeduplicationType) -> list[ModelFact]:
+def getDeduplicatedFacts(modelXbrl: ModelXbrl, deduplicationType: DeduplicationType) -> list[ModelFact]:
     results = []
-    for duplicateFactSet in getDuplicateFactSets(facts, includeSingles=True):
+    for duplicateFactSet in getDuplicateFactSets(modelXbrl.facts, includeSingles=True):
+        message = None
         if len(duplicateFactSet.facts) < 2:
-            results.extend(duplicateFactSet.facts)
+            facts = duplicateFactSet.facts
         elif deduplicationType == DeduplicationType.COMPLETE:
-            results.extend(duplicateFactSet.deduplicateCompleteSubsets())
+            facts = duplicateFactSet.deduplicateCompleteSubsets()
         elif deduplicationType == DeduplicationType.CONSISTENT_PAIRS:
-            results.extend(duplicateFactSet.deduplicateConsistentPairs())
+            facts = duplicateFactSet.deduplicateConsistentPairs()
         elif deduplicationType == DeduplicationType.CONSISTENT_SETS:
-            results.extend(duplicateFactSet.deduplicateConsistentSet())
+            facts, message = duplicateFactSet.deduplicateConsistentSet()
         else:
             raise ValueError(f"Invalid deduplication type: {deduplicationType}")
+        results.extend(facts)
+        if message is not None:
+            modelXbrl.warning(
+                "info:deduplicationNotPossible",
+                _("Deduplication of %(concept)s fact set not possible: %(message)s. concept=%(concept)s, context=%(context)s"),
+                modelObject=facts[0], concept=facts[0].concept.qname, context=facts[0].contextID, message=message)
     return results
 
 
@@ -480,8 +490,8 @@ def getHashEquivalentFactGroups(facts: list[ModelFact]) -> list[list[ModelFact]]
     return list(hashDict.values())
 
 
-def saveDeduplicatedInstance(modelXbrl: ModelXbrl.ModelXbrl, deduplicationType: DeduplicationType, outputFilepath: str) -> None:
-    deduplicatedFacts = frozenset(getDeduplicatedFacts(modelXbrl.facts, deduplicationType))
+def saveDeduplicatedInstance(modelXbrl: ModelXbrl, deduplicationType: DeduplicationType, outputFilepath: str) -> None:
+    deduplicatedFacts = frozenset(getDeduplicatedFacts(modelXbrl, deduplicationType))
     duplicateFacts = set(modelXbrl.facts) - deduplicatedFacts
     for fact in duplicateFacts:
         parent = fact.getparent()
