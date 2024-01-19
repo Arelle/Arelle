@@ -25,6 +25,48 @@ styleImgUrlPattern = re.compile(r"[a-z]+-image:\s*url[(][^)]+[)]")
 EMPTYDICT = {}
 _6_APR_2008 = dateTime("2008-04-06", type=DATE)
 
+COMMON_GENERIC_DIMENSIONS = {
+    "Chairman": ("NameEntityOfficer",),
+    "ChiefExecutive": ("NameEntityOfficer",),
+    "ChairmanChiefExecutive": ("NameEntityOfficer",),
+    "SeniorPartnerLimitedLiabilityPartnership": ("NameEntityOfficer",),
+    "HighestPaidDirector": ("NameEntityOfficer",),
+    "CompanySecretary": (1, 2, "NameEntityOfficer",),
+    "CompanySecretaryDirector": (1, 2, "NameEntityOfficer",),
+    "Director": (1, 40, "NameEntityOfficer",),
+    "PartnerLLP": (1, 20, "NameEntityOfficer"),
+    "ReportableOperatingSegment": (1, 20, "NameIndividualSegment"),
+    "ProductService": (1, 12, "NameIndividualSegment"),
+    "MajorCustomer": (1, 12, "NameIndividualSegment"),
+    "SpecificBusinessCombination": (1, 10, "NameAcquiredEntity"),
+    "ConsumableBiologicalAssetClass": (1, 5, "NameOrDescriptionBiologicalAssetClass"),
+    "BearerBiologicalAssetClass": (1, 5, "NameOrDescriptionBiologicalAssetClass"),
+    "Subsidiary": (1, 200, "NameSubsidiary"),
+    "Associate": (1, 50, "NameAssociate"),
+    "JointVenture": (1, 50, "NameJointVenture"),
+    "UnconsolidatedStructuredEntity": (1, 5, "NameUnconsolidatedStructuredEntity"),
+    "IntermediateParent": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+    "EntityWithJointControlOrSignificantInfluence": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+    "AnotherGroupMember": (1, 8, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+    "KeyManagementIndividualGroup": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+    "CloseFamilyMember": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+    "EntityControlledByKeyManagementPersonnel": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+    "OtherRelatedPartyRelationshipType1ComponentTotalRelatedParties": ("NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag",),
+    "OtherRelatedPartyRelationshipType2ComponentTotalRelatedParties": ("NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag",),
+    "OrdinaryShareClass": (1, 5, "DescriptionShareType"),
+    "PreferenceShareClass": (1, 5, "DescriptionShareType"),
+    "DeferredShareClass": (1, 5, "DescriptionShareType"),
+    "OtherShareClass": (1, 5, "DescriptionShareType"),
+    "Share-basedArrangement": (1, 8, "NameShare-basedPaymentArrangement"),
+    "Grant": (1, 10, "NameOrDescriptionGrantUnderShare-basedPaymentArrangement"),
+    "PensionPlan": (1, 6, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
+    "Post-employmentMedicalPlan": (1, 2, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
+    "OtherPost-employmentBenefitPlan": (1, 2, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
+    "OtherContractType": (1, 2, "DescriptionOtherContractType"),
+    "OtherDurationType": (1, 2, "DescriptionOtherContractDurationType"),
+    "SalesChannel": (1, 2, "DescriptionOtherSalesChannelType"),
+}
+
 COMMON_MANDATORY_ITEMS = {
     "EntityCurrentLegalOrRegisteredName", "StartDateForPeriodCoveredByReport",
     "EndDateForPeriodCoveredByReport", "BalanceSheetDate"}
@@ -59,88 +101,31 @@ MUST_HAVE_ONE_ITEM = {
     }
 }
 
-genericDimensionValidation = {
+GENERIC_DIMENSION_VALIDATION = {
     # "taxonomyType": { "LocalName": (range of numbers if any, first item name, 2nd choice item name if any)
-    "ukGAAP": {"Acquisition": (1,10,"NameAcquisition"),
-        "Associate": (1,30,"NameAssociate"),
-        "BusinessSegment": (1,30,"NameBusinessSegment", "DescriptionBusinessSegment"),
-        "Disposal": (1,10,"NameOrDescriptionDisposal"),
-        "Joint-venture": (1,30,"NameJoint-venture"),
-        "OtherInvestment": (1,5,"NameOtherParticipatingInterestOrInvestment",    "DescriptionOtherParticipatingInterestOrInvestment"),
-        "OtherParticipatingInterest1": (1,5,"NameOtherParticipatingInterestOrInvestment",    "DescriptionOtherParticipatingInterestOrInvestment"),
-        "PensionScheme": (1,8,"NameDefinedContributionScheme","DescriptionContributionScheme"),
-        "Post-employmentMedicalScheme": (1,4,"NameDefinedBenefitScheme"    "DescriptionDefinedBenefitScheme"),
-        "Share-basedScheme": (1,8,"NameShare-basedArrangement","DescriptionShare-basedArrangement"),
-        "Subsidiary": (1,30, "NameSubsidiary"),
-        "Quasi-subsidiary": (1,10, "NameSubsidiary")},
-    "ukIFRS":    {"Associate": (1,50, "NameAssociate"),
-        "Joint-venture": (1,50, "NameJoint-venture"),
-        "MajorCustomer": (1,12,"NameIndividualSegmentMember"),
-        "PensionScheme": (1,10,"NameDefinedContributionScheme","DescriptionContributionScheme"),
-        "Post-employmentMedicalScheme": (1,4, "NameDefinedBenefitScheme", "DescriptionDefinedBenefitScheme"),
-        "ProductService": (1,12,"NameIndividualSegmentMember"),
-        "ReportableOperatingSegment": (1,20,"NameIndividualSegmentMember"),
-        "Share-basedScheme": (1,8,"NameShare-basedPaymentArrangement"),
-        "SpecificBusinessCombination": (1,10,"NameOfAcquiree"),
-        "SpecificDiscontinuedOperation": (1,8,"DescriptionNon-currentAssetOrDisposalGroup",     "DescriptionFactsCircumstancesSaleOrExpectedDisposal"),
-        "SpecificDisposalGroupHeldForSale": (1,8,"DescriptionNon-currentAssetOrDisposalGroup",    "DescriptionFactsCircumstancesSaleOrExpectedDisposal"),
-        "Subsidiary": (1,50,"NameSubsidiary")},
-    "business":    {"Director": (1,40,"NameEntityOfficer"),
-        "Chairman": ("NameEntityOfficer",),
-        "ChiefExecutive": ("NameEntityOfficer",),
-        "ChairmanChiefExecutive":  ("NameEntityOfficer",),
-        "ChiefPartnerLimitedLiabilityPartnership": ("NameEntityOfficer",),
-        "CompanySecretary": ("NameEntityOfficer",),
-        "CompanySecretaryDirector": ("NameEntityOfficer",),
-        "OrdinaryShareClass": (1,5,"DescriptionShareType"),
-        "PartnerLLP": (1,20,"NameEntityOfficer"),
-        "PreferenceShareClass": (1,5,"DescriptionShareType"),
-        "JointAgent": (1,3,"NameThirdPartyAgent"),
-        "PrincipalAgent": ("NameThirdPartyAgent",),
-        "Chairman": ("NameEntityOfficer",),
-        "ChiefExecutive": ("NameEntityOfficer",),
-        "ChairmanChiefExecutive": ("NameEntityOfficer",),
-        "SeniorPartnerLimitedLiabilityPartnership": ("NameEntityOfficer",),
-        "CompanySecretary1": ("NameEntityOfficer",),
-        "CompanySecretary2": ("NameEntityOfficer",),
-        "CompanySecretaryDirector1": ("NameEntityOfficer",),
-        "CompanySecretaryDirector2": ("NameEntityOfficer",),
-        "Director": (1,40,"NameEntityOfficer"),
-        "PartnerLLP": (1,20,"NameEntityOfficer"),
-        "OrdinaryShareClass": (1,5, "DescriptionShareType"),
-        "PreferenceShareClass": (1,5, "DescriptionShareType"),
-        "DeferredShareClass": (1,5, "DescriptionShareType"),
-        "OtherShareClass": (1,4, "DescriptionShareType")},
-    "charities":    {"Trustee": (1,40,"NameTrustee"),
-        "ChairTrustees": ("NameTrustee",),
-        "ChiefExecutiveCharity": ("NameTrustee",)},
-    "dpl":    {"CombinedCross-sectorActivities": (1,4, "DescriptionActivity"),
-        "OtherSpecificActivity": (1,5, "DescriptionActivity")},
-    "FRS":    {"SpecificDiscontinuedOperation": (1,8,"DescriptionDiscontinuedOperationOrNon-currentAssetsOrDisposalGroupHeldForSale"),
-        "SpecificNon-currentAssetsDisposalGroupHeldForSale": (1,8,"DescriptionDiscontinuedOperationOrNon-currentAssetsOrDisposalGroupHeldForSale"),
-        "ReportableOperatingSegment": (1,20,"NameIndividualSegment"),
-        "ProductService": (1,12, "NameIndividualSegment"),
-        "MajorCustomer": (1,12, "NameIndividualSegment"),
-        "SpecificBusinessCombination": (1,10, "NameAcquiredEntity"),
-        "ConsumableBiologicalAssetClass": (1,5, "NameOrDescriptionBiologicalAssetClass"),
-        "BearerBiologicalAssetClass": (1,5, "NameOrDescriptionBiologicalAssetClass"),
-        "Subsidiary": (1,50, "NameSubsidiary"),
-        "Associate": (1,50, "NameAssociate"),
-        "JointVenture": (1,50, "NameJointVenture"),
-        "UnconsolidatedStructuredEntity": (1,5, "NameUnconsolidatedStructuredEntity"),
-        "IntermediateParent": (1,5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-        "EntityWithJointControlOrSignificantInfluence": (1,5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-        "OtherGroupMember": (1,8, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-        "KeyManagementIndividualGroup": (1,5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-        "CloseFamilyMember": (1,5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-        "EntityControlledByKeyManagementPersonnel": (1,5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-        "OtherRelatedPartyRelationshipType1ComponentTotalRelatedParties": ("NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag",),
-        "OtherRelatedPartyRelationshipType2ComponentTotalRelatedParties": ("NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag",),
-        "Share-basedArrangement": (1,8, "NameShare-basedPaymentArrangement"),
-        "Grant": (1,10, "NameOrDescriptionGrantUnderShare-basedPaymentArrangement"),
-        "PensionPlan": (1,6, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
-        "Post-employmentMedicalPlan": (1,2, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
-        "OtherPost-employmentBenefitPlan": (1,2, "NameDefinedContributionPlan", "NameDefinedBenefitPlan")}}
+    "ukGAAP": COMMON_GENERIC_DIMENSIONS,
+    "ukIFRS": COMMON_GENERIC_DIMENSIONS,
+    "charities": {
+        **COMMON_GENERIC_DIMENSIONS,
+        **{"Trustee": (1, 20, "NameEntityOfficer"),
+           "CorporateTrustee": (1, 3, "NameEntityOfficer"),
+           "CustodianTrustee": (1, 3, "NameEntityOfficer"),
+           "Director1CorporateTrustee": ("NameEntityOfficer",),
+           "Director2CorporateTrustee": ("NameEntityOfficer",),
+           "Director3CorporateTrustee": ("NameEntityOfficer",),
+           "TrusteeTrustees": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+           "CloseFamilyMemberTrusteeTrustees": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+           "EntityControlledTrustees": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+           "Activity": (1, 50, "DescriptionActivity"),
+           "MaterialFund": (1, 50, "DescriptionsMaterialFund"),
+           "LinkedCharity": (1, 5, "DescriptionActivitiesLinkedCharity"),
+           "NameGrantRecipient": (1, 50, "NameSpecificInstitutionalGrantRecipient"),
+           "ConcessionaryLoan": (1, 50, "DescriptionConcessionaryLoan"),
+           }
+    },
+    "FRS": COMMON_GENERIC_DIMENSIONS,
+    "FRS-2022": COMMON_GENERIC_DIMENSIONS
+}
 
 allowedImgMimeTypes = (
         "data:image/gif;base64",
@@ -242,10 +227,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                     else:
                         l = _memName
                         n = None
-                    for _gdvType in (val.txmyType, "business"):
-                        gdv = genericDimensionValidation.get(_gdvType,EMPTYDICT).get(l)
-                        if gdv: # take first match
-                            break
+                    gdv = GENERIC_DIMENSION_VALIDATION.get(val.txmyType, EMPTYDICT).get(l)
                     if (gdv and (n is None or
                                  (isinstance(gdv[0],int) and isinstance(gdv[1],int) and n >= gdv[0] and n <= gdv[1]))):
                         gdvFacts = [f for f in gdv if isinstance(f,str)]
