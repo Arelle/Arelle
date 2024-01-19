@@ -1124,11 +1124,14 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         # so we'll run it as a final step in the CLI controller flow.
                         ValidateDuplicateFacts.saveDeduplicatedInstance(modelXbrl, deduplicateFactsArg, options.saveDeduplicatedInstance)
                         if options.keepOpen:
-                            raise RuntimeError(_("Attempted to keep model connection open after saving deduplicated instance. "
-                                                 "Deduplication modifies the model in ways that can cause unexpected behavior on subsequent use."))
+                            success = False
+                            self.addToLog(_("Attempted to keep model connection open after saving deduplicated instance. "
+                                            "Deduplication modifies the model in ways that can cause unexpected behavior on subsequent use."),
+                                          messageCode="error", level=logging.CRITICAL)
                 else:
-                    assert options.saveDeduplicatedInstance or not options.deduplicateFacts, \
-                        "'deduplicateFacts' can only be used with 'saveDeduplicatedInstance'"
+                    success = False
+                    self.addToLog(_("'deduplicateFacts' can only be used with 'saveDeduplicatedInstance'"),
+                                  messageCode="error", level=logging.CRITICAL)
 
                 modelXbrl.profileStat(_("total"), time.time() - firstStartedAt)
                 if options.collectProfileStats and modelXbrl:
