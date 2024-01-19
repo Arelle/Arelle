@@ -8,6 +8,7 @@ import os
 from typing import cast
 from urllib.parse import unquote
 
+from arelle import ModelDocument
 from lxml.etree import XML, XMLSyntaxError
 from lxml.etree import _Element
 
@@ -159,8 +160,12 @@ def checkSVGContent(
     guidance: str,
     val: ValidateXbrl,
 ) -> None:
-    _parser, _ignored, _ignored = parser(modelXbrl, baseURI)
-    elt = XML(data, parser=_parser)
+    if baseURI:
+        svgDoc = cast(ModelDocument.ModelDocument, ModelDocument.load(modelXbrl, baseURI, referringElement=imgElts[0]))
+        elt = svgDoc.xmlRootElement
+    else:
+        _parser, _ignored, _ignored = parser(modelXbrl, baseURI)
+        elt = XML(data, parser=_parser)
     checkSVGContentElt(elt, baseURI, modelXbrl, imgElts, guidance, val)
 
 
