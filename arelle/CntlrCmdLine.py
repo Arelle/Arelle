@@ -1110,28 +1110,29 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                   level=logging.CRITICAL)
                     success = False
             if modelXbrl:
-                if success and options.saveDeduplicatedInstance:
-                    if options.deduplicateFacts:
-                        deduplicateFactsArg = ValidateDuplicateFacts.DeduplicationType(options.deduplicateFacts)
-                    else:
-                        deduplicateFactsArg = ValidateDuplicateFacts.DeduplicationType.COMPLETE
-                    if modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE:
-                        self.addToLog(_("Provided file must be a traditional XBRL instance document to save a deduplicated instance."),
-                                      messageCode="error", file=modelXbrl.modelDocument.uri)
-                    else:
-                        # Deduplication modifies the underlying lxml tree and leaves the model in an undefined state.
-                        # Anything depending on the ModelXbrl that runs after this may encounter unexpected behavior,
-                        # so we'll run it as a final step in the CLI controller flow.
-                        ValidateDuplicateFacts.saveDeduplicatedInstance(modelXbrl, deduplicateFactsArg, options.saveDeduplicatedInstance)
-                        if options.keepOpen:
-                            success = False
-                            self.addToLog(_("Attempted to keep model connection open after saving deduplicated instance. "
-                                            "Deduplication modifies the model in ways that can cause unexpected behavior on subsequent use."),
-                                          messageCode="error", level=logging.CRITICAL)
-                else:
-                    success = False
-                    self.addToLog(_("'deduplicateFacts' can only be used with 'saveDeduplicatedInstance'"),
-                                  messageCode="error", level=logging.CRITICAL)
+                if success:
+                    if options.saveDeduplicatedInstance:
+                        if options.deduplicateFacts:
+                            deduplicateFactsArg = ValidateDuplicateFacts.DeduplicationType(options.deduplicateFacts)
+                        else:
+                            deduplicateFactsArg = ValidateDuplicateFacts.DeduplicationType.COMPLETE
+                        if modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE:
+                            self.addToLog(_("Provided file must be a traditional XBRL instance document to save a deduplicated instance."),
+                                          messageCode="error", file=modelXbrl.modelDocument.uri)
+                        else:
+                            # Deduplication modifies the underlying lxml tree and leaves the model in an undefined state.
+                            # Anything depending on the ModelXbrl that runs after this may encounter unexpected behavior,
+                            # so we'll run it as a final step in the CLI controller flow.
+                            ValidateDuplicateFacts.saveDeduplicatedInstance(modelXbrl, deduplicateFactsArg, options.saveDeduplicatedInstance)
+                            if options.keepOpen:
+                                success = False
+                                self.addToLog(_("Attempted to keep model connection open after saving deduplicated instance. "
+                                                "Deduplication modifies the model in ways that can cause unexpected behavior on subsequent use."),
+                                              messageCode="error", level=logging.CRITICAL)
+                    elif options.deduplicateFacts:
+                        success = False
+                        self.addToLog(_("'deduplicateFacts' can only be used with 'saveDeduplicatedInstance'"),
+                                      messageCode="error", level=logging.CRITICAL)
 
                 modelXbrl.profileStat(_("total"), time.time() - firstStartedAt)
                 if options.collectProfileStats and modelXbrl:
