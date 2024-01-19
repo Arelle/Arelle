@@ -17,6 +17,8 @@ from arelle.XbrlConst import xbrli, qnXbrliXbrl
 import regex as re
 from collections import defaultdict
 
+from .ValidateHmrc import ValidateHmrc
+
 FRC_URL_DOMAIN = "http://xbrl.frc.org.uk/"
 memNameNumPattern = re.compile(r"^([A-Za-z-]+)([0-9]+)$")
 compTxmyNamespacePattern = re.compile(r"http://www.govtalk.gov.uk/uk/fr/tax/uk-hmrc-ct/[0-9-]{10}")
@@ -69,16 +71,17 @@ COMMON_GENERIC_DIMENSIONS = {
 
 COMMON_MANDATORY_ITEMS = {
     "EntityCurrentLegalOrRegisteredName", "StartDateForPeriodCoveredByReport",
-    "EndDateForPeriodCoveredByReport", "BalanceSheetDate"}
+    "EndDateForPeriodCoveredByReport", "BalanceSheetDate"
+}
 
 COMMON_MANDATORY_FRS_ITEMS = COMMON_MANDATORY_ITEMS | {
     "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements",
     "EntityDormantTruefalse", "EntityTradingStatus",
     "AccountingStandardsApplied", "AccountsStatusAuditedOrUnaudited",
-
     "LegalFormEntity", "DescriptionPrincipalActivities"
 }
-mandatoryItems = {
+
+MANDATORY_ITEMS = {
     "ukGAAP": COMMON_MANDATORY_ITEMS | {
         "DateApprovalAccounts", "NameDirectorSigningAccounts", "EntityDormant", "EntityTrading",
         "DateSigningDirectorsReport", "DirectorSigningReport"
@@ -107,37 +110,42 @@ GENERIC_DIMENSION_VALIDATION = {
     "ukIFRS": COMMON_GENERIC_DIMENSIONS,
     "charities": {
         **COMMON_GENERIC_DIMENSIONS,
-        **{"Trustee": (1, 20, "NameEntityOfficer"),
-           "CorporateTrustee": (1, 3, "NameEntityOfficer"),
-           "CustodianTrustee": (1, 3, "NameEntityOfficer"),
-           "Director1CorporateTrustee": ("NameEntityOfficer",),
-           "Director2CorporateTrustee": ("NameEntityOfficer",),
-           "Director3CorporateTrustee": ("NameEntityOfficer",),
-           "TrusteeTrustees": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-           "CloseFamilyMemberTrusteeTrustees": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-           "EntityControlledTrustees": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-           "Activity": (1, 50, "DescriptionActivity"),
-           "MaterialFund": (1, 50, "DescriptionsMaterialFund"),
-           "LinkedCharity": (1, 5, "DescriptionActivitiesLinkedCharity"),
-           "NameGrantRecipient": (1, 50, "NameSpecificInstitutionalGrantRecipient"),
-           "ConcessionaryLoan": (1, 50, "DescriptionConcessionaryLoan"),
-           }
+        **{
+            "Trustee": (1, 20, "NameEntityOfficer"),
+            "CorporateTrustee": (1, 3, "NameEntityOfficer"),
+            "CustodianTrustee": (1, 3, "NameEntityOfficer"),
+            "Director1CorporateTrustee": ("NameEntityOfficer",),
+            "Director2CorporateTrustee": ("NameEntityOfficer",),
+            "Director3CorporateTrustee": ("NameEntityOfficer",),
+            "TrusteeTrustees": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+            "CloseFamilyMemberTrusteeTrustees": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+            "EntityControlledTrustees": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+            "Activity": (1, 50, "DescriptionActivity"),
+            "MaterialFund": (1, 50, "DescriptionsMaterialFund"),
+            "LinkedCharity": (1, 5, "DescriptionActivitiesLinkedCharity"),
+            "NameGrantRecipient": (1, 50, "NameSpecificInstitutionalGrantRecipient"),
+            "ConcessionaryLoan": (1, 50, "DescriptionConcessionaryLoan"),
+        }
     },
     "FRS": COMMON_GENERIC_DIMENSIONS,
     "FRS-2022": COMMON_GENERIC_DIMENSIONS
 }
 
-allowedImgMimeTypes = (
+ALLOWED_IMG_MIME_TYPES = (
         "data:image/gif;base64",
         "data:image/jpeg;base64", "data:image/jpg;base64", # note both jpg and jpeg are in use
-        "data:image/png;base64")
+        "data:image/png;base64"
+)
+
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("HMRC", "HMRCplugin"),)
 
+
 def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
     return os.path.join(os.path.dirname(__file__), "config.xml")
+
 
 def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateHMRCplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "HMRCplugin", False)
@@ -253,7 +261,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 if (f.isNil or getattr(f,"xValid", 0) >= 4) and cntx is not None and f.concept is not None and f.concept.type is not None:
                     factNamespaceURI = f.qname.namespaceURI
                     factLocalName = f.qname.localName
-                    if factLocalName in mandatoryItems[val.txmyType]:
+                    if factLocalName in MANDATORY_ITEMS[val.txmyType]:
                         mandatoryFacts[factLocalName] = f
                     if val.txmyType in MUST_HAVE_ONE_ITEM and factLocalName in MUST_HAVE_ONE_ITEM[val.txmyType]:
                         atLeastOneFacts[factLocalName] = f
@@ -294,7 +302,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     except (ValueError,TypeError):
                                         modelXbrl.error("HMRC.SG.4.5",
                                             _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
-                                            modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
+                                            modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals, value=f.value)
                         except AttributeError:
                             pass  # if not validated it should have failed with a schema error
 
@@ -330,7 +338,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         checkFacts(modelXbrl.facts)
 
         if val.isAccounts:
-            _missingItems = mandatoryItems[val.txmyType] - mandatoryFacts.keys()
+            _missingItems = MANDATORY_ITEMS[val.txmyType] - mandatoryFacts.keys()
             if hasCompaniesHouseContext and "UKCompaniesHouseRegisteredNumber" not in mandatoryFacts:
                 _missingItems.add("UKCompaniesHouseRegisteredNumber")
             if _missingItems:
@@ -433,7 +441,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                     modelXbrl.error("HMRC.SG.3.3",
                         _("Element %(localName)s javascript %(javascript)s is disallowed."),
                         modelObject=elt, localName=localName, javascript=attrValue[:64])
-                if localName == "img" and not any(attrValue.startswith(m) for m in allowedImgMimeTypes):
+                if localName == "img" and not any(attrValue.startswith(m) for m in ALLOWED_IMG_MIME_TYPES):
                     modelXbrl.error("HMRC.SG.3.8",
                         _("Image scope must be base-64 encoded string (starting with data:image/*;base64), *=gif, jpeg or png.  src disallowed: %(src)s."),
                         modelObject=elt, src=attrValue[:128])
@@ -448,8 +456,12 @@ def validateXbrlFinally(val, *args, **kwargs):
                     _("Element %(elt)s style attribute has disallowed image reference: %(styleImage)s."),
                     modelObject=elt, elt=elt.tag.rpartition("}")[2], styleImage=match)
 
+    hmrc = ValidateHmrc(modelXbrl)
+    hmrc.validate()
+
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
+
 
 class GDV:
     def __init__(self, fact, altFact, memLocalName):
@@ -472,6 +484,7 @@ class GDV:
 
     def __ne__(self,other):
         return not self.__eq__(other)
+
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
