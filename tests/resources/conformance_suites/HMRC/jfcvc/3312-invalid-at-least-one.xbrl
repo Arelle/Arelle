@@ -10,7 +10,7 @@
         xmlns:xlink="http://www.w3.org/1999/xlink"
         xmlns:xbrldi="http://xbrl.org/2006/xbrldi">
     <link:schemaRef
-            xlink:href="https://xbrl.frc.org.uk/char/2021-01-01/char-2021-01-01.xsd"
+            xlink:href="https://xbrl.frc.org.uk/char/2023-01-01/char-2023-01-01.xsd"
             xlink:type="simple"/>
 
     <context id="accounting-standards">
@@ -90,8 +90,6 @@
             <instant>2021-12-30</instant>
         </period>
     </context>
-    <!-- CAUSE: Missing concept -->
-    <!--<char:CharityRegistrationNumberNorthernIreland contextRef="instant">123</char:CharityRegistrationNumberNorthernIreland>-->
     <bus:BalanceSheetDate contextRef="instant">2021-01-01</bus:BalanceSheetDate>
     <bus:EndDateForPeriodCoveredByReport contextRef="instant">2021-01-01</bus:EndDateForPeriodCoveredByReport>
     <bus:StartDateForPeriodCoveredByReport contextRef="instant">2020-01-01</bus:StartDateForPeriodCoveredByReport>

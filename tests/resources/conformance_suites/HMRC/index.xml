@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <testcases name="HMRC">
-    <testcase uri='jfcvc_3312.xml' />
-    <testcase uri='jfcvc_3315.xml' />
+    <testcase uri='jfcvc/3312-testcase.xml' />
+    <testcase uri='jfcvc/3315-testcase.xml' />
     <testcase uri='unaudited_dormant_company/testcase.xml' />
 </testcases>
