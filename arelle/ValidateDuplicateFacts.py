@@ -201,20 +201,22 @@ class DuplicateFactSet:
             decimals = self.getDecimals(fact)
             assert decimals is not None
             decimalsMap[decimals].append(fact)
+        if len(decimalsMap) < 2:
+            return facts
         sortedDecimals = sorted(decimalsMap.keys())
         results = set(facts)
 
-        for a, decimalsA in enumerate(sortedDecimals[:len(sortedDecimals)]):
-            groupA = decimalsMap[decimalsA]
-            for factA in groupA:
+        for a, decimalLower in enumerate(sortedDecimals[:len(sortedDecimals)-1]):
+            groupLower = decimalsMap[decimalLower]
+            for factA in groupLower:
                 lowerA, upperA = self.getRange(factA)
                 if isnan(cast(SupportsFloat, factA.xValue)):
                     continue
                 remove = False
                 # Iterate through each higher decimals group
-                for b, decimalsB in enumerate(sortedDecimals[a+1:]):
-                    groupB = decimalsMap[decimalsB]
-                    for factB in groupB:
+                for b, decimalHigher in enumerate(sortedDecimals[a+1:]):
+                    groupHigher = decimalsMap[decimalHigher]
+                    for factB in groupHigher:
                         lowerB, upperB = self.getRange(factB)
                         if isnan(cast(SupportsFloat, factB.xValue)):
                             continue
