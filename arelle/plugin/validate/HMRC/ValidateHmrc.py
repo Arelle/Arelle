@@ -13,9 +13,6 @@ import regex as re
 
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelXbrl import ModelXbrl
-from arelle.typing import TypeGetText
-
-_: TypeGetText  # Handle gettext
 
 # Error codes
 CO_AUDIT_NR = 'Co.AuditNR'
@@ -38,11 +35,11 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, re.regex.Pattern[
     CO_AUDIT_NR: {
         'StatementThatMembersHaveNotRequiredCompanyToObtainAnAudit': (
             (
-                _('"member has" or "members have" then "not required the company to obtain an audit"'),
+                '"member has" or "members have" then "not required the company to obtain an audit"',
                 re.compile(r".*([Mm]ember has|[Mm]embers have) not required the company to obtain an audit.*"),
             ),
             (
-                _('"aelodau heb ei gwneud yn ofynnol i\'r cwmni gael archwiliad" OR "aelod heb ei gwneud yn ofynnol i\'r cwmni gael archwiliad"'),
+                '"aelodau heb ei gwneud yn ofynnol i\'r cwmni gael archwiliad" OR "aelod heb ei gwneud yn ofynnol i\'r cwmni gael archwiliad"',
                 re.compile(r".*(aelodau heb ei gwneud yn ofynnol i\'r cwmni gael archwiliad|aelod heb ei gwneud yn ofynnol i\'r cwmni gael archwiliad).*"),
             ),
         ),
@@ -50,11 +47,11 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, re.regex.Pattern[
     CO_DIR_RESP: {
         'StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct': (
             (
-                _('"Directors acknowledge" or "Director acknowledges", then "responsibilities", then "Companies Act 2006" OR "the Act"'),
+                '"Directors acknowledge" or "Director acknowledges", then "responsibilities", then "Companies Act 2006" OR "the Act"',
                 re.compile(r".*(Director acknowledges|Directors acknowledge).*responsibilities.*(Companies Act 2006|the Act).*"),
             ),
             (
-                _('"Cyfarwyddwyr yn cydnabod" or "Cyfarwyddwr yn cydnabod", then "cyfrifoldebau", then "Ddeddf Cwmnïau 2006" or "y ddeddf"'),
+                '"Cyfarwyddwyr yn cydnabod" or "Cyfarwyddwr yn cydnabod", then "cyfrifoldebau", then "Ddeddf Cwmnïau 2006" or "y ddeddf"',
                 re.compile(r".*(Cyfarwyddwyr yn cydnabod|Cyfarwyddwr yn cydnabod).*cyfrifoldebau.*(Ddeddf Cwmnïau 2006|y ddeddf).*"),
             ),
         ),
@@ -62,11 +59,11 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, re.regex.Pattern[
     CO_MICRO: {
         'StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime': (
             (
-                _('"Prepared", then "in accordance with", then "provisions", then "micro"'),
+                '"Prepared", then "in accordance with", then "provisions", then "micro"',
                 re.compile(r".*Prepared.*in accordance with.*provisions.*micro.*"),
             ),
             (
-                _('"wedi eu paratoi", then "yn unol â", then "darpariaethau", then "micro"'),
+                '"wedi eu paratoi", then "yn unol â", then "darpariaethau", then "micro"',
                 re.compile(r".*wedi eu paratoi.*yn unol â.*darpariaethau.*micro.*"),
             ),
         ),
@@ -74,11 +71,11 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, re.regex.Pattern[
     CO_SEC_480: {
         'StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies': (
             (
-                _('"Exempt" or "Exemption", then later "section 480 of the Companies Act 2006"'),
+                '"Exempt" or "Exemption", then later "section 480 of the Companies Act 2006"',
                 re.compile(r".*(Exempt|Exemption).*section 480 of the Companies Act 2006.*"),
             ),
             (
-                _('"Wedi\'i eithrio" or "Eithriad", then "adran 480 o Ddeddf Cwmnïau 2006"'),
+                '"Wedi\'i eithrio" or "Eithriad", then "adran 480 o Ddeddf Cwmnïau 2006"',
                 re.compile(r".*(Wedi'i eithrio|Eithriad).*adran 480 o Ddeddf Cwmnïau 2006.*"),
             ),
         ),
@@ -86,11 +83,11 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, re.regex.Pattern[
     CO_SM_CO: {
         'StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime': (
             (
-                _('"Prepared in accordance with", then "provisions", then "small companies"'),
+                '"Prepared in accordance with", then "provisions", then "small companies"',
                 re.compile(r".*Prepared in accordance with.*provisions.*small companies.*"),
             ),
             (
-                _('"Paratowyd yn unol â", then "darpariaethau", then "cwmnïau bach"'),
+                '"Paratowyd yn unol â", then "darpariaethau", then "cwmnïau bach"',
                 re.compile(r".*Paratowyd yn unol â.*darpariaethau.*cwmnïau bach.*"),
             ),
         ),
@@ -101,6 +98,7 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, re.regex.Pattern[
 class AccountStatus(Enum):
     AUDIT_EXEMPT_NO_REPORT = 'AuditExempt-NoAccountantsReport'
     AUTIT_EXEMPT_WITH_REPORT = 'AuditExemptWithAccountantsReport'
+
 
 @dataclass
 class CodeResult:
@@ -128,8 +126,8 @@ class ValidateHmrc:
         """
         self.modelXbrl.error(
             CO_MISSING_ELEMENT,
-            _("Based on facts regarding Entity and Report Information provided, "
-              "your document is expected to have a fact tagged with the following concept: %(conceptLocalName)s."),
+            "Based on facts regarding Entity and Report Information provided, "
+            "your document is expected to have a fact tagged with the following concept: %(conceptLocalName)s.",
             conceptLocalName=conceptLocalName
         )
 
@@ -145,8 +143,8 @@ class ValidateHmrc:
             self._errorOnMissingFact(result.conceptLocalName)
         self.modelXbrl.error(
             code,
-            _("The value for the the fact tagged with the concept %(conceptLocalName)s "
-              "is missing the text for language '%(lang)s': %(message)s"),
+            "The value for the the fact tagged with the concept %(conceptLocalName)s "
+            "is missing the text for language '%(lang)s': %(message)s",
             conceptLocalName=result.conceptLocalName,
             lang=self._lang.name.title(),
             message=result.message,
