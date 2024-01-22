@@ -337,7 +337,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                             _("Inline XBRL documents SHOULD NOT contain any 'mailto' URI: %(element)s"),
                                             modelObject=elt, element=eltTag)
                         elif eltTag == "{http://www.w3.org/2000/svg}svg":
-                            checkSVGContentElt(elt, elt.modelDocument.baseForElement(elt), modelXbrl, elt,
+                            checkSVGContentElt(elt, elt.modelDocument.baseForElement(elt), modelXbrl, [elt],
                                            contentOtherThanXHTMLGuidance, val)
                         elif eltTag == "img":
                             src = elt.get("src","").strip()
