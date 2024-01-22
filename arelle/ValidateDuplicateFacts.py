@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from _decimal import Decimal
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import auto, Flag, Enum
 from functools import cached_property
 from math import isnan
@@ -14,12 +14,17 @@ from typing import cast, Iterator, Any, SupportsFloat, Tuple
 from arelle import XmlValidateConst
 from arelle.ModelInstanceObject import ModelFact, ModelContext, ModelUnit
 from arelle.ModelValue import DateTime, QName, TypeXValue
+from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrlCalcs import rangeValue, inferredDecimals
+from arelle.typing import TypeGetText
+_: TypeGetText
 
 
 @dataclass(frozen=True)
 class DuplicateFactSet:
     facts: list[ModelFact]
+    _inferredDecimals: dict[ModelFact, float | int | None] = field(init=False, default_factory=dict)
+    _ranges: dict[ModelFact, tuple[Decimal, Decimal]] = field(init=False, default_factory=dict)
 
     def __iter__(self) -> Iterator[ModelFact]:
         return iter(self.facts)
@@ -74,9 +79,9 @@ class DuplicateFactSet:
         """
         :return: Whether any facts in the set are complete duplicates of each other.
         """
-        decimalsValueMap: dict[float | int, set[TypeFactValueEqualityKey]] = defaultdict(set)
+        decimalsValueMap: dict[float | int | None, set[TypeFactValueEqualityKey]] = defaultdict(set)
         for fact in self.facts:
-            decimals = inferredDecimals(fact)
+            decimals = self.getDecimals(fact)
             value = getFactValueEqualityKey(fact)
             decimalsValues = decimalsValueMap[decimals]
             if value in decimalsValues:
@@ -94,12 +99,12 @@ class DuplicateFactSet:
         if self.areAnyComplete:
             return True
         if not self.areNumeric:
-            # Non-numeric and incompete: inconsistent
+            # Non-numeric and incomplete: inconsistent
             return False
-        ranges: list[tuple[Decimal, Decimal, float | int]] = []
+        ranges: list[tuple[Decimal, Decimal, float | int | None]] = []
         for fact in self.facts:
-            decimalsA = inferredDecimals(fact)
-            lowerA, upperA, __, __ = rangeValue(fact.xValue, decimalsA)
+            decimalsA = self.getDecimals(fact)
+            lowerA, upperA = self.getRange(fact)
             for lowerB, upperB, decimalsB in ranges:
                 if decimalsB == decimalsA:
                     # We've already checked for complete duplicates,
@@ -150,14 +155,15 @@ class DuplicateFactSet:
             if isnan(cast(SupportsFloat, value)):
                 # NaN values are not comparable, can't be equal/consistent.
                 return False
-            decimals = inferredDecimals(fact)
+            decimals = self.getDecimals(fact)
+            assert decimals is not None
             if decimals in decimalValues:
                 if value != decimalValues[decimals]:
                     # Facts with the same `decimals` value MUST have the same numeric value in order to be considered consistent.
                     return False
             else:
                 decimalValues[decimals] = value
-            lower, upper, __, ___ = rangeValue(value, decimals)
+            lower, upper = self.getRange(fact)
             if lower > maxLower:
                 maxLower = lower
             if upper < minUpper:
@@ -166,6 +172,109 @@ class DuplicateFactSet:
                 # One fact's upper bound is less than another fact's lower bound, not consistent
                 return False
         return True
+
+    def deduplicateCompleteSubsets(self) -> list[ModelFact]:
+        """
+        :return: A list of the first fact found for each unique decimals/value combination.
+        """
+        seenKeys = set()
+        results = []
+        for fact in self.facts:
+            key = (fact.decimals, fact.xValue)
+            if key in seenKeys:
+                continue
+            seenKeys.add(key)
+            results.append(fact)
+        return results
+
+    def deduplicateConsistentPairs(self) -> list[ModelFact]:
+        """
+        First performs deduplication of complete duplicates,
+        then removes from the remaining facts any fact that is consistent with a higher precision fact.
+        :return: A subset of the facts where the fact of lower precision in every consistent pair has been removed.
+        """
+        facts = self.deduplicateCompleteSubsets()
+        if not self.areNumeric:
+            # Consistency is equivalent to completeness for non-numeric facts
+            return facts
+        decimalsMap = defaultdict(list)
+        for fact in facts:
+            decimals = self.getDecimals(fact)
+            assert decimals is not None
+            decimalsMap[decimals].append(fact)
+        if len(decimalsMap) < 2:
+            return facts
+        sortedDecimals = sorted(decimalsMap.keys())
+        results = set(facts)
+
+        for a, decimalLower in enumerate(sortedDecimals[:len(sortedDecimals)-1]):
+            groupLower = decimalsMap[decimalLower]
+            for factA in groupLower:
+                lowerA, upperA = self.getRange(factA)
+                if isnan(cast(SupportsFloat, factA.xValue)):
+                    continue
+                remove = False
+                # Iterate through each higher decimals group
+                for b, decimalHigher in enumerate(sortedDecimals[a+1:]):
+                    groupHigher = decimalsMap[decimalHigher]
+                    for factB in groupHigher:
+                        lowerB, upperB = self.getRange(factB)
+                        if isnan(cast(SupportsFloat, factB.xValue)):
+                            continue
+                        if lowerB <= upperA and upperB >= lowerA:
+                            remove = True
+                            break
+                    if remove:
+                        break
+                if remove:
+                    results.remove(factA)
+        return list(results)
+
+    def deduplicateConsistentSet(self) -> tuple[list[ModelFact], str | None]:
+        """
+        :return: If this set is numeric and fully consistent, a list containing only the highest-precision fact.
+        Otherwise, deduplication of complete duplicates.
+        """
+        if not self.areNumeric:
+            # Consistency is equivalent to completeness for non-numeric facts
+            return self.deduplicateCompleteSubsets(), None
+        if not self.areAllConsistent:
+            # If facts are not all consistent, we will only perform complete deduplication
+            return self.deduplicateCompleteSubsets(), 'Set has inconsistent facts'
+        selectedFact = self.facts[0]
+        maxDecimals = self.getDecimals(selectedFact)
+        assert maxDecimals is not None
+        for fact in self.facts[1:]:
+            decimals = self.getDecimals(fact)
+            assert decimals is not None
+            if decimals > maxDecimals:
+                maxDecimals = decimals
+                selectedFact = fact
+        return [selectedFact], None
+
+    def getDecimals(self, fact: ModelFact) -> float | int | None:
+        """
+        Prevents repeated calculation of inferred decimal values.
+        :param fact:
+        :return: Retrieve cached inferred decimals value for the provided fact.
+        """
+        assert fact in self.facts, 'Attempted to get decimals for fact not in set'
+        if fact not in self._inferredDecimals:
+            self._inferredDecimals[fact] = None if fact.decimals is None else inferredDecimals(fact)
+        return self._inferredDecimals[fact]
+
+    def getRange(self, fact: ModelFact) -> tuple[Decimal, Decimal]:
+        """
+        Prevents repeated calculation of fact value ranges.
+        :param fact:
+        :return: Retrieve cached range values for the provided fact.
+        """
+        assert fact in self.facts, 'Attempted to get range for fact not in set'
+        assert fact.isNumeric, 'Attempted to get range for non-numeric fact'
+        if fact not in self._ranges:
+            lower, upper, __, __ = rangeValue(fact.xValue, self.getDecimals(fact))
+            self._ranges[fact] = lower, upper
+        return self._ranges[fact]
 
 
 class DuplicateType(Flag):
@@ -202,6 +311,12 @@ class DuplicateTypeArg(Enum):
         return DUPLICATE_TYPE_ARG_MAP.get(self, DuplicateType.NONE)
 
 
+class DeduplicationType(Enum):
+    COMPLETE = 'complete'
+    CONSISTENT_PAIRS = 'consistent-pairs'
+    CONSISTENT_SETS = 'consistent-sets'
+
+
 DUPLICATE_TYPE_ARG_MAP = {
     DuplicateTypeArg.NONE: DuplicateType.NONE,
     DuplicateTypeArg.INCONSISTENT: DuplicateType.INCONSISTENT,
@@ -218,6 +333,8 @@ def doesSetHaveDuplicateType(duplicateFacts: DuplicateFactSet, duplicateType: Du
     :param duplicateType:
     :return: Whether the given duplicate fact set has any duplicates of the given type.
     """
+    if len(duplicateFacts.facts) < 2:
+        return False
     inconsistent = DuplicateType.INCONSISTENT in duplicateType
     consistent = DuplicateType.CONSISTENT in duplicateType
     incomplete = DuplicateType.INCOMPLETE in duplicateType
@@ -245,11 +362,12 @@ def areFactsValueEqual(factA: ModelFact, factB: ModelFact) -> bool:
     return getFactValueEqualityKey(factA) == getFactValueEqualityKey(factB)
 
 
-def getAspectEqualFacts(hashEquivalentFacts: list[ModelFact]) -> Iterator[list[ModelFact]]:
+def getAspectEqualFacts(hashEquivalentFacts: list[ModelFact], includeSingles: bool) -> Iterator[list[ModelFact]]:
     """
     Given a list of concept/context/unit hash-equivalent facts,
     yields sublists of aspect-equal facts from this list.
     :param hashEquivalentFacts:
+    :param includeSingles: Whether to include lists of single facts (with no duplicates).
     :return: Lists of aspect-equal facts.
     """
     aspectEqualFacts: dict[tuple[QName, str | None], dict[tuple[ModelContext, ModelUnit], list[ModelFact]]] = defaultdict(dict)
@@ -277,22 +395,45 @@ def getAspectEqualFacts(hashEquivalentFacts: list[ModelFact]) -> Iterator[list[M
             contextUnitDict[(fact.context, fact.unit)] = [fact]
     for contextUnitDict in aspectEqualFacts.values():  # dups by qname, lang
         for duplicateFacts in contextUnitDict.values():  # dups by equal-context equal-unit
-            if len(duplicateFacts) > 1:
+            if includeSingles or len(duplicateFacts) > 1:
                 yield duplicateFacts
 
 
-def getDuplicateFactSets(facts: list[ModelFact]) -> Iterator[DuplicateFactSet]:
+def getDeduplicatedFacts(modelXbrl: ModelXbrl, deduplicationType: DeduplicationType) -> list[ModelFact]:
+    results = []
+    for duplicateFactSet in getDuplicateFactSets(modelXbrl.facts, includeSingles=True):
+        message = None
+        if len(duplicateFactSet.facts) < 2:
+            facts = duplicateFactSet.facts
+        elif deduplicationType == DeduplicationType.COMPLETE:
+            facts = duplicateFactSet.deduplicateCompleteSubsets()
+        elif deduplicationType == DeduplicationType.CONSISTENT_PAIRS:
+            facts = duplicateFactSet.deduplicateConsistentPairs()
+        elif deduplicationType == DeduplicationType.CONSISTENT_SETS:
+            facts, message = duplicateFactSet.deduplicateConsistentSet()
+        else:
+            raise ValueError(f"Invalid deduplication type: {deduplicationType}")
+        results.extend(facts)
+        if message is not None:
+            modelXbrl.warning(
+                "info:deduplicationNotPossible",
+                _("Deduplication of %(concept)s fact set not possible: %(message)s. concept=%(concept)s, context=%(context)s"),
+                modelObject=facts[0], concept=facts[0].concept.qname, context=facts[0].contextID, message=message)
+    return results
+
+
+def getDuplicateFactSets(facts: list[ModelFact], includeSingles: bool) -> Iterator[DuplicateFactSet]:
     """
     :param facts: Facts to find duplicate sets from.
+    :param includeSingles: Whether to include lists of single facts (with no duplicates).
     :return: Each set of duplicate facts from the given list.
     """
     hashEquivalentFactGroups = getHashEquivalentFactGroups(facts)
     for hashEquivalentFacts in hashEquivalentFactGroups:
-        if len(hashEquivalentFacts) < 2:
+        if not includeSingles and len(hashEquivalentFacts) < 2:
             continue
-        for duplicateFactList in getAspectEqualFacts(hashEquivalentFacts):  # dups by equal-context equal-unit
-            duplicateFactSet = DuplicateFactSet(facts=duplicateFactList)
-            yield duplicateFactSet
+        for duplicateFactList in getAspectEqualFacts(hashEquivalentFacts, includeSingles=includeSingles):  # dups by equal-context equal-unit
+            yield DuplicateFactSet(facts=duplicateFactList)
 
 
 def getDuplicateFactSetsWithType(facts: list[ModelFact], duplicateType: DuplicateType) -> Iterator[DuplicateFactSet]:
@@ -303,7 +444,7 @@ def getDuplicateFactSetsWithType(facts: list[ModelFact], duplicateType: Duplicat
     """
     if duplicateType == DuplicateType.NONE:
         return
-    for duplicateFactSet in getDuplicateFactSets(facts):
+    for duplicateFactSet in getDuplicateFactSets(facts, includeSingles=False):
         if doesSetHaveDuplicateType(duplicateFactSet, duplicateType):
             yield duplicateFactSet
 
@@ -347,3 +488,27 @@ def getHashEquivalentFactGroups(facts: list[ModelFact]) -> list[list[ModelFact]]
         if (f.isNil or getattr(f, "xValid", XmlValidateConst.UNVALIDATED) >= XmlValidateConst.VALID) and f.context is not None and f.concept is not None and f.concept.type is not None:
             hashDict[f.conceptContextUnitHash].append(f)
     return list(hashDict.values())
+
+
+def saveDeduplicatedInstance(modelXbrl: ModelXbrl, deduplicationType: DeduplicationType, outputFilepath: str) -> None:
+    deduplicatedFacts = frozenset(getDeduplicatedFacts(modelXbrl, deduplicationType))
+    duplicateFacts = set(modelXbrl.facts) - deduplicatedFacts
+    for fact in duplicateFacts:
+        parent = fact.getparent()
+        assert parent is not None
+        parent.remove(fact)
+        modelXbrl.info(
+            "info:deduplicatedFact",
+            _("Duplicate fact was excluded from deduplicated instance: %(fact)s, value=%(value)s, decimals=%(decimals)s"),
+            modelObject=fact,
+            fact=fact.qname,
+            value=fact.xValue,
+            decimals=fact.decimals,
+        )
+    modelXbrl.saveInstance(overrideFilepath=outputFilepath)
+    modelXbrl.info(
+        "info:deduplicatedInstance",
+        _("Deduplicated instance was saved after removing %(count)s fact(s): %(filepath)s"),
+        count=len(duplicateFacts),
+        filepath=outputFilepath,
+    )
