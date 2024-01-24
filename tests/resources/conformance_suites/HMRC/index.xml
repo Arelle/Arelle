@@ -3,4 +3,5 @@
     <testcase uri='jfcvc/3312-testcase.xml' />
     <testcase uri='jfcvc/3315-testcase.xml' />
     <testcase uri='unaudited_dormant_company/testcase.xml' />
+    <testcase uri='unaudited_dormant_llp/testcase.xml' />
 </testcases>

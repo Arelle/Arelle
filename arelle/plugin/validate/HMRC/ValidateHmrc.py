@@ -15,23 +15,45 @@ from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelXbrl import ModelXbrl
 
 # Error codes
+CO_ABRID = 'Co.Abrid'
 CO_AUDIT_NR = 'Co.AuditNR'
 CO_DIR_RESP = 'Co.DirResp'
 CO_MICRO = 'Co.Micro'
 CO_MISSING_ELEMENT = 'Co.MissingElement'
 CO_SM_CO = 'Co.SmCo'
 CO_SEC_480 = 'Co.Sec480'
+LP_ABRID = 'Lp.Abrid'
+LP_MEM_RESP = 'Lp.MemResp'
+LP_SEC_477 = 'Lp.Sec477'
+LP_SEC_480 = 'Lp.Sec480'
+LP_SM_LP = 'Lp.SmLp'
+
 
 # Concept local names
 CONCEPT_ACCOUNTS_STATUS = 'AccountsStatusAuditedOrUnaudited'
 CONCEPT_ACCOUNTS_STATUS_DIMENSION = 'AccountsStatusDimension'
 CONCEPT_ENTITY_DORMANT = 'EntityDormantTruefalse'
 CONCEPT_LANGUAGES_DIMENSION = 'LanguagesDimension'
+CONCEPT_LEGAL_FORM_ENTIY = 'LegalFormEntity'
+CONCEPT_LEGAL_FORM_ENTIY_DIMENSION = 'LegalFormEntityDimension'
+CONCEPT_LLP = 'LimitedLiabilityPartnershipLLP'
 CONCEPT_REPORT_PRINCIPAL_LANGUAGE = 'ReportPrincipalLanguage'
 CONCEPT_WELSH = 'Welsh'
 
 # Map of error code > concept local name > tuple of pairings of descriptions and regex patterns
 TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, re.regex.Pattern[str]], ...]]] = {
+    CO_ABRID: {
+        'StatementThatMembersHaveAgreedToPreparationAbridgedAccountsUnderSection444CompaniesAct2006': (
+            (
+                'Members" or "Member", then "agreed" or "consented", then "preparation", then "abridged")',
+                re.compile(r".*(Members|Member).*(agreed|consented).*preparation.*abridged.*"),
+            ),
+            (
+                '"Aelodau" or "Aelod", then "wedi cytuno" or "cydsynio", then "paratoi", then "talfyredig")',
+                re.compile(r".*(Aelodau|Aelod).*(wedi cytuno|cydsynio).*paratoi.*talfyredig.*"),
+            ),
+        ),
+    },
     CO_AUDIT_NR: {
         'StatementThatMembersHaveNotRequiredCompanyToObtainAnAudit': (
             (
@@ -91,13 +113,73 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, re.regex.Pattern[
                 re.compile(r".*Paratowyd yn unol â.*darpariaethau.*cwmnïau bach.*"),
             ),
         ),
-    }
+    },
+    LP_ABRID: {
+        'StatementThatMembersHaveAgreedToPreparationAbridgedAccountsUnderSection444CompaniesAct2006': (
+            (
+                'Members" or "Member", then "agreed" or "consented", then "preparation", then "abridged")',
+                re.compile(r".*(Members|Member).*(agreed|consented).*preparation.*abridged.*"),
+            ),
+            (
+                '"Aelodau" or "Aelod", then "wedi cytuno" or "cydsynio", then "paratoi", then "talfyredig")',
+                re.compile(r".*(Aelodau|Aelod).*(wedi cytuno|cydsynio).*paratoi.*talfyredig.*"),
+            ),
+        ),
+    },
+    LP_MEM_RESP: {
+            'StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct': (
+                (
+                    '"Members acknowledge" or "Member acknowledges", then "responsibilities", then  "Companies Act 2006" or "the Act", then "Limited Liability Partnership" or "LLP"',
+                    re.compile(r".*(Members acknowledge|Member acknowledges).*responsibilities.*(Companies Act 2006|the Act).*(Limited Liability Partnership|LLP).*"),
+                ),
+                (
+                    '"Aelodau\'n cydnabod" or "Aelod yn cydnabod", then "cyfrifoldebau", then "Ddeddf Cwmnïau 2006" or "y Ddeddf", then "Partneriaeth Atebolrwydd Cyfyngedig" or "PAC"',
+                    re.compile(r".*(Aelodau'n cydnabod|Aelod yn cydnabod).*cyfrifoldebau.*(Ddeddf Cwmnïau 2006|y Ddeddf).*(Partneriaeth Atebolrwydd Cyfyngedig|PAC).*"),
+                ),
+            ),
+    },
+    LP_SEC_477: {
+        'StatementThatCompanyEntitledToExemptionFromAuditUnderSection477CompaniesAct2006RelatingToSmallCompanies': (
+            (
+                '"Exempt" OR "Exemption", then "section 477 of the Companies Act 2006" then, "Limited Liability Partnership" OR "LLP")',
+                re.compile(r".*(Exempt|Exemption).*section 477 of the Companies Act 2006.*(Limited Liability Partnership|LLP).*"),
+            ),
+            (
+                '"Wedi\'i eithrio" or "Eithriad", then "adran 477 o Ddeddf Cwmnïau 2006", then "Partneriaeth Atebolrwydd Cyfyngedig" OR "PAC"',
+                re.compile(r".*(Wedi'i eithrio|Eithriad).*adran 477 o Ddeddf Cwmnïau 2006.*(Partneriaeth Atebolrwydd Cyfyngedig|PAC).*"),
+            ),
+        ),
+    },
+    LP_SEC_480: {
+            'StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies': (
+                (
+                    '"Exempt" or "Exemption", then "section 480 of the Companies Act 2006", then "Limited Liability Partnership" OR "LLP"',
+                    re.compile(r".*(Exempt|Exemption).*section 480 of the Companies Act 2006.*(Limited Liability Partnership|LLP).*"),
+                ),
+                (
+                    '"Wedi\'i eithrio" or "Eithriad", then "adran 480 o Ddeddf Cwmnïau 2006"',
+                    re.compile(r".*(Wedi'i eithrio|Eithriad).*adran 480 o Ddeddf Cwmnïau 2006.*(Partneriaeth Atebolrwydd Cyfyngedig|PAC).*"),
+                ),
+            ),
+    },
+    LP_SM_LP: {
+        'StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime': (
+            (
+                '"Prepared in accordance with", then "provisions", then "small Limited Liability Partnership" OR "small LLP',
+                re.compile(r".*Prepared in accordance with.*provisions.*(small Limited Liability Partnership|small LLP).*"),
+            ),
+            (
+                '"Paratowyd yn unol â", then "y darpariaethau", then "Partneriaeth Atebolrwydd Cyfyngedig bach" or "PAC bach")',
+                re.compile(r".*Paratowyd yn unol â.*y darpariaethau.*(Partneriaeth Atebolrwydd Cyfyngedig bach|PAC bach).*"),
+            ),
+        ),
+    },
 }
 
 
 class AccountStatus(Enum):
     AUDIT_EXEMPT_NO_REPORT = 'AuditExempt-NoAccountantsReport'
-    AUTIT_EXEMPT_WITH_REPORT = 'AuditExemptWithAccountantsReport'
+    AUDIT_EXEMPT_WITH_REPORT = 'AuditExemptWithAccountantsReport'
 
 
 @dataclass
@@ -229,6 +311,19 @@ class ValidateHmrc:
             return False
         return all(not f.isNil and isinstance(f.xValue, bool) and f.xValue for f in facts)
 
+    @cached_property
+    def legalFormEntity(self) -> str | None:
+        facts = self._getFacts(CONCEPT_LEGAL_FORM_ENTIY)
+        for fact in facts:
+            if fact is None:
+                continue
+            if fact.isNil:
+                continue
+            for qname, value in fact.context.qnameDims.items():
+                if qname.localName == CONCEPT_LEGAL_FORM_ENTIY_DIMENSION:
+                    return cast(str, value.xValue.localName)
+        return None
+
     def validate(self) -> None:
         """
         Find the appropriate set of validations to run on this document and runs them.
@@ -238,7 +333,10 @@ class ValidateHmrc:
             AccountStatus.AUDIT_EXEMPT_NO_REPORT.value,
             AccountStatus.AUDIT_EXEMPT_NO_REPORT.value,
         }:
-            self.validateUnauditedDormantCompany()
+            if self.legalFormEntity == CONCEPT_LLP:
+                self.validateUnauditedDormantLLP()
+            else:
+                self.validateUnauditedDormantCompany()
 
     def validateUnauditedDormantCompany(self) -> None:
         """
@@ -262,3 +360,19 @@ class ValidateHmrc:
             if not smCoResult.success:
                 self._errorOnMissingFactText(CO_MICRO, result)
                 self._errorOnMissingFactText(CO_SM_CO, smCoResult)
+
+    def validateUnauditedDormantLLP(self) -> None:
+        """
+        Checks conditions applicable to unaudited dormant LLPs:
+        LP.MemResp and LP.Sec480 and LP.SmLP).
+        :return:
+        """
+        result = self._evaluateCode(LP_MEM_RESP)
+        if not result.success:
+            self._errorOnMissingFactText(LP_MEM_RESP, result)
+        result = self._evaluateCode(LP_SEC_480)
+        if not result.success:
+            self._errorOnMissingFactText(LP_SEC_480, result)
+        result = self._evaluateCode(LP_SM_LP)
+        if not result.success:
+            self._errorOnMissingFactText(LP_SM_LP, result)

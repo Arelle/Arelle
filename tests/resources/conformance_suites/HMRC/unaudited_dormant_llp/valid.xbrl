@@ -4,6 +4,7 @@
         xmlns:bus="http://xbrl.frc.org.uk/cd/2023-01-01/business"
         xmlns:core="http://xbrl.frc.org.uk/fr/2023-01-01/core"
         xmlns:direp="http://xbrl.frc.org.uk/reports/2023-01-01/direp"
+        xmlns:lang="http://xbrl.frc.org.uk/cd/2023-01-01/languages"
         xmlns:link="http://www.xbrl.org/2003/linkbase"
         xmlns:xlink="http://www.w3.org/1999/xlink"
         xmlns:xbrldi="http://xbrl.org/2006/xbrldi">
@@ -66,20 +67,25 @@
     <bus:EntityCurrentLegalOrRegisteredName contextRef="duration">text</bus:EntityCurrentLegalOrRegisteredName>
     <bus:EntityDormantTruefalse contextRef="duration">true</bus:EntityDormantTruefalse>
     <bus:EntityTradingStatus contextRef="duration"></bus:EntityTradingStatus>
+    <direp:StatementThatCompanyEntitledToExemptionFromAuditUnderSection477CompaniesAct2006RelatingToSmallCompanies contextRef="duration">
+        Exempt from audit under section 477 of the Companies Act 2006 LLP
+    </direp:StatementThatCompanyEntitledToExemptionFromAuditUnderSection477CompaniesAct2006RelatingToSmallCompanies>
+    <direp:StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies contextRef="duration">
+        Exempt from audit under section 480 of the Companies Act 2006 LLP
+    </direp:StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies>
     <core:DirectorSigningFinancialStatements contextRef="duration"></core:DirectorSigningFinancialStatements>
     <direp:StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime contextRef="duration">
-        Prepared in accordance with provisions micro
+        Prepared in accordance with provisions micro small LLP
     </direp:StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime>
-    <!-- CAUSE: Fact required to validate Co.Sec480 is missing -->
-    <!--<direp:StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies contextRef="duration">-->
-    <!--    Exempt from audit under section 480 of the Companies Act 2006-->
-    <!--</direp:StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies>-->
     <direp:StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct contextRef="duration">
-        Directors acknowledge their responsibilities under Companies Act 2006
+        Member acknowledges responsibilities of the Act of forming Limited Liability Partnership
     </direp:StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct>
     <direp:StatementThatMembersHaveNotRequiredCompanyToObtainAnAudit contextRef="duration">
-        Member has not required the company to obtain an audit
+        Members have not required the company to obtain an audit
     </direp:StatementThatMembersHaveNotRequiredCompanyToObtainAnAudit>
+    <direp:StatementThatMembersHaveAgreedToPreparationAbridgedAccountsUnderSection444CompaniesAct2006 contextRef="duration">
+        Members agreed to the preparation abridged
+    </direp:StatementThatMembersHaveAgreedToPreparationAbridgedAccountsUnderSection444CompaniesAct2006>
 
     <context id="instant">
         <entity>
@@ -98,7 +104,7 @@
         <entity>
             <identifier scheme="http://www.gooog">12345678</identifier>
             <segment>
-                <xbrldi:explicitMember dimension="bus:LegalFormEntityDimension">bus:UnlimitedCompany</xbrldi:explicitMember>
+                <xbrldi:explicitMember dimension="bus:LegalFormEntityDimension">bus:LimitedLiabilityPartnershipLLP</xbrldi:explicitMember>
             </segment>
         </entity>
         <period>
