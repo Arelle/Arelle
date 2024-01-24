@@ -631,7 +631,7 @@ class Cntlr:
 
 
 def logRefsFileLines(refs: list[dict[str, Any]]) -> str:
-    fileLines: defaultdict[Any, set[str]] = defaultdict(set)
+    fileLines = defaultdict(set)
     for ref in refs:
         href = ref.get("href")
         if href:
