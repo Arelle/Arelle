@@ -2,7 +2,6 @@
 <xbrl
         xmlns="http://www.xbrl.org/2003/instance"
         xmlns:bus="http://xbrl.frc.org.uk/cd/2023-01-01/business"
-        xmlns:char="http://xbrl.frc.org.uk/char/2023-01-01"
         xmlns:core="http://xbrl.frc.org.uk/fr/2023-01-01/core"
         xmlns:direp="http://xbrl.frc.org.uk/reports/2023-01-01/direp"
         xmlns:link="http://www.xbrl.org/2003/linkbase"
