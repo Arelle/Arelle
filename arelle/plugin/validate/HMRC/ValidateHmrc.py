@@ -21,6 +21,7 @@ CO_DIR_RESP = 'Co.DirResp'
 CO_MICRO = 'Co.Micro'
 CO_MISSING_ELEMENT = 'Co.MissingElement'
 CO_SM_CO = 'Co.SmCo'
+CO_SEC_477 = 'Co.Sec477'
 CO_SEC_480 = 'Co.Sec480'
 LP_ABRID = 'Lp.Abrid'
 LP_MEM_RESP = 'Lp.MemResp'
@@ -28,12 +29,14 @@ LP_SEC_477 = 'Lp.Sec477'
 LP_SEC_480 = 'Lp.Sec480'
 LP_SM_LP = 'Lp.SmLp'
 
-
 # Concept local names
+CONCEPT_ACCOUNTING_STANDARDS_APPLIED = 'AccountingStandardsApplied'
+CONCEPT_ACCOUNTING_STANDARDS_DIMENSION = 'AccountingStandardsDimension'
 CONCEPT_ACCOUNTS_STATUS = 'AccountsStatusAuditedOrUnaudited'
 CONCEPT_ACCOUNTS_STATUS_DIMENSION = 'AccountsStatusDimension'
 CONCEPT_ENTITY_DORMANT = 'EntityDormantTruefalse'
 CONCEPT_LANGUAGES_DIMENSION = 'LanguagesDimension'
+CONCEPT_MICRO_ENTITIES = 'Micro-entities'
 CONCEPT_LEGAL_FORM_ENTIY = 'LegalFormEntity'
 CONCEPT_LEGAL_FORM_ENTIY_DIMENSION = 'LegalFormEntityDimension'
 CONCEPT_LLP = 'LimitedLiabilityPartnershipLLP'
@@ -87,6 +90,18 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, re.regex.Pattern[
             (
                 '"wedi eu paratoi", then "yn unol â", then "darpariaethau", then "micro"',
                 re.compile(r".*wedi eu paratoi.*yn unol â.*darpariaethau.*micro.*"),
+            ),
+        ),
+    },
+    CO_SEC_477: {
+        'StatementThatCompanyEntitledToExemptionFromAuditUnderSection477CompaniesAct2006RelatingToSmallCompanies': (
+            (
+                '"Exempt" or "Exemption", then later "section 477 of the Companies Act 2006"',
+                re.compile(r".*(Exempt|Exemption).*section 477 of the Companies Act 2006.*"),
+            ),
+            (
+                '"Wedi\'i eithrio" or "Eithriad", then "adran 477 o Ddeddf Cwmnïau 2006"',
+                re.compile(r".*(Wedi'i eithrio|Eithriad).*adran 477 o Ddeddf Cwmnïau 2006.*"),
             ),
         ),
     },
@@ -305,6 +320,19 @@ class ValidateHmrc:
         return None
 
     @cached_property
+    def accountingStandardsApplied(self) -> str | None:
+        facts = self._getFacts(CONCEPT_ACCOUNTING_STANDARDS_APPLIED)
+        for fact in facts:
+            if fact is None:
+                continue
+            if fact.isNil:
+                continue
+            for qname, value in fact.context.qnameDims.items():
+                if qname.localName == CONCEPT_ACCOUNTING_STANDARDS_DIMENSION:
+                    return cast(str, value.xValue.localName)
+        return None
+
+    @cached_property
     def isEntityDormant(self) -> bool:
         facts = self._getFacts(CONCEPT_ENTITY_DORMANT)
         if not facts:
@@ -329,14 +357,17 @@ class ValidateHmrc:
         Find the appropriate set of validations to run on this document and runs them.
         :return:
         """
-        if self.isEntityDormant and self.accountStatus in {
+        if self.accountStatus in {
             AccountStatus.AUDIT_EXEMPT_NO_REPORT.value,
             AccountStatus.AUDIT_EXEMPT_NO_REPORT.value,
         }:
-            if self.legalFormEntity == CONCEPT_LLP:
-                self.validateUnauditedDormantLLP()
-            else:
-                self.validateUnauditedDormantCompany()
+            if self.isEntityDormant:
+                if self.legalFormEntity == CONCEPT_LLP:
+                    self.validateUnauditedDormantLLP()
+                else:
+                    self.validateUnauditedDormantCompany()
+            elif self.accountingStandardsApplied == CONCEPT_MICRO_ENTITIES:
+                self.validateUnauditedMicroCompany()
 
     def validateUnauditedDormantCompany(self) -> None:
         """
@@ -376,3 +407,22 @@ class ValidateHmrc:
         result = self._evaluateCode(LP_SM_LP)
         if not result.success:
             self._errorOnMissingFactText(LP_SM_LP, result)
+
+    def validateUnauditedMicroCompany(self) -> None:
+        """
+        Checks conditions applicable to unaudited micro companies:
+        Co.Sec477 and Co.AuditNR and Co.DirResp and Co.Micro.
+        :return:
+        """
+        result = self._evaluateCode(CO_SEC_477)
+        if not result.success:
+            self._errorOnMissingFactText(CO_SEC_477, result)
+        result = self._evaluateCode(CO_AUDIT_NR)
+        if not result.success:
+            self._errorOnMissingFactText(CO_AUDIT_NR, result)
+        result = self._evaluateCode(CO_DIR_RESP)
+        if not result.success:
+            self._errorOnMissingFactText(CO_DIR_RESP, result)
+        result = self._evaluateCode(CO_MICRO)
+        if not result.success:
+            self._errorOnMissingFactText(CO_MICRO, result)
