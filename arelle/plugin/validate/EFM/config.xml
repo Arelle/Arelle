@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- (c) Copyright 2017 Mark V Systems Limited, All rights reserved. -->
-<DisclosureSystems  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+<DisclosureSystems  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="../../../config/disclosuresystems.xsd" >
   <!-- see ../config/disclosuresystem.xml for full comments -->
-   
-  <DisclosureSystem 
-     names="US SEC (Edgar Filing Manual, Pragmatic with Fee Tagging Beta)|efm-blocking-ft-beta|efm-pragmatic-ft-beta"
-     description="US SEC Edgar Filing Manual v66 Release 23.4\n
+
+  <DisclosureSystem
+     names="US SEC (Edgar Filing Manual, Pragmatic with Fee Tagging Preview)|efm-blocking-ft-preview|efm-pragmatic-ft-preview"
+     description="US SEC Edgar Filing Manual v66 Release 23.2\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
@@ -14,10 +14,10 @@
      No content (semantic) tests are reported"
      validationType="EFM"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|FERC"
-     blockDisallowedReferences="true" 
-     defaultXmlLang="en-US" 
-     defaultLanguage="English" 
-     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-23-4-FT.xml"
+     blockDisallowedReferences="true"
+     defaultXmlLang="en-US"
+     defaultLanguage="English"
+     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-23-2-FT.xml"
      utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
      validateEntryText="true"
@@ -28,9 +28,9 @@
 	    "mime-types": []
 	    }'
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
-     identifierValuePattern="^[0-9]{10}$" 
-     identifierValueName="CIK" 
-     contextElement="segment" 
+     identifierValuePattern="^[0-9]{10}$"
+     identifierValueName="CIK"
+     contextElement="segment"
      roleDefinitionPattern="^[0-9]+ - (Statement|Disclosure|Schedule|Document) - [^\n]*\S$"
      labelCheckPattern="[ \n\r\t]{2,}|&lt;|&amp;lt;|&amp;#60;|&amp;#x3C"
      labelTrimPattern="[ \n\r\t]"
@@ -39,14 +39,14 @@
      deiCurrentFiscalYearEndDateElement="CurrentFiscalYearEndDate"
      deiDocumentFiscalYearFocusElement="DocumentFiscalYearFocus"
      deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
-     deiFilerIdentifierElement="EntityCentralIndexKey" 
+     deiFilerIdentifierElement="EntityCentralIndexKey"
      deiFilerNameElement="EntityRegistrantName"
      logLevelFilter="(?!.*-semantic$)"
      logCodeFilter="(?!EFM.6.05.28.linkrole|EFM.6.07.06|EFM.6.10.01.missingLabelLinkbase)"
      standardTaxonomyDatabase="efmStandardTaxonomies.db"
      standardTaxonomyUrlPattern="http://www.fasb.org|http://xbrl.sec.gov|http://www.xbrl.org|http://taxonomies.xbrl.us|http://xbrl.us/us-gaap|http://xbrl.ici.org/rr|http://xbrl.ifrs.org/taxonomy"
    />
-  <DisclosureSystem 
+  <DisclosureSystem
      names="US SEC (Edgar Filing Manual, Strict)|efm|efm-strict"
      description="US SEC Edgar Filing Manual v68 Release 23.4\n
      Default language en-US (en allowed in some cases per EFM)\n
@@ -55,9 +55,9 @@
      Includes content (semantic) tests"
      validationType="EFM"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|FERC"
-     blockDisallowedReferences="true" 
-     defaultXmlLang="en-US" 
-     defaultLanguage="English" 
+     blockDisallowedReferences="true"
+     defaultXmlLang="en-US"
+     defaultLanguage="English"
      standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-23-23.xml"
      utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
@@ -69,9 +69,9 @@
 	    "mime-types": []
 	    }'
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
-     identifierValuePattern="^[0-9]{10}$" 
-     identifierValueName="CIK" 
-     contextElement="segment" 
+     identifierValuePattern="^[0-9]{10}$"
+     identifierValueName="CIK"
+     contextElement="segment"
      roleDefinitionPattern="^[0-9]+ - (Statement|Disclosure|Schedule|Document) - [^\n]*\S$"
      labelCheckPattern="[ \n\r\t]{2,}|&lt;|&amp;lt;|&amp;#60;|&amp;#x3C"
      labelTrimPattern="[ \n\r\t]"
@@ -80,12 +80,12 @@
      deiCurrentFiscalYearEndDateElement="CurrentFiscalYearEndDate"
      deiDocumentFiscalYearFocusElement="DocumentFiscalYearFocus"
      deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
-     deiFilerIdentifierElement="EntityCentralIndexKey" 
+     deiFilerIdentifierElement="EntityCentralIndexKey"
      deiFilerNameElement="EntityRegistrantName"
      />
-  <DisclosureSystem 
+  <DisclosureSystem
      names="US SEC (Edgar Filing Manual, Pragmatic)|efm-blocking|efm-pragmatic"
-     description="US SEC Edgar Filing Manual v68 Release 23.4\n
+     description="US SEC Edgar Filing Manual v68.1 Release 24.0.1\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
@@ -93,10 +93,10 @@
      No content (semantic) tests are reported"
      validationType="EFM"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|FERC"
-     blockDisallowedReferences="true" 
-     defaultXmlLang="en-US" 
-     defaultLanguage="English" 
-     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-23-4.xml"
+     blockDisallowedReferences="true"
+     defaultXmlLang="en-US"
+     defaultLanguage="English"
+     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-24-0-1.xml"
      utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
      validateEntryText="true"
@@ -107,9 +107,9 @@
 	    "mime-types": []
 	    }'
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
-     identifierValuePattern="^[0-9]{10}$" 
-     identifierValueName="CIK" 
-     contextElement="segment" 
+     identifierValuePattern="^[0-9]{10}$"
+     identifierValueName="CIK"
+     contextElement="segment"
      roleDefinitionPattern="^[0-9]+ - (Statement|Disclosure|Schedule|Document) - [^\n]*\S$"
      labelCheckPattern="[ \n\r\t]{2,}|&lt;|&amp;lt;|&amp;#60;|&amp;#x3C"
      labelTrimPattern="[ \n\r\t]"
@@ -118,14 +118,14 @@
      deiCurrentFiscalYearEndDateElement="CurrentFiscalYearEndDate"
      deiDocumentFiscalYearFocusElement="DocumentFiscalYearFocus"
      deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
-     deiFilerIdentifierElement="EntityCentralIndexKey" 
+     deiFilerIdentifierElement="EntityCentralIndexKey"
      deiFilerNameElement="EntityRegistrantName"
      logLevelFilter="(?!.*-semantic$)"
      logCodeFilter="(?!EFM.6.05.28.linkrole|EFM.6.07.06|EFM.6.10.01.missingLabelLinkbase)"
      standardTaxonomyDatabase="efmStandardTaxonomies.db"
      standardTaxonomyUrlPattern="http://www.fasb.org|http://xbrl.sec.gov|http://www.xbrl.org|http://taxonomies.xbrl.us|http://xbrl.us/us-gaap|http://xbrl.ici.org/rr|http://xbrl.ifrs.org/taxonomy"
      />
-  <DisclosureSystem 
+  <DisclosureSystem
      names="US SEC 2021 Preview with DQCRT applied to us-gaap 2020-2021 (EFM Pragmatic)|efm-preview-dqcrt-testing"
      description="US SEC Edgar Filing Manual v68 Release 23.4\n
      DQCRT/2021 applied to us-gaap/2020 for testing purposes\n
@@ -137,9 +137,9 @@
      validationType="EFM"
      options="dqcrt-2021-usgaap-2020"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|FERC"
-     blockDisallowedReferences="true" 
-     defaultXmlLang="en-US" 
-     defaultLanguage="English" 
+     blockDisallowedReferences="true"
+     defaultXmlLang="en-US"
+     defaultLanguage="English"
      standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-all-years.xml"
      utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
@@ -151,9 +151,9 @@
 	    "mime-types": []
 	    }'
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
-     identifierValuePattern="^[0-9]{10}$" 
-     identifierValueName="CIK" 
-     contextElement="segment" 
+     identifierValuePattern="^[0-9]{10}$"
+     identifierValueName="CIK"
+     contextElement="segment"
      roleDefinitionPattern="^[0-9]+ - (Statement|Disclosure|Schedule|Document) - [^\n]*\S$"
      labelCheckPattern="[ \n\r\t]{2,}|&lt;|&amp;lt;|&amp;#60;|&amp;#x3C"
      labelTrimPattern="[ \n\r\t]"
@@ -162,14 +162,14 @@
      deiCurrentFiscalYearEndDateElement="CurrentFiscalYearEndDate"
      deiDocumentFiscalYearFocusElement="DocumentFiscalYearFocus"
      deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
-     deiFilerIdentifierElement="EntityCentralIndexKey" 
+     deiFilerIdentifierElement="EntityCentralIndexKey"
      deiFilerNameElement="EntityRegistrantName"
      logLevelFilter="(?!.*-semantic$)"
      logCodeFilter="(?!EFM.6.05.28.linkrole|EFM.6.07.06|EFM.6.10.01.missingLabelLinkbase)"
      standardTaxonomyDatabase="efmStandardTaxonomies.db"
      standardTaxonomyUrlPattern="http://www.fasb.org|http://xbrl.sec.gov|http://www.xbrl.org|http://taxonomies.xbrl.us|http://xbrl.us/us-gaap|http://xbrl.ici.org/rr|http://xbrl.ifrs.org/taxonomy"
      />
-   <DisclosureSystem 
+   <DisclosureSystem
       names="US SEC (Edgar Filing Manual, Liberal, All Years)|efm-nonblocking|efm-liberal"
       description="US SEC Edgar Filing Manual, all years\n
       Default language en-US (en allowed in some cases per EFM)\n
@@ -179,9 +179,9 @@
       No content (semantic) tests are reported"
       validationType="EFM"
       exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|FERC"
-      blockDisallowedReferences="false" 
-      defaultXmlLang="en-US" 
-      defaultLanguage="English" 
+      blockDisallowedReferences="false"
+      defaultXmlLang="en-US"
+      defaultLanguage="English"
       standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-all-years.xml"
       utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
       validateFileText="true"
@@ -193,9 +193,9 @@
 	    "mime-types": []
 	    }'
       identifierSchemePattern="^http://www\.sec\.gov/CIK$"
-      identifierValuePattern="^[0-9]{10}$" 
-      identifierValueName="CIK" 
-      contextElement="segment" 
+      identifierValuePattern="^[0-9]{10}$"
+      identifierValueName="CIK"
+      contextElement="segment"
       roleDefinitionPattern="^[0-9]+ - (Statement|Disclosure|Schedule|Document) - [^\n]*\S$"
       labelCheckPattern="[ \n\r\t]{2,}|&lt;|&amp;lt;|&amp;#60;|&amp;#x3C"
       labelTrimPattern="[ \n\r\t]"
@@ -204,12 +204,12 @@
       deiCurrentFiscalYearEndDateElement="CurrentFiscalYearEndDate"
       deiDocumentFiscalYearFocusElement="DocumentFiscalYearFocus"
       deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
-      deiFilerIdentifierElement="EntityCentralIndexKey" 
+      deiFilerIdentifierElement="EntityCentralIndexKey"
       deiFilerNameElement="EntityRegistrantName"
       logLevelFilter="(?!.*-semantic$)"
       logCodeFilter="(?!EFM.6.03.03.matchInstance|EFM.6.05.28.linkrole|EFM.6.07.06|EFM.6.10.01.missingLabelLinkbase)"
    />
-  <DisclosureSystem 
+  <DisclosureSystem
      names="US SEC (Edgar Filing Manual, Strict, all years)|efm-all-years|efm-strict-all-years"
      description="US SEC Edgar Filing Manual, 2014\n
      Default language en-US (en allowed in some cases per EFM)\n
@@ -219,9 +219,9 @@
      Includes content (semantic) tests"
      validationType="EFM"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|FERC"
-     blockDisallowedReferences="false" 
-     defaultXmlLang="en-US" 
-     defaultLanguage="English" 
+     blockDisallowedReferences="false"
+     defaultXmlLang="en-US"
+     defaultLanguage="English"
      standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-all-years.xml"
      utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
@@ -233,9 +233,9 @@
 	    "mime-types": []
 	    }'
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
-     identifierValuePattern="^[0-9]{10}$" 
-     identifierValueName="CIK" 
-     contextElement="segment" 
+     identifierValuePattern="^[0-9]{10}$"
+     identifierValueName="CIK"
+     contextElement="segment"
      roleDefinitionPattern="^[0-9]+ - (Statement|Disclosure|Schedule|Document) - [^\n]*\S$"
      labelCheckPattern="[ \n\r\t]{2,}|&lt;|&amp;lt;*&amp;#60;|&amp;#x3C"
      labelTrimPattern="[ \n\r\t]"
@@ -244,12 +244,12 @@
      deiCurrentFiscalYearEndDateElement="CurrentFiscalYearEndDate"
      deiDocumentFiscalYearFocusElement="DocumentFiscalYearFocus"
      deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
-     deiFilerIdentifierElement="EntityCentralIndexKey" 
+     deiFilerIdentifierElement="EntityCentralIndexKey"
      deiFilerNameElement="EntityRegistrantName"
      standardTaxonomyDatabase="efmStandardTaxonomies.db"
      standardTaxonomyUrlPattern="http://www.fasb.org|http://xbrl.sec.gov|http://www.xbrl.org|http://taxonomies.xbrl.us|http://xbrl.us/us-gaap|http://xbrl.ici.org/rr|http://xbrl.ifrs.org/taxonomy"
      />
-  <DisclosureSystem 
+  <DisclosureSystem
      names="US SEC (Edgar Filing Manual, Pragmatic, all years)|efm-blocking-all-years|efm-pragmatic-all-years"
      description="US SEC Edgar Filing Manual, 2014\n
      Default language en-US (en allowed in some cases per EFM)\n
@@ -259,9 +259,9 @@
      No content (semantic) tests are reported"
      validationType="EFM"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|FERC"
-     blockDisallowedReferences="true" 
-     defaultXmlLang="en-US" 
-     defaultLanguage="English" 
+     blockDisallowedReferences="true"
+     defaultXmlLang="en-US"
+     defaultLanguage="English"
      standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-all-years.xml"
      utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
@@ -273,9 +273,9 @@
 	    "mime-types": []
 	    }'
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
-     identifierValuePattern="^[0-9]{10}$" 
-     identifierValueName="CIK" 
-     contextElement="segment" 
+     identifierValuePattern="^[0-9]{10}$"
+     identifierValueName="CIK"
+     contextElement="segment"
      roleDefinitionPattern="^[0-9]+ - (Statement|Disclosure|Schedule|Document) - [^\n]*\S$"
      labelCheckPattern="[ \n\r\t]{2,}|&lt;|&amp;lt;|&amp;#60;|&amp;#x3C"
      labelTrimPattern="[ \n\r\t]"
@@ -284,14 +284,14 @@
      deiCurrentFiscalYearEndDateElement="CurrentFiscalYearEndDate"
      deiDocumentFiscalYearFocusElement="DocumentFiscalYearFocus"
      deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
-     deiFilerIdentifierElement="EntityCentralIndexKey" 
+     deiFilerIdentifierElement="EntityCentralIndexKey"
      deiFilerNameElement="EntityRegistrantName"
      logLevelFilter="(?!.*-semantic$)"
      logCodeFilter="(?!EFM.6.05.28.linkrole|EFM.6.07.06|EFM.6.10.01.missingLabelLinkbase)"
      standardTaxonomyDatabase="efmStandardTaxonomies.db"
      standardTaxonomyUrlPattern="http://www.fasb.org|http://xbrl.sec.gov|http://www.xbrl.org|http://taxonomies.xbrl.us|http://xbrl.us/us-gaap|http://xbrl.ici.org/rr|http://xbrl.ifrs.org/taxonomy"
      />
-  <DisclosureSystem 
+  <DisclosureSystem
      names="US SEC extended with IFRS (Edgar Filing Manual, Pragmatic, all years)|efm-extended-pragmatic-all-years"
      description="US SEC Edgar Filing Manual, All years\n
      Default language en-US (en allowed in some cases per EFM)\n
@@ -301,9 +301,9 @@
      No content (semantic) tests are reported"
      validationType="EFM"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|FERC"
-     blockDisallowedReferences="true" 
-     defaultXmlLang="en-US" 
-     defaultLanguage="English" 
+     blockDisallowedReferences="true"
+     defaultXmlLang="en-US"
+     defaultLanguage="English"
      standardTaxonomiesUrl="resources/edgartaxonomies/extendedtaxonomies-all-years.xml"
      utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
@@ -315,9 +315,9 @@
 	    "mime-types": []
 	    }'
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
-     identifierValuePattern="^[0-9]{10}$" 
-     identifierValueName="CIK" 
-     contextElement="segment" 
+     identifierValuePattern="^[0-9]{10}$"
+     identifierValueName="CIK"
+     contextElement="segment"
      roleDefinitionPattern="^[0-9]+ - (Statement|Disclosure|Schedule|Document) - [^\n]*\S$"
      labelCheckPattern="[ \n\r\t]{2,}|&lt;|&amp;lt;|&amp;#60;|&amp;#x3C"
      labelTrimPattern="[ \n\r\t]"
@@ -326,15 +326,15 @@
      deiCurrentFiscalYearEndDateElement="CurrentFiscalYearEndDate"
      deiDocumentFiscalYearFocusElement="DocumentFiscalYearFocus"
      deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
-     deiFilerIdentifierElement="EntityCentralIndexKey" 
+     deiFilerIdentifierElement="EntityCentralIndexKey"
      deiFilerNameElement="EntityRegistrantName"
      logLevelFilter="(?!.*-semantic$)"
      logCodeFilter="(?!EFM.6.05.28.linkrole|EFM.6.07.06|EFM.6.10.01.missingLabelLinkbase)"
      standardTaxonomyDatabase="efmStandardTaxonomies.db"
      standardTaxonomyUrlPattern="http://www.fasb.org|http://xbrl.sec.gov|http://www.xbrl.org|http://taxonomies.xbrl.us|http://xbrl.us/us-gaap|http://xbrl.ici.org/rr|http://xbrl.ifrs.org/taxonomy"
      />
-  <DisclosureSystem 
-     names="US SEC (Global Filing Manual)|us-gfm|gfm-us" 
+  <DisclosureSystem
+     names="US SEC (Global Filing Manual)|us-gfm|gfm-us"
      description="US SEC interpretation of Global Filing Manual\n
      Default language en\n
      CIK identifier patterns\n
@@ -343,7 +343,7 @@
      validationType="GFM"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|FERC"
      defaultXmlLang="en"
-     defaultLanguage="English" 
+     defaultLanguage="English"
      standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-17-3-1.xml"
      utrUrl="http://www.xbrl.org/utr/2013-05-17/utr.xml"
      validateFileText="true"
@@ -355,9 +355,9 @@
 	    "mime-types": []
 	    }'
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
-     identifierValuePattern="^[0-9]{10}$" 
-     identifierValueName="CIK" 
-     contextElement="segment" 
+     identifierValuePattern="^[0-9]{10}$"
+     identifierValueName="CIK"
+     contextElement="segment"
      roleDefinitionPattern="^\S[^\n]* - [^\n]*\S$"
      labelCheckPattern="\s{2,}|&lt;"
      labelTrimPattern="\s"
@@ -366,7 +366,7 @@
      deiCurrentFiscalYearEndDateElement="CurrentFiscalYearEndDate"
      deiDocumentFiscalYearFocusElement="DocumentFiscalYearFocus"
      deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
-     deiFilerIdentifierElement="FilerIdentifier" 
+     deiFilerIdentifierElement="FilerIdentifier"
      deiFilerNameElement="EntityRegistrantName"
      standardTaxonomyDatabase="efmStandardTaxonomies.db"
      standardTaxonomyUrlPattern="http://www.fasb.org|http://xbrl.sec.gov|http://www.xbrl.org|http://taxonomies.xbrl.us|http://xbrl.us/us-gaap|http://xbrl.ici.org/rr|http://xbrl.ifrs.org/taxonomy"

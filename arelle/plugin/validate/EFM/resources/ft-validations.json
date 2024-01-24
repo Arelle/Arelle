@@ -1270,7 +1270,9 @@
         "validation": "fw",
         "axis": "of",
         "store-db-name": "@lcName",
-        "store-db-object": "offeringTable"
+        "store-db-object": "offeringTable",
+        "store-db-inner-text-truncate": 2500,
+        "store-db-inner-text-only": true
     },
     {
         "sub-types": ["@G-7-8"],
@@ -1999,8 +2001,7 @@
     {
         "sub-types": ["@offset-p", "424I"],
         "xbrl-names": [
-            "ffd:OffsetPrrSctyTp",
-            "ffd:OffsetNote"
+            "ffd:OffsetPrrSctyTp"
         ],
         "efm": "ft.oOptFlds",
         "validation": "fo",
@@ -3209,7 +3210,7 @@
         "axis": "s424i",
         "value-pattern": "^[0-9A-Za-z`~!@#$%&*(). [\\]{}|\\\\:;\"'<>,_?/=\\t\\n\\r\\f+-]{0,150}$",
         "store-db-name": "@lcName",
-        "store-db-object": "offeringTable"
+        "store-db-object": "scties424iTable"
     },
     {
         "sub-types": "n/a",
