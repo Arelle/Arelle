@@ -2,41 +2,6 @@
 <!-- This file was created by staff of the U.S. Securities and Exchange Commission. Data and content created by government employees within the scope of their employment are not subject to domestic copyright protection. 17 U.S.C. 105. -->
 <Erxl xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="68.1" xsi:noNamespaceSchemaLocation="erxl.xsd">
 
-    <!-- COUNTRY 2024 -->
-    <Loc>
-      <Family>COUNTRY</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/country/2024/country-2024.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Schema</FileTypeName>
-      <Elements>1</Elements>
-      <Namespace>http://xbrl.sec.gov/country/2024</Namespace>
-      <Prefix>country</Prefix>
-    </Loc>
-
-    <Loc>
-      <Family>COUNTRY</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/country/2024/country-2024_def.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Entry Point</FileTypeName>
-      <Elements>0</Elements>
-      <Namespace>http://xbrl.sec.gov/country-def/2024</Namespace>
-      <Prefix>country-def</Prefix>
-    </Loc>
-
-    <!-- CURRENCY 2024 -->
-    <Loc>
-      <Family>CURRENCY</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/currency/2024/currency-2024.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Schema</FileTypeName>
-      <Elements>1</Elements>
-      <Namespace>http://xbrl.sec.gov/currency/2024</Namespace>
-      <Prefix>currency</Prefix>
-    </Loc>
-
     <!-- DEI 2024 -->
     <Loc>
       <Family>DEI</Family>
@@ -93,41 +58,6 @@
       <Prefix>dei-sub</Prefix>
     </Loc>
 
-    <!-- EXCH 2024 -->
-    <Loc>
-      <Family>EXCH</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/exch/2024/exch-2024.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Schema</FileTypeName>
-      <Elements>1</Elements>
-      <Namespace>http://xbrl.sec.gov/exch/2024</Namespace>
-      <Prefix>exch</Prefix>
-    </Loc>
-
-    <!-- SIC 2024 -->
-    <Loc>
-      <Family>SIC</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/sic/2024/sic-2024.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Schema</FileTypeName>
-      <Elements>1</Elements>
-      <Namespace>http://xbrl.sec.gov/sic/2024</Namespace>
-      <Prefix>sic</Prefix>
-    </Loc>
-
-    <!-- STPR 2024 -->
-    <Loc>
-      <Family>STPR</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/stpr/2024/stpr-2024.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Schema</FileTypeName>
-      <Elements>1</Elements>
-      <Namespace>http://xbrl.sec.gov/stpr/2024</Namespace>
-      <Prefix>stpr</Prefix>
-    </Loc>
     <!-- FFD 2024 -->
     <Loc>
       <Family>FFD</Family>
@@ -140,31 +70,9 @@
       <Prefix>ffd</Prefix>
     </Loc>
 
-    <!-- FFD 2023 -->
-    <Loc>
-      <Family>FFD</Family>
-      <Version>2023</Version>
-      <Href>https://xbrl.sec.gov/ffd/2023/ffd-2023.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Schema</FileTypeName>
-      <Elements>1</Elements>
-      <Namespace>http://xbrl.sec.gov/ffd/2023</Namespace>
-      <Prefix>ffd</Prefix>
-    </Loc>
-    <!-- FFD 2023 -->
-    <Loc>
-        <Family>FFD</Family>
-    	<Version>2023</Version>
-   		<Href>https://xbrl.sec.gov/ffd/2023/ffd-2023.xsd</Href>
-    	<AttType>SCH</AttType>
-    	<FileTypeName>Schema</FileTypeName>
-    	<Elements>1</Elements>
-    	<Namespace>http://xbrl.sec.gov/ffd/2023</Namespace>
-        <Prefix>ffd</Prefix>
-    </Loc>
     <!-- FND 2023 -->
     <Loc>
-        <Family>fnd</Family>
+        <Family>FND</Family>
         <Version>2023</Version>
         <Href>https://xbrl.sec.gov/fnd/2023/fnd-2023.xsd</Href>
         <AttType>SCH</AttType>
@@ -174,7 +82,7 @@
         <Prefix>fnd</Prefix>
     </Loc>
     <Loc>
-        <Family>fnd</Family>
+        <Family>FND</Family>
         <Version>2023</Version>
         <Href>https://xbrl.sec.gov/fnd/2023/fnd-2023_lab.xsd</Href>
         <AttType>SCH</AttType>
@@ -184,7 +92,7 @@
         <Prefix>fnd-lab</Prefix>
     </Loc>
     <Loc>
-        <Family>fnd</Family>
+        <Family>FND</Family>
         <Version>2023</Version>
         <Href>https://xbrl.sec.gov/fnd/2023/fnd-cef-2023.xsd</Href>
         <AttType>SCH</AttType>
@@ -194,7 +102,7 @@
         <Prefix>fnd-cef</Prefix>
     </Loc>
     <Loc>
-        <Family>fnd</Family>
+        <Family>FND</Family>
         <Version>2023</Version>
         <Href>https://xbrl.sec.gov/fnd/2023/fnd-oef-2023.xsd</Href>
         <AttType>SCH</AttType>
@@ -204,7 +112,7 @@
         <Prefix>fnd-oef</Prefix>
     </Loc>
     <Loc>
-        <Family>fnd</Family>
+        <Family>FND</Family>
         <Version>2023</Version>
         <Href>https://xbrl.sec.gov/fnd/2023/fnd-uit-2023.xsd</Href>
         <AttType>SCH</AttType>
@@ -214,7 +122,7 @@
         <Prefix>fnd-uit</Prefix>
     </Loc>
     <Loc>
-        <Family>fnd</Family>
+        <Family>FND</Family>
         <Version>2023</Version>
         <Href>https://xbrl.sec.gov/fnd/2023/fnd-cef-2023_pre.xsd</Href>
         <AttType>SCH</AttType>
@@ -225,7 +133,7 @@
     </Loc>
     <!-- FND 2022 -->
     <Loc>
-        <Family>fnd</Family>
+        <Family>FND</Family>
         <Version>2022</Version>
         <Href>https://xbrl.sec.gov/fnd/2022/fnd-2022.xsd</Href>
         <AttType>SCH</AttType>
@@ -235,7 +143,7 @@
         <Prefix>fnd</Prefix>
     </Loc>
     <Loc>
-        <Family>fnd</Family>
+        <Family>FND</Family>
         <Version>2022</Version>
         <Href>https://xbrl.sec.gov/fnd/2022/fnd-2022_lab.xsd</Href>
         <AttType>SCH</AttType>
@@ -245,7 +153,7 @@
         <Prefix>fnd-lab</Prefix>
     </Loc>
     <Loc>
-        <Family>fnd</Family>
+        <Family>FND</Family>
         <Version>2022</Version>
         <Href>https://xbrl.sec.gov/fnd/2022/fnd-cef-2022.xsd</Href>
         <AttType>SCH</AttType>
@@ -255,7 +163,7 @@
         <Prefix>fnd-cef</Prefix>
     </Loc>
     <Loc>
-        <Family>fnd</Family>
+        <Family>FND</Family>
         <Version>2022</Version>
         <Href>https://xbrl.sec.gov/fnd/2022/fnd-rr-2022.xsd</Href>
         <AttType>SCH</AttType>
@@ -265,7 +173,7 @@
         <Prefix>fnd-rr</Prefix>
     </Loc>
     <Loc>
-        <Family>fnd</Family>
+        <Family>FND</Family>
         <Version>2022</Version>
         <Href>https://xbrl.sec.gov/fnd/2022/fnd-uit-2022.xsd</Href>
         <AttType>SCH</AttType>
