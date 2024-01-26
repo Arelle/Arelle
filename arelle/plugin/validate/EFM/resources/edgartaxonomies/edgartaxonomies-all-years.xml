@@ -5,166 +5,519 @@ This file was created by staff of the U.S. Securities and Exchange Commission.
 Data and content created by government employees within the scope of their employment
 are not subject to domestic copyright protection. 17 U.S.C. 105.
 -->
-    <!-- COUNTRY 2024 -->
+    <!-- US-GAAP 2024  -->
     <Loc>
-      <Family>COUNTRY</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/country/2024/country-2024.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Schema</FileTypeName>
-      <Elements>1</Elements>
-      <Namespace>http://xbrl.sec.gov/country/2024</Namespace>
-      <Prefix>country</Prefix>
+        <Family>US GAAP</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.fasb.org/us-gaap/2024/ebp/elts/us-gaap-ebp-2024.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://fasb.org/us-gaap-ebp/2024</Namespace>
+        <Prefix>us-gaap</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.fasb.org/us-gaap/2024/elts/us-gaap-2024.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://fasb.org/us-gaap/2024</Namespace>
+        <Prefix>us-gaap</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.fasb.org/srt/2024/elts/srt-2024.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://fasb.org/srt/2024</Namespace>
+        <Prefix>srt</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.fasb.org/us-gaap/2024/elts/us-types-2024.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://fasb.org/us-types/2024</Namespace>
+        <Prefix>us-types</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.fasb.org/us-gaap/2024/elts/us-roles-2024.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Roles/Arcroles</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://fasb.org/us-roles/2024</Namespace>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.fasb.org/srt/2024/elts/srt-types-2024.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://fasb.org/srt-types/2024</Namespace>
+        <Prefix>srt-types</Prefix>
+    </Loc>
+    <Loc>
+        <Family>US GAAP</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.fasb.org/srt/2024/elts/srt-roles-2024.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Roles/Arcroles</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://fasb.org/srt-roles/2024</Namespace>
     </Loc>
 
-    <Loc>
-      <Family>COUNTRY</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/country/2024/country-2024_def.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Entry Point</FileTypeName>
-      <Elements>0</Elements>
-      <Namespace>http://xbrl.sec.gov/country-def/2024</Namespace>
-      <Prefix>country-def</Prefix>
-    </Loc>
+	<!-- CEF 2024 -->
+	<Loc>
+		<Family>CEF</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/cef/2024/cef-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/cef/2024</Namespace>
+		<Prefix>cef</Prefix>
+	</Loc>
 
-    <!-- CURRENCY 2024 -->
-    <Loc>
-      <Family>CURRENCY</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/currency/2024/currency-2024.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Schema</FileTypeName>
-      <Elements>1</Elements>
-      <Namespace>http://xbrl.sec.gov/currency/2024</Namespace>
-      <Prefix>currency</Prefix>
-    </Loc>
+	<Loc>
+		<Family>CEF</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/cef/2024/cef-2024_pre.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/cef-pre/2024</Namespace>
+		<Prefix>cef-pre</Prefix>
+	</Loc>
 
-    <!-- DEI 2024 -->
-    <Loc>
-      <Family>DEI</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/dei/2024/dei-2024.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Schema</FileTypeName>
-      <Elements>1</Elements>
-      <Namespace>http://xbrl.sec.gov/dei/2024</Namespace>
-      <Prefix>dei</Prefix>
-    </Loc>
+	<!-- COUNTRY 2024 -->
+	<Loc>
+		<Family>COUNTRY</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/country/2024/country-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/country/2024</Namespace>
+		<Prefix>country</Prefix>
+	</Loc>
 
-    <Loc>
-      <Family>DEI</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/dei/2024/dei-2024_def.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Entry Point</FileTypeName>
-      <Elements>0</Elements>
-      <Namespace>http://xbrl.sec.gov/dei-def/2024</Namespace>
-      <Prefix>dei-def</Prefix>
-    </Loc>
+	<Loc>
+		<Family>COUNTRY</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/country/2024/country-2024_def.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/country-def/2024</Namespace>
+		<Prefix>country-def</Prefix>
+	</Loc>
 
-    <Loc>
-      <Family>DEI</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/dei/2024/dei-2024_lab.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Entry Point</FileTypeName>
-      <Elements>0</Elements>
-      <Namespace>http://xbrl.sec.gov/dei-lab/2024</Namespace>
-      <Prefix>dei-lab</Prefix>
-    </Loc>
+	<!-- CURRENCY 2024 -->
+	<Loc>
+		<Family>CURRENCY</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/currency/2024/currency-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/currency/2024</Namespace>
+		<Prefix>currency</Prefix>
+	</Loc>
 
-    <Loc>
-      <Family>DEI</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/dei/2024/dei-2024_pre.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Entry Point</FileTypeName>
-      <Elements>0</Elements>
-      <Namespace>http://xbrl.sec.gov/dei-pre/2024</Namespace>
-      <Prefix>dei-pre</Prefix>
-    </Loc>
+	<!-- DEI 2024 -->
+	<Loc>
+		<Family>DEI</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/dei/2024/dei-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/dei/2024</Namespace>
+		<Prefix>dei</Prefix>
+	</Loc>
 
-    <Loc>
-      <Family>DEI</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/dei/2024/dei-sub-2024.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Entry Point</FileTypeName>
-      <Elements>0</Elements>
-      <Namespace>http://xbrl.sec.gov/dei-sub/2024</Namespace>
-      <Prefix>dei-sub</Prefix>
-    </Loc>
+	<Loc>
+		<Family>DEI</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/dei/2024/dei-2024_def.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-def/2024</Namespace>
+		<Prefix>dei-def</Prefix>
+	</Loc>
 
-    <!-- EXCH 2024 -->
-    <Loc>
-      <Family>EXCH</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/exch/2024/exch-2024.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Schema</FileTypeName>
-      <Elements>1</Elements>
-      <Namespace>http://xbrl.sec.gov/exch/2024</Namespace>
-      <Prefix>exch</Prefix>
-    </Loc>
+	<Loc>
+		<Family>DEI</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/dei/2024/dei-2024_lab.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-lab/2024</Namespace>
+		<Prefix>dei-lab</Prefix>
+	</Loc>
 
-    <!-- SIC 2024 -->
-    <Loc>
-      <Family>SIC</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/sic/2024/sic-2024.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Schema</FileTypeName>
-      <Elements>1</Elements>
-      <Namespace>http://xbrl.sec.gov/sic/2024</Namespace>
-      <Prefix>sic</Prefix>
-    </Loc>
+	<Loc>
+		<Family>DEI</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/dei/2024/dei-2024_pre.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-pre/2024</Namespace>
+		<Prefix>dei-pre</Prefix>
+	</Loc>
 
-    <!-- STPR 2024 -->
-    <Loc>
-      <Family>STPR</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/stpr/2024/stpr-2024.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Schema</FileTypeName>
-      <Elements>1</Elements>
-      <Namespace>http://xbrl.sec.gov/stpr/2024</Namespace>
-      <Prefix>stpr</Prefix>
-    </Loc>
-    <!-- FFD 2024 -->
-    <Loc>
-      <Family>FFD</Family>
-      <Version>2024</Version>
-      <Href>https://xbrl.sec.gov/ffd/2024/ffd-2024.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Schema</FileTypeName>
-      <Elements>1</Elements>
-      <Namespace>http://xbrl.sec.gov/ffd/2024</Namespace>
-      <Prefix>ffd</Prefix>
-    </Loc>
+	<Loc>
+		<Family>DEI</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/dei/2024/dei-sub-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-sub/2024</Namespace>
+		<Prefix>dei-sub</Prefix>
+	</Loc>
 
-    <!-- FFD 2023 -->
-    <Loc>
-      <Family>FFD</Family>
-      <Version>2023</Version>
-      <Href>https://xbrl.sec.gov/ffd/2023/ffd-2023.xsd</Href>
-      <AttType>SCH</AttType>
-      <FileTypeName>Schema</FileTypeName>
-      <Elements>1</Elements>
-      <Namespace>http://xbrl.sec.gov/ffd/2023</Namespace>
-      <Prefix>ffd</Prefix>
-    </Loc>
-    <!-- FFD 2023 -->
-    <Loc>
-        <Family>FFD</Family>
-    	<Version>2023</Version>
-   		<Href>https://xbrl.sec.gov/ffd/2023/ffd-2023.xsd</Href>
-    	<AttType>SCH</AttType>
-    	<FileTypeName>Schema</FileTypeName>
-    	<Elements>1</Elements>
-    	<Namespace>http://xbrl.sec.gov/ffd/2023</Namespace>
-        <Prefix>ffd</Prefix>
-    </Loc>
+	<!-- ECD 2024 -->
+	<Loc>
+		<Family>ECD</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/ecd/2024/ecd-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/ecd/2024</Namespace>
+		<Prefix>ecd</Prefix>
+	</Loc>
+
+	<Loc>
+		<Family>ECD</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/ecd/2024/ecd-sub-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/ecd-sub/2024</Namespace>
+		<Prefix>ecd-sub</Prefix>
+	</Loc>
+
+	<!-- EXCH 2024 -->
+	<Loc>
+		<Family>EXCH</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/exch/2024/exch-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/exch/2024</Namespace>
+		<Prefix>exch</Prefix>
+	</Loc>
+
+	<!-- FND 2024 -->
+	<Loc>
+		<Family>FND</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/fnd/2024/fnd-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/fnd/2024</Namespace>
+		<Prefix>fnd</Prefix>
+	</Loc>
+
+	<Loc>
+		<Family>FND</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/fnd/2024/fnd-2024_lab.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/fnd-lab/2024</Namespace>
+		<Prefix>fnd-lab</Prefix>
+	</Loc>
+
+	<Loc>
+		<Family>FND</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/fnd/2024/fnd-cef-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/fnd-cef/2024</Namespace>
+		<Prefix>fnd-cef</Prefix>
+	</Loc>
+
+	<Loc>
+		<Family>FND</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/fnd/2024/fnd-cef-2024_pre.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/fnd-cef-pre/2024</Namespace>
+		<Prefix>fnd-cef-pre</Prefix>
+	</Loc>
+
+	<Loc>
+		<Family>FND</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/fnd/2024/fnd-oef-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/fnd-oef/2024</Namespace>
+		<Prefix>fnd-oef</Prefix>
+	</Loc>
+
+	<Loc>
+		<Family>FND</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/fnd/2024/fnd-uit-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/fnd-uit/2024</Namespace>
+		<Prefix>fnd-uit</Prefix>
+	</Loc>
+
+	<!-- NAICS 2024 -->
+	<Loc>
+		<Family>NAICS</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/naics/2024/naics-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/naics/2024</Namespace>
+		<Prefix>naics</Prefix>
+	</Loc>
+
+	<!-- OEF 2024 -->
+	<Loc>
+		<Family>OEF</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/oef/2024/oef-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/oef/2024</Namespace>
+		<Prefix>oef</Prefix>
+	</Loc>
+
+	<Loc>
+		<Family>OEF</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/oef/2024/oef-2024_cal.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/oef-cal/2024</Namespace>
+		<Prefix>oef-cal</Prefix>
+	</Loc>
+
+	<Loc>
+		<Family>OEF</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/oef/2024/oef-2024_lab.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/oef-lab/2024</Namespace>
+		<Prefix>oef-lab</Prefix>
+	</Loc>
+
+	<Loc>
+		<Family>OEF</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/oef/2024/oef-rr-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/oef-rr/2024</Namespace>
+		<Prefix>oef-rr</Prefix>
+	</Loc>
+
+	<Loc>
+		<Family>OEF</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/oef/2024/oef-sr-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/oef-sr/2024</Namespace>
+		<Prefix>oef-sr</Prefix>
+	</Loc>
+
+	<!-- RXP 2024 -->
+	<Loc>
+		<Family>RXP</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/rxp/2024/rxp-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/rxp/2024</Namespace>
+		<Prefix>rxp</Prefix>
+	</Loc>
+
+	<Loc>
+		<Family>RXP</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/rxp/2024/rxp-sub-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/rxp-sub/2024</Namespace>
+		<Prefix>rxp-sub</Prefix>
+	</Loc>
+
+	<!-- SIC 2024 -->
+	<Loc>
+		<Family>SIC</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/sic/2024/sic-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/sic/2024</Namespace>
+		<Prefix>sic</Prefix>
+	</Loc>
+
+	<!-- SNJ 2024 -->
+	<Loc>
+		<Family>SNJ</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/snj/2024/snj-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/snj/2024</Namespace>
+		<Prefix>snj</Prefix>
+	</Loc>
+
+	<Loc>
+		<Family>SNJ</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/snj/2024/snj-2024_def.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/snj-def/2024</Namespace>
+		<Prefix>snj-def</Prefix>
+	</Loc>
+
+	<!-- SRO 2024 -->
+	<Loc>
+		<Family>SRO</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/sro/2024/sro-17ad27-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/sro-17ad27/2024</Namespace>
+		<Prefix>sro-17ad27</Prefix>
+	</Loc>
+
+	<Loc>
+		<Family>SRO</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/sro/2024/sro-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/sro/2024</Namespace>
+		<Prefix>sro</Prefix>
+	</Loc>
+
+	<!-- STPR 2024 -->
+	<Loc>
+		<Family>STPR</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/stpr/2024/stpr-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/stpr/2024</Namespace>
+		<Prefix>stpr</Prefix>
+	</Loc>
+
+	<!-- VIP 2024 -->
+	<Loc>
+		<Family>VIP</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/vip/2024/vip-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/vip/2024</Namespace>
+		<Prefix>vip</Prefix>
+	</Loc>
+
+	<Loc>
+		<Family>VIP</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/vip/2024/vip-n3-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/vip-n3/2024</Namespace>
+		<Prefix>vip-n3</Prefix>
+	</Loc>
+
+	<Loc>
+		<Family>VIP</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/vip/2024/vip-n4-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/vip-n4/2024</Namespace>
+		<Prefix>vip-n4</Prefix>
+	</Loc>
+
+	<Loc>
+		<Family>VIP</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/vip/2024/vip-n6-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/vip-n6/2024</Namespace>
+		<Prefix>vip-n6</Prefix>
+	</Loc>
+	<!-- FFD 2024 -->
+	<Loc>
+		<Family>FFD</Family>
+		<Version>2024</Version>
+		<Href>https://xbrl.sec.gov/ffd/2024/ffd-2024.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/ffd/2024</Namespace>
+		<Prefix>ffd</Prefix>
+	</Loc>
+	<!-- FFD 2023 -->
+	<Loc>
+		<Family>FFD</Family>
+		<Version>2023</Version>
+		<Href>https://xbrl.sec.gov/ffd/2023/ffd-2023.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/ffd/2023</Namespace>
+		<Prefix>ffd</Prefix>
+	</Loc>
     <!-- FND 2023 -->
     <Loc>
         <Family>fnd</Family>
