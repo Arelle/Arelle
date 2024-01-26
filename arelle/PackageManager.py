@@ -118,7 +118,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                 break # take first entry if several
         for eltName in ("name", "description"):
             closest = ''
-            closestLen = 0
+            closestLen = -1
             for m in root.iterchildren(tag=nsPrefix + eltName):
                 s = (m.text or "").strip()
                 eltLang = xmlLang(m)
@@ -126,7 +126,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                 if l > closestLen:
                     closestLen = l
                     closest = s
-                elif closestLen == 0 and eltLang.startswith("en"):
+                elif closestLen <= 0 and eltLang.startswith("en"):
                     closest = s   # pick english if nothing better
             if not closest and eltName == "name":  # assign default name when none in taxonomy package
                 closest = os.path.splitext(os.path.basename(filesource.baseurl))[0]
@@ -233,7 +233,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
 
     for entryPointSpec in tree.iter(tag=nsPrefix + "entryPoint"):
         name = None
-        closestLen = 0
+        closestLen = -1
 
         # find closest match name node given xml:lang match to current language or no xml:lang
         for nameNode in entryPointSpec.iter(tag=nsPrefix + "name"):
@@ -243,7 +243,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
             if l > closestLen:
                 closestLen = l
                 name = s
-            elif closestLen == 0 and nameLang.startswith("en"):
+            elif closestLen <= 0 and nameLang.startswith("en"):
                 name = s   # pick english if nothing better
 
         if not name:
@@ -279,7 +279,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
 
             # find closest language description
             closest = ''
-            closestLen = 0
+            closestLen = -1
             for m in entryPointSpec.iterchildren(tag=nsPrefix + "description"):
                 s = (m.text or "").strip()
                 eltLang = xmlLang(m)
@@ -287,7 +287,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                 if l > closestLen:
                     closestLen = l
                     closest = s
-                elif closestLen == 0 and eltLang.startswith("en"):
+                elif closestLen <= 0 and eltLang.startswith("en"):
                     closest = s   # pick english if nothing better
             if not closest and name:  # assign default name when none in taxonomy package
                 closest = name
