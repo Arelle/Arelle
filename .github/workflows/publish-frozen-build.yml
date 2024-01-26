@@ -56,7 +56,7 @@ jobs:
         run: aws s3 cp --acl public-read s3://arelle-us/${{ env.ARELLE_WEBSITE_BUILD_NAME }} s3://arelle-us/${{ env.ARELLE_WEBSITE_BUILD_ALIAS }}
 
       - name: Configure Ali Cloud credentials
-        uses: yizhoumo/setup-ossutil@v1.1.3
+        uses: yizhoumo/setup-ossutil@v2.0.0
         with:
           endpoint: oss-cn-shenzhen.aliyuncs.com
           access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
