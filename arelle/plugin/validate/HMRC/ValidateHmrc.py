@@ -25,15 +25,22 @@ CO_SEC_477 = 'Co.Sec477'
 CO_SEC_480 = 'Co.Sec480'
 LP_ABRID = 'Lp.Abrid'
 LP_MEM_RESP = 'Lp.MemResp'
+LP_MICRO = 'Lp.Micro'
 LP_SEC_477 = 'Lp.Sec477'
 LP_SEC_480 = 'Lp.Sec480'
 LP_SM_LP = 'Lp.SmLp'
 
 # Concept local names
+CONCEPT_ABRIDGED_ACCOUNTS = 'AbridgedAccounts'
+CONCEPT_ABBREVIATED_ACCOUNTS = 'AbbreviatedAccounts'
+CONCEPT_APPLICABLE_LEGISLATION = 'ApplicableLegislation'
+CONCEPT_APPLICABLE_LEGISLATION_DIMENSION = 'ApplicableLegislationDimension'
 CONCEPT_ACCOUNTING_STANDARDS_APPLIED = 'AccountingStandardsApplied'
 CONCEPT_ACCOUNTING_STANDARDS_DIMENSION = 'AccountingStandardsDimension'
 CONCEPT_ACCOUNTS_STATUS = 'AccountsStatusAuditedOrUnaudited'
 CONCEPT_ACCOUNTS_STATUS_DIMENSION = 'AccountsStatusDimension'
+CONCEPT_ACCOUNTS_TYPE_FULL_OR_ABBREVIATED = 'AccountsTypeFullOrAbbreviated'  # DEPRECATED IN 2022+ taxonomies.  No replacement yet.
+CONCEPT_ACCOUNTS_TYPE_DIMENSION = 'AccountsTypeDimension'
 CONCEPT_ENTITY_DORMANT = 'EntityDormantTruefalse'
 CONCEPT_LANGUAGES_DIMENSION = 'LanguagesDimension'
 CONCEPT_MICRO_ENTITIES = 'Micro-entities'
@@ -41,6 +48,11 @@ CONCEPT_LEGAL_FORM_ENTIY = 'LegalFormEntity'
 CONCEPT_LEGAL_FORM_ENTIY_DIMENSION = 'LegalFormEntityDimension'
 CONCEPT_LLP = 'LimitedLiabilityPartnershipLLP'
 CONCEPT_REPORT_PRINCIPAL_LANGUAGE = 'ReportPrincipalLanguage'
+CONCEPT_SCOPE_ACCOUNTS = 'ScopeAccounts'
+CONCEPT_SCOPE_ACCOUNTS_DIMENSION = 'ScopeAccountsDimension'
+CONCEPT_SMALL_COMPANY_REGIME_FOR_ACCOUNTS = 'SmallCompaniesRegimeForAccounts'
+CONCEPT_GROUP_ACCOUNTS_ONLY = 'GroupAccountsOnly'
+CONCEPT_CONSOLIDATED_GROUP_COMPANY_ACCOUNTS = 'ConsolidatedGroupCompanyAccounts'
 CONCEPT_WELSH = 'Welsh'
 
 # Map of error code > concept local name > tuple of pairings of descriptions and regex patterns
@@ -153,6 +165,18 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, re.regex.Pattern[
                 ),
             ),
     },
+    LP_MICRO: {
+        'StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime': (
+            (
+                '"Prepared", then "in accordance with", then "provisions", then "micro"',
+                re.compile(r".*Prepared.*in accordance with.*provisions.*micro.*"),
+            ),
+            (
+                '"wedi eu paratoi", then "yn unol â", then "darpariaethau", then "micro"',
+                re.compile(r".*wedi eu paratoi.*yn unol â.*darpariaethau.*micro.*"),
+            ),
+        ),
+    },
     LP_SEC_477: {
         'StatementThatCompanyEntitledToExemptionFromAuditUnderSection477CompaniesAct2006RelatingToSmallCompanies': (
             (
@@ -196,6 +220,10 @@ class AccountStatus(Enum):
     AUDIT_EXEMPT_NO_REPORT = 'AuditExempt-NoAccountantsReport'
     AUDIT_EXEMPT_WITH_REPORT = 'AuditExemptWithAccountantsReport'
 
+class ScopeAccounts(Enum):
+    GROUP_ONLY = 'GroupAccountsOnly'
+    CONSOLIDATED_GROUP = 'ConsolidatedGroupCompanyAccounts'
+
 
 @dataclass
 class CodeResult:
@@ -219,7 +247,6 @@ class ValidateHmrc:
         """
         Logs an error explaining that a fact of the given concept was missing.
         :param conceptLocalName:
-        :return:
         """
         self.modelXbrl.error(
             CO_MISSING_ELEMENT,
@@ -234,7 +261,6 @@ class ValidateHmrc:
         If a fact of the expected type did not exist, an additional error will be logged.
         :param code:
         :param result:
-        :return:
         """
         if result.fact is None and result.conceptLocalName is not None:
             self._errorOnMissingFact(result.conceptLocalName)
@@ -295,7 +321,6 @@ class ValidateHmrc:
     def _lang(self) -> HmrcLang:
         """
         Determines if the language is set to Welsh, otherwise defaults to English.
-        :return:
         """
         for fact in self._getFacts(CONCEPT_REPORT_PRINCIPAL_LANGUAGE):
             if fact is None or fact.context is None:
@@ -320,6 +345,19 @@ class ValidateHmrc:
         return None
 
     @cached_property
+    def accountsType(self) -> str | None:
+        facts = self._getFacts(CONCEPT_ACCOUNTS_TYPE_FULL_OR_ABBREVIATED)
+        for fact in facts:
+            if fact is None:
+                continue
+            if fact.isNil:
+                continue
+            for qname, value in fact.context.qnameDims.items():
+                if qname.localName == CONCEPT_ACCOUNTS_TYPE_DIMENSION:
+                    return cast(str, value.xValue.localName)
+        return None
+
+    @cached_property
     def accountingStandardsApplied(self) -> str | None:
         facts = self._getFacts(CONCEPT_ACCOUNTING_STANDARDS_APPLIED)
         for fact in facts:
@@ -329,6 +367,19 @@ class ValidateHmrc:
                 continue
             for qname, value in fact.context.qnameDims.items():
                 if qname.localName == CONCEPT_ACCOUNTING_STANDARDS_DIMENSION:
+                    return cast(str, value.xValue.localName)
+        return None
+
+    @cached_property
+    def applicableLegislation(self) -> str | None:
+        facts = self._getFacts(CONCEPT_APPLICABLE_LEGISLATION)
+        for fact in facts:
+            if fact is None:
+                continue
+            if fact.isNil:
+                continue
+            for qname, value in fact.context.qnameDims.items():
+                if qname.localName == CONCEPT_APPLICABLE_LEGISLATION_DIMENSION:
                     return cast(str, value.xValue.localName)
         return None
 
@@ -352,14 +403,26 @@ class ValidateHmrc:
                     return cast(str, value.xValue.localName)
         return None
 
+    @cached_property
+    def scopeAccounts(self) -> str | None:
+        facts = self._getFacts(CONCEPT_SCOPE_ACCOUNTS)
+        for fact in facts:
+            if fact is None:
+                continue
+            if fact.isNil:
+                continue
+            for qname, value in fact.context.qnameDims.items():
+                if qname.localName == CONCEPT_SCOPE_ACCOUNTS_DIMENSION:
+                    return cast(str, value.xValue.localName)
+        return None
+
     def validate(self) -> None:
         """
         Find the appropriate set of validations to run on this document and runs them.
-        :return:
         """
         if self.accountStatus in {
             AccountStatus.AUDIT_EXEMPT_NO_REPORT.value,
-            AccountStatus.AUDIT_EXEMPT_NO_REPORT.value,
+            AccountStatus.AUDIT_EXEMPT_WITH_REPORT.value,
         }:
             if self.isEntityDormant:
                 if self.legalFormEntity == CONCEPT_LLP:
@@ -367,36 +430,121 @@ class ValidateHmrc:
                 else:
                     self.validateUnauditedDormantCompany()
             elif self.accountingStandardsApplied == CONCEPT_MICRO_ENTITIES:
-                self.validateUnauditedMicroCompany()
+                if self.legalFormEntity == CONCEPT_LLP:
+                    self.validateUnauditedMicroLLP()
+                else:
+                    self.validateUnauditedMicroCompany()
+            elif self.accountsType == CONCEPT_ABRIDGED_ACCOUNTS:
+                if self.legalFormEntity == CONCEPT_LLP:
+                    self.validateUnauditedLLPAbridgedAccounts()
+                else:
+                    self.validateUnauditedCompanyAbridgedAccounts()
+            elif self.accountsType == CONCEPT_ABBREVIATED_ACCOUNTS:
+                if self.legalFormEntity == CONCEPT_LLP:
+                    self.validateUnauditedLLPAbbreviatedAccounts()
+                else:
+                    self.validateUnauditedCompanyAbbreviatedAccounts()
+            elif self.scopeAccounts in {
+                ScopeAccounts.GROUP_ONLY.value,
+                ScopeAccounts.CONSOLIDATED_GROUP.value,
+            }:
+                if self.legalFormEntity == CONCEPT_LLP:
+                    self.validateUnauditedLLPGroupAccounts()
+                else:
+                    self.validateUnauditedCompanyGroupAccounts()
+            elif (self.applicableLegislation == CONCEPT_SMALL_COMPANY_REGIME_FOR_ACCOUNTS
+                  and not (self.scopeAccounts in {
+                        ScopeAccounts.GROUP_ONLY.value,
+                        ScopeAccounts.CONSOLIDATED_GROUP.value,
+                    } and self.accountsType == CONCEPT_ABRIDGED_ACCOUNTS)):
+                if self.legalFormEntity == CONCEPT_LLP:
+                    self.validateUnauditedLLPFullAccounts()
+                else:
+                    self.validateUnauditedSmallCompanyFullAccounts()
 
-    def validateUnauditedDormantCompany(self) -> None:
+    def validateUnauditedCompanyAbbreviatedAccounts(self) -> None:
         """
-        Checks conditions applicable to unaudited dormant companies:
-        Co.Sec480 and Co.AuditNR and Co.DirResp and (Co.Micro or Co.SmCo).
-        :return:
+        Checks conditions applicable to unaudited company abbreviated accounts:
+        Co.Sec777, Co.AuditNR, Co.DirResp, and Co.SmCo
         """
-        result = self._evaluateCode(CO_SEC_480)
+        result = self._evaluateCode(CO_SEC_477)
         if not result.success:
-            self._errorOnMissingFactText(CO_SEC_480, result)
+            self._errorOnMissingFactText(CO_SEC_477, result)
         result = self._evaluateCode(CO_AUDIT_NR)
         if not result.success:
             self._errorOnMissingFactText(CO_AUDIT_NR, result)
         result = self._evaluateCode(CO_DIR_RESP)
         if not result.success:
             self._errorOnMissingFactText(CO_DIR_RESP, result)
-
-        result = self._evaluateCode(CO_MICRO)
+        result = self._evaluateCode(CO_SM_CO)
         if not result.success:
-            smCoResult = self._evaluateCode(CO_SM_CO)
-            if not smCoResult.success:
-                self._errorOnMissingFactText(CO_MICRO, result)
-                self._errorOnMissingFactText(CO_SM_CO, smCoResult)
+            self._errorOnMissingFactText(CO_SM_CO, result)
+
+    def validateUnauditedCompanyAbridgedAccounts(self) -> None:
+        """
+        Checks conditions applicable to unaudited company abridged accounts:
+        Co.Sec777, Co.AuditNR, Co.DirResp, Co.SmCo, Co.Abrid
+        """
+        result = self._evaluateCode(CO_SEC_477)
+        if not result.success:
+            self._errorOnMissingFactText(CO_SEC_477, result)
+        result = self._evaluateCode(CO_AUDIT_NR)
+        if not result.success:
+            self._errorOnMissingFactText(CO_AUDIT_NR, result)
+        result = self._evaluateCode(CO_DIR_RESP)
+        if not result.success:
+            self._errorOnMissingFactText(CO_DIR_RESP, result)
+        result = self._evaluateCode(CO_SM_CO)
+        if not result.success:
+            self._errorOnMissingFactText(CO_SM_CO, result)
+        result = self._evaluateCode(CO_ABRID)
+        if not result.success:
+            self._errorOnMissingFactText(CO_ABRID, result)
+
+    def validateUnauditedCompanyGroupAccounts(self) -> None:
+        """
+        Checks conditions applicable to unaudited company abridged accounts:
+        Co.Sec477, Co.AuditNR, Co.DirResp, and Co.SmCo
+        """
+        result = self._evaluateCode(CO_SEC_477)
+        if not result.success:
+            self._errorOnMissingFactText(CO_SEC_477, result)
+        result = self._evaluateCode(CO_AUDIT_NR)
+        if not result.success:
+            self._errorOnMissingFactText(CO_AUDIT_NR, result)
+        result = self._evaluateCode(CO_DIR_RESP)
+        if not result.success:
+            self._errorOnMissingFactText(CO_DIR_RESP, result)
+        result = self._evaluateCode(CO_SM_CO)
+        if not result.success:
+            self._errorOnMissingFactText(CO_SM_CO, result)
+
+    def validateUnauditedDormantCompany(self) -> None:
+            """
+            Checks conditions applicable to unaudited dormant companies:
+            Co.Sec480 and Co.AuditNR and Co.DirResp and (Co.Micro or Co.SmCo).
+            """
+            result = self._evaluateCode(CO_SEC_480)
+            if not result.success:
+                self._errorOnMissingFactText(CO_SEC_480, result)
+            result = self._evaluateCode(CO_AUDIT_NR)
+            if not result.success:
+                self._errorOnMissingFactText(CO_AUDIT_NR, result)
+            result = self._evaluateCode(CO_DIR_RESP)
+            if not result.success:
+                self._errorOnMissingFactText(CO_DIR_RESP, result)
+
+            result = self._evaluateCode(CO_MICRO)
+            if not result.success:
+                smCoResult = self._evaluateCode(CO_SM_CO)
+                if not smCoResult.success:
+                    self._errorOnMissingFactText(CO_MICRO, result)
+                    self._errorOnMissingFactText(CO_SM_CO, smCoResult)
 
     def validateUnauditedDormantLLP(self) -> None:
         """
         Checks conditions applicable to unaudited dormant LLPs:
         LP.MemResp and LP.Sec480 and LP.SmLP).
-        :return:
         """
         result = self._evaluateCode(LP_MEM_RESP)
         if not result.success:
@@ -408,11 +556,73 @@ class ValidateHmrc:
         if not result.success:
             self._errorOnMissingFactText(LP_SM_LP, result)
 
+    def validateUnauditedLLPAbbreviatedAccounts(self) -> None:
+        """
+        Checks conditions applicable to unaudited LLP abbreviated accounts:
+        Lp.Sec777, LP.MemResp, and Lp.SmLp
+        """
+        result = self._evaluateCode(LP_SEC_477)
+        if not result.success:
+            self._errorOnMissingFactText(LP_SEC_477, result)
+        result = self._evaluateCode(LP_MEM_RESP)
+        if not result.success:
+            self._errorOnMissingFactText(LP_MEM_RESP, result)
+        result = self._evaluateCode(LP_SM_LP)
+        if not result.success:
+            self._errorOnMissingFactText(LP_SM_LP, result)
+
+    def validateUnauditedLLPAbridgedAccounts(self) -> None:
+        """
+        Checks conditions applicable to unaudited LLP abridged accounts:
+        Lp.Sec777, LP.MemResp, Lp.SmLp, and Lp.Abrid
+        """
+        result = self._evaluateCode(LP_SEC_477)
+        if not result.success:
+            self._errorOnMissingFactText(LP_SEC_477, result)
+        result = self._evaluateCode(LP_MEM_RESP)
+        if not result.success:
+            self._errorOnMissingFactText(LP_MEM_RESP, result)
+        result = self._evaluateCode(LP_SM_LP)
+        if not result.success:
+            self._errorOnMissingFactText(LP_SM_LP, result)
+        result = self._evaluateCode(LP_ABRID)
+        if not result.success:
+            self._errorOnMissingFactText(LP_ABRID, result)
+
+    def validateUnauditedLLPFullAccounts(self) -> None:
+        """
+        Checks conditions applicable to unaudited LLP full accounts:
+        Lp.Sec777, LP.MemResp, and Lp.SmLp
+        """
+        result = self._evaluateCode(LP_SEC_477)
+        if not result.success:
+            self._errorOnMissingFactText(LP_SEC_477, result)
+        result = self._evaluateCode(LP_MEM_RESP)
+        if not result.success:
+            self._errorOnMissingFactText(LP_MEM_RESP, result)
+        result = self._evaluateCode(LP_SM_LP)
+        if not result.success:
+            self._errorOnMissingFactText(LP_SM_LP, result)
+
+    def validateUnauditedLLPGroupAccounts(self) -> None:
+        """
+        Checks conditions applicable to unaudited LLP group accounts:
+        Lp.Sec777, LP.MemResp, and Lp.SmLp
+        """
+        result = self._evaluateCode(LP_SEC_477)
+        if not result.success:
+            self._errorOnMissingFactText(LP_SEC_477, result)
+        result = self._evaluateCode(LP_MEM_RESP)
+        if not result.success:
+            self._errorOnMissingFactText(LP_MEM_RESP, result)
+        result = self._evaluateCode(LP_SM_LP)
+        if not result.success:
+            self._errorOnMissingFactText(LP_SM_LP, result)
+
     def validateUnauditedMicroCompany(self) -> None:
         """
         Checks conditions applicable to unaudited micro companies:
         Co.Sec477 and Co.AuditNR and Co.DirResp and Co.Micro.
-        :return:
         """
         result = self._evaluateCode(CO_SEC_477)
         if not result.success:
@@ -426,3 +636,36 @@ class ValidateHmrc:
         result = self._evaluateCode(CO_MICRO)
         if not result.success:
             self._errorOnMissingFactText(CO_MICRO, result)
+
+    def validateUnauditedMicroLLP(self) -> None:
+        """
+        Checks conditions applicable to unaudited micro companies:
+        Lp.Sec477 and Lp.MemResp and Lp.Micro.
+        """
+        result = self._evaluateCode(LP_SEC_477)
+        if not result.success:
+            self._errorOnMissingFactText(LP_SEC_477, result)
+        result = self._evaluateCode(LP_MEM_RESP)
+        if not result.success:
+            self._errorOnMissingFactText(LP_MEM_RESP, result)
+        result = self._evaluateCode(LP_MICRO)
+        if not result.success:
+            self._errorOnMissingFactText(LP_MICRO, result)
+
+    def validateUnauditedSmallCompanyFullAccounts(self) -> None:
+        """
+        Checks conditions applicable to unaudited small company full accounts:
+        Co.Sec777, Co.AuditNR, Co.DirResp, and Co.SmCo
+        """
+        result = self._evaluateCode(CO_SEC_477)
+        if not result.success:
+            self._errorOnMissingFactText(CO_SEC_477, result)
+        result = self._evaluateCode(CO_AUDIT_NR)
+        if not result.success:
+            self._errorOnMissingFactText(CO_AUDIT_NR, result)
+        result = self._evaluateCode(CO_DIR_RESP)
+        if not result.success:
+            self._errorOnMissingFactText(CO_DIR_RESP, result)
+        result = self._evaluateCode(CO_SM_CO)
+        if not result.success:
+            self._errorOnMissingFactText(CO_SM_CO, result)

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="Unaudited Micro Company"
+  description="Unaudited Micro LLP filings must meet certain criteria."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="valid" name="Valid">
+    <description>
+      The document is valid.
+    </description>
+    <data>
+        <instance readMeFirst="true">valid.xbrl</instance>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation id="valid-welsh" name="Valid Welsh">
+    <description>
+      The document is valid with Welsh language.
+    </description>
+    <data>
+      <instance readMeFirst="true">valid-welsh.xbrl</instance>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation id="lp-memresp" name="Fails Lp.MemResp">
+    <description>
+      StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct fact is missing required text.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-lp-memresp.xbrl</instance>
+    </data>
+    <result>
+      <error>Lp.MemResp</error>
+    </result>
+  </variation>
+  <variation id="lp-micro" name="Fails Lp.Micro">
+    <description>
+      StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime fact is missing required text.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-lp-micro.xbrl</instance>
+    </data>
+    <result>
+      <error>Lp.Micro</error>
+    </result>
+  </variation>
+  <variation id="lp-sec477" name="Fails Lp.Sec477">
+    <description>
+      StatementThatCompanyEntitledToExemptionFromAuditUnderSection477CompaniesAct2006RelatingToSmallCompanies fact is missing required text.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-lp-sec477.xbrl</instance>
+    </data>
+    <result>
+      <error>Lp.Sec477</error>
+    </result>
+  </variation>
+</testcase>
