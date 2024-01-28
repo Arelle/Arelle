@@ -66,7 +66,7 @@ attachmentDocumentTypeValidationRulesFiles = ( # match attachment doc type patte
     (None, "dei-validations.json")
     )
 supplementalAttachmentDocumentTypesPattern = re.compile(r"EX-FILING FEES.*|EX-26.*")
-exhibitTypesStrippingOnErrorPattern = re.compile(r"EX-FILING FEES.*|EX-26.*")
+exhibitTypesStrippingOnErrorPattern = re.compile(r"EX-26.*")
 
 standardNamespacesPattern = re.compile(
     # non-IFRS groups 1 - authority, 2 - taxonomy (e.g. us-gaap, us-types), 3 - year

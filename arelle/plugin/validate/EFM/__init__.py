@@ -375,7 +375,7 @@ def filingStart(cntlr, options, filesource, entrypointFiles, sourceZipStream=Non
 
 def guiTestcasesStart(cntlr, modelXbrl, *args, **kwargs):
     modelManager = cntlr.modelManager
-    if cntlr.hasGui and modelManager.validateDisclosureSystem and getattr(modelManager.disclosureSystem, "EFMplugin", False):
+    if cntlr.hasGui: # enable EdgarRenderer to initiate ixviewer irregardless of whether an EFM disclosure system is active
         for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Gui.Run"):
             pluginXbrlMethod(cntlr, modelXbrl, *args,
                              # pass plugin items to GUI mode of EdgarRenderer
@@ -820,7 +820,7 @@ class Report:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
-    'version': '1.23.4', # SEC EDGAR release 23.4
+    'version': '1.24.0.1', # SEC EDGAR release 24.0.1
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'import': ('transforms/SEC',), # SEC inline can use SEC transformations
