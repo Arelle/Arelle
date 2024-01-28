@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="JFCVC.3315"
+  description="Generic dimension tags are associated with specific, generic concepts."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="charity-generic-dimension-mismatch" name="Charity Taxonomy Generic Dimension Mismatch">
+    <description>
+      There is a mismatch with a charity-specific generic dimension and a fact.
+    </description>
+    <data>
+      <instance readMeFirst="true">3315-invalid-char.xbrl</instance>
+    </data>
+    <result>
+      <error>JFCVC.3315</error>
+      <error>PrimaryItemDimensionallyInvalidError</error>
+    </result>
+  </variation>
+  <variation id="FRS-101-generic-dimension-mismatch" name="FRS-101 Taxonomy Generic Dimension Mismatch">
+    <description>
+      There is a mismatch with a generic dimension and a fact.
+    </description>
+    <data>
+      <instance readMeFirst="true">3315-invalid-common.xbrl</instance>
+    </data>
+    <result>
+      <error>JFCVC.3315</error>
+      <error>PrimaryItemDimensionallyInvalidError</error>
+    </result>
+  </variation>
+</testcase>

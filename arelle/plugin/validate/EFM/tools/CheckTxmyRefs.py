@@ -29,7 +29,7 @@ fishInDirsForMissing = {
         "url-root": "https://xbrl.sec.gov",
         # "local-root": r"C:/gns/w/git-osd/stx/xbrl.sec.gov",
         "local-root": r"C:/gns/w/git-group2/sec-arelle/xbrl_taxonomies/xbrl_taxonomies/resources/System/cache/https/xbrl.sec.gov",
-        "entrypoint-pattern": "https?://xbrl.sec.gov/[^/]+/2023[^/]*/[^/]+(-sub-)[^.]+\.xsd"
+        "entrypoint-pattern": r"https?://xbrl.sec.gov/[^/]+/2023[^/]*/[^/]+(-sub-)[^.]+\.xsd"
         }
     # not sure what we load for US-GAAP and IFRS to determine needed ref and doc linkbases
     }
@@ -80,12 +80,12 @@ def utilityRun(cntlr, options, *args, **kwargs):
                     for refUrl in modelXbrl.urlDocs:
                         if refUrl not in edTxmyHrefs and refUrl != hRef:
                             log(f"ref taxonomy also missing from edgartaxonomies: ref {refUrl}, loaded from {hRef}")
-                    if not re.match(".*([-_](lab|ref|pre|cal|def|sub)(-\n\n\n\n)?\.xsd)", hRef):
+                    if not re.match(r".*([-_](lab|ref|pre|cal|def|sub)(-\n\n\n\n)?\.xsd)", hRef):
                         cachePath = os.path.dirname(cntlr.webCache.getfilename(hRef))
                         docRefs = defaultdict(set)
                         for root, dir, files in os.walk(cachePath):
                             for file in files:
-                                m = re.match(".*(doc|ref)\.(xsd|xml)", file)
+                                m = re.match(r".*(doc|ref)\.(xsd|xml)", file)
                                 if m:
                                     docRefs[m.group(1)].add(file)
                         addOn = txmyAddons.get(os.path.basename(hRef))
@@ -124,12 +124,12 @@ def utilityRun(cntlr, options, *args, **kwargs):
                             for refUrl in modelXbrl.urlDocs:
                                 if refUrl not in edTxmyHrefs and refUrl != hRef:
                                     log(f"ref taxonomy also missing from edgartaxonomies: ref {refUrl}, loaded from {hRef}")
-                            if not re.match(".*([-_](lab|ref|pre|cal|def|sub)(-\n\n\n\n)?\.xsd)", hRef):
+                            if not re.match(r".*([-_](lab|ref|pre|cal|def|sub)(-\n\n\n\n)?\.xsd)", hRef):
                                 cachePath = os.path.dirname(cntlr.webCache.getfilename(hRef))
                                 docRefs = defaultdict(set)
                                 for root, dir, files in os.walk(cachePath):
                                     for file in files:
-                                        m = re.match(".*(doc|ref)\.(xsd|xml)", file)
+                                        m = re.match(r".*(doc|ref)\.(xsd|xml)", file)
                                         if m:
                                             docRefs[m.group(1)].add(file)
                                 addOn = txmyAddons.get(os.path.basename(hRef))

@@ -7,22 +7,13 @@ on:
         description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
-      ixbrl_viewer_ref:
-        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
-        required: false
-        type: string
       openssl_version:
-        default: '1.1.1s'
+        default: '1.1.1w'
         description: 'OpenSSL version to use'
         required: false
         type: string
-      node_version:
-        default: '20'
-        description: 'Node.js version to use'
-        required: false
-        type: string
       python_version:
-        default: '3.11.5'
+        default: '3.11.7'
         description: 'Python version to use'
         required: false
         type: string
@@ -43,22 +34,13 @@ on:
         description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
-      ixbrl_viewer_ref:
-        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
-        required: false
-        type: string
       openssl_version:
-        default: '1.1.1s'
+        default: '1.1.1w'
         description: 'OpenSSL version to use'
         required: true
         type: string
-      node_version:
-        default: '20'
-        description: 'Node.js version to use'
-        required: true
-        type: string
       python_version:
-        default: '3.11.5'
+        default: '3.11.7'
         description: 'Python version to use'
         required: true
         type: string
@@ -102,26 +84,6 @@ jobs:
           mv xule/plugin/* arelle/plugin/
       - name: Cleanup XULE
         run: rm -rf xule
-      - name: Checkout ixbrl-viewer
-        uses: actions/checkout@v4.1.1
-        with:
-          fetch-depth: 0
-          repository: Workiva/ixbrl-viewer
-          path: ixbrl-viewer
-          ref: ${{ inputs.ixbrl_viewer_ref }}
-      - name: Set up Node JS
-        uses: actions/setup-node@v4.0.1
-        with:
-          node-version: ${{ inputs.node_version }}
-      - name: Build ixbrl-viewer
-        working-directory: ixbrl-viewer
-        run: |
-          npm install
-          make prod
-      - name: Move ixbrl-viewer plugin
-        run: mv ixbrl-viewer/iXBRLViewerPlugin arelle/plugin/
-      - name: Cleanup ixbrl-viewer
-        run: rm -rf ixbrl-viewer
       - name: Docker setup buildx
         uses: docker/setup-buildx-action@v3.0.0
       - name: Docker build
@@ -149,7 +111,7 @@ jobs:
         run: |
           echo "ARTIFACT_NAME=arelle-ubuntu.tgz" >> $GITHUB_ENV
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4.0.0
+        uses: actions/upload-artifact@v4.3.0
         with:
           name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
           if-no-files-found: error
@@ -168,7 +130,7 @@ jobs:
           pytest -s --disable-warnings --all --download-cache --offline --arelle=".test_build/arelleCmdLine" tests/integration_tests/scripts/test_scripts.py
       - name: "[Test] Upload test artifacts"
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.3.0
         with:
-          name: 'test logs'
+          name: 'linux test logs'
           path: '.test/**/*.logfile.xml'

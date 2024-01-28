@@ -7,15 +7,6 @@ on:
         description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
-      ixbrl_viewer_ref:
-        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
-        required: false
-        type: string
-      node_version:
-        default: '20'
-        description: 'Node.js version to use'
-        required: false
-        type: string
       python_version:
         default: '3.11'
         description: 'Python version to use'
@@ -43,15 +34,6 @@ on:
       edgar_renderer_ref:
         description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
         required: false
-        type: string
-      ixbrl_viewer_ref:
-        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
-        required: false
-        type: string
-      node_version:
-        default: '20'
-        description: 'Node.js version to use'
-        required: true
         type: string
       python_version:
         default: '3.11'
@@ -102,24 +84,6 @@ jobs:
         mv xule\plugin\* arelle\plugin\
     - shell: cmd
       run: rmdir /s /q xule
-    - name: Checkout ixbrl-viewer
-      uses: actions/checkout@v4.1.1
-      with:
-        fetch-depth: 0
-        repository: Workiva/ixbrl-viewer
-        path: ixbrl-viewer
-        ref: ${{ inputs.ixbrl_viewer_ref }}
-    - name: Set up Node JS
-      uses: actions/setup-node@v4.0.1
-      with:
-        node-version: ${{ inputs.node_version }}
-    - name: Build ixbrl-viewer
-      working-directory: ixbrl-viewer
-      run: |
-        npm install
-        make prod
-    - shell: cmd
-      run: move ixbrl-viewer\iXBRLViewerPlugin arelle\plugin\iXBRLViewerPlugin && rmdir /s /q ixbrl-viewer
     - name: Set up Python ${{ inputs.python_version }}
       uses: actions/setup-python@v5.0.0
       with:
@@ -159,14 +123,14 @@ jobs:
       run: 7z a -tzip ..\..\${{ steps.define-artifact-names.outputs.zip_build_artifact_path }} *
     - name: Upload installer artifact
       id: upload-installer-artifact
-      uses: actions/upload-artifact@v4.0.0
+      uses: actions/upload-artifact@v4.3.0
       with:
         name: ${{ steps.define-artifact-names.outputs.exe_uploaded_artifact_name }}
         if-no-files-found: error
         path: ${{ steps.define-artifact-names.outputs.exe_build_artifact_path }}
     - name: Upload zip artifact
       id: upload-zip-artifact
-      uses: actions/upload-artifact@v4.0.0
+      uses: actions/upload-artifact@v4.3.0
       with:
         name: ${{ steps.define-artifact-names.outputs.zip_uploaded_artifact_name }}
         if-no-files-found: error
@@ -177,7 +141,7 @@ jobs:
         pytest -s --disable-warnings --all --download-cache --offline --arelle="${{ env.BUILD_PATH }}\arelleCmdLine.exe" tests/integration_tests/scripts/test_scripts.py
     - name: "[Test] Upload test artifacts"
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.3.0
       with:
-        name: 'test logs'
+        name: 'windows test logs'
         path: '.test/**/*.logfile.xml'

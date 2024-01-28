@@ -2,7 +2,9 @@
 See COPYRIGHT.md for copyright information.
 """
 import os
+import site
 import sys
+from importlib.metadata import entry_points
 
 from cx_Freeze import Executable, setup
 from setuptools import find_packages
@@ -22,6 +24,35 @@ includeFiles = [
     (os.path.normcase("arelle/locale"), "locale"),
     (os.path.normcase("arelle/plugin"), "plugin"),
 ]
+
+# Pip-installed plugins cannot be discovered in frozen builds because
+# the `ast` library can't parse `__pluginInfo__` from compiled .pyc files
+# Instead, pip-intalled plugins can be copied directly into the plugins folder
+
+# Built list of absolute paths to available pip packages
+packageDirectories = []
+sitePackagesDirectories = site.getsitepackages()
+for sitePackagesDirectory in sitePackagesDirectories:
+    if not sitePackagesDirectory.endswith('site-packages'):
+        continue
+    packageDirectories.extend([os.path.join(sitePackagesDirectory, x) for x in os.listdir(sitePackagesDirectory)])
+
+# For each entry point discovered, find the pip package containing it
+# and stage for copying into the plugins build directory
+if sys.version_info < (3, 10):
+    entryPoints = [e for e in entry_points().get('arelle.plugin', [])]
+else:
+    entryPoints = list(entry_points(group='arelle.plugin'))
+for entryPoint in entryPoints:
+    pluginUrl = entryPoint.load()()
+    pluginDirectory = None
+    for packageDirectory in packageDirectories:
+        if pluginUrl.startswith(packageDirectory):
+            pluginDirectory = packageDirectory
+            break
+    assert pluginDirectory, f"Corresponding package could not be found for plugin path: {pluginUrl}"
+    includeFiles.append((pluginDirectory, os.path.join('plugin', os.path.basename(pluginDirectory))))
+
 includeLibs = [
     "aniso8601",
     "graphviz",
@@ -43,6 +74,7 @@ includeLibs = [
     "pycountry",
     "pymysql",
     "regex",
+    "rdflib",
     "sqlite3",
     "tinycss2",
     "zlib",
@@ -89,6 +121,14 @@ elif sys.platform == MACOS_PLATFORM:
         "iconfile": "arelle/images/arelle.icns",
         "bundle_name": "Arelle",
     }
+    if codesignIdentity := os.environ.get('CODESIGN_IDENTITY'):
+        options["bdist_mac"].update({
+            "codesign_identity": codesignIdentity,
+            "codesign_deep": True,
+            "codesign_timestamp": True,
+            "codesign_verify": True,
+            "codesign_options": "runtime",
+        })
 elif sys.platform == WINDOWS_PLATFORM:
     guiExecutable = Executable(
         script="arelleGUI.pyw",
@@ -112,7 +152,7 @@ else:
 setup(
     executables=[guiExecutable, cliExecutable],
     options=options,
-    setup_requires=["setuptools_scm~=7.1"],
+    setup_requires=["setuptools_scm~=8.0"],
     use_scm_version={
         "tag_regex": r"^(?:[\w-]+-?)?(?P<version>[vV]?\d+(?:\.\d+){0,2}[^\+]*)(?:\+.*)?$",
         "write_to": os.path.normcase("arelle/_version.py"),

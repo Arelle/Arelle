@@ -19,7 +19,7 @@ POST = 'POST'
 
 def startWebserver(_cntlr, options):
     """Called once from main program in CmtlrCmdLine to initiate web server on specified local port.
-    To test WebServer run from source in IIS, use an entry like this: c:\python33\python.exe c:\\users\\myname\\mySourceFolder\\arelleCmdLine.py %s
+    To test WebServer run from source in IIS, use an entry like this: c:\\python33\\python.exe c:\\users\\myname\\mySourceFolder\\arelleCmdLine.py %s
 
     :param options: OptionParser options from parse_args of main argv arguments (the argument *webserver* provides hostname and port), port being used to startup the webserver on localhost.
     :type options: optparse.Values
@@ -582,7 +582,7 @@ document at c:/a/b/c.xbrl (on local drive) and return structured xml results.</t
 <tr><td style="text-align=right;">Example:</td><td><code>/rest/xbrl/validation?file=c:/a/b/c.xbrl&amp;media=xml</code>: Validate entry instance
 document at c:/a/b/c.xbrl (on local drive) and return structured xml results.</td></tr>
 ''')) +
-_('''
+_(r'''
 <tr><td></td><td>Parameters are optional after "?" character, and are separated by "&amp;" characters,
 as follows:</td></tr>
 <tr><td style="text-indent: 1em;">flavor</td><td><code>standard</code>: XBRL 2.1 and XDT validation.  (If formulas are present they will also be compiled and run.)  (default)
@@ -644,8 +644,8 @@ as follows:</td></tr>
 
 <tr><th colspan="2">Views</th></tr>
 <tr><td>/rest/xbrl/{file}/{view}</td><td>View document at {file}.</td></tr>
-<tr><td>\u00A0</td><td>{file} may be local or web url, and may have "/" characters replaced by ";" characters (but that is not necessary).</td></tr>
-<tr><td>\u00A0</td><td>{view} may be <code>DTS</code>, <code>concepts</code>, <code>pre</code>, <code>table</code>, <code>cal</code>, <code>dim</code>, <code>facts</code>, <code>factTable</code>, <code>formulae</code>, <code>roleTypes</code>, or <code>arcroleTypes</code>.</td></tr>
+<tr><td>&nbsp;</td><td>{file} may be local or web url, and may have "/" characters replaced by ";" characters (but that is not necessary).</td></tr>
+<tr><td>&nbsp;</td><td>{view} may be <code>DTS</code>, <code>concepts</code>, <code>pre</code>, <code>table</code>, <code>cal</code>, <code>dim</code>, <code>facts</code>, <code>factTable</code>, <code>formulae</code>, <code>roleTypes</code>, or <code>arcroleTypes</code>.</td></tr>
 <tr><td style="text-align=right;">Example:</td><td><code>/rest/xbrl/c:/a/b/c.xbrl/dim?media=html</code>: View dimensions of
 document at c:/a/b/c.xbrl (on local drive) and return html result.</td></tr>
 <tr><td>/rest/xbrl/view</td><td>(Alternative syntax) View document, file and view are provided as parameters (see below).</td></tr>

@@ -35,4 +35,4 @@ class ViewXml(ViewWinList.ViewList):
             import traceback
             Validate.validate(self.modelXbrl)
         except Exception as err:
-            self.modelXbrl.exception("exception", _("Validation exception: \s%(error)s"), error=err, exc_info=True)
+            self.modelXbrl.exception("exception", _(r"Validation exception: \s%(error)s"), error=err, exc_info=True)

@@ -36,6 +36,7 @@ docs/_build
 docs/source/apidocs
 obj/
 tests/resources/conformance_suites/*
+!tests/resources/conformance_suites/hmrc/
 !tests/resources/conformance_suites/nl_*/
 
 ### IDE-specific ignores

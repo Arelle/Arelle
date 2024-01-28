@@ -7,15 +7,6 @@ on:
         description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
-      ixbrl_viewer_ref:
-        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
-        required: false
-        type: string
-      node_version:
-        default: '20'
-        description: 'Node.js version to use'
-        required: false
-        type: string
       python_version:
         default: '3.11'
         description: 'Python version to use'
@@ -38,8 +29,6 @@ jobs:
     uses: ./.github/workflows/build-windows.yml
     with:
       edgar_renderer_ref: ${{ inputs.edgar_renderer_ref }}
-      ixbrl_viewer_ref: ${{ inputs.ixbrl_viewer_ref }}
-      node_version: ${{ inputs.node_version }}
       python_version: ${{ inputs.python_version }}
       xule_ref: ${{ inputs.xule_ref }}
   build-windows-pr:
@@ -70,12 +59,12 @@ jobs:
           fetch-depth: 0
       - name: Download installer artifact
         if: matrix.build-type == 'installer'
-        uses: actions/download-artifact@v4.1.0
+        uses: actions/download-artifact@v4.1.1
         with:
           name: ${{ env.exe_uploaded_artifact_name }}
       - name: Download ZIP artifact
         if: matrix.build-type == 'zip'
-        uses: actions/download-artifact@v4.1.0
+        uses: actions/download-artifact@v4.1.1
         with:
           name: ${{ env.zip_uploaded_artifact_name }}
 
@@ -129,21 +118,21 @@ jobs:
 
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@v4.0.0
+        uses: actions/upload-artifact@v4.3.0
         with:
           name: logs-${{ matrix.build-type }}
           path: 'c:\temp\testsmedia\*.txt'
       - name: Upload screenshots
         # screenshots are only taken on test failure
         if: failure()
-        uses: actions/upload-artifact@v4.0.0
+        uses: actions/upload-artifact@v4.3.0
         with:
           name: screenshots-${{ matrix.build-type }}
           path: 'c:\temp\testsmedia\*.png'
       - name: Upload videos
         # videos are only saved on test failure
         if: failure()
-        uses: actions/upload-artifact@v4.0.0
+        uses: actions/upload-artifact@v4.3.0
         with:
           name: videos-${{ matrix.build-type }}
           path: 'c:\temp\testsmedia\*.avi'

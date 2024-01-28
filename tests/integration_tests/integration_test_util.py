@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import locale
 import os.path
+import re
 from collections import Counter
 from pathlib import PurePath
 from typing import TYPE_CHECKING, cast
@@ -39,6 +41,7 @@ def get_test_data(
         expected_failure_ids: frozenset[str] = frozenset(),
         expected_empty_testcases: frozenset[str] = frozenset(),
         expected_model_errors: frozenset[str] = frozenset(),
+        required_locale_by_ids: dict[str, re.Pattern[str]] | None = None,
         strict_testcase_index: bool = True,
 ) -> list[ParameterSet]:
     """
@@ -48,11 +51,15 @@ def get_test_data(
     :param expected_failure_ids: The set of string test IDs that are expected to fail
     :param expected_empty_testcases: The set of paths of empty testcases, relative to the suite zip
     :param expected_model_errors: The set of error codes expected to be in the ModelXbrl errors
+    :param required_locale_by_ids: The dict of IDs for tests which require a system locale matching a regex pattern.
     :param strict_testcase_index: Don't allow IOerrors when loading the testcase index
     :return: A list of PyTest Params that can be used to run a parameterized pytest function
     """
+    if required_locale_by_ids is None:
+        required_locale_by_ids = {}
     cntlr = parseAndRun(args)  # type: ignore[no-untyped-call]
     try:
+        system_locale = locale.setlocale(locale.LC_CTYPE)
         results = []
         test_cases_with_no_variations = set()
         test_cases_with_unrecognized_type = {}
@@ -74,6 +81,7 @@ def get_test_data(
             test_cases = sorted(referenced_documents, key=lambda doc: doc.uri)
         elif model_document.type == ModelDocument.Type.INSTANCE:
             test_id = get_document_id(model_document)
+            expected_failure = isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale)
             model_errors = sorted(cntlr.modelManager.modelXbrl.errors)
             expected_model_errors_list = sorted(expected_model_errors)
             param = pytest.param(
@@ -83,7 +91,7 @@ def get_test_data(
                     'actual': model_errors
                 },
                 id=test_id,
-                marks=[pytest.mark.xfail()] if test_id in expected_failure_ids else []
+                marks=[pytest.mark.xfail()] if expected_failure else [],
             )
             results.append(param)
         else:
@@ -97,6 +105,7 @@ def get_test_data(
             else:
                 for mv in test_case.testcaseVariations:
                     test_id = f'{test_case_file_id}:{mv.id}'
+                    expected_failure = isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale)
                     param = pytest.param(
                         {
                             'status': mv.status,
@@ -104,7 +113,7 @@ def get_test_data(
                             'actual': mv.actual
                         },
                         id=test_id,
-                        marks=[pytest.mark.xfail()] if test_id in expected_failure_ids else []
+                        marks=[pytest.mark.xfail()] if expected_failure else [],
                     )
                     results.append(param)
         if test_cases_with_unrecognized_type:
@@ -122,8 +131,24 @@ def get_test_data(
         nonexistent_expected_failure_ids = expected_failure_ids - test_id_frequencies.keys()
         if nonexistent_expected_failure_ids:
             raise Exception(f"Some expected failure IDs don't match any test cases: {sorted(nonexistent_expected_failure_ids)}.")
+        nonexistent_required_locale_testcase_ids = required_locale_by_ids.keys() - test_id_frequencies.keys()
+        if nonexistent_required_locale_testcase_ids:
+            raise Exception(f"Some required locale IDs don't match any test cases: {sorted(nonexistent_required_locale_testcase_ids)}.")
         return results
     finally:
         cntlr.modelManager.close()
         PackageManager.close()  # type: ignore[no-untyped-call]
         PluginManager.close()  # type: ignore[no-untyped-call]
+
+
+def isExpectedFailure(
+        test_id: str,
+        expected_failure_ids: frozenset[str],
+        required_locale_by_ids: dict[str, re.Pattern[str]],
+        system_locale: str,
+) -> bool:
+    if test_id in expected_failure_ids:
+        return True
+    if test_id in required_locale_by_ids:
+        return not required_locale_by_ids[test_id].search(system_locale)
+    return False

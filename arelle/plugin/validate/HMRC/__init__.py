@@ -17,6 +17,8 @@ from arelle.XbrlConst import xbrli, qnXbrliXbrl
 import regex as re
 from collections import defaultdict
 
+from .ValidateHmrc import ValidateHmrc
+
 FRC_URL_DOMAIN = "http://xbrl.frc.org.uk/"
 memNameNumPattern = re.compile(r"^([A-Za-z-]+)([0-9]+)$")
 compTxmyNamespacePattern = re.compile(r"http://www.govtalk.gov.uk/uk/fr/tax/uk-hmrc-ct/[0-9-]{10}")
@@ -25,126 +27,125 @@ styleImgUrlPattern = re.compile(r"[a-z]+-image:\s*url[(][^)]+[)]")
 EMPTYDICT = {}
 _6_APR_2008 = dateTime("2008-04-06", type=DATE)
 
-commonMandatoryItems = {
-    "EntityCurrentLegalOrRegisteredName", "StartDateForPeriodCoveredByReport",
-    "EndDateForPeriodCoveredByReport", "BalanceSheetDate"}
+COMMON_GENERIC_DIMENSIONS = {
+    "Chairman": ("NameEntityOfficer",),
+    "ChiefExecutive": ("NameEntityOfficer",),
+    "ChairmanChiefExecutive": ("NameEntityOfficer",),
+    "SeniorPartnerLimitedLiabilityPartnership": ("NameEntityOfficer",),
+    "HighestPaidDirector": ("NameEntityOfficer",),
+    "CompanySecretary": (1, 2, "NameEntityOfficer",),
+    "CompanySecretaryDirector": (1, 2, "NameEntityOfficer",),
+    "Director": (1, 40, "NameEntityOfficer",),
+    "PartnerLLP": (1, 20, "NameEntityOfficer"),
+    "ReportableOperatingSegment": (1, 20, "NameIndividualSegment"),
+    "ProductService": (1, 12, "NameIndividualSegment"),
+    "MajorCustomer": (1, 12, "NameIndividualSegment"),
+    "SpecificBusinessCombination": (1, 10, "NameAcquiredEntity"),
+    "ConsumableBiologicalAssetClass": (1, 5, "NameOrDescriptionBiologicalAssetClass"),
+    "BearerBiologicalAssetClass": (1, 5, "NameOrDescriptionBiologicalAssetClass"),
+    "Subsidiary": (1, 200, "NameSubsidiary"),
+    "Associate": (1, 50, "NameAssociate"),
+    "JointVenture": (1, 50, "NameJointVenture"),
+    "UnconsolidatedStructuredEntity": (1, 5, "NameUnconsolidatedStructuredEntity"),
+    "IntermediateParent": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+    "EntityWithJointControlOrSignificantInfluence": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+    "AnotherGroupMember": (1, 8, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+    "KeyManagementIndividualGroup": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+    "CloseFamilyMember": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+    "EntityControlledByKeyManagementPersonnel": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+    "OtherRelatedPartyRelationshipType1ComponentTotalRelatedParties": ("NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag",),
+    "OtherRelatedPartyRelationshipType2ComponentTotalRelatedParties": ("NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag",),
+    "OrdinaryShareClass": (1, 5, "DescriptionShareType"),
+    "PreferenceShareClass": (1, 5, "DescriptionShareType"),
+    "DeferredShareClass": (1, 5, "DescriptionShareType"),
+    "OtherShareClass": (1, 5, "DescriptionShareType"),
+    "Share-basedArrangement": (1, 8, "NameShare-basedPaymentArrangement"),
+    "Grant": (1, 10, "NameOrDescriptionGrantUnderShare-basedPaymentArrangement"),
+    "PensionPlan": (1, 6, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
+    "Post-employmentMedicalPlan": (1, 2, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
+    "OtherPost-employmentBenefitPlan": (1, 2, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
+    "OtherContractType": (1, 2, "DescriptionOtherContractType"),
+    "OtherDurationType": (1, 2, "DescriptionOtherContractDurationType"),
+    "SalesChannel": (1, 2, "DescriptionOtherSalesChannelType"),
+}
 
-COMMON_MANDATORY_FRS_ITEMS = commonMandatoryItems | {
+COMMON_MANDATORY_ITEMS = {
+    "EntityCurrentLegalOrRegisteredName", "StartDateForPeriodCoveredByReport",
+    "EndDateForPeriodCoveredByReport", "BalanceSheetDate"
+}
+
+COMMON_MANDATORY_FRS_ITEMS = COMMON_MANDATORY_ITEMS | {
     "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements",
     "EntityDormantTruefalse", "EntityTradingStatus",
     "AccountingStandardsApplied", "AccountsStatusAuditedOrUnaudited",
     "LegalFormEntity", "DescriptionPrincipalActivities"
 }
-mandatoryItems = {
-    "ukGAAP": commonMandatoryItems | {
+
+MANDATORY_ITEMS = {
+    "ukGAAP": COMMON_MANDATORY_ITEMS | {
         "DateApprovalAccounts", "NameDirectorSigningAccounts", "EntityDormant", "EntityTrading",
         "DateSigningDirectorsReport", "DirectorSigningReport"
         },
-    "charities": commonMandatoryItems | {
+    "charities": COMMON_MANDATORY_ITEMS | {
         "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements",
         "EntityDormantTruefalse", "EntityTradingStatus",
-        "AccountingStandardsApplied", "AccountingStandardsApplied"},
-    "ukIFRS": commonMandatoryItems | {
+        "AccountingStandardsApplied", "AccountsStatusAuditedOrUnaudited"},
+    "ukIFRS": COMMON_MANDATORY_ITEMS | {
         "DateAuthorisationFinancialStatementsForIssue", "ExplanationOfBodyOfAuthorisation",
         "EntityDormant", "EntityTrading", "DateSigningDirectorsReport", "DirectorSigningReport"},
     "FRS": COMMON_MANDATORY_FRS_ITEMS | {"AccountsTypeFullOrAbbreviated"},
     "FRS-2022": COMMON_MANDATORY_FRS_ITEMS | {"AccountsType"}
 }
 
-genericDimensionValidation = {
-    # "taxonomyType": { "LocalName": (range of numbers if any, first item name, 2nd choice item name if any)
-    "ukGAAP": {"Acquisition": (1,10,"NameAcquisition"),
-        "Associate": (1,30,"NameAssociate"),
-        "BusinessSegment": (1,30,"NameBusinessSegment", "DescriptionBusinessSegment"),
-        "Disposal": (1,10,"NameOrDescriptionDisposal"),
-        "Joint-venture": (1,30,"NameJoint-venture"),
-        "OtherInvestment": (1,5,"NameOtherParticipatingInterestOrInvestment",    "DescriptionOtherParticipatingInterestOrInvestment"),
-        "OtherParticipatingInterest1": (1,5,"NameOtherParticipatingInterestOrInvestment",    "DescriptionOtherParticipatingInterestOrInvestment"),
-        "PensionScheme": (1,8,"NameDefinedContributionScheme","DescriptionContributionScheme"),
-        "Post-employmentMedicalScheme": (1,4,"NameDefinedBenefitScheme"    "DescriptionDefinedBenefitScheme"),
-        "Share-basedScheme": (1,8,"NameShare-basedArrangement","DescriptionShare-basedArrangement"),
-        "Subsidiary": (1,30, "NameSubsidiary"),
-        "Quasi-subsidiary": (1,10, "NameSubsidiary")},
-    "ukIFRS":    {"Associate": (1,50, "NameAssociate"),
-        "Joint-venture": (1,50, "NameJoint-venture"),
-        "MajorCustomer": (1,12,"NameIndividualSegmentMember"),
-        "PensionScheme": (1,10,"NameDefinedContributionScheme","DescriptionContributionScheme"),
-        "Post-employmentMedicalScheme": (1,4, "NameDefinedBenefitScheme", "DescriptionDefinedBenefitScheme"),
-        "ProductService": (1,12,"NameIndividualSegmentMember"),
-        "ReportableOperatingSegment": (1,20,"NameIndividualSegmentMember"),
-        "Share-basedScheme": (1,8,"NameShare-basedPaymentArrangement"),
-        "SpecificBusinessCombination": (1,10,"NameOfAcquiree"),
-        "SpecificDiscontinuedOperation": (1,8,"DescriptionNon-currentAssetOrDisposalGroup",     "DescriptionFactsCircumstancesSaleOrExpectedDisposal"),
-        "SpecificDisposalGroupHeldForSale": (1,8,"DescriptionNon-currentAssetOrDisposalGroup",    "DescriptionFactsCircumstancesSaleOrExpectedDisposal"),
-        "Subsidiary": (1,50,"NameSubsidiary")},
-    "business":    {"Director": (1,40,"NameEntityOfficer"),
-        "Chairman": ("NameEntityOfficer",),
-        "ChiefExecutive": ("NameEntityOfficer",),
-        "ChairmanChiefExecutive":  ("NameEntityOfficer",),
-        "ChiefPartnerLimitedLiabilityPartnership": ("NameEntityOfficer",),
-        "CompanySecretary": ("NameEntityOfficer",),
-        "CompanySecretaryDirector": ("NameEntityOfficer",),
-        "OrdinaryShareClass": (1,5,"DescriptionShareType"),
-        "PartnerLLP": (1,20,"NameEntityOfficer"),
-        "PreferenceShareClass": (1,5,"DescriptionShareType"),
-        "JointAgent": (1,3,"NameThirdPartyAgent"),
-        "PrincipalAgent": ("NameThirdPartyAgent",),
-        "Chairman": ("NameEntityOfficer",),
-        "ChiefExecutive": ("NameEntityOfficer",),
-        "ChairmanChiefExecutive": ("NameEntityOfficer",),
-        "SeniorPartnerLimitedLiabilityPartnership": ("NameEntityOfficer",),
-        "CompanySecretary1": ("NameEntityOfficer",),
-        "CompanySecretary2": ("NameEntityOfficer",),
-        "CompanySecretaryDirector1": ("NameEntityOfficer",),
-        "CompanySecretaryDirector2": ("NameEntityOfficer",),
-        "Director": (1,40,"NameEntityOfficer"),
-        "PartnerLLP": (1,20,"NameEntityOfficer"),
-        "OrdinaryShareClass": (1,5, "DescriptionShareType"),
-        "PreferenceShareClass": (1,5, "DescriptionShareType"),
-        "DeferredShareClass": (1,5, "DescriptionShareType"),
-        "OtherShareClass": (1,4, "DescriptionShareType")},
-    "charities":    {"Trustee": (1,40,"NameTrustee"),
-        "ChairTrustees": ("NameTrustee",),
-        "ChiefExecutiveCharity": ("NameTrustee",)},
-    "dpl":    {"CombinedCross-sectorActivities": (1,4, "DescriptionActivity"),
-        "OtherSpecificActivity": (1,5, "DescriptionActivity")},
-    "FRS":    {"SpecificDiscontinuedOperation": (1,8,"DescriptionDiscontinuedOperationOrNon-currentAssetsOrDisposalGroupHeldForSale"),
-        "SpecificNon-currentAssetsDisposalGroupHeldForSale": (1,8,"DescriptionDiscontinuedOperationOrNon-currentAssetsOrDisposalGroupHeldForSale"),
-        "ReportableOperatingSegment": (1,20,"NameIndividualSegment"),
-        "ProductService": (1,12, "NameIndividualSegment"),
-        "MajorCustomer": (1,12, "NameIndividualSegment"),
-        "SpecificBusinessCombination": (1,10, "NameAcquiredEntity"),
-        "ConsumableBiologicalAssetClass": (1,5, "NameOrDescriptionBiologicalAssetClass"),
-        "BearerBiologicalAssetClass": (1,5, "NameOrDescriptionBiologicalAssetClass"),
-        "Subsidiary": (1,50, "NameSubsidiary"),
-        "Associate": (1,50, "NameAssociate"),
-        "JointVenture": (1,50, "NameJointVenture"),
-        "UnconsolidatedStructuredEntity": (1,5, "NameUnconsolidatedStructuredEntity"),
-        "IntermediateParent": (1,5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-        "EntityWithJointControlOrSignificantInfluence": (1,5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-        "OtherGroupMember": (1,8, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-        "KeyManagementIndividualGroup": (1,5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-        "CloseFamilyMember": (1,5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-        "EntityControlledByKeyManagementPersonnel": (1,5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-        "OtherRelatedPartyRelationshipType1ComponentTotalRelatedParties": ("NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag",),
-        "OtherRelatedPartyRelationshipType2ComponentTotalRelatedParties": ("NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag",),
-        "Share-basedArrangement": (1,8, "NameShare-basedPaymentArrangement"),
-        "Grant": (1,10, "NameOrDescriptionGrantUnderShare-basedPaymentArrangement"),
-        "PensionPlan": (1,6, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
-        "Post-employmentMedicalPlan": (1,2, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
-        "OtherPost-employmentBenefitPlan": (1,2, "NameDefinedContributionPlan", "NameDefinedBenefitPlan")}}
+MUST_HAVE_ONE_ITEM = {
+    "charities": {
+        "CharityRegistrationNumberEnglandWales", "CharityRegistrationNumberScotland",
+        "CharityRegistrationNumberNorthernIreland",
+    }
+}
 
-allowedImgMimeTypes = (
+GENERIC_DIMENSION_VALIDATION = {
+    # "taxonomyType": { "LocalName": (range of numbers if any, first item name, 2nd choice item name if any)
+    "ukGAAP": COMMON_GENERIC_DIMENSIONS,
+    "ukIFRS": COMMON_GENERIC_DIMENSIONS,
+    "charities": {
+        **COMMON_GENERIC_DIMENSIONS,
+        **{
+            "Trustee": (1, 20, "NameEntityOfficer"),
+            "CorporateTrustee": (1, 3, "NameEntityOfficer"),
+            "CustodianTrustee": (1, 3, "NameEntityOfficer"),
+            "Director1CorporateTrustee": ("NameEntityOfficer",),
+            "Director2CorporateTrustee": ("NameEntityOfficer",),
+            "Director3CorporateTrustee": ("NameEntityOfficer",),
+            "TrusteeTrustees": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+            "CloseFamilyMemberTrusteeTrustees": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+            "EntityControlledTrustees": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+            "Activity": (1, 50, "DescriptionActivity"),
+            "MaterialFund": (1, 50, "DescriptionsMaterialFund"),
+            "LinkedCharity": (1, 5, "DescriptionActivitiesLinkedCharity"),
+            "NameGrantRecipient": (1, 50, "NameSpecificInstitutionalGrantRecipient"),
+            "ConcessionaryLoan": (1, 50, "DescriptionConcessionaryLoan"),
+        }
+    },
+    "FRS": COMMON_GENERIC_DIMENSIONS,
+    "FRS-2022": COMMON_GENERIC_DIMENSIONS
+}
+
+ALLOWED_IMG_MIME_TYPES = (
         "data:image/gif;base64",
         "data:image/jpeg;base64", "data:image/jpg;base64", # note both jpg and jpeg are in use
-        "data:image/png;base64")
+        "data:image/png;base64"
+)
+
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("HMRC", "HMRCplugin"),)
 
+
 def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
     return os.path.join(os.path.dirname(__file__), "config.xml")
+
 
 def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateHMRCplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "HMRCplugin", False)
@@ -168,11 +169,11 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         ns = doc.targetNamespace
         if not ns:
             continue
-        if ns.startswith("http://www.xbrl.org/uk/char/"):
+        if ns.startswith("http://www.xbrl.org/uk/char/") or ns.startswith("http://xbrl.frc.org.uk/char/"):
             val.txmyType = "charities"
         elif ns.startswith("http://www.xbrl.org/uk/gaap/"):
             val.txmyType = "ukGAAP"
-        elif ns.startswith("http://www.xbrl.org/uk/ifrs/"):
+        elif ns.startswith("http://www.xbrl.org/uk/ifrs/") or ns.startswith("https://xbrl.frc.org.uk/IFRS/"):
             val.txmyType = "ukIFRS"
         elif ns.startswith(FRC_URL_DOMAIN):
             val.txmyType = "FRS"
@@ -212,7 +213,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             scheme, identifier = c1.entityIdentifier
             if scheme == "http://www.companieshouse.gov.uk/":
                 companyReferenceNumberContexts[identifier].append(c1.id)
-
+        atLeastOneFacts = {}
         uniqueFacts = {}  # key = (qname, context hash, unit hash, lang)
         mandatoryFacts = {}
         mandatoryGDV = defaultdict(set)
@@ -234,10 +235,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                     else:
                         l = _memName
                         n = None
-                    for _gdvType in (val.txmyType, "business"):
-                        gdv = genericDimensionValidation.get(_gdvType,EMPTYDICT).get(l)
-                        if gdv: # take first match
-                            break
+                    gdv = GENERIC_DIMENSION_VALIDATION.get(val.txmyType, EMPTYDICT).get(l)
                     if (gdv and (n is None or
                                  (isinstance(gdv[0],int) and isinstance(gdv[1],int) and n >= gdv[0] and n <= gdv[1]))):
                         gdvFacts = [f for f in gdv if isinstance(f,str)]
@@ -263,8 +261,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                 if (f.isNil or getattr(f,"xValid", 0) >= 4) and cntx is not None and f.concept is not None and f.concept.type is not None:
                     factNamespaceURI = f.qname.namespaceURI
                     factLocalName = f.qname.localName
-                    if factLocalName in mandatoryItems[val.txmyType]:
+                    if factLocalName in MANDATORY_ITEMS[val.txmyType]:
                         mandatoryFacts[factLocalName] = f
+                    if val.txmyType in MUST_HAVE_ONE_ITEM and factLocalName in MUST_HAVE_ONE_ITEM[val.txmyType]:
+                        atLeastOneFacts[factLocalName] = f
                     if factLocalName == "UKCompaniesHouseRegisteredNumber" and val.isAccounts:
                         if hasCompaniesHouseContext:
                             mandatoryFacts[factLocalName] = f
@@ -302,7 +302,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     except (ValueError,TypeError):
                                         modelXbrl.error("HMRC.SG.4.5",
                                             _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
-                                            modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
+                                            modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals, value=f.value)
                         except AttributeError:
                             pass  # if not validated it should have failed with a schema error
 
@@ -338,13 +338,17 @@ def validateXbrlFinally(val, *args, **kwargs):
         checkFacts(modelXbrl.facts)
 
         if val.isAccounts:
-            _missingItems = mandatoryItems[val.txmyType] - mandatoryFacts.keys()
+            _missingItems = MANDATORY_ITEMS[val.txmyType] - mandatoryFacts.keys()
             if hasCompaniesHouseContext and "UKCompaniesHouseRegisteredNumber" not in mandatoryFacts:
                 _missingItems.add("UKCompaniesHouseRegisteredNumber")
             if _missingItems:
                 modelXbrl.error("JFCVC.3312",
                     _("Facts are MANDATORY: %(missingItems)s"),
                     modelObject=modelXbrl, missingItems=", ".join(sorted(_missingItems)))
+            if not atLeastOneFacts and val.txmyType in MUST_HAVE_ONE_ITEM:
+                modelXbrl.error("JFCVC.3312.atLeastOne",
+                                _("At least one of the facts is MANDATORY: %(missingItems)s"),
+                                modelObject=modelXbrl, missingItems=", ".join(sorted(MUST_HAVE_ONE_ITEM[val.txmyType])))
 
             ''' removed with JFCVC v4.0 2020-06-09
             f = mandatoryFacts.get("StartDateForPeriodCoveredByReport")
@@ -437,7 +441,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                     modelXbrl.error("HMRC.SG.3.3",
                         _("Element %(localName)s javascript %(javascript)s is disallowed."),
                         modelObject=elt, localName=localName, javascript=attrValue[:64])
-                if localName == "img" and not any(attrValue.startswith(m) for m in allowedImgMimeTypes):
+                if localName == "img" and not any(attrValue.startswith(m) for m in ALLOWED_IMG_MIME_TYPES):
                     modelXbrl.error("HMRC.SG.3.8",
                         _("Image scope must be base-64 encoded string (starting with data:image/*;base64), *=gif, jpeg or png.  src disallowed: %(src)s."),
                         modelObject=elt, src=attrValue[:128])
@@ -452,8 +456,13 @@ def validateXbrlFinally(val, *args, **kwargs):
                     _("Element %(elt)s style attribute has disallowed image reference: %(styleImage)s."),
                     modelObject=elt, elt=elt.tag.rpartition("}")[2], styleImage=match)
 
+    if val.txmyType != "charities":
+        hmrc = ValidateHmrc(modelXbrl)
+        hmrc.validate()
+
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
+
 
 class GDV:
     def __init__(self, fact, altFact, memLocalName):
@@ -476,6 +485,7 @@ class GDV:
 
     def __ne__(self,other):
         return not self.__eq__(other)
+
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading

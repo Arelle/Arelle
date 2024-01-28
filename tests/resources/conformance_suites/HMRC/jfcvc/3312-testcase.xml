@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="JFCVC.3312"
+  description="There are various required facts depending on the taxonomies used."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="mandatory-pick-one-facts" name="Mandatory Pick One Facts">
+    <description>
+      The document is missing a required fact.
+    </description>
+    <data>
+        <instance readMeFirst="true">3312-invalid-at-least-one.xbrl</instance>
+    </data>
+    <result>
+      <error>JFCVC.3312.atLeastOne</error>
+    </result>
+  </variation>
+  <variation id="mandatory-facts" name="Mandatory Facts">
+    <description>
+      The document is missing required facts.
+    </description>
+    <data>
+      <instance readMeFirst="true">3312-invalid-mandatory.xbrl</instance>
+    </data>
+    <result>
+      <error>JFCVC.3312</error>
+    </result>
+  </variation>
+</testcase>

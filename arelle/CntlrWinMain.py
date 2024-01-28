@@ -5,7 +5,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
-from arelle import PythonUtil # define 2.x or 3.x string types
+from arelle import ValidateDuplicateFacts
 import os, sys, subprocess, pickle, time, locale, fnmatch, platform, webbrowser
 import regex as re
 
@@ -165,6 +165,10 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateUtr = BooleanVar(value=self.modelManager.validateUtr)
         self.validateUtr.trace("w", self.setValidateUtr)
         validateMenu.add_checkbutton(label=_("Unit Type Registry validation"), underline=0, variable=self.validateUtr, onvalue=True, offvalue=False)
+
+        self.validateDuplicateFacts = None
+        self.buildValidateDuplicateFactsMenu(validateMenu)
+
         for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.Validation"):
             pluginMenuExtender(self, validateMenu)
 
@@ -393,7 +397,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             w = screenW
             h = screenH
         else:
-            priorGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)",self.config.get('windowGeometry'))
+            priorGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)",self.config.get('windowGeometry'))
             if priorGeometry and priorGeometry.lastindex >= 4:
                 try:
                     w = int(priorGeometry.group(1))
@@ -452,6 +456,25 @@ class CntlrWinMain (Cntlr.Cntlr):
             lastArg = arg
         self.setValidateTooltipText()
 
+    def buildValidateDuplicateFactsMenu(self, validateMenu: Menu) -> None:
+        defaultArg = ValidateDuplicateFacts.DuplicateTypeArg.NONE.value
+        validateDuplicateFactsStr = self.config.setdefault("validateDuplicateFacts", defaultArg)
+        try:
+            duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(validateDuplicateFactsStr)
+        except ValueError:
+            duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(defaultArg)
+        self.modelManager.validateDuplicateFacts = duplicateTypeArg.duplicateType()
+        self.validateDuplicateFacts = StringVar(value=duplicateTypeArg.value)
+        self.validateDuplicateFacts.trace("w", self.setValidateDuplicateFacts)
+        duplicateFactWarningMenu = Menu(validateMenu, tearoff=0)
+        for duplicateTypeArg in ValidateDuplicateFacts.DuplicateTypeArg:
+            duplicateFactWarningMenu.add_checkbutton(
+                label=duplicateTypeArg.value.title(),
+                variable=self.validateDuplicateFacts,
+                underline=0,
+                onvalue=duplicateTypeArg.value
+            )
+        validateMenu.add_cascade(label="Warn on duplicate facts", menu=duplicateFactWarningMenu, underline=0)
 
     def onTabChanged(self, event, *args):
         try:
@@ -1124,6 +1147,15 @@ class CntlrWinMain (Cntlr.Cntlr):
 
     def restart(self, event=None):
         self.quit(event, restartAfterQuit=True)
+
+    def setValidateDuplicateFacts(self, *args):
+        value = self.validateDuplicateFacts.get()
+        duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(value)
+        self.modelManager.validateDuplicateFacts = duplicateTypeArg.duplicateType()
+        self.config["validateDuplicateFacts"] = value
+        self.addToLog('ModelManager.validateDuplicateFacts = {}'.format(
+            self.modelManager.validateDuplicateFacts), messageCode='debug', level=logging.DEBUG)
+        self.saveConfig()
 
     def setWorkOffline(self, *args):
         self.webCache.workOffline = self.workOffline.get()

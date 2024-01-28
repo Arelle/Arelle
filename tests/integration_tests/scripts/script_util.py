@@ -5,10 +5,12 @@ import os
 import shlex
 import subprocess
 import sys
+from collections import defaultdict
 from os import linesep
 from pathlib import Path
 from typing import cast, Iterable, Any
 
+import regex
 from lxml import etree
 
 from tests.integration_tests.download_cache import download_and_apply_cache
@@ -86,10 +88,31 @@ def run_arelle(
 
 
 def validate_log_file(
-    logfile_path: Path
+    logfile_path: Path,
+    expected_results: dict[str, dict[regex.Pattern[str], int]] | None = None,
 ) -> list[str]:
     if not logfile_path.exists():
         return [f'Log file "{logfile_path}" not found.']
+    expected_results = expected_results or {}
+    if "error" not in expected_results:
+        expected_results["error"] = {}
     tree = etree.parse(logfile_path)
-    matches = cast(Iterable[Any], tree.xpath("//log/entry[@level='error']/message/text()"))
-    return [str(x) for x in matches]
+    level_messages = {}
+    for level in expected_results:
+        level_messages[level] = cast(Iterable[Any], tree.xpath(f"//log/entry[@level='{level}']/message/text()"))
+    results = []
+    actual_results: dict[str, dict[regex.Pattern[str], int]] = defaultdict(lambda: defaultdict(int))
+    for level, messages in level_messages.items():
+        for message in messages:
+            any_match = False
+            for pattern, expected_count in expected_results[level].items():
+                if pattern.match(message):
+                    any_match = True
+                    actual_results[level][pattern] += 1
+            if not any_match and level == 'error':
+                results.append(message)
+        for pattern, expected_count in expected_results[level].items():
+            actual_count = actual_results[level][pattern]
+            if actual_count != expected_count:
+                results.append(f'Expected {expected_count} occurrence(s) of {level} "{pattern}" but found {actual_count}.')
+    return results

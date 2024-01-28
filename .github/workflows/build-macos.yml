@@ -12,15 +12,6 @@ on:
         description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
-      ixbrl_viewer_ref:
-        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
-        required: false
-        type: string
-      node_version:
-        default: '20'
-        description: 'Node.js version to use'
-        required: false
-        type: string
       python_version:
         default: '3.11'
         description: 'Python version to use'
@@ -47,15 +38,6 @@ on:
       edgar_renderer_ref:
         description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
         required: false
-        type: string
-      ixbrl_viewer_ref:
-        description: 'Workiva/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
-        required: false
-        type: string
-      node_version:
-        default: '20'
-        description: 'Node.js version to use'
-        required: true
         type: string
       python_version:
         default: '3.11'
@@ -107,22 +89,6 @@ jobs:
           rm -rf tmp/plugin/validate
           mv tmp/plugin/* arelle/plugin/
           rm -rf tmp
-      - uses: actions/checkout@v4.1.1
-        with:
-          fetch-depth: 0
-          repository: Workiva/ixbrl-viewer
-          path: tmp/ixbrl-viewer
-          ref: ${{ inputs.ixbrl_viewer_ref }}
-      - uses: actions/setup-node@v4.0.1
-        with:
-          node-version: ${{ inputs.node_version }}
-      - run: |
-          cd tmp/ixbrl-viewer
-          npm install
-          make prod
-          cd ../..
-          mv tmp/ixbrl-viewer/iXBRLViewerPlugin arelle/plugin/
-          rm -rf tmp
       - name: Capture build version
         run: echo "BUILD_VERSION=$(python -W ignore distro.py --version)" >> $GITHUB_ENV
       - name: Define artifact names
@@ -131,11 +97,7 @@ jobs:
           echo "artifact_versioned_name=arelle-macos-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_OUTPUT
           echo "uploaded_artifact_name=macos distribution" >> $GITHUB_OUTPUT
           echo "DMG_BUILD_ARTIFACT_PATH=dist_dmg/arelle-macos-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_ENV
-      - name: Build app
-        run: ./scripts/buildMacDist.sh
-      - name: Remove git directories
-        run: find build/Arelle.app/Contents -name .git -exec rm -fR {} \;
-      - name: Install certificate and sign code
+      - name: Install certificate
         if: ${{ inputs.codesign_and_notarize }}
         env:
           MAC_BUILD_CERTIFICATE_BASE64: ${{ secrets.MAC_BUILD_CERTIFICATE_BASE64 }}
@@ -160,49 +122,11 @@ jobs:
           security find-identity
           security find-certificate -a -p | openssl x509 -subject -noout
           echo MAC_BUILD_CERTIFICATE_NAME="$MAC_BUILD_CERTIFICATE_NAME"
-
-          # Move python modules to Resources
-          for f in archive config doc examples images locale plugin scripts Tktable2.11 ;
-            do
-              mv build/Arelle.app/Contents/MacOS/$f build/Arelle.app/Contents/Resources/
-            done
-          mkdir build/Arelle.app/Contents/Resources/lib
-          ls build/Arelle.app/Contents/MacOS/lib | \
-            fgrep -vx --regexp={Python,encodings,codecs,collections,importlib,matplotlib,re,zlib,library.zip} | \
-            grep -v '\.so$' | \
-            while IFS= read -r f
-            do
-              mv build/Arelle.app/Contents/MacOS/lib/$f build/Arelle.app/Contents/Resources/lib/
-            done
-
-          # Code signing (*.so, *.dylib, etc)
-          for i in $(find build/Arelle.app -type f -perm +111 -exec file "{}" \; | \
-            grep -v "(for architecture" | \
-            grep -v -E "^- Mach-O" | \
-            grep -E "Mach-O executable|Mach-O 64-bit executable|Mach-O 64-bit bundle|Mach-O 64-bit dynamically linked shared library" | \
-            awk -F":" '{print $1}' | \
-            uniq)
-          do
-            codesign --deep --force --verify --verbose --timestamp \
-            --options runtime \
-            --sign "$MAC_BUILD_CERTIFICATE_NAME" \
-            "$i"
-          done
-
-          find build/Arelle.app -type f -name "*.dylib*" -exec \
-            codesign --deep --force --verify --verbose --timestamp \
-            --options runtime \
-            --sign "$MAC_BUILD_CERTIFICATE_NAME" \
-            {} \;
-
-          # Create symlinks (some libraries can't be code signed in /MacOS but need to be found within it)
-          ln -s ../../Resources/lib/tkinter build/Arelle.app/Contents/MacOS/lib/tkinter
-          # Symlink plugins folder so /Resources/plugin is found when searching in default /MacOS/plugin location
-          ln -s ../Resources/plugin build/Arelle.app/Contents/MacOS/plugin
-
-          # Executable code signing (slightly redundant, but ensures all necessary files are code signed)
-          codesign --options runtime --force --deep --timestamp -s "$MAC_BUILD_CERTIFICATE_NAME" build/Arelle.app/Contents/MacOS/arelleCmdLine
-          codesign --options runtime --force --deep --timestamp -s "$MAC_BUILD_CERTIFICATE_NAME" build/Arelle.app/Contents/MacOS/arelleGUI
+          echo "CODESIGN_IDENTITY=${{ env.MAC_BUILD_CERTIFICATE_NAME }}" >> $GITHUB_ENV
+      - name: Build app
+        run: ./scripts/buildMacDist.sh
+      - name: Remove git directories
+        run: find build/Arelle.app/Contents -name .git -exec rm -fR {} \;
       - name: Notarize app
         if: ${{ inputs.codesign_and_notarize }}
         env:
@@ -256,7 +180,7 @@ jobs:
           hdiutil detach "${DEVICE}"
           hdiutil convert dist_dmg/arelle_tmp.dmg -format UDZO -imagekey zlib-level=9 -o ${{ env.DMG_BUILD_ARTIFACT_PATH }}
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4.0.0
+        uses: actions/upload-artifact@v4.3.0
         with:
           name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
           if-no-files-found: error
@@ -267,7 +191,7 @@ jobs:
           pytest -s --disable-warnings --all --download-cache --offline --arelle="build/Arelle.app/Contents/MacOS/arelleCmdLine" tests/integration_tests/scripts/test_scripts.py
       - name: "[Test] Upload test artifacts"
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.3.0
         with:
-          name: 'test logs'
+          name: 'macos test logs'
           path: '.test/**/*.logfile.xml'

@@ -6,7 +6,7 @@ This module is Arelle's controller in command line non-interactive mode
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from arelle import PythonUtil # define 2.x or 3.x string types
+from arelle import PythonUtil, ValidateDuplicateFacts  # define 2.x or 3.x string types
 import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging, platform
 from optparse import OptionGroup, OptionParser, SUPPRESS_HELP
 import regex as re
@@ -130,6 +130,18 @@ def parseArgs(args):
                              "are individually so validated. "
                              "If formulae are present they will be validated and run unless --formula=none is specified. "
                              ))
+    parser.add_option("--validateDuplicateFacts", "--validateduplicatefacts",
+                      choices=[a.value for a in ValidateDuplicateFacts.DUPLICATE_TYPE_ARG_MAP],
+                      dest="validateDuplicateFacts",
+                      help=_("Select which types of duplicates should trigger warnings."))
+    parser.add_option("--deduplicateFacts", "--deduplicatefacts",
+                      choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
+                      dest="deduplicateFacts",
+                      help=_("When using '--saveDeduplicatedInstance' to save a deduplicated instance, check for duplicates of this type. "
+                             "Defaults to 'complete'."))
+    parser.add_option("--saveDeduplicatedInstance", "--savededuplicatedinstance",
+                      dest="saveDeduplicatedInstance",
+                      help=_("Save an instance document with duplicates of the provided type ('--deduplicateFacts') deduplicated."))
     parser.add_option("--noValidateTestcaseSchema", "--novalidatetestcaseschema", action="store_false", dest="validateTestcaseSchema", default=True,
                       help=_("Validate testcases against their schemas."))
     betaGroup = OptionGroup(parser, "Beta Features",
@@ -748,6 +760,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
         else:
             self.modelManager.disclosureSystem.select(None) # just load ordinary mappings
             self.modelManager.validateDisclosureSystem = False
+        if options.validateDuplicateFacts:
+            duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(options.validateDuplicateFacts)
+            duplicateType = duplicateTypeArg.duplicateType()
+            self.modelManager.validateDuplicateFacts = duplicateType
         if options.utrUrl:  # override disclosureSystem utrUrl
             self.modelManager.disclosureSystem.utrUrl = [options.utrUrl]
             # can be set now because the utr is first loaded at validation time
@@ -1075,6 +1091,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.roleTypesFile, "Role Types", isArcrole=False, lang=options.labelLang)
                         if options.arcroleTypesFile:
                             ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=options.labelLang)
+
                         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
                             pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
 
@@ -1093,6 +1110,30 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                   level=logging.CRITICAL)
                     success = False
             if modelXbrl:
+                if success:
+                    if options.saveDeduplicatedInstance:
+                        if options.deduplicateFacts:
+                            deduplicateFactsArg = ValidateDuplicateFacts.DeduplicationType(options.deduplicateFacts)
+                        else:
+                            deduplicateFactsArg = ValidateDuplicateFacts.DeduplicationType.COMPLETE
+                        if modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE:
+                            self.addToLog(_("Provided file must be a traditional XBRL instance document to save a deduplicated instance."),
+                                          messageCode="error", file=modelXbrl.modelDocument.uri)
+                        else:
+                            # Deduplication modifies the underlying lxml tree and leaves the model in an undefined state.
+                            # Anything depending on the ModelXbrl that runs after this may encounter unexpected behavior,
+                            # so we'll run it as a final step in the CLI controller flow.
+                            ValidateDuplicateFacts.saveDeduplicatedInstance(modelXbrl, deduplicateFactsArg, options.saveDeduplicatedInstance)
+                            if options.keepOpen:
+                                success = False
+                                self.addToLog(_("Attempted to keep model connection open after saving deduplicated instance. "
+                                                "Deduplication modifies the model in ways that can cause unexpected behavior on subsequent use."),
+                                              messageCode="error", level=logging.CRITICAL)
+                    elif options.deduplicateFacts:
+                        success = False
+                        self.addToLog(_("'deduplicateFacts' can only be used with 'saveDeduplicatedInstance'"),
+                                      messageCode="error", level=logging.CRITICAL)
+
                 modelXbrl.profileStat(_("total"), time.time() - firstStartedAt)
                 if options.collectProfileStats and modelXbrl:
                     modelXbrl.logProfileStats()

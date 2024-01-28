@@ -29,6 +29,7 @@ jobs:
           - '3.9'
           - '3.10'
           - '3.11'
+          - '3.12'
     steps:
       - uses: actions/checkout@v4.1.1
       - name: Install Python 3
@@ -47,7 +48,7 @@ jobs:
           pytest -s --disable-warnings --all --download-cache --offline --arelle="python arelleCmdLine.py" tests/integration_tests/scripts/test_scripts.py
       - name: Upload log artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.3.0
         with:
           name: ${{ matrix.os }}_${{ matrix.python-version }}_logs
           path: '.test/**/*.logfile.xml'

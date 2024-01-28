@@ -1,18 +1,25 @@
-'''
+"""
 This module is a local copy of python locale in order to allow
 passing in localconv as an argument to functions without affecting
 system-wide settings.  (The system settings can remain in 'C' locale.)
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
+
 from __future__ import annotations
-import sys, subprocess
-import regex as re
-from typing import Generator, cast, Any, Callable
-from fractions import Fraction
-from arelle.typing import TypeGetText, LocaleDict
-from collections.abc import Mapping
+
+import locale
+import subprocess
+import sys
 import unicodedata
+from collections.abc import Mapping
+from decimal import Decimal
+from fractions import Fraction
+from typing import Any, Callable, Generator, cast
+
+import regex as re
+
+from arelle.typing import LocaleDict, TypeGetText
 
 _: TypeGetText
 
@@ -35,86 +42,220 @@ defaultLocaleCodes = {
     "sk": "SK", "sl": "SI", "sq": "AL", "sr": "RS", "sv": "SE", "th": "TH",
     "tr": "TR", "uk": "UA", "ur": "PK", "vi": "VN", "zh": "CN"}
 
+MACOS_PLATFORM = "darwin"
+WINDOWS_PLATFORM = "win32"
 
-def _getUserLocaleUnsafe(localeCode: str = '') -> tuple[LocaleDict, str | None]:
+BCP47_LANGUAGE_REGION_SEPARATOR = '-'
+POSIX_LANGUAGE_REGION_SEPARATOR = '_'
+POSIX_LOCALE_ENCODING_SEPARATOR = '.'
+
+BCP47_LANGUAGE_TAG = re.compile(r"^[a-zA-Z]{2,3}(-[a-zA-Z]{2,3}(\-[a-zA-Z0-9]{1,8})*)?$")
+
+
+def _getUserLocaleUnsafe(posixLocale: str = '') -> tuple[LocaleDict, str | None]:
     """
     Get locale conventions dictionary. May change the global locale if called directly.
-    :param localeCode: The locale code to use to retrieve conventions. Defaults to system default.
+    :param posixLocale: The locale code to use to retrieve conventions. Defaults to system default.
     :return: Tuple of local conventions dictionary and a user-directed setup message
     """
-    import locale
-    conv = None
     localeSetupMessage = None
-    localeCode = localeCode.replace('-', '_')
-    localeCodeWithDefault = (
-        f"{localeCode}_{defaultLocaleCodes[localeCode]}"
-        if localeCode in defaultLocaleCodes else None)
-    candidateLocaleCodes = [localeCode] + ([localeCodeWithDefault] if localeCodeWithDefault else [])
-    for candidateLocaleCode in candidateLocaleCodes:
-        try:
-            locale.setlocale(locale.LC_ALL, candidateLocaleCode)
-            conv = locale.localeconv()
-            if candidateLocaleCode == localeCodeWithDefault:
-                localeSetupMessage = f'locale code "{localeCode}" should include a country code, e.g. {localeCodeWithDefault}'
-            break
-        except locale.Error:
-            pass
-    else:
-        # Like above, but avoids a fork unless the earlier options don't work out.
-        try:
-            localeCodes = getLocaleList()
-            # Don't die because we couldn't find a locale command or parse its output.
-        except:
-            localeCodes = []
-        matchingLocaleCodes = sorted(
-            (c for c in localeCodes if c.startswith(localeCode)),
-            # prioritize localeCodeWithDefault prefix and UTF-8
-            key=lambda c: (localeCodeWithDefault and not c.startswith(localeCodeWithDefault), not re.search(r'utf-?8$', c)))
-        for candidateLocaleCode in matchingLocaleCodes:
-            try:
-                locale.setlocale(locale.LC_ALL, candidateLocaleCode)
-                conv = locale.localeconv()
-            except locale.Error:
-                pass
-    if conv is None:  # some other issue prevents getting culture code, use 'C' defaults (no thousands sep, no currency, etc)
+    try:
+        locale.setlocale(locale.LC_ALL, posixLocale)
+    except locale.Error:
         locale.setlocale(locale.LC_ALL, 'C')
-        localeSetupMessage = f"locale code \"{localeCode}\" is not available on this system"
-        conv = locale.localeconv() # use 'C' environment, e.g., en_US
+        localeSetupMessage = _('Locale code "{}" is not available on this system.').format(posixLocale)
+    finally:
+        conv = locale.localeconv()
     return cast(LocaleDict, conv), localeSetupMessage
 
 
-def getUserLocale(localeCode: str = '') -> tuple[LocaleDict, str | None]:
+def getUserLocale(posixLocale: str | None = None) -> tuple[LocaleDict, str | None]:
     """
     Get locale conventions dictionary. Ensures that the locale (global to the process) is reset afterwards.
-    :param localeCode: The locale code to use to retrieve conventions. Defaults to system default.
+    :param posixLocale: The locale code to use to retrieve conventions. Defaults to system default.
     :return: Tuple of local conventions dictionary and a user-directed setup message
     """
-    import locale
+    if posixLocale is None:
+        # Empty string is system default.
+        posixLocale = ''
     currentLocale = locale.setlocale(locale.LC_ALL)
     try:
-        return _getUserLocaleUnsafe(localeCode)
+        return _getUserLocaleUnsafe(posixLocale)
     finally:
         locale.setlocale(locale.LC_ALL, currentLocale)
 
 
 def getLanguageCode() -> str:
-    if sys.platform == "darwin": # MacOS doesn't provide correct language codes
-        localeQueryResult = subprocess.getstatusoutput("defaults read -g AppleLocale")  # MacOS only
-        if localeQueryResult[0] == 0 and localeQueryResult[1]: # successful
-            return localeQueryResult[1][:5].replace("_","-")
-    import locale
-    languageCode, encoding = locale.getdefaultlocale()
-    # language code and encoding may be None if their values cannot be determined.
-    if isinstance(languageCode, str):
-        return languageCode.replace("_","-")
+    if posixLocale := getLocale():
+        languageTag = posixLocaleToBCP47Lang(posixLocale)
+        if re.match(BCP47_LANGUAGE_TAG, languageTag):
+            return languageTag
     from arelle.XbrlConst import defaultLocale
-    return defaultLocale # XBRL international default locale
+    return defaultLocale  # XBRL international default locale
 
-def getLanguageCodes(lang: str | None = None) -> list[str]:
-    if lang is None:
-        lang = getLanguageCode()
-    # allow searching on the lang with country part, either python or standard form, or just language
-    return [lang, lang.replace("-","_"), lang.partition("-")[0]]
+
+def getLanguageCodes(configLang: str | None = None) -> list[str]:
+    """
+    Returns a list of language code formats that can be used with gettext to look up translation files.
+    configLang is user specified and may be in the BCP 47 format (en-US) or POSIX locale (en_US.utf-8).
+    The translation files can also be user generated and in any of these formats.
+    We do our best to work with both formats.
+    [en_US, en-US, en]
+    [fr]
+    """
+    configLang = configLang or getLanguageCode()
+    # strip encoding if present
+    lang, _, _ = configLang.partition(POSIX_LOCALE_ENCODING_SEPARATOR)
+    if POSIX_LANGUAGE_REGION_SEPARATOR in lang:
+        return [lang, posixLocaleToBCP47Lang(lang), lang.partition(POSIX_LANGUAGE_REGION_SEPARATOR)[0]]
+    if BCP47_LANGUAGE_REGION_SEPARATOR in lang:
+        return [bcp47LangToPosixLocale(lang), lang, lang.partition(BCP47_LANGUAGE_REGION_SEPARATOR)[0]]
+    if defaultRegion := defaultLocaleCodes.get(lang):
+        return [lang, _buildPosixLocale(lang, region=defaultRegion), _buildBCP47LanguageTag(lang, region=defaultRegion)]
+    return [lang]
+
+
+def _unsafeIsLocaleCompatible(localeValue: str) -> bool:
+    """
+    Checks if locale can be set by python on the system.
+    May change the global locale if called directly.
+    """
+    try:
+        locale.setlocale(locale.LC_ALL, localeValue)
+        return True
+    except locale.Error:
+        return False
+
+
+def _unsafeFindCompatibleLocale(localeValue: str) -> str | None:
+    """
+    Attempts to find a system compatible locale (checks default regions and possible encodings) based on the user provided locale value.
+    May change the global locale if called directly.
+    """
+    if _unsafeIsLocaleCompatible(localeValue):
+        return localeValue
+    formattedLocaleCode = bcp47LangToPosixLocale(localeValue)
+    if formattedLocaleCode != localeValue and _unsafeIsLocaleCompatible(formattedLocaleCode):
+        return formattedLocaleCode
+    candidateLocaleCodes = _candidateLocaleCodes(formattedLocaleCode)
+    for candidateLocaleCode in candidateLocaleCodes:
+        if _unsafeIsLocaleCompatible(candidateLocaleCode):
+            return candidateLocaleCode
+    return None
+
+
+def findCompatibleLocale(localeValue: str | None) -> str | None:
+    """
+    Attempts to find a system compatible locale (checks default regions and possible encodings) based on the user provided locale value.
+    """
+    if localeValue is None:
+        return None
+    currentLocale = locale.setlocale(locale.LC_ALL)
+    try:
+        return _unsafeFindCompatibleLocale(localeValue)
+    finally:
+        locale.setlocale(locale.LC_ALL, currentLocale)
+
+
+def _candidateLocaleCodes(posixLocale: str) -> list[str]:
+    """
+    Returns a list of additional candidate POSIX locales including default region and utf-8 encoding variants.
+    """
+    defaultEncoding = 'utf-8'
+    language, region, encoding = _getPosixLocaleLangRegionAndEncoding(posixLocale)
+    candidateLocaleCodes = []
+    if encoding != defaultEncoding:
+        candidateLocaleCodes.append(_buildPosixLocale(language, region, encoding=defaultEncoding))
+    defaultRegion = defaultLocaleCodes.get(language)
+    if region and region != defaultRegion:
+        candidateLocaleCodes.append(_buildPosixLocale(language, region=defaultRegion, encoding=encoding))
+        if encoding != defaultEncoding:
+            candidateLocaleCodes.append(_buildPosixLocale(language, region=defaultRegion, encoding=defaultEncoding))
+    # Additional locale candidates on Linux and macOS.
+    compatibleSystemLocales = sorted({
+        code for code in getLocaleList()
+        if code.startswith(posixLocale)
+        and code not in candidateLocaleCodes
+    })
+    candidateLocaleCodes.extend(compatibleSystemLocales)
+    return candidateLocaleCodes
+
+
+def bcp47LangToPosixLocale(bcp47Lang: str) -> str:
+    """
+    Transform a BCP47 language tag (en-US) to a POSIX locale (en_US).
+    """
+    lang, _, region = bcp47Lang.partition(BCP47_LANGUAGE_REGION_SEPARATOR)
+    return _buildPosixLocale(lang=lang, region=region)
+
+
+def posixLocaleToBCP47Lang(posixLocale: str) -> str:
+    """
+    Transform a POSIX locale (en_US.utf-8) to a BCP47 language tag (en-US).
+    """
+    lang, region, _ = _getPosixLocaleLangRegionAndEncoding(posixLocale)
+    return _buildBCP47LanguageTag(lang=lang, region=region)
+
+
+def _buildPosixLocale(lang: str, region: str | None = None, encoding: str | None = None) -> str:
+    posixLocale = lang
+    if region:
+        posixLocale += POSIX_LANGUAGE_REGION_SEPARATOR + region
+    if encoding:
+        posixLocale += POSIX_LOCALE_ENCODING_SEPARATOR + encoding
+    return posixLocale
+
+
+def _buildBCP47LanguageTag(lang: str, region: str | None = None) -> str:
+    bcp47LanguageTag = lang
+    if region:
+        bcp47LanguageTag += BCP47_LANGUAGE_REGION_SEPARATOR + region
+    return bcp47LanguageTag
+
+
+def _getPosixLocaleLangRegionAndEncoding(posixLocale: str) -> tuple[str, str | None, str | None]:
+    """
+    returns the language, region, and encoding values from the POSIX locale.
+    None is returned for region and encoding if not present.
+    """
+    languageAndRegion, _, encoding = posixLocale.partition(POSIX_LOCALE_ENCODING_SEPARATOR)
+    language, _, region = languageAndRegion.partition(POSIX_LANGUAGE_REGION_SEPARATOR)
+    return language, region or None, encoding or None
+
+
+_locale = None
+
+
+def getLocale() -> str | None:
+    global _locale
+    if _locale:
+        return _locale
+    # Try getting locale language code from system on macOS and Windows before resorting to the less reliable locale.getlocale.
+    systemLocale = None
+    if sys.platform == MACOS_PLATFORM:
+        systemLocale = _tryRunShellCommand("defaults read -g AppleLocale")
+    elif sys.platform == WINDOWS_PLATFORM:
+        systemLocale = _tryRunShellCommand("pwsh", "-Command", "Get-Culture | Select -ExpandProperty IetfLanguageTag")
+    if pythonCompatibleLocale := findCompatibleLocale(systemLocale):
+        _locale = pythonCompatibleLocale
+    elif sys.version_info < (3, 12):
+        # Using locale.setlocale(...) because getlocale() in Python versions prior to 3.12 incorrectly aliased C.UTF-8 to en_US.UTF-8.
+        # https://github.com/python/cpython/issues/74940
+        _locale = locale.setlocale(locale.LC_CTYPE).partition(POSIX_LOCALE_ENCODING_SEPARATOR)[0]
+    else:
+        _locale = locale.getlocale()[0]
+    return _locale
+
+
+def _tryRunShellCommand(*args: str) -> str | None:
+    """
+    Tries to return the results of the provided shell command.
+    Returns stdout or None if the command exists with a non-zero code.
+    """
+    try:
+        return subprocess.run(args, capture_output=True, check=True, shell=True, text=True).stdout.strip()
+    except subprocess.SubprocessError:
+        return None
 
 
 iso3region = {
@@ -155,21 +296,37 @@ iso3region = {
 "US": "usa"}
 
 
+_systemLocales = None
+
+
 def getLocaleList() -> list[str]:
-    process = subprocess.run(['locale', '-a'], capture_output=True, encoding='iso8859-1', text=True)
-    return process.stdout.splitlines() if process.returncode == 0 else []
-
-
-_availableLocales = None
-def availableLocales() -> set[str]:
-    global _availableLocales
-    if _availableLocales is not None:
-        return _availableLocales
+    """
+    Attempts to a return a list of locales from `locale -a` with a fallback of an empty list.
+    """
+    global _systemLocales
+    if _systemLocales is not None:
+        return _systemLocales
+    if sys.platform != WINDOWS_PLATFORM and (locales := _tryRunShellCommand("locale -a")):
+        _systemLocales = locales.splitlines()
     else:
-        _availableLocales = {locale.partition(".")[0].replace("_", "-") for locale in getLocaleList()}
-        return _availableLocales
+        _systemLocales = []
+    return _systemLocales
+
+
+def availableLocales() -> set[str]:
+    """
+    Returns a set of available system languages (POSIX format without encoding).
+    On Windows system locales can't be easily determined and an empty set is returned.
+    """
+    return {
+        loc.partition(POSIX_LOCALE_ENCODING_SEPARATOR)[0]
+        for loc in getLocaleList()
+    }
+
 
 _languageCodes = None
+
+
 def languageCodes() -> dict[str, str]:  # dynamically initialize after gettext is loaded
     global _languageCodes
     if _languageCodes is not None:
@@ -293,14 +450,16 @@ def setApplicationLocale() -> None:
     (e.g., `arelleCmdLine`, `arelleGUI`.)
     :return:
     """
-    import locale
     locale.setlocale(locale.LC_ALL, 'C')
 
 
-_disableRTL: bool = False # disable for implementations where tkinter supports rtl
+_disableRTL: bool = False  # disable for implementations where tkinter supports rtl
+
+
 def setDisableRTL(disableRTL: bool) -> None:
     global _disableRTL
     _disableRTL = disableRTL
+
 
 def rtlString(source: str, lang: str | None) -> str:
     if lang and source and lang[0:2] in {"ar","he"} and not _disableRTL:
@@ -338,6 +497,7 @@ def rtlString(source: str, lang: str | None) -> str:
     else:
         return source
 
+
 # Iterate over grouping intervals
 def _grouping_intervals(grouping: list[int]) -> Generator[int, None, None]:
     last_interval = 3 # added to prevent compile error but not necessary semantically
@@ -352,7 +512,8 @@ def _grouping_intervals(grouping: list[int]) -> Generator[int, None, None]:
         yield interval
         last_interval = interval
 
-#perform the grouping from right to left
+
+# perform the grouping from right to left
 def _group(conv: LocaleDict, s: str, monetary: bool = False) -> tuple[str, int]:
     thousands_sep = conv[monetary and 'mon_thousands_sep' or 'thousands_sep']
     grouping = conv[monetary and 'mon_grouping' or 'grouping']
@@ -384,6 +545,7 @@ def _group(conv: LocaleDict, s: str, monetary: bool = False) -> tuple[str, int]:
         len(thousands_sep) * (len(groups) - 1)
     )
 
+
 # Strip a given amount of excess padding from the given string
 def _strip_padding(s: str, amount: int) -> str:
     lpos = 0
@@ -396,8 +558,10 @@ def _strip_padding(s: str, amount: int) -> str:
         amount -= 1
     return s[lpos:rpos+1]
 
+
 _percent_re = re.compile(r'%(?:\((?P<key>.*?)\))?'
                          r'(?P<modifiers>[-#0-9 +*.hlL]*?)[eEfFgGdiouxXcrs%]')
+
 
 def format(
     conv: LocaleDict,
@@ -419,6 +583,7 @@ def format(
             raise ValueError(("format() must be given exactly one %%char "
                              "format specifier, %s not valid") % repr(percent))
     return _format(conv, percent, value, grouping, monetary, *additional)
+
 
 def _format(
     conv: LocaleDict,
@@ -457,6 +622,7 @@ def _format(
         if seps:
             formatted = _strip_padding(formatted, seps)
     return formatted
+
 
 def format_string(
     conv: LocaleDict,
@@ -497,6 +663,7 @@ def format_string(
     val = tuple(new_val)
 
     return cast(str, new_f % val)
+
 
 def currency(
     conv: LocaleDict,
@@ -548,9 +715,11 @@ def currency(
 
     return s.replace('<', '').replace('>', '')
 
+
 def ftostr(conv: LocaleDict, val: Any) -> str:
     """Convert float to integer, taking the locale into account."""
     return format(conv, "%.12g", val)
+
 
 def atof(conv: LocaleDict, string: str, func: Callable[[str], Any] = float) -> Any:  # return type depends on func param, it is used to return float, int, and str
     "Parses a string as a float according to the locale settings."
@@ -565,12 +734,11 @@ def atof(conv: LocaleDict, string: str, func: Callable[[str], Any] = float) -> A
     #finally, parse the string
     return func(string)
 
+
 def atoi(conv: LocaleDict, str: str) -> int:
     "Converts a string to an integer according to the locale settings."
     return cast(int, atof(conv, str, int))
 
-# decimal formatting
-from decimal import Decimal
 
 def format_picture(conv: LocaleDict, value: Any, picture: str) -> str:
     monetary = False
@@ -658,6 +826,7 @@ def format_picture(conv: LocaleDict, value: Any, picture: str) -> str:
                           neg=prefix if negPic else prefix + minus_sign,
                           trailpos=suffix,
                           trailneg=suffix)
+
 
 def format_decimal(
     conv: LocaleDict | None,

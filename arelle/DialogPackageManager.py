@@ -47,7 +47,7 @@ class DialogPackageManager(Toplevel):
         self.packagesConfigChanged = False
         self.packageNamesWithNewerFileDates = packageNamesWithNewerFileDates
 
-        parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", self.parent.geometry())
+        parentGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", self.parent.geometry())
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
 

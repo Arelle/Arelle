@@ -227,7 +227,7 @@ def rule_fr_nl_1_05(
     """
     for doc in val.modelXbrl.urlDocs.values():
         if doc.type == ModelDocument.Type.INSTANCE:
-            if 'UTF-8' != doc.xmlDocument.docinfo.encoding:
+            if 'UTF-8' != doc.documentEncoding.upper():
                 yield Validation.error(
                     codes='NL.FR-NL-1.05',
                     msg=_('The XML character encoding \'UTF-8\' MUST be used in the filing instance document'),

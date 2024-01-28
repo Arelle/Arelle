@@ -54,7 +54,7 @@ class DialogFind(Toplevel):
         self.modelXbrl = None   # set when Find pressed, this blocks next prematurely
         if options is None: options = newFindOptions
         self.options = options
-        parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
+        parentGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
         dialogW = int(parentGeometry.group(1))
         dialogH = int(parentGeometry.group(2))
         dialogX = int(parentGeometry.group(3))

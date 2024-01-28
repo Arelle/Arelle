@@ -296,17 +296,17 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
                 classMethods = []
                 importURLs = []
                 for i, key in enumerate(item.value.keys):
-                    _key = key.s
+                    _key = key.value
                     _value = item.value.values[i]
                     _valueType = _value.__class__.__name__
                     if _key == "import":
                         if _valueType == 'Constant':
-                            importURLs.append(_value.s)
+                            importURLs.append(_value.value)
                         elif _valueType in ("List", "Tuple"):
                             for elt in _value.elts:
-                                importURLs.append(elt.s)
+                                importURLs.append(elt.value)
                     elif _valueType == 'Constant':
-                        moduleInfo[_key] = _value.s
+                        moduleInfo[_key] = _value.value
                     elif _valueType == 'Name':
                         if _value.id in constantStrings:
                             moduleInfo[_key] = constantStrings[_value.id]
@@ -316,7 +316,7 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
                         if _value.attr in methodDefNamesByClass[_value.value.id]:
                             classMethods.append(_key)
                     elif _valueType in ("List", "Tuple"):
-                        values = [elt.s for elt in _value.elts]
+                        values = [elt.value for elt in _value.elts]
                         if _key == "imports":
                             importURLs = values
                         else:
@@ -337,9 +337,9 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
                     }
                     if not moduleInfo.get("version"):
                         moduleInfo["version"] = entryPoint.dist.version  # If no explicit version, retrieve from entry point
-            elif isinstance(item.value, ast.Str): # possible constant used in plugininfo, such as VERSION
+            elif isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):  # possible constant used in plugininfo, such as VERSION
                 for assignmentName in item.targets:
-                    constantStrings[assignmentName.id] = item.value.s
+                    constantStrings[assignmentName.id] = item.value.value
         elif isinstance(item, ast.ImportFrom):
             if item.level == 1: # starts with .
                 if item.module is None:  # from . import module1, module2, ...

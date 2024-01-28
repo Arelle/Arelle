@@ -207,7 +207,7 @@ def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
         # skip over nsmap elements used to create output trees
         while (sourceElt is not None and sourceElt.tag == "nsmap"):
             sourceElt = next(sourceIter, None)
-        while (comparisonElt is not None and sourceElt.tag == "nsmap"):
+        while (comparisonElt is not None and comparisonElt.tag == "nsmap"):
             comparisonElt = next(comparisonIter, None)
         while (sourceElt is not None and comparisonElt is not None):
             while (isinstance(sourceElt, etree._Comment)):

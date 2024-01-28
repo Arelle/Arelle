@@ -12,13 +12,13 @@ from collections import defaultdict
 def compile(list, traceRows):
     if traceRows:
         # compile so each row can be traced by separate expression (slow)
-        return [(rowNbr, re.compile("(^|\s)" + pattern + "($|\W+)", re.IGNORECASE))
+        return [(rowNbr, re.compile(r"(^|\s)" + pattern + r"($|\W+)", re.IGNORECASE))
                 for rowNbr, pattern in list]
     else:
         # compile single expression for fast execution
-        return re.compile("(^|\s)" +  # always be sure first word starts at start or after space
-                          "($|\W+)|(^|\s)".join(pattern for rowNbr, pattern in list)
-                          .replace(r" ",r"\W+") + "($|\W+)",
+        return re.compile(r"(^|\s)" +  # always be sure first word starts at start or after space
+                          r"($|\W+)|(^|\s)".join(pattern for rowNbr, pattern in list)
+                          .replace(r" ",r"\W+") + r"($|\W+)",
                           re.IGNORECASE)
 
 def setup(val, traceRows=False, *args, **kwargs):

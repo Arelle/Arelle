@@ -683,6 +683,8 @@ class ModelDocument:
         Qualifies as a discovered schema per XBRL 2.1
     """
 
+    # The document encoding. The XML declaration is stripped from the document
+    # before lxml parses the document making the lxml DocInfo encoding unreliable.
     documentEncoding: str
     xmlRootElement: Any
     targetXbrlRootElement: ModelObject

@@ -811,7 +811,7 @@ def compileSphinxGrammar( cntlr ):
                   ).set_name("ncName").set_debug(debugParsing)
 
     #annotationName = Word("@",alphanums + '_-.').set_name("annotationName").set_debug(debugParsing)
-    annotationName = Regex("@[A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]\w*").set_name("annotationName").set_debug(debugParsing)
+    annotationName = Regex("@[A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]\\w*").set_name("annotationName").set_debug(debugParsing)
 
 
     decimalPoint = Literal('.')
