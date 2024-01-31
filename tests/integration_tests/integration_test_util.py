@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, cast
 import pytest
 
 from arelle import ModelDocument, PackageManager, PluginManager
+from arelle.Cntlr import Cntlr
 from arelle.CntlrCmdLine import parseAndRun
 from arelle.FileSource import archiveFilenameParts
 
@@ -60,43 +61,26 @@ def get_test_data(
     cntlr = parseAndRun(args)  # type: ignore[no-untyped-call]
     try:
         system_locale = locale.setlocale(locale.LC_CTYPE)
-        results = []
+        results: list[ParameterSet] = []
         test_cases_with_no_variations = set()
         test_cases_with_unrecognized_type = {}
         model_document = cntlr.modelManager.modelXbrl.modelDocument
         test_cases: list[ModelDocument.ModelDocument] = []
-        if model_document.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
-            test_cases.append(model_document)
-        elif model_document.type == ModelDocument.Type.TESTCASESINDEX:
-            if strict_testcase_index:
-                model_errors = sorted(cntlr.modelManager.modelXbrl.errors)
-                assert 'IOerror' not in model_errors, f'One or more testcases referenced by testcases index "{model_document.filepath}" were not found.'
-            referenced_documents = model_document.referencesDocument.keys()
-            child_document_types = {doc.type for doc in referenced_documents}
-            assert len(child_document_types) == 1, f'Multiple child document types found in {model_document.uri}: {child_document_types}.'
-            [child_document_type] = child_document_types
-            # the formula function registry conformance suite points to a list of registries, so we need to search one level deeper.
-            if child_document_type == ModelDocument.Type.REGISTRY:
-                referenced_documents = [case for doc in referenced_documents for case in doc.referencesDocument.keys()]
-            test_cases = sorted(referenced_documents, key=lambda doc: doc.uri)
-        elif model_document.type == ModelDocument.Type.INSTANCE:
-            test_id = get_document_id(model_document)
-            expected_failure = isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale)
+        if strict_testcase_index and model_document.type == ModelDocument.Type.TESTCASESINDEX:
             model_errors = sorted(cntlr.modelManager.modelXbrl.errors)
-            expected_model_errors_list = sorted(expected_model_errors)
-            param = pytest.param(
-                {
-                    'status': 'pass' if model_errors == expected_model_errors_list else 'fail',
-                    'expected': expected_model_errors_list,
-                    'actual': model_errors
-                },
-                id=test_id,
-                marks=[pytest.mark.xfail()] if expected_failure else [],
-            )
-            results.append(param)
-        else:
-            raise Exception('Unhandled model document type: {}'.format(model_document.type))
-        for test_case in test_cases:
+            assert 'IOerror' not in model_errors, f'One or more testcases referenced by testcases index "{model_document.filepath}" were not found.'
+        collect_test_data(
+            cntlr=cntlr,
+            expected_failure_ids=expected_failure_ids,
+            expected_empty_testcases=expected_empty_testcases,
+            expected_model_errors=expected_model_errors,
+            required_locale_by_ids=required_locale_by_ids,
+            system_locale=system_locale,
+            results=results,
+            model_document=model_document,
+            test_cases=test_cases,
+        )
+        for test_case in sorted(test_cases, key=lambda doc: doc.uri):
             test_case_file_id = get_document_id(test_case)
             if test_case.type not in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
                 test_cases_with_unrecognized_type[test_case_file_id] = test_case.type
@@ -139,6 +123,53 @@ def get_test_data(
         cntlr.modelManager.close()
         PackageManager.close()  # type: ignore[no-untyped-call]
         PluginManager.close()  # type: ignore[no-untyped-call]
+
+
+def collect_test_data(
+        cntlr: Cntlr,
+        expected_failure_ids: frozenset[str],
+        expected_empty_testcases: frozenset[str],
+        expected_model_errors: frozenset[str],
+        required_locale_by_ids: dict[str, re.Pattern[str]],
+        system_locale: str,
+        results: list[ParameterSet],
+        model_document: ModelDocument.ModelDocument,
+        test_cases: list[ModelDocument.ModelDocument],
+) -> None:
+    if model_document.type == ModelDocument.Type.TESTCASESINDEX:
+        for child_document in model_document.referencesDocument.keys():
+            collect_test_data(
+                cntlr=cntlr,
+                expected_failure_ids=expected_failure_ids,
+                expected_empty_testcases=expected_empty_testcases,
+                expected_model_errors=expected_model_errors,
+                required_locale_by_ids=required_locale_by_ids,
+                system_locale=system_locale,
+                results=results,
+                model_document=child_document,
+                test_cases=test_cases,
+            )
+    elif model_document.type == ModelDocument.Type.REGISTRY:
+        test_cases.extend(model_document.referencesDocument.keys())
+    elif model_document.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
+        test_cases.append(model_document)
+    elif model_document.type == ModelDocument.Type.INSTANCE:
+        test_id = get_document_id(model_document)
+        expected_failure = isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale)
+        model_errors = sorted(cntlr.modelManager.modelXbrl.errors)
+        expected_model_errors_list = sorted(expected_model_errors)
+        param = pytest.param(
+            {
+                'status': 'pass' if model_errors == expected_model_errors_list else 'fail',
+                'expected': expected_model_errors_list,
+                'actual': model_errors,
+            },
+            id=test_id,
+            marks=[pytest.mark.xfail()] if expected_failure else [],
+        )
+        results.append(param)
+    else:
+        raise Exception('Unhandled model document type: {}'.format(model_document.type))
 
 
 def isExpectedFailure(
