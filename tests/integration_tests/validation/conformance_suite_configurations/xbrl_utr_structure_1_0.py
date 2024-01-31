@@ -15,5 +15,5 @@ config = ConformanceSuiteConfig(
     local_filepath=ZIP_PATH,
     name=PurePath(__file__).stem,
     network_or_cache_required=False,
-    public_download_url='https://www.xbrl.org/2013/utr-structure-conf-cr-2013-11-18.zip'
+    public_download_url='https://www.xbrl.org/2013/utr-structure-conf-cr-2013-11-18.zip',
 )
