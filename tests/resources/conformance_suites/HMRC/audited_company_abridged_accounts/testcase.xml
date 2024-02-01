@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="Audited Company Abridged Accounts"
+  description="Audited company abridged account filings must meet certain criteria."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="valid" name="Valid">
+    <description>
+      The document is valid.
+    </description>
+    <data>
+        <instance readMeFirst="true">valid.xbrl</instance>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation id="co-audit-date" name="Fails Co.Audit">
+    <description>
+      Audited documents require certain facts to be tagged.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-audit-date.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.Audit</error>
+    </result>
+  </variation>
+  <variation id="co-audit-opinion" name="Fails Co.Audit">
+    <description>
+      Audited documents require certain facts to be tagged.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-audit-opinion.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.Audit</error>
+    </result>
+  </variation>
+  <variation id="co-audit-senior" name="Fails Co.Audit">
+    <description>
+      Audited documents require certain facts to be tagged.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-audit-senior.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.Audit</error>
+    </result>
+  </variation>
+  <variation id="co-abrid" name="Fails Co.Abrid">
+    <description>
+      StatementThatMembersHaveAgreedToPreparationAbridgedAccountsUnderSection444CompaniesAct2006 fact is missing required text.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-abrid.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.Abrid</error>
+    </result>
+  </variation>
+  <variation id="co-small" name="Fails Co.SmCo">
+    <description>
+      StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime fact is missing required text.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-small.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.SmCo</error>
+    </result>
+  </variation>
+</testcase>

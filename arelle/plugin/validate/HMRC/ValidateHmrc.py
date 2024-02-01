@@ -7,7 +7,8 @@ from dataclasses import dataclass
 from dataclasses import field
 from enum import Enum
 from functools import cached_property
-from typing import cast
+from regex.regex import Pattern
+from typing import Any, Dict, Tuple, cast
 
 import regex as re
 
@@ -16,14 +17,18 @@ from arelle.ModelXbrl import ModelXbrl
 
 # Error codes
 CO_ABRID = 'Co.Abrid'
+CO_AUDIT = 'Co.Audit'
 CO_AUDIT_NR = 'Co.AuditNR'
 CO_DIR_RESP = 'Co.DirResp'
+CO_MED_CO = 'Co.MedCo'
 CO_MICRO = 'Co.Micro'
 CO_MISSING_ELEMENT = 'Co.MissingElement'
 CO_SM_CO = 'Co.SmCo'
 CO_SEC_477 = 'Co.Sec477'
 CO_SEC_480 = 'Co.Sec480'
 LP_ABRID = 'Lp.Abrid'
+LP_AUDIT = 'Lp.Audit'
+LP_MED_LP = 'Lp.MedLp'
 LP_MEM_RESP = 'Lp.MemResp'
 LP_MICRO = 'Lp.Micro'
 LP_SEC_477 = 'Lp.Sec477'
@@ -33,6 +38,7 @@ LP_SM_LP = 'Lp.SmLp'
 # Concept local names
 CONCEPT_ABRIDGED_ACCOUNTS = 'AbridgedAccounts'
 CONCEPT_ABBREVIATED_ACCOUNTS = 'AbbreviatedAccounts'
+CONCEPT_AUDITED = 'Audited'
 CONCEPT_APPLICABLE_LEGISLATION = 'ApplicableLegislation'
 CONCEPT_APPLICABLE_LEGISLATION_DIMENSION = 'ApplicableLegislationDimension'
 CONCEPT_ACCOUNTING_STANDARDS_APPLIED = 'AccountingStandardsApplied'
@@ -41,9 +47,16 @@ CONCEPT_ACCOUNTS_STATUS = 'AccountsStatusAuditedOrUnaudited'
 CONCEPT_ACCOUNTS_STATUS_DIMENSION = 'AccountsStatusDimension'
 CONCEPT_ACCOUNTS_TYPE_FULL_OR_ABBREVIATED = 'AccountsTypeFullOrAbbreviated'  # DEPRECATED IN 2022+ taxonomies.  No replacement yet.
 CONCEPT_ACCOUNTS_TYPE_DIMENSION = 'AccountsTypeDimension'
+CONCEPT_DATE_AUDITOR_REPORT = 'DateAuditorsReport'
 CONCEPT_ENTITY_DORMANT = 'EntityDormantTruefalse'
 CONCEPT_LANGUAGES_DIMENSION = 'LanguagesDimension'
+CONCEPT_MEDIUM_COMPANY = 'StatementThatCompanyHasPreparedAccountsUnderProvisionsRelatingToMedium-sizedCompanies'
+CONCEPT_MEDIUM_COMPANIES_REGIME_FOR_ACCOUNTS = 'Medium-sizedCompaniesRegimeForAccounts'
 CONCEPT_MICRO_ENTITIES = 'Micro-entities'
+CONCEPT_NAME_INDIVIDUAL_AUDITOR = 'NameIndividualAuditor'
+CONCEPT_NAME_ENTITY_AUDITORS = 'NameEntityAuditors'
+CONCEPT_NAME_SENIOR_STATUTORY_AUDITOR = 'NameSeniorStatutoryAuditor'
+CONCEPT_OPINION_AUDITORS_ON_ENTITY = 'OpinionAuditorsOnEntity'
 CONCEPT_LEGAL_FORM_ENTIY = 'LegalFormEntity'
 CONCEPT_LEGAL_FORM_ENTIY_DIMENSION = 'LegalFormEntityDimension'
 CONCEPT_LLP = 'LimitedLiabilityPartnershipLLP'
@@ -54,6 +67,10 @@ CONCEPT_SMALL_COMPANY_REGIME_FOR_ACCOUNTS = 'SmallCompaniesRegimeForAccounts'
 CONCEPT_GROUP_ACCOUNTS_ONLY = 'GroupAccountsOnly'
 CONCEPT_CONSOLIDATED_GROUP_COMPANY_ACCOUNTS = 'ConsolidatedGroupCompanyAccounts'
 CONCEPT_WELSH = 'Welsh'
+
+# Generic Identifiers
+COMPANY = 'Co'
+LLP = 'Lp'
 
 # Map of error code > concept local name > tuple of pairings of descriptions and regex patterns
 TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, re.regex.Pattern[str]], ...]]] = {
@@ -220,6 +237,7 @@ class AccountStatus(Enum):
     AUDIT_EXEMPT_NO_REPORT = 'AuditExempt-NoAccountantsReport'
     AUDIT_EXEMPT_WITH_REPORT = 'AuditExemptWithAccountantsReport'
 
+
 class ScopeAccounts(Enum):
     GROUP_ONLY = 'GroupAccountsOnly'
     CONSOLIDATED_GROUP = 'ConsolidatedGroupCompanyAccounts'
@@ -229,8 +247,10 @@ class ScopeAccounts(Enum):
 class CodeResult:
     success: bool = field(default=True)
     conceptLocalName: str | None = field(default=None)
+    conceptList: list[str] | None = field(default=None)
     fact: ModelFact | None = field(default=None)
     message: str | None = field(default=None)
+    warning: bool = field(default=False)
 
 
 class HmrcLang(Enum):
@@ -242,6 +262,12 @@ class HmrcLang(Enum):
 class ValidateHmrc:
     modelXbrl: ModelXbrl
     _codeResultMap: dict[str, CodeResult] = field(default_factory=dict)
+
+    def _checkValidFact(self, fact: ModelFact ) -> bool:
+        if fact is not None:
+            if not fact.isNil:
+                return True
+        return False
 
     def _errorOnMissingFact(self, conceptLocalName: str) -> None:
         """
@@ -284,6 +310,69 @@ class ValidateHmrc:
         self._codeResultMap[code] = result
         return result
 
+    def _evaluateTextPattern(self, pattern: dict[str, tuple[tuple[str, Pattern[str]], ...]] | Any) -> CodeResult:
+        for conceptLocalName, textMatchers in pattern.items():
+            facts = self._getFacts(conceptLocalName)
+            if not facts:
+                return CodeResult(
+                    success=False,
+                    conceptLocalName=conceptLocalName
+                )
+            for fact in facts:
+                message, pattern = textMatchers[self._lang.value]
+                match = pattern.match(fact.value, re.MULTILINE)
+                if not match:
+                    return CodeResult(
+                        success=False,
+                        conceptLocalName=conceptLocalName,
+                        fact=fact,
+                        message=message
+                    )
+        return CodeResult()
+
+    def _evaluateAuditFacts(self) -> CodeResult:
+        """
+        Logs an error when an audited report does not facts tagged with the concepts of "DateAuditorsReport",  "OpinionAuditorsOnEntity"
+        as well as either "NameIndividualAuditor" or the combination of "NameSeniorStatutoryAuditor" and "NameEntityAuditors".
+        :param prefix:
+        :return:
+
+        """
+        missingConcepts = []
+        if not self._getAndCheckValidFacts(CONCEPT_DATE_AUDITOR_REPORT):
+            missingConcepts.append(CONCEPT_DATE_AUDITOR_REPORT)
+        if not self._getAndCheckValidFacts(CONCEPT_OPINION_AUDITORS_ON_ENTITY):
+            missingConcepts.append(CONCEPT_OPINION_AUDITORS_ON_ENTITY)
+        if (not (self._getAndCheckValidFacts(CONCEPT_NAME_ENTITY_AUDITORS) and self._getAndCheckValidFacts(CONCEPT_NAME_SENIOR_STATUTORY_AUDITOR))
+                and not self._getAndCheckValidFacts(CONCEPT_NAME_INDIVIDUAL_AUDITOR)):
+            missingConcepts.append(CONCEPT_NAME_INDIVIDUAL_AUDITOR)
+            missingConcepts.append(CONCEPT_NAME_SENIOR_STATUTORY_AUDITOR)
+            missingConcepts.append(CONCEPT_NAME_ENTITY_AUDITORS)
+        if len(missingConcepts) > 0:
+            return CodeResult(
+                    success=False,
+                    conceptList=missingConcepts,
+                    message="An audited report must contain facts tagged with the concepts of DateAuditorsReport, OpinionAuditorsOnEntity"
+                            "as well as either NameIndividualAuditor or the combination of NameSeniorStatutoryAuditor and NameEntityAuditors"
+                            "There are no facts tagged with the concepts: %(conceptList)s"
+                )
+
+        return CodeResult()
+
+    def _evaluateMedFact(self) -> CodeResult:
+        """
+        Logs a warning when an medium company or LLP does not facts tagged with the concept of
+        "StatementThatCompanyHasPreparedAccountsUnderProvisionsRelatingToMedium-sizedCompanies".
+        :param prefix:
+        """
+        if not self._getAndCheckValidFacts(CONCEPT_MEDIUM_COMPANY):
+            return CodeResult(
+                    success=False,
+                    warning=True,
+                    message="The concept of StatementThatCompanyHasPreparedAccountsUnderProvisionsRelatingToMedium-sizedCompanies must exist and have a non-nil value."
+                )
+        return CodeResult()
+
     def _evaluateCode(self, code: str) -> CodeResult:
         """
         Evaluates whether the conditions associated with the given code pass.
@@ -293,29 +382,24 @@ class ValidateHmrc:
         """
         if code in self._codeResultMap:
             return self._codeResultMap[code]
-
         textValidationPatterns = TEXT_VALIDATION_PATTERNS.get(code, {})
-        for conceptLocalName, textMatchers in textValidationPatterns.items():
-            facts = self._getFacts(conceptLocalName)
-            if not facts:
-                return self._setCode(code, CodeResult(
-                    success=False,
-                    conceptLocalName=conceptLocalName
-                ))
-            for fact in facts:
-                message, pattern = textMatchers[self._lang.value]
-                match = pattern.match(fact.value, re.MULTILINE)
-                if not match:
-                    return self._setCode(code, CodeResult(
-                        success=False,
-                        conceptLocalName=conceptLocalName,
-                        fact=fact,
-                        message=message
-                    ))
-        return self._setCode(code, CodeResult())
+        if textValidationPatterns:
+            result = self._evaluateTextPattern(textValidationPatterns)
+        elif code in (CO_AUDIT, LP_AUDIT):
+            result = self._evaluateAuditFacts()
+        elif code in (CO_MED_CO, LP_MED_LP):
+            result = self._evaluateMedFact()
+        return self._setCode(code, result)
+
 
     def _getFacts(self, conceptLocalName: str) -> list[ModelFact]:
         return [f for f in self.modelXbrl.factsByLocalName.get(conceptLocalName, set()) if f is not None]
+
+    def _getAndCheckValidFacts(self, conceptLocalName: str) -> bool:
+        facts = self._getFacts(conceptLocalName)
+        if any(self._checkValidFact(x) for x in facts):
+            return True
+        return False
 
     @cached_property
     def _lang(self) -> HmrcLang:
@@ -331,13 +415,40 @@ class ValidateHmrc:
                         return HmrcLang.WELSH
         return HmrcLang.ENGLISH
 
+
+    def _yieldErrorOrWarning(self, code: str, result: CodeResult) -> None:
+        """
+        Logs an error on the `ModelXbrl` explaining the actual fact value did not match expected patterns.
+        If a fact of the expected type did not exist, an additional error will be logged.
+        :param code:
+        :param result:
+        """
+        if result.message is None:
+            result.message = ''
+        if not result.warning:
+            self.modelXbrl.error(
+                code,
+                msg=result.message,
+                conceptList=result.conceptList,
+                conceptLocalName=result.conceptLocalName,
+                message=result.message,
+                modelObject=result.fact,
+            )
+        else:
+            self.modelXbrl.warning(
+                code,
+                msg=result.message,
+                conceptList=result.conceptList,
+                conceptLocalName=result.conceptLocalName,
+                message=result.message,
+                modelObject=result.fact,
+            )
+
     @cached_property
     def accountStatus(self) -> str | None:
         facts = self._getFacts(CONCEPT_ACCOUNTS_STATUS)
         for fact in facts:
-            if fact is None:
-                continue
-            if fact.isNil:
+            if not self._checkValidFact(fact):
                 continue
             for qname, value in fact.context.qnameDims.items():
                 if qname.localName == CONCEPT_ACCOUNTS_STATUS_DIMENSION:
@@ -348,9 +459,7 @@ class ValidateHmrc:
     def accountsType(self) -> str | None:
         facts = self._getFacts(CONCEPT_ACCOUNTS_TYPE_FULL_OR_ABBREVIATED)
         for fact in facts:
-            if fact is None:
-                continue
-            if fact.isNil:
+            if not self._checkValidFact(fact):
                 continue
             for qname, value in fact.context.qnameDims.items():
                 if qname.localName == CONCEPT_ACCOUNTS_TYPE_DIMENSION:
@@ -361,9 +470,7 @@ class ValidateHmrc:
     def accountingStandardsApplied(self) -> str | None:
         facts = self._getFacts(CONCEPT_ACCOUNTING_STANDARDS_APPLIED)
         for fact in facts:
-            if fact is None:
-                continue
-            if fact.isNil:
+            if not self._checkValidFact(fact):
                 continue
             for qname, value in fact.context.qnameDims.items():
                 if qname.localName == CONCEPT_ACCOUNTING_STANDARDS_DIMENSION:
@@ -374,9 +481,7 @@ class ValidateHmrc:
     def applicableLegislation(self) -> str | None:
         facts = self._getFacts(CONCEPT_APPLICABLE_LEGISLATION)
         for fact in facts:
-            if fact is None:
-                continue
-            if fact.isNil:
+            if not self._checkValidFact(fact):
                 continue
             for qname, value in fact.context.qnameDims.items():
                 if qname.localName == CONCEPT_APPLICABLE_LEGISLATION_DIMENSION:
@@ -394,9 +499,7 @@ class ValidateHmrc:
     def legalFormEntity(self) -> str | None:
         facts = self._getFacts(CONCEPT_LEGAL_FORM_ENTIY)
         for fact in facts:
-            if fact is None:
-                continue
-            if fact.isNil:
+            if not self._checkValidFact(fact):
                 continue
             for qname, value in fact.context.qnameDims.items():
                 if qname.localName == CONCEPT_LEGAL_FORM_ENTIY_DIMENSION:
@@ -407,9 +510,7 @@ class ValidateHmrc:
     def scopeAccounts(self) -> str | None:
         facts = self._getFacts(CONCEPT_SCOPE_ACCOUNTS)
         for fact in facts:
-            if fact is None:
-                continue
-            if fact.isNil:
+            if not self._checkValidFact(fact):
                 continue
             for qname, value in fact.context.qnameDims.items():
                 if qname.localName == CONCEPT_SCOPE_ACCOUNTS_DIMENSION:
@@ -461,6 +562,100 @@ class ValidateHmrc:
                     self.validateUnauditedLLPFullAccounts()
                 else:
                     self.validateUnauditedSmallCompanyFullAccounts()
+        elif self.accountStatus == CONCEPT_AUDITED:
+            if self.accountsType == CONCEPT_ABRIDGED_ACCOUNTS:
+                if self.legalFormEntity == CONCEPT_LLP:
+                    self.validateAuditedAbridgedLLPAccounts()
+                else:
+                    self.validateAuditedCompanyAbridgedAccounts()
+            elif self.applicableLegislation == CONCEPT_SMALL_COMPANY_REGIME_FOR_ACCOUNTS:
+                if self.legalFormEntity == CONCEPT_LLP:
+                    self.validateAuditedSmallLLP()
+                else:
+                    self.validateAuditedSmallCompany()
+            elif self.applicableLegislation == CONCEPT_MEDIUM_COMPANIES_REGIME_FOR_ACCOUNTS:
+                if self.legalFormEntity == CONCEPT_LLP:
+                    self.validateAuditedMediumLLP()
+                else:
+                    self.validateAuditedMediumCompany()
+
+    def validateAuditedAbridgedLLPAccounts(self) -> None:
+        """
+        Checks conditions applicable to audited abridged LLP accounts:
+        Lp.Abrid, lp.Audit, and Lp.Smlp
+        """
+        result = self._evaluateCode(LP_ABRID)
+        if not result.success:
+            self._errorOnMissingFactText(LP_ABRID, result)
+        result = self._evaluateCode(LP_SM_LP)
+        if not result.success:
+            self._errorOnMissingFactText(LP_SM_LP, result)
+        result = self._evaluateCode(LP_AUDIT)
+        if not result.success:
+            self._yieldErrorOrWarning(LP_AUDIT, result)
+
+    def validateAuditedCompanyAbridgedAccounts(self) -> None:
+        """
+        Checks conditions applicable to audited company abridged accounts:
+        Co.Abrid, Co.Audit, and Co.SmCo
+        """
+        result = self._evaluateCode(CO_ABRID)
+        if not result.success:
+            self._errorOnMissingFactText(CO_ABRID, result)
+        result = self._evaluateCode(CO_SM_CO)
+        if not result.success:
+            self._errorOnMissingFactText(CO_SM_CO, result)
+        result = self._evaluateCode(CO_AUDIT)
+        if not result.success:
+            self._yieldErrorOrWarning(CO_AUDIT, result)
+
+    def validateAuditedMediumCompany(self) -> None:
+        """
+        Checks conditions applicable to audited medium company filings:
+        Co.Audit, and Co.MedCo
+        """
+        result = self._evaluateCode(CO_MED_CO)
+        if not result.success:
+            self._yieldErrorOrWarning(CO_MED_CO, result)
+        result = self._evaluateCode(CO_AUDIT)
+        if not result.success:
+            self._yieldErrorOrWarning(CO_AUDIT, result)
+
+    def validateAuditedMediumLLP(self) -> None:
+        """
+        Checks conditions applicable to audited medium llp filings:
+        Lp.Audit, and Lp.MedLp
+        """
+        result = self._evaluateCode(LP_MED_LP)
+        if not result.success:
+            self._yieldErrorOrWarning(LP_MED_LP, result)
+        result = self._evaluateCode(LP_AUDIT)
+        if not result.success:
+            self._yieldErrorOrWarning(LP_AUDIT, result)
+
+    def validateAuditedSmallCompany(self) -> None:
+        """
+        Checks conditions applicable to audited small company filings:
+        Co.Audit and Lp.Smlp
+        """
+        result = self._evaluateCode(CO_SM_CO)
+        if not result.success:
+            self._errorOnMissingFactText(CO_SM_CO, result)
+        result = self._evaluateCode(CO_AUDIT)
+        if not result.success:
+            self._yieldErrorOrWarning(CO_AUDIT, result)
+
+    def validateAuditedSmallLLP(self) -> None:
+        """
+        Checks conditions applicable to audited small LLP filings:
+        Lp.Audit and Lp.Smlp
+        """
+        result = self._evaluateCode(LP_SM_LP)
+        if not result.success:
+            self._errorOnMissingFactText(LP_SM_LP, result)
+        result = self._evaluateCode(LP_AUDIT)
+        if not result.success:
+            self._yieldErrorOrWarning(LP_AUDIT, result)
 
     def validateUnauditedCompanyAbbreviatedAccounts(self) -> None:
         """

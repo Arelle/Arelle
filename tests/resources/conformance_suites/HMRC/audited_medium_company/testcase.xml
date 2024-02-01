@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="Audited Medium Company"
+  description="Audited mwdium company filings must meet certain criteria."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="valid" name="Valid">
+    <description>
+      The document is valid.
+    </description>
+    <data>
+        <instance readMeFirst="true">valid.xbrl</instance>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation id="co-audit-opinion" name="Fails Co.Audit">
+    <description>
+      Audited documents require certain facts to be tagged.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-audit-opinion.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.Audit</error>
+    </result>
+  </variation>
+  <variation id="co-med" name="Fails Co.MedCo">
+    <description>
+      StatementThatCompanyHasPreparedAccountsUnderProvisionsRelatingToMedium-sizedCompanies fact is missing required text.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-med.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.MedCo</error>
+    </result>
+  </variation>
+</testcase>
