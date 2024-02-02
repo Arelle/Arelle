@@ -3,7 +3,9 @@ from __future__ import annotations
 import multiprocessing
 import os.path
 import tempfile
+import zipfile
 from collections import defaultdict
+from collections.abc import Generator
 from contextlib import ExitStack
 from contextlib import nullcontext
 from dataclasses import dataclass
@@ -11,7 +13,6 @@ from heapq import heapreplace
 from pathlib import PurePath, PurePosixPath
 from typing import Any, Callable, ContextManager, TYPE_CHECKING, cast
 from unittest.mock import patch
-from zipfile import ZipFile
 
 from lxml import etree
 
@@ -41,16 +42,13 @@ def get_test_data_mp_wrapper(args_kws: tuple[list[Any], dict[str, Any]]) -> list
 
 
 def get_test_shards(config: ConformanceSuiteConfig) -> list[tuple[list[str], frozenset[str]]]:
-    test_path_prefix = PurePosixPath(config.file).parent
-    with ZipFile(config.prefixed_local_filepath) as zip_file:
-        tree = etree.parse(zip_file.open(config.file))
-        testcases_element = tree.getroot() if tree.getroot().tag == 'testcases' else tree.find('testcases')
-        assert testcases_element is not None
-        test_root = testcases_element.get('root', '')
-        # replace backslashes with forward slashes, e.g. in
-        # 616-definition-syntax/616-14-RXP-definition-link-validations\616-14-RXP-definition-link-validations-testcase.xml
-        path_strs = sorted(str(test_path_prefix / test_root / cast(str, e.get('uri')).replace('\\', '/'))
-            for e in testcases_element.findall('testcase'))
+    path_strs: list[str] = []
+    if zipfile.is_zipfile(config.prefixed_local_filepath):
+        with zipfile.ZipFile(config.prefixed_local_filepath) as zip_file:
+            _collect_zip_test_cases(zip_file, config.file, path_strs)
+    else:
+        _collect_dir_test_cases(config.prefixed_local_filepath, config.file, path_strs)
+    path_strs = sorted(path_strs)
     assert path_strs
 
     @dataclass(frozen=True)
@@ -86,11 +84,60 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[tuple[list[str], fro
         shard.append(path.path)
         heapreplace(shards_for_plugins, (shard_runtime + path.runtime, shard))
     assert shards_by_plugins.keys() == {()} | {tuple(plugins) for _, plugins in config.additional_plugins_by_prefix}
-    shards = [(paths, frozenset(plugins))
-        for plugins, runtimes_paths in shards_by_plugins.items()
-        for _, paths in runtimes_paths]
+    # Sort shards by runtime so CI nodes are more likely to pick shards with similar runtimes.
+    time_ordered_shards = sorted(
+        (runtime, plugin_group, paths)
+        for plugin_group, runtime_paths in shards_by_plugins.items()
+        for runtime, paths in runtime_paths
+    )
+    shards = [
+        (paths, frozenset(plugin_group))
+        for _, plugin_group, paths in time_ordered_shards
+    ]
     assert sorted(path for paths, _ in shards for path in paths) == path_strs
     return shards
+
+
+def _collect_zip_test_cases(zip_file: zipfile.ZipFile, file_path: str, path_strs: list[str]) -> None:
+    zip_files = zip_file.namelist()
+    if file_path not in zip_files:
+        # case insensitive search (necessary for EFM suite).
+        matching_files = [
+            zf for zf in zip_files
+            if zf.casefold() == file_path.casefold()
+        ]
+        if len(matching_files) != 1:
+            raise RuntimeError(f"Unable to find referenced test case file {file_path}.")
+        file_path = matching_files[0]
+
+    with zip_file.open(file_path) as fh:
+        tree = etree.parse(fh)
+    for test_case_index in _collect_test_case_paths(file_path, tree, path_strs):
+        _collect_zip_test_cases(zip_file, test_case_index, path_strs)
+
+
+def _collect_dir_test_cases(file_path_prefix: str, file_path: str, path_strs: list[str]) -> None:
+    full_file_path = os.path.join(file_path_prefix, file_path)
+    tree = etree.parse(full_file_path)
+    for test_case_index in _collect_test_case_paths(file_path, tree, path_strs):
+        _collect_dir_test_cases(file_path_prefix, test_case_index, path_strs)
+
+
+def _collect_test_case_paths(file_path: str, tree: etree._ElementTree, path_strs: list[str]) -> Generator[str, None, None]:
+    testcases_element = _get_elem_by_local_name(tree, 'testcases')
+    if testcases_element is not None:
+        test_root = testcases_element.get('root', '')
+        # replace backslashes with forward slashes, e.g. in
+        # 616-definition-syntax/616-14-RXP-definition-link-validations\616-14-RXP-definition-link-validations-testcase.xml
+        for elem in testcases_element.findall('{*}testcase'):
+            yield str(PurePosixPath(file_path).parent / test_root / cast(str, elem.get('uri')).replace('\\', '/'))
+    else:
+        assert _get_elem_by_local_name(tree, 'testcase') is not None, f'unexpected file is neither test case nor index of test cases {file_path}'
+        path_strs.append(file_path)
+
+
+def _get_elem_by_local_name(tree: etree._ElementTree, local_name: str) -> etree._Element | None:
+    return tree.getroot() if tree.getroot().tag.split('}')[-1] == local_name else tree.find(f'{{*}}{local_name}')
 
 
 def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: str,

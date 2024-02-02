@@ -8,5 +8,5 @@ config = ConformanceSuiteConfig(
     membership_url='https://www.xbrl.org/join',
     name=PurePath(__file__).stem,
     network_or_cache_required=False,
-    url_replace='file:///c:/temp/conf/'
+    url_replace='file:///c:/temp/conf/',
 )
