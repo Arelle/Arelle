@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="Audited Small Company"
+  description="Audited small company filings must meet certain criteria."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="valid" name="Valid">
+    <description>
+      The document is valid.
+    </description>
+    <data>
+        <instance readMeFirst="true">valid.xbrl</instance>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation id="co-micro" name="Co.Micro">
+    <description>
+      StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime fact is missing required text.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-micro.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.Micro</error>
+    </result>
+  </variation>
+  <variation id="co-small-ProfLoss" name="Fails Co.SmCo and Co.ProfLoss">
+    <description>
+      StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime fact is missing required text.
+      ProfitLoss is also nil
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-smco-profloss.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.SmCo</error>
+      <error>Co.ProfLoss</error>
+    </result>
+  </variation>
+</testcase>

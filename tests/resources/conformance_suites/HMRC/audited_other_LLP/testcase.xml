@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="Audited Other LLP"
+  description="Audited Other LLP filings must meet certain criteria."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="valid" name="Valid">
+    <description>
+      The document is valid.
+    </description>
+    <data>
+        <instance readMeFirst="true">valid.xbrl</instance>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation id="lp-audit-opinion" name="Fails Lp.Audit">
+    <description>
+      Audited documents require certain facts to be tagged.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-lp-audit-opinion.xbrl</instance>
+    </data>
+    <result>
+      <error>Lp.Audit</error>
+    </result>
+  </variation>
+  <variation id="lp-prof-loss" name="Fails Lp.ProfLoss">
+    <description>
+      Missing required ProfitLoss facts.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-lp-prof-loss.xbrl</instance>
+    </data>
+    <result>
+      <error>Lp.ProfLoss</error>
+    </result>
+  </variation>
+  <variation id="lp-qual-audit" name="Fails Lp.QualAudit">
+    <description>
+      Missing StatementOnQualityCompletenessInformationProvidedToAuditors fact.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-lp-qual-audit.xbrl</instance>
+    </data>
+    <result>
+      <error>Lp.QualAudit</error>
+    </result>
+  </variation>
+</testcase>
