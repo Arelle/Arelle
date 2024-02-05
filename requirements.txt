@@ -1,5 +1,5 @@
 # core modules
-certifi==2023.11.17
+certifi==2024.2.2
 lxml==5.1.0
 OpenPyXL==3.1.2
 pyparsing==3.1.1
@@ -17,7 +17,7 @@ NumPy==1.26.2 ; python_version > "3.8"
 Matplotlib==3.7.4 ; python_version <= "3.8"
 Matplotlib==3.8.2 ; python_version > "3.8"
 holidays==0.41
-pytz==2023.4
+pytz==2024.1
 Tornado==6.4
 # security plugin
 PyCryptodome==3.20.0
