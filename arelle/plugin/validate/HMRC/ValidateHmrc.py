@@ -19,10 +19,13 @@ from arelle.ModelXbrl import ModelXbrl
 CO_ABRID = 'Co.Abrid'
 CO_AUDIT = 'Co.Audit'
 CO_AUDIT_NR = 'Co.AuditNR'
+CO_DIR_REP = 'Co.DirReport'
 CO_DIR_RESP = 'Co.DirResp'
 CO_MED_CO = 'Co.MedCo'
 CO_MICRO = 'Co.Micro'
 CO_MISSING_ELEMENT = 'Co.MissingElement'
+CO_PROF_LOSS = 'Co.ProfLoss'
+CO_QUAL_AUDIT = 'Co.QualAudit'
 CO_SM_CO = 'Co.SmCo'
 CO_SEC_477 = 'Co.Sec477'
 CO_SEC_480 = 'Co.Sec480'
@@ -31,6 +34,8 @@ LP_AUDIT = 'Lp.Audit'
 LP_MED_LP = 'Lp.MedLp'
 LP_MEM_RESP = 'Lp.MemResp'
 LP_MICRO = 'Lp.Micro'
+LP_PROF_LOSS = 'Lp.ProfLoss'
+LP_QUAL_AUDIT = 'Lp.QualAudit'
 LP_SEC_477 = 'Lp.Sec477'
 LP_SEC_480 = 'Lp.Sec480'
 LP_SM_LP = 'Lp.SmLp'
@@ -48,7 +53,11 @@ CONCEPT_ACCOUNTS_STATUS_DIMENSION = 'AccountsStatusDimension'
 CONCEPT_ACCOUNTS_TYPE_FULL_OR_ABBREVIATED = 'AccountsTypeFullOrAbbreviated'  # DEPRECATED IN 2022+ taxonomies.  No replacement yet.
 CONCEPT_ACCOUNTS_TYPE_DIMENSION = 'AccountsTypeDimension'
 CONCEPT_DATE_AUDITOR_REPORT = 'DateAuditorsReport'
+CONCEPT_DATE_SIGNING_DIRECTOR_REPORT = 'DateSigningDirectorsReport'
+CONCEPT_DIRECTOR_SIGNING_DIRECTORS_REPORT = 'DirectorSigningDirectorsReport'
 CONCEPT_ENTITY_DORMANT = 'EntityDormantTruefalse'
+CONCEPT_ENTITY_TRADING_STATUS = 'EntityTradingStatus'
+CONCEPT_ENTITY_TRADING_STATUS_DIMENSION = 'EntityTradingStatusDimension'
 CONCEPT_LANGUAGES_DIMENSION = 'LanguagesDimension'
 CONCEPT_MEDIUM_COMPANY = 'StatementThatCompanyHasPreparedAccountsUnderProvisionsRelatingToMedium-sizedCompanies'
 CONCEPT_MEDIUM_COMPANIES_REGIME_FOR_ACCOUNTS = 'Medium-sizedCompaniesRegimeForAccounts'
@@ -60,17 +69,15 @@ CONCEPT_OPINION_AUDITORS_ON_ENTITY = 'OpinionAuditorsOnEntity'
 CONCEPT_LEGAL_FORM_ENTIY = 'LegalFormEntity'
 CONCEPT_LEGAL_FORM_ENTIY_DIMENSION = 'LegalFormEntityDimension'
 CONCEPT_LLP = 'LimitedLiabilityPartnershipLLP'
+CONCEPT_PROFIT_LOSS = 'ProfitLoss'
 CONCEPT_REPORT_PRINCIPAL_LANGUAGE = 'ReportPrincipalLanguage'
 CONCEPT_SCOPE_ACCOUNTS = 'ScopeAccounts'
 CONCEPT_SCOPE_ACCOUNTS_DIMENSION = 'ScopeAccountsDimension'
+CONCEPT_STATEMENT_PROVIDED = 'StatementOnQualityCompletenessInformationProvidedToAuditors'
 CONCEPT_SMALL_COMPANY_REGIME_FOR_ACCOUNTS = 'SmallCompaniesRegimeForAccounts'
 CONCEPT_GROUP_ACCOUNTS_ONLY = 'GroupAccountsOnly'
 CONCEPT_CONSOLIDATED_GROUP_COMPANY_ACCOUNTS = 'ConsolidatedGroupCompanyAccounts'
 CONCEPT_WELSH = 'Welsh'
-
-# Generic Identifiers
-COMPANY = 'Co'
-LLP = 'Lp'
 
 # Map of error code > concept local name > tuple of pairings of descriptions and regex patterns
 TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, re.regex.Pattern[str]], ...]]] = {
@@ -232,10 +239,23 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, re.regex.Pattern[
     },
 }
 
+# Map of codes > dict of local name and warning level boolean
+SINGLE_CONCEPT_EVALUATIONS: dict[str, dict[str, bool]] = {
+    CO_MED_CO: {CONCEPT_MEDIUM_COMPANY: True},
+    LP_MED_LP: {CONCEPT_MEDIUM_COMPANY: True},
+    CO_QUAL_AUDIT: {CONCEPT_STATEMENT_PROVIDED: False},
+    LP_QUAL_AUDIT: {CONCEPT_STATEMENT_PROVIDED: False},
+}
+
 
 class AccountStatus(Enum):
     AUDIT_EXEMPT_NO_REPORT = 'AuditExempt-NoAccountantsReport'
     AUDIT_EXEMPT_WITH_REPORT = 'AuditExemptWithAccountantsReport'
+
+
+class NotTrading(Enum):
+    CONCEPT_ENTITY_HAS_NEVER_TRADED = 'EntityHasNeverTraded'
+    CONCEPT_ENTITY_NO_LONGER_TRADING = 'EntityNoLongerTradingButTradedInPast'
 
 
 class ScopeAccounts(Enum):
@@ -310,7 +330,8 @@ class ValidateHmrc:
         self._codeResultMap[code] = result
         return result
 
-    def _evaluateTextPattern(self, pattern: dict[str, tuple[tuple[str, Pattern[str]], ...]] | Any) -> CodeResult:
+    def _evaluateTextPattern(self, code: str) -> CodeResult:
+        pattern: dict[str, tuple[tuple[str, Pattern[str]], ...]] | Any = TEXT_VALIDATION_PATTERNS.get(code, {})
         for conceptLocalName, textMatchers in pattern.items():
             facts = self._getFacts(conceptLocalName)
             if not facts:
@@ -330,13 +351,30 @@ class ValidateHmrc:
                     )
         return CodeResult()
 
+    def _evaluateDirectorFacts(self) -> CodeResult:
+        """
+        Logs an error when an audited report does not facts tagged with the concepts of "DateSigningDirectorsReport" or "DirectorSigningDirectorsReport"
+        :return:
+        """
+        missingConcepts = []
+        if not self._getAndCheckValidFacts(CONCEPT_DATE_SIGNING_DIRECTOR_REPORT):
+            missingConcepts.append(CONCEPT_DATE_SIGNING_DIRECTOR_REPORT)
+        if not self._getAndCheckValidFacts(CONCEPT_DIRECTOR_SIGNING_DIRECTORS_REPORT):
+            missingConcepts.append(CONCEPT_DIRECTOR_SIGNING_DIRECTORS_REPORT)
+        if len(missingConcepts) > 0:
+            return CodeResult(
+                    success=False,
+                    conceptList=missingConcepts,
+                    message="Facts tagged with the DateSigningDirectorsReport and DirectorSigningDirectorsReport must exist with non-nil values. "
+                            "There are no facts tagged with the concepts: %(conceptList)s"
+                )
+        return CodeResult()
+
     def _evaluateAuditFacts(self) -> CodeResult:
         """
-        Logs an error when an audited report does not facts tagged with the concepts of "DateAuditorsReport",  "OpinionAuditorsOnEntity"
+        Logs an error when an audited report does not facts tagged with the concepts of "DateAuditorsReport" and  "OpinionAuditorsOnEntity"
         as well as either "NameIndividualAuditor" or the combination of "NameSeniorStatutoryAuditor" and "NameEntityAuditors".
-        :param prefix:
         :return:
-
         """
         missingConcepts = []
         if not self._getAndCheckValidFacts(CONCEPT_DATE_AUDITOR_REPORT):
@@ -350,26 +388,52 @@ class ValidateHmrc:
             missingConcepts.append(CONCEPT_NAME_ENTITY_AUDITORS)
         if len(missingConcepts) > 0:
             return CodeResult(
-                    success=False,
-                    conceptList=missingConcepts,
-                    message="An audited report must contain facts tagged with the concepts of DateAuditorsReport, OpinionAuditorsOnEntity"
-                            "as well as either NameIndividualAuditor or the combination of NameSeniorStatutoryAuditor and NameEntityAuditors"
-                            "There are no facts tagged with the concepts: %(conceptList)s"
-                )
-
+                success=False,
+                conceptList=missingConcepts,
+                message="An audited report must contain facts tagged with the concepts of DateAuditorsReport, OpinionAuditorsOnEntity "
+                        "as well as either NameIndividualAuditor or the combination of NameSeniorStatutoryAuditor and NameEntityAuditors. "
+                        "There are no facts tagged with the concepts: %(conceptList)s"
+            )
         return CodeResult()
 
-    def _evaluateMedFact(self) -> CodeResult:
+    def _evaluateRequiredSingleFact(self, code: str) -> CodeResult:
         """
-        Logs a warning when an medium company or LLP does not facts tagged with the concept of
-        "StatementThatCompanyHasPreparedAccountsUnderProvisionsRelatingToMedium-sizedCompanies".
+        Logs a warning or error if the fact tied to the code is not found.
+        """
+        conceptAndLevel = SINGLE_CONCEPT_EVALUATIONS.get(code, {})
+        for conceptLocalName, warning in conceptAndLevel.items():
+            if not self._getAndCheckValidFacts(conceptLocalName):
+                return CodeResult(
+                    success=False,
+                    warning=warning,
+                    message="The concept of %(conceptLocalName)s must exist and have a non-nil value.",
+                    conceptLocalName=conceptLocalName,
+                )
+        return CodeResult()
+
+    def _evaluateProfLossFact(self) -> CodeResult:
+        """
+        Logs an error company or LLP does not facts tagged with the concept of ProfitLoss or
+        EntityTradingStatus with the dimension of EntityTradingStatusDimension/(EntityHasNeverTraded OR EntityNoLongerTradingButTradedInPast).
         :param prefix:
         """
-        if not self._getAndCheckValidFacts(CONCEPT_MEDIUM_COMPANY):
+        trading = False
+        for fact in self._getFacts(CONCEPT_ENTITY_TRADING_STATUS):
+            if fact is None or fact.context is None:
+                continue
+            for qname, value in fact.context.qnameDims.items():
+                if qname.localName == CONCEPT_ENTITY_TRADING_STATUS_DIMENSION:
+                    if value.xValue.localName in {
+                        NotTrading.CONCEPT_ENTITY_NO_LONGER_TRADING.value,
+                        NotTrading.CONCEPT_ENTITY_HAS_NEVER_TRADED.value,
+                    }:
+                        trading = True
+        if not self._getAndCheckValidFacts(CONCEPT_PROFIT_LOSS) and not trading:
             return CodeResult(
                     success=False,
-                    warning=True,
-                    message="The concept of StatementThatCompanyHasPreparedAccountsUnderProvisionsRelatingToMedium-sizedCompanies must exist and have a non-nil value."
+                    message="A fact tagged with ProfitLoss must exist if a fact tagged with EntityTradingStatus"
+                            "with the dimension of EntityTradingStatusDimension/(EntityHasNeverTraded OR EntityNoLongerTradingButTradedInPast)"
+                            "does not exist or has a nil value'"
                 )
         return CodeResult()
 
@@ -382,15 +446,17 @@ class ValidateHmrc:
         """
         if code in self._codeResultMap:
             return self._codeResultMap[code]
-        textValidationPatterns = TEXT_VALIDATION_PATTERNS.get(code, {})
-        if textValidationPatterns:
-            result = self._evaluateTextPattern(textValidationPatterns)
+        if code in TEXT_VALIDATION_PATTERNS:
+            result = self._evaluateTextPattern(code)
         elif code in (CO_AUDIT, LP_AUDIT):
             result = self._evaluateAuditFacts()
-        elif code in (CO_MED_CO, LP_MED_LP):
-            result = self._evaluateMedFact()
+        elif code == CO_DIR_REP:
+            result = self._evaluateDirectorFacts()
+        elif code in SINGLE_CONCEPT_EVALUATIONS:
+            result = self._evaluateRequiredSingleFact(code)
+        elif code in (CO_PROF_LOSS, LP_PROF_LOSS):
+            result = self._evaluateProfLossFact()
         return self._setCode(code, result)
-
 
     def _getFacts(self, conceptLocalName: str) -> list[ModelFact]:
         return [f for f in self.modelXbrl.factsByLocalName.get(conceptLocalName, set()) if f is not None]
@@ -414,7 +480,6 @@ class ValidateHmrc:
                     if value.xValue.localName == CONCEPT_WELSH:
                         return HmrcLang.WELSH
         return HmrcLang.ENGLISH
-
 
     def _yieldErrorOrWarning(self, code: str, result: CodeResult) -> None:
         """
@@ -578,6 +643,19 @@ class ValidateHmrc:
                     self.validateAuditedMediumLLP()
                 else:
                     self.validateAuditedMediumCompany()
+            elif self.accountingStandardsApplied == CONCEPT_MICRO_ENTITIES:
+                if self.legalFormEntity == CONCEPT_LLP:
+                    self.validateAuditedMicroLLP()
+                else:
+                    self.validateAuditedMicroCompany()
+            elif not (self.scopeAccounts in {
+                ScopeAccounts.GROUP_ONLY.value,
+                ScopeAccounts.CONSOLIDATED_GROUP.value,
+            } or self.accountsType == CONCEPT_ABRIDGED_ACCOUNTS or self.applicableLegislation == CONCEPT_SMALL_COMPANY_REGIME_FOR_ACCOUNTS):
+                if self.legalFormEntity == CONCEPT_LLP:
+                    self.validateAuditedOtherLLP()
+                else:
+                    self.validateAuditedOtherCompany()
 
     def validateAuditedAbridgedLLPAccounts(self) -> None:
         """
@@ -633,10 +711,73 @@ class ValidateHmrc:
         if not result.success:
             self._yieldErrorOrWarning(LP_AUDIT, result)
 
+    def validateAuditedMicroCompany(self) -> None:
+        """
+        Checks conditions applicable to audited micro company filings:
+        Co.Micro and (Co.SmCo or Co.ProfLoss)
+        """
+        result = self._evaluateCode(CO_MICRO)
+        if not result.success:
+            self._errorOnMissingFactText(CO_MICRO, result)
+        result = self._evaluateCode(CO_SM_CO)
+        if not result.success:
+            pLResult = self._evaluateCode(CO_PROF_LOSS)
+            if not pLResult.success:
+                self._errorOnMissingFactText(CO_SM_CO, result)
+                self._yieldErrorOrWarning(CO_PROF_LOSS, pLResult)
+
+    def validateAuditedMicroLLP(self) -> None:
+        """
+        Checks conditions applicable to audited micro LLP filings:
+        LP.Micro and (Lp.SmLp or Lp.ProfLoss)
+        """
+        result = self._evaluateCode(LP_MICRO)
+        if not result.success:
+            self._errorOnMissingFactText(LP_MICRO, result)
+        result = self._evaluateCode(LP_SM_LP)
+        if not result.success:
+            pLResult = self._evaluateCode(LP_PROF_LOSS)
+            if not pLResult.success:
+                self._errorOnMissingFactText(LP_SM_LP, result)
+                self._yieldErrorOrWarning(LP_PROF_LOSS, pLResult)
+
+    def validateAuditedOtherCompany(self) -> None:
+        """
+        Checks conditions applicable to audited other company filings:
+        Co.Audit, Co.DirReport, Co.QualAudit, and Co.ProfLoss
+        """
+        result = self._evaluateCode(CO_AUDIT)
+        if not result.success:
+            self._errorOnMissingFactText(CO_AUDIT, result)
+        result = self._evaluateCode(CO_DIR_REP)
+        if not result.success:
+            self._yieldErrorOrWarning(CO_DIR_REP, result)
+        result = self._evaluateCode(CO_QUAL_AUDIT)
+        if not result.success:
+            self._yieldErrorOrWarning(CO_QUAL_AUDIT, result)
+        result = self._evaluateCode(CO_PROF_LOSS)
+        if not result.success:
+            self._yieldErrorOrWarning(CO_PROF_LOSS, result)
+
+    def validateAuditedOtherLLP(self) -> None:
+        """
+        Checks conditions applicable to audited other LLP filings:
+        Lp.Audit, Lp.QualAudit and Lp.ProfLoss
+        """
+        result = self._evaluateCode(LP_AUDIT)
+        if not result.success:
+            self._errorOnMissingFactText(LP_AUDIT, result)
+        result = self._evaluateCode(LP_QUAL_AUDIT)
+        if not result.success:
+            self._yieldErrorOrWarning(LP_QUAL_AUDIT, result)
+        result = self._evaluateCode(LP_PROF_LOSS)
+        if not result.success:
+            self._yieldErrorOrWarning(LP_PROF_LOSS, result)
+
     def validateAuditedSmallCompany(self) -> None:
         """
         Checks conditions applicable to audited small company filings:
-        Co.Audit and Lp.Smlp
+        Co.Audit and Co.SmCo
         """
         result = self._evaluateCode(CO_SM_CO)
         if not result.success:

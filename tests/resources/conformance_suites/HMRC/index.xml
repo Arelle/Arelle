@@ -4,6 +4,10 @@
     <testcase uri='audited_company_abridged_accounts/testcase.xml' />
     <testcase uri='audited_medium_company/testcase.xml' />
     <testcase uri='audited_medium_LLP/testcase.xml' />
+    <testcase uri='audited_micro_company/testcase.xml' />
+    <testcase uri='audited_micro_LLP/testcase.xml' />
+    <testcase uri='audited_other_company/testcase.xml' />
+    <testcase uri='audited_other_LLP/testcase.xml' />
     <testcase uri='audited_small_company/testcase.xml' />
     <testcase uri='audited_small_LLP/testcase.xml' />
     <testcase uri='jfcvc/3312-testcase.xml' />

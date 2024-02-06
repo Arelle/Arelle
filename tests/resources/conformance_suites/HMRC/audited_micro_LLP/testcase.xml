@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="Audited Micro Company"
+        description="Audited micro company filings must meet certain criteria."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="valid" name="Valid">
+    <description>
+      The document is valid.
+    </description>
+    <data>
+      <instance readMeFirst="true">valid.xbrl</instance>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation id="valid-prof-loss" name="Valid ProfitLoss">
+    <description>
+      The document is valid.
+    </description>
+    <data>
+      <instance readMeFirst="true">valid-prof-loss.xbrl</instance>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation id="lp-micro" name="Lp.Micro">
+    <description>
+      StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime fact is missing required text.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-lp-micro.xbrl</instance>
+    </data>
+    <result>
+      <error>Lp.Micro</error>
+    </result>
+  </variation>
+  <variation id="lp-small-ProfLoss" name="Fails Lp.SmLp and Lp.ProfLoss">
+    <description>
+      StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime fact is missing required text.
+      ProfitLoss is also nil
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-lp-smlp-profloss.xbrl</instance>
+    </data>
+    <result>
+      <error>Lp.SmLp</error>
+      <error>Lp.ProfLoss</error>
+    </result>
+  </variation>
+</testcase>

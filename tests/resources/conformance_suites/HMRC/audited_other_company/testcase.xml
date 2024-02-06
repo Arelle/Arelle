@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="Audited Other Company"
+  description="Audited other company filings must meet certain criteria."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="valid" name="Valid">
+    <description>
+      The document is valid.
+    </description>
+    <data>
+        <instance readMeFirst="true">valid.xbrl</instance>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation id="co-audit-opinion" name="Fails Co.Audit">
+    <description>
+      Audited documents require certain facts to be tagged.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-audit-opinion.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.Audit</error>
+    </result>
+  </variation>
+  <variation id="co-dir-date" name="Fails Co.DirReport on date">
+    <description>
+      DateSigningDirectorsReport fact is missing or nil.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-dir-date.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.DirReport</error>
+    </result>
+  </variation>
+  <variation id="co-dir-dir" name="Fails Co.DirReport on name">
+    <description>
+      DirectorSigningDirectorsReport fact is missing or nil.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-dir-dir.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.DirReport</error>
+    </result>
+  </variation>
+  <variation id="co-prof-loss" name="Fails Co.ProfLoss">
+    <description>
+      Missing required ProfitLoss facts.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-prof-loss.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.ProfLoss</error>
+    </result>
+  </variation>
+  <variation id="co-qual-audit" name="Fails Co.QualAudit">
+    <description>
+      Missing StatementOnQualityCompletenessInformationProvidedToAuditors fact.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-qual-audit.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.QualAudit</error>
+    </result>
+  </variation>
+</testcase>
