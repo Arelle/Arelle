@@ -38,13 +38,13 @@ jobs:
           pip install build
           python -m build
       - name: Upload tar artifact
-        uses: actions/upload-artifact@v4.3.0
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: arelle.tar.gz
           if-no-files-found: error
           path: dist/*.tar.gz
       - name: Upload wheel artifact
-        uses: actions/upload-artifact@v4.3.0
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: arelle.whl
           if-no-files-found: error
@@ -61,11 +61,11 @@ jobs:
       - name: Install twine
         run: pip install -U twine
       - name: Download tar artifact
-        uses: actions/download-artifact@v4.1.1
+        uses: actions/download-artifact@v4.1.2
         with:
           name: arelle.tar.gz
       - name: Download wheel artifact
-        uses: actions/download-artifact@v4.1.1
+        uses: actions/download-artifact@v4.1.2
         with:
           name: arelle.whl
       - name: Publish package on release
