@@ -43,7 +43,7 @@ jobs:
     environment: integration-tests
     steps:
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4.0.1
+        uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
@@ -87,7 +87,7 @@ jobs:
           printf 'artifact-name=%s%s %s %s logs' "${{ matrix.test.short_name }}" "${{ matrix.test.shard && format(' {0}', matrix.test.shard) || '' }}" "${{ matrix.test.os }}" "${{ matrix.test.python_version }}" >> $GITHUB_OUTPUT
       - name: Upload logs and reports
         if: always()
-        uses: actions/upload-artifact@v4.3.0
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: ${{ steps.build-artifact-name.outputs.artifact-name }}
           if-no-files-found: error
