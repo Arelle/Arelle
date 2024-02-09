@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="Unaudited Dormant Charity"
+  description="Unaudited dormant charity filings must meet certain criteria."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="valid" name="Valid">
+    <description>
+      The document is valid.
+    </description>
+    <data>
+        <instance readMeFirst="true">valid.xbrl</instance>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation id="ch-dir-resp" name="Fails Char.DirResp">
+    <description>
+      Audited documents require certain facts to be tagged.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-ch-dir-resp.xbrl</instance>
+    </data>
+    <result>
+      <error>Char.DirResp</error>
+    </result>
+  </variation>
+  <variation id="co-audit-nr" name="Fails Co.AuditNR">
+    <description>
+      Audited documents require certain facts to be tagged.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-audit-nr.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.AuditNR</error>
+    </result>
+  </variation>
+  <variation id="co-sec480" name="Fails Co.Sec480">
+    <description>
+      Audited documents require certain facts to be tagged.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-sec480.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.Sec480</error>
+    </result>
+  </variation>
+  <variation id="co-small-dir-rep" name="Fails Co.SmCo and Char.DirReport">
+    <description>
+      Facts are missing required text.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-co-small-char-dir-report.xbrl</instance>
+    </data>
+    <result>
+      <error>Co.SmCo</error>
+      <error>Char.DirReport</error>
+    </result>
+  </variation>
+</testcase>

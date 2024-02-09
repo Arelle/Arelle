@@ -455,10 +455,11 @@ def validateXbrlFinally(val, *args, **kwargs):
                 modelXbrl.error("HMRC.SG.3.8",
                     _("Element %(elt)s style attribute has disallowed image reference: %(styleImage)s."),
                     modelObject=elt, elt=elt.tag.rpartition("}")[2], styleImage=match)
-
+    hmrc = ValidateHmrc(modelXbrl)
     if val.txmyType != "charities":
-        hmrc = ValidateHmrc(modelXbrl)
         hmrc.validate()
+    elif val.txmyType == "charities":
+        hmrc.validateCharities()
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
