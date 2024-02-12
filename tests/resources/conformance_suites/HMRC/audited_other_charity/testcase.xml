@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="Audited Other Charity"
+  description="Audited other charity filings must meet certain criteria."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="valid" name="Valid">
+    <description>
+      The document is valid.
+    </description>
+    <data>
+        <instance readMeFirst="true">valid.xbrl</instance>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation id="ch-audit-date" name="Fails Ch.Audit">
+    <description>
+      Audited documents require certain facts to be tagged.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-ch-audit-date.xbrl</instance>
+    </data>
+    <result>
+      <error>Char.Audit</error>
+    </result>
+  </variation>
+  <variation id="ch-char-fund" name="Fails Ch.CharFund">
+    <description>
+      Audited Charity Funds should be tagged
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-ch-char-fund.xbrl</instance>
+    </data>
+    <result>
+      <error>Char.CharFund</error>
+    </result>
+  </variation>
+  <variation id="ch-dir-rep" name="Fails Ch.DirRep">
+    <description>
+      Audited documents require certain facts to be tagged.
+    </description>
+    <data>
+      <instance readMeFirst="true">invalid-ch-dir-rep.xbrl</instance>
+    </data>
+    <result>
+      <error>Char.DirReport</error>
+    </result>
+  </variation>
+</testcase>

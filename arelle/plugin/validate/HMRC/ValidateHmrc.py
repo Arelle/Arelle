@@ -16,6 +16,10 @@ from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelXbrl import ModelXbrl
 
 # Error codes
+CH_AUDIT = 'Char.Audit'
+CH_CHAR_FUND = 'Char.CharFund'
+CH_DIR_REP = 'Char.DirReport'
+CH_DIR_RESP = 'Char.DirResp'
 CO_ABRID = 'Co.Abrid'
 CO_AUDIT = 'Co.Audit'
 CO_AUDIT_NR = 'Co.AuditNR'
@@ -52,9 +56,17 @@ CONCEPT_ACCOUNTS_STATUS = 'AccountsStatusAuditedOrUnaudited'
 CONCEPT_ACCOUNTS_STATUS_DIMENSION = 'AccountsStatusDimension'
 CONCEPT_ACCOUNTS_TYPE_FULL_OR_ABBREVIATED = 'AccountsTypeFullOrAbbreviated'  # DEPRECATED IN 2022+ taxonomies.  No replacement yet.
 CONCEPT_ACCOUNTS_TYPE_DIMENSION = 'AccountsTypeDimension'
+CONCEPT_ADVERSE_OPINION = 'AdverseOpinion'
+CONCEPT_CHARITY_FUNDS = 'CharityFunds'
+CONCEPT_CHARITY_REGISTRATION_NUMBER_ENGLAND_WALES = 'CharityRegistrationNumberEnglandWales'
+CONCEPT_CHARITY_REGISTRATION_NUMBER_NORTH_IRELAND = 'CharityRegistrationNumberNorthernIreland'
+CONCEPT_CHARITY_REGISTRATION_NUMBER_SCOTLAND = 'CharityRegistrationNumberScotland'
 CONCEPT_DATE_AUDITOR_REPORT = 'DateAuditorsReport'
+CONCEPT_DATE_CHARITY_AUDITORS_REPORT = 'DateCharityAuditorsReport'
 CONCEPT_DATE_SIGNING_DIRECTOR_REPORT = 'DateSigningDirectorsReport'
+CONCEPT_DATE_SIGNING_TRUSTEES_REPORT = 'DateSigningTrusteesAnnualReport'
 CONCEPT_DIRECTOR_SIGNING_DIRECTORS_REPORT = 'DirectorSigningDirectorsReport'
+CONCEPT_DISCLAIMER_OPINION = 'DisclaimerOpinion'
 CONCEPT_ENTITY_DORMANT = 'EntityDormantTruefalse'
 CONCEPT_ENTITY_TRADING_STATUS = 'EntityTradingStatus'
 CONCEPT_ENTITY_TRADING_STATUS_DIMENSION = 'EntityTradingStatusDimension'
@@ -63,9 +75,14 @@ CONCEPT_MEDIUM_COMPANY = 'StatementThatCompanyHasPreparedAccountsUnderProvisions
 CONCEPT_MEDIUM_COMPANIES_REGIME_FOR_ACCOUNTS = 'Medium-sizedCompaniesRegimeForAccounts'
 CONCEPT_MICRO_ENTITIES = 'Micro-entities'
 CONCEPT_NAME_INDIVIDUAL_AUDITOR = 'NameIndividualAuditor'
+CONCEPT_NAME_INDIVIDUAL_CHARITY_AUDITOR = 'NameIndividualCharityAuditor'
 CONCEPT_NAME_ENTITY_AUDITORS = 'NameEntityAuditors'
+CONCEPT_NAME_ENTITY_CHARITY_AUDITORS = 'NameEntityCharityAuditors'
 CONCEPT_NAME_SENIOR_STATUTORY_AUDITOR = 'NameSeniorStatutoryAuditor'
+CONCEPT_NAME_SENIOR_STATUTORY_CHARITY_AUDITOR = 'NameSeniorStatutoryCharityAuditor'
 CONCEPT_OPINION_AUDITORS_ON_ENTITY = 'OpinionAuditorsOnEntity'
+CONCEPT_QUALIFIED_OPINION = 'QualifiedOpinion'
+CONCEPT_UNQUALIFIED_OPINION = 'UnqualifiedOpinion'
 CONCEPT_LEGAL_FORM_ENTIY = 'LegalFormEntity'
 CONCEPT_LEGAL_FORM_ENTIY_DIMENSION = 'LegalFormEntityDimension'
 CONCEPT_LLP = 'LimitedLiabilityPartnershipLLP'
@@ -75,12 +92,27 @@ CONCEPT_SCOPE_ACCOUNTS = 'ScopeAccounts'
 CONCEPT_SCOPE_ACCOUNTS_DIMENSION = 'ScopeAccountsDimension'
 CONCEPT_STATEMENT_PROVIDED = 'StatementOnQualityCompletenessInformationProvidedToAuditors'
 CONCEPT_SMALL_COMPANY_REGIME_FOR_ACCOUNTS = 'SmallCompaniesRegimeForAccounts'
+CONCEPT_TRUSTEE_SIGNING_ANNUAL_REPORT = 'TrusteeSigningTrusteesAnnualReport'
 CONCEPT_GROUP_ACCOUNTS_ONLY = 'GroupAccountsOnly'
 CONCEPT_CONSOLIDATED_GROUP_COMPANY_ACCOUNTS = 'ConsolidatedGroupCompanyAccounts'
 CONCEPT_WELSH = 'Welsh'
 
+CHARITY_REGISTRATION_NUMBERS = [CONCEPT_CHARITY_REGISTRATION_NUMBER_ENGLAND_WALES, CONCEPT_CHARITY_REGISTRATION_NUMBER_NORTH_IRELAND, CONCEPT_CHARITY_REGISTRATION_NUMBER_SCOTLAND]
+
 # Map of error code > concept local name > tuple of pairings of descriptions and regex patterns
 TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, re.regex.Pattern[str]], ...]]] = {
+    CH_DIR_RESP: {
+        'StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct': (
+            (
+                '"Directors acknowledge" or "Director acknowledges" or "Trustees acknowledge" or "Trustee acknowledges", then "responsibilities", then "Companies Act 2006" OR "the Act"',
+                re.compile(r".*(Director acknowledges|Directors acknowledge|Trustees acknowledge|Trustee acknowledges).*responsibilities.*(Companies Act 2006|the Act).*"),
+            ),
+            (
+                '"Cyfarwyddwyr yn cydnabod" or "Cyfarwyddwr yn cydnabod" or "ymddiriedolwyr yn cydnabod" or "ymddiriedolwr yn cydnabod", then "cyfrifoldebau", then "Ddeddf Cwmnïau 2006" or "y ddeddf"',
+                re.compile(r".*(Cyfarwyddwyr yn cydnabod|Cyfarwyddwr yn cydnabod|ymddiriedolwyr yn cydnabod|ymddiriedolwr yn cydnabod).*cyfrifoldebau.*(Ddeddf Cwmnïau 2006|y ddeddf).*"),
+            ),
+        ),
+    },
     CO_ABRID: {
         'StatementThatMembersHaveAgreedToPreparationAbridgedAccountsUnderSection444CompaniesAct2006': (
             (
@@ -351,23 +383,40 @@ class ValidateHmrc:
                     )
         return CodeResult()
 
-    def _evaluateDirectorFacts(self) -> CodeResult:
+    def _evaluateDirectorFacts(self, code: str) -> CodeResult:
         """
-        Logs an error when an audited report does not facts tagged with the concepts of "DateSigningDirectorsReport" or "DirectorSigningDirectorsReport"
+        Logs an error when an audited report does not facts tagged with the concepts of "DateSigningDirectorsReport" and "DirectorSigningDirectorsReport,
+        or DateSigningTrusteesAnnualReport and TrusteeSigningTrusteesAnnualReport (for charities)."
         :return:
         """
         missingConcepts = []
-        if not self._getAndCheckValidFacts(CONCEPT_DATE_SIGNING_DIRECTOR_REPORT):
+        if not self._getAndCheckValidFacts([CONCEPT_DATE_SIGNING_DIRECTOR_REPORT]):
             missingConcepts.append(CONCEPT_DATE_SIGNING_DIRECTOR_REPORT)
-        if not self._getAndCheckValidFacts(CONCEPT_DIRECTOR_SIGNING_DIRECTORS_REPORT):
+        if not self._getAndCheckValidFacts([CONCEPT_DIRECTOR_SIGNING_DIRECTORS_REPORT]):
             missingConcepts.append(CONCEPT_DIRECTOR_SIGNING_DIRECTORS_REPORT)
         if len(missingConcepts) > 0:
-            return CodeResult(
-                    success=False,
-                    conceptList=missingConcepts,
-                    message="Facts tagged with the DateSigningDirectorsReport and DirectorSigningDirectorsReport must exist with non-nil values. "
-                            "There are no facts tagged with the concepts: %(conceptList)s"
-                )
+            if code == CO_DIR_REP:
+                return CodeResult(
+                        success=False,
+                        conceptList=missingConcepts,
+                        message="Facts tagged with the DateSigningDirectorsReport and DirectorSigningDirectorsReport must exist with non-nil values. "
+                                "There are no facts tagged with the concepts: %(conceptList)s.",
+                    )
+            elif code == CH_DIR_REP:
+                missingCharConcepts = []
+                if not self._getAndCheckValidFacts([CONCEPT_DATE_SIGNING_TRUSTEES_REPORT]):
+                    missingCharConcepts.append(CONCEPT_DATE_SIGNING_TRUSTEES_REPORT)
+                if not self._getAndCheckValidFacts([CONCEPT_TRUSTEE_SIGNING_ANNUAL_REPORT]):
+                    missingCharConcepts.append(CONCEPT_TRUSTEE_SIGNING_ANNUAL_REPORT)
+                if len(missingCharConcepts) > 0:
+                    missingConcepts.extend(missingCharConcepts)
+                    return CodeResult(
+                        success=False,
+                        conceptList=missingConcepts,
+                        message="A set of facts must exist with non-nil values with the concepts of DateSigningDirectorsReport and DirectorSigningDirectorsReport "
+                                "or DateSigningTrusteesAnnualReport and TrusteeSigningTrusteesAnnualReport. "
+                                "There are no facts tagged with the concepts: %(conceptList)s.",
+                    )
         return CodeResult()
 
     def _evaluateAuditFacts(self) -> CodeResult:
@@ -377,12 +426,12 @@ class ValidateHmrc:
         :return:
         """
         missingConcepts = []
-        if not self._getAndCheckValidFacts(CONCEPT_DATE_AUDITOR_REPORT):
+        if not self._getAndCheckValidFacts([CONCEPT_DATE_AUDITOR_REPORT]):
             missingConcepts.append(CONCEPT_DATE_AUDITOR_REPORT)
-        if not self._getAndCheckValidFacts(CONCEPT_OPINION_AUDITORS_ON_ENTITY):
+        if not self._getAndCheckValidFacts([CONCEPT_OPINION_AUDITORS_ON_ENTITY]):
             missingConcepts.append(CONCEPT_OPINION_AUDITORS_ON_ENTITY)
-        if (not (self._getAndCheckValidFacts(CONCEPT_NAME_ENTITY_AUDITORS) and self._getAndCheckValidFacts(CONCEPT_NAME_SENIOR_STATUTORY_AUDITOR))
-                and not self._getAndCheckValidFacts(CONCEPT_NAME_INDIVIDUAL_AUDITOR)):
+        if (not (self._getAndCheckValidFacts([CONCEPT_NAME_ENTITY_AUDITORS]) and self._getAndCheckValidFacts([CONCEPT_NAME_SENIOR_STATUTORY_AUDITOR]))
+                and not self._getAndCheckValidFacts([CONCEPT_NAME_INDIVIDUAL_AUDITOR])):
             missingConcepts.append(CONCEPT_NAME_INDIVIDUAL_AUDITOR)
             missingConcepts.append(CONCEPT_NAME_SENIOR_STATUTORY_AUDITOR)
             missingConcepts.append(CONCEPT_NAME_ENTITY_AUDITORS)
@@ -392,6 +441,43 @@ class ValidateHmrc:
                 conceptList=missingConcepts,
                 message="An audited report must contain facts tagged with the concepts of DateAuditorsReport, OpinionAuditorsOnEntity "
                         "as well as either NameIndividualAuditor or the combination of NameSeniorStatutoryAuditor and NameEntityAuditors. "
+                        "There are no facts tagged with the concepts: %(conceptList)s."
+            )
+        return CodeResult()
+
+    def _evaluateCharAuditFacts(self) -> CodeResult:
+        """
+        Logs an error when a charity report does not facts tagged with the concepts of "DateAuditorsReport" or "DateCharityAuditorsReport"
+        and "OpinionAuditorsOnEntity" or "QualifiedOpinion" or "UnqualifiedOpinion" or "AdverseOpinion" or "DisclaimerOpinion"
+        and "NameIndividualAuditor" or "NameIndividualCharityAuditor" or ("NameSeniorStatutoryAuditor" and "NameEntityAuditors") or ("NameSeniorStatutoryCharityAuditor" and "NameEntityCharityAuditors")
+        :return:
+        """
+        missingConcepts = []
+        if not self._getAndCheckValidFacts([CONCEPT_DATE_AUDITOR_REPORT, CONCEPT_DATE_CHARITY_AUDITORS_REPORT]):
+            missingConcepts.extend([CONCEPT_DATE_AUDITOR_REPORT, CONCEPT_DATE_CHARITY_AUDITORS_REPORT])
+        if not self._getAndCheckValidFacts(
+                [CONCEPT_OPINION_AUDITORS_ON_ENTITY, CONCEPT_QUALIFIED_OPINION, CONCEPT_UNQUALIFIED_OPINION, CONCEPT_ADVERSE_OPINION, CONCEPT_DISCLAIMER_OPINION]
+        ):
+            missingConcepts.extend(
+                [CONCEPT_OPINION_AUDITORS_ON_ENTITY, CONCEPT_QUALIFIED_OPINION, CONCEPT_UNQUALIFIED_OPINION, CONCEPT_ADVERSE_OPINION, CONCEPT_DISCLAIMER_OPINION]
+            )
+        if not self._getAndCheckValidFacts([CONCEPT_NAME_INDIVIDUAL_AUDITOR, CONCEPT_NAME_INDIVIDUAL_CHARITY_AUDITOR]):
+            if not (self._getAndCheckValidFacts([CONCEPT_NAME_SENIOR_STATUTORY_AUDITOR]) and self._getAndCheckValidFacts([CONCEPT_NAME_ENTITY_AUDITORS])):
+                if not (self._getAndCheckValidFacts([CONCEPT_NAME_SENIOR_STATUTORY_CHARITY_AUDITOR]) and self._getAndCheckValidFacts([CONCEPT_NAME_ENTITY_CHARITY_AUDITORS])):
+                    missingConcepts.extend(
+                        [
+                            CONCEPT_NAME_INDIVIDUAL_AUDITOR, CONCEPT_NAME_INDIVIDUAL_CHARITY_AUDITOR, CONCEPT_NAME_SENIOR_STATUTORY_AUDITOR, CONCEPT_NAME_ENTITY_AUDITORS,
+                            CONCEPT_NAME_SENIOR_STATUTORY_CHARITY_AUDITOR, CONCEPT_NAME_ENTITY_CHARITY_AUDITORS
+                        ]
+                    )
+        if len(missingConcepts) > 0:
+            return CodeResult(
+                success=False,
+                conceptList=missingConcepts,
+                message="Audited charities accounts submission missing required audit-related information. Audited charity accounts submissions are required to include facts for: "
+                        "i) DateAuditorsReport or DateCharityAuditorsReport "
+                        "ii) OpinionAuditorsOnEntity, QualifiedOpinion, UnqualifiedOpinion, AdverseOpinion, or DisclaimerOpinion "
+                        "iii) NameIndividualAuditor, NameIndividualCharityAuditor, OR either (NameSeniorStatutoryAuditor and NameEntityAuditors) or (NameSeniorStatutoryCharityAuditor and NameEntityCharityAuditors) "
                         "There are no facts tagged with the concepts: %(conceptList)s"
             )
         return CodeResult()
@@ -402,7 +488,7 @@ class ValidateHmrc:
         """
         conceptAndLevel = SINGLE_CONCEPT_EVALUATIONS.get(code, {})
         for conceptLocalName, warning in conceptAndLevel.items():
-            if not self._getAndCheckValidFacts(conceptLocalName):
+            if not self._getAndCheckValidFacts([conceptLocalName]):
                 return CodeResult(
                     success=False,
                     warning=warning,
@@ -411,12 +497,16 @@ class ValidateHmrc:
                 )
         return CodeResult()
 
-    def _evaluateProfLossFact(self) -> CodeResult:
+    def _evaluateProfLossOrCharityFundsFact(self, code: str) -> CodeResult:
         """
-        Logs an error company or LLP does not facts tagged with the concept of ProfitLoss or
-        EntityTradingStatus with the dimension of EntityTradingStatusDimension/(EntityHasNeverTraded OR EntityNoLongerTradingButTradedInPast).
-        :param prefix:
+        Logs an error if EntityTradingStatus with the dimension of EntityTradingStatusDimension/(EntityHasNeverTraded OR EntityNoLongerTradingButTradedInPast)
+        or (ProfitLoss for a company/LLP of CharityFunds for a charity)
         """
+        concept = ''
+        if code in (CO_PROF_LOSS, LP_PROF_LOSS):
+            concept = CONCEPT_PROFIT_LOSS
+        elif code == CH_CHAR_FUND:
+            concept = CONCEPT_CHARITY_FUNDS
         trading = False
         for fact in self._getFacts(CONCEPT_ENTITY_TRADING_STATUS):
             if fact is None or fact.context is None:
@@ -428,12 +518,13 @@ class ValidateHmrc:
                         NotTrading.CONCEPT_ENTITY_HAS_NEVER_TRADED.value,
                     }:
                         trading = True
-        if not self._getAndCheckValidFacts(CONCEPT_PROFIT_LOSS) and not trading:
+        if not self._getAndCheckValidFacts([concept]) and not trading:
             return CodeResult(
+                    conceptLocalName=concept,
                     success=False,
-                    message="A fact tagged with ProfitLoss must exist if a fact tagged with EntityTradingStatus"
-                            "with the dimension of EntityTradingStatusDimension/(EntityHasNeverTraded OR EntityNoLongerTradingButTradedInPast)"
-                            "does not exist or has a nil value'"
+                    message="A fact tagged with %(conceptLocalName)s must exist if a fact tagged with EntityTradingStatus "
+                            "with the dimension of EntityTradingStatusDimension/(EntityHasNeverTraded OR EntityNoLongerTradingButTradedInPast) "
+                            "does not exist or has a nil value"
                 )
         return CodeResult()
 
@@ -450,21 +541,24 @@ class ValidateHmrc:
             result = self._evaluateTextPattern(code)
         elif code in (CO_AUDIT, LP_AUDIT):
             result = self._evaluateAuditFacts()
-        elif code == CO_DIR_REP:
-            result = self._evaluateDirectorFacts()
+        elif code in (CH_DIR_REP, CO_DIR_REP):
+            result = self._evaluateDirectorFacts(code)
         elif code in SINGLE_CONCEPT_EVALUATIONS:
             result = self._evaluateRequiredSingleFact(code)
-        elif code in (CO_PROF_LOSS, LP_PROF_LOSS):
-            result = self._evaluateProfLossFact()
+        elif code in (CH_CHAR_FUND, CO_PROF_LOSS, LP_PROF_LOSS):
+            result = self._evaluateProfLossOrCharityFundsFact(code)
+        elif code == CH_AUDIT:
+            result = self._evaluateCharAuditFacts()
         return self._setCode(code, result)
 
     def _getFacts(self, conceptLocalName: str) -> list[ModelFact]:
         return [f for f in self.modelXbrl.factsByLocalName.get(conceptLocalName, set()) if f is not None]
 
-    def _getAndCheckValidFacts(self, conceptLocalName: str) -> bool:
-        facts = self._getFacts(conceptLocalName)
-        if any(self._checkValidFact(x) for x in facts):
-            return True
+    def _getAndCheckValidFacts(self, conceptLocalNames: list[str]) -> bool:
+        for concept in conceptLocalNames:
+            facts = self._getFacts(concept)
+            if any(self._checkValidFact(x) for x in facts):
+                return True
         return False
 
     @cached_property
@@ -657,6 +751,30 @@ class ValidateHmrc:
                 else:
                     self.validateAuditedOtherCompany()
 
+    def validateCharities(self) -> None:
+        """
+        Find the appropriate set of validations to run on this document and runs them.
+        """
+        if self._getAndCheckValidFacts(CHARITY_REGISTRATION_NUMBERS):
+            if self.accountStatus == CONCEPT_AUDITED:
+                if self.applicableLegislation == CONCEPT_SMALL_COMPANY_REGIME_FOR_ACCOUNTS:
+                    if self.legalFormEntity != CONCEPT_LLP:
+                        self.validateAuditedSmallCharity()
+
+                elif not (self.scopeAccounts in {
+                            ScopeAccounts.GROUP_ONLY.value,
+                            ScopeAccounts.CONSOLIDATED_GROUP.value,
+                        } or self.accountsType == CONCEPT_ABRIDGED_ACCOUNTS):
+                    self.validateAuditedOtherCharity()
+            elif self.accountStatus in {
+                AccountStatus.AUDIT_EXEMPT_NO_REPORT.value,
+                AccountStatus.AUDIT_EXEMPT_WITH_REPORT.value,
+            }:
+                if self.isEntityDormant:
+                    self.validateUnauditedDormantCharity()
+                else:
+                    self.validateUnauditedCharitySmallAndGroupAccounts()
+
     def validateAuditedAbridgedLLPAccounts(self) -> None:
         """
         Checks conditions applicable to audited abridged LLP accounts:
@@ -741,6 +859,21 @@ class ValidateHmrc:
                 self._errorOnMissingFactText(LP_SM_LP, result)
                 self._yieldErrorOrWarning(LP_PROF_LOSS, pLResult)
 
+    def validateAuditedOtherCharity(self) -> None:
+        """
+        Checks conditions applicable to audited other charity filings:
+        Char.DirReport, Char.Audit, and Char.CharFunds
+        """
+        result = self._evaluateCode(CH_DIR_REP)
+        if not result.success:
+            self._yieldErrorOrWarning(CH_DIR_REP, result)
+        result = self._evaluateCode(CH_AUDIT)
+        if not result.success:
+            self._yieldErrorOrWarning(CH_AUDIT, result)
+        result = self._evaluateCode(CH_CHAR_FUND)
+        if not result.success:
+            self._yieldErrorOrWarning(CH_CHAR_FUND, result)
+
     def validateAuditedOtherCompany(self) -> None:
         """
         Checks conditions applicable to audited other company filings:
@@ -774,6 +907,18 @@ class ValidateHmrc:
         if not result.success:
             self._yieldErrorOrWarning(LP_PROF_LOSS, result)
 
+    def validateAuditedSmallCharity(self) -> None:
+        """
+        Checks conditions applicable to audited small company filings:
+        Char.Audit and Co.SmCo
+        """
+        result = self._evaluateCode(CO_SM_CO)
+        if not result.success:
+            self._errorOnMissingFactText(CO_SM_CO, result)
+        result = self._evaluateCode(CH_AUDIT)
+        if not result.success:
+            self._yieldErrorOrWarning(CH_AUDIT, result)
+
     def validateAuditedSmallCompany(self) -> None:
         """
         Checks conditions applicable to audited small company filings:
@@ -797,6 +942,24 @@ class ValidateHmrc:
         result = self._evaluateCode(LP_AUDIT)
         if not result.success:
             self._yieldErrorOrWarning(LP_AUDIT, result)
+
+    def validateUnauditedCharitySmallAndGroupAccounts(self) -> None:
+        """
+        Checks conditions applicable to unaudited small charities or unaudited charity group accounts:
+        Co.Sec777, Co.AuditNR, Char.DirResp, and Co.SmCo
+        """
+        result = self._evaluateCode(CO_SEC_477)
+        if not result.success:
+            self._errorOnMissingFactText(CO_SEC_477, result)
+        result = self._evaluateCode(CO_AUDIT_NR)
+        if not result.success:
+            self._errorOnMissingFactText(CO_AUDIT_NR, result)
+        result = self._evaluateCode(CH_DIR_RESP)
+        if not result.success:
+            self._yieldErrorOrWarning(CH_DIR_RESP, result)
+        result = self._evaluateCode(CO_SM_CO)
+        if not result.success:
+            self._errorOnMissingFactText(CO_SM_CO, result)
 
     def validateUnauditedCompanyAbbreviatedAccounts(self) -> None:
         """
@@ -854,6 +1017,28 @@ class ValidateHmrc:
         result = self._evaluateCode(CO_SM_CO)
         if not result.success:
             self._errorOnMissingFactText(CO_SM_CO, result)
+
+    def validateUnauditedDormantCharity(self) -> None:
+        """
+        Checks conditions applicable to unaudited dormant charities:
+        Co.Sec480 and Co.AuditNR and Char.DirResp and (Char.DirReport or Co.SmCo).
+        """
+        result = self._evaluateCode(CO_SEC_480)
+        if not result.success:
+            self._errorOnMissingFactText(CO_SEC_480, result)
+        result = self._evaluateCode(CO_AUDIT_NR)
+        if not result.success:
+            self._errorOnMissingFactText(CO_AUDIT_NR, result)
+        result = self._evaluateCode(CH_DIR_RESP)
+        if not result.success:
+            self._errorOnMissingFactText(CH_DIR_RESP, result)
+
+        result = self._evaluateCode(CH_DIR_REP)
+        if not result.success:
+            smCoResult = self._evaluateCode(CO_SM_CO)
+            if not smCoResult.success:
+                self._yieldErrorOrWarning(CH_DIR_REP, result)
+                self._errorOnMissingFactText(CO_SM_CO, smCoResult)
 
     def validateUnauditedDormantCompany(self) -> None:
             """
