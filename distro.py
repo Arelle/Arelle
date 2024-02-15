@@ -6,6 +6,7 @@ import site
 import sys
 from importlib.metadata import entry_points
 
+import regex as re
 from cx_Freeze import Executable, setup
 from setuptools import find_packages
 
@@ -129,6 +130,14 @@ elif sys.platform == MACOS_PLATFORM:
             "codesign_verify": True,
             "codesign_options": "runtime",
         })
+    if scmTagVersion := os.environ.get('SETUPTOOLS_SCM_PRETEND_VERSION'):
+        semverRegex = r'(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)'
+        if re.fullmatch(semverRegex, scmTagVersion):
+            # Tagged release. Dev versions are ignored.
+            options['bdist_mac']['plist_items'] = [
+                ('CFBundleVersion', scmTagVersion),
+                ('CFBundleShortVersionString', scmTagVersion),
+            ]
 elif sys.platform == WINDOWS_PLATFORM:
     guiExecutable = Executable(
         script="arelleGUI.pyw",
