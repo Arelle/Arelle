@@ -476,7 +476,13 @@ class WebCache:
         :return: `url` with scheme-specific-part quoted except for parameter separators
         """
         urlScheme, schemeSep, urlSchemeSpecificPart = url.partition("://")
-        return urlScheme + schemeSep + quote(urlSchemeSpecificPart, '/?=&')
+        urlPath, querySep, query = urlSchemeSpecificPart.partition("?")
+        # RFC 3986: https://www.ietf.org/rfc/rfc3986.txt
+        querySafeChars = ';/?'
+        pathSafeChars = querySafeChars + ':@&=+$,'
+        quotedUrlPath = quote(urlPath, safe=pathSafeChars)
+        quotedQuery = quote(query, safe=querySafeChars)
+        return urlScheme + schemeSep + quotedUrlPath + querySep + quotedQuery
 
     def _downloadFile(
             self,
