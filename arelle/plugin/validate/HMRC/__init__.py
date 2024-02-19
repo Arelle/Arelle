@@ -165,10 +165,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         val.isAccounts = not val.isComputation
 
     val.txmyType = None
-    for doc in val.modelXbrl.modelDocument.referencesDocument:
-        ns = doc.targetNamespace
-        if not ns:
-            continue
+    for ns in val.modelXbrl.prefixedNamespaces.values():
         if ns.startswith("http://www.xbrl.org/uk/char/") or ns.startswith("http://xbrl.frc.org.uk/char/"):
             val.txmyType = "charities"
         elif ns.startswith("http://www.xbrl.org/uk/gaap/"):
