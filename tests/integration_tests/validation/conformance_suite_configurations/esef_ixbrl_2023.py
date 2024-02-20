@@ -74,6 +74,7 @@ config = ConformanceSuiteConfig(
         '--disclosureSystem', 'esef-2023',
         '--formula', 'run',
     ],
+    cache_version_id='yBVmKR4WMHVcHEp.SDUNO1zxTwQwkRhD',
     expected_failure_ids=frozenset(f'tests/inline_xbrl/{s}' for s in [
         # Test report uses older domain item type (http://www.xbrl.org/dtr/type/non-numeric) forbidden by ESEF.3.2.2.
         'G3-1-2/index.xml:TC2_valid',

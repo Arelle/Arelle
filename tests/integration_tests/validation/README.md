@@ -7,6 +7,7 @@ python -m tests.integration_tests.validation.run_conformance_suites --help
 
   -h, --help            show this help message and exit
   --all                 Select all configured conformance suites
+  --download-cache      Download and apply pre-built cache package
   --download-overwrite  Download (and overwrite) selected conformance suite
                         files
   --download-missing    Download missing selected conformance suite files

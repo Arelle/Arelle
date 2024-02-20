@@ -74,6 +74,7 @@ config = ConformanceSuiteConfig(
         '--disclosureSystem', 'esef-2022',
         '--formula', 'run',
     ],
+    cache_version_id='CSFFHD5xlJF.AklNscrzwwPGRVLO3ome',
     expected_failure_ids=frozenset(f'esef_conformance_suite_2022/tests/{s}' for s in [
         # The following test cases fail because of the `tech_duplicated_facts1` formula which fires
         # incorrectly because it does not take into account the language attribute on the fact.

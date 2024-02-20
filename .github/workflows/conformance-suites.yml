@@ -72,10 +72,7 @@ jobs:
       - name: Download conformance suites from S3
         run: aws s3 sync s3://arelle/conformance_suites tests/resources/conformance_suites
       - name: Run integration tests with pytest
-        run: |
-          pytest -s --disable-warnings --offline --log-to-file --download-cache \
-          --name=${{ matrix.test.name }}${{ matrix.test.shard && format(' --shard={0}', matrix.test.shard) || '' }} \
-          tests/integration_tests/validation/test_conformance_suites.py
+        run: pytest -s --disable-warnings --offline --log-to-file --download-cache --name=${{ matrix.test.name }}${{ matrix.test.shard && format(' --shard={0}', matrix.test.shard) || '' }} tests/integration_tests/validation/test_conformance_suites.py
       - name: Cat logs
         if: always()
         shell: bash
