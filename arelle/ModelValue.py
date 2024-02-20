@@ -629,6 +629,7 @@ class gYearMonth:
     def __init__(self, year: int | str, month: int | str) -> None:
         self.year = int(year)  # may be negative
         self.month = int(month)
+        self._hash = hash((self.year, self.month))
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -667,11 +668,15 @@ class gYearMonth:
     def __bool__(self) -> bool:
         return self.year != 0 or self.month != 0
 
+    def __hash__(self) -> int:
+        return self._hash
+
 
 class gMonthDay:
     def __init__(self, month: int | str, day: int | str) -> None:
         self.month = int(month)
         self.day = int(day)
+        self._hash = hash((self.month, self.day))
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -711,6 +716,9 @@ class gMonthDay:
 
     def __bool__(self) -> bool:
         return self.month != 0 or self.day != 0
+
+    def __hash__(self) -> int:
+        return self._hash
 
 
 class gYear:
@@ -756,6 +764,9 @@ class gYear:
     def __bool__(self) -> bool:
         return self.year != 0 != 0
 
+    def __hash__(self) -> int:
+        return self.year
+
 
 class gMonth:
     def __init__(self, month: int | str) -> None:
@@ -800,6 +811,9 @@ class gMonth:
     def __bool__(self) -> bool:
         return self.month != 0
 
+    def __hash__(self) -> int:
+        return self.month
+
 
 class gDay:
     def __init__(self, day: int | str) -> None:
@@ -843,6 +857,9 @@ class gDay:
 
     def __bool__(self) -> bool:
         return self.day != 0
+
+    def __hash__(self) -> int:
+        return self.day
 
 
 isoDurationPattern = re.compile(
@@ -920,8 +937,10 @@ class IsoDuration(isodate.Duration): # type: ignore[misc]
         self.sourceValue = sourceValue
         self.avgdays = (self.years * 12 + self.months) * DAYSPERMONTH + self.tdelta.days
         self._hash = hash((self.avgdays, self.tdelta))
+
     def __hash__(self) -> int:
         return self._hash
+
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, IsoDuration):
             return NotImplemented
