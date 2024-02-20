@@ -25,6 +25,7 @@ def parse_args(
     description: str,
     arelle: bool = True,
     cache: str | None = None,
+    cache_version_id: str | None = None,
     working_directory: bool = True,
 ) -> argparse.Namespace:
     """
@@ -34,6 +35,7 @@ def parse_args(
     :param description: Human-readable description of the test.
     :param arelle: Whether '--arelle' argument is required.
     :param cache: Name of the cache that will be downloaded if `--download-cache` is provided.
+    :param cache_version_id: Version of the cache that will be downloaded if `--download-cache` is provided.
     :param working_directory: Whether a working directory should be configured.
     :return: Parsed argument Namespace.
     """
@@ -48,7 +50,7 @@ def parse_args(
                         help="Directory to place temporary files and log output.")
     parsed_args = parser.parse_args()
     if cache and parsed_args.download_cache:
-        download_and_apply_cache(f"scripts/{cache}")
+        download_and_apply_cache(f"scripts/{cache}", version_id=cache_version_id)
         print(f"Downloaded and applied cache: {cache}")
     if working_directory:
         test_directory = Path(parsed_args.working_directory).joinpath(name).absolute()

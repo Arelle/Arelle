@@ -14,6 +14,7 @@ args = parse_args(
     this_file.stem,
     "Extract and validate Japanese IXDS instance.",
     cache=this_file.with_suffix(".zip").name,
+    cache_version_id='PiPwS2lDqbtid8K3dbUlF0m.KIa5Jm8E',
 )
 arelle_command = args.arelle
 arelle_offline = args.offline

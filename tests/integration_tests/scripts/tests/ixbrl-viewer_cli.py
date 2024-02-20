@@ -14,6 +14,7 @@ args = parse_args(
     this_file.stem,
     "Confirm ixbrl-viewer plugin runs successfully from the command line.",
     cache=this_file.with_suffix(".zip").name,
+    cache_version_id='P.uruiqpYrdNHGzX.XuJPGS3QS6_qY9g',
 )
 arelle_command = args.arelle
 arelle_offline = args.offline

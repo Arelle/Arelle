@@ -68,7 +68,10 @@ def run_script_options(options: Namespace) -> list[ParameterSet]:
     if options.all:
         scripts = all_scripts
         if options.download_cache:
-            download_and_apply_cache(ALL_SCRIPTS_ZIP)
+            download_and_apply_cache(
+                ALL_SCRIPTS_ZIP,
+                version_id='RMN9iin8l7Fqz7E4qfq_1uTuVMc8524U'
+            )
     else:
         names = options.name
         assert names, '--name or --all is required'

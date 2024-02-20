@@ -4,20 +4,25 @@ import os
 import urllib.request
 import zipfile
 
+from tests.integration_tests.integration_test_util import get_s3_uri
 
-PUBLIC_CACHE_PATTERN = 'https://arelle-public.s3.amazonaws.com/ci/caches/{}'
 TEMP_ZIP_NAME = '_tempcache.zip'
 
 
-def download_and_apply_cache(name: str, cache_directory: str | None = None) -> None:
+def download_and_apply_cache(name: str, cache_directory: str | None = None, version_id: str | None = None) -> None:
     """
     :param name: Filename (including extension) of cache package to download
     :param cache_directory: Directory to unpack cache package into
+    :param version_id: The S3 object version to retrieve. None for latest.
     """
     if cache_directory is None:
         cache_directory = get_cache_directory()
     # Download ZIP from public S3 bucket.
-    urllib.request.urlretrieve(PUBLIC_CACHE_PATTERN.format(name), TEMP_ZIP_NAME)
+    uri = get_s3_uri(
+        f'ci/caches/{name}',
+        version_id=version_id
+    )
+    urllib.request.urlretrieve(uri, TEMP_ZIP_NAME)
     # Unzip into cache directory
     with zipfile.ZipFile(TEMP_ZIP_NAME, 'r') as zip_ref:
         zip_ref.extractall(cache_directory)
@@ -32,14 +37,18 @@ def download_program() -> None:
                     'it to the local environment cache.')
     parser.add_argument('--name', '-n', action='append', required=True,
                         help='Filename (including extension) of'
-                             'cache package to download.')
+                             'cache package to download. '
+                             'Optionally append :[versionId] to specify version of S3 object.')
     parser.add_argument('--print', action='store_true',
                         help='Print cache directory tree structure.')
 
     args = parser.parse_args()
     cache_directory = get_cache_directory()
-    for name in args.name:
-        download_and_apply_cache(name, cache_directory)
+    for name_arg in args.name:
+        parts = name_arg.split(':', maxsplit=2)
+        name = parts[0]
+        version_id = None if len(parts) < 2 else parts[1]
+        download_and_apply_cache(name, cache_directory, version_id=version_id)
     if args.print:
         for path in [
             os.path.join(dirpath, f)
