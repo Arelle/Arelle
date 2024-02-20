@@ -19,6 +19,7 @@ class ConformanceSuiteConfig:
     additional_plugins_by_prefix: list[tuple[str, frozenset[str]]] = field(default_factory=list)
     approximate_relative_timing: dict[str, float] = field(default_factory=dict)  # by uri
     args: list[str] = field(default_factory=list)
+    cache_version_id: str | None = None
     capture_warnings: bool = True
     expected_empty_testcases: frozenset[str] = frozenset()
     expected_failure_ids: frozenset[str] = frozenset()
@@ -54,6 +55,8 @@ class ConformanceSuiteConfig:
         overlapping_expected_testcase_ids = self.expected_failure_ids.intersection(self.required_locale_by_ids)
         assert not overlapping_expected_testcase_ids, \
             f'Testcase IDs in both expected failures and required locales: {sorted(overlapping_expected_testcase_ids)}'
+        assert not self.network_or_cache_required or self.cache_version_id, \
+            'If network or cache is required, a cache version ID must be provided.'
 
     @property
     def prefixed_extract_filepath(self) -> str | None:
