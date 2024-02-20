@@ -5,6 +5,7 @@ import zipfile
 from pathlib import Path
 from shutil import rmtree
 
+from tests.integration_tests.integration_test_util import get_s3_uri
 from tests.integration_tests.scripts.script_util import run_arelle, parse_args, validate_log_file, assert_result, prepare_logfile
 
 errors = []
@@ -24,7 +25,10 @@ report_zip_path = test_directory / 'report.zip'
 report_directory = test_directory / 'report'
 manifest_path = report_directory / "manifest.xml"
 extracted_path = report_directory / "tse-acedjpfr-19990-2023-06-30-01-2023-08-18_extracted.xbrl"
-report_zip_url = "https://arelle-public.s3.amazonaws.com/ci/packages/JapaneseXBRLReport.zip"
+report_zip_url = get_s3_uri(
+    'ci/packages/JapaneseXBRLReport.zip',
+    version_id='M7vTPhHhir1rOm7nSMPiCGcbCA0ksObh'
+)
 
 print(f"Downloading report: {report_zip_url}")
 urllib.request.urlretrieve(report_zip_url, report_zip_path)
