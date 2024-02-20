@@ -22,11 +22,14 @@ def download_and_apply_cache(name: str, cache_directory: str | None = None, vers
         f'ci/caches/{name}',
         version_id=version_id
     )
-    urllib.request.urlretrieve(uri, TEMP_ZIP_NAME)
-    # Unzip into cache directory
-    with zipfile.ZipFile(TEMP_ZIP_NAME, 'r') as zip_ref:
-        zip_ref.extractall(cache_directory)
-    os.remove(TEMP_ZIP_NAME)
+    try:
+        urllib.request.urlretrieve(uri, TEMP_ZIP_NAME)
+        # Unzip into cache directory
+        with zipfile.ZipFile(TEMP_ZIP_NAME, 'r') as zip_ref:
+            zip_ref.extractall(cache_directory)
+        os.remove(TEMP_ZIP_NAME)
+    except Exception as exc:
+        raise Exception(f'Failed to download cache from {uri} and extract to {cache_directory}.') from exc
 
 
 def download_program() -> None:

@@ -38,7 +38,7 @@ def get_document_id(doc: ModelDocument.ModelDocument) -> str:
 
 
 def get_s3_uri(path: str, version_id: str | None = None) -> str:
-    uri = os.path.join(f'https://arelle-public.s3.amazonaws.com', path)
+    uri = f'https://arelle-public.s3.amazonaws.com/{path}'
     if version_id is not None:
         uri += f'?versionId={version_id}'
     return uri
