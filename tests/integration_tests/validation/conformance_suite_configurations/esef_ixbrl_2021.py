@@ -75,6 +75,7 @@ config = ConformanceSuiteConfig(
         '--disclosureSystem', 'esef-2021',
         '--formula', 'run',
     ],
+    cache_version_id='RHyZFLHe3de9PM._A4y125qBI63Al17Z',
     file='esef_conformance_suite_2021/esef_conformance_suite_2021/index_inline_xbrl.xml',
     info_url='https://www.esma.europa.eu/document/conformance-suite-2021',
     local_filepath='esef_conformance_suite_2021.zip',

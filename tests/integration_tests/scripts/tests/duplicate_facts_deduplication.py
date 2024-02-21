@@ -8,6 +8,7 @@ from shutil import rmtree
 
 import regex
 
+from tests.integration_tests.integration_test_util import get_s3_uri
 from tests.integration_tests.scripts.script_util import run_arelle, parse_args, validate_log_file, assert_result, prepare_logfile
 
 errors = []
@@ -24,7 +25,10 @@ test_directory = Path(args.test_directory)
 report_zip_path = test_directory / 'report.zip'
 report_directory = test_directory / 'report'
 report_path = report_directory / "report.xbrl"
-report_zip_url = "https://arelle-public.s3.amazonaws.com/ci/packages/duplicate_facts_deduplication.zip"
+report_zip_url = get_s3_uri(
+    'ci/packages/duplicate_facts_deduplication.zip',
+    version_id='c7OCNP1vk_KJ_WOqE54M3bGtUsRHwJMI'
+)
 
 print(f"Downloading report: {report_zip_url}")
 urllib.request.urlretrieve(report_zip_url, report_zip_path)

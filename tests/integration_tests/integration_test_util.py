@@ -37,6 +37,13 @@ def get_document_id(doc: ModelDocument.ModelDocument) -> str:
     return PurePath(doc.filepath).relative_to(basepath).as_posix()
 
 
+def get_s3_uri(path: str, version_id: str | None = None) -> str:
+    uri = f'https://arelle-public.s3.amazonaws.com/{path}'
+    if version_id is not None:
+        uri += f'?versionId={version_id}'
+    return uri
+
+
 def get_test_data(
         args: list[str],
         expected_failure_ids: frozenset[str] = frozenset(),

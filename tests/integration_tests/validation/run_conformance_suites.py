@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import sys
 from argparse import ArgumentParser, Namespace
+
+from tests.integration_tests.download_cache import download_and_apply_cache
 from tests.integration_tests.validation.validation_util import get_conformance_suite_test_results
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 from tests.integration_tests.validation.conformance_suite_configs import (
@@ -27,6 +29,11 @@ ARGUMENTS: list[dict[str, Any]] = [
         "name": "--build-cache",
         "action": "store_true",
         "help": "Use CacheBuilder plugin to build cache from conformance suite usage"
+    },
+    {
+        "name": "--download-cache",
+        "action": "store_true",
+        "help": "Download and apply pre-built cache package"
     },
     {
         "name": "--download-overwrite",
@@ -103,6 +110,7 @@ def run_conformance_suites(
         test_option: bool,
         shard: str,
         build_cache: bool = False,
+        download_cache: bool = False,
         download_option: str | None = None,
         log_to_file: bool = False,
         offline_option: bool = False) -> list[ParameterSet]:
@@ -111,6 +119,14 @@ def run_conformance_suites(
         overwrite = download_option == DOWNLOAD_OVERWRITE
         for conformance_suite_config in conformance_suite_configs:
             download_conformance_suite(conformance_suite_config, overwrite=overwrite)
+    if download_cache:
+        for conformance_suite_config in conformance_suite_configs:
+            if not conformance_suite_config.network_or_cache_required:
+                continue
+            download_and_apply_cache(
+                f'conformance_suites/{conformance_suite_config.name}.zip',
+                version_id=conformance_suite_config.cache_version_id
+            )
     for conformance_suite_config in conformance_suite_configs:
         extract_conformance_suite(conformance_suite_config)
     all_results = []
@@ -140,6 +156,7 @@ def run_conformance_suites_options(options: Namespace) -> list[ParameterSet]:
         shard=options.shard,
         build_cache=options.build_cache,
         download_option=download_option,
+        download_cache=options.download_cache,
         log_to_file=options.log_to_file,
         offline_option=options.offline
     )

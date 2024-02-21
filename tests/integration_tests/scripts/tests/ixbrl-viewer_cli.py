@@ -5,6 +5,7 @@ import zipfile
 from pathlib import Path
 from shutil import rmtree
 
+from tests.integration_tests.integration_test_util import get_s3_uri
 from tests.integration_tests.scripts.script_util import run_arelle, parse_args, validate_log_file, assert_result, prepare_logfile
 
 errors = []
@@ -13,6 +14,7 @@ args = parse_args(
     this_file.stem,
     "Confirm ixbrl-viewer plugin runs successfully from the command line.",
     cache=this_file.with_suffix(".zip").name,
+    cache_version_id='P.uruiqpYrdNHGzX.XuJPGS3QS6_qY9g',
 )
 arelle_command = args.arelle
 arelle_offline = args.offline
@@ -23,10 +25,13 @@ samples_zip_path = test_directory / 'samples.zip'
 samples_directory = test_directory / 'samples'
 target_path = samples_directory / "samples/src/ixds-test/document1.html"
 viewer_path = test_directory / "viewer.html"
-
+report_zip_url = get_s3_uri(
+    'ci/packages/IXBRLViewerSamples.zip',
+    version_id='6eS7qUUoWLeM9JSSTXOfANkHoLz1Zv5o'
+)
 
 print(f"Downloading samples: {samples_zip_path}")
-urllib.request.urlretrieve("https://arelle-public.s3.amazonaws.com/ci/packages/IXBRLViewerSamples.zip", samples_zip_path)
+urllib.request.urlretrieve(report_zip_url, samples_zip_path)
 
 print(f"Extracting samples: {samples_directory}")
 with zipfile.ZipFile(samples_zip_path, "r") as zip_ref:

@@ -406,6 +406,7 @@ config = ConformanceSuiteConfig(
         '--disclosureSystem', 'efm-pragmatic',
         '--formula', 'run',
     ],
+    cache_version_id='EVHW_hgNxuwBw4aiKfksIBuqWJypQEZh',
     expected_empty_testcases=frozenset(f'conf/{s}' for s in [
         '605-instance-syntax/605-45-cover-page-facts-general-case/605-45-cover-page-facts-general-case-testcase.xml',
         '609-linkbase-syntax/609-10-general-namespace-specific-custom-arc-restrictions/609-10-general-namespace-specific-custom-arc-restrictions-testcase.xml',
