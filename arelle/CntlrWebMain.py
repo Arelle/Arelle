@@ -280,6 +280,9 @@ def validation(file=None):
             setattr(options, optionKey, optionValue if optionValue is not None else value)
         elif key in validationKeyVarName:
             setattr(options, validationKeyVarName[key], value or True)
+        elif key == "calc":
+            # common support issue.
+            setattr(options, "calcs", value)
         elif not value: # convert plain str parameter present to True parameter
             setattr(options, key, True)
         else:
@@ -600,7 +603,7 @@ or label linkbases.  Multiple file names are separated by a '|' character.</td><
 <tr><td style="text-indent: 1em;">labelLang</td><td>Label language to override system settings, e.g., <code>&labelLang=ja</code>.</td></tr>
 <tr><td style="text-indent: 1em;">labelRole</td><td>Label role instead of standard label, e.g., <code>&labelRole=http://www.xbrl.org/2003/role/verboseLabel</code>.  To use the concept QName instead of a label, specify <code>&labelRole=XBRL-concept-name</code>.</td></tr>
 <tr><td style="text-indent: 1em;">uiLang</td><td>User interface language to override system settings, e.g., <code>&uiLang=fr</code>.  Changes setting for current session (but not saved setting).</td></tr>
-<tr><td style="text-indent: 1em;">calc</td><td>Specify calculation validation:<br/>
+<tr><td style="text-indent: 1em;">calcs</td><td>Specify calculation validation:<br/>
 <code>c10</code> or <code>xbrl21</code>: Calc 1.0 (XBRL 2.1) calculations<br/>
 <code>c10d</code> or <code>xbrl21-dedup</code>: Calc 1.0 (XBRL 2.1) calculations<br/>
 <code>c11r</code> or <code>round-to-nearest</code>: Calc 1.1 round-to-nearest mode<br/>
