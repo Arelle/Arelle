@@ -539,9 +539,8 @@ def runSaveTargetDocumentMenuCommand(
         xbrliNamespacePrefix=None,
         deduplicationType: DeduplicationType | None = None):
     # skip if another class handles saving (e.g., EdgarRenderer)
-    for pluginXbrlMethod in pluginClassMethods('InlineDocumentSet.SavesTargetInstance'):
-        if pluginXbrlMethod():
-            return # saving of target instance is handled by another class
+    if saveTargetInstanceOverriden(deduplicationType):
+        return
     # save DTS menu item has been invoked
     if (cntlr.modelManager is None or
         cntlr.modelManager.modelXbrl is None or
@@ -688,19 +687,34 @@ def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, *
                     entrypointFile["file"] = docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(_files)
 
 
-def commandLineXbrlRun(cntlr, options: RuntimeOptions, modelXbrl, *args, **kwargs):
-    # skip if another class handles saving (e.g., EdgarRenderer)
+def saveTargetInstanceOverriden(deduplicationType: DeduplicationType | None) -> bool:
+    """
+    Checks if another plugin implements instance extraction, and throws an exception
+    if the provided arguments are not compatible.
+    :param deduplicationType: The deduplication type to be used, if set.
+    :return: True if instance extraction is overridden by another plugin.
+    """
     for pluginXbrlMethod in pluginClassMethods('InlineDocumentSet.SavesTargetInstance'):
         if pluginXbrlMethod():
-            return # saving of target instance is handled by another class
+            if deduplicationType is not None:
+                raise RuntimeError(_('Deduplication is enabled but could not be performed because instance '
+                                   'extraction was performed by another plugin.'))
+            return True
+    return False
+
+
+def commandLineXbrlRun(cntlr, options: RuntimeOptions, modelXbrl, *args, **kwargs):
+    deduplicationTypeArg = getattr(options, "deduplicateIxbrlFacts")
+    deduplicationType = None if deduplicationTypeArg is None else DeduplicationType(deduplicationTypeArg)
+    # skip if another class handles saving (e.g., EdgarRenderer)
+    if saveTargetInstanceOverriden(deduplicationType):
+        return
     # extend XBRL-loaded run processing for this option
     if getattr(options, "saveTargetInstance", False) or getattr(options, "saveTargetFiling", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None or (
             cntlr.modelManager.modelXbrl.modelDocument.type not in (Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET)):
             cntlr.addToLog("No inline XBRL document or manifest loaded.")
             return
-        deduplicationTypeArg = getattr(options, "deduplicateIxbrlFacts")
-        deduplicationType = None if deduplicationTypeArg is None else DeduplicationType(deduplicationTypeArg)
         runSaveTargetDocumentMenuCommand(cntlr,
                                          runInBackground=False,
                                          saveTargetFiling=getattr(options, "saveTargetFiling", False),
