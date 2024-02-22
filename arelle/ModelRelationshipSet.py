@@ -7,7 +7,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any
-from arelle import ModelDtsObject, XbrlConst, ModelValue
+from arelle import Locale, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelRelationship, ModelResource
 from arelle.PrototypeDtsObject import LocPrototype, PrototypeObject
@@ -361,6 +361,8 @@ class ModelRelationshipSet:
             labels = sorted(labels, key=lambda rel: rel.priority, reverse=True)
         shorter: _LangLabels | None = None
         longer: _LangLabels | None = None
+        regionalVariant: _LangLabels | None = None
+        baseLang = _lang.partition(Locale.BCP47_LANGUAGE_REGION_SEPARATOR)[0] if _lang else None
         for modelLabelRel in labels:
             label = modelLabelRel.toModelObject
             if wildRole or role == label.role:
@@ -383,6 +385,11 @@ class ModelRelationshipSet:
                             shorter = _LangLabels(labelLang, [text])
                         else:
                             shorter.labels.append(text)
+                    elif baseLang and labelLang.startswith(baseLang):
+                        if not regionalVariant:
+                            regionalVariant = _LangLabels(labelLang, [text])
+                        else:
+                            regionalVariant.labels.append(text)
         if langLabels:
             if returnMultiple: return langLabels
             else: return langLabels[0]
@@ -392,4 +399,7 @@ class ModelRelationshipSet:
         if longer:
             if returnMultiple: return longer.labels
             else: return longer.labels[0]
+        if regionalVariant:
+            if returnMultiple: return regionalVariant.labels
+            else: return regionalVariant.labels[0]
         return None
