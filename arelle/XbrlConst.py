@@ -716,7 +716,7 @@ standardNamespaceSchemaLocations: dict[str, str] = {
     xbrli: "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd",
     link: "http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd",
     xl: "http://www.xbrl.org/2003/xl-2003-12-31.xsd",
-    xlink: "http://www.w3.org/1999/xlink",
+    xlink: "http://www.xbrl.org/2003/xlink-2003-12-31.xsd",
     xbrldt: "http://www.xbrl.org/2005/xbrldt-2005.xsd",
     xbrldi: "http://www.xbrl.org/2006/xbrldi-2006.xsd",
     gen: "http://www.xbrl.org/2008/generic-link.xsd",
