@@ -27,7 +27,7 @@ report_directory = test_directory / 'report'
 report_path = report_directory / "report.xbrl"
 report_zip_url = get_s3_uri(
     'ci/packages/duplicate_facts_deduplication.zip',
-    version_id='c7OCNP1vk_KJ_WOqE54M3bGtUsRHwJMI'
+    version_id='1NplyThuJkNOmSNITHdVuqE4MYtvDGOq'
 )
 
 print(f"Downloading report: {report_zip_url}")
