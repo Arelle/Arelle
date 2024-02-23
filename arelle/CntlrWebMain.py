@@ -4,13 +4,21 @@ Use this module to start Arelle in web server mode
 See COPYRIGHT.md for copyright information.
 
 '''
-from arelle.webserver.bottle import Bottle, request, response, static_file
-from arelle.Cntlr import LogFormatter
-import os, io, sys, time, threading, uuid, zipfile
+import io
+import os
+import sys
+import threading
+import time
+import uuid
+import zipfile
+
 from arelle import Version
+from arelle.Cntlr import LogFormatter
 from arelle.FileSource import FileNamedStringIO
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import STR_NUM_TYPES
+from arelle.webserver.bottle import Bottle, request, response, static_file
+
 _os_pid = os.getpid()
 
 GETorPOST = ('GET', 'POST')
@@ -446,7 +454,7 @@ def quickbooksGLrequest(qbReport=None, file=None):
 
     :returns: html, xml, csv, text -- Return per media type argument and request arguments
     """
-    from arelle.CntlrQuickBooks import supportedQbReports, qbRequest
+    from arelle.CntlrQuickBooks import qbRequest, supportedQbReports
     from arelle.ModelValue import dateTime
     errors = []
     requestPathParts = request.urlparts[2].split('/')
