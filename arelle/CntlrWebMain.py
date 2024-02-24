@@ -1,5 +1,5 @@
 '''
-Use this module to start Arelle in web server mode
+Use this module to start Arelle in web server mode.
 
 See COPYRIGHT.md for copyright information.
 '''
@@ -13,14 +13,13 @@ import time
 import uuid
 import zipfile
 from collections.abc import Iterable
-from typing import Any
+from copy import deepcopy
 
 from arelle import Version
 from arelle.Cntlr import LogFormatter, LogToBufferHandler
 from arelle.CntlrCmdLine import CntlrCmdLine
 from arelle.FileSource import FileNamedStringIO
 from arelle.PluginManager import pluginClassMethods
-from arelle.PythonUtil import STR_NUM_TYPES
 from arelle.RuntimeOptions import RuntimeOptions
 from arelle.typing import TypeGetText
 from arelle.webserver.bottle import (Bottle, HTTPResponse, request, response,
@@ -42,31 +41,33 @@ def getCntlr() -> CntlrCmdLine:
         raise ValueError(_('_CNTLR accessed before it was set.'))
     return _CNTLR
 
+def setCntlr(cntlr: CntlrCmdLine) -> None:
+    global _CNTLR
+    _CNTLR = cntlr
+
 def getLogHandler() -> LogToBufferHandler:
     cntlr = getCntlr()
     if isinstance(cntlr.logHandler, LogToBufferHandler):
         return cntlr.logHandler
     raise ValueError(_('webserver requires log to buffer.'))
 
+_RUNTIME_OPTIONS: RuntimeOptions | None = None
 
-_OPTIONS_PROTOTYPE: dict[str, Any] | None = None
+def getRuntimeOptions() -> RuntimeOptions:
+    global _RUNTIME_OPTIONS
+    if _RUNTIME_OPTIONS is None:
+        raise ValueError(_('_RUNTIME_OPTIONS accessed before it was set.'))
+    return deepcopy(_RUNTIME_OPTIONS)
 
-def getOptionsPrototype() -> dict[str, Any]:
-    global _OPTIONS_PROTOTYPE
-    if _OPTIONS_PROTOTYPE is None:
-        raise ValueError(_('_OPTIONS_PROTOTYPE accessed before it was set.'))
-    return _OPTIONS_PROTOTYPE
+def setRuntimeOptions(runtimeOptions: RuntimeOptions) -> None:
+    global _RUNTIME_OPTIONS
+    _RUNTIME_OPTIONS = deepcopy(runtimeOptions)
 
 def startWebserver(cntlr: CntlrCmdLine, options: RuntimeOptions) -> Bottle | None:
     """Called once from main program in CmtlrCmdLine to initiate web server on specified local port.
     """
-    global _CNTLR, _OPTIONS_PROTOTYPE
-    _CNTLR = cntlr
-    optionValuesTypes = STR_NUM_TYPES + (type(None),)
-    _OPTIONS_PROTOTYPE = dict((option,value if isinstance(value, STR_NUM_TYPES) else None)
-                            for option in dir(options)
-                            for value in (getattr(options, option),)
-                            if isinstance(value,optionValuesTypes) and not option.startswith('_'))
+    setCntlr(cntlr)
+    setRuntimeOptions(options)
     assert options.webserver is not None
     host, sep, portServer = options.webserver.partition(":")
     port, sep, server = portServer.partition(":")
@@ -241,13 +242,6 @@ validationKeyVarName = {
     "arcroleTypes": "arcroleTypesFile"
     }
 
-class Options():
-    """Class to emulate options needed by CntlrCmdLine.run"""
-    def __init__(self) -> None:
-        optionsPrototype = getOptionsPrototype()
-        for option, defaultValue in optionsPrototype.items():
-            setattr(self, option, defaultValue)
-
 supportedViews = {'DTS', 'concepts', 'pre', 'table', 'cal', 'dim', 'facts', 'factTable', 'formulae', 'roleTypes', 'arcroleTypes'}
 
 def validation(file: str | None = None) -> str | bytes:
@@ -299,22 +293,22 @@ def validation(file: str | None = None) -> str | bytes:
     if errors:
         errors.insert(0, _("URL: ") + (file or request.query.file or '(no file)'))
         return errorReport(errors, media)
-    options = Options() # need named parameters to simulate options
+    options = getRuntimeOptions()
     isFormulaOnly = False
     for key, value in request.query.items():
         if key == "file":
-            setattr(options, "entrypointFile", value)
+            options.entrypointFile = value
         elif key == "flavor":
             if value.startswith("sec") or value.startswith("edgar"):
-                setattr(options, "validateEFM", True)
+                options.validateEFM = True
             elif value == "formula-compile-only":
                 isFormulaOnly = True
-                setattr(options, "formulaAction", "validate")
+                options.formulaAction = "validate"
             elif value == "formula-compile-and-run":
                 isFormulaOnly = True
-                setattr(options, "formulaAction", "run")
+                options.formulaAction = "run"
             elif value == "standard-except-formula":
-                setattr(options, "formulaAction", "none")
+                options.formulaAction = "none"
         elif key in("media", "view", "viewArcrole"):
             pass
         elif key in validationOptions:
@@ -324,35 +318,35 @@ def validation(file: str | None = None) -> str | bytes:
             setattr(options, validationKeyVarName[key], value or True)
         elif key == "calc":
             # common support issue.
-            setattr(options, "calcs", value)
+            options.calcs = value
         elif key == "packages":
             packages = value.split('|')
-            if optionPackages := getattr(options, key, []):
-                optionPackages.extend(packages)
+            if options.packages:
+                options.packages.extend(packages)
             else:
-                setattr(options, key, packages)
+                options.packages = packages
         elif not value: # convert plain str parameter present to True parameter
             setattr(options, key, True)
         else:
             setattr(options, key, value)
     if file:
-        setattr(options, "entrypointFile", file.replace(';','/'))
+        options.entrypointFile = file.replace(';','/')
     requestPathParts = set(request.urlparts[2].split('/'))
     viewFile = None
     if isValidation:
         if not isFormulaOnly:
-            setattr(options, "validate", True)
+            options.validate = True
     elif view:
         viewFile = FileNamedStringIO(media)
         setattr(options, view + "File", viewFile)
     elif viewArcrole:
         viewFile = FileNamedStringIO(media)
-        setattr(options, "viewArcrole", viewArcrole)
-        setattr(options, "viewFile", viewFile)
+        options.viewArcrole = viewArcrole
+        options.viewFile = viewFile
     return runOptionsAndGetResult(options, media, viewFile, sourceZipStream)
 
 def runOptionsAndGetResult(
-        options: Options,
+        options: RuntimeOptions,
         media: str,
         viewFile: FileNamedStringIO | None,
         sourceZipStream: FileNamedStringIO | None = None,
@@ -365,10 +359,10 @@ def runOptionsAndGetResult(
     if media == "zip" and not viewFile:
         responseZipStream = io.BytesIO()
         # add any needed plugins to load from OIM or save into OIM
-        if (hasattr(options, "saveOIMinstance") or
-            (getattr(options, "entrypointFile", "") or "").rpartition(".")[2] in ("json", "csv", "xlsx")):
-            plugins = (getattr(options, "plugins", "") or "").split("|")
-            if getattr(options, "entrypointFile", "").rpartition(".")[2] in ("json", "csv", "xlsx"):
+        entryIsOIM = (options.entrypointFile or "").rpartition(".")[2] in ("json", "csv", "xlsx")
+        if hasattr(options, "saveOIMinstance") or entryIsOIM:
+            plugins = options.plugins.split("|") if options.plugins else []
+            if entryIsOIM:
                 if "loadFromOIM" not in plugins:
                     plugins.append("loadFromOIM")
                 addLogToZip = True
@@ -378,7 +372,7 @@ def runOptionsAndGetResult(
                 addLogToZip = True
                 setattr(options, "saveLoadableOIM", getattr(options, "saveOIMinstance"))
                 setattr(options, "saveOIMinstance", None) # this parameter is for saving xBRL-XML when loaded from JSON/CSV
-            setattr(options, "plugins", "|".join(p for p in plugins if p) or None) # ignore empty string plugin names
+            options.plugins = "|".join(p for p in plugins if p) or None # ignore empty string plugin names
     else:
         responseZipStream = None
     cntlr = getCntlr()
@@ -435,11 +429,11 @@ def diff() -> str:
     """
     if not request.query.fromDTS or not request.query.toDTS or not request.query.report:
         return _("From DTS, to DTS, and report must be specified")
-    options = Options()
-    setattr(options, "entrypointFile", request.query.fromDTS)
-    setattr(options, "diffFile", request.query.toDTS)
+    options = getRuntimeOptions()
+    options.entrypointFile = request.query.fromDTS
+    options.diffFile = request.query.toDTS
     with FileNamedStringIO(request.query.report) as fh:
-        setattr(options, "versReportFile", fh)
+        options.versReportFile = fh
         getCntlr().run(options)
         reportContents = fh.getvalue()
     response.content_type = 'text/xml; charset=UTF-8'
@@ -452,15 +446,16 @@ def configure() -> str:
     """
     if not request.query.proxy and not request.query.plugins and not request.query.packages and 'environment' not in request.query:
         return _("proxy, plugins, packages or environment must be specified")
-    options = Options()
+    options = getRuntimeOptions()
     if request.query.proxy:
-        setattr(options, "proxy", request.query.proxy)
+        options.proxy = request.query.proxy
     if request.query.plugins:
-        setattr(options, "plugins", request.query.plugins)
+        options.plugins = request.query.plugins
     if request.query.packages:
-        setattr(options, "packages", request.query.packages.split('|'))
+        options.packages = request.query.packages.split('|')
+    setRuntimeOptions(options)
     if 'environment' in request.query:
-        setattr(options, "showEnvironment", True)
+        options.showEnvironment = True
     cntlr = getCntlr()
     cntlr.run(options)
     response.content_type = 'text/html; charset=UTF-8'
@@ -563,10 +558,10 @@ function autoRefresh(){{clearInterval(timer);self.location.reload(true);}}
 
     instanceUuid = CntlrQuickBooks.xbrlInstances[ticket]
     CntlrQuickBooks.xbrlInstances.pop(ticket)
-    options = Options()
-    setattr(options, "entrypointFile", instanceUuid)
+    options = getRuntimeOptions()
+    options.entrypointFile = instanceUuid
     viewFile = FileNamedStringIO(media)
-    setattr(options, "factsFile", viewFile)
+    options.factsFile = viewFile
     return runOptionsAndGetResult(options, media, viewFile)
 
 def quickbooksWebPage() -> str:
