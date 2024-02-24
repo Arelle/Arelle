@@ -490,6 +490,17 @@ def getHashEquivalentFactGroups(facts: list[ModelFact]) -> list[list[ModelFact]]
     return list(hashDict.values())
 
 
+def logDeduplicatedFact(modelXbrl: ModelXbrl, fact: ModelFact) -> None:
+    modelXbrl.info(
+        "info:deduplicatedFact",
+        _("Duplicate fact was excluded from deduplicated instance: %(fact)s, value=%(value)s, decimals=%(decimals)s"),
+        modelObject=fact,
+        fact=fact.qname,
+        value=fact.xValue,
+        decimals=fact.decimals,
+    )
+
+
 def saveDeduplicatedInstance(modelXbrl: ModelXbrl, deduplicationType: DeduplicationType, outputFilepath: str) -> None:
     deduplicatedFacts = frozenset(getDeduplicatedFacts(modelXbrl, deduplicationType))
     duplicateFacts = set(modelXbrl.facts) - deduplicatedFacts
@@ -497,14 +508,7 @@ def saveDeduplicatedInstance(modelXbrl: ModelXbrl, deduplicationType: Deduplicat
         parent = fact.getparent()
         assert parent is not None
         parent.remove(fact)
-        modelXbrl.info(
-            "info:deduplicatedFact",
-            _("Duplicate fact was excluded from deduplicated instance: %(fact)s, value=%(value)s, decimals=%(decimals)s"),
-            modelObject=fact,
-            fact=fact.qname,
-            value=fact.xValue,
-            decimals=fact.decimals,
-        )
+        logDeduplicatedFact(modelXbrl, fact)
     modelXbrl.saveInstance(overrideFilepath=outputFilepath)
     modelXbrl.info(
         "info:deduplicatedInstance",

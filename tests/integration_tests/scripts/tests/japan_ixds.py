@@ -1,9 +1,10 @@
 import os
 import urllib.request
 import zipfile
-
 from pathlib import Path
 from shutil import rmtree
+
+import regex
 
 from tests.integration_tests.integration_test_util import get_s3_uri
 from tests.integration_tests.scripts.script_util import run_arelle, parse_args, validate_log_file, assert_result, prepare_logfile
@@ -44,7 +45,8 @@ run_arelle(
     plugins=["inlineXbrlDocumentSet"],
     additional_args=[
         "--file", str(manifest_path),
-        "--saveInstance"
+        "--saveInstance",
+        "--deduplicateIxbrlFacts", "consistent-pairs"
     ],
     offline=arelle_offline,
     logFile=arelle_log_file1,
@@ -56,6 +58,7 @@ run_arelle(
     arelle_command,
     additional_args=[
         "--validate",
+        "--validateDuplicateFacts", "consistent",
         "--file", str(extracted_path),
     ],
     offline=arelle_offline,
@@ -63,9 +66,16 @@ run_arelle(
 )
 
 print(f"Checking for log errors: {arelle_log_file1}")
-errors += validate_log_file(arelle_log_file1)
+expected_infos = {
+    regex.compile(r'^\[info:deduplicatedFact] Duplicate fact was excluded'): 33,
+}
+errors += validate_log_file(arelle_log_file1, expected_results={"info": expected_infos})
+
 print(f"Checking for log errors: {arelle_log_file2}")
-errors += validate_log_file(arelle_log_file2)
+expected_warnings = {
+    regex.compile(r'^\[arelle:duplicateFacts] Duplicate fact set '): 0,
+}
+errors += validate_log_file(arelle_log_file2, expected_results={"warning": expected_warnings})
 
 assert_result(errors)
 

@@ -76,7 +76,12 @@ manifest file (such as JP FSA) that identifies inline XBRL documents.
 - For EDGAR style encoding of non-ASCII characters, use the `--encodeSavedXmlChars` argument.
 - Extracted XML instance is saved to the same directory as the IXDS with the suffix `_extracted.xbrl`.
 """
-from arelle import FileSource, ModelXbrl, ValidateXbrlDimensions, XbrlConst
+from __future__ import annotations
+
+from arelle import FileSource, ModelXbrl, ValidateXbrlDimensions, XbrlConst, ValidateDuplicateFacts
+from arelle.RuntimeOptions import RuntimeOptions
+from arelle.ValidateDuplicateFacts import DeduplicationType
+
 DialogURL = None # dynamically imported when first used
 from arelle.CntlrCmdLine import filesourceEntrypointFiles
 from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
@@ -219,7 +224,16 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
 
 # baseXmlLang: set on root xbrli:xbrl element
 # defaultXmlLang: if a fact/footnote has a different lang, provide xml:lang on it.
-def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingFiles, baseXmlLang=None, defaultXmlLang=None, skipInvalid=False, xbrliNamespacePrefix=None):
+def createTargetInstance(
+        modelXbrl,
+        targetUrl,
+        targetDocumentSchemaRefs,
+        filingFiles,
+        baseXmlLang=None,
+        defaultXmlLang=None,
+        skipInvalid=False,
+        xbrliNamespacePrefix=None,
+        deduplicationType: ValidateDuplicateFacts.DeduplicationType | None = None):
     def addLocallyReferencedFile(elt,filingFiles):
         if elt.tag in ("a", "img"):
             for attrTag, attrValue in elt.items():
@@ -283,8 +297,17 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
     modelXbrl.modelManager.showStatus(_("Creating and validating facts"))
     newFactForOldObjId = {}
     invalidFacts = []
+    duplicateFacts = frozenset()
+    if deduplicationType is not None:
+        modelXbrl.modelManager.showStatus(_("Deduplicating facts"))
+        deduplicatedFacts = frozenset(ValidateDuplicateFacts.getDeduplicatedFacts(modelXbrl, deduplicationType))
+        duplicateFacts = frozenset(f for f in modelXbrl.facts if f not in deduplicatedFacts)
+
     def createFacts(facts, parent):
         for fact in facts:
+            if fact in duplicateFacts:
+                ValidateDuplicateFacts.logDeduplicatedFact(modelXbrl, fact)
+                continue
             if fact.xValid < VALID and skipInvalid:
                 invalidFacts.append(fact)
             elif fact.isItem: # HF does not de-duplicate, which is currently-desired behavior
@@ -388,7 +411,15 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                             addLocallyReferencedFile(elt,filingFiles)
     return targetInstance
 
-def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRefs, outputZip=None, filingFiles=None, xbrliNamespacePrefix=None, *args, **kwargs):
+def saveTargetDocument(
+        modelXbrl,
+        targetDocumentFilename,
+        targetDocumentSchemaRefs,
+        outputZip=None,
+        filingFiles=None,
+        xbrliNamespacePrefix=None,
+        deduplicationType: DeduplicationType | None = None,
+        *args, **kwargs):
     targetUrl = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(targetDocumentFilename, modelXbrl.modelDocument.filepath)
     targetUrlParts = targetUrl.rpartition(".")
     targetUrl = targetUrlParts[0] + "_extracted." + targetUrlParts[2]
@@ -398,7 +429,10 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
     baseXmlLang = htmlRootElt.get("{http://www.w3.org/XML/1998/namespace}lang") or htmlRootElt.get("lang")
     for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/1999/xhtml}body"):
         baseXmlLang = ixElt.get("{http://www.w3.org/XML/1998/namespace}lang") or htmlRootElt.get("lang") or baseXmlLang
-    targetInstance = createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingFiles, baseXmlLang, xbrliNamespacePrefix=xbrliNamespacePrefix)
+    targetInstance = createTargetInstance(
+        modelXbrl, targetUrl, targetDocumentSchemaRefs, filingFiles, baseXmlLang,
+        xbrliNamespacePrefix=xbrliNamespacePrefix, deduplicationType=deduplicationType,
+    )
     targetInstance.saveInstance(overrideFilepath=targetUrl, outputZip=outputZip, xmlcharrefreplace=kwargs.get("encodeSavedXmlChars", False))
     if getattr(modelXbrl, "isTestcaseVariation", False):
         modelXbrl.extractedInlineInstance = True # for validation comparison
@@ -497,11 +531,16 @@ def runOpenInlineDocumentSetMenuCommand(cntlr, filenames, runInBackground=False,
         cntlr.fileOpenFile(filename)
 
 
-def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFiling=False, encodeSavedXmlChars=False, xbrliNamespacePrefix=None):
+def runSaveTargetDocumentMenuCommand(
+        cntlr,
+        runInBackground=False,
+        saveTargetFiling=False,
+        encodeSavedXmlChars=False,
+        xbrliNamespacePrefix=None,
+        deduplicationType: DeduplicationType | None = None):
     # skip if another class handles saving (e.g., EdgarRenderer)
-    for pluginXbrlMethod in pluginClassMethods('InlineDocumentSet.SavesTargetInstance'):
-        if pluginXbrlMethod():
-            return # saving of target instance is handled by another class
+    if saveTargetInstanceOverriden(deduplicationType):
+        return
     # save DTS menu item has been invoked
     if (cntlr.modelManager is None or
         cntlr.modelManager.modelXbrl is None or
@@ -526,7 +565,7 @@ def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFil
     if runInBackground:
         import threading
         thread = threading.Thread(target=lambda _x = modelDocument.modelXbrl, _f = targetFilename, _s = targetSchemaRefs:
-                                        saveTargetDocument(_x, _f, _s))
+                                        saveTargetDocument(_x, _f, _s, deduplicationType=deduplicationType))
         thread.daemon = True
         thread.start()
     else:
@@ -543,7 +582,9 @@ def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFil
         else:
             filingZip = None
             filingFiles = None
-        saveTargetDocument(modelDocument.modelXbrl, targetFilename, targetSchemaRefs, filingZip, filingFiles, encodeSavedXmlChars=encodeSavedXmlChars, xbrliNamespacePrefix=xbrliNamespacePrefix)
+        saveTargetDocument(modelDocument.modelXbrl, targetFilename, targetSchemaRefs, filingZip, filingFiles,
+                           encodeSavedXmlChars=encodeSavedXmlChars, xbrliNamespacePrefix=xbrliNamespacePrefix,
+                           deduplicationType=deduplicationType)
         if saveTargetFiling:
             instDir = os.path.dirname(modelDocument.uri.split(IXDS_DOC_SEPARATOR)[0])
             for refFile in filingFiles:
@@ -591,6 +632,16 @@ def commandLineOptionExtender(parser, *args, **kwargs):
                       dest="xbrliNamespacePrefix",
                       help=SUPPRESS_HELP,
                       type="string")
+    parser.add_option("--deduplicateIxbrlFacts",
+                      action="store",
+                      choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
+                      dest="deduplicateIxbrlFacts",
+                      help=_("Remove duplicate facts when extracting XBRL instance."))
+    parser.add_option("--deduplicateixbrlfacts",  # for WEB SERVICE use
+                      action="store",
+                      choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
+                      dest="deduplicateIxbrlFacts",
+                      help=SUPPRESS_HELP)
 
 def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     global skipExpectedInstanceComparison
@@ -636,11 +687,28 @@ def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, *
                     entrypointFile["file"] = docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(_files)
 
 
-def commandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
-    # skip if another class handles saving (e.g., EdgarRenderer)
+def saveTargetInstanceOverriden(deduplicationType: DeduplicationType | None) -> bool:
+    """
+    Checks if another plugin implements instance extraction, and throws an exception
+    if the provided arguments are not compatible.
+    :param deduplicationType: The deduplication type to be used, if set.
+    :return: True if instance extraction is overridden by another plugin.
+    """
     for pluginXbrlMethod in pluginClassMethods('InlineDocumentSet.SavesTargetInstance'):
         if pluginXbrlMethod():
-            return # saving of target instance is handled by another class
+            if deduplicationType is not None:
+                raise RuntimeError(_('Deduplication is enabled but could not be performed because instance '
+                                   'extraction was performed by another plugin.'))
+            return True
+    return False
+
+
+def commandLineXbrlRun(cntlr, options: RuntimeOptions, modelXbrl, *args, **kwargs):
+    deduplicationTypeArg = getattr(options, "deduplicateIxbrlFacts")
+    deduplicationType = None if deduplicationTypeArg is None else DeduplicationType(deduplicationTypeArg)
+    # skip if another class handles saving (e.g., EdgarRenderer)
+    if saveTargetInstanceOverriden(deduplicationType):
+        return
     # extend XBRL-loaded run processing for this option
     if getattr(options, "saveTargetInstance", False) or getattr(options, "saveTargetFiling", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None or (
@@ -651,7 +719,8 @@ def commandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
                                          runInBackground=False,
                                          saveTargetFiling=getattr(options, "saveTargetFiling", False),
                                          encodeSavedXmlChars=getattr(options, "encodeSavedXmlChars", False),
-                                         xbrliNamespacePrefix=getattr(options, "xbrliNamespacePrefix"))
+                                         xbrliNamespacePrefix=getattr(options, "xbrliNamespacePrefix"),
+                                         deduplicationType=deduplicationType)
 
 def testcaseVariationReadMeFirstUris(modelTestcaseVariation):
     _readMeFirstUris = [os.path.join(modelTestcaseVariation.modelDocument.filepathdir,
