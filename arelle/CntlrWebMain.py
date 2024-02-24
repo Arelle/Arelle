@@ -325,6 +325,12 @@ def validation(file: str | None = None) -> str | bytes:
         elif key == "calc":
             # common support issue.
             setattr(options, "calcs", value)
+        elif key == "packages":
+            packages = value.split('|')
+            if optionPackages := getattr(options, key, []):
+                optionPackages.extend(packages)
+            else:
+                setattr(options, key, packages)
         elif not value: # convert plain str parameter present to True parameter
             setattr(options, key, True)
         else:
@@ -452,7 +458,7 @@ def configure() -> str:
     if request.query.plugins:
         setattr(options, "plugins", request.query.plugins)
     if request.query.packages:
-        setattr(options, "packages", request.query.packages)
+        setattr(options, "packages", request.query.packages.split('|'))
     if 'environment' in request.query:
         setattr(options, "showEnvironment", True)
     cntlr = getCntlr()
