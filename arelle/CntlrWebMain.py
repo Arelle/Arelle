@@ -2,8 +2,9 @@
 Use this module to start Arelle in web server mode
 
 See COPYRIGHT.md for copyright information.
-
 '''
+from __future__ import annotations
+
 import io
 import os
 import sys
@@ -11,13 +12,21 @@ import threading
 import time
 import uuid
 import zipfile
+from collections.abc import Iterable
+from typing import Any
 
 from arelle import Version
-from arelle.Cntlr import LogFormatter
+from arelle.Cntlr import LogFormatter, LogToBufferHandler
+from arelle.CntlrCmdLine import CntlrCmdLine
 from arelle.FileSource import FileNamedStringIO
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import STR_NUM_TYPES
-from arelle.webserver.bottle import Bottle, request, response, static_file
+from arelle.RuntimeOptions import RuntimeOptions
+from arelle.typing import TypeGetText
+from arelle.webserver.bottle import (Bottle, HTTPResponse, request, response,
+                                     static_file)
+
+_: TypeGetText
 
 _os_pid = os.getpid()
 
@@ -25,21 +34,40 @@ GETorPOST = ('GET', 'POST')
 GET = 'GET'
 POST = 'POST'
 
-def startWebserver(_cntlr, options):
-    """Called once from main program in CmtlrCmdLine to initiate web server on specified local port.
-    To test WebServer run from source in IIS, use an entry like this: c:\\python33\\python.exe c:\\users\\myname\\mySourceFolder\\arelleCmdLine.py %s
+_CNTLR: CntlrCmdLine | None = None
 
-    :param options: OptionParser options from parse_args of main argv arguments (the argument *webserver* provides hostname and port), port being used to startup the webserver on localhost.
-    :type options: optparse.Values
+def getCntlr() -> CntlrCmdLine:
+    global _CNTLR
+    if _CNTLR is None:
+        raise ValueError(_('_CNTLR accessed before it was set.'))
+    return _CNTLR
+
+def getLogHandler() -> LogToBufferHandler:
+    cntlr = getCntlr()
+    if isinstance(cntlr.logHandler, LogToBufferHandler):
+        return cntlr.logHandler
+    raise ValueError(_('webserver requires log to buffer.'))
+
+
+_OPTIONS_PROTOTYPE: dict[str, Any] | None = None
+
+def getOptionsPrototype() -> dict[str, Any]:
+    global _OPTIONS_PROTOTYPE
+    if _OPTIONS_PROTOTYPE is None:
+        raise ValueError(_('_OPTIONS_PROTOTYPE accessed before it was set.'))
+    return _OPTIONS_PROTOTYPE
+
+def startWebserver(cntlr: CntlrCmdLine, options: RuntimeOptions) -> Bottle | None:
+    """Called once from main program in CmtlrCmdLine to initiate web server on specified local port.
     """
-    global imagesDir, cntlr, optionsPrototype
-    cntlr = _cntlr
-    imagesDir = cntlr.imagesDir
+    global _CNTLR, _OPTIONS_PROTOTYPE
+    _CNTLR = cntlr
     optionValuesTypes = STR_NUM_TYPES + (type(None),)
-    optionsPrototype = dict((option,value if isinstance(value, STR_NUM_TYPES) else None)
+    _OPTIONS_PROTOTYPE = dict((option,value if isinstance(value, STR_NUM_TYPES) else None)
                             for option in dir(options)
                             for value in (getattr(options, option),)
                             if isinstance(value,optionValuesTypes) and not option.startswith('_'))
+    assert options.webserver is not None
     host, sep, portServer = options.webserver.partition(":")
     port, sep, server = portServer.partition(":")
     # start a Bottle application
@@ -103,15 +131,16 @@ def startWebserver(_cntlr, options):
         elif server == "cgi":
             if sys.stdin is None:
                 sys.stdin = open(os.devnull, 'r')
-            app.run(server=server)
+            app.run(server=server)  # type: ignore[no-untyped-call]
             sys.exit(0)
         elif server:
             sys.path.insert(0,os.path.join(os.path.dirname(__file__),"webserver"))
-            app.run(host=host, port=port or 80, server=server)
+            app.run(host=host, port=port or 80, server=server)  # type: ignore[no-untyped-call]
         else:
-            app.run(host=host, port=port or 80)
+            app.run(host=host, port=port or 80)  # type: ignore[no-untyped-call]
+    return None
 
-def cgiInterface(cgiAppPath):
+def cgiInterface(cgiAppPath: str) -> str | HTTPResponse:
     # route request according to content
     #with open(r"c:\temp\tracecgi.log", "at", encoding="utf-8") as fh:
     #    fh.write("trace 2 arg={}\n".format(cgiAppPath))
@@ -127,7 +156,7 @@ def cgiInterface(cgiAppPath):
         return indexPageCGI()
 
 
-def login_form():
+def login_form() -> str:
     """Request for a login form (get to */rest/login*).  Corresponds to login from other providers of XBRL validation services, but
     this version of Arelle does not perform accounting or charges for validation requests, so the login is ignored.
 
@@ -139,7 +168,7 @@ def login_form():
                 <tr><td>&nbsp;</td><td><input type="submit" value="Submit" /></td></tr>
                 </table></form></body></html>''')
 
-def login_submit():
+def login_submit() -> str:
     """Login of fields from login form (post to */rest/login*).  Saves user ID for future use.
 
     :param name: User ID
@@ -152,7 +181,9 @@ def login_submit():
     else:
         return _("<p>Login failed</p>")
 
-def checkLogin(_user, _password):
+user: str | None = None
+
+def checkLogin(_user: str | None, _password: str | None) -> bool:
     """Save user ID for future use.  Password not currently processed.
 
     :returns: bool -- True (for now, future user may interact with authentication and accounting services.)
@@ -161,7 +192,7 @@ def checkLogin(_user, _password):
     user = _user
     return True
 
-def logout():
+def logout() -> str:
     """Request to log out (get */rest/logout*).  Removes any proior user ID from session.
 
     :returns: html -- Message that user has logged out
@@ -170,19 +201,21 @@ def logout():
     user = None
     return _("<p>You are logged out.</p>")
 
-def arelleIcon():
+def arelleIcon() -> HTTPResponse:
     """Request for icon for URL display (get */favicon.ico*).
 
     :returns: ico -- Icon file for browsers
     """
-    return static_file("arelle.ico", root=imagesDir, mimetype='image/vnd.microsoft.icon')
+    cntlr = getCntlr()
+    return static_file("arelle.ico", root=cntlr.imagesDir, mimetype='image/vnd.microsoft.icon')
 
-def image(imgFile):
+def image(imgFile: str) -> HTTPResponse:
     """Request for an image file for URL display (get */images/<imgFile>*).
 
     :returns: image file -- Requested image file from images directory of application for browsers
     """
-    return static_file(imgFile, root=imagesDir)
+    cntlr = getCntlr()
+    return static_file(imgFile, root=cntlr.imagesDir)
 
 validationOptions = {
     # these options have no value (after + in query)
@@ -210,13 +243,14 @@ validationKeyVarName = {
 
 class Options():
     """Class to emulate options needed by CntlrCmdLine.run"""
-    def __init__(self):
+    def __init__(self) -> None:
+        optionsPrototype = getOptionsPrototype()
         for option, defaultValue in optionsPrototype.items():
             setattr(self, option, defaultValue)
 
 supportedViews = {'DTS', 'concepts', 'pre', 'table', 'cal', 'dim', 'facts', 'factTable', 'formulae', 'roleTypes', 'arcroleTypes'}
 
-def validation(file=None):
+def validation(file: str | None = None) -> str | bytes:
     """REST request to validate, by *get* or *post*, to URL patterns including */rest/xbrl/<file:path>/{open|close|validation|DTS...}*,
     and */rest/xbrl/{view|open|close}*.
     Sets up CntrlCmdLine options for request, performed by runOptionsAndGetResult using CntlrCmdLine.run with get or post arguments.
@@ -232,7 +266,7 @@ def validation(file=None):
     viewArcrole = request.query.viewArcrole
     if request.method == 'POST':
         mimeType = request.get_header("Content-Type")
-        if mimeType.startswith("multipart/form-data"):
+        if mimeType and mimeType.startswith("multipart/form-data"):
             _upload = request.files.get("upload")
             if not _upload or not _upload.filename.endswith(".zip"):
                 errors.append(_("POST file upload must be a zip file"))
@@ -311,7 +345,12 @@ def validation(file=None):
         setattr(options, "viewFile", viewFile)
     return runOptionsAndGetResult(options, media, viewFile, sourceZipStream)
 
-def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
+def runOptionsAndGetResult(
+        options: Options,
+        media: str,
+        viewFile: FileNamedStringIO | None,
+        sourceZipStream: FileNamedStringIO | None = None,
+        ) -> str | bytes:
     """Execute request according to options, for result in media, with *post*ed file in sourceZipStream, if any.
 
     :returns: html, xml, csv, text -- Return per media type argument and request arguments
@@ -336,6 +375,7 @@ def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
             setattr(options, "plugins", "|".join(p for p in plugins if p) or None) # ignore empty string plugin names
     else:
         responseZipStream = None
+    cntlr = getCntlr()
     successful = cntlr.run(options, sourceZipStream, responseZipStream)
     if media == "xml":
         response.content_type = 'text/xml; charset=UTF-8'
@@ -349,37 +389,40 @@ def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
         response.content_type = 'application/zip; charset=UTF-8'
     else:
         response.content_type = 'text/html; charset=UTF-8'
+    logHandler = getLogHandler()
+    result: bytes | str
     if successful and viewFile:
         # defeat re-encoding
         result = viewFile.getvalue().replace("&nbsp;","\u00A0").replace("&shy;","\u00AD").replace("&amp;","&")
         viewFile.close()
     elif media == "zip":
+        assert responseZipStream is not None
         responseZipStream.seek(0)
         if addLogToZip:
             with zipfile.ZipFile(responseZipStream, "a", zipfile.ZIP_DEFLATED, True) as _zip:
-                _zip.writestr("log.txt", cntlr.logHandler.getText())
+                _zip.writestr("log.txt", logHandler.getText())
             responseZipStream.seek(0)
         result = responseZipStream.read()
         responseZipStream.close()
-        cntlr.logHandler.clearLogBuffer() # zip response file may contain non-cleared log entries
+        logHandler.clearLogBuffer() # zip response file may contain non-cleared log entries
     elif media == "xml":
-        result = cntlr.logHandler.getXml()
+        result = logHandler.getXml()
     elif media == "json":
-        result = cntlr.logHandler.getJson()
+        result = logHandler.getJson()
     elif media == "text":
         _logFormat = request.query.logFormat
         if _logFormat:
-            _stdLogFormatter = cntlr.logHandler.formatter
-            cntlr.logHandler.formatter = LogFormatter(_logFormat)
-        result = cntlr.logHandler.getText()
+            _stdLogFormatter = logHandler.formatter
+            logHandler.formatter = LogFormatter(_logFormat)
+        result = logHandler.getText()
         if _logFormat:
-            cntlr.logHandler.formatter = _stdLogFormatter
+            logHandler.formatter = _stdLogFormatter
             del _stdLogFormatter # dereference
     else:
-        result = htmlBody(tableRows(cntlr.logHandler.getLines(), header=_("Messages")))
+        result = htmlBody(tableRows(logHandler.getLines(), header=_("Messages")))
     return result
 
-def diff():
+def diff() -> str:
     """Execute versioning diff request for *get* request to */rest/xbrl/diff*.
 
     :returns: xml -- Versioning report.
@@ -391,12 +434,12 @@ def diff():
     setattr(options, "diffFile", request.query.toDTS)
     with FileNamedStringIO(request.query.report) as fh:
         setattr(options, "versReportFile", fh)
-        cntlr.run(options)
+        getCntlr().run(options)
         reportContents = fh.getvalue()
     response.content_type = 'text/xml; charset=UTF-8'
     return reportContents
 
-def configure():
+def configure() -> str:
     """Set up features for *get* requests to */rest/configure*, e.g., proxy or plug-ins.
 
     :returns: html -- Status of configuration request (e.g., proxy or plug-ins).
@@ -412,15 +455,16 @@ def configure():
         setattr(options, "packages", request.query.packages)
     if 'environment' in request.query:
         setattr(options, "showEnvironment", True)
+    cntlr = getCntlr()
     cntlr.run(options)
     response.content_type = 'text/html; charset=UTF-8'
-    return htmlBody(tableRows(cntlr.logHandler.getLines(), header=_("Configuration Request")))
+    logHandler = getLogHandler()
+    return htmlBody(tableRows(logHandler.getLines(), header=_("Configuration Request")))
 
-def stopWebServer():
+def stopWebServer() -> str:
     """Stop the web server by *get* requests to */rest/stopWebServer*.
-
     """
-    def stopSoon(delaySeconds):
+    def stopSoon(delaySeconds: float) -> None:
         time.sleep(delaySeconds)
         import signal
         os.kill(_os_pid, signal.SIGTERM)
@@ -430,24 +474,25 @@ def stopWebServer():
                                "Good bye...",),
                               header=_("Stop Request")))
 
-def testTest():
+def testTest() -> str:
     return "Results attached:\n" + multipartResponse((
         ("file1", "text/plain", "test text 1"),
         ("file2", "text/plain", "test text 2"),
         ("file3", "text/plain", "test text 3"),
         ))
 
-def quickbooksServer():
+def quickbooksServer() -> str:
     """Interface to QuickBooks server responding to  *post* requests to */quickbooks/server.asmx*.
 
     (Part of QuickBooks protocol, see module CntlrQuickBooks.)
     """
     from arelle import CntlrQuickBooks
     response.content_type = 'text/xml; charset=UTF-8'
+    cntlr = getCntlr()
     return CntlrQuickBooks.server(cntlr, request.body, request.urlparts)
 
 
-def quickbooksGLrequest(qbReport=None, file=None):
+def quickbooksGLrequest(qbReport: str | None = None, file: str | None = None) -> str:
     """Initiate request to QuickBooks server for *get* requests to */rest/quickbooks/<qbReport>/xbrl-gl/...*.
 
     :returns: html, xml, csv, text -- Return per media type argument and request arguments
@@ -482,7 +527,7 @@ function autoRefresh(){{location.href = "/rest/quickbooks/response?ticket={0}&me
 '''.format(ticket, media, viewRequested))
     return result
 
-def quickbooksGLresponse():
+def quickbooksGLresponse() -> str | bytes:
     """Poll for QuickBooks protocol responses for *get* requests to */rest/quickbooks/response*.
 
     :returns: html, xml, csv, text -- Return per media type argument and request arguments, if response is ready, otherwise javascript to requery this *get* request periodicially.
@@ -518,14 +563,14 @@ function autoRefresh(){{clearInterval(timer);self.location.reload(true);}}
     setattr(options, "factsFile", viewFile)
     return runOptionsAndGetResult(options, media, viewFile)
 
-def quickbooksWebPage():
+def quickbooksWebPage() -> str:
     return htmlBody(_('''<table width="700p">
 <tr><th colspan="2">Arelle QuickBooks Global Ledger Interface</th></tr>
 <tr><td>checkbox</td><td>Trial Balance.</td></tr>
 <tr><td>close button</td><td>Done</td></tr>
 </table>'''))
 
-def localhostCertificate():
+def localhostCertificate() -> str:
     """Interface to QuickBooks server responding to  *get* requests for a host certificate */quickbooks/localhost.crt* or */localhost.crt*.
 
     (Supports QuickBooks protocol.)
@@ -557,11 +602,12 @@ QhpLdqly7hWJ23blbQQv4ILT2CiPDotJslcKDT7GzvPoDu6rIs2MpsB/4RDYejYU
 -----END CERTIFICATE-----
 '''
 
-def helpREST():
+def helpREST() -> str:
     """Help web page for *get* requests to */help*.
 
     :returns: html - Table of CntlrWebMain web API
     """
+    cntlr = getCntlr()
     return htmlBody(_('''<table>
 <tr><th colspan="2">Arelle web API</th></tr>
 <tr><td>/help</td><td>This web page.</td></tr>
@@ -756,12 +802,13 @@ Enter 'show' to view packages configuration, , or '|' separated package URLs:
 ''') if cntlr.isGAE else '') +
 '</table>')
 
-def about(arelleImgFile=None):
+def about(arelleImgFile: str | None = None) -> str:
     from lxml import etree
     """About web page for *get* requests to */about*.
 
     :returns: html - About web page
     """
+    cntlr = getCntlr()
     return htmlBody(_('''<table width="700p">
 <tr><th colspan="2">About arelle</th></tr>
 <tr><td rowspan="12" style="vertical-align:top;"><img src="%s"/></td><td>arelle&reg; %s (%sbit). An open source XBRL platform</td></tr>
@@ -784,7 +831,7 @@ See the License for the specific language governing permissions and limitations 
                 sys.version_info[0],sys.version_info[1],sys.version_info[2],
                 etree.LXML_VERSION[0],etree.LXML_VERSION[1],etree.LXML_VERSION[2]) )
 
-def indexPageREST():
+def indexPageREST() -> str:
     """Index (default) web page for *get* requests to */*.
 
     :returns: html - Web page of choices to navigate to */help* or */about*.
@@ -795,7 +842,7 @@ def indexPageREST():
 <tr><td>/about</td><td>About web page, copyrights, license, included software.</td></tr>
 </table>'''))
 
-def indexPageCGI():
+def indexPageCGI() -> str:
     """Default web page response for *get* CGI request with no parameters.
 
     :returns: html - Web page of choices to navigate to *?help* or *?about*.
@@ -808,7 +855,7 @@ def indexPageCGI():
 </table>'''))
 
 
-def htmlBody(body, script=""):
+def htmlBody(body: str, script: str = "") -> str:
     """Wraps body html string in a css-styled html web page
 
     :param body: Contents for the *<body>* element
@@ -817,6 +864,7 @@ def htmlBody(body, script=""):
     :type script: javascript str
     :returns: html - Web page of choices to navigate to */help* or */about*.
     """
+    cntlr = getCntlr()
     return '''
 <?xml version="1.0" encoding="utf-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="%s">
@@ -837,7 +885,7 @@ def htmlBody(body, script=""):
 </html>
 ''' % (cntlr.uiLangDir, script, body)
 
-def tableRows(lines, header=None):
+def tableRows(lines: Iterable[str], header: str | None = None) -> str:
     """Wraps lines of text into a one-column table (for display of text results of operations, such as processing messages and status, to web browser).
     Replaces any *&* with *&amp;* and *<* with *&lt;*.
 
@@ -851,7 +899,7 @@ def tableRows(lines, header=None):
             ("<tr><th>%s</th></tr>" % header if header else "") +
             "\n".join("<tr><td>%s</td></tr>" % line.replace("&","&amp;").replace("<","&lt;") for line in lines))
 
-def errorReport(errors, media="html"):
+def errorReport(errors: list[str], media: str = "html") -> str:
     """Wraps lines of error text into specified media type for return of result to a request.
 
     :param errors: Sequence (list or tuple) of error strings.
@@ -867,7 +915,7 @@ def errorReport(errors, media="html"):
         response.content_type = 'text/html; charset=UTF-8'
         return htmlBody(tableRows(errors, header=_("Messages")))
 
-def multipartResponse(parts):
+def multipartResponse(parts: tuple[tuple[str, str, str], ...]) -> str:
     # call with ( (filename, contentType, content), ...)
     boundary='----multipart-boundary-%s----' % (uuid.uuid1(),)
     response.content_type = 'multipart/mixed; boundary=%s' % (boundary,)

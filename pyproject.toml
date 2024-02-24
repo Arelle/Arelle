@@ -129,7 +129,6 @@ module = [
     'arelle.CntlrComServer',
     'arelle.CntlrProfiler',
     'arelle.CntlrQuickBooks',
-    'arelle.CntlrWebMain',
     'arelle.CntlrWinMain',
     'arelle.CntlrWinTooltip',
     'arelle.DialogAbout',
