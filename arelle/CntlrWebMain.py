@@ -356,9 +356,8 @@ def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
     elif media == "zip":
         responseZipStream.seek(0)
         if addLogToZip:
-            _zip = zipfile.ZipFile(responseZipStream, "a", zipfile.ZIP_DEFLATED, True)
-            _zip.writestr("log.txt", cntlr.logHandler.getText())
-            _zip.close()
+            with zipfile.ZipFile(responseZipStream, "a", zipfile.ZIP_DEFLATED, True) as _zip:
+                _zip.writestr("log.txt", cntlr.logHandler.getText())
             responseZipStream.seek(0)
         result = responseZipStream.read()
         responseZipStream.close()
@@ -390,11 +389,10 @@ def diff():
     options = Options()
     setattr(options, "entrypointFile", request.query.fromDTS)
     setattr(options, "diffFile", request.query.toDTS)
-    fh = FileNamedStringIO(request.query.report)
-    setattr(options, "versReportFile", fh)
-    cntlr.run(options)
-    reportContents = fh.getvalue()
-    fh.close()
+    with FileNamedStringIO(request.query.report) as fh:
+        setattr(options, "versReportFile", fh)
+        cntlr.run(options)
+        reportContents = fh.getvalue()
     response.content_type = 'text/xml; charset=UTF-8'
     return reportContents
 
