@@ -3,6 +3,8 @@ This module implements Quick Books server mode
 
 See COPYRIGHT.md for copyright information.
 '''
+from __future__ import annotations
+
 from lxml import etree
 import uuid, io, datetime
 from arelle import XmlUtil
@@ -74,7 +76,7 @@ qbTxnTypeToGL = {# QB code is case insensitive comparision (lowercase, some QBs 
                  'vendorcredit':'credit-memo',
                  }
 
-def server(_cntlr, soapFile, requestUrlParts):
+def server(_cntlr, soapFile, requestUrlParts) -> str:
     global cntlr
     if cntlr is None: cntlr = _cntlr
     soapDocument = etree.parse(soapFile)
@@ -200,7 +202,7 @@ def server(_cntlr, soapFile, requestUrlParts):
             soapResponse = qbResponse(requestName, response)
             return soapResponse
 
-def qbRequest(qbReport, fromDate, toDate, file):
+def qbRequest(qbReport: str | None, fromDate: str | None, toDate: str | None, file: str | None) -> str:
     ticket = str(uuid.uuid1())
     qbRequests.append({"ticket":ticket,
                        "request":qbReport,
