@@ -75,7 +75,9 @@
 		"10-12+20+40-FR": ["@10-12", "@20+40FR"],
 		"F-n": ["F-1", "F-1/A", "F-3", "F-3/A", "F-4", "F-4/A"],
 		"F-nX": ["F-1MEF", "F-3ASR", "F-3D", "F-3DPOS", "F-3MEF", "F-4 POS", "F-4EF", "F-4MEF", "F-10", "F-10/A", "F-10EF", "F-10POS"],
-		"F-SR": ["F-SR", "F-SR/A"],
+		"17AD-27": ["17AD-27", "17AD-27/A"],
+		"11-K": ["11-K", "11-K/A"],
+		"11-KT": ["11-KT", "11-KT/A"],
 		"N-8B-2": ["N-8B-2", "N-8B-2/A"],
 		"S-6": ["S-6", "S-6/A"],
 		"N": ["N-Q", "N-Q/A", "N-CSRS", "N-CSRS/A", "NCSR", "NCSR/A", "N-CSR", "N-CSR/A"],
@@ -198,8 +200,12 @@
 	{"sub-types": ["F-10/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["F-10/A"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["F-10EF"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["F-10EF"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["F-10POS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["F-10POS"], "source": "both", "dei/cover": "dei"},
-    {"sub-types": ["F-SR"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["F-SR"], "source": "inline", "dei/cover": "dei"},
-    {"sub-types": ["F-SR/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["F-SR", "F-SR/A"], "source": "inline", "dei/cover": "dei"},
+    {"sub-types": ["17AD-27"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["17AD-27"], "source": "inline", "dei/cover": "dei"},
+    {"sub-types": ["17AD-27/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["17AD-27"], "source": "inline", "dei/cover": "dei"},
+    {"sub-types": ["11-K"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["11-K"], "source": "inline", "dei/cover": "dei"},
+    {"sub-types": ["11-K/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["11-K", "11-K/A"], "source": "inline", "dei/cover": "dei"},
+    {"sub-types": ["11-KT"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["11-KT"], "source": "inline", "dei/cover": "dei"},
+    {"sub-types": ["11-KT/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["11-KT", "11-KT/A"], "source": "inline", "dei/cover": "dei"},
     {"sub-types": ["N-1A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-1A"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["N-1A/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-1A/A"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["N-2"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-2"], "source": "both", "dei/cover": "dei"},
@@ -344,7 +350,25 @@
         "dei/cover": "dei"
     },
     {
-        "sub-types": ["@F-SR"],
+        "sub-types": ["@17AD-27"],
+        "xbrl-names": "DocumentPeriodEndDate",
+        "elo-name": "periodOfReport",
+        "efm": "6.5.20",
+        "validation": "r",
+        "source": "inline",
+        "dei/cover": "dei"
+    },
+    {
+        "sub-types": ["@11-K"],
+        "xbrl-names": "DocumentPeriodEndDate",
+        "elo-name": "periodOfReport",
+        "efm": "6.5.20",
+        "validation": "r",
+        "source": "inline",
+        "dei/cover": "dei"
+    },
+    {
+        "sub-types": ["@11-KT"],
         "xbrl-names": "DocumentPeriodEndDate",
         "elo-name": "periodOfReport",
         "efm": "6.5.20",
@@ -389,8 +413,8 @@
             "@all-FAST",
             "@POS", "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A",
             "@6-K", "@SP 15D2", "@RR", "@N-346", "@SDR",
-            "@N", "N-3", "N-4", "N-6", "@PvP", "@F-SR", 
-            "@N-8B-2", "@S-6", "487"
+            "@N", "N-3", "N-4", "N-6", "@PvP",
+            "@N-8B-2", "@S-6", "487", "@17AD-27", "@11-K", "@11-KT"
         ],
         "xbrl-names": "DocumentPeriodEndDate",
         "store-db-name": "periodOfReport",
@@ -499,7 +523,7 @@
         "elo-match-message" : "dq-0540-CurrentFiscalYearEndDate-Registrant-Value"
     },
     {
-        "sub-types": ["@20+40FR", "@8-K", "@N-CSR", "@SD", "@F-SR"],
+        "sub-types": ["@20+40FR", "@8-K", "@N-CSR", "@SD", "@17AD-27", "@11-K", "@11-KT" ],
         "xbrl-names": "CurrentFiscalYearEndDate",
         "elo-name": "entityRegistration.fyEnd",
         "efm": "6.5.21",
@@ -1403,7 +1427,7 @@
         "dei/cover": "dei"
     },
     {
-        "sub-types": ["@10-KT", "@10-QT"],
+        "sub-types": ["@10-KT", "@10-QT", "@11-KT"],
         "xbrl-names": "DocumentTransitionReport",
         "efm": "6.5.49",
         "validation": "y",
@@ -1412,7 +1436,7 @@
         "dei/cover": "cover"
     },
     {
-        "sub-types": ["@10-KT", "@10-QT"],
+        "sub-types": ["@10-KT", "@10-QT",  "@11-KT"],
         "xbrl-names": "DocumentTransitionReport",
         "efm": "6.5.49",
         "validation": "ov",
@@ -1988,7 +2012,7 @@
         "comment": "HFCA Auditor"
     },
     {
-        "sub-types": ["@10-K+KT", "@20+40-F"],
+        "sub-types": ["10-K", "10-KT", "20-F", "40-F"],
         "xbrl-names": [
             "AuditorName",
             "AuditorLocation",
@@ -2503,9 +2527,6 @@
         "validation": "x",
         "source": "both",
         "dei/cover": "cover"
-    },
-    {
-        "comment": "SHR taxonomy elements"
     },
     {
         "comment": "Following validation must be last."

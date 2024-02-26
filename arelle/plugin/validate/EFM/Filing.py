@@ -38,7 +38,8 @@ from .Consts import submissionTypesAllowingSeriesClasses, \
                     docTypesRequiringRrSchema, docTypesNotAllowingIfrs, \
                     untransformableTypes, rrUntransformableEltsPattern, \
                     hideableNamespacesPattern, linkbaseValidations, \
-                    feeTaggingAttachmentDocumentTypePattern, docTypesAttachmentDocumentType, docTypesSubType
+                    feeTaggingAttachmentDocumentTypePattern, docTypesAttachmentDocumentType, docTypesSubType, \
+                    docTypesAllowingRedact
 
 from .Dimensions import checkFilingDimensions
 from .PreCalAlignment import checkCalcsTreeWalk
@@ -105,6 +106,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     instantPreferredLabelRolePattern = re.compile(r".*[pP]eriod(Start|End)")
     embeddingCommandPattern = re.compile(r"[^~]*~\s*()[^~]*~")
     styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-sec-ix-hidden\s*:\s*([\w.-]+).*")
+    styleIxRedactPattern = re.compile(r"(.*;)?\s*-sec-ix-redact\s*:\s*true(?:\s*;)?\s*([\w.-].*)?$")
     efmRoleDefinitionPattern = re.compile(r"([0-9]+) - (Statement|Disclosure|Schedule|Document) - (.+)")
     messageKeySectionPattern = re.compile(r"(.*[{]efmSection[}]|[a-z]{2}-[0-9]{4})(.*)")
     secDomainPattern = re.compile(r"(fasb\.org|xbrl\.sec\.gov)")
@@ -2966,9 +2968,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 modelObject=eligibleForTransformHiddenFacts,
                 countEligible=len(eligibleForTransformHiddenFacts),
                 elements=", ".join(sorted(set(str(f.qname) for f in eligibleForTransformHiddenFacts))))
+        unexpectedRedactElts = []
+        docTypeAllowsRedact = deiDocumentType in docTypesAllowingRedact
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
             for ixElt in ixdsHtmlRootElt.getroottree().iterfind("//{http://www.w3.org/1999/xhtml}*[@style]"):
-                hiddenFactRefMatch = styleIxHiddenPattern.match(ixElt.get("style",""))
+                style = ixElt.get("style","")
+                hiddenFactRefMatch = styleIxHiddenPattern.match(style)
                 if hiddenFactRefMatch:
                     hiddenFactRef = hiddenFactRefMatch.group(2)
                     if hiddenFactRef not in hiddenEltIds:
@@ -2978,6 +2983,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             modelObject=ixElt, id=hiddenFactRef)
                     else:
                         presentedHiddenEltIds[hiddenFactRef].append(ixElt)
+                if not docTypeAllowsRedact and styleIxRedactPattern.match(style):
+                    unexpectedRedactElts.append(ixElt)
         for hiddenFactRef, ixElts in presentedHiddenEltIds.items():
             if len(ixElts) > 1 and hiddenFactRef in hiddenEltIds:
                 fact = hiddenEltIds[hiddenFactRef]
@@ -2989,7 +2996,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             if (hiddenEltId not in presentedHiddenEltIds and
                 getattr(ixElt, "xValid", 0) >= VALID and # may not be validated
                 (ixElt.qname in coverVisibleQNames
-                 or not ixElt.qname.namespaceURI.startswith("http://xbrl.sec.gov/dei/")) and
+                 or not hideableNamespacesPattern.match(ixElt.qname.namespaceURI)) and
                 (ixElt.concept.baseXsdType in untransformableTypes or ixElt.isNil)):
                 requiredToDisplayFacts.append(ixElt)
         undisplayedCoverFacts = dict((f, coverVisibleQNames[f.qname])
@@ -3014,7 +3021,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         modelObject=facts, subType=submissionType, countUnreferenced=len(facts), verb=verb,
                         elements=", ".join(sorted(set(f.qname.localName for f in facts))))
                 del facts
-        del eligibleForTransformHiddenFacts, hiddenEltIds, presentedHiddenEltIds, requiredToDisplayFacts, undisplayedCoverFacts
+        if unexpectedRedactElts:
+            modelXbrl.error("EFM.17Ad-27.disallowedRedact",
+                _("Submission type %(subType)s has %(countRedacts)s disallowed -sec-ix-redact styles."),
+                edgarCode="dq-17Ad-27-Disallowed-Redact",
+                modelObject=unexpectedRedactElts, subType=submissionType, countRedacts=len(unexpectedRedactElts))
+        del eligibleForTransformHiddenFacts, hiddenEltIds, presentedHiddenEltIds, requiredToDisplayFacts, undisplayedCoverFacts, unexpectedRedactElts
     # all-labels and references checks
     defaultLangStandardLabels = {}
     for concept in modelXbrl.qnameConcepts.values():
