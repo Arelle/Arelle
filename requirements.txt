@@ -16,14 +16,14 @@ NumPy==1.24.4 ; python_version <= "3.8"
 NumPy==1.26.2 ; python_version > "3.8"
 Matplotlib==3.7.4 ; python_version <= "3.8"
 Matplotlib==3.8.2 ; python_version > "3.8"
-holidays==0.42
+holidays==0.43
 pytz==2024.1
 Tornado==6.4
 # security plugin
 PyCryptodome==3.20.0
 # xbrlDB plugin
 cx_Oracle==8.3.0
-pg8000==1.30.4
+pg8000==1.30.5
 PyMySQL==1.1.0
 pyodbc==5.1.0
 RDFLib==7.0.0
