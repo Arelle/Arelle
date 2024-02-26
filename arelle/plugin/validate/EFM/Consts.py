@@ -171,7 +171,7 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "oef/*": {
-        "deprecatedLabels": [ "https://xbrl.sec.gov/oef/2023/oef-entire-2023.xsd", 
+        "deprecatedLabels": [ "https://xbrl.sec.gov/oef/2023/oef-entire-2023.xsd",
                              "https://xbrl.sec.gov/oef/2024/oef-entire-2024.xsd"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
@@ -186,19 +186,19 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "rxp/*": {
-        "deprecatedLabels": [ "https://xbrl.sec.gov/rxp/2023/rxp-entire-2023.xsd", 
+        "deprecatedLabels": [ "https://xbrl.sec.gov/rxp/2023/rxp-entire-2023.xsd",
                              "https://xbrl.sec.gov/rxp/2024/rxp-entire-2024.xsd"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "sic/*": {
-        "deprecatedLabels": ["https://xbrl.sec.gov/sic/2023/sic-entire-2023.xsd", 
+        "deprecatedLabels": ["https://xbrl.sec.gov/sic/2023/sic-entire-2023.xsd",
                              "https://xbrl.sec.gov/sic/2024/sic-entire-2024.xsd"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "snj/*": {
-        "deprecatedLabels": ["https://xbrl.sec.gov/snj/2023/snj-entire-2023.xsd", 
+        "deprecatedLabels": ["https://xbrl.sec.gov/snj/2023/snj-entire-2023.xsd",
                              "https://xbrl.sec.gov/snj/2024/snj-entire-2024.xsd"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
@@ -220,7 +220,7 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "stpr/*": {
-        "deprecatedLabels": ["https://xbrl.sec.gov/stpr/2023/stpr-entire-2023.xsd", 
+        "deprecatedLabels": ["https://xbrl.sec.gov/stpr/2023/stpr-entire-2023.xsd",
                              "https://xbrl.sec.gov/stpr/2024/stpr-entire-2024.xsd"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
@@ -238,8 +238,8 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
         "dqcRuleArcrole": "http://fasb.org/dqcRules/arcrole/concept-rule",
         },
     "vip/*": {
-        "deprecatedLabels": ["https://xbrl.sec.gov/vip/2022/vip-entire-2022.xsd", 
-                             "https://xbrl.sec.gov/vip/2023/vip-entire-2023.xsd", 
+        "deprecatedLabels": ["https://xbrl.sec.gov/vip/2022/vip-entire-2022.xsd",
+                             "https://xbrl.sec.gov/vip/2023/vip-entire-2023.xsd",
                              "https://xbrl.sec.gov/vip/2024/vip-entire-2024.xsd"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
