@@ -5,11 +5,20 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
+from functools import cached_property
+from typing import TYPE_CHECKING
 
+from lxml import etree
+from lxml.etree import XMLParser
+
+from arelle.FileSource import openXmlFileStream, stripDeclarationText
 from arelle.ModelInstanceObject import ModelUnit, ModelContext, ModelFact
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.utils.validate.PluginValidationData import PluginValidationData
+
+if TYPE_CHECKING:
+    from arelle.Cntlr import Cntlr
 
 
 @dataclass
@@ -24,6 +33,8 @@ class PluginValidationDataExtension(PluginValidationData):
     documentResubmissionUnsurmountableInaccuraciesQn: QName
     entrypointRoot: str
     entrypoints: set[str]
+    textFormattingSchemaPath: str
+    textFormattingWrapper: str
 
     _contextsByDocument: dict[str, list[ModelContext]] | None = None
     _factsByDocument: dict[str, list[ModelFact]] | None = None
@@ -55,3 +66,13 @@ class PluginValidationDataExtension(PluginValidationData):
             unitsByDocument[unit.modelDocument.filepath].append(unit)
         self._unitsByDocument = dict(unitsByDocument)
         return self._unitsByDocument
+
+    @cached_property
+    def textFormattingParser(self) -> XMLParser:
+        filename = self.textFormattingSchemaPath
+        assert filename is not None
+        with open(filename, encoding='UTF-8') as file:
+            text = stripDeclarationText(file.read())
+            schema_root = etree.XML(text)
+            schema = etree.XMLSchema(schema_root)
+            return etree.XMLParser(schema=schema)
