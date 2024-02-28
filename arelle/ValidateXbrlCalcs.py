@@ -14,6 +14,7 @@ from arelle.PythonUtil import flattenSequence, strTruncate
 from arelle.XmlValidateConst import UNVALIDATED, VALID
 
 if TYPE_CHECKING:
+    from _decimal import Decimal
     from arelle.ModelInstanceObject import ModelFact
 else:
     ModelFact = None # circular import with ModelInstanceObject
@@ -693,7 +694,7 @@ def rangeValue(value, decimals=None, truncate=False) -> tuple[decimal.Decimal, d
                 return (vDecimal - dd, vDecimal + dd, False, False)
     return (vDecimal, vDecimal, True, True)
 
-def insignificantDigits(value, precision=None, decimals=None, scale=None):
+def insignificantDigits(value, precision=None, decimals=None, scale=None) -> tuple[Decimal, Decimal] | None:
     try:
         vDecimal = decimal.Decimal(value)
         if scale:
