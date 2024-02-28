@@ -399,7 +399,13 @@
         <xs:extension base="pre.content">
           <xs:attributeGroup ref="attrs"/>
           <xs:attribute name="width" type="Number"/>
-          <xs:attribute ref="xml:space" fixed="preserve"/>
+          <!--
+            'xml' is not imported into this document and is considered invalid by lxml parseing
+            'xml:space' is generally not supported: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/xml:space#browser_compatibility
+            'white-space' is the modern equivalent, so we will validate against that instead
+          -->
+          <!--<xs:attribute ref="xml:space" fixed="preserve"/>-->
+          <xs:attribute name="white-space" fixed="preserve"/>
         </xs:extension>
       </xs:complexContent>
     </xs:complexType>
