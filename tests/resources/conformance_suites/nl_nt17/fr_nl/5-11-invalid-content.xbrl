@@ -61,6 +61,11 @@
     &lt;/div&gt;
   </mock:FormattedExplanation> <!-- CAUSE: background-color style not allowed -->
   <mock:FormattedExplanation contextRef="ctx-1">
+    &lt;div&gt;
+    &lt;ul&gt;&lt;li type=&quot;z&quot;&gt;A&lt;/li&gt;&lt;/ul&gt;
+    &lt;/div&gt;
+  </mock:FormattedExplanation> <!-- CAUSE: 'z' not a valid list item type -->
+  <mock:FormattedExplanation contextRef="ctx-1">
     H&lt;
   </mock:FormattedExplanation>
 </xbrl>
