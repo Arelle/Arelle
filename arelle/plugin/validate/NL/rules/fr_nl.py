@@ -12,6 +12,7 @@ import regex
 from lxml import etree
 
 from arelle import ModelDocument, XbrlConst, XmlUtil
+from arelle.FileSource import openXmlFileStream
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
@@ -733,8 +734,15 @@ def rule_fr_nl_5_11(
     - No font smaller than "3" (font size can be altered in many ways that depend on browser support)
     - No white text on white background (many potential "color" values are not easily readable)
     """
+    cntlr = val.modelXbrl.modelManager.cntlr
+    filepath = Path(cntlr.configDir) / pluginData.textFormattingSchemaPath
+    with openXmlFileStream(cntlr, filepath.as_posix(), stripDeclaration=True)[0] as file:
+        text = file.read()
+    schema_root = etree.XML(text)
+    schema = etree.XMLSchema(schema_root)
+    parser = etree.XMLParser(schema=schema)
+
     invalidTypeFacts = []
-    parser = pluginData.textFormattingParser
     typeQname = pluginData.formattedExplanationItemTypeQn
     for fact in val.modelXbrl.facts:
         validType = fact.concept.instanceOfType(typeQname)

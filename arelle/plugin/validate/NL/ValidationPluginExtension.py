@@ -140,6 +140,6 @@ class ValidationPluginExtension(ValidationPlugin):
             documentResubmissionUnsurmountableInaccuraciesQn=qname(f'{{{kvkINamespace}}}DocumentResubmissionDueToUnsurmountableInaccuracies'),
             entrypointRoot=entrypointRoot,
             entrypoints=entrypoints,
-            textFormattingSchemaPath='arelle/config/sbr-text-formatting.xsd',
+            textFormattingSchemaPath='sbr-text-formatting.xsd',
             textFormattingWrapper='<formattedText xmlns="http://www.nltaxonomie.nl/2017/xbrl/sbr-text-formatting">{}</formattedText>',
         )
