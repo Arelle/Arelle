@@ -66,6 +66,16 @@
     &lt;/div&gt;
   </mock:FormattedExplanation> <!-- CAUSE: 'z' not a valid list item type -->
   <mock:FormattedExplanation contextRef="ctx-1">
+    &lt;div&gt;
+    &lt;ul&gt;&lt;li type=&quot;1&quot;&gt;A&lt;/li&gt;&lt;/ul&gt;
+    &lt;/div&gt;
+  </mock:FormattedExplanation> <!-- CAUSE: '1' not a valid ul list item type -->
+  <mock:FormattedExplanation contextRef="ctx-1">
+    &lt;div&gt;
+    &lt;ol&gt;&lt;li type=&quot;circle&quot;&gt;A&lt;/li&gt;&lt;/ol&gt;
+    &lt;/div&gt;
+  </mock:FormattedExplanation> <!-- CAUSE: 'z' not a valid ol list item type -->
+  <mock:FormattedExplanation contextRef="ctx-1">
     H&lt;
   </mock:FormattedExplanation>
 </xbrl>
