@@ -54,7 +54,7 @@ permissions: {}
 jobs:
   build-macos:
     environment: release
-    runs-on: macos-12
+    runs-on: macos-13
     outputs:
       artifact_versioned_name: ${{ steps.define-artifact-names.outputs.artifact_versioned_name }}
       uploaded_artifact_name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}

@@ -11,7 +11,7 @@ from .conformance_suite_configurations.xbrl_2_1 import config as xbrl_2_1
 
 
 LINUX = 'ubuntu-22.04'
-MACOS = 'macos-12'
+MACOS = 'macos-13'
 WINDOWS = 'windows-2022'
 ALL_PYTHON_VERSIONS = (
     '3.8',
@@ -25,7 +25,7 @@ LATEST_PYTHON_VERSION = '3.12'
 # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
 OS_CORES = {
     LINUX: 4,
-    MACOS: 3,
+    MACOS: 4,
     WINDOWS: 4,
 }
 FAST_CONFIG_NAMES = {
