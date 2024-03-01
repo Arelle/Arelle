@@ -814,13 +814,7 @@ def openXmlFileStream(
         return io.open(filepath, 'rt', encoding=encoding or 'utf-8'), encoding
     else:
         if stripDeclaration:
-            # strip XML declaration
-            xmlDeclarationMatch = XmlUtil.xmlDeclarationPattern.match(text)
-            if xmlDeclarationMatch: # remove it for lxml
-                if xmlDeclarationMatch.group(1) is not None:
-                    raise XmlUtil.XmlDeclarationLocationException
-                start,end = xmlDeclarationMatch.span(2)
-                text = text[0:start] + text[end:]
+            text = stripDeclarationText(text)
         return (FileNamedStringIO(filepath, initial_value=text), encoding)
 
 def stripDeclarationBytes(xml: bytes) -> bytes:
@@ -831,6 +825,17 @@ def stripDeclarationBytes(xml: bytes) -> bytes:
         if indexOfDeclarationEnd >= 0:
             return xml[indexOfDeclarationEnd + 2:]
     return xml
+
+
+def stripDeclarationText(text: str) -> str:
+    xmlDeclarationMatch = XmlUtil.xmlDeclarationPattern.match(text)
+    if xmlDeclarationMatch:  # remove it for lxml
+        if xmlDeclarationMatch.group(1) is not None:
+            raise XmlUtil.XmlDeclarationLocationException
+        start,end = xmlDeclarationMatch.span(2)
+        text = text[0:start] + text[end:]
+    return text
+
 
 def saveFile(cntlr: Cntlr, filepath: str, contents: str, encoding: str | None = None, mode: str='wt') -> None:
     if isHttpUrl(filepath):
