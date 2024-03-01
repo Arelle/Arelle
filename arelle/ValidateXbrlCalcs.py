@@ -16,8 +16,12 @@ from arelle.XmlValidateConst import UNVALIDATED, VALID
 if TYPE_CHECKING:
     from _decimal import Decimal
     from arelle.ModelInstanceObject import ModelFact
+    from arelle.ModelValue import TypeXValue
 else:
     ModelFact = None # circular import with ModelInstanceObject
+
+DECIMALS_CONTEXT = decimal.Context(prec=decimal.MAX_PREC)
+
 
 def init(): # prevent circular imports
     global ModelFact
@@ -694,7 +698,12 @@ def rangeValue(value, decimals=None, truncate=False) -> tuple[decimal.Decimal, d
                 return (vDecimal - dd, vDecimal + dd, False, False)
     return (vDecimal, vDecimal, True, True)
 
-def insignificantDigits(value, precision=None, decimals=None, scale=None) -> tuple[Decimal, Decimal] | None:
+
+def insignificantDigits(
+        value: TypeXValue,
+        precision: int | float | Decimal | str | None = None,
+        decimals: int | float | Decimal | str | None = None,
+        scale: int | float | Decimal | None = None) -> tuple[Decimal, Decimal] | None:
     try:
         vDecimal = decimal.Decimal(value)
         if scale:
@@ -734,15 +743,16 @@ def insignificantDigits(value, precision=None, decimals=None, scale=None) -> tup
             return None
     else:
         return None
-    if vDecimal.is_normal() and -28 <= decimals <= 28: # prevent exception with excessive quantization digits
+    if vDecimal.is_normal(): # prevent exception with excessive quantization digits
         if decimals > 0:
             divisor = ONE.scaleb(-decimals) # fractional scaling doesn't produce scientific notation
         else:  # extra quantize step to prevent scientific notation for decimal number
             divisor = ONE.scaleb(-decimals).quantize(ONE, decimal.ROUND_HALF_UP) # should never round
-        insignificantDigits = abs(vDecimal) % divisor
-        if insignificantDigits:
-            return (vDecimal // divisor * divisor,  # truncated portion of number
-                    insignificantDigits)   # nsignificant digits portion of number
+        truncated = DECIMALS_CONTEXT.divide_int(vDecimal, divisor) * divisor
+        remainder = DECIMALS_CONTEXT.remainder(abs(vDecimal), divisor)
+        if remainder:
+            return (truncated,  # truncated portion of number
+                    remainder)   # nsignificant digits portion of number
     return None
 
 
