@@ -285,7 +285,7 @@ linkbaseValidations = {
     # elrPreDocTypes - list of doc types which are checked for this validation
     # elrDefInNs - regex of linkroles permitting extension relationships between base taxonomy concepts
     # elrDefExNs - regex of linkroles permitting extension relationships between base and non-base concepts
-    # elrDefRowSrc - dict by role of required source concept
+    # elrDefRowSrc - patterns of role and allowed source concept qname
     # elrDefNoTgtRole - true to block extension arcs with target role
     # preSources - local names of allowed source elements
     # preCustELFs - true to allow custom linkroles in extension
@@ -297,7 +297,7 @@ linkbaseValidations = {
         elrPreDocTypes = ("N-2", "N-2/A"), # only these doc types are checked
         elrDefInNs = re.compile("http://xbrl.sec.gov/cef/role/N2"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/cef/role/(Security|Risk|Coregistrant)Only"),
-        elrDefRoleSrc = None,
+        elrDefRoleSrc = (),
         elrDefNoTgtRole = False,
         preSources = ("AllCoregistrantsMember", "AllSecuritiesMember", "AllRisksMember", "ClassOfStockDomain", "DebtInstrumentNameDomain"),
         preCustELRs = False
@@ -309,7 +309,7 @@ linkbaseValidations = {
         elrPre = re.compile("http://xbrl.sec.gov/vip/role/N[346]"),
         elrDefInNs = re.compile("http://xbrl.sec.gov/vip/role/[^/]*Only"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/vip/role/[^/]*Only"),
-        elrDefRoleSrc = None,
+        elrDefRoleSrc = (),
         elrDefNoTgtRole = False,
         preSources = (),
         preCustELRs = False
@@ -321,7 +321,7 @@ linkbaseValidations = {
         elrPre = None,
         elrDefInNs = re.compile("http://xbrl.sec.gov/ecd/role/"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/ecd/role/[^/]*Only"),
-        elrDefRoleSrc = None,
+        elrDefRoleSrc = (),
         elrDefNoTgtRole = False,
         preSources = (),
         preCustELRs = True
@@ -333,7 +333,7 @@ linkbaseValidations = {
         # Need to add the "Only" suffix to these rr roles for consistency.
         elrDefInNs = re.compile("http://xbrl.sec.gov/(oef/role/[^/]*Only|rr/role/(Series|Class|Coregistrant|Prospectus|Risk|PerformanceMeasure))"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/(oef/role/[^/]*Only|rr/role/(Series|Class|Coregistrant|Prospectus|Risk|PerformanceMeasure))"),
-        elrDefRoleSrc = None,
+        elrDefRoleSrc = (),
         elrDefNoTgtRole = False,
         preSources = (),
         efmPre = None,
@@ -346,19 +346,38 @@ linkbaseValidations = {
         elrDefDocTypes = ('2.01 SD',),
         elrDefInNs = re.compile("never permitted"),
         elrDefExNs = re.compile("http://xbrl.sec.gov/rxp/role/(Projects|Governments|Segments|Entities|Resources)Only"),
-        elrDefRoleSrc = {
-            "http://xbrl.sec.gov/rxp/role/ProjectsOnly": "rxp:AllProjectsMember",
-            "http://xbrl.sec.gov/rxp/role/GovernmentsOnly": "rxp:AllGovernmentsMember",
-            "http://xbrl.sec.gov/rxp/role/SegmentsOnly": "rxp:AllSegmentsMember",
-            "http://xbrl.sec.gov/rxp/role/EntitiesOnly": "dei:EntityDomain",
-            "http://xbrl.sec.gov/rxp/role/ResourcesOnly": "rxp:AllResourcesMember"
-            },
+        elrDefRoleSrc = (
+            (re.compile(r".*sec\.gov/rxp/role/ProjectsOnly"), re.compile(r"rxp:AllProjectsMember")),
+            (re.compile(r".*sec\.gov/rxp/role/GovernmentsOnly"), re.compile(r"rxp:AllGovernmentsMember")),
+            (re.compile(r".*sec\.gov/rxp/role/SegmentsOnly"), re.compile(r"rxp:AllSegmentsMember")),
+            (re.compile(r".*sec\.gov/rxp/role/EntitiesOnly"), re.compile(r"dei:EntityDomain")),
+            (re.compile(r".*sec\.gov/rxp/role/ResourcesOnly"), re.compile(r"rxp:AllResourcesMember"))
+        ),
         elrDefNoTgtRole = True,
         elrDefRgtMemsRole = re.compile("http://xbrl.sec.gov/rxp/"),
         efmDefTgtMemsUnique = "6.16.14.04",
         preSources = (),
         efmPre = None,
         preCustELRs = True,
+    ),
+    "sro": attrdict(
+        efmPre = None, # nothing to be checked
+        efmCal = None,
+        efmDef = "6.16.15",
+        elrPre = None,
+        elrDefInNs = re.compile("."), # skip this test
+        elrDefExNs = re.compile("."), # skip this test
+        elrDefRoleSrc = (
+            (re.compile(r".*sec\.gov/17ad27/role/.*Only$"),
+                re.compile(r"sro:Cmsp(SvcTyp|UsrTyp|AsstCls|SubmHdrs)Domain$")),
+            (re.compile(r".*sec\.gov/17ad27/role/ProgressTable$"),
+                re.compile(r".")), # match any QName
+            (re.compile(r".*sec\.gov/17ad27/role/(?!(.*Only|ProgressTable))."),
+                re.compile(r"matchnothing^")) # match nothing
+        ),
+        elrDefNoTgtRole = False,
+        preSources = (),
+        preCustELRs = False
     ),
 }
 

@@ -204,32 +204,32 @@ dtrNumeric = "http://www.xbrl.org/dtr/type/numeric"
 dtrNoDecimalsItemTypes: Tuple[QName, ...] = (
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}noDecimalsMonetaryItemType"),
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonNegativeNoDecimalsMonetaryItemType"),
-    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}noDecimalsMonetaryItemType"),
-    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}nonNegativeNoDecimalsMonetaryItemType"),
+    qname("{http://www.xbrl.org/dtr/type/2022-03-31}noDecimalsMonetaryItemType"),
+    qname("{http://www.xbrl.org/dtr/type/2022-03-31}nonNegativeNoDecimalsMonetaryItemType"),
 )
 dtrPrefixedContentItemTypes: Tuple[QName, QName] = (
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}prefixedContentItemType"),
-    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}prefixedContentItemType"),
+    qname("{http://www.xbrl.org/dtr/type/2022-03-31}prefixedContentItemType"),
 )
 dtrPrefixedContentTypes: Tuple[QName, QName] = (
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}prefixedContentType"),
-    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}prefixedContentType"),
+    qname("{http://www.xbrl.org/dtr/type/2022-03-31}prefixedContentType"),
 )
 dtrSQNameItemTypes: Tuple[QName, QName] = (
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNameItemType"),
-    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameItemType"),
+    qname("{http://www.xbrl.org/dtr/type/2022-03-31}SQNameItemType"),
 )
 dtrSQNameTypes: Tuple[QName, QName] = (
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNameType"),
-    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameType"),
+    qname("{http://www.xbrl.org/dtr/type/2022-03-31}SQNameType"),
 )
 dtrSQNamesItemTypes: Tuple[QName, QName] = (
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesItemType"),
-    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesItemType"),
+    qname("{http://www.xbrl.org/dtr/type/2022-03-31}SQNamesItemType"),
 )
 dtrSQNamesTypes: Tuple[QName, QName] = (
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesType"),
-    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesType"),
+    qname("{http://www.xbrl.org/dtr/type/2022-03-31}SQNamesType"),
 )
 dtrSQNameNamesItemTypes: Tuple[QName, ...] = dtrSQNameItemTypes + dtrSQNamesItemTypes
 dtrSQNameNamesTypes: Tuple[QName, ...] = dtrSQNameTypes + dtrSQNamesTypes
