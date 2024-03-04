@@ -61,11 +61,11 @@ jobs:
       - name: Install twine
         run: pip install -U twine
       - name: Download tar artifact
-        uses: actions/download-artifact@v4.1.2
+        uses: actions/download-artifact@v4.1.4
         with:
           name: arelle.tar.gz
       - name: Download wheel artifact
-        uses: actions/download-artifact@v4.1.2
+        uses: actions/download-artifact@v4.1.4
         with:
           name: arelle.whl
       - name: Publish package on release
