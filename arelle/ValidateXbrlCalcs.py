@@ -701,58 +701,33 @@ def rangeValue(value, decimals=None, truncate=False) -> tuple[decimal.Decimal, d
 
 def insignificantDigits(
         value: TypeXValue,
-        precision: int | float | Decimal | str | None = None,
-        decimals: int | float | Decimal | str | None = None,
-        scale: int | float | Decimal | None = None) -> tuple[Decimal, Decimal] | None:
+        decimals: int | float | Decimal | str) -> tuple[Decimal, Decimal] | None:
+    # Normalize value
     try:
-        vDecimal = decimal.Decimal(value)
-        if scale:
-            iScale = int(scale)
-            vDecimal = vDecimal.scaleb(iScale)
-        if precision is not None:
-            vFloat = float(value)
-            if scale:
-                vFloat = pow(vFloat, iScale)
-    except (decimal.InvalidOperation, ValueError): # would have been a schema error reported earlier
+        valueDecimal = decimal.Decimal(value)
+    except (decimal.InvalidOperation, ValueError):  # would have been a schema error reported earlier
         return None
-    if precision is not None:
-        if not isinstance(precision, (int,float)):
-            if precision == "INF":
-                return None
-            else:
-                try:
-                    precision = int(precision)
-                except ValueError: # would be a schema error
-                    return None
-        if isinf(precision) or precision == 0 or isnan(precision) or vFloat == 0:
+    if not valueDecimal.is_normal():  # prevent exception with excessive quantization digits
+        return None
+    # Normalize decimals
+    if isinstance(decimals, str):
+        if decimals == "INF":
             return None
         else:
-            vAbs = fabs(vFloat)
-            log = log10(vAbs)
-            decimals = precision - int(log) - (1 if vAbs >= 1 else 0)
-    elif decimals is not None:
-        if not isinstance(decimals, (int,float)):
-            if decimals == "INF":
+            try:
+                decimals = int(decimals)
+            except ValueError:  # would have been a schema error reported earlier
                 return None
-            else:
-                try:
-                    decimals = int(decimals)
-                except ValueError: # would be a schema error
-                    return None
-        if isinf(decimals) or isnan(decimals):
-            return None
-    else:
+    if isinf(decimals) or isnan(decimals):
         return None
-    if vDecimal.is_normal(): # prevent exception with excessive quantization digits
-        if decimals > 0:
-            divisor = ONE.scaleb(-decimals) # fractional scaling doesn't produce scientific notation
-        else:  # extra quantize step to prevent scientific notation for decimal number
-            divisor = ONE.scaleb(-decimals).quantize(ONE, decimal.ROUND_HALF_UP) # should never round
-        truncated = DECIMALS_CONTEXT.divide_int(vDecimal, divisor) * divisor
-        remainder = DECIMALS_CONTEXT.remainder(abs(vDecimal), divisor)
-        if remainder:
-            return (truncated,  # truncated portion of number
-                    remainder)   # nsignificant digits portion of number
+    if decimals > 0:
+        divisor = ONE.scaleb(-decimals)  # fractional scaling doesn't produce scientific notation
+    else:  # extra quantize step to prevent scientific notation for decimal number
+        divisor = ONE.scaleb(-decimals).quantize(ONE, decimal.ROUND_HALF_UP) # should never round
+    significant = DECIMALS_CONTEXT.divide_int(valueDecimal, divisor) * divisor
+    insignificant = DECIMALS_CONTEXT.remainder(abs(valueDecimal), divisor)
+    if insignificant:
+        return significant, insignificant
     return None
 
 
