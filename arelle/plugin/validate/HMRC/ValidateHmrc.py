@@ -100,172 +100,287 @@ CONCEPT_WELSH = 'Welsh'
 CHARITY_REGISTRATION_NUMBERS = [CONCEPT_CHARITY_REGISTRATION_NUMBER_ENGLAND_WALES, CONCEPT_CHARITY_REGISTRATION_NUMBER_NORTH_IRELAND, CONCEPT_CHARITY_REGISTRATION_NUMBER_SCOTLAND]
 
 # Map of error code > concept local name > tuple of pairings of descriptions and regex patterns
-TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, re.regex.Pattern[str]], ...]]] = {
+TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, list[list[str]]], ...]]] = {
     CH_DIR_RESP: {
         'StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct': (
             (
-                '"Directors acknowledge" or "Director acknowledges" or "Trustees acknowledge" or "Trustee acknowledges", then "responsibilities", then "Companies Act 2006" OR "the Act"',
-                re.compile(r".*(Director acknowledges|Directors acknowledge|Trustees acknowledge|Trustee acknowledges).*responsibilities.*(Companies Act 2006|the Act).*"),
+                '"Directors acknowledge" or "Director acknowledges" or "Trustees acknowledge" or "Trustee acknowledges", and "responsibilities", and "Companies Act 2006" OR "the Act"',
+                [
+                    ["Director acknowledges", "Directors acknowledge", "Trustees acknowledge", "Trustee acknowledges"],
+                    ["responsibilities"],
+                    ["Companies Act 2006", "the Act"]
+                ],
             ),
             (
-                '"Cyfarwyddwyr yn cydnabod" or "Cyfarwyddwr yn cydnabod" or "ymddiriedolwyr yn cydnabod" or "ymddiriedolwr yn cydnabod", then "cyfrifoldebau", then "Ddeddf Cwmnïau 2006" or "y ddeddf"',
-                re.compile(r".*(Cyfarwyddwyr yn cydnabod|Cyfarwyddwr yn cydnabod|ymddiriedolwyr yn cydnabod|ymddiriedolwr yn cydnabod).*cyfrifoldebau.*(Ddeddf Cwmnïau 2006|y ddeddf).*"),
+                '"Cyfarwyddwyr yn cydnabod" or "Cyfarwyddwr yn cydnabod" or "ymddiriedolwyr yn cydnabod" or "ymddiriedolwr yn cydnabod", and "cyfrifoldebau", and "Ddeddf Cwmnïau 2006" or "y ddeddf"',
+                [
+                    ["Cyfarwyddwyr yn cydnabod", "Cyfarwyddwr yn cydnabod", "ymddiriedolwyr yn cydnabod", "ymddiriedolwr yn cydnabod"],
+                    ["cyfrifoldebau"],
+                    ["Ddeddf Cwmnïau 2006", "y ddeddf"]
+                ],
             ),
         ),
     },
     CO_ABRID: {
         'StatementThatMembersHaveAgreedToPreparationAbridgedAccountsUnderSection444CompaniesAct2006': (
             (
-                'Members" or "Member", then "agreed" or "consented", then "preparation", then "abridged")',
-                re.compile(r".*(Members|Member).*(agreed|consented).*preparation.*abridged.*"),
+                'Members" or "Member", and "agreed" or "consented", and "preparation", and "abridged")',
+                [
+                    ["Members", "Member"],
+                    ["agreed", "consented"],
+                    ["preparation"],
+                    ["abridged"]
+                ],
             ),
             (
-                '"Aelodau" or "Aelod", then "wedi cytuno" or "cydsynio", then "paratoi", then "talfyredig")',
-                re.compile(r".*(Aelodau|Aelod).*(wedi cytuno|cydsynio).*paratoi.*talfyredig.*"),
+                '"Aelodau" or "Aelod", and "wedi cytuno" or "cydsynio", and "paratoi", and "talfyredig")',
+                [
+                    ["Aelodau", "Aelod"],
+                    ["wedi cytuno", "cydsynio"],
+                    ["paratoi"],
+                    ["talfyredig"]
+                ],
             ),
         ),
     },
     CO_AUDIT_NR: {
         'StatementThatMembersHaveNotRequiredCompanyToObtainAnAudit': (
             (
-                '"member has" or "members have" then "not required the company to obtain an audit"',
-                re.compile(r".*([Mm]ember has|[Mm]embers have) not required the company to obtain an audit.*"),
+                '"member has" or "members have", and "not required the company to obtain an audit"',
+                [
+                    ["[Mm]ember has", "[Mm]embers have"],
+                    ["not required the company to obtain an audit"]
+                ],
             ),
             (
                 '"aelodau heb ei gwneud yn ofynnol i\'r cwmni gael archwiliad" OR "aelod heb ei gwneud yn ofynnol i\'r cwmni gael archwiliad"',
-                re.compile(r".*(aelodau heb ei gwneud yn ofynnol i\'r cwmni gael archwiliad|aelod heb ei gwneud yn ofynnol i\'r cwmni gael archwiliad).*"),
+                [
+                    ["aelodau heb ei gwneud yn ofynnol i'r cwmni gael archwiliad", "aelod heb ei gwneud yn ofynnol i'r cwmni gael archwiliad"]
+                ],
             ),
         ),
     },
     CO_DIR_RESP: {
         'StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct': (
             (
-                '"Directors acknowledge" or "Director acknowledges", then "responsibilities", then "Companies Act 2006" OR "the Act"',
-                re.compile(r".*(Director acknowledges|Directors acknowledge).*responsibilities.*(Companies Act 2006|the Act).*"),
+                '"Directors acknowledge" or "Director acknowledges", and "responsibilities", and "Companies Act 2006" OR "the Act"',
+                [
+                    ["Director acknowledges", "Directors acknowledge"],
+                    ["responsibilities"],
+                    ["Companies Act 2006", "the Act"]
+                ],
             ),
             (
-                '"Cyfarwyddwyr yn cydnabod" or "Cyfarwyddwr yn cydnabod", then "cyfrifoldebau", then "Ddeddf Cwmnïau 2006" or "y ddeddf"',
-                re.compile(r".*(Cyfarwyddwyr yn cydnabod|Cyfarwyddwr yn cydnabod).*cyfrifoldebau.*(Ddeddf Cwmnïau 2006|y ddeddf).*"),
+                '"Cyfarwyddwyr yn cydnabod" or "Cyfarwyddwr yn cydnabod", and "cyfrifoldebau", and "Ddeddf Cwmnïau 2006" or "y ddeddf"',
+                [
+                    ["Cyfarwyddwyr yn cydnabod", "Cyfarwyddwr yn cydnabod"],
+                    ["cyfrifoldebau"],
+                    ["Ddeddf Cwmnïau 2006", "y ddeddf"]
+                ],
             ),
         ),
     },
     CO_MICRO: {
         'StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime': (
             (
-                '"Prepared", then "in accordance with", then "provisions", then "micro"',
-                re.compile(r".*Prepared.*in accordance with.*provisions.*micro.*"),
+                '"Prepared", and "in accordance with", and "provisions", and "micro"',
+                [
+                    ["Prepared"],
+                    ["in accordance with"],
+                    ["provisions"],
+                    ["micro"]
+                ],
             ),
             (
-                '"wedi eu paratoi", then "yn unol â", then "darpariaethau", then "micro"',
-                re.compile(r".*wedi eu paratoi.*yn unol â.*darpariaethau.*micro.*"),
+                '"wedi eu paratoi", and "yn unol â", and "darpariaethau", and "micro"',
+                [
+                    ["wedi eu paratoi"],
+                    ["yn unol â"],
+                    ["darpariaethau"],
+                    ["micro"]
+                ],
             ),
         ),
     },
     CO_SEC_477: {
         'StatementThatCompanyEntitledToExemptionFromAuditUnderSection477CompaniesAct2006RelatingToSmallCompanies': (
             (
-                '"Exempt" or "Exemption", then later "section 477 of the Companies Act 2006"',
-                re.compile(r".*(Exempt|Exemption).*section 477 of the Companies Act 2006.*"),
+                '"Exempt" or "Exemption", and later "section 477 of the Companies Act 2006"',
+                [
+                    ["Exempt", "Exemption"],
+                    ["section 477 of the Companies Act 2006"]
+                ]
             ),
             (
-                '"Wedi\'i eithrio" or "Eithriad", then "adran 477 o Ddeddf Cwmnïau 2006"',
-                re.compile(r".*(Wedi'i eithrio|Eithriad).*adran 477 o Ddeddf Cwmnïau 2006.*"),
+                '"Wedi\'i eithrio" or "Eithriad", and "adran 477 o Ddeddf Cwmnïau 2006"',
+                [
+                    ["Wedi'i eithrio", "Eithriad"],
+                    ["adran 477 o Ddeddf Cwmnïau 2006"]
+                ],
             ),
         ),
     },
     CO_SEC_480: {
         'StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies': (
             (
-                '"Exempt" or "Exemption", then later "section 480 of the Companies Act 2006"',
-                re.compile(r".*(Exempt|Exemption).*section 480 of the Companies Act 2006.*"),
+                '"Exempt" or "Exemption", and later "section 480 of the Companies Act 2006"',
+                [
+                    ["Exempt", "Exemption"],
+                    ["section 480 of the Companies Act 2006"]
+                ],
             ),
             (
-                '"Wedi\'i eithrio" or "Eithriad", then "adran 480 o Ddeddf Cwmnïau 2006"',
-                re.compile(r".*(Wedi'i eithrio|Eithriad).*adran 480 o Ddeddf Cwmnïau 2006.*"),
+                '"Wedi\'i eithrio" or "Eithriad", and "adran 480 o Ddeddf Cwmnïau 2006"',
+                [
+                    ["Wedi'i eithrio", "Eithriad"],
+                    ["adran 480 o Ddeddf Cwmnïau 2006"]
+                ],
             ),
         ),
     },
     CO_SM_CO: {
         'StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime': (
             (
-                '"Prepared in accordance with", then "provisions", then "small companies"',
-                re.compile(r".*Prepared in accordance with.*provisions.*small companies.*"),
+                '"Prepared in accordance with", and "provisions", and "small companies"',
+                [
+                    ["Prepared in accordance with"],
+                    ["provisions"],
+                    ["small companies"]
+                ],
             ),
             (
-                '"Paratowyd yn unol â", then "darpariaethau", then "cwmnïau bach"',
-                re.compile(r".*Paratowyd yn unol â.*darpariaethau.*cwmnïau bach.*"),
+                '"Paratowyd yn unol â", and "darpariaethau", and "cwmnïau bach"',
+                [
+                    ["Paratowyd yn unol â"],
+                    ["darpariaethau"],
+                    ["cwmnïau bach"]
+                ],
             ),
         ),
     },
     LP_ABRID: {
         'StatementThatMembersHaveAgreedToPreparationAbridgedAccountsUnderSection444CompaniesAct2006': (
             (
-                'Members" or "Member", then "agreed" or "consented", then "preparation", then "abridged")',
-                re.compile(r".*(Members|Member).*(agreed|consented).*preparation.*abridged.*"),
+                '"Members" or "Member", and "agreed" or "consented", and "preparation", and "abridged")',
+                [
+                    ["Members", "Member"],
+                    ["agreed", "consented"],
+                    ["preparation"],
+                    ["abridged"]
+                ],
             ),
             (
-                '"Aelodau" or "Aelod", then "wedi cytuno" or "cydsynio", then "paratoi", then "talfyredig")',
-                re.compile(r".*(Aelodau|Aelod).*(wedi cytuno|cydsynio).*paratoi.*talfyredig.*"),
+                '"Aelodau" or "Aelod", and "wedi cytuno" or "cydsynio", and "paratoi", and "talfyredig")',
+                [
+                    ["Aelodau", "Aelod"],
+                    ["wedi cytuno", "cydsynio"],
+                    ["paratoi"],
+                    ["talfyredig"]
+                ],
             ),
         ),
     },
     LP_MEM_RESP: {
-            'StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct': (
-                (
-                    '"Members acknowledge" or "Member acknowledges", then "responsibilities", then  "Companies Act 2006" or "the Act", then "Limited Liability Partnership" or "LLP"',
-                    re.compile(r".*(Members acknowledge|Member acknowledges).*responsibilities.*(Companies Act 2006|the Act).*(Limited Liability Partnership|LLP).*"),
-                ),
-                (
-                    '"Aelodau\'n cydnabod" or "Aelod yn cydnabod", then "cyfrifoldebau", then "Ddeddf Cwmnïau 2006" or "y Ddeddf", then "Partneriaeth Atebolrwydd Cyfyngedig" or "PAC"',
-                    re.compile(r".*(Aelodau'n cydnabod|Aelod yn cydnabod).*cyfrifoldebau.*(Ddeddf Cwmnïau 2006|y Ddeddf).*(Partneriaeth Atebolrwydd Cyfyngedig|PAC).*"),
-                ),
+        'StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct': (
+            (
+                '"Members acknowledge" or "Member acknowledges", and "responsibilities", and  "Companies Act 2006" or "the Act", and "Limited Liability Partnership" or "LLP"',
+                [
+                    ["Members acknowledge", "Member acknowledges"],
+                    ["responsibilities"],
+                    ["Companies Act 2006", "the Act"],
+                    ["Limited Liability Partnership", "LLP"]
+                ],
             ),
+            (
+                '"Aelodau\'n cydnabod" or "Aelod yn cydnabod", and "cyfrifoldebau", and "Ddeddf Cwmnïau 2006" or "y Ddeddf", and "Partneriaeth Atebolrwydd Cyfyngedig" or "PAC"',
+                [
+                    ["Aelodau'n cydnabod", "Aelod yn cydnabod"],
+                    ["cyfrifoldebau"],
+                    ["Ddeddf Cwmnïau 2006", "y Ddeddf"],
+                    ["Partneriaeth Atebolrwydd Cyfyngedig", "PAC"]
+                ],
+            ),
+        ),
     },
     LP_MICRO: {
         'StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime': (
             (
-                '"Prepared", then "in accordance with", then "provisions", then "micro"',
-                re.compile(r".*Prepared.*in accordance with.*provisions.*micro.*"),
+                '"Prepared", and "in accordance with", and "provisions", and "micro"',
+                [
+                    ["Prepared"],
+                    ["in accordance with"],
+                    ["provisions"],
+                    ["micro"]
+                ],
             ),
             (
-                '"wedi eu paratoi", then "yn unol â", then "darpariaethau", then "micro"',
-                re.compile(r".*wedi eu paratoi.*yn unol â.*darpariaethau.*micro.*"),
+                '"wedi eu paratoi", and "yn unol â", and "darpariaethau", and "micro"',
+                [
+                    ["wedi eu paratoi"],
+                    ["yn unol â"],
+                    ["darpariaethau"],
+                    ["micro"]
+                ],
             ),
         ),
     },
     LP_SEC_477: {
         'StatementThatCompanyEntitledToExemptionFromAuditUnderSection477CompaniesAct2006RelatingToSmallCompanies': (
             (
-                '"Exempt" OR "Exemption", then "section 477 of the Companies Act 2006" then, "Limited Liability Partnership" OR "LLP")',
-                re.compile(r".*(Exempt|Exemption).*section 477 of the Companies Act 2006.*(Limited Liability Partnership|LLP).*"),
+                '"Exempt" OR "Exemption", and "section 477 of the Companies Act 2006", and "Limited Liability Partnership" OR "LLP")',
+                [
+                    ["Exempt", "Exemption"],
+                    ["section 477 of the Companies Act 2006"],
+                    ["Limited Liability Partnership", "LLP"]
+                ],
             ),
             (
-                '"Wedi\'i eithrio" or "Eithriad", then "adran 477 o Ddeddf Cwmnïau 2006", then "Partneriaeth Atebolrwydd Cyfyngedig" OR "PAC"',
-                re.compile(r".*(Wedi'i eithrio|Eithriad).*adran 477 o Ddeddf Cwmnïau 2006.*(Partneriaeth Atebolrwydd Cyfyngedig|PAC).*"),
+                '"Wedi\'i eithrio" or "Eithriad", and "adran 477 o Ddeddf Cwmnïau 2006", and "Partneriaeth Atebolrwydd Cyfyngedig" OR "PAC"',
+                [
+                    ["Wedi'i eithrio", "Eithriad"],
+                    ["adran 477 o Ddeddf Cwmnïau 2006"],
+                    ["Partneriaeth Atebolrwydd Cyfyngedig", "PAC"]
+                ],
             ),
         ),
     },
     LP_SEC_480: {
-            'StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies': (
-                (
-                    '"Exempt" or "Exemption", then "section 480 of the Companies Act 2006", then "Limited Liability Partnership" OR "LLP"',
-                    re.compile(r".*(Exempt|Exemption).*section 480 of the Companies Act 2006.*(Limited Liability Partnership|LLP).*"),
-                ),
-                (
-                    '"Wedi\'i eithrio" or "Eithriad", then "adran 480 o Ddeddf Cwmnïau 2006"',
-                    re.compile(r".*(Wedi'i eithrio|Eithriad).*adran 480 o Ddeddf Cwmnïau 2006.*(Partneriaeth Atebolrwydd Cyfyngedig|PAC).*"),
-                ),
+        'StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies': (
+            (
+                '"Exempt" or "Exemption", and "section 480 of the Companies Act 2006", and "Limited Liability Partnership" OR "LLP"',
+                [
+                    ["Exempt", "Exemption"],
+                    ["section 480 of the Companies Act 2006"],
+                    ["Limited Liability Partnership", "LLP"]
+                ],
             ),
+            (
+                '"Wedi\'i eithrio" or "Eithriad", and "adran 480 o Ddeddf Cwmnïau 2006", and "Partneriaeth Atebolrwydd Cyfyngedig" or "PAC"',
+                [
+                    ["Wedi'i eithrio", "Eithriad"],
+                    ["adran 480 o Ddeddf Cwmnïau 2006"],
+                    ["Partneriaeth Atebolrwydd Cyfyngedig", "PAC"]
+                ],
+            ),
+        ),
     },
     LP_SM_LP: {
         'StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime': (
             (
-                '"Prepared in accordance with", then "provisions", then "small Limited Liability Partnership" OR "small LLP',
-                re.compile(r".*Prepared in accordance with.*provisions.*(small Limited Liability Partnership|small LLP).*"),
+                '"Prepared in accordance with", and "provisions", and "small Limited Liability Partnership" OR "small LLP',
+                [
+                    ["Prepared in accordance with"],
+                    ["provisions"],
+                    ["small Limited Liability Partnership", "small LLP"]
+                ],
             ),
             (
-                '"Paratowyd yn unol â", then "y darpariaethau", then "Partneriaeth Atebolrwydd Cyfyngedig bach" or "PAC bach")',
-                re.compile(r".*Paratowyd yn unol â.*y darpariaethau.*(Partneriaeth Atebolrwydd Cyfyngedig bach|PAC bach).*"),
+                '"Paratowyd yn unol â", and "y darpariaethau", and "Partneriaeth Atebolrwydd Cyfyngedig bach" or "PAC bach")',
+                [
+                    ["Paratowyd yn unol â"],
+                    ["y darpariaethau"],
+                    ["Partneriaeth Atebolrwydd Cyfyngedig bach", "PAC bach"]
+                ],
             ),
         ),
     },
@@ -363,7 +478,7 @@ class ValidateHmrc:
         return result
 
     def _evaluateTextPattern(self, code: str) -> CodeResult:
-        pattern: dict[str, tuple[tuple[str, Pattern[str]], ...]] | Any = TEXT_VALIDATION_PATTERNS.get(code, {})
+        pattern: dict[str, tuple[tuple[str, list[list[str]]], ...]] | Any = TEXT_VALIDATION_PATTERNS.get(code, {})
         for conceptLocalName, textMatchers in pattern.items():
             facts = self._getFacts(conceptLocalName)
             if not facts:
@@ -372,8 +487,14 @@ class ValidateHmrc:
                     conceptLocalName=conceptLocalName
                 )
             for fact in facts:
-                message, pattern = textMatchers[self._lang.value]
-                match = pattern.match(fact.value, re.MULTILINE)
+                message, phrase_lists = textMatchers[self._lang.value]
+                match = all(
+                    re.compile(
+                        "|".join(r"\b{}\b".format(phrase) for phrase in phrase_list),
+                        re.MULTILINE
+                    ).search(fact.value) for phrase_list in phrase_lists
+                )
+
                 if not match:
                     return CodeResult(
                         success=False,
@@ -397,11 +518,11 @@ class ValidateHmrc:
         if len(missingConcepts) > 0:
             if code == CO_DIR_REP:
                 return CodeResult(
-                        success=False,
-                        conceptList=missingConcepts,
-                        message="Facts tagged with the DateSigningDirectorsReport and DirectorSigningDirectorsReport must exist with non-nil values. "
-                                "There are no facts tagged with the concepts: %(conceptList)s.",
-                    )
+                    success=False,
+                    conceptList=missingConcepts,
+                    message="Facts tagged with the DateSigningDirectorsReport and DirectorSigningDirectorsReport must exist with non-nil values. "
+                            "There are no facts tagged with the concepts: %(conceptList)s.",
+                )
             elif code == CH_DIR_REP:
                 missingCharConcepts = []
                 if not self._getAndCheckValidFacts([CONCEPT_DATE_SIGNING_TRUSTEES_REPORT]):
@@ -520,12 +641,12 @@ class ValidateHmrc:
                         trading = True
         if not self._getAndCheckValidFacts([concept]) and not trading:
             return CodeResult(
-                    conceptLocalName=concept,
-                    success=False,
-                    message="A fact tagged with %(conceptLocalName)s must exist if a fact tagged with EntityTradingStatus "
-                            "with the dimension of EntityTradingStatusDimension/(EntityHasNeverTraded OR EntityNoLongerTradingButTradedInPast) "
-                            "does not exist or has a nil value"
-                )
+                conceptLocalName=concept,
+                success=False,
+                message="A fact tagged with %(conceptLocalName)s must exist if a fact tagged with EntityTradingStatus "
+                        "with the dimension of EntityTradingStatusDimension/(EntityHasNeverTraded OR EntityNoLongerTradingButTradedInPast) "
+                        "does not exist or has a nil value"
+            )
         return CodeResult()
 
     def _evaluateCode(self, code: str) -> CodeResult:
@@ -762,9 +883,9 @@ class ValidateHmrc:
                         self.validateAuditedSmallCharity()
 
                 elif not (self.scopeAccounts in {
-                            ScopeAccounts.GROUP_ONLY.value,
-                            ScopeAccounts.CONSOLIDATED_GROUP.value,
-                        } or self.accountsType == CONCEPT_ABRIDGED_ACCOUNTS):
+                    ScopeAccounts.GROUP_ONLY.value,
+                    ScopeAccounts.CONSOLIDATED_GROUP.value,
+                } or self.accountsType == CONCEPT_ABRIDGED_ACCOUNTS):
                     self.validateAuditedOtherCharity()
             elif self.accountStatus in {
                 AccountStatus.AUDIT_EXEMPT_NO_REPORT.value,
@@ -1041,26 +1162,26 @@ class ValidateHmrc:
                 self._errorOnMissingFactText(CO_SM_CO, smCoResult)
 
     def validateUnauditedDormantCompany(self) -> None:
-            """
-            Checks conditions applicable to unaudited dormant companies:
-            Co.Sec480 and Co.AuditNR and Co.DirResp and (Co.Micro or Co.SmCo).
-            """
-            result = self._evaluateCode(CO_SEC_480)
-            if not result.success:
-                self._errorOnMissingFactText(CO_SEC_480, result)
-            result = self._evaluateCode(CO_AUDIT_NR)
-            if not result.success:
-                self._errorOnMissingFactText(CO_AUDIT_NR, result)
-            result = self._evaluateCode(CO_DIR_RESP)
-            if not result.success:
-                self._errorOnMissingFactText(CO_DIR_RESP, result)
+        """
+        Checks conditions applicable to unaudited dormant companies:
+        Co.Sec480 and Co.AuditNR and Co.DirResp and (Co.Micro or Co.SmCo).
+        """
+        result = self._evaluateCode(CO_SEC_480)
+        if not result.success:
+            self._errorOnMissingFactText(CO_SEC_480, result)
+        result = self._evaluateCode(CO_AUDIT_NR)
+        if not result.success:
+            self._errorOnMissingFactText(CO_AUDIT_NR, result)
+        result = self._evaluateCode(CO_DIR_RESP)
+        if not result.success:
+            self._errorOnMissingFactText(CO_DIR_RESP, result)
 
-            result = self._evaluateCode(CO_MICRO)
-            if not result.success:
-                smCoResult = self._evaluateCode(CO_SM_CO)
-                if not smCoResult.success:
-                    self._errorOnMissingFactText(CO_MICRO, result)
-                    self._errorOnMissingFactText(CO_SM_CO, smCoResult)
+        result = self._evaluateCode(CO_MICRO)
+        if not result.success:
+            smCoResult = self._evaluateCode(CO_SM_CO)
+            if not smCoResult.success:
+                self._errorOnMissingFactText(CO_MICRO, result)
+                self._errorOnMissingFactText(CO_SM_CO, smCoResult)
 
     def validateUnauditedDormantLLP(self) -> None:
         """
@@ -1176,7 +1297,7 @@ class ValidateHmrc:
     def validateUnauditedSmallCompanyFullAccounts(self) -> None:
         """
         Checks conditions applicable to unaudited small company full accounts:
-        Co.Sec777, Co.AuditNR, Co.DirResp, and Co.SmCo
+        Co.Sec477, Co.AuditNR, Co.DirResp, and Co.SmCo
         """
         result = self._evaluateCode(CO_SEC_477)
         if not result.success:
