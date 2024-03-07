@@ -414,7 +414,6 @@ config = ConformanceSuiteConfig(
         '624-rendering/14-cash-flows/gd/14-cash-flows-gd-testcase.xml',
         '624-rendering/15-equity-changes/gw/15-equity-changes-gw-testcase.xml',
         '624-rendering/18-numeric/gd/18-numeric-gd-testcase.xml',
-        '626-rendering-syntax/626-03-no-matching-durations/626-03-no-matching-durations-testcase.xml',
     ]),
     file='conf/testcases.xml',
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
