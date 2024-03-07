@@ -20,8 +20,6 @@ if TYPE_CHECKING:
 else:
     ModelFact = None # circular import with ModelInstanceObject
 
-DECIMALS_CONTEXT = decimal.Context(prec=decimal.MAX_PREC)
-
 
 def init(): # prevent circular imports
     global ModelFact
@@ -724,9 +722,12 @@ def insignificantDigits(
         divisor = ONE.scaleb(-decimals)  # fractional scaling doesn't produce scientific notation
     else:  # extra quantize step to prevent scientific notation for decimal number
         divisor = ONE.scaleb(-decimals).quantize(ONE, decimal.ROUND_HALF_UP) # should never round
-    significant = DECIMALS_CONTEXT.divide_int(valueDecimal, divisor) * divisor
-    insignificant = DECIMALS_CONTEXT.remainder(abs(valueDecimal), divisor)
+    try:
+        quotient, insignificant = divmod(valueDecimal, divisor)
+    except decimal.InvalidOperation:
+        return None
     if insignificant:
+        significant = quotient * divisor
         return significant, insignificant
     return None
 
