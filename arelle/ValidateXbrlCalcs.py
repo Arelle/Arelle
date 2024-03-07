@@ -728,7 +728,7 @@ def insignificantDigits(
         return None
     if insignificant:
         significant = quotient * divisor
-        return significant, insignificant
+        return significant, abs(insignificant)
     return None
 
 
