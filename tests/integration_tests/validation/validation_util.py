@@ -267,7 +267,7 @@ def get_conformance_suite_test_results_without_shards(
         log_to_file: bool = False,
         offline: bool = False) -> list[ParameterSet]:
     additional_plugins = frozenset().union(*(plugins for _, plugins in config.additional_plugins_by_prefix))
-    filename = os.path.join(config.prefixed_local_filepath, config.file)
+    filename = os.path.join(config.prefixed_final_filepath, config.file)
     expected_empty_testcases = config.expected_empty_testcases
     expected_failure_ids = config.expected_failure_ids
     args, kws = get_conformance_suite_arguments(

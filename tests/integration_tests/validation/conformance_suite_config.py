@@ -65,5 +65,12 @@ class ConformanceSuiteConfig:
         return os.path.join(CONFORMANCE_SUITE_PATH_PREFIX, self.extract_path)
 
     @property
+    def prefixed_final_filepath(self) -> str:
+        path = self.prefixed_extract_filepath
+        if path is not None:
+            return path
+        return self.prefixed_local_filepath
+
+    @property
     def prefixed_local_filepath(self) -> str:
         return os.path.join(CONFORMANCE_SUITE_PATH_PREFIX, self.local_filepath)

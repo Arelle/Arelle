@@ -19,21 +19,47 @@ if TYPE_CHECKING:
 
 
 def get_document_id(doc: ModelDocument.ModelDocument) -> str:
+    """
+    Given a ModelDocument, attempt to find a basepath that can be used to generate a user-friendly document ID
+    :param doc:
+    :return: A parent path of the document's filepath.
+    """
+    parents = [p.as_posix() for p in PurePath(doc.filepath).parents]
+    checked_paths = set()
     file_source = doc.modelXbrl.fileSource
-    basepath = getattr(file_source, 'basefile', None)
-    if basepath is None:
-        # Try and find a basepath from referenced documents
-        ref_file_source = next(iter(file_source.referencedFileSources.values()), None)
-        if ref_file_source is not None:
-            basepath = ref_file_source.basefile
-    if basepath is None:
-        # Try and find a basepath based on archive in path
-        archivePathParts = archiveFilenameParts(doc.filepath)
-        if archivePathParts is not None:
-            return archivePathParts[1]
-    if basepath is None:
-        # Use file source URL as fallback if basepath not found
-        basepath = os.path.dirname(file_source.url) + os.sep
+    # Try basefile
+    basefile: str = cast(str, getattr(file_source, 'basefile', None))
+    if basefile is not None:
+        basefile = PurePath(basefile).as_posix()
+        if basefile in parents:
+            return get_document_id_from_basepath(doc, basefile)
+        else:
+            checked_paths.add(basefile)
+    # Try referenced documents
+    ref_file_source = next(iter(file_source.referencedFileSources.values()), None)
+    ref_basefile: str = ref_file_source.basefile if ref_file_source is not None else None
+    if ref_basefile is not None:
+        ref_basefile = PurePath(ref_basefile).as_posix()
+        if ref_basefile in parents:
+            return get_document_id_from_basepath(doc, ref_basefile)
+        else:
+            checked_paths.add(ref_basefile)
+    # Try archive subpath
+    archive_path_parts = archiveFilenameParts(doc.filepath)
+    if archive_path_parts is not None:
+        archive_path_part = PurePath(archive_path_parts[1]).as_posix()
+        return archive_path_part
+    # Use file source URL as fallback if basepath not found
+    file_source_url = PurePath(os.path.dirname(file_source.url)).as_posix()
+    if file_source_url in parents:
+        return get_document_id_from_basepath(doc, file_source_url)
+    else:
+        checked_paths.add(file_source_url)
+    raise ValueError(f'Could not determine basepath. '
+                     f'None of the checked paths ({checked_paths}) were parents of \"{doc.filepath}\".')
+
+
+def get_document_id_from_basepath(doc: ModelDocument.ModelDocument, basepath: str) -> str:
     return PurePath(doc.filepath).relative_to(basepath).as_posix()
 
 
