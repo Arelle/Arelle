@@ -716,7 +716,7 @@ def insignificantDigits(
                 decimals = int(decimals)
             except ValueError:  # would have been a schema error reported earlier
                 return None
-    if isinf(decimals) or isnan(decimals):
+    if isinf(decimals) or isnan(decimals) or decimals <= -28:  # prevent exception with excessive quantization digits
         return None
     if decimals > 0:
         divisor = ONE.scaleb(-decimals)  # fractional scaling doesn't produce scientific notation
