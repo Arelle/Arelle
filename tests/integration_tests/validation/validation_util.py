@@ -183,12 +183,13 @@ def get_conformance_suite_test_results(
         shards: list[int],
         build_cache: bool = False,
         log_to_file: bool = False,
-        offline: bool = False) -> list[ParameterSet]:
+        offline: bool = False,
+        series: bool = False) -> list[ParameterSet]:
     assert len(shards) == 0 or config.shards != 1, \
         'Conformance suite configuration must specify shards if --shard is passed'
     if shards:
         return get_conformance_suite_test_results_with_shards(
-            config=config, shards=shards, build_cache=build_cache, log_to_file=log_to_file, offline=offline
+            config=config, shards=shards, build_cache=build_cache, log_to_file=log_to_file, offline=offline, series=series
         )
     else:
         return get_conformance_suite_test_results_without_shards(
@@ -201,7 +202,8 @@ def get_conformance_suite_test_results_with_shards(  # type: ignore[return]
         shards: list[int],
         build_cache: bool = False,
         log_to_file: bool = False,
-        offline: bool = False) -> list[ParameterSet]:
+        offline: bool = False,
+        series: bool = False) -> list[ParameterSet]:
     tempfiles: list[Any] = []
     try:
         with ExitStack() as exit_stack:
@@ -240,9 +242,17 @@ def get_conformance_suite_test_results_with_shards(  # type: ignore[return]
                 url_context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
             else:
                 url_context_manager = nullcontext()
-            with url_context_manager, multiprocessing.Pool() as pool:
-                results = pool.map(get_test_data_mp_wrapper, tasks)
-                return [x for l in results for x in l]
+            if series:
+                with url_context_manager:
+                    results = []
+                    for args in tasks:
+                        task_results = get_test_data_mp_wrapper(args)
+                        results.extend(task_results)
+                    return results
+            else:
+                with url_context_manager, multiprocessing.Pool() as pool:
+                    parallel_results = pool.map(get_test_data_mp_wrapper, tasks)
+                    return [x for l in parallel_results for x in l]
     finally:
         for f in tempfiles:
             try:
