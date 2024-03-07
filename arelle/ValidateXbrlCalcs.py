@@ -16,8 +16,10 @@ from arelle.XmlValidateConst import UNVALIDATED, VALID
 if TYPE_CHECKING:
     from _decimal import Decimal
     from arelle.ModelInstanceObject import ModelFact
+    from arelle.ModelValue import TypeXValue
 else:
     ModelFact = None # circular import with ModelInstanceObject
+
 
 def init(): # prevent circular imports
     global ModelFact
@@ -694,55 +696,39 @@ def rangeValue(value, decimals=None, truncate=False) -> tuple[decimal.Decimal, d
                 return (vDecimal - dd, vDecimal + dd, False, False)
     return (vDecimal, vDecimal, True, True)
 
-def insignificantDigits(value, precision=None, decimals=None, scale=None) -> tuple[Decimal, Decimal] | None:
+
+def insignificantDigits(
+        value: TypeXValue,
+        decimals: int | float | Decimal | str) -> tuple[Decimal, Decimal] | None:
+    # Normalize value
     try:
-        vDecimal = decimal.Decimal(value)
-        if scale:
-            iScale = int(scale)
-            vDecimal = vDecimal.scaleb(iScale)
-        if precision is not None:
-            vFloat = float(value)
-            if scale:
-                vFloat = pow(vFloat, iScale)
-    except (decimal.InvalidOperation, ValueError): # would have been a schema error reported earlier
+        valueDecimal = decimal.Decimal(value)
+    except (decimal.InvalidOperation, ValueError):  # would have been a schema error reported earlier
         return None
-    if precision is not None:
-        if not isinstance(precision, (int,float)):
-            if precision == "INF":
-                return None
-            else:
-                try:
-                    precision = int(precision)
-                except ValueError: # would be a schema error
-                    return None
-        if isinf(precision) or precision == 0 or isnan(precision) or vFloat == 0:
+    if not valueDecimal.is_normal():  # prevent exception with excessive quantization digits
+        return None
+    # Normalize decimals
+    if isinstance(decimals, str):
+        if decimals == "INF":
             return None
         else:
-            vAbs = fabs(vFloat)
-            log = log10(vAbs)
-            decimals = precision - int(log) - (1 if vAbs >= 1 else 0)
-    elif decimals is not None:
-        if not isinstance(decimals, (int,float)):
-            if decimals == "INF":
+            try:
+                decimals = int(decimals)
+            except ValueError:  # would have been a schema error reported earlier
                 return None
-            else:
-                try:
-                    decimals = int(decimals)
-                except ValueError: # would be a schema error
-                    return None
-        if isinf(decimals) or isnan(decimals):
-            return None
-    else:
+    if isinf(decimals) or isnan(decimals) or decimals <= -28:  # prevent exception with excessive quantization digits
         return None
-    if vDecimal.is_normal() and -28 <= decimals <= 28: # prevent exception with excessive quantization digits
-        if decimals > 0:
-            divisor = ONE.scaleb(-decimals) # fractional scaling doesn't produce scientific notation
-        else:  # extra quantize step to prevent scientific notation for decimal number
-            divisor = ONE.scaleb(-decimals).quantize(ONE, decimal.ROUND_HALF_UP) # should never round
-        insignificantDigits = abs(vDecimal) % divisor
-        if insignificantDigits:
-            return (vDecimal // divisor * divisor,  # truncated portion of number
-                    insignificantDigits)   # nsignificant digits portion of number
+    if decimals > 0:
+        divisor = ONE.scaleb(-decimals)  # fractional scaling doesn't produce scientific notation
+    else:  # extra quantize step to prevent scientific notation for decimal number
+        divisor = ONE.scaleb(-decimals).quantize(ONE, decimal.ROUND_HALF_UP) # should never round
+    try:
+        quotient, insignificant = divmod(valueDecimal, divisor)
+    except decimal.InvalidOperation:
+        return None
+    if insignificant:
+        significant = quotient * divisor
+        return significant, abs(insignificant)
     return None
 
 
