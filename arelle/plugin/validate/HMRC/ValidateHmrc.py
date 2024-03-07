@@ -712,12 +712,8 @@ class ValidateHmrc:
                     self.validateUnauditedLLPGroupAccounts()
                 else:
                     self.validateUnauditedCompanyGroupAccounts()
-            elif (self.applicableLegislation == CONCEPT_SMALL_COMPANY_REGIME_FOR_ACCOUNTS
-                  and not (self.scopeAccounts in {
-                        ScopeAccounts.GROUP_ONLY.value,
-                        ScopeAccounts.CONSOLIDATED_GROUP.value,
-                    } and self.accountsType == CONCEPT_ABRIDGED_ACCOUNTS)):
-                if self.legalFormEntity == CONCEPT_LLP:
+            else:
+                if self.legalFormEntity == CONCEPT_LLP and self.applicableLegislation == CONCEPT_SMALL_COMPANY_REGIME_FOR_ACCOUNTS :
                     self.validateUnauditedLLPFullAccounts()
                 else:
                     self.validateUnauditedSmallCompanyFullAccounts()
