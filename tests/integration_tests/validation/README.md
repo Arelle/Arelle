@@ -7,6 +7,8 @@ python -m tests.integration_tests.validation.run_conformance_suites --help
 
   -h, --help            show this help message and exit
   --all                 Select all configured conformance suites
+  --build-cache         Use CacheBuilder plugin to build cache from conformance
+                        suite usage
   --download-cache      Download and apply pre-built cache package
   --download-overwrite  Download (and overwrite) selected conformance suite
                         files
@@ -18,6 +20,8 @@ python -m tests.integration_tests.validation.run_conformance_suites --help
   --offline             Run without loading anything from the internet (local
                         files and cache only)
   --public              Select all public conformance suites
+  --series              Run shards in series
+  --shard SHARD         comma separated list of 0-indexed shards to run
   --test                Run selected conformance suite tests
 ```
 One of the following options *must* be provided to select which suites to use:

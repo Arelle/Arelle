@@ -115,6 +115,9 @@ def get_test_data(
         unexpected_empty_testcases = test_cases_with_no_variations - expected_empty_testcases
         if unexpected_empty_testcases:
             raise Exception(f"Some test cases don't have any variations: {sorted(unexpected_empty_testcases)}.")
+        unexpected_nonempty_testcases = expected_empty_testcases - test_cases_with_no_variations
+        if unexpected_nonempty_testcases:
+            raise Exception(f"Some test cases with variations were expected to be empty: {sorted(unexpected_nonempty_testcases)}.")
         test_id_frequencies = Counter(cast(str, p.id) for p in results)
         nonunique_test_ids = {test_id: count for test_id, count in test_id_frequencies.items() if count > 1}
         if nonunique_test_ids:
