@@ -307,8 +307,9 @@ def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]
     for result in results:
         assert result.id
         testcase_id = result.id.rsplit(':', 1)[0]
-        values = cast(dict[str, Any], result.values[0])
-        duration = values.get('duration')
+        values = result.values[0]
+        # TODO: revisit typing here once 3.8 removed
+        duration = values.get('duration')  # type: ignore[union-attr]
         if duration:
             timing[testcase_id] += duration
     if timing:
