@@ -4,7 +4,7 @@ import sys
 from argparse import ArgumentParser, Namespace
 
 from tests.integration_tests.download_cache import download_and_apply_cache
-from tests.integration_tests.validation.validation_util import get_conformance_suite_test_results
+from tests.integration_tests.validation.validation_util import get_conformance_suite_test_results, save_timing_file
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 from tests.integration_tests.validation.conformance_suite_configs import (
     ALL_CONFORMANCE_SUITE_CONFIGS,
@@ -154,6 +154,8 @@ def run_conformance_suites(
                 offline=offline_option,
                 series=series_option,
             )
+            if log_to_file and not shards:
+                save_timing_file(config, results)
             all_results.extend(results)
     return all_results
 

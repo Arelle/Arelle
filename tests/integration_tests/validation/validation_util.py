@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 import multiprocessing
 import os.path
+import statistics
 import tempfile
 import zipfile
 from collections import defaultdict
@@ -10,7 +12,7 @@ from contextlib import ExitStack
 from contextlib import nullcontext
 from dataclasses import dataclass
 from heapq import heapreplace
-from pathlib import PurePath, PurePosixPath
+from pathlib import PurePath, PurePosixPath, Path
 from typing import Any, Callable, ContextManager, TYPE_CHECKING, cast
 from unittest.mock import patch
 
@@ -52,19 +54,19 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[tuple[list[str], fro
     assert path_strs
 
     @dataclass(frozen=True)
-    class Path:
+    class PathInfo:
         path: str
         plugins: tuple[str, ...]
         runtime: float
-    paths_by_plugins: dict[tuple[str, ...], list[Path]] = defaultdict(list)
+    paths_by_plugins: dict[tuple[str, ...], list[PathInfo]] = defaultdict(list)
     for path_str in path_strs:
         path_plugins: set[str] = set()
         for prefix, additional_plugins in config.additional_plugins_by_prefix:
             if path_str.startswith(prefix):
                 path_plugins.update(additional_plugins)
         paths_by_plugins[tuple(path_plugins)].append(
-            Path(path=path_str, plugins=tuple(path_plugins), runtime=config.approximate_relative_timing.get(path_str, 1)))
-    paths_in_runtime_order: list[Path] = sorted((path for paths in paths_by_plugins.values() for path in paths),
+            PathInfo(path=path_str, plugins=tuple(path_plugins), runtime=approximate_relative_timing.get(path_str, 1)))
+    paths_in_runtime_order: list[PathInfo] = sorted((path for paths in paths_by_plugins.values() for path in paths),
         key=lambda path: path.runtime, reverse=True)
     runtime_by_plugins: dict[tuple[str, ...], float] = {plugins: sum(path.runtime for path in paths)
         for plugins, paths in paths_by_plugins.items()}
@@ -282,3 +284,21 @@ def get_conformance_suite_test_results_without_shards(
         url_context_manager = nullcontext()
     with url_context_manager:
         return get_test_data(args, **kws)
+
+
+def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]) -> None:
+    timing: dict[str, float] = defaultdict(float)
+    for result in results:
+        if not result.id:
+            continue
+        testcase_id = result.id.rsplit(':', 1)[0]
+        duration = float(cast(dict[str, Any], result.values[0])['duration'])
+        if duration:
+            timing[testcase_id] += duration
+    duration_avg = statistics.mean(timing.values())
+    timing = {
+        testcase_id: duration/duration_avg
+        for testcase_id, duration in sorted(timing.items())
+    }
+    with open(f'conf-{config.name}-timing.json', 'w') as file:
+        json.dump(timing, file, indent=4)
