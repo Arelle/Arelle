@@ -36,6 +36,7 @@ class ModelTestcaseVariation(ModelObject):
     def init(self, modelDocument):
         super(ModelTestcaseVariation, self).init(modelDocument)
         self.status = ""
+        self.duration: float | None = None
         self.actual = []
         self.assertions = None
         self.ixdsTarget = None
