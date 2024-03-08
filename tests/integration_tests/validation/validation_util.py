@@ -305,16 +305,17 @@ def load_timing_file(name: str) -> dict[str, float]:
 def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]) -> None:
     timing: dict[str, float] = defaultdict(float)
     for result in results:
-        if not result.id:
-            continue
+        assert result.id
         testcase_id = result.id.rsplit(':', 1)[0]
-        duration = float(cast(dict[str, Any], result.values[0])['duration'])
+        values = cast(dict[str, Any], result.values[0])
+        duration = values.get('duration')
         if duration:
             timing[testcase_id] += duration
-    duration_avg = statistics.mean(timing.values())
-    timing = {
-        testcase_id: duration/duration_avg
-        for testcase_id, duration in sorted(timing.items())
-    }
+    if timing:
+        duration_avg = statistics.mean(timing.values())
+        timing = {
+            testcase_id: duration/duration_avg
+            for testcase_id, duration in sorted(timing.items())
+        }
     with open(f'conf-{config.name}-timing.json', 'w') as file:
         json.dump(timing, file, indent=4)
