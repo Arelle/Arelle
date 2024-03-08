@@ -59,12 +59,12 @@ jobs:
           fetch-depth: 0
       - name: Download installer artifact
         if: matrix.build-type == 'installer'
-        uses: actions/download-artifact@v4.1.2
+        uses: actions/download-artifact@v4.1.4
         with:
           name: ${{ env.exe_uploaded_artifact_name }}
       - name: Download ZIP artifact
         if: matrix.build-type == 'zip'
-        uses: actions/download-artifact@v4.1.2
+        uses: actions/download-artifact@v4.1.4
         with:
           name: ${{ env.zip_uploaded_artifact_name }}
 
