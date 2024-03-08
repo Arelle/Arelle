@@ -170,7 +170,7 @@ class Validate:
         elif hasattr(testcase, "testcaseVariations"):
             for modelTestcaseVariation in testcaseVariationsByTarget(testcase.testcaseVariations):
                 # update ui thread via modelManager (running in background here)
-                startTime = time.time()
+                startTime = time.perf_counter()
                 self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, modelTestcaseVariation.objectId())
                 # is this a versioning report?
                 resultIsVersioningReport = modelTestcaseVariation.resultIsVersioningReport
@@ -540,7 +540,7 @@ class Validate:
                         del inputDTSes # dereference
                 # update ui thread via modelManager (running in background here)
                 self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, modelTestcaseVariation.objectId())
-                modelTestcaseVariation.duration = time.time() - startTime
+                modelTestcaseVariation.duration = time.perf_counter() - startTime
 
             _statusCounts = OrderedDict((("pass",0),("fail",0)))
             for tv in getattr(testcase, "testcaseVariations", ()):
