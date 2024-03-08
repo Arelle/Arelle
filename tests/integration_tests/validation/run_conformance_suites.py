@@ -154,7 +154,7 @@ def run_conformance_suites(
                 offline=offline_option,
                 series=series_option,
             )
-            if log_to_file and not shards:
+            if log_to_file:
                 save_timing_file(config, results)
             all_results.extend(results)
     return all_results
