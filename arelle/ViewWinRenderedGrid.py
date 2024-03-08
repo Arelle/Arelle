@@ -300,7 +300,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
 
             # data cells
             #print("body cells done")
-        except Exception as err: 
+        except Exception as err:
             self.modelXbrl.error(f"exception: {type(err).__name__}",
                 "Table Linkbase GUI rendering exception: %(error)s at %(traceback)s",
                 modelXbrl=self.modelXbrl, error=err,
