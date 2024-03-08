@@ -8,7 +8,7 @@ isodate==0.6.1
 aniso8601==9.0.1
 CherryPy==18.9.0
 Cheroot==10.0.0
-python-dateutil==2.8.2
+python-dateutil==2.9.0.post0
 pycountry==23.12.11
 # plugins
 # EdgarRenderer plugin
