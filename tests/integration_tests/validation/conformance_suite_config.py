@@ -17,7 +17,7 @@ class ConformanceSuiteConfig:
     name: str
     additional_downloads: dict[str, str] = field(default_factory=dict)
     additional_plugins_by_prefix: list[tuple[str, frozenset[str]]] = field(default_factory=list)
-    approximate_relative_timing: dict[str, float] = field(default_factory=dict)  # by uri
+    approximate_relative_timing: dict[str, float] | None = None  # by uri
     args: list[str] = field(default_factory=list)
     cache_version_id: str | None = None
     capture_warnings: bool = True

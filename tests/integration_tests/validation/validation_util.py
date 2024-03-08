@@ -27,6 +27,7 @@ if TYPE_CHECKING:
 
 
 original_normalize_url_function = WebCache.normalizeUrl
+CONFORMANCE_SUITE_TIMING_PATH_PREFIX = 'tests/resources/conformance_suites_timing'
 
 
 def normalize_url_function(config: ConformanceSuiteConfig) -> Callable[[WebCache, str, str | None], str]:
@@ -59,6 +60,9 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[tuple[list[str], fro
         plugins: tuple[str, ...]
         runtime: float
     paths_by_plugins: dict[tuple[str, ...], list[PathInfo]] = defaultdict(list)
+    approximate_relative_timing = config.approximate_relative_timing
+    if approximate_relative_timing is None:
+        approximate_relative_timing = load_timing_file(config.name)
     for path_str in path_strs:
         path_plugins: set[str] = set()
         for prefix, additional_plugins in config.additional_plugins_by_prefix:
@@ -284,6 +288,18 @@ def get_conformance_suite_test_results_without_shards(
         url_context_manager = nullcontext()
     with url_context_manager:
         return get_test_data(args, **kws)
+
+
+def load_timing_file(name: str) -> dict[str, float]:
+    path = Path(CONFORMANCE_SUITE_TIMING_PATH_PREFIX) / Path(name).with_suffix(".json")
+    if not path.exists():
+        return {}
+    with open(path) as file:
+        data = json.load(file)
+        return {
+            str(k): float(v)
+            for k, v in data.items()
+        }
 
 
 def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]) -> None:
