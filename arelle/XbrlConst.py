@@ -2,20 +2,19 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
+
 import os
-from typing import TYPE_CHECKING
-from typing import cast
-from typing import Tuple  # tuple type conflicts with xbrl tuple namespace
-from regex import compile as re_compile
-from arelle.ModelValue import qname
+from typing import TYPE_CHECKING, Tuple, cast
+
+import regex as re
+
+from arelle.ModelValue import QName, qname
+from arelle.typing import TypeGetText
 
 if TYPE_CHECKING:
-    from regex import Pattern
-    from arelle.ModelValue import QName
     from arelle.ModelObject import ModelObject
-    from arelle.typing import TypeGetText
 
-    _: TypeGetText
+_: TypeGetText
 
 xsd = "http://www.w3.org/2001/XMLSchema"
 qnXsdSchema = qname("{http://www.w3.org/2001/XMLSchema}xsd:schema")
@@ -24,7 +23,7 @@ qnXsdDefaultType = qname("{http://www.w3.org/2001/XMLSchema}xsd:anyType")
 xsi = "http://www.w3.org/2001/XMLSchema-instance"
 qnXsiNil = qname(xsi, "xsi:nil")  # need default prefix in qname
 qnXmlLang = qname("{http://www.w3.org/XML/1998/namespace}xml:lang")
-builtinAttributes: set[QName] = {
+builtinAttributes = {
     qnXsiNil,
     qname(xsi, "xsi:type"),
     qname(xsi, "xsi:schemaLocation"),
@@ -57,7 +56,7 @@ qnXbrliPure = qname("{http://www.xbrl.org/2003/instance}xbrli:pure")
 qnXbrliShares = qname("{http://www.xbrl.org/2003/instance}xbrli:shares")
 qnInvalidMeasure = qname("{http://arelle.org}arelle:invalidMeasureQName")
 qnXbrliDateUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:dateUnion")
-qnDateUnionXsdTypes: list[QName] = [
+qnDateUnionXsdTypes = [
     qname("{http://www.w3.org/2001/XMLSchema}xsd:date"),
     qname("{http://www.w3.org/2001/XMLSchema}xsd:dateTime"),
 ]
@@ -115,9 +114,9 @@ qnXlArcType = qname("{http://www.xbrl.org/2003/XLink}xl:arcType")
 xhtml = "http://www.w3.org/1999/xhtml"
 ixbrl = "http://www.xbrl.org/2008/inlineXBRL"
 ixbrl11 = "http://www.xbrl.org/2013/inlineXBRL"
-ixbrlAll: set[str] = {ixbrl, ixbrl11}
-ixbrlTags: Tuple[str, str] = ("{http://www.xbrl.org/2013/inlineXBRL}*", "{http://www.xbrl.org/2008/inlineXBRL}*")
-ixbrlTagPattern: Pattern[str] = re_compile("[{]http://www.xbrl.org/(2008|2013)/inlineXBRL[}]")
+ixbrlAll = {ixbrl, ixbrl11}
+ixbrlTags = ("{http://www.xbrl.org/2013/inlineXBRL}*", "{http://www.xbrl.org/2008/inlineXBRL}*")
+ixbrlTagPattern = re.compile("[{]http://www.xbrl.org/(2008|2013)/inlineXBRL[}]")
 qnIXbrlResources = qname("{http://www.xbrl.org/2008/inlineXBRL}resources")
 qnIXbrlTuple = qname("{http://www.xbrl.org/2008/inlineXBRL}tuple")
 qnIXbrlNonNumeric = qname("{http://www.xbrl.org/2008/inlineXBRL}nonNumeric")
@@ -136,7 +135,7 @@ qnIXbrl11Denominator = qname("{http://www.xbrl.org/2013/inlineXBRL}denominator")
 qnIXbrl11Footnote = qname("{http://www.xbrl.org/2013/inlineXBRL}footnote")
 qnIXbrl11Relationship = qname("{http://www.xbrl.org/2013/inlineXBRL}relationship")
 qnIXbrl11Hidden = qname("{http://www.xbrl.org/2013/inlineXBRL}hidden")
-ixAttributes: set[QName] = set(
+ixAttributes = set(
     qname(n, noPrefixIsNoNamespace=True)
     for n in (
         "continuedAt",
@@ -160,7 +159,7 @@ factExplanatoryFact = "http://www.xbrl.org/2009/arcrole/fact-explanatoryFact"
 parentChild = "http://www.xbrl.org/2003/arcrole/parent-child"
 summationItem = "http://www.xbrl.org/2003/arcrole/summation-item"
 summationItem11 = "https://xbrl.org/2023/arcrole/summation-item"
-summationItems: Tuple[str, str] = (summationItem, summationItem11)
+summationItems = (summationItem, summationItem11)
 essenceAlias = "http://www.xbrl.org/2003/arcrole/essence-alias"
 similarTuples = "http://www.xbrl.org/2003/arcrole/similar-tuples"
 requiresElement = "http://www.xbrl.org/2003/arcrole/requires-element"
@@ -201,43 +200,43 @@ dtr = "http://www.xbrl.org/2009/dtr"
 dtrTypesStartsWith = "http://www.xbrl.org/dtr/type/"
 dtrNumeric = "http://www.xbrl.org/dtr/type/numeric"
 
-dtrNoDecimalsItemTypes: Tuple[QName, ...] = (
+dtrNoDecimalsItemTypes = (
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}noDecimalsMonetaryItemType"),
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonNegativeNoDecimalsMonetaryItemType"),
     qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}noDecimalsMonetaryItemType"),
     qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}nonNegativeNoDecimalsMonetaryItemType"),
 )
-dtrPrefixedContentItemTypes: Tuple[QName, QName] = (
+dtrPrefixedContentItemTypes = (
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}prefixedContentItemType"),
     qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}prefixedContentItemType"),
 )
-dtrPrefixedContentTypes: Tuple[QName, QName] = (
+dtrPrefixedContentTypes = (
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}prefixedContentType"),
     qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}prefixedContentType"),
 )
-dtrSQNameItemTypes: Tuple[QName, QName] = (
+dtrSQNameItemTypes = (
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNameItemType"),
     qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameItemType"),
 )
-dtrSQNameTypes: Tuple[QName, QName] = (
+dtrSQNameTypes = (
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNameType"),
     qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameType"),
 )
-dtrSQNamesItemTypes: Tuple[QName, QName] = (
+dtrSQNamesItemTypes = (
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesItemType"),
     qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesItemType"),
 )
-dtrSQNamesTypes: Tuple[QName, QName] = (
+dtrSQNamesTypes = (
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesType"),
     qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesType"),
 )
-dtrSQNameNamesItemTypes: Tuple[QName, ...] = dtrSQNameItemTypes + dtrSQNamesItemTypes
-dtrSQNameNamesTypes: Tuple[QName, ...] = dtrSQNameTypes + dtrSQNamesTypes
+dtrSQNameNamesItemTypes = dtrSQNameItemTypes + dtrSQNamesItemTypes
+dtrSQNameNamesTypes = dtrSQNameTypes + dtrSQNamesTypes
 
-wgnStringItemTypeNames: Tuple[str, str] = ("stringItemType", "normalizedStringItemType")
-dtrNoLangItemTypeNames: Tuple[str, ...] = ("domainItemType", "noLangTokenItemType", "noLangStringItemType")
-xsdNoLangTypeNames: Tuple[str, ...] = ("language", "Name")
-xsdStringTypeNames: Tuple[str, ...] = (
+wgnStringItemTypeNames = ("stringItemType", "normalizedStringItemType")
+dtrNoLangItemTypeNames = ("domainItemType", "noLangTokenItemType", "noLangStringItemType")
+xsdNoLangTypeNames = ("language", "Name")
+xsdStringTypeNames = (
     "string",
     "normalizedString",
     "token",
@@ -264,7 +263,7 @@ ver = "http://xbrl.org/2013/versioning-base"
 vercu = "http://xbrl.org/2013/versioning-concept-use"
 vercd = "http://xbrl.org/2013/versioning-concept-details"
 verdim = "http://xbrl.org/2013/versioning-dimensions"
-verPrefixNS: dict[str, str] = {
+verPrefixNS = {
     "ver": ver,
     "vercu": vercu,
     "vercd": vercd,
@@ -273,11 +272,11 @@ verPrefixNS: dict[str, str] = {
 }
 
 # extended enumeration spec
-enum2s: set[str] = {
+enum2s = {
     "http://xbrl.org/2020/extensible-enumerations-2.0",
     "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0",
 }
-enums: set[str] = {
+enums = {
     "http://xbrl.org/2014/extensible-enumerations",
     "http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1",
     "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1",
@@ -314,17 +313,17 @@ qnEnumerationItemType2016 = qname(
 qnEnumerationsItemType2016 = qname(
     "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}enum:enumerationsItemType"
 )
-qnEnumerationListItemTypes: Tuple[QName, ...] = (
+qnEnumerationListItemTypes = (
     qnEnumerationListItemType11YYYY,
     qnEnumerationSetItemType11YYYY,
     qnEnumerationsItemType2016,
 )
-qnEnumerationSetItemTypes: Tuple[QName, ...] = (
+qnEnumerationSetItemTypes = (
     qnEnumerationSetItemType11YYYY,
     qnEnumerationSetItemType2020,
     qnEnumerationSetItemTypeYYYY,
 )
-qnEnumerationItemTypes: Tuple[QName, ...] = (
+qnEnumerationItemTypes = (
     qnEnumerationItemType2014,
     qnEnumerationItemType2020,
     qnEnumerationItemTypeYYYY,
@@ -336,11 +335,11 @@ qnEnumerationItemTypes: Tuple[QName, ...] = (
     qnEnumerationItemType2016,
     qnEnumerationsItemType2016,
 )
-qnEnumerationTypes: Tuple[QName, ...] = qnEnumerationItemTypes + (
+qnEnumerationTypes = qnEnumerationItemTypes + (
     qnEnumerationSetValDimType2020,
     qnEnumerationSetValDimTypeYYYY,
 )
-qnEnumeration2ItemTypes: Tuple[QName, QName] = (qnEnumerationItemType2020, qnEnumerationSetItemType2020)
+qnEnumeration2ItemTypes = (qnEnumerationItemType2020, qnEnumerationSetItemType2020)
 attrEnumerationDomain2014 = "{http://xbrl.org/2014/extensible-enumerations}domain"
 attrEnumerationDomain2020 = "{http://xbrl.org/2020/extensible-enumerations-2.0}domain"
 attrEnumerationDomainYYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}domain"
@@ -412,7 +411,7 @@ qnAssertionSet = qname("{http://xbrl.org/2008/validation}validation:assertionSet
 assertionSet = "http://xbrl.org/arcrole/2008/assertion-set"
 assertionUnsatisfiedSeverity = "http://xbrl.org/arcrole/2016/assertion-unsatisfied-severity"
 assertionUnsatisfiedSeverity20 = "http://xbrl.org/arcrole/2022/assertion-unsatisfied-severity"
-assertionUnsatisfiedSeverities: Tuple[str, str] = (assertionUnsatisfiedSeverity, assertionUnsatisfiedSeverity20)
+assertionUnsatisfiedSeverities = (assertionUnsatisfiedSeverity, assertionUnsatisfiedSeverity20)
 qnAssertionSeverityError = qname("{http://xbrl.org/2016/assertion-severity}sev:error")
 qnAssertionSeverityWarning = qname("{http://xbrl.org/2016/assertion-severity}sev:warning")
 qnAssertionSeverityOk = qname("{http://xbrl.org/2016/assertion-severity}sev:ok")
@@ -666,7 +665,7 @@ euGroupTable = "http://www.eurofiling.info/xbrl/arcrole/group-table"
 widerNarrower = "http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower"
 
 xdtSchemaErrorNS = "http://www.xbrl.org/2005/genericXmlSchemaError"
-errMsgPrefixNS: dict[str, str] = {  # err prefixes which are not declared, such as XPath's "err" prefix
+errMsgPrefixNS = {  # err prefixes which are not declared, such as XPath's "err" prefix
     "err": xpath2err,
     "xmlSchema": xdtSchemaErrorNS,
     "utre": "http://www.xbrl.org/2009/utr/errors",
@@ -712,7 +711,7 @@ def isStandardNamespace(namespaceURI: str) -> bool:
     return namespaceURI in {xsd, xbrli, link, gen, xbrldt, xbrldi}
 
 
-standardNamespaceSchemaLocations: dict[str, str] = {
+standardNamespaceSchemaLocations = {
     xbrli: "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd",
     link: "http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd",
     xl: "http://www.xbrl.org/2003/xl-2003-12-31.xsd",
@@ -783,7 +782,7 @@ def isIntegerXsdType(xsdType: str) -> bool:
     }
 
 
-standardLabelRoles: set[str] = {
+standardLabelRoles = {
     "http://www.xbrl.org/2003/role/label",
     "http://www.xbrl.org/2003/role/terseLabel",
     "http://www.xbrl.org/2003/role/verboseLabel",
@@ -808,7 +807,7 @@ standardLabelRoles: set[str] = {
     "http://www.xbrl.org/2003/role/exampleGuidance",
 }
 
-standardReferenceRoles: set[str] = {
+standardReferenceRoles = {
     "http://www.xbrl.org/2003/role/reference",
     "http://www.xbrl.org/2003/role/definitionRef",
     "http://www.xbrl.org/2003/role/disclosureRef",
@@ -821,7 +820,7 @@ standardReferenceRoles: set[str] = {
     "http://www.xbrl.org/2003/role/exampleRef",
 }
 
-standardLinkbaseRefRoles: set[str] = {
+standardLinkbaseRefRoles = {
     "http://www.xbrl.org/2003/role/calculationLinkbaseRef",
     "http://www.xbrl.org/2003/role/definitionLinkbaseRef",
     "http://www.xbrl.org/2003/role/labelLinkbaseRef",
@@ -829,7 +828,7 @@ standardLinkbaseRefRoles: set[str] = {
     "http://www.xbrl.org/2003/role/referenceLinkbaseRef",
 }
 
-standardRoles: set[str] = (
+standardRoles = (
     standardLabelRoles
     | standardReferenceRoles
     | standardLinkbaseRefRoles
@@ -963,7 +962,7 @@ def isStandardArcInExtLinkElement(element: ModelObject) -> bool:
     ) or element.qname == qnIXbrl11Relationship
 
 
-standardExtLinkQnames: set[QName] = {
+standardExtLinkQnames = {
     qname("{http://www.xbrl.org/2003/linkbase}definitionLink"),
     qname("{http://www.xbrl.org/2003/linkbase}calculationLink"),
     qname("{http://www.xbrl.org/2003/linkbase}presentationLink"),
@@ -972,7 +971,7 @@ standardExtLinkQnames: set[QName] = {
     qname("{http://www.xbrl.org/2003/linkbase}footnoteLink"),
 }
 
-standardExtLinkQnamesAndResources: set[QName] = {
+standardExtLinkQnamesAndResources = {
     qname("{http://www.xbrl.org/2003/linkbase}definitionLink"),
     qname("{http://www.xbrl.org/2003/linkbase}calculationLink"),
     qname("{http://www.xbrl.org/2003/linkbase}presentationLink"),
@@ -1095,7 +1094,7 @@ def isResourceArcrole(arcrole: str) -> bool:
 
 
 # LRR (https://specifications.xbrl.org/registries/lrr-2.0/index.html)
-lrrRoleHrefs: dict[str, str] = {
+lrrRoleHrefs = {
     "http://www.xbrl.org/2006/role/restatedLabel": "http://www.xbrl.org/lrr/role/restated-2006-02-21.xsd#restatedLabel",
     "http://xbrl.us/us-gaap/role/label/negated": "http://www.xbrl.org/lrr/role/negated-2008-03-31.xsd#negated",
     "http://xbrl.us/us-gaap/role/label/negatedPeriodEnd": "http://www.xbrl.org/lrr/role/negated-2008-03-31.xsd#negatedPeriodEnd",
@@ -1130,7 +1129,7 @@ lrrRoleHrefs: dict[str, str] = {
     "http://www.xbrl.org/2009/role/nonauthoritativeLiteratureRef": "http://www.xbrl.org/lrr/role/reference-2009-12-16.xsd#nonauthoritativeLiteratureRef",
     "http://www.xbrl.org/2009/role/recognitionRef": "http://www.xbrl.org/lrr/role/reference-2009-12-16.xsd#recognitionRef",
 }
-lrrArcroleHrefs: dict[str, str] = {
+lrrArcroleHrefs = {
     "http://info.edinet-fsa.go.jp/jp/fr/gaap/arcrole/Gross-Net": "http://www.xbrl.org/lrr/arcrole/jpfr-arcrole-2007-11-07.xsd#ArcroleGrossNet",
     "http://info.edinet-fsa.go.jp/jp/fr/gaap/arcrole/Gross-Allowance": "http://www.xbrl.org/lrr/arcrole/jpfr-arcrole-2007-11-07.xsd#ArcroleGrossAllowance",
     "http://info.edinet-fsa.go.jp/jp/fr/gaap/arcrole/Gross-AccumulatedDepreciation": "http://www.xbrl.org/lrr/arcrole/jpfr-arcrole-2007-11-07.xsd#ArcroleGrossAccumulatedDepreciation",
@@ -1145,7 +1144,7 @@ lrrArcroleHrefs: dict[str, str] = {
     "http://www.xbrl.org/2013/arcrole/parent-child": "http://www.xbrl.org/lrr/arcrole/parent-child-2013-09-19.xsd#parent-child",
     "http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower": "http://www.xbrl.org/lrr/arcrole/esma-arcrole-2018-11-21.xsd#wider-narrower",
 }
-lrrUnapprovedRoles: dict[str, str] = {  # lrr entries which are not REC or ACK status
+lrrUnapprovedRoles = {  # lrr entries which are not REC or ACK status
     "http://info.edinet-fsa.go.jp/jp/fr/gaap/role/NotesNumber": "IWD",
     "http://info.edinet-fsa.go.jp/jp/fr/gaap/role/NotesNumberPeriodStart": "IWD",
     "http://info.edinet-fsa.go.jp/jp/fr/gaap/role/NotesNumberPeriodEnd": "IWD",
@@ -1154,7 +1153,7 @@ lrrUnapprovedRoles: dict[str, str] = {  # lrr entries which are not REC or ACK s
     # only for test case use
     "http://www.xbrl.org/2005/role/nieRole": "NIE",
 }
-lrrUnapprovedArcroles: dict[str, str] = {  # lrr entries which are not REC or ACK status
+lrrUnapprovedArcroles = {  # lrr entries which are not REC or ACK status
     # only for test case use
     "http://www.xbrl.org/2005/arcrole/nieRole": "NIE",
 }
