@@ -13,7 +13,7 @@ config = ConformanceSuiteConfig(
     cache_version_id='kyDQkIWIysyp05vDIoPeLHAZqqcJMlPV',
     extract_path=EXTRACTED_PATH,
     expected_failure_ids=frozenset([
-        # Actual: dtre:noDecimalsItemType,
+        # Actual
         # xbrldie:PrimaryItemDimensionallyInvalidError,
         # xbrlte:closedDefinitionNodeZeroCardinality,
         # xbrlte:constraintSetAspectMismatch,
