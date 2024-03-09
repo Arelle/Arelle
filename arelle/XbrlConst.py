@@ -15,6 +15,8 @@ if TYPE_CHECKING:
     from arelle.ModelObject import ModelObject
 
 _: TypeGetText
+# tuple is overridden below
+_tuple = tuple  # type: ignore[type-arg]
 
 xsd = "http://www.w3.org/2001/XMLSchema"
 qnXsdSchema = qname("{http://www.w3.org/2001/XMLSchema}xsd:schema")
@@ -199,36 +201,65 @@ utr = "http://www.xbrl.org/2009/utr"
 dtr = "http://www.xbrl.org/2009/dtr"
 dtrTypesStartsWith = "http://www.xbrl.org/dtr/type/"
 dtrNumeric = "http://www.xbrl.org/dtr/type/numeric"
+dtrTypeNamespace_2018_01_17_CR = f"{dtrTypesStartsWith}CR/2018-01-17"
+dtrTypeNamespace_2018_07_11_CR = f"{dtrTypesStartsWith}CR/2018-07-11"
+dtrTypeNamespace_2019_04_19_CR = f"{dtrTypesStartsWith}CR/2019-04-19"
+dtrTypeNamespace_2020_01_21 = f"{dtrTypesStartsWith}2020-01-21"
+dtrTypeNamespace_2021_12_08_CR = f"{dtrTypesStartsWith}CR/2021-12-08"
+dtrTypeNamespace_2022_03_31 = f"{dtrTypesStartsWith}2022-03-31"
+dtrTypeNamespace_2023_12_20_CR = f"{dtrTypesStartsWith}CR/2023-12-20"
+dtrTypeNamespace_2024_01_31 = f"{dtrTypesStartsWith}2024-01-31"
+dtrTypeNamespace_WGWD = f"{dtrTypesStartsWith}WGWD/YYYY-MM-DD"
 
-dtrNoDecimalsItemTypes = (
-    qname("{http://www.xbrl.org/dtr/type/2020-01-21}noDecimalsMonetaryItemType"),
-    qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonNegativeNoDecimalsMonetaryItemType"),
-    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}noDecimalsMonetaryItemType"),
-    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}nonNegativeNoDecimalsMonetaryItemType"),
+_dtrTypeNamespaces2019AndNewer = (
+    dtrTypeNamespace_2019_04_19_CR,
+    dtrTypeNamespace_2020_01_21,
+    dtrTypeNamespace_2021_12_08_CR,
+    dtrTypeNamespace_2022_03_31,
+    dtrTypeNamespace_2023_12_20_CR,
+    dtrTypeNamespace_2024_01_31,
+    dtrTypeNamespace_WGWD,
 )
-dtrPrefixedContentItemTypes = (
-    qname("{http://www.xbrl.org/dtr/type/2020-01-21}prefixedContentItemType"),
-    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}prefixedContentItemType"),
+_dtrTypeNamespaces2018_07_11AndNewer = (
+    dtrTypeNamespace_2018_07_11_CR,
+    *_dtrTypeNamespaces2019AndNewer,
 )
-dtrPrefixedContentTypes = (
-    qname("{http://www.xbrl.org/dtr/type/2020-01-21}prefixedContentType"),
-    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}prefixedContentType"),
+_dtrTypeNamespacesAll = (
+    dtrTypeNamespace_2018_01_17_CR,
+    *_dtrTypeNamespaces2018_07_11AndNewer,
 )
-dtrSQNameItemTypes = (
-    qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNameItemType"),
-    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameItemType"),
+
+dtrNoDecimalsItemTypes = _tuple(
+    qname(namespace, typeName)
+    for namespace in _dtrTypeNamespaces2018_07_11AndNewer
+    for typeName in [
+        "noDecimalsMonetaryItemType",
+        "nonNegativeNoDecimalsMonetaryItemType",
+    ]
 )
-dtrSQNameTypes = (
-    qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNameType"),
-    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameType"),
+dtrPrefixedContentItemTypes = _tuple(
+    qname(namespace, "prefixedContentItemType")
+    for namespace in _dtrTypeNamespaces2019AndNewer
 )
-dtrSQNamesItemTypes = (
-    qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesItemType"),
-    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesItemType"),
+dtrPrefixedContentTypes = _tuple(
+    qname(namespace, "prefixedContentType")
+    for namespace in _dtrTypeNamespaces2019AndNewer
 )
-dtrSQNamesTypes = (
-    qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesType"),
-    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesType"),
+dtrSQNameItemTypes = _tuple(
+    qname(namespace, "SQNameItemType")
+    for namespace in _dtrTypeNamespaces2018_07_11AndNewer
+)
+dtrSQNameTypes = _tuple(
+    qname(namespace, "SQNameType")
+    for namespace in _dtrTypeNamespaces2019AndNewer
+)
+dtrSQNamesItemTypes = _tuple(
+    qname(namespace, "SQNamesItemType")
+    for namespace in _dtrTypeNamespaces2019AndNewer
+)
+dtrSQNamesTypes = _tuple(
+    qname(namespace, "SQNamesType")
+    for namespace in _dtrTypeNamespaces2019AndNewer
 )
 dtrSQNameNamesItemTypes = dtrSQNameItemTypes + dtrSQNamesItemTypes
 dtrSQNameNamesTypes = dtrSQNameTypes + dtrSQNamesTypes
