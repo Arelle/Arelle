@@ -324,6 +324,7 @@ module = [
     'arelle.plugin.security.cryptAES_EAX',
     'arelle.plugin.streamingExtensions',
     'arelle.plugin.transforms.SEC.*',
+    'arelle.plugin.transforms.tester',
     'arelle.plugin.unpackSecEisFile',
     'arelle.plugin.validate.CIPC',
     'arelle.plugin.validate.EBA',
