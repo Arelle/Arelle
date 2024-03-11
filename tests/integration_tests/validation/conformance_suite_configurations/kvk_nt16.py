@@ -1,5 +1,3 @@
-import os
-
 from pathlib import PurePath
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 
@@ -61,10 +59,12 @@ config = ConformanceSuiteConfig(
         'testcase-kvk-rpt-jaarverantwoording-2021-nlgaap-micro.xml:V-1',
 
     ]),
-    file=os.path.join('berichten', 'NT16_KVK_20211208 - Testsuite.zip', 'testcases.xml'),
+    file='testcases.xml',
     info_url='https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/SBR%20Filing%20Rules%20NT16%20-%2020210301_0.pdf',
     local_filepath=ZIP_PATH,
     name=PurePath(__file__).stem,
+    nested_filepath=(PurePath(EXTRACTED_PATH) / 'berichten' / 'NT16_KVK_20211208 - Testsuite.zip').as_posix(),
     plugins=frozenset({'validate/NL'}),
     public_download_url='https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT16_KVK_20211208%20Berichten_0.zip',
+    shards=3,  # Only 3 testcases in conformance suite
 )
