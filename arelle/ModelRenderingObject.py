@@ -414,6 +414,14 @@ class StrctMdlNode:
                 structuralNode.defnMdlNode.hasValueExpression):
                 return self.evaluate(self.defnMdlNode, structuralNode.defnMdlNode.evalValueExpression, otherAxisStructuralNode=otherAxisStructuralNode, evalArgs=(fact,))
         return None
+    @property
+    def hasBreakdownWithoutNodes(self):
+        if isinstance(self, StrctMdlBreakdown) and not self.strctMdlChildNodes:
+            return True
+        for childStructuralNode in self.strctMdlChildNodes:
+            if childStructuralNode.hasBreakdownWithoutNodes:
+                return True
+        return False
     def __repr__(self):
         return (f"{type(self).__name__}[{self.xlinkLabel}]")
 class StrctMdlTableSet(StrctMdlNode):
@@ -1150,12 +1158,13 @@ class DefnMdlRelationshipNode(DefnMdlClosedDefinitionNode):
         if self.relationshipSourceQnamesAndQnameExpressionProgs and self.relationshipSourceQnamesAndQnameExpressionProgs != [XbrlConst.qnXfiRoot]:
             if varRefSet is None: varRefSet = set()
             #varRefSet.update(self.relationshipSourceQnamesAndQnameExpressionProgs)
-        return super(DefnMdlRelationshipNode, self).variableRefs(
+        varRefs = super(DefnMdlRelationshipNode, self).variableRefs(
                                         [p
                                          for p in self.relationshipSourceQnamesAndQnameExpressionProgs + [
                                                         self.linkroleExpressionProg, self.formulaAxisExpressionProg,
                                                         self.generationsExpressionProg]
                                         if p], varRefSet)
+        return varRefs
     def evalRrelationshipSourceQnames(self, xpCtx, fact=None):
         return [qp if isinstance(qp, QName) else xpCtx.evaluateAtomicValue(qp, 'xs:QName', fact)
                 for qp in self.relationshipSourceQnamesAndQnameExpressionProgs]

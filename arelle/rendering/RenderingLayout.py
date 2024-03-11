@@ -64,6 +64,8 @@ def layoutTable(view):
                 xTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("x")
                 yTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("y")
                 zTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("z")
+                xHasBreakdownWithoutNodes = xTopStrctNode.hasBreakdownWithoutNodes
+                yHasBreakdownWithoutNodes = yTopStrctNode.hasBreakdownWithoutNodes
 
                 # set table parameters to sequence value for this table
                 lytMdlTbl = LytMdlTable(lytMdlTblSet, strctMdlTable)
@@ -99,7 +101,7 @@ def layoutTable(view):
                                     brkdownNodeLytMdlGrp[brkdownNode] = lytMdlGrp
                         zStrctNodes = []
                         layoutAxis(view, view.dataFirstCol, view.colHdrTopRow, view.colHdrTopRow + view.colHdrRows - 1,
-                                   zTopStrctNode, zStrctNodes, True, True, view.colHdrNonStdRoles)
+                                   zTopStrctNode, zStrctNodes, True, True, view.colHdrNonStdRoles, False)
                         # lay out choices for each discriminator
                         zCounts = []
                         for _position, layoutMdlBrkdnCells in sorted(view.headerCells.items()):
@@ -146,10 +148,10 @@ def layoutTable(view):
 
                         if xTopStrctNode and xTopStrctNode.strctMdlChildNodes:
                             layoutAxis(view, view.dataFirstCol, view.colHdrTopRow, view.colHdrTopRow + view.colHdrRows - 1,
-                                       xTopStrctNode, xStrctNodes, True, True, view.colHdrNonStdRoles)
+                                       xTopStrctNode, xStrctNodes, True, True, view.colHdrNonStdRoles, xHasBreakdownWithoutNodes)
                         if yTopStrctNode and yTopStrctNode.strctMdlChildNodes: # no row header element if no rows
                             layoutAxis(view, view.dataFirstRow, view.colHdrTopRow, view.colHdrTopRow + view.colHdrRows - 1,
-                                       yTopStrctNode, yStrctNodes, True, True, view.rowHdrNonStdRoles)
+                                       yTopStrctNode, yStrctNodes, True, True, view.rowHdrNonStdRoles, yHasBreakdownWithoutNodes)
                         # add header cells to header elements cycling through nested repeats
                         headerByPos = {}
                         for _position, breakdownCellElts in sorted(view.headerCells.items()): # , reverse=True):
@@ -195,12 +197,12 @@ def layoutTable(view):
                         xStrctNodes.append(StrctMdlStructuralNode(strctMdlTable, None))
                     lytMdlYCells = LytMdlBodyCells(lytMdlZCells, "y")
                     hasRows = bodyCells(view, view.dataFirstRow, yStrctNodes, xStrctNodes, zDiscrimAspectNodes[discriminator-1], lytMdlYCells) # zAspectStrctNodes)
-                    if not hasRows:
+                    if not hasRows or xHasBreakdownWithoutNodes or yHasBreakdownWithoutNodes:
                         lytMdlZCells.lytMdlBodyChildren.remove(lytMdlYCells)
                     if discriminator >= len(zDiscrimAspectNodes):
                         break
 
-def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, renderNow, atTop, HdrNonStdRoles):
+def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, renderNow, atTop, HdrNonStdRoles, noBreakdownNodes):
     # axis handling for xml export
     if parentStrctNode is not None:
         parentRow = rowBelow
@@ -209,14 +211,14 @@ def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, ren
         colsToSpanParent = 0
         widthToSpanParent = 0
         rowsForThisBreakdown = 1 + parentStrctNode.hasRollUpChild
-        for i, strctNode in enumerate(parentStrctNode.strctMdlChildNodes): # strctMdlEffectiveChildNodes:
+        for strctNode in parentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
             noDescendants = False
             if isinstance(strctNode, StrctMdlBreakdown) and not strctNode.isLabeled:
                 rowsForThisStrctNode = 0
             else:
                 rowsForThisStrctNode = rowsForThisBreakdown
             rightCol, row, cols, width, leafNode = layoutAxis(view, leftCol, topRow + rowsForThisStrctNode, rowBelow, strctNode, strctNodes, # nested items before totals
-                                                              True, False, HdrNonStdRoles)
+                                                              True, False, HdrNonStdRoles, noBreakdownNodes)
             if row - 1 < parentRow:
                 parentRow = row - 1
             nonAbstract = not strctNode.isAbstract
@@ -243,7 +245,8 @@ def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, ren
                 if isRollUpCell:
                     lytMdlCell.rollup = True
 
-                view.headerCells[topRow].append((brkdownNode, strctNode, lytMdlCell))
+                if not noBreakdownNodes:
+                    view.headerCells[topRow].append((brkdownNode, strctNode, lytMdlCell))
                 if isRollUpCell == ROLLUP_SPECIFIES_MEMBER:
                     continue # leave rollup's dimension out of structural model
                 elt = None
@@ -253,23 +256,28 @@ def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, ren
                         lytMdlCell.labels.append((label, None, None))
                         if label == OPEN_ASPECT_ENTRY_SURROGATE:
                             lytMdlCell.isOpenAspectEntrySurrogate = True
-                    for i, role in enumerate(HdrNonStdRoles):
+                    for role in HdrNonStdRoles:
                         roleLabel, source = strctNode.headerAndSource(role=role, lang=view.lang, recurseParent=False) # infoset does not move parent label to decscndant
                         if roleLabel is not None:
                             lytMdlCell.labels.append((roleLabel, os.path.basename(role), view.lang))
 
                 orderKeys = {}
-                for tag in strctNode.constraintTags():  # TODO try to order tags
+
+                for i, tag in enumerate(strctNode.constraintTags()):  # TODO try to order tags
                     if tag is None:
                         orderKeys[tag] = 2
-                    elif "start" in tag:
+                    elif "start" in tag.lower():
                         orderKeys[tag] = 1
-                    elif "end" in tag:
+                    elif "end" in tag.lower():
                         orderKeys[tag] = 3
                     else:
                         orderKeys[tag] = 0
 
-                for tag in sorted(strctNode.constraintTags(), key=lambda s: orderKeys[s]):
+                if noBreakdownNodes:
+                    constraintTags = ()
+                else:
+                    constraintTags = strctNode.constraintTags()
+                for tag in sorted(constraintTags, key=lambda s: orderKeys[s]):
                     aspectProcessed = set()
                     constraint = strctNode.constraintSet([tag])
 

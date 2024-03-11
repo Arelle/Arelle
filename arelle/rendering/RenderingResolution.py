@@ -71,6 +71,8 @@ def resolveTableStructure(view, viewTblELR):
             view.rendrCntx = defnMdlTable.renderingXPathContext
             strctMdlTableSet = StrctMdlTableSet(defnMdlTable)
             referencedVariables = defnMdlTable.variableRefs()
+            for tblParamRel in view.modelXbrl.relationshipSet((XbrlConst.tableParameter, XbrlConst.tableParameterMMDD)).fromModelObject(defnMdlTable):
+                referencedVariables.add(tblParamRel.variableQname) # https://gitlab.xbrl.org/rendering/table-linkbase/-/issues/32#note_20551
             # determine number of tables based on cartesian product of multi-valued parameters
             varSeqValues = OrderedDict(( # order tables by lexicographic key order
                 (name, flattenSequence(view.rendrCntx.inScopeVars.get(name,())))
