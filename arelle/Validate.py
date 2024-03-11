@@ -2,6 +2,8 @@
 See COPYRIGHT.md for copyright information.
 '''
 import os, sys, traceback, logging
+import time
+
 import regex as re
 from collections import defaultdict, OrderedDict
 from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlConst,
@@ -168,6 +170,7 @@ class Validate:
         elif hasattr(testcase, "testcaseVariations"):
             for modelTestcaseVariation in testcaseVariationsByTarget(testcase.testcaseVariations):
                 # update ui thread via modelManager (running in background here)
+                startTime = time.perf_counter()
                 self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, modelTestcaseVariation.objectId())
                 # is this a versioning report?
                 resultIsVersioningReport = modelTestcaseVariation.resultIsVersioningReport
@@ -537,6 +540,7 @@ class Validate:
                         del inputDTSes # dereference
                 # update ui thread via modelManager (running in background here)
                 self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, modelTestcaseVariation.objectId())
+                modelTestcaseVariation.duration = time.perf_counter() - startTime
 
             _statusCounts = OrderedDict((("pass",0),("fail",0)))
             for tv in getattr(testcase, "testcaseVariations", ()):

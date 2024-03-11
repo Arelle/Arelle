@@ -127,7 +127,8 @@ def get_test_data(
                         {
                             'status': mv.status,
                             'expected': mv.expected,
-                            'actual': mv.actual
+                            'actual': mv.actual,
+                            'duration': mv.duration,
                         },
                         id=test_id,
                         marks=[pytest.mark.xfail()] if expected_failure else [],

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 import multiprocessing
 import os.path
+import statistics
 import tempfile
 import zipfile
 from collections import defaultdict
@@ -10,7 +12,7 @@ from contextlib import ExitStack
 from contextlib import nullcontext
 from dataclasses import dataclass
 from heapq import heapreplace
-from pathlib import PurePath, PurePosixPath
+from pathlib import PurePath, PurePosixPath, Path
 from typing import Any, Callable, ContextManager, TYPE_CHECKING, cast
 from unittest.mock import patch
 
@@ -25,13 +27,14 @@ if TYPE_CHECKING:
 
 
 original_normalize_url_function = WebCache.normalizeUrl
+CONFORMANCE_SUITE_TIMING_PATH_PREFIX = 'tests/resources/conformance_suites_timing'
 
 
 def normalize_url_function(config: ConformanceSuiteConfig) -> Callable[[WebCache, str, str | None], str]:
     def normalize_url(self: WebCache, url: str, base: str | None = None) -> str:
         assert config.url_replace is not None
         if url.startswith(config.url_replace):
-            return url.replace(config.url_replace, f'{config.prefixed_local_filepath}/')
+            return url.replace(config.url_replace, f'{config.prefixed_final_filepath}/')
         return cast(str, original_normalize_url_function(self, url, base))
     return normalize_url
 
@@ -43,28 +46,32 @@ def get_test_data_mp_wrapper(args_kws: tuple[list[Any], dict[str, Any]]) -> list
 
 def get_test_shards(config: ConformanceSuiteConfig) -> list[tuple[list[str], frozenset[str]]]:
     path_strs: list[str] = []
-    if zipfile.is_zipfile(config.prefixed_local_filepath):
-        with zipfile.ZipFile(config.prefixed_local_filepath) as zip_file:
+    final_filepath = config.prefixed_final_filepath
+    if zipfile.is_zipfile(final_filepath):
+        with zipfile.ZipFile(final_filepath) as zip_file:
             _collect_zip_test_cases(zip_file, config.file, path_strs)
     else:
-        _collect_dir_test_cases(config.prefixed_local_filepath, config.file, path_strs)
+        _collect_dir_test_cases(final_filepath, config.file, path_strs)
     path_strs = sorted(path_strs)
     assert path_strs
 
     @dataclass(frozen=True)
-    class Path:
+    class PathInfo:
         path: str
         plugins: tuple[str, ...]
         runtime: float
-    paths_by_plugins: dict[tuple[str, ...], list[Path]] = defaultdict(list)
+    paths_by_plugins: dict[tuple[str, ...], list[PathInfo]] = defaultdict(list)
+    approximate_relative_timing = config.approximate_relative_timing
+    if approximate_relative_timing is None:
+        approximate_relative_timing = load_timing_file(config.name)
     for path_str in path_strs:
         path_plugins: set[str] = set()
         for prefix, additional_plugins in config.additional_plugins_by_prefix:
             if path_str.startswith(prefix):
                 path_plugins.update(additional_plugins)
         paths_by_plugins[tuple(path_plugins)].append(
-            Path(path=path_str, plugins=tuple(path_plugins), runtime=config.approximate_relative_timing.get(path_str, 1)))
-    paths_in_runtime_order: list[Path] = sorted((path for paths in paths_by_plugins.values() for path in paths),
+            PathInfo(path=path_str, plugins=tuple(path_plugins), runtime=approximate_relative_timing.get(path_str, 1)))
+    paths_in_runtime_order: list[PathInfo] = sorted((path for paths in paths_by_plugins.values() for path in paths),
         key=lambda path: path.runtime, reverse=True)
     runtime_by_plugins: dict[tuple[str, ...], float] = {plugins: sum(path.runtime for path in paths)
         for plugins, paths in paths_by_plugins.items()}
@@ -213,7 +220,7 @@ def get_conformance_suite_test_results_with_shards(  # type: ignore[return]
             for shard, testcase_file in zip(shards, tempfiles):
                 test_shards = get_test_shards(config)
                 test_paths, additional_plugins = test_shards[shard]
-                zip_path = config.prefixed_local_filepath
+                zip_path = config.prefixed_final_filepath
                 all_test_paths = {path for test_paths, _ in test_shards for path in test_paths}
                 unrecognized_expected_empty_testcases = config.expected_empty_testcases - all_test_paths
                 assert not unrecognized_expected_empty_testcases, f'Unrecognized expected empty testcases: {unrecognized_expected_empty_testcases}'
@@ -282,3 +289,35 @@ def get_conformance_suite_test_results_without_shards(
         url_context_manager = nullcontext()
     with url_context_manager:
         return get_test_data(args, **kws)
+
+
+def load_timing_file(name: str) -> dict[str, float]:
+    path = Path(CONFORMANCE_SUITE_TIMING_PATH_PREFIX) / Path(name).with_suffix(".json")
+    if not path.exists():
+        return {}
+    with open(path) as file:
+        data = json.load(file)
+        return {
+            str(k): float(v)
+            for k, v in data.items()
+        }
+
+
+def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]) -> None:
+    timing: dict[str, float] = defaultdict(float)
+    for result in results:
+        assert result.id
+        testcase_id = result.id.rsplit(':', 1)[0]
+        values = result.values[0]
+        # TODO: revisit typing here once 3.8 removed
+        duration = values.get('duration')  # type: ignore[union-attr]
+        if duration:
+            timing[testcase_id] += duration
+    if timing:
+        duration_avg = statistics.mean(timing.values())
+        timing = {
+            testcase_id: duration/duration_avg
+            for testcase_id, duration in sorted(timing.items())
+        }
+    with open(f'conf-{config.name}-timing.json', 'w') as file:
+        json.dump(timing, file, indent=4)
