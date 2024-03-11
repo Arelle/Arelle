@@ -16,6 +16,7 @@ from tests.integration_tests.validation.conformance_suite_configurations.nl_nt18
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_2_1 import config as xbrl_2_1
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_calculations_1_1 import config as xbrl_calculations_1_1
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_dimensions_1_0 import config as xbrl_dimensions_1_0
+from tests.integration_tests.validation.conformance_suite_configurations.xbrl_dtr_2024_01_31 import config as xbrl_dtr_2024_01_31
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_extensible_enumerations_1_0 import config as xbrl_extensible_enumerations_1_0
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_extensible_enumerations_2_0 import config as xbrl_extensible_enumerations_2_0
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_formula_1_0 import config as xbrl_formula_1_0
@@ -50,6 +51,7 @@ ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     xbrl_2_1,
     xbrl_calculations_1_1,
     xbrl_dimensions_1_0,
+    xbrl_dtr_2024_01_31,
     xbrl_extensible_enumerations_1_0,
     xbrl_extensible_enumerations_2_0,
     xbrl_formula_1_0,
