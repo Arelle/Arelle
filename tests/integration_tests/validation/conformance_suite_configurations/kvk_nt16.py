@@ -66,5 +66,5 @@ config = ConformanceSuiteConfig(
     nested_filepath=(PurePath(EXTRACTED_PATH) / 'berichten' / 'NT16_KVK_20211208 - Testsuite.zip').as_posix(),
     plugins=frozenset({'validate/NL'}),
     public_download_url='https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT16_KVK_20211208%20Berichten_0.zip',
-    shards=3,  # Only 3 testcases in conformance suite
+    shards=8,
 )
