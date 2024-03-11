@@ -4,6 +4,7 @@ import itertools
 import os
 import re
 from dataclasses import dataclass, field
+from functools import cached_property
 
 
 CONFORMANCE_SUITE_PATH_PREFIX = 'tests/resources/conformance_suites'
@@ -26,6 +27,7 @@ class ConformanceSuiteConfig:
     expected_model_errors: frozenset[str] = frozenset()
     extract_path: str | None = None
     membership_url: str | None = None
+    nested_filepath: str = ''
     plugins: frozenset[str] = frozenset()
     public_download_url: str | None = None
     shards: int = 1
@@ -58,19 +60,28 @@ class ConformanceSuiteConfig:
         assert not self.network_or_cache_required or self.cache_version_id, \
             'If network or cache is required, a cache version ID must be provided.'
 
-    @property
+    @cached_property
     def prefixed_extract_filepath(self) -> str | None:
         if self.extract_path is None:
             return None
         return os.path.join(CONFORMANCE_SUITE_PATH_PREFIX, self.extract_path)
 
-    @property
+    @cached_property
     def prefixed_final_filepath(self) -> str:
+        path = self.prefixed_nested_filepath
+        if path is not None:
+            return path
         path = self.prefixed_extract_filepath
         if path is not None:
             return path
         return self.prefixed_local_filepath
 
-    @property
+    @cached_property
     def prefixed_local_filepath(self) -> str:
         return os.path.join(CONFORMANCE_SUITE_PATH_PREFIX, self.local_filepath)
+
+    @cached_property
+    def prefixed_nested_filepath(self) -> str | None:
+        if not self.nested_filepath:
+            return None
+        return os.path.join(CONFORMANCE_SUITE_PATH_PREFIX, self.nested_filepath)

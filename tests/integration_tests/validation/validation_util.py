@@ -34,7 +34,7 @@ def normalize_url_function(config: ConformanceSuiteConfig) -> Callable[[WebCache
     def normalize_url(self: WebCache, url: str, base: str | None = None) -> str:
         assert config.url_replace is not None
         if url.startswith(config.url_replace):
-            return url.replace(config.url_replace, f'{config.prefixed_local_filepath}/')
+            return url.replace(config.url_replace, f'{config.prefixed_final_filepath}/')
         return cast(str, original_normalize_url_function(self, url, base))
     return normalize_url
 
@@ -46,11 +46,12 @@ def get_test_data_mp_wrapper(args_kws: tuple[list[Any], dict[str, Any]]) -> list
 
 def get_test_shards(config: ConformanceSuiteConfig) -> list[tuple[list[str], frozenset[str]]]:
     path_strs: list[str] = []
-    if zipfile.is_zipfile(config.prefixed_local_filepath):
-        with zipfile.ZipFile(config.prefixed_local_filepath) as zip_file:
+    final_filepath = config.prefixed_final_filepath
+    if zipfile.is_zipfile(final_filepath):
+        with zipfile.ZipFile(final_filepath) as zip_file:
             _collect_zip_test_cases(zip_file, config.file, path_strs)
     else:
-        _collect_dir_test_cases(config.prefixed_local_filepath, config.file, path_strs)
+        _collect_dir_test_cases(final_filepath, config.file, path_strs)
     path_strs = sorted(path_strs)
     assert path_strs
 
@@ -219,7 +220,7 @@ def get_conformance_suite_test_results_with_shards(  # type: ignore[return]
             for shard, testcase_file in zip(shards, tempfiles):
                 test_shards = get_test_shards(config)
                 test_paths, additional_plugins = test_shards[shard]
-                zip_path = config.prefixed_local_filepath
+                zip_path = config.prefixed_final_filepath
                 all_test_paths = {path for test_paths, _ in test_shards for path in test_paths}
                 unrecognized_expected_empty_testcases = config.expected_empty_testcases - all_test_paths
                 assert not unrecognized_expected_empty_testcases, f'Unrecognized expected empty testcases: {unrecognized_expected_empty_testcases}'
