@@ -30,6 +30,12 @@ original_normalize_url_function = WebCache.normalizeUrl
 CONFORMANCE_SUITE_TIMING_PATH_PREFIX = 'tests/resources/conformance_suites_timing'
 
 
+@dataclass(frozen=True)
+class Shard:
+    paths: dict[str, list[str]]
+    plugins: frozenset[str]
+
+
 def normalize_url_function(config: ConformanceSuiteConfig) -> Callable[[WebCache, str, str | None], str]:
     def normalize_url(self: WebCache, url: str, base: str | None = None) -> str:
         assert config.url_replace is not None
@@ -44,39 +50,56 @@ def get_test_data_mp_wrapper(args_kws: tuple[list[Any], dict[str, Any]]) -> list
     return get_test_data(args, **kws)
 
 
-def get_test_shards(config: ConformanceSuiteConfig) -> list[tuple[list[str], frozenset[str]]]:
-    path_strs: list[str] = []
+def get_testcase_variation_map(config: ConformanceSuiteConfig) -> dict[str, list[str]]:
+    test_case_paths: list[str] = []
     final_filepath = config.prefixed_final_filepath
     if zipfile.is_zipfile(final_filepath):
         with zipfile.ZipFile(final_filepath) as zip_file:
-            _collect_zip_test_cases(zip_file, config.file, path_strs)
+            _collect_zip_test_cases(zip_file, config.file, test_case_paths)
+            return _collect_zip_test_case_variation_ids(zip_file, test_case_paths)
     else:
-        _collect_dir_test_cases(final_filepath, config.file, path_strs)
-    path_strs = sorted(path_strs)
-    assert path_strs
+        _collect_dir_test_cases(final_filepath, config.file, test_case_paths)
+        return _collect_dir_test_case_variation_ids(final_filepath, test_case_paths)
+
+
+def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
+    testcase_variation_map = get_testcase_variation_map(config)
+    assert testcase_variation_map
 
     @dataclass(frozen=True)
     class PathInfo:
-        path: str
+        path: tuple[str, str]
         plugins: tuple[str, ...]
         runtime: float
     paths_by_plugins: dict[tuple[str, ...], list[PathInfo]] = defaultdict(list)
     approximate_relative_timing = config.approximate_relative_timing
     if approximate_relative_timing is None:
         approximate_relative_timing = load_timing_file(config.name)
-    for path_str in path_strs:
+    empty_testcase_paths = []
+    for testcase_path, variation_ids in testcase_variation_map.items():
         path_plugins: set[str] = set()
         for prefix, additional_plugins in config.additional_plugins_by_prefix:
-            if path_str.startswith(prefix):
+            if testcase_path.startswith(prefix):
                 path_plugins.update(additional_plugins)
-        paths_by_plugins[tuple(path_plugins)].append(
-            PathInfo(path=path_str, plugins=tuple(path_plugins), runtime=approximate_relative_timing.get(path_str, 1)))
+        if not variation_ids:
+            # Empty testcase
+            empty_testcase_paths.append(testcase_path)
+            continue
+        testcase_runtime = approximate_relative_timing.get(testcase_path, 1)
+        avg_variation_runtime = testcase_runtime/(len(variation_ids))  # compatability for testcase-level timing
+        for variation_id in variation_ids:
+            variation_runtime = approximate_relative_timing.get(f'{testcase_path}:{variation_id}', avg_variation_runtime)
+            paths_by_plugins[tuple(path_plugins)].append(PathInfo(
+                path=(testcase_path, variation_id),
+                plugins=tuple(path_plugins),
+                runtime=variation_runtime,
+            ))
     paths_in_runtime_order: list[PathInfo] = sorted((path for paths in paths_by_plugins.values() for path in paths),
         key=lambda path: path.runtime, reverse=True)
     runtime_by_plugins: dict[tuple[str, ...], float] = {plugins: sum(path.runtime for path in paths)
         for plugins, paths in paths_by_plugins.items()}
     total_runtime = sum(runtime_by_plugins.values())
-    shards_by_plugins: dict[tuple[str, ...], list[tuple[float, list[str]]]] = {}
+    shards_by_plugins: dict[tuple[str, ...], list[tuple[float, list[tuple[str, str]]]]] = {}
     remaining_shards = config.shards
     for i, (plugins, _) in enumerate(paths_by_plugins.items()):
         n_shards = (remaining_shards
@@ -91,18 +114,44 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[tuple[list[str], fro
         shard.append(path.path)
         heapreplace(shards_for_plugins, (shard_runtime + path.runtime, shard))
     assert shards_by_plugins.keys() == {()} | {tuple(plugins) for _, plugins in config.additional_plugins_by_prefix}
+    shards = _build_shards(shards_by_plugins, empty_testcase_paths)
+    _verify_shards(shards, testcase_variation_map)
+    return shards
+
+
+def _build_shards(shards_by_plugins: dict[tuple[str, ...], list[tuple[float, list[tuple[str, str]]]]], empty_testcase_paths: list[str]) -> list[Shard]:
     # Sort shards by runtime so CI nodes are more likely to pick shards with similar runtimes.
     time_ordered_shards = sorted(
         (runtime, plugin_group, paths)
         for plugin_group, runtime_paths in shards_by_plugins.items()
         for runtime, paths in runtime_paths
     )
-    shards = [
-        (paths, frozenset(plugin_group))
-        for _, plugin_group, paths in time_ordered_shards
-    ]
-    assert sorted(path for paths, _ in shards for path in paths) == path_strs
+    shards = []
+    for _, plugin_group, paths in time_ordered_shards:
+        shard_paths = defaultdict(list)
+        for path, vid in paths:
+            shard_paths[path].append(vid)
+        shards.append(Shard(
+            paths=shard_paths,
+            plugins=frozenset(plugin_group)
+        ))
+    # Add all empty testcases to the first shard
+    first_shard = shards[0]
+    for empty_testcase_path in empty_testcase_paths:
+        assert empty_testcase_path not in first_shard.paths
+        first_shard.paths[empty_testcase_path] = []
     return shards
+
+
+def _verify_shards(shards: list[Shard], testcase_variation_map: dict[str, list[str]]) -> None:
+    all_paths_map = defaultdict(list)
+    for shard in shards:
+        for path, vids in shard.paths.items():
+            all_paths_map[path].extend(vids)
+    assert sorted(all_paths_map) == sorted(testcase_variation_map)
+    for path, vids in all_paths_map.items():
+        assert set(vids) == set(testcase_variation_map[path])
+        assert sorted(vids) == sorted(testcase_variation_map[path])
 
 
 def _collect_zip_test_cases(zip_file: zipfile.ZipFile, file_path: str, path_strs: list[str]) -> None:
@@ -123,11 +172,39 @@ def _collect_zip_test_cases(zip_file: zipfile.ZipFile, file_path: str, path_strs
         _collect_zip_test_cases(zip_file, test_case_index, path_strs)
 
 
+def _collect_zip_test_case_variation_ids(zip_file: zipfile.ZipFile, test_case_paths: list[str]) -> dict[str, list[str]]:
+    testcase_variation_map: dict[str, list[str]] = {}
+    for test_case_path in sorted(test_case_paths):
+        variation_ids: set[str] = set()
+        with zip_file.open(test_case_path) as f:
+            tree = etree.parse(f)
+        for variation in tree.findall('{*}variation'):
+            variation_id = variation.get('id')
+            assert variation_id and variation_id not in variation_ids
+            variation_ids.add(variation_id)
+        testcase_variation_map[test_case_path] = sorted(variation_ids)
+    return testcase_variation_map
+
+
 def _collect_dir_test_cases(file_path_prefix: str, file_path: str, path_strs: list[str]) -> None:
     full_file_path = os.path.join(file_path_prefix, file_path)
     tree = etree.parse(full_file_path)
     for test_case_index in _collect_test_case_paths(file_path, tree, path_strs):
         _collect_dir_test_cases(file_path_prefix, test_case_index, path_strs)
+
+
+def _collect_dir_test_case_variation_ids(file_path_prefix: str, test_case_paths: list[str]) -> dict[str, list[str]]:
+    testcase_variation_map: dict[str, list[str]] = {}
+    for test_case_path in sorted(test_case_paths):
+        variation_ids: set[str] = set()
+        full_path = os.path.join(file_path_prefix, test_case_path)
+        tree = etree.parse(full_path)
+        for variation in tree.findall('{*}variation'):
+            variation_id = variation.get('id')
+            assert variation_id and variation_id not in variation_ids
+            variation_ids.add(variation_id)
+        testcase_variation_map[test_case_path] = sorted(variation_ids)
+    return testcase_variation_map
 
 
 def _collect_test_case_paths(file_path: str, tree: etree._ElementTree, path_strs: list[str]) -> Generator[str, None, None]:
@@ -150,7 +227,7 @@ def _get_elem_by_local_name(tree: etree._ElementTree, local_name: str) -> etree.
 def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: str,
         additional_plugins: frozenset[str], build_cache: bool, offline: bool, log_to_file: bool,
         expected_failure_ids: frozenset[str], expected_empty_testcases: frozenset[str],
-        shard: int | None) -> tuple[list[Any], dict[str, Any]]:
+        shard: int | None, testcase_filters: list[str]) -> tuple[list[Any], dict[str, Any]]:
     use_shards = shard is not None
     optional_plugins = set()
     if build_cache:
@@ -175,6 +252,8 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
         ])
     if offline or not config.network_or_cache_required:
         args.extend(['--internetConnectivity', 'offline'])
+    for pattern in testcase_filters:
+        args.extend(['--testcaseFilter', pattern])
     kws = dict(
         expected_failure_ids=expected_failure_ids,
         expected_empty_testcases=expected_empty_testcases,
@@ -211,61 +290,49 @@ def get_conformance_suite_test_results_with_shards(  # type: ignore[return]
         log_to_file: bool = False,
         offline: bool = False,
         series: bool = False) -> list[ParameterSet]:
-    tempfiles: list[Any] = []
-    try:
-        with ExitStack() as exit_stack:
-            # delete=False and subsequent .close and unlink are for Windows compatibility.  bpo-14243
-            tempfiles.extend(exit_stack.enter_context(tempfile.NamedTemporaryFile(dir='.', mode='wb', suffix='.xml', delete=False)) for _ in shards)
-            tasks = []
-            for shard, testcase_file in zip(shards, tempfiles):
-                test_shards = get_test_shards(config)
-                test_paths, additional_plugins = test_shards[shard]
-                zip_path = config.prefixed_final_filepath
-                all_test_paths = {path for test_paths, _ in test_shards for path in test_paths}
-                unrecognized_expected_empty_testcases = config.expected_empty_testcases - all_test_paths
-                assert not unrecognized_expected_empty_testcases, f'Unrecognized expected empty testcases: {unrecognized_expected_empty_testcases}'
-                expected_empty_testcases = config.expected_empty_testcases.intersection(test_paths)
-                unrecognized_expected_failure_ids = {id.rsplit(':', 1)[0] for id in config.expected_failure_ids} - all_test_paths
-                assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
-                expected_failure_ids = frozenset(id for id in config.expected_failure_ids if id.rsplit(':', 1)[0] in test_paths)
+    tasks = []
+    for shard_id in shards:
+        test_shards = get_test_shards(config)
+        shard = test_shards[shard_id]
+        test_paths = shard.paths
+        additional_plugins = shard.plugins
+        all_test_paths = {path for test_shard in test_shards for path in test_shard.paths}
+        unrecognized_expected_empty_testcases = config.expected_empty_testcases - all_test_paths
+        assert not unrecognized_expected_empty_testcases, f'Unrecognized expected empty testcases: {unrecognized_expected_empty_testcases}'
+        expected_empty_testcases = config.expected_empty_testcases
+        unrecognized_expected_failure_ids = {id.rsplit(':', 1)[0] for id in config.expected_failure_ids} - all_test_paths
+        assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
+        expected_failure_ids = frozenset(id for id in config.expected_failure_ids if id.rsplit(':', 1)[0] in test_paths)
 
-                root = etree.Element('testcases')
-                tree = etree.ElementTree(root)
-                pathlib_zip_path = PurePath(zip_path)
-                for test_path in test_paths:
-                    etree.SubElement(root, 'testcase', uri=str((pathlib_zip_path / test_path).as_posix()))
-                tree.write(testcase_file, encoding='utf-8', pretty_print=True, xml_declaration=True)
-                testcase_file.flush()
-                testcase_file.close()
-                filename = testcase_file.name
-                args = get_conformance_suite_arguments(
-                    config=config, filename=filename, additional_plugins=additional_plugins,
-                    build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=shard,
-                    expected_failure_ids=expected_failure_ids, expected_empty_testcases=expected_empty_testcases,
-                )
-                tasks.append(args)
-            url_context_manager: ContextManager[Any]
-            if config.url_replace:
-                url_context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
-            else:
-                url_context_manager = nullcontext()
-            if series:
-                with url_context_manager:
-                    results = []
-                    for args in tasks:
-                        task_results = get_test_data_mp_wrapper(args)
-                        results.extend(task_results)
-                    return results
-            else:
-                with url_context_manager, multiprocessing.Pool() as pool:
-                    parallel_results = pool.map(get_test_data_mp_wrapper, tasks)
-                    return [x for l in parallel_results for x in l]
-    finally:
-        for f in tempfiles:
-            try:
-                os.unlink(f.name)
-            except OSError:
-                pass
+        testcase_filters = sorted([
+            f'*{os.path.sep}{path}:{vid}'
+            for path, vids in test_paths.items()
+            for vid in vids
+        ])
+        filename = os.path.join(config.prefixed_final_filepath, config.file)
+        args = get_conformance_suite_arguments(
+            config=config, filename=filename, additional_plugins=additional_plugins,
+            build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=shard_id,
+            expected_failure_ids=expected_failure_ids, expected_empty_testcases=expected_empty_testcases,
+            testcase_filters=testcase_filters,
+        )
+        tasks.append(args)
+    url_context_manager: ContextManager[Any]
+    if config.url_replace:
+        url_context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
+    else:
+        url_context_manager = nullcontext()
+    if series:
+        with url_context_manager:
+            results = []
+            for args in tasks:
+                task_results = get_test_data_mp_wrapper(args)
+                results.extend(task_results)
+            return results
+    else:
+        with url_context_manager, multiprocessing.Pool() as pool:
+            parallel_results = pool.map(get_test_data_mp_wrapper, tasks)
+            return [x for l in parallel_results for x in l]
 
 
 def get_conformance_suite_test_results_without_shards(
@@ -281,6 +348,7 @@ def get_conformance_suite_test_results_without_shards(
         config=config, filename=filename, additional_plugins=additional_plugins,
         build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=None,
         expected_failure_ids=expected_failure_ids, expected_empty_testcases=expected_empty_testcases,
+        testcase_filters=[],
     )
     url_context_manager: ContextManager[Any]
     if config.url_replace:
@@ -306,13 +374,16 @@ def load_timing_file(name: str) -> dict[str, float]:
 def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]) -> None:
     timing: dict[str, float] = defaultdict(float)
     for result in results:
-        assert result.id
-        testcase_id = result.id.rsplit(':', 1)[0]
         values = result.values[0]
+        if not values.get('status'):  # type: ignore[union-attr]
+            # This result is empty due to being skipped
+            continue
+        testcase_id = result.id
+        assert testcase_id and testcase_id not in timing
         # TODO: revisit typing here once 3.8 removed
         duration = values.get('duration')  # type: ignore[union-attr]
         if duration:
-            timing[testcase_id] += duration
+            timing[testcase_id] = duration
     if timing:
         duration_avg = statistics.mean(timing.values())
         timing = {
