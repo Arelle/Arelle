@@ -1,6 +1,7 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+import fnmatch
 import os, sys, traceback, logging
 import time
 
@@ -15,7 +16,7 @@ from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObject import ModelObject
 from arelle.ModelRelationshipSet import ModelRelationshipSet
-from arelle.ModelTestcaseObject import testcaseVariationsByTarget
+from arelle.ModelTestcaseObject import testcaseVariationsByTarget, ModelTestcaseVariation
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
 from arelle.XmlUtil import collapseWhitespace, xmlstring
@@ -53,6 +54,16 @@ class Validate:
             self.useFileSource = modelXbrl.fileSource
         else:
             self.useFileSource = None
+
+    def filterTestcaseVariation(self, modelTestcaseVariation: ModelTestcaseVariation):
+        patterns = self.modelXbrl.modelManager.formulaOptions.testcaseFilters
+        if not patterns:
+            return True
+        variationIdPath = f'{modelTestcaseVariation.base}:{modelTestcaseVariation.id}'
+        for pattern in patterns:
+            if fnmatch.fnmatch(variationIdPath, pattern):
+                return True
+        return False
 
     def close(self):
         self.instValidator.close(reusable=False)
@@ -168,7 +179,15 @@ class Validate:
             for doc in sorted(testcase.referencesDocument.keys(), key=lambda doc: doc.uri):
                 self.validateTestcase(doc)  # testcases doc's are sorted by their uri (file names), e.g., for formula
         elif hasattr(testcase, "testcaseVariations"):
-            for modelTestcaseVariation in testcaseVariationsByTarget(testcase.testcaseVariations):
+            testcaseVariations = []
+            for testcaseVariation in testcaseVariationsByTarget(testcase.testcaseVariations):
+                if self.filterTestcaseVariation(testcaseVariation):
+                    testcaseVariations.append(testcaseVariation)
+                else:
+                    self.modelXbrl.info("info", "Skipped testcase variation %(variationId)s.",
+                                        modelObject=testcaseVariation,
+                                        variationId=testcaseVariation.id)
+            for modelTestcaseVariation in testcaseVariations:
                 # update ui thread via modelManager (running in background here)
                 startTime = time.perf_counter()
                 self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, modelTestcaseVariation.objectId())
