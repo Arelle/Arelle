@@ -118,7 +118,7 @@ class ValidateUtr:
 
     def validateFacts(self):
         modelXbrl = self.modelXbrl
-        if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+        if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
             modelXbrl.modelManager.cntlr.showStatus(_("Validating for Unit Type Registry").format())
             utrInvalidFacts = []
             for f in modelXbrl.facts:
