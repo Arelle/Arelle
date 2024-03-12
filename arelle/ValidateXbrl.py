@@ -195,7 +195,7 @@ class ValidateXbrl:
                         break
 
             # check calculation arcs for weight issues (note calc arc is an "any" cycles)
-            if arcrole == XbrlConst.summationItem:
+            if arcrole in XbrlConst.summationItems:
                 for modelRel in relsSet.modelRelationships:
                     weight = modelRel.weight
                     fromConcept = modelRel.fromModelObject
