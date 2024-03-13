@@ -184,6 +184,7 @@ class Validate:
                 if self.filterTestcaseVariation(testcaseVariation):
                     testcaseVariations.append(testcaseVariation)
                 else:
+                    testcaseVariation.status = 'skip'
                     self.modelXbrl.info("info", "Skipped testcase variation %(variationId)s.",
                                         modelObject=testcaseVariation,
                                         variationId=testcaseVariation.id)

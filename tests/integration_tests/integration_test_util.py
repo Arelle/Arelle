@@ -119,7 +119,11 @@ def get_test_data(
             else:
                 for mv in test_case.testcaseVariations:
                     test_id = f'{test_case_file_id}:{mv.id}'
-                    expected_failure = isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale)
+                    marks = []
+                    if isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale):
+                        marks.append(pytest.mark.xfail())
+                    elif mv.status == 'skip':
+                        marks.append(pytest.mark.skip())
                     param = pytest.param(
                         {
                             'status': mv.status,
@@ -128,7 +132,7 @@ def get_test_data(
                             'duration': mv.duration,
                         },
                         id=test_id,
-                        marks=[pytest.mark.xfail()] if expected_failure else [],
+                        marks=marks,
                     )
                     results.append(param)
         if test_cases_with_unrecognized_type:

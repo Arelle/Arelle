@@ -285,7 +285,7 @@ def get_conformance_suite_test_results(
         )
 
 
-def get_conformance_suite_test_results_with_shards(  # type: ignore[return]
+def get_conformance_suite_test_results_with_shards(
         config: ConformanceSuiteConfig,
         shards: list[int],
         build_cache: bool = False,
@@ -370,13 +370,14 @@ def load_timing_file(name: str) -> dict[str, float]:
 def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]) -> None:
     timing: dict[str, float] = defaultdict(float)
     for result in results:
-        values = result.values[0]
-        if not values.get('status'):  # type: ignore[union-attr]
-            # This result is empty due to being skipped
-            continue
         testcase_id = result.id
-        assert testcase_id and testcase_id not in timing
+        values = result.values[0]
         # TODO: revisit typing here once 3.8 removed
+        status = values.get('status')  # type: ignore[union-attr]
+        assert status, f'Test result has no status: {testcase_id}'
+        if status == 'skip':
+            continue
+        assert testcase_id and testcase_id not in timing
         duration = values.get('duration')  # type: ignore[union-attr]
         if duration:
             timing[testcase_id] = duration
