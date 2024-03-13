@@ -75,16 +75,15 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
     approximate_relative_timing = config.approximate_relative_timing
     if approximate_relative_timing is None:
         approximate_relative_timing = load_timing_file(config.name)
-    empty_testcase_paths = []
+    empty_testcase_paths: set[str] = set()
     for testcase_path, variation_ids in testcase_variation_map.items():
+        if not variation_ids:
+            empty_testcase_paths.add(testcase_path)
+            continue
         path_plugins: set[str] = set()
         for prefix, additional_plugins in config.additional_plugins_by_prefix:
             if testcase_path.startswith(prefix):
                 path_plugins.update(additional_plugins)
-        if not variation_ids:
-            # Empty testcase
-            empty_testcase_paths.append(testcase_path)
-            continue
         testcase_runtime = approximate_relative_timing.get(testcase_path, 1)
         avg_variation_runtime = testcase_runtime/(len(variation_ids))  # compatability for testcase-level timing
         for variation_id in variation_ids:
@@ -114,12 +113,12 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
         shard.append(path.path)
         heapreplace(shards_for_plugins, (shard_runtime + path.runtime, shard))
     assert shards_by_plugins.keys() == {()} | {tuple(plugins) for _, plugins in config.additional_plugins_by_prefix}
-    shards = _build_shards(shards_by_plugins, empty_testcase_paths)
-    _verify_shards(shards, testcase_variation_map)
+    shards = _build_shards(shards_by_plugins)
+    _verify_shards(shards, testcase_variation_map, empty_testcase_paths)
     return shards
 
 
-def _build_shards(shards_by_plugins: dict[tuple[str, ...], list[tuple[float, list[tuple[str, str]]]]], empty_testcase_paths: list[str]) -> list[Shard]:
+def _build_shards(shards_by_plugins: dict[tuple[str, ...], list[tuple[float, list[tuple[str, str]]]]]) -> list[Shard]:
     # Sort shards by runtime so CI nodes are more likely to pick shards with similar runtimes.
     time_ordered_shards = sorted(
         (runtime, plugin_group, paths)
@@ -135,23 +134,27 @@ def _build_shards(shards_by_plugins: dict[tuple[str, ...], list[tuple[float, lis
             paths=shard_paths,
             plugins=frozenset(plugin_group)
         ))
-    # Add all empty testcases to the first shard
-    first_shard = shards[0]
-    for empty_testcase_path in empty_testcase_paths:
-        assert empty_testcase_path not in first_shard.paths
-        first_shard.paths[empty_testcase_path] = []
     return shards
 
 
-def _verify_shards(shards: list[Shard], testcase_variation_map: dict[str, list[str]]) -> None:
-    all_paths_map = defaultdict(list)
+def _verify_shards(
+        shards: list[Shard],
+        discovered_paths_map: dict[str, list[str]],
+        empty_testcase_paths: set[str],
+) -> None:
+    shard_paths_map = defaultdict(list)
     for shard in shards:
         for path, vids in shard.paths.items():
-            all_paths_map[path].extend(vids)
-    assert sorted(all_paths_map) == sorted(testcase_variation_map)
-    for path, vids in all_paths_map.items():
-        assert set(vids) == set(testcase_variation_map[path])
-        assert sorted(vids) == sorted(testcase_variation_map[path])
+            shard_paths_map[path].extend(vids)
+    shard_paths_set = set(shard_paths_map)
+    discovered_paths_set = set(discovered_paths_map) - empty_testcase_paths  # We know empty testcases won't be in shards
+    assert not shard_paths_set - discovered_paths_set,\
+        f'Testcases found in shards but not in discovered set: {shard_paths_set - discovered_paths_set}'
+    assert not discovered_paths_set - shard_paths_set,\
+        f'Testcases found in discovered set but not in shards: {discovered_paths_set - shard_paths_set}'
+    for path, vids in shard_paths_map.items():
+        assert set(vids) == set(discovered_paths_map[path])
+        assert sorted(vids) == sorted(discovered_paths_map[path])
 
 
 def _collect_zip_test_cases(zip_file: zipfile.ZipFile, file_path: str, path_strs: list[str]) -> None:
@@ -226,8 +229,8 @@ def _get_elem_by_local_name(tree: etree._ElementTree, local_name: str) -> etree.
 
 def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: str,
         additional_plugins: frozenset[str], build_cache: bool, offline: bool, log_to_file: bool,
-        expected_failure_ids: frozenset[str], expected_empty_testcases: frozenset[str],
-        shard: int | None, testcase_filters: list[str]) -> tuple[list[Any], dict[str, Any]]:
+        expected_failure_ids: frozenset[str], shard: int | None,
+        testcase_filters: list[str]) -> tuple[list[Any], dict[str, Any]]:
     use_shards = shard is not None
     optional_plugins = set()
     if build_cache:
@@ -256,7 +259,6 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
         args.extend(['--testcaseFilter', pattern])
     kws = dict(
         expected_failure_ids=expected_failure_ids,
-        expected_empty_testcases=expected_empty_testcases,
         expected_model_errors=config.expected_model_errors,
         required_locale_by_ids=config.required_locale_by_ids,
         strict_testcase_index=config.strict_testcase_index,
@@ -297,9 +299,6 @@ def get_conformance_suite_test_results_with_shards(  # type: ignore[return]
         test_paths = shard.paths
         additional_plugins = shard.plugins
         all_test_paths = {path for test_shard in test_shards for path in test_shard.paths}
-        unrecognized_expected_empty_testcases = config.expected_empty_testcases - all_test_paths
-        assert not unrecognized_expected_empty_testcases, f'Unrecognized expected empty testcases: {unrecognized_expected_empty_testcases}'
-        expected_empty_testcases = config.expected_empty_testcases
         unrecognized_expected_failure_ids = {id.rsplit(':', 1)[0] for id in config.expected_failure_ids} - all_test_paths
         assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
         expected_failure_ids = frozenset(id for id in config.expected_failure_ids if id.rsplit(':', 1)[0] in test_paths)
@@ -313,8 +312,7 @@ def get_conformance_suite_test_results_with_shards(  # type: ignore[return]
         args = get_conformance_suite_arguments(
             config=config, filename=filename, additional_plugins=additional_plugins,
             build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=shard_id,
-            expected_failure_ids=expected_failure_ids, expected_empty_testcases=expected_empty_testcases,
-            testcase_filters=testcase_filters,
+            expected_failure_ids=expected_failure_ids, testcase_filters=testcase_filters,
         )
         tasks.append(args)
     url_context_manager: ContextManager[Any]
@@ -342,13 +340,11 @@ def get_conformance_suite_test_results_without_shards(
         offline: bool = False) -> list[ParameterSet]:
     additional_plugins = frozenset().union(*(plugins for _, plugins in config.additional_plugins_by_prefix))
     filename = os.path.join(config.prefixed_final_filepath, config.file)
-    expected_empty_testcases = config.expected_empty_testcases
     expected_failure_ids = config.expected_failure_ids
     args, kws = get_conformance_suite_arguments(
         config=config, filename=filename, additional_plugins=additional_plugins,
         build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=None,
-        expected_failure_ids=expected_failure_ids, expected_empty_testcases=expected_empty_testcases,
-        testcase_filters=[],
+        expected_failure_ids=expected_failure_ids, testcase_filters=[],
     )
     url_context_manager: ContextManager[Any]
     if config.url_replace:
