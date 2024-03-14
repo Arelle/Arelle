@@ -30,7 +30,7 @@ def stringArg(xc, args, i, type, missingArgFallback=None, emptyFallback=''):
     item = anytypeArg(xc, args, i, type, missingArgFallback)
     if item == (): return emptyFallback
     if isinstance(item, (ModelObject,ModelAttribute)):
-        return item.text
+        return item.text or emptyFallback
     return str(item)
 
 def numericArg(xc, p, args, i=0, missingArgFallback=None, emptyFallback=0, convertFallback=None):
