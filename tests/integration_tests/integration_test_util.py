@@ -73,7 +73,6 @@ def get_s3_uri(path: str, version_id: str | None = None) -> str:
 def get_test_data(
         args: list[str],
         expected_failure_ids: frozenset[str] = frozenset(),
-        expected_empty_testcases: frozenset[str] = frozenset(),
         expected_model_errors: frozenset[str] = frozenset(),
         required_locale_by_ids: dict[str, re.Pattern[str]] | None = None,
         strict_testcase_index: bool = True,
@@ -83,7 +82,6 @@ def get_test_data(
 
     :param args: The args to be parsed by arelle in order to correctly produce the desired result set
     :param expected_failure_ids: The set of string test IDs that are expected to fail
-    :param expected_empty_testcases: The set of paths of empty testcases, relative to the suite zip
     :param expected_model_errors: The set of error codes expected to be in the ModelXbrl errors
     :param required_locale_by_ids: The dict of IDs for tests which require a system locale matching a regex pattern.
     :param strict_testcase_index: Don't allow IOerrors when loading the testcase index
@@ -105,7 +103,6 @@ def get_test_data(
         collect_test_data(
             cntlr=cntlr,
             expected_failure_ids=expected_failure_ids,
-            expected_empty_testcases=expected_empty_testcases,
             expected_model_errors=expected_model_errors,
             required_locale_by_ids=required_locale_by_ids,
             system_locale=system_locale,
@@ -122,7 +119,11 @@ def get_test_data(
             else:
                 for mv in test_case.testcaseVariations:
                     test_id = f'{test_case_file_id}:{mv.id}'
-                    expected_failure = isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale)
+                    marks = []
+                    if isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale):
+                        marks.append(pytest.mark.xfail())
+                    elif mv.status == 'skip':
+                        marks.append(pytest.mark.skip())
                     param = pytest.param(
                         {
                             'status': mv.status,
@@ -131,20 +132,11 @@ def get_test_data(
                             'duration': mv.duration,
                         },
                         id=test_id,
-                        marks=[pytest.mark.xfail()] if expected_failure else [],
+                        marks=marks,
                     )
                     results.append(param)
         if test_cases_with_unrecognized_type:
             raise Exception(f"Some test cases have an unrecognized document type: {sorted(test_cases_with_unrecognized_type.items())}.")
-        unrecognized_expected_empty_testcases = expected_empty_testcases.difference(map(get_document_id, test_cases))
-        if unrecognized_expected_empty_testcases:
-            raise Exception(f"Some expected empty test cases weren't found: {sorted(unrecognized_expected_empty_testcases)}.")
-        unexpected_empty_testcases = test_cases_with_no_variations - expected_empty_testcases
-        if unexpected_empty_testcases:
-            raise Exception(f"Some test cases don't have any variations: {sorted(unexpected_empty_testcases)}.")
-        unexpected_nonempty_testcases = expected_empty_testcases - test_cases_with_no_variations
-        if unexpected_nonempty_testcases:
-            raise Exception(f"Some test cases with variations were expected to be empty: {sorted(unexpected_nonempty_testcases)}.")
         test_id_frequencies = Counter(cast(str, p.id) for p in results)
         nonunique_test_ids = {test_id: count for test_id, count in test_id_frequencies.items() if count > 1}
         if nonunique_test_ids:
@@ -165,7 +157,6 @@ def get_test_data(
 def collect_test_data(
         cntlr: Cntlr,
         expected_failure_ids: frozenset[str],
-        expected_empty_testcases: frozenset[str],
         expected_model_errors: frozenset[str],
         required_locale_by_ids: dict[str, re.Pattern[str]],
         system_locale: str,
@@ -178,7 +169,6 @@ def collect_test_data(
             collect_test_data(
                 cntlr=cntlr,
                 expected_failure_ids=expected_failure_ids,
-                expected_empty_testcases=expected_empty_testcases,
                 expected_model_errors=expected_model_errors,
                 required_locale_by_ids=required_locale_by_ids,
                 system_locale=system_locale,

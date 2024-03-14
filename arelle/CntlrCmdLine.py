@@ -289,6 +289,9 @@ def parseArgs(args):
     parser.add_option("--formulaVarExpressionResult", "--formulavarexpressionresult", action="store_true", dest="formulaVarExpressionResult", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFilterWinnowing", "--formulavarfilterwinnowing", action="store_true", dest="formulaVarFilterWinnowing", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFiltersResult", "--formulavarfiltersresult", action="store_true", dest="formulaVarFiltersResult", help=_("Specify formula tracing."))
+    parser.add_option("--testcaseFilter", "--testcasefilter", action="append", dest="testcaseFilters",
+                      help=_("If any filters are provided, any testcase variation path in the form {testcaseFilepath}:{testcaseVariationId} that doesn't pass any filter "
+                             "will be skipped." ))
     parser.add_option("--testcaseResultsCaptureWarnings", "--testcaseresultscapturewarnings", action="store_true", dest="testcaseResultsCaptureWarnings",
                       help=_("For testcase variations capture warning results, default is inconsistency or warning if there is any warning expected result.  "))
     parser.add_option("--testcaseResultOptions", choices=("match-any", "match-all"), action="store", dest="testcaseResultOptions",
@@ -874,6 +877,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.traceVariableFilterWinnowing = True
         if options.formulaVarFiltersResult:
             fo.traceVariableFiltersResult = True
+        if options.testcaseFilters:
+            fo.testcaseFilters = options.testcaseFilters
         if options.testcaseResultsCaptureWarnings:
             fo.testcaseResultsCaptureWarnings = True
         if options.testcaseResultOptions:

@@ -22,7 +22,6 @@ class ConformanceSuiteConfig:
     args: list[str] = field(default_factory=list)
     cache_version_id: str | None = None
     capture_warnings: bool = True
-    expected_empty_testcases: frozenset[str] = frozenset()
     expected_failure_ids: frozenset[str] = frozenset()
     expected_model_errors: frozenset[str] = frozenset()
     extract_path: str | None = None
