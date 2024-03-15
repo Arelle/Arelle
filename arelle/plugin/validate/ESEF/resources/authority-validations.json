@@ -256,10 +256,10 @@
     "SK": {
         "name": "Slovakia"
     },
-    "UKFRC": {
-        "name": "United Kingdom",
+    "UKFRC-2022": {
+        "name": "United Kingdom Single Target",
         "authorityName": "FRC",
-        "comment": "Pertains to UKSEF Guidance",
+        "comment": "Pertains to UKSEF Guidance before UKSEF filings used multiple targets beginning in 2023",
         "comment2": "See GB for UK filings to ESMA ESEF not using UKSEF",
         "reference": "https://www.frc.org.uk/getattachment/d41a2831-6626-40b5-86c0-97627b50dd10/FRC-UKSEF-Tagging-Guide-2021-Version-1-1-January-2022.pdf",
         "reportPackageMaxMB": "150",
