@@ -320,5 +320,15 @@
             "https://xbrl.frc.org.uk/"
         ],
         "formulaRunIDs": "(?!con_IdentifierSchemeMustBeLEI|lei-identifier-scheme)"
+    },
+    "UKFRC-2023": {
+        "name": "United Kingdom Multiple Targets",
+        "authorityName": "FRC",
+        "comment": "Pertains to multi target UKSEF Guidance",
+        "comment2": "See UKFRC for reports prior to 2023 which did not use separate targets for FRC and ESEF",
+        "reference": "https://media.frc.org.uk/documents/XBRL_Tagging_Guide_-_FRC_Taxonomies_2024_On9jOuS.pdf",
+        "reportPackageMaxMB": "150",
+        "reportPackageMeasurement": "zipped",
+        "ixTargetUsage": "allowed"
     }
 }
