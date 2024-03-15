@@ -103,7 +103,7 @@ __pluginInfo__ = {
     # classes of mount points (required)
     # note that this mount point must load after EdgarRenderer's same-named mount point
     'EdgarRenderer.Filing.Start': edgarRendererFilingStartSupplement,
-    'EdgarRenderer.Filing.End': edgarRendererFilingEndSupplement,
-    'EdgarRenderer.Gui.Start': edgarRendererFilingStartSupplement,
-    'EdgarRenderer.Gui.End': edgarRendererFilingEndSupplement
+    'EdgarRenderer.FilingEnd.SupplementalReport': edgarRendererFilingEndSupplementalReport,
+    #'EdgarRenderer.Gui.Start': edgarRendererFilingStartSupplement,
+    #'EdgarRenderer.Gui.End': edgarRendererFilingEndSupplementalReport
 }
