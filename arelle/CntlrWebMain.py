@@ -27,6 +27,10 @@ from arelle.webserver.bottle import (Bottle, HTTPResponse, request, response,
 
 _: TypeGetText
 
+# Variable is imported but not used by ferc renderer plugin.
+# RuntimeOptions should be imported by plugins instead.
+Options = None
+
 _os_pid = os.getpid()
 
 GETorPOST = ('GET', 'POST')
