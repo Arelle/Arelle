@@ -361,7 +361,7 @@ def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, ren
                                         aspectValue != XbrlConst.qnFormulaOccEmpty):
                                     lytMdlCnstrt.value = aspectValue
                             lytMdlCnstrt.aspect = aspect
-                for aspect in getattr(strctNode.defnMdlNode, "deemedDefaultedDims", ()):
+                for aspect in getattr(strctNode, "deemedDefaultedDims", ()):
                     # deemed defaulted explicit dimensions when present in sibling str mdl nodes
                     lytMdlCnstrt = LytMdlConstraint(lytMdlCell, None)
                     lytMdlCnstrt.aspect = aspect

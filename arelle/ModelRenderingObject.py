@@ -549,6 +549,7 @@ class StrctMdlStructuralNode(StrctMdlNode):
         if defnMdlNode is None:
             return None # root node
         # may be both a period override and other in the selectors
+
         if tagSelectors:
             ts = set(tagSelectors)
             if TABLE_PERIOD_SELECTORS & ts and len(ts & defnMdlNode.constraintSets.keys()) > 1:

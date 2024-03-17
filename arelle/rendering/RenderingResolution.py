@@ -143,6 +143,8 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
             descendantDepths = [getDepth(d) for d in strctMdlBreakdown.strctMdlChildNodes]
             if min(descendantDepths) != max (descendantDepths):
                 addDescendantRollups(strctMdlBreakdown)
+            # add any defaulted dimensions needed on leaf nodes
+            addDefaultedDimensionsToLeafNodes(strctMdlBreakdown)
             if axis == "x":
                 view.dataCols += strctMdlBreakdown.leafNodeCount
             elif axis == "y":
@@ -428,7 +430,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     strctMdlNode.strctMdlChildNodes.extend(childStrctNode.strctMdlChildNodes)
                 # check if a children specify explicit dimensions and one is missing default
                 descendantDefMdlNodes = view.defnSubtreeRelSet.fromModelObject(defnMdlNode)
-                childDimsCovered = set( # defaulted dims in children
+                defnMdlChildDefDimsCovered = set( # defaulted dims in children
                     aspect
                     for rel in descendantDefMdlNodes
                     if not isinstance(rel.toModelObject, (NoneType,DefnMdlTable))
@@ -439,24 +441,31 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                 for rel in descendantDefMdlNodes:
                     descDefnMdlNode = rel.toModelObject
                     if not isinstance(descDefnMdlNode, (NoneType,DefnMdlTable)):
-                        defaultedDims = childDimsCovered - descDefnMdlNode.aspectsCovered() - defnMdlNode.aspectsCovered()
+                        defaultedDims = defnMdlChildDefDimsCovered - descDefnMdlNode.aspectsCovered() - defnMdlNode.aspectsCovered()
                         if defaultedDims:
                             descDefnMdlNode.deemedDefaultedDims = defaultedDims
                 # check if child strct nodes specify explicit dimensions and one is missing default
-                childDimsCovered = set( # defaulted dims in children
+                strctMdlChildDefDimsCovered = set( # defaulted dims in children
                     aspect
                     for gStrctNode in strctMdlParent.strctMdlChildNodes
                     for aspect in gStrctNode.aspectsCovered(inherit=True)
-                    if isinstance(aspect, QName) and aspect in view.modelXbrl.qnameDimensionDefaults
+                    if isinstance(aspect, QName) and aspect in view.modelXbrl.qnameDimensionDefaults and gStrctNode.axis == axis
                 )
                 # note child defnMdlNodes needing default dimension
+                anyUncoveredChilds = (defnMdlChildDefDimsCovered and
+                                      any(defnMdlChildDefDimsCovered - gStrctNode.aspectsCovered(inherit=True)
+                                          for gStrctNode in strctMdlParent.strctMdlChildNodes))
                 for gStrctNode in strctMdlParent.strctMdlChildNodes:
-                    defaultedDims = childDimsCovered - gStrctNode.aspectsCovered(inherit=True)
-                    # remove any OMIT dimensions
-                    if gStrctNode.hasAspect(Aspect.OMIT_DIMENSIONS):
-                        defaultedDims |= set(gStrctNode.aspectValue(Aspect.OMIT_DIMENSIONS))
-                    if defaultedDims:
-                        gStrctNode.defnMdlNode.deemedDefaultedDims = defaultedDims
+                    if gStrctNode.axis == axis: # don't cross over breakdowns of other axis
+                        defaultedDims = strctMdlChildDefDimsCovered - gStrctNode.aspectsCovered(inherit=True)
+                        # remove any OMIT dimensions
+                        if gStrctNode.hasAspect(Aspect.OMIT_DIMENSIONS):
+                            defaultedDims |= set(gStrctNode.aspectValue(Aspect.OMIT_DIMENSIONS))
+                        if defaultedDims:
+                            gStrctNode.defnMdlNode.deemedDefaultedDims = defaultedDims
+                        elif (anyUncoveredChilds and gStrctNode.defnMdlNode is not None
+                              and (defnMdlChildDefDimsCovered - gStrctNode.aspectsCovered(inherit=True))):
+                            gStrctNode.defnMdlNode.deemedDefaultedDims = defnMdlChildDefDimsCovered
             if isinstance(defnMdlNode, DefnMdlRelationshipNode):
                 rels = defnMdlNode.relationships(strctMdlParent)
                 if defnMdlNode.isOrSelfAxis:
@@ -592,6 +601,9 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                                                           returnMsgFormatString=False,
                                                           layoutMdlSortOrder=True)
                                or '') # exception on trying to sort if header returns None
+                #test case 1200 v10i may require fact in instance order
+                #childList.sort(key=lambda childStrctMdlNode:
+                #               min(f.objectIndex for f in childStrctMdlNode.factsPartition) if getattr(childStrctMdlNode,"factsPartition",None) else 999999999)
 
                 # TBD if there is no abstract 'sub header' for these subOrdCntxs, move them in place of parent structuralNode
             elif isinstance(defnMdlNode, DefnMdlRuleDefinitionNode):
@@ -773,3 +785,20 @@ def addDescendantRollups(strctMdlParent, maxDepth=None, depth=0):
         if len(strctMdlParent.strctMdlChildNodes) > 1 and strctMdlParent.parentChildOrder == "parent-first":
             strctMdlParent.strctMdlChildNodes = strctMdlParent.strctMdlChildNodes[-1:] + strctMdlParent.strctMdlChildNodes[0:-1]
         addDescendantRollups(rollUpStrctNode, maxDepth, depth=depth+1)
+
+def addDefaultedDimensionsToLeafNodes(strctMdlNode, coveredDims=None, defaultedDims=None):
+    if coveredDims is None:
+        coveredDims = set()
+        defaultedDims = set()
+    coveredDims = coveredDims | strctMdlNode.aspectsCovered()
+    if strctMdlNode.hasAspect(Aspect.OMIT_DIMENSIONS):
+        coveredDims = coveredDims - set(strctMdlNode.aspectValue(Aspect.OMIT_DIMENSIONS))
+    if hasattr(strctMdlNode.defnMdlNode, "deemedDefaultedDims"):
+        defaultedDims = defaultedDims | getattr(strctMdlNode.defnMdlNode, "deemedDefaultedDims")
+    if strctMdlNode.strctMdlChildNodes:
+        for childStrctMdlNode in strctMdlNode.strctMdlChildNodes:
+            addDefaultedDimensionsToLeafNodes(childStrctMdlNode, coveredDims, defaultedDims)
+    else: # leaf node
+        deemedDefaultedDims = defaultedDims - coveredDims
+        if deemedDefaultedDims:
+            strctMdlNode.deemedDefaultedDims = deemedDefaultedDims
