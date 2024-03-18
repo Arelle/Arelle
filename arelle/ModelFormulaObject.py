@@ -50,6 +50,7 @@ class FormulaOptions():
         self.traceVariableExpressionCode = False
         self.traceVariableExpressionEvaluation = False
         self.traceVariableExpressionResult = False
+        self.testcaseFilters = None
         self.testcaseResultsCaptureWarnings = False
         self.testcaseResultOptions = None
         if isinstance(savedValues, dict):

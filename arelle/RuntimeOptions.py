@@ -1,10 +1,15 @@
+'''
+See COPYRIGHT.md for copyright information.
+'''
 from __future__ import annotations
 
-from arelle.ValidateDuplicateFacts import DeduplicationType
-from arelle.typing import TypeGetText
-from arelle.SystemInfo import hasWebServer
 from dataclasses import InitVar, dataclass
-from typing import Optional, Union, Any
+from typing import Any, Optional, Union
+
+from arelle.FileSource import FileNamedStringIO
+from arelle.SystemInfo import hasWebServer
+from arelle.typing import TypeGetText
+from arelle.ValidateDuplicateFacts import DeduplicationType
 
 _: TypeGetText
 
@@ -49,7 +54,7 @@ class RuntimeOptions:
     factListCols: Optional[int] = None
     factTableCols: Optional[int] = None
     factTableFile: Optional[str] = None
-    factsFile: Optional[str] = None
+    factsFile: Optional[str | FileNamedStringIO] = None
     formulaAction: Optional[str] = None
     formulaAsserResultCounts: Optional[bool] = None
     formulaCacheSize: Optional[int] = None
@@ -99,7 +104,7 @@ class RuntimeOptions:
     noCertificateCheck: Optional[bool] = None
     outputAttribution: Optional[str] = None
     packageManifestName: Optional[str] = None
-    packages: Optional[str] = None
+    packages: Optional[list[str]] = None
     parameterSeparator: Optional[str] = None
     parameters: Optional[str] = None
     password: Optional[str] = None
@@ -119,6 +124,7 @@ class RuntimeOptions:
     tableFile: Optional[str] = None
     testReport: Optional[str] = None
     testReportCols: Optional[int] = None
+    testcaseFilters: Optional[list[str]] = None
     testcaseResultOptions: Optional[str] = None
     testcaseResultsCaptureWarnings: Optional[bool] = None
     timeVariableSetEvaluation: Optional[bool] = None
@@ -132,9 +138,9 @@ class RuntimeOptions:
     validateEFMCalcTree: Optional[bool] = None
     validateHMRC: Optional[bool] = None
     validateTestcaseSchema: Optional[bool] = None
-    versReportFile: Optional[str] = None
+    versReportFile: Optional[str | FileNamedStringIO] = None
     viewArcrole: Optional[bool] = None
-    viewFile: Optional[str] = None
+    viewFile: Optional[str | FileNamedStringIO] = None
     webserver: Optional[str] = None
     xdgConfigHome: Optional[str] = None
 

@@ -100,7 +100,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             _("The authority %(authority)s requires a report package size under %(maxSize)s MB, size is %(size)s."),
                             modelObject=modelXbrl, authority=val.authority, maxSize=reportPackageMaxMB, size=_size)
 
-    if val.authority == "UKFRC":
+    if val.authority and val.authority.startswith("UKFRC"):
         if modelXbrl.fileSource and modelXbrl.fileSource.taxonomyPackage and modelXbrl.fileSource.taxonomyPackage["publisherCountry"] != "GB":
             modelXbrl.error("UKFRC.1.2.publisherCountrySetting",
                         _("The \"Publisher Country\" element of the report package metadata for a UKSEF report MUST be set to \"GB\" but was \"%(publisherCountry)s\"."),
@@ -817,7 +817,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         if not hasOutdatedUrl and not any(e in val.extensionImportedUrls for e in val.authParam["effectiveTaxonomyURLs"]):
             val.modelXbrl.error(
-                "UKFRC22.1.requiredUksefEntryPointNotImported" if val.authority == "UKFRC" else
+                "UKFRC22.1.requiredUksefEntryPointNotImported" if val.authority and val.authority.startswith("UKFRC") else
                 "ESEF.3.1.2.requiredEntryPointNotImported",
                 _("The issuer's extension taxonomies MUST import the entry point of the taxonomy files prepared by %(authority)s."),
                 modelObject=modelDocument, authority=val.authParam["authorityName"])

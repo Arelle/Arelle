@@ -4,18 +4,17 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import codecs
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, BinaryIO, Iterable, cast
 
 import regex
-
-from collections import defaultdict
-
 from lxml import etree
-from lxml.etree import XMLSyntaxError
 
 from arelle import ModelDocument, XbrlConst, XmlUtil
+from arelle.FileSource import openXmlFileStream
 from arelle.ModelObject import ModelObject, ModelComment
+from arelle.ModelValue import qname
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -62,11 +61,7 @@ XHTML_ALLOWED_STYLES = {
     'font-size',
     'color'
 }
-XHTML_ALLOWED_TAGS = frozenset({
-    'b', 'br', 'div', 'em', 'i', 'li', 'ol', 'p',
-    'pre', 's', 'small', 'strong', 'sub', 'sup',
-    'table', 'td', 'th', 'tr', 'u', 'ul'})
-XHTML_ALLOWED_TYPES = {
+XHTML_LIST_ITEM_TYPES = {
     'ol': frozenset({'1', 'a', 'A', 'i', 'I'}),
     'ul': frozenset({None, '', 'circle', 'square'}),
 }
@@ -744,59 +739,63 @@ def rule_fr_nl_5_11(
     - No font smaller than "3" (font size can be altered in many ways that depend on browser support)
     - No white text on white background (many potential "color" values are not easily readable)
     """
+    cntlr = val.modelXbrl.modelManager.cntlr
+    filepath = Path(cntlr.configDir) / pluginData.textFormattingSchemaPath
+    with openXmlFileStream(cntlr, filepath.as_posix(), stripDeclaration=True)[0] as file:
+        text = file.read()
+    schema_root = etree.XML(text)
+    schema = etree.XMLSchema(schema_root)
+    parser = etree.XMLParser(schema=schema)
+
     invalidTypeFacts = []
     typeQname = pluginData.formattedExplanationItemTypeQn
     for fact in val.modelXbrl.facts:
         validType = fact.concept.instanceOfType(typeQname)
-        wrappedContent = f'<div>{fact.textValue}</div>'  # Single root element required, wrap in valid div element
-        invalidTags = set()
-        invalidStyles = set()
-        hasElts = False
+        wrappedContent = pluginData.textFormattingWrapper.format(fact.textValue)
         try:
-            eltIter = etree.fromstring(wrappedContent).iter()
-        except XMLSyntaxError as exc:
-            # If we can't easily parse the text as XML, warn and give up
+            tree = etree.fromstring(wrappedContent, parser)
+        except etree.XMLSyntaxError as exc:
             if validType:
                 yield Validation.warning(
                     codes='NL.FR-NL-5.11',
-                    msg=_('Encountered XHTML syntax error while parsing "%(typeQname)s" fact value. '
-                          'Could not validate for allowed XHTML usage.'),
+                    msg=_('Encountered XHTML syntax error while parsing "%(typeQname)s" fact value: %(error)s'),
                     typeQname=typeQname,
+                    error=exc.msg,
                     modelObject=fact
                 )
             continue
-        for elt in eltIter:
-            if hasElts and not validType:
-                # `hasElts` skips over wrapping "div" element.
-                #  If additional elements are found and this fact is of an invalid type, trigger an error
-                invalidTypeFacts.append(fact)
-                break
-            hasElts = True
-            tag = elt.tag
-            if tag not in XHTML_ALLOWED_TAGS:
-                # Collect for single error generated later, move on.
-                invalidTags.add(tag)
-                continue
-            if tag in XHTML_ALLOWED_TYPES:
-                typeAttr = elt.get('type')
-                if typeAttr not in XHTML_ALLOWED_TYPES[tag]:
-                    invalidTags.add(f'{tag} (type:"{typeAttr}")')
-                    continue
-            styleAttr = elt.get('style')
-            if styleAttr:
-                styles = [x.split(':') for x in styleAttr.split(';')]
-                for styleValues in styles:
-                    if len(styleValues) > 1:
-                        styleProperty = styleValues[0].strip()
-                        if styleProperty not in XHTML_ALLOWED_STYLES:
-                            invalidStyles.add(styleProperty)
+
+        #  If child elements are found and this fact is of an invalid type, trigger an error
+        if len(tree) > 0 and not validType:
+            invalidTypeFacts.append(fact)
+            break
+
+        invalidListItemTypes = set()
+        invalidStyles = set()
+        for elt in tree.iter():
+            styleAttr = elt.get('style', '')
+            styles = [x.split(':') for x in styleAttr.split(';')]
+            for styleValues in styles:
+                if len(styleValues) > 1:
+                    styleProperty = styleValues[0].strip()
+                    if styleProperty not in XHTML_ALLOWED_STYLES:
+                        invalidStyles.add(styleProperty)
+            tag = qname(elt.tag).localName
+            parent = elt.getparent()
+            if tag == 'li' and parent is not None:
+                parentTag = qname(parent.tag).localName
+                if parentTag in XHTML_LIST_ITEM_TYPES:
+                    typeAttr = elt.get('type')
+                    if typeAttr not in XHTML_LIST_ITEM_TYPES[parentTag]:
+                        invalidListItemTypes.add(f'{parentTag}.li type="{typeAttr}"')
+                        continue
         # Generate tag/styling errors per-fact so helpful information about fact contents can be reported
-        if len(invalidTags) > 0:
+        if len(invalidListItemTypes) > 0:
             yield Validation.error(
                 codes='NL.FR-NL-5.11',
-                msg=_('Only a limited set of XHTML tags (see manual) are allowed in escaped XHTML. '
-                      'Found invalid tags: %(invalidTags)s'),
-                invalidTags=sorted(invalidTags),
+                msg=_('Only a limited set of list item ("li") type values are allowed, depending on parent ("ul" or "ol"). '
+                      'Found invalid type values: %(invalidListItemTypes)s'),
+                invalidListItemTypes=sorted(invalidListItemTypes),
                 modelObject=fact
             )
         if len(invalidStyles) > 0:

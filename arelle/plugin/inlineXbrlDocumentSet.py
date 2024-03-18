@@ -704,7 +704,7 @@ def saveTargetInstanceOverriden(deduplicationType: DeduplicationType | None) -> 
 
 
 def commandLineXbrlRun(cntlr, options: RuntimeOptions, modelXbrl, *args, **kwargs):
-    deduplicationTypeArg = getattr(options, "deduplicateIxbrlFacts")
+    deduplicationTypeArg = getattr(options, "deduplicateIxbrlFacts", None)
     deduplicationType = None if deduplicationTypeArg is None else DeduplicationType(deduplicationTypeArg)
     # skip if another class handles saving (e.g., EdgarRenderer)
     if saveTargetInstanceOverriden(deduplicationType):

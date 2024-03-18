@@ -18,9 +18,8 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       matrix: ${{ steps.build-test-matrix.outputs.matrix }}
-    environment: integration-tests
     steps:
-      - uses: actions/checkout@v4.1.1
+      - uses: actions/checkout@v4.1.2
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
@@ -48,14 +47,14 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: us-east-1
-      - uses: actions/checkout@v4.1.1
+      - uses: actions/checkout@v4.1.2
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Checkout EdgarRenderer
         if: ${{ matrix.test.name == 'efm_current' }}
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.1.2
         with:
           repository: Arelle/EdgarRenderer
           path: arelle/plugin/EdgarRenderer

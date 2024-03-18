@@ -1,0 +1,737 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+    targetNamespace="http://www.nltaxonomie.nl/2017/xbrl/sbr-text-formatting"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns="http://www.nltaxonomie.nl/2017/xbrl/sbr-text-formatting"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+<!--
+  This file is part of the Nederlandse taxonomy (NT, Dutch Taxonomy)
+  Intellectual Property State of the Netherlands
+  Released by the Dutch SBR Programme
+  Release date Thu October 5 9:00:00 2017
+
+  Dit schema definieert met behulp van een XML Schema de toegestane elementen in facts van concepten met type 'formattedExplanationItemType'.
+  Het schema is afgeleid van het XHTML 1.0 transitional schema waaruit de toegestane elementen en de ondersteunende definities van Types, Attributes en Groups zijn overgenomen.
+
+  De volgende XHTML elementen zijn toegestaan:
+    o <br/>                  - Nieuwe regel
+    o <table> <tr> <th> <td> - Eenvoudige tabellen
+    o <ul> <li>              - Ongeordende lijsten, gemarkeerd met: Circle (XHTML attribuut type="circle" op <li>), Vierkant (XHTML attribuut type="square" op <li>) of Default (geen ‘type’ attribuut opgeven)
+    o <ol> <li>              - Geordende lijsten, gemarkeerd met: arabic numbers (XHTML attribuut type="1" op <li>), lower alpha (XHTML attribuut type="a" op <li>), upper alpha (XHTML attribuut type="A" op <li>), lower roman (XHTML attribuut type="i" op <li>) of upper roman (XHTML attribuut type="I" op <li>)
+    o <b>                    - Bold text
+    o <u>                    - Underlined text
+    o <s>                    - Strikethrough text
+    o <strong>               - Strong text
+    o <i>                    - Italic text
+    o <em>                   - Emphasized text
+    o <small>                - Small text
+    o <sub>                  - Subscript text
+    o <sup>                  - Superscript text
+    o <pre>                  - Preformatted text
+    o <p>                    - Paragraph
+    o <div>                  - Division, geeft zelf geen opmaak maar kan gebruikt worden om een ‘style’ attribuut op tekst te plaatsen die niet (of niet volledig) binnen één van de overige toegestane elementen valt.
+
+  Het ‘style’ attribuut mag worden gebruikt bij alle toegestane XHTML elementen om Font gerelateerde aspecten op te geven.
+  De properties die hierbij zijn toegestaan zijn:
+    o font-family
+    o font-size
+    o color (tekstkleur)
+  De inhoud van het 'style' attribuut wordt in dit schema niet gedefinieerd.
+
+  Tekstopmaak wordt in een fact gecodeerd met ‘escaped’ XHTML opmaak code.
+  Validatie van de opgemaakte tekst door middel van dit schema kan gedaan worden door deze tekst als inhoud van het element 'formattedText' te beschouwen.
+  Dit element is dus zelf niet bedoeld om te worden opgenomen in een fact.
+ -->
+
+  <xs:annotation>
+    <xs:documentation>
+    ================== Validation Element ====================================
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:element name="formattedText">
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="Flow" />
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:annotation>
+    <xs:documentation>
+    ================== Imported Names ====================================
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:simpleType name="Character">
+    <xs:annotation>
+      <xs:documentation>
+      a single character, as per section 2.2 of [XML]
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:length value="1" fixed="true"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Number">
+    <xs:annotation>
+      <xs:documentation>
+      one or more digits
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:nonNegativeInteger">
+      <xs:pattern value="[0-9]+"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="StyleSheet">
+    <xs:annotation>
+      <xs:documentation>
+      style sheet data
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+
+  <xs:simpleType name="Length">
+    <xs:annotation>
+      <xs:documentation>
+      nn for pixels or nn% for percentage length
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[-+]?(\d+|\d+(\.\d+)?%)"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Pixels">
+    <xs:annotation>
+      <xs:documentation>
+      integer representing length in pixels
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+
+  <xs:annotation>
+    <xs:documentation>
+    =================== Generic Attributes ===============================
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:attributeGroup name="coreattrs">
+    <xs:annotation>
+      <xs:documentation>
+      core attributes common to most elements
+      style    associated style info
+      </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="style" type="StyleSheet"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="attrs">
+    <xs:attributeGroup ref="coreattrs"/>
+  </xs:attributeGroup>
+
+  <xs:annotation>
+    <xs:documentation>
+    =================== Text Elements ====================================
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:group name="special.basic">
+    <xs:choice>
+      <xs:element ref="br"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="special">
+    <xs:choice>
+      <xs:group ref="special.basic"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="fontstyle.extra">
+    <xs:choice>
+      <xs:element ref="small"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="fontstyle.basic">
+    <xs:choice>
+      <xs:element ref="i"/>
+      <xs:element ref="b"/>
+      <xs:element ref="u"/>
+      <xs:element ref="s"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="fontstyle">
+    <xs:choice>
+      <xs:group ref="fontstyle.basic"/>
+      <xs:group ref="fontstyle.extra"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="phrase.extra">
+    <xs:choice>
+      <xs:element ref="sub"/>
+      <xs:element ref="sup"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="phrase.basic">
+    <xs:choice>
+      <xs:element ref="em"/>
+      <xs:element ref="strong"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="phrase">
+    <xs:choice>
+      <xs:group ref="phrase.basic"/>
+      <xs:group ref="phrase.extra"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="inline">
+    <xs:choice>
+      <xs:group ref="special"/>
+      <xs:group ref="fontstyle"/>
+      <xs:group ref="phrase"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="Inline" mixed="true">
+    <xs:annotation>
+      <xs:documentation>
+      "Inline" covers inline or "text-level" element
+      </xs:documentation>
+    </xs:annotation>
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="inline"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:annotation>
+    <xs:documentation>
+    ================== Block level elements ==============================
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:group name="lists">
+    <xs:choice>
+      <xs:element ref="ul"/>
+      <xs:element ref="ol"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="blocktext">
+    <xs:choice>
+      <xs:element ref="pre"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="block">
+    <xs:choice>
+      <xs:element ref="p"/>
+      <xs:element ref="div"/>
+      <xs:group ref="lists"/>
+      <xs:group ref="blocktext"/>
+      <xs:element ref="table"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="Flow" mixed="true">
+    <xs:annotation>
+      <xs:documentation>
+      "Flow" mixes block and inline and is used for list items etc.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="block"/>
+      <xs:group ref="inline"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:annotation>
+    <xs:documentation>
+    ================== Content models for exclusions =====================
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:complexType name="pre.content" mixed="true">
+    <xs:annotation>
+      <xs:documentation>
+      pre uses "Inline" excluding img, object, applet, big, small,
+      font, or basefont
+      </xs:documentation>
+    </xs:annotation>
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="special.basic"/>
+      <xs:group ref="fontstyle.basic"/>
+      <xs:group ref="phrase.basic"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:annotation>
+    <xs:documentation>
+    =================== Document Body ====================================
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:element name="div">
+    <xs:annotation>
+      <xs:documentation>
+      generic language/style container      
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="Flow">
+          <xs:attributeGroup ref="attrs"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:annotation>
+    <xs:documentation>
+    =================== Paragraphs =======================================
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:element name="p">
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="Inline">
+          <xs:attributeGroup ref="attrs"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:annotation>
+    <xs:documentation>
+    =================== Lists ============================================
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:element name="ul">
+    <xs:annotation>
+      <xs:documentation>
+      Unordered list
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="li"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="attrs"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="ol">
+    <xs:annotation>
+      <xs:documentation>
+      Ordered (numbered) list
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="li"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="attrs"/>
+      <xs:attribute name="start" type="Number"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:simpleType name="LIStyle">
+    <xs:annotation>
+      <xs:documentation>
+      (Unordered) list bullet styles
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:token">
+      <xs:enumeration value="square"/>
+      <xs:enumeration value="circle"/>
+      <xs:enumeration value="1"/>
+      <xs:enumeration value="a"/>
+      <xs:enumeration value="A"/>
+      <xs:enumeration value="i"/>
+      <xs:enumeration value="I"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:element name="li">
+    <xs:annotation>
+      <xs:documentation>
+      list item
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="Flow">
+          <xs:attributeGroup ref="attrs"/>
+          <xs:attribute name="type" type="LIStyle"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:annotation>
+    <xs:documentation>
+    =================== Preformatted Text ================================
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:element name="pre">
+    <xs:annotation>
+      <xs:documentation>
+      content is "Inline" excluding 
+         "img|object|applet|big|small|sub|sup|font|basefont"
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="pre.content">
+          <xs:attributeGroup ref="attrs"/>
+          <xs:attribute name="width" type="Number"/>
+          <!--
+            'xml' is not imported into this document and is considered invalid by lxml parseing
+            'xml:space' is generally not supported: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/xml:space#browser_compatibility
+            'white-space' is the modern equivalent, so we will validate against that instead
+          -->
+          <!--<xs:attribute ref="xml:space" fixed="preserve"/>-->
+          <xs:attribute name="white-space" fixed="preserve"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:annotation>
+    <xs:documentation>
+    ===================== Inline Elements ================================
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:element name="br">
+    <xs:annotation>
+      <xs:documentation>
+      forced line break
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:attributeGroup ref="coreattrs"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="em">
+    <xs:annotation>
+      <xs:documentation>
+      emphasis
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="Inline">
+          <xs:attributeGroup ref="attrs"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="strong">
+    <xs:annotation>
+      <xs:documentation>
+      strong emphasis
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="Inline">
+          <xs:attributeGroup ref="attrs"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="sub">
+    <xs:annotation>
+      <xs:documentation>
+      subscript
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="Inline">
+          <xs:attributeGroup ref="attrs"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="sup">
+    <xs:annotation>
+      <xs:documentation>
+      superscript
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="Inline">
+          <xs:attributeGroup ref="attrs"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="i">
+    <xs:annotation>
+      <xs:documentation>
+      italic font
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="Inline">
+          <xs:attributeGroup ref="attrs"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="b">
+    <xs:annotation>
+      <xs:documentation>
+      bold font
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="Inline">
+          <xs:attributeGroup ref="attrs"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="small">
+    <xs:annotation>
+      <xs:documentation>
+      smaller font
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="Inline">
+          <xs:attributeGroup ref="attrs"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="u">
+    <xs:annotation>
+      <xs:documentation>
+      underline
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="Inline">
+          <xs:attributeGroup ref="attrs"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="s">
+    <xs:annotation>
+      <xs:documentation>
+      strike-through
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="Inline">
+          <xs:attributeGroup ref="attrs"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:annotation>
+    <xs:documentation>
+    ======================= Tables =======================================
+
+    Derived from IETF HTML table standard, see [RFC1942]
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:simpleType name="TFrame">
+    <xs:annotation>
+      <xs:documentation>
+      The border attribute sets the thickness of the frame around the
+      table. The default units are screen pixels.
+
+      The frame attribute specifies which parts of the frame around
+      the table should be rendered. The values are not the same as
+      CALS to avoid a name clash with the valign attribute.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:token">
+      <xs:enumeration value="void"/>
+      <xs:enumeration value="above"/>
+      <xs:enumeration value="below"/>
+      <xs:enumeration value="hsides"/>
+      <xs:enumeration value="lhs"/>
+      <xs:enumeration value="rhs"/>
+      <xs:enumeration value="vsides"/>
+      <xs:enumeration value="box"/>
+      <xs:enumeration value="border"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="TRules">
+    <xs:annotation>
+      <xs:documentation>
+      The rules attribute defines which rules to draw between cells:
+
+      If rules is absent then assume:
+          "none" if border is absent or border="0" otherwise "all"
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:token">
+      <xs:enumeration value="none"/>
+      <xs:enumeration value="groups"/>
+      <xs:enumeration value="rows"/>
+      <xs:enumeration value="cols"/>
+      <xs:enumeration value="all"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="TAlign">
+    <xs:annotation>
+      <xs:documentation>
+      horizontal placement of table relative to document
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:token">
+      <xs:enumeration value="left"/>
+      <xs:enumeration value="center"/>
+      <xs:enumeration value="right"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:attributeGroup name="cellhalign">
+    <xs:annotation>
+      <xs:documentation>
+      horizontal alignment attributes for cell contents
+
+      char        alignment char, e.g. char=':'
+      charoff     offset for alignment char
+      </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="align">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="left"/>
+          <xs:enumeration value="center"/>
+          <xs:enumeration value="right"/>
+          <xs:enumeration value="justify"/>
+          <xs:enumeration value="char"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="char" type="Character"/>
+    <xs:attribute name="charoff" type="Length"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="cellvalign">
+    <xs:annotation>
+      <xs:documentation>
+      vertical alignment attributes for cell contents
+      </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="valign">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="top"/>
+          <xs:enumeration value="middle"/>
+          <xs:enumeration value="bottom"/>
+          <xs:enumeration value="baseline"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+
+  <xs:element name="table">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="tr"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="attrs"/>
+      <xs:attribute name="width" type="Length"/>
+      <xs:attribute name="border" type="Pixels"/>
+      <xs:attribute name="frame" type="TFrame"/>
+      <xs:attribute name="rules" type="TRules"/>
+      <xs:attribute name="cellspacing" type="Length"/>
+      <xs:attribute name="cellpadding" type="Length"/>
+      <xs:attribute name="align" type="TAlign"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="tr">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element ref="th"/>
+        <xs:element ref="td"/>
+      </xs:choice>
+      <xs:attributeGroup ref="attrs"/>
+      <xs:attributeGroup ref="cellhalign"/>
+      <xs:attributeGroup ref="cellvalign"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:annotation>
+    <xs:documentation>
+    th is for headers, td for data and for cells acting as both
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:element name="th">
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="Flow">
+          <xs:attributeGroup ref="attrs"/>
+          <xs:attribute name="rowspan" default="1" type="Number"/>
+          <xs:attribute name="colspan" default="1" type="Number"/>
+          <xs:attributeGroup ref="cellhalign"/>
+          <xs:attributeGroup ref="cellvalign"/>
+          <xs:attribute name="width" type="Length"/>
+          <xs:attribute name="height" type="Length"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="td">
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="Flow">
+          <xs:attributeGroup ref="attrs"/>
+          <xs:attribute name="rowspan" default="1" type="Number"/>
+          <xs:attribute name="colspan" default="1" type="Number"/>
+          <xs:attributeGroup ref="cellhalign"/>
+          <xs:attributeGroup ref="cellvalign"/>
+          <xs:attribute name="width" type="Length"/>
+          <xs:attribute name="height" type="Length"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

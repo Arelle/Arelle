@@ -4,7 +4,7 @@ import sys
 from argparse import ArgumentParser, Namespace
 
 from tests.integration_tests.download_cache import download_and_apply_cache
-from tests.integration_tests.validation.validation_util import get_conformance_suite_test_results
+from tests.integration_tests.validation.validation_util import get_conformance_suite_test_results, save_timing_file
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 from tests.integration_tests.validation.conformance_suite_configs import (
     ALL_CONFORMANCE_SUITE_CONFIGS,
@@ -71,6 +71,11 @@ ARGUMENTS: list[dict[str, Any]] = [
         "help": "Select all public conformance suites"
     },
     {
+        "name": "--series",
+        "action": "store_true",
+        "help": "Run shards in series"
+    },
+    {
         "name": "--shard",
         "action": "store",
         "help": "comma separated list of 0-indexed shards to run",
@@ -113,7 +118,8 @@ def run_conformance_suites(
         download_cache: bool = False,
         download_option: str | None = None,
         log_to_file: bool = False,
-        offline_option: bool = False) -> list[ParameterSet]:
+        offline_option: bool = False,
+        series_option: bool = False) -> list[ParameterSet]:
     conformance_suite_configs = _get_conformance_suite_names(select_option)
     if download_option:
         overwrite = download_option == DOWNLOAD_OVERWRITE
@@ -140,7 +146,16 @@ def run_conformance_suites(
                         shards.extend(range(int(start), int(end) + 1))
                     else:
                         shards.append(int(part))
-            results = get_conformance_suite_test_results(config, shards=shards, build_cache=build_cache, log_to_file=log_to_file, offline=offline_option)
+            results = get_conformance_suite_test_results(
+                config,
+                shards=shards,
+                build_cache=build_cache,
+                log_to_file=log_to_file,
+                offline=offline_option,
+                series=series_option,
+            )
+            if log_to_file:
+                save_timing_file(config, results)
             all_results.extend(results)
     return all_results
 
@@ -158,7 +173,8 @@ def run_conformance_suites_options(options: Namespace) -> list[ParameterSet]:
         download_option=download_option,
         download_cache=options.download_cache,
         log_to_file=options.log_to_file,
-        offline_option=options.offline
+        offline_option=options.offline,
+        series_option=options.series,
     )
 
 

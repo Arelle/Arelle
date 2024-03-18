@@ -34,6 +34,7 @@ FAST_CONFIG_NAMES = {
     'esef_xhtml_2023',
     'xbrl_calculations_1_1',
     'xbrl_dimensions_1_0',
+    'xbrl_dtr_2024_01_31',
     'xbrl_extensible_enumerations_1_0',
     'xbrl_extensible_enumerations_2_0',
     'xbrl_formula_1_0_assertion_severity_2_0',

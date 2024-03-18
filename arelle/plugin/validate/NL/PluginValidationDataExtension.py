@@ -24,6 +24,8 @@ class PluginValidationDataExtension(PluginValidationData):
     documentResubmissionUnsurmountableInaccuraciesQn: QName
     entrypointRoot: str
     entrypoints: set[str]
+    textFormattingSchemaPath: str
+    textFormattingWrapper: str
 
     _contextsByDocument: dict[str, list[ModelContext]] | None = None
     _factsByDocument: dict[str, list[ModelFact]] | None = None

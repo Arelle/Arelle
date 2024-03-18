@@ -8,16 +8,17 @@ To run test:
 
 '''
 
-from arelle.CntlrWebMain import GET, Options, runOptionsAndGetResult
+from arelle.CntlrWebMain import runOptionsAndGetResult
+from arelle.RuntimeOptions import RuntimeOptions
 from arelle.Version import copyrightLabel
 
 def my_test():
     return _("<html><body><h1>Test</h1><p>It works!</p></body></html>")
 
 def my_run(file=None):
-    options = Options() # inspired by CntlrWebMain.validate
-    setattr(options, "entrypointFile", file)
-    setattr(options, "validate", True)
+    options = RuntimeOptions() # inspired by CntlrWebMain.validate
+    options.entrypointFile = file
+    options.validate = True
     return runOptionsAndGetResult(options, "html", None, None)
 
 

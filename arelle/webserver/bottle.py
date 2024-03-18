@@ -12,9 +12,10 @@ Homepage and documentation: http://bottlepy.org/
 Copyright (c) 2009-2018, Marcel Hellkamp.
 License: MIT (see LICENSE for details)
 """
+from __future__ import annotations, print_function
 
-from __future__ import print_function
 import sys
+from typing import Any
 
 __author__ = 'Marcel Hellkamp'
 __version__ = '0.13-dev'
@@ -629,7 +630,7 @@ class Bottle(object):
         cfg.meta_set('catchall', 'validate', bool)
         return cfg
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         #: A :class:`ConfigDict` for app specific configuration.
         self.config = self._global_config._make_overlay()
         self.config._add_change_listener(
@@ -889,7 +890,7 @@ class Bottle(object):
               callback=None,
               name=None,
               apply=None,
-              skip=None, **config):
+              skip=None, **config) -> Any:
         """ A decorator to bind a function to a request URL. Example::
 
                 @app.route('/hello/<name>')
@@ -1207,7 +1208,7 @@ class BaseRequest(object):
             HTTP request headers. """
         return WSGIHeaderDict(self.environ)
 
-    def get_header(self, name, default=None):
+    def get_header(self, name, default=None) -> str | None:
         """ Return the value of a request header, or a given default value. """
         return self.headers.get(name, default)
 
@@ -2844,7 +2845,7 @@ def static_file(filename, root,
                 download=False,
                 charset='UTF-8',
                 etag=None,
-                headers=None):
+                headers=None) -> HTTPResponse:
     """ Open a file in a safe way and return an instance of :exc:`HTTPResponse`
         that can be sent back to the client.
 
