@@ -2534,7 +2534,7 @@
     {
         "sub-types": ["@11-K", "@11-KT"],
         "xbrl-names": [],
-        "efm": "6.3.00",
+        "efm": "6.5.60",
         "validation": "taxonomy-url-required-in-dts",
         "value": "https://xbrl.fasb.org/us-gaap/*/ebp/elts/us-gaap-ebp-*.xsd",
         "source": "both"
@@ -2542,7 +2542,7 @@
     {
         "sub-types": ["@11-K", "@11-KT"],
         "xbrl-names": [],
-        "efm": "6.3.00",
+        "efm": "6.5.60",
         "validation": "taxonomy-url-unexpected-in-dts",
         "value": "https://xbrl.ifrs.org/taxonomy/*/full_ifrs/full_ifrs-cor_*.xsd",
         "source": "both"

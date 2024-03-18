@@ -1028,7 +1028,7 @@
         		"sum": "NetCashProvidedByUsedInDiscontinuedOperations",
         		"message": "The element NetCashProvidedByUsedInDiscontinuedOperations (Net Cash Provided by (Used in) Discontinued Operations) does not include EffectOfExchangeRateOnCashAndCashEquivalentsDiscontinuedOperations (Effect of Exchange Rate on Cash and Cash Equivalents, Discontinued Operations) as defined in the US GAAP Taxonomy.\n\nHowever, in the companies extension taxonomy NetCashProvidedByUsedInDiscontinuedOperations includes EffectOfExchangeRateOnCashAndCashEquivalentsDiscontinuedOperations as a summation-child. Consider using either CashAndCashEquivalentsPeriodIncreaseDecrease or CashPeriodIncreaseDecrease,  instead of NetCashProvidedByUsedInDiscontinuedOperations."
         	},
-           	"7479": {
+           	"9279": {
         		"item": "NetIncomeLoss",
         		"sum": ["OtherComprehensiveIncomeLossNetOfTax", "OtherComprehensiveIncomeLossBeforeTax", "OtherComprehensiveIncomeLossNetOfTaxPortionAttributableToParent", "OtherComprehensiveIncomeLossBeforeTaxPortionAttributableToParent"],
         		"message": "The element NetIncomeLoss (Net Income Loss) should not be included as a total of {totals}. The OCI element represents Other Comprehensive Income and should be aggregated with NetIncome Loss to derive the value of Comprehensive Income. Please remove Net Income Loss from the calculation, or change  the total to be a Comprehensive Income element such as ComprehensiveIncomeNetOfTaxIncludingPortionAttributableToNoncontrollingInterest. (Comprehensive Income (Loss), Net of Tax, Including Portion Attributable to Noncontrolling Interest)."
@@ -1172,7 +1172,7 @@
             "axis: local name of axis concept",
             "message: message specific to this situation",
             "",
-            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0046/DQC_0046.md"
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0054/DQC_0054.md"
         ],
         "rules": {
         	"7490": {
@@ -1203,7 +1203,7 @@
             "requires-children: local names of members requiring children",
             "message: message specific to this situation",
             "",
-            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0046/DQC_0046.md"
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0055/DQC_0055.md"
         ],
         "axis": "RetirementPlanSponsorLocationAxis",
         "rules": {
@@ -2055,7 +2055,7 @@
         "message": "The element {name} with a value of {value} has a value greater than a 1,000 percent.  Percentage items should have a value that are generally between 0 and 1. In XBRL a value of 1 is equal to 100%. Please review the value of the element to ensure that it is scaled correctly.  For example 200 basis points should be reported as 0.02. \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}.",
         "rules": {
         	"9376": {
-        		"exclusion-pattern": ".*EffectiveIncomeTaxRate.*$|EffectiveIncomeTaxRateReconciliationAtFederalStatutoryIncomeTaxRate$|InvestmentOwnedPercentOfNetAssets$"
+        		"exclusion-pattern": "(?!EffectiveIncomeTaxRateReconciliationAtFederalStatutoryIncomeTaxRate).*EffectiveIncomeTaxRate.*$|InvestmentOwnedPercentOfNetAssets$"
         	}
         }
     },
