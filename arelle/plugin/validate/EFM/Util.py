@@ -47,9 +47,6 @@ def usgaapYear(modelXbrl):
 def loadNonNegativeFacts(modelXbrl, dqcRules, ugtRels):
     # for us-gaap newer than 2020 use DQCRT non-negative facts.
     if dqcRules and ugtRels: # not used for us-gaap before 2020
-        if usgaapYear(modelXbrl) == "2020" and "dqcrt-2021-usgaap-2020" not in (modelXbrl.modelManager.disclosureSystem.options or ""):
-            dqcRules.clear() # remove dqc rules
-            return ugtRels["DQC.US.0015"] # use 20.1 2020 nonNegFacts test and warning
         return None # use all available DQCRT tests
     # for us-gaap < 2020 use EFM non-negative warning  instead of DQCRT rules
     _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "signwarnings.json"), 'rt', encoding='utf-8')
@@ -417,6 +414,8 @@ def loadUgtRelQnames(modelXbrl, dqcRules):
            "axes": ugtAxesByQnames,
            "axis-defaults": ugtAxisDefaultQnames,
            "accrual-items": set(ugtRels["accrual-items"])}
+    for ugtItem in ("730000-items", "non-CF", "non-CF-abstracts1", "SHE-exceptions"):
+        ugt[ugtItem] = ugtRels[ugtItem]
      # dqc0015
     if "DQC.US.0015" in ugtRels:
         dqc0015 = ugtRels["DQC.US.0015"]
@@ -497,7 +496,7 @@ def buildUgtFullRelsFiles(modelXbrl, dqcRules):
                 messageCode="arelle:notLoaded", messageArgs={"modelXbrl": val, "name":ugtAbbr})
         else:
             # load signwarnings from DQC 0015
-            calcRelSet = ugtInstance.relationshipSet(XbrlConst.summationItem)
+            calcRelSet = ugtInstance.relationshipSet(XbrlConst.summationItems)
             preRelSet = ugtInstance.relationshipSet(XbrlConst.parentChild)
             for rel in calcRelSet.modelRelationships:
                 _fromQn = rel.fromModelObject.qname
@@ -525,22 +524,41 @@ def buildUgtFullRelsFiles(modelXbrl, dqcRules):
             for rel in ugtInstance.relationshipSet(XbrlConst.dimensionDefault).modelRelationships:
                 ugtAxisDefaults[rel.fromModelObject.name] = rel.toModelObject.name
             # accrual items
-            def addAccrualDescendants(rel, visited):
+            def addAccrualDescendants(rel, filter, visited=None):
+                if visited is None: visited = set()
                 name = rel.toModelObject.name
-                if rel.toModelObject.isMonetary:
+                toModelObject = rel.toModelObject
+                if ((filter == "monetary" and toModelObject.isMonetary) or
+                    (filter == "non-abstract" and not toModelObject.isAbstract) or
+                    (filter == "abstract" and toModelObject.isAbstract and "Abstract" in toModelObject.name) or
+                    (filter == "monetary-duration" and toModelObject.isMonetary and toModelObject.periodType == "duration")):
                     accrualItems.add(name)
                 if name not in visited:
                     visited.add(name)
-                    for childRel in ugtInstance.relationshipSet(rel.arcrole, rel.consecutiveLinkrole).fromModelObject(rel.toModelObject):
-                        addAccrualDescendants(childRel, visited)
+                    for childRel in ugtInstance.relationshipSet(rel.arcrole, rel.consecutiveLinkrole).fromModelObject(toModelObject):
+                        addAccrualDescendants(childRel, filter, visited)
                     visited.discard(name)
             for parentLns, relset in ((dqcRules["DQC.US.0044"]["accrual-items-calc-parents"], calcRelSet),
                                       (dqcRules["DQC.US.0044"]["accrual-items-pre-parents"], preRelSet)):
                 for parentLn in parentLns:
                     for parentConcept in ugtInstance.nameConcepts[parentLn]:
                         for rel in relset.fromModelObject(parentConcept):
-                            addAccrualDescendants(rel, set())
+                            addAccrualDescendants(rel, "monetary")
             ugtRels["accrual-items"] = sorted(accrualItems) # sort set into a list
+            accrualItems.clear()
+            preRelSet = ugtInstance.relationshipSet(XbrlConst.parentChild, dqcRules["DQC.US.0068"]["linkrole"])
+            for rootConcept in preRelSet.rootConcepts:
+                for rel in preRelSet.fromModelObject(rootConcept):
+                    addAccrualDescendants(rel, "non-abstract")
+            ugtRels["730000-items"] = sorted(accrualItems) # sort set into a list
+            preRelSet = ugtInstance.relationshipSet(XbrlConst.parentChild)
+            for setName, rule in dqcRules["DQC.US.0099"]["gaap-pre-descendants"].items():
+                accrualItems.clear()
+                for parentLn in rule["names"]:
+                    for parentConcept in ugtInstance.nameConcepts[parentLn]:
+                        for rel in preRelSet.fromModelObject(parentConcept):
+                            addAccrualDescendants(rel, rule["filter"])
+                ugtRels[setName] = sorted(accrualItems)
             ugtRels["calcs"] = OrderedDict(sorted(ugtCalcs.items(), key=lambda i:i[0]))
             ugtRels["axes"] = OrderedDict(sorted(ugtAxes.items(), key=lambda i:i[0]))
             ugtRels["axis-defaults"] = OrderedDict(sorted(ugtAxisDefaults.items(), key=lambda i:i[0]))
@@ -648,7 +666,7 @@ def loadDqcRules(modelXbrl): # returns match expression, standard patterns
         return dqcRules
     return {}
 
-def factBindings(modelXbrl, localNames, nils=False, noAdditionalDims=False, coverPeriod=False, coverDimQnames=None):
+def factBindings(modelXbrl, localNames, nils=False, noAdditionalDims=False, coverPeriod=False, coverDimQnames=None, cube=None, cubeRelSet=None):
     bindings = defaultdict(dict)
     def addMostAccurateFactToBinding(f):
         cntx = f.context
@@ -656,11 +674,15 @@ def factBindings(modelXbrl, localNames, nils=False, noAdditionalDims=False, cove
             and (nils or not f.isNil)
             and cntx is not None
             and (not noAdditionalDims or not cntx.qnameDims)):
+            if cubeRelSet:
+                if not all(cubeRelSet.isRelated(cube, "descendant", dim.member, isDRS=True) for dim in cntx.qnameDims.values()):
+                    return
             if coverPeriod:
                 h = cntx.dimsHash
                 hper = cntx.periodHash
             elif coverDimQnames:
                 h = hash( (cntx.periodHash, frozenset(dim for qn,dim in cntx.qnameDims.items() if qn not in coverDimQnames)) )
+                hCvrDims = hash( frozenset(dim for qn,dim in cntx.qnameDims.items() if qn in coverDimQnames) )
             else:
                 h = cntx.contextDimAwareHash
             binding = bindings[h, f.unit.hash if f.unit is not None else None]
@@ -670,6 +692,11 @@ def factBindings(modelXbrl, localNames, nils=False, noAdditionalDims=False, cove
                     binding[ln] = defaultdict(dict)
                 if hper not in binding[ln] or inferredDecimals(f) > inferredDecimals(binding[ln][hper]):
                     binding[ln][hper] = f
+            elif coverDimQnames:
+                if ln not in binding:
+                    binding[ln] = defaultdict(dict)
+                if hCvrDims not in binding[ln] or inferredDecimals(f) > inferredDecimals(binding[ln][hCvrDims]):
+                    binding[ln][hCvrDims] = f
             else:
                 if ln not in binding or inferredDecimals(f) > inferredDecimals(binding[ln]):
                     binding[ln] = f

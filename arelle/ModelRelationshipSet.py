@@ -297,6 +297,19 @@ class ModelRelationshipSet:
                 return False # if a QName and not existent then fails
         if axis.endswith("self") and (modelTo is None or modelFrom == modelTo):
             return True
+        if axis.startswith("ancestor"): # could be ancestor-or-self
+            assert isDRS == False # DRS is not possible
+            for modelRel in self.toModelObject(modelFrom):
+                toConcept = modelRel.fromModelObject
+                if modelTo is None or modelTo == toConcept:
+                    return True
+                if visited is None: visited = set()
+                if toConcept not in visited:
+                    visited.add(toConcept)
+                    if self.isRelated(toConcept, axis, modelTo, visited, isDRS):
+                        return True
+                    visited.discard(toConcept)
+            return False
         isDescendantAxis = "descendant" in axis
         if axis.startswith("ancestral-"): # allow ancestral-sibling...
             if self.isRelated(modelFrom, axis[10:], modelTo): # any current-level sibling?
