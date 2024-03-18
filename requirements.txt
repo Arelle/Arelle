@@ -28,7 +28,7 @@ PyMySQL==1.1.0
 pyodbc==5.1.0
 RDFLib==7.0.0
 # other
-graphviz==0.20.1
+graphviz==0.20.2
 Pillow==10.2.0
 pywin32==306 ; sys_platform == "win32"
 tinycss2==1.2.1
