@@ -13,12 +13,9 @@ config = ConformanceSuiteConfig(
     cache_version_id='EVHW_hgNxuwBw4aiKfksIBuqWJypQEZh',
     file='conf/testcases.xml',
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
-    local_filepath='efm-68-1-240129.zip',
+    local_filepath='efm-69d-240220.zip',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/EFM', 'inlineXbrlDocumentSet'}),
-    public_download_url='https://www.sec.gov/files/efm-68-1-240129.zip',
+    public_download_url='https://www.sec.gov/files/efm-69d-240220.zip',
     shards=40,
-    # efm-68-1-240129.zip test suite has case sensitive errors when referring to test case files.
-    # 'OEF' and 'RXP' are uppercase in directory names and lowercase in test suite URIs.
-    strict_testcase_index=False,
 )
