@@ -2,15 +2,31 @@ from pathlib import PurePath
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 
 config = ConformanceSuiteConfig(
-    additional_plugins_by_prefix=[
-        ('conf/612-presentation-syntax/612-09-presented-units-order', frozenset({'EdgarRenderer'})),
-        ('conf/626-rendering-syntax', frozenset({'EdgarRenderer'})),
-    ],
+    additional_plugins_by_prefix=[(f'conf/{t}', frozenset({'EdgarRenderer'})) for t in [
+        '525-ix-syntax/efm/17-redaction',
+        '605-instance-syntax/605-20-required-document-elts/605-20-man',
+        '612-presentation-syntax/612-09-presented-units-order',
+        '622-only-supported-locations/622-01-all-supported-locations',
+        '624-rendering/13-flow-through/gd',
+        '626-rendering-syntax',
+    ]],
     args=[
         '--disclosureSystem', 'efm-pragmatic',
         '--formula', 'run',
     ],
-    cache_version_id='EVHW_hgNxuwBw4aiKfksIBuqWJypQEZh',
+    expected_failure_ids=frozenset(f'conf/{t}' for t in [
+        '525-ix-syntax/efm/17-redaction/17-redaction-testcase.xml:_002gd',
+        '525-ix-syntax/efm/17-redaction/17-redaction-testcase.xml:_003gd',
+        '525-ix-syntax/efm/17-redaction/17-redaction-testcase.xml:_004gd',
+        '605-instance-syntax/605-20-required-document-elts/605-20-man/605-20-man-testcase.xml:_156gd',
+        '605-instance-syntax/605-20-required-document-elts/605-20-man/605-20-man-testcase.xml:_174gd',
+        '605-instance-syntax/605-20-required-document-elts/605-20-man/605-20-man-testcase.xml:_258gd',
+        '605-instance-syntax/605-20-required-document-elts/605-20-man/605-20-man-testcase.xml:_381gd',
+        '605-instance-syntax/605-20-required-document-elts/605-20-man/605-20-man-testcase.xml:_385gd',
+        '622-only-supported-locations/622-01-all-supported-locations/622-01-all-supported-locations-testcase.xml:_024gd',
+        '624-rendering/13-flow-through/gd/13-flow-through-gd-testcase.xml:_000gd',
+    ]),
+    cache_version_id='CViqzeIjNViN4sDmRI1agtkw_1cCHy7b',
     file='conf/testcases.xml',
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     local_filepath='efm-69d-240220.zip',

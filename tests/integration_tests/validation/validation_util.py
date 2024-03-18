@@ -299,10 +299,13 @@ def get_conformance_suite_test_results_with_shards(
         test_paths = shard.paths
         additional_plugins = shard.plugins
         all_test_paths = {path for test_shard in test_shards for path in test_shard.paths}
-        unrecognized_expected_failure_ids = {id.rsplit(':', 1)[0] for id in config.expected_failure_ids} - all_test_paths
+        unrecognized_expected_failure_ids = {_id.rsplit(':', 1)[0] for _id in config.expected_failure_ids} - all_test_paths
         assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
-        expected_failure_ids = frozenset(id for id in config.expected_failure_ids if id.rsplit(':', 1)[0] in test_paths)
-
+        expected_failure_ids = set()
+        for expected_failure_id in config.expected_failure_ids:
+            test_path, test_id = expected_failure_id.rsplit(':', 1)
+            if test_id in test_paths.get(test_path, []):
+                expected_failure_ids.add(expected_failure_id)
         testcase_filters = sorted([
             f'*{os.path.sep}{path}:{vid}'
             for path, vids in test_paths.items()
@@ -312,7 +315,7 @@ def get_conformance_suite_test_results_with_shards(
         args = get_conformance_suite_arguments(
             config=config, filename=filename, additional_plugins=additional_plugins,
             build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=shard_id,
-            expected_failure_ids=expected_failure_ids, testcase_filters=testcase_filters,
+            expected_failure_ids=frozenset(expected_failure_ids), testcase_filters=testcase_filters,
         )
         tasks.append(args)
     url_context_manager: ContextManager[Any]
