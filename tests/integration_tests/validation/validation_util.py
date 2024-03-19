@@ -72,9 +72,7 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
         plugins: tuple[str, ...]
         runtime: float
     paths_by_plugins: dict[tuple[str, ...], list[PathInfo]] = defaultdict(list)
-    approximate_relative_timing = config.approximate_relative_timing
-    if approximate_relative_timing is None:
-        approximate_relative_timing = load_timing_file(config.name)
+    approximate_relative_timing = load_timing_file(config.name)
     empty_testcase_paths: set[str] = set()
     for testcase_path, variation_ids in testcase_variation_map.items():
         if not variation_ids:
