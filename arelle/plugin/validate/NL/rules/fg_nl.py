@@ -46,6 +46,65 @@ INSTANCE_ELEMENT_ORDER = {
         DISCLOSURE_SYSTEM_NT18,
     ],
 )
+def rule_fg_nl_03(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FG-NL-03: An XBRL instance document SHOULD use the recommended default namespace prefixes for all namespaces
+    """
+    def discoverNamespaces(modelDocument: ModelDocument.ModelDocument, namespacePrefixMap: dict[str, set[str]]) -> None:
+        for prefix, namespace in modelDocument.xmlRootElement.nsmap.items():
+            if prefix:
+                namespacePrefixMap[namespace].add(prefix)
+
+    taxonomyNamespaceMap: dict[str, set[str]] = defaultdict(set)
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if modelDocument.type != ModelDocument.Type.INSTANCE:
+            discoverNamespaces(modelDocument, taxonomyNamespaceMap)
+
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if modelDocument.type != ModelDocument.Type.INSTANCE:
+            continue
+        instanceNamespaceMap: dict[str, set[str]] = defaultdict(set)
+        discoverNamespaces(modelDocument, instanceNamespaceMap)
+
+        invalidPrefixMap = defaultdict(set)
+        for namespace, prefixes in instanceNamespaceMap.items():
+            if namespace not in taxonomyNamespaceMap:
+                continue
+            defaultPrefixes = taxonomyNamespaceMap[namespace]
+            invalidPrefixes = prefixes - defaultPrefixes
+            if invalidPrefixes:
+                invalidPrefixMap[(namespace, tuple(defaultPrefixes))].update(invalidPrefixes)
+        if invalidPrefixMap:
+            messages = [
+                _('For namespace "{}", a prefix of {} should be used instead of {}.').format(
+                    namespace,
+                    ' or '.join([f'\"{defaultPrefix}\"' for defaultPrefix in defaultPrefixes]),
+                    ' or '.join([f'\"{invalidPrefix}\"' for invalidPrefix in invalidPrefixes])
+                )
+                for (namespace, defaultPrefixes), invalidPrefixes in invalidPrefixMap.items()
+            ]
+            yield Validation.warning(
+                codes='NL.FG-NL-03',
+                msg=_('An instance document is referencing taxonomy namespaces with non-default prefixes: '
+                      '%(invalidPrefixes)s'),
+                modelObject=modelDocument,
+                invalidPrefixes=' '.join(messages),
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18,
+    ],
+)
 def rule_fg_nl_04(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
