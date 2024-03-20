@@ -576,7 +576,7 @@ class Validate:
 
     def determineTestStatus(self, modelTestcaseVariation, errors):
         testcaseResultOptions = self.modelXbrl.modelManager.formulaOptions.testcaseResultOptions
-        matchAllExpected = testcaseResultOptions == "match-all"
+        matchAllExpected = testcaseResultOptions == "match-all" or modelTestcaseVariation.match == 'all'
         _blockedMessageCodes = modelTestcaseVariation.blockedMessageCodes # restricts codes examined when provided
         if _blockedMessageCodes:
             _blockPattern = re.compile(_blockedMessageCodes)
