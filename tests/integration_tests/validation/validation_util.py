@@ -291,6 +291,7 @@ def get_conformance_suite_test_results_with_shards(
         offline: bool = False,
         series: bool = False) -> list[ParameterSet]:
     tasks = []
+    all_testcase_filters = []
     for shard_id in shards:
         test_shards = get_test_shards(config)
         shard = test_shards[shard_id]
@@ -309,6 +310,7 @@ def get_conformance_suite_test_results_with_shards(
             for path, vids in test_paths.items()
             for vid in vids
         ])
+        all_testcase_filters.extend(testcase_filters)
         filename = os.path.join(config.prefixed_final_filepath, config.file)
         args = get_conformance_suite_arguments(
             config=config, filename=filename, additional_plugins=additional_plugins,
@@ -327,11 +329,13 @@ def get_conformance_suite_test_results_with_shards(
             for args in tasks:
                 task_results = get_test_data_mp_wrapper(args)
                 results.extend(task_results)
-            return results
     else:
         with url_context_manager, multiprocessing.Pool() as pool:
             parallel_results = pool.map(get_test_data_mp_wrapper, tasks)
-            return [x for l in parallel_results for x in l]
+            results = [x for l in parallel_results for x in l]
+    assert len(results) == len(all_testcase_filters),\
+        f'Expected {len(all_testcase_filters)} results based on testcase filters, received {len(results)}'
+    return results
 
 
 def get_conformance_suite_test_results_without_shards(
