@@ -17,5 +17,6 @@
             <xbrli:endDate>2021-12-31</xbrli:endDate>
         </xbrli:period>
     </xbrli:context>
-    <jenv-bw2-x:FinancialReportingPeriodCurrentStartDate contextRef="c-1">2021-01-01</jenv-bw2-x:FinancialReportingPeriodCurrentStartDate>
+    <!-- CAUSE: The default prefix for the jenv-bw2-data namespace is jenv-bw2-i-->
+    <jenv-bw2-x2:FinancialReportingPeriodCurrentStartDate xmlns:jenv-bw2-x2="http://www.nltaxonomie.nl/nt18/jenv/20231213.b/dictionary/jenv-bw2-data" contextRef="c-1">2021-01-01</jenv-bw2-x2:FinancialReportingPeriodCurrentStartDate>
 </xbrli:xbrl>
