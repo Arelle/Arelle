@@ -1304,6 +1304,11 @@ class ModelDocument:
                                     sElt.targetModelXbrl = targetModelXbrl
                                     if hasattr(sElt, "_dimension") and sElt._dimension is None:
                                         del sElt._dimension
+                                    if hasattr(sElt, "_member") and sElt._member is None:
+                                        del sElt._member
+                                    for typedMem in sElt.iterchildren():
+                                        if isinstance(typedMem, ModelObject):  # skip comment and processing nodes
+                                            typedMem.targetModelXbrl = targetModelXbrl
                                 modelContext.qnameDims[dimQn] = sElt # both seg and scen
                                 if not self.skipDTS:
                                     dimension = sElt.dimension
