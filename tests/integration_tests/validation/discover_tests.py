@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from typing import TypedDict
 
 from .conformance_suite_config import ConformanceSuiteConfig
-from .conformance_suite_configs import ALL_CONFORMANCE_SUITE_CONFIGS
+from .conformance_suite_configs import CI_CONFORMANCE_SUITE_CONFIGS
 from .conformance_suite_configurations.efm_current import config as efm_current
 from .conformance_suite_configurations.xbrl_2_1 import config as xbrl_2_1
 
@@ -95,7 +95,7 @@ def generate_config_entries(config: ConformanceSuiteConfig, os: str, python_vers
 def main() -> None:
     output: list[Entry] = []
     config_names_seen: set[str] = set()
-    for config in ALL_CONFORMANCE_SUITE_CONFIGS:
+    for config in CI_CONFORMANCE_SUITE_CONFIGS:
         if config.name in FAST_CONFIG_NAMES:
             assert not config.network_or_cache_required
             assert config.shards == 1
@@ -111,7 +111,7 @@ def main() -> None:
             shard=None,
         ))
 
-    for config in ALL_CONFORMANCE_SUITE_CONFIGS:
+    for config in CI_CONFORMANCE_SUITE_CONFIGS:
         # configurations don't necessarily have unique names, e.g. malformed UTR
         if config.name in config_names_seen:
             continue
