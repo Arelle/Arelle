@@ -209,20 +209,23 @@ def _collect_dir_test_case_variation_ids(file_path_prefix: str, test_case_paths:
 
 
 def _collect_test_case_paths(file_path: str, tree: etree._ElementTree, path_strs: list[str]) -> Generator[str, None, None]:
-    testcases_element = _get_elem_by_local_name(tree, 'testcases')
-    if testcases_element is not None:
+    testcases_elements = _get_elems_by_local_name(tree, 'testcases')
+    if not testcases_elements:
+        assert len(_get_elems_by_local_name(tree, 'testcase')) == 1, f'unexpected file is neither a single testcase nor index of test cases {file_path}'
+        path_strs.append(file_path)
+        return
+    for testcases_element in testcases_elements:
         test_root = testcases_element.get('root', '')
         # replace backslashes with forward slashes, e.g. in
         # 616-definition-syntax/616-14-RXP-definition-link-validations\616-14-RXP-definition-link-validations-testcase.xml
-        for elem in testcases_element.findall('{*}testcase'):
-            yield str(PurePosixPath(file_path).parent / test_root / cast(str, elem.get('uri')).replace('\\', '/'))
-    else:
-        assert _get_elem_by_local_name(tree, 'testcase') is not None, f'unexpected file is neither test case nor index of test cases {file_path}'
-        path_strs.append(file_path)
+        testcase_elements = testcases_element.findall('{*}testcase')
+        for elem in testcase_elements:
+            testcase_path = str(PurePosixPath(file_path).parent / test_root / cast(str, elem.get('uri')).replace('\\', '/'))
+            yield testcase_path
 
 
-def _get_elem_by_local_name(tree: etree._ElementTree, local_name: str) -> etree._Element | None:
-    return tree.getroot() if tree.getroot().tag.split('}')[-1] == local_name else tree.find(f'{{*}}{local_name}')
+def _get_elems_by_local_name(tree: etree._ElementTree, local_name: str) -> list[etree._Element]:
+    return [tree.getroot()] if tree.getroot().tag.split('}')[-1] == local_name else tree.findall(f'{{*}}{local_name}')
 
 
 def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: str,
