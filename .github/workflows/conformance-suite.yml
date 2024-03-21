@@ -1,0 +1,45 @@
+name: Run Xbrl Conformance Suite
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: Name of the conformance suite to run
+        required: true
+        type: string
+      os:
+        default: ubuntu-22.04
+        description: Operating system to use
+        required: true
+        type: string
+      python_version:
+        default: 3.12
+        description: Python version to use
+        required: true
+        type: string
+      shard:
+        description: Optional selection of shards to run (e.g. "0", "0-3")
+        required: false
+        type: string
+
+jobs:
+  run-conformance-suite:
+    name: ${{ inputs.name }}${{ inputs.shard && format(':{0}', inputs.shard) || '' }} - ${{ inputs.os }} - ${{ inputs.python_version }}
+    runs-on: ${{ inputs.os }}
+    environment: integration-tests
+    steps:
+      - uses: actions/checkout@v4.1.2
+        with:
+          persist-credentials: false
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: us-east-1
+      - name: Test Conformance Suite
+        uses: ./.github/actions/test_conformance_suite
+        with:
+          name: ${{ inputs.name }}
+          python_version: ${{ inputs.python_version }}
+          shard: ${{ inputs.shard }}
