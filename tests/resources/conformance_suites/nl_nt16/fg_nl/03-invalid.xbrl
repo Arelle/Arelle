@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- CAUSE: The default prefix for the nl-common-data namespace is nl-cd-->
+<!-- CAUSE: The standard prefix for the nl-common-data namespace is nl-cd-->
 <xbrl
   xml:lang="en"
   xmlns="http://www.xbrl.org/2003/instance"
@@ -38,7 +38,8 @@
     </xbrli:unit>
     <nl-cd-invalid:LegalEntityName contextRef="ctx-1" xml:lang="en">Testing Entity Name</nl-cd-invalid:LegalEntityName>
     <jenv-bw2-i:LegalEntityRegisteredOffice contextRef="ctx-1" xml:lang="en">Address</jenv-bw2-i:LegalEntityRegisteredOffice>
-    <nl-cd-invalid:ChamberOfCommerceRegistrationNumber contextRef="ctx-1" xml:lang="en">12345678</nl-cd-invalid:ChamberOfCommerceRegistrationNumber>
+    <!-- CAUSE: The standard prefix for the nl-common-data namespace is nl-cd-->
+    <nl-cd-invalid2:ChamberOfCommerceRegistrationNumber xmlns:nl-cd-invalid2="http://www.nltaxonomie.nl/nt16/sbr/20210301/dictionary/nl-common-data" contextRef="ctx-1" xml:lang="en">12345678</nl-cd-invalid2:ChamberOfCommerceRegistrationNumber>
     <kvk-i:BusinessNames contextRef="ctx-1" xml:lang="en">Testing Entity Name</kvk-i:BusinessNames>
     <kvk-i:LegalSizeCriteriaClassificationSmall contextRef="ctx-1" xml:lang="en">Klein</kvk-i:LegalSizeCriteriaClassificationSmall>
     <jenv-bw2-i:FinancialReportingPeriodCurrentStartDate contextRef="ctx-1">2021-01-01</jenv-bw2-i:FinancialReportingPeriodCurrentStartDate>
