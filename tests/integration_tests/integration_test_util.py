@@ -123,7 +123,7 @@ def get_test_data(
                     if isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale):
                         marks.append(pytest.mark.xfail())
                     elif mv.status == 'skip':
-                        marks.append(pytest.mark.skip())
+                        continue  # don't report variations skipped due to shards
                     param = pytest.param(
                         {
                             'status': mv.status,
