@@ -1079,3 +1079,7 @@ def validateCssUrlContent(cssRules: List[Any], normalizedUri:str, modelXbrl: Mod
                     css_rule_url = css_rule.arguments[0].value  # url or base64
                     evaluatedMsg = _('On line {line}').format(line=1) #css_element.source_line)
                     validateImage(normalizedUri, css_rule_url, modelXbrl, val, elt, evaluatedMsg, contentOtherThanXHTMLGuidance)
+        elif isinstance(css_rule, tinycss2.ast.URLToken):
+            value = css_rule.value
+            evaluatedMsg = _('On line {line}').format(line=1) #css_element.source_line)
+            validateImage(normalizedUri, value, modelXbrl, val, elt, evaluatedMsg, contentOtherThanXHTMLGuidance)
