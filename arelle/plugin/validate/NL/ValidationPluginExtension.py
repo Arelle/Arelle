@@ -90,10 +90,10 @@ class ValidationPluginExtension(ValidationPlugin):
                 'kvk-rpt-jaarverantwoording-2022-nlgaap-zorginstellingen.xsd',
             ]}
         elif disclosureSystem == DISCLOSURE_SYSTEM_NT18:
-            jenvNamespace = 'http://www.nltaxonomie.nl/nt18/jenv/20231213.b/dictionary/jenv-bw2-data'
-            kvkINamespace = 'http://www.nltaxonomie.nl/nt18/kvk/20231213.b/dictionary/kvk-data'
+            jenvNamespace = 'http://www.nltaxonomie.nl/nt18/jenv/20231213/dictionary/jenv-bw2-data'
+            kvkINamespace = 'http://www.nltaxonomie.nl/nt18/kvk/20231213/dictionary/kvk-data'
             nlTypesNamespace = 'http://www.nltaxonomie.nl/nt18/sbr/20230301/dictionary/nl-types'
-            entrypointRoot = 'http://www.nltaxonomie.nl/nt18/kvk/20231213.b/entrypoints/'
+            entrypointRoot = 'http://www.nltaxonomie.nl/nt18/kvk/20231213/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2023-ifrs-full.xsd',
                 'kvk-rpt-jaarverantwoording-2023-ifrs-geconsolideerd-nlgaap-enkelvoudig.xsd',
