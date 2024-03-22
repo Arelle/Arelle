@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="NL.BR-KVK-3.01"
+  description="A measure element with a namespace prefix that refers to the 'http://www.xbrl.org/2003/iso4217' namespace MUST appear exactly once in the instance document."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="missing" name="Missing Measure">
+    <description>
+        The instance is missing a 'iso4217' measure.
+    </description>
+    <data>
+        <instance readMeFirst="true">3-01-missing.xbrl</instance>
+    </data>
+    <result>
+      <error>NL.BR-KVK-3.01</error>
+    </result>
+  </variation>
+  <variation id="multiple" name="Multiple Measures">
+    <description>
+      The instance has more than one 'iso4217' measure.
+    </description>
+    <data>
+      <instance readMeFirst="true">3-01-multiple.xbrl</instance>
+    </data>
+    <result>
+      <error>NL.BR-KVK-3.01</error>
+    </result>
+  </variation>
+</testcase>
