@@ -20,6 +20,7 @@ from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import (
     DISCLOSURE_SYSTEM_NT16,
     DISCLOSURE_SYSTEM_NT17,
+    DISCLOSURE_SYSTEM_NT18
 )
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -44,6 +45,7 @@ def _getReportingPeriodDateValue(modelXbrl: ModelXbrl, qname: QName) -> date | N
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
     ],
 )
 def rule_br_kvk_2_04(
@@ -120,6 +122,7 @@ def rule_br_kvk_2_04(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
     ],
 )
 def rule_br_kvk_3_01(
@@ -159,6 +162,7 @@ def rule_br_kvk_3_01(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
     ],
 )
 def rule_br_kvk_4_07(
@@ -190,6 +194,7 @@ def rule_br_kvk_4_07(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
     ],
 )
 def rule_br_kvk_4_10(
@@ -221,6 +226,7 @@ def rule_br_kvk_4_10(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
     ],
 )
 def rule_br_kvk_4_12(
@@ -257,6 +263,7 @@ def rule_br_kvk_4_12(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
     ],
 )
 def rule_br_kvk_4_16(
@@ -297,6 +304,7 @@ def rule_br_kvk_4_16(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
     ],
 )
 def rule_br_kvk_4_17(
@@ -328,6 +336,7 @@ def rule_br_kvk_4_17(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18
     ],
 )
 def rule_br_kvk_4_20(
