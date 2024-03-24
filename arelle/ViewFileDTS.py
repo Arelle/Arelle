@@ -27,11 +27,16 @@ class ViewDTS(ViewFile.View):
     def viewDtsElement(self, modelDocument, referenceTypes, indent, visited):
         visited.add(modelDocument)
         dtsObjectType = modelDocument.gettype()
-        attr = {"file": modelDocument.basename, "referenceTypes": sorted(referenceTypes)}
+        xmlRowElementName = dtsObjectType
+        referenceTypes = sorted(referenceTypes)
+        if self.type == ViewFile.XML:
+            xmlRowElementName = xmlRowElementName.replace(" ", "-")
+            referenceTypes = " ".join(referenceTypes)
+        attr = {"file": modelDocument.basename, "referenceTypes": referenceTypes}
         if not modelDocument.inDTS:
             attr["inDTS"] = "false"
         self.addRow(["{0} - {1}".format(modelDocument.basename, dtsObjectType)], treeIndent=indent,
-                    xmlRowElementName=dtsObjectType, xmlRowEltAttr=attr, xmlCol0skipElt=True)
+                    xmlRowElementName=xmlRowElementName, xmlRowEltAttr=attr, xmlCol0skipElt=True)
         for referencedDocument, ref in modelDocument.referencesDocument.items():
             if referencedDocument not in visited:
                 self.viewDtsElement(referencedDocument, ref.referenceTypes, indent + 1, visited)

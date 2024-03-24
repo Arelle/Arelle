@@ -189,7 +189,7 @@ def parseArgs(args):
     parser.add_option("--labelRole", "--labelrole", action="store", dest="labelRole",
                       help=_("Label role for labels in following file options (instead of standard label)"))
     parser.add_option("--DTS", "--csvDTS", action="store", dest="DTSFile",
-                      help=_("Write DTS tree into FILE (may be .csv or .html)"))
+                      help=_("Write DTS tree into FILE"))
     parser.add_option("--facts", "--csvFacts", action="store", dest="factsFile",
                       help=_("Write fact list into FILE"))
     parser.add_option("--factListCols", action="store", dest="factListCols",
