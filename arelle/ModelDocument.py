@@ -1286,9 +1286,9 @@ class ModelDocument:
                     modelObject=undefFacts,
                     elements=", ".join(sorted(set(str(f.prefixedName) for f in undefFacts))))
 
-    def contextDiscover(self, modelContext, targetModelXbrl=None) -> None:
+    def contextDiscover(self, modelContext, setTargetModelXbrl=False) -> None:
         if not self.skipDTS:
-            xmlValidate(self.modelXbrl, modelContext) # validation may have not completed due to errors elsewhere
+            xmlValidate(self.modelXbrl, modelContext, setTargetModelXbrl=setTargetModelXbrl) # validation may have not completed due to errors elsewhere
         id = modelContext.id
         self.modelXbrl.contexts[id] = modelContext
         for container in (("{http://www.xbrl.org/2003/instance}segment", modelContext.segDimValues, modelContext.segNonDimValues),
@@ -1300,15 +1300,11 @@ class ModelDocument:
                         if sElt.namespaceURI == XbrlConst.xbrldi and sElt.localName in ("explicitMember","typedMember"):
                             dimQn = sElt.dimensionQname
                             if dimQn: # may be null if schema error omits dimension element
-                                if targetModelXbrl is not None: # ixds possibly-shared context
-                                    sElt.targetModelXbrl = targetModelXbrl
+                                if setTargetModelXbrl: # ixds possibly-shared context
                                     if hasattr(sElt, "_dimension") and sElt._dimension is None:
                                         del sElt._dimension
                                     if hasattr(sElt, "_member") and sElt._member is None:
                                         del sElt._member
-                                    for typedMem in sElt.iterchildren():
-                                        if isinstance(typedMem, ModelObject):  # skip comment and processing nodes
-                                            typedMem.targetModelXbrl = targetModelXbrl
                                 modelContext.qnameDims[dimQn] = sElt # both seg and scen
                                 if not self.skipDTS:
                                     dimension = sElt.dimension
@@ -1319,12 +1315,10 @@ class ModelDocument:
                         else:
                             containerNonDimValues.append(sElt)
 
-    def unitDiscover(self, unitElement, targetModelXbrl=None) -> None:
+    def unitDiscover(self, unitElement, setTargetModelXbrl=False) -> None:
         if not self.skipDTS:
-            xmlValidate(self.modelXbrl, unitElement) # validation may have not completed due to errors elsewhere
+            xmlValidate(self.modelXbrl, unitElement, setTargetModelXbrl=setTargetModelXbrl) # validation may have not completed due to errors elsewhere
         self.modelXbrl.units[unitElement.id] = unitElement
-        if targetModelXbrl is not None: # ixds possibly-shared context
-            unitElement.targetModelXbrl = targetModelXbrl
 
     def inlineXbrlDiscover(self, htmlElement):
         ixNS = None
@@ -1646,11 +1640,11 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False):
             for elt in inlineElement.iterchildren("{http://www.xbrl.org/2003/instance}context"):
                 id = elt.get("id")
                 if id in contextRefs or (assignUnusedContextsUnits and id not in allContextRefs):
-                    modelIxdsDocument.contextDiscover(elt, targetModelXbrl=targetModelXbrl)
+                    modelIxdsDocument.contextDiscover(elt, setTargetModelXbrl)
             for elt in inlineElement.iterchildren("{http://www.xbrl.org/2003/instance}unit"):
                 id = elt.get("id")
                 if id in unitRefs or (assignUnusedContextsUnits and id not in allUnitRefs):
-                    modelIxdsDocument.unitDiscover(elt, targetModelXbrl=targetModelXbrl)
+                    modelIxdsDocument.unitDiscover(elt, setTargetModelXbrl)
             for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}roleRef"):
                 r = refElement.get("roleURI")
                 if r in targetRoleUris[ixdsTarget]:
