@@ -790,7 +790,7 @@ class EntryPointRef:
         :return: List of discovered entry points.
         """
         for fileName in sorted(os.listdir(directory)):
-            if fileName in (".", "..", "__pycache__", "__init__.py", ".DS_Store"):
+            if fileName in (".", "..", "__pycache__", "__init__.py", ".DS_Store", "site-packages"):
                 continue  # Ignore these entries
             filePath = os.path.join(directory, fileName)
             if os.path.isdir(filePath):
