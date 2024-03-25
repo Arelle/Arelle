@@ -19,7 +19,7 @@ jobs:
     name: PR
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/add-to-project@v0.6.0
+      - uses: actions/add-to-project@v0.6.1
         with:
           project-url: ${{ env.PROJECT_URL }}
           github-token: ${{ secrets.PROJECT_TOKEN }}
