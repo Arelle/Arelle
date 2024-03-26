@@ -788,6 +788,7 @@
         "message": "The ending date of {endDate} used for {name} must be the same as the Document Period End Date, {documentPeriodEndDate}.  \nThe properties of this {name} fact are: \nContext: {contextID}",
         "rules": {
         	"1": {
+        		"name": "DocumentPeriodEndDate"
         	}
         }
 	},

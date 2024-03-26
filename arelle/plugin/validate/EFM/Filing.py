@@ -3921,13 +3921,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                                   edgarCode=edgarCode, ruleElementId=id)
             elif dqcRuleName == "DQC.US.0036" and hasDocPerEndDateFact:
                 for id, rule in dqcRule["rules"].items():
-                    if f.context is not None and abs((documentPeriodEndDate + ONE_DAY - documentPeriodEndDateFact.context.endDatetime).days) > 1: # was 3
-                        modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
-                                          modelObject=f, name=documentPeriodEndDateFact.qname.localName,
-                                          endDate=XmlUtil.dateunionValue(documentPeriodEndDateFact.context.endDatetime, subtractOneDay=True),
-                                          documentPeriodEndDate=documentPeriodEndDate,
-                                          contextID=documentPeriodEndDateFact.context.id,
-                                          edgarCode=edgarCode, ruleElementId=id)
+                    for f in modelXbrl.factsByLocalName.get(rule["name"],()):
+                        if f.context is not None and abs((f.xValue + ONE_DAY - f.context.endDatetime).days) > 1: # was 3
+                            modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
+                                              modelObject=f, name=f.qname.localName,
+                                              endDate=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True),
+                                              documentPeriodEndDate=f.xValue,
+                                              contextID=f.context.id,
+                                              edgarCode=edgarCode, ruleElementId=id)
             elif dqcRuleName == "DQC.US.0041":
                 ugtAxisDefaults = ugtRels["axis-defaults"]
                 for id, rule in dqcRule["rules"].items():
