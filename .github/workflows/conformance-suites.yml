@@ -38,53 +38,23 @@ jobs:
       fail-fast: false
       matrix:
         test: ${{ fromJson(needs.find-tests.outputs.matrix) }}
-
     environment: integration-tests
     steps:
+      - uses: actions/checkout@v4.1.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: us-east-1
-      - uses: actions/checkout@v4.1.2
+      - name: Test Conformance Suite
+        uses: ./.github/actions/test_conformance_suite
         with:
-          persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-      - name: Checkout EdgarRenderer
-        if: ${{ matrix.test.name == 'efm_current' }}
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: Arelle/EdgarRenderer
-          path: arelle/plugin/EdgarRenderer
-      - name: Install Python 3
-        uses: actions/setup-python@v5.0.0
-        with:
-          cache: 'pip'
-          check-latest: true
-          python-version: ${{ matrix.test.python_version }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install -r requirements-dev.txt
-      - name: Download conformance suites from S3
-        run: aws s3 sync s3://arelle/conformance_suites tests/resources/conformance_suites
-      - name: Run integration tests with pytest
-        run: pytest -s --disable-warnings --offline --log-to-file --download-cache --name=${{ matrix.test.name }}${{ matrix.test.shard && format(' --shard={0}', matrix.test.shard) || '' }} tests/integration_tests/validation/test_conformance_suites.py
-      - name: Cat logs
-        if: always()
-        shell: bash
-        run: tail -n+1 conf-*log.txt
-      - id: build-artifact-name
-        if: always()
-        shell: bash
-        run: |
-          printf 'artifact-name=%s%s %s %s logs' "${{ matrix.test.short_name }}" "${{ matrix.test.shard && format(' {0}', matrix.test.shard) || '' }}" "${{ matrix.test.os }}" "${{ matrix.test.python_version }}" >> $GITHUB_OUTPUT
-      - name: Upload logs and reports
-        if: always()
-        uses: actions/upload-artifact@v4.3.1
-        with:
-          name: ${{ steps.build-artifact-name.outputs.artifact-name }}
-          if-no-files-found: error
-          path: 'conf-*'
+          name: ${{ matrix.test.name }}
+          python_version: ${{ matrix.test.python_version }}
+          shard: ${{ matrix.test.shard }}
+          short_name: ${{ matrix.test.short_name }}

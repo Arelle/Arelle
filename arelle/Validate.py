@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 import fnmatch
 import os, sys, traceback, logging
 import time
+from urllib.parse import unquote
 
 import regex as re
 from collections import defaultdict, OrderedDict
@@ -59,7 +60,7 @@ class Validate:
         patterns = self.modelXbrl.modelManager.formulaOptions.testcaseFilters
         if not patterns:
             return True
-        variationIdPath = f'{modelTestcaseVariation.base}:{modelTestcaseVariation.id}'
+        variationIdPath = f'{unquote(modelTestcaseVariation.base)}:{modelTestcaseVariation.id}'
         for pattern in patterns:
             if fnmatch.fnmatch(variationIdPath, pattern):
                 return True
