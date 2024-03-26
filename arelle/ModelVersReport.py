@@ -542,7 +542,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                                              "minOccurs","name","nillable","ref","substitutionGroup","type") and
                             attrQname.namespaceURI != XbrlConst.xbrli and
                             attrQname.namespaceURI != XbrlConst.xbrldt):
-                            attrs[concept.prefixedNameQname(attrQname)] = attrValue
+                            attrs[concept.prefixedNameQname(attrName)] = attrValue
                 for attr in fromCustAttrs.keys():
                     if attr not in toCustAttrs:
                         action = self.createConceptEvent(vercd, "vercd:conceptAttributeDelete", fromConcept, None, action, fromCustomAttribute=attr, fromValue=fromCustAttrs[attr])
