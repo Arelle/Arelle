@@ -28,6 +28,7 @@ class ConformanceSuiteConfig:
     extract_path: str | None = None
     membership_url: str | None = None
     nested_filepath: str = ''
+    packages: list[str] = field(default_factory=list)
     plugins: frozenset[str] = frozenset()
     public_download_url: str | None = None
     shards: int = 1
@@ -38,6 +39,10 @@ class ConformanceSuiteConfig:
     test_case_result_options: Literal['match-all', 'match-any'] = 'match-all'
 
     def __post_init__(self) -> None:
+        packages = [f'https://arelle-public.s3.amazonaws.com/ci/taxonomy_packages/{package}' for package in self.packages]
+        # self.packages = packages
+        object.__setattr__(self, 'packages', packages)
+
         redundant_plugins = [(prefix, overlap)
             for prefix, additional_plugins in self.additional_plugins_by_prefix
             for overlap in [self.plugins & additional_plugins]
@@ -58,8 +63,8 @@ class ConformanceSuiteConfig:
         overlapping_expected_testcase_ids = self.expected_failure_ids.intersection(self.required_locale_by_ids)
         assert not overlapping_expected_testcase_ids, \
             f'Testcase IDs in both expected failures and required locales: {sorted(overlapping_expected_testcase_ids)}'
-        assert not self.network_or_cache_required or self.cache_version_id, \
-            'If network or cache is required, a cache version ID must be provided.'
+        assert not self.network_or_cache_required or self.packages or self.cache_version_id, \
+            'If network or cache is required, either packages must be used or a cache version ID must be provided.'
 
     @cached_property
     def prefixed_extract_filepath(self) -> str | None:

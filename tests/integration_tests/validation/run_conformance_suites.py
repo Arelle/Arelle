@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 import sys
 from argparse import ArgumentParser, Namespace
 
@@ -33,7 +34,7 @@ ARGUMENTS: list[dict[str, Any]] = [
     {
         "name": "--download-cache",
         "action": "store_true",
-        "help": "Download and apply pre-built cache package"
+        "help": "Download and apply pre-built cache package and taxonomy packages"
     },
     {
         "name": "--download-overwrite",
@@ -126,13 +127,18 @@ def run_conformance_suites(
         for conformance_suite_config in conformance_suite_configs:
             download_conformance_suite(conformance_suite_config, overwrite=overwrite)
     if download_cache:
+        packages = set()
         for conformance_suite_config in conformance_suite_configs:
+            packages.update(conformance_suite_config.packages)
             if not conformance_suite_config.network_or_cache_required:
                 continue
             download_and_apply_cache(
                 f'conformance_suites/{conformance_suite_config.name}.zip',
                 version_id=conformance_suite_config.cache_version_id
             )
+        if packages:
+            # Download the packages.
+            subprocess.run([sys.executable, 'arelleCmdLine.py', '--packages', '|'.join(sorted(packages)), '--proxy', 'show'])
     for conformance_suite_config in conformance_suite_configs:
         extract_conformance_suite(conformance_suite_config)
     all_results = []
