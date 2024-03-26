@@ -5,6 +5,7 @@ import os
 import re
 from dataclasses import dataclass, field
 from functools import cached_property
+from typing import Literal
 
 
 CONFORMANCE_SUITE_PATH_PREFIX = 'tests/resources/conformance_suites'
@@ -34,6 +35,7 @@ class ConformanceSuiteConfig:
     url_replace: str | None = None
     network_or_cache_required: bool = True
     required_locale_by_ids: dict[str, re.Pattern[str]] = field(default_factory=dict)
+    test_case_result_options: Literal['match-all', 'match-any'] = 'match-all'
 
     def __post_init__(self) -> None:
         redundant_plugins = [(prefix, overlap)

@@ -240,6 +240,7 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
     args = [
         '--file', filename,
         '--keepOpen',
+        '--testcaseResultOptions', config.test_case_result_options,
         '--validate',
     ]
     if plugins:
