@@ -295,4 +295,5 @@ config = ConformanceSuiteConfig(
     network_or_cache_required=False,
     public_download_url='https://www.xbrl.org/2015/table-linkbase-conf-2015-08-12.zip',
     shards=4,
+    test_case_result_options='match-any',
 )

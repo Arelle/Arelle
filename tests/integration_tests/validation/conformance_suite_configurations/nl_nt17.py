@@ -12,4 +12,5 @@ config = ConformanceSuiteConfig(
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/NL'}),
     shards=4,
+    test_case_result_options='match-any',
 )

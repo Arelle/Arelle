@@ -14,4 +14,5 @@ config = ConformanceSuiteConfig(
     plugins=frozenset({'validate/ESEF'}),
     public_download_url='https://www.esma.europa.eu/sites/default/files/library/esef_conformance_suite_2021.zip',
     shards=8,
+    test_case_result_options='match-any',
 )

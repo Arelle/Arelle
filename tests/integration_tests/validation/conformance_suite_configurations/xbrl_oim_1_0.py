@@ -17,4 +17,5 @@ config = ConformanceSuiteConfig(
     name=PurePath(__file__).stem,
     network_or_cache_required=False,
     plugins=frozenset({'loadFromOIM'}),
+    test_case_result_options='match-any',
 )
