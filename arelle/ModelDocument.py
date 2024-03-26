@@ -99,7 +99,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         mappedUri = modelXbrl.modelManager.disclosureSystem.mappedUrl(normalizedUri)
 
     if isEntry:
-        modelXbrl.entryLoadingUrl = mappedUri   # for error loggiong during loading
+        modelXbrl.entryLoadingUrl = mappedUri   # for error logging during loading
 
     # don't try reloading if not loadable
 
@@ -601,7 +601,7 @@ fractionParts = {"{http://www.xbrl.org/2003/instance}numerator",
 
 class ModelDocument:
     """
-    .. class:: ModelDocment(modelXbrl, type, uri, filepath, xmlDocument)
+    .. class:: ModelDocument(modelXbrl, type, uri, filepath, xmlDocument)
 
     The modelDocument performs discovery and initialization when loading documents.
     For instances, schema and linkbase references are resolved, as well as non-DTS schema locations needed

@@ -1023,7 +1023,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     success = False
                 except Exception as err:
                     success = False
-                    self.addToLog(_("[Exception] Failed to doad diff file: \n{0} \n{1}").format(
+                    self.addToLog(_("[Exception] Failed to load diff file: \n{0} \n{1}").format(
                                 err,
                                 traceback.format_tb(sys.exc_info()[2])))
             if success:
