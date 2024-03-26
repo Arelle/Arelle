@@ -1216,11 +1216,13 @@
         		"message": "For the path including the elements {members} neither the  Domestic Plan [Member] NOR Foreign Plan [Member] has been included in the path of the descendants of the Retirement Plan Sponsor Location [Axis] in the presentation linkbase  {linkrole}. The FASB requires that either one or both of these members is present on the Retirement Plan Sponsor Location [Axis]. Please review the axis and add one of these members or assess the need to use the Retirement Plan Sponsor Location [Axis].\n\nThe axis RetirementPlanSponsorLocationAxis has the following members listed under it for this path: {members}."
         	},
         	"9843": {
-        		"requires-children": "DomesticPlanMember",
+        		"error-when-not-reported": false,
+        		"member": "DomesticPlanMember",
         		"message": "The Domestic Plan [Member] has been included as a descendant of the Retirement Plan Sponsor Location [Axis] in the presentation linkbase {linkrole}. The FASB requires that this member includes children elements representing the Domestic Geography. In this case the Domestic Plan [Member] has no children. Please add a member representing the domestic location or remove the Domestic Plan [Member].\n\nThe axis RetirementPlanSponsorLocationAxis has the following members listed under it for this path: {members}."
         	},
         	"9844": {
-        		"requires-children-if-not-reported": "ForeignPlanMember",
+        		"error-when-not-reported": true,
+        		"member": "ForeignPlanMember",
         		"message": "The Foreign Plan [Member] has been included as a descendant of the Retirement Plan Sponsor Location [Axis] in the presentation linkbase {linkrole}. The FASB requires that this member includes children elements representing the Foreign Geography if no value is reported for the foreign plan member if no value is reported for the foreign plan member. In this case the Foreign Plan [Member] has no children. Please add a member representing the foreign location or remove the Foreign Plan [Member].\n\nThe axis RetirementPlanSponsorLocationAxis has the following members listed under it for this path: {members}."
         	}
         }
@@ -2027,6 +2029,7 @@
         			"OperatingLeaseLiability",
         			"LesseeOperatingLeaseLiabilityUndiscountedExcessAmount"
         		],
+        		"allow-if-calc-addend1": true,
         		"tolerance": 2,
 		        "message": "The element {name} with a value of {sumValue} should be equal to the sum of OperatingLeaseLiability plus LesseeOperatingLeaseLiabilityUndiscountedExcessAmount. The value of these adds to {addendValue}.  A difference of {differenceValue}. In an annual filing this reconciliation is required and all elements should have a value in the current reporting period.  \n\nIf the difference is due to an extension reconciliation item, then the filer should add a calculation relationship. The calculation tree should show the parent element as LesseeOperatingLeaseLiabilityPaymentsDue with children of LesseeOperatingLeaseLiabilityUndiscountedExcessAmount + OperatingLeaseLiability + any extension items. There should already be a calculation tree defined for the components of LesseeOperatingLeaseLiabilityPaymentsDue comprised of LesseeOperatingLeaseLiabilityPaymentsDueNextTwelveMonths +  LesseeOperatingLeaseLiabilityPaymentsDueYearTwo etc.  These two beakdowns of LesseeOperatingLeaseLiabilityPaymentsDue should be in seperate calculation groups. If an extension item appears as a child calculation of LesseeOperatingLeaseLiabilityPaymentsDue then no error is produced. \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}."
         	},
@@ -2036,6 +2039,7 @@
         			"FinanceLeaseLiability",
         			"FinanceLeaseLiabilityUndiscountedExcessAmount"
         		],
+        		"allow-if-calc-addend1": false,
         		"tolerance": 2,
 		        "message": "The element {name} with a value of {sumValue} should be equal to the sum of FinanceLeaseLiability plus FinanceLeaseLiabilityUndiscountedExcessAmount. The value of these adds to {addendValue}.  A difference of {differenceValue}. In an annual filing this reconciliation is required and all elements should have a value in the current reporting period.  \n\nIf the difference is due to an extension reconciliation item, then the filer should add a calculation relationship. The calculation tree should show the parent element as FinanceLeaseLiabilityPaymentsDue with children of FinanceLeaseLiabilityUndiscountedExcessAmount + FinanceLeaseLiability + any extension items. There should already be a calculation tree defined for the components of FinanceLeaseLiabilityPaymentsDue comprised of FinanceLeaseLiabilityPaymentsDueNextTwelveMonths +  FinanceLeaseLiabilityPaymentsDueYearTwo etc.  These two beakdowns of FinanceLeaseLiabilityPaymentsDue should be in seperate calculation groups. If an extension item appears as a child calculation of FinanceLeaseLiabilityPaymentsDue then no error is produced. \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}."
         	}
