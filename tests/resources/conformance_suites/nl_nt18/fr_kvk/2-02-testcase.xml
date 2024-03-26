@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="NL.FR-KVK-2.02"
+  description="The attribute 'xml:lang' MUST contain the same value within an XBRL instance document"
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="multiple-lang-fact" name="Fact Multiple Languages">
+    <description>
+      This instance has multiple languages for a fact.
+    </description>
+    <data>
+        <instance readMeFirst="true">2-02-multiple-lang-fact.xbrl</instance>
+    </data>
+    <result>
+      <error>NL.FR-KVK-2.02</error>
+    </result>
+  </variation>
+</testcase>
