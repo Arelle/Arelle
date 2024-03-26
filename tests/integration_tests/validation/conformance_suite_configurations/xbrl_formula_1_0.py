@@ -8,4 +8,5 @@ config = ConformanceSuiteConfig(
     name=PurePath(__file__).stem,
     network_or_cache_required=False,
     shards=4,
+    test_case_result_options='match-any',
 )

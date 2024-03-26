@@ -18,4 +18,5 @@ config = ConformanceSuiteConfig(
     plugins=frozenset({'validate/EFM', 'inlineXbrlDocumentSet'}),
     public_download_url='https://www.sec.gov/files/efm-69-240318.zip',
     shards=40,
+    test_case_result_options='match-any',
 )

@@ -240,8 +240,11 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
     args = [
         '--file', filename,
         '--keepOpen',
+        '--testcaseResultOptions', config.test_case_result_options,
         '--validate',
     ]
+    if config.packages:
+        args.extend(['--packages', '|'.join(config.packages)])
     if plugins:
         args.extend(['--plugins', '|'.join(sorted(plugins))])
     shard_str = f'-s{shard}' if use_shards else ''

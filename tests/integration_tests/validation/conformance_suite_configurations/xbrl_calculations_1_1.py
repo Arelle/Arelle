@@ -9,4 +9,5 @@ config = ConformanceSuiteConfig(
     name=PurePath(__file__).stem,
     network_or_cache_required=False,
     plugins=frozenset({'loadFromOIM', '../../tests/plugin/testcaseCalc11ValidateSetup.py'}),
+    test_case_result_options='match-any',
 )
