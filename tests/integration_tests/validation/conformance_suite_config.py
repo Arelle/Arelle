@@ -39,10 +39,6 @@ class ConformanceSuiteConfig:
     test_case_result_options: Literal['match-all', 'match-any'] = 'match-all'
 
     def __post_init__(self) -> None:
-        packages = [f'https://arelle-public.s3.amazonaws.com/ci/taxonomy_packages/{package}' for package in self.packages]
-        # self.packages = packages
-        object.__setattr__(self, 'packages', packages)
-
         redundant_plugins = [(prefix, overlap)
             for prefix, additional_plugins in self.additional_plugins_by_prefix
             for overlap in [self.plugins & additional_plugins]
@@ -65,6 +61,10 @@ class ConformanceSuiteConfig:
             f'Testcase IDs in both expected failures and required locales: {sorted(overlapping_expected_testcase_ids)}'
         assert not self.network_or_cache_required or self.packages or self.cache_version_id, \
             'If network or cache is required, either packages must be used or a cache version ID must be provided.'
+
+    @cached_property
+    def package_urls(self) -> list[str]:
+        return [f'https://arelle-public.s3.amazonaws.com/ci/taxonomy_packages/{package}' for package in self.packages]
 
     @cached_property
     def prefixed_extract_filepath(self) -> str | None:

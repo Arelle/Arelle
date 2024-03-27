@@ -127,18 +127,18 @@ def run_conformance_suites(
         for conformance_suite_config in conformance_suite_configs:
             download_conformance_suite(conformance_suite_config, overwrite=overwrite)
     if download_cache:
-        packages = set()
+        package_urls = set()
         for conformance_suite_config in conformance_suite_configs:
-            packages.update(conformance_suite_config.packages)
+            package_urls.update(conformance_suite_config.package_urls)
             if not conformance_suite_config.network_or_cache_required:
                 continue
             download_and_apply_cache(
                 f'conformance_suites/{conformance_suite_config.name}.zip',
                 version_id=conformance_suite_config.cache_version_id
             )
-        if packages:
+        if package_urls:
             # Download the packages.
-            subprocess.run([sys.executable, 'arelleCmdLine.py', '--packages', '|'.join(sorted(packages)), '--proxy', 'show'])
+            subprocess.run([sys.executable, 'arelleCmdLine.py', '--packages', '|'.join(sorted(package_urls)), '--proxy', 'show'])
     for conformance_suite_config in conformance_suite_configs:
         extract_conformance_suite(conformance_suite_config)
     all_results = []
