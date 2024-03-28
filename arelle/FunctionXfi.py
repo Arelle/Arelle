@@ -31,14 +31,17 @@ class xfiFunctionNotAvailable(Exception):
 def call(
         xc: XPathContext.XPathContext,
         p: OperationDef,
-        localname: str,
+        qn: QName,
         args: XPathContext.ResultStack,
 ) -> XPathContext.RecursiveContextItem:
     try:
-        if localname not in xfiFunctions: raise xfiFunctionNotAvailable
-        return xfiFunctions[localname](xc, p, args)
-    except xfiFunctionNotAvailable:
-        raise XPathContext.FunctionNotAvailable("xfi:{0}".format(localname))
+        _function = functionsRegistryFunctions[qn.namespaceURI][qn.localName]
+    except KeyError:
+        raise XPathContext.FunctionNotAvailable(str(qn))
+    if xc.oimMode and qn.localName in oimUnsupportedFunctions:
+        raise XPathContext.XPathException(p, "oimfe:oimIncompatibleRegistryFunction",
+                                          _("Function {} MUST NOT be used within OIM-compatible XBRL formula").format(qn.localName))
+    return _function(xc, p, args)
 
 def instance(xc, p, args, i=0):
     if i >= len(args):  # missing argument means to use the standard input instance
@@ -1403,6 +1406,13 @@ def negative_filing_indicator(xc, p, args):
     if ind is None: raise XPathContext.FunctionArgType(1,"xs:string")
     return ind in filingIndicatorValues(xc.modelXbrl, "false")
 
+xffFunctions = {
+    'uncovered-aspect' : uncovered_aspect,
+    'has-fallback-value' : has_fallback_value,
+    'uncovered-non-dimensional-aspects' : uncovered_non_dimensional_aspects,
+    'uncovered-dimensional-aspects': uncovered_dimensional_aspects,
+    }
+
 xfiFunctions = {
     'context': context,
     'unit': unit,
@@ -1437,10 +1447,6 @@ xfiFunctions = {
     'is-fraction' : fraction,
     'precision': precision,
     'decimals': decimals,
-    'uncovered-aspect' : uncovered_aspect,
-    'has-fallback-value' : has_fallback_value,
-    'uncovered-non-dimensional-aspects' : uncovered_non_dimensional_aspects,
-    'uncovered-dimensional-aspects': uncovered_dimensional_aspects,
     'identical-nodes': identical_nodes,
     's-equal': s_equal,
     'u-equal': u_equal,
@@ -1522,4 +1528,68 @@ xfiFunctions = {
     'positive-filing-indicator': positive_filing_indicator,
     'negative-filing-indicators': negative_filing_indicators,
     'negative-filing-indicator': negative_filing_indicator,
-     }
+    }
+
+
+functionsRegistryFunctions = {
+    XbrlConst.xff: xffFunctions,
+    XbrlConst.xfi: xfiFunctions,
+    }
+
+
+oimUnsupportedFunctions = {
+    'context',
+    'unit',
+    'unit-numerator',
+    'unit-denominator',
+    'measure-name',
+    'period',
+    'context-period',
+    'is-start-end-period',
+    'is-forever-period',
+    'is-duration-period',
+    'is-instant-period',
+    'period-start',
+    'period-end',
+    'period-instant',
+    'entity',
+    'context-entity',
+    'identifier',
+    'context-identifier',
+    'entity-identifier',
+    'identifier-value',
+    'identifier-scheme',
+    'segment',
+    'entity-segment',
+    'context-segment',
+    'scenario',
+    'context-scenario',
+    'identical-nodes',
+    's-equal',
+    'u-equal',
+    'v-equal',
+    'c-equal',
+    'identical-node-set',
+    's-equal-set',
+    'v-equal-set',
+    'c-equal-set',
+    'u-equal-set',
+    'x-equal',
+    'duplicate-item',
+    'duplicate-tuple',
+    'p-equal',
+    'cu-equal',
+    'pc-equal',
+    'pcu-equal',
+    'start-equal',
+    'end-equal',
+    'any-start-date',
+    'any-instant-date',
+    'tuples-in-instance',
+    'items-in-tuple',
+    'fact-segment-remainder',
+    'fact-scenario-remainder',
+    'fact-typed-dimension-value',
+    'fact-dimension-s-equal2',
+    'fact-footnotes',
+    }

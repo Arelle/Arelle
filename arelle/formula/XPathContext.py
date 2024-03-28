@@ -12,6 +12,7 @@ from typing import Any, Callable, Iterable, MutableSequence, Sequence, TYPE_CHEC
 from lxml import etree
 
 from arelle import XbrlConst, XmlUtil
+from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelInlineFact, ModelUnit
 from arelle.ModelObject import ModelAttribute, ModelObject
 from arelle.ModelValue import (
@@ -240,6 +241,8 @@ class XPathContext:
         ] = {}
         for pluginXbrlMethod in pluginClassMethods("Formula.CustomFunctions"):
             self.customFunctions.update(pluginXbrlMethod())
+        self.oimMode: bool = getattr(modelXbrl, "oimMode", False)
+        self.oimCompatible: bool | None = None # set to a bool value when processing parameters
 
     def copy(self) -> XPathContext:  # shallow copy (for such as for Table LB table processiong
         xpCtxCpy = XPathContext(self.modelXbrl, self.inputXbrlInstance, self.sourceElement, self.inScopeVars.copy())
@@ -327,7 +330,7 @@ class XPathContext:
                         elif op.unprefixed or ns == XbrlConst.fn:
                             result = FunctionFn.call(self, p, localname, contextItem, args)
                         elif ns == XbrlConst.xfi or ns == XbrlConst.xff:
-                            result = FunctionXfi.call(self, p, localname, args)
+                            result = FunctionXfi.call(self, p, op, args)
                         elif ns == XbrlConst.xsd:
                             result = FunctionXs.call(self, p, localname, args)
                         elif ns in FunctionIxt.ixtNamespaceFunctions:
@@ -571,6 +574,9 @@ class XPathContext:
                     result = self.evaluate(opDef.args, contextItem=contextItem)
                 elif op == '.':
                     result = contextItem
+                    if self.oimMode and not isinstance(result, (ModelFact, ModelRelationship)):
+                        raise XPathException(p, "oimfe:unsupportedContextNode",
+                                            _("OIM compatible XBRL formula MUST NOT attempt to access the context node."))
                 elif op == '..':
                     result = XmlUtil.parent(cast(ModelObject, contextItem))
                 elif op in PATH_OPS:
@@ -877,6 +883,8 @@ class XPathContext:
                     return []
                 try:
                     if e.xValid >= VALID:
+                        if self.oimCompatible and hasattr(e, "oValue"):
+                            return e.oValue # oim value for OIM-Compatible Formula sect 2.4.1
                         return e.xValue
                 except AttributeError:
                     pass
