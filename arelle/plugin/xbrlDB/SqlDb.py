@@ -156,7 +156,7 @@ class SqlDbConnection():
                 raise XPDBException("xpgDB:MissingMySQLInterface",
                                     _("MySQL interface is not installed"))
             self.conn = mysqlConnect(user=user, passwd=password, host=host,
-                                     port=int(port or 5432),
+                                     port=int(port or 3306),
                                      db=database,  # pymysql takes database or db but MySQLdb only takes db
                                      connect_timeout=timeout or 60,
                                      charset='utf8')
@@ -165,9 +165,9 @@ class SqlDbConnection():
             if not hasOracle:
                 raise XPDBException("xpgDB:MissingOracleInterface",
                                     _("Oracle interface is not installed"))
-            self.conn = oracleConnect('{}/{}@{}{}'
+            self.conn = oracleConnect('{}/{}@{}{}/{}'
                                             .format(user, password, host,
-                                                    ":{}".format(port) if port else ""))
+                                                    ":{}".format(port) if port else "", database))
             # self.conn.paramstyle = 'named'
             self.product = product
         elif product == "mssql":
@@ -189,6 +189,7 @@ class SqlDbConnection():
             self.syncSequences = False # for object_id coordination of autoincrement values
         else:
             self.product = None
+        self.dbname = database
         self.tableColTypes = {}
         self.tableColDeclaration = {}
         self.accessionId = "(None)"
@@ -309,7 +310,8 @@ class SqlDbConnection():
             some databases require locks per operation (such as MySQL), when isSessionTransaction=False
         '''
         if self.product in ("postgres", "orcl") and isSessionTransaction:
-            result = self.execute('LOCK {} IN SHARE ROW EXCLUSIVE MODE'.format(', '.join(tableNames)),
+            _tableNames = ', '.join(self.dbTableName(t) for t in tableNames)
+            result = self.execute('LOCK TABLE {} IN SHARE ROW EXCLUSIVE MODE'.format(_tableNames),
                                   close=False, commit=False, fetch=False, action="locking table")
         elif self.product in ("mysql",):
             result = self.execute('LOCK TABLES {}'
@@ -324,10 +326,11 @@ class SqlDbConnection():
     def unlockAllTables(self):
         if self.product in ("mysql",):
             result = self.execute('UNLOCK TABLES',
-                                  close=False, commit=False, fetch=False, action="locking table")
-        elif self.product in ("sqlite",):
-            result = self.execute('COMMIT TRANSACTION',
-                                  close=False, commit=False, fetch=False, action="locking table")
+                                  close=False, commit=False, fetch=False, action="unlocking tables")
+        ## Not needed for sqlite
+        # elif self.product in ("sqlite",):
+        #     result = self.execute('COMMIT TRANSACTION',
+        #                           close=False, commit=False, fetch=False, action="locking table")
 
     def execute(self, sql, commit=False, close=True, fetch=True, params=None, action="execute"):
         cursor = self.cursor
@@ -364,7 +367,7 @@ class SqlDbConnection():
             self.closeCursor()
         return result
 
-    def create(self, ddlFiles, dropPriorTables=True): # ddl Files may be a sequence (or not) of file names, glob wildcards ok, relative ok
+    def create(self, ddlFiles, dropPriorTables=False): # ddl Files may be a sequence (or not) of file names, glob wildcards ok, relative ok
         if dropPriorTables:
             # drop tables
             startedAt = time.time()
@@ -372,6 +375,10 @@ class SqlDbConnection():
             for table in self.tablesInDB():
                 result = self.execute('DROP TABLE %s' % self.dbTableName(table),
                                       close=False, commit=False, fetch=False, action="dropping table")
+            self.showStatus("Dropping prior triggers")
+            for trigger in self.triggersInDB():
+                result = self.execute('DROP TRIGGER %s' % trigger,
+                                      close=False, commit=False, fetch=False, action="dropping trigger")
             self.showStatus("Dropping prior sequences")
             for sequence in self.sequencesInDB():
                 result = self.execute('DROP SEQUENCE %s' % sequence,
@@ -389,13 +396,47 @@ class SqlDbConnection():
         for ddlFile in _ddlFiles:
             with io.open(ddlFile, 'rt', encoding='utf-8') as fh:
                 sql = fh.read().replace('%', '%%')
+            # SQL server complains about 'GO'
+            # https://docs.microsoft.com/en-us/sql/t-sql/language-elements/sql-server-utilities-statements-go?redirectedfrom=MSDN&view=sql-server-ver16#remarks
+            if self.product == 'mssql':
+                sql = sql.replace('\nGO\n', '\n')
+            # pymysql complains about 'DELIMITER'
+            # https://github.com/PyMySQL/mysqlclient-python/issues/64#issuecomment-160226330
+            # The next few lines try to remove 'DELIMITER' and the assigned delimiters from ddl
+            if self.product == 'mysql':
+                # Get all assigned delimiters
+                delimiters = [x.strip() for x in re.findall('DELIMITER(.*)', sql)]
+                # Exclude default delimiter to be used later in determining statement end
+                delimitersExclude = set([x for x in delimiters if not ';' in x])
+                # build regex to detect delimiter instruction
+                delimiter = '|'.join(set(delimiters))
+                subRegex = re.compile(r'\nDELIMITER\s+('+ delimiter + ')|' + '|'.join(delimitersExclude))
+                # Remove delimiter instruction and actual assigned delimiter from ddl
+                sql = subRegex.sub('', sql)
             # separate dollar-quoted bodies and statement lines
             sqlstatements = []
             def findstatements(start, end, laststatement):
-                for line in sql[start:end].split('\n'):
+
+                # Do not terminate statement with ";" if within BEGIN END BLOCK
+                beginEndBlocks_ = 0  # Tracks BEGIN END blocks
+                sqlLines_ = sql[start:end].split('\n')
+                for line in sqlLines_:
+                    # Account for blocks and nested blocks
+                    if re.search(r'\bBEGIN\b', line.strip(), re.IGNORECASE):
+                        beginEndBlocks_ += 1
+                    if re.search(r'\bEND\b', line.strip(), re.IGNORECASE) and beginEndBlocks_ > 0:
+                        beginEndBlocks_ -= 1
                     stmt, comment1, comment2 = line.partition("--")
                     laststatement += stmt + '\n'
-                    if ';' in stmt:
+                    if not beginEndBlocks_ and ';' in stmt:
+                        if self.product == 'orcl':
+                            # cx_Oracle complains about the "/" and ";" at end of statements
+                            # in case of triggers => ";"  is needed for oracle to compile the trigger
+                            if re.search('CREATE TRIGGER', laststatement, re.IGNORECASE):
+                                laststatement = re.sub('^/', '', laststatement)
+                            else:
+                                # Otherwise both "/" and ";" are removed
+                                laststatement = re.sub('^/|;$', '', laststatement)
                         sqlstatements.append(laststatement)
                         laststatement = ''
                 return laststatement
@@ -430,7 +471,8 @@ class SqlDbConnection():
                 if any(cmd in sql
                        for cmd in ('CREATE TABLE', 'CREATE SEQUENCE', 'INSERT INTO', 'CREATE TYPE',
                                    'CREATE FUNCTION',
-                                   'DROP'
+                                   'DROP',
+                                   'CREATE TRIGGER',
                                    'SET',
                                    'CREATE INDEX', 'CREATE UNIQUE INDEX', # 'ALTER TABLE ONLY'
                                    'CREATE VIEW', 'CREATE OR REPLACE VIEW', 'CREATE MATERIALIZED VIEW'
@@ -480,11 +522,22 @@ class SqlDbConnection():
         try:
             return set(sequenceRow[0]
                        for sequenceRow in
-                       self.execute({"postgres":"SELECT c.relname FROM pg_class c WHERE c.relkind = 'S';",
-                                     "mysql": "SHOW triggers;",
-                                     "mssql": "SELECT name FROM sys.triggers;",
-                                     "orcl": "SHOW trigger_name FROM user_triggers"\
-                                     }[self.product]))
+                       self.execute({"postgres":"SELECT c.relname FROM pg_class c WHERE c.relkind = 'S'",
+                                     "mssql": "SELECT name FROM sys.sequences",
+                                     "orcl": "SELECT sequence_name FROM user_sequences"
+                                    }[self.product]))
+        except KeyError:
+            return set()
+
+    def triggersInDB(self):
+        try:
+            return set(sequenceRow[0]
+                       for sequenceRow in
+                       self.execute({"orcl": "SELECT trigger_name FROM user_triggers",
+                                     "mysql": "SHOW triggers",
+                                     "mssql": "SELECT name FROM sys.triggers",
+                                     "postgres": "SELECT trigger_name FROM information_schema.triggers"
+                                    }[self.product]))
         except KeyError:
             return set()
 

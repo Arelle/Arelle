@@ -35,7 +35,7 @@ windows
 
 '''
 
-import os, time, datetime, logging
+import os, time, datetime, logging, re
 from arelle.ModelDocument import Type
 from arelle.ModelDtsObject import ModelConcept, ModelType, ModelResource, ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
@@ -86,6 +86,8 @@ XBRLDBTABLES = {
                 "data_point", "entity", "period", "unit", "unit_measure", "aspect_value_selection",
                 "message", "message_reference",
                 "industry", "industry_level", "industry_structure",
+                'used_on', 'former_entity', 'table_data_points',
+                'aspect_value_selection_set', 'entity_identifier'
                 }
 
 
@@ -93,19 +95,20 @@ XBRLDBTABLES = {
 class XbrlSqlDatabaseConnection(SqlDbConnection):
     def verifyTables(self):
         missingTables = XBRLDBTABLES - self.tablesInDB()
-        # if no tables, initialize database
-        if missingTables == XBRLDBTABLES:
-            self.create(os.path.join("sql", "semantic", {"mssql": "xbrlSemanticMSSqlDB.sql",
-                                                         "mysql": "xbrlSemanticMySqlDB.ddl",
-                                                         "sqlite": "xbrlSemanticSQLiteDB.ddl",
-                                                         "orcl": "xbrlSemanticOracleDB.sql",
-                                                         "postgres": "xbrlSemanticPostgresDB.ddl"}[self.product]))
-            missingTables = XBRLDBTABLES - self.tablesInDB()
-        if missingTables and missingTables != {"sequences"}:
+        if missingTables:
+            # based on the on the documentation "SQL Schema Initialization" is expected be done manually
+            # https://arelle.org/arelle/documentation/xbrl-database/ ==> "SQL Schema Initialization"
+            # this disable creating tables and returns a useful error message to the user
+            ddlFile = os.path.join("sql", "semantic", {"mssql": "xbrlSemanticMSSqlDB.sql",
+                                                            "mysql": "xbrlSemanticMySqlDB.ddl",
+                                                            "sqlite": "xbrlSemanticSQLiteDB.ddl",
+                                                            "orcl": "xbrlSemanticOracleDB.sql",
+                                                            "postgres": "xbrlSemanticPostgresDB.ddl"}[self.product])
             raise XPDBException("sqlDB:MissingTables",
-                                _("The following tables are missing: %(missingTableNames)s"),
-                                missingTableNames=', '.join(t for t in sorted(missingTables)))
-
+                                _("The following tables are missing: %(missingTableNames)s\n"
+                                    "\nplease make sure that database \"%(db)s\" is initialized using the following ddl file:\n%(ddlFilesLocation)s"),
+                                missingTableNames=', '.join(t for t in sorted(missingTables)),
+                                db=self.dbname, ddlFilesLocation = os.path.join(os.path.dirname(__file__), ddlFile))
     def insertXbrl(self, entrypoint, rssItem):
         try:
             # must also have default dimensions loaded
@@ -173,6 +176,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             startedAt = time.time()
             self.showStatus("Committing entries")
             self.commit()
+            self.unlockAllTables() # needed for MySql
             self.modelXbrl.profileStat(_("XbrlSqlDB: insertion committed"), time.time() - startedAt)
             self.showStatus("DB insertion completed", clearAfter=5000)
         except Exception as ex:
@@ -354,23 +358,43 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if modelDocument.type == Type.SCHEMA:
             # must include document items taxonomy even if not in DTS
             return modelDocument.inDTS or modelDocument.targetNamespace == "http://arelle.org/doc/2014-01-31"
-        return modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL, Type.LINKBASE)
+        return modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL, Type.LINKBASE, Type.INLINEXBRLDOCUMENTSET)
 
     def identifyPreexistingDocuments(self):
         self.existingDocumentIds = {}
         self.urlDocs = {}
         docUris = set()
+        shortUrlToFullUrl = {}
         for modelDocument in self.modelXbrl.urlDocs.values():
             url = ensureUrl(modelDocument.uri)
             self.urlDocs[url] = modelDocument
             if self.isSemanticDocument(modelDocument):
-                docUris.add(self.dbStr(url))
+                shortUrl = re.sub('^https?://', '', url)
+                shortUrlToFullUrl[shortUrl] = url
+                docUris.add(self.dbStr(shortUrl))
+
         if docUris:
-            results = self.execute("SELECT document_id, document_url FROM {} WHERE document_url IN ({})"
-                                   .format(self.dbTableName("document"),
-                                           ', '.join(docUris)))
-            self.existingDocumentIds = dict((self.urlDocs[self.pyStrFromDbStr(docUrl)],docId)
-                                            for docId, docUrl in results)
+            col = """
+                    CASE
+                        WHEN document_url like 'http://%' THEN replace(document_url, 'http://', '')
+                        WHEN document_url like 'https://%' THEN replace(document_url, 'https://', '')
+                        ELSE document_url
+                    END
+            """
+            docsQuery = f"""
+                SELECT
+                    document_id,
+                    {col}
+                FROM {self.dbTableName("document")}
+                WHERE {col} IN ({', '.join(docUris)})
+                """
+            results = self.execute(docsQuery)
+            existingDocsResults = tuple(
+                (shortUrlToFullUrl[self.pyStrFromDbStr(docUrl)], docId)
+                for docId, docUrl in results
+            )
+            self.existingDocumentIds = dict((self.urlDocs[docUrl],docId)
+                                            for docUrl, docId in existingDocsResults)
 
             # identify whether taxonomyRelsSetsOwner is existing
             self.isExistingTaxonomyRelSetsOwner = (
@@ -458,10 +482,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         table = self.getTable('document', 'document_id',
                               ('document_url', 'document_type', 'namespace'),
                               ('document_url',),
-                              set((ensureUrl(docUrl),
+                              set((ensureUrl(mdlDoc.uri),
                                    Type.typeName[mdlDoc.type],
                                    mdlDoc.targetNamespace)
-                                  for docUrl, mdlDoc in self.modelXbrl.urlDocs.items()
+                                  for mdlDoc in self.modelXbrl.urlDocs.values()
                                   if mdlDoc not in self.existingDocumentIds and
                                      self.isSemanticDocument(mdlDoc)),
                               checkIfExisting=True)
