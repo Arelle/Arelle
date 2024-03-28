@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
+import uuid
 from arelle import XmlUtil
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelValue import QName
@@ -44,6 +45,7 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
         else:
             self.unit = None
         self.factObjectId = None
+        self.uniqueUUID = uuid.uuid4()
 
     def clear(self):
         if self.context is not None:

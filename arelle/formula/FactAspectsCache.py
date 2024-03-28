@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
@@ -8,6 +9,8 @@ from arelle.ModelValue import QName
 if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelFact
 
+
+noneUUID = uuid.uuid4()
 
 class FactAspectsCache:
     def __init__(self, maxSize: int) -> None:
@@ -19,7 +22,7 @@ class FactAspectsCache:
         self._size = 0
         self._prioritizedAspects: set[int | QName] = set()
         self._matchingAspects: defaultdict[
-            tuple[int, int],
+            tuple[uuid.UUID, uuid.UUID],
             defaultdict[int | QName, bool | None]
         ] = defaultdict(lambda: defaultdict(lambda: None))
 
@@ -48,9 +51,9 @@ class FactAspectsCache:
         factsCacheKey = self._buildFactKey(fact1, fact2)
         self._matchingAspects[factsCacheKey][aspect] = value
 
-    def _buildFactKey(self, fact1: ModelFact, fact2: ModelFact) -> tuple[int, int]:
-        fact1Id = id(fact1)
-        fact2Id = id(fact2)
+    def _buildFactKey(self, fact1: ModelFact, fact2: ModelFact) -> tuple[uuid.UUID, uuid.UUID]:
+        fact1Id = fact1.uniqueUUID if fact1 is not None else noneUUID
+        fact2Id = fact2.uniqueUUID if fact2 is not None else noneUUID
         return min(fact1Id, fact2Id), max(fact1Id, fact2Id)
 
     def __repr__(self) -> str:
