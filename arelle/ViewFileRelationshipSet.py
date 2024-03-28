@@ -6,7 +6,7 @@ from arelle.ModelDtsObject import ModelRelationship
 from arelle.ViewFile import NOOUT, CSV, XLSX, HTML, XML, JSON
 from arelle.ViewUtil import viewReferences
 from arelle.XbrlConst import conceptNameLabelRole, documentationLabel, widerNarrower
-from arelle.ModelRenderingObject import ModelEuAxisCoord, ModelRuleDefinitionNode
+from arelle.ModelRenderingObject import DefnMdlRuleDefinitionNode
 from arelle.ModelFormulaObject import Aspect
 
 import os
@@ -120,7 +120,7 @@ class ViewRelationshipSet(ViewFile.View):
                 if arcrole == "XBRL-dimensions":
                     childRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.consecutiveArcrole.get(modelObject.arcrole,"XBRL-dimensions"),
                                                                           modelObject.linkrole)
-                elif self.arcrole == "Table-rendering" and isinstance(concept, (ModelEuAxisCoord, ModelRuleDefinitionNode)):
+                elif self.arcrole == "Table-rendering" and isinstance(concept, DefnMdlRuleDefinitionNode):
                     numDims = len(concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or ()) * 2
                     if numDims > self.maxNumDims: self.maxNumDims = numDims
             for modelRel in childRelationshipSet.fromModelObject(concept):
@@ -210,7 +210,7 @@ class ViewRelationshipSet(ViewFile.View):
                 except AttributeError:
                     header = None # could be a filter
                 if isRelation:
-                    cols.append(modelObject.axisDisposition)
+                    cols.append(modelObject.axis)
                 else:
                     cols.append('')
                 if isRelation and header is None:
@@ -224,7 +224,7 @@ class ViewRelationshipSet(ViewFile.View):
                 else:
                     cols.append('')
                 cols.append(header)
-                if isRelation and isinstance(concept, (ModelEuAxisCoord, ModelRuleDefinitionNode)):
+                if isRelation and isinstance(concept, DefnMdlRuleDefinitionNode):
                     cols.append(concept.aspectValue(None, Aspect.CONCEPT))
                     if self.type in (CSV, XML, JSON): # separate dimension fields
                         for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or ()):

@@ -150,11 +150,13 @@ class FunctionArgType(Exception):
             expectedType: str,
             foundObject: str | QName | Sequence[FormulaToken] | None = '',
             errCode: str = 'err:XPTY0004',
+            value: str | None = None
     ) -> None:
         self.errCode = errCode
         self.argNum = (argIndex + 1) if isinstance(argIndex, int) else argIndex
         self.expectedType = expectedType
         self.foundObject = foundObject
+        self.value = value
         self.args = (self.__repr__(),)
 
     def __repr__(self) -> str:

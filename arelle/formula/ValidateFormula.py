@@ -30,9 +30,9 @@ from arelle.ModelFormulaObject import (
     Trace,
 )
 from arelle.ModelRenderingObject import (
-    ModelFilterDefinitionNode,
-    ModelRelationshipDefinitionNode,
-    ModelRuleDefinitionNode,
+    DefnMdlRuleDefinitionNode,
+    DefnMdlRelationshipNode,
+    DefnMdlAspectNode,
 )
 from arelle.ModelValue import QName, qname
 from arelle.PluginManager import pluginClassMethods
@@ -168,63 +168,6 @@ arcroleChecks = {
         XbrlConst.qnVariableFilter,
         "xbrlte:aspectNodeFilterSourceError",
         "xbrlte:aspectNodeFilterTargetError",
-    ),
-    XbrlConst.tableBreakdown201305: (XbrlConst.qnTableTable201305, XbrlConst.qnTableBreakdown201305, "xbrlte:info"),
-    XbrlConst.tableBreakdownTree201305: (
-        XbrlConst.qnTableBreakdown201305,
-        (XbrlConst.qnTableClosedDefinitionNode201305, XbrlConst.qnTableAspectNode201305),
-        "xbrlte:info",
-    ),
-    XbrlConst.tableDefinitionNodeSubtree201305: (
-        XbrlConst.qnTableClosedDefinitionNode201305,
-        XbrlConst.qnTableClosedDefinitionNode201305,
-        "xbrlte:info",
-    ),
-    XbrlConst.tableFilter201305: (XbrlConst.qnTableTable201305, XbrlConst.qnVariableFilter, "xbrlte:info"),
-    XbrlConst.tableAspectNodeFilter201305: (
-        XbrlConst.qnTableAspectNode201305,
-        XbrlConst.qnVariableFilter,
-        "xbrlte:info",
-    ),
-    XbrlConst.tableBreakdown201301: (
-        XbrlConst.qnTableTable201301,
-        (
-            XbrlConst.qnTableClosedDefinitionNode201301,
-            XbrlConst.qnTableFilterNode201301,
-            XbrlConst.qnTableSelectionNode201301,
-            XbrlConst.qnTableTupleNode201301,
-        ),
-        "xbrlte:info",
-    ),
-    XbrlConst.tableAxis2011: (
-        XbrlConst.qnTableTable2011,
-        (
-            XbrlConst.qnTablePredefinedAxis2011,
-            XbrlConst.qnTableFilterAxis2011,
-            XbrlConst.qnTableSelectionAxis2011,
-            XbrlConst.qnTableTupleAxis2011,
-        ),
-        "xbrlte:info",
-    ),
-    XbrlConst.tableFilter201301: (XbrlConst.qnTableTable201301, XbrlConst.qnVariableFilter, "xbrlte:info"),
-    XbrlConst.tableFilter2011: (XbrlConst.qnTableTable2011, XbrlConst.qnVariableFilter, "xbrlte:info"),
-    XbrlConst.tableDefinitionNodeSubtree201301: (
-        XbrlConst.qnTableClosedDefinitionNode201301,
-        XbrlConst.qnTableClosedDefinitionNode201301,
-        "xbrlte:info",
-    ),
-    XbrlConst.tableAxisSubtree2011: (
-        XbrlConst.qnTablePredefinedAxis2011,
-        XbrlConst.qnTablePredefinedAxis2011,
-        "xbrlte:info",
-    ),
-    XbrlConst.tableFilterNodeFilter2011: (XbrlConst.qnTableFilterNode201301, XbrlConst.qnVariableFilter, "xbrlte:info"),
-    XbrlConst.tableAxisFilter2011: (XbrlConst.qnTableFilterAxis2011, XbrlConst.qnVariableFilter, "xbrlte:info"),
-    XbrlConst.tableAxisFilter201205: (XbrlConst.qnTableFilterAxis2011, XbrlConst.qnVariableFilter, "xbrlte:info"),
-    XbrlConst.tableTupleContent201301: (
-        (XbrlConst.qnTableTupleNode201301, XbrlConst.qnTableTupleAxis2011),
-        (XbrlConst.qnTableRuleNode201301, XbrlConst.qnTableRuleAxis2011),
-        "xbrlte:info",
     ),
 }
 
@@ -1655,168 +1598,113 @@ def checkTableRules(val, xpathContext, table):
     # check for covering aspect not in variable set aspect model
     checkFilterAspectModel(val, table, table.filterRelationships, xpathContext)
 
-    checkDefinitionNodeRules(
-        val,
-        table,
-        table,
-        (
-            XbrlConst.tableBreakdown,
-            XbrlConst.tableBreakdownMMDD,
-            XbrlConst.tableBreakdown201305,
-            XbrlConst.tableAxis2011,
-        ),
-        xpathContext,
-    )
-
+    checkDefinitionNodeRules(val, table, table, (XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD), xpathContext)
 
 def checkDefinitionNodeRules(val, table, parent, arcrole, xpathContext):
     for rel in val.modelXbrl.relationshipSet(arcrole).fromModelObject(parent):
         axis = rel.toModelObject
         if axis is not None:
-            if isinstance(axis, ModelFilterDefinitionNode):
+            if isinstance(axis, DefnMdlAspectNode):
                 checkFilterAspectModel(val, table, axis.filterRelationships, xpathContext)
             else:
-                if isinstance(axis, ModelRuleDefinitionNode):
-                    # check rules for completeness
+                if isinstance(axis, DefnMdlRuleDefinitionNode):
                     rulesByAspect = defaultdict(set)
-                    for elt in XmlUtil.descendants(axis, XbrlConst.formula, "*"):
-                        try:
-                            try:  # make sure xAttributes is initialized (pull request #94)
-                                elt.xAttributes
-                            except AttributeError:
-                                xml_validate(val.modelXbrl, elt)
-                            if elt.localName in ("concept", "entityIdentifier", "period", "unit"):
-                                rulesByAspect[elt.localName].add(elt)
-                            elif elt.localName in ("explicitDimension", "typedDimension"):
-                                rulesByAspect[elt.localName, elt.xAttributes["dimension"].xValue].add(elt)
-                            elif elt.localName == "occFragments":
-                                rulesByAspect[elt.localName, elt.xAttributes["occ"].xValue].add(elt)
-                            if (
-                                (
-                                    elt.localName == ("concept", "member")
-                                    and not any(
-                                        c.localName in ("qname", "qnameExpression")
-                                        for c in XmlUtil.children(elt, XbrlConst.formula, "*")
-                                    )
-                                )
-                                or (
-                                    elt.localName == "explicitDimension"
-                                    and (
-                                        not XmlUtil.children(elt, XbrlConst.formula, "member")
-                                        or not val.modelXbrl.qnameConcepts.get(elt.xAttributes["dimension"].xValue).isDimensionItem
-                                    )
-                                )
-                                or (
-                                    elt.localName == "typedDimension"
-                                    and not any(
-                                        c.localName in ("xpath", "value")
-                                        for c in XmlUtil.children(elt, XbrlConst.formula, "*")
-                                    )
-                                )
-                                or (elt.localName == "instant" and not elt.get("value"))
-                                or (elt.localName == "duration" and not (elt.get("start") or elt.get("end")))
-                                or (elt.localName == "entityIdentifier" and not (elt.get("scheme") and elt.get("value")))
-                                or (
-                                    elt.localName == "unit"
-                                    and not any(
-                                        c.localName in ("multiplyBy", "divideBy")
-                                        for c in XmlUtil.children(elt, XbrlConst.formula, "*")
-                                    )
-                                )
-                                or (elt.localName in ("multiplyBy", "divideBy") and not elt.get("measure"))
-                            ):
-                                raise FormulaValidationException
-                        except (FormulaValidationException, KeyError, AttributeError):
-                            val.modelXbrl.error(
-                                "xbrlte:incompleteAspectRule",
-                                _("RuleAxis %(xlinkLabel)s includes an incomplete rule aspect: %(incompleteAspect)s"),
-                                modelObject=axis,
-                                xlinkLabel=axis.xlinkLabel,
-                                incompleteAspect=elt.qname,
-                            )
-                        if elt.localName == "occFragments" and XmlUtil.children(elt, XbrlConst.xbrldi, "*"):
-                            val.modelXbrl.error(
-                                "xbrlfe:badSubsequentOCCValue",
-                                _("Formula %(label)s OCC element in rule aspect %(occ)s covers a dimensional aspect"),
-                                modelObject=axis,
-                                label=axis.xlinkLabel,
-                                occ=elt.qname,
-                            )
+                    # if some tags are present, group the rules set by that
+                    tags = list(axis.constraintSets.keys())
+                    ruleSetsElts = []
+                    if len(tags) == 0 or (len(tags) == 1 and tags == [None]): # avoid some missied values in case of incomplete ruleNode
+                        ruleSetsElts = [axis]
+                    else:
+                        for tag in tags:
+                            if tag:
+                                ruleSetsElts.append(XmlUtil.descendants(axis, XbrlConst.qnTableRuleSet.namespaceURI, XbrlConst.qnTableRuleSet.localName, "tag", tag))
+                            else:
+                                ruleSetsElts.append(XmlUtil.descendants(axis, XbrlConst.qnTableRuleSet.namespaceURI, XbrlConst.qnTableRuleSet.localName))
+                    for ruleSetsElt in ruleSetsElts:
+                        # check rules for completeness
+                        rulesByAspect = defaultdict(set)
+                        for elt in XmlUtil.descendants(ruleSetsElt, XbrlConst.formula, "*"):
+                            try:
+                                try: # make sure xAttributes is initialized (pull request #94)
+                                    elt.xAttributes
+                                except AttributeError:
+                                    xml_validate(val.modelXbrl, elt)
+                                if elt.localName in ("concept", "entityIdentifier", "period", "unit"):
+                                    rulesByAspect[elt.localName].add(elt)
+                                elif elt.localName in ("explicitDimension", "typedDimension"):
+                                    rulesByAspect[elt.localName, elt.xAttributes["dimension"].xValue].add(elt)
+                                elif elt.localName == "xpath" and elt.parentQname.localName == "typedDimension":
+                                    val.modelXbrl.error("arelle:typedDimensionContextItemUndefined",
+                                        _("RuleAxis %(xlinkLabel)s includes an typedDimension xpath aspect for which the specification does not define an xpath context: %(incompleteAspect)s"),
+                                        modelObject=axis, xlinkLabel=axis.xlinkLabel, incompleteAspect=elt.qname)
+                                elif elt.localName == "occXpath":
+                                    val.modelXbrl.error("arelle:occXpathContextItemUndefined",
+                                        _("RuleAxis %(xlinkLabel)s includes an occXpath aspect for which the specification does not define an xpath context: %(incompleteAspect)s"),
+                                        modelObject=axis, xlinkLabel=axis.xlinkLabel, incompleteAspect=elt.qname)
+                                elif elt.localName == "occFragments":
+                                    rulesByAspect[elt.localName, elt.xAttributes["occ"].xValue].add(elt)
+                                if ((elt.localName in ("concept","member") and not any(c.localName in ("qname", "qnameExpression")
+                                                                                       for c in XmlUtil.children(elt, XbrlConst.formula, "*"))) or
+                                    (elt.localName == "explicitDimension" and (
+                                        not XmlUtil.children(elt, XbrlConst.formula, "member") or
+                                        not val.modelXbrl.qnameConcepts.get(elt.xAttributes["dimension"].xValue).isDimensionItem)) or
+                                    (elt.localName == "typedDimension" and not any(c.localName in ("xpath", "value")
+                                                                        for c in XmlUtil.children(elt, XbrlConst.formula, "*"))) or
+                                    (elt.localName == "period" and not any(c.localName in ("instant", "forever", "duration")
+                                                                           for c in XmlUtil.children(elt, XbrlConst.formula, "*"))) or
+                                    (elt.localName == "instant" and not elt.get("value")) or
+                                    (elt.localName == "duration" and not (elt.get("start") or elt.get("end"))) or
+                                    (elt.localName == "entityIdentifier" and not (elt.get("scheme") and elt.get("value"))) or
+                                    (elt.localName == "unit" and not any(c.localName in ("multiplyBy", "divideBy")
+                                                                        for c in XmlUtil.children(elt, XbrlConst.formula, "*"))) or
+                                    (elt.localName in ("multiplyBy", "divideBy") and not elt.get("measure"))):
+                                     raise FormulaValidationException
+                            except (FormulaValidationException,KeyError,AttributeError):
+                                val.modelXbrl.error("xbrlte:incompleteAspectRule",
+                                    _("RuleAxis %(xlinkLabel)s includes an incomplete rule aspect: %(incompleteAspect)s"),
+                                    modelObject=axis, xlinkLabel=axis.xlinkLabel, incompleteAspect=elt.qname)
+                            if elt.localName == "occFragments" and XmlUtil.children(elt, XbrlConst.xbrldi, "*"):
+                                val.modelXbrl.error("xbrlfe:badSubsequentOCCValue",
+                                   _("Formula %(label)s OCC element in rule aspect %(occ)s covers a dimensional aspect"),
+                                   modelObject=axis, label=axis.xlinkLabel, occ=elt.qname)
                     for aspect, rules in rulesByAspect.items():
                         if len(rules) > 1:
-                            val.modelXbrl.error(
-                                "xbrlte:multipleValuesForAspect",
+                            val.modelXbrl.error("xbrlte:multipleValuesForAspect",
                                 _("RuleAxis %(xlinkLabel)s has %(count)s rules for aspect: %(multipleAspect)s"),
-                                modelObject=axis,
-                                xlinkLabel=axis.xlinkLabel,
-                                count=len(rules),
-                                multipleAspect=aspect,
-                            )
+                                modelObject=axis, xlinkLabel=axis.xlinkLabel, count=len(rules), multipleAspect=aspect)
                     del rulesByAspect
                     # check aspect model expectations
                     if table.aspectModel == "non-dimensional":
-                        unexpectedElts = XmlUtil.descendants(
-                            axis, XbrlConst.formula, ("explicitDimension", "typedDimension")
-                        )
+                        unexpectedElts = XmlUtil.descendants(axis, XbrlConst.formula, ("explicitDimension", "typedDimension"))
                         if unexpectedElts:
-                            val.modelXbrl.error(
-                                "xbrlte:axisAspectModelMismatch",
+                            val.modelXbrl.error("xbrlte:axisAspectModelMismatch",
                                 _("RuleAxis %(xlinkLabel)s aspect model, %(aspectModel)s, includes an rule for aspect not defined in this aspect model: %(undefinedAspects)s"),
-                                modelObject=axis,
-                                xlinkLabel=axis.xlinkLabel,
-                                aspectModel=table.aspectModel,
-                                undefinedAspects=", ".join([elt.localName for elt in unexpectedElts]),
-                            )
+                                modelObject=axis, xlinkLabel=axis.xlinkLabel, aspectModel=table.aspectModel, undefinedAspects=", ".join([elt.localName for elt in unexpectedElts]))
 
                     # check source qnames
-                    for sourceElt in [axis] + XmlUtil.descendants(axis, XbrlConst.formula, "*", "source", "*"):
+                    for sourceElt in ([axis] +
+                                     XmlUtil.descendants(axis, XbrlConst.formula, "*", "source","*")):
                         if sourceElt.get("source") is not None:
                             qnSource = qname(sourceElt, sourceElt.get("source"), noPrefixIsNoNamespace=True)
-                            val.modelXbrl.info(
-                                "table:info",
-                                _("RuleAxis rule %(xlinkLabel)s contains a @source attribute %(qnSource)s which is not applicable to table rule axes."),
-                                modelObject=axis,
-                                xlinkLabel=axis.xlinkLabel,
-                                qnSource=qnSource,
-                            )
+                            val.modelXbrl.info("table:info",
+                                               _("RuleAxis rule %(xlinkLabel)s contains a @source attribute %(qnSource)s which is not applicable to table rule axes."),
+                                               modelObject=axis, xlinkLabel=axis.xlinkLabel, qnSource=qnSource)
                     # check any custom unrecognized aspect rules
                     for childElt in XmlUtil.children(axis, "*", "*"):
                         if childElt.namespaceURI not in (XbrlConst.formula, axis.namespaceURI):
-                            val.modelXbrl.error(
-                                "xbrlte:unrecognisedAspectRule",
+                            val.modelXbrl.error("xbrlte:unrecognisedAspectRule",
                                 _("RuleAxis %(xlinkLabel)s aspect model includes an unrecognized rule aspect: %(unrecognizedAspect)s"),
-                                modelObject=axis,
-                                xlinkLabel=axis.xlinkLabel,
-                                unrecognizedAspect=childElt.qname,
-                            )
+                                modelObject=axis, xlinkLabel=axis.xlinkLabel, unrecognizedAspect=childElt.qname)
 
-                elif isinstance(axis, ModelRelationshipDefinitionNode):
+                elif isinstance(axis, DefnMdlRelationshipNode):
                     for qnameAttr in ("relationshipSourceQname", "arcQname", "linkQname", "dimensionQname"):
                         eltQname = axis.get(qnameAttr)
                         if eltQname and eltQname not in val.modelXbrl.qnameConcepts:
-                            val.modelXbrl.info(
-                                "table:info",
-                                _("%(axis)s rule %(xlinkLabel)s contains a %(qnameAttr)s QName %(qname)s which is not in the DTS."),
-                                modelObject=axis,
-                                axis=axis.localName.title(),
-                                xlinkLabel=axis.xlinkLabel,
-                                qnameAttr=qnameAttr,
-                                qname=eltQname,
-                            )
-                checkDefinitionNodeRules(
-                    val,
-                    table,
-                    axis,
-                    (
-                        XbrlConst.tableBreakdownTree,
-                        XbrlConst.tableBreakdownTreeMMDD,
-                        XbrlConst.tableBreakdownTree201305,
-                        XbrlConst.tableDefinitionNodeSubtree201301,
-                        XbrlConst.tableAxisSubtree2011,
-                    ),
-                    xpathContext,
-                )
-
+                            val.modelXbrl.info("table:info",
+                                               _("%(axis)s rule %(xlinkLabel)s contains a %(qnameAttr)s QName %(qname)s which is not in the DTS."),
+                                               modelObject=axis, axis=axis.localName.title(), xlinkLabel=axis.xlinkLabel,
+                                               qnameAttr=qnameAttr, qname=eltQname)
+                checkDefinitionNodeRules(val, table, axis, (XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD), xpathContext)
 
 def checkValidationMessages(val, modelVariableSet):
     for msgRelationship in (XbrlConst.assertionSatisfiedMessage, XbrlConst.assertionUnsatisfiedMessage):
