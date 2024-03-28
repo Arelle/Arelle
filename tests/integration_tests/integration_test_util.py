@@ -124,11 +124,14 @@ def get_test_data(
                         marks.append(pytest.mark.xfail())
                     elif mv.status == 'skip':
                         continue  # don't report variations skipped due to shards
+                    # Arelle adds message code frequencies to the end, but conformance suites usually don't.
+                    # Skip assertion results dictionaries.
+                    actual = [re.sub(r' \(\d+\)$', '', code) for code in mv.actual if not isinstance(code, dict)]
                     param = pytest.param(
                         {
                             'status': mv.status,
                             'expected': mv.expected,
-                            'actual': mv.actual,
+                            'actual': actual,
                             'duration': mv.duration,
                         },
                         id=test_id,
