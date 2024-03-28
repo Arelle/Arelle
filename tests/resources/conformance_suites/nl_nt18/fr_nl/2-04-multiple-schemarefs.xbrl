@@ -2,22 +2,22 @@
 <xbrl
   xml:lang="en"
   xmlns="http://www.xbrl.org/2003/instance"
-  xmlns:bzk-wnt-i="http://www.nltaxonomie.nl/nt18/bzk/20231213.b/dictionary/bzk-wnt-data"
+  xmlns:bzk-wnt-i="http://www.nltaxonomie.nl/nt18/bzk/20231213/dictionary/bzk-wnt-data"
   xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
-  xmlns:jenv-bw2-dim="http://www.nltaxonomie.nl/nt18/jenv/20231213.b/dictionary/jenv-bw2-axes"
-  xmlns:jenv-bw2-dm="http://www.nltaxonomie.nl/nt18/jenv/20231213.b/dictionary/jenv-bw2-domains"
-  xmlns:jenv-bw2-i="http://www.nltaxonomie.nl/nt18/jenv/20231213.b/dictionary/jenv-bw2-data"
-  xmlns:kvk-i="http://www.nltaxonomie.nl/nt18/kvk/20231213.b/dictionary/kvk-data"
+  xmlns:jenv-bw2-dim="http://www.nltaxonomie.nl/nt18/jenv/20231213/dictionary/jenv-bw2-axes"
+  xmlns:jenv-bw2-dm="http://www.nltaxonomie.nl/nt18/jenv/20231213/dictionary/jenv-bw2-domains"
+  xmlns:jenv-bw2-i="http://www.nltaxonomie.nl/nt18/jenv/20231213/dictionary/jenv-bw2-data"
+  xmlns:kvk-i="http://www.nltaxonomie.nl/nt18/kvk/20231213/dictionary/kvk-data"
   xmlns:link="http://www.xbrl.org/2003/linkbase"
   xmlns:nl-cd="http://www.nltaxonomie.nl/nt18/sbr/20230301/dictionary/nl-common-data"
-  xmlns:rj-dim="http://www.nltaxonomie.nl/nt18/rj/20231213.b/dictionary/rj-axes"
-  xmlns:rj-dm="http://www.nltaxonomie.nl/nt18/rj/20231213.b/dictionary/rj-domains"
-  xmlns:rj-i="http://www.nltaxonomie.nl/nt18/rj/20231213.b/dictionary/rj-data"
+  xmlns:rj-dim="http://www.nltaxonomie.nl/nt18/rj/20231213/dictionary/rj-axes"
+  xmlns:rj-dm="http://www.nltaxonomie.nl/nt18/rj/20231213/dictionary/rj-domains"
+  xmlns:rj-i="http://www.nltaxonomie.nl/nt18/rj/20231213/dictionary/rj-data"
   xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
   xmlns:xbrli="http://www.xbrl.org/2003/instance"
   xmlns:xlink="http://www.w3.org/1999/xlink">
-    <link:schemaRef xlink:href="2-03-entrypoint.xsd" xlink:type="simple"/> 
-    <link:schemaRef xlink:href="2-04-entrypoint.xsd" xlink:type="simple"/>
+    <link:schemaRef xlink:href="2-04-entrypoint-1.xsd" xlink:type="simple"/>
+    <link:schemaRef xlink:href="2-04-entrypoint-2.xsd" xlink:type="simple"/>
     <context id="ctx-1">
         <entity>
             <identifier scheme="http://www.kvk.nl/kvk-id">12345678</identifier>

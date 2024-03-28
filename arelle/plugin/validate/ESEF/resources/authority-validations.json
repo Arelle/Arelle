@@ -256,10 +256,10 @@
     "SK": {
         "name": "Slovakia"
     },
-    "UKFRC": {
-        "name": "United Kingdom",
+    "UKFRC-2022": {
+        "name": "United Kingdom Single Target",
         "authorityName": "FRC",
-        "comment": "Pertains to UKSEF Guidance",
+        "comment": "Pertains to UKSEF Guidance before UKSEF filings used multiple targets beginning in 2023",
         "comment2": "See GB for UK filings to ESMA ESEF not using UKSEF",
         "reference": "https://www.frc.org.uk/getattachment/d41a2831-6626-40b5-86c0-97627b50dd10/FRC-UKSEF-Tagging-Guide-2021-Version-1-1-January-2022.pdf",
         "reportPackageMaxMB": "150",
@@ -320,5 +320,15 @@
             "https://xbrl.frc.org.uk/"
         ],
         "formulaRunIDs": "(?!con_IdentifierSchemeMustBeLEI|lei-identifier-scheme)"
+    },
+    "UKFRC-2023": {
+        "name": "United Kingdom Multiple Targets",
+        "authorityName": "FRC",
+        "comment": "Pertains to multi target UKSEF Guidance",
+        "comment2": "See UKFRC for reports prior to 2023 which did not use separate targets for FRC and ESEF",
+        "reference": "https://media.frc.org.uk/documents/XBRL_Tagging_Guide_-_FRC_Taxonomies_2024_On9jOuS.pdf",
+        "reportPackageMaxMB": "150",
+        "reportPackageMeasurement": "zipped",
+        "ixTargetUsage": "allowed"
     }
 }

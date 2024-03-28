@@ -1013,7 +1013,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
         if parentDoc is None:
             modelXbrl.modelDocument = doc
         thisDoc.generated = True # prevent recursion
-        doc.loadedFromExcel = True # signal to save generated taoxnomy in saveToFile below
+        doc.loadedFromExcel = True # signal to save generated taxonomy in saveToFile below
 
         doc.inDTS = True  # entry document always in DTS
         doc.targetNamespace = thisDoc.extensionSchemaNamespaceURI # not set until schemaDiscover too late otherwise

@@ -96,7 +96,7 @@ from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateFilingText import CDATApattern
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence, xmlnsprefix, setXmlns
-from arelle.XmlValidate import validate as xmlValidate, VALID
+from arelle.XmlValidate import validate as xmlValidate, VALID, NONE
 import os, zipfile
 import regex as re
 from optparse import SUPPRESS_HELP
@@ -309,7 +309,8 @@ def createTargetInstance(
                 ValidateDuplicateFacts.logDeduplicatedFact(modelXbrl, fact)
                 continue
             if fact.xValid < VALID and skipInvalid:
-                invalidFacts.append(fact)
+                if fact.xValid < NONE: # don't report Redacted facts
+                    invalidFacts.append(fact)
             elif fact.isItem: # HF does not de-duplicate, which is currently-desired behavior
                 modelConcept = fact.concept # isItem ensures concept is not None
                 attrs = {"contextRef": fact.contextID}

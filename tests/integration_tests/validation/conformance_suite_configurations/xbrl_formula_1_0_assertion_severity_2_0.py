@@ -7,4 +7,5 @@ config = ConformanceSuiteConfig(
     local_filepath='60111 AssertionSeverity-2.0-Processing.zip',
     name=PurePath(__file__).stem,
     network_or_cache_required=False,
+    test_case_result_options='match-any',
 )

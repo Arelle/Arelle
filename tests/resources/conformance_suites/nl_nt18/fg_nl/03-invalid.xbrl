@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- CAUSE: The default prefix for the jenv-bw2-data namespace is jenv-bw2-i-->
+<xbrli:xbrl
+        xmlns:xbrli="http://www.xbrl.org/2003/instance"
+        xmlns:jenv-bw2-x="http://www.nltaxonomie.nl/nt18/jenv/20231213/dictionary/jenv-bw2-data"
+        xmlns:link="http://www.xbrl.org/2003/linkbase"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        xmlns:xml="http://www.w3.org/XML/1998/namespace"
+        xml:lang="nl">
+    <link:schemaRef xlink:href="http://www.nltaxonomie.nl/nt18/jenv/20231213/dictionary/jenv-bw2-data.xsd" xlink:type="simple"/>
+    <xbrli:context id="c-1">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.kvk.nl/kvk-id/">32123456</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:startDate>2021-01-01</xbrli:startDate>
+            <xbrli:endDate>2021-12-31</xbrli:endDate>
+        </xbrli:period>
+    </xbrli:context>
+    <!-- CAUSE: The default prefix for the jenv-bw2-data namespace is jenv-bw2-i-->
+    <jenv-bw2-x2:FinancialReportingPeriodCurrentStartDate xmlns:jenv-bw2-x2="http://www.nltaxonomie.nl/nt18/jenv/20231213/dictionary/jenv-bw2-data" contextRef="c-1">2021-01-01</jenv-bw2-x2:FinancialReportingPeriodCurrentStartDate>
+</xbrli:xbrl>

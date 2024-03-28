@@ -6,6 +6,8 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Iterable, cast
 
+from lxml.etree import _Element
+
 from arelle import ModelDocument
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObject import ModelObject
@@ -36,6 +38,57 @@ INSTANCE_ELEMENT_ORDER = {
     qnXbrliUnit.clarkNotation: 5,
     'fact': 6,
 }
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NT16,
+        DISCLOSURE_SYSTEM_NT17,
+        DISCLOSURE_SYSTEM_NT18,
+    ],
+)
+def rule_fg_nl_03(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    FG-NL-03: An XBRL instance document SHOULD use the recommended default namespace prefixes for all namespaces
+    """
+    standardNamespaceMap: dict[str, set[str]] = defaultdict(set)
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if modelDocument.type == ModelDocument.Type.INSTANCE:
+            continue
+        for element in modelDocument.targetXbrlElementTree.iter():
+            for prefix, namespace in element.nsmap.items():
+                if prefix:
+                    standardNamespaceMap[namespace].add(prefix)
+
+    warningsMap: dict[tuple[str, str], list[_Element]] = defaultdict(list)
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if modelDocument.type != ModelDocument.Type.INSTANCE:
+            continue
+        for element in modelDocument.targetXbrlElementTree.iter():
+            for prefix, namespace in element.nsmap.items():
+                if namespace not in standardNamespaceMap or not prefix:
+                    continue
+                if prefix in standardNamespaceMap[namespace]:
+                    continue
+                warningsMap[(namespace, prefix)].append(element)
+
+    for (namespace, prefix), elements in warningsMap.items():
+        yield Validation.warning(
+            codes='NL.FG-NL-03',
+            msg=_('An instance document is referencing a taxonomy namespace '
+                  '(%(namespace)s) with a non-standard prefix (%(nonStandardPrefix)s) '
+                  'instead of a standard prefix (%(standardPrefix)s)'),
+            modelObject=elements,
+            namespace=namespace,
+            nonStandardPrefix=prefix,
+            standardPrefix=', '.join(standardNamespaceMap[namespace]),
+        )
 
 
 @validation(

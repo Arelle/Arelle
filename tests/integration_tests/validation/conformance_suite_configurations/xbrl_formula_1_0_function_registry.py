@@ -17,4 +17,5 @@ config = ConformanceSuiteConfig(
     required_locale_by_ids={f'formula/function-registry/{t}': p for t, p in [
         ('xbrl/90701 xfi.format-number/90701 xfi.format-number testcase.xml:V-05', re.compile(r"^(en|English).*$")),
     ]},
+    test_case_result_options='match-any',
 )

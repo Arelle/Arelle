@@ -33,7 +33,7 @@ def edgarRendererFilingStartSupplement(cntlr, options, entrypointFiles, filing, 
     edgarRenderer.reportXslt = os.path.join(edgarRenderer.resourcesFolder,'InstanceReportTable.xslt')
     edgarRenderer.summaryXslt = '' # no FilingSummary.htm
 
-def edgarRendererFilingEndSupplement(cntlr, options, filesource, filing, *args, **kwargs):
+def edgarRendererFilingEndSupplementalReport(cntlr, filing, reportsFolder, *args, **kwargs):
     edgarRenderer = filing.edgarRenderer
 
     # obtain R files from
@@ -43,8 +43,8 @@ def edgarRendererFilingEndSupplement(cntlr, options, filesource, filing, *args, 
     if filing.reportZip and url in filing.reportZip.namelist():
         filing.setReportZipStreamMode('r') # switch stream to read mode
         fileLikeObj = filing.reportZip.open(url)
-    elif edgarRenderer.reportsFolder and os.path.exists(os.path.join(edgarRenderer.reportsFolder, url)):
-        fileLikeObj = os.path.join(edgarRenderer.reportsFolder, url)
+    elif reportsFolder and os.path.exists(os.path.join(reportsFolder, url)):
+        fileLikeObj = os.path.join(reportsFolder, url)
     else:
         return
     edgarRenderer.logDebug("Generate all-reports htm file")
@@ -70,8 +70,8 @@ def edgarRendererFilingEndSupplement(cntlr, options, filesource, filing, *args, 
         if filing.reportZip and rFile in filing.reportZip.namelist():
             with filing.reportZip.open(rFile) as f:
                 rAll.append(f.read())
-        elif edgarRenderer.reportsFolder and os.path.exists(os.path.join(edgarRenderer.reportsFolder, rFile)):
-            rFilePath = os.path.join(edgarRenderer.reportsFolder, rFile)
+        elif reportsFolder and os.path.exists(os.path.join(reportsFolder, rFile)):
+            rFilePath = os.path.join(reportsFolder, rFile)
             with open(rFilePath, mode='rb') as f:
                 rAll.append(f.read())
             os.remove(rFilePath)
@@ -86,7 +86,7 @@ def edgarRendererFilingEndSupplement(cntlr, options, filesource, filing, *args, 
         filing.setReportZipStreamMode('a') # switch stream to append mode (was read mode above)
         filing.reportZip.writestr(allHtmFile, b"".join(rAll))
     else:
-        with open(os.path.join(edgarRenderer.reportsFolder, allHtmFile), mode='wb') as f:
+        with open(os.path.join(reportsFolder, allHtmFile), mode='wb') as f:
             f.write(b"".join(rAll))
     edgarRenderer.renderedFiles.add(allHtmFile)
     edgarRenderer.logDebug("Write {} complete".format(allHtmFile))
@@ -103,7 +103,7 @@ __pluginInfo__ = {
     # classes of mount points (required)
     # note that this mount point must load after EdgarRenderer's same-named mount point
     'EdgarRenderer.Filing.Start': edgarRendererFilingStartSupplement,
-    'EdgarRenderer.Filing.End': edgarRendererFilingEndSupplement,
-    'EdgarRenderer.Gui.Start': edgarRendererFilingStartSupplement,
-    'EdgarRenderer.Gui.End': edgarRendererFilingEndSupplement
+    'EdgarRenderer.FilingEnd.SupplementalReport': edgarRendererFilingEndSupplementalReport,
+    #'EdgarRenderer.Gui.Start': edgarRendererFilingStartSupplement,
+    #'EdgarRenderer.Gui.End': edgarRendererFilingEndSupplementalReport
 }

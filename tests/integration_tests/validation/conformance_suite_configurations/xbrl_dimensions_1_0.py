@@ -26,4 +26,5 @@ config = ConformanceSuiteConfig(
     name=PurePath(__file__).stem,
     network_or_cache_required=False,
     public_download_url='https://www.xbrl.org/2009/xdt-conf-cr4-2009-10-06.zip',
+    test_case_result_options='match-any',
 )

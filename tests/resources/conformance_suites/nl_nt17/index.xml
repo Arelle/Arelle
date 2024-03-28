@@ -2,6 +2,7 @@
 <testcases name="NL-NT17">
     <testcase uri='fr_kvk/1-01-testcase.xml' />
     <testcase uri='fr_kvk/2-01-testcase.xml' />
+    <testcase uri='fr_kvk/2-02-testcase.xml' />
     <testcase uri='fr_kvk/2-03-testcase.xml' />
     <testcase uri='fr_kvk/5-01-testcase.xml' />
     <testcase uri='fr_kvk/5-02-testcase.xml' />
@@ -13,6 +14,7 @@
     <testcase uri='br_kvk/4-16-testcase.xml' />
     <testcase uri='br_kvk/4-17-testcase.xml' />
     <testcase uri='br_kvk/4-20-testcase.xml' />
+    <testcase uri='fg_nl/03-testcase.xml' />
     <testcase uri='fg_nl/04-testcase.xml' />
     <testcase uri='fg_nl/05-testcase.xml' />
     <testcase uri='fg_nl/09-testcase.xml' />

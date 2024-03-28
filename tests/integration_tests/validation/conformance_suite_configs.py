@@ -9,12 +9,16 @@ from tests.integration_tests.validation.conformance_suite_configurations.esef_xh
 from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2022 import config as esef_xhtml_2022
 from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2023 import config as esef_xhtml_2023
 from tests.integration_tests.validation.conformance_suite_configurations.hmrc_current import config as hmrc_current
+from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt16 import config as kvk_nt16
+from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt17 import config as kvk_nt17
+from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt18 import config as kvk_nt18
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt16 import config as nl_nt16
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt17 import config as nl_nt17
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt18 import config as nl_nt18
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_2_1 import config as xbrl_2_1
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_calculations_1_1 import config as xbrl_calculations_1_1
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_dimensions_1_0 import config as xbrl_dimensions_1_0
+from tests.integration_tests.validation.conformance_suite_configurations.xbrl_dtr_2024_01_31 import config as xbrl_dtr_2024_01_31
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_extensible_enumerations_1_0 import config as xbrl_extensible_enumerations_1_0
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_extensible_enumerations_2_0 import config as xbrl_extensible_enumerations_2_0
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_formula_1_0 import config as xbrl_formula_1_0
@@ -42,12 +46,16 @@ ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     esef_xhtml_2022,
     esef_xhtml_2023,
     hmrc_current,
+    kvk_nt16,
+    kvk_nt17,
+    kvk_nt18,
     nl_nt16,
     nl_nt17,
     nl_nt18,
     xbrl_2_1,
     xbrl_calculations_1_1,
     xbrl_dimensions_1_0,
+    xbrl_dtr_2024_01_31,
     xbrl_extensible_enumerations_1_0,
     xbrl_extensible_enumerations_2_0,
     xbrl_formula_1_0,
@@ -65,5 +73,5 @@ ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     xbrl_utr_registry_1_0,
     xbrl_utr_structure_1_0,
 )
-
+CI_CONFORMANCE_SUITE_CONFIGS = tuple(c for c in ALL_CONFORMANCE_SUITE_CONFIGS if c.ci_enabled)
 PUBLIC_CONFORMANCE_SUITE_CONFIGS = tuple(c for c in ALL_CONFORMANCE_SUITE_CONFIGS if c.public_download_url)

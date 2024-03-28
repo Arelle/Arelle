@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
+import uuid
 from arelle import XbrlConst, XmlUtil
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelValue import QName, DateTime, dateTime, DATETIME
@@ -45,6 +46,7 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
             self.unit = None
         self.factObjectId = None
         v.modelXbrl.factPrototypeNextIndex = self.objectIndex = getattr(v.modelXbrl, "factPrototypeNextIndex", 0) + 1
+        self.uniqueUUID = uuid.uuid4()
 
     def clear(self):
         if self.context is not None:

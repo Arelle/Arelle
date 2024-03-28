@@ -33,12 +33,12 @@ jobs:
 
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v4.1.2
+        uses: actions/download-artifact@v4.1.4
         with:
           name: ${{ inputs.github_artifact }}
 
       - name: Upload build to release
-        uses: softprops/action-gh-release@v0.1.15
+        uses: softprops/action-gh-release@v2.0.4
         with:
           fail_on_unmatched_files: true
           files: ${{ inputs.build_name }}

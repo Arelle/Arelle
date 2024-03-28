@@ -32,6 +32,8 @@
     measure sets.
 """
 from __future__ import annotations
+
+import uuid
 from collections import defaultdict
 from typing import Any, TYPE_CHECKING
 from lxml import etree
@@ -141,10 +143,12 @@ class ModelFact(ModelObject):
         ([ModelFact]) - List of child facts in source document order
     """
     modelTupleFacts: list['ModelFact']
+    uniqueUUID: uuid.UUID
 
     def init(self, modelDocument):
         super(ModelFact, self).init(modelDocument)
         self.modelTupleFacts = []
+        self.uniqueUUID = uuid.uuid4()
 
     @property
     def concept(self):

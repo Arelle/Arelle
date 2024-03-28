@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import regex as re
+import math
 from typing import Any, List, Set, Union, cast
 from arelle import (XmlUtil, XbrlUtil, XbrlConst,
                     ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateUtr, ValidateDuplicateFacts)
@@ -194,7 +195,7 @@ class ValidateXbrl:
                         break
 
             # check calculation arcs for weight issues (note calc arc is an "any" cycles)
-            if arcrole == XbrlConst.summationItem:
+            if arcrole in XbrlConst.summationItems:
                 for modelRel in relsSet.modelRelationships:
                     weight = modelRel.weight
                     fromConcept = modelRel.fromModelObject
@@ -795,13 +796,15 @@ class ValidateXbrl:
                                 self.modelXbrl.error("xbrl.4.6.3:missingPrecisionDecimals",
                                     _("Fact %(fact)s context %(contextID)s is a numeric concept and must have either precision or decimals"),
                                     modelObject=f, fact=f.qname, contextID=f.contextID)
-                            elif f.concept.instanceOfType(dtrNoDecimalsItemTypes) and inferredDecimals(f) > 0:
-                                if hasDecimals:
-                                    message = _("Fact %(fact)s context %(contextID)s must not have decimals value > 0: %(inferredDecimals)s")
-                                else:
-                                    message = _("Fact %(fact)s context %(contextID)s must not have inferred decimals value > 0: %(inferredDecimals)s")
-                                self.modelXbrl.error("dtre:noDecimalsItemType", message,
-                                    modelObject=f, fact=f.qname, contextID=f.contextID, inferredDecimals=inferredDecimals(f))
+                            elif f.concept.instanceOfType(dtrNoDecimalsItemTypes):
+                                evaluatedDecimals = inferredDecimals(f)
+                                if evaluatedDecimals > 0 and not math.isinf(evaluatedDecimals):
+                                    if hasDecimals:
+                                        message = _("Fact %(fact)s context %(contextID)s must not have decimals value > 0: %(inferredDecimals)s")
+                                    else:
+                                        message = _("Fact %(fact)s context %(contextID)s must not have inferred decimals value > 0: %(inferredDecimals)s")
+                                    self.modelXbrl.error("dtre:noDecimalsItemType", message,
+                                        modelObject=f, fact=f.qname, contextID=f.contextID, inferredDecimals=inferredDecimals(f))
                         else:
                             if hasPrecision or hasDecimals:
                                 self.modelXbrl.error("xbrl.4.6.3:extraneousPrecisionDecimals",
