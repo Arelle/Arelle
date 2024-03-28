@@ -6,7 +6,7 @@ EXTRACTED_PATH = ZIP_PATH.replace('.zip', '')
 config = ConformanceSuiteConfig(
     args=[
         '--disclosureSystem', 'NT18-preview',
-        '--logCodeFilter', '(?!{})'.format('|'.join([
+        '--logCodeFilter', '(?!({})$)'.format('|'.join([
             'xbrlte:closedDefinitionNodeZeroCardinality',
             'xbrlte:constraintSetAspectMismatch',
             'xbrlte:invalidDimensionRelationshipSource',

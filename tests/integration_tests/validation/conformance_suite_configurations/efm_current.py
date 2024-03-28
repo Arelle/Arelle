@@ -16,7 +16,7 @@ config = ConformanceSuiteConfig(
     local_filepath='efm-69-240318.zip',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/EFM', 'inlineXbrlDocumentSet'}),
-    public_download_url='https://www.sec.gov/files/efm-69-240318.zip',
+    public_download_url='https://www.sec.gov/files/edgar/efm-69-240318.zip',
     shards=40,
     test_case_result_options='match-any',
 )
