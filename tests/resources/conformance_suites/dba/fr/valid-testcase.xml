@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="Valid"
+        description="A valid instance that triggers no DBA validation errors."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="valid" name="Valid">
+        <description>
+            A valid instance that triggers no DBA validation errors.
+        </description>
+        <data>
+            <!-- Source: https://datacvr.virk.dk/enhed/virksomhed/54399219-->
+            <instance readMeFirst="true">valid.xbrl</instance>
+        </data>
+        <result expected="valid"/>
+    </variation>
+</testcase>
