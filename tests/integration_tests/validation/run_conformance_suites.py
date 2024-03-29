@@ -130,6 +130,8 @@ def run_conformance_suites(
         package_paths = set()
         for conformance_suite_config in conformance_suite_configs:
             for package_name, package_path in conformance_suite_config.package_paths.items():
+                if package_path in package_paths:
+                    continue
                 download_taxonomy_package(package_name, package_path)
                 package_paths.add(package_path)
             if not conformance_suite_config.network_or_cache_required:
@@ -138,13 +140,6 @@ def run_conformance_suites(
                 f'conformance_suites/{conformance_suite_config.name}.zip',
                 version_id=conformance_suite_config.cache_version_id
             )
-        if package_paths:
-            # Download the packages.
-            subprocess.run([
-                sys.executable, 'arelleCmdLine.py',
-                '--packages', '|'.join(sorted(package_paths)),
-                '--proxy', 'show'
-            ])
     for conformance_suite_config in conformance_suite_configs:
         extract_conformance_suite(conformance_suite_config)
     all_results = []
