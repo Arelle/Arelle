@@ -786,7 +786,7 @@ class ModelDocument:
             except AttributeError:
                 pass
 
-    def save(self, overrideFilepath=None, outputZip=None, outputFile=None, updateFileHistory=True, encoding="utf-8", **kwargs) -> None:
+    def save(self, overrideFilepath=None, outputZip=None, outputFile=None, updateFileHistory=True, encoding="utf-8", zipDir=None, **kwargs) -> None:
         """Saves current document file.
 
         :param overrideFilepath: specify to override saving in instance's modelDocument.filepath
@@ -800,7 +800,7 @@ class ModelDocument:
         XmlUtil.writexml(fh, self.xmlDocument, encoding=encoding, **kwargs)
         if outputZip:
             fh.seek(0)
-            outputZip.writestr(os.path.basename(overrideFilepath or self.filepath),fh.read())
+            outputZip.writestr((zipDir or "") + os.path.basename(overrideFilepath or self.filepath),fh.read())
         if outputFile is None:
             fh.close()
         if overrideFilepath:

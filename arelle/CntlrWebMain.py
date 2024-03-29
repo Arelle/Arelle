@@ -653,7 +653,8 @@ as follows:</td></tr>
 <tr><td style="text-indent: 1em;">media</td><td><code>html</code> or <code>xhtml</code>: Html text results. (default)
 <br/><code>xml</code>: XML structured results.
 <br/><code>json</code>: JSON results.
-<br/><code>text</code>: Plain text results (no markup).</td></tr>
+<br/><code>text</code>: Plain text results (no markup).
+<br/><code>zip</code>: Zip results (for multi-file results, such as from EdgarRenderer).</td></tr>
 <tr><td style="text-indent: 1em;">file</td><td>Alternate way to specify file name or url by a parameter.  Files ending in .json will be loaded as xBRL-JSON.</td></tr>
 <tr><td style="text-indent: 1em;">import</td><td>A list of files to import to the DTS, such as additional formula
 or label linkbases.  Multiple file names are separated by a '|' character.</td></tr>
