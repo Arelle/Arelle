@@ -117,8 +117,11 @@ class ConformanceSuiteConfig:
             'If network or cache is required, either packages must be used or a cache version ID must be provided.'
 
     @cached_property
-    def package_urls(self) -> list[str]:
-        return [f'https://arelle-public.s3.amazonaws.com/ci/taxonomy_packages/{package}' for package in self.packages]
+    def package_paths(self) -> dict[str, str]:
+        return {
+            package: f'tests/resources/packages/{package}'
+            for package in self.packages
+        }
 
     @cached_property
     def prefixed_extract_filepath(self) -> str | None:
