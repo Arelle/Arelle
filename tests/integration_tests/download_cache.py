@@ -40,6 +40,7 @@ def download_taxonomy_package(name: str, download_path: str, version_id: str | N
     """
     if os.path.exists(download_path):
         return
+    os.makedirs(os.path.dirname(download_path), exist_ok=True)
     uri = get_s3_uri(
         f'ci/taxonomy_packages/{name}',
         version_id=version_id
