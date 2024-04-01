@@ -7,11 +7,12 @@ config = ConformanceSuiteConfig(
         '--disclosureSystem', 'arl-2022-preview',
     ],
     file='index.xml',
-    info_url='https://danishbusinessauthority.dk/sites/default/files/2023-10/xbrl-taxonomy-framework-architecture-01102015_wa.pdf',
+    info_url='https://erhvervsstyrelsen.dk/vejledning-teknisk-vejledning-og-dokumentation-regnskab-20-taksonomier-aktuelle',
     local_filepath='dba',
     name=PurePath(__file__).stem,
     network_or_cache_required=False,
     packages=[
+        # https://erhvervsstyrelsen.dk/sites/default/files/2022-11/XBRL20221001-20221117.zip
         'ARL-XBRL20221001-20221117.zip',
     ],
     plugins=frozenset({'validate/DBA'}),
