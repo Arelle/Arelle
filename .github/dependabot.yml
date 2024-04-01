@@ -18,6 +18,9 @@ updates:
           - "*"
     ignore:
       - dependency-name: "cx_Freeze"
+      - dependency-name: "lxml"
+        versions:
+          - ">5.1.0"
   - package-ecosystem: docker
     directory: "/"
     schedule:
