@@ -215,7 +215,7 @@ class XbrlSemanticJsonDatabaseConnection():
         if isinstance(results, str) and query is not None:
             parser = etree.HTMLParser()
             htmlDoc = etree.parse(io.StringIO(results), parser)
-            body = htmlDoc.find("//body")
+            body = htmlDoc.find(".//body")
             if body is not None:
                 error = "".join(text for text in body.itertext())
             else:
