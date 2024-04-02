@@ -4,7 +4,7 @@ import subprocess
 import sys
 from argparse import ArgumentParser, Namespace
 
-from tests.integration_tests.download_cache import download_and_apply_cache
+from tests.integration_tests.download_cache import download_and_apply_cache, download_taxonomy_package
 from tests.integration_tests.validation.validation_util import get_conformance_suite_test_results, save_timing_file
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 from tests.integration_tests.validation.conformance_suite_configs import (
@@ -127,18 +127,19 @@ def run_conformance_suites(
         for conformance_suite_config in conformance_suite_configs:
             download_conformance_suite(conformance_suite_config, overwrite=overwrite)
     if download_cache:
-        package_urls = set()
+        package_paths = set()
         for conformance_suite_config in conformance_suite_configs:
-            package_urls.update(conformance_suite_config.package_urls)
+            for package_name, package_path in conformance_suite_config.package_paths.items():
+                if package_path in package_paths:
+                    continue
+                download_taxonomy_package(package_name, package_path)
+                package_paths.add(package_path)
             if not conformance_suite_config.network_or_cache_required:
                 continue
             download_and_apply_cache(
                 f'conformance_suites/{conformance_suite_config.name}.zip',
                 version_id=conformance_suite_config.cache_version_id
             )
-        if package_urls:
-            # Download the packages.
-            subprocess.run([sys.executable, 'arelleCmdLine.py', '--packages', '|'.join(sorted(package_urls)), '--proxy', 'show'])
     for conformance_suite_config in conformance_suite_configs:
         extract_conformance_suite(conformance_suite_config)
     all_results = []

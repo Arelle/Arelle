@@ -32,6 +32,25 @@ def download_and_apply_cache(name: str, cache_directory: str | None = None, vers
         raise Exception(f'Failed to download cache from {uri} and extract to {cache_directory}.') from exc
 
 
+def download_taxonomy_package(name: str, download_path: str, version_id: str | None = None) -> None:
+    """
+    :param name: Filename (including extension) of taxonomy package to download
+    :param download_path: Location to save the package
+    :param version_id: The S3 object version to retrieve. None for latest.
+    """
+    if os.path.exists(download_path):
+        return
+    os.makedirs(os.path.dirname(download_path), exist_ok=True)
+    uri = get_s3_uri(
+        f'ci/taxonomy_packages/{name}',
+        version_id=version_id
+    )
+    try:
+        urllib.request.urlretrieve(uri, download_path)
+    except Exception as exc:
+        raise Exception(f'Failed to download package from {uri} to {download_path}') from exc
+
+
 def download_program() -> None:
     parser = argparse.ArgumentParser(
         prog='Download Cache',
