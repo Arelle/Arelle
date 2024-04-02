@@ -31,7 +31,7 @@ requires-python = ">=3.8"
 dependencies = [
     'certifi',
     'isodate==0.*',
-    'lxml>=4,<6',
+    'lxml>=4,<=5.1.0',
     'numpy==1.*',
     'openpyxl==3.*',
     'pyparsing==3.*',

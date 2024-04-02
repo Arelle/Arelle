@@ -85,7 +85,7 @@ def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
     XmlValidate.lxmlSchemaValidate(elt.modelDocument, inlineSchema)
 
     # lxml bug: doesn't detect: class="" (min length 1)
-    for e in elt.getroottree().iterfind("//{http://www.w3.org/1999/xhtml}*[@class='']"):
+    for e in elt.getroottree().iterfind(".//{http://www.w3.org/1999/xhtml}*[@class='']"):
         modelXbrl.error("arelle:xhtmlClassError",
             _("Attribute class must not be empty on element ix:%(element)s"),
             modelObject=e, element=e.localName)
@@ -100,7 +100,7 @@ def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
 
 
 def containsNamespacedElements(elt: etree.ElementBase, namespace: str) -> bool:
-    return elt.getroottree().find("//ns:*", {"ns": namespace}) is not None
+    return elt.getroottree().find(".//ns:*", {"ns": namespace}) is not None
 
 
 def resolveHtmlUri(elt, name, value):

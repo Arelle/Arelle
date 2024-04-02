@@ -2999,7 +2999,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         unexpectedRedactElts = []
         docTypeAllowsRedact = deiDocumentType in docTypesAllowingRedact
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
-            for ixElt in ixdsHtmlRootElt.getroottree().iterfind("//{http://www.w3.org/1999/xhtml}*[@style]"):
+            for ixElt in ixdsHtmlRootElt.getroottree().iterfind(".//{http://www.w3.org/1999/xhtml}*[@style]"):
                 style = ixElt.get("style","")
                 hiddenFactRefMatch = styleIxHiddenPattern.match(style)
                 if hiddenFactRefMatch:

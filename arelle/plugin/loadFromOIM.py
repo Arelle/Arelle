@@ -3018,7 +3018,7 @@ def validateFinally(val, *args, **kwargs):
                                     _("Footnotes MUST have standard footnote resource role, %(role)s is disallowed, %(label)s: %(value)s"),
                                     modelObject=elt, role=elt.role, label=elt.xlinkLabel, value=elt.xValue[:100])
         # xml base on anything
-        for elt in modelXbrl.modelDocument.xmlRootElement.getroottree().iterfind("//{*}*[@{http://www.w3.org/XML/1998/namespace}base]"):
+        for elt in modelXbrl.modelDocument.xmlRootElement.getroottree().iterfind(".//{*}*[@{http://www.w3.org/XML/1998/namespace}base]"):
             modelXbrl.error("xbrlxe:unsupportedXmlBase",
                             _("Instance MUST NOT contain xml:base attributes: element %(qname)s, xml:base %(base)s"),
                             modelObject=elt, qname=elt.qname if isinstance(elt, ModelObject) else elt.tag,

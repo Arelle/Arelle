@@ -1073,7 +1073,7 @@ def xpointerElement(modelDocument: ModelDocument, fragmentIdentifier: str) -> et
             if scheme in modelDocument.idObjects:
                 node = modelDocument.idObjects.get(scheme)
             else:
-                node = modelDocument.xmlDocument.find("//*[@id='{0}']".format(scheme))
+                node = modelDocument.xmlDocument.find(".//*[@id='{0}']".format(scheme))
             if node is not None:
                 return node    # this scheme fails
         elif scheme == "element" and parenPart and path:
@@ -1083,7 +1083,7 @@ def xpointerElement(modelDocument: ModelDocument, fragmentIdentifier: str) -> et
                 if id in modelDocument.idObjects:
                     node = modelDocument.idObjects.get(id)
                 else:
-                    node = modelDocument.xmlDocument.find("//*[@id='{0}']".format(id))
+                    node = modelDocument.xmlDocument.find(".//*[@id='{0}']".format(id))
                 if node is None:
                     continue    # this scheme fails
                 elif len(pathParts) > 1:
