@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import subprocess
 import sys
 from argparse import ArgumentParser, Namespace
+from typing import Any, Optional, TYPE_CHECKING
 
 from tests.integration_tests.download_cache import download_and_apply_cache, download_taxonomy_package
-from tests.integration_tests.validation.validation_util import get_conformance_suite_test_results, save_timing_file
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 from tests.integration_tests.validation.conformance_suite_configs import (
     ALL_CONFORMANCE_SUITE_CONFIGS,
@@ -14,7 +13,9 @@ from tests.integration_tests.validation.conformance_suite_configs import (
 from tests.integration_tests.validation.download_conformance_suites import (
     download_conformance_suite, extract_conformance_suite
 )
-from typing import Any, Optional, TYPE_CHECKING
+from tests.integration_tests.validation.validation_util import (
+    get_conformance_suite_test_results, save_timing_file, save_actual_results_file
+)
 
 if TYPE_CHECKING:
     from _pytest.mark import ParameterSet
@@ -146,6 +147,7 @@ def run_conformance_suites(
     if test_option:
         for config in conformance_suite_configs:
             shards: list[int] = []
+            full_run = True
             if shard:
                 for part in shard.split(','):
                     if '-' in part:
@@ -153,6 +155,7 @@ def run_conformance_suites(
                         shards.extend(range(int(start), int(end) + 1))
                     else:
                         shards.append(int(part))
+                full_run = set(shards) == set(range(0, config.shards))
             results = get_conformance_suite_test_results(
                 config,
                 shards=shards,
@@ -162,6 +165,7 @@ def run_conformance_suites(
                 series=series_option,
             )
             if log_to_file:
+                save_actual_results_file(config, results, diff=full_run)
                 save_timing_file(config, results)
             all_results.extend(results)
     return all_results
