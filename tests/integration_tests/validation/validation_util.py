@@ -379,7 +379,7 @@ def load_timing_file(name: str) -> dict[str, float]:
         }
 
 
-def save_actual_results_file(config: ConformanceSuiteConfig, results: list[ParameterSet], diff: bool = True) -> None:
+def save_actual_results_file(config: ConformanceSuiteConfig, results: list[ParameterSet]) -> Path:
     """
     Saves a CSV file with format "(Full testcase variation ID),(Code)".
     Each row represents a unique code actually triggered by a variation.
@@ -388,7 +388,7 @@ def save_actual_results_file(config: ConformanceSuiteConfig, results: list[Param
     HTML diff file is generated so that differences can be reviewed.
     :param config: The conformance suite config associated with the given results.
     :param results: The full set of results from a conformance suite run.
-    :param diff: Whether diff file should be generated, if possible.
+    :return: Path to the saved file
     """
     rows = []
     for result in results:
@@ -396,22 +396,23 @@ def save_actual_results_file(config: ConformanceSuiteConfig, results: list[Param
         actual_codes = result.values[0].get('actual')  # type: ignore[union-attr]
         for code in actual_codes:
             rows.append((testcase_id, code))
-    output_filepath = f'conf-{config.name}-actual.csv'
+    output_filepath = Path(f'conf-{config.name}-actual.csv')
     with open(output_filepath, 'w') as file:
         writer = csv.writer(file)
         writer.writerows(sorted(rows))
-    existing_file = CONFORMANCE_SUITE_EXPECTED_RESOURCES_DIRECTORY / Path(config.name).with_suffix('.csv')
-    if not diff or not existing_file.is_file():
-        return
-    with open(existing_file) as file:
+    return output_filepath
+
+
+def save_diff_html_file(expected_results_path: Path, actual_results_path: Path, output_path: Path) -> None:
+    with open(expected_results_path) as file:
         expected_rows = [row for row in file]
-    with open(output_filepath) as file:
+    with open(actual_results_path) as file:
         actual_rows = [row for row in file]
     html = difflib.HtmlDiff().make_file(
         expected_rows, actual_rows,
         fromdesc='Expected', todesc='Actual', context=True, numlines=6
     )
-    with open(f'conf-{config.name}-diff.html', 'w') as file:
+    with open(output_path, 'w') as file:
         file.write(html)
 
 

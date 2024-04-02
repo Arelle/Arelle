@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 from argparse import ArgumentParser, Namespace
+from pathlib import Path
 from typing import Any, Optional, TYPE_CHECKING
 
 from tests.integration_tests.download_cache import download_and_apply_cache, download_taxonomy_package
@@ -14,7 +15,7 @@ from tests.integration_tests.validation.download_conformance_suites import (
     download_conformance_suite, extract_conformance_suite
 )
 from tests.integration_tests.validation.validation_util import (
-    get_conformance_suite_test_results, save_timing_file, save_actual_results_file
+    get_conformance_suite_test_results, save_timing_file, save_actual_results_file, CONFORMANCE_SUITE_EXPECTED_RESOURCES_DIRECTORY, save_diff_html_file
 )
 
 if TYPE_CHECKING:
@@ -165,8 +166,12 @@ def run_conformance_suites(
                 series=series_option,
             )
             if log_to_file:
-                save_actual_results_file(config, results, diff=full_run)
                 save_timing_file(config, results)
+                actual_results_path = save_actual_results_file(config, results)
+                if full_run:
+                    expected_results_path = CONFORMANCE_SUITE_EXPECTED_RESOURCES_DIRECTORY / Path(config.name).with_suffix('.csv')
+                    if expected_results_path.exists():
+                        save_diff_html_file(expected_results_path, actual_results_path, Path(f'conf-{config.name}-diff.html'))
             all_results.extend(results)
     return all_results
 
