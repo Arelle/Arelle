@@ -1,18 +1,18 @@
 from __future__ import annotations
 
+import csv
+import difflib
 import json
 import multiprocessing
 import os.path
 import statistics
-import tempfile
 import zipfile
 from collections import defaultdict
 from collections.abc import Generator
-from contextlib import ExitStack
 from contextlib import nullcontext
 from dataclasses import dataclass
 from heapq import heapreplace
-from pathlib import PurePath, PurePosixPath, Path
+from pathlib import PurePosixPath, Path
 from typing import Any, Callable, ContextManager, TYPE_CHECKING, cast
 from unittest.mock import patch
 
@@ -27,7 +27,8 @@ if TYPE_CHECKING:
 
 
 original_normalize_url_function = WebCache.normalizeUrl
-CONFORMANCE_SUITE_TIMING_PATH_PREFIX = 'tests/resources/conformance_suites_timing'
+CONFORMANCE_SUITE_EXPECTED_RESOURCES_DIRECTORY = Path('tests/resources/conformance_suites_expected')
+CONFORMANCE_SUITE_TIMING_RESOURCES_DIRECTORY = Path('tests/resources/conformance_suites_timing')
 
 
 @dataclass(frozen=True)
@@ -367,7 +368,7 @@ def get_conformance_suite_test_results_without_shards(
 
 
 def load_timing_file(name: str) -> dict[str, float]:
-    path = Path(CONFORMANCE_SUITE_TIMING_PATH_PREFIX) / Path(name).with_suffix(".json")
+    path = CONFORMANCE_SUITE_TIMING_RESOURCES_DIRECTORY / Path(name).with_suffix('.json')
     if not path.exists():
         return {}
     with open(path) as file:
@@ -376,6 +377,43 @@ def load_timing_file(name: str) -> dict[str, float]:
             str(k): float(v)
             for k, v in data.items()
         }
+
+
+def save_actual_results_file(config: ConformanceSuiteConfig, results: list[ParameterSet]) -> Path:
+    """
+    Saves a CSV file with format "(Full testcase variation ID),(Code)".
+    Each row represents a unique code actually triggered by a variation.
+    If an expected results file exists for the given conformance suite config,
+    the actual results file is then compared to the expected results file and an
+    HTML diff file is generated so that differences can be reviewed.
+    :param config: The conformance suite config associated with the given results.
+    :param results: The full set of results from a conformance suite run.
+    :return: Path to the saved file
+    """
+    rows = []
+    for result in results:
+        testcase_id = result.id
+        actual_codes = result.values[0].get('actual')  # type: ignore[union-attr]
+        for code in actual_codes:
+            rows.append((testcase_id, code))
+    output_filepath = Path(f'conf-{config.name}-actual.csv')
+    with open(output_filepath, 'w') as file:
+        writer = csv.writer(file)
+        writer.writerows(sorted(rows))
+    return output_filepath
+
+
+def save_diff_html_file(expected_results_path: Path, actual_results_path: Path, output_path: Path) -> None:
+    with open(expected_results_path) as file:
+        expected_rows = [row for row in file]
+    with open(actual_results_path) as file:
+        actual_rows = [row for row in file]
+    html = difflib.HtmlDiff().make_file(
+        expected_rows, actual_rows,
+        fromdesc='Expected', todesc='Actual', context=True, numlines=6
+    )
+    with open(output_path, 'w') as file:
+        file.write(html)
 
 
 def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]) -> None:
