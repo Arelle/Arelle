@@ -666,7 +666,7 @@ def loadDqcRules(modelXbrl): # returns match expression, standard patterns
         return dqcRules
     return {}
 
-def factBindings(modelXbrl, localNames, nils=False, noAdditionalDims=False, coverPeriod=False, coverDimQnames=None, cube=None, cubeRelSet=None):
+def factBindings(modelXbrl, localNames, nils=False, noAdditionalDims=False, coverPeriod=False, coverDimQnames=None, alignDims=None, coverUnit=False, cube=None, cubeRelSet=None):
     bindings = defaultdict(dict)
     def addMostAccurateFactToBinding(f):
         cntx = f.context
@@ -680,12 +680,14 @@ def factBindings(modelXbrl, localNames, nils=False, noAdditionalDims=False, cove
             if coverPeriod:
                 h = cntx.dimsHash
                 hper = cntx.periodHash
+            elif alignDims:
+                h = hash( (cntx.periodHash, frozenset(hash(dim) for qn,dim in cntx.qnameDims.items() if qn in alignDims)) )
             elif coverDimQnames:
                 h = hash( (cntx.periodHash, frozenset(dim for qn,dim in cntx.qnameDims.items() if qn not in coverDimQnames)) )
                 hCvrDims = hash( frozenset(dim for qn,dim in cntx.qnameDims.items() if qn in coverDimQnames) )
             else:
                 h = cntx.contextDimAwareHash
-            binding = bindings[h, f.unit.hash if f.unit is not None else None]
+            binding = bindings[h, f.unit.hash if (f.unit is not None and not coverUnit) else None]
             ln = f.qname.localName
             if coverPeriod:
                 if ln not in binding:

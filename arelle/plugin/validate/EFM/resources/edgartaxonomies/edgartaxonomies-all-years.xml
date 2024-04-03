@@ -7,6 +7,17 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 -->
     <!-- US-GAAP 2024  -->
     <Loc>
+        <Family>IFRS</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.ifrs.org/taxonomy/2024-03-27/full_ifrs/full_ifrs-cor_2024-03-27.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>https://xbrl.ifrs.org/taxonomy/2024-03-27/ifrs-full</Namespace>
+        <Prefix>ifrs-full</Prefix>
+    </Loc>
+    <!-- US-GAAP 2024  -->
+    <Loc>
         <Family>US GAAP</Family>
         <Version>2024</Version>
         <Href>https://xbrl.fasb.org/us-gaap/2024/ebp/elts/us-gaap-ebp-2024.xsd</Href>

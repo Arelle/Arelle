@@ -4590,7 +4590,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 for dimConcept in modelXbrl.nameConcepts.get(rule["axis"], ()):
                     reportedItems = rule["reported-items"]
                     dependentItems = rule["dependent-items"]
-                    for b in factBindings(modelXbrl, flattenToSet( (reportedItems, dependentItems)), nils=False).values():
+                    for b in factBindings(modelXbrl, flattenToSet( (reportedItems, dependentItems)), alignDims=(dimConcept.qname,), coverUnit=True, nils=False).values():
                         for name in reportedItems:
                             if name in b:
                                 f = b[name]
@@ -4827,18 +4827,19 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if f.concept.typeQname == qnSharesItemType) > 1 or
                     sum(1
                         for n in exclNames
-                        for f in modelXbrl.factsByLocalName.get(n, ())) > 1):
+                        for f in factBindings(modelXbrl, n).values()) > 1): # factBindings dedups by local name
                     continue # skip test
-                for f1 in modelXbrl.factsByLocalName.get(name1, ()):
-                    if f1.xValid >= VALID and not f1.isNil and f1.xValue > 0:
-                        for f2 in modelXbrl.factsByLocalName.get(name2, ()):
-                            if (f2.xValid >= VALID and not f2.isNil and f2.xValue > 0 and
-                                f2.context.endDatetime + datetime.timedelta(days=90) >= f1.context.endDatetime and
-                                not 0.099 < f1.xValue / f2.xValue < 100):
-                                modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
-                                    modelObject=(f1,f2), name=f1.qname, value=f1.xValue, name2=f2.qname, value2=f2.xValue,
-                                    contextID=f1.contextID, unitID=f1.unitID or "(none)",
-                                    edgarCode=edgarCode, ruleElementId=id)
+                for b in factBindings(modelXbrl, (name1, name2), coverPeriod=True).values(): # produces dimensional alignment w/covered periods
+                    for f1 in b.get(name1,{}).values():
+                        if f1.xValid >= VALID and not f1.isNil and f1.xValue > 0:
+                            for f2 in b.get(name2,{}).values():
+                                if (f2.xValid >= VALID and not f2.isNil and f2.xValue > 0 and
+                                    f2.context.endDatetime + datetime.timedelta(days=90) > f1.context.endDatetime and
+                                    not 0.099 < f1.xValue / f2.xValue < 100):
+                                    modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
+                                        modelObject=(f1,f2), name=f1.qname, value=f1.xValue, name2=f2.qname, value2=f2.xValue,
+                                        contextID=f1.contextID, unitID=f1.unitID or "(none)",
+                                        edgarCode=edgarCode, ruleElementId=id)
 
             elif dqcRuleName == "DQC.US.0098":
                 for id, rule in dqcRule["rules"].items():
