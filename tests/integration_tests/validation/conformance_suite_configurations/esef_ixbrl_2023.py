@@ -2,7 +2,7 @@ from pathlib import PurePath, Path
 
 from tests.integration_tests.validation.assets import ESEF_PACKAGES
 from tests.integration_tests.validation.conformance_suite_config import (
-    ConformanceSuiteConfig, ConformanceSuiteAssetConfig, ESEF_PACKAGES as ESEF_PACKAGE_NAMES
+    ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 )
 config = ConformanceSuiteConfig(
     args=[
@@ -29,14 +29,10 @@ config = ConformanceSuiteConfig(
         # Facts are not duplicates if their language attributes are different.
         'RTS_Annex_IV_Par_12_G2-2-4/index.xml:TC5_valid',
     ]),
-    file='index_inline_xbrl.xml',
     info_url='https://www.esma.europa.eu/document/esef-conformance-suite-2023',
-    local_filepath='esef_conformance_suite_2023.zip',
     name=PurePath(__file__).stem,
     network_or_cache_required=False,
-    packages=[package for year in [2017, 2019, 2020, 2021, 2022] for package in ESEF_PACKAGE_NAMES[year]],
     plugins=frozenset({'validate/ESEF'}),
-    public_download_url='https://www.esma.europa.eu/sites/default/files/2023-12/esef_conformance_suite_2023.zip',
     shards=8,
     test_case_result_options='match-any',
 )

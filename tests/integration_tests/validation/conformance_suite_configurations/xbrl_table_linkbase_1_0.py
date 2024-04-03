@@ -295,12 +295,9 @@ config = ConformanceSuiteConfig(
         '6000-aspect-node/6650-aspect-node-typed-dimension-filter/6650-aspect-node-typed-dimension-filter-testcase.xml:v-04i',
         '6000-aspect-node/6660-aspect-node-aspect-cover-filter/6660-aspect-node-aspect-cover-filter-testcase.xml:v-01',
     ]),
-    file='table-linkbase-conf-2015-08-12/conf/testcases-index.xml',
     info_url='https://specifications.xbrl.org/work-product-index-table-linkbase-table-linkbase-1.0.html',
-    local_filepath='table-linkbase-conf-2015-08-12.zip',
     name=PurePath(__file__).stem,
     network_or_cache_required=False,
-    public_download_url='https://www.xbrl.org/2015/table-linkbase-conf-2015-08-12.zip',
     shards=4,
     test_case_result_options='match-any',
 )

@@ -18,12 +18,9 @@ config = ConformanceSuiteConfig(
         )
     ],
     cache_version_id='p7LKRmAEYKJ8jIxUUWMpYFzZjH2DD78u',
-    file='conf/testcases.xml',
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
-    local_filepath='efm-69-240318.zip',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/EFM', 'inlineXbrlDocumentSet'}),
-    public_download_url='https://www.sec.gov/files/edgar/efm-69-240318.zip',
     shards=40,
     test_case_result_options='match-any',
 )

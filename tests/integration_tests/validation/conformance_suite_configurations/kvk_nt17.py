@@ -17,8 +17,6 @@ config = ConformanceSuiteConfig(
             'xbrlte:multipleValuesForAspect',
         ])),
     ],
-    extract_path=str(EXTRACTED_PATH),
-    file='testcases.xml',
     assets=[
         ConformanceSuiteAssetConfig.nested_conformance_suite(
             ZIP_PATH,
@@ -30,16 +28,8 @@ config = ConformanceSuiteConfig(
         *NL_PACKAGES['NT17'],
     ],
     info_url='https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/SBR%20Filing%20Rules%20NT17%20-%2020220301__.pdf',
-    local_filepath=str(ZIP_PATH),
     name=PurePath(__file__).stem,
-    nested_filepath=(PurePath(EXTRACTED_PATH) / 'berichten' / 'NT17_KVK_20221214 - Testsuite.zip').as_posix(),
     network_or_cache_required=False,
-    packages=[
-        # https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT17_20230811%20Taxonomie%20SBRLight.zip
-        'NT17_20230811_Taxonomie_SBRLight.zip',
-        'nltaxonomie-nl-20240326.zip',
-    ],
     plugins=frozenset({'validate/NL'}),
-    public_download_url='https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT17_KVK_20221214%20Berichten.zip',
     shards=8,
 )
