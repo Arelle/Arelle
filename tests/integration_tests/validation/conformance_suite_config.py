@@ -12,59 +12,6 @@ from typing import Literal
 
 CONFORMANCE_SUITE_PATH_PREFIX = 'tests/resources/conformance_suites'
 
-# https://taxonomies.xbrl.org/taxonomy/68
-# http://www.xbrl.org/taxonomy/int/lei/lei-taxonomy-CR-2018-11-01.zip
-LEI_2018_11_01 = 'lei-taxonomy-CR-2018-11-01.zip'
-# https://taxonomies.xbrl.org/taxonomy/87
-# https://www.xbrl.org/taxonomy/int/lei/lei-taxonomy-REC-2020-07-02.zip
-LEI_2020_07_02 = 'lei-taxonomy-REC-2020-07-02.zip'
-ESEF_PACKAGES = {
-    2017: [
-        # https://www.esma.europa.eu/document/esma-esef-taxonomy-2017
-        # https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2017.zip
-        'esef_taxonomy_2017.zip',
-        # https://www.ifrs.org/issued-standards/ifrs-taxonomy/ifrs-taxonomy-2017/
-        # http://xbrl.ifrs.org/taxonomy/2017-03-09/IFRST_2017-03-09.zip
-        'IFRST_2017-03-09.zip',
-        LEI_2018_11_01,
-    ],
-    2019: [
-        # https://www.esma.europa.eu/document/esma-esef-taxonomy-2019
-        # https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2019.zip
-        'esef_taxonomy_2019.zip',
-        # https://www.ifrs.org/issued-standards/ifrs-taxonomy/ifrs-taxonomy-2019/
-        # https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRST_2019-03-27.zip
-        'IFRST_2019-03-27.zip',
-        LEI_2018_11_01,
-    ],
-    2020: [
-        # https://www.esma.europa.eu/document/esma-esef-taxonomy-2020
-        # https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2020.zip
-        'esef_taxonomy_2020.zip',
-        # https://www.ifrs.org/issued-standards/ifrs-taxonomy/ifrs-taxonomy-2020/
-        # https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRST_2020-03-16.zip
-        'IFRST_2020-03-16.zip',
-        LEI_2020_07_02,
-    ],
-    2021: [
-        # https://www.esma.europa.eu/document/esma-esef-taxonomy-2021
-        # https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2021.zip
-        'esef_taxonomy_2021.zip',
-        # https://www.ifrs.org/issued-standards/ifrs-taxonomy/ifrs-taxonomy-2021/
-        # https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRST_2021-03-24.zip
-        'IFRST_2021-03-24.zip',
-        LEI_2020_07_02,
-    ],
-    2022: [
-        # https://www.esma.europa.eu/document/esef-taxonomy-2022
-        # https://www.esma.europa.eu/sites/default/files/2023-12/esef_taxonomy_2022_v1.1.zip
-        'esef_taxonomy_2022_v1.1.zip',
-        # https://www.ifrs.org/issued-standards/ifrs-taxonomy/ifrs-accounting-taxonomy-2022/
-        # https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRSAT-2022-03-24.zip
-        'IFRSAT-2022-03-24.zip',
-        LEI_2020_07_02,
-    ],
-}
 
 class AssetSource(Enum):
     LOCAL = 1
