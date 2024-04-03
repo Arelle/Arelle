@@ -116,7 +116,7 @@ def validate(
     attrQname: QName | None = None,
     ixFacts: bool = False,
     setTargetModelXbrl: bool = False, # when true also revalidate previously validated elements
-    elementDeclarationType: ModelConcept | None = None,
+    elementDeclarationType: ModelType | None = None,
 )  -> None:
     global ModelInlineValueObject, ixMsgCode
     if ModelInlineValueObject is None:
