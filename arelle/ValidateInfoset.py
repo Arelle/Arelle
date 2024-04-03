@@ -278,18 +278,18 @@ def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
         # uncomment to debug when layout model corrupted after creation
         # with open("/Users/hermf/temp/temp2.xml", "wb") as fh:
         #     fh.write(etree.tostring(sourceDoc, pretty_print=True))
-        numSrcTblElts = len(sourceDoc.findall("//{http://xbrl.org/2014/table/model}table"))
-        numCmpTblElts = len(comparisonDoc.findall("//{http://xbrl.org/2014/table/model}table"))
+        numSrcTblElts = len(sourceDoc.findall(".//{http://xbrl.org/2014/table/model}table"))
+        numCmpTblElts = len(comparisonDoc.findall(".//{http://xbrl.org/2014/table/model}table"))
         if numSrcTblElts != numCmpTblElts:
             modelXbrl.error("arelle:tableModelNumberOfTables",
                 _("Table layout model comparison expects %(numCmpTblElts)s table elements, layout has %(numSrcTblElts)s table elements"),
                 modelObject=modelXbrl, numSrcTblElts=numSrcTblElts, numCmpTblElts=numCmpTblElts)
         if False: #numCmpTblElts > 1 and comparisonFile.endswith("linkrole-parameter.xml"):
             # reverse tables for this test case
-            tblElts = sourceDoc.findall("//{http://xbrl.org/2014/table/model}table")
+            tblElts = sourceDoc.findall(".//{http://xbrl.org/2014/table/model}table")
             tblElts[0].addprevious(tblElts[1])
         # order comparison document headers in z - y - x order
-        headerElts = comparisonDoc.findall("//{http://xbrl.org/2014/table/model}headers")
+        headerElts = comparisonDoc.findall(".//{http://xbrl.org/2014/table/model}headers")
         if len(headerElts) == 3:
             if headerElts[0].get("axis") == "y" and headerElts[2].get("axis") == "z":
                 headerElts[0].addprevious(headerElts[2])
