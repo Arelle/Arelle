@@ -423,7 +423,7 @@ def save_diff_html_file(expected_results_path: Path, actual_results_path: Path, 
 
 
 def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]) -> None:
-    timing: dict[str, float] = defaultdict(float)
+    durations: dict[str, float] = defaultdict(float)
     for result in results:
         testcase_id = result.id
         values = result.values[0]
@@ -432,15 +432,19 @@ def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]
         assert status, f'Test result has no status: {testcase_id}'
         if status == 'skip':
             continue
-        assert testcase_id and testcase_id not in timing
+        assert testcase_id and testcase_id not in durations
         duration = values.get('duration')  # type: ignore[union-attr]
         if duration:
-            timing[testcase_id] = duration
-    if timing:
-        duration_avg = statistics.mean(timing.values())
-        timing = {
-            testcase_id: duration/duration_avg
-            for testcase_id, duration in sorted(timing.items())
+            durations[testcase_id] = duration
+    if durations:
+        duration_values = durations.values()
+        duration_mean = statistics.mean(duration_values)
+        duration_stdev = statistics.stdev(duration_values)
+        durations = {
+            testcase_id: duration/duration_mean
+            for testcase_id, duration in sorted(durations.items())
         }
+        durations['<mean>'] = duration_mean
+        durations['<stdev>'] = duration_stdev
     with open(f'conf-{config.name}-timing.json', 'w') as file:
-        json.dump(timing, file, indent=4)
+        json.dump(durations, file, indent=4)
