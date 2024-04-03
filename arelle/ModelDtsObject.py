@@ -1125,11 +1125,11 @@ class ModelType(ModelNamableTerm):
                 self._baseXsdType = "XBRLI_PRECISIONUNION"
             elif self.qname == XbrlConst.qnXbrliNonZeroDecimalUnion:
                 self._baseXsdType = "XBRLI_NONZERODECIMAL"
+            elif self.qname.namespaceURI == XbrlConst.xsd:
+                self._baseXsdType = self.qname.localName
             else:
                 qnameDerivedFrom = self.qnameDerivedFrom
                 if qnameDerivedFrom is None:
-                    # want None if base type has no content (not mixed content, TBD)
-                    #self._baseXsdType =  "anyType"
                     self._baseXsdType =  "noContent"
                 elif isinstance(qnameDerivedFrom,list): # union
                     if qnameDerivedFrom == XbrlConst.qnDateUnionXsdTypes:
