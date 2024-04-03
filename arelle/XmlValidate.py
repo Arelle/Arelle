@@ -143,12 +143,17 @@ def validate(
                 isAbstract = True
             elif modelConcept.isFraction:
                 baseXsdType = "fraction"
-            elif elementDeclarationType is not None:
-                baseXsdType = elementDeclarationType.baseXsdType
-                facets = elementDeclarationType.facets
-            else:
+            elif (
+                elementDeclarationType is None
+                or elementDeclarationType.qname == XbrlConst.qnXsdDefaultType
+                or modelConcept.type.qname == elementDeclarationType.qname
+                or modelConcept.type.isDerivedFrom(elementDeclarationType.qname)
+            ):
                 baseXsdType = modelConcept.baseXsdType
                 facets = modelConcept.facets
+            else:
+                baseXsdType = elementDeclarationType.baseXsdType
+                facets = elementDeclarationType.facets
         elif qnElt == XbrlConst.qnXbrldiExplicitMember: # not in DTS
             baseXsdType = "QName"
             type = None
