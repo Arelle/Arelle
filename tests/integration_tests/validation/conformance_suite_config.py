@@ -4,7 +4,9 @@ import itertools
 import os
 import re
 from dataclasses import dataclass, field
+from enum import Enum
 from functools import cached_property
+from pathlib import Path
 from typing import Literal
 
 
@@ -63,6 +65,174 @@ ESEF_PACKAGES = {
         LEI_2020_07_02,
     ],
 }
+
+class AssetSource(Enum):
+    LOCAL = 1
+    S3_PUBLIC = 2
+    S3_PRIVATE = 3
+
+    def is_s3(self) -> bool:
+        return self in (AssetSource.S3_PUBLIC, AssetSource.S3_PRIVATE)
+
+
+class AssetType(Enum):
+    CONFORMANCE_SUITE = 1
+    CACHE_PACKAGE = 2
+    TAXONOMY_PACKAGE = 3
+
+
+@dataclass(frozen=True)
+class ConformanceSuiteAssetConfig:
+    local_filename: Path
+    source: AssetSource
+    type: AssetType
+    extract_sequence: tuple[tuple[Path, Path], ...] = field(default_factory=tuple)
+    entry_point: Path | None = field(compare=False, default=None)
+    entry_point_root: Path | None = None
+    public_download_url: str | None = None
+    s3_key: str | None = None
+    s3_version_id: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.source.is_s3():
+            assert self.s3_key is not None, 'Must provide S3 key for S3 assets.'
+        else:
+            assert self.s3_key is None, \
+                'S3 key must not be provided for non-S3 assets.'
+            assert self.s3_version_id is None, \
+                'S3 version ID must not be provided for non-S3 assets.'
+        assert bool(self.entry_point) == bool(self.entry_point_root),\
+            'Entry point and entry point root must be both None or both set.'
+
+    @cached_property
+    def local_directory(self) -> Path:
+        if self.type == AssetType.CONFORMANCE_SUITE:
+            return Path('tests/resources/conformance_suites')
+        if self.type == AssetType.TAXONOMY_PACKAGE:
+            return Path('tests/resources/packages')
+        return Path('tests/resources')
+
+    @cached_property
+    def full_entry_point(self) -> Path | None:
+        if not self.full_entry_point_root or not self.entry_point:
+            return None
+        return self.full_entry_point_root / self.entry_point
+
+    @cached_property
+    def full_entry_point_root(self) -> Path | None:
+        if not self.entry_point_root:
+            return None
+        return self.local_directory / self.entry_point_root
+
+    @cached_property
+    def full_local_path(self) -> Path:
+        return self.local_directory / self.local_filename
+
+    def get_conflicting_directories(self, reserved_directories: set[Path]) -> dict[Path, set[Path]]:
+        return {
+            k: v
+            for k, v in {
+                reserved_path: {
+                    d for d in reserved_directories if d in reserved_path.parents
+                }
+                for reserved_path in self.full_reserved_paths
+            }.items()
+            if v
+        }
+
+    def get_conflicting_paths(self, reserved_paths: set[Path]) -> set[Path]:
+        return reserved_paths.intersection(self.full_reserved_paths)
+
+    @cached_property
+    def full_reserved_directories(self) -> set[Path]:
+        """
+        :return: Set of directory paths this asset will write to.
+        """
+        return {
+            self.local_directory / extract_to
+            for __, extract_to in self.extract_sequence
+        }
+
+    @cached_property
+    def full_reserved_paths(self) -> set[Path]:
+        """
+        :return: Set of file paths this asset will read from or write to.
+        """
+        return {
+            self.full_local_path,
+            self.full_entry_point_root or self.full_local_path,
+        } | {
+            self.local_directory / extract_from for extract_from, __ in self.extract_sequence
+        }
+
+    @staticmethod
+    def cache_package(name: str, s3_version_id: str) -> ConformanceSuiteAssetConfig:
+        return ConformanceSuiteAssetConfig(
+            local_filename=Path(f'temp-{name}-cache.zip'),
+            source=AssetSource.S3_PUBLIC,
+            type=AssetType.CACHE_PACKAGE,
+            s3_key=f'{name}.zip',
+            s3_version_id=s3_version_id,
+        )
+
+    @staticmethod
+    def conformance_suite(
+            name: Path,
+            entry_point: Path | None = None,
+            public_download_url: str | None = None,
+            source: AssetSource = AssetSource.S3_PRIVATE) -> ConformanceSuiteAssetConfig:
+        return ConformanceSuiteAssetConfig(
+            local_filename=name,
+            source=source,
+            type=AssetType.CONFORMANCE_SUITE,
+            entry_point=entry_point,
+            entry_point_root=name if entry_point else None,
+            public_download_url=public_download_url,
+            s3_key=name.as_posix() if source.is_s3() else None,
+        )
+
+    @staticmethod
+    def local_conformance_suite(
+            name: Path,
+            entry_point: Path | None = None) -> ConformanceSuiteAssetConfig:
+        return ConformanceSuiteAssetConfig(
+            local_filename=name,
+            source=AssetSource.LOCAL,
+            type=AssetType.CONFORMANCE_SUITE,
+            entry_point=entry_point,
+            entry_point_root=name if entry_point else None,
+        )
+
+    @staticmethod
+    def nested_conformance_suite(
+            name: Path,
+            extract_to: Path,
+            entry_point_root: Path,
+            entry_point: Path,
+            public_download_url: str | None = None,
+            source: AssetSource = AssetSource.S3_PRIVATE) -> ConformanceSuiteAssetConfig:
+        return ConformanceSuiteAssetConfig(
+            local_filename=name,
+            source=source,
+            type=AssetType.CONFORMANCE_SUITE,
+            entry_point=entry_point,
+            entry_point_root=entry_point_root,
+            extract_sequence=(
+                (name, extract_to),
+            ),
+            public_download_url=public_download_url,
+            s3_key=name.as_posix() if source.is_s3() else None,
+        )
+
+    @staticmethod
+    def public_taxonomy_package(name: Path, public_download_url: str | None = None) -> ConformanceSuiteAssetConfig:
+        return ConformanceSuiteAssetConfig(
+            local_filename=name,
+            source=AssetSource.S3_PUBLIC,
+            type=AssetType.TAXONOMY_PACKAGE,
+            public_download_url=public_download_url,
+            s3_key=name.as_posix(),
+        )
 
 
 @dataclass(frozen=True)
