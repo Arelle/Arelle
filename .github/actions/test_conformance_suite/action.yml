@@ -34,12 +34,18 @@ runs:
       run: |
         python -m pip install --upgrade pip setuptools wheel
         pip install -r requirements-dev.txt
-    - name: Download conformance suites from S3
-      shell: bash
-      run: aws s3 sync s3://arelle/conformance_suites tests/resources/conformance_suites
     - name: Run integration tests with pytest
       shell: bash
-      run: pytest -s --disable-warnings --offline --log-to-file --download-cache --name=${{ inputs.name }}${{ inputs.shard && format(' --shard={0}', inputs.shard) || '' }} tests/integration_tests/validation/test_conformance_suites.py
+      run: |
+        pytest -s --disable-warnings \
+        --junitxml=conf-junit.xml \
+        --offline \
+        --log-to-file \
+        --download-missing \
+        --download-private \
+        --download-cache \
+        --name=${{ inputs.name }}${{ inputs.shard && format(' --shard={0}', inputs.shard) || '' }} \
+        tests/integration_tests/validation/test_conformance_suites.py
     - name: Cat logs
       if: always()
       shell: bash
