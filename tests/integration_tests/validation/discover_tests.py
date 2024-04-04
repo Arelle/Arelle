@@ -50,6 +50,7 @@ FAST_CONFIG_NAMES = {
 
 
 class Entry(TypedDict, total=False):
+    environment: str
     name: str
     short_name: str
     os: str
@@ -57,8 +58,9 @@ class Entry(TypedDict, total=False):
     shard: str
 
 
-def generate_config_entry(name: str, short_name: str, os: str, python_version: str, shard: str | None) -> Entry:
+def generate_config_entry(name: str, short_name: str, os: str, private: bool, python_version: str, shard: str | None) -> Entry:
     e: Entry = {
+        'environment': 'integration-tests' if private else 'none',
         'name': name,
         'short_name': short_name,
         'os': os,
@@ -75,6 +77,7 @@ def generate_config_entries(config: ConformanceSuiteConfig, os: str, python_vers
             name=config.name,
             short_name=config.name,
             os=os,
+            private=config.has_private_asset,
             python_version=python_version,
             shard=None,
         )
@@ -87,6 +90,7 @@ def generate_config_entries(config: ConformanceSuiteConfig, os: str, python_vers
                 name=config.name,
                 short_name=config.name,
                 os=os,
+                private=config.has_private_asset,
                 python_version=python_version,
                 shard=f'{start}-{end}',
             )
@@ -95,11 +99,13 @@ def generate_config_entries(config: ConformanceSuiteConfig, os: str, python_vers
 def main() -> None:
     output: list[Entry] = []
     config_names_seen: set[str] = set()
+    private = False
     for config in CI_CONFORMANCE_SUITE_CONFIGS:
         if config.name in FAST_CONFIG_NAMES:
             assert not config.network_or_cache_required
             assert config.shards == 1
             config_names_seen.add(config.name)
+            private |= config.has_private_asset
     assert not (FAST_CONFIG_NAMES - config_names_seen), \
         f'Missing some fast configurations: {sorted(FAST_CONFIG_NAMES - config_names_seen)}'
     for os in [LINUX, MACOS, WINDOWS]:
@@ -107,6 +113,7 @@ def main() -> None:
             name=','.join(sorted(FAST_CONFIG_NAMES)),
             short_name='miscellaneous suites',
             os=os,
+            private=private,
             python_version=LATEST_PYTHON_VERSION,
             shard=None,
         ))

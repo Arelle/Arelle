@@ -247,6 +247,10 @@ class ConformanceSuiteConfig:
         return entry_point_root
 
     @cached_property
+    def has_private_asset(self) -> bool:
+        return any(asset.source == AssetSource.S3_PRIVATE for asset in self.assets)
+
+    @cached_property
     def package_paths(self) -> set[Path]:
         return {
             asset.full_local_path
