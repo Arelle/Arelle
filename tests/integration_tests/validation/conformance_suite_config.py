@@ -244,6 +244,7 @@ class ConformanceSuiteConfig:
     additional_downloads: dict[str, str] = field(default_factory=dict)
     additional_plugins_by_prefix: list[tuple[str, frozenset[str]]] = field(default_factory=list)
     args: list[str] = field(default_factory=list)
+    assets: list[ConformanceSuiteAssetConfig] = field(default_factory=list)
     cache_version_id: str | None = None
     capture_warnings: bool = True
     ci_enabled: bool = True
@@ -318,3 +319,30 @@ class ConformanceSuiteConfig:
         if not self.nested_filepath:
             return None
         return os.path.join(CONFORMANCE_SUITE_PATH_PREFIX, self.nested_filepath)
+
+    @cached_property
+    def entry_point_asset(self) -> ConformanceSuiteAssetConfig:
+        entry_points = [asset for asset in self.assets if asset.entry_point]
+        assert len(entry_points) == 1, \
+            'Exactly one asset with entry point must be configured.'
+        return entry_points[0]
+
+    @cached_property
+    def entry_point_path(self) -> Path:
+        full_entry_point = self.entry_point_asset.full_entry_point
+        assert full_entry_point is not None
+        return full_entry_point
+
+    @cached_property
+    def entry_point_root(self) -> Path:
+        entry_point_root = self.entry_point_asset.full_entry_point_root
+        assert entry_point_root is not None
+        return entry_point_root
+
+    @cached_property
+    def package_paths(self) -> set[Path]:
+        return {
+            asset.full_local_path
+            for asset in self.assets
+            if asset.type == AssetType.TAXONOMY_PACKAGE
+        }

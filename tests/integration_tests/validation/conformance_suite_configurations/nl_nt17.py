@@ -1,11 +1,20 @@
-from pathlib import PurePath
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
+from pathlib import PurePath, Path
+
+from tests.integration_tests.validation.assets import NL_PACKAGES
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
 config = ConformanceSuiteConfig(
     args=[
         '--disclosureSystem', 'NT17-preview',
     ],
     file='index.xml',
+    assets=[
+        ConformanceSuiteAssetConfig.local_conformance_suite(
+            Path('nl_nt17'),
+            entry_point=Path('index.xml'),
+        ),
+        *NL_PACKAGES['NT17'],
+    ],
     info_url='https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/SBR%20Filing%20Rules%20NT17%20-%2020220301__.pdf',
     local_filepath='nl_nt17',
     name=PurePath(__file__).stem,

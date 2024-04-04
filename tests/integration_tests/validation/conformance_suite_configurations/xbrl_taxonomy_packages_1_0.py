@@ -1,11 +1,17 @@
-from pathlib import PurePath
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
+from pathlib import PurePath, Path
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
 config = ConformanceSuiteConfig(
     args=[
         '--formula', 'run',
     ],
     file='index.xml',
+    assets=[
+        ConformanceSuiteAssetConfig.conformance_suite(
+            Path('taxonomy-package-conformance.zip'),
+            entry_point=Path('index.xml'),
+        ),
+    ],
     info_url='https://specifications.xbrl.org/work-product-index-taxonomy-packages-taxonomy-packages-1.0.html',
     local_filepath='taxonomy-package-conformance.zip',
     membership_url='https://www.xbrl.org/join',

@@ -1,9 +1,16 @@
-from pathlib import PurePath
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
+from pathlib import PurePath, Path
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
 config = ConformanceSuiteConfig(
     args=[
         '--formula', 'run',
+    ],
+    assets=[
+        ConformanceSuiteAssetConfig.conformance_suite(
+            Path('table-linkbase-conf-2015-08-12.zip'),
+            entry_point=Path('table-linkbase-conf-2015-08-12/conf/testcases-index.xml'),
+            public_download_url='https://www.xbrl.org/2015/table-linkbase-conf-2015-08-12.zip',
+        ),
     ],
     expected_failure_ids=frozenset(f'table-linkbase-conf-2015-08-12/conf/tests/{s}' for s in [
         '0100-table/0144-table-filter-arc/0144-table-filter-arc-testcase.xml:v-03',

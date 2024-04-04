@@ -1,9 +1,10 @@
-import os
-from pathlib import PurePath
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
+from pathlib import PurePath, Path
+
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_utr_structure_1_0 import config as structure_config
 
-
+ENTRY_POINT_ROOT = structure_config.entry_point_root
+assert ENTRY_POINT_ROOT is not None
 MALFORMED_UTR_FILES = {
     '01-unit-id-and-status-not-unique.xml': ['arelleUtrLoader:entryDuplication'],
     '02-simple-unit-item-type-missing.xml': ['arelleUtrLoader:simpleDefMissingField'],
@@ -17,8 +18,15 @@ MALFORMED_UTR_FILES = {
 configs = [
     ConformanceSuiteConfig(
         args=[
-            '--utrUrl', os.path.join(structure_config.prefixed_local_filepath, 'conf/utr-structure/malformed-utrs', malformed_utr_file),
+            '--utrUrl', str(ENTRY_POINT_ROOT / 'conf/utr-structure/malformed-utrs' / malformed_utr_file),
             '--utr',
+        ],
+        assets=[
+            ConformanceSuiteAssetConfig.conformance_suite(
+                ENTRY_POINT_ROOT,
+                entry_point=Path('conf/utr-structure/tests/01-simple/simpleValid.xml'),
+                public_download_url=structure_config.entry_point_asset.public_download_url,
+            ),
         ],
         expected_model_errors=frozenset(expected_model_errors),
         file='conf/utr-structure/tests/01-simple/simpleValid.xml',

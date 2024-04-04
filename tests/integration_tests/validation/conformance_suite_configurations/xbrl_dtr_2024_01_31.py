@@ -1,7 +1,13 @@
-from pathlib import PurePath
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
+from pathlib import PurePath, Path
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
 config = ConformanceSuiteConfig(
+    assets=[
+        ConformanceSuiteAssetConfig.conformance_suite(
+            Path('data-type-registry-1.11.0-REC+registry+2024-01-31.zip'),
+            entry_point=Path('data-type-registry-1.11.0-REC+registry+2024-01-31/conf/dtr/testcase-index.xml'),
+        ),
+    ],
     args=[
         '--formula', 'run',
     ],

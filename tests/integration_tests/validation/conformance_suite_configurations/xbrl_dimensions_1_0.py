@@ -1,7 +1,14 @@
-from pathlib import PurePath
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
+from pathlib import PurePath, Path
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
 config = ConformanceSuiteConfig(
+    assets=[
+        ConformanceSuiteAssetConfig.conformance_suite(
+            Path('xdt-conf-cr4-2009-10-06.zip'),
+            entry_point=Path('xdt.xml'),
+            public_download_url='https://www.xbrl.org/2009/xdt-conf-cr4-2009-10-06.zip',
+        ),
+    ],
     args=[
         '--formula', 'run',
         '--infoset',
