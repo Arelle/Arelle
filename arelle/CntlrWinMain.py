@@ -1026,6 +1026,8 @@ class CntlrWinMain (Cntlr.Cntlr):
         if not self.okayToContinue():
             return
         self.modelManager.close()
+        if not self.modelManager.loadedModelXbrls:
+            self._clearPluginData()
         self.parent.title(_("arelle - Unnamed"))
         self.setValidateTooltipText()
         self.currentView = None

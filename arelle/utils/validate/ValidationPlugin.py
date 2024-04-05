@@ -18,7 +18,7 @@ from arelle.utils.validate.Decorator import (
     ValidationFunction,
     getValidationAttributes,
 )
-from arelle.utils.validate.PluginValidationData import PluginValidationData
+from arelle.utils.PluginData import PluginData
 
 
 class ValidationPlugin:
@@ -33,7 +33,7 @@ class ValidationPlugin:
         Base validation plugin class. Can be initialized directly, or extended if you require additional plugin hooks.
         This class is intended to be used in conjunction with the [@validation](#arelle.utils.validate.Decorator.validation) decorator.
 
-        If you need to cache or store data between rules, you should implement a dataclass that extends [PluginValidationData](#arelle.utils.validate.PluginValidationData.PluginValidationData)
+        If you need to cache or store data between rules, you should implement a dataclass that extends [PluginData](#arelle.utils.PluginData.PluginData)
         and override the [newPluginData](#newPluginData) method to return your dataclass.
 
         :param disclosureSystemConfigUrl: A path to the plugin disclosure system xml config file.
@@ -55,14 +55,14 @@ class ValidationPlugin:
             ValidationHook, dict[ValidationFunction, set[str]]
         ] = {}
 
-    def newPluginData(self, validateXbrl: ValidateXbrl) -> PluginValidationData:
+    def newPluginData(self, validateXbrl: ValidateXbrl) -> PluginData:
         """
         Returns a dataclass intended to be overriden by plugins to facilitate caching and passing data between rule functions.
         The default implementation doesn't provide any fields other than the plugin name.
 
-        :return: An instance of PluginValidationData.
+        :return: An instance of PluginData.
         """
-        return PluginValidationData(self.name)
+        return PluginData(self.name)
 
     @property
     def validationTypes(self) -> tuple[str, ...]:
