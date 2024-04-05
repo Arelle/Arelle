@@ -115,6 +115,7 @@ def validate(
     recurse: bool = True,
     attrQname: QName | None = None,
     ixFacts: bool = False,
+    setTargetModelXbrl: bool = False, # when true also revalidate previously validated elements
 ) -> None:
     global ModelInlineValueObject, ixMsgCode
     if ModelInlineValueObject is None:
@@ -126,8 +127,10 @@ def validate(
     facets = None
 
     # attrQname can be provided for attributes that are global and LAX
-    if (getattr(elt,"xValid", UNVALIDATED) == UNVALIDATED) and (not isIxFact or ixFacts):
+    if (getattr(elt,"xValid", UNVALIDATED) == UNVALIDATED or setTargetModelXbrl) and (not isIxFact or ixFacts):
         assert modelXbrl is not None
+        if setTargetModelXbrl and modelXbrl != elt.modelXbrl: # change of element's targetModelXbrl
+            elt.targetModelXbrl = modelXbrl
         qnElt = elt.qname if ixFacts and isIxFact else elt.elementQname
         modelConcept = modelXbrl.qnameConcepts.get(qnElt)
         isAbstract = False
@@ -322,7 +325,7 @@ def validate(
                                 modelObject=elt,
                                 element=qnElt)
                     else:
-                        errResult = validateElementSequence(modelXbrl, type, childElts, ixFacts)
+                        errResult = validateElementSequence(modelXbrl, type, childElts, ixFacts, setTargetModelXbrl)
                         if errResult is not None and errResult[2]:
                             iElt, occured, errDesc, errArgs = errResult
                             errElt1 = childElts[iElt] if iElt < len(childElts) else elt
@@ -337,7 +340,7 @@ def validate(
                             if qnElt.namespaceURI == XbrlConst.xbrli and iElt < len(childElts):
                                 for childElt in childElts[iElt:]:
                                     if (getattr(childElt,"xValid", UNVALIDATED) == UNVALIDATED):
-                                        validate(modelXbrl, childElt, ixFacts=ixFacts)
+                                        validate(modelXbrl, childElt, ixFacts=ixFacts, setTargetModelXbrl=setTargetModelXbrl)
                     recurse = False # cancel child element validation below, recursion was within validateElementSequence
                 except AttributeError as ex:
                     raise ex
@@ -345,7 +348,7 @@ def validate(
     if recurse: # if there is no complex or simple type (such as xbrli:measure) then this code is used
         for child in (cast('ModelFact', elt).modelTupleFacts if ixFacts and isIxFact else elt):
             if isinstance(child, ModelObject):
-                validate(modelXbrl, child, recurse, attrQname, ixFacts)
+                validate(modelXbrl, child, recurse, attrQname, ixFacts, setTargetModelXbrl)
 
 def validateValue(
     modelXbrl: ModelXbrl | None,
