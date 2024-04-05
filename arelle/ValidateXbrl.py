@@ -1132,7 +1132,7 @@ class ValidateXbrl:
         allPluginData = getattr(self, "_pluginData", None)
         if allPluginData is None:
             raise RuntimeError("PluginData can't be retrieved until validation has begun.")
-        pluginData: PluginValidationData = allPluginData.get(pluginName)
+        pluginData: PluginValidationData | None = allPluginData.get(pluginName)
         return pluginData
 
     def setPluginData(self, pluginData: PluginValidationData) -> None:
