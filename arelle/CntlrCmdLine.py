@@ -6,15 +6,14 @@ This module is Arelle's controller in command line non-interactive mode
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from arelle import PythonUtil, ValidateDuplicateFacts  # define 2.x or 3.x string types
+from arelle import ValidateDuplicateFacts
 import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging, platform
 from optparse import OptionGroup, OptionParser, SUPPRESS_HELP
 import regex as re
 from arelle import (Cntlr, FileSource, ModelDocument, RenderingEvaluator, XmlUtil, XbrlConst, Version,
                     ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts,
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
-                    ViewFileRoleTypes,
-                    ModelManager)
+                    ViewFileRoleTypes)
 from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.ModelValue import qname
@@ -32,6 +31,7 @@ from pprint import pprint
 import logging
 from lxml import etree
 import glob
+
 win32file = win32api = win32process = pywintypes = None
 STILL_ACTIVE = 259 # MS Windows process status constants
 PROCESS_QUERY_INFORMATION = 0x400
@@ -1154,6 +1154,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.End"):
                 pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
         self.username = self.password = None #dereference password
+        self._clearPluginData()
 
         if options.statusPipe and getattr(self, "statusPipe", None) is not None:
             win32file.WriteFile(self.statusPipe, b" ")  # clear status
