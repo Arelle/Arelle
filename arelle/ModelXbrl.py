@@ -52,6 +52,7 @@ DEFAULT = sys.intern("default")
 NONDEFAULT = sys.intern("non-default")
 DEFAULTorNONDEFAULT = sys.intern("default-or-non-default")
 EMPTY_TUPLE: EmptyTuple = ()
+_NOT_FOUND = object()
 
 
 def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: str | None = None, **kwargs: str) -> ModelXbrl:
@@ -462,15 +463,17 @@ class ModelXbrl:
         :param elementQname: Element/Concept QName to find substitution group
         :param subsGrpMatchTable: Table of substitutions used to determine xml proxy object class for xml elements and substitution group membership
         """
-        if elementQname in subsGrpMatchTable:
-            return subsGrpMatchTable[elementQname] # head of substitution group
+        result = subsGrpMatchTable.get(elementQname, _NOT_FOUND)
+        if result is not _NOT_FOUND:
+            return cast(MatchSubstitutionGroupValueType, result) # head of substitution group
         elementMdlObj = self.qnameConcepts.get(elementQname)
         if elementMdlObj is not None:
             subsGrpMdlObj = elementMdlObj.substitutionGroup
             while subsGrpMdlObj is not None:
                 subsGrpQname = subsGrpMdlObj.qname
-                if subsGrpQname in subsGrpMatchTable:
-                    return subsGrpMatchTable[subsGrpQname]
+                result = subsGrpMatchTable.get(subsGrpQname, _NOT_FOUND)
+                if result is not _NOT_FOUND:
+                    return cast(MatchSubstitutionGroupValueType, result)
                 subsGrpMdlObj = subsGrpMdlObj.substitutionGroup
         return subsGrpMatchTable.get(None)
 
