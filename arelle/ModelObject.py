@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Generator, cast, Union
 from lxml import etree
 from arelle import Locale
-from arelle.ModelValue import qname, qnameEltPfxName, QName
+from arelle import ModelValue
 from arelle.XmlValidateConst import VALID_NO_CONTENT
 from arelle.model import CommentBase, ElementBase, PIBase
 
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelInlineFootnote
     from arelle.ModelInstanceObject import ModelInlineFact
     from arelle.ModelInstanceObject import ModelDimensionValue
-    from arelle.ModelValue import TypeSValue, TypeXValue
+    from arelle.ModelValue import qname, qnameEltPfxName, QName, TypeSValue, TypeXValue
 
 XmlUtil: Any = None
 
@@ -213,7 +213,7 @@ class ModelObject(ElementBase):
         try:
             return self._elementQname
         except AttributeError:
-            self._elementQname = QName(self.prefix, self.namespaceURI, self.localName)
+            self._elementQname = ModelValue.QName(self.prefix, self.namespaceURI, self.localName)
             return self._elementQname
 
     # qname is overridden for concept, type, attribute, and formula parameter, elementQname is unambiguous
@@ -222,7 +222,7 @@ class ModelObject(ElementBase):
         try:
             return self._elementQname
         except AttributeError:
-            self._elementQname = qname(self)
+            self._elementQname = ModelValue.qname(self)
             return self._elementQname
 
     def vQname(self, validationModelXbrl: ModelXbrl | None = None) -> QName:
@@ -294,7 +294,7 @@ class ModelObject(ElementBase):
         :returns: QName -- the resolved prefixed name, or None if no prefixed name was provided
         """
         if prefixedName:    # passing None would return element qname, not prefixedName None Qname
-            return qnameEltPfxName(self, prefixedName)
+            return ModelValue.qnameEltPfxName(self, prefixedName)
         else:
             return None
 
@@ -325,7 +325,6 @@ class ModelObject(ElementBase):
         :type dtsModelXbrl: ModelXbrl
         :returns: ModelObject -- Document node corresponding to the href or resolved uri
         """
-        from arelle.ModelDocument import ModelDocument
         if dtsModelXbrl is None:
             dtsModelXbrl = self.modelXbrl
         doc = None
@@ -344,7 +343,8 @@ class ModelObject(ElementBase):
 
                 assert dtsModelXbrl is not None
                 doc = dtsModelXbrl.urlDocs.get(normalizedUrl)
-        if isinstance(doc, ModelDocument):
+        import arelle.ModelDocument
+        if isinstance(doc, arelle.ModelDocument.ModelDocument):
             if id is None:
                 return cast(ModelObject, doc)
             elif id in doc.idObjects:
