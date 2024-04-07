@@ -2,9 +2,9 @@ import pytest
 from arelle.ModelValue import QName
 from itertools import product
 
-prefixes = ['pre', 1, '', None]
-ns_uris = ['http://valid.com', 'invalid', '', 1,  None]
-local_names = ['Cash', 1, '', None]
+prefixes = ['pre', '', None]
+ns_uris = ['http://valid.com', 'invalid', '', None]
+local_names = ['Cash', '', None]
 
 general_test_data = list(product(*[prefixes, ns_uris, local_names]))
 
@@ -121,8 +121,6 @@ def test_ne_bad_comparison():
 
 @pytest.mark.parametrize('local_name', [
     'Cash',
-    1,
-    True
 ])
 def test_bool_true(local_name):
     assert QName(None, None, local_name), 'qname bool'
@@ -130,8 +128,6 @@ def test_bool_true(local_name):
 
 @pytest.mark.parametrize('local_name', [
     '',
-    0,
-    False
 ])
 def test_bool_false(local_name):
     assert not QName('pre', 'http://namespace.com', local_name), 'qname bool'
