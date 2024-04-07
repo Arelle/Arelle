@@ -31,9 +31,6 @@ class TestQnameGeneralUsage:
         assertion = '{{{}}}{}'.format(ns_uri, local_name) if ns_uri else local_name
         assert qname_clark == assertion, 'clark name'
 
-    def test_qname_value_hash(self, prefix, ns_uri, local_name):
-        assert QName(prefix, ns_uri, local_name).qnameValueHash == hash((ns_uri, local_name)), 'qname value hash'
-
     def test_repr(self, prefix, ns_uri, local_name):
         qname_string = QName(prefix, ns_uri, local_name).__repr__()
         assertion = '{}:{}'.format(prefix, local_name) if prefix else local_name
