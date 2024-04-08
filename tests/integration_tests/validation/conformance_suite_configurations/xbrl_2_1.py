@@ -1,10 +1,17 @@
-from pathlib import PurePath
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
+from pathlib import PurePath, Path
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
 config = ConformanceSuiteConfig(
     args=[
         '--formula', 'run',
         '--calcPrecision',
+    ],
+    assets=[
+        ConformanceSuiteAssetConfig.conformance_suite(
+            Path('XBRL-CONF-2014-12-10.zip'),
+            entry_point=Path('XBRL-CONF-2014-12-10/xbrl.xml'),
+            public_download_url='https://www.xbrl.org/2014/XBRL-CONF-2014-12-10.zip',
+        ),
     ],
     expected_failure_ids=frozenset(f'XBRL-CONF-2014-12-10/Common/{s}' for s in [
         # 202.02b in the absence of source/target constraints, an empty href doesn't pose a problem
@@ -26,11 +33,8 @@ config = ConformanceSuiteConfig(
         # 397-28-PrecisionDifferentScales.xbrl Expected: valid, Actual: xbrl.5.2.5.2:calcInconsistency
         '300-instance/397-Testcase-SummationItem.xml:V-28',
     ]),
-    file='XBRL-CONF-2014-12-10/xbrl.xml',
     info_url='https://specifications.xbrl.org/work-product-index-group-base-spec-base-spec.html',
-    local_filepath='XBRL-CONF-2014-12-10.zip',
     name=PurePath(__file__).stem,
     network_or_cache_required=False,
-    public_download_url='https://www.xbrl.org/2014/XBRL-CONF-2014-12-10.zip',
     shards=3,
 )

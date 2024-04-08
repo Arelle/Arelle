@@ -41,7 +41,7 @@ def normalize_url_function(config: ConformanceSuiteConfig) -> Callable[[WebCache
     def normalize_url(self: WebCache, url: str, base: str | None = None) -> str:
         assert config.url_replace is not None
         if url.startswith(config.url_replace):
-            return url.replace(config.url_replace, f'{config.prefixed_final_filepath}/')
+            return url.replace(config.url_replace, f'{config.entry_point_root}/')
         return cast(str, original_normalize_url_function(self, url, base))
     return normalize_url
 
@@ -53,14 +53,20 @@ def get_test_data_mp_wrapper(args_kws: tuple[list[Any], dict[str, Any]]) -> list
 
 def get_testcase_variation_map(config: ConformanceSuiteConfig) -> dict[str, list[str]]:
     test_case_paths: list[str] = []
-    final_filepath = config.prefixed_final_filepath
-    if zipfile.is_zipfile(final_filepath):
-        with zipfile.ZipFile(final_filepath) as zip_file:
-            _collect_zip_test_cases(zip_file, config.file, test_case_paths)
+
+    entry_point_root = str(config.entry_point_root)
+
+    entry_point = config.entry_point_asset.entry_point
+    assert entry_point is not None
+    entry_point_str = entry_point.as_posix()
+
+    if zipfile.is_zipfile(entry_point_root):
+        with zipfile.ZipFile(entry_point_root) as zip_file:
+            _collect_zip_test_cases(zip_file, entry_point_str, test_case_paths)
             return _collect_zip_test_case_variation_ids(zip_file, test_case_paths)
     else:
-        _collect_dir_test_cases(final_filepath, config.file, test_case_paths)
-        return _collect_dir_test_case_variation_ids(final_filepath, test_case_paths)
+        _collect_dir_test_cases(entry_point_root, entry_point_str, test_case_paths)
+        return _collect_dir_test_case_variation_ids(entry_point_root, test_case_paths)
 
 
 def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
@@ -245,7 +251,7 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
         '--validate',
     ]
     if config.package_paths:
-        args.extend(['--packages', '|'.join(config.package_paths.values())])
+        args.extend(['--packages', '|'.join(sorted(p.as_posix() for p in config.package_paths))])
     if plugins:
         args.extend(['--plugins', '|'.join(sorted(plugins))])
     shard_str = f'-s{shard}' if use_shards else ''
@@ -318,7 +324,7 @@ def get_conformance_suite_test_results_with_shards(
             for vid in vids
         ])
         all_testcase_filters.extend(testcase_filters)
-        filename = os.path.join(config.prefixed_final_filepath, config.file)
+        filename = config.entry_point_path.as_posix()
         args = get_conformance_suite_arguments(
             config=config, filename=filename, additional_plugins=additional_plugins,
             build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=shard_id,
@@ -351,7 +357,7 @@ def get_conformance_suite_test_results_without_shards(
         log_to_file: bool = False,
         offline: bool = False) -> list[ParameterSet]:
     additional_plugins = frozenset().union(*(plugins for _, plugins in config.additional_plugins_by_prefix))
-    filename = os.path.join(config.prefixed_final_filepath, config.file)
+    filename = config.entry_point_path.as_posix()
     expected_failure_ids = config.expected_failure_ids
     args, kws = get_conformance_suite_arguments(
         config=config, filename=filename, additional_plugins=additional_plugins,

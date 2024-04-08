@@ -53,3 +53,4 @@ tests/resources/packages/
 # Visual Studio
 .vs/
 .test
+tests/resources/packages

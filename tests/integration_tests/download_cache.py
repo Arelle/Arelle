@@ -3,10 +3,25 @@ import argparse
 import os
 import urllib.request
 import zipfile
+from pathlib import Path
 
 from tests.integration_tests.integration_test_util import get_s3_uri
 
 TEMP_ZIP_NAME = '_tempcache.zip'
+
+
+def apply_cache(filepath: str, cache_directory: str | None = None) -> None:
+    """
+    Extracts cache package at `filepath` and applies to `cache_directory`.
+    :param filepath: Filepath of cache package. Deleted afterwards.
+    :param cache_directory: Directory of cache. None for default.
+    :return:
+    """
+    if cache_directory is None:
+        cache_directory = get_cache_directory()
+    with zipfile.ZipFile(filepath, 'r') as zip_ref:
+        zip_ref.extractall(cache_directory)
+    os.remove(filepath)
 
 
 def download_and_apply_cache(name: str, cache_directory: str | None = None, version_id: str | None = None) -> None:
@@ -15,8 +30,6 @@ def download_and_apply_cache(name: str, cache_directory: str | None = None, vers
     :param cache_directory: Directory to unpack cache package into
     :param version_id: The S3 object version to retrieve. None for latest.
     """
-    if cache_directory is None:
-        cache_directory = get_cache_directory()
     # Download ZIP from public S3 bucket.
     uri = get_s3_uri(
         f'ci/caches/{name}',
@@ -24,10 +37,7 @@ def download_and_apply_cache(name: str, cache_directory: str | None = None, vers
     )
     try:
         urllib.request.urlretrieve(uri, TEMP_ZIP_NAME)
-        # Unzip into cache directory
-        with zipfile.ZipFile(TEMP_ZIP_NAME, 'r') as zip_ref:
-            zip_ref.extractall(cache_directory)
-        os.remove(TEMP_ZIP_NAME)
+        apply_cache(TEMP_ZIP_NAME, cache_directory)
     except Exception as exc:
         raise Exception(f'Failed to download cache from {uri} and extract to {cache_directory}.') from exc
 

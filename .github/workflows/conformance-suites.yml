@@ -38,7 +38,7 @@ jobs:
       fail-fast: false
       matrix:
         test: ${{ fromJson(needs.find-tests.outputs.matrix) }}
-    environment: integration-tests
+    environment: ${{ matrix.test.environment }}
     steps:
       - uses: actions/checkout@v4.1.2
         with:
@@ -46,6 +46,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Configure AWS Credentials
+        if: ${{ matrix.test.environment == 'integration-tests' }}
         uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
