@@ -40,3 +40,29 @@ def rule_fr4(
                   "must not be before Accounting period start date='%(fact1)s'"),
         assertion=lambda startDate, endDate: startDate <= endDate,
     )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr5(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    DBA.FR5: General meeting date (gsd:DateOfGeneralMeeting) must not be before the
+    end date of the accounting period (gsd:ReportingPeriodEndDate with default
+    TypeOfReportingPeriodDimension)
+    """
+    return errorOnDateFactComparison(
+        val.modelXbrl,
+        fact1Qn=pluginData.reportingPeriodEndDateQn,
+        fact2Qn=pluginData.dateOfGeneralMeetingQn,
+        dimensionQn=pluginData.typeOfReportingPeriodDimensionQn,
+        code='DBA.FR5',
+        message=_("Error code FR5: General meeting date='%(fact2)s' "
+                  "must be after Accounting period end date='%(fact1)s'"),
+        assertion=lambda endDate, meetingDate: endDate < meetingDate,
+    )
