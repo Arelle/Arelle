@@ -286,6 +286,8 @@
     <cmn:TitleOfMemberOfExecutiveBoard contextRef="ID_2" xml:lang="da">Administrerende direktør</cmn:TitleOfMemberOfExecutiveBoard>
     <cmn:TitleOfMemberOfSupervisoryBoard contextRef="ID_3" xml:lang="da">Bestyrelsesformand</cmn:TitleOfMemberOfSupervisoryBoard>
     <cmn:TypeOfAuditorAssistance contextRef="ID_0" xml:lang="da">Revisionspåtegning</cmn:TypeOfAuditorAssistance>
+    <!-- CAUSE: DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod before ReportingPeriodEndDate -->
+    <fsa:DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod contextRef="ID_0">2022-05-09</fsa:DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod>
     <fsa:AccountingPoliciesAreUnchangedFromPreviousPeriod contextRef="ID_0" xml:lang="da">true</fsa:AccountingPoliciesAreUnchangedFromPreviousPeriod>
     <fsa:AcquiredIntangibleAssets contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">8740000</fsa:AcquiredIntangibleAssets>
     <fsa:AcquiredIntangibleAssets contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">9800000</fsa:AcquiredIntangibleAssets>
@@ -318,7 +320,6 @@
     <fsa:ContributedCapital contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">30000000</fsa:ContributedCapital>
     <fsa:CurrentAssets contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">673498000</fsa:CurrentAssets>
     <fsa:CurrentAssets contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">374421000</fsa:CurrentAssets>
-    <fsa:DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod contextRef="ID_0">2023-05-09</fsa:DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod>
     <fsa:DecreaseIncreaseInInventories contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">1064000</fsa:DecreaseIncreaseInInventories>
     <fsa:DecreaseIncreaseInInventories contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">797000</fsa:DecreaseIncreaseInInventories>
     <fsa:DecreaseIncreaseInReceivables contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">-84430000</fsa:DecreaseIncreaseInReceivables>

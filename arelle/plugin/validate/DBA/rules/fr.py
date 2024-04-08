@@ -92,3 +92,29 @@ def rule_fr7(
                   "must be after the end date of the accounting period='%(fact1)s'"),
         assertion=lambda endDate, approvalDate: endDate < approvalDate,
     )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr39(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    DBA.FR39: Date of extraordinary dividend (fsb:DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod)
+    must be after the end of the financial year (gsd:ReportingPeriodEndDate) (with default
+    TypeOfReportingPeriodDimension)
+    """
+    return errorOnDateFactComparison(
+        val.modelXbrl,
+        fact1Qn=pluginData.reportingPeriodEndDateQn,
+        fact2Qn=pluginData.dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod,
+        dimensionQn=pluginData.typeOfReportingPeriodDimensionQn,
+        code='DBA.FR39',
+        message=_("Error code FR39: A date for extraordinary dividend '%(fact2)s' "
+                  "has been specified. The date must be after the end of the financial year '%(fact1)s'."),
+        assertion=lambda endDate, dividendDate: endDate < dividendDate,
+    )
