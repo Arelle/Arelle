@@ -13,3 +13,4 @@ NAMESPACE_GSD = 'http://xbrl.dcca.dk/gsd'
 class PluginValidationDataExtension(PluginData):
     reportingPeriodEndDateQn: QName = qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodEndDate')
     reportingPeriodStartDateQn: QName = qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodStartDate')
+    typeOfReportingPeriodDimensionQn: QName = qname(f'{{{NAMESPACE_GSD}}}TypeOfReportingPeriodDimension')
