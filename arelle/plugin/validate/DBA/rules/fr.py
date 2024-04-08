@@ -66,3 +66,29 @@ def rule_fr5(
                   "must be after Accounting period end date='%(fact1)s'"),
         assertion=lambda endDate, meetingDate: endDate < meetingDate,
     )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr7(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    DBA.FR7: Date of approval of the annual report (gsd:DateOfApprovalOfAnnualReport)
+    must be after the end date of the Accounting Period (gsd:ReportingPeriodEndDate
+    with default TypeOfReportingPeriodDimension).
+    """
+    return errorOnDateFactComparison(
+        val.modelXbrl,
+        fact1Qn=pluginData.reportingPeriodEndDateQn,
+        fact2Qn=pluginData.dateOfApprovalOfAnnualReportQn,
+        dimensionQn=pluginData.typeOfReportingPeriodDimensionQn,
+        code='DBA.FR7',
+        message=_("Error code FR7: Date of approval of the annual report='%(fact2)s' "
+                  "must be after the end date of the accounting period='%(fact1)s'"),
+        assertion=lambda endDate, approvalDate: endDate < approvalDate,
+    )

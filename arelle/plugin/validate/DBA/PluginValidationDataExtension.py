@@ -8,9 +8,11 @@ from arelle.utils.PluginData import PluginData
 
 
 NAMESPACE_GSD = 'http://xbrl.dcca.dk/gsd'
+NAMESPACE_SOB = 'http://xbrl.dcca.dk/sob'
 
 
 class PluginValidationDataExtension(PluginData):
+    dateOfApprovalOfAnnualReportQn: QName = qname(f'{{{NAMESPACE_SOB}}}DateOfApprovalOfAnnualReport')
     dateOfGeneralMeetingQn: QName = qname(f'{{{NAMESPACE_GSD}}}DateOfGeneralMeeting')
     reportingPeriodEndDateQn: QName = qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodEndDate')
     reportingPeriodStartDateQn: QName = qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodStartDate')
