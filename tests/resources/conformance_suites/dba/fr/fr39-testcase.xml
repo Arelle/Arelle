@@ -13,7 +13,7 @@
             Date of extraordinary dividend is not after the end of the financial year.
         </description>
         <data>
-            <instance readMeFirst="true">FR39-invalid.xbrl</instance>
+            <instance readMeFirst="true">fr39-invalid.xbrl</instance>
         </data>
         <result>
             <error>DBA.FR39</error>
