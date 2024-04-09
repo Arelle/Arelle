@@ -2,6 +2,7 @@
 <testcases name="DBA">
     <testcase uri='fr/fr4-testcase.xml' />
     <testcase uri='fr/fr5-testcase.xml' />
+    <testcase uri='fr/fr6-testcase.xml' />
     <testcase uri='fr/fr7-testcase.xml' />
     <testcase uri='fr/fr39-testcase.xml' />
     <testcase uri='fr/valid-testcase.xml' />
