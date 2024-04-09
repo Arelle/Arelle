@@ -3,14 +3,15 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from typing import Any, Iterable
+import datetime
+from typing import Any, Iterable, cast
 
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from . import errorOnDateFactComparison
+from . import errorOnDateFactComparison, getValidDateFactsWithDimensionMember
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -66,6 +67,38 @@ def rule_fr5(
                   "must be after Accounting period end date='%(fact1)s'"),
         assertion=lambda endDate, meetingDate: endDate < meetingDate,
     )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr6(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    DBA.FR6: General meeting date (gsd:DateOfGeneralMeeting) must not be after the
+    reporting date (date of report submission, not related to any XBRL element).
+    """
+    facts = getValidDateFactsWithDimensionMember(
+        val.modelXbrl,
+        pluginData.dateOfGeneralMeetingQn,
+        pluginData.typeOfReportingPeriodDimensionQn,
+    )
+    reportingDate = datetime.datetime.now()
+    for fact in facts:
+        meetingDate = cast(datetime.datetime, fact.xValue)
+        if meetingDate > reportingDate:
+            yield Validation.error(
+                codes='DBA.FR6',
+                msg=_("Error code FR6: General meeting date='%(meetingDate)s' "
+                      "must not be after reporting date='%(reportingDate)s'"),
+                modelObject=fact,
+                meetingDate=meetingDate,
+                reportingDate=reportingDate,
+            )
 
 
 @validation(
