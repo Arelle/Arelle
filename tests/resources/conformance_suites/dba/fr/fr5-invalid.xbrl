@@ -318,7 +318,6 @@
     <fsa:ContributedCapital contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">30000000</fsa:ContributedCapital>
     <fsa:CurrentAssets contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">673498000</fsa:CurrentAssets>
     <fsa:CurrentAssets contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">374421000</fsa:CurrentAssets>
-    <fsa:DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod contextRef="ID_0">2023-05-09</fsa:DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod>
     <fsa:DecreaseIncreaseInInventories contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">1064000</fsa:DecreaseIncreaseInInventories>
     <fsa:DecreaseIncreaseInInventories contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">797000</fsa:DecreaseIncreaseInInventories>
     <fsa:DecreaseIncreaseInReceivables contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">-84430000</fsa:DecreaseIncreaseInReceivables>
@@ -518,7 +517,8 @@
     <gsd:AddressOfSubmittingEnterprisePostcodeAndTown contextRef="ID_0" xml:lang="da">København K, 1304</gsd:AddressOfSubmittingEnterprisePostcodeAndTown>
     <gsd:AddressOfSubmittingEnterpriseStreetAndNumber contextRef="ID_0" xml:lang="da">Adelgade 15</gsd:AddressOfSubmittingEnterpriseStreetAndNumber>
     <gsd:DateOfFoundationOfReportingEntity contextRef="ID_0" xml:lang="da">1983-12-23</gsd:DateOfFoundationOfReportingEntity>
-    <gsd:DateOfGeneralMeeting contextRef="ID_0" xml:lang="da">2023-03-23</gsd:DateOfGeneralMeeting>
+    <!-- CAUSE: DateOfGeneralMeeting before ReportingPeriodEndDate -->
+    <gsd:DateOfGeneralMeeting contextRef="ID_0" xml:lang="da">2022-03-23</gsd:DateOfGeneralMeeting>
     <gsd:EmailOfReportingEntity contextRef="ID_0" xml:lang="da">arp-hansen@arp-hansen.dk</gsd:EmailOfReportingEntity>
     <gsd:FaxNumberOfReportingEntity contextRef="ID_0" xml:lang="da">45970501</gsd:FaxNumberOfReportingEntity>
     <gsd:HomepageOfReportingEntity contextRef="ID_0" xml:lang="da">www.arp-hansen.dk</gsd:HomepageOfReportingEntity>
