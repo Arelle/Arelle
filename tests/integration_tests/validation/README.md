@@ -7,18 +7,21 @@ python -m tests.integration_tests.validation.run_conformance_suites --help
 
   -h, --help            show this help message and exit
   --all                 Select all configured conformance suites
-  --build-cache         Use CacheBuilder plugin to build cache from conformance
-                        suite usage
-  --download-cache      Download and apply pre-built cache package
-  --download-overwrite  Download (and overwrite) selected conformance suite
-                        files
+  --build-cache         Use CacheBuilder plugin to build cache from 
+                        conformance suite usage
+  --download-cache      Download and apply pre-built cache package and 
+                        taxonomy packages
   --download-missing    Download missing selected conformance suite files
+  --download-overwrite  Download (and overwrite) selected conformance 
+                        suite files
+  --download-private    Download privately hosted assets (AWS CLI and 
+                        environment variables required)
   --list                List names of all configured conformance suites
   --log-to-file         Writes logs and results to .txt and .csv files
-  --name NAME           Select only conformance suites with given names, comma
-                        delimited
-  --offline             Run without loading anything from the internet (local
-                        files and cache only)
+  --name NAME           Select only conformance suites with given names,
+                        comma delimited
+  --offline             Run without loading anything from the internet
+                        (local files and cache only)
   --public              Select all public conformance suites
   --series              Run shards in series
   --shard SHARD         comma separated list of 0-indexed shards to run

@@ -10,7 +10,7 @@ from arelle.XbrlConst import xsd
 from arelle.XmlValidate import validate
 
 
-def validateElementSequence(modelXbrl, compositor, children, ixFacts, iNextChild=0):
+def validateElementSequence(modelXbrl, compositor, children, ixFacts, setTargetModelXbrl, iNextChild=0):
     if compositor.modelDocument.targetNamespace == xsd:
         return (iNextChild, True, None, None)
     particles = compositor.dereference().particles
@@ -41,7 +41,7 @@ def validateElementSequence(modelXbrl, compositor, children, ixFacts, iNextChild
                           (vQname in modelXbrl.qnameConcepts and
                            modelXbrl.qnameConcepts[vQname].substitutesForQname(elementDeclaration.qname))))):
                         occurrences += 1
-                        validate(modelXbrl, elt, ixFacts=ixFacts, elementDeclarationType=getattr(elementDeclaration, "type", None))
+                        validate(modelXbrl, elt, ixFacts=ixFacts, setTargetModelXbrl=setTargetModelXbrl, elementDeclarationType=getattr(elementDeclaration, "type", None))
                         iNextChild += 1
                         if occurrences == particle.maxOccurs:
                             break
@@ -50,7 +50,7 @@ def validateElementSequence(modelXbrl, compositor, children, ixFacts, iNextChild
             else:  # group definition or compositor
                 while occurrences < particle.maxOccurs:
                     iPrevChild = iNextChild
-                    iNextChild, occurred, errDesc, errArgs = validateElementSequence(modelXbrl, particle, children, ixFacts, iNextChild)
+                    iNextChild, occurred, errDesc, errArgs = validateElementSequence(modelXbrl, particle, children, ixFacts, setTargetModelXbrl, iNextChild)
                     if occurred:
                         # test if occurrence was because of minOccurs zero but no match occurred (HF 2012-09-07)
                         if occurred and iNextChild == iPrevChild and particle.minOccurs == 0: # nothing really occurred

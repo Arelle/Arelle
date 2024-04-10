@@ -282,7 +282,7 @@ class ModelRelationshipSet:
 
     # if modelFrom and modelTo are provided determine that they have specified relationship
     # if only modelFrom, determine that there are relationships present of specified axis
-    def isRelated(self, modelFrom, axis, modelTo=None, visited=None, isDRS=False): # either model concept or qname
+    def isRelated(self, modelFrom, axis, modelTo=None, visited=None, isDRS=False, consecutiveLinkrole=False): # either model concept or qname
         assert self.modelXbrl is not None
         if getattr(self.modelXbrl, "isSupplementalIxdsTarget", False):
             if modelFrom is not None and modelFrom.modelXbrl != self.modelXbrl:
@@ -338,6 +338,11 @@ class ModelRelationshipSet:
                         if (self.modelXbrl.relationshipSet(consecutiveArcrole[modelRel.arcrole],
                                                            modelRel.consecutiveLinkrole, self.linkqname, self.arcqname)
                             .isRelated(toConcept, axis, modelTo, visited, isDRS)):
+                            return True
+                    elif consecutiveLinkrole: # allows starting at relationship set with ELR None
+                        if (self.modelXbrl.relationshipSet(modelRel.arcrole,
+                                                           modelRel.consecutiveLinkrole, self.linkqname, self.arcqname)
+                            .isRelated(toConcept, axis, modelTo, visited, isDRS, consecutiveLinkrole)):
                             return True
                     else:
                         if self.isRelated(toConcept, axis, modelTo, visited, isDRS):

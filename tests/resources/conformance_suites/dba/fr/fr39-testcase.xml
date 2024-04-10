@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR39"
+        description="DBA.FR39: Date of extraordinary dividend must be after the end of the financial year."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            Date of extraordinary dividend is not after the end of the financial year.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr39-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR39</error>
+        </result>
+    </variation>
+</testcase>

@@ -1,20 +1,23 @@
 from __future__ import annotations
 
-import subprocess
 import sys
 from argparse import ArgumentParser, Namespace
+from pathlib import Path
+from typing import Any, Optional, TYPE_CHECKING
 
-from tests.integration_tests.download_cache import download_and_apply_cache
-from tests.integration_tests.validation.validation_util import get_conformance_suite_test_results, save_timing_file
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
+from tests.integration_tests.validation.conformance_suite_config import (
+    ConformanceSuiteConfig, ConformanceSuiteAssetConfig
+)
 from tests.integration_tests.validation.conformance_suite_configs import (
     ALL_CONFORMANCE_SUITE_CONFIGS,
     PUBLIC_CONFORMANCE_SUITE_CONFIGS
 )
-from tests.integration_tests.validation.download_conformance_suites import (
-    download_conformance_suite, extract_conformance_suite
+from tests.integration_tests.validation.download_assets import download_assets, verify_assets
+from tests.integration_tests.validation.validation_util import get_conformance_suite_test_results, save_timing_file
+from tests.integration_tests.validation.validation_util import (
+    save_actual_results_file,
+    CONFORMANCE_SUITE_EXPECTED_RESOURCES_DIRECTORY, save_diff_html_file
 )
-from typing import Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from _pytest.mark import ParameterSet
@@ -45,6 +48,11 @@ ARGUMENTS: list[dict[str, Any]] = [
         "name": "--download-missing",
         "action": "store_true",
         "help": "Download missing selected conformance suite files"
+    },
+    {
+        "name": "--download-private",
+        "action": "store_true",
+        "help": "Download privately hosted assets (AWS CLI and environment variables required)"
     },
     {
         "name": "--list",
@@ -118,33 +126,25 @@ def run_conformance_suites(
         build_cache: bool = False,
         download_cache: bool = False,
         download_option: str | None = None,
+        download_private: bool = False,
         log_to_file: bool = False,
         offline_option: bool = False,
         series_option: bool = False) -> list[ParameterSet]:
     conformance_suite_configs = _get_conformance_suite_names(select_option)
+    unique_assets = set()
+    for config in conformance_suite_configs:
+        if config.cache_version_id:
+            unique_assets.add(ConformanceSuiteAssetConfig.cache_package(config.name, config.cache_version_id))
+        unique_assets.update(tuple(config.assets))
     if download_option:
-        overwrite = download_option == DOWNLOAD_OVERWRITE
-        for conformance_suite_config in conformance_suite_configs:
-            download_conformance_suite(conformance_suite_config, overwrite=overwrite)
-    if download_cache:
-        package_urls = set()
-        for conformance_suite_config in conformance_suite_configs:
-            package_urls.update(conformance_suite_config.package_urls)
-            if not conformance_suite_config.network_or_cache_required:
-                continue
-            download_and_apply_cache(
-                f'conformance_suites/{conformance_suite_config.name}.zip',
-                version_id=conformance_suite_config.cache_version_id
-            )
-        if package_urls:
-            # Download the packages.
-            subprocess.run([sys.executable, 'arelleCmdLine.py', '--packages', '|'.join(sorted(package_urls)), '--proxy', 'show'])
-    for conformance_suite_config in conformance_suite_configs:
-        extract_conformance_suite(conformance_suite_config)
+        download_assets(unique_assets, download_option == DOWNLOAD_OVERWRITE, download_cache, download_private)
+    else:
+        verify_assets(unique_assets)
     all_results = []
     if test_option:
         for config in conformance_suite_configs:
             shards: list[int] = []
+            full_run = True
             if shard:
                 for part in shard.split(','):
                     if '-' in part:
@@ -152,6 +152,7 @@ def run_conformance_suites(
                         shards.extend(range(int(start), int(end) + 1))
                     else:
                         shards.append(int(part))
+                full_run = set(shards) == set(range(0, config.shards))
             results = get_conformance_suite_test_results(
                 config,
                 shards=shards,
@@ -162,6 +163,11 @@ def run_conformance_suites(
             )
             if log_to_file:
                 save_timing_file(config, results)
+                actual_results_path = save_actual_results_file(config, results)
+                if full_run:
+                    expected_results_path = CONFORMANCE_SUITE_EXPECTED_RESOURCES_DIRECTORY / Path(config.name).with_suffix('.csv')
+                    if expected_results_path.exists():
+                        save_diff_html_file(expected_results_path, actual_results_path, Path(f'conf-{config.name}-diff.html'))
             all_results.extend(results)
     return all_results
 
@@ -171,12 +177,15 @@ def run_conformance_suites_options(options: Namespace) -> list[ParameterSet]:
     download_option = get_download_option(options)
     assert download_option or options.test, \
         'Specify at least one of download, list, or test.'
+    assert download_option or not options.download_private, \
+        'Private download must only be enabled if download option is provided.'
     return run_conformance_suites(
         select_option=select_option,
         test_option=options.test,
         shard=options.shard,
         build_cache=options.build_cache,
         download_option=download_option,
+        download_private=options.download_private,
         download_cache=options.download_cache,
         log_to_file=options.log_to_file,
         offline_option=options.offline,
@@ -211,8 +220,8 @@ def run() -> None:
         for config in ALL_CONFORMANCE_SUITE_CONFIGS:
             print(f'{config.name}\n'
                   f'\tInfo:       {config.info_url}\n'
-                  f'\tDownload:   {config.public_download_url or config.membership_url}\n'
-                  f'\tLocal Path: {config.prefixed_local_filepath}')
+                  f'\tDownload:   {config.entry_point_asset.public_download_url or config.membership_url}\n'
+                  f'\tEntry Point: {config.entry_point_path}')
     else:
         run_conformance_suites_options(options)
 

@@ -1,18 +1,18 @@
 from __future__ import annotations
 
+import csv
+import difflib
 import json
 import multiprocessing
 import os.path
 import statistics
-import tempfile
 import zipfile
 from collections import defaultdict
 from collections.abc import Generator
-from contextlib import ExitStack
 from contextlib import nullcontext
 from dataclasses import dataclass
 from heapq import heapreplace
-from pathlib import PurePath, PurePosixPath, Path
+from pathlib import PurePosixPath, Path
 from typing import Any, Callable, ContextManager, TYPE_CHECKING, cast
 from unittest.mock import patch
 
@@ -27,7 +27,8 @@ if TYPE_CHECKING:
 
 
 original_normalize_url_function = WebCache.normalizeUrl
-CONFORMANCE_SUITE_TIMING_PATH_PREFIX = 'tests/resources/conformance_suites_timing'
+CONFORMANCE_SUITE_EXPECTED_RESOURCES_DIRECTORY = Path('tests/resources/conformance_suites_expected')
+CONFORMANCE_SUITE_TIMING_RESOURCES_DIRECTORY = Path('tests/resources/conformance_suites_timing')
 
 
 @dataclass(frozen=True)
@@ -40,7 +41,7 @@ def normalize_url_function(config: ConformanceSuiteConfig) -> Callable[[WebCache
     def normalize_url(self: WebCache, url: str, base: str | None = None) -> str:
         assert config.url_replace is not None
         if url.startswith(config.url_replace):
-            return url.replace(config.url_replace, f'{config.prefixed_final_filepath}/')
+            return url.replace(config.url_replace, f'{config.entry_point_root}/')
         return cast(str, original_normalize_url_function(self, url, base))
     return normalize_url
 
@@ -52,14 +53,20 @@ def get_test_data_mp_wrapper(args_kws: tuple[list[Any], dict[str, Any]]) -> list
 
 def get_testcase_variation_map(config: ConformanceSuiteConfig) -> dict[str, list[str]]:
     test_case_paths: list[str] = []
-    final_filepath = config.prefixed_final_filepath
-    if zipfile.is_zipfile(final_filepath):
-        with zipfile.ZipFile(final_filepath) as zip_file:
-            _collect_zip_test_cases(zip_file, config.file, test_case_paths)
+
+    entry_point_root = str(config.entry_point_root)
+
+    entry_point = config.entry_point_asset.entry_point
+    assert entry_point is not None
+    entry_point_str = entry_point.as_posix()
+
+    if zipfile.is_zipfile(entry_point_root):
+        with zipfile.ZipFile(entry_point_root) as zip_file:
+            _collect_zip_test_cases(zip_file, entry_point_str, test_case_paths)
             return _collect_zip_test_case_variation_ids(zip_file, test_case_paths)
     else:
-        _collect_dir_test_cases(final_filepath, config.file, test_case_paths)
-        return _collect_dir_test_case_variation_ids(final_filepath, test_case_paths)
+        _collect_dir_test_cases(entry_point_root, entry_point_str, test_case_paths)
+        return _collect_dir_test_case_variation_ids(entry_point_root, test_case_paths)
 
 
 def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
@@ -243,8 +250,8 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
         '--testcaseResultOptions', config.test_case_result_options,
         '--validate',
     ]
-    if config.package_urls:
-        args.extend(['--packages', '|'.join(config.package_urls)])
+    if config.package_paths:
+        args.extend(['--packages', '|'.join(sorted(p.as_posix() for p in config.package_paths))])
     if plugins:
         args.extend(['--plugins', '|'.join(sorted(plugins))])
     shard_str = f'-s{shard}' if use_shards else ''
@@ -317,7 +324,7 @@ def get_conformance_suite_test_results_with_shards(
             for vid in vids
         ])
         all_testcase_filters.extend(testcase_filters)
-        filename = os.path.join(config.prefixed_final_filepath, config.file)
+        filename = config.entry_point_path.as_posix()
         args = get_conformance_suite_arguments(
             config=config, filename=filename, additional_plugins=additional_plugins,
             build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=shard_id,
@@ -350,7 +357,7 @@ def get_conformance_suite_test_results_without_shards(
         log_to_file: bool = False,
         offline: bool = False) -> list[ParameterSet]:
     additional_plugins = frozenset().union(*(plugins for _, plugins in config.additional_plugins_by_prefix))
-    filename = os.path.join(config.prefixed_final_filepath, config.file)
+    filename = config.entry_point_path.as_posix()
     expected_failure_ids = config.expected_failure_ids
     args, kws = get_conformance_suite_arguments(
         config=config, filename=filename, additional_plugins=additional_plugins,
@@ -367,7 +374,7 @@ def get_conformance_suite_test_results_without_shards(
 
 
 def load_timing_file(name: str) -> dict[str, float]:
-    path = Path(CONFORMANCE_SUITE_TIMING_PATH_PREFIX) / Path(name).with_suffix(".json")
+    path = CONFORMANCE_SUITE_TIMING_RESOURCES_DIRECTORY / Path(name).with_suffix('.json')
     if not path.exists():
         return {}
     with open(path) as file:
@@ -376,6 +383,43 @@ def load_timing_file(name: str) -> dict[str, float]:
             str(k): float(v)
             for k, v in data.items()
         }
+
+
+def save_actual_results_file(config: ConformanceSuiteConfig, results: list[ParameterSet]) -> Path:
+    """
+    Saves a CSV file with format "(Full testcase variation ID),(Code)".
+    Each row represents a unique code actually triggered by a variation.
+    If an expected results file exists for the given conformance suite config,
+    the actual results file is then compared to the expected results file and an
+    HTML diff file is generated so that differences can be reviewed.
+    :param config: The conformance suite config associated with the given results.
+    :param results: The full set of results from a conformance suite run.
+    :return: Path to the saved file
+    """
+    rows = []
+    for result in results:
+        testcase_id = result.id
+        actual_codes = result.values[0].get('actual')  # type: ignore[union-attr]
+        for code in actual_codes:
+            rows.append((testcase_id, code))
+    output_filepath = Path(f'conf-{config.name}-actual.csv')
+    with open(output_filepath, 'w') as file:
+        writer = csv.writer(file)
+        writer.writerows(sorted(rows))
+    return output_filepath
+
+
+def save_diff_html_file(expected_results_path: Path, actual_results_path: Path, output_path: Path) -> None:
+    with open(expected_results_path) as file:
+        expected_rows = [row for row in file]
+    with open(actual_results_path) as file:
+        actual_rows = [row for row in file]
+    html = difflib.HtmlDiff().make_file(
+        expected_rows, actual_rows,
+        fromdesc='Expected', todesc='Actual', context=True, numlines=6
+    )
+    with open(output_path, 'w') as file:
+        file.write(html)
 
 
 def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]) -> None:

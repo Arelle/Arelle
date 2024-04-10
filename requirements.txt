@@ -1,6 +1,6 @@
 # core modules
 certifi==2024.2.2
-lxml==5.1.0
+lxml==5.2.1
 OpenPyXL==3.1.2
 pyparsing==3.1.2
 regex==2023.12.25
@@ -16,19 +16,19 @@ NumPy==1.24.4 ; python_version <= "3.8"
 NumPy==1.26.2 ; python_version > "3.8"
 Matplotlib==3.7.4 ; python_version <= "3.8"
 Matplotlib==3.8.2 ; python_version > "3.8"
-holidays==0.45
+holidays==0.46
 pytz==2024.1
 Tornado==6.4
 # security plugin
 PyCryptodome==3.20.0
 # xbrlDB plugin
 cx_Oracle==8.3.0
-pg8000==1.30.5
+pg8000==1.31.1
 PyMySQL==1.1.0
 pyodbc==5.1.0
 RDFLib==7.0.0
 # other
 graphviz==0.20.3
-Pillow==10.2.0
+Pillow==10.3.0
 pywin32==306 ; sys_platform == "win32"
 tinycss2==1.2.1

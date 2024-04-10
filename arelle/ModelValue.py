@@ -8,6 +8,8 @@ from typing import Dict, List, TYPE_CHECKING, Any, cast, overload, Optional, Uni
 from fractions import Fraction
 from arelle.UrlUtil import isValidUriReference
 
+import arelle.ModelObject
+
 if TYPE_CHECKING:
     from arelle.ModelObject import ModelObject
     from arelle.ModelDtsObject import ModelConcept
@@ -42,20 +44,19 @@ def qname(
     castException: Exception | None = None,
     prefixException: Exception | None = None,
 ) -> QName | None:
-    from arelle.ModelObject import ModelObject
     # either value can be an etree ModelObject element: if no name then qname is element tag quanem
     #     if name provided qname uses element as xmlns reference and name as prefixed name
     # value can be namespaceURI and name is localname or prefix:localname
     # value can be prefix:localname (and localname omitted)
     # for xpath qnames which do not take default namespace if no prefix, specify noPrefixIsNoNamespace
-    if isinstance(value, ModelObject):
+    if isinstance(value, arelle.ModelObject.ModelObject):
         if name: # name is prefixed name
             element = value  # may be an attribute
             value = name
             name = None
         else:
             return QName(value.prefix, value.namespaceURI, value.localName)
-    elif isinstance(name, ModelObject):
+    elif isinstance(name, arelle.ModelObject.ModelObject):
         element = name
         name = None
     else:

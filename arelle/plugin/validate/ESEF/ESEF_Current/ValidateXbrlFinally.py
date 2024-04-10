@@ -462,7 +462,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 hiddenEltIds[ixElt.id] = ixElt
                             ixHiddenFacts.add(ixElt)
                 # maliciously hidden facts
-                for cssHiddenElt in ixdsHtmlRootElt.getroottree().iterfind("//{http://www.w3.org/1999/xhtml}*[@style]"):
+                for cssHiddenElt in ixdsHtmlRootElt.getroottree().iterfind(".//{http://www.w3.org/1999/xhtml}*[@style]"):
                     if styleCssHiddenPattern.match(cssHiddenElt.get("style","")):
                         for tag in (ixNStag + "nonNumeric", ixNStag+"nonFraction"):
                             for ixElt in cssHiddenElt.iterdescendants(tag=tag):
@@ -485,7 +485,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     countEligible=len(eligibleForTransformHiddenFacts),
                     elements=", ".join(sorted(set(str(f.qname) for f in eligibleForTransformHiddenFacts))))
             for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
-                for ixElt in ixdsHtmlRootElt.getroottree().iterfind("//{http://www.w3.org/1999/xhtml}*[@style]"):
+                for ixElt in ixdsHtmlRootElt.getroottree().iterfind(".//{http://www.w3.org/1999/xhtml}*[@style]"):
                     styleValue = ixElt.get("style","")
                     hiddenFactRefMatch = styleIxHiddenPattern.match(styleValue)
 

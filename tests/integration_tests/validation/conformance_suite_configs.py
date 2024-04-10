@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
+from tests.integration_tests.validation.conformance_suite_configurations.dba_current import config as dba_current
 from tests.integration_tests.validation.conformance_suite_configurations.efm_current import config as efm_current
 from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2021 import config as esef_ixbrl_2021
 from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2022 import config as esef_ixbrl_2022
@@ -38,6 +39,7 @@ from tests.integration_tests.validation.conformance_suite_configurations.xbrl_ut
 
 
 ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
+    dba_current,
     efm_current,
     esef_ixbrl_2021,
     esef_ixbrl_2022,
@@ -74,4 +76,4 @@ ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     xbrl_utr_structure_1_0,
 )
 CI_CONFORMANCE_SUITE_CONFIGS = tuple(c for c in ALL_CONFORMANCE_SUITE_CONFIGS if c.ci_enabled)
-PUBLIC_CONFORMANCE_SUITE_CONFIGS = tuple(c for c in ALL_CONFORMANCE_SUITE_CONFIGS if c.public_download_url)
+PUBLIC_CONFORMANCE_SUITE_CONFIGS = tuple(c for c in ALL_CONFORMANCE_SUITE_CONFIGS if c.entry_point_asset.public_download_url)

@@ -28,6 +28,7 @@ from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, hasWebServer, isCGI, isGAE
 from arelle.WebCache import WebCache
 from arelle.typing import TypeGetText
+from arelle.utils.PluginData import PluginData
 
 _: TypeGetText
 
@@ -177,6 +178,7 @@ class Cntlr:
         self.imagesDir = os.path.join(_resourcesDir, "images")
         self.localeDir = os.path.join(_resourcesDir, "locale")
         self.pluginDir = os.path.join(_resourcesDir, "plugin")
+        self.__pluginData: dict[str, PluginData] = {}
         if cxFrozen:
             # some cx_freeze versions set this variable, which is incompatible with matplotlib after v3.1
             os.environ.pop("MATPLOTLIBDATA", None)
@@ -628,6 +630,17 @@ class Cntlr:
                 # The file exists in cache, we can proceed despite working offline
                 return True
         return False
+
+    def getPluginData(self, pluginName: str) -> PluginData | None:
+        return self.__pluginData.get(pluginName)
+
+    def setPluginData(self, pluginData: PluginData) -> None:
+        if pluginData.name in self.__pluginData:
+            raise RuntimeError(f"PluginData already set on Cntlr for {pluginData.name}.")
+        self.__pluginData[pluginData.name] = pluginData
+
+    def _clearPluginData(self) -> None:
+        self.__pluginData.clear()
 
 
 def logRefsFileLines(refs: list[dict[str, Any]]) -> str:

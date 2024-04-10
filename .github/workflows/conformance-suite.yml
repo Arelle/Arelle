@@ -3,6 +3,14 @@ name: Run Xbrl Conformance Suite
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        default: integration-tests
+        description: GitHub environment to run conformance suite within
+        options:
+          - integration-tests
+          - none
+        required: true
+        type: choice
       name:
         description: Name of the conformance suite to run
         required: true
@@ -26,12 +34,13 @@ jobs:
   run-conformance-suite:
     name: ${{ inputs.name }}${{ inputs.shard && format(':{0}', inputs.shard) || '' }} - ${{ inputs.os }} - ${{ inputs.python_version }}
     runs-on: ${{ inputs.os }}
-    environment: integration-tests
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4.1.2
         with:
           persist-credentials: false
       - name: Configure AWS Credentials
+        if: ${{ inputs.environment == 'integration-tests' }}
         uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}

@@ -8,11 +8,12 @@ from typing import TYPE_CHECKING, Tuple, cast
 
 import regex as re
 
-from arelle.ModelValue import QName, qname
+from arelle.ModelValue import qname
 from arelle.typing import TypeGetText
 
 if TYPE_CHECKING:
     from arelle.ModelObject import ModelObject
+    from arelle.ModelValue import QName
 
 _: TypeGetText
 # tuple is overridden below

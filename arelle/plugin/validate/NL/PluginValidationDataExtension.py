@@ -9,11 +9,11 @@ from dataclasses import dataclass
 from arelle.ModelInstanceObject import ModelUnit, ModelContext, ModelFact
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
-from arelle.utils.validate.PluginValidationData import PluginValidationData
+from arelle.utils.PluginData import PluginData
 
 
 @dataclass
-class PluginValidationDataExtension(PluginValidationData):
+class PluginValidationDataExtension(PluginData):
     financialReportingPeriodCurrentStartDateQn: QName
     financialReportingPeriodCurrentEndDateQn: QName
     financialReportingPeriodPreviousStartDateQn: QName

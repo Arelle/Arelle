@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DisclosureSystems
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../../../config/disclosuresystems.xsd">
+    <!-- see arelle/config/disclosuresystems.xml for full comments -->
+    <DisclosureSystem
+            names="arl-2022-preview"
+            description="Validates rules for ÅRL (Årsregnskabsloven), Danish Financial Statements Act"
+            validationType="DBA"
+    />
+</DisclosureSystems>

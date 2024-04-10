@@ -2,9 +2,9 @@ import pytest
 from arelle.ModelValue import QName
 from itertools import product
 
-prefixes = ['pre', 1, '', None]
-ns_uris = ['http://valid.com', 'invalid', '', 1,  None]
-local_names = ['Cash', 1, '', None]
+prefixes = ['pre', '', None]
+ns_uris = ['http://valid.com', 'invalid', '', None]
+local_names = ['Cash', '', None]
 
 general_test_data = list(product(*[prefixes, ns_uris, local_names]))
 
@@ -30,9 +30,6 @@ class TestQnameGeneralUsage:
         qname_clark = QName(prefix, ns_uri, local_name).clarkNotation
         assertion = '{{{}}}{}'.format(ns_uri, local_name) if ns_uri else local_name
         assert qname_clark == assertion, 'clark name'
-
-    def test_qname_value_hash(self, prefix, ns_uri, local_name):
-        assert QName(prefix, ns_uri, local_name).qnameValueHash == hash((ns_uri, local_name)), 'qname value hash'
 
     def test_repr(self, prefix, ns_uri, local_name):
         qname_string = QName(prefix, ns_uri, local_name).__repr__()
@@ -124,8 +121,6 @@ def test_ne_bad_comparison():
 
 @pytest.mark.parametrize('local_name', [
     'Cash',
-    1,
-    True
 ])
 def test_bool_true(local_name):
     assert QName(None, None, local_name), 'qname bool'
@@ -133,8 +128,6 @@ def test_bool_true(local_name):
 
 @pytest.mark.parametrize('local_name', [
     '',
-    0,
-    False
 ])
 def test_bool_false(local_name):
     assert not QName('pre', 'http://namespace.com', local_name), 'qname bool'

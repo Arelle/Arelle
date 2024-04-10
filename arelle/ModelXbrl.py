@@ -10,15 +10,20 @@ from collections.abc import Iterable
 from typing import Dict, TYPE_CHECKING, Any, Type, TypeVar, Union, cast, Optional
 import logging
 from decimal import Decimal
-from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
+
+import arelle
+from arelle import FileSource, ModelRelationshipSet, UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
 from arelle.FileSource import FileNamedStringIO
 from arelle.ModelObject import ModelObject, ObjectPropertyViewWrapper
+from arelle.ModelValue import dateUnionEqual
 from arelle.Locale import format_string
 from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeInstanceObject import FactPrototype, DimValuePrototype
 from arelle.PythonUtil import flattenSequence
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
+from arelle.XbrlConst import standardLabel
+from arelle.XbrlUtil import sEqual
 
 if TYPE_CHECKING:
     from datetime import date, datetime
@@ -47,6 +52,7 @@ DEFAULT = sys.intern("default")
 NONDEFAULT = sys.intern("non-default")
 DEFAULTorNONDEFAULT = sys.intern("default-or-non-default")
 EMPTY_TUPLE: EmptyTuple = ()
+_NOT_FOUND = object()
 
 
 def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: str | None = None, **kwargs: str) -> ModelXbrl:
@@ -61,7 +67,6 @@ def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str
     :param useFileSource: for internal use (when an entry point is in a FileSource archive and discovered files expected to also be in the entry point's archive.
    """
     if nextaction is None: nextaction = _("loading")
-    from arelle import (ModelDocument, FileSource)
     modelXbrl = create(modelManager, errorCaptureLevel=errorCaptureLevel)
     if "errors" in kwargs: # pre-load errors, such as from taxonomy package validation
         modelXbrl.errors.extend(cast(str, kwargs.get("errors")))
@@ -84,10 +89,10 @@ def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str
         modelXbrl.closeFileSource= True
     modelXbrl.modelDocument = None
     if kwargs.get("isLoadable",True): # used for test cases to block taxonomy packages without discoverable contents
-        modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True, **kwargs)
+        modelXbrl.modelDocument = arelle.ModelDocument.load(modelXbrl, url, base, isEntry=True, **kwargs)
         if supplementalUrls:
             for url in supplementalUrls:
-                ModelDocument.load(modelXbrl, url, base, isEntry=False, isDiscovered=True, **kwargs)
+                arelle.ModelDocument.load(modelXbrl, url, base, isEntry=False, isDiscovered=True, **kwargs)
         if hasattr(modelXbrl, "entryLoadingUrl"):
             del modelXbrl.entryLoadingUrl
         loadSchemalocatedSchemas(modelXbrl)
@@ -105,22 +110,20 @@ def create(
         modelManager: ModelManager, newDocumentType: int | None = None, url: str | None = None, schemaRefs: str|None = None, createModelDocument: bool = True, isEntry: bool = False,
         errorCaptureLevel: str | None = None, initialXml: str | None = None, initialComment: str | None = None, base: str | None = None, discover: bool = True, xbrliNamespacePrefix: str | None = None
 ) -> ModelXbrl:
-    from arelle import (ModelDocument, FileSource)
     modelXbrl = ModelXbrl(modelManager, errorCaptureLevel=errorCaptureLevel)
     modelXbrl.locale = modelManager.locale
     if newDocumentType:
         modelXbrl.fileSource = FileSource.FileSource(cast(str, url), modelManager.cntlr)  # url may be an open file handle, use str(url) below
         modelXbrl.closeFileSource= True
         if createModelDocument:
-            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry, initialXml=initialXml, initialComment=initialComment, base=base, discover=discover, xbrliNamespacePrefix=xbrliNamespacePrefix)
+            modelXbrl.modelDocument = arelle.ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry, initialXml=initialXml, initialComment=initialComment, base=base, discover=discover, xbrliNamespacePrefix=xbrliNamespacePrefix)
             if isEntry:
                 del modelXbrl.entryLoadingUrl
                 loadSchemalocatedSchemas(modelXbrl)
     return modelXbrl
 
 def loadSchemalocatedSchemas(modelXbrl: ModelXbrl) -> None:
-    from arelle import ModelDocument
-    if modelXbrl.modelDocument and modelXbrl.modelDocument.type <= ModelDocument.Type.INLINEXBRLDOCUMENTSET:
+    if modelXbrl.modelDocument and modelXbrl.modelDocument.type <= arelle.ModelDocument.Type.INLINEXBRLDOCUMENTSET:
         # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
         modelDocumentsSchemaLocated: set[ModelDocumentClass] = set()
         # loadSchemalocatedSchemas sometimes adds to modelXbrl.urlDocs
@@ -342,7 +345,6 @@ class ModelXbrl:
         if not keepViews:
             self.views: list[Any] = []
         self.langs: set[str] = {self.modelManager.defaultLang}
-        from arelle.XbrlConst import standardLabel
         self.labelroles: set[str] = {standardLabel}
         self.hasXDT: bool = False
         self.hasTableRendering: bool = False
@@ -392,9 +394,8 @@ class ModelXbrl:
         :param nextAction: status line text string, if any, to show upon completion
         :param reloadCache: True to force clearing and reloading of web cache, if working online.
         """
-        from arelle import ModelDocument
         self.init(keepViews=True)
-        self.modelDocument = ModelDocument.load(self, self.fileSource.url, isEntry=True, reloadCache=reloadCache)
+        self.modelDocument = arelle.ModelDocument.load(self, self.fileSource.url, isEntry=True, reloadCache=reloadCache)
         self.modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction),5000)
         self.modelManager.reloadViews(self)
 
@@ -425,7 +426,6 @@ class ModelXbrl:
         :param arcqname: Arc element qname (wild if None)
         :param includeProhibits: True to include prohibiting arc elements as relationships
         """
-        from arelle import ModelRelationshipSet
         key = (arcrole, linkrole, linkqname, arcqname, includeProhibits)
         if key not in self.relationshipSets:
             ModelRelationshipSet.create(self, arcrole, linkrole, linkqname, arcqname, includeProhibits)
@@ -463,15 +463,17 @@ class ModelXbrl:
         :param elementQname: Element/Concept QName to find substitution group
         :param subsGrpMatchTable: Table of substitutions used to determine xml proxy object class for xml elements and substitution group membership
         """
-        if elementQname in subsGrpMatchTable:
-            return subsGrpMatchTable[elementQname] # head of substitution group
+        result = subsGrpMatchTable.get(elementQname, _NOT_FOUND)
+        if result is not _NOT_FOUND:
+            return cast(MatchSubstitutionGroupValueType, result) # head of substitution group
         elementMdlObj = self.qnameConcepts.get(elementQname)
         if elementMdlObj is not None:
             subsGrpMdlObj = elementMdlObj.substitutionGroup
             while subsGrpMdlObj is not None:
                 subsGrpQname = subsGrpMdlObj.qname
-                if subsGrpQname in subsGrpMatchTable:
-                    return subsGrpMatchTable[subsGrpQname]
+                result = subsGrpMatchTable.get(subsGrpQname, _NOT_FOUND)
+                if result is not _NOT_FOUND:
+                    return cast(MatchSubstitutionGroupValueType, result)
                 subsGrpMdlObj = subsGrpMdlObj.substitutionGroup
         return subsGrpMatchTable.get(None)
 
@@ -499,8 +501,7 @@ class ModelXbrl:
 
         :param url: File name to save the new instance document
         """
-        from arelle import (ModelDocument, FileSource)
-        if self.modelDocument and self.modelDocument.type == ModelDocument.Type.INSTANCE:
+        if self.modelDocument and self.modelDocument.type == arelle.ModelDocument.Type.INSTANCE:
             # entry already is an instance, delete facts etc.
             del self.facts[:]
             self.factsInInstance.clear()
@@ -522,7 +523,7 @@ class ModelXbrl:
                 schemaRefUri = self.uri
             else:   # relativize local paths
                 schemaRefUri = os.path.relpath(self.uri, os.path.dirname(url))
-            self.modelDocument = ModelDocument.create(self, ModelDocument.Type.INSTANCE, url, schemaRefs=[schemaRefUri], isEntry=True)
+            self.modelDocument = arelle.ModelDocument.create(self, arelle.ModelDocument.Type.INSTANCE, url, schemaRefs=[schemaRefUri], isEntry=True)
             if priorFileSource:
                 priorFileSource.close()
             self.closeFileSource= True
@@ -571,13 +572,10 @@ class ModelXbrl:
         :param segOCCs: Segment non-dimensional nodes
         :param scenOCCs: Scenario non-dimensional nodes
         """
-        from arelle.ModelFormulaObject import Aspect
-        from arelle.ModelValue import dateUnionEqual
-        from arelle.XbrlUtil import sEqual
         if dims:
-            segAspect, scenAspect = (Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO)
+            segAspect, scenAspect = (arelle.ModelFormulaObject.Aspect.NON_XDT_SEGMENT, arelle.ModelFormulaObject.Aspect.NON_XDT_SCENARIO)
         else:
-            segAspect, scenAspect = (Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO)
+            segAspect, scenAspect = (arelle.ModelFormulaObject.Aspect.COMPLETE_SEGMENT, arelle.ModelFormulaObject.Aspect.COMPLETE_SCENARIO)
         for c in self.contexts.values():
             if (c.entityIdentifier == (entityIdentScheme, entityIdentValue) and
                 ((c.isInstantPeriod and periodType == "instant" and dateUnionEqual(c.instantDatetime, periodEndInstant, instantEndDate=True)) or
@@ -639,7 +637,6 @@ class ModelXbrl:
                              text=XmlUtil.dateunionValue(periodEndInstant, subtractOneDay=True))
         segmentElt = None
         scenarioElt = None
-        from arelle.ModelInstanceObject import ModelDimensionValue
         if dims: # requires primary item to determin ambiguous concepts
             ''' in theory we have to check full set of dimensions for validity in source or any other
                 context element, but for shortcut will see if each dimension is already reported in an
@@ -661,7 +658,7 @@ class ModelXbrl:
                 fpDims = dims # dims known to be valid (such as for inline extraction)
             for dimQname in sorted(fpDims.keys()):
                 dimValue:DimValuePrototype | ModelDimensionValue | QName = fpDims[dimQname]
-                if isinstance(dimValue, (DimValuePrototype,ModelDimensionValue)):
+                if isinstance(dimValue, (DimValuePrototype,arelle.ModelInstanceObject.ModelDimensionValue)):
                     dimMemberQname = dimValue.memberQname  # None if typed dimension
                     contextEltName = dimValue.contextElement
                 else: # qname for explicit or node for typed
@@ -684,7 +681,7 @@ class ModelXbrl:
                 if cast('DimValuePrototype | ModelDimensionValue', dimValue).isTyped:  #Typing thinks that this can also be a QName
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:typedMember",
                                               attributes=dimAttr)
-                    if isinstance(dimValue, (ModelDimensionValue, DimValuePrototype)) and dimValue.isTyped:
+                    if isinstance(dimValue, (arelle.ModelInstanceObject.ModelDimensionValue, DimValuePrototype)) and dimValue.isTyped:
                         XmlUtil.copyNodes(dimElt, cast(ModelObject, dimValue.typedMember))
                 elif dimMemberQname:
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:explicitMember",
@@ -925,16 +922,13 @@ class ModelXbrl:
             assert self.modelDocument is not None
             parent = self.modelDocument.xmlRootElement
         self.makeelementParentModelObject = parent
-        global ModelFact
-        if ModelFact is None:
-            from arelle.ModelInstanceObject import ModelFact
         newFact = cast(
-            ModelFact, XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
+            'ModelFact', XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
                                         afterSibling=afterSibling, beforeSibling=beforeSibling)
         )
         if hasattr(self, "_factsByQname"):
             self._factsByQname[newFact.qname].add(newFact)
-        if not isinstance(newFact, ModelFact):
+        if not isinstance(newFact, arelle.ModelInstanceObject.ModelFact):
             return newFact # unable to create fact for this concept OR DTS not loaded for target instance (e.g., inline extraction, summary output)
         del self.makeelementParentModelObject
         if validate:
