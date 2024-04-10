@@ -8,12 +8,23 @@
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
-    <variation id="invalid" name="Invalid">
+    <variation id="invalid-mismatch" name="Invalid (Mismatch)">
+        <description>
+            A period with an end date immediately before the currently selected start date exists, but the previous accounting period is marked with mismatched dates.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr55-invalid-mismatch.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR55</error>
+        </result>
+    </variation>
+    <variation id="invalid-missing" name="Invalid (Missing)">
         <description>
             A period with an end date immediately before the currently selected start date exists, but the previous accounting period is not marked.
         </description>
         <data>
-            <instance readMeFirst="true">fr55-invalid.xbrl</instance>
+            <instance readMeFirst="true">fr55-invalid-missing.xbrl</instance>
         </data>
         <result>
             <error>DBA.FR55</error>
