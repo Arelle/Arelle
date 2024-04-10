@@ -525,6 +525,7 @@
     <gsd:IdentificationNumberCvrOfReportingEntity contextRef="ID_0" xml:lang="da">54399219</gsd:IdentificationNumberCvrOfReportingEntity>
     <gsd:IdentificationNumberCvrOfSubmittingEnterprise contextRef="ID_0" xml:lang="da">39463113</gsd:IdentificationNumberCvrOfSubmittingEnterprise>
     <gsd:InformationOnTypeOfSubmittedReport contextRef="ID_0" xml:lang="da">Årsrapport</gsd:InformationOnTypeOfSubmittedReport>
+    <gsd:InformationOnTypeOfSubmittedReport contextRef="ID_10" xml:lang="da">Årsrapport</gsd:InformationOnTypeOfSubmittedReport>
     <gsd:NameAndSurnameOfChairmanOfGeneralMeeting contextRef="ID_0" xml:lang="da">Michael Serup</gsd:NameAndSurnameOfChairmanOfGeneralMeeting>
     <gsd:NameOfFinancialInstitution contextRef="ID_0" xml:lang="da">Nordea Bank Danmark A/S</gsd:NameOfFinancialInstitution>
     <gsd:NameOfReportingEntity contextRef="ID_0" xml:lang="da">Arp-Hansen Hotel Group A/S</gsd:NameOfReportingEntity>

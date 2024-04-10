@@ -141,29 +141,18 @@ def rule_fr55(
 
     Note: "PredingReportingPeriodEndDate" is a typo in the taxonomy.
     """
-    conceptQns = (
-        pluginData.precedingReportingPeriodStartDateQn,
-        pluginData.precedingReportingPeriodEndDateQn,
-        pluginData.reportingPeriodStartDateQn,
-        pluginData.reportingPeriodEndDateQn,
-    )
-    # Build map of context ID to facts related to this validation
-    contextMap: dict[str, dict[QName, ModelFact]] = defaultdict(dict)
-    for conceptQn in conceptQns:
-        facts = getValidDateFacts(val.modelXbrl, conceptQn)
-        for fact in sorted(facts, key=lambda f: f.objectIndex):
-            # For the purposes of this validation, the last fact of any duplicates is used
-            contextMap[fact.contextID][fact.qname] = fact
-    # Structure the above facts into tuples
-    reportingPeriods = {
-        contextId: (
+    reportingPeriods = {}
+    for contextId, factMap in pluginData.contextFactMap(val.modelXbrl).items():
+        reportTypeFact = factMap.get(pluginData.informationOnTypeOfSubmittedReportQn)
+        if reportTypeFact is None or str(reportTypeFact.xValue) not in pluginData.annualReportTypes:
+            continue  # Non-annual reports are not considered
+        # Structure the above facts into tuples
+        reportingPeriods[contextId] = (
             factMap.get(pluginData.reportingPeriodStartDateQn),
             factMap.get(pluginData.reportingPeriodEndDateQn),
             factMap.get(pluginData.precedingReportingPeriodStartDateQn),
             factMap.get(pluginData.precedingReportingPeriodEndDateQn),
         )
-        for contextId, factMap in contextMap.items()
-    }
 
     for previousContextId, currentContextId in itertools.permutations(reportingPeriods.keys(), 2):
         previousStartDateFact, previousEndDateFact, __, __ = reportingPeriods[previousContextId]
@@ -188,7 +177,7 @@ def rule_fr55(
         if precedingStartDate != previousStartDate or precedingEndDate != previousEndDate:
             yield Validation.warning(
                 codes='DBA.FR55',
-                msg=_("ADVIS FR55: The annual report does not contain an indication of the previous accounting period. "
+                msg=_("ADVICE FR55: The annual report does not contain an indication of the previous accounting period. "
                       "If an annual report with a period with an end date immediately before the currently selected "
                       "start date has previously been reported, the previous accounting period should be indicated. "
                       "Previous period has been found [%(previousStartDate)s - %(previousEndDate)s]"),
