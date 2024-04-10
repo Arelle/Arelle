@@ -20,7 +20,7 @@ from arelle.ModelRenderingObject import (ResolutionException, DefnMdlTable, Defn
                                          UNREPORTED_ASPECT_SORT_VALUE,
                                          aspectStrctNodes)
 from arelle.PrototypeInstanceObject import FactPrototype
-from arelle.PythonUtil import flattenSequence
+from arelle.PythonUtil import flattenSequence, flattenToSet
 from arelle.formula.XPathContext import XPathException, FunctionArgType
 from numbers import Number
 NoneType = type(None)
@@ -173,7 +173,6 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
                 compileAlignedStrctNodes(childStrctNode)
     for axis in ("z", "y", "x"):
         compileAlignedStrctNodes(strctMdlTable.strctMdlFirstAxisBreakdown(axis))
-
     for zStrctMdlNode in strctMdlAxisNodes.get("z", [None]):
         zAspectStrctNodes = aspectStrctNodes(zStrctMdlNode)
         for yStrctMdlNode in strctMdlAxisNodes.get("y", [None]):
@@ -184,19 +183,18 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
                 cellTagSelectors = set(ts for sn in stNodes if sn for ts in sn.tagSelectors if ts)
                 if {"table.periodStart","table.periodEnd"} & cellTagSelectors:
                     cellTagSelectors &= {"table.periodStart","table.periodEnd"}
-                foundTagSelectors = set()
-                for aspectStrctNode in set(flattenSequence((zAspectStrctNodes.values(), yAspectStrctNodes.values(), xAspectStrctNodes.values()))):
-                    strctNodeTags = aspectStrctNode.defnMdlNode.constraintSets.keys()
-                    foundTagSelectors |= strctNodeTags
-                    if len(cellTagSelectors & strctNodeTags) > 1:
-                        view.modelXbrl.error("xbrlte:tagSelectorClash",
-                            _("Cell has multiple tag selectors for same aspect %(clashingSelectors)s"),
-                            modelObject=stNodes, clashingSelectors=", ".join(cellTagSelectors & strctNodeTags))
-                missingConstraintSets = cellTagSelectors - foundTagSelectors
-                if missingConstraintSets:
-                    view.modelXbrl.error("xbrlte:noMatchingConstraintSet",
-                        _("Cell has missing constraint set for tag selectors %(missingConstraintSets)s"),
-                        modelObject=stNodes, missingConstraintSets=", ".join(missingConstraintSets))
+                for _aspectStrctNodes in (zAspectStrctNodes.values(), yAspectStrctNodes.values(), xAspectStrctNodes.values()):
+                    for aspectStrctNode in flattenToSet(_aspectStrctNodes):
+                        strctNodeTags = aspectStrctNode.defnMdlNode.constraintSets.keys()
+                        if len(cellTagSelectors & strctNodeTags) > 1:
+                            view.modelXbrl.error("xbrlte:tagSelectorClash",
+                                _("Cell has multiple tag selectors for same aspect node %(nodeId)s %(clashingSelectors)s"),
+                                modelObject=stNodes, clashingSelectors=", ".join(cellTagSelectors & strctNodeTags), nodeId=aspectStrctNode.defnMdlNode.id)
+                        for cellTagSelector in cellTagSelectors:
+                            if cellTagSelector not in strctNodeTags and None not in strctNodeTags:
+                                view.modelXbrl.error("xbrlte:noMatchingConstraintSet",
+                                    _("Cell has missing constraint set for tag selector %(cellTagSelector)s, node %(nodeId)s"),
+                                    modelObject=stNodes, cellTagSelector=cellTagSelector, nodeId=aspectStrctNode.defnMdlNode.id)
 
     view.colHdrTopRow = view.zAxisBreakdowns # need rest if combobox used (2 if view.zAxisRows else 1)
     for i in range(view.rowHdrCols):
