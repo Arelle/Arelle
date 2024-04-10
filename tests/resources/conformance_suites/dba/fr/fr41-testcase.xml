@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR41"
+        description="DBA.FR41: Failure to fill in 'Tax on profit for the year' or 'Tax on ordinary profit'"
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            Profit is positive (greater than 1000 DKK), but 'Tax on profit for the year' and 'Tax on ordinary profit' are not provided.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr41-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR41</error>
+        </result>
+    </variation>
+</testcase>
