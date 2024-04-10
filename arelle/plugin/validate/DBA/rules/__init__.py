@@ -31,8 +31,10 @@ def errorOnDateFactComparison(
     dimension value as the member for that dimension.
     :return: Yields validation errors.
     """
-    facts1 = getValidDateFactsWithDimensionMember(modelXbrl, fact1Qn, dimensionQn)
-    facts2 = getValidDateFactsWithDimensionMember(modelXbrl, fact2Qn, dimensionQn)
+    facts1 = getValidDateFactsWithDefaultDimension(modelXbrl, fact1Qn, dimensionQn)
+    facts1 = sorted(facts1, key=lambda f: f.objectIndex)
+    facts2 = getValidDateFactsWithDefaultDimension(modelXbrl, fact2Qn, dimensionQn)
+    facts2 = sorted(facts2, key=lambda f: f.objectIndex)
     for fact1, fact2 in itertools.product(facts1, facts2):
         datetime1 = cast(datetime.datetime, fact1.xValue)
         datetime2 = cast(datetime.datetime, fact2.xValue)
@@ -47,13 +49,32 @@ def errorOnDateFactComparison(
         )
 
 
-def getValidDateFactsWithDimensionMember(
+def getValidDateFacts(
+        modelXbrl: ModelXbrl,
+        conceptQn: QName,
+) -> list[ModelFact]:
+    """
+    Retrieves facts with the given QName and valid date values.
+    :return:
+    """
+    results = []
+    facts: set[ModelFact] = modelXbrl.factsByQname.get(conceptQn, set())
+    for fact in facts:
+        if fact.xValid < VALID:
+            continue
+        if not isinstance(fact.xValue, datetime.datetime):
+            continue
+        results.append(fact)
+    return results
+
+
+def getValidDateFactsWithDefaultDimension(
         modelXbrl: ModelXbrl,
         factQn: QName,
         dimensionQn: QName
 ) -> list[ModelFact]:
     """
-    Retrieves facts with the given QName.
+    Retrieves facts with the given QName and valid date values.
     Only retrieves facts that have the default member for
     the given dimension. If dimension details can not be
     retrieved, includes the fact regardless.
@@ -66,13 +87,9 @@ def getValidDateFactsWithDimensionMember(
         dimensionDefaultConcept = modelXbrl.dimensionDefaultConcepts.get(dimensionConcept)
         if dimensionDefaultConcept is not None:
             memberQn = dimensionDefaultConcept.qname
-    facts: set[ModelFact] = modelXbrl.factsByQname.get(factQn, set())
+    facts = getValidDateFacts(modelXbrl, factQn)
     for fact in facts:
-        if fact.xValid < VALID:
-            continue
-        if not isinstance(fact.xValue, datetime.datetime):
-            continue
         factMemberQn = cast(Union[QName, None], fact.context.dimMemberQname(dimensionQn))
         if memberQn is None or memberQn == factMemberQn:
             results.append(fact)
-    return sorted(results, key=lambda f: f.objectIndex)
+    return results
