@@ -1721,10 +1721,15 @@ class ModelRelationship(ModelObject):
         .. attribute:: toModelObject
 
         ModelObject of the xlink:to (dereferenced if via xlink:locator)
+
+        .. attribute:: linkrole
+
+        Value of xlink:role attribute of parent extended link element
     """
     def __init__(self, modelDocument, arcElement, fromModelObject, toModelObject):
         # copy model object properties from arcElement
         self.arcElement = arcElement
+        self.linkrole = arcElement.getparent().get("{http://www.w3.org/1999/xlink}role")
         self.init(modelDocument)
         self.fromModelObject = fromModelObject
         self.toModelObject = toModelObject
@@ -1931,11 +1936,6 @@ class ModelRelationship(ModelObject):
         """(QName) -- resolved name for a formula (or other arc) having a QName name attribute"""
         varName = self.variablename
         return ModelValue.qname(self.arcElement, varName, noPrefixIsNoNamespace=True) if varName else None
-
-    @property
-    def linkrole(self):
-        """(str) -- Value of xlink:role attribute of parent extended link element"""
-        return self.arcElement.getparent().get("{http://www.w3.org/1999/xlink}role")
 
     @property
     def linkQname(self):
