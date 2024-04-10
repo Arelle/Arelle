@@ -36,6 +36,8 @@ def errorOnDateFactComparison(
     facts2 = getValidDateFactsWithDefaultDimension(modelXbrl, fact2Qn, dimensionQn)
     facts2 = sorted(facts2, key=lambda f: f.objectIndex)
     for fact1, fact2 in itertools.product(facts1, facts2):
+        if fact1.contextID != fact2.contextID:
+            continue
         datetime1 = cast(datetime.datetime, fact1.xValue)
         datetime2 = cast(datetime.datetime, fact2.xValue)
         if assertion(datetime1, datetime2):
