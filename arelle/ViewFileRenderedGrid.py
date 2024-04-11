@@ -194,12 +194,14 @@ class ViewRenderedGrid(ViewFile.View):
                                                      ).text = lytMdlCell.labelXmlText(iLabel,"\u00a0")
                     yRowNum = 0
                     for lytMdlXBodyCell in lytMdlYBodyCell.lytMdlBodyChildren:
-                        if not any(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlXBodyCell.lytMdlBodyChildren):
+                        if True: # not any(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlXBodyCell.lytMdlBodyChildren):
                             rowElt = etree.SubElement(zCellTable, "{http://www.w3.org/1999/xhtml}tr")
                             if yRowNum < len(yRowHdrs):
                                 for rowHdrElt in yRowHdrs[yRowNum]:
                                     rowElt.append(rowHdrElt)
                             for lytMdlCell in lytMdlXBodyCell.lytMdlBodyChildren:
+                                if lytMdlCell.isOpenAspectEntrySurrogate:
+                                    continue
                                 justify = "left"
                                 for f, v, justify in lytMdlCell.facts:
                                     break;

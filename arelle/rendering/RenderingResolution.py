@@ -600,9 +600,9 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                                                           layoutMdlSortOrder=True)
                                or '') # exception on trying to sort if header returns None
                 #test case 1200 v10i may require fact in instance order
-                #childList.sort(key=lambda childStrctMdlNode:
-                #               min(f.objectIndex for f in childStrctMdlNode.factsPartition) if getattr(childStrctMdlNode,"factsPartition",None) else 999999999)
-
+                if defnMdlNode.aspectsCovered() == {Aspect.CONCEPT}:
+                    childList.sort(key=lambda childStrctMdlNode:
+                                   min(f.objectIndex for f in childStrctMdlNode.factsPartition) if getattr(childStrctMdlNode,"factsPartition",None) else 999999999)
                 # TBD if there is no abstract 'sub header' for these subOrdCntxs, move them in place of parent structuralNode
             elif isinstance(defnMdlNode, DefnMdlRuleDefinitionNode):
                 for constraintSet in defnMdlNode.constraintSets.values():

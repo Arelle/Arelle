@@ -164,6 +164,8 @@ class ViewRenderedLayout(ViewFile.View):
                             if not any(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlXCell.lytMdlBodyChildren):
                                 xCellsElt = etree.SubElement(yCellsElt, self.tableModelQName("cells"), attrib={"axis": "x"})
                                 for lytMdlCell in lytMdlXCell.lytMdlBodyChildren:
+                                    if lytMdlCell.isOpenAspectEntrySurrogate:
+                                        continue
                                     cellElt = etree.SubElement(xCellsElt, self.tableModelQName("cell"))
                                     for f, v, justify in lytMdlCell.facts:
                                         cellElt.append(etree.Comment(

@@ -44,7 +44,7 @@ def layoutTable(view):
     if viewTblELR is not None:
         tblELRs = (viewTblELR,)
     else:
-        tblELRs = view.modelXbrl.relationshipSet("Table-rendering").linkRoleUris
+        tblELRs = sorted(view.modelXbrl.relationshipSet("Table-rendering").linkRoleUris)
 
     view.lytMdlTblMdl = LytMdlTableModel(view.modelXbrl.modelDocument.basename)
 
@@ -392,6 +392,8 @@ def bodyCells(view, row, yStrctNodes, xStrctNodes, zAspectStrctNodes, lytMdlYCel
                 for i, xStrctNode in enumerate(xStrctNodes):
                     xAspectStrctNodes = aspectStrctNodes(xStrctNode)
                     cellTagSelectors = yTagSelectors | xStrctNode.tagSelectors
+                    if {"table.periodStart","table.periodEnd"} & cellTagSelectors:
+                        cellTagSelectors &= {"table.periodStart","table.periodEnd"}
                     cellAspectValues = {}
                     matchableAspects = set()
                     isOpenAspectEntrySurrogate = False
@@ -404,7 +406,8 @@ def bodyCells(view, row, yStrctNodes, xStrctNodes, zAspectStrctNodes, lytMdlYCel
                             dimDefaults.get(aspect) != aspectValue or # explicit dim defaulted will equal the value
                             aspectValue is not None): # typed dim absent will be none
                             cellAspectValues[aspect] = aspectValue
-                            isOpenAspectEntrySurrogate = isinstance(aspectValue,str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE)
+                            if isinstance(aspectValue,str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE):
+                                isOpenAspectEntrySurrogate = True
                         matchableAspects.add(aspectModelAspect.get(aspect,aspect)) #filterable aspect from rule aspect
                     cellDefaultedDims = dimDefaults - cellAspectValues.keys()
                     priItemQname = cellAspectValues.get(Aspect.CONCEPT)
