@@ -16,4 +16,5 @@ config = ConformanceSuiteConfig(
     name=PurePath(__file__).stem,
     network_or_cache_required=False,
     plugins=frozenset({'validate/DBA'}),
+    shards=4,
 )

@@ -3,14 +3,19 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from typing import Any, Iterable
+import datetime
+import itertools
+from collections import defaultdict
+from typing import Any, Iterable, cast
 
+from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelValue import QName
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from . import errorOnDateFactComparison
+from . import errorOnDateFactComparison, getValidDateFacts
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -118,3 +123,65 @@ def rule_fr39(
                   "has been specified. The date must be after the end of the financial year '%(fact1)s'."),
         assertion=lambda endDate, dividendDate: endDate < dividendDate,
     )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr55(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    DBA.FR55: If a period with an end date immediately before the currently selected start
+    date (gsd:ReportingPeriodStartDate) has previously been reported, the previous accounting
+    period should be marked (gsd:PrecedingReportingPeriodStartDate and gsd:PredingReportingPeriodEndDate).
+
+    Note: "PredingReportingPeriodEndDate" is a typo in the taxonomy.
+    """
+    reportingPeriods = {}
+    for contextId, factMap in pluginData.contextFactMap(val.modelXbrl).items():
+        reportTypeFact = factMap.get(pluginData.informationOnTypeOfSubmittedReportQn)
+        if reportTypeFact is None or str(reportTypeFact.xValue) not in pluginData.annualReportTypes:
+            continue  # Non-annual reports are not considered
+        # Structure the above facts into tuples
+        reportingPeriods[contextId] = (
+            factMap.get(pluginData.reportingPeriodStartDateQn),
+            factMap.get(pluginData.reportingPeriodEndDateQn),
+            factMap.get(pluginData.precedingReportingPeriodStartDateQn),
+            factMap.get(pluginData.precedingReportingPeriodEndDateQn),
+        )
+
+    for previousContextId, currentContextId in itertools.permutations(reportingPeriods.keys(), 2):
+        previousStartDateFact, previousEndDateFact, __, __ = reportingPeriods[previousContextId]
+        currentStartDateFact, currentEndDateFact, precedingStartDateFact, precedingEndDateFact = reportingPeriods[currentContextId]
+
+        # Exit if reporting periods are not sequential
+        if previousEndDateFact is None or currentStartDateFact is None:
+            continue
+        previousEndDate = cast(datetime.datetime, previousEndDateFact.xValue)
+        currentStartDate = cast(datetime.datetime, currentStartDateFact.xValue)
+        if previousEndDate > currentStartDate:
+            continue  # End date not before or equal to start date
+        if previousEndDate.date() < currentStartDate.date() - datetime.timedelta(days=1):
+            continue  # End date not "immediately" before start date
+
+        # These contexts are sequential
+        precedingStartDate = cast(datetime.datetime, precedingStartDateFact.xValue) if precedingStartDateFact is not None else None
+        previousStartDate = cast(datetime.datetime, previousStartDateFact.xValue) if previousStartDateFact is not None else None
+        precedingEndDate = cast(datetime.datetime, precedingEndDateFact.xValue) if precedingEndDateFact is not None else None
+        previousEndDate = cast(datetime.datetime, previousEndDateFact.xValue) if previousEndDateFact is not None else None
+
+        if precedingStartDate != previousStartDate or precedingEndDate != previousEndDate:
+            yield Validation.warning(
+                codes='DBA.FR55',
+                msg=_("ADVICE FR55: The annual report does not contain an indication of the previous accounting period. "
+                      "If an annual report with a period with an end date immediately before the currently selected "
+                      "start date has previously been reported, the previous accounting period should be indicated. "
+                      "Previous period has been found [%(previousStartDate)s - %(previousEndDate)s]"),
+                modelObject=(previousStartDateFact, previousEndDateFact, precedingStartDateFact, precedingEndDateFact, currentStartDateFact),
+                previousStartDate=previousStartDate,
+                previousEndDate=previousEndDate,
+            )
