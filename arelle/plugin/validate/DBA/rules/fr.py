@@ -5,18 +5,17 @@ from __future__ import annotations
 
 import datetime
 import itertools
-from collections import defaultdict
 from typing import Any, Iterable, cast
 
-from arelle.ModelInstanceObject import ModelFact
-from arelle.ModelValue import QName
-from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
+from arelle.ValidateXbrl import ValidateXbrl
+
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from . import errorOnDateFactComparison, getValidDateFacts
+from . import errorOnDateFactComparison
 from ..PluginValidationDataExtension import PluginValidationDataExtension
+
 
 _: TypeGetText
 
@@ -97,6 +96,42 @@ def rule_fr7(
                   "must be after the end date of the accounting period='%(fact1)s'"),
         assertion=lambda endDate, approvalDate: endDate < approvalDate,
     )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr9(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    DBA.FR9: The year's result (fsa:ProfitLoss) must be filled in as part of the income statement.
+    The control only looks at instances without dimensions or instances that only have the dimension
+    (ConsolidatedSoloDimension with ConsolidatedMember).
+
+    Implementation: Find any occurrence of fsa:ProfitLoss with no dimensions or with dimensions of
+    ConsolidatedSoloDimension with ConsolidatedMember.  If nothing is found, trigger an error.
+    """
+    profLossFacts = val.modelXbrl.factsByQname.get(pluginData.profitLossQn)
+    found = False
+    if profLossFacts:
+        for fact in profLossFacts:
+            if fact.context is None:
+                continue
+            elif (fact.context.dimMemberQname(pluginData.consolidatedSoloDimensionQn) == pluginData.consolidatedMemberQn
+                  and fact.context.qnameDims.keys() == {pluginData.consolidatedSoloDimensionQn}):
+                found = True
+            elif not len(fact.context.qnameDims):
+                found = True
+    if not found:
+        yield Validation.error(
+            codes="DBA.FR9",
+            msg=_("Error code FR9: The year's result in the income statement must be filled in."),
+            modelObject=val.modelXbrl.modelDocument
+        )
 
 
 @validation(

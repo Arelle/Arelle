@@ -10,7 +10,7 @@ from arelle.ModelValue import qname, QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.utils.PluginData import PluginData
 
-
+NAMESPACE_CMN = 'http://xbrl.dcca.dk/cmn'
 NAMESPACE_FSA = 'http://xbrl.dcca.dk/fsa'
 NAMESPACE_GSD = 'http://xbrl.dcca.dk/gsd'
 NAMESPACE_SOB = 'http://xbrl.dcca.dk/sob'
@@ -23,6 +23,8 @@ class PluginValidationDataExtension(PluginData):
         'årsrapport',
         'Annual report'
     ])
+    consolidatedSoloDimensionQn: QName = qname(f'{{{NAMESPACE_CMN}}}ConsolidatedSoloDimension')
+    consolidatedMemberQn: QName = qname(f'{{{NAMESPACE_CMN}}}ConsolidatedMember')
     dateOfApprovalOfAnnualReportQn: QName = qname(f'{{{NAMESPACE_SOB}}}DateOfApprovalOfAnnualReport')
     dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName = \
         qname(f'{{{NAMESPACE_FSA}}}DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod')
@@ -30,6 +32,7 @@ class PluginValidationDataExtension(PluginData):
     informationOnTypeOfSubmittedReportQn: QName = qname(f'{{{NAMESPACE_GSD}}}InformationOnTypeOfSubmittedReport')
     precedingReportingPeriodEndDateQn = qname(f'{{{NAMESPACE_GSD}}}PredingReportingPeriodEndDate')  # Typo in taxonomy
     precedingReportingPeriodStartDateQn = qname(f'{{{NAMESPACE_GSD}}}PrecedingReportingPeriodStartDate')
+    profitLossQn: QName = qname(f'{{{NAMESPACE_FSA}}}ProfitLoss')
     reportingPeriodEndDateQn: QName = qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodEndDate')
     reportingPeriodStartDateQn: QName = qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodStartDate')
     typeOfReportingPeriodDimensionQn: QName = qname(f'{{{NAMESPACE_GSD}}}TypeOfReportingPeriodDimension')
