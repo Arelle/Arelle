@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR9"
+        description="DBA.FR9: The year's result (fsa:ProfitLoss) must be filled in as part of the income statement.
+        The control only looks at instances without dimensions or instances that only have the dimension
+        (ConsolidatedSoloDimension with ConsolidatedMember)."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid-dimension" name="Invalid dimension">
+        <description>
+            Fact is dimensionalized with an incorrect dimension and member
+        </description>
+        <data>
+            <instance readMeFirst="true">fr9-invalid-dimension.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR9</error>
+        </result>
+    </variation>
+    <variation id="invalid-missing-fact" name="Invalid missing fact">
+        <description>
+           ProfitLoss is not tagged
+        </description>
+        <data>
+            <instance readMeFirst="true">fr9-invalid-dimension.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR9</error>
+        </result>
+    </variation>
+</testcase>
