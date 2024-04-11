@@ -29,6 +29,9 @@ class PluginValidationDataExtension(PluginData):
     dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName = \
         qname(f'{{{NAMESPACE_FSA}}}DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod')
     dateOfGeneralMeetingQn: QName = qname(f'{{{NAMESPACE_GSD}}}DateOfGeneralMeeting')
+    extraordinaryCostsQn: QName = qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryCosts')
+    extraordinaryIncomeQn: QName = qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryIncome')
+    extraordinaryResultBeforeTaxQn: QName = qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryResultBeforeTax')
     informationOnTypeOfSubmittedReportQn: QName = qname(f'{{{NAMESPACE_GSD}}}InformationOnTypeOfSubmittedReport')
     precedingReportingPeriodEndDateQn = qname(f'{{{NAMESPACE_GSD}}}PredingReportingPeriodEndDate')  # Typo in taxonomy
     precedingReportingPeriodStartDateQn = qname(f'{{{NAMESPACE_GSD}}}PrecedingReportingPeriodStartDate')

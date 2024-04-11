@@ -163,6 +163,37 @@ def rule_fr39(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_fr48(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    DBA.FR48: Annual reports with a start date of 1/1 2016 or later may not use the fields:
+    'Extraordinary result before tax',
+    'Extraordinary income',
+    'Extraordinary costs',
+    as §30 of the Annual Accounts Act is repealed."
+    """
+    disallowedFactQnames = [pluginData.extraordinaryCostsQn, pluginData.extraordinaryIncomeQn, pluginData.extraordinaryResultBeforeTaxQn]
+    foundFacts = []
+    for factQname in disallowedFactQnames:
+        facts = val.modelXbrl.factsByQname.get(factQname)
+        if facts:
+            foundFacts.append(facts)
+    if len(foundFacts) > 0:
+        yield Validation.warning(
+            codes="DBA.FR48",
+            msg=_("ADVICE FR48: Annual reports with a start date of 1/1 2016 or later must not use the fields:"
+                  "'Extraordinary profit before tax', 'Extraordinary income', 'Extraordinary costs'."),
+            modelObject=foundFacts
+    )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_fr55(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
