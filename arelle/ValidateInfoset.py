@@ -314,9 +314,9 @@ def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
             sourceElt = next(sourceIter, None)
             comparisonElt = next(comparisonIter, None)
         # option to save sourceDoc when errors detected
-        if len(modelXbrl.errors) > numErrorsAtStart:
-            with io.open("/Users/hermf/temp/temp/" + os.path.basename(comparisonFile), "wb") as fh:
-                fh.write(etree.tostring(sourceDoc, encoding="utf-8", pretty_print=True))
+        #if len(modelXbrl.errors) > numErrorsAtStart:
+        #    with io.open("/Users/hermf/temp/temp/" + os.path.basename(comparisonFile), "wb") as fh:
+        #        fh.write(etree.tostring(sourceDoc, encoding="utf-8", pretty_print=True))
     except (IOError, etree.LxmlError) as err:
         modelXbrl.error("arelle:tableModelFileError",
             _("Table layout model comparison file %(xmlfile)s error %(error)s"),
