@@ -2,6 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from collections import defaultdict
+import io, os
 from lxml import etree
 from arelle.ModelDocument import Type
 from arelle.ModelValue import qname, dateTime
@@ -275,6 +276,7 @@ def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
             comparisonDoc = etree.parse(file)
         else:
             comparisonDoc = etree.parse(comparisonFile)
+        numErrorsAtStart = len(modelXbrl.errors)
         # uncomment to debug when layout model corrupted after creation
         # with open("/Users/hermf/temp/temp2.xml", "wb") as fh:
         #     fh.write(etree.tostring(sourceDoc, pretty_print=True))
@@ -311,6 +313,10 @@ def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
                 compareRenderingInfosetElts(modelXbrl, sourceElt, comparisonElt)
             sourceElt = next(sourceIter, None)
             comparisonElt = next(comparisonIter, None)
+        # option to save sourceDoc when errors detected
+        if len(modelXbrl.errors) > numErrorsAtStart:
+            with io.open("/Users/hermf/temp/temp/" + os.path.basename(comparisonFile), "wb") as fh:
+                fh.write(etree.tostring(sourceDoc, encoding="utf-8", pretty_print=True))
     except (IOError, etree.LxmlError) as err:
         modelXbrl.error("arelle:tableModelFileError",
             _("Table layout model comparison file %(xmlfile)s error %(error)s"),

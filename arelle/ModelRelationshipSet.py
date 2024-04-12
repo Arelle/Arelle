@@ -11,6 +11,7 @@ from arelle import Locale, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelRelationship, ModelResource
 from arelle.PrototypeDtsObject import LocPrototype, PrototypeObject
+from arelle.PythonUtil import OrderedSet
 from arelle.XbrlConst import consecutiveArcrole
 import sys
 
@@ -219,8 +220,10 @@ class ModelRelationshipSet:
 
     @property
     def linkRoleUris(self):
+        # order by document appearance of linkrole, required for Table Linkbase testcase 3220 v03
         if self.modellinkRoleUris is None:
-            self.modellinkRoleUris = set(modelRel.linkrole for modelRel in self.modelRelationships)
+            linkroleObjSeqs = set((modelRel.linkrole, modelRel.arcElement.getparent().objectIndex) for modelRel in self.modelRelationships)
+            self.modellinkRoleUris = OrderedSet([lr[0] for lr in sorted(linkroleObjSeqs, key=lambda l: l[1])])
         return self.modellinkRoleUris
 
     def loadModelRelationshipsFrom(self) -> dict[Any, list[ModelRelationship]]:
