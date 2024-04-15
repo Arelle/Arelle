@@ -78,7 +78,7 @@
         Directors acknowledge their responsibilities under Companies Act 2006
     </direp:StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct>
     <direp:StatementThatMembersHaveNotRequiredCompanyToObtainAnAudit contextRef="duration">
-        Members have not required the company to obtain an audit
+        Members have not required the Company to obtain an audit
     </direp:StatementThatMembersHaveNotRequiredCompanyToObtainAnAudit>
 
     <context id="instant">

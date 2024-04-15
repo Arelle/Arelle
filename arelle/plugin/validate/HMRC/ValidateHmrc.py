@@ -148,7 +148,7 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, list[list[str]]],
             (
                 '"member has" or "members have", and "not required the company to obtain an audit"',
                 [
-                    ["[Mm]ember has", "[Mm]embers have"],
+                    ["Member has", "Members have"],
                     ["not required the company to obtain an audit"]
                 ],
             ),
@@ -491,7 +491,7 @@ class ValidateHmrc:
                 match = all(
                     re.compile(
                         "|".join(r"\b{}\b".format(phrase) for phrase in phrase_list),
-                        re.MULTILINE
+                        re.MULTILINE | re.IGNORECASE
                     ).search(fact.value) for phrase_list in phrase_lists
                 )
 
