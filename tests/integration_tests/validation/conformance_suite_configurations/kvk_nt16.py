@@ -1,7 +1,7 @@
 from pathlib import PurePath, Path
 
 from tests.integration_tests.validation.assets import NL_PACKAGES
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 
 ZIP_PATH = Path('NT16_KVK_20211208 Berichten_0.zip')
 # needs to be extracted because arelle can't load a taxonomy package ZIP from within a ZIP
@@ -17,6 +17,7 @@ config = ConformanceSuiteConfig(
             entry_point_root=EXTRACTED_PATH / 'berichten' / 'NT16_KVK_20211208 - Testsuite.zip',
             entry_point=Path('testcases.xml'),
             public_download_url='https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT16_KVK_20211208%20Berichten_0.zip',
+            source=AssetSource.S3_PUBLIC,
         ),
         *NL_PACKAGES['NT16'],
     ],

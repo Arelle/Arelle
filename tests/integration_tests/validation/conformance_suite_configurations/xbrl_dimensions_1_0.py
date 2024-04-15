@@ -1,5 +1,5 @@
 from pathlib import PurePath, Path
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 
 config = ConformanceSuiteConfig(
     assets=[
@@ -7,6 +7,7 @@ config = ConformanceSuiteConfig(
             Path('xdt-conf-cr4-2009-10-06.zip'),
             entry_point=Path('xdt.xml'),
             public_download_url='https://www.xbrl.org/2009/xdt-conf-cr4-2009-10-06.zip',
+            source=AssetSource.S3_PUBLIC,
         ),
     ],
     args=[

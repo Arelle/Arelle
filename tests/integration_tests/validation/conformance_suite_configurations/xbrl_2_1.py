@@ -1,5 +1,5 @@
 from pathlib import PurePath, Path
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 
 config = ConformanceSuiteConfig(
     args=[
@@ -11,6 +11,7 @@ config = ConformanceSuiteConfig(
             Path('XBRL-CONF-2014-12-10.zip'),
             entry_point=Path('XBRL-CONF-2014-12-10/xbrl.xml'),
             public_download_url='https://www.xbrl.org/2014/XBRL-CONF-2014-12-10.zip',
+            source=AssetSource.S3_PUBLIC,
         ),
     ],
     expected_failure_ids=frozenset(f'XBRL-CONF-2014-12-10/Common/{s}' for s in [
