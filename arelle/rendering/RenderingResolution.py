@@ -717,6 +717,14 @@ def addRelationship(relDefinitionNode, rel, strctMdlNode, rootOrSelfStructuralNo
     if isinstance(rel, ModelRelationship):
         if isinstance(relDefinitionNode, DefnMdlConceptRelationshipNode):
             preferredLabel = rel.preferredLabel
+            genPreferredLabel = rel.get("{http://xbrl.org/2013/preferred-label}preferredLabel")
+            if preferredLabel is None:
+                if genPreferredLabel is not None:
+                    preferredLabel = genPreferredLabel
+            elif genPreferredLabel is not None:
+                rel.modelXbrl.error("xbrlte:ambiguousPreferredLabel",
+                    _("PresentationArc has both the preferredLabel (%(preferredLabel)s) and gpl:preferredLabel (%(genPreferredLabel)s) attributes"),
+                    modelObject=rel, preferredLabel=preferredLabel, genPreferredLabel=genPreferredLabel)
             if preferredLabel == XbrlConst.periodStartLabel:
                 relChildStrctMdlNode.tagSelector = "table.periodStart"
             elif preferredLabel == XbrlConst.periodEndLabel:

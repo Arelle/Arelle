@@ -614,10 +614,17 @@ class XPathContext:
             exprStack: Sequence[FormulaToken],
             _type: QName | str | None,
             contextItem: ContextItem | None = None,
+            resultMayBeNode: bool = False,
     ) -> Any:
         if exprStack and len(exprStack) > 0 and isinstance(exprStack[0], ProgHeader):
             progHeader = exprStack[0]
-            result = self.atomize(progHeader, self.evaluate(exprStack, contextItem=contextItem))
+            eval = self.evaluate(exprStack, contextItem=contextItem)
+            # TLB test case 200 v02i requires a node result (should xs:element be allowed?)
+            if not _type and resultMayBeNode:
+                result = self.flattenSequence(eval)
+                if len(result) > 0 and self.isNodeSequence(result):
+                    return result[0]
+            result = self.atomize(progHeader, eval)
             if isinstance(_type, QName) and _type.namespaceURI == XbrlConst.xsd:
                 _type = "xs:" + _type.localName
             if isinstance(_type, str):

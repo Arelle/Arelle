@@ -488,7 +488,12 @@ def adjust_time_to_timezone(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
 
 def resolve_QName(xc, p, contextItem, args):
-    raise fnFunctionNotAvailable()
+    if len(args) != 2: raise XPathContext.FunctionNumArgs()
+    strQn = stringArg(xc, args, 0, "xs:string?")
+    node = nodeArg(xc, args, 1, 'element()', emptyFallback=())
+    if node is not None and isinstance(node,ModelObject):
+        return node.prefixedNameQname(strQn)
+    return ()
 
 def QName(xc, p, contextItem, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()

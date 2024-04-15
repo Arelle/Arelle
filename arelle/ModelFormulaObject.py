@@ -583,7 +583,7 @@ class ModelParameter(ModelFormulaResource):
 
     def evaluate(self, xpCtx, typeQname):
         try:
-            return xpCtx.evaluateAtomicValue(self.selectProg, typeQname)
+            return xpCtx.evaluateAtomicValue(self.selectProg, typeQname, resultMayBeNode=True)
         except AttributeError:
             return None
 
