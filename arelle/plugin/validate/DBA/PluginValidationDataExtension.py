@@ -4,46 +4,39 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from collections import defaultdict
+from dataclasses import dataclass
 from typing import cast
 
 from arelle.ModelInstanceObject import ModelFact, ModelContext
-from arelle.ModelValue import qname, QName
+from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.utils.PluginData import PluginData
 
-NAMESPACE_CMN = 'http://xbrl.dcca.dk/cmn'
-NAMESPACE_FSA = 'http://xbrl.dcca.dk/fsa'
-NAMESPACE_GSD = 'http://xbrl.dcca.dk/gsd'
-NAMESPACE_SOB = 'http://xbrl.dcca.dk/sob'
 
-
+@dataclass
 class PluginValidationDataExtension(PluginData):
+    annualReportTypes: frozenset[str]
+    consolidatedMemberQn: QName
+    consolidatedSoloDimensionQn: QName
+    dateOfApprovalOfAnnualReportQn: QName
+    dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName
+    dateOfGeneralMeetingQn: QName
+    extraordinaryCostsQn: QName
+    extraordinaryIncomeQn: QName
+    extraordinaryResultBeforeTaxQn: QName
+    informationOnTypeOfSubmittedReportQn: QName
+    positiveProfitThreshold: float
+    precedingReportingPeriodEndDateQn: QName
+    precedingReportingPeriodStartDateQn: QName
+    profitLossQn: QName
+    reportingPeriodEndDateQn: QName
+    reportingPeriodStartDateQn: QName
+    taxExpenseOnOrdinaryActivitiesQn: QName
+    taxExpenseQn: QName
+    typeOfReportingPeriodDimensionQn: QName
+
     _contextFactMap: dict[str, dict[QName, ModelFact]] | None = None
     _reportingPeriodContexts: list[ModelContext] | None = None
-    annualReportTypes: frozenset[str] = frozenset([
-        'Årsrapport',
-        'årsrapport',
-        'Annual report'
-    ])
-    consolidatedSoloDimensionQn: QName = qname(f'{{{NAMESPACE_CMN}}}ConsolidatedSoloDimension')
-    consolidatedMemberQn: QName = qname(f'{{{NAMESPACE_CMN}}}ConsolidatedMember')
-    dateOfApprovalOfAnnualReportQn: QName = qname(f'{{{NAMESPACE_SOB}}}DateOfApprovalOfAnnualReport')
-    dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName = \
-        qname(f'{{{NAMESPACE_FSA}}}DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod')
-    dateOfGeneralMeetingQn: QName = qname(f'{{{NAMESPACE_GSD}}}DateOfGeneralMeeting')
-    extraordinaryCostsQn: QName = qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryCosts')
-    extraordinaryIncomeQn: QName = qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryIncome')
-    extraordinaryResultBeforeTaxQn: QName = qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryResultBeforeTax')
-    informationOnTypeOfSubmittedReportQn: QName = qname(f'{{{NAMESPACE_GSD}}}InformationOnTypeOfSubmittedReport')
-    positiveProfitThreshold: float = 1000
-    precedingReportingPeriodEndDateQn = qname(f'{{{NAMESPACE_GSD}}}PredingReportingPeriodEndDate')  # Typo in taxonomy
-    precedingReportingPeriodStartDateQn = qname(f'{{{NAMESPACE_GSD}}}PrecedingReportingPeriodStartDate')
-    profitLossQn: QName = qname(f'{{{NAMESPACE_FSA}}}ProfitLoss')
-    reportingPeriodEndDateQn: QName = qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodEndDate')
-    reportingPeriodStartDateQn: QName = qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodStartDate')
-    taxExpenseOnOrdinaryActivitiesQn: QName = qname(f'{{{NAMESPACE_FSA}}}TaxExpenseOnOrdinaryActivities')
-    taxExpenseQn: QName = qname(f'{{{NAMESPACE_FSA}}}TaxExpense')
-    typeOfReportingPeriodDimensionQn: QName = qname(f'{{{NAMESPACE_GSD}}}TypeOfReportingPeriodDimension')
 
     def contextFactMap(self, modelXbrl: ModelXbrl) -> dict[str, dict[QName, ModelFact]]:
         if self._contextFactMap is None:
