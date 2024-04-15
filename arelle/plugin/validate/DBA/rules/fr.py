@@ -163,6 +163,61 @@ def rule_fr39(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_fr41(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    DBA.FR41: Failure to fill in 'Tax on profit for the year' or 'Tax on ordinary profit'
+
+    If the result for the year is positive(fsa:ProfitLoss) (defined as greater than DKK 1000),
+    either Tax on the year's result (fsa:TaxExpense) or Tax on ordinary result
+    (fsa:TaxExpenseOnOrdinaryActivities) must be filled in.
+
+    The control does not look at I/S (partnership), K/S (limited partnership) and P/S
+    (partner company, like an LLC). (based on what legal form the identification number is
+    registered as in the business register).
+
+    Implementation: For each reporting period context that has a fsa:ProfitLoss fact above
+    the threshold, check if there is either a non-nil fsa:TaxExpense or fsa:TaxExpenseOnOrdinaryActivities
+    fact in the same context. If not, trigger an error.
+    """
+
+    # TODO: There appears to be criteria that exempt some filings from this rule.
+    # The criteria is based on the legal form of the company, which may or may not be
+    # something we can determine from the identification number and/or other instance data.
+    # Once we determine if/how that criteria can be implemented, we can add it here.
+
+    modelXbrl = val.modelXbrl
+    contextIds = {c.id for c in pluginData.getCurrentAndPreviousReportingPeriodContexts(modelXbrl)}
+    contextMap = {k: v for k, v in pluginData.contextFactMap(modelXbrl).items() if k in contextIds}
+    for contextId, factMap in contextMap.items():
+        profitLossFact = factMap.get(pluginData.profitLossQn)
+        if profitLossFact is None:
+            continue
+        if cast(float, profitLossFact.xValue) <= pluginData.positiveProfitThreshold:
+            continue
+        taxExpenseFact = factMap.get(pluginData.taxExpenseQn)
+        if taxExpenseFact is not None and not taxExpenseFact.isNil:
+            continue
+        taxExpenseOnOrdinaryActivitiesFact = factMap.get(pluginData.taxExpenseOnOrdinaryActivitiesQn)
+        if taxExpenseOnOrdinaryActivitiesFact is not None and not taxExpenseOnOrdinaryActivitiesFact.isNil:
+            continue
+        yield Validation.warning(
+            codes='DBA.FR41',
+            msg=_("ADVICE FR41: The annual report does not contain information on tax "
+                  "on the year's profit. If the profit for the year in the income "
+                  "statement is positive, either 'Tax on profit for the year' or "
+                  "'Tax on ordinary profit' must be filled in."),
+            modelObject=profitLossFact,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_fr48(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
