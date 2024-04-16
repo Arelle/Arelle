@@ -9,13 +9,6 @@ EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     args=[
         '--disclosureSystem', 'NT17-preview',
-        '--logCodeFilter', '(?!({})$)'.format('|'.join([
-            'xbrlte:closedDefinitionNodeZeroCardinality',
-            'xbrlte:constraintSetAspectMismatch',
-            'xbrlte:invalidDimensionRelationshipSource',
-            'xbrlte:missingAspectValue',
-            'xbrlte:multipleValuesForAspect',
-        ])),
     ],
     assets=[
         ConformanceSuiteAssetConfig.nested_conformance_suite(

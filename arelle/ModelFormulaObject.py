@@ -186,6 +186,7 @@ class ModelVariableSet(ModelFormulaResource):
 
 class ModelFormulaRules:
     def init(self, modelDocument):
+        self.isSubclassOfModelVariableSet = issubclass(type(self), ModelVariableSet)
         super(ModelFormulaRules, self).init(modelDocument)
 
     def clear(self):
@@ -316,7 +317,9 @@ class ModelFormulaRules:
             super(ModelFormulaRules, self).compile()
 
     def variableRefs(self, progs=[], varRefSet=None):
-        return super(ModelFormulaRules, self).variableRefs([self.valueProg] + [v for vl in self.aspectProgs.values() for v in vl], varRefSet)
+        if self.isSubclassOfModelVariableSet:
+            return super(ModelFormulaRules, self).variableRefs([self.valueProg] + [v for vl in self.aspectProgs.values() for v in vl], varRefSet)
+        return set()
 
     def evaluate(self, xpCtx):
         return xpCtx.atomize( xpCtx.progHeader, xpCtx.evaluate( self.valueProg ) )
@@ -580,7 +583,7 @@ class ModelParameter(ModelFormulaResource):
 
     def evaluate(self, xpCtx, typeQname):
         try:
-            return xpCtx.evaluateAtomicValue(self.selectProg, typeQname)
+            return xpCtx.evaluateAtomicValue(self.selectProg, typeQname, resultMayBeNode=True)
         except AttributeError:
             return None
 

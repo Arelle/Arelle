@@ -18,7 +18,7 @@ from arelle.PythonUtil import strTruncate
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
     from arelle.ModelXbrl import ModelXbrl
-    from arelle.ModelDtsObject import ModelAny
+    from arelle.ModelDtsObject import ModelAny, ModelConcept
     from arelle.ModelDocument import ModelDocument
     from arelle.ModelInstanceObject import ModelFact
     from arelle.typing import TypeGetText
@@ -116,7 +116,8 @@ def validate(
     attrQname: QName | None = None,
     ixFacts: bool = False,
     setTargetModelXbrl: bool = False, # when true also revalidate previously validated elements
-) -> None:
+    elementDeclarationType: ModelType | None = None,
+)  -> None:
     global ModelInlineValueObject, ixMsgCode
     if ModelInlineValueObject is None:
         from arelle.ModelInstanceObject import ModelInlineValueObject
@@ -142,9 +143,17 @@ def validate(
                 isAbstract = True
             elif modelConcept.isFraction:
                 baseXsdType = "fraction"
-            else:
+            elif (
+                elementDeclarationType is None
+                or elementDeclarationType.qname == XbrlConst.qnXsdDefaultType
+                or modelConcept.type.qname == elementDeclarationType.qname
+                or modelConcept.type.isDerivedFrom(elementDeclarationType.qname)
+            ):
                 baseXsdType = modelConcept.baseXsdType
                 facets = modelConcept.facets
+            else:
+                baseXsdType = elementDeclarationType.baseXsdType
+                facets = elementDeclarationType.facets
         elif qnElt == XbrlConst.qnXbrldiExplicitMember: # not in DTS
             baseXsdType = "QName"
             type = None

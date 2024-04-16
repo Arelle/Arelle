@@ -150,11 +150,13 @@ class FunctionArgType(Exception):
             expectedType: str,
             foundObject: str | QName | Sequence[FormulaToken] | None = '',
             errCode: str = 'err:XPTY0004',
+            value: str | None = None
     ) -> None:
         self.errCode = errCode
         self.argNum = (argIndex + 1) if isinstance(argIndex, int) else argIndex
         self.expectedType = expectedType
         self.foundObject = foundObject
+        self.value = value
         self.args = (self.__repr__(),)
 
     def __repr__(self) -> str:
@@ -612,10 +614,17 @@ class XPathContext:
             exprStack: Sequence[FormulaToken],
             _type: QName | str | None,
             contextItem: ContextItem | None = None,
+            resultMayBeNode: bool = False,
     ) -> Any:
         if exprStack and len(exprStack) > 0 and isinstance(exprStack[0], ProgHeader):
             progHeader = exprStack[0]
-            result = self.atomize(progHeader, self.evaluate(exprStack, contextItem=contextItem))
+            eval = self.evaluate(exprStack, contextItem=contextItem)
+            # TLB test case 200 v02i requires a node result (should xs:element be allowed?)
+            if not _type and resultMayBeNode:
+                result = self.flattenSequence(eval)
+                if len(result) > 0 and self.isNodeSequence(result):
+                    return result[0]
+            result = self.atomize(progHeader, eval)
             if isinstance(_type, QName) and _type.namespaceURI == XbrlConst.xsd:
                 _type = "xs:" + _type.localName
             if isinstance(_type, str):

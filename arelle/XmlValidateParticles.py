@@ -27,7 +27,7 @@ def validateElementSequence(modelXbrl, compositor, children, ixFacts, setTargetM
         for particle in particles:
             occurrences = 0
             if isinstance(particle, (ModelConcept, ModelAny)):
-                elementDeclaration = particle.dereference()
+                elementDeclaration = particle.dereference() # note that types in structures may share quames with other structures
                 while iNextChild < len(children):
                     elt = children[iNextChild]
                     # children now only contains ModelObjects, no comments or other lxml elements
@@ -41,7 +41,7 @@ def validateElementSequence(modelXbrl, compositor, children, ixFacts, setTargetM
                           (vQname in modelXbrl.qnameConcepts and
                            modelXbrl.qnameConcepts[vQname].substitutesForQname(elementDeclaration.qname))))):
                         occurrences += 1
-                        validate(modelXbrl, elt, ixFacts=ixFacts, setTargetModelXbrl=setTargetModelXbrl)
+                        validate(modelXbrl, elt, ixFacts=ixFacts, setTargetModelXbrl=setTargetModelXbrl, elementDeclarationType=getattr(elementDeclaration, "type", None))
                         iNextChild += 1
                         if occurrences == particle.maxOccurs:
                             break

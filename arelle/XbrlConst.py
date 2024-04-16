@@ -579,108 +579,24 @@ qnTableConceptRelationshipNode = qname("{http://xbrl.org/2014/table}table:concep
 qnTableDimensionRelationshipNode = qname("{http://xbrl.org/2014/table}table:dimensionRelationshipNode")
 qnTableAspectNode = qname("{http://xbrl.org/2014/table}table:aspectNode")
 
-# 2013-MM-DD current CR
-"""
-table = "http://xbrl.org/CR/2013-11-13/table"
-tableModel = "http://xbrl.org/CR/2013-11-13/table/model"
-tableBreakdown = "http://xbrl.org/arcrole/CR/2013-11-13/table-breakdown"
-tableBreakdownTree = "http://xbrl.org/arcrole/CR/2013-11-13/breakdown-tree"
-tableDefinitionNodeSubtree = "http://xbrl.org/arcrole/CR/2013-11-13/definition-node-subtree"
-tableFilter = "http://xbrl.org/arcrole/CR/2013-11-13/table-filter"
-tableAspectNodeFilter = "http://xbrl.org/arcrole/CR/2013-11-13/aspect-node-filter"
-tableParameter = "http://xbrl.org/arcrole/CR/2013-11-13/table-parameter"
-qnTableTable = qname("{http://xbrl.org/CR/2013-11-13/table}table:table")
-qnTableBreakdown = qname("{http://xbrl.org/CR/2013-11-13/table}table:breakdown")
-qnTableRuleNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:ruleNode")
-qnTableRuleSet = qname("{http://xbrl.org/CR/2013-11-13/table}table:ruleSet")
-qnTableDefinitionNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:definitionNode")
-qnTableClosedDefinitionNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:closedDefinitionNode")
-qnTableConceptRelationshipNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:conceptRelationshipNode")
-qnTableDimensionRelationshipNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:dimensionRelationshipNode")
-qnTableAspectNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:aspectNode")
-"""
-
-# prior 2013-08-28 PWD
-""" not supported
-table = "http://xbrl.org/PWD/2013-08-28/table"
-tableModel = "http://xbrl.org/PWD/2013-08-28/table/model"
-tableBreakdown = "http://xbrl.org/arcrole/PWD/2013-08-28/table-breakdown"
-tableBreakdownTree = "http://xbrl.org/arcrole/PWD/2013-08-28/breakdown-tree"
-tableDefinitionNodeSubtree = "http://xbrl.org/arcrole/PWD/2013-08-28/definition-node-subtree"
-tableFilter = "http://xbrl.org/arcrole/PWD/2013-08-28/table-filter"
-tableAspectNodeFilter = "http://xbrl.org/arcrole/PWD/2013-08-28/aspect-node-filter"
-tableParameter = "http://xbrl.org/arcrole/PWD/2013-08-28/table-parameter"
-qnTableTable = qname("{http://xbrl.org/PWD/2013-08-28/table}table:table")
-qnTableBreakdown = qname("{http://xbrl.org/PWD/2013-08-28/table}table:breakdown")
-qnTableRuleNode = qname("{http://xbrl.org/PWD/2013-08-28/table}table:ruleNode")
-qnTableClosedDefinitionNode = qname("{http://xbrl.org/PWD/2013-08-28/table}table:closedDefinitionNode")
-qnTableConceptRelationshipNode = qname("{http://xbrl.org/PWD/2013-08-28/table}table:conceptRelationshipNode")
-qnTableDimensionRelationshipNode = qname("{http://xbrl.org/PWD/2013-08-28/table}table:dimensionRelationshipNode")
-qnTableAspectNode = qname("{http://xbrl.org/PWD/2013-08-28/table}table:aspectNode")
-"""
-
-# prior 2013-05-17 PWD
-table201305 = "http://xbrl.org/PWD/2013-05-17/table"
-tableModel201305 = "http://xbrl.org/PWD/2013-05-17/table/model"
-tableBreakdown201305 = "http://xbrl.org/arcrole/PWD/2013-05-17/table-breakdown"
-tableBreakdownTree201305 = "http://xbrl.org/arcrole/PWD/2013-05-17/breakdown-tree"
-tableDefinitionNodeSubtree201305 = "http://xbrl.org/arcrole/PWD/2013-05-17/definition-node-subtree"
-tableFilter201305 = "http://xbrl.org/arcrole/PWD/2013-05-17/table-filter"
-tableAspectNodeFilter201305 = "http://xbrl.org/arcrole/PWD/2013-05-17/aspect-node-filter"
-qnTableTable201305 = qname("{http://xbrl.org/PWD/2013-05-17/table}table:table")
-qnTableBreakdown201305 = qname("{http://xbrl.org/PWD/2013-05-17/table}table:breakdown")
-qnTableRuleNode201305 = qname("{http://xbrl.org/PWD/2013-05-17/table}table:ruleNode")
-qnTableClosedDefinitionNode201305 = qname("{http://xbrl.org/PWD/2013-05-17/table}table:closedDefinitionNode")
-qnTableConceptRelationshipNode201305 = qname(
-    "{http://xbrl.org/PWD/2013-05-17/table}table:conceptRelationshipNode"
-)
-qnTableDimensionRelationshipNode201305 = qname(
-    "{http://xbrl.org/PWD/2013-05-17/table}table:dimensionRelationshipNode"
-)
-qnTableAspectNode201305 = qname("{http://xbrl.org/PWD/2013-05-17/table}table:aspectNode")
-
-# prior 2013-01-16 PWD
-table201301 = "http://xbrl.org/PWD/2013-01-16/table"
-tableBreakdown201301 = "http://xbrl.org/arcrole/PWD/2013-01-16/table-breakdown"
-tableFilter201301 = "http://xbrl.org/arcrole/PWD/2013-01-16/table-filter"
-tableDefinitionNodeSubtree201301 = "http://xbrl.org/arcrole/PWD/2013-01-16/definition-node-subtree"
-tableTupleContent201301 = "http://xbrl.org/arcrole/PWD/2013-01-16/tuple-content"
-tableDefinitionNodeMessage201301 = "http://xbrl.org/arcrole/PWD/2013-01-16/definition-node-message"
-tableDefinitionNodeSelectionMessage201301 = "http://xbrl.org/arcrole/PWD/2013-01-16/definition-node-selection-message"
-qnTableTable201301 = qname("{http://xbrl.org/PWD/2013-01-16/table}table:table")
-qnTableCompositionNode201301 = qname("{http://xbrl.org/PWD/2013-01-16/table}table:compositionNode")
-qnTableFilterNode201301 = qname("{http://xbrl.org/PWD/2013-01-16/table}table:filterNode")
-qnTableConceptRelationshipNode201301 = qname(
-    "{http://xbrl.org/PWD/2013-01-16/table}table:conceptRelationshipNode"
-)
-qnTableDimensionRelationshipNode201301 = qname(
-    "{http://xbrl.org/PWD/2013-01-16/table}table:dimensionRelationshipNode"
-)
-qnTableRuleNode201301 = qname("{http://xbrl.org/PWD/2013-01-16/table}table:ruleNode")
-qnTableClosedDefinitionNode201301 = qname("{http://xbrl.org/PWD/2013-01-16/table}table:closedDefinitionNode")
-qnTableSelectionNode201301 = qname("{http://xbrl.org/PWD/2013-01-16/table}table:selectionNode")
-qnTableTupleNode201301 = qname("{http://xbrl.org/PWD/2013-01-16/table}table:tupleNode")
-
-# Montreal 2011 table linkbase
-table2011 = "http://xbrl.org/2011/table"
-tableAxis2011 = "http://xbrl.org/arcrole/2011/table-axis"
-tableAxisSubtree2011 = "http://xbrl.org/arcrole/2011/axis/axis-subtree"
-tableFilter2011 = "http://xbrl.org/arcrole/2011/table-filter"
-tableFilterNodeFilter2011 = "http://xbrl.org/arcrole/2011/filter-node-filter"
-tableAxisFilter2011 = "http://xbrl.org/arcrole/2011/axis/axis-filter"
-tableAxisFilter201205 = "http://xbrl.org/arcrole/2011/axis-filter"
-tableTupleContent2011 = "http://xbrl.org/arcrole/2011/axis/tuple-content"
-tableAxisMessage2011 = "http://xbrl.org/arcrole/PWD/2013-01-16/axis-message"
-tableAxisSelectionMessage2011 = "http://xbrl.org/arcrole/PWD/2013-01-16/axis-selection-message"
-qnTableTable2011 = qname("{http://xbrl.org/2011/table}table:table")
-qnTableCompositionAxis2011 = qname("{http://xbrl.org/2011/table}table:compositionAxis")
-qnTableFilterAxis2011 = qname("{http://xbrl.org/2011/table}table:filterAxis")
-qnTableConceptRelationshipAxis2011 = qname("{http://xbrl.org/2011/table}table:conceptRelationshipAxis")
-qnTableDimensionRelationshipAxis2011 = qname("{http://xbrl.org/2011/table}table:dimensionRelationshipAxis")
-qnTableRuleAxis2011 = qname("{http://xbrl.org/2011/table}table:ruleAxis")
-qnTablePredefinedAxis2011 = qname("{http://xbrl.org/2011/table}table:predefinedAxis")
-qnTableSelectionAxis2011 = qname("{http://xbrl.org/2011/table}table:selectionAxis")
-qnTableTupleAxis2011 = qname("{http://xbrl.org/2011/table}table:tupleAxis")
+# current PWD 1.1
+tableMMDD = "http://xbrl.org/PWD/2017-07-12/table-1.1"
+tableModelMMDD = "http://xbrl.org/PWD/2017-07-12/table-1.1/model"
+tableBreakdownMMDD = "http://xbrl.org/arcrole/PWD/2017-07-12/table-breakdown-1.1"
+tableBreakdownTreeMMDD = "http://xbrl.org/arcrole/PWD/2017-07-12/breakdown-tree-1.1"
+tableDefinitionNodeSubtreeMMDD = "http://xbrl.org/arcrole/PWD/2017-07-12/definition-node-subtree-1.1"
+tableFilterMMDD = "http://xbrl.org/arcrole/PWD/2017-07-12/table-filter-1.1"
+tableAspectNodeFilterMMDD = "http://xbrl.org/arcrole/PWD/2017-07-12/aspect-node-filter-1.1"
+tableParameterMMDD = "http://xbrl.org/arcrole/PWD/2017-07-12/table-parameter-1.1"
+qnTableTableMMDD = qname("{http://xbrl.org/PWD/2017-07-12/table-1.1}table:table")
+qnTableBreakdownMMDD = qname("{http://xbrl.org/PWD/2017-07-12/table-1.1}table:breakdown")
+qnTableRuleNodeMMDD = qname("{http://xbrl.org/PWD/2017-07-12/table-1.1}table:ruleNode")
+qnTableRuleSetMMDD = qname("{http://xbrl.org/PWD/2017-07-12/table-1.1}table:ruleSet")
+qnTableDefinitionNodeMMDD = qname("{http://xbrl.org/PWD/2017-07-12/table-1.1}table:definitionNode")
+qnTableClosedDefinitionNodeMMDD = qname("{http://xbrl.org/PWD/2017-07-12/table-1.1}table:closedDefinitionNode")
+qnTableConceptRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2017-07-12/table-1.1}table:conceptRelationshipNode")
+qnTableDimensionRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2017-07-12/table-1.1}table:dimensionRelationshipNode")
+qnTableAspectNodeMMDD = qname("{http://xbrl.org/PWD/2017-07-12/table-1.1}table:aspectNode")
 
 booleanValueTrue = "true"
 booleanValueFalse = "false"
@@ -1060,31 +976,6 @@ def isTableRenderingArcrole(arcrole: str) -> bool:
         tableParameterMMDD,
         tableDefinitionNodeSubtreeMMDD,
         tableAspectNodeFilterMMDD,
-        # Prior PWD, Montreal and 2013-01-16
-        tableBreakdown201305,
-        tableBreakdownTree201305,
-        tableFilter201305,
-        tableDefinitionNodeSubtree201305,
-        tableAspectNodeFilter201305,
-        tableBreakdown201301,
-        tableFilter201301,
-        tableDefinitionNodeSubtree201301,
-        tableTupleContent201301,
-        tableDefinitionNodeMessage201301,
-        tableDefinitionNodeSelectionMessage201301,
-        tableAxis2011,
-        tableFilter2011,
-        tableAxisSubtree2011,
-        tableFilterNodeFilter2011,
-        tableAxisFilter2011,
-        tableAxisFilter201205,
-        tableTupleContent201301,
-        tableTupleContent2011,
-        tableAxisSubtree2011,
-        tableAxisFilter2011,
-        # original Eurofiling
-        euTableAxis,
-        euAxisMember,
     }
 
 

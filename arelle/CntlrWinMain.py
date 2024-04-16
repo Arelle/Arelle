@@ -44,7 +44,6 @@ from arelle import (DialogURL, DialogLanguage,
                     ModelDocument,
                     ModelManager,
                     PackageManager,
-                    RenderingEvaluator,
                     TableStructure,
                     ViewWinDTS,
                     ViewWinProperties, ViewWinConcepts, ViewWinRelationshipSet, ViewWinFormulae,
@@ -55,12 +54,12 @@ from arelle import (DialogURL, DialogLanguage,
                     ViewFileFactTable,
                     ViewFileFormulae,
                     ViewFileTests,
-                    ViewFileRenderedGrid,
                     ViewFileRelationshipSet,
                     Updater
                    )
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle.FileSource import openFileSource
+from arelle.rendering import RenderingEvaluator
 
 restartMain = True
 
@@ -568,7 +567,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         else:
             return reply
 
-    def fileSave(self, event=None, view=None, fileType=None, filenameFromInstance=False, *ignore):
+    def fileSave(self, event=None, view=None, fileType=None, filenameFromInstance=False, method=None, caption=None, *ignore):
         if view is None:
             view = getattr(self, "currentView", None)
         if view is not None:
@@ -588,23 +587,17 @@ class CntlrWinMain (Cntlr.Cntlr):
                     pass
             if isinstance(view, ViewWinRenderedGrid.ViewRenderedGrid):
                 initialdir = os.path.dirname(modelXbrl.modelDocument.uri)
-                if fileType in ("html", "xml", None):
-                    if fileType == "html" and filename is None:
+                if caption is not None and method is not None:
+                    if fileType in ("html", "xml", "json") and filename is None:
                         filename = self.uiFileDialog("save",
-                                title=_("arelle - Save HTML-rendered Table"),
+                                title=caption,
                                 initialdir=initialdir,
-                                filetypes=[(_("HTML file .html"), "*.html"), (_("HTML file .htm"), "*.htm")],
-                                defaultextension=".html")
-                    elif fileType == "xml" and filename is None:
-                        filename = self.uiFileDialog("save",
-                                title=_("arelle - Save Table Layout Model"),
-                                initialdir=initialdir,
-                                filetypes=[(_("Layout model file .xml"), "*.xml")],
-                                defaultextension=".xml")
+                                filetypes=[(_("HTML file .html"), "*.html"), (_("HTML file .htm"), "*.htm"), (_("XML file .xml"), "*.xml"), (_("JSON file .xml"), "*.json")],
+                                defaultextension=f".{fileType}")
                     else: # ask file type
                         if filename is None:
                             filename = self.uiFileDialog("save",
-                                    title=_("arelle - Save XBRL Instance or HTML-rendered Table"),
+                                    title=_caption,
                                     initialdir=initialdir,
                                     filetypes=[(_("XBRL instance .xbrl"), "*.xbrl"), (_("XBRL instance .xml"), "*.xml"), (_("HTML table .html"), "*.html"), (_("HTML table .htm"), "*.htm")],
                                     defaultextension=".html")
@@ -614,7 +607,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                     if not filename:
                         return False
                     try:
-                        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, filename, lang=self.labelLang, sourceView=view)
+                        method(modelXbrl, filename, lang=self.labelLang, sourceView=view)
                     except (IOError, EnvironmentError) as err:
                         tkinter.messagebox.showwarning(_("arelle - Error"),
                                         _("Failed to save {0}:\n{1}").format(

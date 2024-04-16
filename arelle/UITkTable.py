@@ -454,6 +454,8 @@ class XbrlTable(TkTableWrapper.Table):
                                                 multiline=1,
                                                 borderwidth=(1, 1, 0, 0),
                                                 browsecmd=browsecmd)
+        if not self.isInitialized:
+            return
 
         self.lastMouseCoordinates = None
         self.toolTipShown = False
@@ -697,34 +699,36 @@ class XbrlTable(TkTableWrapper.Table):
 
     def initHeaderCellValue(self, value, x, y, colspan, rowspan,
                             justification, objectId=None,
-                            isRollUp=False):
+                            hasLeftBorder=True, hasTopBorder=True,
+                            hasRightBorder=True, hasBottomBorder=True,
+                            width=None):
         '''
         Initialise the read-only content of a header cell.
         '''
         cellIndex = '%i,%i'% (y, x)
         if justification in XbrlTable.ANCHOR_POSITIONS:
             self.format_cell(justification, cellIndex)
-        if colspan+rowspan > 0:
+        if colspan > 0 or rowspan > 0:
             cellSpans = {cellIndex : '%i,%i'% (rowspan, colspan)}
             self.spans(index=None, **cellSpans)
-        indexValue = {cellIndex:value}
-        self.set(objectId=objectId, **indexValue)
-        if USE_resizeTableCells:
-            self._updateMaxSizes(value, x, y, colspan, rowspan)
         self.initHeaderBorder(x, y,
-                              hasLeftBorder=True, hasTopBorder=True,
-                              hasRightBorder=True,
-                              hasBottomBorder=not isRollUp)
-        if isRollUp:
-            # In this case, we can afford a reduced column width since the label can span over the other rolled up columns
-            self.tk.call(self._w, 'width', x, 3)
+                              hasLeftBorder=hasLeftBorder, hasTopBorder=hasTopBorder,
+                              hasRightBorder=hasRightBorder,
+                              hasBottomBorder=hasBottomBorder)
+        if width is not None:
+            self.tk.call(self._w, 'width', x, width)
+        if value is not None:
+            indexValue = {cellIndex:value}
+            self.set(objectId=objectId, **indexValue)
+            if USE_resizeTableCells:
+                self._updateMaxSizes(value, x, y, colspan, rowspan)
 
 
     def initCellSpan(self, x, y, colspan, rowspan):
         '''
         Set the row and column span for the given cell
         '''
-        if colspan+rowspan > 0:
+        if colspan > 0 or rowspan > 0:
             cellSpans = {'%i,%i'% (y, x) : '%i,%i'% (rowspan, colspan)}
             self.spans(index=None, **cellSpans)
 
@@ -739,7 +743,7 @@ class XbrlTable(TkTableWrapper.Table):
         New values can be added to the combobox if isOpen==True.
         '''
         cellIndex = '%i,%i'% (y, x)
-        if colspan+rowspan > 0:
+        if colspan > 0 or rowspan > 0:
             cellSpans = { cellIndex : '%i,%i'% (rowspan, colspan)}
             self.spans(index=None, **cellSpans)
         self.initHeaderBorder(x, y,
@@ -778,6 +782,7 @@ class XbrlTable(TkTableWrapper.Table):
         cellsBelow cells below the given position.
         The border will always have the same size.
         '''
+        # print(f"initHeaderBoarder x {x} y {y} cellsToTheRight {cellsToTheRight} cellsBelow {cellsBelow} hasLeftBorder {hasLeftBorder} hasTopBorder {hasTopBorder} hasRightBorder {hasRightBorder} hasBottomBorder {hasBottomBorder}")
         lastX = x + cellsToTheRight
         lastY = y + cellsBelow
         currentBorder = 1
@@ -818,10 +823,10 @@ class XbrlTable(TkTableWrapper.Table):
             deltaCols = columns - currentCols
             deltaRows = rows - currentRows
             if abs(deltaRows)+abs(deltaCols) > 0:
-                self.data.resize([rows, columns])
-                self.objectIds.resize([rows, columns])
-                self.maxColumnWidths.resize(columns)
-                self.maxRowHeights.resize(rows)
+                self.data.resize([rows, columns], refcheck=False) # refcheck=False to allow use under debugger
+                self.objectIds.resize([rows, columns], refcheck=False)
+                self.maxColumnWidths.resize(columns, refcheck=False)
+                self.maxRowHeights.resize(rows, refcheck=False)
             if deltaRows>0:
                 self.insert_rows('end', deltaRows)
                 self.config(rows=rows)
@@ -923,11 +928,12 @@ class ScrolledTkTableFrame(Frame):
                                            command=table.yview_scroll)
         self.horizontalScrollbar = Scrollbar(self, orient='horizontal',
                                              command=table.xview_scroll)
-        table.config(xscrollcommand=self.horizontalScrollbar.set,
-                     yscrollcommand=self.verticalScrollbar.set)
+        if table.isInitialized:
+            table.config(xscrollcommand=self.horizontalScrollbar.set,
+                         yscrollcommand=self.verticalScrollbar.set)
+            self.table.grid(column="0", row='0', sticky=(N, W, S, E))
         self.verticalScrollbar.grid(column="1", row='0', sticky=(N, S))
         self.horizontalScrollbar.grid(column="0", row='1', sticky=(W, E))
-        self.table.grid(column="0", row='0', sticky=(N, W, S, E))
         self.verticalScrollbarWidth = self.verticalScrollbar.winfo_reqwidth()+5
         self.horizontalScrollbarHeight = self.horizontalScrollbar.winfo_reqheight()+5
 
