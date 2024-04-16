@@ -13,7 +13,7 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from . import errorOnDateFactComparison
+from . import errorOnDateFactComparison, findFactsWithDimension
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 
@@ -115,21 +115,42 @@ def rule_fr9(
     Implementation: Find any occurrence of fsa:ProfitLoss with no dimensions or with dimensions of
     ConsolidatedSoloDimension with ConsolidatedMember.  If nothing is found, trigger an error.
     """
-    profLossFacts = val.modelXbrl.factsByQname.get(pluginData.profitLossQn)
-    found = False
-    if profLossFacts:
-        for fact in profLossFacts:
-            if fact.context is None:
-                continue
-            elif (fact.context.dimMemberQname(pluginData.consolidatedSoloDimensionQn) == pluginData.consolidatedMemberQn
-                  and fact.context.qnameDims.keys() == {pluginData.consolidatedSoloDimensionQn}):
-                found = True
-            elif not len(fact.context.qnameDims):
-                found = True
-    if not found:
+    if not findFactsWithDimension(
+            val, pluginData.profitLossQn, pluginData.consolidatedSoloDimensionQn,
+            pluginData.consolidatedSoloDimensionQn
+    ):
         yield Validation.error(
             codes="DBA.FR9",
             msg=_("Error code FR9: The year's result in the income statement must be filled in."),
+            modelObject=val.modelXbrl.modelDocument
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr10(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    DBA.FR10: Equity (fsa:Equity) must be filled in. The control only looks at instances without
+    dimensions or instances that only have the dimension (ConsolidatedSoloDimension with ConsolidatedMember).
+    Instances of "Equity" with other dimensions do not lift the reporting obligation.
+
+    Implementation: Find any occurrence of fsa:Equity with no dimensions or with dimensions of
+    ConsolidatedSoloDimension with ConsolidatedMember.  If nothing is found, trigger an error.
+
+    """
+    if not findFactsWithDimension(
+            val, pluginData.equityQn,
+            pluginData.consolidatedSoloDimensionQn, pluginData.consolidatedMemberQn
+    ):
+        yield Validation.error(
+            codes="DBA.FR10",
+            msg=_("Error code FR10: Equity in the balance sheet must be filled in."),
             modelObject=val.modelXbrl.modelDocument
         )
 

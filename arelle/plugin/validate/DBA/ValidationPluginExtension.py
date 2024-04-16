@@ -32,6 +32,7 @@ class ValidationPluginExtension(ValidationPlugin):
             dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod=
             qname(f'{{{NAMESPACE_FSA}}}DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod'),
             dateOfGeneralMeetingQn=qname(f'{{{NAMESPACE_GSD}}}DateOfGeneralMeeting'),
+            equityQn=qname(f'{{{NAMESPACE_FSA}}}Equity'),
             extraordinaryCostsQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryCosts'),
             extraordinaryIncomeQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryIncome'),
             extraordinaryResultBeforeTaxQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryResultBeforeTax'),
