@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR55"
+        description="DBA.FR55: If a period with an end date immediately before the currently selected start date has previously been reported, the previous accounting period should be marked."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid-mismatch" name="Invalid (Mismatch)">
+        <description>
+            A period with an end date immediately before the currently selected start date exists, but the previous accounting period is marked with mismatched dates.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr55-invalid-mismatch.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR55</error>
+        </result>
+    </variation>
+    <variation id="invalid-missing" name="Invalid (Missing)">
+        <description>
+            A period with an end date immediately before the currently selected start date exists, but the previous accounting period is not marked.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr55-invalid-missing.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR55</error>
+        </result>
+    </variation>
+</testcase>

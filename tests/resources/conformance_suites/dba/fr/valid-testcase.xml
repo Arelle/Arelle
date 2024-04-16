@@ -8,13 +8,23 @@
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
-    <variation id="valid" name="Valid">
+    <variation id="valid-001" name="Valid-001">
         <description>
             A valid instance that triggers no DBA validation errors.
         </description>
         <data>
             <!-- Source: https://datacvr.virk.dk/enhed/virksomhed/54399219-->
-            <instance readMeFirst="true">valid.xbrl</instance>
+            <instance readMeFirst="true">valid-001.xbrl</instance>
+        </data>
+        <result expected="valid"/>
+    </variation>
+    <variation id="valid-002" name="Valid-002">
+        <description>
+            A valid instance that triggers no DBA validation errors.
+        </description>
+        <data>
+            <!-- Source: https://datacvr.virk.dk/enhed/virksomhed/40489991-->
+            <instance readMeFirst="true">valid-002.xbrl</instance>
         </data>
         <result expected="valid"/>
     </variation>

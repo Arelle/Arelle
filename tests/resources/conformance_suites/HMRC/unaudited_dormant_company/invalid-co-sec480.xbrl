@@ -71,8 +71,8 @@
         Prepared in accordance with provisions micro
     </direp:StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime>
     <direp:StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies contextRef="duration">
-        <!-- CAUSE: Text does not match, "Exempt" or "Exemption" are required, case-sensitive -->
-        exempt from audit under section 480 of the Companies Act 2006
+        <!-- CAUSE: Text does not match, missing "under section 480" [of the Companies Act 2006] -->
+        exempt from audit of the Companies Act 2006
     </direp:StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies>
     <direp:StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct contextRef="duration">
         Directors acknowledge their responsibilities under Companies Act 2006
