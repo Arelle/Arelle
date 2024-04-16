@@ -10,10 +10,6 @@ config = ConformanceSuiteConfig(
         ),
     ],
     expected_failure_ids=frozenset(f'table-linkbase-conf-2015-08-12/conf/tests/{s}' for s in [
-        '0200-table-parameters/0200-table-parameters-testcase.xml:v-02i',
-        '1000-rule-node/1200-merged-rule-node/1200-merged-rule-node-testcase.xml:v-10i',
-        '1000-rule-node/1200-merged-rule-node/1200-merged-rule-node-testcase.xml:v-12i',
-        '3100-concept-relationship-node/3120-concept-relationship-node-linkrole/3120-concept-relationship-node-linkrole-testcase.xml:v-02',
         '6000-aspect-node/6660-aspect-node-aspect-cover-filter/6660-aspect-node-aspect-cover-filter-testcase.xml:v-01',
     ]),
     info_url='https://specifications.xbrl.org/work-product-index-table-linkbase-table-linkbase-1.0.html',
