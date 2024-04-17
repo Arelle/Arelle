@@ -12,6 +12,7 @@ from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.XmlValidateConst import VALID
 from arelle.utils.validate.Validation import Validation
+from arelle.ValidateXbrl import ValidateXbrl
 
 
 def errorOnDateFactComparison(
@@ -49,6 +50,27 @@ def errorOnDateFactComparison(
             fact1=fact1.xValue,
             fact2=fact2.xValue,
         )
+
+
+def findFactsWithDimension(
+        val: ValidateXbrl,
+        conceptQn: QName,
+        dimensionQn: QName,
+        membeQn: QName
+) -> bool:
+    facts = val.modelXbrl.factsByQname.get(conceptQn)
+    if facts:
+        for fact in facts:
+            if fact.context is None:
+                continue
+            elif (fact.context.dimMemberQname(
+                    dimensionQn
+            ) == membeQn
+                  and fact.context.qnameDims.keys() == {dimensionQn}):
+                return True
+            elif not len(fact.context.qnameDims):
+                return True
+    return False
 
 
 def getValidDateFacts(

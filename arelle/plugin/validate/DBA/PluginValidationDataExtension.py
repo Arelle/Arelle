@@ -21,6 +21,7 @@ class PluginValidationDataExtension(PluginData):
     dateOfApprovalOfAnnualReportQn: QName
     dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName
     dateOfGeneralMeetingQn: QName
+    equityQn: QName
     extraordinaryCostsQn: QName
     extraordinaryIncomeQn: QName
     extraordinaryResultBeforeTaxQn: QName

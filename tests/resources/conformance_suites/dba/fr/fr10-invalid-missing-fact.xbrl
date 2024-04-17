@@ -382,12 +382,6 @@
     <fsa:DissolutionOfPreviousYearsRevaluations contextRef="ID_14" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:DissolutionOfPreviousYearsRevaluations>
     <fsa:EmployeeBenefitsExpense contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">343744000</fsa:EmployeeBenefitsExpense>
     <fsa:EmployeeBenefitsExpense contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">233755000</fsa:EmployeeBenefitsExpense>
-    <fsa:Equity contextRef="ID_17" xml:lang="da" unitRef="DKK" decimals="-3">-30000000</fsa:Equity>
-    <fsa:Equity contextRef="ID_18" xml:lang="da" unitRef="DKK" decimals="-3">-1701548000</fsa:Equity>
-    <fsa:Equity contextRef="ID_19" xml:lang="da" unitRef="DKK" decimals="-3">-1283805000</fsa:Equity>
-    <fsa:Equity contextRef="ID_20" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:Equity>
-    <fsa:Equity contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">3545327000</fsa:Equity>
-    <fsa:Equity contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">3015353000</fsa:Equity>
     <fsa:ExplanationOfEntitysDefinitionOfCashAndCashEquivalents contextRef="ID_0" xml:lang="da">Likvider omfatter likvide beholdninger og kortfristede værdipapirer som uden hindring kan omsættes til likvide beholdninger. </fsa:ExplanationOfEntitysDefinitionOfCashAndCashEquivalents>
     <fsa:ExplanationOfPrepayments contextRef="ID_0" xml:lang="da">14. Periodeafgrænsningsposter Licenser og abonnementer 5.426 3.345 Øvrige periodeafgrænsningsposter 16.793 37.631 Saldo ultimo 22.219 40.976 </fsa:ExplanationOfPrepayments>
     <fsa:FixturesFittingsToolsAndEquipment contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">174224000</fsa:FixturesFittingsToolsAndEquipment>

@@ -4,6 +4,7 @@
     <testcase uri='fr/fr5-testcase.xml' />
     <testcase uri='fr/fr7-testcase.xml' />
     <testcase uri='fr/fr9-testcase.xml' />
+    <testcase uri='fr/fr10-testcase.xml' />
     <testcase uri='fr/fr39-testcase.xml' />
     <testcase uri='fr/fr41-testcase.xml' />
     <testcase uri='fr/fr48-testcase.xml' />
