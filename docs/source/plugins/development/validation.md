@@ -8,14 +8,14 @@ To accelerate the process of creating new validation plugins, there's an [exampl
 that can serve as a starting point.
 
 The example plugin demonstrates how to use the [ValidationPlugin][validation-plugin] class, the [@validation][validation-decorator]
-decorator, and the [PluginValidationData][plugin-validation-data] to write validation rules.
+decorator, and the [PluginData][plugin-data] to write validation rules.
 
 The [@validation][validation-decorator] decorator is used to register functions as validation rules and specify which
 disclosure systems they should run with.
 
 The [ValidationPlugin][validation-plugin] class is responsible for collecting and running the decorated validation rules.
 
-The [PluginValidationData][plugin-validation-data] data class is used for caching plugin data that's expensive to compute.
+The [PluginData][plugin-data] data class is used for caching plugin data that's expensive to compute.
 It is passed between rule functions by the [ValidationPlugin][validation-plugin] class. The default implementation only
 contains a name field. To include your own fields, you should extend the data class and define the fields you need.
 Also, extend the ValidationPlugin class and override the [newPluginData][validation-new-plugin-data]
@@ -56,7 +56,7 @@ need a rule to run before another you can either implement them with different h
 [validation-new-plugin-data]: #arelle.utils.validate.ValidationPlugin.ValidationPlugin.newPluginData
 [validation-hook]: #arelle.utils.PluginHooks.ValidationHook
 [validation-decorator]: #arelle.utils.validate.Decorator.validation
-[plugin-validation-data]: #arelle.utils.validate.PluginValidationData.PluginValidationData
+[plugin-data]: #arelle.utils.PluginData.PluginData
 [example-plugin]: https://github.com/Arelle/Arelle/tree/master/arelle/examples/plugin/validate/XYZ
 [validations-directory]: https://github.com/Arelle/Arelle/tree/master/arelle/plugin/validate
 [contributing-code]: project:../../contributing.md#contributing-code

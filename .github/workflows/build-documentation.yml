@@ -24,4 +24,6 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           pip install -r requirements-docs.txt
       - name: Build documentation
+        env:
+          SPHINXOPTS: -T -W --keep-going
         run: make -C docs html
