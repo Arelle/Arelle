@@ -46,7 +46,7 @@ standard_roles_definitions = {
 standard_roles_other = ("xbrl.5.1.3", ())
 
 inlineDisplayNonePattern = re.compile(r"display\s*:\s*none")
-illegalXsdPatternEscapeChar = re.compile(r"\\[^nrt\\.^?*+{}()[\]pPsSiIcCdDwW-]")
+illegalXsdPatternEscapeChar = re.compile(r"\\[^nrt\\|.^?*+{}()[\]pPsSiIcCdDwW-]")
 
 def arcFromConceptQname(arcElement):
     modelRelationship = baseSetRelationship(arcElement)
