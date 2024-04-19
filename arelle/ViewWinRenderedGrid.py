@@ -77,6 +77,8 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     saveMenu = Menu(view.viewFrame, tearoff=0)
     saveMenu.add_command(label=_("HTML table"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(
         view=view, fileType="html", method=ViewFileRenderedGrid.viewRenderedGrid, caption=_("arelle - Save HTML-rendered Table")))
+    saveMenu.add_command(label=_("Excel table"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(
+        view=view, fileType="xlsx", method=ViewFileRenderedGrid.viewRenderedGrid, caption=_("arelle - Save Excel-rendered Table")))
     saveMenu.add_command(label=_("Layout model"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(
         view=view, fileType="xml", method=ViewFileRenderedLayout.viewRenderedLayout, caption=_("arelle - Save Table Layout Model")))
     saveMenu.add_command(label=_("Structural model"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(
