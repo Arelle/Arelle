@@ -323,13 +323,8 @@ def rule_fr81(
 
     Implementation: Check all facts for at least one `lang` attribute that must be either `da` or `en`.
     """
-    lang = None
-    for fact in val.modelXbrl.facts:
-        if fact.xmlLang is not None:
-            if fact.xmlLang in ['da', 'en']:
-                lang = fact.xmlLang
-                break
-    if lang is None:
+    has_valid_lang = any(fact.xmlLang in {'da', 'en'} for fact in val.modelXbrl.facts)
+    if not has_valid_lang:
         yield Validation.error(
             codes="DBA.FR81",
             msg=_("The digital annual report does not contain a technical indication of the language used. There "
