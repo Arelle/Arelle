@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR81"
+        description="DBA.FR81: There must be at least one fact with either the Danish (da) or English (en) lang attribute in the digital file."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            There must be at least one fact with either the Danish (da) or English (en) lang attribute in the digital file.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr81-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR81</error>
+        </result>
+    </variation>
+</testcase>

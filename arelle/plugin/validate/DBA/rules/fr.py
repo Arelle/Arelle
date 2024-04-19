@@ -327,3 +327,28 @@ def rule_fr55(
                 previousStartDate=previousStartDate,
                 previousEndDate=previousEndDate,
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr81(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation] | None:
+    """
+    DBA.FR81: The language used must be stated. There must be at least one fact with either the Danish
+    (`da`) or English (`en`) `lang` attribute in the digital file (the XBRL file or the IXBRL file).
+
+    Implementation: Check all facts for at least one `lang` attribute that must be either `da` or `en`.
+    """
+    has_valid_lang = any(fact.xmlLang in {'da', 'en'} for fact in val.modelXbrl.facts)
+    if not has_valid_lang:
+        yield Validation.error(
+            codes="DBA.FR81",
+            msg=_("The digital annual report does not contain a technical indication of the language used. There "
+                  "must be at least one fact, with either the Danish ('da') or English ('en') language attribute."),
+            modelObject=[val.modelXbrl.modelDocument]
+        )
