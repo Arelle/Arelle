@@ -1,6 +1,6 @@
 from pathlib import PurePath, Path
 
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_utr_structure_1_0 import config as structure_config
 
 ENTRY_POINT_ROOT = structure_config.entry_point_asset.entry_point_root
@@ -27,6 +27,7 @@ configs = [
                 ENTRY_POINT_ROOT,
                 entry_point=Path('conf/utr-structure/tests/01-simple/simpleValid.xml'),
                 public_download_url=structure_config.entry_point_asset.public_download_url,
+                source=AssetSource.S3_PUBLIC,
             ),
         ],
         expected_model_errors=frozenset(expected_model_errors),

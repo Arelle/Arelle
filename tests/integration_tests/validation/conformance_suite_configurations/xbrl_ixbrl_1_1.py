@@ -1,7 +1,7 @@
 import os
 from pathlib import PurePath, Path
 from tests.integration_tests.validation.conformance_suite_config import (
-    CONFORMANCE_SUITE_PATH_PREFIX, ConformanceSuiteConfig, ConformanceSuiteAssetConfig
+    CONFORMANCE_SUITE_PATH_PREFIX, ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 )
 
 ZIP_PATH = Path('inlineXBRL-1.1-conformanceSuite-2020-04-08.zip')
@@ -18,6 +18,7 @@ config = ConformanceSuiteConfig(
             entry_point_root=EXTRACTED_PATH,
             entry_point=Path('inlineXBRL-1.1-conformanceSuite-2020-04-08/index.xml'),
             public_download_url='https://www.xbrl.org/2020/inlineXBRL-1.1-conformanceSuite-2020-04-08.zip',
+            source=AssetSource.S3_PUBLIC,
         ),
     ],
     capture_warnings=False,

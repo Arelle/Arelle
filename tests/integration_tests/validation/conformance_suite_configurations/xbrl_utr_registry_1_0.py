@@ -14,10 +14,11 @@ config = ConformanceSuiteConfig(
             Path('utr/registry/utr-conf-cr-2013-05-17.zip'),
             entry_point=Path('utr-conf-cr-2013-05-17/2013-05-17/index.xml'),
             public_download_url='https://www.xbrl.org/utr/utr-conf-cr-2013-05-17.zip',
+            source=AssetSource.S3_PUBLIC,
         ),
         ConformanceSuiteAssetConfig(
             local_filename=Path('utr/registry/utr.xml'),
-            source=AssetSource.S3_PRIVATE,
+            source=AssetSource.S3_PUBLIC,
             type=AssetType.CONFORMANCE_SUITE,
             public_download_url='https://www.xbrl.org/utr/utr.xml',
             s3_key='utr/registry/utr.xml',

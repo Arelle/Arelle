@@ -1,7 +1,7 @@
 from pathlib import PurePath, Path
 
 from tests.integration_tests.validation.assets import NL_PACKAGES
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 
 ZIP_PATH = Path('NT18_KVK_20231213 Berichten.zip')
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
@@ -16,6 +16,7 @@ config = ConformanceSuiteConfig(
             entry_point_root=EXTRACTED_PATH / 'berichten' / 'NT18_KVK_20231213 - Test-suite.zip',
             entry_point=Path('testcases.xml'),
             public_download_url='https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT18_KVK_20231213%20Berichten.zip',
+            source=AssetSource.S3_PUBLIC,
         ),
         *NL_PACKAGES['NT18'],
     ],
