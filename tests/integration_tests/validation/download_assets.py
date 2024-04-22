@@ -72,7 +72,9 @@ def _download_public_s3_asset(asset: ConformanceSuiteAssetConfig) -> None:
     """
     key = asset.s3_key
     assert key is not None
-    if asset.type == AssetType.CACHE_PACKAGE:
+    if asset.type == AssetType.CONFORMANCE_SUITE:
+        key = f'ci/conformance_suites/{key}'
+    elif asset.type == AssetType.CACHE_PACKAGE:
         key = f'ci/caches/conformance_suites/{key}'
     elif asset.type == AssetType.TAXONOMY_PACKAGE:
         key = f'ci/taxonomy_packages/{key}'
