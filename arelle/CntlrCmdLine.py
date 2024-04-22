@@ -91,7 +91,7 @@ def parseArgs(args):
             break
     # Check if the config cache needs to be disabled prior to initializing the cntlr
     disable_persistent_config = bool({DISABLE_PERSISTENT_CONFIG_OPTION, DISABLE_PERSISTENT_CONFIG_OPTION.lower()} & set(args))
-    cntlr = createCntlrAndPreloadPlugins(uiLang, disable_persistent_config, {})  # This Cntlr is needed for translations and to enable the web cache.  The cntlr is not used outside the parse function
+    cntlr = CntlrCmdLine(uiLang=uiLang, disable_persistent_config=disable_persistent_config)  # This Cntlr is needed for translations and to enable the web cache.  The cntlr is not used outside the parse function
     usage = "usage: %prog [options]"
     parser = OptionParser(usage,
                           version="Arelle(r) {0} ({1}bit)".format(Version.__version__, getSystemWordSize()),
