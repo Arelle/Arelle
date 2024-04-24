@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from dataclasses import InitVar, dataclass
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, Pattern
 
 from arelle.FileSource import FileNamedStringIO
 from arelle.SystemInfo import hasWebServer
@@ -110,6 +110,7 @@ class RuntimeOptions:
     plugins: Optional[str] = None
     preFile: Optional[str] = None
     proxy: Optional[str] = None
+    redirectFallbacks: Optional[dict[Pattern[str], str]] = None
     relationshipCols: Optional[int] = None
     roleTypesFile: Optional[str] = None
     rssReport: Optional[str] = None

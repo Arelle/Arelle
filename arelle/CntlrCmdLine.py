@@ -667,6 +667,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.webCache.httpsRedirect = options.httpsRedirectCache
         if options.httpUserAgent:
             self.webCache.httpUserAgent = options.httpUserAgent
+        if options.redirectFallbacks:
+            for matchPattern, replaceFormat in options.redirectFallbacks.items():
+                self.webCache.redirectFallback(matchPattern, replaceFormat)
         if options.plugins:
             resetPlugins = False
             savePluginChanges = True
