@@ -16,11 +16,12 @@ from collections.abc import Iterable
 from copy import deepcopy
 
 from arelle import Version
-from arelle.Cntlr import LogFormatter, LogToBufferHandler
 from arelle.CntlrCmdLine import CntlrCmdLine
 from arelle.FileSource import FileNamedStringIO
 from arelle.PluginManager import pluginClassMethods
 from arelle.RuntimeOptions import RuntimeOptions
+from arelle.logging.formatters.LogFormatter import LogFormatter
+from arelle.logging.handlers.LogToBufferHandler import LogToBufferHandler
 from arelle.typing import TypeGetText
 from arelle.webserver.bottle import (Bottle, HTTPResponse, request, response,
                                      static_file)

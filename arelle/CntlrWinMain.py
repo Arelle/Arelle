@@ -9,6 +9,8 @@ from arelle import ValidateDuplicateFacts
 import os, sys, subprocess, pickle, time, locale, fnmatch, platform, webbrowser
 import regex as re
 
+from arelle.logging.formatters.LogFormatter import logRefsFileLines
+
 if sys.platform == 'win32' and getattr(sys, 'frozen', False):
     # need the .dll directory in path to be able to access Tk and Tcl DLLs efore importinng Tk, etc.
     os.environ['PATH'] = os.path.dirname(sys.executable) + ";" + os.environ['PATH']
@@ -1409,7 +1411,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         if messageCode and messageCode not in message: # prepend message code
             message = "[{}] {}".format(messageCode, message)
         if refs:
-            message += " - " + Cntlr.logRefsFileLines(refs)
+            message += " - " + logRefsFileLines(refs)
         elif file:
             if isinstance(file, (tuple,list,set)):
                 message += " - " + ", ".join(file)
