@@ -30,6 +30,7 @@ from arelle.logging.formatters import LogFormatter as _LogFormatter
 from arelle.logging.handlers.LogToBufferHandler import LogToBufferHandler
 from arelle.logging.handlers.LogToPrintHandler import LogToPrintHandler
 from arelle.logging.handlers.LogToXmlHandler import LogToXmlHandler
+from arelle.logging.handlers.StructuredMessageLogHandler import StructuredMessageLogHandler
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 
@@ -360,6 +361,9 @@ class Cntlr:
                 self.logHandler = LogToPrintHandler(logFileName)
             elif logFileName == "logToBuffer":
                 self.logHandler = LogToBufferHandler()
+                setattr(self.logger, "logRefObjectProperties", logRefObjectProperties)
+            elif logFileName == "logToStructuredMessage":
+                self.logHandler = StructuredMessageLogHandler()
                 setattr(self.logger, "logRefObjectProperties", logRefObjectProperties)
             elif logFileName.endswith(".xml") or logFileName.endswith(".json") or logToBuffer:
                 self.logHandler = LogToXmlHandler(filename=logFileName, mode=logFileMode or "a")  # should this be "w" mode??
