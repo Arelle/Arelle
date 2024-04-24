@@ -7,7 +7,7 @@ import os, sys, traceback, uuid
 import regex as re
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Dict, TYPE_CHECKING, Any, Type, TypeVar, Union, cast, Optional
+from typing import Dict, TYPE_CHECKING, Any, Type, TypeVar, Union, cast, Optional, List, Set, Tuple
 import logging
 from decimal import Decimal
 
@@ -53,6 +53,8 @@ NONDEFAULT = sys.intern("non-default")
 DEFAULTorNONDEFAULT = sys.intern("default-or-non-default")
 EMPTY_TUPLE: EmptyTuple = ()
 _NOT_FOUND = object()
+
+LoggableValue = Union[str, Dict[Any, Any], List[Any], Set[Any], Tuple[Any, ...]]
 
 
 def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: str | None = None, **kwargs: str) -> ModelXbrl:
@@ -1043,7 +1045,7 @@ class ModelXbrl:
             return [(p[0], str(p[1])) if len(p) == 2 else (p[0], str(p[1]), propValues(p[2]))
                     for p in properties if 2 <= len(p) <= 3]
         # determine message and extra arguments
-        fmtArgs = {}
+        fmtArgs: dict[str, LoggableValue] = {}
         extras: dict[str, Any] = {"messageCode":messageCode}
         modelObjectArgs: tuple[Any, ...] | list[Any] = ()
 
@@ -1146,7 +1148,7 @@ class ModelXbrl:
                 if isinstance(argValue, int):    # must be sortable with int's in logger
                     extras["sourceLine"] = argValue
             elif argName not in ("exc_info", "messageCodes"):
-                fmtArgs[argName] = self.loggableValue(argValue) # dereference anything not loggable
+                fmtArgs[argName] = self._loggableValue(argValue) # dereference anything not loggable
 
         if "refs" not in extras:
             try:
@@ -1164,23 +1166,26 @@ class ModelXbrl:
                 (msg, fmtArgs) if fmtArgs else (msg,),
                 extras)
 
-    def loggableValue(self, argValue: Any) -> str | dict[Any, Any]:  # must be dereferenced and not related to object lifetimes
-        if isinstance(argValue, (ModelValue.QName, ModelObject, FileNamedStringIO, tuple, list, set)):  # might be a set of lxml objects not dereferencable at shutdown
-            return str(argValue)
-        elif argValue is None:
+    def _loggableValue(self, argValue: Any) -> LoggableValue:  # must be dereferenced and not related to object lifetimes
+        if argValue is None:
             return "(none)"
-        elif isinstance(argValue, bool):
-            return str(argValue).lower() # show lower case true/false xml values
-        elif isinstance(argValue, int):
+        if isinstance(argValue, bool):
+            return str(argValue).lower()  # show lower case true/false xml values
+        if isinstance(argValue, int):
             # need locale-dependent formatting
             return format_string(self.modelManager.locale, '%i', argValue)
-        elif isinstance(argValue,(float,Decimal)):
+        if isinstance(argValue, (float, Decimal)):
             # need locale-dependent formatting
             return format_string(self.modelManager.locale, '%f', argValue)
-        elif isinstance(argValue, dict):
-            return dict((self.loggableValue(k), self.loggableValue(v)) for k,v in argValue.items())
-        else:
-            return str(argValue)
+        if isinstance(argValue, tuple):
+            return tuple(self._loggableValue(x) for x in argValue)
+        if isinstance(argValue, list):
+            return [self._loggableValue(x) for x in argValue]
+        if isinstance(argValue, set):
+            return {self._loggableValue(x) for x in argValue}
+        if isinstance(argValue, dict):
+            return dict((self._loggableValue(k), self._loggableValue(v)) for k, v in argValue.items())
+        return str(argValue)
 
     def debug(self, codes: str | tuple[str, ...], msg: str, **args: Any) -> None:
         """Same as error(), but as info
