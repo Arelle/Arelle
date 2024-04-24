@@ -320,6 +320,8 @@ def parseArgs(args):
                       help=_("Specify no checking of internet secure connection certificate"))
     parser.add_option("--httpsRedirectCache", "--httpsredirectcache", action="store_true", dest="httpsRedirectCache",
                       help=_("Treat http and https schemes interchangeably when looking up files from the webcache"))
+    parser.add_option("--cacheDirectory", "--cachedirectory", action="store", dest="cacheDirectory",
+                      help=_("Override the default location of the cache directory"))
     parser.add_option("--httpUserAgent", "--httpuseragent", action="store", dest="httpUserAgent",
                       help=_("Specify non-standard http header User-Agent value"))
     parser.add_option(DISABLE_PERSISTENT_CONFIG_OPTION, DISABLE_PERSISTENT_CONFIG_OPTION.lower(), action="store_true", dest="disablePersistentConfig", help=_("Prohibits Arelle from reading and writing a config to the local cache."))
@@ -670,6 +672,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.redirectFallbacks:
             for matchPattern, replaceFormat in options.redirectFallbacks.items():
                 self.webCache.redirectFallback(matchPattern, replaceFormat)
+        if options.cacheDirectory:
+            self.webCache.cacheDir = options.cacheDirectory
         if options.plugins:
             resetPlugins = False
             savePluginChanges = True

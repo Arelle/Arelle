@@ -34,6 +34,7 @@ class RuntimeOptions:
     anchFile: Optional[str] = None
     arcroleTypesFile: Optional[str] = None
     betaObjectModel: Optional[bool] = False
+    cacheDirectory: Optional[str] = None
     calFile: Optional[str] = None
     calcDecimals: Optional[int] = None
     calcDeduplicate: Optional[bool] = None
