@@ -53,7 +53,7 @@ def rule_fg_nl_03(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FG-NL-03: An XBRL instance document SHOULD use the recommended default namespace prefixes for all namespaces
     """
@@ -104,7 +104,7 @@ def rule_fg_nl_04(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FG-NL-04: An XBRL instance document SHOULD order the elements so that referents precede references.
     The children of the 'xbrli:xbrl' element should appear in the following order:
@@ -167,7 +167,7 @@ def rule_fg_nl_05(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FG-NL-05: Unused namespace declarations SHOULD NOT exist in a XBRL instance document.
     """
@@ -236,7 +236,7 @@ def rule_fg_nl_09(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FG-NL-09: A fact SHOULD NOT contain an 'id' attribute.
     """
@@ -262,7 +262,7 @@ def rule_fg_nl_11(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FG-NL-11: XBRL instance file Should only contain standard units based on the XBRL units Registry.
     """

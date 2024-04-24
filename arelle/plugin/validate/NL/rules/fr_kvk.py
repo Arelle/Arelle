@@ -42,7 +42,7 @@ def rule_fr_kvk_1_01(
     val: ValidateXbrl,
     *args: Any,
     **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-KVK-1.01: An XBRL instance document MUST have the file extension .xbrl
     """
@@ -71,7 +71,7 @@ def rule_fr_kvk_2_01(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-KVK-2.01: The XBRL instance root node MUST contain attribute "xml:lang" with value "nl", "en", "de" or "fr"
     """
@@ -102,7 +102,7 @@ def rule_fr_kvk_2_02(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-KVK-2.02: The attribute 'xml:lang' MUST contain the same value within an XBRL instance document
     """
@@ -137,7 +137,7 @@ def rule_fr_kvk_2_03(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-KVK-2.03: The attribute 'href' of the 'link:schemaRef' element MUST refer to the
     full web location of the published entrypoint from the annual reporting taxonomy
@@ -176,7 +176,7 @@ def rule_fr_kvk_5_01(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-KVK-5.01: The attribute 'decimals' to monetary values MUST be filled with allowed values.
     """
@@ -208,7 +208,7 @@ def rule_fr_kvk_5_02(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-KVK-5.02: The attribute 'decimals' for non-monetary numeric facts MUST be filled with 'INF'.
     """

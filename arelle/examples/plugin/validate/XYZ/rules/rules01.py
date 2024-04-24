@@ -27,7 +27,7 @@ def rule01_01_2022(
     val: ValidateXbrl,
     *args: Any,
     **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     if "Cash" not in val.modelXbrl.factsByLocalName:
         yield Validation.error(
             codes="XYZ.01.01",
@@ -46,7 +46,7 @@ def rule01_01_2023(
     val: ValidateXbrl,
     *args: Any,
     **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     conceptLocalNamesWithPositiveFactValues = pretendExpensiveOperation(pluginData, val)
     if "Cash" not in conceptLocalNamesWithPositiveFactValues:
         yield Validation.warning(
@@ -62,7 +62,7 @@ def rule01_02(
     val: ValidateXbrl,
     *args: Any,
     **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     numXbrlErrors = len(val.modelXbrl.errors)
     if numXbrlErrors > 0:
         yield Validation.error(
@@ -82,7 +82,7 @@ def rule01_03(
     val: ValidateXbrl,
     *args: Any,
     **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     conceptLocalNamesWithPositiveFactValues = pretendExpensiveOperation(pluginData, val)
     if "UnitsSold" not in conceptLocalNamesWithPositiveFactValues:
         yield Validation.error(
