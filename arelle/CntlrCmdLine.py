@@ -477,7 +477,7 @@ def parseArgs(args):
     return runtimeOptions, arellePluginModules
 
 
-def createCntlrAndPreloadPlugins(uiLang, disablePersistentConfig, arellePluginModules):
+def createCntlrAndPreloadPlugins(uiLang, disablePersistentConfig, arellePluginModules) -> CntlrCmdLine:
     """
     This function creates a cntlr and preloads all the necessary plugins.
     :param uiLang: The UI Language
@@ -583,7 +583,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         super(CntlrCmdLine, self).__init__(hasGui=False, uiLang=uiLang, disable_persistent_config=disable_persistent_config)
         self.preloadedPlugins =  {}
 
-    def run(self, options, sourceZipStream=None, responseZipStream=None) -> bool:
+    def run(self, options: RuntimeOptions, sourceZipStream=None, responseZipStream=None) -> bool:
         """Process command line arguments or web service request, such as to load and validate an XBRL document, or start web server.
 
         When a web server has been requested, this method may be called multiple times, once for each web service (REST) request that requires processing.
