@@ -119,12 +119,14 @@ def getValidDateFactsWithDefaultDimension(
     return results
 
 
-def getFactsGroupedByContextId(modelXbrl: ModelXbrl, conceptQn: QName) -> dict[str, list[ModelFact]]:
+def getFactsGroupedByContextId(modelXbrl: ModelXbrl, *conceptQns: QName) -> dict[str, list[ModelFact]]:
     """
     Groups facts by their context ID.
     :return: A dictionary of context ID to list of facts.
     """
-    facts: set[ModelFact] = modelXbrl.factsByQname.get(conceptQn, set())
+    facts: set[ModelFact] = set()
+    for conceptQn in conceptQns:
+        facts.update(modelXbrl.factsByQname.get(conceptQn, set()))
     return {
         k: sorted(v, key=lambda f: f.objectIndex)
         for k, v in itertools.groupby(facts, key=lambda f: f.contextID)
