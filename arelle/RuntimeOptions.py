@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
+import gettext
 from dataclasses import InitVar, dataclass
 from typing import Any, Optional, Union
 
@@ -11,7 +12,7 @@ from arelle.SystemInfo import hasWebServer
 from arelle.typing import TypeGetText
 from arelle.ValidateDuplicateFacts import DeduplicationType
 
-_: TypeGetText
+_: TypeGetText = gettext.gettext
 
 RuntimeOptionValue = Union[bool, int, str, None]
 
@@ -28,7 +29,9 @@ class RuntimeOptions:
         using the pluginOptions InitVar and applied to the class using setattr() in __post_init
         RuntimeOptionsException is raised if an improper combination of options are specified.
     """
+    _initialized: bool = False
     pluginOptions: InitVar[Optional[dict[str, RuntimeOptionValue]]] = None
+    strictOptions: bool = True  # Accessing options that are not defined will raise an AttributeError
 
     abortOnMajorError: Optional[bool] = None
     about: Optional[str] = None
@@ -144,11 +147,34 @@ class RuntimeOptions:
     webserver: Optional[str] = None
     xdgConfigHome: Optional[str] = None
 
+    def __delattr__(self, name: str) -> Any:
+        """
+        Delete attribute while silencing AttributeError if it does not exist and `strictOptions` is False.
+        :param name:
+        :return: None
+        """
+        try:
+            object.__delattr__(self, name)
+        except AttributeError as exc:
+            if self.strictOptions:
+                raise exc
+
     def __eq__(self, other: Any) -> bool:
         """ Default dataclass implementation doesn't consider plugin applied options. """
         if isinstance(other, RuntimeOptions):
             return vars(self) == vars(other)
         return NotImplemented
+
+    def __getattr__(self, name: str) -> Any:
+        """
+        If an attribute isn't found, it may be an unspecified plugin option.
+        Return None for any attributes not found on the class.
+        :param name:
+        :return: None
+        """
+        if self._initialized and not self.strictOptions:
+            return None
+        raise AttributeError(name)
 
     def __repr__(self) -> str:
         """ Default dataclass implementation doesn't consider plugin applied options. """
@@ -190,3 +216,4 @@ class RuntimeOptions:
                 self.roleTypesFile, self.arcroleTypesFile
         )):
             raise RuntimeOptionsException(_('Incorrect arguments with webserver'))
+        self._initialized = True
