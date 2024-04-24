@@ -53,7 +53,7 @@ def rule_br_kvk_2_04(
     val: ValidateXbrl,
     *args: Any,
     **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     BR-KVK-2.04: The period in the context MUST correspond to the period of the current or
     previous financial reporting period, or one day before the start of the comparative financial
@@ -130,7 +130,7 @@ def rule_br_kvk_3_01(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     BR-KVK-3.01: A measure element with a namespace prefix that refers to the
     "http://www.xbrl.org/2003/iso4217" namespace MUST appear exactly once in the instance document.
@@ -170,7 +170,7 @@ def rule_br_kvk_4_07(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     BR-KVK-4.07: The jenv-bw2-i:FinancialReportingPeriodCurrentEndDate MUST be before the date of filing.
     """
@@ -202,7 +202,7 @@ def rule_br_kvk_4_10(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     BR-KVK-4.10: The jenv-bw2-i:DocumentAdoptionDate MUST NOT be after the date of filing.
     """
@@ -234,7 +234,7 @@ def rule_br_kvk_4_12(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     BR-KVK-4.12: For a corrected annual report, an annual report to be corrected
     MUST be filed with the Trade Register.
@@ -271,7 +271,7 @@ def rule_br_kvk_4_16(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     BR-KVK-4.16: A corrected financial statement MUST be established.
     If kvk-i:DocumentResubmissionDueToUnsurmountableInaccuracies is "Ja" (Yes),
@@ -312,7 +312,7 @@ def rule_br_kvk_4_17(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     BR-KVK-4.17: The current and previous financial reporting period MUST be less than 2 years.
     """
@@ -344,7 +344,7 @@ def rule_br_kvk_4_20(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     BR-KVK-4.20: Each date in an XBRL instance MUST be a valid date. The date is in format YYYY-MM-DD.
     """

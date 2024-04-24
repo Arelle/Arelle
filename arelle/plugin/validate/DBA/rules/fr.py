@@ -28,7 +28,7 @@ def rule_fr4(
     val: ValidateXbrl,
     *args: Any,
     **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     DBA.FR4: The end date of the accounting period (gsd:ReportingPeriodEndDate with
     default TypeOfReportingPeriodDimension) must not be before the start date of the
@@ -54,7 +54,7 @@ def rule_fr5(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     DBA.FR5: General meeting date (gsd:DateOfGeneralMeeting) must not be before the
     end date of the accounting period (gsd:ReportingPeriodEndDate with default
@@ -80,7 +80,7 @@ def rule_fr7(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     DBA.FR7: Date of approval of the annual report (gsd:DateOfApprovalOfAnnualReport)
     must be after the end date of the Accounting Period (gsd:ReportingPeriodEndDate
@@ -106,7 +106,7 @@ def rule_fr9(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     DBA.FR9: The year's result (fsa:ProfitLoss) must be filled in as part of the income statement.
     The control only looks at instances without dimensions or instances that only have the dimension
@@ -134,7 +134,7 @@ def rule_fr10(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     DBA.FR10: Equity (fsa:Equity) must be filled in. The control only looks at instances without
     dimensions or instances that only have the dimension (ConsolidatedSoloDimension with ConsolidatedMember).
@@ -163,7 +163,7 @@ def rule_fr39(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     DBA.FR39: Date of extraordinary dividend (fsb:DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod)
     must be after the end of the financial year (gsd:ReportingPeriodEndDate) (with default
@@ -189,7 +189,7 @@ def rule_fr41(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     DBA.FR41: Failure to fill in 'Tax on profit for the year' or 'Tax on ordinary profit'
 
@@ -244,7 +244,7 @@ def rule_fr48(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     DBA.FR48: Annual reports with a start date of 1/1 2016 or later may not use the fields:
     'Extraordinary result before tax',
@@ -275,7 +275,7 @@ def rule_fr55(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     DBA.FR55: If a period with an end date immediately before the currently selected start
     date (gsd:ReportingPeriodStartDate) has previously been reported, the previous accounting
@@ -337,7 +337,7 @@ def rule_fr81(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     DBA.FR81: The language used must be stated. There must be at least one fact with either the Danish
     (`da`) or English (`en`) `lang` attribute in the digital file (the XBRL file or the IXBRL file).

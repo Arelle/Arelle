@@ -26,7 +26,7 @@ def rule02_01(
     isFilingDocument: bool,
     *args: Any,
     **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     if (
         modelDocument.type == ModelDocumentType.SCHEMA
         and modelDocument.targetNamespace is not None
@@ -49,7 +49,7 @@ def rule02_02(
     val: ValidateXbrl,
     *args: Any,
     **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     if val.modelXbrl.relationshipSet(XbrlConst.summationItem):
         yield Validation.error(
             codes="XYZ.02.02",

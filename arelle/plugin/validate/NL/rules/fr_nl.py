@@ -80,7 +80,7 @@ def rule_fr_nl_1_02(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-1.02: Characters MUST be from the Unicode ranges Basic Latin, Latin Supplement and Currency Symbols
     Only Unicode characters (version 9.0.0) from the ranges Basic Latin, Latin Supplement, Currency Symbols.
@@ -130,7 +130,7 @@ def rule_fr_nl_1_03(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-1.03: A DOCTYPE declaration MUST NOT be used in the filing instance document
     """
@@ -157,7 +157,7 @@ def rule_fr_nl_1_04(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-1.04: Disallowed character references MUST NOT be used. The use of character references (e.g. &#1080;)
     is not allowed unless it concerns numeric character references within the allowed set of characters and except
@@ -216,7 +216,7 @@ def rule_fr_nl_1_05(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-1.05: The character encoding UTF-8 MUST be used in the filing instance document
     """
@@ -243,7 +243,7 @@ def rule_fr_nl_1_06(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-1.06: The file name of an XBRL instance document MUST NOT contain characters with different meanings on different platforms.
     Only characters [0-9], [az], [AZ], [-] and [_] (File names not including the extension and separator [.]).
@@ -276,7 +276,7 @@ def rule_fr_nl_1_01(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-1.01: A BOM character MUST NOT be used.
     """
@@ -309,7 +309,7 @@ def rule_fr_nl_2_03(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-2.03: The language of a report MUST be included in the 'xml:lang' attribute of the 'xbrli:xbrl' root element
     """
@@ -338,7 +338,7 @@ def rule_fr_nl_2_04(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-2.04: The 'link:schemaRef' element MUST NOT appear more than once
     """
@@ -369,7 +369,7 @@ def rule_fr_nl_2_05(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-2.05: The 'link:linkbaseRef' element MUST NOT occur
     """
@@ -400,7 +400,7 @@ def rule_fr_nl_2_06(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-2.06: A CDATA end sequence ("]]>") MAY NOT be used.
     A CDATA section, specifically the end sequence, will cause the SOAP processing to fail since the instance document is itself
@@ -447,7 +447,7 @@ def rule_fr_nl_2_07(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-2.07: The attribute 'xsi:nil' MUST NOT be used
     """
@@ -473,7 +473,7 @@ def rule_fr_nl_3_01(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-3.01: Date elements in an 'xbrli:period' element MUST be included without time
 
@@ -505,7 +505,7 @@ def rule_fr_nl_3_02(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-3.02: The element 'xbrli:forever' MUST NOT be used
     """
@@ -531,7 +531,7 @@ def rule_fr_nl_3_03(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-3.03: An XBRL instance document MUST NOT contain unused contexts
     """
@@ -558,7 +558,7 @@ def rule_fr_nl_3_04(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-3.04: An XBRL instance document MUST NOT contain duplicate 'xbrli:context' elements
     """
@@ -587,7 +587,7 @@ def rule_fr_nl_4_01(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-4.01: An XBRL instance document MUST NOT contain duplicate 'xbrli:unit' elements
     """
@@ -616,7 +616,7 @@ def rule_fr_nl_4_02(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-4.02: An XBRL instance document MUST NOT contain unused 'xbrli:unit' elements
     """
@@ -644,7 +644,7 @@ def rule_fr_nl_5_01(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-5.01: An XBRL instance document MUST NOT contain duplicate facts
 
@@ -677,7 +677,7 @@ def rule_fr_nl_5_03(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-5.03: An XBRL instance document MUST NOT contain empty item concepts
     """
@@ -703,7 +703,7 @@ def rule_fr_nl_5_06(
     val: ValidateXbrl,
     *args: Any,
     **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-5.06: The 'precision' attribute MUST NOT be used
     """
@@ -729,7 +729,7 @@ def rule_fr_nl_5_11(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-5.11: Formatting using a limited set of 'escaped XHTML' elements MAY ONLY be included in
     fact values of facts tagged with concepts of type 'formattedExplanationItemType'.
@@ -830,7 +830,7 @@ def rule_fr_nl_6_01(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     FR-NL-6.01: Footnotes MUST NOT appear in an XBRL instance document
     """
