@@ -21,6 +21,7 @@ class PluginValidationDataExtension(PluginData):
     dateOfApprovalOfAnnualReportQn: QName
     dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName
     dateOfGeneralMeetingQn: QName
+    distributionOfResultsQns: frozenset[QName]
     equityQn: QName
     extraordinaryCostsQn: QName
     extraordinaryIncomeQn: QName
@@ -30,6 +31,7 @@ class PluginValidationDataExtension(PluginData):
     precedingReportingPeriodEndDateQn: QName
     precedingReportingPeriodStartDateQn: QName
     profitLossQn: QName
+    proposedDividendRecognisedInEquityQn: QName
     reportingPeriodEndDateQn: QName
     reportingPeriodStartDateQn: QName
     taxExpenseOnOrdinaryActivitiesQn: QName

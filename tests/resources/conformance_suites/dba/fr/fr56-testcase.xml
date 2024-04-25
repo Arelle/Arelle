@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR56"
+        description="DBA.FR56: The annual report must contain a distribution of results."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            Profit threshold is exceeded, but distribution of results are missing.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr56-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR56</error>
+        </result>
+    </variation>
+</testcase>

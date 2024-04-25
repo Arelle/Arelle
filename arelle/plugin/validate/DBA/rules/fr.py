@@ -13,7 +13,7 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from . import errorOnDateFactComparison, findFactsWithDimension
+from . import errorOnDateFactComparison, findFactsWithDimension, getFactsGroupedByContextId
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 
@@ -326,6 +326,57 @@ def rule_fr55(
                 modelObject=(previousStartDateFact, previousEndDateFact, precedingStartDateFact, precedingEndDateFact, currentStartDateFact),
                 previousStartDate=previousStartDate,
                 previousEndDate=previousEndDate,
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr56(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR56: Missing allocation of profit. The annual report must contain a
+    distribution of results.
+
+    Annual reports, etc. with a start date of 1/1 2016 or later must have a profit
+    allocation, if the profit (fsa:ProfitLoss) for the year is greater than 1000 or
+    less than -1000, cf. the Annual Accounts Act §§ 31 and 95 a.
+    """
+    modelXbrl = val.modelXbrl
+    contextIds = {c.id for c in pluginData.getCurrentAndPreviousReportingPeriodContexts(modelXbrl)}
+    profitLossFactsMap = getFactsGroupedByContextId(modelXbrl, pluginData.profitLossQn)
+    distributionFactsMap = getFactsGroupedByContextId(
+        modelXbrl,
+        *pluginData.distributionOfResultsQns,
+    )
+    for contextId, profitLossFacts in profitLossFactsMap.items():
+        if contextId not in contextIds:
+            continue
+        profitLossFact = None
+        for fact in profitLossFacts:
+            profitLossValue = cast(float, fact.xValue)
+            if not (-pluginData.positiveProfitThreshold <= profitLossValue <= pluginData.positiveProfitThreshold):
+                profitLossFact = fact
+                break
+        if profitLossFact is None:
+            continue
+        distributionFacts = distributionFactsMap.get(contextId, [])
+        valid = False
+        for distributionsResultDistributionFact in distributionFacts:
+            if not distributionsResultDistributionFact.isNil:
+                valid = True
+                break
+        if not valid:
+            yield Validation.warning(
+                codes='DBA.FR56',
+                msg=_("ADVICE FR56: The annual report does not contain a profit distribution. "
+                      "The annual report must contain a profit and loss statement with a "
+                      "distribution of profits."),
+                modelObject=profitLossFact
             )
 
 
