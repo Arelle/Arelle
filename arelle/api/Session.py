@@ -1,5 +1,10 @@
 """
 See COPYRIGHT.md for copyright information.
+
+The Arelle Python Beta API (located in `arelle.api` module) is an in-progress API module.
+A roadmap for this API is in development.
+
+Users of this API should expect changes in future releases.
 """
 from __future__ import annotations
 
