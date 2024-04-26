@@ -670,6 +670,12 @@ class CntlrWinMain (Cntlr.Cntlr):
                                 initialdir=initialdir,
                                 filetypes=[(_("HTML file .html"), "*.html"), (_("HTML file .htm"), "*.htm"), (_("XML file .xml"), "*.xml"), (_("JSON file .xml"), "*.json")],
                                 defaultextension=f".{fileType}")
+                    elif fileType == "xlsx" and filename is None:
+                        filename = self.uiFileDialog("save",
+                                title=caption,
+                                initialdir=initialdir,
+                                filetypes=[(_("Excel file .xlsx"), "*.xlsx")],
+                                defaultextension=f".{fileType}")
                     else: # ask file type
                         if filename is None:
                             filename = self.uiFileDialog("save",
