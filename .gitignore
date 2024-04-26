@@ -31,6 +31,7 @@ bin/
 build
 buildRenameX64.bat
 buildRenameX86.bat
+conf-*
 dist
 docs/_build
 docs/source/apidocs
@@ -53,4 +54,3 @@ tests/resources/packages/
 # Visual Studio
 .vs/
 .test
-tests/resources/packages

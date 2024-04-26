@@ -3,6 +3,8 @@ See COPYRIGHT.md for copyright information.
 '''
 import os, io, logging
 from collections import defaultdict
+from typing import Optional
+
 from arelle import XmlUtil, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
 from arelle.PluginManager import pluginClassMethods
@@ -347,6 +349,13 @@ class ModelTestcaseVariation(ModelObject):
             return self.get("result")
 
         return None
+
+    @property
+    def match(self) -> Optional[str]:
+        resultElement = XmlUtil.descendant(self, None, "result")
+        if resultElement is None:
+            return None
+        return resultElement.get('match')
 
     @property
     def expectedCount(self):

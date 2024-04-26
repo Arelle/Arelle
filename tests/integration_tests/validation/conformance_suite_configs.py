@@ -3,6 +3,8 @@ from __future__ import annotations
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 from tests.integration_tests.validation.conformance_suite_configurations.dba_current import config as dba_current
 from tests.integration_tests.validation.conformance_suite_configurations.efm_current import config as efm_current
+from tests.integration_tests.validation.conformance_suite_configurations.efm_reg_dqc import config as efm_reg_dqc
+from tests.integration_tests.validation.conformance_suite_configurations.efm_reg_pragmatic import config as efm_reg_pragmatic
 from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2021 import config as esef_ixbrl_2021
 from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2022 import config as esef_ixbrl_2022
 from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2023 import config as esef_ixbrl_2023
@@ -41,6 +43,8 @@ from tests.integration_tests.validation.conformance_suite_configurations.xbrl_ut
 ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     dba_current,
     efm_current,
+    efm_reg_dqc,
+    efm_reg_pragmatic,
     esef_ixbrl_2021,
     esef_ixbrl_2022,
     esef_ixbrl_2023,
