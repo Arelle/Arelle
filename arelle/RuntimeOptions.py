@@ -3,16 +3,12 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
-import gettext
 from dataclasses import InitVar, dataclass
 from typing import Any, Optional, Union
 
 from arelle.FileSource import FileNamedStringIO
 from arelle.SystemInfo import hasWebServer
-from arelle.typing import TypeGetText
 from arelle.ValidateDuplicateFacts import DeduplicationType
-
-_: TypeGetText = gettext.gettext
 
 RuntimeOptionValue = Union[bool, int, str, None]
 
@@ -197,7 +193,7 @@ class RuntimeOptions:
                 if hasattr(self, optionName)
             )
             if existingBaseOptions:
-                raise RuntimeOptionsException(_('Provided plugin options already exist as base options {}').format(existingBaseOptions))
+                raise RuntimeOptionsException('Provided plugin options already exist as base options {}'.format(existingBaseOptions))
             for optionName, optionValue in pluginOptions.items():
                 setattr(self, optionName, optionValue)
         if (self.entrypointFile is None and
@@ -205,9 +201,9 @@ class RuntimeOptions:
                 not self.plugins and
                 not pluginOptions and
                 not self.webserver):
-            raise RuntimeOptionsException(_('Incorrect arguments'))
+            raise RuntimeOptionsException('Incorrect arguments')
         if self.webserver and not hasWebServer():
-            raise RuntimeOptionsException(_("Webserver option requires webserver module"))
+            raise RuntimeOptionsException("Webserver option requires webserver module")
         if self.webserver and any((
                 self.entrypointFile, self.importFiles, self.diffFile, self.versReportFile,
                 self.factsFile, self.factListCols, self.factTableFile, self.factTableCols,
@@ -215,5 +211,5 @@ class RuntimeOptions:
                 self.dimFile, self.anchFile, self.formulaeFile, self.viewArcrole, self.viewFile,
                 self.roleTypesFile, self.arcroleTypesFile
         )):
-            raise RuntimeOptionsException(_('Incorrect arguments with webserver'))
+            raise RuntimeOptionsException('Incorrect arguments with webserver')
         self._initialized = True
