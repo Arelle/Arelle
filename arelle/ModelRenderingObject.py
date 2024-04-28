@@ -1353,7 +1353,6 @@ class DefnMdlDimensionRelationshipNode(DefnMdlRelationshipNode):
         if getDimQname:
             return self._dimensionQname
         if getMembers:
-            sourceDimRels = self.modelXbrl.relationshipSet(XbrlConst.hypercubeDimension,linkrole).toModelObject(dimConcept)
             rels = []
             def srcQnDims(srcRel, srcQn):
                 if not srcQn or srcRel.toModelObject.qname == srcQn:
@@ -1376,9 +1375,8 @@ class DefnMdlDimensionRelationshipNode(DefnMdlRelationshipNode):
                 for rel in self.modelXbrl.relationshipSet(XbrlConst.domainMember,srcRel.consecutiveLinkrole).fromModelObject(srcRel.toModelObject):
                     srcQnDims(rel, srcQn)
             for srcQn in self._sourceQnames or (None,):
-                for rel in sourceDimRels:
-                    for dimDomRel in self.modelXbrl.relationshipSet(XbrlConst.dimensionDomain,rel.consecutiveLinkrole).fromModelObject(rel.toModelObject):
-                        srcQnDims(dimDomRel, srcQn)
+                for dimDomRel in self.modelXbrl.relationshipSet(XbrlConst.dimensionDomain,linkrole).fromModelObject(dimConcept):
+                    srcQnDims(dimDomRel, srcQn)
             return rels
 coveredAspectToken = {"concept": Aspect.CONCEPT,
                       "entity-identifier": Aspect.VALUE,
