@@ -11,22 +11,14 @@ from __future__ import annotations
 from types import TracebackType
 from typing import Any, Type
 
-from arelle.CntlrCmdLine import createCntlrAndPreloadPlugins
+from arelle.CntlrCmdLine import CntlrCmdLine, createCntlrAndPreloadPlugins
 from arelle.ModelXbrl import ModelXbrl
 from arelle.RuntimeOptions import RuntimeOptions
 
 
 class Session:
-    def __init__(
-        self,
-        ui_lang: str | None = None,
-        disable_persistent_config: bool = False
-     ):
-        self._cntlr = createCntlrAndPreloadPlugins(
-            uiLang=ui_lang,
-            disablePersistentConfig=disable_persistent_config,
-            arellePluginModules={},
-        )
+    def __init__(self) -> None:
+        self._cntlr: CntlrCmdLine | None = None
 
     def __enter__(self) -> Any:
         return self
@@ -37,7 +29,11 @@ class Session:
         exc_val: BaseException,
         exc_tb: TracebackType | None
     ) -> None:
-        self._cntlr.close()
+        self.close()
+
+    def close(self) -> None:
+        if self._cntlr is not None:
+            self._cntlr.close()
 
     def get_logs(self, clear_logs: bool = False) -> str:
         """
@@ -46,17 +42,20 @@ class Session:
         :param clear_logs: If enabled, clears the log buffer after retrieving logs.
         :return:
         """
-        handler = self._cntlr.logHandler
-        if hasattr(handler, 'getXml'):
-            return str(handler.getXml(clearLogBuffer=clear_logs, includeDeclaration=False))
-        if hasattr(handler, 'getText'):
-            return str(handler.getText(clearLogBuffer=clear_logs))
+        if self._cntlr:
+            handler = self._cntlr.logHandler
+            if hasattr(handler, 'getXml'):
+                return str(handler.getXml(clearLogBuffer=clear_logs, includeDeclaration=False))
+            if hasattr(handler, 'getText'):
+                return str(handler.getText(clearLogBuffer=clear_logs))
         return ""
 
     def get_models(self) -> list[ModelXbrl]:
         """
         Retrieve a list of loaded models.
         """
+        if self._cntlr is None:
+            return []
         return self._cntlr.modelManager.loadedModelXbrls
 
     def run(self, options: RuntimeOptions) -> bool:
@@ -65,6 +64,18 @@ class Session:
         :param options: Options to use for the run.
         :return: True if the run was successful, False otherwise.
         """
+        if self._cntlr is None:
+            # Certain options must be passed into the controller constructor to have the intended effect
+            self._cntlr = createCntlrAndPreloadPlugins(
+                uiLang=options.uiLang,
+                disablePersistentConfig=options.disablePersistentConfig,
+                arellePluginModules={},
+            )
+        else:
+            # Certain options passed into the controller constructor need to be updated
+            if self._cntlr.uiLang != options.uiLang:
+                self._cntlr.setUiLanguage(options.uiLang)
+            self._cntlr.disablePersistentConfig = options.disablePersistentConfig or False
         if options.webserver:
             if not self._cntlr.logger:
                 self._cntlr.startLogging(
