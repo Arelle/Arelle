@@ -205,7 +205,7 @@ __pluginInfo__ = {
     'author': authorLabel,
     'copyright': copyrightLabel,
     # use formulaSaver tt output XF and saveLoadableOIM to output json instance
-    'import': ('formulaSaver', 'saveLoadableOIM', 'loadFromOIM'),
+    'import': ('formulaSaver', 'saveLoadableOIM'),
     # classes of mount points (required)
     'CntlrCmdLine.Options': commandLineOptionExtender,
     'CntlrCmdLine.Utility.Run': convertSuite
