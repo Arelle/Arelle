@@ -3,7 +3,7 @@ certifi==2024.2.2
 lxml==5.2.1
 OpenPyXL==3.1.2
 pyparsing==3.1.2
-regex==2024.4.16
+regex==2024.4.28
 isodate==0.6.1
 aniso8601==9.0.1
 CherryPy==18.9.0
@@ -23,7 +23,7 @@ Tornado==6.4
 PyCryptodome==3.20.0
 # xbrlDB plugin
 cx_Oracle==8.3.0
-pg8000==1.31.1
+pg8000==1.31.2
 PyMySQL==1.1.0
 pyodbc==5.1.0
 RDFLib==7.0.0
