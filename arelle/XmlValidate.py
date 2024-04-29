@@ -473,10 +473,10 @@ def validateValue(
                          and xValue < 0) or
                         (baseXsdType == "nonPositiveInteger" and xValue > 0) or
                         (baseXsdType == "positiveInteger" and xValue <= 0) or
-                        (baseXsdType == "byte" and not -128 <= xValue < 127) or
-                        (baseXsdType == "unsignedByte" and not 0 <= xValue < 255) or
-                        (baseXsdType == "short" and not -32768 <= xValue < 32767) or
-                        (baseXsdType == "unsignedShort" and not 0 <= xValue < 65535) or
+                        (baseXsdType == "byte" and not -128 <= xValue <= 127) or
+                        (baseXsdType == "unsignedByte" and not 0 <= xValue <= 255) or
+                        (baseXsdType == "short" and not -32768 <= xValue <= 32767) or
+                        (baseXsdType == "unsignedShort" and not 0 <= xValue <= 65535) or
                         (baseXsdType == "positiveInteger" and xValue <= 0)):
                         raise ValueError("{0} is not {1}".format(value, baseXsdType))
                     if facets:

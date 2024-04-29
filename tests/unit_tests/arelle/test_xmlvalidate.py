@@ -86,8 +86,8 @@ BASE_XSD_TYPES = {
         {"value": "-129", "expected": ("=", None, INVALID)},
         {"value": "-128", "expected": (-128, -128, VALID)},
         {"value": "0", "expected": (0, 0, VALID)},
-        {"value": "126", "expected": (126, 126, VALID)},
-        {"value": "127", "expected": ("=", None, INVALID)},  # TODO: This and other integer ranges seem to incorrectly exclude the maximum value
+        {"value": "127", "expected": (127, 127, VALID)},
+        {"value": "128", "expected": ("=", None, INVALID)},
     ],
     "date": [
         {"value": "2025-01-02", "expected": ("=", DateTime(2025, 1, 2), VALID)},
@@ -339,8 +339,8 @@ BASE_XSD_TYPES = {
         {"value": "-32769", "expected": ("=", None, INVALID)},
         {"value": "-32768", "expected": (-32768, -32768, VALID)},
         {"value": "0", "expected": (0, 0, VALID)},
-        {"value": "32766", "expected": (32766, 32766, VALID)},
-        {"value": "32767", "expected": ("=", None, INVALID)},
+        {"value": "32767", "expected": (32767, 32767, VALID)},
+        {"value": "32768", "expected": ("=", None, INVALID)},
     ],
     "string": [
         {"value": "*", "expected": ("=", "=", VALID)},
@@ -367,8 +367,8 @@ BASE_XSD_TYPES = {
         {"value": "-1", "expected": ("=", None, INVALID)},
         {"value": "0", "expected": (0, 0, VALID)},
         {"value": "1", "expected": (1, 1, VALID)},
-        {"value": "254", "expected": (254, 254, VALID)},
-        {"value": "255", "expected": ("=", None, INVALID)},
+        {"value": "255", "expected": (255, 255, VALID)},
+        {"value": "256", "expected": ("=", None, INVALID)},
     ],
     "unsignedInt": [
         {"value": "-1", "expected": ("=", None, INVALID)},
@@ -384,8 +384,8 @@ BASE_XSD_TYPES = {
         {"value": "-1", "expected": ("=", None, INVALID)},
         {"value": "0", "expected": (0, 0, VALID)},
         {"value": "1", "expected": (1, 1, VALID)},
-        {"value": "65534", "expected": (65534, 65534, VALID)},
-        {"value": "65535", "expected": ("=", None, INVALID)},
+        {"value": "65535", "expected": (65535, 65535, VALID)},
+        {"value": "65536", "expected": ("=", None, INVALID)},
     ],
     "XBRLI_DATEUNION": [
         {"value": "2025-01-02", "expected": ("=", DateTime(2025, 1, 2), VALID)},
