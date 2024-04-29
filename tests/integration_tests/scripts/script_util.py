@@ -12,6 +12,7 @@ from typing import cast, Iterable, Any
 
 import regex
 from lxml import etree
+from lxml.etree import _ElementTree
 
 from tests.integration_tests.download_cache import download_and_apply_cache
 
@@ -73,6 +74,7 @@ def run_arelle(
     additional_args: list[str] | None = None,
     offline: bool = False,
     logFile: Path | None = None,
+    logFormat: str = "[%(messageCode)s] %(message)s - %(file)s",
 ) -> None:
     if os.name == 'nt':
         args = [sys.executable if w == 'python' else w for w in arelle_command.split()]
@@ -85,6 +87,7 @@ def run_arelle(
     args.extend(additional_args or [])
     if logFile:
         args.extend(["--logFile", str(logFile)])
+        args.extend(["--logFormat", logFormat])
     result = subprocess.run(args, capture_output=True)
     assert result.returncode == 0, result.stderr.decode().strip()
 
@@ -95,10 +98,17 @@ def validate_log_file(
 ) -> list[str]:
     if not logfile_path.exists():
         return [f'Log file "{logfile_path}" not found.']
+    tree = etree.parse(logfile_path)
+    return validate_log_tree(tree, expected_results)
+
+
+def validate_log_tree(
+        tree: _ElementTree,
+        expected_results: dict[str, dict[regex.Pattern[str], int]] | None = None,
+) -> list[str]:
     expected_results = expected_results or {}
     if "error" not in expected_results:
         expected_results["error"] = {}
-    tree = etree.parse(logfile_path)
     level_messages = {}
     for level in expected_results:
         level_messages[level] = cast(Iterable[Any], tree.xpath(f"//log/entry[@level='{level}']/message/text()"))
@@ -118,3 +128,11 @@ def validate_log_file(
             if actual_count != expected_count:
                 results.append(f'Expected {expected_count} occurrence(s) of {level} "{pattern}" but found {actual_count}.')
     return results
+
+
+def validate_log_xml(
+        xml: str,
+        expected_results: dict[str, dict[regex.Pattern[str], int]] | None = None,
+) -> list[str]:
+    tree = etree.fromstring(xml)
+    return validate_log_tree(tree.getroottree(), expected_results)

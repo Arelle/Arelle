@@ -872,13 +872,17 @@ class LogToXmlHandler(LogHandlerWithXml):
     def clearLogBuffer(self) -> None:
         del self.logRecordBuffer[:]
 
-    def getXml(self, clearLogBuffer: bool = True) -> str:
-        """Returns an XML document (as a string) representing the messages in the log buffer, and clears the buffer.
-
-        :reeturns: str -- XML document string of messages in the log buffer.
+    def getXml(self, clearLogBuffer: bool = True, includeDeclaration: bool = True) -> str:
         """
-        xml = ['<?xml version="1.0" encoding="utf-8"?>\n',
-               '<log>']
+        Returns an XML document (as a string) representing the messages in the log buffer.
+        Optionally clears the log buffer afterwards.
+        Optionally includes XML declaration.
+        :return: XML string of messages in the log buffer.
+        """
+        xml = []
+        if includeDeclaration:
+            xml.append('<?xml version="1.0" encoding="utf-8"?>\n')
+        xml.append('<log>')
         for logRec in self.logRecordBuffer:
             xml.append(self.recordToXml(logRec))
         xml.append('</log>')
