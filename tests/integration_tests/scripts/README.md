@@ -10,6 +10,8 @@ python -m tests.integration_tests.scripts.run_scripts --help
 
   -h, --help            show this help message and exit
   --all                 Select all configured integration tests.
+  --all-frozen-builds   Select all configured integration tests that should run 
+                        against frozen builds.
   --arelle ARELLE       CLI command to run Arelle
   --download-cache      Whether or not to download and apply cache.
   --list                List names of all integration tests.

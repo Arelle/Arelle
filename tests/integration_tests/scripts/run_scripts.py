@@ -21,6 +21,11 @@ ARGUMENTS: list[dict[str, Any]] = [
         "help": "Select all configured integration tests."
     },
     {
+        "name": "--all-frozen-builds",
+        "action": "store_true",
+        "help": "Select all configured integration tests that should run against frozen builds."
+    },
+    {
         "name": "--arelle",
         "action": "store",
         "help": "CLI command to run Arelle"
@@ -54,6 +59,12 @@ ARGUMENTS: list[dict[str, Any]] = [
 TESTS_PATH = './tests/integration_tests/scripts/tests'
 
 
+def _for_frozen_build(name: Path) -> bool:
+    if name.stem.startswith("python_api_"):
+        return False
+    return True
+
+
 def _get_all_scripts() -> list[Path]:
     """
     Returns absolute paths of runnable scripts based on the operating system.
@@ -72,6 +83,8 @@ def run_script_options(options: Namespace) -> list[ParameterSet]:
                 ALL_SCRIPTS_ZIP,
                 version_id='RMN9iin8l7Fqz7E4qfq_1uTuVMc8524U'
             )
+    elif options.all_frozen_builds:
+        scripts = [s for s in all_scripts if _for_frozen_build(s)]
     else:
         names = options.name
         assert names, '--name or --all is required'
