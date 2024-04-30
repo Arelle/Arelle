@@ -138,7 +138,7 @@ jobs:
     - name: "[Test] Test build"
       run: |
         pip install -r requirements-dev.txt
-        pytest -s --disable-warnings --all --download-cache --offline --arelle="${{ env.BUILD_PATH }}\arelleCmdLine.exe" tests/integration_tests/scripts/test_scripts.py
+        pytest -s --disable-warnings --all-frozen-builds --download-cache --offline --arelle="${{ env.BUILD_PATH }}\arelleCmdLine.exe" tests/integration_tests/scripts/test_scripts.py
     - name: "[Test] Upload test artifacts"
       if: always()
       uses: actions/upload-artifact@v4.3.3
