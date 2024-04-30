@@ -178,6 +178,10 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblAxisDisp
             modelXbrl.error("xbrlte:axisAspectModelMismatch",
                 _("DimensionRelationship axis %(xlinkLabel)s can't be used in non-dimensional aspect model"),
                 modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel)
+        # TLB 1.0 legacy use of Hypercube Linkroles to find domain roots
+        if modelXbrl.parameters.get(QName(None,None,"tlbDimRelsUseHcRoleForDomainRoots"),("",""))[1] in ("true", True):
+            definitionNode.tlbDimRelsUseHcRoleForDomainRoots = True
+
     definitionNodeHasChild = False
     for axisSubtreeRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD)).fromModelObject(definitionNode):
         if checkBreakdownDefinitionNode(modelXbrl, modelTable, axisSubtreeRel, tblAxisDisposition, uncoverableAspects, aspectsCovered):

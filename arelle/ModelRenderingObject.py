@@ -1300,6 +1300,8 @@ class DefnMdlDimensionRelationshipNode(DefnMdlRelationshipNode):
     strctMdlRollupType = ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE
     def init(self, modelDocument):
         super(DefnMdlDimensionRelationshipNode, self).init(modelDocument)
+        self.tlbDimRelsUseHcRoleForDomainRoots = False #legacy feature for Dutch taxonomies before 2025, set by formula parameter tlbDimRelsUseHcRoleForDomainRoots
+
     def hasAspect(self, structuralNode, aspect):
         return aspect == self.coveredAspect(structuralNode) or aspect == Aspect.DIMENSIONS
     def aspectValue(self, xpCtx, aspect, inherit=None):
@@ -1374,9 +1376,18 @@ class DefnMdlDimensionRelationshipNode(DefnMdlRelationshipNode):
                     return # found the starting source QName
                 for rel in self.modelXbrl.relationshipSet(XbrlConst.domainMember,srcRel.consecutiveLinkrole).fromModelObject(srcRel.toModelObject):
                     srcQnDims(rel, srcQn)
-            for srcQn in self._sourceQnames or (None,):
-                for dimDomRel in self.modelXbrl.relationshipSet(XbrlConst.dimensionDomain,linkrole).fromModelObject(dimConcept):
-                    srcQnDims(dimDomRel, srcQn)
+            if self.tlbDimRelsUseHcRoleForDomainRoots:
+                # legacy mode uses Hc Linkrole for roots instead of Dim linkrole (Dutch taxonomies before 2025)
+                sourceDimRels = self.modelXbrl.relationshipSet(XbrlConst.hypercubeDimension,linkrole).toModelObject(dimConcept)
+                for srcQn in self._sourceQnames or (None,):
+                    for rel in sourceDimRels:
+                        for dimDomRel in self.modelXbrl.relationshipSet(XbrlConst.dimensionDomain,rel.consecutiveLinkrole).fromModelObject(rel.toModelObject):
+                            srcQnDims(dimDomRel, srcQn)
+            else:
+                dimRels = self.modelXbrl.relationshipSet(XbrlConst.dimensionDomain,linkrole).fromModelObject(dimConcept)
+                for srcQn in self._sourceQnames or (None,):
+                    for dimDomRel in dimRels:
+                        srcQnDims(dimDomRel, srcQn)
             return rels
 coveredAspectToken = {"concept": Aspect.CONCEPT,
                       "entity-identifier": Aspect.VALUE,
