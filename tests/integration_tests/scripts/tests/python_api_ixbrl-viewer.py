@@ -58,7 +58,7 @@ options = RuntimeOptions(
 )
 with Session() as session:
     session.run(options)
-    log_xml = session.get_logs()
+    log_xml = session.get_logs('xml')
 # include end
 
 print(f"Checking for viewer: {viewer_path}")
@@ -78,4 +78,3 @@ try:
     os.unlink(working_directory / 'python_api_ixbrl-viewer' / 'ixbrlviewer.js')
 except PermissionError as exc:
     print(f"Failed to cleanup test files: {exc}")
-    pass

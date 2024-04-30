@@ -35,19 +35,24 @@ class Session:
         if self._cntlr is not None:
             self._cntlr.close()
 
-    def get_logs(self, clear_logs: bool = False) -> str:
+    def get_logs(self, log_format: str, clear_logs: bool = False) -> str:
         """
         Retrieve logs as a string in the configured format.
+        Raises a `ValueError` if the log format is not supported by the current log handler.
         Optionally clear the log buffer after retrieving.
+        :param log_format: The format to retrieve logs in. Supported formats are 'json', 'text', and 'xml'.
         :param clear_logs: If enabled, clears the log buffer after retrieving logs.
         :return:
         """
         if self._cntlr:
             handler = self._cntlr.logHandler
-            if hasattr(handler, 'getXml'):
-                return str(handler.getXml(clearLogBuffer=clear_logs, includeDeclaration=False))
-            if hasattr(handler, 'getText'):
+            if log_format == 'json' and hasattr(handler, 'getJson'):
+                return str(handler.getJson(clearLogBuffer=clear_logs))
+            if log_format == 'text' and hasattr(handler, 'getText'):
                 return str(handler.getText(clearLogBuffer=clear_logs))
+            if log_format == 'xml' and hasattr(handler, 'getXml'):
+                return str(handler.getXml(clearLogBuffer=clear_logs, includeDeclaration=False))
+            raise ValueError('Unsupported log format for {}: {}'.format(type(handler).__name__, log_format))
         return ""
 
     def get_models(self) -> list[ModelXbrl]:

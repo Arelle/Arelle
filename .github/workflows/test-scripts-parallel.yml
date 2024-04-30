@@ -62,4 +62,4 @@ jobs:
         uses: actions/upload-artifact@v4.3.3
         with:
           name: ${{ matrix.name }}_${{ matrix.os }}_${{ matrix.python-version }}_logs
-          path: '.test/**/*.logfile.xml'
+          path: '.test/**/*.logfile.*'
