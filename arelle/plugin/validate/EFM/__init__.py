@@ -310,18 +310,19 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         efmFiling.attachmentDocumentType = val.params.get("attachmentDocumentType")
 
 def severityReleveler(modelXbrl, level, messageCode, args, **kwargs):
-    if messageCode and feeTagMessageCodesRelevelable.match(messageCode) and level == "ERROR":
-        if not hasattr(modelXbrl, "isFeeTagging"):
-            modelXbrl.isFeeTagging = any(ns.startswith("http://xbrl.sec.gov/ffd") for ns in modelXbrl.namespaceDocs)
-        if modelXbrl.isFeeTagging:
-            modelObject = args.get("modelObject")
-            if (isinstance(modelObject, ModelFact) and
-                str(modelObject.qname) not in feeTagEltsNotRelevelable):
-                    level = "WARNING"
-    # add message number
-    messageCode, msgNum = messageNumericId(modelXbrl, level, messageCode, args)
-    if msgNum:
-        args["edgarMessageNumericId"] = msgNum
+    if getattr(modelXbrl.modelManager.disclosureSystem, "EFMplugin", False):
+        if messageCode and feeTagMessageCodesRelevelable.match(messageCode) and level == "ERROR":
+            if not hasattr(modelXbrl, "isFeeTagging"):
+                modelXbrl.isFeeTagging = any(ns.startswith("http://xbrl.sec.gov/ffd") for ns in modelXbrl.namespaceDocs)
+            if modelXbrl.isFeeTagging:
+                modelObject = args.get("modelObject")
+                if (isinstance(modelObject, ModelFact) and
+                    str(modelObject.qname) not in feeTagEltsNotRelevelable):
+                        level = "WARNING"
+        # add message number
+        messageCode, msgNum = messageNumericId(modelXbrl, level, messageCode, args)
+        if msgNum:
+            args["edgarMessageNumericId"] = msgNum
     return level, messageCode
 
 def isolateSeparateIXDSes(modelXbrl, *args, **kwargs):
