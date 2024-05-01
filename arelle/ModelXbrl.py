@@ -1148,7 +1148,7 @@ class ModelXbrl:
                 if isinstance(argValue, int):    # must be sortable with int's in logger
                     extras["sourceLine"] = argValue
             elif argName not in ("exc_info", "messageCodes"):
-                fmtArgs[argName] = self._loggableValue(argValue) # dereference anything not loggable
+                fmtArgs[argName] = self.loggableValue(argValue) # dereference anything not loggable
 
         if "refs" not in extras:
             try:
@@ -1166,7 +1166,7 @@ class ModelXbrl:
                 (msg, fmtArgs) if fmtArgs else (msg,),
                 extras)
 
-    def _loggableValue(self, argValue: Any) -> LoggableValue:  # must be dereferenced and not related to object lifetimes
+    def loggableValue(self, argValue: Any) -> LoggableValue:  # must be dereferenced and not related to object lifetimes
         if argValue is None:
             return "(none)"
         if isinstance(argValue, bool):
@@ -1178,13 +1178,13 @@ class ModelXbrl:
             # need locale-dependent formatting
             return format_string(self.modelManager.locale, '%f', argValue)
         if isinstance(argValue, tuple):
-            return tuple(self._loggableValue(x) for x in argValue)
+            return tuple(self.loggableValue(x) for x in argValue)
         if isinstance(argValue, list):
-            return [self._loggableValue(x) for x in argValue]
+            return [self.loggableValue(x) for x in argValue]
         if isinstance(argValue, set):
-            return {self._loggableValue(x) for x in argValue}
+            return {self.loggableValue(x) for x in argValue}
         if isinstance(argValue, dict):
-            return dict((self._loggableValue(k), self._loggableValue(v)) for k, v in argValue.items())
+            return dict((self.loggableValue(k), self.loggableValue(v)) for k, v in argValue.items())
         return str(argValue)
 
     def debug(self, codes: str | tuple[str, ...], msg: str, **args: Any) -> None:
