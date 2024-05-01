@@ -6,7 +6,7 @@ e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
 
 '''
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, Optional, Pattern
 import os, posixpath, sys, time, calendar, io, json, logging, shutil, zlib
 import regex as re
 from urllib.parse import quote, unquote
@@ -94,6 +94,7 @@ class WebCache:
         self._noCertificateCheck = False
         self._httpUserAgent = HTTP_USER_AGENT # default user agent for product
         self._httpsRedirect = False
+        self._redirectFallbackMap = {}
         self.resetProxies(httpProxyTuple)
 
         self.opener.addheaders = [('User-agent', self.httpUserAgent)]
@@ -206,6 +207,9 @@ class WebCache:
     @httpsRedirect.setter
     def httpsRedirect(self, value):
         self._httpsRedirect = value
+
+    def redirectFallback(self, matchPattern: Pattern, replaceFormat: str):
+        self._redirectFallbackMap[matchPattern] = replaceFormat
 
     def resetProxies(self, httpProxyTuple):
         # for ntlm user and password are required
@@ -328,11 +332,52 @@ class WebCache:
     def encodeForFilename(self, pathpart):
         return self.encodeFileChars.sub(lambda m: '^{0:03}'.format(ord(m.group(0))), pathpart)
 
-    def urlToCacheFilepath(self, url: str, cacheDir: str | None = None) -> str:
+    def _fallbackRedirect(self, url: str, originalFilepath: str) -> str:
+        """
+        If the original URL does not map to an existing cache file,
+        we'll check each fallback redirect pattern to see if modifying
+        the URL yields a path to a file that does exist in the cache.
+        If none is found, the original filepath is returned.
+        :param url: The requested URL.
+        :param originalFilepath: The original mapped filepath.
+        :return: An existing redirected path or the original filepath.
+        """
+        if os.path.exists(originalFilepath):
+            return originalFilepath
+        for fromPattern, toPattern in self._redirectFallbackMap.items():
+            match = fromPattern.match(url)
+            if not match:
+                continue
+            redirectUrl = toPattern.format(*match[1:])
+            redirectFilepath = self.urlToCacheFilepath(
+                redirectUrl,
+                useRedirectFallback=False  # prevent infinite recursion
+            )
+            if os.path.exists(redirectFilepath):
+                if self.cntlr.modelManager.modelXbrl:
+                    self.cntlr.modelManager.modelXbrl.warning(
+                        codes='arelle:redirectedUrl',
+                        msg='Redirected URL from %(url)s to %(redirectUrl)s',
+                        args={'url': url, 'redirectUrl': redirectUrl},
+                        file=redirectUrl
+                    )
+                else:
+                    self.cntlr.addToLog(
+                        messageCode='arelle:redirectedUrl',
+                        message='Redirected URL from %(url)s to %(redirectUrl)s',
+                        messageArgs={'url': url, 'redirectUrl': redirectUrl},
+                        file=redirectUrl,
+                        level=logging.WARNING,
+                    )
+                return redirectFilepath
+        return originalFilepath
+
+    def urlToCacheFilepath(self, url: str, cacheDir: str | None = None, useRedirectFallback: bool = True) -> str:
         """
         Converts `url` into the corresponding cache filepath in `cacheDir.
         :param url: URL to convert.
         :param cacheDir: Cache root directory.
+        :param useRedirectFallback: Whether to use fallback redirects.
         :return: Cache filepath.
         """
         if cacheDir is None:
@@ -353,7 +398,10 @@ class WebCache:
         filepath.extend(self.encodeForFilename(pathpart) for pathpart in pathparts[1:])
         if url.endswith("/"):  # default index file
             filepath.append(DIRECTORY_INDEX_FILE)
-        return os.sep.join(filepath)
+        joined_filepath = os.sep.join(filepath)
+        if useRedirectFallback:
+            return self._fallbackRedirect(url, joined_filepath)
+        return joined_filepath
 
     def cacheFilepathToUrl(self, cacheFilepath: str, cacheDir: str | None = None) -> str:
         if cacheDir is None:

@@ -68,7 +68,7 @@ with Session() as session:
         equity_facts: set[ModelFact] = model_xbrl.factsByQname.get(target_qname, set())
         for equity_fact in equity_facts:
             print(f'Found Equity fact with value: {equity_fact.xValue}')
-    log_xml = session.get_logs()
+    log_xml = session.get_logs('xml')
 # include end
 
 assert len(model_xbrls) == 1
@@ -79,4 +79,3 @@ try:
     os.unlink(working_directory / 'python_api_query_model' / 'TC2_invalid.zip')
 except PermissionError as exc:
     print(f"Failed to cleanup test files: {exc}")
-    pass
