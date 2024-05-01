@@ -26,7 +26,8 @@ from arelle import Locale, ModelManager, PackageManager, PluginManager, XbrlCons
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, hasWebServer, isCGI, isGAE
 from arelle.WebCache import WebCache
-from arelle.logging.formatters import LogFormatter as _LogFormatter
+from arelle.logging.formatters.LogFormatter import LogFormatter, logRefsFileLines  # noqa: F401 - for reimport
+from arelle.logging.handlers.LogHandlerWithXml import LogHandlerWithXml  # noqa: F401 - for reimport
 from arelle.logging.handlers.LogToBufferHandler import LogToBufferHandler
 from arelle.logging.handlers.LogToPrintHandler import LogToPrintHandler
 from arelle.logging.handlers.LogToXmlHandler import LogToXmlHandler
@@ -42,9 +43,6 @@ if TYPE_CHECKING:
 osPrcs: Any = None
 LOG_TEXT_MAX_LENGTH = 32767
 cxFrozen = getattr(sys, 'frozen', False)
-
-logRefsFileLines = _LogFormatter.logRefsFileLines
-LogFormatter = _LogFormatter.LogFormatter
 
 
 def resourcesDir() -> str:
