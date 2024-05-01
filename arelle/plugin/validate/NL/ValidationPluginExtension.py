@@ -2,8 +2,11 @@
 See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
+from typing import Any
 
+from arelle.ModelDocument import LoadingException, ModelDocument
 from arelle.ModelValue import qname
+from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.validate.ValidationPlugin import ValidationPlugin
@@ -143,3 +146,12 @@ class ValidationPluginExtension(ValidationPlugin):
             textFormattingSchemaPath='sbr-text-formatting.xsd',
             textFormattingWrapper='<formattedText xmlns="http://www.nltaxonomie.nl/2017/xbrl/sbr-text-formatting">{}</formattedText>',
         )
+
+    def modelXbrlLoadComplete(self, modelXbrl: ModelXbrl, *args: Any, **kwargs: Any) -> ModelDocument | LoadingException | None:
+        if self.disclosureSystemFromPluginSelected(modelXbrl):
+            disclosureSystem = modelXbrl.modelManager.disclosureSystem.name
+            if disclosureSystem in (DISCLOSURE_SYSTEM_NT16, DISCLOSURE_SYSTEM_NT17, DISCLOSURE_SYSTEM_NT18):
+                # Dutch taxonomies prior to 2025 incorrectly used hypercube linkrole for roots instead of dimension linkrole.
+                paramQName = qname('tlbDimRelsUseHcRoleForDomainRoots', noPrefixIsNoNamespace=True)
+                modelXbrl.modelManager.formulaOptions.parameterValues[paramQName] = (None, "true")
+        return None
