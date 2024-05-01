@@ -5,7 +5,7 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 
 config = ConformanceSuiteConfig(
     args=[
-        '--disclosureSystem', 'NT16-preview',
+        '--disclosureSystem', 'NT16',
     ],
     assets=[
         ConformanceSuiteAssetConfig.local_conformance_suite(

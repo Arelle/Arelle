@@ -38,6 +38,10 @@ def disclosureSystemConfigURL(*args: Any, **kwargs: Any) -> str:
     return validationPlugin.disclosureSystemConfigURL
 
 
+def modelXbrlLoadComplete(*args: Any, **kwargs: Any) -> ModelDocument | LoadingException | None:
+    return validationPlugin.modelXbrlLoadComplete(*args, **kwargs)
+
+
 def validateXbrlFinally(*args: Any, **kwargs: Any) -> None:
     return validationPlugin.validateXbrlFinally(*args, **kwargs)
 
@@ -51,5 +55,6 @@ __pluginInfo__ = {
     "copyright": copyrightLabel,
     "DisclosureSystem.Types": disclosureSystemTypes,
     "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
+    "ModelXbrl.LoadComplete": modelXbrlLoadComplete,
     "Validate.XBRL.Finally": validateXbrlFinally,
 }

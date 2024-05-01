@@ -8,7 +8,7 @@ ZIP_PATH = Path('NT17_KVK_20221214 Berichten.zip')
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     args=[
-        '--disclosureSystem', 'NT17-preview',
+        '--disclosureSystem', 'NT17',
     ],
     assets=[
         ConformanceSuiteAssetConfig.nested_conformance_suite(
