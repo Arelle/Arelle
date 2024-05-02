@@ -149,8 +149,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             if modelDocument is not None:
                 return modelDocument
         from arelle.oim.Load import isOimLoadable, oimLoader
-        if isOimLoadable(modelXbrl, mappedUri, normalizedUri, filepath, isEntry=isEntry, namespace=namespace):
-            modelDocument = oimLoader(modelXbrl, normalizedUri, filepath, isEntry=isEntry, namespace=namespace, **kwargs)
+        if isOimLoadable(normalizedUri, filepath):
+            modelDocument = oimLoader(modelXbrl, normalizedUri, filepath)
             if isinstance(modelDocument, Exception):
                 return None
             if modelDocument is not None:

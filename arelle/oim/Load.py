@@ -2747,7 +2747,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
 
     return _return
 
-def isOimLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
+def isOimLoadable(normalizedUri, filepath):
     _ext = os.path.splitext(filepath)[1]
     if _ext in (".csv", ".json", ".xlsx", ".xls"):
         return True
@@ -2758,7 +2758,7 @@ def isOimLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
             return True
     return False
 
-def oimLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
+def oimLoader(modelXbrl, mappedUri, filepath):
     cntlr = modelXbrl.modelManager.cntlr
     cntlr.showStatus(_("Loading OIM file: {0}").format(os.path.basename(filepath)))
     doc = _loadFromOIM(cntlr, modelXbrl.error, modelXbrl.warning, modelXbrl, filepath, mappedUri)
