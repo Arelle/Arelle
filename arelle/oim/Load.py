@@ -3,18 +3,31 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import os, sys, io, time, traceback, json, csv, datetime, isodate
-from math import log10
-from regex import compile as re_compile, match as re_match, sub as re_sub, DOTALL as re_DOTALL
-from lxml import etree
+import csv
+import datetime
+import io
+import json
+import os
+import sys
+import time
+import traceback
 from collections import defaultdict
-from arelle import XbrlConst, ModelDocument, ModelXbrl, PackageManager, ValidateXbrlDimensions, XmlUtil, XmlValidate, UrlUtil
+from math import log10
+
+import isodate
+import regex as re
+from lxml import etree
+
+from arelle import (ModelDocument, ModelXbrl, PackageManager, UrlUtil,
+                    ValidateXbrlDimensions, XbrlConst, XmlUtil, XmlValidate)
+from arelle.ModelValue import (DATETIME, dateTime, dayTimeDuration, qname,
+                               yearMonthDuration)
 from arelle.PluginManager import pluginClassMethods
-from arelle.ModelValue import qname, dateTime, DATETIME, yearMonthDuration, dayTimeDuration
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict, strTruncate
-from arelle.ValidateDuplicateFacts import DuplicateTypeArg, getDuplicateFactSetsWithType
 from arelle.typing import TypeGetText
+from arelle.ValidateDuplicateFacts import (DuplicateTypeArg,
+                                           getDuplicateFactSetsWithType)
 
 _: TypeGetText
 
@@ -110,26 +123,26 @@ EMPTY_LIST = []
 DUPJSONKEY = "!@%duplicateKeys%@!"
 DUPJSONVALUE = "!@%duplicateValues%@!"
 
-UTF_7_16_Pattern = re_compile(r"(?P<utf16>(^([\x00][^\x00])+$)|(^([^\x00][\x00])+$))|(?P<utf7>^\s*\+AHs-)")
-UTF_7_16_Bytes_Pattern = re_compile(br"(?P<utf16>(^([\x00][^\x00])+$)|(^([^\x00][\x00])+$))|(?P<utf7>^\s*\+AHs-)")
-EBCDIC_Bytes_Pattern = re_compile(b"^[\x40\x4a-\x4f\x50\x5a-\x5f\x60-\x61\x6a-\x6f\x79-\x7f\x81-\x89\x8f\x91-\x99\xa1-\xa9\xb0\xba-\xbb\xc1-\xc9\xd1-\xd9\xe0\xe2-\xe9\xf0-\xf9\xff\x0a\x0d]+$")
-NEVER_EBCDIC_Bytes_Pattern = re_compile(b"[\x30-\x31\x3e\x41-\x49\x51-\x59\x62-\x69\x70-\x78\x80\x8a-\x8e\x90\x9a-\x9f\xa0\xaa-\xaf\xb1-\xb9\xbc-\xbf\xca-\xcf\xda-\xdf\xe1\xea-\xef\xfa-\xfe]")
-JSONmetadataPattern = re_compile(r"\s*\{.*\"documentInfo\"\s*:.*\}", re_DOTALL)
+UTF_7_16_Pattern = re.compile(r"(?P<utf16>(^([\x00][^\x00])+$)|(^([^\x00][\x00])+$))|(?P<utf7>^\s*\+AHs-)")
+UTF_7_16_Bytes_Pattern = re.compile(br"(?P<utf16>(^([\x00][^\x00])+$)|(^([^\x00][\x00])+$))|(?P<utf7>^\s*\+AHs-)")
+EBCDIC_Bytes_Pattern = re.compile(b"^[\x40\x4a-\x4f\x50\x5a-\x5f\x60-\x61\x6a-\x6f\x79-\x7f\x81-\x89\x8f\x91-\x99\xa1-\xa9\xb0\xba-\xbb\xc1-\xc9\xd1-\xd9\xe0\xe2-\xe9\xf0-\xf9\xff\x0a\x0d]+$")
+NEVER_EBCDIC_Bytes_Pattern = re.compile(b"[\x30-\x31\x3e\x41-\x49\x51-\x59\x62-\x69\x70-\x78\x80\x8a-\x8e\x90\x9a-\x9f\xa0\xaa-\xaf\xb1-\xb9\xbc-\xbf\xca-\xcf\xda-\xdf\xe1\xea-\xef\xfa-\xfe]")
+JSONmetadataPattern = re.compile(r"\s*\{.*\"documentInfo\"\s*:.*\}", re.DOTALL)
 NoCanonicalPattern = attrdict(match=lambda s: True)
-CanonicalFloatPattern = re_compile(r"^-?[0-9]\.[0-9]([0-9]*[1-9])?E-?([1-9][0-9]*|0)$|^-?INF$|^NaN$")
-CanonicalIntegerPattern = re_compile(r"^-?([1-9][0-9]*)?[0-9]$")
+CanonicalFloatPattern = re.compile(r"^-?[0-9]\.[0-9]([0-9]*[1-9])?E-?([1-9][0-9]*|0)$|^-?INF$|^NaN$")
+CanonicalIntegerPattern = re.compile(r"^-?([1-9][0-9]*)?[0-9]$")
 CanonicalXmlTypePattern = {
-    "boolean": re_compile("^true$|^false$"),
-    "date": re_compile(r"-?[0-9]{4}-[0-9]{2}-[0-9]{2}Z?$"),
-    "dateTime": re_compile(r"-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?$"),
-    "XBRLI_DATEUNION": re_compile(r"-?[0-9]{4}-[0-9]{2}-[0-9]{2}Z?$|-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?$"),
-    "time": re_compile(r"-?([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?$"),
-    "decimal": re_compile(r"^[-]?([1-9][0-9]*)?[0-9]\.[0-9]([0-9]*[1-9])?$"),
+    "boolean": re.compile("^true$|^false$"),
+    "date": re.compile(r"-?[0-9]{4}-[0-9]{2}-[0-9]{2}Z?$"),
+    "dateTime": re.compile(r"-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?$"),
+    "XBRLI_DATEUNION": re.compile(r"-?[0-9]{4}-[0-9]{2}-[0-9]{2}Z?$|-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?$"),
+    "time": re.compile(r"-?([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?$"),
+    "decimal": re.compile(r"^[-]?([1-9][0-9]*)?[0-9]\.[0-9]([0-9]*[1-9])?$"),
     "float": CanonicalFloatPattern,
     "double": CanonicalFloatPattern,
-    "hexBinary": re_compile(r"^([0-9A-F][0-9A-F])*$"),
+    "hexBinary": re.compile(r"^([0-9A-F][0-9A-F])*$"),
     "integer": CanonicalIntegerPattern,
-    "language": re_compile(r"[a-z]{1,8}(-[a-z0-9]{1,8})*$"),
+    "language": re.compile(r"[a-z]{1,8}(-[a-z0-9]{1,8})*$"),
     "nonPositiveInteger": CanonicalIntegerPattern,
     "negativeInteger": CanonicalIntegerPattern,
     "long": CanonicalIntegerPattern,
@@ -143,53 +156,53 @@ CanonicalXmlTypePattern = {
     "unsignedByte": CanonicalIntegerPattern,
     "positiveInteger": CanonicalIntegerPattern,
     }
-IdentifierPattern = re_compile(
+IdentifierPattern = re.compile(
     "^[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
      r"[_\-"
      "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*$")
-RowIdentifierPattern = re_compile(
+RowIdentifierPattern = re.compile(
      r"[_\-"
      "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*$")
-PeriodPattern = re_compile(
+PeriodPattern = re.compile(
     r"^-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?"
     r"(/-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?)?$"
     )
-PrefixedQName = re_compile(
+PrefixedQName = re.compile(
     "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
      r"[_\-\."
      "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*:"
     "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
      r"[_\-\."
      "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*")
-SpecialValuePattern = re_compile("##|#empty$|#nil$|#none$")
-SQNamePattern = re_compile(
+SpecialValuePattern = re.compile("##|#empty$|#nil$|#none$")
+SQNamePattern = re.compile(
     "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
      r"[_\-\."
      "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*:"
     r"\S+")
 UnitPrefixedQNameSubstitutionChar = "\x07" # replaces PrefixedQName in unit pattern
-UnitPattern = re_compile(
+UnitPattern = re.compile(
     # QNames are replaced by \x07 in these expressions
     # numerator only (no parentheses)
     "(^\x07$)|(^\x07([*]\x07)+$)|"
     # numerator and optional denominator, with parentheses if more than one term in either
     "(^((\x07)|([(]\x07([*]\x07)+[)]))([/]((\x07)|([(]\x07([*]\x07)+[)])))?$)"
     )
-UrlInvalidPattern = re_compile(
+UrlInvalidPattern = re.compile(
     r"^[ \t\n\r]+[^ \t\n\r]*|.*[^ \t\n\r][ \t\n\r]+$|" # leading or trailing whitespace
     r".*[^ \t\n\r]([\t\n\r]+|[ \t\n\r]{2,})[^ \t\n\r]|" # embedded uncollapsed whitespace
     r".*%[^0-9a-fA-F]|.*%[0-9a-fA-F][^0-9a-fA-F]|.*#.*#" # invalid %nn or two ##s
     )
-WhitespacePattern = re_compile(r"[ \t\n\r]")
-WhitespaceUntrimmedPattern = re_compile(r"^[ \t\n\r]|.*[ \t\n\r]$")
+WhitespacePattern = re.compile(r"[ \t\n\r]")
+WhitespaceUntrimmedPattern = re.compile(r"^[ \t\n\r]|.*[ \t\n\r]$")
 
-xlUnicodePattern = re_compile("_x([0-9A-F]{4})_")
+xlUnicodePattern = re.compile("_x([0-9A-F]{4})_")
 
-decimalsSuffixPattern = re_compile(r".*[0-9.][\r\n\t ]*d[\r\n\t ]*(0|-?[1-9][0-9]*|INF)[\r\n\t ]*$") # test starting 1 position before the d
+decimalsSuffixPattern = re.compile(r".*[0-9.][\r\n\t ]*d[\r\n\t ]*(0|-?[1-9][0-9]*|INF)[\r\n\t ]*$") # test starting 1 position before the d
 
 htmlBodyTemplate = "<body xmlns='http://www.w3.org/1999/xhtml'>\n{0}\n</body>\n"
 xhtmlTagPrefix = "{http://www.w3.org/1999/xhtml}"
-DimensionsKeyPattern = re_compile(r"^(concept|entity|period|unit|language|(\w+:\w+))$")
+DimensionsKeyPattern = re.compile(r"^(concept|entity|period|unit|language|(\w+:\w+))$")
 
 UNSUPPORTED_DATA_TYPES = XbrlConst.dtrPrefixedContentItemTypes + (
     qname(XbrlConst.xbrli,"fractionItemType"), )
@@ -520,14 +533,14 @@ ONE_YEAR = yearMonthDuration("P1Y")
 ONE_QTR = yearMonthDuration("P3M")
 ONE_HALF = yearMonthDuration("P6M")
 
-periodForms = ((PER_ISO, re_compile("([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(Z|[+-][0-2][0-9]([:]?)[0-5][0-9]+)?(/[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2})?(Z|[+-][0-2][0-9]([:]?)[0-5][0-9]+)?)$")),
-               (PER_INCLUSIVE_DATES, re_compile("([0-9]{4}-[0-9]{2}-[0-9]{2})[.][.]([0-9]{4}-[0-9]{2}-[0-9]{2})$")),
-               (PER_SINGLE_DAY, re_compile("([0-9]{4}-[0-9]{2}-[0-9]{2})(@(start|end))?$")),
-               (PER_MONTH,  re_compile("([0-9]{4}-[0-9]{2})(@(start|end))?$")),
-               (PER_YEAR, re_compile("([0-9]{4})(@(start|end))?$")),
-               (PER_QTR, re_compile("([0-9]{4})Q([1-4])(@(start|end))?$")),
-               (PER_HALF, re_compile("([0-9]{4})H([1-2])(@(start|end))?$")),
-               (PER_WEEK, re_compile("([0-9]{4}W[1-5]?[0-9])(@(start|end))?$")))
+periodForms = ((PER_ISO, re.compile("([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(Z|[+-][0-2][0-9]([:]?)[0-5][0-9]+)?(/[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2})?(Z|[+-][0-2][0-9]([:]?)[0-5][0-9]+)?)$")),
+               (PER_INCLUSIVE_DATES, re.compile("([0-9]{4}-[0-9]{2}-[0-9]{2})[.][.]([0-9]{4}-[0-9]{2}-[0-9]{2})$")),
+               (PER_SINGLE_DAY, re.compile("([0-9]{4}-[0-9]{2}-[0-9]{2})(@(start|end))?$")),
+               (PER_MONTH,  re.compile("([0-9]{4}-[0-9]{2})(@(start|end))?$")),
+               (PER_YEAR, re.compile("([0-9]{4})(@(start|end))?$")),
+               (PER_QTR, re.compile("([0-9]{4})Q([1-4])(@(start|end))?$")),
+               (PER_HALF, re.compile("([0-9]{4})H([1-2])(@(start|end))?$")),
+               (PER_WEEK, re.compile("([0-9]{4}W[1-5]?[0-9])(@(start|end))?$")))
 
 def csvPeriod(cellValue, startOrEnd=None):
     if cellValue is EMPTY_CELL or cellValue is NONE_CELL:
@@ -1183,7 +1196,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             reportProperties = {"documentInfo", "tableTemplates", "tables", "parameters", "parameterURL", "dimensions", "decimals", "links"}
             columnProperties = {"comment", "decimals", "dimensions", "propertyGroups", "parameterURL", "propertiesFrom"}
 
-        entityNaQName = qname(re_sub("/xbrl-(json|csv)$","/entities",documentType), "NA")
+        entityNaQName = qname(re.sub("/xbrl-(json|csv)$","/entities",documentType), "NA")
         allowedDuplicatesFeature = ALL
         v = featuresDict.get("xbrl:allowedDuplicates")
         if v is not None:
@@ -2754,7 +2767,7 @@ def isOimLoadable(normalizedUri, filepath):
     elif UrlUtil.isHttpUrl(normalizedUri) and '?' in _ext: # query parameters and not .json, may be JSON anyway
         with io.open(filepath, 'rt', encoding='utf-8') as f:
             _fileStart = f.read(4096)
-        if _fileStart and re_match(r"\s*\{\s*\"documentType\":\s*\"http:\\+/\\+/www.xbrl.org\\+/WGWD\\+/YYYY-MM-DD\\+/xbrl-json\"", _fileStart):
+        if _fileStart and re.match(r"\s*\{\s*\"documentType\":\s*\"http:\\+/\\+/www.xbrl.org\\+/WGWD\\+/YYYY-MM-DD\\+/xbrl-json\"", _fileStart):
             return True
     return False
 
