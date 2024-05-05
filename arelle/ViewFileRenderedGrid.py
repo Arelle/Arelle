@@ -306,7 +306,7 @@ class ViewRenderedGrid(ViewFile.View):
                                         rowHdrElt["class"] = "yAxisHdr"
                                     if lytMdlYCell.span > 1:
                                         rowHdrElt["rowspan"] = lytMdlYCell.span
-                                    rowHdrElt["text"] = lytMdlYCell.labelXmlText(iLabel,"\u00a0")
+                                    rowHdrElt["text"] = lytMdlYCell.labelXmlText(iLabel,"")
                                     yRowHdrs[yRow].append(rowHdrElt)
                                 yRow += lytMdlYCell.span
                     yHdrCols = max(len(yRowHdrs[y]) for y in range(len(yRowHdrs)))
@@ -333,7 +333,7 @@ class ViewRenderedGrid(ViewFile.View):
                                         continue # strip all open aspect entry surrogates from layout model file
                                     c = self.xlsxWs.cell(row=self.xlsxRow, column=xlsxCol)
                                     c.value = lytMdlCell.labelXmlText(iLabel, None)
-                                    c.alignment = Alignment(horizontal="center", vertical="center")
+                                    c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
                                     c.fill = PatternFill(patternType=fills.FILL_SOLID, fgColor=Color("EEEEEE"))
                                     c.border = xColHdrBorder
                                     if lytMdlCell.span > 1:
@@ -360,7 +360,7 @@ class ViewRenderedGrid(ViewFile.View):
                                     v = rowHdrElt.get("text")
                                     c.value = v
                                     c.alignment = Alignment(horizontal=rowHdrElt.get("align", "left" if xlsxCol == 1 or not v.isnumeric() else "center"),
-                                                            vertical="center")
+                                                            vertical="center", wrap_text=True)
                                     c.fill = PatternFill(patternType=fills.FILL_SOLID, fgColor=Color("EEEEEE"))
                                     c.border = yRowHdrBorder
                                     if rowspan > 1:
@@ -383,7 +383,7 @@ class ViewRenderedGrid(ViewFile.View):
                                 c = self.xlsxWs.cell(row=self.xlsxRow, column=xlsxCol)
                                 if v is not None:
                                     c.value = v
-                                    c.alignment = Alignment(horizontal=justify, vertical="top")
+                                    c.alignment = Alignment(horizontal=justify, vertical="top", wrap_text=True)
                                 c.border = thinBorder
                                 xlsxCol += 1
                             if xlsxCol > numCols:
@@ -391,5 +391,7 @@ class ViewRenderedGrid(ViewFile.View):
                         yRowNum += 1
                     if zTbl < len(lytMdlZBodyCell.lytMdlBodyChildren) - 1:
                         zTbl += 1
+                        self.xlsxRow += 1 # add blank row between z tables
+                self.xlsxRow += 1 # add blank row between tables in tableset
             self.setColWidths((numCols) * [12])
             self.xlsxWs.merge_cells(range_string='%s%s:%s%s' % (utils.get_column_letter(1), titleXlsRow, utils.get_column_letter(numCols - 1), titleXlsRow))
