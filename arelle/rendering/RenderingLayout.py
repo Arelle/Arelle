@@ -320,21 +320,26 @@ def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, ren
                                     lytMdlCnstrt.value = {"periodType": "duration",
                                                           "startDate": getAspectValue(Aspect.START),
                                                           "endDate":   getAspectValue(Aspect.END)}
+                                    lytMdlCnstrt.label = f"{lytMdlCnstrt.value['startDate']}/{lytMdlCnstrt.value['endDate']}"
                                 elif periodType == "instant":
                                     lytMdlCnstrt.value = {"periodType": "instant",
                                                           "instant":   getAspectValue(Aspect.INSTANT)}
+                                    lytMdlCnstrt.label = f"{lytMdlCnstrt.value['instant']}"
                                 else:  # "forever":
                                     lytMdlCnstrt.value = {"periodType": "forever"}
+                                    lytMdlCnstrt.label = "forever"
                                 aspect = Aspect.PERIOD
                             elif aspect in aspectRuleAspects[Aspect.ENTITY_IDENTIFIER]:
                                 aspectProcessed.add(Aspect.SCHEME)
                                 aspectProcessed.add(Aspect.VALUE)
                                 lytMdlCnstrt.value = {"scheme":     getAspectValue(Aspect.SCHEME),
                                                       "identifier": getAspectValue(Aspect.VALUE)}
+                                lytMdlCnstrt.label = f"{lytMdlCnstrt.value['scheme']}:{lytMdlCnstrt.value['identifier']}"
                                 aspect = Aspect.ENTITY_IDENTIFIER
                             elif aspect in aspectRuleAspects[Aspect.UNIT]:
                                 aspectProcessed.update(aspectRuleAspects[Aspect.UNIT])
                                 lytMdlCnstrt.value = {"measures": [str(u) for u in getAspectValue(aspect)]}
+                                lytMdlCnstrt.label = "*".join(lytMdlCnstrt.value["measures"])
                                 aspect = Aspect.UNIT
                             else:
                                 aspectValue = getAspectValue(aspect)
@@ -362,12 +367,21 @@ def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, ren
                                         view.modelXbrl.qnameDimensionDefaults.get(aspect) != aspectValue and
                                         aspectValue != XbrlConst.qnFormulaOccEmpty):
                                     lytMdlCnstrt.value = aspectValue
+                                    if isinstance(aspectValue,QName) and aspectValue in strctNode.modelXbrl.qnameConcepts:
+                                        lytMdlCnstrt.label = strctNode.modelXbrl.qnameConcepts[aspectValue].label()
+                                    else:
+                                        lytMdlCnstrt.label = str(aspectValue)
+                                elif view.modelXbrl.qnameDimensionDefaults.get(aspect) == aspectValue:
+                                    if isinstance(aspect,QName) and aspect in strctNode.modelXbrl.qnameConcepts:
+                                        lytMdlCnstrt.label = strctNode.modelXbrl.qnameConcepts[aspect].label()
+                                    else:
+                                        lytMdlCnstrt.label = str(aspect)
                             lytMdlCnstrt.aspect = aspect
                 for aspect in getattr(strctNode, "deemedDefaultedDims", ()):
                     # deemed defaulted explicit dimensions when present in sibling str mdl nodes
                     lytMdlCnstrt = LytMdlConstraint(lytMdlCell, None)
                     lytMdlCnstrt.aspect = aspect
-                    lytMdlCnstrt.value = ""
+                    lytMdlCnstrt.value = lytMdlCnstrt.label = ""
 
                 if nonAbstract and not strctNode.hasChildRollup:
                     strctNodes.append(strctNode)
