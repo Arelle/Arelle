@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import boto3
 import os
 import subprocess
 import urllib.request
@@ -44,7 +45,7 @@ def _download_asset(asset: ConformanceSuiteAssetConfig, download_private: bool) 
 def _download_private_s3_asset(asset: ConformanceSuiteAssetConfig) -> None:
     """
     Downloads given asset from private S3 bucket.
-    Will raise an error if AWS CLI is not installed or required AWS
+    Will raise an error if the required AWS
     environment variables are not set.
     """
     key = asset.s3_key
@@ -54,16 +55,11 @@ def _download_private_s3_asset(asset: ConformanceSuiteAssetConfig) -> None:
     asset.full_local_path.parent.mkdir(parents=True, exist_ok=True)
     assert 'AWS_ACCESS_KEY_ID' in os.environ.keys(), 'Must have AWS_ACCESS_KEY_ID environment variable set.'
     assert 'AWS_SECRET_ACCESS_KEY' in os.environ.keys(), 'Must have AWS_SECRET_ACCESS_KEY environment variable set.'
-    assert which('aws'), 'AWS CLI must be installed.'
-    args = [
-        'aws', 's3api', 'get-object',
-        '--bucket', 'arelle',
-        '--key', key,
-    ]
+    s3 = boto3.client('s3')
     if asset.s3_version_id:
-        args.extend(['--version-id', asset.s3_version_id])
-    args.append(str(asset.full_local_path))
-    subprocess.run(args, check=True)
+        s3.download_file('arelle', Key=key, Filename=str(asset.full_local_path), ExtraArgs={'VersionId': asset.s3_version_id})
+    else:
+        s3.download_file('arelle', Key=key, Filename=str(asset.full_local_path))
 
 
 def _download_public_s3_asset(asset: ConformanceSuiteAssetConfig) -> None:
