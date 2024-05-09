@@ -36,6 +36,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlCalcs import ValidateCalcsMode as CalcsMode
 from arelle.Version import copyrightLabel
+from arelle.oim.xml.Save import saveOimReportToXmlInstance
 import logging
 
 import threading, queue
@@ -125,6 +126,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 (_("Save"), self.fileSaveExistingFile, "Ctrl+S", "<Control-s>"),
                 (_("Save As..."), self.fileSave, None, None),
                 (_("Save DTS Package"), self.saveDTSpackage, None, None),
+                (_("Save OIM Report to XBRL Instance"), self.saveXmlInstance, None, None),
                 ("PLUG-IN", "CntlrWinMain.Menu.File.Save", None, None),
                 (_("Close"), self.fileClose, "Ctrl+W", "<Control-w>"),
                 (None, None, None, None),
@@ -989,6 +991,28 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.addToLog(msg);
         if not isSupplementalModelXbrl:
             self.showStatus(_("Ready..."), 2000)
+
+    def saveXmlInstance(self):
+        modelXbrl = self.modelManager.modelXbrl
+        if not modelXbrl or not modelXbrl.modelDocument:
+            self.showStatus(_("No report loaded to save"), 5000)
+            return
+        if not getattr(modelXbrl, "loadedFromOIM", False):
+            self.showStatus(_("Model not loaded from OIM report"), 5000)
+            return
+        configOutputInstanceDir = self.config.get("outputInstanceDir")
+        instanceFile = self.uiFileDialog("save",
+                title=_("arelle - Save XBRL instance document"),
+                initialdir=configOutputInstanceDir or ".",
+                filetypes=[(_("XBRL file .xbrl"), "*.xbrl"), (_("XBRL file .xml"), "*.xml")],
+                defaultextension=".xbrl")
+        if isinstance(instanceFile, str):
+            outputInstanceDir = os.path.dirname(instanceFile)
+            if outputInstanceDir != configOutputInstanceDir:
+                self.config["outputInstanceDir"] = outputInstanceDir
+                self.saveConfig()
+            saveOimReportToXmlInstance(modelXbrl.modelDocument, instanceFile)
+            self.showStatus(_("Saved XBRL instance: {0}").format(os.path.basename(instanceFile)))
 
     def showFormulaOutputInstance(self, priorOutputInstance, currentOutputInstance):
         currentAction = "closing prior formula output instance"

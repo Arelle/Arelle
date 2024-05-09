@@ -117,6 +117,7 @@ class RuntimeOptions:
     rssReport: Optional[str] = None
     rssReportCols: Optional[int] = None
     saveDeduplicatedInstance: Optional[bool] = None
+    saveOIMToXMLReport: Optional[str] = None
     showEnvironment: Optional[bool] = None
     showOptions: Optional[bool] = None
     skipDTS: Optional[bool] = None

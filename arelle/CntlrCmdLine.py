@@ -14,6 +14,7 @@ from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, XbrlConst, Versio
                     ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts,
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
                     ViewFileRoleTypes)
+from arelle.oim.xml.Save import saveOimReportToXmlInstance
 from arelle.rendering import RenderingEvaluator
 from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
@@ -135,6 +136,10 @@ def parseArgs(args):
                       choices=[a.value for a in ValidateDuplicateFacts.DUPLICATE_TYPE_ARG_MAP],
                       dest="validateDuplicateFacts",
                       help=_("Select which types of duplicates should trigger warnings."))
+    parser.add_option("--saveOIMToXMLReport", "--saveoimtoxmlreport", "--saveOIMinstance", "--saveoiminstance",
+                      action="store",
+                      dest="saveOIMToXMLReport",
+                      help=_("Save a report loaded from OIM into this file XML file name."))
     parser.add_option("--deduplicateFacts", "--deduplicatefacts",
                       choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
                       dest="deduplicateFacts",
@@ -1001,6 +1006,15 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 else: # not a test case, probably instance or DTS
                     for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
                         pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
+                    if options.saveOIMToXMLReport:
+                        if getattr(modelXbrl, "loadedFromOIM", False) and modelXbrl.modelDocument is not None:
+                            self.showStatus(_("Saving XBRL instance: {0}").format(modelXbrl.modelDocument.basename))
+                            saveOimReportToXmlInstance(modelXbrl.modelDocument, options.saveOIMToXMLReport, responseZipStream)
+                        else:
+                            self.addToLog(_("Report not loaded from OIM, not saving xBRL-XML report."),
+                                        messageCode="NotOim",
+                                        level=logging.INFO)
+
             else:
                 success = False
             if success and options.diffFile and options.versReportFile:

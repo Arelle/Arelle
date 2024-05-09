@@ -36,7 +36,6 @@ designed to work seamlessly with the Save Loadable OIM plugin, allowing for effi
   1. Using the normal `File` menu `Open File...` dialog, select the CSV, JSON, or XLSX file.
   2. Provide a name for the XBRL-XML instance to save.
 """
-import os, zipfile
 from regex import compile as re_compile
 from collections import defaultdict
 from arelle.ModelDocument import Type
@@ -53,38 +52,6 @@ precisionZeroPattern = re_compile(r"^\s*0+\s*$")
 
 nonDiscoveringXmlInstanceElements = {qname(link, "roleRef"), qname(link, "arcroleRef")}
 
-
-def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
-    if cntlr.hasGui and getattr(modelXbrl, "loadedFromOIM", False):
-        from arelle import ModelDocument
-        from tkinter.filedialog import askdirectory
-        instanceFile = cntlr.uiFileDialog("save",
-                title=_("arelle - Save XBRL instance document"),
-                initialdir=cntlr.config.setdefault("outputInstanceDir","."),
-                filetypes=[(_("XBRL file .xbrl"), "*.xbrl"), (_("XBRL file .xml"), "*.xml")],
-                defaultextension=".xbrl")
-        if not instanceFile:
-            return False
-        cntlr.config["outputInstanceDir"] = os.path.dirname(instanceFile)
-        cntlr.saveConfig()
-        if instanceFile:
-            modelXbrl.modelDocument.save(instanceFile, updateFileHistory=False)
-            cntlr.showStatus(_("Saving XBRL instance: {0}").format(os.path.basename(instanceFile)))
-        cntlr.showStatus(_("OIM loading completed"), 3500)
-
-def cmdLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
-    if options.saveOIMinstance and getattr(modelXbrl, "loadedFromOIM", False):
-        doc = modelXbrl.modelDocument
-        cntlr.showStatus(_("Saving XBRL instance: {0}").format(doc.basename))
-        responseZipStream = kwargs.get("responseZipStream")
-        if responseZipStream is not None:
-            _zip = zipfile.ZipFile(responseZipStream, "a", zipfile.ZIP_DEFLATED, True)
-        else:
-            _zip = None
-        doc.save(options.saveOIMinstance, _zip)
-        if responseZipStream is not None:
-            _zip.close()
-            responseZipStream.seek(0)
 
 def validateFinally(val, *args, **kwargs):
     modelXbrl = val.modelXbrl
@@ -215,12 +182,6 @@ def validateFinally(val, *args, **kwargs):
                                         _("Linkbase reference not allowed from instance document."),
                                         modelObject=(modelXbrl.modelDocument,doc))
 
-def excelLoaderOptionExtender(parser, *args, **kwargs):
-    parser.add_option("--saveOIMinstance",
-                      action="store",
-                      dest="saveOIMinstance",
-                      help=_("Save a instance loaded from OIM into this file name."))
-
 __pluginInfo__ = {
     'name': 'Load From OIM',
     'version': '1.2',
@@ -229,8 +190,5 @@ __pluginInfo__ = {
     'author': authorLabel,
     'copyright': copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Xbrl.Loaded': guiXbrlLoaded,
-    'CntlrCmdLine.Options': excelLoaderOptionExtender,
-    'CntlrCmdLine.Xbrl.Loaded': cmdLineXbrlLoaded,
     'Validate.XBRL.Finally': validateFinally
 }
