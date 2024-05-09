@@ -312,7 +312,6 @@ module = [
     'arelle.plugin.internet.proxyNTLM.des_data',
     'arelle.plugin.internet.proxyNTLM.ntlm',
     'arelle.plugin.loadFromExcel',
-    'arelle.plugin.loadFromOIM',
     'arelle.plugin.logging.dpmSignature',
     'arelle.plugin.logging.dqcParameters',
     'arelle.plugin.logging.saveMessages',
