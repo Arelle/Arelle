@@ -1,11 +1,11 @@
-boto3==1.34.100
+boto3==1.34.103
 flake8==7.0.0
 flake8-noqa==1.4.0
 
 mypy==1.10.0
 pytest==8.2.0
 
-boto3-stubs==1.34.100
+boto3-stubs==1.34.103
 typing-extensions==4.11.0
 lxml-stubs==0.5.1
 types-PyMySQL==1.1.0.20240425
@@ -13,7 +13,7 @@ types-python-dateutil==2.9.0.20240316
 types-pytz==2024.1.0.20240417
 types-simplejson==3.19.0.20240310
 types-ujson==5.9.0.0
-types-regex==2024.4.28.20240506
+types-regex==2024.5.10.20240512
 types-waitress==3.0.0.20240423
 
 -r requirements.txt
