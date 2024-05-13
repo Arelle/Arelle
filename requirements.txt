@@ -1,9 +1,9 @@
 # core modules
 certifi==2024.2.2
-lxml==5.2.1
+lxml==5.2.2
 OpenPyXL==3.1.2
 pyparsing==3.1.2
-regex==2024.4.28
+regex==2024.5.10
 isodate==0.6.1
 aniso8601==9.0.1
 CherryPy==18.9.0
@@ -16,7 +16,7 @@ NumPy==1.24.4 ; python_version <= "3.8"
 NumPy==1.26.2 ; python_version > "3.8"
 Matplotlib==3.7.4 ; python_version <= "3.8"
 Matplotlib==3.8.2 ; python_version > "3.8"
-holidays==0.47
+holidays==0.48
 pytz==2024.1
 Tornado==6.4
 # security plugin
