@@ -295,7 +295,7 @@ class ValidateXbrlCalcs:
                                                             linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
                                                             reportedSum=Locale.format_decimal(modelXbrl.locale, roundedSum, 1, max(d,0)),
                                                             computedSum=Locale.format_decimal(modelXbrl.locale, roundedItemsSum, 1, max(d,0)),
-                                                            contextID=fact.context.id, unitID=fact.unit.id,
+                                                            contextID=fact.context.id, unitID=fact.unit.id if fact.unit is not None else "(none)",
                                                             unreportedContributors=", ".join(unreportedContribingItemQnames) or "none")
                                                         del unreportedContribingItemQnames[:]
                                     if calc11:
@@ -314,7 +314,7 @@ class ValidateXbrlCalcs:
                                                     linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
                                                     reportedSum=rangeToStr(s1,s2,incls1,incls2),
                                                     computedSum=rangeToStr(x1,x2,inclx1,inclx2),
-                                                    contextID=sumFacts[0].context.id, unitID=sumFacts[0].unit.id)
+                                                    contextID=sumFacts[0].context.id, unitID=sumFacts[0].unit.id if sumFacts[0].unit is not None else "(none)")
                             boundSummationItems.clear() # dereference facts in list
                             boundIntervalItems.clear()
                     elif arcrole == XbrlConst.essenceAlias:
