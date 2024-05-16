@@ -302,7 +302,7 @@ class ViewFacts(ViewFile.View):
             for i, modelRel in enumerate(relationshipSet.fromModelObject(concept)):
                 nestedRelationshipSet = relationshipSet
                 targetRole = modelRel.targetRole
-                if self.arcrole == XbrlConst.summationItem:
+                if self.arcrole in XbrlConst.summationItems:
                     childPrefix = "({:0g}) ".format(modelRel.weight) # format without .0 on integer weights
                 elif targetRole is None or len(targetRole) == 0:
                     targetRole = relationshipSet.linkrole

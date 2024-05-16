@@ -1,6 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+from __future__ import annotations
+
 from arelle import ModelObject, ModelDtsObject, XbrlConst, XmlUtil, ViewFile
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ViewFile import NOOUT, CSV, XLSX, HTML, XML, JSON
@@ -12,7 +14,9 @@ from arelle.ModelFormulaObject import Aspect
 import os
 
 def viewRelationshipSet(modelXbrl, outfile, header, arcrole, linkrole=None, linkqname=None, arcqname=None, labelrole=None, lang=None, cols=None):
-    modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(os.path.basename(arcrole)))
+    arcroles = (arcrole,) if isinstance(arcrole, str) else arcrole
+    arcMessage = (os.path.basename(role) for role in arcroles)
+    modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(', '.join(arcMessage)))
     view = ViewRelationshipSet(modelXbrl, outfile, header, labelrole, lang, cols)
     view.view(arcrole, linkrole, linkqname, arcqname)
     view.close()
@@ -27,6 +31,9 @@ COL_WIDTHS = {
     "Name": 40, "Namespace": 60, "LocalName": 40, "Documentation": 80
     }
 
+def hasCalcArcrole(arcroles: tuple[str] | str) -> bool:
+    return any(arcrole in XbrlConst.summationItems for arcrole in (arcroles if isinstance(arcroles, (tuple,list)) else (arcroles,)))
+
 class ViewRelationshipSet(ViewFile.View):
     def __init__(self, modelXbrl, outfile, header, labelrole, lang, cols):
         super(ViewRelationshipSet, self).__init__(modelXbrl, outfile, header, lang)
@@ -39,7 +46,7 @@ class ViewRelationshipSet(ViewFile.View):
         # set up treeView widget and tabbed pane
         if arcrole == XbrlConst.parentChild: # extra columns
             heading = ["Presentation Relationships", "Pref. Label", "Type", "References"]
-        elif arcrole == XbrlConst.summationItem:    # add columns for calculation relationships
+        elif hasCalcArcrole(arcrole):    # add columns for calculation relationships
             heading = ["Calculation Relationships", "Weight", "Balance"]
         elif arcrole == "XBRL-dimensions":    # add columns for dimensional information
             heading = ["Dimensions Relationships", "Arcrole","CntxElt","Closed","Usable"]
@@ -189,7 +196,7 @@ class ViewRelationshipSet(ViewFile.View):
                 cols.append(preferredLabel)
                 cols.append(concept.niceType)
                 cols.append(viewReferences(concept))
-            elif arcrole == XbrlConst.summationItem:
+            elif hasCalcArcrole(arcrole):
                 if isRelation:
                     cols.append("{:0g} ".format(modelObject.weight))
                 else:
@@ -261,7 +268,7 @@ class ViewRelationshipSet(ViewFile.View):
                 for modelRel in childRelationshipSet.fromModelObject(concept):
                     nestedRelationshipSet = relationshipSet
                     targetRole = modelRel.targetRole
-                    if arcrole == XbrlConst.summationItem:
+                    if hasCalcArcrole(arcrole):
                         childPrefix = "({:+0g}) ".format(modelRel.weight) # format without .0 on integer weights
                     elif targetRole is None or len(targetRole) == 0:
                         targetRole = relationshipSet.linkrole
