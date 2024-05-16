@@ -1091,7 +1091,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         if options.tableFile:
                             ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.tableFile, "Table Linkbase", "Table-rendering", labelrole=options.labelRole, lang=options.labelLang)
                         if options.calFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", XbrlConst.summationItem, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", XbrlConst.summationItems, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
                         if options.dimFile:
                             ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
                         if options.anchFile:

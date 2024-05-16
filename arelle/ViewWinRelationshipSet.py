@@ -89,7 +89,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     self.treeView.heading("type", text=_("Type"))
                     self.treeView.column("references", width=200, anchor="w", stretch=False)
                     self.treeView.heading("references", text=_("References"))
-                elif self.arcrole == XbrlConst.summationItem: # extra columns
+                elif self.arcrole in XbrlConst.summationItems: # extra columns
                     self.treeView.column("#0", width=300, anchor="w")
                     self.treeView["columns"] = ("weight", "balance")
                     self.treeView.column("weight", width=48, anchor="w", stretch=False)
@@ -253,7 +253,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     self.treeView.set(childnode, "preferredLabel", preferredLabel)
                 self.treeView.set(childnode, "type", concept.niceType)
                 self.treeView.set(childnode, "references", viewReferences(concept))
-            elif self.arcrole == XbrlConst.summationItem:
+            elif self.arcrole in XbrlConst.summationItems:
                 if isRelation:
                     self.treeView.set(childnode, "weight", "{:+0g} ".format(modelObject.weight))
                 self.treeView.set(childnode, "balance", concept.balance)
@@ -313,7 +313,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 for modelRel in childRelationshipSet.fromModelObject(concept):
                     nestedRelationshipSet = childRelationshipSet
                     targetRole = modelRel.targetRole
-                    if self.arcrole == XbrlConst.summationItem:
+                    if self.arcrole in XbrlConst.summationItems:
                         childPrefix = "({:0g}) ".format(modelRel.weight) # format without .0 on integer weights
                     elif targetRole is None or len(targetRole) == 0:
                         targetRole = relationshipSet.linkrole

@@ -2064,7 +2064,7 @@ class ModelRelationship(ModelObject):
     def propertyView(self):
         return self.toModelObject.propertyView + \
                (("arcrole", self.arcrole),
-                ("weight", self.weight) if self.arcrole == XbrlConst.summationItem else (),
+                ("weight", self.weight) if self.arcrole in XbrlConst.summationItems else (),
                 ("preferredLabel", self.preferredLabel)  if self.arcrole == XbrlConst.parentChild and self.preferredLabel else (),
                 ("contextElement", self.contextElement)  if self.arcrole in (XbrlConst.all, XbrlConst.notAll)  else (),
                 ("typedDomain", self.toModelObject.typedDomainElement.qname)
