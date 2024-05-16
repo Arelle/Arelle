@@ -628,8 +628,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 else:
                     self.aspectEntryObjectIdsNode[yStrctNode.aspectEntryObjectId] = yStrctNode
                     if TRACE_TK: print(f"yAxis hdr combobox x {leftCol-1} y {row-1} values {self.aspectEntryValues(yStrctNode)}")
-                    self.aspectEntryObjectIdsCell[yStrctNode.aspectEntryObjectId] = self.table.initHeaderCombobox(leftCol-1,
-                                                                                                                       row-1,
+                    self.aspectEntryObjectIdsCell[yStrctNode.aspectEntryObjectId] = self.table.initHeaderCombobox(leftCol,
+                                                                                                                       row,
                                                                                                                        values=self.aspectEntryValues(yStrctNode),
                                                                                                                        objectId=yStrctNode.aspectEntryObjectId,
                                                                                                                        comboboxselected=self.onAspectComboboxSelection)
@@ -813,8 +813,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 except ValueError:
                                     effectiveValue = enumerationValues[0]
                                     selectedIdx = 0
-                                xValue = self.dataFirstCol + i-1
-                                yValue = row-1
+                                xValue = self.dataFirstCol + i
+                                yValue = row
                                 if TRACE_TK: print(f"body comboBox enums x {xValue} y {yValue} values {effectiveValue} value {enumerationValues}")
                                 self.table.initCellCombobox(effectiveValue,
                                                             enumerationValues,

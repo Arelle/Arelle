@@ -596,16 +596,6 @@ class CntlrWinMain (Cntlr.Cntlr):
                                 initialdir=initialdir,
                                 filetypes=[(_("HTML file .html"), "*.html"), (_("HTML file .htm"), "*.htm"), (_("XML file .xml"), "*.xml"), (_("JSON file .xml"), "*.json")],
                                 defaultextension=f".{fileType}")
-                    else: # ask file type
-                        if filename is None:
-                            filename = self.uiFileDialog("save",
-                                    title=_caption,
-                                    initialdir=initialdir,
-                                    filetypes=[(_("XBRL instance .xbrl"), "*.xbrl"), (_("XBRL instance .xml"), "*.xml"), (_("HTML table .html"), "*.html"), (_("HTML table .htm"), "*.htm")],
-                                    defaultextension=".html")
-                        if filename and (filename.endswith(".xbrl") or filename.endswith(".xml")):
-                            view.saveInstance(filename)
-                            return True
                     if not filename:
                         return False
                     try:
@@ -622,6 +612,16 @@ class CntlrWinMain (Cntlr.Cntlr):
                             initialdir=initialdir,
                             filetypes=[(_("XBRL instance .xbrl"), "*.xbrl"), (_("XBRL instance .xml"), "*.xml")],
                             defaultextension=".xbrl")
+                else: # ask file type
+                    if filename is None:
+                        filename = self.uiFileDialog("save",
+                                                     title=caption,
+                                                     initialdir=initialdir,
+                                                     filetypes=[(_("XBRL instance .xbrl"), "*.xbrl"), (_("XBRL instance .xml"), "*.xml"), (_("HTML table .html"), "*.html"), (_("HTML table .htm"), "*.htm")],
+                                                     defaultextension=".html")
+                    if filename and (filename.endswith(".xbrl") or filename.endswith(".xml")):
+                        view.saveInstance(filename)
+                        return True
             elif isinstance(view, ViewWinTests.ViewTests) and modelXbrl.modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE):
                 filename = self.uiFileDialog("save",
                         title=_("arelle - Save Test Results"),
