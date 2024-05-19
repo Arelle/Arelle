@@ -8,6 +8,7 @@ except ImportError:
     from ttk import *
 import os
 from arelle import (ViewWinTree, ModelDocument)
+from arelle.PluginManager import pluginClassMethods
 
 def viewRssFeed(modelXbrl, tabWin):
     view = ViewRssFeed(modelXbrl, tabWin)
@@ -79,6 +80,9 @@ class ViewRssFeed(ViewWinTree.ViewTree):
         import webbrowser
         filingMenu = Menu(self.viewFrame, tearoff=0)
         filingMenu.add_command(label=_("Open Instance Document"), underline=0, command=self.openInstance)
+        for pluginMenuExtender in pluginClassMethods("RssFeed.Menu.Filing"):
+            pluginMenuExtender(self, filingMenu)
+
         if event is not None:
             self.menu.delete(0, 0) # remove old filings
             menuRow = self.treeView.identify_row(event.y) # this is the object ID
