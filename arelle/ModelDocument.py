@@ -882,6 +882,10 @@ class ModelDocument:
 
     @property
     def creationSoftware(self):
+        creationSoftwareComment = self.creationSoftwareComment
+        if not creationSoftwareComment:
+            return "None"
+
         global creationSoftwareNames
         if creationSoftwareNames is None:
             import json
@@ -897,12 +901,10 @@ class ModelDocument:
                 self.modelXbrl.error("arelle:creationSoftwareNamesTable",
                                      _("Error loading creation software names table %(error)s"),
                                      modelObject=self, error=ex)
-        creationSoftwareComment = self.creationSoftwareComment
-        if not creationSoftwareComment:
-            return "None"
         for productKey, productNamePattern in creationSoftwareNames:
             if productNamePattern.search(creationSoftwareComment):
                 return productKey
+            
         return creationSoftwareComment # "Other"
 
     @property
