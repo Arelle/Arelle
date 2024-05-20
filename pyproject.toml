@@ -290,6 +290,7 @@ module = [
     'arelle.examples.plugin.formulaSuiteConverter',
     'arelle.examples.plugin.functionsCustom',
     'arelle.examples.plugin.hello_dolly',
+    'arelle.examples.plugin.rssSaveOim',
     'arelle.formula.FormulaConsisAsser',
     'arelle.formula.FormulaEvaluator',
     'arelle.formula.ValidateFormula',
