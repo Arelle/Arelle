@@ -4953,7 +4953,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             modelXbrl.warning(f"{dqcRuleName}.{id}",
                               f"Validation was unable to complete rule {dqcRuleName} due to an internal error.  This is not considered an error in the filing.",
                               modelObject=modelXbrl)
-            modelXbrl.debug("arelle:dqcrtException", _("DQCRT Exception traceback: {}").format(traceback.format_exception(*sys.exc_info())))
+            modelXbrl.debug(
+                "arelle:dqcrtException",
+                _("An unexpected exception occurred in DQCRT"),
+                traceback=traceback.format_exception(*sys.exc_info())
+            )
 
     val.modelXbrl.profileActivity("... DQCRT checks", minTimeToShow=0.1)
     del val.summationItemRelsSetAllELRs
