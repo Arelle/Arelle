@@ -882,14 +882,20 @@ class ModelDocument:
 
     @property
     def creationSoftware(self):
+        import regex as re
         creationSoftwareComment = self.creationSoftwareComment
         if not creationSoftwareComment:
             return "None"
 
+        creditPattern = re.compile(r'Software Credit: (.*)', re.IGNORECASE)
+        if creditPattern.search(creationSoftwareComment):
+            creditMatch = creditPattern.sub(r'\1', creationSoftwareComment)
+            creditMatch = creditMatch.split('\n')[0].strip()
+            return creditMatch
+
         global creationSoftwareNames
         if creationSoftwareNames is None:
             import json
-            import regex as re
             creationSoftwareNames = []
             try:
                 with io.open(os.path.join(self.modelXbrl.modelManager.cntlr.configDir, "creationSoftwareNames.json"),
