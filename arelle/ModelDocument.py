@@ -881,11 +881,48 @@ class ModelDocument:
             return self._creationSoftwareComment
 
     @property
-    def creationSoftware(self):
+    def creationSoftware(self) -> str:
+        """
+        Extract software product name from root level comment elements.
+        If no comment text is found, returns string "None".
+        If no software product name is found, returns the comment text.
+        If any software product names are found, returns the first.
+        :return: Extracted text.
+        """
+        text = self.creationSoftwareComment
+        if not text:
+            return "None"
+        matches = self.creationSoftwareMatches(text)
+        if len(matches) > 0:
+            return matches[0]
+        return text
+
+    def creationSoftwareMatches(self, text: str | None) -> list[str]:
+        """
+        Given text, extract software product names.
+        If explicit pattern ("Software Credit: ...") is matched, only
+        returns those matches.
+        Otherwise, will check against a table of known software names and patterns.
+        Interested parties can add to the table by opening a pull request,
+        or by sending a request via email to support@arelle.org.
+        :param text:
+        :return: List of matched software names in order found.
+        """
+        matches = []
+        if text is None:
+            return matches
+        import regex as re
+        creditPattern = re.compile(r'Software Credit: (.*)', re.IGNORECASE)
+        for line in text.split('\n'):
+            if creditPattern.search(line):
+                creditMatch = creditPattern.sub(r'\1', line).strip()
+                matches.append(creditMatch)
+        if matches:
+            return matches
+
         global creationSoftwareNames
         if creationSoftwareNames is None:
             import json
-            import regex as re
             creationSoftwareNames = []
             try:
                 with io.open(os.path.join(self.modelXbrl.modelManager.cntlr.configDir, "creationSoftwareNames.json"),
@@ -897,13 +934,11 @@ class ModelDocument:
                 self.modelXbrl.error("arelle:creationSoftwareNamesTable",
                                      _("Error loading creation software names table %(error)s"),
                                      modelObject=self, error=ex)
-        creationSoftwareComment = self.creationSoftwareComment
-        if not creationSoftwareComment:
-            return "None"
         for productKey, productNamePattern in creationSoftwareNames:
-            if productNamePattern.search(creationSoftwareComment):
-                return productKey
-        return creationSoftwareComment # "Other"
+            if productNamePattern.search(text):
+                matches.append(productKey)
+                return matches  # Each document only matches on software name
+        return matches
 
     @property
     def processingInstructions(self):
