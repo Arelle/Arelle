@@ -1217,7 +1217,7 @@ def oimLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     return doc
 
 def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
-    if cntlr.hasGui and getattr(modelXbrl, "loadedFromOIM", False):
+    if cntlr.hasGui and modelXbrl.loadedFromOIM:
         from arelle import ModelDocument
         from tkinter.filedialog import askdirectory
         instanceFile = cntlr.uiFileDialog("save",
@@ -1235,7 +1235,7 @@ def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
         cntlr.showStatus(_("OIM loading completed"), 3500)
 
 def cmdLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
-    if options.saveOIMinstance and getattr(modelXbrl, "loadedFromOIM", False):
+    if options.saveOIMinstance and modelXbrl.loadedFromOIM:
         doc = modelXbrl.modelDocument
         cntlr.showStatus(_("Saving XBRL instance: {0}").format(doc.basename))
         responseZipStream = kwargs.get("responseZipStream")

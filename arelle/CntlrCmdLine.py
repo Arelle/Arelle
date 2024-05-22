@@ -1007,7 +1007,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
                         pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
                     if options.saveOIMToXMLReport:
-                        if getattr(modelXbrl, "loadedFromOIM", False) and modelXbrl.modelDocument is not None:
+                        if modelXbrl.loadedFromOIM and modelXbrl.modelDocument is not None:
                             self.showStatus(_("Saving XBRL instance: {0}").format(modelXbrl.modelDocument.basename))
                             saveOimReportToXmlInstance(modelXbrl.modelDocument, options.saveOIMToXMLReport, responseZipStream)
                         else:

@@ -81,7 +81,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 if modelDocument.type == ModelDocument.Type.INLINEXBRL:
                     _pattern = htmlFileNamePattern
                     _suffix = ".htm"
-                elif modelDocument.type == ModelDocument.Type.INSTANCE and getattr(val.modelXbrl, "loadedFromOIM", False):
+                elif modelDocument.type == ModelDocument.Type.INSTANCE and val.modelXbrl.loadedFromOIM:
                     _pattern = efmJsonFilenamePattern
                     _suffix = ".htm or .json"
                 else:

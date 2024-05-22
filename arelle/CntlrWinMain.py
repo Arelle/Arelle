@@ -997,7 +997,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         if not modelXbrl or not modelXbrl.modelDocument:
             self.showStatus(_("No report loaded to save"), 5000)
             return
-        if not getattr(modelXbrl, "loadedFromOIM", False):
+        if not modelXbrl.loadedFromOIM:
             self.showStatus(_("Model not loaded from OIM report"), 5000)
             return
         configOutputInstanceDir = self.config.get("outputInstanceDir")
