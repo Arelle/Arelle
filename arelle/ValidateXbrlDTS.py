@@ -46,6 +46,8 @@ standard_roles_definitions = {
 standard_roles_other = ("xbrl.5.1.3", ())
 
 inlineDisplayNonePattern = re.compile(r"display\s*:\s*none")
+# lookbehind below is to ignore even numbers of \ before illegal escape character
+illegalXsdPatternEscapeChar = re.compile(r"(?:(?:^|[^\\])(?:\\\\)*)(\\[^nrt\\|.^?*+{}()[\]pPsSiIcCdDwW-])")
 
 def arcFromConceptQname(arcElement):
     modelRelationship = baseSetRelationship(arcElement)
@@ -517,7 +519,14 @@ def checkElements(val, modelDocument, parent):
                         if val.validateSBRNL and localName == "attribute":
                             val.modelXbrl.error("SBR.NL.2.2.11.06",
                                 _('xs:attribute must not be used'), modelObject=elt)
-
+                    if localName == "pattern":
+                        value = elt.get("value")
+                        if value is not None:
+                            illegalEscapes =  illegalXsdPatternEscapeChar.findall(value)
+                            if illegalEscapes:
+                                val.modelXbrl.error("xmlSchema:patternEscapeDisallowed",
+                                    _("%(element)s contains disallowed escape %(escapes)s"),
+                                    modelObject=elt, element=localName, escapes=", ".join(illegalEscapes))
                     if localName == "appinfo":
                         if val.validateSBRNL:
                             if (parent.localName != "annotation" or parent.namespaceURI != XbrlConst.xsd or
