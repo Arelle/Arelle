@@ -11,7 +11,7 @@ from arelle import XbrlConst
 from arelle.PythonUtil import attrdict, flattenSequence, pyObjectSize
 from arelle.ValidateXbrlCalcs import inferredDecimals, floatINF
 from arelle.XmlValidateConst import VALID
-from .Consts import standardNamespacesPattern, latestTaxonomyDocs, latestEntireUgt, attachmentDocumentTypeValidationRulesFiles
+from .Consts import standardNamespacesPattern, latestTaxonomyDocs, latestEntireUgt, attachmentDocumentTypeValidationRulesFiles, feeTaggingAttachmentDocumentTypePattern
 
 EMPTY_DICT = {}
 

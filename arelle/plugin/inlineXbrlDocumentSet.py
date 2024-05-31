@@ -197,7 +197,16 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
             if ixdocs:
                 ixdoc = ixdocs[i]
             else:
-                ixdoc = load(modelXbrl, elt.text, referringElement=elt, isDiscovered=True)
+                # find entrypoint if any for this doc
+                entrypoint = None
+                if "ixds" in (kwargs.get("entrypoint") or {}):
+                    for ep in kwargs["entrypoint"]["ixds"]:
+                        if isinstance(ep,dict) and ep.get("file") == elt.text:
+                            entrypoint = ep
+                            break
+                elif kwargs.get("entrypoint", {}).get("file") == elt.text:
+                    entrypoint = ep
+                ixdoc = load(modelXbrl, elt.text, referringElement=elt, isDiscovered=True, entrypoint=entrypoint)
             if ixdoc is not None:
                 if ixdoc.type == Type.INLINEXBRL:
                     # set reference to ix document in document set surrogate object

@@ -37,11 +37,11 @@
     		"sic/2011", "sic/2020", "stpr/2018"],
     	"us-gaap-to-2020": ["us-gaap/2019", "us-gaap/2020"],
     	"stx-2021": [ "dei/2021", "dei/2021q4", "country/2021", "currency/2021", "exch/2021", "naics/2021", "sic/2021", "stpr/2021" ],
+    	"stx-2022": [ "dei/2022", "dei/2022q4", "country/2022", "currency/2022", "exch/2022", "naics/2022", "sic/2022", "stpr/2022", "fnd/2022" ],
 
         "comment2": "entries for currently-supported taxonomies",
-    	"stx-2022": [ "dei/2022", "dei/2022q4", "country/2022", "currency/2022", "exch/2022", "naics/2022", "sic/2022", "stpr/2022", "fnd/2022" ],
         "stx-2023": [ "dei/2023", "country/2023", "currency/2023", "exch/2023", "naics/2023", "oef/2023", "sic/2023", "stpr/2023", "snj/2023", "rxp/2023", "ecd/2023", "fnd/2023" ], "wch":"these are supposed to be compaitble with everything",
-        "stx-2024": [ "dei/2024", "country/2024", "currency/2024", "exch/2024", "naics/2024", "oef/2024", "sic/2024", "stpr/2024", "snj/2024", "rxp/2024", "ecd/2024", "fnd/2024", "sro/2024" ]
+        "stx-2024": [ "dei/2024", "country/2024", "currency/2024", "exch/2024", "naics/2024", "oef/2024", "sic/2024", "stpr/2024", "snj/2024", "rxp/2024", "ecd/2024", "fnd/2024", "sro/2024", "sbs/2024" ]
     },
     "compatible-classes": {
         "comment1": "entries for previously-supported taxonomies, such as disclosure mode efm-pragmatic-all-years",
@@ -55,31 +55,31 @@
         "us-gaap/2021": ["@stx-2021", "srt/2021", "ifrs/2021", "cef/2021q4"],
         "cef/2021q4": ["dei/2021q4", "us-gaap/2021", "srt/2021", "country/2021", "currency/2021", "exch/2021", "naics/2021", "sic/2021", "stpr/2021"],
         "ifrs/2021": ["us-gaap/2021", "srt/2021", "@stx-2021", "us-gaap/2023", "srt/2023", "@stx-2023"],
-
-        "comment2": "entries for currently-supported taxonomies",
         "rr/2022": ["@stx-2022"],
-        "rr/2023": ["@stx-2023"],
-
-        "comment3": "All versions only compatible with same year.  No exceptions anymore.",
         "ecd/2022q4" : ["@stx-2022", "us-gaap/2022q3", "us-gaap/2022", "srt/2022q3", "srt/2022", "ifrs/2022", "cef/2022"],
         "us-gaap/2022": ["us-gaap/2022q3", "@stx-2022", "srt/2022", "srt/2022q3", "ifrs/2022", "cef/2022"],
         "us-gaap/2022q3": ["us-gaap/2022", "@stx-2022", "srt/2022q3", "srt/2022", "ifrs/2022", "cef/2022"],
+        "ifrs/2022": ["us-gaap/2022q3", "us-gaap/2022", "srt/2022q3", "srt/2022", "@stx-2022", "us-gaap/2023", "srt/2023", "@stx-2023"],
+        "cef/2022": ["@stx-2022", "us-gaap/2022q3", "us-gaap/2022", "srt/2022q3", "srt/2022"],
+        "vip/2022": ["@stx-2022"],
+        "vip/2022q2": ["@stx-2022"],
+
+        "comment2": "entries for currently-supported taxonomies",
+        "rr/2023": ["@stx-2023"],
+
+        "comment3": "All versions only compatible with same year.  No exceptions anymore.",
         "us-gaap/2023": ["@stx-2023", "srt/2023", "ifrs/2023", "cef/2023"],
         "us-gaap/2024": ["@stx-2024", "srt/2024", "ifrs/2024", "cef/2024"],
 
-        "ifrs/2022": ["us-gaap/2022q3", "us-gaap/2022", "srt/2022q3", "srt/2022", "@stx-2022", "us-gaap/2023", "srt/2023", "@stx-2023"],
         "ifrs/2023": ["us-gaap/2023", "srt/2023", "@stx-2023"],
         "ifrs/2024": ["us-gaap/2024", "srt/2024", "@stx-2024"],
 
-        "cef/2022": ["@stx-2022", "us-gaap/2022q3", "us-gaap/2022", "srt/2022q3", "srt/2022"],
         "cef/2023": ["@stx-2023", "us-gaap/2023", "srt/2023"],
         "cef/2024": ["@stx-2024", "us-gaap/2024", "srt/2024"],
 
         "srt/2023": ["@stx-2023"],
         "srt/2024": ["@stx-2024"],
 
-        "vip/2022": ["@stx-2022"],
-        "vip/2022q2": ["@stx-2022"],
         "vip/2023": ["@stx-2023"],
         "vip/2024": ["@stx-2024"]
         }

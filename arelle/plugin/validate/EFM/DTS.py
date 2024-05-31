@@ -503,6 +503,20 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 modelObject=modelDocument, filename=modelDocument.basename,
                 messageCodes=("EFM.6.03.03", "EFM.6.23.01", "GFM.1.01.01"))
 
+        # 6.10.9 (for linkbases in schema files)
+        labelRels = None
+        for labelElt in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}label"):
+            if isinstance(labelElt,ModelObject) and XbrlConst.isNumericRole(labelElt.role):
+                if labelRels is None:
+                    labelRels = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+                for rel in labelRels.toModelObject(labelElt):
+                    if rel.fromModelObject is not None and not rel.fromModelObject.isNumeric:
+                        val.modelXbrl.error("EFM.6.10.09",
+                            _("Non-numeric element %(concept)s has a label role for numeric elements: %(role)s. "
+                              "Please change the role attribute."),
+                            edgarCode="du-1009-Numeric-Label-Role",
+                            modelObject=(labelElt, rel.fromModelObject), concept=rel.fromModelObject.qname, role=labelElt.role)
+
     elif modelDocument.type == ModelDocument.Type.LINKBASE:
         # if it is part of the submission (in same directory) check name
         labelRels = None

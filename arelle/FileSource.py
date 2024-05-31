@@ -175,7 +175,7 @@ class FileSource:
                     file = open(_filename, 'r', errors='replace')
                     l = file.read(256) # may have comments before first element
                     file.close()
-                    if re.match(r"\s*(<[?]xml[^?]+[?]>)?\s*(<!--.*-->\s*)*<(cor[a-z]*:|sdf:)?edgarSubmission", l):
+                    if re.match(r"\s*(<[?]xml[^?]+[?]>)?\s*(<!--.*-->\s*)*<(cor[a-z]*:|sdf:|\w+:)?edgarSubmission", l):
                         self.isEis = True
                 except EnvironmentError as err:
                     if self.cntlr:

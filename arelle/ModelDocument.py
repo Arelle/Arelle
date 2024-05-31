@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import os, io
+import regex as re
 from collections import defaultdict
 from typing import Any
 from lxml import etree
@@ -22,6 +23,8 @@ from arelle.XhtmlValidate import ixMsgCode
 from arelle.XmlValidateConst import VALID
 from arelle.XmlValidate import validate as xmlValidate, lxmlSchemaValidate
 from arelle.ModelTestcaseObject import ModelTestcaseVariation
+
+urlMatchPattern = re.compile("^https?://(?:www.)?(xbrl.org)/(.*)$") # for checking allowable schemaLocation mismatches
 
 creationSoftwareNames = None
 
@@ -48,6 +51,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     :type reloadCache: bool
     :param checkModifiedTime: True if desired to check modifed time of web cached entry point (ahead of usual time stamp checks).
     :type checkModifiedTime: bool
+    :param entrypoint (in kwargs) might contain securityClassification ("unclassified", "confidential", "secret", etc)
     """
 
     if referringElement is None: # used for error messages
@@ -246,9 +250,13 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                     if otherModelDoc.basename == os.path.basename(uri):
                         if os.path.normpath(otherModelDoc.uri) != os.path.normpath(uri): # tolerate \ vs / or ../ differences
                             modelXbrl.urlDocs[uri] = otherModelDoc
-                            modelXbrl.warning("info:duplicatedSchema",
-                                    _("Schema file with same targetNamespace %(targetNamespace)s loaded from %(fileName)s and %(otherFileName)s"),
-                                    modelObject=referringElement, targetNamespace=targetNamespace, fileName=uri, otherFileName=otherModelDoc.uri)
+                            # tolerate certain schemaLocation mismatches
+                            m1 = urlMatchPattern.match(otherModelDoc.uri)
+                            m2 = urlMatchPattern.match(uri)
+                            if not (m1 and m2 and m1.groups() == m2.groups()):
+                                modelXbrl.warning("info:duplicatedSchema",
+                                        _("Schema file with same targetNamespace %(targetNamespace)s loaded from %(fileName)s and %(otherFileName)s"),
+                                        modelObject=referringElement, targetNamespace=targetNamespace, fileName=uri, otherFileName=otherModelDoc.uri)
                         return otherModelDoc
         elif (isEntry or isDiscovered or isSupplemental) and ns == XbrlConst.link:
             if ln == "linkbase":
@@ -380,6 +388,9 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                     for referencedDoc in doc.referencesDocument.keys():
                         if referencedDoc.type == Type.SCHEMA:
                             modelDocument.targetDocumentSchemaRefs.add(doc.relativeUri(referencedDoc.uri))
+
+        if (kwargs.get("entrypoint") or {}).get("securityClassification"):
+            modelDocument.securityClassification = kwargs["entrypoint"]["securityClassification"]
 
         if isEntry or isSupplemental:
             # re-order base set keys for entry point or supplemental linkbase addition
@@ -1506,9 +1517,9 @@ class ModelDocument:
 # inline document set level compilation
 # modelIxdsDocument is an inlineDocumentSet or entry inline document (if not a document set)
 #   note that multi-target and multi-instance facts may have html elements belonging to primary ixds instead of this instance ixds
-def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False):
+def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, **kwargs):
     for pluginMethod in pluginClassMethods("ModelDocument.SelectIxdsTarget"):
-        pluginMethod(modelXbrl, modelIxdsDocument)
+        pluginMethod(modelXbrl, modelIxdsDocument, **kwargs)
     # extract for a single target document
     ixdsTarget = getattr(modelXbrl, "ixdsTarget", None)
     # compile inline result set

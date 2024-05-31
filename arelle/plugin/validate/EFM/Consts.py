@@ -23,7 +23,7 @@ srtAxisIfrsMembers = { # members of IFRS axes which have SRT corresponding membe
 
 # doc type requirements are for EFM 6.5.20 and are in some cases a superset of what the submission allows.
 docTypesRR = {"497", "485APOS", "485BPOS", "485BXT", "N-1A", "N-1A/A"}
-docTypesAllowingRedact = {"17AD-27"}
+docTypesAllowingRedact = {"17AD-27"} | set(f"EX-99.{c}.SBSEF" for c in "CDEFGHIJKLMNOPQRS")
 
 submissionTypesAllowingSeriesClasses = docTypesRR | {
     'N-Q', 'N-Q/A'}
@@ -66,8 +66,9 @@ attachmentDocumentTypeValidationRulesFiles = ( # match attachment doc type patte
     (re.compile(r"EX-26.*"), "ex26-validations.json"),
     (None, "dei-validations.json")
     )
-supplementalAttachmentDocumentTypesPattern = re.compile(r"EX-FILING FEES.*|EX-26.*")
-exhibitTypesStrippingOnErrorPattern = re.compile(r"EX-26.*")
+supplementalAttachmentDocumentTypesPattern = re.compile(r"EX-FILING FEES.*|EX-99\.[C-S]\.SBSEF.*")
+exhibitTypesStrippingOnErrorPattern = re.compile(r"EX-26.*|EX-99\.[C-S]\.SBSEF.*")
+exhibitTypesPrivateNotDisseminated = re.compile(r"EX-99\.[DEFHIJKNOPQRS]\.SBSEF")
 
 standardNamespacesPattern = re.compile(
     # non-IFRS groups 1 - authority, 2 - taxonomy (e.g. us-gaap, us-types), 3 - year

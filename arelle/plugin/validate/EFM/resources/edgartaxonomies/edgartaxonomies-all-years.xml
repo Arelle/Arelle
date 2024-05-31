@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Erxl xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="68" xsi:noNamespaceSchemaLocation="erxl.xsd">
+<Erxl xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="70" xsi:noNamespaceSchemaLocation="erxl.xsd">
     <!-- 
 This file was created by staff of the U.S. Securities and Exchange Commission.
 Data and content created by government employees within the scope of their employment
 are not subject to domestic copyright protection. 17 U.S.C. 105.
 -->
-    <!-- US-GAAP 2024  -->
+    <!-- IFRS 2024-->
     <Loc>
         <Family>IFRS</Family>
         <Version>2024</Version>
@@ -15,6 +15,106 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
         <Elements>1</Elements>
         <Namespace>https://xbrl.ifrs.org/taxonomy/2024-03-27/ifrs-full</Namespace>
         <Prefix>ifrs-full</Prefix>
+    </Loc>
+    <Loc>
+        <Family>IFRS</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.ifrs.org/taxonomy/2024-03-27/full_ifrs/dimensions/dim_full_ifrs_2024-03-27_role-995000.xml</Href>
+        <AttType>DEF</AttType>
+        <FileTypeName>Definition, Dimensions</FileTypeName>
+        <Elements>0</Elements>
+    </Loc>
+    <Loc>
+        <Family>IFRS</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.ifrs.org/taxonomy/2024-03-27/full_ifrs/dimensions/rol_full_ifrs-dim_2024-03-27.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Roles</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>https://xbrl.ifrs.org/role/ifrs/dimensions_2024-03-27</Namespace>
+        <Prefix>rol_dim</Prefix>
+    </Loc>
+    <Loc>
+        <Family>IFRS</Family>
+        <Version>2024</Version>
+        <Href>http://xbrl.org/2020/extensible-enumerations-2.0.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://xbrl.org/2020/extensible-enumerations-2.0</Namespace>
+        <Prefix>enum2</Prefix>
+    </Loc>
+
+	<!-- SBS 2024 -->
+	<Loc>
+        <Family>SBS</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.sec.gov/sbs/2024/sbs-2024.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/sbs/2024</Namespace>
+        <Prefix>sbs</Prefix>
+    </Loc>
+    <Loc>
+        <Family>SBS</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.sec.gov/sbs/2024/sbs-sbsef-com-2024.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Entry Point</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://xbrl.sec.gov/sbs-sbsef-com/2024</Namespace>
+        <Prefix>sbs</Prefix>
+    </Loc>
+    <Loc>
+        <Family>SBS</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.sec.gov/sbs/2024/sbs-sbsef-2024.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Entry Point</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://xbrl.sec.gov/sbs-sbsef/2024</Namespace>
+        <Prefix>sbs-sbsef</Prefix>
+    </Loc>
+    <Loc>
+        <Family>SBS</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.sec.gov/sbs/2024/sbs-sbsef-cco-2024.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Entry Point</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://xbrl.sec.gov/sbs-sbsef-cco/2024</Namespace>
+        <Prefix>sbs-sbsef-cco</Prefix>
+    </Loc>
+    <Loc>
+        <Family>SBS</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.sec.gov/sbs/2024/sbs-sbsef-fex-2024.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Entry Point</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://xbrl.sec.gov/sbs-sbsef-fex/2024</Namespace>
+        <Prefix>sbs-sbsef-fex</Prefix>
+    </Loc>
+    <Loc>
+        <Family>SBS</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.sec.gov/sbs/2024/sbs-sbsef-fin-2024.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Entry Point</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://xbrl.sec.gov/sbs-sbsef-fin/2024</Namespace>
+        <Prefix>sbs-sbsef-fin</Prefix>
+    </Loc>
+    <Loc>
+        <Family>SBS</Family>
+        <Version>2024</Version>
+        <Href>https://xbrl.sec.gov/sbs/2024/sbs-sbsef-ocx-2024.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Entry Point</FileTypeName>
+        <Elements>0</Elements>
+        <Namespace>http://xbrl.sec.gov/sbs-sbsef-ocx/2024</Namespace>
+        <Prefix>sbs-sbsef-ocx</Prefix>
     </Loc>
     <!-- US-GAAP 2024  -->
     <Loc>
@@ -369,7 +469,17 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<Namespace>http://xbrl.sec.gov/oef-sr/2024</Namespace>
 		<Prefix>oef-sr</Prefix>
 	</Loc>
-
+    <!-- RXP 2024q3 -->
+    <Loc>
+        <Family>RXP</Family>
+        <Version>2024q3</Version>
+        <Href>https://xbrl.sec.gov/rxp/2024q3/rxp-2024q3.xsd</Href>
+        <AttType>SCH</AttType>
+        <FileTypeName>Schema</FileTypeName>
+        <Elements>1</Elements>
+        <Namespace>http://xbrl.sec.gov/rxp/2024q3</Namespace>
+        <Prefix>rxp</Prefix>
+    </Loc>
 	<!-- RXP 2024 -->
 	<Loc>
 		<Family>RXP</Family>
@@ -506,6 +616,17 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<Elements>0</Elements>
 		<Namespace>http://xbrl.sec.gov/vip-n6/2024</Namespace>
 		<Prefix>vip-n6</Prefix>
+	</Loc>
+	<!-- FFD 2024q2 -->
+	<Loc>
+		<Family>FFD</Family>
+		<Version>2024q2</Version>
+		<Href>https://xbrl.sec.gov/ffd/2024q2/ffd-2024q2.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/ffd/2024q2</Namespace>
+		<Prefix>ffd</Prefix>
 	</Loc>
 	<!-- FFD 2024 -->
 	<Loc>
