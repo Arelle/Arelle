@@ -1038,7 +1038,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             modelXbrl.warning("EFM.6.05.57.classIdMemberNotInContext",
                                 _("Submission type %(subType)s should have a context with %(classIdMember)s as a member of the Class Axis."),
                                 edgarCode="dq-0557-Class-Id-Member-Not-In-Context",
-                                modelObject=(modelXbrl,seriesIdMember), classIdMember=classIdMemberName, subType=submissionType)
+                                modelObject=(modelXbrl,classIdMember), classIdMember=classIdMemberName, subType=submissionType)
         val.modelXbrl.profileActivity("... filer label and text checks", minTimeToShow=1.0)
 
         if isEFM:
