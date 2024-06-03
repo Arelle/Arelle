@@ -1,7 +1,7 @@
 # core modules
-certifi==2024.2.2
+certifi==2024.6.2
 lxml==5.2.2
-OpenPyXL==3.1.2
+OpenPyXL==3.1.3
 pyparsing==3.1.2
 regex==2024.5.15
 isodate==0.6.1
@@ -9,7 +9,7 @@ aniso8601==9.0.1
 CherryPy==18.9.0
 Cheroot==10.0.1
 python-dateutil==2.9.0.post0
-pycountry==23.12.11
+pycountry==24.6.1
 # plugins
 # EdgarRenderer plugin
 NumPy==1.24.4 ; python_version <= "3.8"
