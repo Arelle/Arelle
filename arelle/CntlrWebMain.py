@@ -232,8 +232,9 @@ validationOptions = {
     "esef": ("disclosureSystemName", "esef"),
     "disclosure-system": ("disclosureSystemName", None),
     "ifrs": ("gfmName", "ifrs"),
-    "hmrc": ("gfmName", "hmrc"),
+    "hmrc": ("gfmName", "uk"),
     "sbr-nl": ("gfmName", "sbr-nl"),
+    "uk": ("gfmName", "uk"),
     "utr": ("utrValidate", True),
     "infoset": ("infosetValidate", True),
     # these parameters pass through the value after + in query

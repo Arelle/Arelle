@@ -139,6 +139,7 @@ class RuntimeOptions:
     validateEFMCalcTree: Optional[bool] = None
     validateHMRC: Optional[bool] = None
     validateTestcaseSchema: Optional[bool] = None
+    validateUK: Optional[bool] = None
     versReportFile: Optional[str | FileNamedStringIO] = None
     viewArcrole: Optional[bool] = None
     viewFile: Optional[str | FileNamedStringIO] = None

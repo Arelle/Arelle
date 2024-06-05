@@ -128,7 +128,7 @@
      blockDisallowedReferences="false" 
      defaultXmlLang="en-UK" 
      defaultLanguage="English" 
-     standardTaxonomiesUrl="hmrc-taxonomies.xml"
+     standardTaxonomiesUrl="uk-taxonomies.xml"
      validateFileText="false"
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
      identifierValuePattern="^[0-9]{10}$" 

@@ -858,7 +858,7 @@ class EntryPointRef:
                 if search.endswith(ending):
                     search = search[:-len(ending)]
                     break
-            return search
+            return search.lower()
 
     @staticmethod
     def search(search: str) -> list[EntryPointRef] | None:

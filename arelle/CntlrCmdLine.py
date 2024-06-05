@@ -175,8 +175,8 @@ def parseArgs(args):
                       help=_("Specify a disclosure system name and"
                              " select disclosure system validation.  "
                              "Enter --disclosureSystem=help for list of names or help-verbose for list of names and descriptions. "))
-    parser.add_option("--hmrc", action="store_true", dest="validateHMRC",
-                      help=_("Select U.K. HMRC disclosure system validation."))
+    parser.add_option("--hmrc", "--uk", action="store_true", dest="validateUK",
+                      help=_("Select U.K. disclosure system validation."))
     parser.add_option("--utr", action="store_true", dest="utrValidate",
                       help=_("Select validation with respect to Unit Type Registry."))
     parser.add_option("--utrUrl", "--utrurl", action="store", dest="utrUrl",
@@ -765,9 +765,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
         elif options.validateEFM:
             self.modelManager.validateDisclosureSystem = True
             self.modelManager.disclosureSystem.select("efm")
-        elif options.validateHMRC:
+        elif options.validateHMRC or options.validateUK:
             self.modelManager.validateDisclosureSystem = True
-            self.modelManager.disclosureSystem.select("hmrc")
+            self.modelManager.disclosureSystem.select("uk")
         else:
             self.modelManager.disclosureSystem.select(None) # just load ordinary mappings
             self.modelManager.validateDisclosureSystem = False
