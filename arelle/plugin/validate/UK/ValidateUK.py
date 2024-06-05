@@ -426,7 +426,7 @@ class HmrcLang(Enum):
 
 
 @dataclass
-class ValidateHmrc:
+class ValidateUK:
     modelXbrl: ModelXbrl
     _codeResultMap: dict[str, CodeResult] = field(default_factory=dict)
 

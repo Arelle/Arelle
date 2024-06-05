@@ -17,7 +17,7 @@ from arelle.XbrlConst import xbrli, qnXbrliXbrl
 import regex as re
 from collections import defaultdict
 
-from .ValidateHmrc import ValidateHmrc
+from .ValidateUK import ValidateUK
 
 FRC_URL_DOMAIN = "http://xbrl.frc.org.uk/"
 memNameNumPattern = re.compile(r"^([A-Za-z-]+)([0-9]+)$")
@@ -140,7 +140,7 @@ ALLOWED_IMG_MIME_TYPES = (
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
-    return (("HMRC", "HMRCplugin"),)
+    return (("UK", "UKplugin"),)
 
 
 def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
@@ -148,7 +148,7 @@ def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
 
 
 def validateXbrlStart(val, parameters=None, *args, **kwargs):
-    val.validateHMRCplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "HMRCplugin", False)
+    val.validateHMRCplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "UKplugin", False)
     if not (val.validateHMRCplugin) or not val.modelXbrl.modelDocument:
         return
 
@@ -183,7 +183,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         break
     if val.txmyType:
         val.modelXbrl.debug("debug",
-                            "HMRC taxonomy type %(taxonomyType)s",
+                            "UK taxonomy type %(taxonomyType)s",
                             modelObject=val.modelXbrl, taxonomyType=val.txmyType)
     else:
         val.modelXbrl.error("HMRC.TBD",
@@ -452,7 +452,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 modelXbrl.error("HMRC.SG.3.8",
                     _("Element %(elt)s style attribute has disallowed image reference: %(styleImage)s."),
                     modelObject=elt, elt=elt.tag.rpartition("}")[2], styleImage=match)
-    hmrc = ValidateHmrc(modelXbrl)
+    hmrc = ValidateUK(modelXbrl)
     if val.txmyType != "charities":
         hmrc.validate()
     elif val.txmyType == "charities":
@@ -487,7 +487,10 @@ class GDV:
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Validate HMRC',
+    'name': 'Validate UK',
+    "aliases": [
+        "validate/hmrc",
+    ],
     'version': '4.0',
     'description': '''HMRC Validation. JFCVC v4.0 2020-06-09.  Style guide v2.2''',
     'license': 'Apache-2',

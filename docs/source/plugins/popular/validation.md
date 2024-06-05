@@ -91,12 +91,12 @@ SEC at [StructuredData@sec.gov](mailto:StructuredData@sec.gov).
 :::{autodoc2-docstring} arelle.plugin.validate.FERC
 :::
 
-## Validate HMRC
+## Validate UK
 
-:::{index} Validate HMRC
+:::{index} Validate UK
 :::
 
-:::{autodoc2-docstring} arelle.plugin.validate.HMRC
+:::{autodoc2-docstring} arelle.plugin.validate.UK
 :::
 
 ## Validate NL
