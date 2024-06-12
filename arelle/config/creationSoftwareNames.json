@@ -31,6 +31,7 @@
  ["Doremus", "Doremus"],
  ["DTC", "DTC Financial Publishing"],
  ["EDGAR Online", "EDGAR Online.*Xcelereate"],
+ ["F19 Digital Reporting", "F19 CMS"],
  ["FilePoint", "FilePoint.*XBRLinator"],
  ["GoXBRL", "GoXBRL"],
  ["Ez-XBRL", "Ez-XBRL"],
