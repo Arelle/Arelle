@@ -2769,12 +2769,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 jsonParam[_objName] = _orderedObjFacts
             if isFeeTagging:
                 jsonObjType = "fee"
+                messageCode = "EFM.feeFacts"
                 testEnvJsonFile = val.params.get("saveFeeFacts")
             else:
                 jsonObjType = "cover"
+                messageCode = "EFM.coverFacts"
                 testEnvJsonFile = val.params.get("saveCoverFacts")
             modelXbrl.log("INFO-RESULT",
-                          "EFM.{}Facts".format(jsonObjType),
+                          messageCode,
                           "Extracted {} facts returned as json parameter".format(jsonObjType),
                           modelXbrl=modelXbrl,
                           json=allowableJsonCharsForEdgar(json.dumps(jsonParam)))
