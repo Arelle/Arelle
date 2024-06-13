@@ -140,6 +140,10 @@ def parseArgs(args):
                       action="store",
                       dest="saveOIMToXMLReport",
                       help=_("Save a report loaded from OIM into this file XML file name."))
+    parser.add_option("--validateXmlOim", "--validatexmloim", "--oim",
+                      action="store_true",
+                      dest="validateXmlOim",
+                      help=_("Enables OIM validation for XML and iXBRL documents. OIM only formats (json, csv) are always OIM validated."))
     parser.add_option("--deduplicateFacts", "--deduplicatefacts",
                       choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
                       dest="deduplicateFacts",
@@ -776,6 +780,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         else:
             self.modelManager.disclosureSystem.select(None) # just load ordinary mappings
             self.modelManager.validateDisclosureSystem = False
+        self.modelManager.validateXmlOim = bool(options.validateXmlOim)
         if options.validateDuplicateFacts:
             duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(options.validateDuplicateFacts)
             duplicateType = duplicateTypeArg.duplicateType()

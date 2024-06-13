@@ -68,6 +68,7 @@ class ModelManager:
         self.customTransforms: dict[QName, Callable[[str], str]] | None = None
         self.isLocaleSet = False
         self.validateDuplicateFacts = ValidateDuplicateFacts.DuplicateType.NONE
+        self.validateXmlOim = False
         self.setLocale()
         ValidateXbrlCalcs.init() # required due to circular dependencies in module
 

@@ -11,7 +11,7 @@ from arelle.Version import authorLabel, copyrightLabel
 
 def validateFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     modelXbrl = val.modelXbrl
-    if not modelXbrl.loadedFromOIM:
+    if not modelXbrl.loadedFromOIM and not modelXbrl.modelManager.validateXmlOim:
         # Consistent legacy behavior. Always perform OIM validation if this plugin is enabled.
         validateOIM(modelXbrl)
 

@@ -405,7 +405,7 @@ class ValidateXbrl:
         for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Finally"):
             pluginXbrlMethod(self)
 
-        if modelXbrl.loadedFromOIM:
+        if modelXbrl.loadedFromOIM or modelXbrl.modelManager.validateXmlOim:
             validateOIM(modelXbrl)
 
         modelXbrl.profileStat() # reset after plugins
