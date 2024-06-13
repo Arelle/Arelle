@@ -170,6 +170,11 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateUtr.trace("w", self.setValidateUtr)
         validateMenu.add_checkbutton(label=_("Unit Type Registry validation"), underline=0, variable=self.validateUtr, onvalue=True, offvalue=False)
 
+        self.modelManager.validateXmlOim = self.config.setdefault("validateXmlOim", False)
+        self.validateXmlOim = BooleanVar(value=self.modelManager.validateXmlOim)
+        self.validateXmlOim.trace("w", self.setValidateXmlOim)
+        validateMenu.add_checkbutton(label=_("OIM validate xBRL-XML documents"), underline=0, variable=self.validateXmlOim, onvalue=True, offvalue=False)
+
         self.validateDuplicateFacts = None
         self.buildValidateDuplicateFactsMenu(validateMenu)
 
@@ -1371,6 +1376,12 @@ class CntlrWinMain (Cntlr.Cntlr):
     def setValidateUtr(self, *args):
         self.modelManager.validateUtr = self.validateUtr.get()
         self.config["validateUtr"] = self.modelManager.validateUtr
+        self.saveConfig()
+        self.setValidateTooltipText()
+
+    def setValidateXmlOim(self, *args):
+        self.modelManager.validateXmlOim = self.validateXmlOim.get()
+        self.config["validateXmlOim"] = self.modelManager.validateXmlOim
         self.saveConfig()
         self.setValidateTooltipText()
 
