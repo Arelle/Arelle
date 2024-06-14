@@ -715,3 +715,8 @@ def leastDecimals(binding, localNames=None):
     if nonNilFacts:
         return min((inferredDecimals(f) for f in nonNilFacts))
     return floatINF
+
+def buildFTValidationsFile(cntlr):
+    from .FtValidations import FtValidations
+    FTV = FtValidations(cntlr, feeTaggingAttachmentDocumentTypePattern)
+    FTV.generateValidations()
