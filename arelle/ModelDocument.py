@@ -72,7 +72,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             modelXbrl.uriDir = os.path.dirname(modelXbrl.uriDir)
     if modelXbrl.modelManager.validateDisclosureSystem and \
        not normalizedUri.startswith(modelXbrl.uriDir) and \
-       not modelXbrl.modelManager.disclosureSystem.hrefValid(normalizedUri):
+       not modelXbrl.modelManager.disclosureSystem.hrefValidForValidTaxonomy(normalizedUri):
         blocked = modelXbrl.modelManager.disclosureSystem.blockDisallowedReferences
         if normalizedUri not in modelXbrl.urlUnloadableDocs:
             # HMRC note, HMRC.blockedFile should be in this list if uk-taxonomies.xml is maintained an dup to date
