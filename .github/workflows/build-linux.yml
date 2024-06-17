@@ -13,7 +13,7 @@ on:
         required: false
         type: string
       python_version:
-        default: '3.11.8'
+        default: '3.12.4'
         description: 'Python version to use'
         required: false
         type: string
@@ -40,7 +40,7 @@ on:
         required: true
         type: string
       python_version:
-        default: '3.11.8'
+        default: '3.12.4'
         description: 'Python version to use'
         required: true
         type: string
