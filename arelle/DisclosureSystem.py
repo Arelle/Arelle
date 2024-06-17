@@ -52,7 +52,6 @@ class DisclosureSystem:
         self.GFM = False
         self.EFMorGFM = False
         self.HMRC = False
-        self.UK = False
         self.SBRNL = False
         self.pluginTypes = set()
         for pluginXbrlMethod in pluginClassMethods("DisclosureSystem.Types"):
@@ -171,8 +170,7 @@ class DisclosureSystem:
                                     self.EFM = self.validationType == "EFM"
                                     self.GFM = self.validationType == "GFM"
                                     self.EFMorGFM = self.EFM or self.GFM
-                                    self.HMRC = self.validationType == "UK"
-                                    self.UK = self.validationType == "UK"
+                                    self.HMRC = self.validationType == "HMRC"
                                     self.SBRNL = self.validationType == "SBR.NL"
                                 for pluginXbrlMethod in pluginClassMethods("DisclosureSystem.Types"):
                                     for typeName, typeTestVariable in pluginXbrlMethod(self):

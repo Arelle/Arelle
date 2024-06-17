@@ -140,7 +140,7 @@ ALLOWED_IMG_MIME_TYPES = (
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
-    return (("UK", "UKplugin"),)
+    return (("HMRC", "UKplugin"),)
 
 
 def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
