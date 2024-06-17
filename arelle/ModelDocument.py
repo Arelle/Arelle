@@ -132,7 +132,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
 
     if not isPullLoadable and os.path.splitext(filepath)[1] in (".xlsx", ".xls", ".csv", ".json"):
         modelXbrl.error("FileNotLoadable",
-                _("File can not be loaded, requires loadFromExcel or loadFromOIM plug-in: %(fileName)s"),
+                _("File can not be loaded, requires loadFromExcel plug-in: %(fileName)s"),
                 modelObject=referringElement, fileName=normalizedUri)
         return None
 

@@ -36,7 +36,7 @@ windows
 
 examples of arguments:
    store from instance into DB: -f "my_traditional_instance.xbrl" -v --plugins "xbrlDB" --store-to-XBRL-DB "localhost,8084,userid,passwd,open_db,90,pgOpenDB"
-   store from OIM excel instance into DB: -f "my_oim_instance.xlsx" -v --plugins "loadFromOIM.py|xbrlDB" --store-to-XBRL-DB "localhost,8084,userid,passwd,open_db,90,pgOpenDB"
+   store from OIM excel instance into DB: -f "my_oim_instance.xlsx" -v --plugins "xbrlDB" --store-to-XBRL-DB "localhost,8084,userid,passwd,open_db,90,pgOpenDB"
    load from DB save into instance: -f "output_instance.xbrl" --plugins "xbrlDB" --load-from-XBRL-DB "localhost,8084,userid,passwd,open_db,90,pgOpenDB,loadInstanceId=214147"
 '''
 
