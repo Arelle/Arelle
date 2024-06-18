@@ -115,7 +115,7 @@ HMRCtableCodes = [
 def evaluateRoleTypesTableCodes(modelXbrl):
     disclosureSystem = modelXbrl.modelManager.disclosureSystem
 
-    if disclosureSystem.validationType in ("EFM", "HMRC", "UK"):
+    if disclosureSystem.validationType in ("EFM", "HMRC"):
         detectMultipleOfCode = False
         if disclosureSystem.validationType == "EFM":
             tableCodes = list( EFMtableCodes ) # separate copy of list so entries can be deleted
@@ -124,7 +124,7 @@ def evaluateRoleTypesTableCodes(modelXbrl):
                                        for docTypeConcept in modelXbrl.nameConcepts.get('DocumentType', ())
                                        for docTypeFact in modelXbrl.factsByQname.get(docTypeConcept.qname, ())
                                        for v in (docTypeFact.value,))
-        elif disclosureSystem.validationType in ("HMRC", "UK"):
+        elif disclosureSystem.validationType == "HMRC":
             tableCodes = list( HMRCtableCodes ) # separate copy of list so entries can be deleted
 
         codeRoleURI = {}  # lookup by code for roleURI

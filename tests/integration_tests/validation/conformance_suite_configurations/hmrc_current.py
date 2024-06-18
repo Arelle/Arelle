@@ -30,7 +30,7 @@ config = ConformanceSuiteConfig(
     info_url='https://www.gov.uk/government/organisations/hm-revenue-customs',
     name=PurePath(__file__).stem,
     network_or_cache_required=False,
-    plugins=frozenset({'validate/HMRC'}),
+    plugins=frozenset({'validate/UK'}),
     shards=4,
     test_case_result_options='match-any',
 )
