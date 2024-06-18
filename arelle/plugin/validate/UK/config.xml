@@ -9,7 +9,7 @@
      Default language en-UK\n
      Disallowed references are processed"
      validationType="HMRC"
-     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|UK"
+     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
      blockDisallowedReferences="false" 
      defaultXmlLang="en-UK" 
      defaultLanguage="English" 
