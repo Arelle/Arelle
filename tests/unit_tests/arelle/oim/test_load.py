@@ -1,14 +1,15 @@
 from __future__ import annotations
+
 from unittest.mock import Mock
 
 import pytest
 
 from arelle import ModelRelationshipSet, ModelXbrl
 from arelle.ModelDtsObject import ModelRelationship
-from arelle.plugin.loadFromOIM import getTaxonomyContextElement
+from arelle.oim.Load import getTaxonomyContextElement
 
 
-def _mock_model_xbrl(dts_context_elements: list[str]):
+def _mock_model_xbrl(dts_context_elements: list[str]) -> Mock:
     return Mock(
         spec=ModelXbrl,
         relationshipSet=lambda x: Mock(
@@ -32,7 +33,7 @@ class TestLoadFromOIM:
             (["segment", "scenario"], "scenario"),
         ]
     )
-    def test_get_taxonomy_context_element(self, dts_context_elements: list[str], expected_context_element: str):
+    def test_get_taxonomy_context_element(self, dts_context_elements: list[str], expected_context_element: str) -> None:
         model_xbrl = _mock_model_xbrl(dts_context_elements)
 
         result = getTaxonomyContextElement(model_xbrl)
