@@ -84,7 +84,7 @@
      standardTaxonomyUrlPattern="http://www.fasb.org|http://xbrl.sec.gov|http://www.xbrl.org|http://taxonomies.xbrl.us|http://xbrl.us/us-gaap|http://xbrl.ici.org/rr|http://xbrl.ifrs.org/taxonomy"
      />
    <DisclosureSystem
-      names="US SEC (Edgar Filing Manual, Liberal, All Years)|efm-nonblocking|efm-liberal"
+      names="US SEC (Edgar Filing Manual, Liberal)|efm-nonblocking|efm-liberal"
       description="US SEC Edgar Filing Manual, all years\n
       Default language en-US (en allowed in some cases per EFM)\n
       CIK identifier patterns\n
