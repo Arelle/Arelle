@@ -555,8 +555,7 @@ class WebCache:
         quotedUrl = WebCache._quotedUrl(url)
 
         filedir = os.path.dirname(filepath)
-        if not os.path.exists(filedir):
-            os.makedirs(filedir)
+        os.makedirs(filedir, exist_ok=True)
         # Retrieve over HTTP and cache, using rename to avoid collisions
         # self.modelManager.addToLog('web caching: {0}'.format(url))
 
@@ -718,17 +717,19 @@ class WebCache:
                     return False
 
             # rename temporarily named downloaded file to desired name
-            if os.path.exists(filepath):
-                try:
-                    if os.path.isfile(filepath) or os.path.islink(filepath):
-                        os.remove(filepath)
-                    elif os.path.isdir(filepath):
+            try:
+                if os.path.isdir(filepath):
+                    try:
                         shutil.rmtree(filepath)
-                except Exception as err:
-                    self.cntlr.addToLog(_("%(error)s \nUnsuccessful removal of prior file %(filepath)s \nPlease remove with file manager."),
-                                        messageCode="webCache:cachedPriorFileLocked",
-                                        messageArgs={"error": err, "filepath": filepath},
-                                        level=logging.ERROR)
+                    except FileNotFoundError:
+                        pass
+                else:
+                    Path(filepath).unlink(missing_ok=True)
+            except Exception as err:
+                self.cntlr.addToLog(_("%(error)s \nUnsuccessful removal of prior file %(filepath)s \nPlease remove with file manager."),
+                                    messageCode="webCache:cachedPriorFileLocked",
+                                    messageArgs={"error": err, "filepath": filepath},
+                                    level=logging.ERROR)
             try:
                 temporaryFilename.rename(filepath)
                 if self._logDownloads:
@@ -772,8 +773,10 @@ class WebCache:
     def clear(self):
         for cachedProtocol in ("http", "https"):
             cachedProtocolDir = os.path.join(self.cacheDir, cachedProtocol)
-            if os.path.exists(cachedProtocolDir):
-                shutil.rmtree(cachedProtocolDir, True)
+            try:
+                shutil.rmtree(cachedProtocolDir)
+            except FileNotFoundError:
+                pass
 
     def getheaders(self, url):
         if url and isHttpUrl(url):
