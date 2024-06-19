@@ -8,6 +8,7 @@ e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
 from __future__ import annotations
 
 
+from filelock import FileLock
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Pattern
 import os, posixpath, sys, time, calendar, io, json, logging, shutil, zlib
@@ -34,6 +35,7 @@ if TYPE_CHECKING:
 addServerWebCache = None
 
 DIRECTORY_INDEX_FILE = "!~DirectoryIndex~!"
+FILE_LOCK_TIMEOUT = 30
 INF = float("inf")
 RETRIEVAL_RETRY_COUNT = 5
 HTTP_USER_AGENT = 'Mozilla/5.0 (Arelle/{})'.format(__version__)
@@ -474,7 +476,7 @@ class WebCache:
 
         # Download without checking age if configured to do so or file does not exist
         if reload or not filepathExists:
-            return filepath if self._downloadFile(url, filepath) else None
+            return filepath if self._downloadFileWithLock(url, filepath) else None
 
         # Determine if file has aged out of cache, return filepath if not
         if url in self.cachedUrlCheckTimes and not checkModifiedTime:
@@ -487,7 +489,7 @@ class WebCache:
 
         # If we determine that the web version is newer, download it
         if self._checkIfNewerOnWeb(url, filepath):
-            self._downloadFile(url, filepath, retrievingDueToRecheckInterval=True)
+            self._downloadFileWithLock(url, filepath, retrievingDueToRecheckInterval=True)
             # Whether the download is successful or not, we know `filepath` exists, so return it.
             return filepath
         # Otherwise, use existing file
@@ -534,6 +536,15 @@ class WebCache:
         quotedUrlPath = quote(urlPath, safe=pathSafeChars)
         quotedQuery = quote(query, safe=querySafeChars)
         return urlScheme + schemeSep + quotedUrlPath + querySep + quotedQuery
+
+    def _downloadFileWithLock(
+            self,
+            url: str,
+            filepath: str,
+            retrievingDueToRecheckInterval: bool = False,
+            retryCount: int = 5) -> bool:
+        with FileLock(filepath + '.lock', timeout=FILE_LOCK_TIMEOUT):
+            return self._downloadFile(url, filepath, retrievingDueToRecheckInterval, retryCount)
 
     def _downloadFile(
             self,
