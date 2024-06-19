@@ -1836,6 +1836,14 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 initialComment="extracted from OIM {}".format(mappedUri),
                 base=documentBase)
             _return = modelXbrl.modelDocument
+
+        # Add any prefix/namespace combinations we are already aware of
+        # to the document, in order to prevent the costly `setXmlns` operation
+        # that involves copying all child elements from the existing root
+        # to a new root.
+        for prefix, namespace in namespaces.items():
+            setXmlns(modelXbrl.modelDocument, prefix, namespace)
+
         if len(modelXbrl.errors) > prevErrLen:
             error("oime:invalidTaxonomy",
                   _("Unable to obtain a valid taxonomy from URLs provided"),
