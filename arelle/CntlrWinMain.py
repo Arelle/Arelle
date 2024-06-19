@@ -36,6 +36,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlCalcs import ValidateCalcsMode as CalcsMode
 from arelle.Version import copyrightLabel
+from arelle.oim.xml.Save import saveOimReportToXmlInstance
 import logging
 
 import threading, queue
@@ -125,6 +126,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 (_("Save"), self.fileSaveExistingFile, "Ctrl+S", "<Control-s>"),
                 (_("Save As..."), self.fileSave, None, None),
                 (_("Save DTS Package"), self.saveDTSpackage, None, None),
+                (_("Save OIM Report to XBRL Instance"), self.saveXmlInstance, None, None),
                 ("PLUG-IN", "CntlrWinMain.Menu.File.Save", None, None),
                 (_("Close"), self.fileClose, "Ctrl+W", "<Control-w>"),
                 (None, None, None, None),
@@ -167,6 +169,11 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateUtr = BooleanVar(value=self.modelManager.validateUtr)
         self.validateUtr.trace("w", self.setValidateUtr)
         validateMenu.add_checkbutton(label=_("Unit Type Registry validation"), underline=0, variable=self.validateUtr, onvalue=True, offvalue=False)
+
+        self.modelManager.validateXmlOim = self.config.setdefault("validateXmlOim", False)
+        self.validateXmlOim = BooleanVar(value=self.modelManager.validateXmlOim)
+        self.validateXmlOim.trace("w", self.setValidateXmlOim)
+        validateMenu.add_checkbutton(label=_("OIM validate xBRL-XML documents"), underline=0, variable=self.validateXmlOim, onvalue=True, offvalue=False)
 
         self.validateDuplicateFacts = None
         self.buildValidateDuplicateFactsMenu(validateMenu)
@@ -990,6 +997,28 @@ class CntlrWinMain (Cntlr.Cntlr):
         if not isSupplementalModelXbrl:
             self.showStatus(_("Ready..."), 2000)
 
+    def saveXmlInstance(self):
+        modelXbrl = self.modelManager.modelXbrl
+        if not modelXbrl or not modelXbrl.modelDocument:
+            self.showStatus(_("No report loaded to save"), 5000)
+            return
+        if not modelXbrl.loadedFromOIM:
+            self.showStatus(_("Model not loaded from OIM report"), 5000)
+            return
+        configOutputInstanceDir = self.config.get("outputInstanceDir")
+        instanceFile = self.uiFileDialog("save",
+                title=_("arelle - Save XBRL instance document"),
+                initialdir=configOutputInstanceDir or ".",
+                filetypes=[(_("XBRL file .xbrl"), "*.xbrl"), (_("XBRL file .xml"), "*.xml")],
+                defaultextension=".xbrl")
+        if isinstance(instanceFile, str):
+            outputInstanceDir = os.path.dirname(instanceFile)
+            if outputInstanceDir != configOutputInstanceDir:
+                self.config["outputInstanceDir"] = outputInstanceDir
+                self.saveConfig()
+            saveOimReportToXmlInstance(modelXbrl.modelDocument, instanceFile)
+            self.showStatus(_("Saved XBRL instance: {0}").format(os.path.basename(instanceFile)))
+
     def showFormulaOutputInstance(self, priorOutputInstance, currentOutputInstance):
         currentAction = "closing prior formula output instance"
         try:
@@ -1347,6 +1376,12 @@ class CntlrWinMain (Cntlr.Cntlr):
     def setValidateUtr(self, *args):
         self.modelManager.validateUtr = self.validateUtr.get()
         self.config["validateUtr"] = self.modelManager.validateUtr
+        self.saveConfig()
+        self.setValidateTooltipText()
+
+    def setValidateXmlOim(self, *args):
+        self.modelManager.validateXmlOim = self.validateXmlOim.get()
+        self.config["validateXmlOim"] = self.modelManager.validateXmlOim
         self.saveConfig()
         self.setValidateTooltipText()
 

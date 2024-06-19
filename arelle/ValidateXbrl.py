@@ -23,6 +23,7 @@ from arelle.XbrlConst import (ixbrlAll, dtrNoDecimalsItemTypes, dtrPrefixedConte
 from arelle.XhtmlValidate import ixMsgCode
 from arelle.XmlValidateConst import VALID
 from collections import defaultdict
+from arelle.oim.Validate import validateOIM
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from arelle.ModelRelationshipSet import ModelRelationshipSet
@@ -403,6 +404,9 @@ class ValidateXbrl:
 
         for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Finally"):
             pluginXbrlMethod(self)
+
+        if modelXbrl.loadedFromOIM or modelXbrl.modelManager.validateXmlOim:
+            validateOIM(modelXbrl)
 
         modelXbrl.profileStat() # reset after plugins
 

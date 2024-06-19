@@ -13,7 +13,6 @@ recently tested, these archived plugins may still provide valuable functionality
 arelle_ixbrl_viewer
 edgar_renderer
 inline_xbrl_document_set
-load_from_oim
 save_loadable_oim
 transforms_sec
 validation

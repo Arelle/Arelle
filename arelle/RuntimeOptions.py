@@ -117,6 +117,7 @@ class RuntimeOptions:
     rssReport: Optional[str] = None
     rssReportCols: Optional[int] = None
     saveDeduplicatedInstance: Optional[bool] = None
+    saveOIMToXMLReport: Optional[str] = None
     showEnvironment: Optional[bool] = None
     showOptions: Optional[bool] = None
     skipDTS: Optional[bool] = None
@@ -135,6 +136,7 @@ class RuntimeOptions:
     utrValidate: Optional[bool] = None
     validate: Optional[bool] = None
     validateDuplicateFacts: Optional[str] = None
+    validateXmlOim: Optional[bool] = None
     validateEFM: Optional[bool] = None
     validateEFMCalcTree: Optional[bool] = None
     validateHMRC: Optional[bool] = None

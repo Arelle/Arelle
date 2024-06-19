@@ -352,6 +352,8 @@ class ModelXbrl:
         self.hasTableRendering: bool = False
         self.hasTableIndexing: bool = False
         self.hasFormulae: bool = False
+        self.loadedFromOIM = False
+        self.loadedFromOimErrorCount = 0
         self.formulaOutputInstance: ModelXbrl | None = None
         self.logger: logging.Logger | None = self.modelManager.cntlr.logger
         self.logRefObjectProperties: bool = getattr(self.logger, "logRefObjectProperties", False)

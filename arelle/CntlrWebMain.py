@@ -369,8 +369,6 @@ def runOptionsAndGetResult(
         if hasattr(options, "saveOIMinstance") or entryIsOIM:
             plugins = options.plugins.split("|") if options.plugins else []
             if entryIsOIM:
-                if "loadFromOIM" not in plugins:
-                    plugins.append("loadFromOIM")
                 addLogToZip = True
             if getattr(options, "saveOIMinstance", "").rpartition(".")[2] in ("json", "csv", "xlsx"):
                 if "saveLoadableOIM" not in plugins:

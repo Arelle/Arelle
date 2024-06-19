@@ -130,9 +130,9 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     isPullLoadable = any(pluginMethod(modelXbrl, mappedUri, normalizedUri, filepath, isEntry=isEntry, namespace=namespace, **kwargs)
                          for pluginMethod in pluginClassMethods("ModelDocument.IsPullLoadable"))
 
-    if not isPullLoadable and os.path.splitext(filepath)[1] in (".xlsx", ".xls", ".csv", ".json"):
+    if not isPullLoadable and os.path.splitext(filepath)[1] in (".xlsx", ".xls"):
         modelXbrl.error("FileNotLoadable",
-                _("File can not be loaded, requires loadFromExcel or loadFromOIM plug-in: %(fileName)s"),
+                _("File can not be loaded, requires loadFromExcel plug-in: %(fileName)s"),
                 modelObject=referringElement, fileName=normalizedUri)
         return None
 
@@ -144,6 +144,13 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         for pluginMethod in pluginClassMethods("ModelDocument.PullLoader"):
             # assumes not possible to check file in string format or not all available at once
             modelDocument = pluginMethod(modelXbrl, normalizedUri, filepath, isEntry=isEntry, namespace=namespace, **kwargs)
+            if isinstance(modelDocument, Exception):
+                return None
+            if modelDocument is not None:
+                return modelDocument
+        from arelle.oim.Load import isOimLoadable, oimLoader
+        if isOimLoadable(normalizedUri, filepath):
+            modelDocument = oimLoader(modelXbrl, normalizedUri, filepath)
             if isinstance(modelDocument, Exception):
                 return None
             if modelDocument is not None:

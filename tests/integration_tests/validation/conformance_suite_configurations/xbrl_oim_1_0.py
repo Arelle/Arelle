@@ -3,6 +3,7 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 
 config = ConformanceSuiteConfig(
     args=[
+        '--validateXmlOim',
         '--formula', 'run',
         '--httpsRedirectCache',
     ],
@@ -20,6 +21,5 @@ config = ConformanceSuiteConfig(
     membership_url='https://www.xbrl.org/join',
     name=PurePath(__file__).stem,
     network_or_cache_required=False,
-    plugins=frozenset({'loadFromOIM'}),
     test_case_result_options='match-any',
 )
