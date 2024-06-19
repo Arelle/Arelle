@@ -537,13 +537,26 @@ class WebCache:
         quotedQuery = quote(query, safe=querySafeChars)
         return urlScheme + schemeSep + quotedUrlPath + querySep + quotedQuery
 
+    @staticmethod
+    def _getFileTimestamp(path: str) -> float:
+        try:
+            stats = Path(path).stat()
+            return max(stats.st_ctime, stats.st_mtime)
+        except FileNotFoundError:
+            return 0
+
     def _downloadFileWithLock(
             self,
             url: str,
             filepath: str,
             retrievingDueToRecheckInterval: bool = False,
             retryCount: int = 5) -> bool:
+        before_timestamp = WebCache._getFileTimestamp(filepath)
         with FileLock(filepath + '.lock', timeout=FILE_LOCK_TIMEOUT):
+            after_timestamp = WebCache._getFileTimestamp(filepath)
+            if after_timestamp > before_timestamp:
+                # Another process just downloaded the file, use it instead.
+                return True
             return self._downloadFile(url, filepath, retrievingDueToRecheckInterval, retryCount)
 
     def _downloadFile(
