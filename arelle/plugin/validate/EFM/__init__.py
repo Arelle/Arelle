@@ -134,7 +134,7 @@ from arelle.XmlValidateConst import VALID
 from .Document import checkDTSdocument
 from .Consts import (feeTagEltsNotRelevelable, feeTagMessageCodesRelevelable, feeTaggingAttachmentDocumentTypePattern,
                      supplementalAttachmentDocumentTypesPattern, exhibitTypesStrippingOnErrorPattern,
-                     exhibitTypesPrivateNotDisseminated)
+                     exhibitTypesPrivateNotDisseminated, primaryAttachmentDocumentTypesPattern)
 from .Filing import validateFiling
 from .MessageNumericId import messageNumericId
 import regex as re
@@ -332,7 +332,7 @@ def severityReleveler(modelXbrl, level, messageCode, args, **kwargs):
             level = "WARNING"
     return level, messageCode
 
-def isolateSeparateIXDSes(modelXbrl, *args, **kwargs):
+def isolateSeparateIXDSes(modelXbrl, primaryIxdsDocument, *args, **kwargs):
     separateIXDSes = defaultdict(list)
     for htmlElt in modelXbrl.ixdsHtmlElements:
         tp = "" # attachment document type inferred from document type and ffd:SubmissnTp
@@ -342,6 +342,14 @@ def isolateSeparateIXDSes(modelXbrl, *args, **kwargs):
                 if tp:
                     break
         separateIXDSes[tp if supplementalAttachmentDocumentTypesPattern.match(tp) else ""].append(htmlElt)
+    entrypoint = kwargs.get("entrypoint") or {}
+    # find targetDocumentPreferredFilename for primary ixds
+    if "ixds" in entrypoint and "" in separateIXDSes:
+        for ep in entrypoint["ixds"]:
+            if isinstance(ep,dict) and primaryAttachmentDocumentTypesPattern.match(ep.get("attachmentDocumentType","")) and "file" in ep:
+                primaryIxdsDocument.targetDocumentPreferredFilename = os.path.splitext(os.path.basename(ep["file"]))[0] + ".xbrl"
+                modelXbrl.efmIxdsType = ep.get("attachmentDocumentType")
+                break
     return [htmlElts for tp,htmlElts in sorted(separateIXDSes.items(), key=lambda i:i[0])]
 
 def validateXbrlFinally(val, *args, **kwargs):

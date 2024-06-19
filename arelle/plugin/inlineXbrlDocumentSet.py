@@ -227,7 +227,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
             if ixdocs:
                 loadDTS(modelXbrl, ixdocset)
                 modelXbrl.isSupplementalIxdsTarget = True
-            inlineIxdsDiscover(modelXbrl, ixdocset, bool(ixdocs)) # compile cross-document IXDS references
+            inlineIxdsDiscover(modelXbrl, ixdocset, bool(ixdocs), **kwargs) # compile cross-document IXDS references
             return ixdocset
     return None
 
@@ -840,12 +840,12 @@ def ixdsTargets(ixdsHtmlElements):
                               for htmlElt in ixdsHtmlElements
                               for elt in htmlElt.iterfind(f".//{{{htmlElt.modelDocument.ixNS}}}references")))
 
-def selectTargetDocument(modelXbrl, modelIxdsDocument):
+def selectTargetDocument(modelXbrl, modelIxdsDocument, **kwargs):
     if not hasattr(modelXbrl, "ixdsTarget"): # DTS discoverey deferred until all ix docs loaded
         # isolate any documents to separate IXDSes according to authority submission rules
         modelXbrl.targetIXDSesToLoad = [] # [[target,[ixdsHtmlElements], ...]
         for pluginXbrlMethod in pluginClassMethods('InlineDocumentSet.IsolateSeparateIXDSes'):
-            separateIXDSesHtmlElements = pluginXbrlMethod(modelXbrl)
+            separateIXDSesHtmlElements = pluginXbrlMethod(modelXbrl, modelIxdsDocument, **kwargs)
             if len(separateIXDSesHtmlElements) > 1: # [[ixdsHtml1, ixdsHtml2], [ixdsHtml3...] ...]
                 for separateIXDSHtmlElements in separateIXDSesHtmlElements[1:]:
                     toLoadIXDS = [ixdsTargets(separateIXDSHtmlElements),[]]

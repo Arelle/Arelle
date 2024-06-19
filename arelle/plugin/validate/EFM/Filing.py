@@ -156,9 +156,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     val.entityRegistrantName = None
     val.requiredContext = None
     deiDocumentType = None # needed for non-instance validation too
-    # efmSubmissionType and efmAttachmentDocumentType are already set when re-validating after redaction/redline removal
+    # efmSubmissionType and efmIxdsType are already set when re-validating after redaction/redline removal
     submissionType = getattr(modelXbrl,'efmSubmissionType', val.params.get("submissionType", ""))
-    attachmentDocumentType = getattr(modelXbrl,'efmAttachmentDocumentType', val.params.get("attachmentDocumentType", "")) # this is different from dei:documentType
+    attachmentDocumentType = getattr(modelXbrl,'efmIxdsType', val.params.get("attachmentDocumentType", "")) # this is different from dei:documentType
     isFeeTagging = feeTaggingAttachmentDocumentTypePattern.match(attachmentDocumentType)
     requiredFactLang = disclosureSystem.defaultXmlLang.lower() if disclosureSystem.defaultXmlLang else disclosureSystem.defaultXmlLang
     hasSubmissionType = bool(submissionType)
@@ -195,7 +195,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             modelXbrl.info("info",_("Setting submission parameters: %(setParams)s"), setParams=", ".join(_setParams))
 
         modelXbrl.efmSubmissionType = submissionType
-        modelXbrl.efmAttachmentDocumentType = attachmentDocumentType
+        modelXbrl.efmIxdsType = attachmentDocumentType
         val.otherStandardTaxonomies = loadOtherStandardTaxonomies(modelXbrl, val)
         compatibleTaxonomies = loadTaxonomyCompatibility(modelXbrl)
     if isXbrlInstance:

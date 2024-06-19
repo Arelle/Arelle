@@ -69,6 +69,7 @@ attachmentDocumentTypeValidationRulesFiles = ( # match attachment doc type patte
 supplementalAttachmentDocumentTypesPattern = re.compile(r"EX-FILING FEES.*|EX-99\.[C-S]\.SBSEF.*")
 exhibitTypesStrippingOnErrorPattern = re.compile(r"EX-26.*|EX-99\.[C-S]\.SBSEF.*")
 exhibitTypesPrivateNotDisseminated = re.compile(r"EX-99\.[DEFHIJKNOPQRS]\.SBSEF")
+primaryAttachmentDocumentTypesPattern = re.compile(r"(?!EX-)")
 
 standardNamespacesPattern = re.compile(
     # non-IFRS groups 1 - authority, 2 - taxonomy (e.g. us-gaap, us-types), 3 - year

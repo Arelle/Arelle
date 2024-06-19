@@ -2539,7 +2539,7 @@
         	"rxp:TotalPayments"
         ],
         "efm": "6.5.58.02",
-        "validation": "x",
+        "validation": "r",
         "source": "both",
         "dei/cover": "cover"
     },
