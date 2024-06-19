@@ -6,6 +6,9 @@ e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
 
 '''
 from __future__ import annotations
+
+
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Pattern
 import os, posixpath, sys, time, calendar, io, json, logging, shutil, zlib
 import regex as re
@@ -546,7 +549,7 @@ class WebCache:
         :param retryCount: Number of times to retry download.
         :return: Whether `filepath` should now be used.
         """
-        tempFilepath = filepath + ".tmp"
+        temporaryFilename = Path(f'{filepath}.tmp')
         fileExt = os.path.splitext(filepath)[1]
         timeNowStr = WebCache._getTimeString(time.time())
         quotedUrl = WebCache._quotedUrl(url)
@@ -564,7 +567,7 @@ class WebCache:
                 savedfile, headers, initialBytes = self.retrieve(
                     #savedfile, headers = self.opener.retrieve(
                     quotedUrl,
-                    filename=tempFilepath,
+                    filename=str(temporaryFilename),
                     reporthook=self.reportProgress)
 
                 # check if this is a real file or a wifi or web logon screen
@@ -606,8 +609,7 @@ class WebCache:
                                     messageCode="webCache:contentTooShortError",
                                     messageArgs={"URL": url, "error": err},
                                     level=logging.ERROR)
-                if os.path.exists(tempFilepath):
-                    os.remove(tempFilepath)
+                temporaryFilename.unlink(missing_ok=True)
                 return False
                 # handle file is bad
             except (HTTPError, URLError) as err:
@@ -712,8 +714,7 @@ class WebCache:
                                         messageCode="webCache:unsuccessfulRetrieval",
                                         messageArgs={"error": err, "URL": url},
                                         level=logging.ERROR)
-                    if os.path.exists(tempFilepath):
-                        os.remove(tempFilepath)
+                    temporaryFilename.unlink(missing_ok=True)
                     return False
 
             # rename temporarily named downloaded file to desired name
@@ -729,7 +730,7 @@ class WebCache:
                                         messageArgs={"error": err, "filepath": filepath},
                                         level=logging.ERROR)
             try:
-                os.rename(tempFilepath, filepath)
+                temporaryFilename.rename(filepath)
                 if self._logDownloads:
                     self.cntlr.addToLog(_("Downloaded %(URL)s"),
                                         messageCode="webCache:download",
