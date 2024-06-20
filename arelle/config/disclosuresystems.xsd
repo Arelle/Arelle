@@ -59,6 +59,7 @@
       <xs:attribute name="names" use="required"/>
       <xs:attribute name="roleDefinitionPattern" use="optional"/>
       <xs:attribute name="standardTaxonomiesUrl" use="optional" />
+      <xs:attribute name="validTaxonomiesUrl" use="optional" />
       <xs:attribute name="mappingsUrl" />
       <xs:attribute name="utrUrl" />
       <xs:attribute name="utrStatusFilters" />

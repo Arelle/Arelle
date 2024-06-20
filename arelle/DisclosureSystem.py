@@ -71,6 +71,7 @@ class DisclosureSystem:
         self.xmlLangIsInheritable = True # for label and footnote, spec sections 4.11.1.2.1 and 5.2.2.2.1
         self.defaultLanguage = None
         self.language = None
+        self.validTaxonomiesUrl = None
         self.standardTaxonomiesUrl = None
         self.mappingsUrl = os.path.join(self.modelManager.cntlr.configDir, "mappings.xml")
         self.mappedFiles = {}
@@ -196,6 +197,10 @@ class DisclosureSystem:
                                     self.standardTaxonomiesUrl = self.modelManager.cntlr.webCache.normalizeUrl(
                                                      dsElt.get("standardTaxonomiesUrl"),
                                                      url)
+                                if dsElt.get("validTaxonomiesUrl"):
+                                    self.validTaxonomiesUrl = self.modelManager.cntlr.webCache.normalizeUrl(
+                                        dsElt.get("validTaxonomiesUrl"),
+                                        url)
                                 if dsElt.get("mappingsUrl"):
                                     self.mappingsUrl = self.modelManager.cntlr.webCache.normalizeUrl(
                                                  dsElt.get("mappingsUrl"),
@@ -233,6 +238,7 @@ class DisclosureSystem:
             self.loadMappings()
             self.utrUrl = [self.mappedUrl(u) for u in self.utrUrl] # utr may be mapped, change to its mapped entry
             self.loadStandardTaxonomiesDict()
+            self.loadValidTaxonomiesDict()
             self.utrTypeEntries = None # clear any prior loaded entries
             # set log level filters (including resetting prior disclosure systems values if no such filter)
             self.modelManager.cntlr.setLogLevelFilter(self.logLevelFilter)  # None or "" clears out prior filter if any
@@ -333,6 +339,45 @@ class DisclosureSystem:
                                                  level=logging.ERROR)
                 etree.clear_error_log()
 
+    def loadValidTaxonomiesDict(self):
+        if self.selection:
+            self.validTaxonomiesDict = defaultdict(set)
+            if not self.validTaxonomiesUrl:
+                return
+            basename = os.path.basename(self.validTaxonomiesUrl)
+            self.modelManager.cntlr.showStatus(_("parsing {0}").format(basename))
+            try:
+                from arelle.FileSource import openXmlFileStream
+                for filepath in (self.validTaxonomiesUrl,
+                                 os.path.join(self.modelManager.cntlr.configDir,"xbrlschemafiles.xml")):
+                    xmldoc = etree.parse(filepath) # must open with file path for xinclude to know base of file
+                    xmldoc.xinclude() # to include elements below root use xpointer(/*/*)
+                    for locElt in xmldoc.iter(tag="Loc"):
+                        href = None
+                        namespaceUri = None
+                        attType = None
+                        for childElt in locElt.iterchildren():
+                            ln = childElt.tag
+                            value = childElt.text.strip()
+                            if ln == "Href":
+                                href = value
+                            elif ln == "Namespace":
+                                namespaceUri = value
+                            elif ln == "AttType":
+                                attType = value
+                        if href:
+                            if namespaceUri and (attType == "SCH" or attType == "ENT"):
+                                self.validTaxonomiesDict[namespaceUri].add(href)
+                            if href not in self.validTaxonomiesDict:
+                                self.validTaxonomiesDict[href] = "Allowed" + attType
+            except (EnvironmentError,
+                    etree.LxmlError) as err:
+                self.modelManager.cntlr.addToLog(_("Disclosure System \"%(name)s\" import %(importFile)s, error: %(error)s"),
+                                                 messageCode="arelle:disclosureSystemImportError",
+                                                 messageArgs={"error": str(err), "name": self.name, "importFile": basename},
+                                                 level=logging.ERROR)
+                etree.clear_error_log()
+
     def loadMappings(self):
         basename = os.path.basename(self.mappingsUrl)
         self.modelManager.cntlr.showStatus(_("parsing {0}").format(basename))
@@ -381,5 +426,12 @@ class DisclosureSystem:
 
     def hrefValid(self, href):
         if self.standardTaxonomiesUrl:
+            return href in self.standardTaxonomiesDict
+        return True # no standard taxonomies to test
+
+    def hrefValidForDisclosureSystem(self, href):
+        if self.validTaxonomiesUrl:
+            return href in self.validTaxonomiesDict
+        elif self.standardTaxonomiesUrl: # fallback to standard taxonomies dict
             return href in self.standardTaxonomiesDict
         return True # no standard taxonomies to test
