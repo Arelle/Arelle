@@ -1759,6 +1759,22 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 initialComment="extracted from OIM {}".format(mappedUri),
                 base=documentBase)
             _return = modelXbrl.modelDocument
+
+        # Updating the namespace map on the document is expensive,
+        # and increases cost as the size of the document grows.
+        # To minimize the effect of this, we can add any known and valid
+        # prefix/namespace combinations to the document preemptively.
+        for prefix, namespace in namespaces.items():
+            if not prefix or not namespace:
+                continue
+            # First, test if the prefix/namespace combination is valid
+            try:
+                etree.Element('nsmap', nsmap={prefix: namespace})
+            except ValueError:
+                # Skip if not valid
+                continue
+            XmlUtil.setXmlns(modelXbrl.modelDocument, prefix, namespace)
+
         if len(modelXbrl.errors) > prevErrLen:
             error("oime:invalidTaxonomy",
                   _("Unable to obtain a valid taxonomy from URLs provided"),
