@@ -22,8 +22,13 @@ class LogToXmlHandler(LogHandlerWithXml):
     filemode: str
     htmlTitle: str = "Arelle Message Log" # may be customized in plugin startup
 
-    def __init__(self, filename: str | None = None, mode: str = 'w') -> None:
-        super(LogToXmlHandler, self).__init__()
+    def __init__(
+            self,
+            filename: str | None = None,
+            mode: str = 'w',
+            logXmlMaxAttributeLength: int | None = None
+    ) -> None:
+        super(LogToXmlHandler, self).__init__(logXmlMaxAttributeLength=logXmlMaxAttributeLength)
         self.filename = filename # may be none if buffer is retrieved by get methods below and not written anywhere
         self.logRecordBuffer = []
         self.filemode = mode

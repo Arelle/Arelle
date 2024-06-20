@@ -265,6 +265,8 @@ def parseArgs(args):
                       help=_("Log reference object properties (default)."), default=True)
     parser.add_option("--logNoRefObjectProperties", "--lognorefobjectproperties", action="store_false", dest="logRefObjectProperties",
                       help=_("Do not log reference object properties."))
+    parser.add_option("--logXmlMaxAttributeLength", "--logxmlmaxattributelength", action="store", dest="logXmlMaxAttributeLength", type="int",
+                      help=_("Truncate XML log file attribute values at length. The default is 4096000 for JSON content and 128 for everything else."))
     parser.add_option("--statusPipe", action="store", dest="statusPipe", help=SUPPRESS_HELP)
     parser.add_option("--monitorParentProcess", action="store", dest="monitorParentProcess", help=SUPPRESS_HELP)
     parser.add_option("--outputAttribution", "--outputattribution", action="store", dest="outputAttribution", help=SUPPRESS_HELP)
@@ -527,7 +529,8 @@ def configAndRunCntlr(options, arellePluginModules):
                            logLevel=(options.logLevel or "DEBUG"),
                            logToBuffer=getattr(options, "logToBuffer", False),
                            logTextMaxLength=options.logTextMaxLength,  # e.g., used by EdgarRenderer to require buffered logging
-                           logRefObjectProperties=options.logRefObjectProperties)
+                           logRefObjectProperties=options.logRefObjectProperties,
+                           logXmlMaxAttributeLength=options.logXmlMaxAttributeLength)
         cntlr.postLoggingInit()  # Cntlr options after logging is started
         cntlr.run(options)
         return cntlr

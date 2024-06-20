@@ -100,6 +100,7 @@ class RuntimeOptions:
     logLevelFilter: Optional[str] = None
     logRefObjectProperties: Optional[bool] = None
     logTextMaxLength: Optional[int] = None
+    logXmlMaxAttributeLength: Optional[int] = None
     monitorParentProcess: Optional[bool] = None
     noCertificateCheck: Optional[bool] = None
     outputAttribution: Optional[str] = None

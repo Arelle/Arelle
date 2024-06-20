@@ -6,11 +6,16 @@ from __future__ import annotations
 import logging
 from typing import Any, Mapping
 
+DEFAULT_JSON_MAX_ATTRIBUTE_LENGTH = 4096000
+DEFAULT_XML_MAX_ATTRIBUTE_LENGTH = 128
 
 class LogHandlerWithXml(logging.Handler):
     logTextMaxLength: int
-    def __init__(self) -> None:
+
+    def __init__(self, logXmlMaxAttributeLength: int | None = None ) -> None:
         super(LogHandlerWithXml, self).__init__()
+        self.logJsonMaxAttributeLength = logXmlMaxAttributeLength or DEFAULT_JSON_MAX_ATTRIBUTE_LENGTH
+        self.logXmlMaxAttributeLength = logXmlMaxAttributeLength or DEFAULT_XML_MAX_ATTRIBUTE_LENGTH
 
     def recordToXml(self, logRec: logging.LogRecord) -> str:
         def entityEncode(arg: Any, truncateAt: int = self.logTextMaxLength) -> str:  # be sure it's a string, vs int, etc, and encode &, <, ".
@@ -39,8 +44,9 @@ class LogHandlerWithXml(logging.Handler):
 
         msg = self.format(logRec)
         if logRec.args and isinstance(logRec.args, Mapping):
-            args = "".join([' {0}="{1}"'.format(ncNameEncode(n), entityEncode(v,
-                                                                              truncateAt=(4096000 if n in ("json",) else 128)))
+            args = "".join([' {0}="{1}"'.format(
+                ncNameEncode(n), entityEncode(v, truncateAt=(self.logJsonMaxAttributeLength if n == "json" else self.logXmlMaxAttributeLength))
+            )
                             for n, v in logRec.args.items()])
         else:
             args = ""
