@@ -338,7 +338,8 @@ class Cntlr:
         logHandler: logging.Handler | None = None,
         logToBuffer: bool = False,
         logTextMaxLength: int | None = None,
-        logRefObjectProperties: bool = True
+        logRefObjectProperties: bool = True,
+        logXmlMaxAttributeLength: int | None = None
     ) -> None:
         # add additional logging levels (for python 2.7, all of these are ints)
         logging.addLevelName(logging.INFO - 1, "INFO-RESULT") # result data, has @name, @value, optional href to source and readable message
@@ -364,7 +365,11 @@ class Cntlr:
                 self.logHandler = StructuredMessageLogHandler()
                 setattr(self.logger, "logRefObjectProperties", logRefObjectProperties)
             elif logFileName.endswith(".xml") or logFileName.endswith(".json") or logToBuffer:
-                self.logHandler = LogToXmlHandler(filename=logFileName, mode=logFileMode or "a")  # should this be "w" mode??
+                self.logHandler = LogToXmlHandler(
+                    filename=logFileName,
+                    mode=logFileMode or "a",
+                    logXmlMaxAttributeLength=logXmlMaxAttributeLength
+                )  # should this be "w" mode??
                 setattr(self.logger, "logRefObjectProperties", logRefObjectProperties)
                 if not logFormat:
                     logFormat = "%(message)s"
