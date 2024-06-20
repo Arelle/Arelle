@@ -6,6 +6,10 @@ e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
 
 '''
 from __future__ import annotations
+
+
+from filelock import FileLock
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Pattern
 import os, posixpath, sys, time, calendar, io, json, logging, shutil, zlib
 import regex as re
@@ -31,6 +35,7 @@ if TYPE_CHECKING:
 addServerWebCache = None
 
 DIRECTORY_INDEX_FILE = "!~DirectoryIndex~!"
+FILE_LOCK_TIMEOUT = 30
 INF = float("inf")
 RETRIEVAL_RETRY_COUNT = 5
 HTTP_USER_AGENT = 'Mozilla/5.0 (Arelle/{})'.format(__version__)
@@ -471,7 +476,7 @@ class WebCache:
 
         # Download without checking age if configured to do so or file does not exist
         if reload or not filepathExists:
-            return filepath if self._downloadFile(url, filepath) else None
+            return filepath if self._downloadFileWithLock(url, filepath) else None
 
         # Determine if file has aged out of cache, return filepath if not
         if url in self.cachedUrlCheckTimes and not checkModifiedTime:
@@ -484,7 +489,7 @@ class WebCache:
 
         # If we determine that the web version is newer, download it
         if self._checkIfNewerOnWeb(url, filepath):
-            self._downloadFile(url, filepath, retrievingDueToRecheckInterval=True)
+            self._downloadFileWithLock(url, filepath, retrievingDueToRecheckInterval=True)
             # Whether the download is successful or not, we know `filepath` exists, so return it.
             return filepath
         # Otherwise, use existing file
@@ -532,6 +537,28 @@ class WebCache:
         quotedQuery = quote(query, safe=querySafeChars)
         return urlScheme + schemeSep + quotedUrlPath + querySep + quotedQuery
 
+    @staticmethod
+    def _getFileTimestamp(path: str) -> float:
+        try:
+            stats = Path(path).stat()
+            return max(stats.st_ctime, stats.st_mtime)
+        except FileNotFoundError:
+            return 0
+
+    def _downloadFileWithLock(
+            self,
+            url: str,
+            filepath: str,
+            retrievingDueToRecheckInterval: bool = False,
+            retryCount: int = 5) -> bool:
+        before_timestamp = WebCache._getFileTimestamp(filepath)
+        with FileLock(filepath + '.lock', timeout=FILE_LOCK_TIMEOUT):
+            after_timestamp = WebCache._getFileTimestamp(filepath)
+            if after_timestamp > before_timestamp:
+                # Another process just downloaded the file, use it instead.
+                return True
+            return self._downloadFile(url, filepath, retrievingDueToRecheckInterval, retryCount)
+
     def _downloadFile(
             self,
             url: str,
@@ -546,14 +573,13 @@ class WebCache:
         :param retryCount: Number of times to retry download.
         :return: Whether `filepath` should now be used.
         """
-        tempFilepath = filepath + ".tmp"
+        temporaryFilename = Path(f'{filepath}.tmp')
         fileExt = os.path.splitext(filepath)[1]
         timeNowStr = WebCache._getTimeString(time.time())
         quotedUrl = WebCache._quotedUrl(url)
 
         filedir = os.path.dirname(filepath)
-        if not os.path.exists(filedir):
-            os.makedirs(filedir)
+        os.makedirs(filedir, exist_ok=True)
         # Retrieve over HTTP and cache, using rename to avoid collisions
         # self.modelManager.addToLog('web caching: {0}'.format(url))
 
@@ -564,7 +590,7 @@ class WebCache:
                 savedfile, headers, initialBytes = self.retrieve(
                     #savedfile, headers = self.opener.retrieve(
                     quotedUrl,
-                    filename=tempFilepath,
+                    filename=str(temporaryFilename),
                     reporthook=self.reportProgress)
 
                 # check if this is a real file or a wifi or web logon screen
@@ -606,8 +632,7 @@ class WebCache:
                                     messageCode="webCache:contentTooShortError",
                                     messageArgs={"URL": url, "error": err},
                                     level=logging.ERROR)
-                if os.path.exists(tempFilepath):
-                    os.remove(tempFilepath)
+                temporaryFilename.unlink(missing_ok=True)
                 return False
                 # handle file is bad
             except (HTTPError, URLError) as err:
@@ -712,24 +737,25 @@ class WebCache:
                                         messageCode="webCache:unsuccessfulRetrieval",
                                         messageArgs={"error": err, "URL": url},
                                         level=logging.ERROR)
-                    if os.path.exists(tempFilepath):
-                        os.remove(tempFilepath)
+                    temporaryFilename.unlink(missing_ok=True)
                     return False
 
             # rename temporarily named downloaded file to desired name
-            if os.path.exists(filepath):
-                try:
-                    if os.path.isfile(filepath) or os.path.islink(filepath):
-                        os.remove(filepath)
-                    elif os.path.isdir(filepath):
-                        shutil.rmtree(filepath)
-                except Exception as err:
-                    self.cntlr.addToLog(_("%(error)s \nUnsuccessful removal of prior file %(filepath)s \nPlease remove with file manager."),
-                                        messageCode="webCache:cachedPriorFileLocked",
-                                        messageArgs={"error": err, "filepath": filepath},
-                                        level=logging.ERROR)
             try:
-                os.rename(tempFilepath, filepath)
+                if os.path.isdir(filepath):
+                    try:
+                        shutil.rmtree(filepath)
+                    except FileNotFoundError:
+                        pass
+                else:
+                    Path(filepath).unlink(missing_ok=True)
+            except Exception as err:
+                self.cntlr.addToLog(_("%(error)s \nUnsuccessful removal of prior file %(filepath)s \nPlease remove with file manager."),
+                                    messageCode="webCache:cachedPriorFileLocked",
+                                    messageArgs={"error": err, "filepath": filepath},
+                                    level=logging.ERROR)
+            try:
+                temporaryFilename.rename(filepath)
                 if self._logDownloads:
                     self.cntlr.addToLog(_("Downloaded %(URL)s"),
                                         messageCode="webCache:download",
@@ -771,8 +797,10 @@ class WebCache:
     def clear(self):
         for cachedProtocol in ("http", "https"):
             cachedProtocolDir = os.path.join(self.cacheDir, cachedProtocol)
-            if os.path.exists(cachedProtocolDir):
-                shutil.rmtree(cachedProtocolDir, True)
+            try:
+                shutil.rmtree(cachedProtocolDir)
+            except FileNotFoundError:
+                pass
 
     def getheaders(self, url):
         if url and isHttpUrl(url):

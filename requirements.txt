@@ -1,5 +1,6 @@
 # core modules
 certifi==2024.6.2
+filelock==3.15.1
 lxml==5.2.2
 OpenPyXL==3.1.4
 pyparsing==3.1.2
