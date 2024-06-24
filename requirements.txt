@@ -1,6 +1,6 @@
 # core modules
 certifi==2024.6.2
-filelock==3.15.1
+filelock==3.15.4
 lxml==5.2.2
 OpenPyXL==3.1.4
 pyparsing==3.1.2
@@ -17,7 +17,7 @@ NumPy==1.24.4 ; python_version <= "3.8"
 NumPy==1.26.2 ; python_version > "3.8"
 Matplotlib==3.7.4 ; python_version <= "3.8"
 Matplotlib==3.8.2 ; python_version > "3.8"
-holidays==0.50
+holidays==0.51
 pytz==2024.1
 Tornado==6.4.1
 # security plugin
