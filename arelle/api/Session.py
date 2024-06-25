@@ -35,6 +35,14 @@ class Session:
         if self._cntlr is not None:
             self._cntlr.close()
 
+    def get_log_messages(self) -> list[dict[str, Any]]:
+        """
+        :return: Raw log records (messages) from the session.
+        """
+        if not self._cntlr or not self._cntlr.logHandler:
+            return []
+        return getattr(self._cntlr.logHandler, 'messages', [])
+
     def get_logs(self, log_format: str, clear_logs: bool = False) -> str:
         """
         Retrieve logs as a string in the configured format.
