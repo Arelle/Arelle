@@ -35,6 +35,14 @@ class Session:
         if self._cntlr is not None:
             self._cntlr.close()
 
+    def get_log_messages(self) -> list[dict[str, Any]]:
+        """
+        :return: Raw log records (messages) from the session.
+        """
+        if not self._cntlr or not self._cntlr.logHandler:
+            return []
+        return getattr(self._cntlr.logHandler, 'messages', [])
+
     def get_logs(self, log_format: str, clear_logs: bool = False) -> str:
         """
         Retrieve logs as a string in the configured format.
@@ -81,12 +89,15 @@ class Session:
             if self._cntlr.uiLang != options.uiLang:
                 self._cntlr.setUiLanguage(options.uiLang)
             self._cntlr.disablePersistentConfig = options.disablePersistentConfig or False
+        logRefObjectProperties = True
+        if options.logRefObjectProperties is not None:
+            logRefObjectProperties = options.logRefObjectProperties
         if options.webserver:
             if not self._cntlr.logger:
                 self._cntlr.startLogging(
                     logFileName='logToBuffer',
                     logTextMaxLength=options.logTextMaxLength,
-                    logRefObjectProperties=options.logRefObjectProperties or True
+                    logRefObjectProperties=logRefObjectProperties,
                 )
                 self._cntlr.postLoggingInit()
             from arelle import CntlrWebMain
@@ -101,7 +112,7 @@ class Session:
                     logLevel=(options.logLevel or "DEBUG"),
                     logToBuffer=options.logFile == 'logToBuffer',
                     logTextMaxLength=options.logTextMaxLength,  # e.g., used by EdgarRenderer to require buffered logging
-                    logRefObjectProperties=options.logRefObjectProperties or True,
+                    logRefObjectProperties=logRefObjectProperties,
                     logXmlMaxAttributeLength=options.logXmlMaxAttributeLength
                 )
                 self._cntlr.postLoggingInit()  # Cntlr options after logging is started
