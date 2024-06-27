@@ -10,7 +10,7 @@ from arelle.ModelXbrl import ModelXbrl
 DIVISOR = "*DIV*"
 
 class UtrEntry(): # use slotted class for execution efficiency
-    __slots__ = ("id", "unitId", "nsUnit", "itemType", "nsItemType", "isSimple",
+    __slots__ = ("id", "unitId", "unitName", "nsUnit", "itemType", "nsItemType", "isSimple",
                  "numeratorItemType", "nsNumeratorItemType",
                  "denominatorItemType", "nsDenominatorItemType", "symbol",
                  "status")
@@ -52,6 +52,7 @@ def loadUtr(modelXbrl, statusFilters=None): # Build a dictionary of item types t
                 u = UtrEntry()
                 u.id = unitElt.get("id")
                 u.unitId = unitElt.findtext("{http://www.xbrl.org/2009/utr}unitId")
+                u.unitName = unitElt.findtext("{http://www.xbrl.org/2009/utr}unitName")
                 u.nsUnit = (unitElt.findtext("{http://www.xbrl.org/2009/utr}nsUnit") or None) # None if empty entry
                 u.itemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}itemType")
                 u.nsItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsItemType")
