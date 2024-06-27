@@ -41,6 +41,7 @@ FAST_CONFIG_NAMES = {
     'xbrl_formula_1_0_function_registry',
     'xbrl_link_role_registry_1_0',
     'xbrl_oim_1_0',
+    'xbrl_report_packages_1_0',
     'xbrl_taxonomy_packages_1_0',
     'xbrl_transformation_registry_3',
     'xbrl_utr_malformed_1_0',
