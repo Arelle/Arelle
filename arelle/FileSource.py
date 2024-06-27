@@ -202,7 +202,7 @@ class FileSource:
                     fileStream = openFileStream(self.cntlr, self.basefile, 'rb')
                     self.fs = zipfile.ZipFile(fileStream, mode="r")
                     self.isOpen = True
-                except EnvironmentError as err:
+                except (EnvironmentError, zipfile.BadZipFile) as err:
                     self.logError(err)
                     pass
             elif self.isTarGz:

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 import sys, os, io, time, json, logging
 from collections import defaultdict
 from fnmatch import fnmatch
+import zipfile
 from lxml import etree
 from urllib.parse import urljoin
 openFileSource = None
@@ -394,14 +395,29 @@ def packageNamesWithNewerFileDates():
             pass
     return names
 
+def isZipfileEncrypted(item: zipfile.ZipInfo) -> bool:
+    return bool(item.flag_bits & 0x1)
+
 def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]) -> bool:
         numErrorsOnEntry = len(errors)
         _dir = filesource.dir
         if not _dir:
-            raise IOError(_("Unable to open taxonomy package: {0}.").format(filesource.url))
+            cntlr.addToLog(_("Taxonomy package is not valid and could not be opened."),
+                           messageCode="tpe:invalidArchiveFormat",
+                           file=os.path.basename(filesource.url),
+                           level=logging.ERROR)
+            errors.append("tpe:invalidArchiveFormat")
+            return False
         if filesource.isZipBackslashed:
             # see 4.4.17.1 in https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
             cntlr.addToLog(_("Taxonomy package directory uses '\\' as file separator"),
+                           messageCode="tpe:invalidArchiveFormat",
+                           file=os.path.basename(filesource.url),
+                           level=logging.ERROR)
+            errors.append("tpe:invalidArchiveFormat")
+            return False
+        if any(isZipfileEncrypted(f) for f in filesource.fs.filelist):
+            cntlr.addToLog(_("Taxonomy package contains encrypted files"),
                            messageCode="tpe:invalidArchiveFormat",
                            file=os.path.basename(filesource.url),
                            level=logging.ERROR)
