@@ -71,9 +71,11 @@ def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
     modulePluginInfos = {}  # dict of loaded module pluginInfo objects by module names
     pluginMethodsForClasses = {} # dict by class of list of ordered callable function objects
 
-def reset():  # force reloading modules and plugin infos
-    modulePluginInfos.clear()  # dict of loaded module pluginInfo objects by module names
-    pluginMethodsForClasses.clear() # dict by class of list of ordered callable function objects
+def reset() -> None:  # force reloading modules and plugin infos
+    if modulePluginInfos:
+        modulePluginInfos.clear()  # dict of loaded module pluginInfo objects by module names
+    if pluginMethodsForClasses:
+        pluginMethodsForClasses.clear() # dict by class of list of ordered callable function objects
 
 def orderedPluginConfig():
     return OrderedDict(
