@@ -1,7 +1,7 @@
 import csv
 import json
 import os
-from arelle import XbrlConst 
+from arelle import XbrlConst
 from arelle.plugin.validate.EFM.MessageNumericId import deiSubTblCodes, ftSubTbl, ftSumTbl, ftOfferingTbl, ftOffsetTbl, ftCmbPrsTbl, ft424iTbl, ftStart, ftTableStartCode, ftValidations, ftRuleCode, efmStart
 from arelle.plugin.validate.EFM.Consts import attachmentDocumentTypeValidationRulesFiles
 from arelle.plugin.validate.EFM.FtJsonToOimJson import getLatestTaxonomyFamily
@@ -90,7 +90,7 @@ class FtValidations:
         self.validationFilePath = os.path.join(os.path.dirname(__file__), "resources", self.validationFileName)
         self.validationFileBasePath = os.path.dirname(self.validationFilePath)
         self.columns = [
-            "Rule Reference", "Data Element", "Fees to be Paid", "Fees Previously Paid", "Offset Claim", "Offset Source", 
+            "Rule Reference", "Data Element", "Fees to be Paid", "Fees Previously Paid", "Offset Claim", "Offset Source",
             "XBRL Name", "Arelle Validation rule name", "Arelle Validation Rule ID", "Validation Severity",
             "Validation Description", "Validation Message", "Exception Handling", "Submission Types", "Conversion Requested",
             "Requesting D/O", "Date Requested", "Reason for Conversion"
@@ -201,7 +201,7 @@ class FtValidations:
                 else:
                     return sev.get("axis", "").split("-")
         return []
-        
+
     def _getRuleReferenceText(self, name):
         for tableFlags in self.RULES.values():
             for ruleFlag, ruleText in tableFlags.items():
@@ -325,7 +325,7 @@ class FtValidations:
 
     def _getMessageNumericID(self, xbrlName, sev, ruleReference):
         msgNumId = ftStart
-        subTypes = self._getSubTypes(sev)           
+        subTypes = self._getSubTypes(sev)
         xbrlNameExNS = self._getXbrlNameExNS(xbrlName)
         subTypesList = [st.strip() for st in subTypes.split(",")] if subTypes else []
 
@@ -514,7 +514,7 @@ class FtValidations:
                             subTypesToExclude.add(st)
                     else:
                         subTypesToExclude.add(subType)
-                    
+
                 for subType in self.submissionTypeClasses["all-Ixbrl"]:
                     if not subType in subTypesToExclude:
                         subTypes.append(subType)

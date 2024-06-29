@@ -2516,7 +2516,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if f1 is not None and documentPeriodEndDateFact is not None and f1.xValid >= VALID and documentPeriodEndDateFact.xValid >= VALID:
                     d = ModelValue.dateunionDate(documentPeriodEndDateFact.xValue)# is an end date, convert back to a start date without midnight part
                     if f1.xValue.month != d.month or f1.xValue.day != d.day:
-                        modelXbrl.warning("EFM.6.05.58", 
+                        modelXbrl.warning("EFM.6.05.58",
                             _("The financial period %(reportingPeriod)s does not match the fiscal year end %(fyEndDate)s."),
                             edgarCode="rxp-0558-Fiscal-Year-End-Date-Value",
                             modelObject=(f1,documentPeriodEndDateFact), fyEndDate=f1.value, reportingPeriod=documentPeriodEndDateFact.value)
@@ -2527,9 +2527,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 hypDimRelSet = modelXbrl.relationshipSet(XbrlConst.hypercubeDimension)
                 hasHypRelSet = modelXbrl.relationshipSet(XbrlConst.all)
                 domMemRelSet = modelXbrl.relationshipSet(XbrlConst.domainMember)
-                
-                aggregates = [rxp.Royalties, rxp.Fees, rxp.ProductionEntitlements, 
-                              rxp.Dividends, rxp.Bonuses, rxp.InfrastructureImprovements, 
+
+                aggregates = [rxp.Royalties, rxp.Fees, rxp.ProductionEntitlements,
+                              rxp.Dividends, rxp.Bonuses, rxp.InfrastructureImprovements,
                               rxp.CommunityAndSocial, rxp.OtherPayments, rxp.Taxes]
                 def stdLabel(qn):
                     try:
@@ -2593,12 +2593,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if (not qnameFacts[aggregate].isNil and not any(f.xValid >= VALID and f.xValue == m and f.context.hasDimension(rxp.PmtAxis)
                                     for m in (aggregate,)
                                     for f in modelXbrl.factsByQname[rxp.P])):
-                            modelXbrl.warning(f"EFM.6.05.58.06.{aggregate.localName}-P-Dependency", 
+                            modelXbrl.warning(f"EFM.6.05.58.06.{aggregate.localName}-P-Dependency",
                                 _("At least one payment for %(aggLabel)s %(aggregate)s is required.  Provide a value for PaymentType rxp:P with value %(aggregate)s."),
                                 edgarCode="rxp-055808-Payment-Type-Amount-Existence",
                                 modelObject=context, context=context.id, aggLabel=stdLabel(aggregate), aggregate=aggregate)
                             aggregates.remove(aggregate) # since we're ignoring dimensions, don't report it again.
-                    if (rxp.P in qnameFacts and not qnameFacts[rxp.P].isNil and 
+                    if (rxp.P in qnameFacts and not qnameFacts[rxp.P].isNil and
                             not any(f.xValid >= VALID and f.context is not None and not f.context.qnameDims
                             for f in modelXbrl.factsByQname.get(qnameFacts[rxp.P].xValue,()))):
                         modelXbrl.warning(f"EFM.6.05.58.07.P-{qnameFacts[rxp.P].xValue.localName}-Dependency",
@@ -2610,16 +2610,16 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         not any(f.xValid >= VALID and f.xValue == m and f.context.hasDimension(rxp.PmtAxis)
                                 for m in (contextDims[rxp.GovernmentAxis].memberQname,)
                                 for f in modelXbrl.factsByQname[rxp.Gv])):
-                        modelXbrl.warning(f"EFM.6.05.58.08.GovernmentAxis-Gv-Value-Dependency", 
+                        modelXbrl.warning("EFM.6.05.58.08.GovernmentAxis-Gv-Value-Dependency",
                             _("A payment amount for each government is required.  Provide a value for element rxp:Gv with value %(member)s."),
                             edgarCode="rxp-055808-Government-Payment-Amount-Existence",
                             modelObject=context, context=context.id, dimension=rxp.GovernmentAxis, member=context.dimMemberQname(rxp.GovernmentAxis))
-                        
+
                     if (context.hasDimension(rxp.ProjectAxis) and
                         not any(f.xValid >= VALID and f.xValue == m and f.context.hasDimension(rxp.PmtAxis)
                                 for m in (contextDims[rxp.ProjectAxis].memberQname,)
                                 for f in modelXbrl.factsByQname[rxp.Pr])):
-                        modelXbrl.warning(f"EFM.6.05.58.09.ProjectAxis-Pr-Value-Dependency", 
+                        modelXbrl.warning("EFM.6.05.58.09.ProjectAxis-Pr-Value-Dependency",
                             _("A payment for each project axis member is required.  Provide a value for element rxp:Pr with value %(member)s."),
                             edgarCode="rxp-055809-Project-Payment-Amount-Existence",
                             modelObject=context, context=context.id, member=contextDims[rxp.ProjectAxis].memberQname)
