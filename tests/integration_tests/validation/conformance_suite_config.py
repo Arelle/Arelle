@@ -193,6 +193,7 @@ class ConformanceSuiteConfig:
     capture_warnings: bool = True
     ci_enabled: bool = True
     expected_failure_ids: frozenset[str] = frozenset()
+    expected_missing_testcases: frozenset[str] = frozenset()
     expected_model_errors: frozenset[str] = frozenset()
     membership_url: str | None = None
     plugins: frozenset[str] = frozenset()

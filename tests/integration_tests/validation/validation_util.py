@@ -62,7 +62,7 @@ def get_testcase_variation_map(config: ConformanceSuiteConfig) -> dict[str, list
 
     if zipfile.is_zipfile(entry_point_root):
         with zipfile.ZipFile(entry_point_root) as zip_file:
-            _collect_zip_test_cases(zip_file, entry_point_str, test_case_paths)
+            _collect_zip_test_cases(zip_file, entry_point_str, test_case_paths, config.expected_missing_testcases)
             return _collect_zip_test_case_variation_ids(zip_file, test_case_paths)
     else:
         _collect_dir_test_cases(entry_point_root, entry_point_str, test_case_paths)
@@ -162,9 +162,19 @@ def _verify_shards(
         assert sorted(vids) == sorted(discovered_paths_map[path])
 
 
-def _collect_zip_test_cases(zip_file: zipfile.ZipFile, file_path: str, path_strs: list[str]) -> None:
+def _collect_zip_test_cases(
+        zip_file: zipfile.ZipFile,
+        file_path: str,
+        path_strs: list[str],
+        expected_missing_testcases: frozenset[str],
+) -> None:
     zip_files = zip_file.namelist()
-    if file_path not in zip_files:
+    file_path_in_zip = file_path in zip_files
+    if file_path in expected_missing_testcases:
+        if file_path_in_zip:
+            raise RuntimeError(f"Found test case file {file_path} that was expected to be missing.")
+        return None
+    if file_path_in_zip:
         # case insensitive search (necessary for EFM suite).
         matching_files = [
             zf for zf in zip_files
@@ -177,7 +187,7 @@ def _collect_zip_test_cases(zip_file: zipfile.ZipFile, file_path: str, path_strs
     with zip_file.open(file_path) as fh:
         tree = etree.parse(fh)
     for test_case_index in _collect_test_case_paths(file_path, tree, path_strs):
-        _collect_zip_test_cases(zip_file, test_case_index, path_strs)
+        _collect_zip_test_cases(zip_file, test_case_index, path_strs, expected_missing_testcases)
 
 
 def _collect_zip_test_case_variation_ids(zip_file: zipfile.ZipFile, test_case_paths: list[str]) -> dict[str, list[str]]:
