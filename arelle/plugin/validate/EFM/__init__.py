@@ -28,6 +28,7 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
    "shellCompanyFlag": true/false, true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "acceleratedFilerStatus": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "smallBusinessFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
+   "closedEndedCompanyFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "emergingGrowthCompanyFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "exTransitionPeriodFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    # filer - use "cik" above
@@ -58,6 +59,8 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
    # EX-26 attachment document types
    "attachmentDocumentType": "EX-26",  # this field is mandatory for EX-26 validations else instance will be validated as a financial report
    "fileNumber": "333-12345", # the file number for amending submission
+   # SBSEF attachment document types
+   "securityClassification": "confidential" when filer has requested confidential treatment on this exhibit file
    },
  {"file": "file 2"...
 ]
@@ -130,7 +133,8 @@ from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlValidateConst import VALID
 from .Document import checkDTSdocument
 from .Consts import (feeTagEltsNotRelevelable, feeTagMessageCodesRelevelable, feeTaggingAttachmentDocumentTypePattern,
-                     supplementalAttachmentDocumentTypesPattern, exhibitTypesStrippingOnErrorPattern)
+                     supplementalAttachmentDocumentTypesPattern, exhibitTypesStrippingOnErrorPattern,
+                     exhibitTypesPrivateNotDisseminated, primaryAttachmentDocumentTypesPattern)
 from .Filing import validateFiling
 from .MessageNumericId import messageNumericId
 import regex as re
@@ -159,10 +163,10 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                       "rptIncludeAllClassesFlag", "rptSeriesClassInfo.classIds", "newClass2.classIds",
                       "eligibleFundFlag", "pursuantGeneralInstructionFlag", "filerNewRegistrantFlag",
                       "datetimeForTesting", "dqcRuleFilter", "saveCoverFacts",
-                      "feeRate", "feeValuesFromFacts", "saveFeeFacts", "fiscalYearEnd", "intrstRate", "issrNm", "fileNumber")
+                      "feeRate", "feeValuesFromFacts", "saveFeeFacts", "fiscalYearEnd", "intrstRate", "issrNm", "fileNumber", "closedEndedCompanyFlag")
     boolParameterNames = {"voluntaryFilerFlag", "wellKnownSeasonedIssuerFlag", "shellCompanyFlag", "acceleratedFilerStatus",
                           "smallBusinessFlag", "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "rptIncludeAllSeriesFlag",
-                          "filerNewRegistrantFlag", "pursuantGeneralInstructionFlag", "eligibleFundFlag"}
+                          "filerNewRegistrantFlag", "pursuantGeneralInstructionFlag", "eligibleFundFlag", "closedEndedCompanyFlag"}
     parameterEisFileTags = {
         "cik":["depositorId", "cik", "filerId"],
         "submissionType": "submissionType",
@@ -323,9 +327,12 @@ def severityReleveler(modelXbrl, level, messageCode, args, **kwargs):
         messageCode, msgNum = messageNumericId(modelXbrl, level, messageCode, args)
         if msgNum:
             args["edgarMessageNumericId"] = msgNum
+        if getattr(modelXbrl, "loadedFromFtJson", False) and level == "ERROR":
+            # demote to warning for EFMS call
+            level = "WARNING"
     return level, messageCode
 
-def isolateSeparateIXDSes(modelXbrl, *args, **kwargs):
+def isolateSeparateIXDSes(modelXbrl, primaryIxdsDocument, *args, **kwargs):
     separateIXDSes = defaultdict(list)
     for htmlElt in modelXbrl.ixdsHtmlElements:
         tp = "" # attachment document type inferred from document type and ffd:SubmissnTp
@@ -335,6 +342,14 @@ def isolateSeparateIXDSes(modelXbrl, *args, **kwargs):
                 if tp:
                     break
         separateIXDSes[tp if supplementalAttachmentDocumentTypesPattern.match(tp) else ""].append(htmlElt)
+    entrypoint = kwargs.get("entrypoint") or {}
+    # find targetDocumentPreferredFilename for primary ixds
+    if "ixds" in entrypoint and "" in separateIXDSes:
+        for ep in entrypoint["ixds"]:
+            if isinstance(ep,dict) and primaryAttachmentDocumentTypesPattern.match(ep.get("attachmentDocumentType","")) and "file" in ep:
+                primaryIxdsDocument.targetDocumentPreferredFilename = os.path.splitext(os.path.basename(ep["file"]))[0] + ".xbrl"
+                modelXbrl.efmIxdsType = ep.get("attachmentDocumentType")
+                break
     return [htmlElts for tp,htmlElts in sorted(separateIXDSes.items(), key=lambda i:i[0])]
 
 def validateXbrlFinally(val, *args, **kwargs):
@@ -363,6 +378,19 @@ def filingStart(cntlr, options, filesource, entrypointFiles, sourceZipStream=Non
     # cntlr.addToLog("TRACE EFM filing start val={} plugin={}".format(modelManager.validateDisclosureSystem, getattr(modelManager.disclosureSystem, "EFMplugin", False)))
     if modelManager.validateDisclosureSystem and (getattr(modelManager.disclosureSystem, "EFMplugin", False) or
                                                   getattr(modelManager.disclosureSystem, "ESEFplugin", False)):
+        # if there are any IXDSes in entrypoint files with attachmentDocumentType, ensure primary document is first
+        if isinstance(entrypointFiles, (list,tuple)):
+            for ep in entrypointFiles:
+                if "ixds" in ep:
+                    for i, ixdsEntry in enumerate(ep["ixds"]):
+                        submissionType = ixdsEntry.get("submissionType")
+                        attachmentDocumentType = ixdsEntry.get("attachmentDocumentType")
+                        # primary document type has submission type possibly followed by other description provided by filer
+                        if submissionType and attachmentDocumentType and attachmentDocumentType.startswith(submissionType):
+                            if i > 0:
+                                prevIxds = ep["ixds"]
+                                ep["ixds"] = prevIxds[i:i+1] + prevIxds[:i] + prevIxds[i+1:]
+                            break
         # cntlr.addToLog("TRACE EFM filing start 2 classes={} moduleInfos={}".format(pluginMethodsForClasses, modulePluginInfos))
         modelManager.efmFiling = Filing(cntlr, options, filesource, entrypointFiles, sourceZipStream, responseZipStream)
         # this event is called for filings (of instances) as well as test cases, for test case it just keeps options accessible
@@ -381,6 +409,7 @@ def guiTestcasesStart(cntlr, modelXbrl, *args, **kwargs):
             pluginXbrlMethod(cntlr, modelXbrl, *args,
                              # pass plugin items to GUI mode of EdgarRenderer
                              exhibitTypesStrippingOnErrorPattern=exhibitTypesStrippingOnErrorPattern,
+                             exhibitTypesPrivateNotDisseminated=exhibitTypesPrivateNotDisseminated,
                              setReportAttrs=setReportAttrs, **kwargs)
 
 def testcasesStart(cntlr, options, modelXbrl, *args, **kwargs):
@@ -481,8 +510,8 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
                     elif f.endswith("_lab.xml"): hasLbl = True
                 missingFiles = ""
                 if not hasSch: missingFiles += ", schema"
-                if not hasPre: missingFiles += ", presentation linkbase"
-                if not hasLbl: missingFiles += ", label linkbase"
+                #if not hasPre: missingFiles += ", presentation linkbase"
+                #if not hasLbl: missingFiles += ", label linkbase"
                 if missingFiles:
                     efmFiling.error("EFM.6.03.02.sdrMissingFiles",
                                     _("%(deiDocumentType)s report missing files: %(missingFiles)s"),
@@ -627,10 +656,18 @@ def commandLineOptionExtender(parser, *args, **kwargs):
                       dest="buildDeprecatedConceptsFile",
                       help=_("Build EFM Validation deprecated concepts file (pre-cache before use)"))
 
+    parser.add_option("--build-ft-validations-file",
+                      action="store_true",
+                      dest="buildFTValidationsFile",
+                      help=_("Build EFM Validation deprecated concepts file (pre-cache before use)"))
+
 def utilityRun(self, options, *args, **kwargs):
     if options.buildDeprecatedConceptsFile:
         from .Util import buildDeprecatedConceptDatesFiles
         buildDeprecatedConceptDatesFiles(self)
+    if options.buildFTValidationsFile:
+        from .Util import buildFTValidationsFile
+        buildFTValidationsFile(self)
 
 class Filing:
     def __init__(self, cntlr, options=None, filesource=None, entrypointfiles=None, sourceZipStream=None, responseZipStream=None, errorCaptureLevel=None):
@@ -643,6 +680,7 @@ class Filing:
         self.submissionType = None
         self.reports = []
         self.renderedFiles = set() # filing-level rendered files
+        self.strippedFiles = defaultdict(set) # files to be stripped due to error, by attachmentExhibitType
         self.reportZip = None
         if responseZipStream:
             self.setReportZipStreamMode('w')
@@ -663,6 +701,7 @@ class Filing:
         for pluginXbrlMethod in pluginClassMethods("Security.Crypt.Init"):
             pluginXbrlMethod(self, options, filesource, entrypointfiles, sourceZipStream)
         self.exhibitTypesStrippingOnErrorPattern = exhibitTypesStrippingOnErrorPattern
+        self.exhibitTypesPrivateNotDisseminated = exhibitTypesPrivateNotDisseminated
 
     def getReport(self, modelXbrl):
         for report in self.reports:
@@ -821,7 +860,7 @@ class Report:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
-    'version': '1.24.1.u1', # SEC EDGAR release 24.1.u1
+    'version': '1.24.2', # SEC EDGAR release 24.2
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'import': ('transforms/SEC',), # SEC inline can use SEC transformations

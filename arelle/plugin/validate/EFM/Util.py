@@ -11,7 +11,7 @@ from arelle import XbrlConst
 from arelle.PythonUtil import attrdict, flattenSequence, pyObjectSize
 from arelle.ValidateXbrlCalcs import inferredDecimals, floatINF
 from arelle.XmlValidateConst import VALID
-from .Consts import standardNamespacesPattern, latestTaxonomyDocs, latestEntireUgt, attachmentDocumentTypeValidationRulesFiles
+from .Consts import standardNamespacesPattern, latestTaxonomyDocs, latestEntireUgt, attachmentDocumentTypeValidationRulesFiles, feeTaggingAttachmentDocumentTypePattern
 
 EMPTY_DICT = {}
 
@@ -715,3 +715,8 @@ def leastDecimals(binding, localNames=None):
     if nonNilFacts:
         return min((inferredDecimals(f) for f in nonNilFacts))
     return floatINF
+
+def buildFTValidationsFile(cntlr):
+    from .FtValidations import FtValidations
+    FTV = FtValidations(cntlr, feeTaggingAttachmentDocumentTypePattern)
+    FTV.generateValidations()

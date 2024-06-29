@@ -156,8 +156,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     val.entityRegistrantName = None
     val.requiredContext = None
     deiDocumentType = None # needed for non-instance validation too
-    submissionType = val.params.get("submissionType", "")
-    attachmentDocumentType = val.params.get("attachmentDocumentType", "") # this is different from dei:documentType
+    # efmSubmissionType and efmIxdsType are already set when re-validating after redaction/redline removal
+    submissionType = getattr(modelXbrl,'efmSubmissionType', val.params.get("submissionType", ""))
+    attachmentDocumentType = getattr(modelXbrl,'efmIxdsType', val.params.get("attachmentDocumentType", "")) # this is different from dei:documentType
     isFeeTagging = feeTaggingAttachmentDocumentTypePattern.match(attachmentDocumentType)
     requiredFactLang = disclosureSystem.defaultXmlLang.lower() if disclosureSystem.defaultXmlLang else disclosureSystem.defaultXmlLang
     hasSubmissionType = bool(submissionType)
@@ -194,7 +195,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             modelXbrl.info("info",_("Setting submission parameters: %(setParams)s"), setParams=", ".join(_setParams))
 
         modelXbrl.efmSubmissionType = submissionType
-        modelXbrl.efmAttachmentDocumentType = attachmentDocumentType
+        modelXbrl.efmIxdsType = attachmentDocumentType
         val.otherStandardTaxonomies = loadOtherStandardTaxonomies(modelXbrl, val)
         compatibleTaxonomies = loadTaxonomyCompatibility(modelXbrl)
     if isXbrlInstance:
@@ -1038,7 +1039,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             modelXbrl.warning("EFM.6.05.57.classIdMemberNotInContext",
                                 _("Submission type %(subType)s should have a context with %(classIdMember)s as a member of the Class Axis."),
                                 edgarCode="dq-0557-Class-Id-Member-Not-In-Context",
-                                modelObject=(modelXbrl,seriesIdMember), classIdMember=classIdMemberName, subType=submissionType)
+                                modelObject=(modelXbrl,classIdMember), classIdMember=classIdMemberName, subType=submissionType)
         val.modelXbrl.profileActivity("... filer label and text checks", minTimeToShow=1.0)
 
         if isEFM:
@@ -1165,6 +1166,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 logArgs[n] = f"{val}{sevMessageArgValue(v[1], pf)}"
                             elif len(v) > 2 and v[0] == "!not!":
                                 logArgs[n] = f"not any of ( {', '.join(sevMessageArgValue(_v, pf) for _v in v[1:])} )"
+                            elif sev.get("validation", "").startswith("tsum-"):
+                                logArgs[n] = f"({', '.join(sevMessageArgValue(_v, pf) for _v in v[1:])})"
                             else:
                                 logArgs[n] = f"one of {', '.join(sevMessageArgValue(_v, pf) for _v in v)}"
                         elif isinstance(v, re.Pattern):
@@ -1209,7 +1212,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
             # called with sev, returns iterator of sev facts for names and axes matching
             # called with sev and name, returns single fact for name matching axesMembers (if any)
-            def sevFacts(sev=None, name=None, otherFact=None, matchDims=None, requiredContext=False, axisKey=None, deduplicate=False, whereKey=None, fallback=None, sevCovered=True):
+            def sevFacts(sev=None, name=None, otherFact=None, matchDims=None, requiredContext=False, axisKey=None, deduplicate=False, whereKey=None, fallback=None, sevCovered=True, excludeKey=None):
                 if deduplicate:
                     previouslyYieldedFacts = set()
                     def notdup(f):
@@ -1222,6 +1225,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if isinstance(sev, int):
                     sev = sevs[sev] # convert index to sev object
                 where = sev.get(whereKey, EMPTY_DICT)
+                exclude = sev.get(excludeKey, EMPTY_LIST)
                 if isinstance(name, list):
                     names = name
                 elif name:
@@ -1295,6 +1299,22 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         return True
                     return False
 
+                def factsByContextsInAxis(axisKey, excludeDimHash=None):
+                    axes = deiValidations["axis-validations"][axisKey]["axes"]
+                    axesQNs = [qname(axis, deiDefaultPrefixedNamespaces) for axis in axes]
+                    axesKeys = axisKey.split('-')
+                    axisContexts = {}
+                    for index, axisQN in enumerate(axesQNs):
+                        currentAxisKey = axesKeys[index]
+                        for fd in modelXbrl.factsByDimMemQname(axisQN):
+                            if excludeDimHash and fd.context.dimsHash == excludeDimHash:
+                                continue
+                            if fd.context.dimsHash in axisContexts:
+                                axisContexts[fd.context.dimsHash][ftName(fd)] = fd.xValue
+                            else:
+                                axisContexts[fd.context.dimsHash] = {ftName(fd): fd.xValue}
+                    return axisContexts
+
                 for name in names:
                     yielded = False
                     skipF = False
@@ -1349,6 +1369,31 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     if whereConditionIsFalse(wValue, wCond):
                                         skipF = True
                                         break
+                            for exclCondition in exclude:
+                                if skipF:
+                                    break
+                                conditionResults = []
+                                for exclName, exclCond in exclCondition.items():
+                                    if exclName == "!anotherLine!":
+                                        foundOtherLine = False
+                                        otherLines = factsByContextsInAxis(axisKey, excludeDimHash=f.context.dimsHash if f is not None else None)
+                                        for otherLine in otherLines.values():
+                                            otherLineCondResults = []
+                                            for otherLineName, otherLineCond in exclCond.items():
+                                                factValue = otherLine.get(otherLineName) or "absent"
+                                                otherLineCondResults.append(not whereConditionIsFalse(factValue, otherLineCond))
+                                            result = all(otherLineCondResults)
+                                            if result:
+                                                foundOtherLine = True
+                                                break
+                                        conditionResults.append(foundOtherLine)
+                                    else:
+                                        fexcl = sevFact(sev, exclName, f, sevCovered=False)
+                                        fexclVal = "absent" if fexcl is None else fexcl.xValue
+                                        conditionResults.append(not whereConditionIsFalse(fexclVal, exclCond))
+                                if all(conditionResults):
+                                    skipF = True
+                                    break
                             if skipF:
                                 continue # skip this fact
                             if f is None:
@@ -1377,7 +1422,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 for dim in context.qnameDims.values():
                                     if dim.dimensionQname in axesQNs:
                                         if (not members or
-                                            dim.memberQname.localName in members):
+                                            (dim.memberQname and dim.memberQname.localName in members)):
                                             hasDimMatch = True
                                             if not deduplicate or notdup(f):
                                                 if not excludesAxes:
@@ -1416,17 +1461,17 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         yield None
 
             # return first of matching facts or None
-            def sevFact(sev=None, name=None, otherFact=None, requiredContext=False, axisKey=None, whereKey=None, sevCovered=True):
+            def sevFact(sev=None, name=None, otherFact=None, requiredContext=False, axisKey=None, whereKey=None, sevCovered=True, excludeKey=None):
                 if isinstance(name, list):
                     for _name in name:
-                        f = sevFact(sev, _name, otherFact, requiredContext, axisKey=axisKey, whereKey=whereKey, sevCovered=sevCovered)
+                        f = sevFact(sev, _name, otherFact, requiredContext, axisKey=axisKey, whereKey=whereKey, sevCovered=sevCovered, excludeKey=excludeKey)
                         if f is not None:
                             return f
                 elif isinstance(name, dict): # dict has name, where-key, and optional axis (else inherits axisKey)
                     if "name" in name and "where-key" in name:
-                        return sevFact(sev, name["name"], otherFact, requiredContext, name.get("axis",axisKey), name["where-key"], sevCovered)
+                        return sevFact(sev, name["name"], otherFact, requiredContext, name.get("axis",axisKey), name["where-key"], sevCovered, excludeKey=excludeKey)
                 else:
-                    for f in sevFacts(sev, name, otherFact, requiredContext, axisKey=axisKey, whereKey=whereKey, sevCovered=sevCovered):
+                    for f in sevFacts(sev, name, otherFact, requiredContext, axisKey=axisKey, whereKey=whereKey, sevCovered=sevCovered, excludeKey=excludeKey):
                         return f
                 return None
 
@@ -1646,7 +1691,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             unexpectedEloParams.add(eloName)
                     continue
                 # name is expected for this form
-                if validation is not None and not validation.startswith("fdep") and subTypes != "n/a": # don't expect name for fdep validations or sev's which only store-db-field
+                if validation is not None and not validation.startswith("fdep") and subTypes != {"n/a"}: # don't expect name for fdep validations or sev's which only store-db-field
                     for name in names:
                         expectedDeiNames[name,axisKey].add(sevIndex)
                         if isCoverVisible is not None:
@@ -1923,7 +1968,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                        value="not starting with 811- or 814-", contextID=f.contextID)
                 elif validation in ("x", "xv", "r", "y", "n") or (validation and validation.startswith("ov")):
                     for name in names:
-                        for f in sevFacts(sev, name, requiredContext=not axisKey, whereKey="where", fallback=True):
+                        for f in sevFacts(sev, name, requiredContext=not axisKey, whereKey="where", fallback=True, sevCovered=subTypes != {"n/a"}):
                             # always fallback to None for these validations
                             if validation.startswith("ov") and f is None:
                                 continue
@@ -2087,7 +2132,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     if (frValue not in referenceValue) ^ ("!not!" in referenceValue) and "flag-any" not in validation:
                                         sevMessage(sev, subType=submissionType, modelObject=f, tag=ftName(name), otherTag=ftName(rName), label=ftLabel(rName), ftContext=ftContext(axisKey,fMbrVals), value=fValue, otherValue=frValue, expectedValue=referenceValue)
                             if "flag-any" in validation and ((not flagFactsFound) == ("-not-" not in validation)):
-                                sevMessage(sev, subType=submissionType, modelObject=None, tag=ftName(name), otherTag=ftName(referenceTag), ftContext=ftContext(axisKey,fMbrVals), value=fValue)
+                                sevMessage(sev, subType=submissionType, modelObject=f, tag=ftName(name), otherTag=ftName(referenceTag), ftContext=ftContext(axisKey,fMbrVals), value=fValue)
                             flagFactsFound.clear() # deref
                     # find dependent facts without corresponding named fact
                     if "flag" not in validation:
@@ -2163,9 +2208,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         for f in sevFacts(sev, totalName, deduplicate=True, whereKey="where"): # these all are sum facts
                             items = [f]
                             for contributingName in referenceTag:
-                                for g in sevFacts(sev, contributingName, axisKey=sev.get("references-axes"), matchDims=f.context.qnameDims, deduplicate=True, whereKey="references-where"):
+                                for g in sevFacts(sev, contributingName, axisKey=sev.get("references-axes"), matchDims=f.context.qnameDims, deduplicate=True, whereKey="references-where", excludeKey="references-exclude", fallback=True):
                                     items.append(g)
-                            itemVals = [g.xValue if g is not None else 0 for g in items]
+                            itemVals = [g.xValue if g is not None else (Decimal("0.00") if f.concept.isMonetary else 0) for g in items]
                             if len(items) >= 2:
                                 expectedValue = sum(itemVals[1:])
                                 if abs(itemVals[0] - expectedValue) > tolerance:
@@ -2348,6 +2393,23 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 sevMessage(sev, subType=submissionType, modelObject=[f], ftContext=ftContext(axisKey,f),
                                             tag=ftName(name), label=ftLabel(name), value=f, expectedValue=expectedValueString,
                                             termValues=termValues, comparison=comparisonText)
+                elif validation and validation.startswith("exist-in-axis"):
+                    axes = deiValidations["axis-validations"][axisKey]["axes"]
+                    axesQNs = [qname(axis, deiDefaultPrefixedNamespaces) for axis in axes]
+                    axesKeys = axisKey.split('-')
+                    for index, axisQN in enumerate(axesQNs):
+                        currentAxisKey = axesKeys[index]
+                        axisContexts = {}
+                        for name in names:
+                            found = False
+                            for f in modelXbrl.factsByDimMemQname(axisQN):
+                                if ftName(f) == name:
+                                    if validation.endswith("value") and not f.xValue in value:
+                                        continue
+                                    found = True
+                                    break
+                            if not found:
+                                sevMessage(sev, subType=submissionType, modelObject=None, tag=ftName(name), axis=axisQN, value=value)
                 elif validation == "skip-if-absent":
                     #if efmSection == "ft.r011Flg":
                     #    print("trace") # uncomment for debug tracing specific validation rules
@@ -2439,47 +2501,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             del unexpectedDeiNameEfmSects, expectedDeiNames, sevCoveredFacts # dereference
             val.modelXbrl.profileActivity("... submission type element validations", minTimeToShow=0.1)
 
-            if deiDocumentType in ("2.01 SD",): # wch - change ultimately to 2.01 SD only
+            if deiDocumentType in ("2.01 SD",):
                 val.modelXbrl.profileActivity("... filer required facts checks (other than SD)", minTimeToShow=1.0)
                 class Rxp(): # fake class of rxp qnames based on discovered rxp namespace
-                    def __init__(self): # wch temporarily list actual element names here as a check
-                        # PmtAxis
-                        # ProjectAxis
-                        # ResourceAxis
-                        # SubnationalJurisdictionsAxis
-                        # CountryAxis
-                        # GovernmentAxis
-                        # PaymentTypeAxis
-                        # SegmentAxis
-                        # AllProjectsMember
-                        # AllResourcesMember
-                        # AllGovernmentsMember
-                        # AllPaymentTypesMember
-                        # AllSegmentsMember
-                        # Royalties
-                        # Fees
-                        # ProductionEntitlements
-                        # Dividends
-                        # Bonuses
-                        # InfrastructureImprovements
-                        # CommunityAndSocial
-                        # OtherPayments
-                        # TotalPayments
-                        # Taxes
-                        # Sg
-                        # P
-                        # Gv
-                        # Co
-                        # Sn
-                        # R
-                        # Pr
-                        # M
-                        # A
-                        # Cm
-                        # K
-                        # Km
+                    def __init__(self):
                         for name in ("CountryAxis", "GovernmentAxis", "PaymentTypeAxis", "ProjectAxis","PmtAxis",
                                     "AllGovernmentsMember", "AllProjectsMember","SegmentAxis", "AllResourcesMember", "EntityDomain",
+                                    "Royalties", "Fees", "ProductionEntitlements", "Dividends", "Bonuses", "InfrastructureImprovements", "CommunityAndSocial", "OtherPayments", "Taxes",
                                     "A", "Co", "Cm", "E", "Gv", "M", "K", "Km", "Sn", "P", "Pr", "R", "Sg", "TotalPayments"):
                            setattr(self, name, qname(f"rxp:{name}", deiDefaultPrefixedNamespaces))
 
@@ -2488,94 +2516,26 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if f1 is not None and documentPeriodEndDateFact is not None and f1.xValid >= VALID and documentPeriodEndDateFact.xValid >= VALID:
                     d = ModelValue.dateunionDate(documentPeriodEndDateFact.xValue)# is an end date, convert back to a start date without midnight part
                     if f1.xValue.month != d.month or f1.xValue.day != d.day:
-                        modelXbrl.error("EFM.6.05.58", # wch we might not care
+                        modelXbrl.warning("EFM.6.05.58",
                             _("The financial period %(reportingPeriod)s does not match the fiscal year end %(fyEndDate)s."),
                             edgarCode="rxp-0558-Fiscal-Year-End-Date-Value",
                             modelObject=(f1,documentPeriodEndDateFact), fyEndDate=f1.value, reportingPeriod=documentPeriodEndDateFact.value)
-                # if (documentPeriodEndDateFact is not None and documentPeriodEndDateFact.xValid >= VALID and
-                #     not any(f2.xValue == documentPeriodEndDateFact.xValue
-                #             for f2 in modelXbrl.factsByQname[rxp.D]
-                #             if f2.xValid >= VALID)):
-                #     modelXbrl.error("EFM.6.58.27",
-                #         _("The financial period %(reportingPeriod)s does not match rxp:D in any facts."),
-                #         edgarCode="rxp-2327-Payment-Financial-Period-Existence",
-                #         modelObject=documentPeriodEndDateFact, reportingPeriod=documentPeriodEndDateFact.value)
-
-                #no longer in EFM or RXP taxonomy guide
-                #for url,doc in modelXbrl.urlDocs.items():
-                #    if (url not in disclosureSystem.standardTaxonomiesDict and
-                #        doc.inDTS and # ignore EdgarRenderer-loaded non-DTS schemas
-                #        doc.type == ModelDocument.Type.SCHEMA):
-                #        for concept in XmlUtil.children(doc.xmlRootElement, XbrlConst.xsd, "element"):
-                #            name = concept.name
-                #            if not concept.isAbstract or concept.isHypercubeItem or concept.isDimensionItem:
-                #                modelXbrl.error("EFM.6.05.58.customElementDeclaration",
-                #                    _("%(schemaName)s contained a disallowed %(disallowance)s declaration for element %(concept)s.  "
-                #                      "Use a standard RXP element instead."),
-                #                    edgarCode="rxp-2312-Custom-Element-Declaration",
-                #                    modelObject=concept, schemaName=doc.basename, concept=concept.qname,
-                #                                disallowance="non-abstract" if not concept.isAbstract
-                #                                             else "hypercube" if concept.isHypercubeItem
-                #                                             else "dimension")
 
                 val.modelXbrl.profileActivity("... SD checks 6-13, 26-27", minTimeToShow=1.0)
                 dimDefRelSet = modelXbrl.relationshipSet(XbrlConst.dimensionDefault)
                 dimDomRelSet = modelXbrl.relationshipSet(XbrlConst.dimensionDomain)
                 hypDimRelSet = modelXbrl.relationshipSet(XbrlConst.hypercubeDimension)
                 hasHypRelSet = modelXbrl.relationshipSet(XbrlConst.all)
-                for rel in dimDomRelSet.modelRelationships:
-                    if (isinstance(rel.fromModelObject, ModelConcept) and isinstance(rel.toModelObject, ModelConcept) and
-                        not dimDefRelSet.isRelated(rel.fromModelObject, "child", rel.toModelObject)):
-                        modelXbrl.error("EFM.6.58.14",
-                            _("In %(linkbaseName)s the target of the dimension-domain relationship in role %(linkrole)s from "
-                              "%(source)s to %(target)s must be the default member of %(source)s."),
-                            edgarCode="rxp-2314-Dimension-Domain-Relationship-Existence",
-                            modelObject=(rel, rel.fromModelObject, rel.toModelObject),
-                            linkbaseName=rel.modelDocument.basename, linkrole=rel.linkrole,
-                            source=rel.fromModelObject.qname, target=rel.toModelObject.qname)
                 domMemRelSet = modelXbrl.relationshipSet(XbrlConst.domainMember)
-                memDim = {}
-                def checkMemMultDims(memRel, dimRel, elt, ELR, visited):
-                    if elt not in visited:
-                        visited.add(elt)
-                        for rel in domMemRelSet.toModelObject(elt):
-                            if rel.consecutiveLinkrole == ELR and isinstance(rel.fromModelObject, ModelConcept):
-                                checkMemMultDims(memRel, None, rel.fromModelObject, rel.linkrole, visited)
-                        for rel in hypDimRelSet.toModelObject(elt):
-                            if rel.consecutiveLinkrole == ELR and isinstance(rel.fromModelObject, ModelConcept):
-                                checkMemMultDims(memRel, dimRel, rel.fromModelObject, rel.linkrole, visited)
-                        for rel in hasHypRelSet.toModelObject(elt):
-                            if rel.consecutiveLinkrole == ELR and isinstance(rel.fromModelObject, ModelConcept):
-                                linkrole = rel.linkrole
-                                mem = memRel.toModelObject
-                                if (mem,linkrole) not in memDim:
-                                    memDim[mem,linkrole] = (dimRel, memRel)
-                                else:
-                                    otherDimRel, otherMemRel = memDim[mem,linkrole]
-                                    modelXbrl.error("EFM.6.58.16",
-                                        _("Member element %(member)s appears in more than one axis: %(dimension1)s and %(dimension2)s.  "
-                                          "Use distinct members for the Project, Country, Government, Legal Entity, Subnational Jurisdiction, Segment and Payment Type axes."),
-                                        edgarCode="rxp-2316-Member-Multiple-Axis-Existence",
-                                        modelObject=(dimRel, otherDimRel, memRel, otherMemRel, dimRel.fromModelObject, otherDimRel.fromModelObject),
-                                        member=mem.qname, dimension1=dimRel.fromModelObject.qname, linkrole1=linkrole,
-                                        dimension2=otherDimRel.fromModelObject.qname, linkrole2=otherDimRel.linkrole)
-                        visited.discard(elt)
-                # TODO: wch this needs revisiting, because it's only relevant in a very few roles.
-                # revisit because there may be a use case among projects/governments/entities/resources that requires enum value check across roles
-                #
-                # for rel in domMemRelSet.modelRelationships:
-                #     if isinstance(rel.fromModelObject, ModelConcept) and isinstance(rel.toModelObject, ModelConcept):
-                #         for rel2 in modelXbrl.relationshipSet(XbrlConst.domainMember, rel.consecutiveLinkrole).fromModelObject(rel.toModelObject):
-                #             if isinstance(rel2.fromModelObject, ModelConcept) and isinstance(rel2.toModelObject, ModelConcept):
-                #                 modelXbrl.error("EFM.6.58.15",
-                #                     _("The domain-member relationship in %(linkrole)s from %(source)s to %(target)s is consecutive with domain-member relationship in %(linkrole2)s to %(target2)s."),
-                #                     edgarCode="rxp-2315-Consecutive-Domain-Member-Relationships-Existence",
-                #                     modelObject=(rel, rel.fromModelObject, rel.toModelObject),
-                #                     linkrole=rel.linkrole, linkrole2=rel2.linkrole,
-                #                     source=rel.fromModelObject.qname, target=rel.toModelObject.qname, target2=rel2.toModelObject.qname)
-                #         checkMemMultDims(rel, None, rel.fromModelObject, rel.linkrole, set())
 
-
+                aggregates = [rxp.Royalties, rxp.Fees, rxp.ProductionEntitlements,
+                              rxp.Dividends, rxp.Bonuses, rxp.InfrastructureImprovements,
+                              rxp.CommunityAndSocial, rxp.OtherPayments, rxp.Taxes]
+                def stdLabel(qn):
+                    try:
+                        return val.modelXbrl.qnameConcepts[qn].propertyView[0][1]
+                    except Exception:
+                        return qn.localName
                 cntxEqualFacts = defaultdict(list)
                 for f in modelXbrl.facts:
                     if f.xValid >= VALID and f.context is not None:
@@ -2595,7 +2555,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     contextDims = cntxFacts[0].context.qnameDims
                     for qnF, fNilOk, qnG, gNilOk in ((rxp.A, True, rxp.R, False),
                                                      (rxp.A, True, rxp.M, False),
-                                                     # wch - seems redundant, but actually, rxp.A can be absent in some cases
                                                      (rxp.A, False, rxp.Gv, False),
                                                      (rxp.A, False, rxp.Co, False),
                                                      (rxp.Co, False, rxp.A, False),
@@ -2605,7 +2564,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                                      (rxp.Gv, False, rxp.A, False),
                                                      (rxp.Km, False, rxp.K, False),
                                                      (rxp.K, False, rxp.Km, False),
-                                                     # (rxp.Cm, False, rxp.Cu, False), # wch there is no Cu
                                                      (rxp.K, False, rxp.A, False),
                                                      (rxp.M, False, rxp.A, False),
                                                      (rxp.P, False, rxp.A, False),
@@ -2615,54 +2573,68 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                                      (rxp.Sn, False, rxp.Co, False)):
                         if (qnF in qnameFacts and (fNilOk or not qnameFacts[qnF].isNil) and
                             (qnG not in qnameFacts or (not gNilOk and qnameFacts[qnG].isNil))):
-                            modelXbrl.error("EFM.6.05.58.03",
-                                _("The Context %(context)s has a %(fact1)s and is missing required %(fact2NotNil)sfact %(fact2)s"),
-                                modelObject=qnameFacts[qnF], context=context.id, fact1=qnF, fact2=qnG, fact2NotNil="" if gNilOk else "non-nil ",
+                            modelXbrl.warning(f"EFM.6.05.58.03.{qnF.localName}-{qnG.localName}-Dependency",
+                                _("The Context %(context)s has a %(fact1Label)s %(fact1)s and is missing required %(fact2Label)s %(fact2NotNil)sfact %(fact2)s"),
+                                modelObject=qnameFacts[qnF], context=context.id, fact1=qnF, fact1Label=stdLabel(qnF), fact2=qnG, fact2Label=stdLabel(qnG), fact2NotNil="" if gNilOk else "non-nil ",
                                 edgarCode="rxp-055803-Context-Required-Facts")
                     if rxp.A in qnameFacts and not qnameFacts[rxp.A].isNil:
                         if (rxp.Cm in qnameFacts and not qnameFacts[rxp.Cm].isNil and
                             qnameFacts[rxp.A].unit is not None and qnameFacts[rxp.A].unit.measures == currencyMeasures):
-                            modelXbrl.error("EFM.6.05.58.04",
-                                _("A value cannot be given for rxp:Cm in context %(context)s because the payment is in the reporting currency %(currency)s."),
+                            modelXbrl.warning("EFM.6.05.58.04.NoConversionMethodNeeded",
+                                _("A value should not be present for Conversion Method rxp:Cm in context %(context)s because the Amount rxp:A is in the reporting currency %(currency)s."),
                                 edgarCode="rxp-055804-Conversion-Method-Value",
                                 modelObject=(qnameFacts[rxp.A],qnameFacts[rxp.Cm]), context=context.id, currency=qnCurrencyMeasure)
                         if (hasRxpAwithCurAndYr == False and qnameFacts[rxp.A].unit.measures == currencyMeasures and
                             qnameFacts[rxp.A].context.startDatetime == rxpAstartDatetime and qnameFacts[rxp.A].context.endDatetime == rxpAendDatetime):
                             hasRxpAwithCurAndYr = True
-                    if rxp.P in qnameFacts and not any(f.xValid >= VALID and f.context is not None and not f.context.qnameDims
-                                                       for f in modelXbrl.factsByQname.get(qnameFacts[rxp.P].xValue,())):
-                        modelXbrl.error("EFM.6.05.58.07",
-                            _("Payment type %(paymentType)s was reported in context %(context)s but there is no fact with element %(paymentType)s in the Required Context."),
+
+                    for aggregate in aggregates & qnameFacts.keys(): # loop body might alter aggregates list.
+                        # note that core (period, unit) and taxonomy-defined dimensions (government, project, legal entity) do NOT need to match.
+                        if (not qnameFacts[aggregate].isNil and not any(f.xValid >= VALID and f.xValue == m and f.context.hasDimension(rxp.PmtAxis)
+                                    for m in (aggregate,)
+                                    for f in modelXbrl.factsByQname[rxp.P])):
+                            modelXbrl.warning(f"EFM.6.05.58.06.{aggregate.localName}-P-Dependency",
+                                _("At least one payment for %(aggLabel)s %(aggregate)s is required.  Provide a value for PaymentType rxp:P with value %(aggregate)s."),
+                                edgarCode="rxp-055808-Payment-Type-Amount-Existence",
+                                modelObject=context, context=context.id, aggLabel=stdLabel(aggregate), aggregate=aggregate)
+                            aggregates.remove(aggregate) # since we're ignoring dimensions, don't report it again.
+                    if (rxp.P in qnameFacts and not qnameFacts[rxp.P].isNil and
+                            not any(f.xValid >= VALID and f.context is not None and not f.context.qnameDims
+                            for f in modelXbrl.factsByQname.get(qnameFacts[rxp.P].xValue,()))):
+                        modelXbrl.warning(f"EFM.6.05.58.07.P-{qnameFacts[rxp.P].xValue.localName}-Dependency",
+                            _("Payment type %(paymentType)s was reported in context %(context)s but there is no total value fact with element %(paymentType)s in the Required Context."),
                             edgarCode="rxp-055807-Category-Total-Existence",
                             modelObject=context, context=context.id, paymentType=qnameFacts[rxp.P].xValue)
+
                     if (context.hasDimension(rxp.GovernmentAxis) and
                         not any(f.xValid >= VALID and f.xValue == m and f.context.hasDimension(rxp.PmtAxis)
                                 for m in (contextDims[rxp.GovernmentAxis].memberQname,)
                                 for f in modelXbrl.factsByQname[rxp.Gv])):
-                        modelXbrl.error("EFM.6.58.08", # TODO wch has not put this in EFM draft yet.
+                        modelXbrl.warning("EFM.6.05.58.08.GovernmentAxis-Gv-Value-Dependency",
                             _("A payment amount for each government is required.  Provide a value for element rxp:Gv with value %(member)s."),
                             edgarCode="rxp-055808-Government-Payment-Amount-Existence",
                             modelObject=context, context=context.id, dimension=rxp.GovernmentAxis, member=context.dimMemberQname(rxp.GovernmentAxis))
+
                     if (context.hasDimension(rxp.ProjectAxis) and
-                        not any(f.xValid >= VALID and f.xValue == m
+                        not any(f.xValid >= VALID and f.xValue == m and f.context.hasDimension(rxp.PmtAxis)
                                 for m in (contextDims[rxp.ProjectAxis].memberQname,)
                                 for f in modelXbrl.factsByQname[rxp.Pr])):
-                        modelXbrl.error("EFM.6.05.58.09", # TODO wch this seems right but needs revisiting
-                            _("A payment for each project axis member is required.  Provide a value for element rxp:Pr with value %(dimension)s in context %(context)s."),
+                        modelXbrl.warning("EFM.6.05.58.09.ProjectAxis-Pr-Value-Dependency",
+                            _("A payment for each project axis member is required.  Provide a value for element rxp:Pr with value %(member)s."),
                             edgarCode="rxp-055809-Project-Payment-Amount-Existence",
-                            modelObject=context, context=context.id, dimension=rxp.GovernmentAxis)
-                if hasRxpAwithCurAndYr == False:
-                    modelXbrl.error("EFM.6.05.58.05",
-                            _("Amount rxp:A missing for reporting currency and matching 12 months preceeding dei:DocumentPeriodEndDate."),
+                            modelObject=context, context=context.id, member=contextDims[rxp.ProjectAxis].memberQname)
+                if hasRxpAwithCurAndYr == False and bool(qnCurrencyMeasure): # do not report this if there was reporting currency (error 6.05.58.02)
+                    modelXbrl.warning("EFM.6.05.58.05",
+                            _("Amount rxp:A missing for reporting currency %(currency)s and matching 12 months preceding dei:DocumentPeriodEndDate."),
                             edgarCode="rxp-055805-Amount-For-Required-12-Months-Period",
-                            modelObject=documentPeriodEndDateFact)
+                            modelObject=documentPeriodEndDateFact, currency=qnCurrencyMeasure.localName)
 
                 val.modelXbrl.profileActivity("... Form SD 6.05.58 fact checks", minTimeToShow=1.0)
                 # deference object references no longer needed
                 del cntxEqualFacts
                 # dereference compatibly with 2.7 (as these may be used in nested contexts above
                 hasHypRelSet = hypDimRelSet = dimDefRelSet = domMemRelSet = dimDomRelSet = None
-                memDim.clear()
+
         elif disclosureSystem.GFM:
             for deiItem in (
                     disclosureSystem.deiCurrentFiscalYearEndDateElement,
@@ -2970,11 +2942,17 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             for ixHiddenElt in ixdsHtmlRootElt.iterdescendants(tag=ixNStag + "hidden"):
                 for tag in (ixNStag + "nonNumeric", ixNStag+"nonFraction"):
                     for ixElt in ixHiddenElt.iterdescendants(tag=tag):
+                        qn = ixElt.qname
+                        ln = qn.localName
+                        ns = qn.namespaceURI
+                        ny = abbreviatedNamespace(ns, NOYEAR)
                         if (getattr(ixElt, "xValid", 0) >= VALID and # may not be validated
-                            (ixElt.qname in coverVisibleQNames
-                             or not hideableNamespacesPattern.match(ixElt.qname.namespaceURI)) and
-                            (not isRRorOEF or not rrUntransformableEltsPattern.match(ixElt.qname.localName)
-                                      or abbreviatedNamespace(ixElt.qname.namespaceURI, NOYEAR) not in ("rr","oef"))):
+                            (qn in coverVisibleQNames
+                             or not hideableNamespacesPattern.match(ns)) and
+                            (ny not in ("sbs",)
+                             or ln not in ("SbsefLegalProceedingContemplatedByGovernmentAgencyFlag","SbsefExpenseExcludedOrProratedFlag",)) and
+                            (not isRRorOEF or not rrUntransformableEltsPattern.match(ln)
+                                      or ny not in ("rr","oef"))):
                             if (ixElt.concept.baseXsdType not in untransformableTypes and
                                 not ixElt.isNil):
                                 eligibleForTransformHiddenFacts.append(ixElt)
@@ -3508,9 +3486,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     for rel in modelXbrl.relationshipSet("XBRL-dimensions").modelRelationships:
                         if not isStandardUri(val, rel.modelDocument.uri) and rel.modelDocument.targetNamespace not in val.otherStandardTaxonomies:
                             relFrom = rel.fromModelObject
-                            relFromQNstr = str(relFrom.qname)
                             relTo = rel.toModelObject
                             if relFrom is not None and relTo is not None:
+                                relFromQNstr = str(relFrom.qname)
                                 if ((relFrom.qname.namespaceURI == ns or relTo.qname.namespaceURI == ns)
                                     and not (
                                       rel.arcrole == XbrlConst.domainMember and (
@@ -4558,21 +4536,20 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             elif dqcRuleName == "DQC.US.0072":
                 # 0071 has only one id, rule
                 id, rule = next(iter(dqcRule["rules"].items()))
-                dimConcept = modelXbrl.qnameConcepts.get(qname(rule["axis"], deiDefaultPrefixedNamespaces))
                 dimRelSet = modelXbrl.relationshipSet("XBRL-dimensions")
-
-                for f in modelXbrl.modelXbrl.factsByLocalName.get(rule["name"],()):
-                    if f.context is not None:
-                        if dimConcept.qname not in f.qnameDims:
-                            modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(rule["message-missing-dim"])),
-                                modelObject=f, name=f.qname, value=f.xValue,
-                                contextID=f.contextID, unitID=f.unitID or "(none)",
-                                edgarCode=edgarCode, ruleElementId=id)
-                        elif dimRelSet.isRelated(dimConcept, "child", f.qnameDims[dimConcept.qname].member, isDRS=True):
-                            modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(rule["message-axis-child"])),
-                                modelObject=f, name=f.qname, value=f.xValue,
-                                contextID=f.contextID, unitID=f.unitID or "(none)",
-                                edgarCode=edgarCode, ruleElementId=id)
+                for dimConcept in modelXbrl.nameConcepts.get(rule["axis"], ()):
+                    for f in modelXbrl.modelXbrl.factsByLocalName.get(rule["name"],()):
+                        if f.context is not None:
+                            if dimConcept.qname not in f.context.qnameDims:
+                                modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(rule["message-missing-dim"])),
+                                    modelObject=f, name=f.qname, value=f.xValue,
+                                    contextID=f.contextID, unitID=f.unitID or "(none)",
+                                    edgarCode=edgarCode, ruleElementId=id)
+                            elif dimRelSet.isRelated(dimConcept, "child", f.context.qnameDims[dimConcept.qname].member, isDRS=True):
+                                modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(rule["message-axis-child"])),
+                                    modelObject=f, name=f.qname, value=f.xValue,
+                                    contextID=f.contextID, unitID=f.unitID or "(none)",
+                                    edgarCode=edgarCode, ruleElementId=id)
             elif dqcRuleName == "DQC.US.0073":
                 # 0073 has only one id, rule
                 id, rule = next(iter(dqcRule["rules"].items()))
@@ -4955,11 +4932,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             modelXbrl.warning(f"{dqcRuleName}.{id}",
                               f"Validation was unable to complete rule {dqcRuleName} due to an internal error.  This is not considered an error in the filing.",
                               modelObject=modelXbrl)
-            modelXbrl.debug(
-                "arelle:dqcrtException",
-                _("An unexpected exception occurred in DQCRT"),
-                traceback=traceback.format_exception(*sys.exc_info())
-            )
+            modelXbrl.debug("arelle:dqcrtException", _("DQCRT Exception traceback: {}").format(traceback.format_exception(*sys.exc_info())))
 
     val.modelXbrl.profileActivity("... DQCRT checks", minTimeToShow=0.1)
     del val.summationItemRelsSetAllELRs

@@ -4,7 +4,7 @@
         "Data and content created by government employees within the scope of their employment", 
         "are not subject to domestic copyright protection. 17 U.S.C. 105."
     ],
-    "version": "EDGAR release 24.1",
+    "version": "EDGAR release 24.2",
     "description": [
         "Each JSON object key is a supported namespace and the value is its required prefix."
     ],

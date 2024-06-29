@@ -540,13 +540,9 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[], inlineOnly=False):
     if filesource.isArchive:
         if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
             filesource.loadTaxonomyPackageMappings()
+        # HF note: a web api request to load a specific file from archive is ignored, is this right?
         del entrypointFiles[:] # clear out archive from entrypointFiles
         # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
-        for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
-            if _archiveFile.endswith(".xhtml") or _archiveFile.endswith(".html"):
-                filesource.select(_archiveFile)
-                if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-                    entrypointFiles.append({"file":filesource.url})
         urlsByType = {}
         if not entrypointFiles:
             for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
@@ -571,10 +567,19 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[], inlineOnly=False):
 
     elif os.path.isdir(filesource.url):
         del entrypointFiles[:] # clear list
+        hasInline = False
         for _file in os.listdir(filesource.url):
             _path = os.path.join(filesource.url, _file)
-            if os.path.isfile(_path) and ModelDocument.Type.identify(filesource, _path) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-                entrypointFiles.append({"file":_path})
+            if os.path.isfile(_path):
+                identifiedType = ModelDocument.Type.identify(filesource, _path)
+                if identifiedType == ModelDocument.Type.INLINEXBRL:
+                    hasInline = True
+                if identifiedType in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+                    entrypointFiles.append({"file":_path})
+        if hasInline: # group into IXDS if plugin feature is available
+            for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
+                pluginXbrlMethod(filesource, entrypointFiles)
+
     return entrypointFiles
 
 class ParserForDynamicPlugins:

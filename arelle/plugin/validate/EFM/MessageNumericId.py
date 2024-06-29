@@ -86,10 +86,12 @@ ftValidations = {
     "r457rMAOP": 1, "r457rOmitableFlds": 2, "r457rRqdFlds": 3, "r457rSecType": 4, "r457rWKSI": 5, "r457sMAOP": 6,
     "r457sOmitableFlds": 7, "r457sRqdFlds": 8, "r457sSecType": 9, "r457uNAFlds": 10, "r457uRqdFlds": 11,
     "r457uSecType": 12, "rqdFileNb": 13, "ttlFeeAmt": 14, "ttlOfAmt": 15, "ttlOfstAmt": 16, "ttlOfstLeTotFee": 17,
-    "ttlRqdFlds": 18, "ttlTxValtn": 19, "txtFldChars": 20, "usrSty27": 21, "usrSty30": 22, "usrSty32": 23,
+    "ttlRqdFlds": 18, "ttlTxValtn": 19, "txtFldChars": 20, "usrSty27": 21, "usrSty27b": 22, "usrSty30": 22, "usrSty32": 23,
     "usrSty3334MAOP": 24, "usrSty3334MAOPsums": 25, "usrSty3334valSecRcvd": 26, "usrSty3334RqdFlds": 87, "usrSty42": 30, "usrSty43": 31, "usrSty50": 32, "usrSty6a": 33, "usrSty6b": 34, "usrSty6c": 35,
-    "usrSty9": 36, "uusFileNb": 37, "uusNAflds": 38, "usrSty2": 41, "usrSty10": 40, "uusRqdChild": 42, "footNoteLen": 27,
-    "subTpMismatch": 1, "numRate": 66, "r415a6FileNb": 51
+    "usrSty9": 36, "uusFileNb": 37, "uusNAflds": 38, "usrSty2": 41, "usrSty2b": 42, "usrSty10": 40, "uusRqdChild": 42, "footNoteLen": 27,
+    "subTpMismatch": 1, "numRate": 66, "r415a6FileNb": 51, "r415a6uusRqdChild": 52, "usrSty52": 53, "uusPrvPd": 54, "usrSty12": 41, "rqdFlds": 1, "nameFldChars": 2,
+    "r457fCashPd": 85, "rqdAmdFlds": 86, "exhibitTp": 2, "otherFeeAmtRqd": 32, "usrSty9b": 24, "r415a6UUSFrmTyp": 44, "r415a6POSAMUUSFrmTyp": 45
+
 }
 
 def messageNumericId(modelXbrl, level, messageCode, args):
@@ -98,7 +100,7 @@ def messageNumericId(modelXbrl, level, messageCode, args):
     modelObject = args.get("modelObject")
     if isinstance(modelObject, (tuple, list)) and len(modelObject) > 0:
         modelObject = modelObject[0]
-    ftContext = args.get("ftContext")
+    ftContext = args.get("ftContext") or args.get("axis")
     if isinstance(modelObject, (ModelFact,ModelXbrl)) and ftContext and messageCode.startswith("EFM.ft."):
         if isinstance(modelObject, (ModelFact, ModelXbrl)):
             tagName = None
@@ -136,7 +138,7 @@ def messageNumericId(modelXbrl, level, messageCode, args):
                         msgNumId += conceptLnNumeric * 100
                         if subType.startswith("424I"):
                             msgNumId += 10000
-                        elif subType.startswith("SC"):
+                        elif subType.startswith("SC") or subType.startswith("PRER") or subType.startswith("PREM"):
                             msgNumId += 20000
                         elif conceptLnNumeric <= 8:
                             msgNumId += 30000
@@ -161,11 +163,9 @@ def messageNumericId(modelXbrl, level, messageCode, args):
             messageCodeId = f".{(msgNumId//1000000)%10}.{(msgNumId//10000)%100}.{msgNumId//100%100}."
             if msgNumId < 20000000:
                 messageCode = messageCode.replace(".ft.", ".FT" + messageCodeId)
-                # add validation number id
-                # not needed for dei codes in the 20,000,000 range inly for FT codes
-                msgNumId += ftValidations.get(messageCode.split(".")[-1], 0)
             else:
                 messageCode = messageCode.replace(".ft.", messageCodeId)
+            msgNumId += ftValidations.get(messageCode.split(".")[-1], 0)
             return messageCode, msgNumId
     for code, pattern, splitChar in codesPatterns:
         m = pattern.match(messageCode)
