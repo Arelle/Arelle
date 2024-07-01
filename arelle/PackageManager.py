@@ -322,9 +322,11 @@ def init(cntlr: Cntlr, loadPackagesConfig: bool = True) -> None:
     pluginMethodsForClasses = {} # dict by class of list of ordered callable function objects
     _cntlr = cntlr
 
-def reset():  # force reloading modules and plugin infos
-    packagesConfig.clear()  # dict of loaded module pluginInfo objects by module names
-    packagesMappings.clear() # dict by class of list of ordered callable function objects
+def reset() -> None:  # force reloading modules and plugin infos
+    if packagesConfig:
+        packagesConfig.clear()  # dict of loaded module pluginInfo objects by module names
+    if packagesMappings:
+        packagesMappings.clear() # dict by class of list of ordered callable function objects
 
 def orderedPackagesConfig():
     return OrderedDict(

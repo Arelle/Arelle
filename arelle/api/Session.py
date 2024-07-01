@@ -11,6 +11,7 @@ from __future__ import annotations
 from types import TracebackType
 from typing import Any, Type
 
+from arelle import PluginManager, PackageManager
 from arelle.CntlrCmdLine import CntlrCmdLine, createCntlrAndPreloadPlugins
 from arelle.ModelXbrl import ModelXbrl
 from arelle.RuntimeOptions import RuntimeOptions
@@ -77,6 +78,8 @@ class Session:
         :param options: Options to use for the run.
         :return: True if the run was successful, False otherwise.
         """
+        PackageManager.reset()
+        PluginManager.reset()
         if self._cntlr is None:
             # Certain options must be passed into the controller constructor to have the intended effect
             self._cntlr = createCntlrAndPreloadPlugins(
