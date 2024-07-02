@@ -5,11 +5,13 @@ from __future__ import annotations
 import os, io
 import regex as re
 from collections import defaultdict
+from pathlib import Path
 from typing import Any
 from lxml import etree
 from xml.sax import SAXParseException
 from arelle import (PackageManager, XbrlConst, XmlUtil, UrlUtil, ValidateFilingText,
                     XhtmlValidate, XmlValidateSchema, FunctionIxt)
+from arelle.conformance.CSVTestcaseLoader import CSVTestcaseException, loadCsvTestcase
 from arelle.FileSource import FileSource
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
@@ -152,6 +154,13 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 return None
             if modelDocument is not None:
                 return modelDocument
+        if Path(filepath).suffix == ".csv":
+            try:
+                modelDocument = loadCsvTestcase(modelXbrl, normalizedUri)
+                if modelDocument is not None:
+                    return modelDocument
+            except CSVTestcaseException:
+                modelDocument = None
         from arelle.oim.Load import isOimLoadable, oimLoader
         if isOimLoadable(normalizedUri, filepath):
             modelDocument = oimLoader(modelXbrl, normalizedUri, filepath)
@@ -1467,7 +1476,7 @@ class ModelDocument:
                             doc = load(self.modelXbrl, uriAttr, base=base, referringElement=testcaseElement)
                             self.addDocumentReference(doc, "testcaseIndex", testcaseElement)
 
-    def testcaseDiscover(self, testcaseElement, validateTestcaseSchema):
+    def testcaseDiscover(self, testcaseElement: etree._Element, validateTestcaseSchema: bool) -> None:
         if validateTestcaseSchema:
             lxmlSchemaValidate(self)
         isTransformTestcase = testcaseElement.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms"
