@@ -5,7 +5,15 @@ updates:
     schedule:
       interval: weekly
     groups:
-      dependencies:
+      gha-dependencies:
+        patterns:
+          - "*"
+  - package-ecosystem: "github-actions"
+    directory: "/.github/actions/test_conformance_suite"
+    schedule:
+      interval: weekly
+    groups:
+      gha-dependencies:
         patterns:
           - "*"
   - package-ecosystem: pip
@@ -13,7 +21,7 @@ updates:
     schedule:
       interval: weekly
     groups:
-      dependencies:
+      python-dependencies:
         patterns:
           - "*"
     ignore:
