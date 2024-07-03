@@ -216,7 +216,7 @@
      blockDisallowedReferences="false"
      defaultXmlLang="en-US"
      defaultLanguage="English"
-     standardTaxonomiesUrl="resources/edgartaxonomies/extendedtaxonomies-all-years.xml"
+     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-all-years.xml"
      validTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-24-2.xml"
      utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
