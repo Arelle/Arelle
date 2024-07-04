@@ -159,7 +159,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     # efmSubmissionType and efmIxdsType are already set when re-validating after redaction/redline removal
     submissionType = getattr(modelXbrl,'efmSubmissionType', val.params.get("submissionType", ""))
     attachmentDocumentType = getattr(modelXbrl,'efmIxdsType', val.params.get("attachmentDocumentType", "")) # this is different from dei:documentType
-    isFeeTagging = feeTaggingAttachmentDocumentTypePattern.match(attachmentDocumentType)
+    isFeeTagging = feeTaggingAttachmentDocumentTypePattern.match(attachmentDocumentType or "")
     requiredFactLang = disclosureSystem.defaultXmlLang.lower() if disclosureSystem.defaultXmlLang else disclosureSystem.defaultXmlLang
     hasSubmissionType = bool(submissionType)
     hasAttachmentDocumentType = bool(attachmentDocumentType)
