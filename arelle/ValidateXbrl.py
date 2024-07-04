@@ -164,111 +164,111 @@ class ValidateXbrl:
                                       or arcrole.startswith(XbrlConst.formulaStartsWith) \
                                       or (modelXbrl.hasXDT and arcrole.startswith(XbrlConst.dimStartsWith)):
                 relsSet = modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname)
-            if cyclesAllowed != "any" and \
-                   ((XbrlConst.isStandardExtLinkQname(linkqname) and XbrlConst.isStandardArcQname(arcqname)) \
-                    or arcrole in self.genericArcArcroles):
-                noUndirected = cyclesAllowed == "none"
-                fromRelationships = relsSet.fromModelObjects()
-                for relFrom, rels in fromRelationships.items():
-                    cycleFound = cast(List[ModelRelationship], self.fwdCycle(relsSet, rels, noUndirected, {relFrom}))
+                if cyclesAllowed != "any" and \
+                    ((XbrlConst.isStandardExtLinkQname(linkqname) and XbrlConst.isStandardArcQname(arcqname)) \
+                        or arcrole in self.genericArcArcroles):
+                    noUndirected = cyclesAllowed == "none"
+                    fromRelationships = relsSet.fromModelObjects()
+                    for relFrom, rels in fromRelationships.items():
+                        cycleFound = cast(List[ModelRelationship], self.fwdCycle(relsSet, rels, noUndirected, {relFrom}))
 
-                    if cycleFound is not None:
-                        pathEndsAt = len(cycleFound)  # consistently find start of path
+                        if cycleFound is not None:
+                            pathEndsAt = len(cycleFound)  # consistently find start of path
 
-                        loopedModelObject = cycleFound[1].toModelObject
-                        for i, rel in enumerate(cycleFound[2:]):
-                            if rel.fromModelObject == loopedModelObject:
-                                pathEndsAt = 3 + i # don't report extra path elements before loop
-                                break
+                            loopedModelObject = cycleFound[1].toModelObject
+                            for i, rel in enumerate(cycleFound[2:]):
+                                if rel.fromModelObject == loopedModelObject:
+                                    pathEndsAt = 3 + i # don't report extra path elements before loop
+                                    break
 
-                        reversed_list = reversed(cycleFound[1:pathEndsAt])
-                        path = str(loopedModelObject.qname) + " " + " - ".join(
-                            "{0}:{1} {2}".format(rel.modelDocument.basename, rel.sourceline, rel.toModelObject.qname)
-                            for rel in reversed_list)
+                            reversed_list = reversed(cycleFound[1:pathEndsAt])
+                            path = str(loopedModelObject.qname) + " " + " - ".join(
+                                "{0}:{1} {2}".format(rel.modelDocument.basename, rel.sourceline, rel.toModelObject.qname)
+                                for rel in reversed_list)
 
-                        modelXbrl.error(cast(str, specSect),
-                            _("Relationships have a %(cycle)s cycle in arcrole %(arcrole)s \nlink role %(linkrole)s \nlink %(linkname)s, \narc %(arcname)s, \npath %(path)s"),
-                            modelObject=cycleFound[1:pathEndsAt], cycle=cycleFound[0], path=path,
-                            arcrole=arcrole, linkrole=ELR, linkname=linkqname, arcname=arcqname,
-                            messageCodes=("xbrlgene:violatedCyclesConstraint", "xbrl.5.1.4.3:cycles",
-                                          # from XbrlCoinst.standardArcroleCyclesAllowed
-                                          "xbrl.5.2.4.2", "xbrl.5.2.5.2", "xbrl.5.2.6.2.1", "xbrl.5.2.6.2.1", "xbrl.5.2.6.2.3", "xbrl.5.2.6.2.4"))
-                        break
+                            modelXbrl.error(cast(str, specSect),
+                                _("Relationships have a %(cycle)s cycle in arcrole %(arcrole)s \nlink role %(linkrole)s \nlink %(linkname)s, \narc %(arcname)s, \npath %(path)s"),
+                                modelObject=cycleFound[1:pathEndsAt], cycle=cycleFound[0], path=path,
+                                arcrole=arcrole, linkrole=ELR, linkname=linkqname, arcname=arcqname,
+                                messageCodes=("xbrlgene:violatedCyclesConstraint", "xbrl.5.1.4.3:cycles",
+                                            # from XbrlCoinst.standardArcroleCyclesAllowed
+                                            "xbrl.5.2.4.2", "xbrl.5.2.5.2", "xbrl.5.2.6.2.1", "xbrl.5.2.6.2.1", "xbrl.5.2.6.2.3", "xbrl.5.2.6.2.4"))
+                            break
 
-            # check calculation arcs for weight issues (note calc arc is an "any" cycles)
-            if arcrole in XbrlConst.summationItems:
-                for modelRel in relsSet.modelRelationships:
-                    weight = modelRel.weight
-                    fromConcept = modelRel.fromModelObject
-                    toConcept = modelRel.toModelObject
-                    if fromConcept is not None and toConcept is not None:
-                        if weight == 0:
-                            modelXbrl.error("xbrl.5.2.5.2.1:zeroWeight", # type: ignore[func-returns-value]
-                                _("Calculation relationship has zero weight from %(source)s to %(target)s in link role %(linkrole)s"),
-                                modelObject=modelRel,
-                                source=fromConcept.qname, target=toConcept.qname, linkrole=ELR),
-                        fromBalance = fromConcept.balance
-                        toBalance = toConcept.balance
-                        if fromBalance and toBalance:
-                            if (fromBalance == toBalance and weight < 0) or \
-                               (fromBalance != toBalance and weight > 0):
-                                modelXbrl.error("xbrl.5.1.1.2:balanceCalcWeightIllegal" +
-                                                ("Negative" if weight < 0 else "Positive"),
-                                    _("Calculation relationship has illegal weight %(weight)s from %(source)s, %(sourceBalance)s, to %(target)s, %(targetBalance)s, in link role %(linkrole)s (per 5.1.1.2 Table 6)"),
-                                    modelObject=modelRel, weight=weight,
+                # check calculation arcs for weight issues (note calc arc is an "any" cycles)
+                if arcrole in XbrlConst.summationItems:
+                    for modelRel in relsSet.modelRelationships:
+                        weight = modelRel.weight
+                        fromConcept = modelRel.fromModelObject
+                        toConcept = modelRel.toModelObject
+                        if fromConcept is not None and toConcept is not None:
+                            if weight == 0:
+                                modelXbrl.error("xbrl.5.2.5.2.1:zeroWeight", # type: ignore[func-returns-value]
+                                    _("Calculation relationship has zero weight from %(source)s to %(target)s in link role %(linkrole)s"),
+                                    modelObject=modelRel,
+                                    source=fromConcept.qname, target=toConcept.qname, linkrole=ELR),
+                            fromBalance = fromConcept.balance
+                            toBalance = toConcept.balance
+                            if fromBalance and toBalance:
+                                if (fromBalance == toBalance and weight < 0) or \
+                                (fromBalance != toBalance and weight > 0):
+                                    modelXbrl.error("xbrl.5.1.1.2:balanceCalcWeightIllegal" +
+                                                    ("Negative" if weight < 0 else "Positive"),
+                                        _("Calculation relationship has illegal weight %(weight)s from %(source)s, %(sourceBalance)s, to %(target)s, %(targetBalance)s, in link role %(linkrole)s (per 5.1.1.2 Table 6)"),
+                                        modelObject=modelRel, weight=weight,
+                                        source=fromConcept.qname, target=toConcept.qname, linkrole=ELR,
+                                        sourceBalance=fromBalance, targetBalance=toBalance,
+                                        messageCodes=("xbrl.5.1.1.2:balanceCalcWeightIllegalNegative", "xbrl.5.1.1.2:balanceCalcWeightIllegalPositive"))
+                            if not fromConcept.isNumeric or not toConcept.isNumeric:
+                                modelXbrl.error("xbrl.5.2.5.2:nonNumericCalc",
+                                    _("Calculation relationship has illegal concept from %(source)s%(sourceNumericDecorator)s to %(target)s%(targetNumericDecorator)s in link role %(linkrole)s"),
+                                    modelObject=modelRel,
                                     source=fromConcept.qname, target=toConcept.qname, linkrole=ELR,
-                                    sourceBalance=fromBalance, targetBalance=toBalance,
-                                    messageCodes=("xbrl.5.1.1.2:balanceCalcWeightIllegalNegative", "xbrl.5.1.1.2:balanceCalcWeightIllegalPositive"))
-                        if not fromConcept.isNumeric or not toConcept.isNumeric:
-                            modelXbrl.error("xbrl.5.2.5.2:nonNumericCalc",
-                                _("Calculation relationship has illegal concept from %(source)s%(sourceNumericDecorator)s to %(target)s%(targetNumericDecorator)s in link role %(linkrole)s"),
-                                modelObject=modelRel,
-                                source=fromConcept.qname, target=toConcept.qname, linkrole=ELR,
-                                sourceNumericDecorator="" if fromConcept.isNumeric else _(" (non-numeric)"),
-                                targetNumericDecorator="" if toConcept.isNumeric else _(" (non-numeric)"))
-            # check presentation relationships for preferredLabel issues
-            elif arcrole == XbrlConst.parentChild:
-                for modelRel in relsSet.modelRelationships:
-                    preferredLabel = modelRel.preferredLabel
-                    fromConcept = modelRel.fromModelObject
-                    toConcept = modelRel.toModelObject
-                    if preferredLabel is not None and isinstance(fromConcept, ModelConcept) and isinstance(toConcept, ModelConcept):
-                        label = toConcept.label(preferredLabel=preferredLabel,fallbackToQname=False,strip=True)
-                        if label is None:
-                            modelXbrl.error("xbrl.5.2.4.2.1:preferredLabelMissing",
-                                _("Presentation relationship from %(source)s to %(target)s in link role %(linkrole)s missing preferredLabel %(preferredLabel)s"),
-                                modelObject=modelRel,
-                                source=fromConcept.qname, target=toConcept.qname, linkrole=ELR,
-                                preferredLabel=preferredLabel)
-                        elif not label: # empty string
-                            modelXbrl.info("arelle:info.preferredLabelEmpty",
-                                _("(Info xbrl.5.2.4.2.1) Presentation relationship from %(source)s to %(target)s in link role %(linkrole)s has empty preferredLabel %(preferredLabel)s"),
-                                modelObject=modelRel,
-                                source=fromConcept.qname, target=toConcept.qname, linkrole=ELR,
-                                preferredLabel=preferredLabel)
-            # check essence-alias relationships
-            elif arcrole == XbrlConst.essenceAlias:
-                for modelRel in relsSet.modelRelationships:
-                    fromConcept = modelRel.fromModelObject
-                    toConcept = modelRel.toModelObject
-                    if fromConcept is not None and toConcept is not None:
-                        if fromConcept.type != toConcept.type or fromConcept.periodType != toConcept.periodType:
-                            modelXbrl.error("xbrl.5.2.6.2.2:essenceAliasTypes",
-                                _("Essence-alias relationship from %(source)s to %(target)s in link role %(linkrole)s has different types or periodTypes"),
-                                modelObject=modelRel,
-                                source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
-                        fromBalance = fromConcept.balance
-                        toBalance = toConcept.balance
-                        if fromBalance and toBalance:
-                            if fromBalance and toBalance and fromBalance != toBalance:
-                                modelXbrl.error("xbrl.5.2.6.2.2:essenceAliasBalance",  # type: ignore[func-returns-value]
-                                    _("Essence-alias relationship from %(source)s to %(target)s in link role %(linkrole)s has different balances")).format(
+                                    sourceNumericDecorator="" if fromConcept.isNumeric else _(" (non-numeric)"),
+                                    targetNumericDecorator="" if toConcept.isNumeric else _(" (non-numeric)"))
+                # check presentation relationships for preferredLabel issues
+                elif arcrole == XbrlConst.parentChild:
+                    for modelRel in relsSet.modelRelationships:
+                        preferredLabel = modelRel.preferredLabel
+                        fromConcept = modelRel.fromModelObject
+                        toConcept = modelRel.toModelObject
+                        if preferredLabel is not None and isinstance(fromConcept, ModelConcept) and isinstance(toConcept, ModelConcept):
+                            label = toConcept.label(preferredLabel=preferredLabel,fallbackToQname=False,strip=True)
+                            if label is None:
+                                modelXbrl.error("xbrl.5.2.4.2.1:preferredLabelMissing",
+                                    _("Presentation relationship from %(source)s to %(target)s in link role %(linkrole)s missing preferredLabel %(preferredLabel)s"),
+                                    modelObject=modelRel,
+                                    source=fromConcept.qname, target=toConcept.qname, linkrole=ELR,
+                                    preferredLabel=preferredLabel)
+                            elif not label: # empty string
+                                modelXbrl.info("arelle:info.preferredLabelEmpty",
+                                    _("(Info xbrl.5.2.4.2.1) Presentation relationship from %(source)s to %(target)s in link role %(linkrole)s has empty preferredLabel %(preferredLabel)s"),
+                                    modelObject=modelRel,
+                                    source=fromConcept.qname, target=toConcept.qname, linkrole=ELR,
+                                    preferredLabel=preferredLabel)
+                # check essence-alias relationships
+                elif arcrole == XbrlConst.essenceAlias:
+                    for modelRel in relsSet.modelRelationships:
+                        fromConcept = modelRel.fromModelObject
+                        toConcept = modelRel.toModelObject
+                        if fromConcept is not None and toConcept is not None:
+                            if fromConcept.type != toConcept.type or fromConcept.periodType != toConcept.periodType:
+                                modelXbrl.error("xbrl.5.2.6.2.2:essenceAliasTypes",
+                                    _("Essence-alias relationship from %(source)s to %(target)s in link role %(linkrole)s has different types or periodTypes"),
                                     modelObject=modelRel,
                                     source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
-            elif modelXbrl.hasXDT and arcrole.startswith(XbrlConst.dimStartsWith):
-                ValidateXbrlDimensions.checkBaseSet(self, arcrole, ELR, relsSet)
-            elif arcrole in ValidateFormula.arcroleChecks:
-                ValidateFormula.checkBaseSet(self, arcrole, ELR, relsSet)
+                            fromBalance = fromConcept.balance
+                            toBalance = toConcept.balance
+                            if fromBalance and toBalance:
+                                if fromBalance and toBalance and fromBalance != toBalance:
+                                    modelXbrl.error("xbrl.5.2.6.2.2:essenceAliasBalance",  # type: ignore[func-returns-value]
+                                        _("Essence-alias relationship from %(source)s to %(target)s in link role %(linkrole)s has different balances")).format(
+                                        modelObject=modelRel,
+                                        source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
+                elif modelXbrl.hasXDT and arcrole.startswith(XbrlConst.dimStartsWith):
+                    ValidateXbrlDimensions.checkBaseSet(self, arcrole, ELR, relsSet)
+                elif arcrole in ValidateFormula.arcroleChecks:
+                    ValidateFormula.checkBaseSet(self, arcrole, ELR, relsSet)
         modelXbrl.isDimensionsValidated = True
         modelXbrl.profileStat(_("validateRelationships"))
 
