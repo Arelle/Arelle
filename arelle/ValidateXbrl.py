@@ -159,7 +159,7 @@ class ValidateXbrl:
             else:
                 cyclesAllowed = "any"
                 specSect = None
-            if cyclesAllowed != "any" or arcrole in (XbrlConst.summationItem,) \
+            if cyclesAllowed != "any" or arcrole in XbrlConst.summationItems \
                                       or arcrole in self.genericArcArcroles  \
                                       or arcrole.startswith(XbrlConst.formulaStartsWith) \
                                       or (modelXbrl.hasXDT and arcrole.startswith(XbrlConst.dimStartsWith)):
