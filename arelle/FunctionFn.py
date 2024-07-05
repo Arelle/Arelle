@@ -307,8 +307,34 @@ def replace(xc, p, contextItem, args):
     except re.error as err:
         raise XPathContext.XPathException(p, 'err:FORX0002', _('fn:replace regular expression pattern error: {0}').format(err))
 
+
 def tokenize(xc, p, contextItem, args):
-    raise fnFunctionNotAvailable()
+    # See https://www.w3.org/TR/xpath-functions/#func-tokenize
+    if not 1 <= len(args) <= 3:
+        raise XPathContext.FunctionNumArgs()
+
+    if 1 == len(args):
+        input = normalize_space(xc, p, contextItem, args)
+        pattern = ' '
+    else:
+        input = stringArg(xc, args, 0, "xs:string?", emptyFallback="")  # empty string is default
+        pattern = stringArg(xc, args, 1, "xs:string", emptyFallback="")
+    
+    if "" == input:
+        return []
+
+    flags = regexFlags(xc, p, args, 2)
+    flags |= re.V1 # Enable zero width matches
+
+    m_flags = "" if len(args) < 3 else args[2]
+    if matches(xc, p, contextItem, ["", pattern, m_flags]):
+        raise XPathContext.XPathException(p, 'err:FORX0003', _('fn:tokenize $pattern matches a zero-length string: {0}').format(pattern))
+
+    try:
+        return re.split(pattern, input, flags=flags)
+    except re.error as err:
+        raise XPathContext.XPathException(p, 'err:FORX0002', _('fn:tokenize regular expression pattern error: {0}').format(err))
+
 
 def resolve_uri(xc, p, contextItem, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
