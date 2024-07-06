@@ -1,5 +1,5 @@
 # core modules
-certifi==2024.6.2
+certifi==2024.7.4
 filelock==3.15.4
 lxml==5.2.2
 OpenPyXL==3.1.5
