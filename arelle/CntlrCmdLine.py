@@ -611,9 +611,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
         :param options: OptionParser options from parse_args of main argv arguments (when called from command line) or corresponding arguments from web service (REST) request.
         :type options: optparse.Values
         """
-        sourceZipStream = sourceZipStream or options.sourceZipStream
-        responseZipStream = responseZipStream or options.responseZipStream
-
         for b in BETA_FEATURES_AND_DESCRIPTIONS.keys():
             self.betaFeatures[b] = getattr(options, b)
         if options.statusPipe or options.monitorParentProcess:
