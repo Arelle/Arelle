@@ -40,7 +40,6 @@ print(f"Generating IXBRL viewer: {viewer_path}")
 # include start
 with open(samples_zip_path, 'rb') as stream:
     options = RuntimeOptions(
-        sourceZipStream=stream,
         entrypointFile=str(target_path),
         internetConnectivity='offline' if arelle_offline else 'online',
         keepOpen=True,
@@ -54,7 +53,7 @@ with open(samples_zip_path, 'rb') as stream:
         strictOptions=False,
     )
     with Session() as session:
-        session.run(options)
+        session.run(options, sourceZipStream=stream)
         log_xml = session.get_logs('xml')
 # include end
 

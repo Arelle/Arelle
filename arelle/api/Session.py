@@ -9,7 +9,7 @@ Users of this API should expect changes in future releases.
 from __future__ import annotations
 
 from types import TracebackType
-from typing import Any, Type
+from typing import Any, Type, BinaryIO
 
 from arelle import PluginManager, PackageManager
 from arelle.CntlrCmdLine import CntlrCmdLine, createCntlrAndPreloadPlugins
@@ -72,10 +72,17 @@ class Session:
             return []
         return self._cntlr.modelManager.loadedModelXbrls
 
-    def run(self, options: RuntimeOptions) -> bool:
+    def run(
+        self,
+        options: RuntimeOptions,
+        sourceZipStream: BinaryIO | None = None,
+        responseZipStream: BinaryIO | None = None,
+    ) -> bool:
         """
         Perform a run using the given options.
         :param options: Options to use for the run.
+        :param sourceZipStream: Optional stream to read source data from.
+        :param responseZipStream: Options stream to write response data to.
         :return: True if the run was successful, False otherwise.
         """
         PackageManager.reset()
@@ -96,6 +103,8 @@ class Session:
         if options.logRefObjectProperties is not None:
             logRefObjectProperties = options.logRefObjectProperties
         if options.webserver:
+            assert sourceZipStream is None, "Source streaming is not supported with webserver"
+            assert responseZipStream is None, "Response streaming is not supported with webserver"
             if not self._cntlr.logger:
                 self._cntlr.startLogging(
                     logFileName='logToBuffer',
@@ -119,4 +128,8 @@ class Session:
                     logXmlMaxAttributeLength=options.logXmlMaxAttributeLength
                 )
                 self._cntlr.postLoggingInit()  # Cntlr options after logging is started
-            return self._cntlr.run(options)
+            return self._cntlr.run(
+                options,
+                sourceZipStream=sourceZipStream,
+                responseZipStream=responseZipStream,
+            )

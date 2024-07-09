@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from dataclasses import InitVar, dataclass
-from typing import Any, Optional, Union, Pattern, BinaryIO
+from typing import Any, Optional, Union, Pattern
 
 from arelle.FileSource import FileNamedStringIO
 from arelle.SystemInfo import hasWebServer
@@ -114,7 +114,6 @@ class RuntimeOptions:
     proxy: Optional[str] = None
     redirectFallbacks: Optional[dict[Pattern[str], str]] = None
     relationshipCols: Optional[int] = None
-    responseZipStream: Optional[BinaryIO] = None
     roleTypesFile: Optional[str] = None
     rssReport: Optional[str] = None
     rssReportCols: Optional[int] = None
@@ -124,7 +123,6 @@ class RuntimeOptions:
     showOptions: Optional[bool] = None
     skipDTS: Optional[bool] = None
     skipLoading: Optional[bool] = None
-    sourceZipStream: Optional[BinaryIO] = None
     statusPipe: Optional[str] = None
     tableFile: Optional[str] = None
     testReport: Optional[str] = None
