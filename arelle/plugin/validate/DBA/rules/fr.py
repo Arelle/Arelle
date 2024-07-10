@@ -13,12 +13,33 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from . import errorOnDateFactComparison, findFactsWithDimension, getFactsGroupedByContextId
+from . import errorOnDateFactComparison, errorOnRequiredFact, findFactsWithDimension, getFactsGroupedByContextId
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 
 _: TypeGetText
 
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr3(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR3: The company's accounting class is missing.
+    This must be marked separately in the field (fsa:ClassOfReportingEntity).
+    """
+    return errorOnRequiredFact(
+        val.modelXbrl,
+        factQn=pluginData.classOfReportingEntityQn,
+        code='DBA.FR3',
+        message=_("Error code FR3: The company's accounting class is missing. "
+                  "This must be marked separately in the field (fsa:ClassOfReportingEntity).")
+    )
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,

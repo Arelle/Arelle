@@ -52,6 +52,27 @@ def errorOnDateFactComparison(
         )
 
 
+def errorOnRequiredFact(
+        modelXbrl: ModelXbrl,
+        factQn: QName,
+        code: str,
+        message: str,
+) -> Iterable[Validation]:
+    """
+    Yields an error if a fact with the given QName is not tagged with a non-nil value.
+    :return: Yields validation errors.
+    """
+    facts: set[ModelFact] = modelXbrl.factsByQname.get(factQn, set())
+    if facts:
+        for fact in facts:
+            if not fact.isNil:
+                return
+    yield Validation.error(
+        codes=code,
+        msg=message,
+)
+
+
 def findFactsWithDimension(
         val: ValidateXbrl,
         conceptQn: QName,

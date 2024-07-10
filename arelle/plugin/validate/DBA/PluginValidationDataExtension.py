@@ -16,6 +16,7 @@ from arelle.utils.PluginData import PluginData
 @dataclass
 class PluginValidationDataExtension(PluginData):
     annualReportTypes: frozenset[str]
+    classOfReportingEntityQn: QName
     consolidatedMemberQn: QName
     consolidatedSoloDimensionQn: QName
     dateOfApprovalOfAnnualReportQn: QName
