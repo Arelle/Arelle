@@ -319,7 +319,7 @@ def tokenize(xc, p, contextItem, args):
     else:
         input = stringArg(xc, args, 0, "xs:string?", emptyFallback="")  # empty string is default
         pattern = stringArg(xc, args, 1, "xs:string", emptyFallback="")
-    
+   
     if "" == input:
         return []
 
