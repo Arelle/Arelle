@@ -223,7 +223,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         contextsWithScenario = []
         for cntx in contextsUsed:
             for dim in cntx.qnameDims.values():
-                if dim.isExplicit:
+                if dim.isExplicit and dim.memberQname is not None:
                     _memName = dim.memberQname.localName
                     m = memNameNumPattern.match(_memName)
                     if m:

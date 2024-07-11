@@ -158,7 +158,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     deiDocumentType = None # needed for non-instance validation too
     # efmSubmissionType and efmIxdsType are already set when re-validating after redaction/redline removal
     submissionType = getattr(modelXbrl,'efmSubmissionType', val.params.get("submissionType", ""))
-    attachmentDocumentType = getattr(modelXbrl,'efmIxdsType', val.params.get("attachmentDocumentType", "")) # this is different from dei:documentType
+    attachmentDocumentType = getattr(modelXbrl,'efmIxdsType', val.params.get("attachmentDocumentType")) # this is different from dei:documentType, None if absent
     isFeeTagging = feeTaggingAttachmentDocumentTypePattern.match(attachmentDocumentType or "")
     requiredFactLang = disclosureSystem.defaultXmlLang.lower() if disclosureSystem.defaultXmlLang else disclosureSystem.defaultXmlLang
     hasSubmissionType = bool(submissionType)
@@ -3902,7 +3902,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             elif dqcRuleName == "DQC.US.0036" and hasDocPerEndDateFact:
                 for id, rule in dqcRule["rules"].items():
                     for f in modelXbrl.factsByLocalName.get(rule["name"],()):
-                        if f.context is not None and abs((f.xValue + ONE_DAY - f.context.endDatetime).days) > 1: # was 3
+                        if f.context is not None and f.xValid >= VALID and abs((f.xValue + ONE_DAY - f.context.endDatetime).days) > 1: # was 3
                             modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                               modelObject=f, name=f.qname.localName,
                                               endDate=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True),

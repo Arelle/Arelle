@@ -48,7 +48,7 @@ jobs:
           pytest -s --disable-warnings --all --download-cache --offline --arelle="python arelleCmdLine.py" tests/integration_tests/scripts/test_scripts.py
       - name: Upload log artifacts
         if: always()
-        uses: actions/upload-artifact@v4.3.3
+        uses: actions/upload-artifact@v4.3.4
         with:
           name: ${{ matrix.os }}_${{ matrix.python-version }}_logs
           path: '.test/**/*.logfile.*'
