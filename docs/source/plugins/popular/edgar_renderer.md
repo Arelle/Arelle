@@ -22,19 +22,20 @@ For a complete list of options, visit the [EDGAR Renderer plugin repository][git
 To create traditional and inline XBRL viewers in the `out` directory, use the following command:
 
 ```bash
-python arelleCmdLine.py --plugins EdgarRenderer --disclosureSystem efm --reports out --file filing-documents.zip
+python arelleCmdLine.py --plugins EdgarRenderer --httpUserAgent "Arelle via <your-email-address>" --disclosureSystem efm --reports out --file filing-documents.zip
 ```
 
 To validate an SEC filing:
 
 ```bash
-python arelleCmdLine.py --plugins EdgarRenderer --disclosureSystem efm --validate --file filing-documents.zip
+python arelleCmdLine.py --plugins EdgarRenderer --httpUserAgent "Arelle via <your-email-address>" --disclosureSystem efm --validate --file filing-documents.zip
 ```
 
 ## Example GUI Usage
 
 The Edgar Renderer can be easily configured through the graphical user interface:
 
+- To identify yourself with the SEC go to `Tools` > `Internet` > `HTTP User Agent` and enter your email address.
 - To access the Renderer, go to `View` > `Edgar Renderer`.
 - To select an EFM disclosure system, navigate to `Tools` > `Validation` > `Disclosure system checks`.
 

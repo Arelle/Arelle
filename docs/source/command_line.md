@@ -154,7 +154,7 @@ For additional detail see the plug-in documentation.  A summary of standard plug
 
 | inlineDocumentSet  | Specify an inline XBRL document set by JSON parameter: \\--file ‘[{“ixDocumentSet”:[{“file”:file1},{“file”:file2}…]}]’                                                                                                                              |
 |--------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `--save-instance`  | Provides a file name into which to save an XBRL instance document derived from a loaded manifest (Japan FSA) of a document set of inline documents, or loaded single inline document.  <br/>(Currently supports one target instance document only.) |
+| `--saveInstance`  | Provides a file name into which to save an XBRL instance document derived from a loaded manifest (Japan FSA) of a document set of inline documents, or loaded single inline document.  <br/>(Currently supports one target instance document only.) |
 
 | loadFromExcel  | Load from Excel file                                                                                             |
 |----------------|------------------------------------------------------------------------------------------------------------------|
