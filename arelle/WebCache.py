@@ -38,7 +38,7 @@ DIRECTORY_INDEX_FILE = "!~DirectoryIndex~!"
 FILE_LOCK_TIMEOUT = 30
 INF = float("inf")
 RETRIEVAL_RETRY_COUNT = 5
-HTTP_USER_AGENT = 'Mozilla/5.0 (Arelle/{})'.format(__version__)
+HTTP_USER_AGENT = 'Mozilla/5.0 (Arelle/{}) Email/NotRegistered@arelle.org'.format(__version__)
 
 def proxyDirFmt(httpProxyTuple):
     if isinstance(httpProxyTuple,(tuple,list)) and len(httpProxyTuple) == 5:
