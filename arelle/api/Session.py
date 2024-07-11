@@ -8,6 +8,7 @@ Users of this API should expect changes in future releases.
 """
 from __future__ import annotations
 
+import logging
 from types import TracebackType
 from typing import Any, Type, BinaryIO
 
@@ -77,12 +78,14 @@ class Session:
         options: RuntimeOptions,
         sourceZipStream: BinaryIO | None = None,
         responseZipStream: BinaryIO | None = None,
+        logHandler: logging.Handler | None = None,
     ) -> bool:
         """
         Perform a run using the given options.
         :param options: Options to use for the run.
         :param sourceZipStream: Optional stream to read source data from.
         :param responseZipStream: Options stream to write response data to.
+        :param logHandler: Optional log handler to use for logging.
         :return: True if the run was successful, False otherwise.
         """
         PackageManager.reset()
@@ -108,6 +111,7 @@ class Session:
             if not self._cntlr.logger:
                 self._cntlr.startLogging(
                     logFileName='logToBuffer',
+                    logHandler=logHandler,
                     logTextMaxLength=options.logTextMaxLength,
                     logRefObjectProperties=logRefObjectProperties,
                 )
@@ -122,6 +126,7 @@ class Session:
                     logFileMode=options.logFileMode,
                     logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
                     logLevel=(options.logLevel or "DEBUG"),
+                    logHandler=logHandler,
                     logToBuffer=options.logFile == 'logToBuffer',
                     logTextMaxLength=options.logTextMaxLength,  # e.g., used by EdgarRenderer to require buffered logging
                     logRefObjectProperties=logRefObjectProperties,

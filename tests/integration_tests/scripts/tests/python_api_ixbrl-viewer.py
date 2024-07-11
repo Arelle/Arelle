@@ -2,16 +2,15 @@ from __future__ import annotations
 
 import os
 import urllib.request
-import zipfile
 from pathlib import Path
-from shutil import rmtree
 
 from arelle.RuntimeOptions import RuntimeOptions
 # include import start
 from arelle.api.Session import Session
+from arelle.logging.handlers.StructuredMessageLogHandler import StructuredMessageLogHandler
 # include import end
 from tests.integration_tests.integration_test_util import get_s3_uri
-from tests.integration_tests.scripts.script_util import parse_args, validate_log_xml, assert_result, prepare_logfile
+from tests.integration_tests.scripts.script_util import parse_args, validate_log_xml, assert_result
 
 errors = []
 this_file = Path(__file__)
@@ -36,6 +35,7 @@ report_zip_url = get_s3_uri(
 print(f"Downloading samples: {samples_zip_path}")
 urllib.request.urlretrieve(report_zip_url, samples_zip_path)
 
+log_handler = StructuredMessageLogHandler()
 print(f"Generating IXBRL viewer: {viewer_path}")
 # include start
 with open(samples_zip_path, 'rb') as stream:
@@ -43,7 +43,6 @@ with open(samples_zip_path, 'rb') as stream:
         entrypointFile=str(target_path),
         internetConnectivity='offline' if arelle_offline else 'online',
         keepOpen=True,
-        logFile='logToStructuredMessage',
         logFormat="[%(messageCode)s] %(message)s - %(file)s",
         pluginOptions={
             'saveViewerDest': str(viewer_path),
@@ -53,7 +52,7 @@ with open(samples_zip_path, 'rb') as stream:
         strictOptions=False,
     )
     with Session() as session:
-        session.run(options, sourceZipStream=stream)
+        session.run(options, sourceZipStream=stream, logHandler=log_handler)
         log_xml = session.get_logs('xml')
 # include end
 
@@ -62,6 +61,7 @@ if not viewer_path.exists():
     errors.append(f'Viewer not generated at "{viewer_path}"')
 
 print(f"Checking log XML for errors...")
+assert log_xml == log_handler.getXml(clearLogBuffer=False, includeDeclaration=False)
 errors += validate_log_xml(log_xml)
 
 assert_result(errors)
