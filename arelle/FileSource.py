@@ -2,22 +2,31 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from typing import IO, TYPE_CHECKING, Any, Union, cast
-import zipfile, tarfile, os, io, errno, base64, gzip, zlib, struct, random
+
+import base64
+import errno
+import gzip
+import io
+import os
+import random
+import struct
+import tarfile
+import zipfile
+import zlib
+from typing import IO, TYPE_CHECKING, Any, cast
+
 import regex as re
 from lxml import etree
-from arelle import XmlUtil
-from arelle import PackageManager
-from arelle.UrlUtil import isHttpUrl
-from arelle.typing import TypeGetText
-import arelle.PluginManager
 
+import arelle.PluginManager
+from arelle import PackageManager, XmlUtil
+from arelle.typing import TypeGetText
+from arelle.UrlUtil import isHttpUrl
 
 _: TypeGetText
 
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
-    from _typeshed import SupportsRead
 
 
 archivePathSeparators = (".zip" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
