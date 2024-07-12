@@ -14,6 +14,8 @@ TOKENIZE_TESTS = [
     # If two alternatives within the supplied $pattern both match at the same position in the $input string, then the match that is chosen is the first. For example:
     (("abracadabra", r"ab|a"), ("", "r", "c", "d", "r", ""), None),
     (("abracadabra", r"(?:ab)|(?:a)"), ("", "r", "c", "d", "r", ""), None),
+    # Should still work the same with capturing groups specified
+    (("abracadabra", r"(ab)|(a)"), ("", "r", "c", "d", "r", ""), None),
     # Examples from
     ((" red green blue ",), ("red", "green", "blue"), None),
     (
@@ -35,11 +37,8 @@ TOKENIZE_TESTS = [
     (("a", "*", "i"), None, "[err:FORX0002]"),
     # Broken flags raises right error code
     (("a", ".", "p"), None, "[err:FORX0001]"),
-]
-
-TOKENIZE_TESTS_FAILING = [
-    # regex module includes the separators themselves in the output when capturing brackets are used (which is not permitted by func-tokenize)
-    (("abracadabra", r"(ab)|(a)"), ("", "r", "c", "d", "r", ""), None),
+    # Pattern not found in input, return input string as singleton
+    (("asdf", "99", ""), ("asdf",), None),
 ]
 
 
@@ -54,9 +53,3 @@ def test_tokenize(args, expected, raises):
     else:
         with pytest.raises(XPathContext.XPathException, match=regex.escape(raises)):
             result = tokenize(xc, p, contextItem, args)
-
-
-@pytest.mark.xfail
-@pytest.mark.parametrize("args,expected,raises", TOKENIZE_TESTS_FAILING)
-def test_tokenize_failing(args, expected, raises):
-    return test_tokenize(args, expected, raises)

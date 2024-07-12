@@ -323,15 +323,19 @@ def tokenize(xc, p, contextItem, args):
     if "" == input:
         return []
 
-    flags = regexFlags(xc, p, args, 2)
-    flags |= re.V1 # Enable zero width matches
-
     m_flags = "" if len(args) < 3 else args[2]
     if matches(xc, p, contextItem, ["", pattern, m_flags]):
         raise XPathContext.XPathException(p, 'err:FORX0003', _('fn:tokenize $pattern matches a zero-length string: {0}').format(pattern))
 
     try:
-        return re.split(pattern, input, flags=flags)
+        result = []
+        lastEnd = 0
+        for match in re.finditer(pattern, input, flags=regexFlags(xc, p, args, 2)):
+            start, end = match.span()
+            result.append(input[lastEnd:start])
+            lastEnd = end
+        result.append(input[lastEnd:])
+        return result
     except re.error as err:
         raise XPathContext.XPathException(p, 'err:FORX0002', _('fn:tokenize regular expression pattern error: {0}').format(err))
 
