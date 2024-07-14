@@ -170,6 +170,7 @@ class FileSource:
         self.referencedFileSources = {}  # archive file name, fileSource object
         self.taxonomyPackage = None # taxonomy package
         self.mappedPaths = None  # remappings of path segments may be loaded by taxonomyPackage manifest
+        self.isValid = True # filesource is assumed to be valid until a call to open fails.
 
         # for SEC xml files, check if it's an EIS anyway
         if (not (self.isZip or self.isEis or self.isXfd or self.isRss) and
@@ -187,6 +188,7 @@ class FileSource:
                     if re.match(r"\s*(<[?]xml[^?]+[?]>)?\s*(<!--.*-->\s*)*<(cor[a-z]*:|sdf:|\w+:)?edgarSubmission", l):
                         self.isEis = True
                 except EnvironmentError as err:
+                    self.isValid = False
                     if self.cntlr:
                         self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
                     pass
@@ -196,7 +198,7 @@ class FileSource:
             self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
 
     def open(self, reloadCache: bool = False) -> None:
-        if not self.isOpen:
+        if self.isValid and not self.isOpen:
             if (self.isZip or self.isTarGz or self.isEis or self.isXfd or self.isRss or self.isInstalledTaxonomyPackage) and self.cntlr:
                 assert isinstance(self.url, str)
                 self.basefile = self.cntlr.webCache.getfilename(self.url, reload=reloadCache)
@@ -212,6 +214,7 @@ class FileSource:
                     self.fs = zipfile.ZipFile(fileStream, mode="r")
                     self.isOpen = True
                 except (EnvironmentError, zipfile.BadZipFile) as err:
+                    self.isValid = False
                     self.logError(err)
                     pass
             elif self.isTarGz:
@@ -220,6 +223,7 @@ class FileSource:
                     self.fs = tarfile.open(self.basefile, "r:gz")
                     self.isOpen = True
                 except EnvironmentError as err:
+                    self.isValid = False
                     self.logError(err)
                     pass
             elif self.isEis:
@@ -243,6 +247,7 @@ class FileSource:
                         buf += zlib.decompress(compressedBytes)
                     file.close()
                 except EnvironmentError as err:
+                    self.isValid = False
                     self.logError(err)
                     pass
                 #uncomment to save for debugging
@@ -261,10 +266,8 @@ class FileSource:
                         self.eisDocument = etree.parse(_file, parser=parser)
                         _file.close()
                         self.isOpen = True
-                    except EnvironmentError as err:
-                        self.logError(err)
-                        return # provide error message later
-                    except etree.LxmlError as err:
+                    except (EnvironmentError, etree.LxmlError) as err:
+                        self.isValid = False
                         self.logError(err)
                         return # provide error message later
 
@@ -300,6 +303,7 @@ class FileSource:
                                     if len(readBytes) == 0 or (lenUncomp - lenRead) <= 0:
                                         break
                         except IOError as err:
+                            self.isValid = False
                             pass # provide error message later
 
                         i += lenCompr + 4
@@ -316,10 +320,8 @@ class FileSource:
                     self.xfdDocument = etree.parse(file)
                     file.close()
                     self.isOpen = True
-                except EnvironmentError as err:
-                    self.logError(err)
-                    return # provide error message later
-                except etree.LxmlError as err:
+                except (EnvironmentError, etree.LxmlError) as err:
+                    self.isValid = False
                     self.logError(err)
                     return # provide error message later
 
@@ -328,10 +330,8 @@ class FileSource:
                     assert isinstance(self.basefile, str)
                     self.rssDocument = etree.parse(self.basefile)
                     self.isOpen = True
-                except EnvironmentError as err:
-                    self.logError(err)
-                    return # provide error message later
-                except etree.LxmlError as err:
+                except (EnvironmentError, etree.LxmlError) as err:
+                    self.isValid = False
                     self.logError(err)
                     return # provide error message later
 
