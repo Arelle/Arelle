@@ -67,6 +67,7 @@ class ModelManager:
         self.loadedModelXbrls = []
         self.customTransforms: dict[QName, Callable[[str], str]] | None = None
         self.isLocaleSet = False
+        self.validateAllFilesAsReportPackages = False
         self.validateDuplicateFacts = ValidateDuplicateFacts.DuplicateType.NONE
         self.validateXmlOim = False
         self.setLocale()

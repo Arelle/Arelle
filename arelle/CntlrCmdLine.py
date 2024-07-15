@@ -145,6 +145,10 @@ def parseArgs(args):
                       action="store_true",
                       dest="validateXmlOim",
                       help=_("Enables OIM validation for XML and iXBRL documents. OIM only formats (json, csv) are always OIM validated."))
+    parser.add_option("--reportPackage", "--reportPackage",
+                      action="store_true",
+                      dest="reportPackage",
+                      help=_("Ignore detected file type and validate all files as Report Packages."))
     parser.add_option("--deduplicateFacts", "--deduplicatefacts",
                       choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
                       dest="deduplicateFacts",
@@ -829,6 +833,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(options.validateDuplicateFacts)
             duplicateType = duplicateTypeArg.duplicateType()
             self.modelManager.validateDuplicateFacts = duplicateType
+        self.modelManager.validateAllFilesAsReportPackages = bool(options.reportPackage)
         if options.utrUrl:  # override disclosureSystem utrUrl
             self.modelManager.disclosureSystem.utrUrl = [options.utrUrl]
             # can be set now because the utr is first loaded at validation time

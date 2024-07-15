@@ -6,6 +6,9 @@ from tests.integration_tests.validation.conformance_suite_config import (
 )
 
 config = ConformanceSuiteConfig(
+    args=[
+        "--reportPackage"
+    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path("report-package-conformance.zip"),

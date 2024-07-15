@@ -175,6 +175,11 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateXmlOim.trace("w", self.setValidateXmlOim)
         validateMenu.add_checkbutton(label=_("OIM validate xBRL-XML documents"), underline=0, variable=self.validateXmlOim, onvalue=True, offvalue=False)
 
+        self.modelManager.validateAllFilesAsReportPackages = self.config.setdefault("validateAllFilesAsReportPackages", False)
+        self.validateAllFilesAsReportPackages = BooleanVar(value=self.modelManager.validateAllFilesAsReportPackages)
+        self.validateAllFilesAsReportPackages.trace("w", self.setValidateAllFilesAsReportPackages)
+        validateMenu.add_checkbutton(label=_("Validate all files as Report Packages"), underline=0, variable=self.validateAllFilesAsReportPackages, onvalue=True, offvalue=False)
+
         self.validateDuplicateFacts = None
         self.buildValidateDuplicateFactsMenu(validateMenu)
 
@@ -1382,6 +1387,12 @@ class CntlrWinMain (Cntlr.Cntlr):
     def setValidateXmlOim(self, *args):
         self.modelManager.validateXmlOim = self.validateXmlOim.get()
         self.config["validateXmlOim"] = self.modelManager.validateXmlOim
+        self.saveConfig()
+        self.setValidateTooltipText()
+
+    def setValidateAllFilesAsReportPackages(self, *args):
+        self.modelManager.validateAllFilesAsReportPackages = self.validateAllFilesAsReportPackages.get()
+        self.config["validateAllFilesAsReportPackages"] = self.modelManager.validateAllFilesAsReportPackages
         self.saveConfig()
         self.setValidateTooltipText()
 
