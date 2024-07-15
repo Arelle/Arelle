@@ -62,7 +62,9 @@ def getRuntimeOptions() -> RuntimeOptions:
     global _RUNTIME_OPTIONS
     if _RUNTIME_OPTIONS is None:
         raise ValueError(_('_RUNTIME_OPTIONS accessed before it was set.'))
-    return deepcopy(_RUNTIME_OPTIONS)
+    options = deepcopy(_RUNTIME_OPTIONS)
+    options.strictOptions = False
+    return options
 
 def setRuntimeOptions(runtimeOptions: RuntimeOptions) -> None:
     global _RUNTIME_OPTIONS
