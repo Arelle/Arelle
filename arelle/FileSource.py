@@ -747,6 +747,14 @@ class FileSource:
             else:
                 self.url = self.basedUrl(selection)
 
+    @property
+    def urlBasename(self) -> list[str] | str | None:
+        if isinstance(self.url, str):
+            return os.path.basename(self.url)
+        if isinstance(self.url, list):
+            return [os.path.basename(url) for url in self.url]
+        return None
+
 def openFileStream(
     cntlr: Cntlr | None, filepath: str, mode: str = "r", encoding: str | None = None
 ) -> io.BytesIO | IO[Any]:

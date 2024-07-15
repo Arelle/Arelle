@@ -5,14 +5,16 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import sys, os, io, time, json, logging
+import os, io, time, json, logging
 from collections import defaultdict
 from fnmatch import fnmatch
-import zipfile
 from lxml import etree
 from urllib.parse import urljoin
+from arelle.packages import PackageValidation
+from arelle.packages.PackageType import PackageType
+from arelle.typing import TypeGetText
 openFileSource = None
-from arelle import Locale, XmlUtil
+from arelle import Locale
 from arelle.UrlUtil import isAbsolute, isHttpUrl
 from arelle.XmlValidate import lxmlResolvingParser
 ArchiveFileIOError = None
@@ -21,13 +23,32 @@ try:
 except ImportError:
     OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order
 
+if TYPE_CHECKING:
+    from arelle.FileSource import FileSource
+
 TP_XSD = "http://www.xbrl.org/2016/taxonomy-package.xsd"
 CAT_XSD = "http://www.xbrl.org/2016/taxonomy-package-catalog.xsd"
 
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
 
+_: TypeGetText
+
 EMPTYDICT = {}
+
+TAXONOMY_PACKAGE_TYPE = PackageType("Taxonomy", "tpe")
+
+TAXONOMY_PACKAGE_ABORTING_VALIDATIONS = (
+    PackageValidation.validatePackageZipFormat,
+    PackageValidation.validateZipFileSeparators,
+    PackageValidation.validatePackageNotEncrypted,
+    PackageValidation.validateTopLevelFiles,
+    PackageValidation.validateTopLevelDirectories,
+)
+
+TAXONOMY_PACKAGE_NON_ABORTING_VALIDATIONS = (
+    PackageValidation.validateMetadataDirectory,
+)
 
 def baseForElement(element):
     base = ""
@@ -395,72 +416,42 @@ def packageNamesWithNewerFileDates():
             pass
     return names
 
-def isZipfileEncrypted(item: zipfile.ZipInfo) -> bool:
-    return bool(item.flag_bits & 0x1)
-
-def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]) -> bool:
+def validateTaxonomyPackage(cntlr, filesource, errors=[]) -> bool:
         numErrorsOnEntry = len(errors)
-        _dir = filesource.dir
-        if not _dir:
-            cntlr.addToLog(_("Taxonomy package is not valid and could not be opened."),
-                           messageCode="tpe:invalidArchiveFormat",
-                           file=os.path.basename(filesource.url),
-                           level=logging.ERROR)
-            errors.append("tpe:invalidArchiveFormat")
-            return False
-        if filesource.isZipBackslashed:
-            # see 4.4.17.1 in https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
-            cntlr.addToLog(_("Taxonomy package directory uses '\\' as file separator"),
-                           messageCode="tpe:invalidArchiveFormat",
-                           file=os.path.basename(filesource.url),
-                           level=logging.ERROR)
-            errors.append("tpe:invalidArchiveFormat")
-            return False
-        if any(isZipfileEncrypted(f) for f in filesource.fs.filelist):
-            cntlr.addToLog(_("Taxonomy package contains encrypted files"),
-                           messageCode="tpe:invalidArchiveFormat",
-                           file=os.path.basename(filesource.url),
-                           level=logging.ERROR)
-            errors.append("tpe:invalidArchiveFormat")
-            return False
-        # single top level directory
-        topLevels = set(f.partition('/')[0] for f in _dir)
-        topLevelFiles = set(f for f in topLevels if f in _dir) # have no trailing /, not a directory
-        topLevelDirectories = topLevels - topLevelFiles
-        if topLevelFiles:
-            cntlr.addToLog(_("Taxonomy package contains %(count)s top level file(s):  %(topLevelFiles)s"),
-                           messageArgs={"count": len(topLevelFiles),
-                                        "topLevelFiles": ', '.join(sorted(topLevelFiles))},
-                           messageCode="tpe:invalidDirectoryStructure",
-                           file=os.path.basename(filesource.url),
-                           level=logging.ERROR)
-            errors.append("tpe:invalidDirectoryStructure")
-        if len(topLevelDirectories) != 1:
-            cntlr.addToLog(_("Taxonomy package contains %(count)s top level directories:  %(topLevelDirectories)s"),
-                           messageArgs={"count": len(topLevelDirectories),
-                                        "topLevelDirectories": ', '.join(sorted(topLevelDirectories))},
-                           messageCode="tpe:invalidDirectoryStructure",
-                           file=os.path.basename(filesource.url),
-                           level=logging.ERROR)
-            if not topLevelFiles:
-                errors.append("tpe:invalidDirectoryStructure")
-        if not any('META-INF' in f.split('/')[1:][:1] for f in _dir): # only check child of top level
-            cntlr.addToLog(_("Taxonomy package top-level directory does not contain a subdirectory META-INF"),
-                           messageCode="tpe:metadataDirectoryNotFound",
-                           file=os.path.basename(filesource.baseurl),
-                           level=logging.ERROR)
-            errors.append("tpe:metadataDirectoryNotFound")
-        elif any(f.endswith('/META-INF/taxonomyPackage.xml') for f in _dir):
-            for f in _dir:
-                if f.endswith('/META-INF/taxonomyPackage.xml'):
-                    packageFiles.append(f)
-        else:
+        for validator in TAXONOMY_PACKAGE_ABORTING_VALIDATIONS:
+            if validation := validator(TAXONOMY_PACKAGE_TYPE, filesource):
+                cntlr.addToLog(
+                    validation.msg,
+                    messageCode=validation.codes,
+                    file=filesource.urlBasename,
+                    level=logging.ERROR,
+                )
+                errors.append(validation.codes)
+                return False
+        for validator in TAXONOMY_PACKAGE_NON_ABORTING_VALIDATIONS:
+            if validation := validator(TAXONOMY_PACKAGE_TYPE, filesource):
+                cntlr.addToLog(
+                    validation.msg,
+                    messageCode=validation.codes,
+                    file=filesource.urlBasename,
+                    level=logging.ERROR,
+                )
+                errors.append(validation.codes)
+
+        _dir = filesource.dir or []
+        if not any(f.endswith('/META-INF/taxonomyPackage.xml') for f in _dir):
+            messageCode = "tpe:metadataFileNotFound"
             cntlr.addToLog(_("Taxonomy package does not contain a metadata file */META-INF/taxonomyPackage.xml"),
-                           messageCode="tpe:metadataFileNotFound",
-                           file=os.path.basename(filesource.url),
+                           messageCode=messageCode,
+                           file=filesource.urlBasename,
                            level=logging.ERROR)
-            errors.append("tpe:metadataFileNotFound")
+            errors.append(messageCode)
         return len(errors) == numErrorsOnEntry
+
+
+def discoverPackageFiles(filesource: FileSource) -> list[str]:
+    return [e for e in filesource.dir or [] if e.endswith("/META-INF/taxonomyPackage.xml")]
+
 
 def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
     #TODO several directories, eg User Application Data
@@ -486,9 +477,9 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                 sourceFileSource.close()
             # allow multiple manifests [[metadata, prefix]...] for multiple catalogs
             packages = []
-            packageFiles = []
             if filesource.isZip:
-                validateTaxonomyPackage(cntlr, filesource, packageFiles, errors)
+                validateTaxonomyPackage(cntlr, filesource, errors)
+                packageFiles = discoverPackageFiles(filesource)
                 if not packageFiles:
                     # look for pre-PWD packages
                     _dir = filesource.dir
