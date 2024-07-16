@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR23"
+        description="DBA.FR23: Liabilities (fsa:LiabilitiesAndEquity) must be entered and must not be negative.
+        The control only looks at instances without dimensions or instances that only have the dimension
+        (ConsolidatedSoloDimension with ConsolidatedMember)."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid-negative" name="Invalid negative">
+        <description>
+            LiabilitiesAndEquity has a negative value.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr23-invalid-negative.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR23</error>
+        </result>
+    </variation>
+    <variation id="invalid-missing" name="Invalid missing fact">
+        <description>
+            LiabilitiesAndEquity is not tagged
+        </description>
+        <data>
+            <instance readMeFirst="true">fr23-invalid-missing.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR23</error>
+        </result>
+    </variation>
+</testcase>
