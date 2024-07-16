@@ -79,6 +79,7 @@ class Session:
         sourceZipStream: BinaryIO | None = None,
         responseZipStream: BinaryIO | None = None,
         logHandler: logging.Handler | None = None,
+        logFilters: list[logging.Filter] | None = None,
     ) -> bool:
         """
         Perform a run using the given options.
@@ -111,9 +112,11 @@ class Session:
             if not self._cntlr.logger:
                 self._cntlr.startLogging(
                     logFileName='logToBuffer',
+                    logFilters=logFilters,
                     logHandler=logHandler,
                     logTextMaxLength=options.logTextMaxLength,
                     logRefObjectProperties=logRefObjectProperties,
+                    logPropagate=options.logPropagate,
                 )
                 self._cntlr.postLoggingInit()
             from arelle import CntlrWebMain
@@ -126,11 +129,13 @@ class Session:
                     logFileMode=options.logFileMode,
                     logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
                     logLevel=(options.logLevel or "DEBUG"),
+                    logFilters=logFilters,
                     logHandler=logHandler,
                     logToBuffer=options.logFile == 'logToBuffer',
                     logTextMaxLength=options.logTextMaxLength,  # e.g., used by EdgarRenderer to require buffered logging
                     logRefObjectProperties=logRefObjectProperties,
-                    logXmlMaxAttributeLength=options.logXmlMaxAttributeLength
+                    logXmlMaxAttributeLength=options.logXmlMaxAttributeLength,
+                    logPropagate=options.logPropagate,
                 )
                 self._cntlr.postLoggingInit()  # Cntlr options after logging is started
             return self._cntlr.run(
