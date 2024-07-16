@@ -8,7 +8,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 from arelle import ValidateDuplicateFacts
 import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging, platform
-from optparse import OptionGroup, OptionParser, SUPPRESS_HELP
+from optparse import OptionGroup, OptionParser, SUPPRESS_HELP, Option
 import regex as re
 from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, XbrlConst, Version,
                     ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts,
@@ -584,12 +584,24 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[], inlineOnly=False):
 
 class ParserForDynamicPlugins:
     def __init__(self, options):
+        self._long_opt = {}
+        self._short_opt = {}
+        self.conflict_handler = 'error'
+        self.defaults = {}
+        self.option_class = Option
         self.options = options
+
     def add_option(self, *args, **kwargs):
         if 'dest' in kwargs:
             _dest = kwargs['dest']
             if not hasattr(self.options, _dest):
                 setattr(self.options, _dest, kwargs.get('default',None))
+
+    def add_option_group(self, *args, **kwargs):
+        pass
+
+    def __getattr__(self, name: str) -> None:
+        return None
 
 class CntlrCmdLine(Cntlr.Cntlr):
     """

@@ -5,7 +5,9 @@ import os
 import shlex
 import subprocess
 import sys
+import time
 from collections import defaultdict
+from contextlib import contextmanager
 from os import linesep
 from pathlib import Path
 from typing import cast, Iterable, Any
@@ -68,14 +70,14 @@ def prepare_logfile(working_directory: Path, script_path: Path, name: str | None
     return logfile_path
 
 
-def run_arelle(
+def _get_arelle_args(
     arelle_command: str,
     plugins: list[str] | None = None,
     additional_args: list[str] | None = None,
     offline: bool = False,
     logFile: Path | None = None,
     logFormat: str = "[%(messageCode)s] %(message)s - %(file)s",
-) -> None:
+) -> list[str]:
     if os.name == 'nt':
         args = [sys.executable if w == 'python' else w for w in arelle_command.split()]
     else:
@@ -88,8 +90,48 @@ def run_arelle(
     if logFile:
         args.extend(["--logFile", str(logFile)])
         args.extend(["--logFormat", logFormat])
+    return args
+
+
+def run_arelle(
+    arelle_command: str,
+    plugins: list[str] | None = None,
+    additional_args: list[str] | None = None,
+    offline: bool = False,
+    logFile: Path | None = None,
+    logFormat: str = "[%(messageCode)s] %(message)s - %(file)s",
+) -> None:
+    args = _get_arelle_args(
+        arelle_command, plugins, additional_args,
+        offline, logFile, logFormat
+    )
     result = subprocess.run(args, capture_output=True)
     assert result.returncode == 0, result.stderr.decode().strip()
+
+
+@contextmanager
+def run_arelle_webserver(
+    arelle_command: str,
+    port: int = 8080,
+    plugins: list[str] | None = None,
+    additional_args: list[str] | None = None,
+    offline: bool = False,
+):
+    additional_args = ["--webserver", f"localhost:{port}"] + (additional_args or [])
+    args = _get_arelle_args(arelle_command, plugins, additional_args, offline)
+    proc = None
+    try:
+        print(f"Starting web server on port {port}...")
+        proc = subprocess.Popen(args)
+        print("Waiting 2 seconds for web server to be ready...")
+        time.sleep(2)  # TODO: capture process output and wait for "Listening" message
+        print("Web server ready.")
+        yield proc
+    finally:
+        print("Exiting web server...")
+        if proc:
+            proc.kill()
+        print("Web server exited.")
 
 
 def validate_log_file(
