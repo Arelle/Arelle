@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 import urllib.request
 from pathlib import Path
@@ -35,6 +36,18 @@ report_zip_url = get_s3_uri(
 print(f"Downloading samples: {samples_zip_path}")
 urllib.request.urlretrieve(report_zip_url, samples_zip_path)
 
+
+class TestFilter(logging.Filter):
+    filtered_records = []
+
+    def filter(self, record):
+        if record.levelname == 'INFO':
+            self.filtered_records.append(record)
+            return False
+        return True
+
+
+log_filter = TestFilter()
 log_handler = StructuredMessageLogHandler()
 print(f"Generating IXBRL viewer: {viewer_path}")
 # include start
@@ -44,6 +57,7 @@ with open(samples_zip_path, 'rb') as stream:
         internetConnectivity='offline' if arelle_offline else 'online',
         keepOpen=True,
         logFormat="[%(messageCode)s] %(message)s - %(file)s",
+        logPropagate=False,
         pluginOptions={
             'saveViewerDest': str(viewer_path),
             'viewer_feature_review': True,
@@ -52,13 +66,24 @@ with open(samples_zip_path, 'rb') as stream:
         strictOptions=False,
     )
     with Session() as session:
-        session.run(options, sourceZipStream=stream, logHandler=log_handler)
+        session.run(
+            options,
+            sourceZipStream=stream,
+            logHandler=log_handler,
+            logFilters=[log_filter],
+        )
         log_xml = session.get_logs('xml')
 # include end
 
 print(f"Checking for viewer: {viewer_path}")
 if not viewer_path.exists():
     errors.append(f'Viewer not generated at "{viewer_path}"')
+
+print(f"Checking for filtered logs...")
+expected_filtered = 5
+actual_filtered = len(log_filter.filtered_records)
+if actual_filtered != expected_filtered:
+    errors.append(f'Expected {expected_filtered} filtered log records, found {actual_filtered}.')
 
 print(f"Checking log XML for errors...")
 assert log_xml == log_handler.getXml(clearLogBuffer=False, includeDeclaration=False)
