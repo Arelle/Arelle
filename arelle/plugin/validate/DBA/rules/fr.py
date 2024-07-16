@@ -7,13 +7,14 @@ import datetime
 import itertools
 from typing import Any, Iterable, cast
 
+import arelle.ModelInstanceObject
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
 
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from . import errorOnDateFactComparison, errorOnRequiredFact, findFactsWithDimension, getFactsGroupedByContextId
+from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 
@@ -136,7 +137,7 @@ def rule_fr9(
     Implementation: Find any occurrence of fsa:ProfitLoss with no dimensions or with dimensions of
     ConsolidatedSoloDimension with ConsolidatedMember.  If nothing is found, trigger an error.
     """
-    if not findFactsWithDimension(
+    if not getFactsWithDimension(
             val, pluginData.profitLossQn, pluginData.consolidatedSoloDimensionQn,
             pluginData.consolidatedSoloDimensionQn
     ):
@@ -165,7 +166,7 @@ def rule_fr10(
     ConsolidatedSoloDimension with ConsolidatedMember.  If nothing is found, trigger an error.
 
     """
-    if not findFactsWithDimension(
+    if not getFactsWithDimension(
             val, pluginData.equityQn,
             pluginData.consolidatedSoloDimensionQn, pluginData.consolidatedMemberQn
     ):
@@ -175,6 +176,60 @@ def rule_fr10(
             modelObject=val.modelXbrl.modelDocument
         )
 
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr22(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR22: Assets (fsa:Assets) must be specified and must not be negative.
+    The control only looks at instances without dimensions or instances that only have the dimension
+    (ConsolidatedSoloDimension with ConsolidatedMember).
+
+    Implementation: Find any occurrence of fsa:Assets with no dimensions or with dimensions of
+    ConsolidatedSoloDimension with ConsolidatedMember.  If nothing is found or if a found fact is negative,  trigger an error.
+    """
+    foundFacts = getFactsWithDimension(
+        val, pluginData.assetsQn, pluginData.consolidatedSoloDimensionQn,
+        pluginData.consolidatedSoloDimensionQn
+    )
+    return errorOnRequiredPositiveFact(
+        val.modelXbrl, foundFacts,
+        'DBA.FR22', _("Error code FR22: Assets must be stated and must not be negative.")
+    )
+
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr23(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR23: Liabilities (fsa:LiabilitiesAndEquity) must be specified and must not be negative.
+    The control only looks at instances without dimensions or instances that only have the dimension
+    (ConsolidatedSoloDimension with ConsolidatedMember).
+
+    Implementation: Find any occurrence of LiabilitiesAndEquity with no dimensions or with dimensions of
+    ConsolidatedSoloDimension with ConsolidatedMember.  If nothing is found or if a found fact is negative,  trigger an error.
+    """
+    foundFacts = getFactsWithDimension(
+        val, pluginData.liabilitiesQn, pluginData.consolidatedSoloDimensionQn,
+        pluginData.consolidatedSoloDimensionQn
+    )
+    return errorOnRequiredPositiveFact(
+        val.modelXbrl, foundFacts,
+        'DBA.FR23', _("Error code FR23: Liabilities must be stated and must not be negative.")
+    )
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,

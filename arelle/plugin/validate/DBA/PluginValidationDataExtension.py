@@ -16,6 +16,7 @@ from arelle.utils.PluginData import PluginData
 @dataclass
 class PluginValidationDataExtension(PluginData):
     annualReportTypes: frozenset[str]
+    assetsQn: QName
     classOfReportingEntityQn: QName
     consolidatedMemberQn: QName
     consolidatedSoloDimensionQn: QName
@@ -28,6 +29,7 @@ class PluginValidationDataExtension(PluginData):
     extraordinaryIncomeQn: QName
     extraordinaryResultBeforeTaxQn: QName
     informationOnTypeOfSubmittedReportQn: QName
+    liabilitiesQn: QName
     positiveProfitThreshold: float
     precedingReportingPeriodEndDateQn: QName
     precedingReportingPeriodStartDateQn: QName

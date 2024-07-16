@@ -7,6 +7,7 @@ import datetime
 import itertools
 from typing import Iterable, Callable, cast, Union
 
+from arelle.ModelDocument import ModelDocument
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
@@ -73,25 +74,52 @@ def errorOnRequiredFact(
 )
 
 
-def findFactsWithDimension(
+def errorOnRequiredPositiveFact(
+        modelXbrl: ModelXbrl,
+        facts: set[ModelFact],
+        code: str,
+        message: str,
+) -> Iterable[Validation]:
+    """
+    Yields an error if a fact with the given QName is not tagged with a valid date and a non-nil value.
+    :return: Yields validation errors.
+    """
+    errorModelObjects: list[ModelFact | ModelDocument| None] = []
+    if not facts:
+        errorModelObjects.append(modelXbrl.modelDocument)
+    else:
+        for fact in facts:
+            if fact.xValid >= VALID and cast(int, fact.xValue) < 0:
+                errorModelObjects.append(fact)
+    if errorModelObjects:
+        yield Validation.error(
+            codes=code,
+            msg=message,
+            modelObject=errorModelObjects
+        )
+
+
+def getFactsWithDimension(
         val: ValidateXbrl,
         conceptQn: QName,
         dimensionQn: QName,
         membeQn: QName
-) -> bool:
+) -> set[ModelFact ]:
+    foundFacts: set[ModelFact] = set()
     facts = val.modelXbrl.factsByQname.get(conceptQn)
     if facts:
         for fact in facts:
-            if fact.context is None:
-                continue
-            elif (fact.context.dimMemberQname(
-                    dimensionQn
-            ) == membeQn
-                  and fact.context.qnameDims.keys() == {dimensionQn}):
-                return True
-            elif not len(fact.context.qnameDims):
-                return True
-    return False
+            if fact is not None:
+                if fact.context is None:
+                    continue
+                elif (fact.context.dimMemberQname(
+                        dimensionQn
+                ) == membeQn
+                      and fact.context.qnameDims.keys() == {dimensionQn}):
+                    foundFacts.add(fact)
+                elif not len(fact.context.qnameDims):
+                    foundFacts.add(fact)
+    return foundFacts
 
 
 def getValidDateFacts(
