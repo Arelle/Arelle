@@ -530,7 +530,8 @@ def configAndRunCntlr(options, arellePluginModules):
                            logToBuffer=getattr(options, "logToBuffer", False),
                            logTextMaxLength=options.logTextMaxLength,  # e.g., used by EdgarRenderer to require buffered logging
                            logRefObjectProperties=options.logRefObjectProperties,
-                           logXmlMaxAttributeLength=options.logXmlMaxAttributeLength)
+                           logXmlMaxAttributeLength=options.logXmlMaxAttributeLength,
+                           logPropagate=options.logPropagate)
         cntlr.postLoggingInit()  # Cntlr options after logging is started
         cntlr.run(options)
         return cntlr

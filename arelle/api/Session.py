@@ -116,6 +116,7 @@ class Session:
                     logHandler=logHandler,
                     logTextMaxLength=options.logTextMaxLength,
                     logRefObjectProperties=logRefObjectProperties,
+                    logPropagate=options.logPropagate,
                 )
                 self._cntlr.postLoggingInit()
             from arelle import CntlrWebMain
@@ -133,7 +134,8 @@ class Session:
                     logToBuffer=options.logFile == 'logToBuffer',
                     logTextMaxLength=options.logTextMaxLength,  # e.g., used by EdgarRenderer to require buffered logging
                     logRefObjectProperties=logRefObjectProperties,
-                    logXmlMaxAttributeLength=options.logXmlMaxAttributeLength
+                    logXmlMaxAttributeLength=options.logXmlMaxAttributeLength,
+                    logPropagate=options.logPropagate,
                 )
                 self._cntlr.postLoggingInit()  # Cntlr options after logging is started
             return self._cntlr.run(

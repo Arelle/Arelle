@@ -340,7 +340,8 @@ class Cntlr:
         logToBuffer: bool = False,
         logTextMaxLength: int | None = None,
         logRefObjectProperties: bool = True,
-        logXmlMaxAttributeLength: int | None = None
+        logXmlMaxAttributeLength: int | None = None,
+        logPropagate: bool | None = None,
     ) -> None:
         if logFilters is None:
             logFilters = []
@@ -385,6 +386,8 @@ class Cntlr:
         else:
             self.logger = None
         if self.logger:
+            if logPropagate is not None:
+                self.logger.propagate = logPropagate
             for logFilter in logFilters:
                 self.logger.addFilter(logFilter)
             try:
