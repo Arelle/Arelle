@@ -118,6 +118,9 @@ def utrSymbol(modelType, unitMeasures):
     return ValidateUtr(modelType.modelXbrl).utrSymbol(unitMeasures[0], unitMeasures[1])
 
 class ValidateUtr:
+
+    utrItemTypeEntries: dict[str, dict[str, UtrEntry]]
+
     def __init__(self, modelXbrl: ModelXbrl, messageLevel: str="ERROR", messageCode: str="utre:error-NumericFactUtrInvalid") -> None:
         self.modelXbrl = modelXbrl
         self.messageLevel = messageLevel
