@@ -13,6 +13,7 @@ Pipfile.lock
 __pycache__
 arelle-release*
 arelle/_version.py
+arelle/plugin/Edgar
 arelle/plugin/EdgarRenderer
 arelle/plugin/EdgarRendererWithBuiltinHtml
 arelle/plugin/FERC
