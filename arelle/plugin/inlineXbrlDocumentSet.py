@@ -78,6 +78,8 @@ manifest file (such as JP FSA) that identifies inline XBRL documents.
 """
 from __future__ import annotations
 
+from typing import BinaryIO
+
 from arelle import FileSource, ModelXbrl, ValidateXbrlDimensions, XbrlConst, ValidateDuplicateFacts
 from arelle.RuntimeOptions import RuntimeOptions
 from arelle.ValidateDuplicateFacts import DeduplicationType
@@ -547,6 +549,8 @@ def runSaveTargetDocumentMenuCommand(
         saveTargetFiling=False,
         encodeSavedXmlChars=False,
         xbrliNamespacePrefix=None,
+        sourceZipStream: BinaryIO | None = None,
+        responseZipStream: BinaryIO | None = None,
         deduplicationType: DeduplicationType | None = None):
     # skip if another class handles saving (e.g., EdgarRenderer)
     if saveTargetInstanceOverriden(deduplicationType):
@@ -579,9 +583,13 @@ def runSaveTargetDocumentMenuCommand(
         thread.daemon = True
         thread.start()
     else:
+        filingZip = None
+        filingFiles = set()
+        if responseZipStream is not None:
+            filingZip = zipfile.ZipFile(responseZipStream, 'w', zipfile.ZIP_DEFLATED, True)
         if saveTargetFiling:
-            filingZip = zipfile.ZipFile(os.path.splitext(targetFilename)[0] + ".zip", 'w', zipfile.ZIP_DEFLATED, True)
-            filingFiles = set()
+            if filingZip is None:
+                filingZip = zipfile.ZipFile(os.path.splitext(targetFilename)[0] + ".zip", 'w', zipfile.ZIP_DEFLATED, True)
             # copy referencedDocs to two levels
             def addRefDocs(doc):
                 for refDoc in doc.referencesDocument.keys():
@@ -590,16 +598,25 @@ def runSaveTargetDocumentMenuCommand(
                         addRefDocs(refDoc)
             addRefDocs(modelDocument)
         else:
-            filingZip = None
             filingFiles = None
         saveTargetDocument(modelDocument.modelXbrl, targetFilename, targetSchemaRefs, filingZip, filingFiles,
                            encodeSavedXmlChars=encodeSavedXmlChars, xbrliNamespacePrefix=xbrliNamespacePrefix,
                            deduplicationType=deduplicationType)
         if saveTargetFiling:
             instDir = os.path.dirname(modelDocument.uri.split(IXDS_DOC_SEPARATOR)[0])
-            for refFile in filingFiles:
-                if refFile.startswith(instDir):
-                    filingZip.write(refFile, modelDocument.relativeUri(refFile))
+            copyFilingPaths = [
+                (f, modelDocument.relativeUri(f))
+                for f in filingFiles if f.startswith(instDir)
+            ]
+            if sourceZipStream is not None:
+                with zipfile.ZipFile(sourceZipStream, 'r') as sourceZip:
+                    for filingFile, arcname in copyFilingPaths:
+                        filingFile = filingFile.replace(instDir + os.sep, "")
+                        sourceFile = sourceZip.read(filingFile)
+                        filingZip.writestr(arcname, sourceFile)
+            else:
+                for filingFile, arcname in copyFilingPaths:
+                    filingZip.write(filingFile, arcname)
 
 
 def commandLineOptionExtender(parser, *args, **kwargs):
@@ -730,6 +747,8 @@ def commandLineXbrlRun(cntlr, options: RuntimeOptions, modelXbrl, *args, **kwarg
                                          saveTargetFiling=getattr(options, "saveTargetFiling", False),
                                          encodeSavedXmlChars=getattr(options, "encodeSavedXmlChars", False),
                                          xbrliNamespacePrefix=getattr(options, "xbrliNamespacePrefix"),
+                                         sourceZipStream=kwargs.get("sourceZipStream", None),
+                                         responseZipStream=kwargs.get("responseZipStream", None),
                                          deduplicationType=deduplicationType)
 
 def testcaseVariationReadMeFirstUris(modelTestcaseVariation):
