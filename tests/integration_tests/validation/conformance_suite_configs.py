@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
+from tests.integration_tests.validation.conformance_suite_configurations.cipc_current import config as cipc_current
 from tests.integration_tests.validation.conformance_suite_configurations.dba_current import config as dba_current
 from tests.integration_tests.validation.conformance_suite_configurations.efm_current import config as efm_current
 from tests.integration_tests.validation.conformance_suite_configurations.efm_reg_dqc import config as efm_reg_dqc
@@ -42,6 +43,7 @@ from tests.integration_tests.validation.conformance_suite_configurations.xbrl_ut
 
 
 ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
+    cipc_current,
     dba_current,
     efm_current,
     efm_reg_dqc,
