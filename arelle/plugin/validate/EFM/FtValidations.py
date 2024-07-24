@@ -2,8 +2,9 @@ import csv
 import json
 import os
 from arelle import XbrlConst
-from .MessageNumericId import deiSubTblCodes, ftSubTbl, ftSumTbl, ftOfferingTbl, ftOffsetTbl, ftCmbPrsTbl, ft424iTbl, ftStart, ftTableStartCode, ftValidations, ftRuleCode, efmStart
-from .Consts import attachmentDocumentTypeValidationRulesFiles
+from arelle.plugin.validate.EFM.MessageNumericId import deiSubTblCodes, ftSubTbl, ftSumTbl, ftOfferingTbl, ftOffsetTbl, ftCmbPrsTbl, ft424iTbl, ftStart, ftTableStartCode, ftValidations, ftRuleCode, efmStart
+from arelle.plugin.validate.EFM.Consts import attachmentDocumentTypeValidationRulesFiles
+from arelle.plugin.validate.EFM.FtJsonToOimJson import getLatestTaxonomyFamily
 
 
 class FtValidations:
@@ -99,11 +100,6 @@ class FtValidations:
         self.submissionTypeClasses = self._compileSubmissionTypeClasses()
         if not self.outName:
             self.outName = os.path.join(self.validationFileBasePath, "ft-validations.csv")
-        try:
-            # SEC FtJsonToOimJson module not published to open source repo.
-            from .FtJsonToOimJson import getLatestTaxonomyFamily
-        except ModuleNotFoundError as err:
-            raise RuntimeError("Private SEC module imported, not of use outside EDGAR.") from err
         latestFFD = getLatestTaxonomyFamily(self.cntlr, "FFD")
         self.cntlr.modelManager.load(latestFFD.href)
 
