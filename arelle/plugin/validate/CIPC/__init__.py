@@ -17,9 +17,10 @@ from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
+from arelle.ModelValue import qname
 from arelle.Version import authorLabel, copyrightLabel
-from arelle.XbrlConst import ixbrlAll, xhtml
-from .Const import cipcModules # , mandatoryElements
+from arelle.XbrlConst import xhtml, qnIXbrl11Hidden
+from .Const import cipcModules, mustNotBeHiddenElements
 
 cipcBlockedInlineHtmlElements = {
     'object', 'script'}
@@ -187,6 +188,23 @@ def validateXbrlFinally(val, *args, **kwargs):
                 nsMap["ifrs-full"] = ns
             elif ns.endswith("/ifrs-smes"):
                 nsMap["ifrs-smes"] = ns
+
+        foundHiddenFacts = []
+        mustNotBeHiddenQnames = set()
+        for prefixedName in mustNotBeHiddenElements:
+            prefix, _sep, name = prefixedName.rpartition(":")
+            mustNotBeHiddenQnames.add(qname(nsMap.get(prefix),name))
+        for concept in mustNotBeHiddenQnames:
+            facts = val.modelXbrl.factsByQname.get(concept, ())
+            for fact in facts:
+                if qnIXbrl11Hidden in fact.ancestorQnames:
+                    foundHiddenFacts.append(fact)
+        if foundHiddenFacts:
+            modelXbrl.error("CIPC.MandatoryElementInHiddenSection",
+                            _("These mandatory concepts can not appear in a hidden section: %(facts)s."),
+                            modelObject=foundHiddenFacts,
+                            facts=", ".join(sorted(str(fact.qname.localName) for fact in foundHiddenFacts))
+                            )
 
         ''' checked by CIPC formula
         # build mandatory and footnoteIfNil tables by ns qname in use
