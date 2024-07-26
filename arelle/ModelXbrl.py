@@ -38,6 +38,7 @@ if TYPE_CHECKING:
     from arelle.ModelValue import QName
     from arelle.PrototypeDtsObject import LinkPrototype
     from arelle.typing import EmptyTuple, TypeGetText, LocaleDict
+    from arelle.ValidateUtr import UtrEntry
 
     _: TypeGetText  # Handle gettext
 else:
@@ -307,6 +308,7 @@ class ModelXbrl:
     _nonNilFactsInInstance: set[ModelFact]
     _startedProfiledActivity: float
     _startedTimeStat: float
+    _qnameUtrUnits: dict[QName, UtrEntry]
 
     def __init__(self,  modelManager: ModelManager, errorCaptureLevel: str | None = None) -> None:
         self.modelManager = modelManager
@@ -1345,3 +1347,19 @@ class ModelXbrl:
                   _("DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s"),
                 modelObject=self,
                 entryFile=os.path.basename(entryFilename), packageOutputFile=pkgFilename, numberOfFiles=numFiles)
+
+    @property
+    def qnameUtrUnits(self) -> dict[QName, UtrEntry]:
+        try:
+            return self._qnameUtrUnits
+        except AttributeError:
+            from arelle.ValidateUtr import ValidateUtr
+            utrEntries = ValidateUtr(self).utrItemTypeEntries
+            qnameUtrUnits = {}
+            for unitType, unitMap in utrEntries.items():
+                for unitId, unit in unitMap.items():
+                    unitQName = unit.qname()
+                    if unitQName:
+                        qnameUtrUnits[unitQName] = unit
+            self._qnameUtrUnits = qnameUtrUnits
+            return self._qnameUtrUnits

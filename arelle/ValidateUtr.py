@@ -1,19 +1,44 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+from __future__ import annotations
+
 from lxml import etree
 from arelle import ModelDocument
 from collections import defaultdict
+from typing import Optional
 
+from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 
 DIVISOR = "*DIV*"
 
 class UtrEntry(): # use slotted class for execution efficiency
+    id: str | None
+    unitId: str | None
+    unitName: str | None
+    nsUnit: str | None
+    itemType: str | None
+    nsItemType: str | None
+    numeratorItemType: str | None
+    nsNumeratorItemType: str | None
+    denominatorItemType: str | None
+    nsDenominatorItemType: str | None
+    isSimple: bool
+    symbol: str | None
+    definition: str | None
+    status: str | None
+
     __slots__ = ("id", "unitId", "unitName", "nsUnit", "itemType", "nsItemType", "isSimple",
-                 "numeratorItemType", "nsNumeratorItemType",
+                 "numeratorItemType", "nsNumeratorItemType", "definition",
                  "denominatorItemType", "nsDenominatorItemType", "symbol",
                  "status")
+
+    def qname(self) -> Optional[QName]:
+        if not self.nsUnit:
+            return None
+        prefix = self.nsUnit.split('/')[-1]
+        return QName(prefix=prefix, namespaceURI=self.nsUnit, localName=self.unitId)
 
     def __repr__(self):
         return "utrEntry({})".format(', '.join("{}={}".format(n, getattr(self,n))
@@ -62,6 +87,7 @@ def loadUtr(modelXbrl, statusFilters=None): # Build a dictionary of item types t
                 u.nsDenominatorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsDenominatorItemType")
                 u.isSimple = all(e is None for e in (u.numeratorItemType, u.nsNumeratorItemType, u.denominatorItemType, u.nsDenominatorItemType))
                 u.symbol = unitElt.findtext("{http://www.xbrl.org/2009/utr}symbol")
+                u.definition = unitElt.findtext("{http://www.xbrl.org/2009/utr}definition")
                 u.status = unitElt.findtext("{http://www.xbrl.org/2009/utr}status")
                 if u.status in statusFilters:
                     # TO DO: This indexing scheme assumes that there are no name clashes in item types of the registry.
@@ -109,13 +135,14 @@ def utrSymbol(modelType, unitMeasures):
     return ValidateUtr(modelType.modelXbrl).utrSymbol(unitMeasures[0], unitMeasures[1])
 
 class ValidateUtr:
+
     def __init__(self, modelXbrl: ModelXbrl, messageLevel: str="ERROR", messageCode: str="utre:error-NumericFactUtrInvalid") -> None:
         self.modelXbrl = modelXbrl
         self.messageLevel = messageLevel
         self.messageCode = messageCode
         if getattr(modelXbrl.modelManager.disclosureSystem, "utrItemTypeEntries", None) is None:
             loadUtr(modelXbrl)
-        self.utrItemTypeEntries = modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries
+        self.utrItemTypeEntries: dict[str, dict[str, UtrEntry]] = modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries
 
     def validateFacts(self):
         modelXbrl = self.modelXbrl
