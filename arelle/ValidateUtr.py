@@ -1,6 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+from __future__ import annotations
+
 from lxml import etree
 from arelle import ModelDocument
 from collections import defaultdict
@@ -12,6 +14,21 @@ from arelle.ModelXbrl import ModelXbrl
 DIVISOR = "*DIV*"
 
 class UtrEntry(): # use slotted class for execution efficiency
+    id: str | None
+    unitId: str | None
+    unitName: str | None
+    nsUnit: str | None
+    itemType: str | None
+    nsItemType: str | None
+    numeratorItemType: str | None
+    nsNumeratorItemType: str | None
+    denominatorItemType: str | None
+    nsDenominatorItemType: str | None
+    isSimple: bool
+    symbol: str | None
+    definition: str | None
+    status: str | None
+
     __slots__ = ("id", "unitId", "unitName", "nsUnit", "itemType", "nsItemType", "isSimple",
                  "numeratorItemType", "nsNumeratorItemType", "definition",
                  "denominatorItemType", "nsDenominatorItemType", "symbol",
@@ -119,15 +136,13 @@ def utrSymbol(modelType, unitMeasures):
 
 class ValidateUtr:
 
-    utrItemTypeEntries: dict[str, dict[str, UtrEntry]]
-
     def __init__(self, modelXbrl: ModelXbrl, messageLevel: str="ERROR", messageCode: str="utre:error-NumericFactUtrInvalid") -> None:
         self.modelXbrl = modelXbrl
         self.messageLevel = messageLevel
         self.messageCode = messageCode
         if getattr(modelXbrl.modelManager.disclosureSystem, "utrItemTypeEntries", None) is None:
             loadUtr(modelXbrl)
-        self.utrItemTypeEntries = modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries
+        self.utrItemTypeEntries: dict[str, dict[str, UtrEntry]] = modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries
 
     def validateFacts(self):
         modelXbrl = self.modelXbrl
