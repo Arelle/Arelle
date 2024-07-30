@@ -23,8 +23,8 @@ from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import qnXbrliXbrl, xhtml
 from arelle.XmlValidateConst import VALID
-from . import errorOnRequiredFact
-from ..ValidationPluginExtension import NAMESPACE_IE_FRS_101, NAMESPACE_IE_FRS_102, NAMESPACE_IE_IFRS, IE_GAAP_PROFIT_LOSS, IE_IFRS_PROFIT_LOSS
+from . import errorOnMissingRequiredFact, errorOnNegativeFact
+from ..ValidationPluginExtension import TURNOVER_REVENUE, NAMESPACE_IE_FRS_101, NAMESPACE_IE_FRS_102, NAMESPACE_IE_IFRS, IE_GAAP_PROFIT_LOSS, IE_IFRS_PROFIT_LOSS
 from ..PluginValidationDataExtension import MANDATORY_ELEMENTS, SCHEMA_PATTERNS, TR_NAMESPACES, PluginValidationDataExtension
 
 
@@ -312,9 +312,29 @@ def rule_ros6(
         elif NAMESPACE_IE_IFRS in filingType:
             conceptLn = IE_IFRS_PROFIT_LOSS
     if conceptLn:
-        return errorOnRequiredFact(
+        return errorOnMissingRequiredFact(
             val.modelXbrl,
             conceptLn=conceptLn,
             code='ROS.6',
             message=_("'%(conceptLn)s' must exist in the document and be non-nil.")
+        )
+
+
+@validation(
+        hook=ValidationHook.XBRL_FINALLY,
+    )
+def rule_ros18(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    ROS: Rule 18: DPLTurnoverRevenue cannot be a negative value.
+    """
+    return errorOnNegativeFact(
+            val.modelXbrl,
+            conceptLn=TURNOVER_REVENUE,
+            code='ROS.18',
+            message=_("'%(conceptLn)s' cannot have a negative value.")
         )

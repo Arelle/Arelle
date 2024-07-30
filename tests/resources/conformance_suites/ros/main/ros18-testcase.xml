@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="ROS.18"
+        description="ROS.18: Rule 18: DPLTurnoverRevenue cannot be a negative value."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            DPLTurnoverRevenue is a negative value.
+        </description>
+        <data>
+            <instance readMeFirst="true">ros18-invalid.htm</instance>
+        </data>
+        <result>
+            <error>ROS.18</error>
+        </result>
+    </variation>
+</testcase>
