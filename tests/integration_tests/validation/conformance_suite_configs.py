@@ -19,6 +19,7 @@ from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt1
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt16 import config as nl_nt16
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt17 import config as nl_nt17
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt18 import config as nl_nt18
+from tests.integration_tests.validation.conformance_suite_configurations.ros_current import config as ros_current
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_2_1 import config as xbrl_2_1
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_calculations_1_1 import config as xbrl_calculations_1_1
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_dimensions_1_0 import config as xbrl_dimensions_1_0
@@ -61,6 +62,7 @@ ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     nl_nt16,
     nl_nt17,
     nl_nt18,
+    ros_current,
     xbrl_2_1,
     xbrl_calculations_1_1,
     xbrl_dimensions_1_0,
