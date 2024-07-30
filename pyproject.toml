@@ -335,7 +335,7 @@ module = [
     'arelle.plugin.validate.EBA',
     'arelle.plugin.validate.EFM.*',
     'arelle.plugin.validate.FERC',
-    'arelle.plugin.validate.ROS',
+    'arelle.plugin.validate.ROS.*',
     'arelle.plugin.validate.UK',
     'arelle.plugin.xbrlDB',
     'arelle.plugin.xbrlDB.DialogRssWatchExtender',

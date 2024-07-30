@@ -41,6 +41,7 @@ tests/resources/conformance_suites/*
 !tests/resources/conformance_suites/dba/
 !tests/resources/conformance_suites/hmrc/
 !tests/resources/conformance_suites/nl_*/
+!tests/resources/conformance_suites/ros/
 tests/resources/packages/
 
 ### IDE-specific ignores

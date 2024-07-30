@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="ROS.6"
+        description="ROS.6: Rule 6: ProfitLossOnOrdinaryActivitiesBeforeTax (for IE GAAP) OR ProfitLossBeforeTax (for IE IFRS) must exist in the document and be non-nil."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid-ifrs" name="Invalid IFRS">
+        <description>
+            The IFRS document is missing profitLossBeforeTax.
+        </description>
+        <data>
+            <instance readMeFirst="true">ros6-invalid-ifrs.htm</instance>
+        </data>
+        <result>
+            <error>ROS.6</error>
+        </result>
+    </variation>
+    <variation id="invalid-101" name="Invalid 101">
+        <description>
+            The IE FRS 101 document is missing ProfitLossOnOrdinaryActivitiesBeforeTax.
+        </description>
+        <data>
+            <instance readMeFirst="true">ros6-invalid-101.htm</instance>
+        </data>
+        <result>
+            <error>ROS.6</error>
+        </result>
+    </variation>
+</testcase>
