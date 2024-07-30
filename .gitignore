@@ -55,4 +55,8 @@ tests/resources/packages/
 # Visual Studio
 .vs/
 .test
+
+#Eclipse
 /.project
+.settings
+/.classpath
