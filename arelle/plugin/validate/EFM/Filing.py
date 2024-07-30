@@ -2750,7 +2750,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                           "EFM.{}Facts".format(jsonObjType),
                           "Extracted {} facts returned as json parameter".format(jsonObjType),
                           modelXbrl=modelXbrl,
-                          json=allowableJsonCharsForEdgar(json.dumps(jsonParam)))
+                          json=allowableJsonCharsForEdgar(json.dumps(jsonParam)),
+                          messageCodes=("EFM.feeFacts", "EFM.coverFacts"))
             if testEnvJsonFile:
                 with open(testEnvJsonFile, "w") as fh:
                     fh.write(allowableJsonCharsForEdgar(json.dumps(jsonParam, indent=3)))
@@ -3901,7 +3902,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             elif dqcRuleName == "DQC.US.0036" and hasDocPerEndDateFact:
                 for id, rule in dqcRule["rules"].items():
                     for f in modelXbrl.factsByLocalName.get(rule["name"],()):
-                        if f.context is not None and abs((f.xValue + ONE_DAY - f.context.endDatetime).days) > 1: # was 3
+                        if f.context is not None and f.xValid >= VALID and abs((f.xValue + ONE_DAY - f.context.endDatetime).days) > 1: # was 3
                             modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                               modelObject=f, name=f.qname.localName,
                                               endDate=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True),
