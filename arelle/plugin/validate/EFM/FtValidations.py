@@ -2,9 +2,9 @@ import csv
 import json
 import os
 from arelle import XbrlConst
-from arelle.plugin.validate.EFM.MessageNumericId import deiSubTblCodes, ftSubTbl, ftSumTbl, ftOfferingTbl, ftOffsetTbl, ftCmbPrsTbl, ft424iTbl, ftStart, ftTableStartCode, ftValidations, ftRuleCode, efmStart
-from arelle.plugin.validate.EFM.Consts import attachmentDocumentTypeValidationRulesFiles
-from arelle.plugin.validate.EFM.FtJsonToOimJson import getLatestTaxonomyFamily
+from .MessageNumericId import deiSubTblCodes, ftSubTbl, ftSumTbl, ftOfferingTbl, ftOffsetTbl, ftCmbPrsTbl, ft424iTbl, ftStart, ftTableStartCode, ftValidations, ftRuleCode, efmStart
+from .Consts import attachmentDocumentTypeValidationRulesFiles
+from .FtJsonToOimJson import getLatestTaxonomyFamily
 
 
 class FtValidations:
