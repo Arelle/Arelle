@@ -3782,12 +3782,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         def r6facts():
                             for n in rule["names"]:
                                 for f in modelXbrl.factsByLocalName.get(n,()):
-                                    if f.context is not None:
+                                    if f.context is not None and f.context.endDatetime is not None and f.context.startDatetime is not None:
                                         yield f
                             for n in ("{http://www.xbrl.org/dtr/type/non-numeric}textBlockItemType",
                                       "{http://www.xbrl.org/dtr/type/2020-01-21}textBlockItemType"):
                                 for f in modelXbrl.factsByDatatype(True, qname(n)):
-                                    if f.context is not None:
+                                    if f.context is not None and f.context.endDatetime is not None and f.context.startDatetime is not None:
                                         yield f
                         for f in r6facts():
                             durationDays = (f.context.endDatetime - f.context.startDatetime).days
