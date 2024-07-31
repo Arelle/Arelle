@@ -291,7 +291,11 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
     isPlugin = False
     for item in tree.body:
         if isinstance(item, ast.Assign):
-            attr = item.targets[0].id
+            try:
+                attr = item.targets[0].id
+            except AttributeError:
+                # Not plugininfo
+                continue
             if attr == "__pluginInfo__":
                 isPlugin = True
                 f.close()
