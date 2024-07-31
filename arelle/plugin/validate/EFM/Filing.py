@@ -158,7 +158,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     deiDocumentType = None # needed for non-instance validation too
     # efmSubmissionType and efmIxdsType are already set when re-validating after redaction/redline removal
     submissionType = getattr(modelXbrl,'efmSubmissionType', val.params.get("submissionType", ""))
-    attachmentDocumentType = getattr(modelXbrl,'efmIxdsType', val.params.get("attachmentDocumentType")) # this is different from dei:documentType, None if absent
+    attachmentDocumentType = getattr(modelXbrl,'efmIxdsType', val.params.get("attachmentDocumentType", "")) # this is different from dei:documentType
     isFeeTagging = feeTaggingAttachmentDocumentTypePattern.match(attachmentDocumentType or "")
     requiredFactLang = disclosureSystem.defaultXmlLang.lower() if disclosureSystem.defaultXmlLang else disclosureSystem.defaultXmlLang
     hasSubmissionType = bool(submissionType)
@@ -2400,16 +2400,17 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     for index, axisQN in enumerate(axesQNs):
                         currentAxisKey = axesKeys[index]
                         axisContexts = {}
-                        for name in names:
-                            found = False
-                            for f in modelXbrl.factsByDimMemQname(axisQN):
-                                if ftName(f) == name:
-                                    if validation.endswith("value") and not f.xValue in value:
-                                        continue
-                                    found = True
-                                    break
-                            if not found:
-                                sevMessage(sev, subType=submissionType, modelObject=None, tag=ftName(name), axis=axisQN, value=value)
+                        if not sev.get("if-axis-exist") or modelXbrl.factsByDimMemQname(axisQN):
+                            for name in names:
+                                found = False
+                                for f in modelXbrl.factsByDimMemQname(axisQN):
+                                    if ftName(f) == name:
+                                        if validation.endswith("value") and not f.xValue in value:
+                                            continue
+                                        found = True
+                                        break
+                                if not found:
+                                    sevMessage(sev, subType=submissionType, modelObject=None, tag=ftName(name), axis=axisQN, value=value)
                 elif validation == "skip-if-absent":
                     #if efmSection == "ft.r011Flg":
                     #    print("trace") # uncomment for debug tracing specific validation rules
@@ -2741,17 +2742,16 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 jsonParam[_objName] = _orderedObjFacts
             if isFeeTagging:
                 jsonObjType = "fee"
-                messageCode = "EFM.feeFacts"
                 testEnvJsonFile = val.params.get("saveFeeFacts")
             else:
                 jsonObjType = "cover"
-                messageCode = "EFM.coverFacts"
                 testEnvJsonFile = val.params.get("saveCoverFacts")
             modelXbrl.log("INFO-RESULT",
-                          messageCode,
+                          "EFM.{}Facts".format(jsonObjType),
                           "Extracted {} facts returned as json parameter".format(jsonObjType),
                           modelXbrl=modelXbrl,
-                          json=allowableJsonCharsForEdgar(json.dumps(jsonParam)))
+                          json=allowableJsonCharsForEdgar(json.dumps(jsonParam)),
+                          messageCodes=("EFM.feeFacts", "EFM.coverFacts"))
             if testEnvJsonFile:
                 with open(testEnvJsonFile, "w") as fh:
                     fh.write(allowableJsonCharsForEdgar(json.dumps(jsonParam, indent=3)))
@@ -4723,7 +4723,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if not calcRelSet.toModelObject(f.concept):
                                 modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(rule["message"])),
                                     modelObject=f, name=f.concept.name, value=f.xValue,
-                                    contextID=sumFact.context.id, unitID=sumFact.unit.id if sumFact.unit is not None else "(none)",
+                                    contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
                                     edgarCode=edgarCode, ruleElementId=id)
                     elif rule["network"] == "calc should not have ancestor":
                         for ancestorName in rule["incorrect-ancestors"]:
@@ -4731,7 +4731,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 if isAncestor(f.concept, ancestorName):
                                     modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(rule["message"])),
                                         modelObject=f, name=f.concept.name, value=f.xValue, ancestor=ancestorName,
-                                        contextID=sumFact.context.id, unitID=sumFact.unit.id if sumFact.unit is not None else "(none)",
+                                        contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
                                         edgarCode=edgarCode, ruleElementId=id)
             elif dqcRuleName == "DQC.US.0089":
                 # 0089 has only one id, rule
