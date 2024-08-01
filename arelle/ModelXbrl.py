@@ -309,6 +309,7 @@ class ModelXbrl:
     _startedProfiledActivity: float
     _startedTimeStat: float
     _qnameUtrUnits: dict[QName, UtrEntry]
+    _ixdsTarget: str | None
 
     def __init__(self,  modelManager: ModelManager, errorCaptureLevel: str | None = None) -> None:
         self.modelManager = modelManager
@@ -1000,6 +1001,16 @@ class ModelXbrl:
             self.modelManager.addToLog(_("Exception viewing properties {0} {1} at {2}").format(
                             modelObject,
                             err, traceback.format_tb(sys.exc_info()[2])))
+
+    @property
+    def ixdsTarget(self) -> str | None:
+        if self._ixdsTarget == '(default)':
+            return None
+        return self._ixdsTarget
+
+    @ixdsTarget.setter
+    def ixdsTarget(self, value: str | None) -> None:
+        self._ixdsTarget = value
 
     def effectiveMessageCode(self, messageCodes: tuple[Any] | str) -> str | None:
         """
