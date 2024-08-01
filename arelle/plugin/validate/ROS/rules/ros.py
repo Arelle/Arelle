@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import os
-from typing import Any, Iterable, cast
+from typing import Any, Iterable
 
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
@@ -20,12 +20,11 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
-from arelle.Version import authorLabel, copyrightLabel
-from arelle.XbrlConst import qnXbrliXbrl, xhtml
+from arelle.XbrlConst import qnXbrliMonetaryItemType, qnXbrliXbrl, xhtml
 from arelle.XmlValidateConst import VALID
 from . import errorOnMissingRequiredFact, errorOnNegativeFact
-from ..ValidationPluginExtension import TURNOVER_REVENUE, NAMESPACE_IE_FRS_101, NAMESPACE_IE_FRS_102, NAMESPACE_IE_IFRS, IE_GAAP_PROFIT_LOSS, IE_IFRS_PROFIT_LOSS
-from ..PluginValidationDataExtension import MANDATORY_ELEMENTS, SCHEMA_PATTERNS, TR_NAMESPACES, PluginValidationDataExtension
+from ..ValidationPluginExtension import IE_GAAP_PROFIT_LOSS, IE_IFRS_PROFIT_LOSS, PRINCIPAL_CURRENCY, TURNOVER_REVENUE, NAMESPACE_IE_IFRS , NAMESPACE_IE_FRS_101, NAMESPACE_IE_FRS_102
+from ..PluginValidationDataExtension import MANDATORY_ELEMENTS,  SCHEMA_PATTERNS, TR_NAMESPACES, PluginValidationDataExtension
 
 
 def checkFileEncoding(modelXbrl: ModelXbrl) -> None:
@@ -338,3 +337,40 @@ def rule_ros18(
             code='ROS.18',
             message=_("'%(conceptLn)s' cannot have a negative value.")
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_ros19(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> None:
+    """
+    ROS: Rule 19:PrincipalCurrencyUsedInBusinessReport must exist and its value must match the name of the unit used for all monetary facts.
+    """
+    message: str | None = None
+    modelObjects = set()
+    monetaryFacts = val.modelXbrl.factsByDatatype(False, qnXbrliMonetaryItemType)
+    monetaryUnits = set(fact.unit.value for fact in monetaryFacts)
+    pricipalCurrencyFacts = val.modelXbrl.factsByLocalName.get(PRINCIPAL_CURRENCY, set())
+    principalCurrencyValues = set(fact.text for fact in pricipalCurrencyFacts)
+    if len(principalCurrencyValues) != 1:
+        modelObjects = pricipalCurrencyFacts
+        message = _("'%(conceptName)s' must exist and have a single value.  Values found: %(principalCurrencyValues)s.")
+    elif monetaryUnits != principalCurrencyValues:
+        for fact in monetaryFacts:
+            if fact.unit.value not in principalCurrencyValues:
+                modelObjects.add(fact)
+        message = _("'%(conceptName)s' must exist and its value must match the name of the unit used for all monetary facts. "
+                    "Units used for monetary facts: %(monetaryUnits)s, '%(conceptName)s' currency values: %(principalCurrencyValues)s.")
+    if message:
+        val.modelXbrl.error("ROS.19",
+                            message,
+                            modelObject=modelObjects,
+                            monetaryUnits=sorted(monetaryUnits),
+                            principalCurrencyValues=sorted(principalCurrencyValues),
+                            conceptName=PRINCIPAL_CURRENCY,
+                            )

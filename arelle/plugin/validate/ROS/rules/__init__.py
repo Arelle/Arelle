@@ -29,8 +29,6 @@ def errorOnMissingRequiredFact(
         conceptLn=conceptLn,
         codes=code,
         msg=message,
-
-
     )
 
 
