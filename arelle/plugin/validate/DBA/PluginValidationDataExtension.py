@@ -23,11 +23,13 @@ class PluginValidationDataExtension(PluginData):
     dateOfApprovalOfAnnualReportQn: QName
     dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName
     dateOfGeneralMeetingQn: QName
+    descriptionOfQualificationsOfAssuranceEngagementPerformedQn: QName
     distributionOfResultsQns: frozenset[QName]
     equityQn: QName
     extraordinaryCostsQn: QName
     extraordinaryIncomeQn: QName
     extraordinaryResultBeforeTaxQn: QName
+    fr37RestrictedText: str
     informationOnTypeOfSubmittedReportQn: QName
     liabilitiesQn: QName
     positiveProfitThreshold: float

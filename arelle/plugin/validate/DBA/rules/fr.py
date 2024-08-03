@@ -7,10 +7,8 @@ import datetime
 import itertools
 from typing import Any, Iterable, cast
 
-import arelle.ModelInstanceObject
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
-
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
@@ -41,6 +39,7 @@ def rule_fr3(
         message=_("Error code FR3: The company's accounting class is missing. "
                   "This must be marked separately in the field (fsa:ClassOfReportingEntity).")
     )
+
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
@@ -204,7 +203,6 @@ def rule_fr22(
     )
 
 
-
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
@@ -231,6 +229,7 @@ def rule_fr23(
         'DBA.FR23', _("Error code FR23: Liabilities must be stated and must not be negative.")
     )
 
+
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
@@ -255,6 +254,30 @@ def rule_fr39(
                   "has been specified. The date must be after the end of the financial year '%(fact1)s'."),
         assertion=lambda endDate, dividendDate: endDate < dividendDate,
     )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr37(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR37: The field 'qualifications' (arr:DescriptionOfQualificationsOfAssuranceEngagementPerformed)
+    must not contain the text "has not given rise to reservations".
+    """
+    facts = val.modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfAssuranceEngagementPerformedQn, set())
+    for fact in facts:
+        if pluginData.fr37RestrictedText in fact.value:
+            yield Validation.error(
+                codes='DBA.FR37',
+                msg=_("Error code FR37: TDBA.FR37: The field 'qualifications' (arr:DescriptionOfQualificationsOfAssuranceEngagementPerformed) "
+                      "must not contain the text 'has not given rise to reservations'."),
+                modelObject=fact
+            )
 
 
 @validation(
