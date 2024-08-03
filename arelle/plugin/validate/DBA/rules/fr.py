@@ -14,8 +14,9 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact
+from . import errorOnDateFactComparison, isFactMissing, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact
 from ..PluginValidationDataExtension import PluginValidationDataExtension
+from ..ValidationPluginExtension import DANISH_CURRENCY, EMPLOYEE_COST_THRESHOLD
 
 
 _: TypeGetText
@@ -34,13 +35,13 @@ def rule_fr3(
     DBA.FR3: The company's accounting class is missing.
     This must be marked separately in the field (fsa:ClassOfReportingEntity).
     """
-    return errorOnRequiredFact(
-        val.modelXbrl,
-        factQn=pluginData.classOfReportingEntityQn,
-        code='DBA.FR3',
-        message=_("Error code FR3: The company's accounting class is missing. "
-                  "This must be marked separately in the field (fsa:ClassOfReportingEntity).")
-    )
+    if isFactMissing(val.modelXbrl, pluginData.classOfReportingEntityQn):
+        yield Validation.error(
+            codes="DBA.FR3",
+            msg=_("Error code FR3: The company's accounting class is missing. "
+                  "This must be marked separately in the field (fsa:ClassOfReportingEntity)."),
+        )
+
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
@@ -454,6 +455,37 @@ def rule_fr56(
                       "distribution of profits."),
                 modelObject=profitLossFact
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr75(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR75: DBA.FR75: The company must provide information on the number of employees.
+    The rule is activated if personnel costs (fsa:EmployeeBenefitsExpense) or salaries (fsa:WagesAndSalaries) are greater
+    than DKK 200,000, and no number of employees (fsa:AverageNumberOfEmployees) has been specified.
+    """
+    costModelFacts = []
+    employeeBenefitsExpenses = val.modelXbrl.factsByQname.get(pluginData.employeeBenefitsExpenseQn, set())
+    wagesAndSalaries = val.modelXbrl.factsByQname.get(pluginData.wagesAndSalariesQn, set())
+    employeeFacts =employeeBenefitsExpenses.union(wagesAndSalaries)
+    for fact in employeeFacts:
+        if int(fact.value) > EMPLOYEE_COST_THRESHOLD and fact.unit.value == DANISH_CURRENCY:
+            costModelFacts.append(fact)
+    if costModelFacts and isFactMissing(val.modelXbrl, pluginData.averageNumberOfEmployeesQn):
+        yield Validation.warning(
+            codes='DBA.FR75',
+            msg=_("DBA.FR75: The company must provide information on the number of employees. "
+                  "Personnel costs (fsa:EmployeeBenefitsExpense) or salaries (fsa:WagesAndSalaries) are greater than DKK 200,000, "
+                  "and no number of employees (fsa:AverageNumberOfEmployees) has been specified."),
+            modelObject=costModelFacts,
+        )
 
 
 @validation(

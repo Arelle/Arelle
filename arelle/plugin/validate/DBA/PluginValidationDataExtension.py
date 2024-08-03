@@ -17,6 +17,7 @@ from arelle.utils.PluginData import PluginData
 class PluginValidationDataExtension(PluginData):
     annualReportTypes: frozenset[str]
     assetsQn: QName
+    averageNumberOfEmployeesQn: QName
     classOfReportingEntityQn: QName
     consolidatedMemberQn: QName
     consolidatedSoloDimensionQn: QName
@@ -24,6 +25,7 @@ class PluginValidationDataExtension(PluginData):
     dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName
     dateOfGeneralMeetingQn: QName
     distributionOfResultsQns: frozenset[QName]
+    employeeBenefitsExpenseQn: QName
     equityQn: QName
     extraordinaryCostsQn: QName
     extraordinaryIncomeQn: QName
@@ -40,6 +42,7 @@ class PluginValidationDataExtension(PluginData):
     taxExpenseOnOrdinaryActivitiesQn: QName
     taxExpenseQn: QName
     typeOfReportingPeriodDimensionQn: QName
+    wagesAndSalariesQn: QName
 
     _contextFactMap: dict[str, dict[QName, ModelFact]] | None = None
     _reportingPeriodContexts: list[ModelContext] | None = None
