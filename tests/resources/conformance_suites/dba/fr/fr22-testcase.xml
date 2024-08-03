@@ -18,6 +18,7 @@
             <instance readMeFirst="true">fr22-invalid-negative.xbrl</instance>
         </data>
         <result>
+            <error>DBA.FR21</error>
             <error>DBA.FR22</error>
         </result>
     </variation>
