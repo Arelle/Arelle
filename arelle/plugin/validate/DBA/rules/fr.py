@@ -25,6 +25,28 @@ _: TypeGetText
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_fr1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR1: Companies that hold a general meeting and therefore provide a general meeting date (gsd:DateOfGeneralMeeting)
+    must also provide the name of the director (gsd:NameAndSurnameOfChairmanOfGeneralMeeting).
+    """
+    if not isFactMissing(val.modelXbrl, pluginData.dateOfGeneralMeetingQn):
+        if isFactMissing(val.modelXbrl, pluginData.nameAndSurnameOfChairmanOfGeneralMeetingQn):
+            yield Validation.error(
+                codes="DBA.FR1",
+                msg=_("Error code FR1: Companies that hold a general meeting and therefore provide a general meeting date (gsd:DateOfGeneralMeeting) "
+                      "must also provide the name of the director (gsd:NameAndSurnameOfChairmanOfGeneralMeeting)."),
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_fr3(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -471,6 +493,8 @@ def rule_fr75(
     The rule is activated if personnel costs (fsa:EmployeeBenefitsExpense) or salaries (fsa:WagesAndSalaries) are greater
     than DKK 200,000, and no number of employees (fsa:AverageNumberOfEmployees) has been specified.
     """
+    if not isFactMissing(val.modelXbrl, pluginData.averageNumberOfEmployeesQn):
+        return
     costModelFacts = []
     employeeBenefitsExpenses = val.modelXbrl.factsByQname.get(pluginData.employeeBenefitsExpenseQn, set())
     wagesAndSalaries = val.modelXbrl.factsByQname.get(pluginData.wagesAndSalariesQn, set())
@@ -478,7 +502,7 @@ def rule_fr75(
     for fact in employeeFacts:
         if int(fact.value) > EMPLOYEE_COST_THRESHOLD and fact.unit.value == DANISH_CURRENCY:
             costModelFacts.append(fact)
-    if costModelFacts and isFactMissing(val.modelXbrl, pluginData.averageNumberOfEmployeesQn):
+    if costModelFacts:
         yield Validation.warning(
             codes='DBA.FR75',
             msg=_("DBA.FR75: The company must provide information on the number of employees. "

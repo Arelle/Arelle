@@ -32,6 +32,7 @@ class PluginValidationDataExtension(PluginData):
     extraordinaryResultBeforeTaxQn: QName
     informationOnTypeOfSubmittedReportQn: QName
     liabilitiesQn: QName
+    nameAndSurnameOfChairmanOfGeneralMeetingQn: QName
     positiveProfitThreshold: float
     precedingReportingPeriodEndDateQn: QName
     precedingReportingPeriodStartDateQn: QName
