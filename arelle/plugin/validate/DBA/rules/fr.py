@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import datetime
 import itertools
+from collections import defaultdict
 from typing import Any, Iterable, cast
 
 import arelle.ModelInstanceObject
@@ -16,6 +17,7 @@ from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact
 from ..PluginValidationDataExtension import PluginValidationDataExtension
+from ..ValidationPluginExtension import DANISH_CURRENCY, ROUNDING_MARGIN
 
 
 _: TypeGetText
@@ -454,6 +456,58 @@ def rule_fr56(
                       "distribution of profits."),
                 modelObject=profitLossFact
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr74a(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR74a: Provisions (fsa:Provisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity)
+    minus equity (fsa:Equity).
+    """
+    groupedFacts = getFactsGroupedByContextId(val.modelXbrl, pluginData.equityQn, pluginData.liabilitiesQn, pluginData.provisionsQn, pluginData.liabilitiesOtherThanProvisionsQn)
+    for contextID, facts in groupedFacts.items():
+        equityFact = None
+        liabilityFact = None
+        liabilityOtherFact = None
+        provisionFact = None
+        for fact in facts:
+            if fact.qname == pluginData.equityQn and fact.unit.value == DANISH_CURRENCY:
+                equityFact = fact
+            elif fact.qname == pluginData.liabilitiesQn and fact.unit.value == DANISH_CURRENCY:
+                liabilityFact = fact
+            elif fact.qname == pluginData.provisionsQn and fact.unit.value == DANISH_CURRENCY:
+                provisionFact = fact
+            elif fact.qname == pluginData.liabilitiesOtherThanProvisionsQn and fact.unit.value == DANISH_CURRENCY:
+                liabilityOtherFact = fact
+        if equityFact is not None and liabilityFact is not None and provisionFact is not None:
+            if cast(float, liabilityFact.xValue) - cast(float, equityFact.xValue) < cast(float, provisionFact.xValue) - ROUNDING_MARGIN:
+                yield Validation.warning(
+                    codes="DBA.FR74a",
+                    msg=_("DBA.FR74a: Provisions (fsa:Provisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+                          "LiabilitiesAndEquity: %(liabilities)s, Equity: %(equity)s, Provisions: %(provisions)s"),
+                    equity=equityFact.effectiveValue,
+                    liabilities=liabilityFact.effectiveValue,
+                    provisions=provisionFact.effectiveValue,
+                    modelObject=[equityFact, liabilityFact, provisionFact]
+                )
+        if equityFact is not None and liabilityOtherFact is not None and liabilityFact is not None:
+            if cast(float, liabilityFact.xValue) - cast(float, equityFact.xValue) < cast(float, liabilityOtherFact.xValue) - ROUNDING_MARGIN:
+                yield Validation.error(
+                    codes="DBA.FR74b",
+                    msg=_("Liabilities (fsa:LiabilitiesOtherThanProvisions) must be less than or equal to total assets (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+                          "LiabilitiesAndEquity: %(liabilities)s, Equity: %(equity)s, LiabilitiesOtherThanProvisions: %(liabilityOther)s"),
+                    equity=equityFact.effectiveValue,
+                    liabilityOther=liabilityOtherFact.effectiveValue,
+                    liabilities=liabilityFact.effectiveValue,
+                    modelObject=[equityFact, liabilityFact, liabilityOtherFact]
+                )
 
 
 @validation(

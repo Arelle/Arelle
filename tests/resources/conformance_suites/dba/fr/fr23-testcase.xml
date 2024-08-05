@@ -19,6 +19,8 @@
         </data>
         <result>
             <error>DBA.FR23</error>
+            <error>DBA.FR74a</error>
+            <error>DBA.FR74b</error>
         </result>
     </variation>
     <variation id="invalid-missing" name="Invalid missing fact">

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import datetime
 import itertools
+from collections import defaultdict
 from typing import Iterable, Callable, cast, Union
 
 from arelle.ModelDocument import ModelDocument
@@ -176,7 +177,7 @@ def getFactsGroupedByContextId(modelXbrl: ModelXbrl, *conceptQns: QName) -> dict
     facts: set[ModelFact] = set()
     for conceptQn in conceptQns:
         facts.update(modelXbrl.factsByQname.get(conceptQn, set()))
-    return {
-        k: sorted(v, key=lambda f: f.objectIndex)
-        for k, v in itertools.groupby(facts, key=lambda f: f.contextID)
-    }
+    groupedFacts = defaultdict(list)
+    for fact in facts:
+        groupedFacts[fact.contextID].append(fact)
+    return dict(sorted(groupedFacts.items()))
