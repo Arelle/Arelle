@@ -85,7 +85,7 @@ jobs:
       - name: Cleanup XULE
         run: rm -rf xule
       - name: Docker setup buildx
-        uses: docker/setup-buildx-action@v3.5.0
+        uses: docker/setup-buildx-action@v3.6.1
       - name: Docker build
         uses: docker/build-push-action@v6.5.0
         with:
@@ -111,7 +111,7 @@ jobs:
         run: |
           echo "ARTIFACT_NAME=arelle-ubuntu.tgz" >> $GITHUB_ENV
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4.3.4
+        uses: actions/upload-artifact@v4.3.5
         with:
           name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
           if-no-files-found: error
@@ -130,7 +130,7 @@ jobs:
           pytest -s --disable-warnings --all-frozen-builds --download-cache --offline --arelle=".test_build/arelleCmdLine" tests/integration_tests/scripts/test_scripts.py
       - name: "[Test] Upload test artifacts"
         if: always()
-        uses: actions/upload-artifact@v4.3.4
+        uses: actions/upload-artifact@v4.3.5
         with:
           name: 'linux test logs'
           path: '.test/**/*.logfile.xml'
