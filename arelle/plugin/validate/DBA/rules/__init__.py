@@ -53,25 +53,20 @@ def errorOnDateFactComparison(
         )
 
 
-def errorOnRequiredFact(
+def isFactMissing(
         modelXbrl: ModelXbrl,
         factQn: QName,
-        code: str,
-        message: str,
-) -> Iterable[Validation]:
+) -> bool:
     """
-    Yields an error if a fact with the given QName is not tagged with a non-nil value.
-    :return: Yields validation errors.
+    Returns true if a fact with the given QName is not tagged with a non-nil value.
+    :return: Boolean.
     """
     facts: set[ModelFact] = modelXbrl.factsByQname.get(factQn, set())
     if facts:
         for fact in facts:
             if not fact.isNil:
-                return
-    yield Validation.error(
-        codes=code,
-        msg=message,
-)
+                return False
+    return True
 
 
 def errorOnRequiredPositiveFact(
@@ -84,7 +79,7 @@ def errorOnRequiredPositiveFact(
     Yields an error if a fact with the given QName is not tagged with a valid date and a non-nil value.
     :return: Yields validation errors.
     """
-    errorModelObjects: list[ModelFact | ModelDocument| None] = []
+    errorModelObjects: list[ModelFact | ModelDocument | None] = []
     if not facts:
         errorModelObjects.append(modelXbrl.modelDocument)
     else:

@@ -11,6 +11,8 @@ from .PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
 
+DANISH_CURRENCY = 'DKK'
+EMPLOYEE_COST_THRESHOLD = 200000
 NAMESPACE_CMN = 'http://xbrl.dcca.dk/cmn'
 NAMESPACE_FSA = 'http://xbrl.dcca.dk/fsa'
 NAMESPACE_GSD = 'http://xbrl.dcca.dk/gsd'
@@ -27,6 +29,7 @@ class ValidationPluginExtension(ValidationPlugin):
                 'Annual report'
             ]),
             assetsQn=qname(f'{{{NAMESPACE_FSA}}}Assets'),
+            averageNumberOfEmployeesQn=qname(f'{{{NAMESPACE_FSA}}}AverageNumberOfEmployees'),
             classOfReportingEntityQn=qname(f'{{{NAMESPACE_FSA}}}ClassOfReportingEntity'),
             consolidatedMemberQn=qname(f'{{{NAMESPACE_CMN}}}ConsolidatedMember'),
             consolidatedSoloDimensionQn=qname(f'{{{NAMESPACE_CMN}}}ConsolidatedSoloDimension'),
@@ -56,12 +59,14 @@ class ValidationPluginExtension(ValidationPlugin):
                 qname(f'{{{NAMESPACE_FSA}}}TransferredToReserveForDevelopmentExpenditure'),
                 qname(f'{{{NAMESPACE_FSA}}}TransferredToReserveForEntrepreneurialCompany'),
             ]),
+            employeeBenefitsExpenseQn=qname(f'{{{NAMESPACE_FSA}}}EmployeeBenefitsExpense'),
             equityQn=qname(f'{{{NAMESPACE_FSA}}}Equity'),
             extraordinaryCostsQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryCosts'),
             extraordinaryIncomeQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryIncome'),
             extraordinaryResultBeforeTaxQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryResultBeforeTax'),
             informationOnTypeOfSubmittedReportQn=qname(f'{{{NAMESPACE_GSD}}}InformationOnTypeOfSubmittedReport'),
             liabilitiesQn=qname(f'{{{NAMESPACE_FSA}}}LiabilitiesAndEquity'),
+            nameAndSurnameOfChairmanOfGeneralMeetingQn=qname(f'{{{NAMESPACE_GSD}}}NameAndSurnameOfChairmanOfGeneralMeeting'),
             positiveProfitThreshold=1000,
             precedingReportingPeriodEndDateQn=qname(f'{{{NAMESPACE_GSD}}}PredingReportingPeriodEndDate'),  # Typo in taxonomy
             precedingReportingPeriodStartDateQn=qname(f'{{{NAMESPACE_GSD}}}PrecedingReportingPeriodStartDate'),
@@ -72,4 +77,5 @@ class ValidationPluginExtension(ValidationPlugin):
             taxExpenseOnOrdinaryActivitiesQn=qname(f'{{{NAMESPACE_FSA}}}TaxExpenseOnOrdinaryActivities'),
             taxExpenseQn=qname(f'{{{NAMESPACE_FSA}}}TaxExpense'),
             typeOfReportingPeriodDimensionQn=qname(f'{{{NAMESPACE_GSD}}}TypeOfReportingPeriodDimension'),
+            wagesAndSalariesQn=qname(f'{{{NAMESPACE_FSA}}}WagesAndSalaries'),
         )
