@@ -11,10 +11,12 @@ from .PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
 
+DANISH_CURRENCY = 'DKK'
 NAMESPACE_CMN = 'http://xbrl.dcca.dk/cmn'
 NAMESPACE_FSA = 'http://xbrl.dcca.dk/fsa'
 NAMESPACE_GSD = 'http://xbrl.dcca.dk/gsd'
 NAMESPACE_SOB = 'http://xbrl.dcca.dk/sob'
+ROUNDING_MARGIN = 1000
 
 
 class ValidationPluginExtension(ValidationPlugin):
@@ -62,11 +64,13 @@ class ValidationPluginExtension(ValidationPlugin):
             extraordinaryResultBeforeTaxQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryResultBeforeTax'),
             informationOnTypeOfSubmittedReportQn=qname(f'{{{NAMESPACE_GSD}}}InformationOnTypeOfSubmittedReport'),
             liabilitiesQn=qname(f'{{{NAMESPACE_FSA}}}LiabilitiesAndEquity'),
+            liabilitiesOtherThanProvisionsQn=qname(f'{{{NAMESPACE_FSA}}}LiabilitiesOtherThanProvisions'),
             positiveProfitThreshold=1000,
             precedingReportingPeriodEndDateQn=qname(f'{{{NAMESPACE_GSD}}}PredingReportingPeriodEndDate'),  # Typo in taxonomy
             precedingReportingPeriodStartDateQn=qname(f'{{{NAMESPACE_GSD}}}PrecedingReportingPeriodStartDate'),
             profitLossQn=qname(f'{{{NAMESPACE_FSA}}}ProfitLoss'),
             proposedDividendRecognisedInEquityQn=qname(f'{{{NAMESPACE_FSA}}}ProposedDividendRecognisedInEquity'),
+            provisionsQn=qname(f'{{{NAMESPACE_FSA}}}Provisions'),
             reportingPeriodEndDateQn=qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodEndDate'),
             reportingPeriodStartDateQn=qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodStartDate'),
             taxExpenseOnOrdinaryActivitiesQn=qname(f'{{{NAMESPACE_FSA}}}TaxExpenseOnOrdinaryActivities'),
