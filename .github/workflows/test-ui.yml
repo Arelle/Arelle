@@ -118,21 +118,21 @@ jobs:
 
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@v4.3.4
+        uses: actions/upload-artifact@v4.3.5
         with:
           name: logs-${{ matrix.build-type }}
           path: 'c:\temp\testsmedia\*.txt'
       - name: Upload screenshots
         # screenshots are only taken on test failure
         if: failure()
-        uses: actions/upload-artifact@v4.3.4
+        uses: actions/upload-artifact@v4.3.5
         with:
           name: screenshots-${{ matrix.build-type }}
           path: 'c:\temp\testsmedia\*.png'
       - name: Upload videos
         # videos are only saved on test failure
         if: failure()
-        uses: actions/upload-artifact@v4.3.4
+        uses: actions/upload-artifact@v4.3.5
         with:
           name: videos-${{ matrix.build-type }}
           path: 'c:\temp\testsmedia\*.avi'
