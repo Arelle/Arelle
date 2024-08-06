@@ -20,6 +20,7 @@ from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelTestcaseObject import testcaseVariationsByTarget, ModelTestcaseVariation
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
+from arelle.packages.report.DetectReportPackage import isReportPackageExtension
 from arelle.rendering import RenderingEvaluator
 from arelle.XmlUtil import collapseWhitespace, xmlstring
 
@@ -248,7 +249,7 @@ class Validate:
                         modelXbrl = PrototypeInstanceObject.XbrlPrototype(self.modelXbrl.modelManager, readMeFirstUri)
                         PackageManager.packageInfo(self.modelXbrl.modelManager.cntlr, readMeFirstUri, reload=True, errors=modelXbrl.errors)
                     else: # not a multi-schemaRef versioning report
-                        if self.useFileSource.isArchive and (os.path.isabs(readMeFirstUri) or not readMeFirstUri.endswith(".zip")):
+                        if self.useFileSource.isArchive and (os.path.isabs(readMeFirstUri) or not isReportPackageExtension(readMeFirstUri)):
                             modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
                                                        readMeFirstUri,
                                                        _("validating"),
@@ -262,7 +263,7 @@ class Validate:
                             if (
                                 self.useFileSource
                                 and not os.path.isabs(readMeFirstUri)
-                                and readMeFirstUri.endswith('.zip')
+                                and isReportPackageExtension(readMeFirstUri)
                             ):
                                 if self.useFileSource.isArchive:
                                     sourceFileSource = self.useFileSource
@@ -274,12 +275,13 @@ class Validate:
 
                             filesource = FileSource.openFileSource(readMeFirstUri, self.modelXbrl.modelManager.cntlr, base=baseForElement,
                                                                    sourceFileSource=sourceFileSource)
+
                             if newSourceFileSource:
                                 sourceFileSource.close()
                             _errors = [] # accumulate pre-loading errors, such as during taxonomy package loading
                             if filesource and not filesource.selection and filesource.isArchive:
                                 try:
-                                    if filesource.isTaxonomyPackage or expectTaxonomyPackage:
+                                    if filesource.isTaxonomyPackage or (expectTaxonomyPackage and not filesource.isReportPackage):
                                         _rptPkgIxdsOptions = {}
                                         for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxdsOptions"):
                                             pluginXbrlMethod(self, _rptPkgIxdsOptions)

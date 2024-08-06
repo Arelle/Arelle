@@ -58,13 +58,13 @@ config = ConformanceSuiteConfig(
         "V-211-unsupported-file-extension",  # rpe:unsupportedFileExtension,0,Current report package with unsupported file extension (.xbrx)
 
         # 3xx - valid.xbri packages
-        "V-300-xbri-with-single-xhtml",  # ,1,Simple .xbri file with a single .xhtml document
-        "V-301-xbri-with-single-ixds",  # ,1,.xbri file with multiple .xhtml documents in a single IXDS
-        "V-302-xbri-with-single-html",  # ,1,Simple .xbri file with a single .html document
-        "V-303-xbri-with-single-htm",  # ,1,Simple .xbri file with a single .htm document
-        "V-304-xbri-with-no-taxonomy",  # ,1,.xbri package without a taxonomy
-        "V-305-xbri-with-xhtml-in-dot-json-directory",  # ,1,.xhtml in reports subdirectory with recognised extension (tricky.json)
-        "V-306-xbri-with-xhtml-in-dot-xbrl-directory",  # ,1,.xhtml in reports subdirectory with recognised extension (tricky.xbrl)
+        # "V-300-xbri-with-single-xhtml",  # ,1,Simple .xbri file with a single .xhtml document
+        # "V-301-xbri-with-single-ixds",  # ,1,.xbri file with multiple .xhtml documents in a single IXDS
+        # "V-302-xbri-with-single-html",  # ,1,Simple .xbri file with a single .html document
+        # "V-303-xbri-with-single-htm",  # ,1,Simple .xbri file with a single .htm document
+        # "V-304-xbri-with-no-taxonomy",  # ,1,.xbri package without a taxonomy
+        # "V-305-xbri-with-xhtml-in-dot-json-directory",  # ,1,.xhtml in reports subdirectory with recognised extension (tricky.json)
+        # "V-306-xbri-with-xhtml-in-dot-xbrl-directory",  # ,1,.xhtml in reports subdirectory with recognised extension (tricky.xbrl)
 
         # 4xx - invalid.xbri packages
         "V-400-xbri-without-reports-directory",  # rpe:missingReportsDirectory,0,A report package MUST contain a directory called reports as a child of the STLD
@@ -76,12 +76,12 @@ config = ConformanceSuiteConfig(
         "V-406-xbri-with-multiple-reports-in-a-subdirectory",  # rpe:multipleReportsInSubdirectory,0,.xbri file with multiple reports in a subdirectory
 
         # 5xx - valid.xbr packages
-        "V-502-xbr-with-single-json",  # ,1,.xbr file with a single xBRL-JSON report
-        "V-503-xbr-with-single-csv",  # ,1,.xbr file with a single xBRL-CSV metadata file
-        "V-504-xbr-with-single-xbrl",  # ,1,.xbr file with a single xBRL-XML document (.xbrl)
-        "V-505-xbr-with-single-xbrl-in-subdir",  # ,1,.xbr file with a single xBRL-XML document (.xbrl) in a subdirectory
-        "V-506-xbr-with-single-json-and-extra-files",  # ,1,".xbr file with a single xBRL-JSON report and files with non-recognised extensions (.txt, .xml)"
-        "V-507-xbr-with-single-json-with-bom",  # ,1,.xbr file with a single xBRL-JSON report with a byte order mark 
+        # "V-502-xbr-with-single-json",  # ,1,.xbr file with a single xBRL-JSON report
+        # "V-503-xbr-with-single-csv",  # ,1,.xbr file with a single xBRL-CSV metadata file
+        # "V-504-xbr-with-single-xbrl",  # ,1,.xbr file with a single xBRL-XML document (.xbrl)
+        # "V-505-xbr-with-single-xbrl-in-subdir",  # ,1,.xbr file with a single xBRL-XML document (.xbrl) in a subdirectory
+        # "V-506-xbr-with-single-json-and-extra-files",  # ,1,".xbr file with a single xBRL-JSON report and files with non-recognised extensions (.txt, .xml)"
+        # "V-507-xbr-with-single-json-with-bom",  # ,1,.xbr file with a single xBRL-JSON report with a byte order mark 
         "V-508-xbr-with-no-taxonomy",  # ,1,.xbr package without a taxonomy
         "V-509-xbr-with-json-in-dot-xhtml-directory",  # ,1,.json in reports subdirectory with recognised extension (tricky.xhtml)
 

@@ -15,6 +15,7 @@ from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, XbrlConst, Versio
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
                     ViewFileRoleTypes)
 from arelle.oim.xml.Save import saveOimReportToXmlInstance
+from arelle.packages.report import ReportPackageConst
 from arelle.rendering import RenderingEvaluator
 from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
