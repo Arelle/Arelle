@@ -11,6 +11,7 @@ from .PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
 
+NAMESPACE_ARR = 'http://xbrl.dcca.dk/arr'
 NAMESPACE_CMN = 'http://xbrl.dcca.dk/cmn'
 NAMESPACE_FSA = 'http://xbrl.dcca.dk/fsa'
 NAMESPACE_GSD = 'http://xbrl.dcca.dk/gsd'
@@ -34,6 +35,7 @@ class ValidationPluginExtension(ValidationPlugin):
             dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod=
             qname(f'{{{NAMESPACE_FSA}}}DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod'),
             dateOfGeneralMeetingQn=qname(f'{{{NAMESPACE_GSD}}}DateOfGeneralMeeting'),
+            descriptionOfQualificationsOfAssuranceEngagementPerformedQn=qname(f'{{{NAMESPACE_ARR}}}DescriptionOfQualificationsOfAssuranceEngagementPerformed'),
             distributionOfResultsQns=frozenset([
                 qname(f'{{{NAMESPACE_FSA}}}DistributionsResultDistribution'),
                 qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryDistributions'),
@@ -60,6 +62,7 @@ class ValidationPluginExtension(ValidationPlugin):
             extraordinaryCostsQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryCosts'),
             extraordinaryIncomeQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryIncome'),
             extraordinaryResultBeforeTaxQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryResultBeforeTax'),
+            fr37RestrictedText='has not given rise to reservations',
             informationOnTypeOfSubmittedReportQn=qname(f'{{{NAMESPACE_GSD}}}InformationOnTypeOfSubmittedReport'),
             liabilitiesQn=qname(f'{{{NAMESPACE_FSA}}}LiabilitiesAndEquity'),
             positiveProfitThreshold=1000,
