@@ -38,6 +38,7 @@ win32file = win32api = win32process = pywintypes = None
 STILL_ACTIVE = 259 # MS Windows process status constants
 PROCESS_QUERY_INFORMATION = 0x400
 DISABLE_PERSISTENT_CONFIG_OPTION = "--disablePersistentConfig"
+TESTCASE_EXPECTED_ERRORS_OPTION="testcaseExpectedErrors"
 UILANG_OPTION = '--uiLang'
 _: TypeGetText
 
@@ -301,6 +302,8 @@ def parseArgs(args):
     parser.add_option("--formulaVarExpressionResult", "--formulavarexpressionresult", action="store_true", dest="formulaVarExpressionResult", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFilterWinnowing", "--formulavarfilterwinnowing", action="store_true", dest="formulaVarFilterWinnowing", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFiltersResult", "--formulavarfiltersresult", action="store_true", dest="formulaVarFiltersResult", help=_("Specify formula tracing."))
+    parser.add_option("--testcaseExpectedErrors", "--testcaseexpectederrors", action="append", dest=TESTCASE_EXPECTED_ERRORS_OPTION,
+                      help=_("For testcase results, specify comma separated additional expected errors by test case id. --testcaseExpectedErrors=testcase-index.xml:test_id1|IOerror,oime:invalidTaxonomy"))
     parser.add_option("--testcaseFilter", "--testcasefilter", action="append", dest="testcaseFilters",
                       help=_("If any filters are provided, any testcase variation path in the form {testcaseFilepath}:{testcaseVariationId} that doesn't pass any filter "
                              "will be skipped." ))
@@ -482,6 +485,14 @@ def parseArgs(args):
         if optionName in pluginOptionDestinations:
             pluginOptions[optionName] = optionValue
         else:
+            if optionName == TESTCASE_EXPECTED_ERRORS_OPTION and optionValue is not None:
+                expectedErrors = {}
+                for expectedError in optionValue:
+                    expectedErrorSplit = expectedError.split('|')
+                    if len(expectedErrorSplit) != 2:
+                        parser.error(_("--testcaseExpectedErrors must be in the format '--testcaseExpectedErrors=testcase-index.xml:v-1|errorCode1,errorCode2,...'"))
+                    expectedErrors[expectedErrorSplit[0]] = expectedErrorSplit[1].split(',')
+                optionValue = expectedErrors
             baseOptions[optionName] = optionValue
     try:
         runtimeOptions = RuntimeOptions(pluginOptions=pluginOptions, **baseOptions)
@@ -916,6 +927,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.traceVariableFilterWinnowing = True
         if options.formulaVarFiltersResult:
             fo.traceVariableFiltersResult = True
+        if options.testcaseExpectedErrors:
+            fo.testcaseExpectedErrors = options.testcaseExpectedErrors
         if options.testcaseFilters:
             fo.testcaseFilters = options.testcaseFilters
         if options.testcaseResultsCaptureWarnings:

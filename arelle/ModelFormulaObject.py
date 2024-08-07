@@ -53,6 +53,7 @@ class FormulaOptions():
         self.testcaseFilters = None
         self.testcaseResultsCaptureWarnings = False
         self.testcaseResultOptions = None
+        self.testcaseExpectedErrors = None
         if isinstance(savedValues, dict):
             self.__dict__.update(savedValues)
 

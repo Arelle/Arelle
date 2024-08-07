@@ -576,6 +576,7 @@ class Validate:
 
     def determineTestStatus(self, modelTestcaseVariation, errors):
         testcaseResultOptions = self.modelXbrl.modelManager.formulaOptions.testcaseResultOptions
+        testcaseExpectedErrors = self.modelXbrl.modelManager.formulaOptions.testcaseExpectedErrors or {}
         matchAllExpected = testcaseResultOptions == "match-all" or modelTestcaseVariation.match == 'all'
         _blockedMessageCodes = modelTestcaseVariation.blockedMessageCodes # restricts codes examined when provided
         if _blockedMessageCodes:
@@ -587,6 +588,18 @@ class Validate:
         hasAssertionResult = any(isinstance(e,dict) for e in _errors)
         expected = modelTestcaseVariation.expected
         expectedCount = modelTestcaseVariation.expectedCount
+        variationIdPath = f'{modelTestcaseVariation.base}:{modelTestcaseVariation.id}'
+        if self.useFileSource is not None and self.useFileSource.isZip:
+            baseZipFile = self.useFileSource.basefile + "/"
+            if variationIdPath.startswith(baseZipFile):
+                variationIdPath = variationIdPath[len(baseZipFile):]
+        if userExpectedErrors := testcaseExpectedErrors.get(variationIdPath):
+            if expected is None:
+                expected = []
+            expected.extend(userExpectedErrors)
+            if expectedCount is None:
+                expectedCount = 0
+            expectedCount += len(userExpectedErrors)
         if matchAllExpected:
             if isinstance(expected, list):
                 if not expectedCount:
