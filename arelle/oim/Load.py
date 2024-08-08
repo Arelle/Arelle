@@ -1737,6 +1737,11 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             if not UrlUtil.isAbsolute(tUrl) and os.path.isabs(tUrl) and not UrlUtil.isAbsolute(txBase) and os.path.isabs(txBase):
                 taxonomyRefs[i] = os.path.relpath(tUrl, txBase)
         prevErrLen = len(modelXbrl.errors) # track any xbrl validation errors
+        xbrliNamespacePrefix = None
+        for prefix, ns in namespaces.items():
+            if ns == XbrlConst.xbrli:
+                xbrliNamespacePrefix = prefix
+                break
         if modelXbrl: # pull loader implementation
             modelXbrl.blockDpmDBrecursion = True
             modelXbrl.modelDocument = _return = ModelDocument.create(
@@ -1746,6 +1751,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                   schemaRefs=taxonomyRefs,
                   isEntry=True,
                   initialComment="extracted from OIM {}".format(mappedUri),
+                  xbrliNamespacePrefix=xbrliNamespacePrefix,
                   documentEncoding="utf-8",
                   base=documentBase or modelXbrl.entryLoadingUrl)
             modelXbrl.modelDocument.inDTS = True
@@ -1757,6 +1763,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 schemaRefs=taxonomyRefs,
                 isEntry=True,
                 initialComment="extracted from OIM {}".format(mappedUri),
+                xbrliNamespacePrefix=xbrliNamespacePrefix,
                 base=documentBase)
             _return = modelXbrl.modelDocument
 
