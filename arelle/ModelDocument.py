@@ -191,6 +191,20 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                     fileName=os.path.basename(uri),
                     error=error.message, line=error.line, column=error.column)
         file.close()
+    except FileNotFoundError as err:
+        if file:
+            file.close()
+        msg = _("Could not load file from local filesystem.")
+        offlineMode = modelXbrl.modelManager.cntlr.webCache.workOffline
+        if offlineMode:
+            msg += _(" Disable offline mode to attempt download.")
+        msg += " file: %(url)s"
+        modelXbrl.error("IOerror", msg,
+            modelObject=referringElement, url=uri, error=str(err))
+        if modelXbrl.modelManager.abortOnMajorError and (isEntry or isDiscovered):
+            raise LoadingException() from err
+        modelXbrl.urlUnloadableDocs[normalizedUri] = True  # not loadable due to IO issue
+        return None
     except (EnvironmentError, KeyError, UnicodeDecodeError) as err:  # missing zip file raises KeyError
         if file:
             file.close()

@@ -1,3 +1,6 @@
+"""
+See COPYRIGHT.md for copyright information.
+"""
 from arelle.BetaFeatures import newObjectModelEnabled
 
 # The if statement is negated here so that from mypy's perspective the types

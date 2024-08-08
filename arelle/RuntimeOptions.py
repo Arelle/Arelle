@@ -128,6 +128,7 @@ class RuntimeOptions:
     tableFile: Optional[str] = None
     testReport: Optional[str] = None
     testReportCols: Optional[int] = None
+    testcaseExpectedErrors: Optional[dict[str, list[str]]] = None
     testcaseFilters: Optional[list[str]] = None
     testcaseResultOptions: Optional[str] = None
     testcaseResultsCaptureWarnings: Optional[bool] = None

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 '''
 See COPYRIGHT.md for copyright information.
 '''

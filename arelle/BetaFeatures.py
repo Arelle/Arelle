@@ -1,3 +1,6 @@
+"""
+See COPYRIGHT.md for copyright information.
+"""
 from __future__ import annotations
 
 BETA_OBJECT_MODEL_FEATURE = "betaObjectModel"
