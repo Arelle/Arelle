@@ -15,6 +15,7 @@ arelle-release*
 arelle/_version.py
 arelle/plugin/EdgarRenderer
 arelle/plugin/EdgarRendererWithBuiltinHtml
+arelle/plugin/EDGAR
 arelle/plugin/FERC
 arelle/plugin/Xince.py
 arelle/plugin/iXBRLViewerPlugin
