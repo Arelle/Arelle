@@ -187,7 +187,7 @@ jobs:
           path: ${{ env.DMG_BUILD_ARTIFACT_PATH }}
       - name: "[Test] Test build artifact"
         run : |
-          pip install -r requirements-dev.txt
+          pip install -r requirements-test.txt
           pytest -s --disable-warnings --all-frozen-builds --download-cache --offline --arelle="build/Arelle.app/Contents/MacOS/arelleCmdLine" tests/integration_tests/scripts/test_scripts.py
       - name: "[Test] Upload test artifacts"
         if: always()

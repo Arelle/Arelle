@@ -52,7 +52,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install -r requirements-dev.txt
+          pip install -r requirements-test.txt
           pip install -r requirements-plugins.txt
       - name: Run integration tests with pytest
         run: |

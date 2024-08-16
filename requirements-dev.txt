@@ -1,9 +1,7 @@
-boto3==1.34.161
 flake8==7.1.1
 flake8-noqa==1.4.0
 
 mypy==1.11.1
-pytest==8.3.2
 
 boto3-stubs==1.34.161
 typing-extensions==4.12.2
@@ -16,4 +14,4 @@ types-ujson==5.10.0.20240515
 types-regex==2024.7.24.20240726
 types-waitress==3.0.0.20240423
 
--r requirements.txt
+-r requirements-test.txt

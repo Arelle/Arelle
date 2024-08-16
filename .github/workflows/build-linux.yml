@@ -126,7 +126,7 @@ jobs:
         run : |
           mkdir .test_build
           tar -xvzf "${{ env.BUILD_ARTIFACT_PATH }}" -C .test_build
-          pip install -r requirements-dev.txt
+          pip install -r requirements-test.txt
           pytest -s --disable-warnings --all-frozen-builds --download-cache --offline --arelle=".test_build/arelleCmdLine" tests/integration_tests/scripts/test_scripts.py
       - name: "[Test] Upload test artifacts"
         if: always()
