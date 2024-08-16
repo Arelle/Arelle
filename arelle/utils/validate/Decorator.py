@@ -4,12 +4,13 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, Optional
-
-from typing_extensions import TypeAlias
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional
 
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Validation import Validation
+
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
 
 ValidationFunction: TypeAlias = Callable[..., Optional[Iterable[Validation]]]
 
