@@ -13,7 +13,7 @@ on:
         required: false
         type: string
       python_version:
-        default: '3.12.4'
+        default: '3.12.5'
         description: 'Python version to use'
         required: false
         type: string
@@ -40,7 +40,7 @@ on:
         required: true
         type: string
       python_version:
-        default: '3.12.4'
+        default: '3.12.5'
         description: 'Python version to use'
         required: true
         type: string
@@ -87,7 +87,7 @@ jobs:
       - name: Docker setup buildx
         uses: docker/setup-buildx-action@v3.6.1
       - name: Docker build
-        uses: docker/build-push-action@v6.6.1
+        uses: docker/build-push-action@v6.7.0
         with:
           build-args: |
             "OPENSSL_VERSION=${{ inputs.openssl_version }}"
@@ -126,7 +126,7 @@ jobs:
         run : |
           mkdir .test_build
           tar -xvzf "${{ env.BUILD_ARTIFACT_PATH }}" -C .test_build
-          pip install -r requirements-dev.txt
+          pip install -r requirements-test.txt
           pytest -s --disable-warnings --all-frozen-builds --download-cache --offline --arelle=".test_build/arelleCmdLine" tests/integration_tests/scripts/test_scripts.py
       - name: "[Test] Upload test artifacts"
         if: always()
