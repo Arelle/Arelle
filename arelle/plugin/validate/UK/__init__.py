@@ -70,7 +70,7 @@ COMMON_GENERIC_DIMENSIONS = {
 }
 
 COMMON_MANDATORY_ITEMS = {
-    "EntityCurrentLegalOrRegisteredName", "StartDateForPeriodCoveredByReport",
+    "AverageNumberEmployeesDuringPeriod", "EntityCurrentLegalOrRegisteredName", "StartDateForPeriodCoveredByReport",
     "EndDateForPeriodCoveredByReport", "BalanceSheetDate"
 }
 

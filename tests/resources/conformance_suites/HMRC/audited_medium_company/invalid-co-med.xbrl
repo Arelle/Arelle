@@ -8,7 +8,8 @@
         xmlns:lang="http://xbrl.frc.org.uk/cd/2023-01-01/languages"
         xmlns:link="http://www.xbrl.org/2003/linkbase"
         xmlns:xlink="http://www.w3.org/1999/xlink"
-        xmlns:xbrldi="http://xbrl.org/2006/xbrldi">
+        xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+        xmlns:xbrli="http://www.xbrl.org/2003/instance">
     <link:schemaRef
             xlink:href="https://xbrl.frc.org.uk/FRS-101/2023-01-01/FRS-101-2023-01-01.xsd"
             xlink:type="simple"/>
@@ -79,6 +80,9 @@
             <endDate>2021-12-30</endDate>
         </period>
     </context>
+    <xbrli:unit id="pure">
+        <xbrli:measure>xbrli:pure</xbrli:measure>
+    </xbrli:unit>
     <bus:DescriptionPrincipalActivities contextRef="duration">text</bus:DescriptionPrincipalActivities>
     <bus:EntityCurrentLegalOrRegisteredName contextRef="duration">text</bus:EntityCurrentLegalOrRegisteredName>
     <bus:EntityDormantTruefalse contextRef="duration">false</bus:EntityDormantTruefalse>
@@ -87,6 +91,7 @@
     <aurep:NameIndividualAuditor contextRef="duration">Name1</aurep:NameIndividualAuditor>
     <bus:EntityTradingStatus contextRef="duration"></bus:EntityTradingStatus>
     <core:DirectorSigningFinancialStatements contextRef="duration"></core:DirectorSigningFinancialStatements>
+    <core:AverageNumberEmployeesDuringPeriod contextRef="duration" decimals="2" unitRef="pure" >100</core:AverageNumberEmployeesDuringPeriod>
     <!-- CAUSE: StatementThatCompanyHasPreparedAccountsUnderProvisionsRelatingToMedium-sizedCompanies missing-->
     <direp:StatementThatCompanyEntitledToExemptionFromAuditUnderSection477CompaniesAct2006RelatingToSmallCompanies contextRef="duration">
         Exempt from audit under section 477 of the Companies Act 2006
