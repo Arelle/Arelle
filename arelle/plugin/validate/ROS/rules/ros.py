@@ -354,7 +354,7 @@ def rule_ros19(
     message: str | None = None
     modelObjects = set()
     monetaryFacts = val.modelXbrl.factsByDatatype(False, qnXbrliMonetaryItemType)
-    monetaryUnits = set(fact.unit.value for fact in monetaryFacts)
+    monetaryUnits = set(fact.unit.value for fact in monetaryFacts if fact.unit)
     pricipalCurrencyFacts = val.modelXbrl.factsByLocalName.get(PRINCIPAL_CURRENCY, set())
     principalCurrencyValues = set(fact.text for fact in pricipalCurrencyFacts)
     if len(principalCurrencyValues) != 1:
