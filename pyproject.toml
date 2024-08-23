@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools~=69.0", "wheel~=0.42", "setuptools_scm[toml]~=8.0"]
+requires = ["setuptools~=73.0", "wheel~=0.44", "setuptools_scm[toml]~=8.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -33,7 +33,7 @@ dependencies = [
     'filelock',
     'isodate==0.*',
     'lxml>=4,<6',
-    'numpy==1.*',
+    'numpy>=1,<3',
     'openpyxl==3.*',
     'pyparsing==3.*',
     'python-dateutil==2.*',

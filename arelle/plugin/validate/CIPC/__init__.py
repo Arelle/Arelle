@@ -180,9 +180,9 @@ def validateXbrlFinally(val, *args, **kwargs):
         # build namespace maps
         nsMap = {}
         for ns in modelXbrl.namespaceDocs.keys():
-            if ns.endswith("/ca"):
+            if ns.endswith("taxonomy/ca"):
                 nsMap["cipc-ca"] = ns
-            elif ns.endswith("/ca/enum"):
+            elif ns.endswith("taxonomy/ca/enum"):
                 nsMap["cipc-ca-enum"] = ns
             elif ns.endswith("/ifrs-full"):
                 nsMap["ifrs-full"] = ns

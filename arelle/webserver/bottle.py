@@ -314,7 +314,8 @@ class Router(object):
         and details on the matching order are described in docs:`routing`.
     """
 
-    default_pattern = '[^/]+'
+    # Workaround for a bug in myst 4 that parses these brackets as a footnote ref.
+    default_pattern = '[^' + '/]+'
     default_filter = 're'
 
     #: The current CPython regexp implementation does not allow more
