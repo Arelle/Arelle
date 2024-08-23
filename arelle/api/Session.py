@@ -132,7 +132,7 @@ class Session:
                     logFilters=logFilters,
                     logHandler=logHandler,
                     logToBuffer=options.logFile == 'logToBuffer',
-                    logTextMaxLength=options.logTextMaxLength,  # e.g., used by EdgarRenderer to require buffered logging
+                    logTextMaxLength=options.logTextMaxLength,  # e.g., used by EDGAR/render to require buffered logging
                     logRefObjectProperties=logRefObjectProperties,
                     logXmlMaxAttributeLength=options.logXmlMaxAttributeLength,
                     logPropagate=options.logPropagate,

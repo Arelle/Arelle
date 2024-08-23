@@ -16,13 +16,11 @@ KNOWN_FAILURES = frozenset([
     'arelle.archive.plugin.sphinx.SphinxEvaluator',
     'arelle.archive.plugin.validate.XFsyntax.xf',
     'arelle.formula.FormulaEvaluator',
-    'arelle.plugin.validate.EFM-htm.Const',
-    'arelle.plugin.validate.EFM-htm.__init__',
 ])
 MODULE_NAMES = [
     g.replace('/', '.').replace('\\', '.').replace('.py', '')
     for g in glob.glob('arelle/**/*.py', recursive=True)
-    if not g.startswith(tuple(f'arelle/plugin/{p}/' for p in ['EdgarRenderer', 'iXBRLViewerPlugin', 'xule']))
+    if not g.startswith(tuple(f'arelle/plugin/{p}/' for p in ['EDGAR', 'iXBRLViewerPlugin', 'xule']))
 ]
 TEST_PARAMS = [
     pytest.param(

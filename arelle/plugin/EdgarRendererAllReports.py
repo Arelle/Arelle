@@ -1,5 +1,5 @@
 '''
-EdgarRendererAllReports.py is a supplemental plugin to EdgarRenderer
+EdgarRendererAllReports.py is a supplemental plugin to EDGAR/render
 
 Its purpose is to generate an Rall.htm file of all reports with no menus.
 
@@ -8,9 +8,9 @@ It supplements EdgarRenderer plugin code, running after regular EdgarRenderer.Fi
 To assure that this plugin runs after EdgarRenderer's event, please specify it after
 EdgarRenderer in the list of plugins to load:
 
-e.g., --plugins 'validate/EFM|EdgarRenderer|EdgarRendererAllReports.py|transforms/SEC.py'
+e.g., --plugins 'EDGAR/validate|EDGAR/render|EdgarRendererAllReports.py|EDGAR/transforms'
 if running from command line, or
-      &plugins=validate/EFM|EdgarRenderer|EdgarRendererAllReports.py|transforms/SEC.py
+      &plugins=EDGAR/validate|EDGAR/render|EdgarRendererAllReports.py|EDGAR/transforms
 if running by web service REST API
 
 This plugin changes the default reportFormat to Xml only, avoiding generation of R1.htm,

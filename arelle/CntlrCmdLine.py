@@ -60,7 +60,7 @@ def main():
     parseAndRun(args)
 
 
-def wsgiApplication(extraArgs=[]): # for example call wsgiApplication(["--plugins=EdgarRenderer"])
+def wsgiApplication(extraArgs=[]): # for example call wsgiApplication(["--plugins=EDGAR/render"])
     return parseAndRun( ["--webserver=::wsgi"] + extraArgs )
 
 
@@ -350,7 +350,7 @@ def parseArgs(args):
                              R" (e.g., 'http://arelle.org/files/hello_web.py', 'C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load, "
                              "or ../examples/plugin/hello_dolly.py for relative use of examples directory) "
                              "Local python files do not require .py suffix, e.g., hello_dolly without .py is sufficient, "
-                             "Packaged plug-in urls are their directory's url (e.g., --plugins EdgarRenderer or --plugins xbrlDB).  " ))
+                             "Packaged plug-in urls are their directory's url (e.g., --plugins EDGAR/render or --plugins xbrlDB).  " ))
     parser.add_option("--packages", "--package", action="append", dest="packages",
                       help=_("Load taxonomy packages. Option can be repeated for multiple files. "
                              "If a directory is specified, all .zip files in the directory will be loaded. "
@@ -539,7 +539,7 @@ def configAndRunCntlr(options, arellePluginModules):
                            logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
                            logLevel=(options.logLevel or "DEBUG"),
                            logToBuffer=getattr(options, "logToBuffer", False),
-                           logTextMaxLength=options.logTextMaxLength,  # e.g., used by EdgarRenderer to require buffered logging
+                           logTextMaxLength=options.logTextMaxLength,  # e.g., used by EDGAR/render to require buffered logging
                            logRefObjectProperties=options.logRefObjectProperties,
                            logXmlMaxAttributeLength=options.logXmlMaxAttributeLength,
                            logPropagate=options.logPropagate)

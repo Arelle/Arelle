@@ -8,8 +8,8 @@ on:
         required: false
         default: true
         type: boolean
-      edgar_renderer_ref:
-        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+      edgar_ref:
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       python_version:
@@ -35,8 +35,8 @@ on:
         required: false
         default: true
         type: boolean
-      edgar_renderer_ref:
-        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+      edgar_ref:
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       python_version:
@@ -75,10 +75,10 @@ jobs:
           pip install -r requirements-build.txt
       - uses: actions/checkout@v4.1.7
         with:
-          repository: Arelle/EdgarRenderer
-          path: arelle/plugin/EdgarRenderer
-          ref: ${{ inputs.edgar_renderer_ref }}
-      - run: rm -rf arelle/plugin/EdgarRenderer/.git
+          repository: Arelle/EDGAR
+          path: arelle/plugin/EDGAR
+          ref: ${{ inputs.edgar_ref }}
+      - run: rm -rf arelle/plugin/EDGAR/.git
       - uses: actions/checkout@v4.1.7
         with:
           repository: xbrlus/xule

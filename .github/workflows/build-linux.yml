@@ -3,8 +3,8 @@ name: Build Linux
 on:
   workflow_call:
     inputs:
-      edgar_renderer_ref:
-        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+      edgar_ref:
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       openssl_version:
@@ -30,8 +30,8 @@ on:
         value: ${{ jobs.build-linux.outputs.uploaded_artifact_name }}
   workflow_dispatch:
     inputs:
-      edgar_renderer_ref:
-        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+      edgar_ref:
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       openssl_version:
@@ -63,14 +63,14 @@ jobs:
         uses: actions/checkout@v4.1.7
         with:
           fetch-depth: 0
-      - name: Checkout EdgarRenderer
+      - name: Checkout EDGAR
         uses: actions/checkout@v4.1.7
         with:
-          repository: Arelle/EdgarRenderer
-          path: arelle/plugin/EdgarRenderer
-          ref: ${{ inputs.edgar_renderer_ref }}
-      - name: Cleanup EdgarRenderer
-        run: rm -rf arelle/plugin/EdgarRenderer/.git
+          repository: Arelle/EDGAR
+          path: arelle/plugin/EDGAR
+          ref: ${{ inputs.edgar_ref }}
+      - name: Cleanup EDGAR
+        run: rm -rf arelle/plugin/EDGAR/.git
       - name: Checkout XULE
         uses: actions/checkout@v4.1.7
         with:

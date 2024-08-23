@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 This plugin allows GUI and command line users to test transforms.
 
 Custom extensions are also made available when their plugin has been loaded
-(e.g., for SEC custom transforms use plugin transforms/SEC, validate/EFM or EdgarRenderer)
+(e.g., for SEC custom transforms use plugin EDGAR/transforms, EDGAR/validate or EDGAR/render)
 
 Errors are shown both in results field as well as reported in the message pane (GUI) and reported in log (command line).
 
@@ -27,12 +27,12 @@ For command line operation:
 
     SEC transform example:
 
-    arelleCmdLine --plugins 'transforms/tester|transforms/SEC' --testTransform "ixt-sec durwordsen 23 days"
+    arelleCmdLine --plugins 'transforms/tester|EDGAR/SEC' --testTransform "ixt-sec durwordsen 23 days"
 
     Help instructions and list of available transforms:
 
     arelleCmdLine --plugins transforms/tester --testTransform 'help'  (or '?') or
-    arelleCmdLine --plugins 'transforms/tester|transforms/SEC' --testTransform 'help'
+    arelleCmdLine --plugins 'transforms/tester|EDGAR/transforms' --testTransform 'help'
 
 For REST API operation:
     web browser: http://localhost:8080/rest/xbrl/validation?plugins=transforms/tester&testTransform=ixt v3 datedaymonthen 29th February

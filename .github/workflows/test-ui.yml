@@ -3,8 +3,8 @@ name: Run UI Tests
 on:
   workflow_dispatch:
     inputs:
-      edgar_renderer_ref:
-        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+      edgar_ref:
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       python_version:
@@ -28,7 +28,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/build-windows.yml
     with:
-      edgar_renderer_ref: ${{ inputs.edgar_renderer_ref }}
+      edgar_ref: ${{ inputs.edgar_ref }}
       python_version: ${{ inputs.python_version }}
       xule_ref: ${{ inputs.xule_ref }}
   build-windows-pr:

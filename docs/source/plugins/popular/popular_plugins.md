@@ -11,7 +11,7 @@ recently tested, these archived plugins may still provide valuable functionality
 :::{toctree}
 :maxdepth: 1
 arelle_ixbrl_viewer
-edgar_renderer
+edgar
 inline_xbrl_document_set
 save_loadable_oim
 transforms_sec

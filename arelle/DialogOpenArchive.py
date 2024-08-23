@@ -66,7 +66,7 @@ def selectDisclosureSystem(parent, disclosureSystem):
     if not disclosureSystemSelections and messagebox.askokcancel(
         _("Load disclosure systems"),
         _("Disclosure systems are provided by plug-ins, no applicable plug-in(s) have been enabled. \n\n"
-          "Press OK to open the plug-in manager and select plug-in(s) (e.g., validate or EdgarRenderer).")):
+          "Press OK to open the plug-in manager and select plug-in(s) (e.g., validate or EDGAR/render).")):
         from arelle import DialogPluginManager
         DialogPluginManager.dialogPluginManager(parent)
         return None

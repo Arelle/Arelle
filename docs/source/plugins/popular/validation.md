@@ -64,7 +64,7 @@ EDGAR Filer Manual. To achieve comprehensive validation, it's essential to also 
 [EDGAR Renderer plugin][edgar-renderer]. This additional plugin covers specific validations that are not included in the
 Validate EFM plugin, ensuring thorough compliance with EFM standards.
 
-[edgar-renderer]: project:edgar_renderer.md
+[edgar-renderer]: https://github.com/Arelle/EDGAR/tree/master/render
 
 ## Validate EFM non-XBRL HTM
 

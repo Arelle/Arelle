@@ -12,7 +12,7 @@ Cheroot==10.0.1
 python-dateutil==2.9.0.post0
 pycountry==24.6.1
 # plugins
-# EdgarRenderer plugin
+# EDGAR plugins
 NumPy==1.24.4 ; python_version <= "3.8"
 NumPy==1.26.2 ; python_version > "3.8"
 Matplotlib==3.7.4 ; python_version <= "3.8"

@@ -17,12 +17,12 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout EdgarRenderer
+    - name: Checkout EDGAR
       if: ${{ inputs.name == 'efm_current' }}
       uses: actions/checkout@v4.1.7
       with:
-        repository: Arelle/EdgarRenderer
-        path: arelle/plugin/EdgarRenderer
+        repository: Arelle/EDGAR
+        path: arelle/plugin/EDGAR
     - name: Install Python 3
       uses: actions/setup-python@v5.1.1
       with:

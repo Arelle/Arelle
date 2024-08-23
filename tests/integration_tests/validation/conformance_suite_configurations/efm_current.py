@@ -4,7 +4,7 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 CONFORMANCE_SUITE_ZIP_NAME = 'efm-70-240701.zip'
 
 config = ConformanceSuiteConfig(
-    additional_plugins_by_prefix=[(f'conf/{t}', frozenset({'EdgarRenderer'})) for t in [
+    additional_plugins_by_prefix=[(f'conf/{t}', frozenset({'EDGAR/render'})) for t in [
         '612-presentation-syntax/612-09-presented-units-order',
         '626-rendering-syntax',
     ]],
@@ -27,7 +27,7 @@ config = ConformanceSuiteConfig(
     ]),
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     name=PurePath(__file__).stem,
-    plugins=frozenset({'validate/EFM', 'inlineXbrlDocumentSet'}),
+    plugins=frozenset({'EDGAR/validate', 'inlineXbrlDocumentSet'}),
     shards=40,
     test_case_result_options='match-any',
 )

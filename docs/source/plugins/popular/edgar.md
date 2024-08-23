@@ -1,13 +1,13 @@
-# EDGAR Renderer
+# EDGAR
 
-:::{index} EDGAR Renderer
+:::{index} EDGAR
 :::
 
 ## Overview
 
-The [EDGAR Renderer][github] plugin, developed and maintained by the staff of the U.S. Securities and Exchange
+The [EDGAR Renderer][github-edgar-renderer] plugin, developed and maintained by the staff of the U.S. Securities and Exchange
 Commission (SEC), is designed to provide traditional and inline XBRL viewers for SEC filings. It also integrates with
-and extends the [EFM Validation plugin][validate-efm], offering EFM validation for SEC filings. For end-user support,
+and extends the [EFM Validation plugin][github-validate-efm], offering EFM validation for SEC filings. For end-user support,
 please contact the SEC directly at: [StructuredData@sec.gov][sec-email].
 
 ## Key Features
@@ -17,18 +17,18 @@ please contact the SEC directly at: [StructuredData@sec.gov][sec-email].
 
 ## Example Command Line Usage
 
-For a complete list of options, visit the [EDGAR Renderer plugin repository][github].
+For a complete list of options, visit the [EDGAR plugins repository][github-edgar-renderer].
 
 To create traditional and inline XBRL viewers in the `out` directory, use the following command:
 
 ```bash
-python arelleCmdLine.py --plugins EdgarRenderer --httpUserAgent "Arelle via <your-email-address>" --disclosureSystem efm --reports out --file filing-documents.zip
+python arelleCmdLine.py --plugins EDGAR/render --httpUserAgent "Arelle via <your-email-address>" --disclosureSystem efm --reports out --file filing-documents.zip
 ```
 
 To validate an SEC filing:
 
 ```bash
-python arelleCmdLine.py --plugins EdgarRenderer --httpUserAgent "Arelle via <your-email-address>" --disclosureSystem efm --validate --file filing-documents.zip
+python arelleCmdLine.py --plugins EDGAR/render --httpUserAgent "Arelle via <your-email-address>" --disclosureSystem efm --validate --file filing-documents.zip
 ```
 
 ## Example GUI Usage
@@ -39,6 +39,6 @@ The Edgar Renderer can be easily configured through the graphical user interface
 - To access the Renderer, go to `View` > `Edgar Renderer`.
 - To select an EFM disclosure system, navigate to `Tools` > `Validation` > `Disclosure system checks`.
 
-[github]: https://github.com/Arelle/EdgarRenderer
+[github-edgar-renderer]: https://github.com/Arelle/EDGAR/tree/master/render
+[github-validate-efm]: https://github.com/Arelle/EDGAR/tree/master/validate
 [sec-email]: mailto:StructuredData@sec.gov
-[validate-efm]: project:validation.md#validate-efm
