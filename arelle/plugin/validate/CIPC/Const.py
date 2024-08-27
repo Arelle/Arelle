@@ -20,6 +20,7 @@ mustNotBeHiddenElements = [
     "cipc-ca:DisclosureOfDirectorsResponsibilityExplanatory",
     "cipc-ca:FullRegisteredNameOfCompany",
     "cipc-ca:RegistrationNumberOfCompany",
+    "cipc-ca-enum:DescriptionOfNatureOfFinancialStatements",
     "ifrs-full:DateOfEndOfReportingPeriod2013",
     "ifrs-full:DescriptionOfNatureOfFinancialStatements",
     "ifrs-full:DescriptionOfPresentationCurrency",
