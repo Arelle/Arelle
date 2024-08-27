@@ -193,7 +193,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         mustNotBeHiddenQnames = set()
         for prefixedName in mustNotBeHiddenElements:
             prefix, _sep, name = prefixedName.rpartition(":")
-            mustNotBeHiddenQnames.add(qname(nsMap.get(prefix),name))
+            mustNotBeHiddenQnames.add(qname(nsMap.get(prefix), name))
         for concept in mustNotBeHiddenQnames:
             facts = val.modelXbrl.factsByQname.get(concept, ())
             for fact in facts:
@@ -203,7 +203,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             modelXbrl.error("CIPC.MandatoryElementInHiddenSection",
                             _("These mandatory concepts can not appear in a hidden section: %(facts)s."),
                             modelObject=foundHiddenFacts,
-                            facts=", ".join(sorted(str(fact.qname.localName) for fact in foundHiddenFacts))
+                            facts=", ".join(sorted(set(str(fact.qname.localName) for fact in foundHiddenFacts)))
                             )
 
         ''' checked by CIPC formula
