@@ -22,8 +22,8 @@ from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import qnXbrliMonetaryItemType, qnXbrliXbrl, xhtml
 from arelle.XmlValidateConst import VALID
-from . import errorOnMissingRequiredFact, errorOnNegativeFact
-from ..ValidationPluginExtension import IE_GAAP_PROFIT_LOSS, IE_IFRS_PROFIT_LOSS, PRINCIPAL_CURRENCY, TURNOVER_REVENUE, NAMESPACE_IE_IFRS , NAMESPACE_IE_FRS_101, NAMESPACE_IE_FRS_102
+from . import errorOnNegativeFact
+from ..ValidationPluginExtension import IE_PROFIT_LOSS_ORDINARY, IE_PROFIT_LOSS, PRINCIPAL_CURRENCY, TURNOVER_REVENUE
 from ..PluginValidationDataExtension import MANDATORY_ELEMENTS,  SCHEMA_PATTERNS, TR_NAMESPACES, PluginValidationDataExtension
 
 
@@ -298,24 +298,19 @@ def rule_ros6(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation]:
+) -> None:
     """
-    ROS: Rule 6: ProfitLossOnOrdinaryActivitiesBeforeTax (for IE GAAP)
-    OR ProfitLossBeforeTax (for IE IFRS) must exist in the document and be non-nil.
+    ROS: Rule 6: ProfitLossOnOrdinaryActivitiesBeforeTax OR ProfitLossBeforeTax must exist in the document and be non-nil.
     """
-    modelXbrl = val.modelXbrl
-    conceptLn = None
-    for filingType in pluginData.getFilingTypes(modelXbrl):
-        if NAMESPACE_IE_FRS_101 in filingType or NAMESPACE_IE_FRS_102 in filingType:
-            conceptLn = IE_GAAP_PROFIT_LOSS
-        elif NAMESPACE_IE_IFRS in filingType:
-            conceptLn = IE_IFRS_PROFIT_LOSS
-    if conceptLn:
-        return errorOnMissingRequiredFact(
-            val.modelXbrl,
-            conceptLn=conceptLn,
-            code='ROS.6',
-            message=_("'%(conceptLn)s' must exist in the document and be non-nil.")
+    profit_loss_facts: set[ModelFact] = val.modelXbrl.factsByLocalName.get(IE_PROFIT_LOSS, set())
+    non_nil_profit_loss_facts = set(fact for fact in profit_loss_facts if not fact.isNil)
+    profit_loss_ordinary_facts: set[ModelFact] = val.modelXbrl.factsByLocalName.get(IE_PROFIT_LOSS_ORDINARY, set())
+    non_nil_profit_loss_ordinary_facts = set(fact for fact in profit_loss_ordinary_facts if not fact.isNil)
+    if not non_nil_profit_loss_facts and not non_nil_profit_loss_ordinary_facts:
+        val.modelXbrl.error(
+            codes='ROS.6',
+            msg=_("Profit or Loss Before Tax (uk gaap:ProfitLossOnOrdinaryActivitiesBeforeTax) is missing."),
+            modelObject=val.modelXbrl
         )
 
 
