@@ -23,6 +23,7 @@ from ..Const import (
     linkbaseRefTypes,
     qnDomainItemTypes,
     qnDomainItemTypes2023,
+    qnDomainItemTypes2024,
 )
 from ..Util import isChildOfNotes, isExtension, getDisclosureSystemYear
 
@@ -109,7 +110,13 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                         val.modelXbrl.error("ESEF.3.4.3.extensionTaxonomyDimensionNotAssignedDefaultMemberInDedicatedPlaceholder",
                             _("Each dimension in an issuer specific extension taxonomy MUST be assigned to a default member in the ELR with role URI http://www.esma.europa.eu/xbrl/role/core/ifrs-dim_role-990000 defined in esef_cor.xsd schema file. %(qname)s"),
                             modelObject=modelConcept, qname=modelConcept.qname)
-                    esefDomainItemTypes = qnDomainItemTypes if getDisclosureSystemYear(val.modelXbrl) < 2023 else qnDomainItemTypes2023
+
+                    if getDisclosureSystemYear(val.modelXbrl) < 2023:
+                        esefDomainItemTypes = qnDomainItemTypes
+                    elif getDisclosureSystemYear(val.modelXbrl) == 2023:
+                        esefDomainItemTypes = qnDomainItemTypes2023
+                    else:
+                        esefDomainItemTypes = qnDomainItemTypes2024
                     if modelConcept.isDomainMember and modelConcept in val.domainMembers and modelConcept.typeQname not in esefDomainItemTypes:
                         domainMembersWrongType.append(modelConcept)
                     if modelConcept.isPrimaryItem and not modelConcept.isAbstract:
@@ -147,6 +154,14 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                                     extLineItemsWronglyAnchored.append(modelConcept)
                     if modelConcept.isMonetary and not modelConcept.balance:
                         extMonetaryConceptsWithoutBalance.append(modelConcept)
+                    widerConcept = widerNarrowerRelSet.fromModelObject(modelConcept)
+                    narrowerConcept = widerNarrowerRelSet.toModelObject(modelConcept)
+                    if getDisclosureSystemYear(val.modelXbrl) >= 2024 and (widerConcept and all(modelConcept.baseXbrliType != r.toModelObject.baseXbrliType for r in widerConcept)) or (narrowerConcept and all(modelConcept.baseXbrliType != r.fromModelObject.baseXbrliType for r in narrowerConcept)):
+                        val.modelXbrl.warning("ESEF.1.4.1.differentExtensionDataType",
+                                            _("Issuers should anchor their extension elements to ESEF core taxonomy elements sharing the same data type. %(qname)s"),
+                                            modelObject=modelConcept, qname=modelConcept.qname)
+
+
                     # check all lang's of standard label
                     hasLc3Match = False
                     lc3names = []
@@ -204,9 +219,13 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                 _("Extension taxonomy MUST NOT define typed dimensions: %(concepts)s."),
                 modelObject=typedDimsInExtTxmy, concepts=", ".join(str(c.qname) for c in typedDimsInExtTxmy))
         if domainMembersWrongType:
-            xbrlReference322 = "https://www.xbrl.org/dtr/type/2020-01-21/types.xsd"
             if getDisclosureSystemYear(val.modelXbrl) < 2023:
                 xbrlReference322 = "http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd"
+            elif getDisclosureSystemYear(val.modelXbrl) == 2023:
+                xbrlReference322 = "https://www.xbrl.org/dtr/type/2020-01-21/types.xsd"
+            else:
+                xbrlReference322 = "https://www.xbrl.org/dtr/type/2022-03-31/types.xsd"
+
             val.modelXbrl.error("ESEF.3.2.2.domainMemberWrongDataType",
                 _("Domain members MUST have domainItemType data type as defined in \"%(xbrlReference)s\": concept %(concepts)s."),
                 modelObject=domainMembersWrongType, xbrlReference=xbrlReference322,
@@ -278,6 +297,12 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                 if linkEltName == "calculationLink":
                     val.hasExtensionCal = True
                     linkbasesFound.add(linkEltName)
+                    if getDisclosureSystemYear(val.modelXbrl) >= 2024:
+                        for arc in linkElt.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}calculationArc"):
+                            if arc.get("{http://www.w3.org/1999/xlink}arcrole") != "https://www.xbrl.org/2023/arcrole/summation-item":
+                                val.modelXbrl.error("ESEF.3.4.1.IncorrectSummationItemArcroleUsed",
+                                                    _("Starting from the ESEF 2024 taxonomy, only calculation linkbases using the arcrole 'https://www.xbrl.org/2023/arcrole/summation-item' are permitted. Arcrole  %(arcrole)s has been found."),
+                                                    arcrole=arc.get("{http://www.w3.org/1999/xlink}arcrole"))
                 if linkEltName == "definitionLink":
                     val.hasExtensionDef = True
                     linkbasesFound.add(linkEltName)

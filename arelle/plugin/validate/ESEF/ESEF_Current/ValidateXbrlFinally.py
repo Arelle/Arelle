@@ -6,7 +6,7 @@ from __future__ import annotations
 import os
 import zipfile
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from math import isnan
 from typing import Any, List, cast
 
@@ -644,11 +644,30 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         langsUsedByTextFacts = set()
 
         hasNoFacts = True
+        factsMissingId = []
         for qn, facts in modelXbrl.factsByQname.items():
             hasNoFacts = False
             if qn in mandatory:
                 reportedMandatory.add(qn)
             for f in facts:
+                if getDisclosureSystemYear(modelXbrl) >= 2024:
+                    if not f.id:
+                        factsMissingId.append(f)
+                    escaped = f.get("escape") in ("true", "1")
+                    if (f.concept.type.isTextBlock and not escaped) or (not f.concept.type.isTextBlock and escaped):
+                        modelXbrl.error("ESEF.2.2.7.improperApplicationOfEscapeAttribute",
+                                          _("Facts with datatype 'dtr-types:textBlockItemType' MUST use the 'escape' attribute set to 'true'. Facts with any other datatype MUST use the 'escape' attribute set to true 'false'"),
+                                          modelObject=f)
+                    if f.effectiveValue == "0" and f.xValue != 0:
+                        modelXbrl.warning("ESEF.2.2.5.roundedValueBelowScaleNotNull",
+                                          _("A value that has been rounded and is below the scale should show a value of zero. It has been found to have the value %(value)s"),
+                                          modelObject=f, value=f.value)
+                    if f.concept.periodType == "instant":
+                        if f.context.instantDate.day == 1 and f.context.instantDate.month == 1:
+                            modelXbrl.error("ESEF.2.1.2.inappropriateInstantDate",
+                                              _("Instant date %(actualValue)s shall be replaced by %(expectedValue)s to ensure a better comparability between the facts."),
+                                              modelObject=f, actualValue=f.context.instantDate, expectedValue=f.context.instantDate - timedelta(days=1))
+                            pass
                 if f.precision is not None:
                     precisionFacts.add(f)
                 if f.isNumeric and f.concept is not None and getattr(f, "xValid", 0) >= VALID:
@@ -680,6 +699,10 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         #    conceptsUsed.add(dim.typedMember)
                 '''
 
+        if getDisclosureSystemYear(modelXbrl) >= 2024 and factsMissingId:
+            modelXbrl.warning("ESEF.2.2.8.missingFactID",
+                              _("All facts should have a unique identifier. Facts %(elements)s have no identifier."),
+                              modelObject=f, elements=", ".join([str(f.qname) for f in factsMissingId]), )
         if noLangFacts:
             modelXbrl.error("ESEF.2.5.2.undefinedLanguageForTextFact",
                 _("Each tagged text fact MUST have the 'xml:lang' attribute assigned or inherited."),
