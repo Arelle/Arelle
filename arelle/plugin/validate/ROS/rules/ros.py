@@ -298,16 +298,18 @@ def rule_ros6(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> None:
+) -> Iterable[Validation]:
     """
     ROS: Rule 6: ProfitLossOnOrdinaryActivitiesBeforeTax OR ProfitLossBeforeTax must exist in the document and be non-nil.
     """
-    profit_loss_facts: set[ModelFact] = val.modelXbrl.factsByLocalName.get(IE_PROFIT_LOSS, set())
-    non_nil_profit_loss_facts = set(fact for fact in profit_loss_facts if not fact.isNil)
-    profit_loss_ordinary_facts: set[ModelFact] = val.modelXbrl.factsByLocalName.get(IE_PROFIT_LOSS_ORDINARY, set())
-    non_nil_profit_loss_ordinary_facts = set(fact for fact in profit_loss_ordinary_facts if not fact.isNil)
-    if not non_nil_profit_loss_facts and not non_nil_profit_loss_ordinary_facts:
-        val.modelXbrl.error(
+    non_nil_profit_loss_fact_exists = any(
+        not fact.isNil for fact in val.modelXbrl.factsByLocalName.get(IE_PROFIT_LOSS, set())
+    )
+    non_nil_profit_loss_ordinary_fact_exists = any(
+        not fact.isNil for fact in val.modelXbrl.factsByLocalName.get(IE_PROFIT_LOSS_ORDINARY, set())
+    )
+    if not non_nil_profit_loss_fact_exists and not non_nil_profit_loss_ordinary_fact_exists:
+        yield Validation.error(
             codes='ROS.6',
             msg=_("Profit or Loss Before Tax (uk gaap:ProfitLossOnOrdinaryActivitiesBeforeTax) is missing."),
             modelObject=val.modelXbrl
