@@ -337,7 +337,7 @@ def rule_ros18(
             val.modelXbrl,
             conceptLn=TURNOVER_REVENUE,
             code='ROS.18',
-            message=_("'%(conceptLn)s' cannot have a negative value.")
+            message=_("Turnover / Revenue cannot be a negative value.")
         )
 
 
