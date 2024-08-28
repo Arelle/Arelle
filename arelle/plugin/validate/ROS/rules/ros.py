@@ -6,6 +6,8 @@ from __future__ import annotations
 import os
 from typing import Any, Iterable
 
+from collections import Counter
+
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
 from collections import defaultdict
@@ -347,30 +349,35 @@ def rule_ros19(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> None:
+) -> Iterable[Validation]:
     """
     ROS: Rule 19:PrincipalCurrencyUsedInBusinessReport must exist and its value must match the name of the unit used for all monetary facts.
     """
     message: str | None = None
     modelObjects = set()
-    monetaryFacts = val.modelXbrl.factsByDatatype(False, qnXbrliMonetaryItemType)
-    monetaryUnits = set(fact.unit.value for fact in monetaryFacts if fact.unit)
-    pricipalCurrencyFacts = val.modelXbrl.factsByLocalName.get(PRINCIPAL_CURRENCY, set())
-    principalCurrencyValues = set(fact.text for fact in pricipalCurrencyFacts)
-    if len(principalCurrencyValues) != 1:
-        modelObjects = pricipalCurrencyFacts
-        message = _("'%(conceptName)s' must exist and have a single value.  Values found: %(principalCurrencyValues)s.")
-    elif monetaryUnits != principalCurrencyValues:
-        for fact in monetaryFacts:
-            if fact.unit.value not in principalCurrencyValues:
-                modelObjects.add(fact)
-        message = _("'%(conceptName)s' must exist and its value must match the name of the unit used for all monetary facts. "
-                    "Units used for monetary facts: %(monetaryUnits)s, '%(conceptName)s' currency values: %(principalCurrencyValues)s.")
+    pricipal_currency_facts = val.modelXbrl.factsByLocalName.get(PRINCIPAL_CURRENCY, set())
+    principal_currency_values = set(fact.text for fact in pricipal_currency_facts)
+    if len(principal_currency_values) != 1:
+        modelObjects = pricipal_currency_facts
+        message = _("'%(concept_name)s' must exist and have a single value.  Values found: %(principal_currency_values)s.")
+    else:
+        principal_currency_value = principal_currency_values.pop()
+        monetary_facts = list(val.modelXbrl.factsByDatatype(False, qnXbrliMonetaryItemType))
+        monetary_units = [list(fact.utrEntries)[0].unitName for fact in monetary_facts if fact.unit is not None]
+        unit_counts = Counter(monetary_units)
+        principal_currency_value_count = unit_counts[principal_currency_value]
+        for unit, count in unit_counts.items():
+            if count > principal_currency_value_count:
+                modelObjects = pricipal_currency_facts
+                message = _("'%(concept_name)s' must exist and its value must match the functional unit of the financial statement. "
+                            "Units used for monetary facts: %(monetary_units)s, '%(concept_name)s' currency values: %(principal_currency_values)s.")
+                continue
     if message:
-        val.modelXbrl.error("ROS.19",
-                            message,
-                            modelObject=modelObjects,
-                            monetaryUnits=sorted(monetaryUnits),
-                            principalCurrencyValues=sorted(principalCurrencyValues),
-                            conceptName=PRINCIPAL_CURRENCY,
-                            )
+        yield Validation.error(
+            "ROS.19",
+            message,
+            modelObject=modelObjects,
+            monetary_units=sorted(unit_counts.keys()),
+            principal_currency_values=sorted(principal_currency_values),
+            concept_name=PRINCIPAL_CURRENCY,
+        )
