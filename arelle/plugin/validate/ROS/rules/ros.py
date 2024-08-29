@@ -351,14 +351,16 @@ def rule_ros19(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    ROS: Rule 19:PrincipalCurrencyUsedInBusinessReport must exist and its value must match the name of the unit used for all monetary facts.
+    ROS: Rule 19:PrincipalCurrencyUsedInBusinessReport must exist and its value must match the unit
+    used for the majority of monetary facts.
     """
     message: str | None = None
-    modelObjects = set()
-    pricipal_currency_facts = val.modelXbrl.factsByLocalName.get(PRINCIPAL_CURRENCY, set())
-    principal_currency_values = set(fact.text for fact in pricipal_currency_facts)
+    principal_currency_value: str | None = None
+    modelObjects: set | None = None
+    principal_currency_facts = val.modelXbrl.factsByLocalName.get(PRINCIPAL_CURRENCY, set())
+    principal_currency_values = set(fact.text for fact in principal_currency_facts)
     if len(principal_currency_values) != 1:
-        modelObjects = pricipal_currency_facts
+        modelObjects = principal_currency_facts
         message = _("'%(concept_name)s' must exist and have a single value.  Values found: %(principal_currency_values)s.")
     else:
         principal_currency_value = principal_currency_values.pop()
@@ -368,16 +370,14 @@ def rule_ros19(
         principal_currency_value_count = unit_counts[principal_currency_value]
         for unit, count in unit_counts.items():
             if count > principal_currency_value_count:
-                modelObjects = pricipal_currency_facts
-                message = _("'%(concept_name)s' must exist and its value must match the functional unit of the financial statement. "
-                            "Units used for monetary facts: %(monetary_units)s, '%(concept_name)s' currency values: %(principal_currency_values)s.")
+                modelObjects = principal_currency_facts
+                message = _("'PrincipalCurrencyUsedInBusinessReport' has a value of %(principal_currency_value)s, "
+                            "which must match the functional(majority) unit of the financial statement.")
                 continue
     if message:
         yield Validation.error(
             "ROS.19",
             message,
             modelObject=modelObjects,
-            monetary_units=sorted(unit_counts.keys()),
-            principal_currency_values=sorted(principal_currency_values),
-            concept_name=PRINCIPAL_CURRENCY,
+            principal_currency_value=principal_currency_value
         )
