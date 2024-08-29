@@ -175,7 +175,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     if ifrs_year != esef_year:
                         # this check isn't precise enough, but the list of available concept isn't available in esef_cor
                         modelXbrl.warning("ESEF.1.2.IFRSNotYetIncluded",
-                                        _("Elements available in the IFRS Taxonomy that were not yet included in the ESEF taxonomy sould not be used."),
+                                        _("Elements available in the IFRS Taxonomy that were not yet included in the ESEF taxonomy should not be used."),
                                         modelObject=modelXbrl)
 
     if val.consolidated and not (val.hasExtensionSchema and val.hasExtensionPre and val.hasExtensionCal and val.hasExtensionDef and val.hasExtensionLbl):
@@ -656,7 +656,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     escaped = f.get("escape") in ("true", "1")
                     if (f.concept.type.isTextBlock and not escaped) or (not f.concept.type.isTextBlock and escaped):
                         modelXbrl.error("ESEF.2.2.7.improperApplicationOfEscapeAttribute",
-                                          _("Facts with datatype 'dtr-types:textBlockItemType' MUST use the 'escape' attribute set to 'true'. Facts with any other datatype MUST use the 'escape' attribute set to true 'false'"),
+                                          _("Facts with datatype 'dtr-types:textBlockItemType' MUST use the 'escape' attribute set to 'true'. Facts with any other datatype MUST use the 'escape' attribute set to 'false'"),
                                           modelObject=f)
                     if f.effectiveValue == "0" and f.xValue != 0:
                         modelXbrl.warning("ESEF.2.2.5.roundedValueBelowScaleNotNull",
