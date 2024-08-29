@@ -50,7 +50,6 @@ def errorOnNegativeFact(
     if errorModelFacts:
         yield Validation.error(
             codes=code,
-            conceptLn=conceptLn,
             modelObject=errorModelFacts,
             msg=message,
         )
