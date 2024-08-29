@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import unicodedata
 from collections import defaultdict
+from datetime import datetime
 
 import regex as re
 
@@ -49,6 +50,13 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
         elif len(word) > 1:
             return word[0].upper() + word[1:]
         return word
+
+    esefYear = None
+    for url in val.modelXbrl.namespaceDocs.keys():
+        match = re.match("http[s]?://www.esma.europa.eu/taxonomy/([0-9]{4}-[0-9]{2}-[0-9]{2})/.*", url)
+        if match:
+            date = match.groups()[0]
+            esefYear = datetime.strptime(date, "%Y-%m-%d").year
 
     if not isExtensionDoc:
         pass
@@ -221,7 +229,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
         if domainMembersWrongType:
             if getDisclosureSystemYear(val.modelXbrl) < 2023:
                 xbrlReference322 = "http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd"
-            elif getDisclosureSystemYear(val.modelXbrl) == 2023:
+            elif getDisclosureSystemYear(val.modelXbrl) == 2023 or esefYear < 2024:
                 xbrlReference322 = "https://www.xbrl.org/dtr/type/2020-01-21/types.xsd"
             else:
                 xbrlReference322 = "https://www.xbrl.org/dtr/type/2022-03-31/types.xsd"
@@ -297,7 +305,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                 if linkEltName == "calculationLink":
                     val.hasExtensionCal = True
                     linkbasesFound.add(linkEltName)
-                    if getDisclosureSystemYear(val.modelXbrl) >= 2024:
+                    if esefYear >= 2024:
                         for arc in linkElt.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}calculationArc"):
                             if arc.get("{http://www.w3.org/1999/xlink}arcrole") != "https://www.xbrl.org/2023/arcrole/summation-item":
                                 val.modelXbrl.error("ESEF.3.4.1.IncorrectSummationItemArcroleUsed",
