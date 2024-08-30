@@ -379,7 +379,8 @@ def parseRfcDatetime(rfc2822date: str) -> datetime | None:
 
 zipRelativeFilePattern = re.compile(r".*[.]zip[/\\](.*)$")
 def relativeUri(baseUri: str, relativeUri: str) -> str: # return uri relative to this modelDocument uri
-    if isHttpUrl(relativeUri):
+    if ((isAbsolute(relativeUri) or isAbsolute(baseUri)) and
+        (authority(relativeUri) != authority(baseUri))):
         return relativeUri
     # check if base is zip-relative and relativeUri is not
     mBaseUri = zipRelativeFilePattern.match(baseUri)
