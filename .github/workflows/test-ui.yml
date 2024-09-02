@@ -78,7 +78,7 @@ jobs:
 
       - name: Install Python
         if: matrix.build-type == 'source'
-        uses: actions/setup-python@v5.1.1
+        uses: actions/setup-python@v5.2.0
         with:
           cache: 'pip'
           check-latest: true
@@ -118,21 +118,21 @@ jobs:
 
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@v4.3.6
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: logs-${{ matrix.build-type }}
           path: 'c:\temp\testsmedia\*.txt'
       - name: Upload screenshots
         # screenshots are only taken on test failure
         if: failure()
-        uses: actions/upload-artifact@v4.3.6
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: screenshots-${{ matrix.build-type }}
           path: 'c:\temp\testsmedia\*.png'
       - name: Upload videos
         # videos are only saved on test failure
         if: failure()
-        uses: actions/upload-artifact@v4.3.6
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: videos-${{ matrix.build-type }}
           path: 'c:\temp\testsmedia\*.avi'
