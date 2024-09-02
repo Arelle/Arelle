@@ -51,7 +51,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
             return word[0].upper() + word[1:]
         return word
 
-    esefYear = None
+    esefYear = getDisclosureSystemYear(val.modelXbrl) # if the taxonomy isn't recognised, take the disclosure system
     for url in val.modelXbrl.namespaceDocs.keys():
         match = re.match("http[s]?://www.esma.europa.eu/taxonomy/([0-9]{4}-[0-9]{2}-[0-9]{2})/.*", url)
         if match:
