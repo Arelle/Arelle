@@ -164,7 +164,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                         extMonetaryConceptsWithoutBalance.append(modelConcept)
                     widerConcept = widerNarrowerRelSet.fromModelObject(modelConcept)
                     narrowerConcept = widerNarrowerRelSet.toModelObject(modelConcept)
-                    if getDisclosureSystemYear(val.modelXbrl) >= 2024 and (widerConcept and all(modelConcept.baseXbrliType != r.toModelObject.baseXbrliType for r in widerConcept)) or (narrowerConcept and all(modelConcept.baseXbrliType != r.fromModelObject.baseXbrliType for r in narrowerConcept)):
+                    if getDisclosureSystemYear(val.modelXbrl) >= 2024 and ((widerConcept and all(modelConcept.baseXbrliType != r.toModelObject.baseXbrliType for r in widerConcept)) or (narrowerConcept and all(modelConcept.baseXbrliType != r.fromModelObject.baseXbrliType for r in narrowerConcept))):
                         val.modelXbrl.warning("ESEF.1.4.1.differentExtensionDataType",
                                             _("Issuers should anchor their extension elements to ESEF core taxonomy elements sharing the same data type. %(qname)s"),
                                             modelObject=modelConcept, qname=modelConcept.qname)
