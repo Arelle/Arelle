@@ -65,7 +65,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install Python
-        uses: actions/setup-python@v5.1.1
+        uses: actions/setup-python@v5.2.0
         with:
           cache: 'pip'
           check-latest: true
@@ -180,7 +180,7 @@ jobs:
           hdiutil detach "${DEVICE}"
           hdiutil convert dist_dmg/arelle_tmp.dmg -format UDZO -imagekey zlib-level=9 -o ${{ env.DMG_BUILD_ARTIFACT_PATH }}
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4.3.6
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
           if-no-files-found: error
@@ -191,7 +191,7 @@ jobs:
           pytest -s --disable-warnings --all-frozen-builds --download-cache --offline --arelle="build/Arelle.app/Contents/MacOS/arelleCmdLine" tests/integration_tests/scripts/test_scripts.py
       - name: "[Test] Upload test artifacts"
         if: always()
-        uses: actions/upload-artifact@v4.3.6
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: 'macos test logs'
           path: '.test/**/*.logfile.xml'
