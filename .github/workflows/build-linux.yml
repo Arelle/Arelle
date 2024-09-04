@@ -53,7 +53,7 @@ permissions: {}
 
 jobs:
   build-linux:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       artifact_versioned_name: ${{ steps.define-artifact-names.outputs.artifact_versioned_name }}
       uploaded_artifact_name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}

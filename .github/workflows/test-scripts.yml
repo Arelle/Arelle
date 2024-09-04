@@ -21,8 +21,8 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-12
-          - ubuntu-22.04
+          - macos-14
+          - ubuntu-24.04
           - windows-2022
         python-version:
           - '3.8'

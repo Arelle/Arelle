@@ -23,7 +23,7 @@ jobs:
     environment: release
     permissions:
       contents: write
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: startsWith(github.ref, 'refs/tags/')
 
     # Prefix the build names for S3 and Ali Cloud uploads if testing from a fork.
