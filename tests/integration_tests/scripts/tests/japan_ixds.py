@@ -17,7 +17,7 @@ args = parse_args(
     this_file.stem,
     "Extract and validate Japanese IXDS instance.",
     cache=this_file.with_suffix(".zip").name,
-    cache_version_id='PiPwS2lDqbtid8K3dbUlF0m.KIa5Jm8E',
+    cache_version_id='cYUIJj7jbjR_HgBfkUisSojz5uuELegj',
 )
 arelle_command = args.arelle
 arelle_offline = args.offline
@@ -28,10 +28,10 @@ arelle_log_file2 = prepare_logfile(test_directory, this_file, name="validate")
 report_zip_path = test_directory / 'report.zip'
 report_directory = test_directory / 'report'
 manifest_path = report_directory / "manifest.xml"
-extracted_path = report_directory / "tse-acedjpfr-19990-2023-06-30-01-2023-08-18_extracted.xbrl"
+extracted_path = report_directory / "tse-qcedjpfr-21750-2024-06-30-01-2024-07-26_extracted.xbrl"
 report_zip_url = get_s3_uri(
     'ci/packages/JapaneseXBRLReport.zip',
-    version_id='M7vTPhHhir1rOm7nSMPiCGcbCA0ksObh'
+    version_id='v.H1rasRpwFzqN.dPha4L2D_NCCXLkTv'
 )
 
 print(f"Downloading report: {report_zip_url}")
@@ -69,7 +69,7 @@ run_arelle(
 
 print(f"Checking for log errors: {arelle_log_file1}")
 expected_infos = {
-    regex.compile(r'^\[info:deduplicatedFact] Duplicate fact was excluded'): 33,
+    regex.compile(r'^\[info:deduplicatedFact] Duplicate fact was excluded'): 2,
 }
 errors += validate_log_file(arelle_log_file1, expected_results={"info": expected_infos})
 

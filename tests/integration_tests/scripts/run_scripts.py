@@ -81,7 +81,7 @@ def run_script_options(options: Namespace) -> list[ParameterSet]:
         if options.download_cache:
             download_and_apply_cache(
                 ALL_SCRIPTS_ZIP,
-                version_id='RMN9iin8l7Fqz7E4qfq_1uTuVMc8524U'
+                version_id='1gQswj8EEmCO1eV9OwC0lga34WB03Pb0'
             )
     elif options.all_frozen_builds:
         scripts = [s for s in all_scripts if _for_frozen_build(s)]
