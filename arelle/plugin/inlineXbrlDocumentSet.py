@@ -132,7 +132,14 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
                         referencedDocument = ModelDocumentReference("inlineDocument", instanceElt)
                         referencedDocument.targetId = targetId
                         self.referencesDocument[doc] = referencedDocument
-                        self.ixNS = doc.ixNS
+                        if doc.type == Type.INLINEXBRL:
+                            self.ixNS = doc.ixNS
+                        elif doc.type == Type.UnknownXML:
+                            # Japanese manifests can include reports without tagging which are parsed as unknown XML
+                            for ns in doc.xmlRootElement.nsmap.values():
+                                if ns in XbrlConst.ixbrlAll:
+                                    self.ixNS = ns
+                                    break
         return True
 
 def loadDTS(modelXbrl, modelIxdsDocument):
