@@ -1,1 +1,1 @@
-ixbrl-viewer==1.4.31
+ixbrl-viewer==1.4.33
