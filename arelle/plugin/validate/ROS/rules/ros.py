@@ -358,7 +358,7 @@ def rule_ros19(
     principal_currency_values = set(fact.text for fact in principal_currency_facts)
     if len(principal_currency_values) != 1:
         modelObjects = principal_currency_facts
-        message = _("'%(concept_name)s' must exist and have a single value.  Values found: %(principal_currency_values)s.")
+        message = _("'PrincipalCurrencyUsedInBusinessReport' must exist and have a single value.  Values found: %(principal_currency_values)s.")
     else:
         principal_currency_value = principal_currency_values.pop()
         monetary_facts = list(val.modelXbrl.factsByDatatype(False, qnXbrliMonetaryItemType))
@@ -372,7 +372,7 @@ def rule_ros19(
                             "which must match the functional(majority) unit of the financial statement.")
                 continue
     if message:
-        yield Validation.error(
+        yield Validation.warning(
             "ROS.19",
             message,
             modelObject=modelObjects,
