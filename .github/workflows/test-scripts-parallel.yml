@@ -28,7 +28,7 @@ jobs:
       matrix:
         name: ${{ fromJson(needs.find-tests.outputs.names) }}
         os:
-          - macos-12
+          - macos-14
           - ubuntu-24.04
           - windows-2022
         python-version:
