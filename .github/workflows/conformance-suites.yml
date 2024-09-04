@@ -15,7 +15,7 @@ permissions: {}
 
 jobs:
   find-tests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.build-test-matrix.outputs.matrix }}
     steps:

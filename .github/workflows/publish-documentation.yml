@@ -21,7 +21,7 @@ permissions: {}
 jobs:
   publish-documentation:
     environment: release
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Trigger RTD builds for input branch and any new tags
         run: curl -X POST -d "branches=${{ inputs.branch }}" -d "token=${{ secrets.RTD_TOKEN }}" -d "default_branch=master" "${{ secrets.RTD_WEBHOOK }}"

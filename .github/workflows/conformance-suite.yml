@@ -16,7 +16,7 @@ on:
         required: true
         type: string
       os:
-        default: ubuntu-22.04
+        default: ubuntu-24.04
         description: Operating system to use
         required: true
         type: string
