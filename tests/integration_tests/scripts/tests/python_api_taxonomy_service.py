@@ -48,7 +48,6 @@ options = RuntimeOptions(
     logLevel='DEBUG',
     logRefObjectProperties=True,
     plugins=FERC.__file__,
-    strictOptions=False,
     utrValidate=True,
     validate=True,
 )

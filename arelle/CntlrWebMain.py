@@ -63,7 +63,6 @@ def getRuntimeOptions() -> RuntimeOptions:
     if _RUNTIME_OPTIONS is None:
         raise ValueError(_('_RUNTIME_OPTIONS accessed before it was set.'))
     options = deepcopy(_RUNTIME_OPTIONS)
-    options.strictOptions = False
     return options
 
 def setRuntimeOptions(runtimeOptions: RuntimeOptions) -> None:

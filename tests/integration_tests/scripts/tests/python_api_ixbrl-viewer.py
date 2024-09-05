@@ -63,8 +63,9 @@ with open(samples_zip_path, 'rb') as stream:
             'viewer_feature_review': True,
         },
         plugins='ixbrl-viewer',
-        strictOptions=False,
     )
+    # Plugin default options haven't been applied yet.
+    assert not hasattr(options, 'viewerURL')
     with Session() as session:
         session.run(
             options,
@@ -72,6 +73,9 @@ with open(samples_zip_path, 'rb') as stream:
             logHandler=log_handler,
             logFilters=[log_filter],
         )
+        # Plugin default options were applied.
+        assert hasattr(options, "viewerURL")
+        assert options.viewerURL.endswith("ixbrlviewer.js")
         log_xml = session.get_logs('xml')
 # include end
 
