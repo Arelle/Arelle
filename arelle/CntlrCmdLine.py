@@ -609,11 +609,18 @@ class ParserForDynamicPlugins:
             if not hasattr(self.options, _dest):
                 setattr(self.options, _dest, kwargs.get('default'))
 
-    def add_option_group(self, *args, **kwargs):
-        pass
+    def add_option_group(self, featureGroup, *args, **kwargs):
+        for opt in featureGroup.option_list:
+            if hasattr(opt, "dest"):
+                self.add_option(dest=opt.dest, default=getattr(opt, 'default', None))
 
     def __getattr__(self, name: str) -> None:
         return None
+
+
+def _pluginHasCliOptions(moduleInfo):
+    return "CntlrCmdLine.Options" in moduleInfo["classMethods"]
+
 
 class CntlrCmdLine(Cntlr.Cntlr):
     """
@@ -719,6 +726,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             resetPlugins = False
             savePluginChanges = True
             showPluginModules = False
+            loadPluginOptions = False
             for pluginCmd in options.plugins.split('|'):
                 cmd = pluginCmd.strip()
                 if cmd == "show":
@@ -731,8 +739,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.addToLog(_("Addition of plug-in {0} successful.").format(moduleInfo.get("name")),
                                       messageCode="info", file=moduleInfo.get("moduleURL"))
                         resetPlugins = True
-                        if "CntlrCmdLine.Options" in moduleInfo["classMethods"]:
-                            addedPluginWithCntlrCmdLineOptions = True
+                        if _pluginHasCliOptions(moduleInfo):
+                            loadPluginOptions = True
                     else:
                         self.addToLog(_("Unable to load plug-in."), messageCode="info", file=cmd[1:])
                 elif cmd.startswith("~"):
@@ -755,6 +763,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         moduleInfo = PluginManager.addPluginModule(cmd)
                         if moduleInfo:
                             resetPlugins = True
+                            if _pluginHasCliOptions(moduleInfo):
+                                loadPluginOptions = True
                     if moduleInfo:
                         self.addToLog(_("Activation of plug-in {0} successful, version {1}.").format(moduleInfo.get("name"), moduleInfo.get("version")),
                                       messageCode="info", file=moduleInfo.get("moduleURL"))
@@ -766,11 +776,11 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     PluginManager.reset()
                     if savePluginChanges:
                         PluginManager.save(self)
-                    if options.webserver: # options may need reparsing dynamically
-                        _optionsParser = ParserForDynamicPlugins(options)
-                        # add plug-in options
-                        for optionsExtender in pluginClassMethods("CntlrCmdLine.Options"):
-                            optionsExtender(_optionsParser)
+                if loadPluginOptions:
+                    _optionsParser = ParserForDynamicPlugins(options)
+                    # add plug-in options
+                    for optionsExtender in pluginClassMethods("CntlrCmdLine.Options"):
+                        optionsExtender(_optionsParser)
 
             if showPluginModules:
                 self.addToLog(_("Plug-in modules:"), messageCode="info")
