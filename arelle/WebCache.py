@@ -6,9 +6,10 @@ e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
 
 '''
 from __future__ import annotations
+import contextlib
 
 
-from filelock import FileLock
+from filelock import FileLock, Timeout
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Pattern
 import os, posixpath, sys, time, calendar, io, json, logging, shutil, zlib
@@ -552,12 +553,29 @@ class WebCache:
             retrievingDueToRecheckInterval: bool = False,
             retryCount: int = 5) -> bool:
         before_timestamp = WebCache._getFileTimestamp(filepath)
-        with FileLock(filepath + '.lock', timeout=FILE_LOCK_TIMEOUT):
-            after_timestamp = WebCache._getFileTimestamp(filepath)
-            if after_timestamp > before_timestamp:
-                # Another process just downloaded the file, use it instead.
-                return True
-            return self._downloadFile(url, filepath, retrievingDueToRecheckInterval, retryCount)
+        fileInCache = False
+        lock = FileLock(filepath + '.lock', timeout=FILE_LOCK_TIMEOUT)
+        try:
+            with lock.acquire():
+                after_timestamp = WebCache._getFileTimestamp(filepath)
+                if after_timestamp > before_timestamp:
+                    # Another process just downloaded the file, use it instead.
+                    fileInCache = True
+                else:
+                    fileInCache = self._downloadFile(url, filepath, retrievingDueToRecheckInterval, retryCount)
+            # Clean up the lock file. The lock context manager releases the file lock but does not delete the lock file.
+            # There is a minor race condition when multiple Arelle processes run concurrently. One process may release
+            # its lock, and another may acquire it before the first process can delete the lock file. In this case, the
+            # first process will suppress the OSError and continue, while the second process will skip downloading the
+            # file because the file timestamp has updated, and then remove the lock file before returning.
+            with contextlib.suppress(OSError):
+                os.remove(lock.lock_file)
+        except Timeout:
+            self.cntlr.addToLog(_("Unable to obtain exclusive write access to download file. Delete file and retry: %(lockfile)s"),
+                                messageCode="webCache:cacheFileLocked",
+                                messageArgs={"lockfile": lock.lock_file},
+                                level=logging.ERROR)
+        return fileInCache
 
     def _downloadFile(
             self,
