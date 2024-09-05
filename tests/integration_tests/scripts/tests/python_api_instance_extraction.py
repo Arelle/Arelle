@@ -57,7 +57,6 @@ with io.BytesIO() as extracted_stream:
                 'saveTargetInstance': True,
             },
             plugins='inlineXbrlDocumentSet',
-            strictOptions=False,
         )
         with Session() as session:
             session.run(
@@ -87,7 +86,6 @@ with open(report_zip_path, 'rb') as stream:
         keepOpen=True,
         logFile=str(arelle_log_file2),
         logFormat="[%(messageCode)s] %(message)s - %(file)s",
-        strictOptions=False,
         validate=True,
         validateDuplicateFacts='consistent',
     )

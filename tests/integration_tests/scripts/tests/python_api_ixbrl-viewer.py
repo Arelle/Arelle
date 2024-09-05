@@ -63,7 +63,6 @@ with open(samples_zip_path, 'rb') as stream:
             'viewer_feature_review': True,
         },
         plugins='ixbrl-viewer',
-        strictOptions=False,
     )
     with Session() as session:
         session.run(

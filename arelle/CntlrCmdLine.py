@@ -607,7 +607,7 @@ class ParserForDynamicPlugins:
         if 'dest' in kwargs:
             _dest = kwargs['dest']
             if not hasattr(self.options, _dest):
-                setattr(self.options, _dest, kwargs.get('default',None))
+                setattr(self.options, _dest, kwargs.get('default'))
 
     def add_option_group(self, *args, **kwargs):
         pass

@@ -57,7 +57,6 @@ options = RuntimeOptions(
     logFormat="[%(messageCode)s] %(message)s - %(file)s",
     packages=package_paths,
     plugins='validate/ESEF',
-    strictOptions=False,
     validate=True,
 )
 target_qname = qname('https://xbrl.ifrs.org/taxonomy/2022-03-24/ifrs-full', 'Equity')

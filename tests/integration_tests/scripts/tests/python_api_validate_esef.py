@@ -56,7 +56,6 @@ options = RuntimeOptions(
     logFormat="[%(messageCode)s] %(message)s - %(file)s",
     packages=package_paths,
     plugins='validate/ESEF',
-    strictOptions=False,
     validate=True,
 )
 with Session() as session:
