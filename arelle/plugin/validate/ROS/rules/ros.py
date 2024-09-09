@@ -351,14 +351,15 @@ def rule_ros19(
     ROS: Rule 19:PrincipalCurrencyUsedInBusinessReport must exist and its value must match the unit
     used for the majority of monetary facts.
     """
-    message: str | None = None
-    principal_currency_value: str | None = None
-    modelObjects: set | None = None
     principal_currency_facts = val.modelXbrl.factsByLocalName.get(PRINCIPAL_CURRENCY, set())
     principal_currency_values = set(fact.text for fact in principal_currency_facts)
     if len(principal_currency_values) != 1:
-        modelObjects = principal_currency_facts
-        message = _("'PrincipalCurrencyUsedInBusinessReport' must exist and have a single value.  Values found: %(principal_currency_values)s.")
+        yield Validation.error(
+            "ROS.19",
+            _("'PrincipalCurrencyUsedInBusinessReport' must exist and have a single value.  Values found: %(principal_currency_values)s."),
+            modelObject=principal_currency_facts,
+            principal_currency_values=principal_currency_values,
+        )
     else:
         principal_currency_value = principal_currency_values.pop()
         monetary_facts = list(val.modelXbrl.factsByDatatype(False, qnXbrliMonetaryItemType))
@@ -367,14 +368,11 @@ def rule_ros19(
         principal_currency_value_count = unit_counts[principal_currency_value]
         for unit, count in unit_counts.items():
             if count > principal_currency_value_count:
-                modelObjects = principal_currency_facts
-                message = _("'PrincipalCurrencyUsedInBusinessReport' has a value of %(principal_currency_value)s, "
-                            "which must match the functional(majority) unit of the financial statement.")
-                continue
-    if message:
-        yield Validation.warning(
-            "ROS.19",
-            message,
-            modelObject=modelObjects,
-            principal_currency_value=principal_currency_value
-        )
+                yield Validation.warning(
+                    "ROS.19",
+                    _("'PrincipalCurrencyUsedInBusinessReport' has a value of %(principal_currency_value)s, "
+                      "which must match the functional(majority) unit of the financial statement."),
+                    modelObject=principal_currency_facts,
+                    principal_currency_value=principal_currency_value,
+                )
+                break
