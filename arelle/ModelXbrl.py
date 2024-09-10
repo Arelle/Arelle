@@ -444,7 +444,7 @@ class ModelXbrl:
         return None
 
     def roleUriTitle(self, roleURI: str) -> str:
-        return re.sub(r"([A-Z])", r" \1", os.path.basename(roleURI)).title()
+        return re.sub(r"(?!^)[A-Z]", r" \g<0>", os.path.basename(roleURI)).title()
 
     def roleTypeDefinition(self, roleURI: str, lang: str | None = None) -> str:
         modelRoles  = self.roleTypes.get(roleURI, ())
