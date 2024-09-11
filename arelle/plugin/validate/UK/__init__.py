@@ -15,6 +15,7 @@ from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue, insignificant
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import xbrli, qnXbrliXbrl
 import regex as re
+import tinycss2.ast
 from collections import defaultdict
 
 from .ValidateUK import ValidateUK
@@ -22,8 +23,18 @@ from .ValidateUK import ValidateUK
 FRC_URL_DOMAIN = "http://xbrl.frc.org.uk/"
 memNameNumPattern = re.compile(r"^([A-Za-z-]+)([0-9]+)$")
 compTxmyNamespacePattern = re.compile(r"http://www.govtalk.gov.uk/uk/fr/tax/uk-hmrc-ct/[0-9-]{10}")
-# capture background-image or list-style-image with URL function
-styleImgUrlPattern = re.compile(r"[a-z]+-image:\s*url[(][^)]+[)]")
+IMG_URL_CSS_PROPERTIES = frozenset([
+    "background", "background-image",
+    "border-image", "border-image-source",
+    "clip-path",
+    "content",
+    "cursor",
+    "filter",
+    "list-style", "list-style-image",
+    "mask-border",
+    "mask", "mask-image",
+    "shape-outside",
+])
 EMPTYDICT = {}
 _6_APR_2008 = dateTime("2008-04-06", type=DATE)
 
@@ -443,15 +454,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                         _("Image scope must be base-64 encoded string (starting with data:image/*;base64), *=gif, jpeg or png.  src disallowed: %(src)s."),
                         modelObject=elt, src=attrValue[:128])
         for elt in rootElt.iterdescendants(tag="{http://www.w3.org/1999/xhtml}style"):
-            if elt.text and styleImgUrlPattern.match(elt.text):
-                modelXbrl.error("HMRC.SG.3.8",
-                    _("Style element has disallowed image reference: %(styleImage)s."),
-                    modelObject=elt, styleImage=styleImgUrlPattern.match(elt.text).group(1))
+            _validateScriptElement(elt, modelXbrl)
         for elt in rootElt.xpath("//xhtml:*[@style]", namespaces={"xhtml": "http://www.w3.org/1999/xhtml"}):
-            for match in styleImgUrlPattern.findall(elt.get("style")):
-                modelXbrl.error("HMRC.SG.3.8",
-                    _("Element %(elt)s style attribute has disallowed image reference: %(styleImage)s."),
-                    modelObject=elt, elt=elt.tag.rpartition("}")[2], styleImage=match)
+            _validateStyleAttribute(elt, modelXbrl)
+
     hmrc = ValidateUK(modelXbrl)
     if val.txmyType != "charities":
         hmrc.validate()
@@ -460,6 +466,66 @@ def validateXbrlFinally(val, *args, **kwargs):
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
+
+
+def _validateScriptElement(elt, modelXbrl):
+    cssElements = tinycss2.parse_stylesheet(elt.text)
+    for css_element in cssElements:
+        if isinstance(css_element, tinycss2.ast.QualifiedRule):
+            cssProperty = None
+            for elem in css_element.content:
+                if isinstance(elem, tinycss2.ast.IdentToken):
+                    cssProperty = elem.lower_value
+                elif _isExternalImageUrl(cssProperty, elem):
+                        modelXbrl.error(
+                            "HMRC.SG.3.8",
+                            _("Style element has disallowed image reference: %(styleImage)s."),
+                            modelObject=elt,
+                            styleImage=elem.arguments[0].value
+                        )
+                        return
+        elif isinstance(css_element, tinycss2.ast.ParseError):
+            modelXbrl.warning(
+                "ix.CssParsingError",
+                _("The style element contains erroneous CSS: %(parseError)s"),
+                modelObject=elt,
+                parseError=css_element.message,
+            )
+            return
+
+
+def _validateStyleAttribute(elt, modelXbrl):
+    styleValue = elt.get("style", "")
+    for declaration in tinycss2.parse_blocks_contents(styleValue):
+        if isinstance(declaration, tinycss2.ast.Declaration):
+            for val in declaration.value:
+                if _isExternalImageUrl(declaration.lower_name, val):
+                    modelXbrl.error(
+                        "HMRC.SG.3.8",
+                        _("Element %(elt)s style attribute has disallowed image reference: %(styleImage)s."),
+                        modelObject=elt,
+                        elt=elt.tag.rpartition("}")[2],
+                        styleImage=val.arguments[0].value,
+                    )
+                    return
+        elif isinstance(declaration, tinycss2.ast.ParseError):
+            modelXbrl.warning(
+                "ix.CssParsingError",
+                _("The style attribute contains erroneous CSS declaration \"%(styleContent)s\": %(parseError)s"),
+                modelObject=elt,
+                parseError=declaration.message,
+                styleContent=styleValue,
+            )
+            return
+
+
+def _isExternalImageUrl(cssProperty, elem):
+    return (
+        cssProperty in IMG_URL_CSS_PROPERTIES and
+        isinstance(elem, tinycss2.ast.FunctionBlock) and
+        elem.lower_name == "url" and
+        any(not arg.value.startswith("data:") for arg in elem.arguments)
+    )
 
 
 class GDV:
