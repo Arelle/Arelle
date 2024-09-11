@@ -11,7 +11,7 @@ from math import isnan
 from typing import Any, List, cast
 
 import regex as re
-import tinycss2  # type: ignore[import-untyped]
+import tinycss2.ast  # type: ignore[import-untyped]
 from lxml.etree import EntityBase, _Comment, _ElementTree, _ProcessingInstruction
 
 from arelle import LeiUtil, ModelDocument, XbrlConst
@@ -490,7 +490,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     hiddenFactRefMatch = styleIxHiddenPattern.match(styleValue)
 
                     if styleValue:
-                        for declaration in tinycss2.parse_declaration_list(styleValue):
+                        for declaration in tinycss2.parse_blocks_contents(styleValue):
                             if isinstance(declaration, tinycss2.ast.Declaration):
                                 validateCssUrlContent(declaration.value, ixElt.modelDocument.baseForElement(ixElt),
                                                       modelXbrl, val, ixElt, contentOtherThanXHTMLGuidance)
