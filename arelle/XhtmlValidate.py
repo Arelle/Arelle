@@ -110,6 +110,6 @@ def resolveHtmlUri(elt, name, value):
     if elt.localName == "object" and name in ("classid", "data", "archiveListElement") and elt.get("codebase"):
         base = elt.get("codebase") + "/"
     else:
-        base = getattr(elt.modelDocument, "htmlBase") # None if no htmlBase, empty string if it's not set
+        base = getattr(elt.modelDocument, "htmlBase", "") # None if no htmlBase, empty string if it's not set
     _uri = urljoin(base, value)
     return _uri
