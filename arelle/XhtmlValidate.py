@@ -7,7 +7,8 @@ from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateFilingText, UrlUtil
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ModelObject import ModelObject
 from lxml import etree
-import os, posixpath
+import os
+from urllib.parse import urljoin
 
 htmlEltUriAttrs = { # attributes with URI content (for relative correction and %20 canonicalization
     "a": {"href"},
@@ -106,24 +107,9 @@ def containsNamespacedElements(elt: etree.ElementBase, namespace: str) -> bool:
 def resolveHtmlUri(elt, name, value):
     if name == "archive": # URILIST
         return " ".join(resolveHtmlUri(elt, "archiveListElement", v) for v in value.split(" "))
-    if not UrlUtil.isAbsolute(value):
-        if elt.localName == "object" and name in ("classid", "data", "archiveListElement") and elt.get("codebase"):
-            base = elt.get("codebase") + "/"
-        else:
-            base = getattr(elt.modelDocument, "htmlBase") # None if no htmlBase, empty string if it's not set
-        if base:
-            if value.startswith("/"): # add to authority
-                value = UrlUtil.authority(base) + value
-            elif value.startswith("#"): # add anchor to base document
-                value = base + value
-            else:
-                value = os.path.dirname(base) + "/" + value
-    # canonicalize ../ and ./
-    scheme, sep, pathpart = value.rpartition("://")
-    if sep:
-        pathpart = pathpart.replace('\\','/')
-        endingSep = '/' if pathpart[-1] == '/' else ''  # normpath drops ending directory separator
-        _uri = scheme + "://" + posixpath.normpath(pathpart) + endingSep
+    if elt.localName == "object" and name in ("classid", "data", "archiveListElement") and elt.get("codebase"):
+        base = elt.get("codebase") + "/"
     else:
-        _uri = posixpath.normpath(value)
-    return _uri # .replace(" ", "%20")  requirement for this is not yet clear
+        base = getattr(elt.modelDocument, "htmlBase") # None if no htmlBase, empty string if it's not set
+    _uri = urljoin(base, value)
+    return _uri
