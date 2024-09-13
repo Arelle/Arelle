@@ -88,7 +88,7 @@ options = {
     }
 }
 
-if os.path.exists("arelle/plugin/EdgarRenderer"):
+if os.path.exists("arelle/plugin/EDGAR"):
     includeLibs.append("cherrypy")
     includeLibs.append("dateutil")
     includeLibs.append("dateutil.relativedelta")

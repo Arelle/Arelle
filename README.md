@@ -15,13 +15,14 @@
   - [Features](#features)
   - [Need Support?](#need-support)
     - [Arelle Within Other Products](#arelle-within-other-products)
-    - [EdgarRenderer or EFM Validations](#edgarrenderer-or-efm-validations)
+    - [EDGAR or EFM Validations](#edgar-or-efm-validations)
     - [Installing or Running Arelle](#installing-or-running-arelle)
     - [Bug Report or Feature Request](#bug-report-or-feature-request)
     - [Security Vulnerabilities](#security-vulnerabilities)
     - [How-To and General XBRL Questions](#how-to-and-general-xbrl-questions)
     - [Email](#email)
   - [How To Contribute](#how-to-contribute)
+  - [👥 Contributors](#-contributors)
   - [License](#license)
 
 ## Description
@@ -42,19 +43,19 @@ Need help with Arelle? Go check out [our documentation][read-the-docs].
 
 - Fully-featured XBRL processor with GUI, CLI, Python API and Web Service API.
 - Support for the XBRL Standard, including:
-    - XBRL v2.1 and XBRL Dimensions v1.0
-    - XBRL Formula v1.0
-    - Taxonomy Packages v1.0
-    - xBRL-JSON v1.0 and xBRL-CSV v1.0
-    - Inline XBRL v1.1
-    - Units Registry v1.0
+  - XBRL v2.1 and XBRL Dimensions v1.0
+  - XBRL Formula v1.0
+  - Taxonomy Packages v1.0
+  - xBRL-JSON v1.0 and xBRL-CSV v1.0
+  - Inline XBRL v1.1
+  - Units Registry v1.0
 - Certified by XBRL International as a [Validating Processor][certification].
 - Support for filing programme validation rules:
-    - Edgar Filer Manual validation (US SEC)
-    - ESEF Reporting Manual (EU)
-    - HMRC (UK)
-    - CIPC (South Africa)
-    - FERC (US Federal Energy Regulatory Commission)
+  - Edgar Filer Manual validation (US SEC)
+  - ESEF Reporting Manual (EU)
+  - HMRC (UK)
+  - CIPC (South Africa)
+  - FERC (US Federal Energy Regulatory Commission)
 - Integrated support for [Arelle Inline XBRL Viewer][viewer].
 - Extensible plugin architecture.
 - Support for XF text-based Formula and XULE validation rules.
@@ -88,10 +89,10 @@ contact the developer of that tool for support or first verify that you have the
 same issue when using Arelle directly. Most issues in these situations are caused
 by the tool using an old version of Arelle or not running a valid command.
 
-### EdgarRenderer or EFM Validations
+### EDGAR or EFM Validations
 
-The SEC develops and maintains the EdgarRenderer and EFM validation plugins. Please
-report issues with these plugins directly to the SEC (<StructuredData@sec.gov>).
+The SEC develops and maintains the EDGAR plugins. Please report issues with these
+plugins directly to the SEC (<StructuredData@sec.gov>).
 
 ### Installing or Running Arelle
 
@@ -147,8 +148,6 @@ Interested in contributing to Arelle? Awesome! Make sure to review our
 
 [contribution guidelines]: https://arelle.readthedocs.io/en/latest/contributing.html
 
-
-
 ## 👥 Contributors
 
 <div align="center">
@@ -157,8 +156,6 @@ Interested in contributing to Arelle? Awesome! Make sure to review our
   </a>
   <p>Join our community and become a contributor today! 🚀 </p>
 </div>
-
-
 
 ## License
 

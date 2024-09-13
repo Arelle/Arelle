@@ -24,7 +24,7 @@ for consensus.
 
 ## Why Are Concept Details Missing From the Viewer?
 
-Concept details missing from the Arelle ixbrl-viewer or EdgarRenderer? Check the
+Concept details missing from the Arelle ixbrl-viewer or Edgar Renderer? Check the
 Arelle log for download errors. If Arelle can't download the referenced taxonomy
 and schemas that define those concept details the viewers will fail to render them.
 

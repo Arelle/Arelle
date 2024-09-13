@@ -11,7 +11,7 @@ The Arelle distribution builds are self contained bundles that provide an execut
 and include the Arelle source code along with its dependencies and a Python runtime
 ready to run out of the box. These distributions include all of the [plugins in the
 Arelle repo][arelle-plugins], along with the [Arelle ixbrl-viewer][arelle-ixbrl-viewer],
-the [SEC EdgarRenderer][edgarrenderer], and [XULE][xule].
+the [SEC EDGAR][edgar], and [XULE][xule].
 
 Distributions are provided for Windows, macOS, and Linux and can be downloaded from
 the [Arelle website][arelle-download-page] and [GitHub release page][github-latest-release].
@@ -19,7 +19,7 @@ the [Arelle website][arelle-download-page] and [GitHub release page][github-late
 [arelle-download-page]: https://arelle.org/arelle/pub/
 [arelle-ixbrl-viewer]: https://github.com/Arelle/ixbrl-viewer
 [arelle-plugins]: https://github.com/Arelle/Arelle/tree/master/arelle/plugin
-[edgarrenderer]: https://github.com/Arelle/EdgarRenderer
+[edgar]: https://github.com/Arelle/EDGAR
 [github-latest-release]: https://github.com/Arelle/Arelle/releases/latest
 [xule]: https://github.com/xbrlus/xule
 
@@ -68,8 +68,8 @@ and use cases.
 
 - Crypto (security plugin dependencies)
 - DB (database plugin dependencies)
-- EFM (EdgarRenderer plugin dependencies - does not include the EdgarRenderer,
-  just the dependencies required to run it)
+- EFM (EDGAR dependencies - does not include the EDGAR plugins,
+  just the dependencies required to run them)
 - ObjectMaker (ObjectMaker plugin dependencies)
 - WebServer (dependencies for running the Arelle web server)
 

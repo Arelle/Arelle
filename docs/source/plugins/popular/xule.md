@@ -24,7 +24,7 @@ For all available options, refer to the [project repo](https://github.com/xbrlus
 - **Run XULE SEC DQC validations**:
 
   ```bash
-  python arelleCmdLine.py --plugins "validate/DQC|transforms/SEC" --validate --file filing-documents.zip
+  python arelleCmdLine.py --plugins "validate/DQC|EDGAR/transforms" --validate --file filing-documents.zip
   ```
 
 - **Run XULE ESEF DQC validations**:

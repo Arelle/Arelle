@@ -18,7 +18,7 @@ directory chosen by the Save Dialog.
 This plug-in imports the following plug-ins:
   saveLoadableOIM to save the xBRL-JSON instances
   inlineXbrlDocumentSet for multi-doc or multi-IXDS filings
-  validate/EFM for isolation of multi-IXDS filings into primary and supplemental modelXbrl objects
+  EDGAR/validate for isolation of multi-IXDS filings into primary and supplemental modelXbrl objects
 '''
 
 import os
@@ -90,7 +90,7 @@ __pluginInfo__ = {
     'license': 'Apache-2',
     'author': authorLabel,
     'copyright': copyrightLabel,
-    'import': ('saveLoadableOIM', 'inlineXbrlDocumentSet', 'validate/EFM'), # import dependent modules
+    'import': ('saveLoadableOIM', 'inlineXbrlDocumentSet', 'EDGAR/validate'), # import dependent modules
     # classes of mount points (required)
     'RssFeed.Menu.Filing': rssFeedFilingMenuExtender
 }

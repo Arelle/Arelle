@@ -64,7 +64,7 @@ def isInEsefTaxonomy(val: ValidateXbrl, modelObject: ModelObject | None) -> bool
 
 
 def resourcesFilePath(modelManager: ModelManager, fileName: str) -> str:
-    # resourcesDir can be in cache dir (production) or in validate/EFM/resources (for development)
+    # resourcesDir can be in cache dir (production) or in validate/ESEF/resources (for development)
     _resourcesDir = os.path.join( os.path.dirname(__file__), "resources") # dev/testing location
 
     if not os.path.isabs(_resourcesDir):

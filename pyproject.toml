@@ -106,14 +106,12 @@ enable_error_code = "ignore-without-code"
 python_version = "3.12"
 show_error_codes = true
 strict = true
-# EFM-htm is an invalid Python package name
 # Others are not included in repo, but commonly copied into working directory by devs.
 exclude = '''(?x)(
-    ^arelle/plugin/EdgarRenderer
+    ^arelle/plugin/EDGAR
     | ^arelle/plugin/FERC
     | ^arelle/plugin/iXBRLViewerPlugin
     | ^arelle/plugin/validate/DQC.py
-    | ^arelle/plugin/validate/EFM-htm
     | ^arelle/plugin/validate/eforms.py
     | ^arelle/plugin/validate/ESEF-DQC.py
     | ^arelle/plugin/xendr
@@ -328,12 +326,10 @@ module = [
     'arelle.plugin.security.cryptAES_CBC',
     'arelle.plugin.security.cryptAES_EAX',
     'arelle.plugin.streamingExtensions',
-    'arelle.plugin.transforms.SEC.*',
     'arelle.plugin.transforms.tester',
     'arelle.plugin.unpackSecEisFile',
     'arelle.plugin.validate.CIPC',
     'arelle.plugin.validate.EBA',
-    'arelle.plugin.validate.EFM.*',
     'arelle.plugin.validate.FERC',
     'arelle.plugin.validate.ROS.*',
     'arelle.plugin.validate.UK',

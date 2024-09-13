@@ -559,7 +559,7 @@ def runSaveTargetDocumentMenuCommand(
         sourceZipStream: BinaryIO | None = None,
         responseZipStream: BinaryIO | None = None,
         deduplicationType: DeduplicationType | None = None):
-    # skip if another class handles saving (e.g., EdgarRenderer)
+    # skip if another class handles saving (e.g., EDGAR/render)
     if saveTargetInstanceOverriden(deduplicationType):
         return
     # save DTS menu item has been invoked
@@ -740,7 +740,7 @@ def saveTargetInstanceOverriden(deduplicationType: DeduplicationType | None) -> 
 def commandLineXbrlRun(cntlr, options: RuntimeOptions, modelXbrl, *args, **kwargs):
     deduplicationTypeArg = getattr(options, "deduplicateIxbrlFacts", None)
     deduplicationType = None if deduplicationTypeArg is None else DeduplicationType(deduplicationTypeArg)
-    # skip if another class handles saving (e.g., EdgarRenderer)
+    # skip if another class handles saving (e.g., EDGAR/render)
     if saveTargetInstanceOverriden(deduplicationType):
         return
     # extend XBRL-loaded run processing for this option

@@ -30,7 +30,7 @@ body:
     id: cli-command
     attributes:
       label: If running from the command line, what command did you run?
-      placeholder: e.g. `python -m arelleCmdLine --plugins validate/EFM --validate --file xbrl.zip`
+      placeholder: e.g. `python -m arelleCmdLine --plugins EDGAR/validate --validate --file xbrl.zip`
   - type: dropdown
     id: interface
     attributes:

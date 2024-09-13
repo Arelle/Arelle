@@ -1665,7 +1665,7 @@ def main():
                             os.environ[_tcltk.upper() + "_LIBRARY"] = _tcltkDir
                             break
                         _d = os.path.dirname(_d)
-        elif sys.platform == 'win32': # windows requires fake stdout/stderr because no write/flush (e.g., EdgarRenderer LocalViewer pybottle)
+        elif sys.platform == 'win32': # windows requires fake stdout/stderr because no write/flush (e.g., EDGAR/render LocalViewer pybottle)
             class dummyFrozenStream:
                 def __init__(self): pass
                 def write(self,data): pass

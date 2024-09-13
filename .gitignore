@@ -13,8 +13,12 @@ Pipfile.lock
 __pycache__
 arelle-release*
 arelle/_version.py
-arelle/plugin/EdgarRenderer
-arelle/plugin/EdgarRendererWithBuiltinHtml
+arelle/cache/
+arelle/cachedUrlCheckTimes.json
+arelle/config.json
+arelle/plugins.json
+arelle/plugin/EdgarRenderer*
+arelle/plugin/EDGAR*
 arelle/plugin/FERC
 arelle/plugin/Xince.py
 arelle/plugin/iXBRLViewerPlugin
@@ -56,3 +60,9 @@ tests/resources/packages/
 # Visual Studio
 .vs/
 .test
+
+# Eclipse
+/.project
+.settings
+/.classpath
+/.pydevproject
