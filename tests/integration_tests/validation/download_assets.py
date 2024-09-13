@@ -151,7 +151,7 @@ def verify_asset(asset: ConformanceSuiteAssetConfig) -> None:
     Raises an `AssertionError` on failure, otherwise logs a message.
     """
     assert asset.full_local_path.exists(), \
-        f'Missing asset: {asset}'
+        f'Missing asset {asset} at path {asset.full_local_path}'
     if asset.full_entry_point_root:
         if zipfile.is_zipfile(asset.full_entry_point_root):
             with zipfile.ZipFile(asset.full_entry_point_root, 'r') as zip_ref:
