@@ -146,7 +146,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     checkFilingDTS(val, modelXbrl.modelDocument, esefNotesConcepts, [], ifrsNses=_ifrsNses)
     modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
 
-    if getDisclosureSystemYear(modelXbrl) >= 2023:
+    esefDisclosureSystemYear = getDisclosureSystemYear(modelXbrl)
+    if esefDisclosureSystemYear >= 2023:
         if val.unconsolidated and modelXbrl.fileSource.dir:
             instanceNumber = 0
             for file in modelXbrl.fileSource.dir:
@@ -283,7 +284,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 modelObject=doc, doctype=docinfo.doctype)
 
         reportIncorrectlyPlacedInPackageRef = "https://www.xbrl.org/Specification/report-package/CR-2023-05-03/report-package-CR-2023-05-03.html"
-        if getDisclosureSystemYear(modelXbrl) < 2023:
+        if esefDisclosureSystemYear < 2023:
             reportIncorrectlyPlacedInPackageRef = "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14.html"
 
         if len(ixdsDocDirs) > 1 and val.consolidated:
@@ -411,7 +412,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                     modelObject=elt, qname=elt.qname)
                         elif any(character in elt.stringValue for character in ['&lt;', '&amp;', '&', '<']):
                             if not (hasattr(elt, 'attrib')) or ('escape' not in elt.attrib or elt.attrib.get('escape').lower() != 'true'):
-                                modelXbrl.error("ESEF.2.2.6.escapedHTMLUsedInBlockTagWithSpecialCharacters" if getDisclosureSystemYear(modelXbrl) < 2023 else "ESEF.2.2.7.escapedHTMLUsedInBlockTagWithSpecialCharacters",
+                                modelXbrl.error("ESEF.2.2.6.escapedHTMLUsedInBlockTagWithSpecialCharacters" if esefDisclosureSystemYear < 2023 else "ESEF.2.2.7.escapedHTMLUsedInBlockTagWithSpecialCharacters",
                                         _("A text block containing '&' or '<' character MUST have an 'escape' attribute: %(qname)s."),
                                         modelObject=elt, qname=elt.qname)
                         # Check that continuation elements are in the order of html text as rendered to user
@@ -534,6 +535,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         contextsWithDisallowedOCEcontent = []
         contextsWithPeriodTime: list[ModelContext] = []
         contextsWithPeriodTimeZone: list[ModelContext] = []
+        contextsWithWrongInstantDate: list[ModelContext] = []
         contextIdentifiers = defaultdict(list)
         nonStandardTypedDimensions: dict[Any, Any] = defaultdict(set)
         for context in modelXbrl.contexts.values():
@@ -548,6 +550,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         contextsWithPeriodTime.append(context)
                     if m.group(3):
                         contextsWithPeriodTimeZone.append(context)
+
+            if esefDisclosureSystemYear >= 2024 and context.instantDate and context.instantDate.day == 1 and context.instantDate.month == 1:
+                contextsWithWrongInstantDate.append(context)
             for elt in context.iterdescendants("{http://www.xbrl.org/2003/instance}segment"):
                 contextsWithDisallowedOCEs.append(context)
                 break
@@ -597,6 +602,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             modelXbrl.error("ESEF.2.1.2.periodWithTimeZone",
                 _("The xbrli:startDate, xbrli:endDate and xbrli:instant elements MUST identify periods using whole days (i.e. specified without a time zone): %(contextIds)s"),
                 modelObject=contextsWithPeriodTimeZone, contextIds=", ".join(c.id for c in contextsWithPeriodTimeZone if c.id))
+        if contextsWithWrongInstantDate:
+            for context in contextsWithWrongInstantDate:
+                modelXbrl.error("ESEF.2.1.2.inappropriateInstantDate",
+                                _("Instant date %(actualValue)s in context %(contextID)s shall be replaced by %(expectedValue)s to ensure a better comparability between the facts."),
+                                modelObject=contextsWithWrongInstantDate, actualValue=context.instantDate, expectedValue=context.instantDate - timedelta(days=1), contextID=context.id)
 
         # identify unique contexts and units
         mapContext = {}
@@ -650,7 +660,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             if qn in mandatory:
                 reportedMandatory.add(qn)
             for f in facts:
-                if getDisclosureSystemYear(modelXbrl) >= 2024:
+                if esefDisclosureSystemYear >= 2024:
                     if not f.id:
                         factsMissingId.append(f)
                     escaped = f.get("escape") in ("true", "1")
@@ -662,12 +672,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         modelXbrl.warning("ESEF.2.2.5.roundedValueBelowScaleNotNull",
                                           _("A value that has been rounded and is below the scale should show a value of zero. It has been found to have the value %(value)s - fact %(conceptName)s"),
                                           modelObject=f, value=f.value, conceptName=f.concept.qname)
-                    if f.concept.periodType == "instant":
-                        if f.context.instantDate.day == 1 and f.context.instantDate.month == 1:
-                            modelXbrl.error("ESEF.2.1.2.inappropriateInstantDate",
-                                              _("Instant date %(actualValue)s in context %(contextID)s shall be replaced by %(expectedValue)s to ensure a better comparability between the facts."),
-                                              modelObject=f, actualValue=f.context.instantDate, expectedValue=f.context.instantDate - timedelta(days=1), contextID=f.context.id)
-                            pass
                 if f.precision is not None:
                     precisionFacts.add(f)
                 if f.isNumeric and f.concept is not None and getattr(f, "xValid", 0) >= VALID:
@@ -699,7 +703,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         #    conceptsUsed.add(dim.typedMember)
                 '''
 
-        if getDisclosureSystemYear(modelXbrl) >= 2024 and factsMissingId:
+        if esefDisclosureSystemYear >= 2024 and factsMissingId:
             modelXbrl.warning("ESEF.2.2.8.missingFactID",
                               _("All facts should have a unique identifier. Facts %(elements)s have no identifier."),
                               modelObject=f, elements=", ".join([str(f.qname) for f in factsMissingId]), )
