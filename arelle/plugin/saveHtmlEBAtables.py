@@ -70,7 +70,6 @@ table {background:#fff}
                 viewRenderedGrid(dts,
                                  tblFile,
                                  lang=lang,
-                                 sourceView=View(modelTable, False, False, True),
                                  cssExtras=tblCssExtras)
 
                 # generaate menu entry
