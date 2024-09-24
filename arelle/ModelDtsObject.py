@@ -756,10 +756,10 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     def isEnumeration2Item(self):
         """(bool) -- True if derived from enum2 item types"""
         try:
-            return self._isEnum
+            return self._isEnum2
         except AttributeError:
-            self._isEnum = self.instanceOfType(XbrlConst.qnEnumeration2ItemTypes)
-            return self._isEnum
+            self._isEnum2 = self.instanceOfType(XbrlConst.qnEnumeration2ItemTypes)
+            return self._isEnum2
 
     @property
     def enumDomainQname(self):
