@@ -203,7 +203,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             modelXbrl.error("CIPC.MandatoryElementInHiddenSection",
                             _("These mandatory concepts can not appear in a hidden section: %(facts)s."),
                             modelObject=foundHiddenFacts,
-                            facts=", ".join(sorted(set(str(fact.qname.localName) for fact in foundHiddenFacts)))
+                            facts=", ".join(sorted(set(str(fact.qname) for fact in foundHiddenFacts)))
                             )
 
         ''' checked by CIPC formula
