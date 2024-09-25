@@ -315,7 +315,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                 if linkEltName == "calculationLink":
                     val.hasExtensionCal = True
                     linkbasesFound.add(linkEltName)
-                    if esefTaxonomyYear >= 2024:
+                    if esefDisclosureSystemYear >= 2024:
                         for arc in linkElt.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}calculationArc"):
                             if arc.get("{http://www.w3.org/1999/xlink}arcrole") != "https://www.xbrl.org/2023/arcrole/summation-item":
                                 val.modelXbrl.error("ESEF.3.4.1.IncorrectSummationItemArcroleUsed",
