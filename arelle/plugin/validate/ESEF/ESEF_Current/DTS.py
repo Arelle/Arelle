@@ -168,17 +168,18 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                         widerConcept = widerNarrowerRelSet.fromModelObject(modelConcept)
                         narrowerConcept = widerNarrowerRelSet.toModelObject(modelConcept)
 
-                        widerTypes = set(r.toModelObject.baseXbrliType for r in widerConcept)
-                        narrowerTypes = set(r.fromModelObject.baseXbrliType for r in narrowerConcept)
+                        # Transform the qname to str for the later join()
+                        widerTypes = set(str(r.toModelObject.typeQname) for r in widerConcept)
+                        narrowerTypes = set(str(r.fromModelObject.typeQname) for r in narrowerConcept)
 
-                        if (narrowerTypes and modelConcept.baseXbrliType not in narrowerTypes) or (widerTypes and modelConcept.baseXbrliType not in widerTypes):
+                        if (narrowerTypes and narrowerTypes != {str(modelConcept.typeQname)}) or (widerTypes and widerTypes != {str(modelConcept.typeQname)}):
                             widerNarrowerType = "{} {}".format(
                                 "Wider: {}".format(", ".join(widerTypes)) if widerTypes else "",
                                 "Narrower: {}".format(", ".join(narrowerTypes)) if narrowerTypes else ""
                             )
                             val.modelXbrl.warning("ESEF.1.4.1.differentExtensionDataType",
                                                 _("Issuers should anchor their extension elements to ESEF core taxonomy elements sharing the same data type. Concept: %(qname)s type: %(type)s %(widerNarrowerType)s"),
-                                                modelObject=modelConcept, qname=modelConcept.qname, type=modelConcept.baseXbrliType, widerNarrowerType=widerNarrowerType)
+                                                modelObject=modelConcept, qname=modelConcept.qname, type=modelConcept.typeQname, widerNarrowerType=widerNarrowerType)
 
                     # check all lang's of standard label
                     hasLc3Match = False
