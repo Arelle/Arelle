@@ -58,7 +58,7 @@ _NOT_FOUND = object()
 LoggableValue = Union[str, Dict[Any, Any], List[Any], Set[Any], Tuple[Any, ...]]
 
 
-def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: str | None = None, **kwargs: str) -> ModelXbrl:
+def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: str | None = None, **kwargs: Any) -> ModelXbrl:
     """Each loaded instance, DTS, testcase, testsuite, versioning report, or RSS feed, is represented by an
     instance of a ModelXbrl object. The ModelXbrl object has a collection of ModelDocument objects, each
     representing an XML document (for now, with SQL whenever its time comes). One of the modelDocuments of
