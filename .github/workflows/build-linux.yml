@@ -60,11 +60,11 @@ jobs:
 
     steps:
       - name: Checkout arelle
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.0
         with:
           fetch-depth: 0
       - name: Checkout EDGAR
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.0
         with:
           repository: Arelle/EDGAR
           path: arelle/plugin/EDGAR
@@ -72,7 +72,7 @@ jobs:
       - name: Cleanup EDGAR
         run: rm -rf arelle/plugin/EDGAR/.git
       - name: Checkout XULE
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.0
         with:
           repository: xbrlus/xule
           path: xule
@@ -87,7 +87,7 @@ jobs:
       - name: Docker setup buildx
         uses: docker/setup-buildx-action@v3.6.1
       - name: Docker build
-        uses: docker/build-push-action@v6.7.0
+        uses: docker/build-push-action@v6.9.0
         with:
           build-args: |
             "OPENSSL_VERSION=${{ inputs.openssl_version }}"
