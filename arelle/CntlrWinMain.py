@@ -801,19 +801,17 @@ class CntlrWinMain (Cntlr.Cntlr):
                                         checkIfXmlIsEis=self.modelManager.disclosureSystem and
                                         self.modelManager.disclosureSystem.validationType == "EFM")
             if filesource.isArchive:
-                if not filesource.selection: # or filesource.isRss:
+                if not filesource.selection and not filesource.isReportPackage: # or filesource.isRss:
                     from arelle import DialogOpenArchive
                     filename = DialogOpenArchive.askArchiveFile(self, filesource)
                     if filename and filesource.basefile and not isHttpUrl(filesource.basefile):
                         self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl)
                 filesource.loadTaxonomyPackageMappings() # if a package, load mappings if not loaded yet
-        if filename:
             if not isinstance(filename, (dict, list)): # json objects
-                if importToDTS:
-                    if not isHttpUrl(filename):
+                if not isHttpUrl(filename):
+                    if importToDTS:
                         self.config["importOpenDir"] = os.path.dirname(filename)
-                else:
-                    if not isHttpUrl(filename):
+                    else:
                         self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl if filesource.isArchive else filename)
                 self.updateFileHistory(filename, importToDTS)
             elif len(filename) == 1:
@@ -829,7 +827,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Open"):
                 url = xbrlLoadedMethod(self, url) # runs in GUI thread, allows mapping url, mult return url
             filesource = openFileSource(url,self)
-            if filesource.isArchive and not filesource.selection: # or filesource.isRss:
+            if filesource.isArchive and not filesource.isReportPackage and not filesource.selection: # or filesource.isRss:
                 from arelle import DialogOpenArchive
                 url = DialogOpenArchive.askArchiveFile(self, filesource)
                 self.updateFileHistory(url, False)
@@ -848,6 +846,7 @@ class CntlrWinMain (Cntlr.Cntlr):
 
     def backgroundLoadXbrl(self, filesource, importToDTS, selectTopView):
         startedAt = time.time()
+        loadedModels = []
         try:
             if importToDTS:
                 action = _("imported")
@@ -856,11 +855,28 @@ class CntlrWinMain (Cntlr.Cntlr):
                 if modelXbrl:
                     ModelDocument.load(modelXbrl, filesource.url, isSupplemental=importToDTS)
                     modelXbrl.relationshipSets.clear() # relationships have to be re-cached
+                    loadedModels.append(modelXbrl)
             else:
                 action = _("loaded")
                 profileStat = "load"
-                modelXbrl = self.modelManager.load(filesource, _("views loading"),
-                                                   checkModifiedTime=isHttpUrl(filesource.url)) # check modified time if GUI-loading from web
+                if (reportPackage := filesource.reportPackage) and "_IXDS#?#" not in filesource.url:
+                    for report in reportPackage.reports:
+                        if len(report.fullPathFiles) > 1:
+                            self.addToLog(_("Loading error. Inline document set encountered. Enable 'Inline XBRL Document Set' plug-in and use the Open Inline Doc Set dialog from the file menu to open this filing: {0}").format(filesource.url))
+                            continue
+                        filesource.select(report.fullPathPrimary)
+                        modelXbrl = self.modelManager.load(filesource, _("views loading"))
+                        if modelXbrl:
+                            loadedModels.append(modelXbrl)
+                else:
+                    modelXbrl = self.modelManager.load(
+                        filesource,
+                        _("views loading"),
+                        # check modified time if GUI-loading from web
+                        checkModifiedTime=isHttpUrl(filesource.url),
+                    )
+                    if modelXbrl:
+                        loadedModels.append(modelXbrl)
         except ModelDocument.LoadingException:
             self.showStatus(_("Loading terminated, unrecoverable error"), 15000)
             return
@@ -874,18 +890,22 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.addToLog(msg);
             self.showStatus(_("Loading terminated, unrecoverable error"), 15000)
             return
-        if modelXbrl and modelXbrl.modelDocument:
+        if loadedModels and any(model.modelDocument for model in loadedModels):
             statTime = time.time() - startedAt
             modelXbrl.profileStat(profileStat, statTime)
             self.addToLog(format_string(self.modelManager.locale,
                                         _("%s in %.2f secs"),
                                         (action, statTime)))
-            if modelXbrl.hasTableRendering:
+            modelsWithTableRendering = [model for model in loadedModels if model.hasTableRendering]
+            if modelsWithTableRendering:
                 self.showStatus(_("Initializing table rendering"))
-                RenderingEvaluator.init(modelXbrl)
+                for model in modelsWithTableRendering:
+                    RenderingEvaluator.init(model)
+
             self.showStatus(_("{0}, preparing views").format(action))
             self.waitForUiThreadQueue() # force status update
-            self.uiThreadQueue.put((self.showLoadedXbrl, [modelXbrl, importToDTS, selectTopView]))
+            for modelXbrl in loadedModels:
+                self.uiThreadQueue.put((self.showLoadedXbrl, [modelXbrl, importToDTS, selectTopView]))
         else:
             self.addToLog(format_string(self.modelManager.locale,
                                         _("not successfully %s in %.2f secs"),
