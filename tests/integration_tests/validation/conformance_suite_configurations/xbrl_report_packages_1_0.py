@@ -15,11 +15,21 @@ config = ConformanceSuiteConfig(
             entry_point=Path("report-package-conformance/index.csv"),
         ),
     ],
+    expected_additional_testcase_errors={f"report-package-conformance/index.csv:{s}": val for s, val in {
+        # "Empty" iXBRL docs are missing schema required elements.
+        "V-301-xbri-with-single-ixds": frozenset({"lxml.SCHEMAV_ELEMENT_CONTENT", "ix11.14.1.2:missingResources"}),
+        "V-302-xbri-with-single-html": frozenset({"lxml.SCHEMAV_ELEMENT_CONTENT", "ix11.14.1.2:missingResources"}),
+        "V-303-xbri-with-single-htm": frozenset({"lxml.SCHEMAV_ELEMENT_CONTENT", "ix11.14.1.2:missingResources"}),
+        # Report package references a taxonomy which does not exist.
+        "V-508-xbr-with-no-taxonomy": frozenset({"IOerror", "oime:invalidTaxonomy"}),
+        "V-509-xbr-with-json-in-dot-xhtml-directory": frozenset({"IOerror", "oime:invalidTaxonomy"}),
+        "V-701-zip-with-no-taxonomy": frozenset({"IOerror", "oime:invalidTaxonomy"}),
+    }.items()},
     expected_failure_ids=frozenset(f"report-package-conformance/index.csv:{s}" for s in [
         # 0xx - basic zip structure and package identification tests
         "V-000-invalid-zip",  # rpe:invalidArchiveFormat tpe:invalidArchiveFormat,0,A report package MUST conform to the .ZIP File Format Specification
         # "V-001-valid-taxonomy-package",  # ,0,"Minimal valid taxonomy package (not a report package). If the package has a file extension of .zip and neither [META-INF/reportPackage.json nor reports] exists, the file is treated as a taxonomy package, and further constraints and processing defined by this specification are not applied."
-        # "V-002-invalid-taxonomy-package-metadata",  # tpe:invalidMetaDataFile,0,If a report package contains the path META-INF/taxonomyPackage.xml within the STLD then it MUST be a valid taxonomy package.
+        "V-002-invalid-taxonomy-package-metadata",  # tpe:invalidMetaDataFile,0,If a report package contains the path META-INF/taxonomyPackage.xml within the STLD then it MUST be a valid taxonomy package.
         "V-003-multiple-top-level-directories",  # rpe:invalidDirectoryStructure tpe:invalidDirectoryStructure,0,A report package conforming to this specification MUST contain a single top-level directory
         "V-004-empty-zip",  # rpe:invalidDirectoryStructure tpe:invalidDirectoryStructure,0,A report package conforming to this specification MUST contain a single top-level directory
         "V-005-leading-slash-in-zip-entry",  # rpe:invalidArchiveFormat tpe:invalidArchiveFormat,0,Leading slash is illegal according to the ZIP specficiation
@@ -57,15 +67,6 @@ config = ConformanceSuiteConfig(
         "V-210-xbr-without-reportPackage-json-and-reports",  # rpe:documentTypeFileExtensionMismatch,0,rpe:documentTypeFileExtensionMismatch is ... raised if ... One of the three document type URIs specified in Section 3.4 is used with the incorrect file extension
         "V-211-unsupported-file-extension",  # rpe:unsupportedFileExtension,0,Current report package with unsupported file extension (.xbrx)
 
-        # 3xx - valid.xbri packages
-        # "V-300-xbri-with-single-xhtml",  # ,1,Simple .xbri file with a single .xhtml document
-        # "V-301-xbri-with-single-ixds",  # ,1,.xbri file with multiple .xhtml documents in a single IXDS
-        # "V-302-xbri-with-single-html",  # ,1,Simple .xbri file with a single .html document
-        # "V-303-xbri-with-single-htm",  # ,1,Simple .xbri file with a single .htm document
-        # "V-304-xbri-with-no-taxonomy",  # ,1,.xbri package without a taxonomy
-        # "V-305-xbri-with-xhtml-in-dot-json-directory",  # ,1,.xhtml in reports subdirectory with recognised extension (tricky.json)
-        # "V-306-xbri-with-xhtml-in-dot-xbrl-directory",  # ,1,.xhtml in reports subdirectory with recognised extension (tricky.xbrl)
-
         # 4xx - invalid.xbri packages
         "V-400-xbri-without-reports-directory",  # rpe:missingReportsDirectory,0,A report package MUST contain a directory called reports as a child of the STLD
         "V-401-xbri-with-only-txt-in-reports-directory",  # rpe:missingReport,0,.xbri file without recognised files in the reports directory
@@ -74,16 +75,6 @@ config = ConformanceSuiteConfig(
         "V-404-xbri-with-json-report",  # rpe:incorrectReportType,0,If the report package is an Inline XBRL report package then the contained report MUST be an Inline XBRL Document Set 
         "V-405-xbri-with-xbrl-report",  # rpe:incorrectReportType,0,If the report package is an Inline XBRL report package then the contained report MUST be an Inline XBRL Document Set 
         "V-406-xbri-with-multiple-reports-in-a-subdirectory",  # rpe:multipleReportsInSubdirectory,0,.xbri file with multiple reports in a subdirectory
-
-        # 5xx - valid.xbr packages
-        # "V-502-xbr-with-single-json",  # ,1,.xbr file with a single xBRL-JSON report
-        # "V-503-xbr-with-single-csv",  # ,1,.xbr file with a single xBRL-CSV metadata file
-        # "V-504-xbr-with-single-xbrl",  # ,1,.xbr file with a single xBRL-XML document (.xbrl)
-        # "V-505-xbr-with-single-xbrl-in-subdir",  # ,1,.xbr file with a single xBRL-XML document (.xbrl) in a subdirectory
-        # "V-506-xbr-with-single-json-and-extra-files",  # ,1,".xbr file with a single xBRL-JSON report and files with non-recognised extensions (.txt, .xml)"
-        # "V-507-xbr-with-single-json-with-bom",  # ,1,.xbr file with a single xBRL-JSON report with a byte order mark 
-        "V-508-xbr-with-no-taxonomy",  # ,1,.xbr package without a taxonomy
-        "V-509-xbr-with-json-in-dot-xhtml-directory",  # ,1,.json in reports subdirectory with recognised extension (tricky.xhtml)
 
         # 6xx - invalid.xbr packages
         "V-600-xbr-without-reports-directory",  # rpe:missingReportsDirectory,0,A report package MUST contain a directory called reports as a child of the STLD
@@ -103,10 +94,6 @@ config = ConformanceSuiteConfig(
         "V-615-xbr-with-html-report",  # rpe:incorrectReportType,0,If the report package is a non-Inline XBRL report package then the contained report MUST be either an XBRL v2.1 report or an JSON-rooted report
         "V-616-xbr-with-htm-report",  # rpe:incorrectReportType,0,If the report package is a non-Inline XBRL report package then the contained report MUST be either an XBRL v2.1 report or an JSON-rooted report
         "V-617-xbr-with-multiple-reports-in-a-subdirectory",  # rpe:multipleReportsInSubdirectory,0,.xbr file with multiple reports in a subdirectory
-
-        # 7xx - valid.zip packages
-        # "V-700-zip-with-multiple-reports",  # ,4,.zip package with multiple reports
-        "V-701-zip-with-no-taxonomy",  # ,1,.zip package without a taxonomy
 
         # 8xx - invalid.zip packages
         "V-800-zip-without-reports-directory",  # rpe:missingReportsDirectory,0,A report package MUST contain a directory called reports as a child of the STLD
@@ -136,4 +123,5 @@ config = ConformanceSuiteConfig(
     membership_url="https://www.xbrl.org/join",
     name=PurePath(__file__).stem,
     network_or_cache_required=False,
+    plugins=frozenset(["inlineXbrlDocumentSet"]),
 )

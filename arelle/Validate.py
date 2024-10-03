@@ -20,6 +20,7 @@ from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelTestcaseObject import testcaseVariationsByTarget, ModelTestcaseVariation
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
+from arelle.packages.report import ReportPackageConst
 from arelle.packages.report.DetectReportPackage import isReportPackageExtension
 from arelle.rendering import RenderingEvaluator
 from arelle.XmlUtil import collapseWhitespace, xmlstring
@@ -342,14 +343,9 @@ class Validate:
                 if filesource and not filesource.selection and filesource.isArchive:
                     try:
                         if filesource.isTaxonomyPackage or expectTaxonomyPackage:
-                            _rptPkgIxdsOptions = {}
-                            for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxdsOptions"):
-                                pluginXbrlMethod(self, _rptPkgIxdsOptions)
                             filesource.loadTaxonomyPackageMappings(errors=_errors, expectTaxonomyPackage=expectTaxonomyPackage)
                             filesource.select(None) # must select loadable reports (not the taxonomy package itself)
-                            for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxds"):
-                                filesource.select(pluginXbrlMethod(filesource, **_rptPkgIxdsOptions))
-                        else:
+                        elif not filesource.isReportPackage:
                             from arelle.CntlrCmdLine import filesourceEntrypointFiles
                             entrypoints = filesourceEntrypointFiles(filesource)
                             if entrypoints:
@@ -362,54 +358,84 @@ class Validate:
                             _("Testcase variation validation exception: %(error)s, entry URL: %(instance)s"),
                             modelXbrl=self.modelXbrl, instance=readMeFirstUri, error=err)
                         return [] # don't try to load this entry URL
-                modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
-                                            filesource,
-                                            _("validating"),
-                                            base=baseForElement,
-                                            errorCaptureLevel=errorCaptureLevel,
-                                            ixdsTarget=modelTestcaseVariation.ixdsTarget,
-                                            isLoadable=modelTestcaseVariation.variationDiscoversDTS or filesource.url,
-                                            errors=_errors)
-                loadedModels.append(modelXbrl)
+                _rptPkgIxdsOptions = {}
+                for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxdsOptions"):
+                    pluginXbrlMethod(self, _rptPkgIxdsOptions)
+                if filesource and filesource.isReportPackage and not _rptPkgIxdsOptions:
+                    for report in filesource.reportPackage.reports:
+                        assert isinstance(filesource.basefile, str)
+                        modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
+                                                    report.primary,
+                                                    _("validating"),
+                                                    useFileSource=filesource,
+                                                    base=filesource.basefile + "/",
+                                                    errorCaptureLevel=errorCaptureLevel,
+                                                    ixdsTarget=modelTestcaseVariation.ixdsTarget,
+                                                    errors=_errors)
+                        loadedModels.append(modelXbrl)
+                else:
+                    if _rptPkgIxdsOptions and filesource.isTaxonomyPackage:
+                        # Legacy ESEF conformance suite logic.
+                        for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxds"):
+                                filesource.select(pluginXbrlMethod(filesource, **_rptPkgIxdsOptions))
+                    modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
+                                                filesource,
+                                                _("validating"),
+                                                base=baseForElement,
+                                                errorCaptureLevel=errorCaptureLevel,
+                                                ixdsTarget=modelTestcaseVariation.ixdsTarget,
+                                                isLoadable=modelTestcaseVariation.variationDiscoversDTS or filesource.url,
+                                                errors=_errors)
+                    loadedModels.append(modelXbrl)
+
+        for model in loadedModels:
             modelXbrl.isTestcaseVariation = True
-        if not modelTestcaseVariation.variationDiscoversDTS and modelXbrl.modelDocument is None: # e.g., taxonomyPackage test
-            self.determineTestStatus(modelTestcaseVariation, modelXbrl.errors)
-            modelXbrl.close()
-        elif modelXbrl.modelDocument is None:
-            modelXbrl.info("arelle:notLoaded",
-                    _("Variation %(id)s %(name)s readMeFirst document not loaded: %(file)s"),
-                    modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
-            self.determineNotLoadedTestStatus(modelTestcaseVariation, modelXbrl.errors)
-            modelXbrl.close()
-        elif resultIsVersioningReport or resultIsTaxonomyPackage:
-            inputDTSes[dtsName] = modelXbrl
-        elif modelXbrl.modelDocument.type == Type.VERSIONINGREPORT:
-            ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(modelXbrl)
-            self.determineTestStatus(modelTestcaseVariation, modelXbrl.errors)
-            modelXbrl.close()
-        elif testcase.type == Type.REGISTRYTESTCASE:
-            self.instValidator.validate(modelXbrl)  # required to set up dimensions, etc
-            self.instValidator.executeCallTest(modelXbrl, modelTestcaseVariation.id,
-                        modelTestcaseVariation.cfcnCall, modelTestcaseVariation.cfcnTest)
-            self.determineTestStatus(modelTestcaseVariation, modelXbrl.errors)
-            self.instValidator.close()
-            modelXbrl.close()
-        else:
-            inputDTSes[dtsName].append(modelXbrl)
-            # validate except for formulas
-            _hasFormulae = modelXbrl.hasFormulae
-            modelXbrl.hasFormulae = False
-            try:
-                for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.Xbrl.Loaded"):
-                    pluginXbrlMethod(self.modelXbrl, modelXbrl, modelTestcaseVariation)
-                self.instValidator.validate(modelXbrl, parameters)
-                for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.Xbrl.Validated"):
-                    pluginXbrlMethod(self.modelXbrl, modelXbrl)
-            except Exception as err:
-                modelXbrl.error("exception:" + type(err).__name__,
-                    _("Testcase variation validation exception: %(error)s, instance: %(instance)s"),
-                    modelXbrl=modelXbrl, instance=modelXbrl.modelDocument.basename, error=err, exc_info=(type(err) is not AssertionError))
-            modelXbrl.hasFormulae = _hasFormulae
+            if model.modelDocument is None:
+                if modelTestcaseVariation.expected not in ("EFM.6.03.04", "EFM.6.03.05"):
+                    level = "ERROR" if modelTestcaseVariation.variationDiscoversDTS else "INFO"
+                    model.log(
+                        level,
+                        "arelle:notLoaded",
+                        _("Variation %(id)s %(name)s readMeFirst document not loaded: %(file)s"),
+                        modelXbrl=testcase,
+                        id=modelTestcaseVariation.id,
+                        name=modelTestcaseVariation.name,
+                        file=os.path.basename(readMeFirstUri),
+                    )
+            elif resultIsVersioningReport or resultIsTaxonomyPackage:
+                inputDTSes['dtsName'].append(model)
+            elif model.modelDocument.type == Type.VERSIONINGREPORT:
+                ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(model)
+            elif testcase.type == Type.REGISTRYTESTCASE:
+                self.instValidator.validate(model)  # required to set up dimensions, etc
+                self.instValidator.executeCallTest(model, modelTestcaseVariation.id,
+                            modelTestcaseVariation.cfcnCall, modelTestcaseVariation.cfcnTest)
+                self.instValidator.close()
+            else:
+                inputDTSes[dtsName].append(model)
+                # validate except for formulas
+                _hasFormulae = model.hasFormulae
+                model.hasFormulae = False
+                try:
+                    for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.Xbrl.Loaded"):
+                        pluginXbrlMethod(self.modelXbrl, model, modelTestcaseVariation)
+                    self.instValidator.validate(model, parameters)
+                    for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.Xbrl.Validated"):
+                        pluginXbrlMethod(self.modelXbrl, model)
+                except Exception as err:
+                    model.error("exception:" + type(err).__name__,
+                        _("Testcase variation validation exception: %(error)s, instance: %(instance)s"),
+                        modelXbrl=model, instance=model.modelDocument.basename, error=err, exc_info=(type(err) is not AssertionError))
+                model.hasFormulae = _hasFormulae
+        errors = [error for model in loadedModels for error in model.errors]
+        reportModelCount = len([
+            model for model in loadedModels
+            if model.modelDocument is not None and (model.fileSource.isReportPackage or not model.fileSource.isTaxonomyPackage)
+        ])
+        self.determineTestStatus(modelTestcaseVariation, errors, validateModelCount=reportModelCount)
+        if not inputDTSes:
+            for model in loadedModels:
+                model.close()
         return loadedModels
 
     def _testcaseValidateInputDTS(self, testcase, modelTestcaseVariation, errorCaptureLevel, parameters, inputDTSes, baseForElement, resultIsXbrlInstance):
@@ -606,10 +632,13 @@ class Validate:
     def noErrorCodes(self, modelTestcaseVariationActual):
         return not any(not isinstance(actual,dict) for actual in modelTestcaseVariationActual)
 
-    def determineTestStatus(self, modelTestcaseVariation, errors):
+    def determineTestStatus(self, modelTestcaseVariation, errors, validateModelCount=None):
         testcaseResultOptions = self.modelXbrl.modelManager.formulaOptions.testcaseResultOptions
         testcaseExpectedErrors = self.modelXbrl.modelManager.formulaOptions.testcaseExpectedErrors or {}
         matchAllExpected = testcaseResultOptions == "match-all" or modelTestcaseVariation.match == 'all'
+        expectedReportCount = modelTestcaseVariation.expectedReportCount
+        if expectedReportCount is not None and validateModelCount is not None and expectedReportCount != validateModelCount:
+            errors.append("conf:testcaseExpectedReportCountError")
         _blockedMessageCodes = modelTestcaseVariation.blockedMessageCodes # restricts codes examined when provided
         if _blockedMessageCodes:
             _blockPattern = re.compile(_blockedMessageCodes)
@@ -737,16 +766,6 @@ class Validate:
             for error in _errors:
                 if isinstance(error,dict):
                     modelTestcaseVariation.actual.append(error)
-
-    def determineNotLoadedTestStatus(self, modelTestcaseVariation, errors):
-        if errors:
-            self.determineTestStatus(modelTestcaseVariation, errors)
-            return
-        expected = modelTestcaseVariation.expected
-        status = "not loadable"
-        if expected in ("EFM.6.03.04", "EFM.6.03.05"):
-            status = "pass"
-        modelTestcaseVariation.status = status
 
 import logging
 class ValidationLogListener(logging.Handler):
