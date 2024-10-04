@@ -55,7 +55,8 @@ from ..Const import (
     LineItemsNotQualifiedLinkroles,
     PERCENT_TYPES, datetimePattern,
     docTypeXhtmlPattern,
-    esefMandatoryElementNames2020,
+    esefMandatoryElementNames2022,
+    esefMandatoryIdentificationElementNames,
     esefPrimaryStatementPlaceholderNames,
     esefStatementsOfMonetaryDeclarationNames,
     mandatory,
@@ -131,7 +132,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
     esefPrimaryStatementPlaceholders = set(qname(_ifrsNs, n) for n in esefPrimaryStatementPlaceholderNames)
     esefStatementsOfMonetaryDeclaration = set(qname(_ifrsNs, n) for n in esefStatementsOfMonetaryDeclarationNames)
-    esefMandatoryElements2020 = set(qname(_ifrsNs, n) for n in esefMandatoryElementNames2020)
+    esefMandatoryElements2022 = set(qname(_ifrsNs, n) for n in esefMandatoryElementNames2022)
+    esefMandatoryIdentificationElements = set(qname(_ifrsNs, n) for n in esefMandatoryIdentificationElementNames)
 
     if modelDocument.type == ModelDocument.Type.INSTANCE and not val.unconsolidated:
         modelXbrl.error("ESEF.I.1.instanceShallBeInlineXBRL",
@@ -1017,11 +1019,16 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 qnames=", ".join(sorted(str(c.qname) for c in monetaryItemsNotInDeclaredCurrency)))
 
         # mandatory facts RTS Annex II
-        missingMandatoryElements = esefMandatoryElements2020 - modelXbrl.factsByQname.keys()
+        missingMandatoryElements = esefMandatoryElements2022 - modelXbrl.factsByQname.keys()
         if missingMandatoryElements:
             modelXbrl.warning("ESEF.RTS.Annex.II.Par.2.missingMandatoryMarkups",
                 _("Mandatory elements to be marked up are missing: %(qnames)s."),
                 modelObject=missingMandatoryElements, qnames=", ".join(sorted(str(qn) for qn in missingMandatoryElements)))
+        missingMandatoryIdentificationElements = esefMandatoryIdentificationElements - modelXbrl.factsByQname.keys()
+        if missingMandatoryIdentificationElements:
+            modelXbrl.warning("ESEF.RTS.Annex.II.Par.2.missingMandatoryMarkups.identification",
+            _("Mandatory elements to be marked up are missing: %(qnames)s."),
+            modelObject=missingMandatoryIdentificationElements, qnames=", ".join(sorted(str(qn) for qn in missingMandatoryIdentificationElements)))
 
         # supplemental authority required tags
         additionalTagQnames = set(qname(n, prefixedNamespaces)
