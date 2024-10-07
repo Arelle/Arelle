@@ -63,9 +63,9 @@ These arguments can override the system language settings for the output options
 | `--labelRole=LABELROLE` *or* <br/>`--labelrole=LABELROLE`     | overrides the standard XBRL 2.1 label role for the labels output by the following file options. <br/>e.g. `--labelRole=http://www.xbrl.org/2003/role/terseLabel` |
 
 
-The following file options determine the type of file saved by the extension of the file name, the extension may be any of: 
-`.html`, `.htm`, `.xhtml`, `.json` or `.csv` 
- 
+The following file options determine the type of file saved by the extension of the file name, the extension may be any of:
+`.html`, `.htm`, `.xhtml`, `.json` or `.csv`
+
 | Flag                                                                                | Description                                                                                                                                                                                                                                                                                                                                                                                                                |
 |-------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `--DTS=DTSFILE` *or* <br/>DEPRECATED `--csvDTS=DTSFILE`                         | Write DTS tree into `DTSFILE`. May be .csv or .html.                                                                                                                                                                                                                                                                                                                                                                       |
@@ -149,7 +149,7 @@ It is possible to specify options to be defaults for the web server, such as dis
 | `--webserver`                                         | Start web server on host:port[:server] for REST and web access. <br/>(e.g., `--webserver locahost:8080`, or specify nondefault a server name, such as cherrypy, `--webserver locahost:8080:cherrypy`.)                                                                                                                       |
 
 ### Standard Plugins and Options
-Many of the plug-ins add command line (in addition to GUI menu) options.  
+Many of the plug-ins add command line (in addition to GUI menu) options.
 For additional detail see the plug-in documentation.  A summary of standard plugin options is provided [here](./plugins/plugins.md).
 
 | inlineDocumentSet  | Specify an inline XBRL document set by JSON parameter: \\--file ‘[{“ixDocumentSet”:[{“file”:file1},{“file”:file2}…]}]’                                                                                                                              |
@@ -179,12 +179,12 @@ For additional detail see the plug-in documentation.  A summary of standard plug
 | saveSKOS        | Saves a SKOS (OMG standard OWL file).                                                                                                                               |
 |-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `--save-skos`   | Saves a SKOS (OMG standard OWL file) representing a semantic view of a DTS based on presentation linkbase entries (for US-GAAP, IFRS, and EDInet style taxonomies). |
- 
+
 
 | xbrlDB                                                              | Saves XBRL data to a database.                                                                                                                                                                                                                                                                                          |
 |---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `--store-to-XBRL-DB=DBSTR`                                          | Store into XBRL DB.  Provides connection string: host,[port], user, password, database, [timeout], technology.                                                                                                                                                                                                          |
-|                                                                     | *technology* can be:<br/>`postgres` - XBRL-US Postgres SQL<br/> `mssqlSemantic` - Semantic MSSQL SQL<br/> `mysqlSemantic` - Semantic MySQL SQL<br/>  `orclSemantic` - Semantic Oracle SQL<br/> `pgSemantic` - Semantic Postgres SQL<br/>`rexster` - Rexter (Titan Cassandra)<br/>`rdfDB` - RDF (Turtle, NanoSparqlServer)<br/>`json` - JSON (JSON, MongoDB)<br/> | 
+|                                                                     | *technology* can be:<br/>`postgres` - XBRL-US Postgres SQL<br/> `mssqlSemantic` - Semantic MSSQL SQL<br/> `mysqlSemantic` - Semantic MySQL SQL<br/>  `orclSemantic` - Semantic Oracle SQL<br/> `pgSemantic` - Semantic Postgres SQL<br/>`rexster` - Rexter (Titan Cassandra)<br/>`rdfDB` - RDF (Turtle, NanoSparqlServer)<br/>`json` - JSON (JSON, MongoDB)<br/> |
 |                                                                     | For `rdfDB` if hostname is `rdfTurtleFile` or `rdfXmlFile`, then database specifies a local file system pathname to store a file.  <br/>For `json`, if hostname is `jsonFile` then database specifies a local file system path name to store into a file.<br/>                                                                    |
 
 Example storing into postgres database using XBRL-US schema:
