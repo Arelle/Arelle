@@ -2606,8 +2606,10 @@ class ModelMessage(ModelFormulaResource):
             return set()    # no expressions
 
     def evaluate(self, xpCtx, contextItem=None):
-        return self.formatString.format([xpCtx.evaluateAtomicValue(p, 'xs:string', contextItem=contextItem)
-                                         for p in self.expressionProgs])
+        return self.formatString.format([
+            xpCtx.evaluateAtomicValue(p, 'xs:string', contextItem=contextItem)
+            for p in self.expressionProgs
+        ])
 
     @property
     def propertyView(self):
