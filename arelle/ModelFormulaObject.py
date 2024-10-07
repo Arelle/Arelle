@@ -25,6 +25,7 @@ class FormulaOptions():
         self.cacheSize = 10_000_000  # maximum number of fact aspect comparisons to cache
         self.compileOnly = False # compile but don't execute formulas
         self.formulaAction = None # none, validate, run
+        self.maximumMessageInterpolationLength = None
         self.traceParameterExpressionResult = False
         self.traceParameterInputValue = False
         self.traceCallExpressionSource = False
@@ -2607,7 +2608,7 @@ class ModelMessage(ModelFormulaResource):
 
     def evaluate(self, xpCtx, contextItem=None):
         return self.formatString.format([
-            xpCtx.evaluateAtomicValue(p, 'xs:string', contextItem=contextItem)
+            str(xpCtx.evaluateAtomicValue(p, 'xs:string', contextItem=contextItem))[:xpCtx.formulaOptions.maximumMessageInterpolationLength]
             for p in self.expressionProgs
         ])
 

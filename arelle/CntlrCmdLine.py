@@ -282,6 +282,8 @@ def parseArgs(args):
                              "if this option is not specified, -v or --validate will validate and run formulas if present"))
     parser.add_option("--formulaParamExprResult", "--formulaparamexprresult", action="store_true", dest="formulaParamExprResult", help=_("Specify formula tracing."))
     parser.add_option("--formulaParamInputValue", "--formulaparaminputvalue", action="store_true", dest="formulaParamInputValue", help=_("Specify formula tracing."))
+    parser.add_option("--formulaMaximumMessageInterpolationLength", "--formulamaximummessageinterpolationlength", action="store", dest="formulaMaximumMessageInterpolationLength", type="int",
+                      help=_("Truncate interpolated expressions in formula messages to this length."), default=1000)
     parser.add_option("--formulaCallExprSource", "--formulacallexprsource", action="store_true", dest="formulaCallExprSource", help=_("Specify formula tracing."))
     parser.add_option("--formulaCallExprCode", "--formulacallexprcode", action="store_true", dest="formulaCallExprCode", help=_("Specify formula tracing."))
     parser.add_option("--formulaCallExprEval", "--formulacallexpreval", action="store_true", dest="formulaCallExprEval", help=_("Specify formula tracing."))
@@ -893,6 +895,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.parameterValues = dict(((qname(key, noPrefixIsNoNamespace=True),(None,value))
                                        for param in options.parameters.split(parameterSeparator)
                                        for key,sep,value in (param.partition('='),) ) )
+        fo.maximumMessageInterpolationLength = options.formulaMaximumMessageInterpolationLength
         if options.formulaParamExprResult:
             fo.traceParameterExpressionResult = True
         if options.formulaParamInputValue:

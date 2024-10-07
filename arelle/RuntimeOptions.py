@@ -62,6 +62,7 @@ class RuntimeOptions:
     formulaCallExprSource: Optional[bool] = None
     formulaCompileOnly: Optional[bool] = None
     formulaFormulaRules: Optional[bool] = None
+    formulaMaximumMessageInterpolationLength: Optional[int] = None
     formulaParamExprResult: Optional[bool] = None
     formulaParamInputValue: Optional[bool] = None
     formulaRunIDs: Optional[int] = None
