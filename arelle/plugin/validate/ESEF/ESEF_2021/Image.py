@@ -79,6 +79,9 @@ def checkSVGContent(
                                 _("Image SVG has root element which is not svg"),
                                 modelObject=imgElt)
             rootElement = False
+        # Comments, processing instructions, and maybe other special constructs don't have string tags.
+        if not isinstance(elt.tag, str):
+            continue
         eltTag = elt.tag.rpartition("}")[2] # strip namespace
         if eltTag in ("object", "script", "audio", "foreignObject", "iframe", "image", "use", "video"):
             href = elt.get("href","")
