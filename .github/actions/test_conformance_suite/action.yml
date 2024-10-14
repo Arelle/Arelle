@@ -19,7 +19,7 @@ runs:
   steps:
     - name: Checkout EDGAR
       if: ${{ inputs.name == 'efm_current' }}
-      uses: actions/checkout@v4.2.0
+      uses: actions/checkout@v4.2.1
       with:
         repository: Arelle/EDGAR
         path: arelle/plugin/EDGAR
@@ -57,7 +57,7 @@ runs:
         printf 'artifact-name=%s%s %s %s logs' "${{ inputs.short_name || inputs.name }}" "${{ inputs.shard && format(' {0}', inputs.shard) || '' }}" "${{ runner.os }}" "${{ inputs.python_version }}" >> $GITHUB_OUTPUT
     - name: Upload logs and reports
       if: always()
-      uses: actions/upload-artifact@v4.4.0
+      uses: actions/upload-artifact@v4.4.3
       with:
         name: ${{ steps.build-artifact-name.outputs.artifact-name }}
         if-no-files-found: error
