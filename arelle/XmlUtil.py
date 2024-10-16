@@ -463,7 +463,7 @@ def children(
                 (wildLocalName or (child.qname.localName if ixTarget else child.localName) in childLocalNames)):
                 children.append(child)
     elif isinstance(element, (etree._ElementTree,PrototypeElementTree)): # document root
-        child = element.getroot()
+        child = cast(Any, element.getroot())
         if (wildNamespaceURI or child.elementNamespaceURI in childNamespaceURIs) and \
            (wildLocalName or child.localName in childLocalNames):
             children.append(child)

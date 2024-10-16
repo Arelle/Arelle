@@ -292,7 +292,7 @@ class ModelXbrl:
     entryLoadingUrl: str
     fileSource: FileSourceClass
     ixdsDocUrls: list[str]
-    ixdsHtmlElements: list[str]
+    ixdsHtmlElements: list[Any]
     isDimensionsValidated: bool
     locale: LocaleDict | None
     modelDocument: ModelDocumentClass | None
