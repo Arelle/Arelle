@@ -365,6 +365,13 @@ class ModelTestcaseVariation(ModelObject):
                 return _count
         return None
 
+    @property
+    def expectedReportCount(self):
+        resultElement = XmlUtil.descendant(self, None, "result")
+        if resultElement is None:
+            return None
+        report_count = resultElement.get('report_count')
+        return int(report_count) if report_count is not None else None
 
     @property
     def severityLevel(self):

@@ -20,6 +20,8 @@ from lxml import etree
 
 import arelle.PluginManager
 from arelle import PackageManager, XmlUtil
+from arelle.packages.report.DetectReportPackage import isReportPackageExtension
+from arelle.packages.report.ReportPackage import ReportPackage
 from arelle.typing import TypeGetText
 from arelle.UrlUtil import isHttpUrl
 
@@ -70,7 +72,7 @@ def openFileSource(
                 and sourceFileSource.dir is not None
                 and sourceFileSource.isArchive
                 and selection in sourceFileSource.dir
-                and selection.endswith(".zip")
+                and isReportPackageExtension(selection)
             ):
                 assert cntlr is not None
                 filesource = FileSource(filename, cntlr)
@@ -157,7 +159,7 @@ class FileSource:
         self.isTarGz = self.type == ".tar.gz"
         if not self.isTarGz:
             self.type = self.type[3:]
-        self.isZip = self.type == ".zip"
+        self.isZip = self.type == ".zip" or isReportPackageExtension(self.url)
         self.isZipBackslashed = False # windows style backslashed paths
         self.isEis = self.type == ".eis"
         self.isXfd = (self.type == ".xfd" or self.type == ".frm")
@@ -405,6 +407,19 @@ class FileSource:
     @property
     def isTaxonomyPackage(self) -> bool:
         return bool(self.isZip and self.taxonomyPackageMetadataFiles) or self.isInstalledTaxonomyPackage
+
+    @property
+    def isReportPackage(self) -> bool:
+        return self.reportPackage is not None
+
+    @property
+    def reportPackage(self) -> ReportPackage | None:
+        try:
+            self._reportPackage: ReportPackage | None
+            return self._reportPackage
+        except AttributeError:
+            self._reportPackage = ReportPackage.fromFileSource(self) if self.isZip else None
+            return self._reportPackage
 
     @property
     def taxonomyPackageMetadataFiles(self) -> list[str]:
@@ -746,6 +761,14 @@ class FileSource:
             # elif isinstance(selection, dict): # json objects
             else:
                 self.url = self.basedUrl(selection)
+
+    @property
+    def urlBasename(self) -> list[str] | str | None:
+        if isinstance(self.url, str):
+            return os.path.basename(self.url)
+        if isinstance(self.url, list):
+            return [os.path.basename(url) for url in self.url]
+        return None
 
 def openFileStream(
     cntlr: Cntlr | None, filepath: str, mode: str = "r", encoding: str | None = None

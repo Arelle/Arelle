@@ -519,8 +519,14 @@ def runOpenInlineDocumentSetMenuCommand(cntlr, filenames, runInBackground=False,
                               [e["file"][l:] for i in entrypointFiles if "ixds" in i for e in i["ixds"] if "file" in e]
             except FileSource.ArchiveFileIOError:
                 selectFiles = None
-            from arelle import DialogOpenArchive
-            archiveEntries = DialogOpenArchive.askArchiveFile(cntlr, filesource, multiselect=True, selectFiles=selectFiles)
+            if filesource.isReportPackage:
+                archiveEntries = [
+                    f.get("file") for ixds in entrypointFiles
+                    for f in ixds.get("ixds", [])
+                ]
+            else:
+                from arelle import DialogOpenArchive
+                archiveEntries = DialogOpenArchive.askArchiveFile(cntlr, filesource, multiselect=True, selectFiles=selectFiles)
             if archiveEntries:
                 ixdsFirstFile = archiveEntries[0]
                 _archiveFilenameParts = archiveFilenameParts(ixdsFirstFile)

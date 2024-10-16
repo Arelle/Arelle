@@ -15,6 +15,7 @@ from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, XbrlConst, Versio
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
                     ViewFileRoleTypes)
 from arelle.oim.xml.Save import saveOimReportToXmlInstance
+from arelle.packages.report import ReportPackageConst
 from arelle.rendering import RenderingEvaluator
 from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
@@ -145,6 +146,10 @@ def parseArgs(args):
                       action="store_true",
                       dest="validateXmlOim",
                       help=_("Enables OIM validation for XML and iXBRL documents. OIM only formats (json, csv) are always OIM validated."))
+    parser.add_option("--reportPackage", "--reportPackage",
+                      action="store_true",
+                      dest="reportPackage",
+                      help=_("Ignore detected file type and validate all files as Report Packages."))
     parser.add_option("--deduplicateFacts", "--deduplicatefacts",
                       choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
                       dest="deduplicateFacts",
@@ -550,33 +555,49 @@ def configAndRunCntlr(options, arellePluginModules):
         return cntlr
 
 
-def filesourceEntrypointFiles(filesource, entrypointFiles=[], inlineOnly=False):
+def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False):
+    if entrypointFiles is None:
+        entrypointFiles = []
     if filesource.isArchive:
         if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
             filesource.loadTaxonomyPackageMappings()
         # HF note: a web api request to load a specific file from archive is ignored, is this right?
         del entrypointFiles[:] # clear out archive from entrypointFiles
-        # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
-        urlsByType = {}
-        if not entrypointFiles:
+        if reportPackage := filesource.reportPackage:
+            assert isinstance(filesource.basefile, str)
+            for report in reportPackage.reports or []:
+                if report.isInline:
+                    reportEntries = [{"file": f} for f in report.fullPathFiles]
+                    ixdsDiscovered = False
+                    for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
+                        pluginXbrlMethod(filesource, reportEntries)
+                        ixdsDiscovered = True
+                    if not ixdsDiscovered and len(reportEntries) > 1:
+                        raise RuntimeError(_("Loading error. Inline document set encountered. Enable 'InlineDocumentSet' plug-in to load this filing: {0}").format(filesource.url))
+                    entrypointFiles.extend(reportEntries)
+                elif not inlineOnly:
+                    entrypointFiles.append({"file": report.fullPathPrimary})
+        else:
+            # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
+            urlsByType = {}
             for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
                 filesource.select(_archiveFile)
                 identifiedType = ModelDocument.Type.identify(filesource, filesource.url)
                 if identifiedType in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.HTML):
                     urlsByType.setdefault(identifiedType, []).append(filesource.url)
-        # use inline instances, if any, else non-inline instances
-        for identifiedType in ((ModelDocument.Type.INLINEXBRL,) if inlineOnly else (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE)):
-            for url in urlsByType.get(identifiedType, []):
-                entrypointFiles.append({"file":url})
-            if entrypointFiles:
-                if identifiedType == ModelDocument.Type.INLINEXBRL:
-                    for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
-                        pluginXbrlMethod(filesource, entrypointFiles) # group into IXDS if plugin feature is available
-                break # found inline (or non-inline) entrypoint files, don't look for any other type
-        # for ESEF non-consolidated xhtml documents accept an xhtml entry point
-        if not entrypointFiles and not inlineOnly:
-            for url in urlsByType.get(ModelDocument.Type.HTML, []):
-                entrypointFiles.append({"file":url})
+            # use inline instances, if any, else non-inline instances
+            for identifiedType in ((ModelDocument.Type.INLINEXBRL,) if inlineOnly else (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE)):
+                for url in urlsByType.get(identifiedType, []):
+                    entrypointFiles.append({"file":url})
+                if entrypointFiles:
+                    if identifiedType == ModelDocument.Type.INLINEXBRL:
+                        for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
+                            pluginXbrlMethod(filesource, entrypointFiles) # group into IXDS if plugin feature is available
+                    break # found inline (or non-inline) entrypoint files, don't look for any other type
+            # for ESEF non-consolidated xhtml documents accept an xhtml entry point
+            if not entrypointFiles and not inlineOnly:
+                for url in urlsByType.get(ModelDocument.Type.HTML, []):
+                    entrypointFiles.append({"file":url})
 
 
     elif os.path.isdir(filesource.url):
@@ -829,6 +850,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(options.validateDuplicateFacts)
             duplicateType = duplicateTypeArg.duplicateType()
             self.modelManager.validateDuplicateFacts = duplicateType
+        self.modelManager.validateAllFilesAsReportPackages = bool(options.reportPackage)
         if options.utrUrl:  # override disclosureSystem utrUrl
             self.modelManager.disclosureSystem.utrUrl = [options.utrUrl]
             # can be set now because the utr is first loaded at validation time
@@ -1000,9 +1022,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
         elif len(_entryPoints) == 1 and "file" in _entryPoints[0]: # check if an archive and need to discover entry points (and not IXDS)
             filesource = FileSource.openFileSource(_entryPoints[0].get("file",None), self, checkIfXmlIsEis=_checkIfXmlIsEis)
         _entrypointFiles = _entryPoints
-        if filesource and not filesource.selection:
-            if not (sourceZipStream and len(_entrypointFiles) > 0):
+        if filesource and not filesource.selection and not (sourceZipStream and len(_entrypointFiles) > 0):
+            try:
                 filesourceEntrypointFiles(filesource, _entrypointFiles)
+            except Exception as err:
+                self.addToLog(str(err), messageCode="error", level=logging.ERROR)
+                return False
 
         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Start"):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
@@ -1020,6 +1045,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
             try:
                 if filesource:
                     modelXbrl = self.modelManager.load(filesource, _("views loading"), entrypoint=_entrypoint)
+                    if filesource.isArchive:
+                        # Keep archive filesource potentially used by multiple reports open.
+                        modelXbrl.closeFileSource = False
             except ModelDocument.LoadingException:
                 pass
             except Exception as err:
@@ -1221,6 +1249,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.modelManager.close(modelDiffReport)
                     elif modelXbrl:
                         self.modelManager.close(modelXbrl)
+        if not options.keepOpen:
+            # Archive filesource potentially used by multiple reports may still be open.
+            filesource.close()
+
         if success:
             if options.validate:
                 for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Validate"):

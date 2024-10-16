@@ -114,6 +114,7 @@ class RuntimeOptions:
     proxy: Optional[str] = None
     redirectFallbacks: Optional[dict[Pattern[str], str]] = None
     relationshipCols: Optional[int] = None
+    reportPackage: Optional[bool] = None
     roleTypesFile: Optional[str] = None
     rssReport: Optional[str] = None
     rssReportCols: Optional[int] = None
