@@ -104,7 +104,7 @@ def getFactsWithDimension(
         conceptQn: QName,
         dimensionQn: QName,
         membeQn: QName
-) -> set[ModelFact ]:
+) -> set[ModelFact]:
     foundFacts: set[ModelFact] = set()
     facts = val.modelXbrl.factsByQname.get(conceptQn)
     if facts:

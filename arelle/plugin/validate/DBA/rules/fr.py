@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import datetime
 import itertools
+from collections import defaultdict
 from typing import Any, Iterable, cast
 
 from arelle.typing import TypeGetText
@@ -174,6 +175,51 @@ def rule_fr10(
             msg=_("Error code FR10: Equity in the balance sheet must be filled in."),
             modelObject=val.modelXbrl.modelDocument
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr21(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR21: Assets (BalanceSheet:Assets) must equal liabilities (BalanceSheet:LiabilitiesAndEquity).
+    The check only looks at instances without dimensions and instances that only have the dimension group
+    (ConsolidatedMember) in context. Occurrences of assets and liabilities with other dimensions do not lift the
+    reporting obligation. The comparison takes place within pairs of numbers for currency and group/parent, respectively.
+    """
+    assetFacts = getFactsWithDimension(
+        val, pluginData.assetsQn, pluginData.consolidatedSoloDimensionQn,
+        pluginData.consolidatedSoloDimensionQn
+    )
+    liabilityFacts = getFactsWithDimension(
+        val, pluginData.liabilitiesQn, pluginData.consolidatedSoloDimensionQn,
+        pluginData.consolidatedSoloDimensionQn
+    )
+    foundFacts = assetFacts.union(liabilityFacts)
+    groupedFacts = defaultdict(list)
+    for fact in foundFacts:
+        groupedFacts[fact.contextID].append(fact)
+
+    for contextID, facts in groupedFacts.items():
+        assetFact = None
+        liabilityFact = None
+        for fact in facts:
+            if fact.qname == pluginData.assetsQn:
+                assetFact = fact
+            elif fact.qname == pluginData.liabilitiesQn:
+                liabilityFact = fact
+        if assetFact is not None and liabilityFact is not None:
+            if assetFact.xValue != liabilityFact.xValue:
+                yield Validation.error(
+                    codes="DBA.FR21",
+                    msg=_("Error code FR21: The balance sheet does not balance. Assets and liabilities must be equal."),
+                    modelObject=[assetFact, liabilityFact]
+                )
 
 
 @validation(
