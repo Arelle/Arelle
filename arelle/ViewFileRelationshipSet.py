@@ -250,7 +250,7 @@ class ViewRelationshipSet(ViewFile.View):
                     cols.append(", ".join(w.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole) for w in otherWider))
                 else:
                     cols.append("")
-            if self.cols and len(self.cols) > 1:
+            if self.cols:
                 for col in self.cols:
                     if col == "Name":
                         cols.append( (concept.qname or concept.prefixedName) )
