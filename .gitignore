@@ -22,12 +22,16 @@ arelle/plugin/EDGAR*
 arelle/plugin/FERC
 arelle/plugin/Xince.py
 arelle/plugin/iXBRLViewerPlugin
+arelle/plugin/semanticHash.py
+arelle/plugin/serializer
+arelle/plugin/SimpleXBRLModel
 arelle/plugin/validate/DQC.py
 arelle/plugin/validate/DQC_US_Rules
 arelle/plugin/validate/DQC_test
 arelle/plugin/validate/ESEF-DQC.py
 arelle/plugin/validate/eforms.py
 arelle/plugin/xendr
+arelle/plugin/xodel
 arelle/plugin/xule
 arelleGUI.py
 arelle_release.egg-info
