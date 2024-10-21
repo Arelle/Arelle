@@ -22,6 +22,7 @@ arelle/plugin/EDGAR*
 arelle/plugin/FERC
 arelle/plugin/Xince.py
 arelle/plugin/iXBRLViewerPlugin
+arelle/plugin/semanticHash.py
 arelle/plugin/validate/DQC.py
 arelle/plugin/validate/DQC_US_Rules
 arelle/plugin/validate/DQC_test
