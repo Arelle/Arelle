@@ -112,11 +112,15 @@ exclude = '''(?x)(
     ^arelle/plugin/EDGAR
     | ^arelle/plugin/FERC
     | ^arelle/plugin/iXBRLViewerPlugin
+    | ^arelle/plugin/semanticHash.py
+    | ^arelle/plugin/serializer
+    | ^arelle/plugin/SimpleXBRLModel
     | ^arelle/plugin/validate/DQC.py
     | ^arelle/plugin/validate/eforms.py
     | ^arelle/plugin/validate/ESEF-DQC.py
     | ^arelle/plugin/xendr
     | ^arelle/plugin/Xince.py
+    | ^arelle/plugin/xodel
     | ^arelle/plugin/xule
 )'''
 
