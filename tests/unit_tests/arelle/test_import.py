@@ -17,10 +17,26 @@ KNOWN_FAILURES = frozenset([
     'arelle.archive.plugin.validate.XFsyntax.xf',
     'arelle.formula.FormulaEvaluator',
 ])
+# Don't test common third party plugins which may be copied into a developer's workspace.
+COMMON_THIRD_PARTY_PLUGINS = (
+    'arelle/plugin/EDGAR',
+    'arelle/plugin/FERC',
+    'arelle/plugin/iXBRLViewerPlugin',
+    'arelle/plugin/semanticHash.py',
+    'arelle/plugin/serializer',
+    'arelle/plugin/SimpleXBRLModel',
+    'arelle/plugin/validate/DQC.py',
+    'arelle/plugin/validate/eforms.py',
+    'arelle/plugin/validate/ESEF-DQC.py',
+    'arelle/plugin/xendr',
+    'arelle/plugin/Xince.py',
+    'arelle/plugin/xodel',
+    'arelle/plugin/xule',
+)
 MODULE_NAMES = [
     g.replace('/', '.').replace('\\', '.').replace('.py', '')
     for g in glob.glob('arelle/**/*.py', recursive=True)
-    if not g.startswith(tuple(f'arelle/plugin/{p}/' for p in ['EDGAR', 'iXBRLViewerPlugin', 'xule']))
+    if not g.startswith(COMMON_THIRD_PARTY_PLUGINS)
 ]
 TEST_PARAMS = [
     pytest.param(
