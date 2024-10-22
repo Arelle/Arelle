@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR21"
+        description="DBA.FR21: Assets (BalanceSheet:Assets) must equal liabilities (BalanceSheet:LiabilitiesAndEquity).
+        The check only looks at instances without dimensions and instances that only have the dimension group
+        (ConsolidatedMember) in context. Occurrences of assets and liabilities with other dimensions do not lift the reporting obligation.
+        The comparison takes place within pairs of numbers for currency and group/parent, respectively."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            Assets is less than liabilities.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr21-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR21</error>
+        </result>
+    </variation>
+</testcase>
