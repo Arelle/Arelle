@@ -30,7 +30,8 @@ An xBRL-JSON template file is provided for each tagged PDF/A with inline XBRL.
 
    The template file facts which are to receive contents from the pdf have @value missing and
    instead pdfIdRefs which is a list of space-separated IDs of structural node IDs and form field IDs
-   which are space-contenated to form the value for the output xBRL-JSON file.
+   which are space-contenated to form the value for the output xBRL-JSON file.  (Suggested
+   enhancement for numeric facts includes adding transform, scale and sign.)
 
    The output file is named with .pdf replaced by .json.
 
