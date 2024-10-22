@@ -68,7 +68,7 @@ Here's how to set up your environment:
   2. Install a supported version of Python.
     For example, 
     
-    pyenv install 3.12.5
+    pyenv install 3.12.7
 
   3. Create a virtual env using the Python version you just installed.
     For example, 
