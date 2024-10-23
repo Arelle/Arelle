@@ -3,7 +3,6 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import io
 import json
 import logging
 import os
@@ -52,12 +51,8 @@ def baseForElement(element):
     base = ""
     baseElt = element
     while baseElt is not None:
-        baseAttr = baseElt.get("{http://www.w3.org/XML/1998/namespace}base")
-        if baseAttr:
-            if baseAttr.startswith("/"):
-                base = baseAttr
-            else:
-                base = baseAttr + base
+        if baseAttr := baseElt.get("{http://www.w3.org/XML/1998/namespace}base"):
+            base = baseAttr if baseAttr.startswith("/") else baseAttr + base
         baseElt = baseElt.getparent()
     return base
 
@@ -103,7 +98,6 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                    "http://xbrl.org/PR/2015-12-09/taxonomy-package",
                    "http://xbrl.org/2016/taxonomy-package",
                    "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package")
-    catalogNSes = ("urn:oasis:names:tc:entity:xmlns:xml:catalog",)
 
     pkg = {}
 
@@ -123,7 +117,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
 
     root = tree.getroot()
     ns = root.tag.partition("}")[0][1:]
-    nsPrefix = "{{{}}}".format(ns)
+    nsPrefix = f"{{{ns}}}"
 
     if ns in  txmyPkgNSes:  # package file
         for eltName in ("identifier", "version", "license", "publisher", "publisherURL", "publisherCountry", "publicationDate"):
@@ -144,7 +138,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                 if l > closestLen:
                     closestLen = l
                     closest = s
-                elif closestLen <= 0 and eltLang.startswith("en"):
+                elif closestLen <= 0 and isinstance(eltLang, str) and eltLang.startswith("en"):
                     closest = s   # pick english if nothing better
             if not closest and eltName == "name":  # assign default name when none in taxonomy package
                 closest = os.path.splitext(os.path.basename(filesource.baseurl))[0]
@@ -154,7 +148,9 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
         for m in root.iterchildren(tag=nsPrefix + "supersededTaxonomyPackages"):
             pkg['supersededTaxonomyPackages'] = [
                 r.text.strip()
-                for r in m.iterchildren(tag=nsPrefix + "taxonomyPackageRef")]
+                for r in m.iterchildren(tag=nsPrefix + "taxonomyPackageRef")
+                if isinstance(r.text, str)
+            ]
         for m in root.iterchildren(tag=nsPrefix + "versioningReports"):
             pkg['versioningReports'] = [
                 r.get("href")
@@ -225,12 +221,12 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                     base = baseForElement(m)
                     if base:
                         replaceValue = os.path.join(base, replaceValue)
-                    if replaceValue: # neither None nor ''
-                        if not isAbsolute(replaceValue):
-                            if not os.path.isabs(replaceValue):
-                                replaceValue = fileBase + replaceValue
-                            if not isHttpUrl(replaceValue):
-                                replaceValue = replaceValue.replace("/", os.sep)
+                    if replaceValue and not isAbsolute(replaceValue):
+                        # neither None nor ''
+                        if not os.path.isabs(replaceValue):
+                            replaceValue = fileBase + replaceValue
+                        if not isHttpUrl(replaceValue):
+                            replaceValue = replaceValue.replace("/", os.sep)
                     _normedValue = cntlr.webCache.normalizeUrl(replaceValue)
                     if replaceValue.endswith(os.sep) and not _normedValue.endswith(os.sep):
                         _normedValue += os.sep
@@ -261,28 +257,23 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
             if l > closestLen:
                 closestLen = l
                 name = s
-            elif closestLen <= 0 and nameLang.startswith("en"):
+            elif closestLen <= 0 and isinstance(nameLang, str) and nameLang.startswith("en"):
                 name = s   # pick english if nothing better
 
         if not name:
             name = _("<unnamed {0}>").format(unNamedCounter)
             unNamedCounter += 1
 
-        epDocCount = 0
         for epDoc in entryPointSpec.iterchildren(nsPrefix + "entryPointDocument"):
             epUrl = epDoc.get('href')
             base = epDoc.get('{http://www.w3.org/XML/1998/namespace}base') # cope with xml:base
-            if base:
-                resolvedUrl = urljoin(base, epUrl)
-            else:
-                resolvedUrl = epUrl
-
-            epDocCount += 1
+            resolvedUrl = urljoin(base, epUrl) if base else epUrl
 
             #perform prefix remappings
             remappedUrl = resolvedUrl
             longestPrefix = 0
             for mapFrom, mapTo in remappings.items():
+                assert isinstance(remappedUrl, str)
                 if remappedUrl.startswith(mapFrom):
                     prefixLength = len(mapFrom)
                     if prefixLength > longestPrefix:
@@ -305,7 +296,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                 if l > closestLen:
                     closestLen = l
                     closest = s
-                elif closestLen <= 0 and eltLang.startswith("en"):
+                elif closestLen <= 0 and isinstance(eltLang, str) and eltLang.startswith("en"):
                     closest = s   # pick english if nothing better
             if not closest and name:  # assign default name when none in taxonomy package
                 closest = name
@@ -326,7 +317,7 @@ def init(cntlr: Cntlr, loadPackagesConfig: bool = True) -> None:
     if loadPackagesConfig:
         try:
             packagesJsonFile = cntlr.userAppDir + os.sep + "taxonomyPackages.json"
-            with io.open(packagesJsonFile, 'rt', encoding='utf-8') as f:
+            with open(packagesJsonFile, encoding='utf-8') as f:
                 packagesConfig = json.load(f)
             packagesConfigChanged = False
         except Exception:
@@ -370,7 +361,7 @@ def orderedPackagesConfig():
 def save(cntlr: Cntlr) -> None:
     global packagesConfigChanged
     if packagesConfigChanged and cntlr.hasFileSystem:
-        with io.open(packagesJsonFile, 'wt', encoding='utf-8') as f:
+        with open(packagesJsonFile, "w", encoding='utf-8') as f:
             jsonStr = str(json.dumps(orderedPackagesConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
             f.write(jsonStr)
         packagesConfigChanged = False
@@ -421,7 +412,7 @@ def validateTaxonomyPackage(cntlr, filesource, errors=[]) -> bool:
                     messageCode=validation.codes,
                     messageArgs=validation.args,
                     file=filesource.urlBasename,
-                    level=logging.ERROR,
+                    level=validation.level.name,
                 )
                 errors.append(validation.codes)
                 return False
@@ -432,7 +423,7 @@ def validateTaxonomyPackage(cntlr, filesource, errors=[]) -> bool:
                     messageCode=validation.codes,
                     messageArgs=validation.args,
                     file=filesource.urlBasename,
-                    level=logging.ERROR,
+                    level=validation.level.name,
                 )
                 errors.append(validation.codes)
 
@@ -476,9 +467,8 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                 packageFiles = discoverPackageFiles(filesource)
                 if not packageFiles:
                     # look for pre-PWD packages
-                    _dir = filesource.dir
-                    _metaInf = '{}/META-INF/'.format(
-                                os.path.splitext(os.path.basename(packageFilename))[0])
+                    _dir = filesource.dir or []
+                    _metaInf = f'{os.path.splitext(os.path.basename(packageFilename))[0]}/META-INF/'
                     if packageManifestName:
                         # pre-pwd
                         packageFiles = [fileName
@@ -491,7 +481,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                         # root-level META-INF taxonomy packages
                         packageFiles = ['META-INF/taxonomyPackage.xml']
                 if len(packageFiles) < 1:
-                    raise IOError(_("Taxonomy package contained no metadata file: {0}.")
+                    raise OSError(_("Taxonomy package contained no metadata file: {0}.")
                                   .format(', '.join(packageFiles)))
                 # if current package files found, remove any nonconforming package files
                 if any(pf.startswith('_metaInf') for pf in packageFiles) and any(not pf.startswith(_metaInf) for pf in packageFiles):
@@ -500,10 +490,12 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                     packageFiles = [pf for pf in packageFiles if pf.startswith('META-INF/')]
 
                 for packageFile in packageFiles:
+                    assert isinstance(filesource.url, str)
                     packageFileUrl = filesource.url + os.sep + packageFile
                     packageFilePrefix = os.sep.join(os.path.split(packageFile)[:-1])
                     if packageFilePrefix:
                         packageFilePrefix += os.sep
+                    assert isinstance(filesource.baseurl, str)
                     packageFilePrefix = filesource.baseurl + os.sep +  packageFilePrefix
                     packages.append([packageFileUrl, packageFilePrefix, packageFile])
             else:
@@ -512,6 +504,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                                file=os.path.basename(packageFilename),
                                level=logging.ERROR)
                 errors.append("tpe:invalidArchiveFormat")
+                assert isinstance(filesource.url, str)
                 if (os.path.basename(filesource.url) in TAXONOMY_PACKAGE_FILE_NAMES or # individual manifest file
                       (os.path.basename(filesource.url) == "taxonomyPackage.xml" and
                        os.path.basename(os.path.dirname(filesource.url)) == "META-INF")):
@@ -521,7 +514,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                         packageFilePrefix += os.sep
                     packages.append([packageFileUrl, packageFilePrefix, ""])
                 else:
-                    raise IOError(_("File must be a taxonomy package (zip file), catalog file, or manifest (): {0}.")
+                    raise OSError(_("File must be a taxonomy package (zip file), catalog file, or manifest (): {0}.")
                                   .format(packageFilename, ', '.join(TAXONOMY_PACKAGE_FILE_NAMES)))
             remappings = {}
             packageNames = []
@@ -564,7 +557,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                        }
             filesource.close()
             return package
-        except (EnvironmentError, etree.XMLSyntaxError):
+        except (OSError, etree.XMLSyntaxError):
             pass
         if filesource:
             filesource.close()
