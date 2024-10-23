@@ -1,40 +1,35 @@
-'''
-Separated on Jul 28, 2013 from DialogOpenArchive.py
-
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
-from typing import TYPE_CHECKING
-import os, io, time, json, logging
+
+import io
+import json
+import logging
+import os
+import time
 from collections import defaultdict
 from fnmatch import fnmatch
-from lxml import etree
+from typing import TYPE_CHECKING
 from urllib.parse import urljoin
+
+from lxml import etree
+
+from arelle import Locale
 from arelle.packages import PackageValidation
 from arelle.packages.PackageType import PackageType
 from arelle.typing import TypeGetText
-openFileSource = None
-from arelle import Locale
 from arelle.UrlUtil import isAbsolute, isHttpUrl
 from arelle.XmlValidate import lxmlResolvingParser
-ArchiveFileIOError = None
-try:
-    from collections import OrderedDict
-except ImportError:
-    OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order
 
 if TYPE_CHECKING:
+    from arelle.Cntlr import Cntlr
     from arelle.FileSource import FileSource
 
 TP_XSD = "http://www.xbrl.org/2016/taxonomy-package.xsd"
 CAT_XSD = "http://www.xbrl.org/2016/taxonomy-package-catalog.xsd"
 
-if TYPE_CHECKING:
-    from arelle.Cntlr import Cntlr
-
 _: TypeGetText
-
-EMPTYDICT = {}
 
 TAXONOMY_PACKAGE_TYPE = PackageType("Taxonomy", "tpe")
 
@@ -98,9 +93,7 @@ def _parseFile(cntlr, parser, filepath, file, schemaUrl):
 
 
 def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
-    global ArchiveFileIOError
-    if ArchiveFileIOError is None:
-        from arelle.FileSource import ArchiveFileIOError
+    from arelle.FileSource import ArchiveFileIOError
 
     unNamedCounter = 1
 
@@ -354,8 +347,8 @@ def reset() -> None:  # force reloading modules and plugin infos
         packagesMappings.clear() # dict by class of list of ordered callable function objects
 
 def orderedPackagesConfig():
-    return OrderedDict(
-        (('packages', [OrderedDict(sorted(_packageInfo.items(),
+    return dict(
+        (('packages', [dict(sorted(_packageInfo.items(),
                                           key=lambda k: {'name': '01',
                                                          'status': '02',
                                                          'version': '03',
@@ -372,7 +365,7 @@ def orderedPackagesConfig():
                                                          'remappings': '14',
                                                          }.get(k[0],k[0])))
                        for _packageInfo in packagesConfig['packages']]),
-         ('remappings',OrderedDict(sorted(packagesConfig['remappings'].items())))))
+         ('remappings',dict(sorted(packagesConfig['remappings'].items())))))
 
 def save(cntlr: Cntlr) -> None:
     global packagesConfigChanged
@@ -462,13 +455,9 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
     #TODO several directories, eg User Application Data
     packageFilename = _cntlr.webCache.getfilename(URL, reload=reload, normalize=True)
     if packageFilename:
-        from arelle.FileSource import TAXONOMY_PACKAGE_FILE_NAMES
+        from arelle.FileSource import TAXONOMY_PACKAGE_FILE_NAMES, archiveFilenameParts, openFileSource
         filesource = None
         try:
-            global openFileSource
-            if openFileSource is None:
-                from arelle.FileSource import openFileSource
-            from arelle.FileSource import archiveFilenameParts
             parts = archiveFilenameParts(packageFilename)
             if parts is not None:
                 sourceFileSource = openFileSource(parts[0], _cntlr)
@@ -615,12 +604,12 @@ def rebuildRemappings(cntlr):
 def isMappedUrl(url):
     return (packagesConfig is not None and url is not None and
             any(url.startswith(mapFrom) and not url.startswith(mapTo) # prevent recursion in mapping for url hosted Packages
-                for mapFrom, mapTo in packagesConfig.get('remappings', EMPTYDICT).items()))
+                for mapFrom, mapTo in packagesConfig.get('remappings', {}).items()))
 
 def mappedUrl(url):
     if packagesConfig is not None and url is not None:
         longestPrefix = 0
-        for mapFrom, mapTo in packagesConfig.get('remappings', EMPTYDICT).items():
+        for mapFrom, mapTo in packagesConfig.get('remappings', {}).items():
             if url.startswith(mapFrom):
                 if url.startswith(mapTo):
                     return url # recursive mapping, this is already mapped
