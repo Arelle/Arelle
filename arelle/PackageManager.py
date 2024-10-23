@@ -423,6 +423,7 @@ def validateTaxonomyPackage(cntlr, filesource, errors=[]) -> bool:
                 cntlr.addToLog(
                     validation.msg,
                     messageCode=validation.codes,
+                    messageArgs=validation.args,
                     file=filesource.urlBasename,
                     level=logging.ERROR,
                 )
@@ -433,6 +434,7 @@ def validateTaxonomyPackage(cntlr, filesource, errors=[]) -> bool:
                 cntlr.addToLog(
                     validation.msg,
                     messageCode=validation.codes,
+                    messageArgs=validation.args,
                     file=filesource.urlBasename,
                     level=logging.ERROR,
                 )

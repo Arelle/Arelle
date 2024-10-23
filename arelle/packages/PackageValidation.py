@@ -29,10 +29,8 @@ def validatePackageZipFormat(
         return Validation.error(
             codes=f"{packageType.errorPrefix}:invalidArchiveFormat",
             msg=_("%(packageType)s package is not valid and could not be opened: %(file)s"),
-            args={
-                "packageType": packageType.name,
-                "file": os.path.basename(str(filesource.url)),
-            },
+            packageType=packageType.name,
+            file=os.path.basename(str(filesource.url)),
         )
     return None
 
@@ -45,10 +43,8 @@ def validatePackageNotEncrypted(
         return Validation.error(
             codes=f"{packageType.errorPrefix}:invalidArchiveFormat",
             msg=_("%(packageType)s package contains encrypted files: %(file)s"),
-            args={
-                "packageType": packageType.name,
-                "file": os.path.basename(str(filesource.url)),
-            },
+            packageType=packageType.name,
+            file=os.path.basename(str(filesource.url)),
         )
     return None
 
@@ -61,10 +57,8 @@ def validateZipFileSeparators(
         return Validation.error(
             codes=f"{packageType.errorPrefix}:invalidArchiveFormat",
             msg=_("%(packageType)s package directory uses '\\' as a file separator."),
-            args={
-                "packageType": packageType.name,
-                "file": os.path.basename(str(filesource.url)),
-            },
+            packageType=packageType.name,
+            file=os.path.basename(str(filesource.url)),
         )
     return None
 
@@ -79,12 +73,10 @@ def validateTopLevelFiles(
         return Validation.error(
             codes=f"{packageType.errorPrefix}:invalidDirectoryStructure",
             msg=_("%(packageType)s package contains %(count)s top level file(s):  %(topLevelFiles)s"),
-            args={
-                "packageType": packageType.name,
-                "count": numTopLevelFiles,
-                "topLevelFiles": ", ".join(sorted(topLevelFiles)),
-                "file": os.path.basename(str(filesource.url)),
-            },
+            packageType=packageType.name,
+            count=numTopLevelFiles,
+            topLevelFiles=", ".join(sorted(topLevelFiles)),
+            file=os.path.basename(str(filesource.url)),
         )
     return None
 
@@ -99,21 +91,17 @@ def validateTopLevelDirectories(
         return Validation.error(
             codes=f"{packageType.errorPrefix}:invalidDirectoryStructure",
             msg=_("%(packageType)s Package does not contain a top level directory"),
-            args={
-                "packageType": packageType.name,
-                "file": os.path.basename(str(filesource.url)),
-            },
+            packageType=packageType.name,
+            file=os.path.basename(str(filesource.url)),
         )
     if numTopLevelDirectories > 1:
         return Validation.error(
             codes=f"{packageType.errorPrefix}:invalidDirectoryStructure",
             msg=_("%(packageType)s package contains %(count)s top level directories: %(topLevelDirectories)s"),
-            args={
-                "packageType": packageType.name,
-                "count": numTopLevelDirectories,
-                "topLevelDirectories": ", ".join(sorted(topLevelDirectories)),
-                "file": os.path.basename(str(filesource.url)),
-            },
+            packageType=packageType.name,
+            count=numTopLevelDirectories,
+            topLevelDirectories=", ".join(sorted(topLevelDirectories)),
+            file=os.path.basename(str(filesource.url)),
         )
     return None
 
@@ -126,9 +114,7 @@ def validateMetadataDirectory(
         return Validation.error(
             codes=f"{packageType.errorPrefix}:metadataDirectoryNotFound",
             msg=_("%(packageType)s package top-level directory does not contain a subdirectory META-INF"),
-            args={
-                "packageType": packageType.name,
-                "file": os.path.basename(str(filesource.url)),
-            },
+            packageType=packageType.name,
+            file=os.path.basename(str(filesource.url)),
         )
     return None
