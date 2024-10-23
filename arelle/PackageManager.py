@@ -44,6 +44,9 @@ TAXONOMY_PACKAGE_ABORTING_VALIDATIONS = (
     PackageValidation.validatePackageNotEncrypted,
     PackageValidation.validateTopLevelFiles,
     PackageValidation.validateTopLevelDirectories,
+    PackageValidation.validateDuplicateEntries,
+    PackageValidation.validateConflictingEntries,
+    PackageValidation.validateEntries,
 )
 
 TAXONOMY_PACKAGE_NON_ABORTING_VALIDATIONS = (
