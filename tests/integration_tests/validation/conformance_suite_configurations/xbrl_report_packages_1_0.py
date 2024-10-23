@@ -29,7 +29,7 @@ config = ConformanceSuiteConfig(
         # 0xx - basic zip structure and package identification tests
         "V-000-invalid-zip",  # rpe:invalidArchiveFormat tpe:invalidArchiveFormat,0,A report package MUST conform to the .ZIP File Format Specification
         # "V-001-valid-taxonomy-package",  # ,0,"Minimal valid taxonomy package (not a report package). If the package has a file extension of .zip and neither [META-INF/reportPackage.json nor reports] exists, the file is treated as a taxonomy package, and further constraints and processing defined by this specification are not applied."
-        "V-002-invalid-taxonomy-package-metadata",  # tpe:invalidMetaDataFile,0,If a report package contains the path META-INF/taxonomyPackage.xml within the STLD then it MUST be a valid taxonomy package.
+        # "V-002-invalid-taxonomy-package-metadata",  # tpe:invalidMetaDataFile,0,If a report package contains the path META-INF/taxonomyPackage.xml within the STLD then it MUST be a valid taxonomy package.
         "V-003-multiple-top-level-directories",  # rpe:invalidDirectoryStructure tpe:invalidDirectoryStructure,0,A report package conforming to this specification MUST contain a single top-level directory
         "V-004-empty-zip",  # rpe:invalidDirectoryStructure tpe:invalidDirectoryStructure,0,A report package conforming to this specification MUST contain a single top-level directory
         "V-005-leading-slash-in-zip-entry",  # rpe:invalidArchiveFormat tpe:invalidArchiveFormat,0,Leading slash is illegal according to the ZIP specficiation
