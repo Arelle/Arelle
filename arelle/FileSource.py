@@ -67,13 +67,23 @@ def openFileSource(
             selection: str | None = archivepathSelection[1]
 
             assert selection is not None
+            selectionIsEmbeddedZip = False
             if (
                 sourceFileSource is not None
                 and sourceFileSource.dir is not None
                 and sourceFileSource.isArchive
                 and selection in sourceFileSource.dir
-                and isReportPackageExtension(selection)
             ):
+                if isReportPackageExtension(selection):
+                    selectionIsEmbeddedZip = True
+                else:
+                    try:
+                        assert isinstance(sourceFileSource.fs, zipfile.ZipFile)
+                        with sourceFileSource.fs.open(selection) as f:
+                            selectionIsEmbeddedZip = zipfile.is_zipfile(f)
+                    except Exception:
+                        pass
+            if selectionIsEmbeddedZip:
                 assert cntlr is not None
                 filesource = FileSource(filename, cntlr)
                 selection = None
@@ -150,6 +160,8 @@ class FileSource:
     url: str | list[str] | None
     basefile: str | list[str] | None
     xfdDocument: etree._ElementTree | None
+    taxonomyPackage: dict[str, str | dict[str, str]] | None
+    mappedPaths: dict[str, str] | None
 
     def __init__(self, url: str, cntlr: Cntlr | None = None, checkIfXmlIsEis: bool = False) -> None:
         self.url = str(url)  # allow either string or FileNamedStringIO
@@ -173,6 +185,16 @@ class FileSource:
         self.taxonomyPackage = None # taxonomy package
         self.mappedPaths = None  # remappings of path segments may be loaded by taxonomyPackage manifest
         self.isValid = True # filesource is assumed to be valid until a call to open fails.
+        if not self.isZip:
+            # Try to detect zip files with unrecognized file extensions.
+            try:
+                basefile = self.cntlr.webCache.getfilename(self.url) if self.cntlr is not None else self.url
+                if basefile:
+                    with openFileStream(self.cntlr, basefile, 'rb') as fileStream:
+                        self.isZip = zipfile.is_zipfile(fileStream)
+            except Exception:
+                pass
+
 
         # for SEC xml files, check if it's an EIS anyway
         if (not (self.isZip or self.isEis or self.isXfd or self.isRss) and
@@ -343,16 +365,16 @@ class FileSource:
                 self.loadTaxonomyPackageMappings()
 
     def loadTaxonomyPackageMappings(self, errors: list[str] = [], expectTaxonomyPackage: bool = False) -> None:
-        if not self.mappedPaths and (self.taxonomyPackageMetadataFiles or expectTaxonomyPackage):
+        if not self.mappedPaths and (self.taxonomyPackageMetadataFiles or expectTaxonomyPackage) and self.cntlr:
             if PackageManager.validateTaxonomyPackage(self.cntlr, self, errors=errors):
                 assert isinstance(self.baseurl, str)
                 metadata = self.baseurl + os.sep + self.taxonomyPackageMetadataFiles[0]
-                self.taxonomyPackage = PackageManager.parsePackage(self.cntlr, self, metadata,  # type: ignore[no-untyped-call]
+                self.taxonomyPackage = PackageManager.parsePackage(self.cntlr, self, metadata,
                                                                    os.sep.join(os.path.split(metadata)[:-1]) + os.sep,
                                                                    errors=errors)
 
                 assert self.taxonomyPackage is not None
-                self.mappedPaths = self.taxonomyPackage.get("remappings")
+                self.mappedPaths = cast('dict[str, str]', self.taxonomyPackage.get("remappings"))
 
     def openZipStream(self, sourceZipStream: str) -> None:
         if not self.isOpen:
@@ -418,7 +440,7 @@ class FileSource:
             self._reportPackage: ReportPackage | None
             return self._reportPackage
         except AttributeError:
-            self._reportPackage = ReportPackage.fromFileSource(self) if self.isZip else None
+            self._reportPackage = ReportPackage.fromFileSource(self)
             return self._reportPackage
 
     @property
