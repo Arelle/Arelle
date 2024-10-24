@@ -310,7 +310,7 @@ def parseArgs(args):
     parser.add_option("--formulaVarFilterWinnowing", "--formulavarfilterwinnowing", action="store_true", dest="formulaVarFilterWinnowing", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFiltersResult", "--formulavarfiltersresult", action="store_true", dest="formulaVarFiltersResult", help=_("Specify formula tracing."))
     parser.add_option("--testcaseExpectedErrors", "--testcaseexpectederrors", action="append", dest=TESTCASE_EXPECTED_ERRORS_OPTION,
-                      help=_("For testcase results, specify comma separated additional expected errors by test case id. --testcaseExpectedErrors=testcase-index.xml:test_id1|IOerror,oime:invalidTaxonomy"))
+                      help=_("For testcase results, specify comma separated additional expected errors by test case id. A leading '-' indicates an error that is expected by the test case, but not raised by Arelle. --testcaseExpectedErrors=testcase-index.xml:test_id1|IOerror,-oime:invalidTaxonomy"))
     parser.add_option("--testcaseFilter", "--testcasefilter", action="append", dest="testcaseFilters",
                       help=_("If any filters are provided, any testcase variation path in the form {testcaseFilepath}:{testcaseVariationId} that doesn't pass any filter "
                              "will be skipped." ))

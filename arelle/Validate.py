@@ -428,6 +428,10 @@ class Validate:
                         modelXbrl=model, instance=model.modelDocument.basename, error=err, exc_info=(type(err) is not AssertionError))
                 model.hasFormulae = _hasFormulae
         errors = [error for model in loadedModels for error in model.errors]
+        for err in _errors:
+            if err not in errors:
+                # include errors from models which failed to load.
+                errors.append(err)
         reportModelCount = len([
             model for model in loadedModels
             if model.modelDocument is not None and (model.fileSource.isReportPackage or not model.fileSource.isTaxonomyPackage)
@@ -659,10 +663,19 @@ class Validate:
         if userExpectedErrors := testcaseExpectedErrors.get(variationIdPath):
             if expected is None:
                 expected = []
-            expected.extend(userExpectedErrors)
-            if expectedCount is None:
-                expectedCount = 0
-            expectedCount += len(userExpectedErrors)
+            for userExpectedError in userExpectedErrors:
+                if userExpectedError.startswith("-"):
+                    newExpected = [
+                        err for err in expected
+                        if str(err) != userExpectedError[1:]
+                    ]
+                    if expectedCount is not None:
+                        expectedCount -= len(expected) - len(newExpected)
+                    expected = newExpected
+                else:
+                    expected.append(userExpectedError)
+                    if expectedCount is not None:
+                        expectedCount += 1
         if matchAllExpected:
             if isinstance(expected, list):
                 if not expectedCount:

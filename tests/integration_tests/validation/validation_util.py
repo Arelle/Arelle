@@ -325,10 +325,10 @@ def get_conformance_suite_test_results_with_shards(
         additional_plugins = shard.plugins
         all_test_paths = {path for test_shard in test_shards for path in test_shard.paths}
 
-        unrecognized_additional_error_ids = {_id.rsplit(':', 1)[0] for _id in config.expected_additional_testcase_errors.keys()} - all_test_paths
+        unrecognized_additional_error_ids = {_id.rsplit(':', 1)[0] for _id in config.user_expected_errors.keys()} - all_test_paths
         assert not unrecognized_additional_error_ids, f'Unrecognized expected additional error IDs: {unrecognized_additional_error_ids}'
         expected_additional_testcase_errors = {}
-        for expected_id, errors in config.expected_additional_testcase_errors.items():
+        for expected_id, errors in config.user_expected_errors.items():
             test_path, test_id = expected_id.rsplit(':', 1)
             if test_id in test_paths.get(test_path, []):
                 expected_additional_testcase_errors[expected_id] = errors
@@ -386,7 +386,7 @@ def get_conformance_suite_test_results_without_shards(
     args, kws = get_conformance_suite_arguments(
         config=config, filename=filename, additional_plugins=additional_plugins,
         build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=None,
-        expected_additional_testcase_errors=config.expected_additional_testcase_errors,
+        expected_additional_testcase_errors=config.user_expected_errors,
         expected_failure_ids=expected_failure_ids, testcase_filters=[],
     )
     url_context_manager: ContextManager[Any]

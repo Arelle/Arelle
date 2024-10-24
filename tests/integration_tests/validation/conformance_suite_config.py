@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import defaultdict
 import itertools
 import os
 import re
@@ -193,6 +194,7 @@ class ConformanceSuiteConfig:
     capture_warnings: bool = True
     ci_enabled: bool = True
     expected_additional_testcase_errors: dict[str, frozenset[str]] = field(default_factory=dict)
+    expected_missing_testcase_errors: dict[str, frozenset[str]] = field(default_factory=dict)
     expected_failure_ids: frozenset[str] = frozenset()
     expected_missing_testcases: frozenset[str] = frozenset()
     expected_model_errors: frozenset[str] = frozenset()
@@ -229,8 +231,25 @@ class ConformanceSuiteConfig:
         overlapping_expected_failure_testcase_ids = self.expected_failure_ids.intersection(self.expected_additional_testcase_errors.keys())
         assert not overlapping_expected_failure_testcase_ids, \
             f'Testcase IDs in both expected failures and expected additional errors: {sorted(overlapping_expected_failure_testcase_ids)}'
+        overlapping_expected_missing_testcase_ids = self.expected_failure_ids.intersection(self.expected_missing_testcase_errors.keys())
+        assert not overlapping_expected_missing_testcase_ids, \
+            f'Testcase IDs in both expected failures and expected missing errors: {sorted(overlapping_expected_missing_testcase_ids)}'
         assert not self.network_or_cache_required or self.package_paths or self.cache_version_id, \
             'If network or cache is required, either packages must be used or a cache version ID must be provided.'
+
+    @cached_property
+    def user_expected_errors(self) -> dict[str, frozenset[str]]:
+        expected_errors = defaultdict(set)
+        for testcase_id, errors in self.expected_additional_testcase_errors.items():
+            expected_errors[testcase_id].update(errors)
+        for testcase_id, errors in self.expected_missing_testcase_errors.items():
+            for error in errors:
+                assert error not in expected_errors[testcase_id], "Error cannot be both expected and missing."
+                expected_errors[testcase_id].add(f"-{error}")
+        return {
+            testcase_id: frozenset(errors)
+            for testcase_id, errors in expected_errors.items()
+        }
 
     @cached_property
     def entry_point_asset(self) -> ConformanceSuiteAssetConfig:
