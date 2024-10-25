@@ -22,6 +22,7 @@ from arelle.ModelTestcaseObject import testcaseVariationsByTarget, ModelTestcase
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
 from arelle.packages.report.DetectReportPackage import isReportPackageExtension
+from arelle.packages.report.ReportPackageValidator import ReportPackageValidator
 from arelle.rendering import RenderingEvaluator
 from arelle.XmlUtil import collapseWhitespace, xmlstring
 
@@ -122,6 +123,10 @@ class Validate:
         elif self.modelXbrl.modelDocument.type == Type.RSSFEED:
             self.validateRssFeed()
         else:
+            if self.modelXbrl.fileSource.isReportPackage or self.modelXbrl.modelManager.validateAllFilesAsReportPackages:
+                rpValidator = ReportPackageValidator(self.modelXbrl.fileSource)
+                for val in rpValidator.validate():
+                    self.modelXbrl.log(level=val.level.name, codes=val.codes, msg=val.msg, modelXbrl=self.modelXbrl, **val.args)
             try:
                 self.instValidator.validate(self.modelXbrl, self.modelXbrl.modelManager.formulaOptions.typedParameters(self.modelXbrl.prefixedNamespaces))
                 self.instValidator.close()
@@ -350,6 +355,15 @@ class Validate:
 
                 if newSourceFileSource:
                     sourceFileSource.close()
+                _rptPkgIxdsOptions = {}
+                for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxdsOptions"):
+                    pluginXbrlMethod(self, _rptPkgIxdsOptions)
+                reportPackageErrors = False
+                if (filesource.isReportPackage or self.modelXbrl.modelManager.validateAllFilesAsReportPackages) and not _rptPkgIxdsOptions:
+                    rpValidator = ReportPackageValidator(filesource)
+                    for val in rpValidator.validate():
+                        reportPackageErrors = True
+                        preLoadingErrors.append(val.codes)
                 if filesource and not filesource.selection and filesource.isArchive:
                     try:
                         if filesource.isTaxonomyPackage or expectTaxonomyPackage:
@@ -368,21 +382,19 @@ class Validate:
                             _("Testcase variation validation exception: %(error)s, entry URL: %(instance)s"),
                             modelXbrl=self.modelXbrl, instance=readMeFirstUri, error=err)
                         return [] # don't try to load this entry URL
-                _rptPkgIxdsOptions = {}
-                for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxdsOptions"):
-                    pluginXbrlMethod(self, _rptPkgIxdsOptions)
                 if filesource and filesource.isReportPackage and not _rptPkgIxdsOptions:
-                    for report in filesource.reportPackage.reports or []:
-                        assert isinstance(filesource.basefile, str)
-                        modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
-                                                    report.primary,
-                                                    _("validating"),
-                                                    useFileSource=filesource,
-                                                    base=filesource.basefile + "/",
-                                                    errorCaptureLevel=errorCaptureLevel,
-                                                    ixdsTarget=modelTestcaseVariation.ixdsTarget,
-                                                    errors=preLoadingErrors)
-                        loadedModels.append(modelXbrl)
+                    if not reportPackageErrors:
+                        for report in filesource.reportPackage.reports or []:
+                            assert isinstance(filesource.basefile, str)
+                            modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
+                                                        report.primary,
+                                                        _("validating"),
+                                                        useFileSource=filesource,
+                                                        base=filesource.basefile + "/",
+                                                        errorCaptureLevel=errorCaptureLevel,
+                                                        ixdsTarget=modelTestcaseVariation.ixdsTarget,
+                                                        errors=preLoadingErrors)
+                            loadedModels.append(modelXbrl)
                 else:
                     if _rptPkgIxdsOptions and filesource.isTaxonomyPackage:
                         # Legacy ESEF conformance suite logic.
