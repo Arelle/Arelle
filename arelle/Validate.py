@@ -5,6 +5,7 @@ import fnmatch
 import os, sys, traceback, logging
 import time
 from urllib.parse import unquote
+import zipfile
 
 import regex as re
 from collections import defaultdict, OrderedDict
@@ -20,7 +21,6 @@ from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelTestcaseObject import testcaseVariationsByTarget, ModelTestcaseVariation
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
-from arelle.packages.report import ReportPackageConst
 from arelle.packages.report.DetectReportPackage import isReportPackageExtension
 from arelle.rendering import RenderingEvaluator
 from arelle.XmlUtil import collapseWhitespace, xmlstring
@@ -271,6 +271,7 @@ class Validate:
         modelTestcaseVariation.duration = time.perf_counter() - startTime
 
     def _testcaseLoadReadMeFirstUri(self, testcase, modelTestcaseVariation, index, readMeFirstUri, resultIsVersioningReport, resultIsTaxonomyPackage, inputDTSes, errorCaptureLevel, baseForElement, parameters):
+        preLoadingErrors = [] # accumulate pre-loading errors, such as during taxonomy package loading
         loadedModels = []
         readMeFirstElements = modelTestcaseVariation.readMeFirstElements
         expectTaxonomyPackage = (index < len(readMeFirstElements) and
@@ -307,7 +308,17 @@ class Validate:
             loadedModels.append(modelXbrl)
             PackageManager.packageInfo(self.modelXbrl.modelManager.cntlr, readMeFirstUri, reload=True, errors=modelXbrl.errors)
         else: # not a multi-schemaRef versioning report
-            if self.useFileSource.isArchive and (os.path.isabs(readMeFirstUri) or not isReportPackageExtension(readMeFirstUri)):
+            readMeFirstUriIsEmbeddedZipFile = False
+            if self.useFileSource.isArchive and not os.path.isabs(readMeFirstUri):
+                if isReportPackageExtension(readMeFirstUri):
+                    readMeFirstUriIsEmbeddedZipFile = True
+                else:
+                    normalizedReadMeFirstUri = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(readMeFirstUri, baseForElement)
+                    archivePath = FileSource.archiveFilenameParts(normalizedReadMeFirstUri)
+                    if archivePath:
+                        with self.useFileSource.fs.open(archivePath[1]) as embeddedFile:
+                            readMeFirstUriIsEmbeddedZipFile = zipfile.is_zipfile(embeddedFile)
+            if not readMeFirstUriIsEmbeddedZipFile:
                 modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
                                             readMeFirstUri,
                                             _("validating"),
@@ -322,7 +333,7 @@ class Validate:
                 if (
                     self.useFileSource
                     and not os.path.isabs(readMeFirstUri)
-                    and isReportPackageExtension(readMeFirstUri)
+                    and (readMeFirstUriIsEmbeddedZipFile or isReportPackageExtension(readMeFirstUri))
                 ):
                     if self.useFileSource.isArchive:
                         sourceFileSource = self.useFileSource
@@ -339,11 +350,10 @@ class Validate:
 
                 if newSourceFileSource:
                     sourceFileSource.close()
-                _errors = [] # accumulate pre-loading errors, such as during taxonomy package loading
                 if filesource and not filesource.selection and filesource.isArchive:
                     try:
                         if filesource.isTaxonomyPackage or expectTaxonomyPackage:
-                            filesource.loadTaxonomyPackageMappings(errors=_errors, expectTaxonomyPackage=expectTaxonomyPackage)
+                            filesource.loadTaxonomyPackageMappings(errors=preLoadingErrors, expectTaxonomyPackage=expectTaxonomyPackage)
                             filesource.select(None) # must select loadable reports (not the taxonomy package itself)
                         elif not filesource.isReportPackage:
                             from arelle.CntlrCmdLine import filesourceEntrypointFiles
@@ -362,7 +372,7 @@ class Validate:
                 for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxdsOptions"):
                     pluginXbrlMethod(self, _rptPkgIxdsOptions)
                 if filesource and filesource.isReportPackage and not _rptPkgIxdsOptions:
-                    for report in filesource.reportPackage.reports:
+                    for report in filesource.reportPackage.reports or []:
                         assert isinstance(filesource.basefile, str)
                         modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
                                                     report.primary,
@@ -371,7 +381,7 @@ class Validate:
                                                     base=filesource.basefile + "/",
                                                     errorCaptureLevel=errorCaptureLevel,
                                                     ixdsTarget=modelTestcaseVariation.ixdsTarget,
-                                                    errors=_errors)
+                                                    errors=preLoadingErrors)
                         loadedModels.append(modelXbrl)
                 else:
                     if _rptPkgIxdsOptions and filesource.isTaxonomyPackage:
@@ -385,7 +395,7 @@ class Validate:
                                                 errorCaptureLevel=errorCaptureLevel,
                                                 ixdsTarget=modelTestcaseVariation.ixdsTarget,
                                                 isLoadable=modelTestcaseVariation.variationDiscoversDTS or filesource.url,
-                                                errors=_errors)
+                                                errors=preLoadingErrors)
                     loadedModels.append(modelXbrl)
 
         for model in loadedModels:
@@ -428,6 +438,10 @@ class Validate:
                         modelXbrl=model, instance=model.modelDocument.basename, error=err, exc_info=(type(err) is not AssertionError))
                 model.hasFormulae = _hasFormulae
         errors = [error for model in loadedModels for error in model.errors]
+        for err in preLoadingErrors:
+            if err not in errors:
+                # include errors from models which failed to load.
+                errors.append(err)
         reportModelCount = len([
             model for model in loadedModels
             if model.modelDocument is not None and (model.fileSource.isReportPackage or not model.fileSource.isTaxonomyPackage)
@@ -660,9 +674,8 @@ class Validate:
             if expected is None:
                 expected = []
             expected.extend(userExpectedErrors)
-            if expectedCount is None:
-                expectedCount = 0
-            expectedCount += len(userExpectedErrors)
+            if expectedCount is not None:
+                expectedCount += len(userExpectedErrors)
         if matchAllExpected:
             if isinstance(expected, list):
                 if not expectedCount:
