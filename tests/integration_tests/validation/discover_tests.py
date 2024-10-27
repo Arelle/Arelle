@@ -11,7 +11,7 @@ from .conformance_suite_configurations.xbrl_2_1 import config as xbrl_2_1
 
 
 LINUX = 'ubuntu-22.04'
-MACOS = 'macos-12'
+MACOS = 'macos-14'
 WINDOWS = 'windows-2022'
 ALL_PYTHON_VERSIONS = (
     '3.9',
