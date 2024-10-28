@@ -8,12 +8,12 @@ import os.path
 import statistics
 import zipfile
 from collections import defaultdict
-from collections.abc import Generator
-from contextlib import nullcontext
+from collections.abc import Callable, Generator
+from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass
 from heapq import heapreplace
 from pathlib import PurePosixPath, Path
-from typing import Any, Callable, ContextManager, TYPE_CHECKING, cast
+from typing import Any, TYPE_CHECKING, cast
 from unittest.mock import patch
 
 from lxml import etree
@@ -355,7 +355,7 @@ def get_conformance_suite_test_results_with_shards(
             expected_failure_ids=frozenset(expected_failure_ids), testcase_filters=testcase_filters,
         )
         tasks.append(args)
-    url_context_manager: ContextManager[Any]
+    url_context_manager: AbstractContextManager[Any]
     if config.url_replace:
         url_context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
     else:
@@ -389,7 +389,7 @@ def get_conformance_suite_test_results_without_shards(
         expected_additional_testcase_errors=config.expected_additional_testcase_errors,
         expected_failure_ids=expected_failure_ids, testcase_filters=[],
     )
-    url_context_manager: ContextManager[Any]
+    url_context_manager: AbstractContextManager[Any]
     if config.url_replace:
         url_context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
     else:
@@ -452,8 +452,7 @@ def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]
     for result in results:
         testcase_id = result.id
         values = result.values[0]
-        # TODO: revisit typing here once 3.8 removed
-        status = values.get('status')  # type: ignore[union-attr]
+        status = values.get('status')
         assert status, f'Test result has no status: {testcase_id}'
         if status == 'skip':
             continue

@@ -6,12 +6,15 @@ from tests.integration_tests.validation.conformance_suite_config import (
     ConformanceSuiteConfig,
 )
 
-CONFORMANCE_SUITE_ZIP_NAME = 'efm-71d-240816.zip'
+CONFORMANCE_SUITE_ZIP_NAME = 'efm-71-240916.zip'
 
 config = ConformanceSuiteConfig(
     additional_plugins_by_prefix=[(f'conf/{t}', frozenset({'EDGAR/render'})) for t in [
         '612-presentation-syntax/612-09-presented-units-order',
+        '624-rendering/15-equity-changes',
+        '624-rendering/17-uncategorized-facts',
         '626-rendering-syntax',
+        '902-sdr/efm/62421-sdr-multiple',
     ]],
     args=[
         '--disclosureSystem', 'efm-pragmatic',
@@ -25,12 +28,7 @@ config = ConformanceSuiteConfig(
             source=AssetSource.S3_PUBLIC,
         )
     ],
-    cache_version_id='LlFh0Bj7is.HV8nO2FmINd30wMJPyYEs',
-    expected_failure_ids=frozenset([
-        # Failures expected to be resolved when EFM 24.3 conformance suite is published.
-        'conf/605-instance-syntax/605-61-cybersecurity-incident-disclosure/605-61-cybersecurity-incident-disclosure-testcase.xml:_001gd',
-        'conf/622-only-supported-locations/622-01-all-supported-locations/622-01-all-supported-locations-testcase.xml:_029gd',
-    ]),
+    cache_version_id='7RGPI61UxvM3f44.JpzkU2S3AU5bBVeF',
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     name=PurePath(__file__).stem,
     plugins=frozenset({'EDGAR/validate', 'inlineXbrlDocumentSet'}),

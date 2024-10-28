@@ -4,9 +4,10 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import os
-from typing import Any, Iterable
+from typing import Any
 
 from collections import Counter
+from collections.abc import Iterable
 
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl

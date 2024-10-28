@@ -3,7 +3,8 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import logging, os
-from typing import TYPE_CHECKING, Any, Callable, Type, cast
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, cast
 from lxml import etree
 from regex import Match, compile as re_compile
 from decimal import Decimal, InvalidOperation
@@ -40,7 +41,7 @@ VALID_NO_CONTENT = XmlValidateConst.VALID_NO_CONTENT
 
 validateElementSequence: Callable[..., Any] | None = None  #dynamic import to break dependency loops
 modelGroupCompositorTitle: Callable[[Any], str] | None = None
-ModelInlineValueObject: Type[Any] | None = None
+ModelInlineValueObject: type[Any] | None = None
 ixMsgCode: Callable[..., str] | None = None
 
 normalizeWhitespacePattern = re_compile(r"[\t\n\r]") # replace tab, line feed, return with space (XML Schema Rules, note: does not include NBSP)

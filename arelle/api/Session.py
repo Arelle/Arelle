@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import logging
 from types import TracebackType
-from typing import Any, Type, BinaryIO
+from typing import Any, BinaryIO
 
 from arelle import PluginManager, PackageManager
 from arelle.CntlrCmdLine import CntlrCmdLine, createCntlrAndPreloadPlugins
@@ -27,7 +27,7 @@ class Session:
 
     def __exit__(
         self,
-        exc_type: Type[BaseException],
+        exc_type: type[BaseException],
         exc_val: BaseException,
         exc_tb: TracebackType | None
     ) -> None:

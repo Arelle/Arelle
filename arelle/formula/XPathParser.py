@@ -6,9 +6,9 @@ from __future__ import annotations
 import sys
 import time
 import traceback
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from decimal import Decimal
-from typing import Any, List, Sequence, TYPE_CHECKING, Union
+from typing import Any, TYPE_CHECKING, Union
 from xml.dom import minidom
 
 from pyparsing import (
@@ -67,7 +67,7 @@ FormulaToken = Union[
 
 RecursiveFormulaTokens = Sequence[Union[FormulaToken, 'RecursiveFormulaTokens']]
 
-ExpressionStack = List[FormulaToken]
+ExpressionStack = list[FormulaToken]
 
 ixtFunctionNamespaces: set[str] = set()
 

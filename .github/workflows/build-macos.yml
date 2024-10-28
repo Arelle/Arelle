@@ -54,7 +54,8 @@ permissions: {}
 jobs:
   build-macos:
     environment: release
-    runs-on: macos-14
+    # Intel runner produces universal binary
+    runs-on: macos-14-large
     outputs:
       artifact_versioned_name: ${{ steps.define-artifact-names.outputs.artifact_versioned_name }}
       uploaded_artifact_name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
@@ -194,4 +195,6 @@ jobs:
         uses: actions/upload-artifact@v4.4.3
         with:
           name: 'macos test logs'
+          if-no-files-found: error
+          include-hidden-files: true
           path: '.test/**/*.logfile.xml'

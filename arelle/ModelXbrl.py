@@ -7,7 +7,7 @@ import os, sys, traceback, uuid
 import regex as re
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Dict, TYPE_CHECKING, Any, Type, TypeVar, Union, cast, Optional, List, Set, Tuple
+from typing import TYPE_CHECKING, Any, TypeVar, Union, cast, Optional
 import logging
 from decimal import Decimal
 
@@ -55,7 +55,7 @@ DEFAULTorNONDEFAULT = sys.intern("default-or-non-default")
 EMPTY_TUPLE: EmptyTuple = ()
 _NOT_FOUND = object()
 
-LoggableValue = Union[str, Dict[Any, Any], List[Any], Set[Any], Tuple[Any, ...]]
+LoggableValue = Union[str, dict[Any, Any], list[Any], set[Any], tuple[Any, ...]]
 
 
 def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: str | None = None, **kwargs: Any) -> ModelXbrl:
@@ -139,7 +139,7 @@ def loadSchemalocatedSchemas(modelXbrl: ModelXbrl) -> None:
             modelDocumentsSchemaLocated |= modelDocuments
 
 
-MatchSubstitutionGroupValueType = TypeVar('MatchSubstitutionGroupValueType', Type[ModelObject], bool)
+MatchSubstitutionGroupValueType = TypeVar('MatchSubstitutionGroupValueType', type[ModelObject], bool)
 
 
 class ModelXbrl:
@@ -658,8 +658,8 @@ class ModelXbrl:
                     self.info("arelle:info",
                         _("Create context for %(priItem)s, cannot determine valid context elements, no suitable hypercubes"),
                         modelObject=self, priItem=priItem)
-                    # fp.context.qnameDims is actually of type Dict[QName, DimValuePrototype]
-                fpDims = cast(Dict[Union[int, 'QName'], Union['QName', DimValuePrototype]], fp.context.qnameDims)
+                    # fp.context.qnameDims is actually of type dict[QName, DimValuePrototype]
+                fpDims = cast(dict[Union[int, 'QName'], Union['QName', DimValuePrototype]], fp.context.qnameDims)
             else:
                 fpDims = dims # dims known to be valid (such as for inline extraction)
             for dimQname in sorted(fpDims.keys()):

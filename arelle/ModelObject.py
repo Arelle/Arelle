@@ -2,7 +2,8 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Generator, cast, Union
+from collections.abc import Generator
+from typing import TYPE_CHECKING, Any, cast
 from lxml import etree
 from arelle import Locale
 from arelle import ModelValue

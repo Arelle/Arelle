@@ -133,4 +133,6 @@ jobs:
         uses: actions/upload-artifact@v4.4.3
         with:
           name: 'linux test logs'
+          if-no-files-found: error
+          include-hidden-files: true
           path: '.test/**/*.logfile.xml'

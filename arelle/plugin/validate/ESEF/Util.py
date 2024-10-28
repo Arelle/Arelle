@@ -6,8 +6,8 @@ from __future__ import annotations
 import json
 import os
 from collections import defaultdict
-from collections.abc import Collection
-from typing import Any, Dict, Generator, List, Union, cast
+from collections.abc import Collection, Generator
+from typing import Any, Union, cast
 import regex as re
 
 from lxml.etree import _Element
@@ -79,7 +79,7 @@ def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]
     _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), 'rt', encoding='utf-8')
     validations = json.load(_file) # {localName: date, ...}
     _file.close()
-    return cast(Union[Dict[Any, Any], List[Any]], validations)
+    return cast(Union[dict[Any, Any], list[Any]], validations)
 
 
 def checkForMultiLangDuplicates(modelXbrl: ModelXbrl) -> None:

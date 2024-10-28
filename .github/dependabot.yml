@@ -26,6 +26,14 @@ updates:
           - "*"
     ignore:
       - dependency-name: "cx_Freeze"
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      dotnet-dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: docker
     directory: "/"
     schedule:

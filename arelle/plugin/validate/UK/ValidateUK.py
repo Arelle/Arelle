@@ -7,8 +7,7 @@ from dataclasses import dataclass
 from dataclasses import field
 from enum import Enum
 from functools import cached_property
-from regex.regex import Pattern
-from typing import Any, Dict, Tuple, cast
+from typing import Any, cast
 
 import regex as re
 

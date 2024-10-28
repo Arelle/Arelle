@@ -4,7 +4,8 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import logging
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 DEFAULT_JSON_MAX_ATTRIBUTE_LENGTH = 4096000
 DEFAULT_XML_MAX_ATTRIBUTE_LENGTH = 128

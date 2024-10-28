@@ -5,8 +5,9 @@ from __future__ import annotations
 
 import codecs
 from collections import defaultdict
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, BinaryIO, Iterable, cast
+from typing import Any, BinaryIO, cast
 
 import regex
 from lxml import etree

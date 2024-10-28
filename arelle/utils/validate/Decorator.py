@@ -4,7 +4,8 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional
+from collections.abc import Callable, Iterable
+from typing import TYPE_CHECKING, Any, Optional
 
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Validation import Validation

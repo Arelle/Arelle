@@ -11,15 +11,8 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, QName, tzinfoStr
 from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
 from arelle.XmlValidateConst import VALID, INVALID
-from typing import TYPE_CHECKING
-from typing import Any
-from typing import cast
-from typing import Mapping
-from typing import Generator
-from typing import Collection
-from typing import Callable
-from typing import Sequence
-from typing import TextIO
+from typing import Any, TextIO, TYPE_CHECKING, cast
+from collections.abc import Callable, Collection, Sequence, Generator, Mapping
 
 if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelContext

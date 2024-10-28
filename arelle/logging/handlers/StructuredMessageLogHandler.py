@@ -4,7 +4,8 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from logging import LogRecord
-from typing import Any, Mapping, cast
+from collections.abc import Mapping
+from typing import Any, cast
 
 from arelle.logging.handlers.LogToXmlHandler import LogToXmlHandler
 

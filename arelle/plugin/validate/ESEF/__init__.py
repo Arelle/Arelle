@@ -37,7 +37,7 @@ curl -X POST "-HContent-type: application/zip" -T TC1_valid.zip "http://localhos
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, cast
+from typing import Any, cast
 
 import regex as re
 from lxml.etree import XMLParser, XMLSyntaxError, parse
@@ -228,7 +228,7 @@ class ESEFPlugin(PluginHooks):
         authorityValidations = loadAuthorityValidations(val.modelXbrl)
         # loadAuthorityValidations returns either a list or a dict but in this context, we expect a dict.
         # By using cast, we let mypy know that a list is _not_ expected here.
-        authorityValidations = cast(Dict[Any, Any], authorityValidations)
+        authorityValidations = cast(dict[Any, Any], authorityValidations)
 
         val.authParam = authorityValidations["default"]
         for name in val.disclosureSystem.names:

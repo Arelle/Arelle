@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 import datetime, isodate
 from decimal import Decimal
-from typing import Dict, List, TYPE_CHECKING, Any, cast, overload, Optional, Union
+from typing import TYPE_CHECKING, Any, cast, overload, Optional, Union
 from fractions import Fraction
 from arelle.UrlUtil import isValidUriReference
 
@@ -1005,7 +1005,7 @@ TypeXValue = Union[
     datetime.datetime,
     datetime.time,
     Decimal,
-    Dict[str, 're.Pattern[str]'],
+    dict[str, 're.Pattern[str]'],
     float,
     gDay,
     gMonth,
@@ -1013,7 +1013,7 @@ TypeXValue = Union[
     gYearMonth,
     gYear,
     Fraction,
-    List[Optional[QName]],
+    list[Optional[QName]],
     None,
     're.Pattern[str]',
     str,
