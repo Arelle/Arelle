@@ -6,7 +6,6 @@ from __future__ import annotations
 from lxml import etree
 from arelle import ModelDocument
 from collections import defaultdict
-from typing import Optional
 
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
@@ -34,7 +33,7 @@ class UtrEntry(): # use slotted class for execution efficiency
                  "denominatorItemType", "nsDenominatorItemType", "symbol",
                  "status")
 
-    def qname(self) -> Optional[QName]:
+    def qname(self) -> QName | None:
         if not self.nsUnit:
             return None
         prefix = self.nsUnit.split('/')[-1]

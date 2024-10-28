@@ -11,7 +11,7 @@ import contextlib
 
 from filelock import FileLock, Timeout
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Pattern
+from typing import TYPE_CHECKING, Any
 import os, posixpath, sys, time, calendar, io, json, logging, shutil, zlib
 import regex as re
 from urllib.parse import quote, unquote
@@ -214,7 +214,7 @@ class WebCache:
     def httpsRedirect(self, value):
         self._httpsRedirect = value
 
-    def redirectFallback(self, matchPattern: Pattern, replaceFormat: str):
+    def redirectFallback(self, matchPattern: re.Pattern, replaceFormat: str):
         self._redirectFallbackMap[matchPattern] = replaceFormat
 
     def resetProxies(self, httpProxyTuple):
@@ -298,7 +298,7 @@ class WebCache:
             filepath = filepath.replace('/', '\\')
         return filepath
 
-    def normalizeUrl(self, url: Optional[str], base: Optional[str] = None) -> Any:
+    def normalizeUrl(self, url: str | None, base: str | None = None) -> Any:
         if url:
             if url.startswith("file://"): url = url[7:]
             elif url.startswith("file:\\"): url = url[6:]

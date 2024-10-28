@@ -5,7 +5,8 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 from dateutil import relativedelta
-from typing import Any, cast, Iterable, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import Any, cast, TYPE_CHECKING
 
 from regex import regex
 

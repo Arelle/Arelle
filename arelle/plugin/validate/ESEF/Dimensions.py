@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Any, List, cast
+from typing import Any, cast
 
 import regex as re
 
@@ -134,7 +134,7 @@ def checkFilingDimensions(
                 modelObject=rels, anchoringDimensionalELR=ELR)
 
     # check base set dimension default overrides in extension taxonomies
-    for modelLink in cast(List[ModelLink], val.modelXbrl.baseSets[XbrlConst.dimensionDefault, None, None, None]):
+    for modelLink in cast(list[ModelLink], val.modelXbrl.baseSets[XbrlConst.dimensionDefault, None, None, None]):
         if isExtension(val, modelLink):
             for linkChild in modelLink:
                 if (isinstance(linkChild,(ModelObject,PrototypeObject)) and

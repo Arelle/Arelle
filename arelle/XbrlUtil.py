@@ -2,7 +2,8 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from typing import Any, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import Any, TYPE_CHECKING
 import math
 from arelle.ModelValue import QName, DateTime
 from arelle.ModelObject import ModelObject, ModelAttribute

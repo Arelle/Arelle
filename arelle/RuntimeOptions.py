@@ -4,7 +4,9 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from dataclasses import InitVar, dataclass
-from typing import Any, Optional, Union, Pattern
+from typing import Any, Optional, Union
+
+import regex as re
 
 from arelle.FileSource import FileNamedStringIO
 from arelle.SystemInfo import hasWebServer
@@ -112,7 +114,7 @@ class RuntimeOptions:
     plugins: Optional[str] = None
     preFile: Optional[str] = None
     proxy: Optional[str] = None
-    redirectFallbacks: Optional[dict[Pattern[str], str]] = None
+    redirectFallbacks: Optional[dict[re.Pattern[str], str]] = None
     relationshipCols: Optional[int] = None
     reportPackage: Optional[bool] = None
     roleTypesFile: Optional[str] = None

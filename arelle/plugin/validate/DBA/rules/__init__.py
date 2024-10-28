@@ -5,7 +5,8 @@ from __future__ import annotations
 
 import datetime
 import itertools
-from typing import Iterable, Callable, cast, Union
+from collections.abc import Callable, Iterable
+from typing import Optional, cast
 
 from arelle.ModelDocument import ModelDocument
 from arelle.ModelInstanceObject import ModelFact
@@ -162,7 +163,7 @@ def getValidDateFactsWithDefaultDimension(
             memberQn = dimensionDefaultConcept.qname
     facts = getValidDateFacts(modelXbrl, factQn)
     for fact in facts:
-        factMemberQn = cast(Union[QName, None], fact.context.dimMemberQname(dimensionQn))
+        factMemberQn = cast(Optional[QName], fact.context.dimMemberQname(dimensionQn))
         if memberQn is None or memberQn == factMemberQn:
             results.append(fact)
     return results

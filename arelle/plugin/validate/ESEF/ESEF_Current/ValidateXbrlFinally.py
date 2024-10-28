@@ -8,7 +8,7 @@ import zipfile
 from collections import defaultdict
 from datetime import datetime, timedelta
 from math import isnan
-from typing import Any, List, cast
+from typing import Any, cast
 
 import regex as re
 import tinycss2.ast  # type: ignore[import-untyped]
@@ -1098,7 +1098,7 @@ def validateCssUrl(cssContent:str, normalizedUri:str, modelXbrl: ModelXbrl, val:
             validateCssUrlContent(css_element.content, normalizedUri, modelXbrl, val, elt, contentOtherThanXHTMLGuidance)
 
 
-def validateCssUrlContent(cssRules: List[Any], normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, contentOtherThanXHTMLGuidance: str) -> None:
+def validateCssUrlContent(cssRules: list[Any], normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, contentOtherThanXHTMLGuidance: str) -> None:
     for css_rule in cssRules:
         if isinstance(css_rule, tinycss2.ast.FunctionBlock):
             if css_rule.lower_name == "url":

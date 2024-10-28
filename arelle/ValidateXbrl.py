@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 import regex as re
 import math
-from typing import Any, List, Set, Union, cast
+from typing import Any, cast
 from arelle import (XmlUtil, XbrlUtil, XbrlConst,
                     ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateUtr, ValidateDuplicateFacts)
 from arelle.PythonUtil import strTruncate
@@ -170,7 +170,7 @@ class ValidateXbrl:
                     noUndirected = cyclesAllowed == "none"
                     fromRelationships = relsSet.fromModelObjects()
                     for relFrom, rels in fromRelationships.items():
-                        cycleFound = cast(List[ModelRelationship], self.fwdCycle(relsSet, rels, noUndirected, {relFrom}))
+                        cycleFound = cast(list[ModelRelationship], self.fwdCycle(relsSet, rels, noUndirected, {relFrom}))
 
                         if cycleFound is not None:
                             pathEndsAt = len(cycleFound)  # consistently find start of path
@@ -451,7 +451,7 @@ class ValidateXbrl:
             self.factsWithDeprecatedIxNamespace = []
             factFootnoteRefs = set()
             undefinedFacts = []
-            for f in cast(Set[ModelInlineFact], modelXbrl.factsInInstance):
+            for f in cast(set[ModelInlineFact], modelXbrl.factsInInstance):
                 for footnoteID in f.footnoteRefs:
                     if footnoteID not in self.ixdsFootnotes:
                         modelXbrl.error(ixMsgCode("footnoteRef", f, name="footnote", sect="validation"),
@@ -838,7 +838,7 @@ class ValidateXbrl:
                         #            _("Fact %(fact)s value %(value)s context %(contextID)s rounding exception %(error)s"),
                         #            modelObject=f, fact=f.qname, value=f.value, contextID=f.contextID, error = err)
                     if self.validateEnum and concept.isEnumeration and getattr(f,"xValid", 0) == 4 and not f.isNil:
-                        _qnEnums = cast(Union[List[QName], QName], f.xValue)
+                        _qnEnums = cast(list[QName] | QName, f.xValue)
                         qnEnums = _qnEnums if isinstance(_qnEnums, list) else [_qnEnums]
                         if not all(ValidateXbrlDimensions.enumerationMemberUsable(self, concept, self.modelXbrl.qnameConcepts.get(qnEnum))
                                    for qnEnum in qnEnums):

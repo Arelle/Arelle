@@ -14,7 +14,6 @@ LINUX = 'ubuntu-22.04'
 MACOS = 'macos-12'
 WINDOWS = 'windows-2022'
 ALL_PYTHON_VERSIONS = (
-    '3.8',
     '3.9',
     '3.10',
     '3.11',

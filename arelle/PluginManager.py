@@ -12,13 +12,13 @@ import importlib.util
 import logging
 
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Iterator, Callable, cast
+from typing import TYPE_CHECKING, Any, cast
 from arelle.Locale import getLanguageCodes
 import arelle.FileSource
 from arelle.UrlUtil import isAbsolute
 from pathlib import Path
 from collections import OrderedDict, defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 
 
 if TYPE_CHECKING:
@@ -337,7 +337,7 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
                 if entryPoint:
                     moduleInfo["moduleURL"] = moduleFilename  # pip-installed plugins need absolute filepath
                     moduleInfo["entryPoint"] = {
-                        "module": getattr(entryPoint, 'module', None),  # TODO: Simplify after Python 3.8 retired
+                        "module": entryPoint.module,
                         "name": entryPoint.name,
                         "version": entryPoint.dist.version if hasattr(entryPoint, 'dist') else None,
                     }

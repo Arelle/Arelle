@@ -7,7 +7,8 @@ import datetime
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
 from numbers import Number
-from typing import Any, Callable, Iterable, MutableSequence, Sequence, TYPE_CHECKING, Type, Union, cast
+from collections.abc import Callable, Iterable, MutableSequence, Sequence
+from typing import Any, TYPE_CHECKING, Union, cast
 
 from lxml import etree
 
@@ -102,7 +103,7 @@ testTypeCompatibility: Callable[[
     ContextItem,
     ContextItem,
 ], None] | None = None
-Trace: Type[TraceClass] | None = None
+Trace: type[TraceClass] | None = None
 qnWild = qname("*")  # "*"
 
 

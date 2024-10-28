@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from tests.integration_tests.validation.conformance_suite_config import (
     ConformanceSuiteConfig, ConformanceSuiteAssetConfig
@@ -193,7 +193,7 @@ def run_conformance_suites_options(options: Namespace) -> list[ParameterSet]:
     )
 
 
-def get_download_option(options: Namespace) -> Optional[str]:
+def get_download_option(options: Namespace) -> str | None:
     if options.download_overwrite:
         return DOWNLOAD_OVERWRITE
     elif options.download_missing:

@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from typing import Any, Union
+from typing import Any
 from urllib.parse import unquote
 
 from lxml.etree import XML, XMLSyntaxError
@@ -68,7 +68,7 @@ def checkImageContents(
 def checkSVGContent(
     modelXbrl: ModelXbrl,
     imgElt: ModelObject,
-    data: Union[bytes, Any, str],
+    data: bytes | Any | str,
     guidance: str,
 ) -> None:
     rootElement = True
