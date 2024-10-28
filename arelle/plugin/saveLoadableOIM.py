@@ -49,10 +49,13 @@ import json
 import os
 import threading
 import zipfile
+from dataclasses import dataclass
 from decimal import Decimal
 from math import isinf, isnan
 from numbers import Number
-from typing import Any
+from optparse import OptionParser
+from tkinter import Menu
+from typing import Any, BinaryIO, Callable, Optional, cast
 
 import regex as re
 from openpyxl import Workbook
@@ -61,6 +64,9 @@ from openpyxl.styles import Alignment, Color, PatternFill, fills
 from openpyxl.worksheet.dimensions import ColumnDimension
 
 from arelle import ModelDocument, XbrlConst
+from arelle.Cntlr import Cntlr
+from arelle.CntlrCmdLine import CntlrCmdLine
+from arelle.CntlrWinMain import CntlrWinMain
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import (
@@ -78,13 +84,20 @@ from arelle.ModelValue import (
     qname,
     tzinfoStr,
 )
+from arelle.ModelXbrl import ModelXbrl
+from arelle.RuntimeOptions import RuntimeOptions
 from arelle.typing import TypeGetText
 from arelle.UrlUtil import relativeUri
+from arelle.utils.PluginData import PluginData
+from arelle.utils.PluginHooks import PluginHooks
 from arelle.ValidateXbrlCalcs import inferredDecimals
 from arelle.Version import authorLabel, copyrightLabel
 
 _: TypeGetText
 
+PLUGIN_NAME = "Save Loadable OIM"
+
+oimErrorPattern = re.compile("oime|oimce|xbrlje|xbrlce")
 nsOim = "https://xbrl.org/2021"
 qnOimConceptAspect = qname("concept", noPrefixIsNoNamespace=True)
 qnOimLangAspect = qname("language", noPrefixIsNoNamespace=True)
@@ -107,17 +120,22 @@ ENTITY_NA_QNAME = ("https://xbrl.org/entities", "NA")
 csvOpenMode = "w"
 csvOpenNewline = ""
 
+OimFact = dict[str, Any]
+OimReport = dict[str, Any]
+
 
 def saveLoadableOIM(
-    modelXbrl,
-    oimFile,
-    outputZip=None,
+    modelXbrl: ModelXbrl,
+    oimFile: str,
+    outputZip: zipfile.ZipFile | None = None,
     # arguments to add extension features to OIM document
-    extensionPrefixes=None,
-    extensionReportObjects=None,
-    extensionFactPropertiesMethod=None,
-    extensionReportFinalizeMethod=None,
-):
+    extensionPrefixes: dict[str, str] | None = None,
+    extensionReportObjects: dict[str, Any] | None = None,
+    extensionFactPropertiesMethod: Callable[[ModelFact, OimFact], None] | None = None,
+    extensionReportFinalizeMethod: Callable[[OimReport], None] | None = None,
+    *args: Any,
+    **kwargs: Any,
+) -> None:
     isJSON = oimFile.endswith(".json")
     isCSV = oimFile.endswith(".csv")
     isXL = oimFile.endswith(".xlsx")
@@ -277,6 +295,7 @@ def saveLoadableOIM(
             groupAliases[footnoteRel.linkrole] = groupPrefix
 
     dtsReferences = set()
+    assert modelXbrl.modelDocument is not None
     baseUrl = modelXbrl.modelDocument.uri.partition("#")[0]
     for doc, ref in sorted(modelXbrl.modelDocument.referencesDocument.items(), key=lambda _item: _item[0].uri):
         if ref.referringModelObject.qname in SCHEMA_LB_REFS:
@@ -420,7 +439,7 @@ def saveLoadableOIM(
             for extObjQName, extObj in extensionReportObjects.items():
                 oimReport[extObjQName] = extObj
 
-        def saveJsonFacts(facts, oimFacts, parentFact):
+        def saveJsonFacts(facts, oimFacts):
             for fact in facts:
                 oimFact = factAspects(fact)
                 # add in fact level extension objects
@@ -429,9 +448,9 @@ def saveLoadableOIM(
                 id = fact.id if fact.id else f"f{fact.objectIndex}"
                 oimFacts[id] = oimFact
                 if fact.modelTupleFacts:
-                    saveJsonFacts(fact.modelTupleFacts, oimFacts, fact)
+                    saveJsonFacts(fact.modelTupleFacts, oimFacts)
 
-        saveJsonFacts(modelXbrl.facts, oimFacts, None)
+        saveJsonFacts(modelXbrl.facts, oimFacts)
 
         # add footnotes as pseudo facts
         for ftObj in footnoteFacts:
@@ -540,21 +559,21 @@ def saveLoadableOIM(
                 _baseURL = oimFile[:-4]
             else:
                 _baseURL = oimFile
-            _csvinfo = {}  # open file, writer
+            _csvInfo = {}  # open file, writer
 
             def _open(filesuffix, tabname, csvTable=None):
                 _filename = _baseURL + filesuffix
                 if csvTable is not None:
                     csvTable["url"] = os.path.basename(_filename)  # located in same directory with metadata
-                _csvinfo["file"] = open(_filename, csvOpenMode, newline=csvOpenNewline, encoding="utf-8-sig")
-                _csvinfo["writer"] = csv.writer(_csvinfo["file"], dialect="excel")
+                _csvInfo["file"] = open(_filename, csvOpenMode, newline=csvOpenNewline, encoding="utf-8-sig")
+                _csvInfo["writer"] = csv.writer(_csvInfo["file"], dialect="excel")
 
             def _writerow(row, header=False):
-                _csvinfo["writer"].writerow(row)
+                _csvInfo["writer"].writerow(row)
 
             def _close():
-                _csvinfo["file"].close()
-                _csvinfo.clear()
+                _csvInfo["file"].close()
+                _csvInfo.clear()
         elif isXL:
             headerWidths = {
                 "concept": 40,
@@ -567,23 +586,22 @@ def saveLoadableOIM(
                 "metadata": 100,
             }
 
-            hdrCellFill = PatternFill(
-                patternType=fills.FILL_SOLID, fgColor=Color("00FFBF5F")
-            )  # Excel's light orange fill color = 00FF990
+            # Excel's light orange fill color = 00FF990
+            hdrCellFill = PatternFill(patternType=fills.FILL_SOLID, fgColor=Color("00FFBF5F"))
             workbook = Workbook()
             # remove pre-existing worksheets
             while len(workbook.worksheets) > 0:
                 workbook.remove(workbook.worksheets[0])
-            _xlinfo = {}  # open file, writer
+            _xlInfo = {}  # open file, writer
 
             def _open(filesuffix, tabname, csvTable=None):
                 if csvTable is not None:
                     csvTable["url"] = tabname + "!"
-                _xlinfo["ws"] = workbook.create_sheet(title=tabname)
+                _xlInfo["ws"] = workbook.create_sheet(title=tabname)
 
             def _writerow(rowvalues, header=False):
                 row = []
-                _ws = _xlinfo["ws"]
+                _ws = _xlInfo["ws"]
                 for i, v in enumerate(rowvalues):
                     cell = WriteOnlyCell(_ws, value=v)
                     if header:
@@ -607,7 +625,7 @@ def saveLoadableOIM(
                 _ws.append(row)
 
             def _close():
-                _xlinfo.clear()
+                _xlInfo.clear()
 
         # save facts
         _open("-facts.csv", "facts", csvTable)
@@ -659,15 +677,11 @@ def saveLoadableOIM(
             workbook.save(oimFile)
 
 
-def saveLoadableOIMMenuEntender(cntlr, menu, *args, **kwargs):
-    # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Save Loadable OIM", underline=0, command=lambda: saveLoadableOIMMenuCommand(cntlr))
-
-
-def saveLoadableOIMMenuCommand(cntlr):
+def saveLoadableOIMMenuCommand(cntlr: CntlrWinMain) -> None:
     # save DTS menu item has been invoked
     if (
-        cntlr.modelManager is None
+        cntlr.config is None
+        or cntlr.modelManager is None
         or cntlr.modelManager.modelXbrl is None
         or cntlr.modelManager.modelXbrl.modelDocument is None
         or cntlr.modelManager.modelXbrl.modelDocument.type
@@ -681,9 +695,9 @@ def saveLoadableOIMMenuCommand(cntlr):
         initialdir=cntlr.config.setdefault("loadableExcelFileDir", "."),
         filetypes=[(_("JSON file .json"), "*.json"), (_("CSV file .csv"), "*.csv"), (_("XLSX file .xlsx"), "*.xlsx")],
         defaultextension=".json",
-    )
-    if not oimFile:
-        return False
+    )  # type: ignore[no-untyped-call]
+    if not isinstance(oimFile, str):
+        return
 
     cntlr.config["loadableOIMFileDir"] = os.path.dirname(oimFile)
     cntlr.saveConfig()
@@ -697,81 +711,134 @@ def saveLoadableOIMMenuCommand(cntlr):
     thread.start()
 
 
-def saveLoadableOIMCommandLineOptionExtender(parser, *args, **kwargs):
-    # extend command line options with a save DTS option
-    parser.add_option(
-        "--saveLoadableOIM",
-        action="store",
-        dest="saveLoadableOIM",
-        help=_("Save Loadable OIM file (JSON, CSV or XLSX)"),
-    )
-    parser.add_option(
-        "--saveTestcaseOIM",
-        action="store",
-        dest="saveTestcaseOimFileSuffix",
-        help=_("Save Testcase Variation OIM file (argument file suffix and type, such as -savedOim.csv"),
-    )
+@dataclass
+class SaveLoadableOIMPluginData(PluginData):
+    saveTestcaseOimFileSuffix: str | None
 
 
-def saveLoadableOIMCaptureOptions(cntlr, options, *args, **kwargs):
-    cntlr.modelManager.saveTestcaseOimFileSuffix = getattr(options, "saveTestcaseOimFileSuffix", None)
+class SaveLoadableOIMPlugin(PluginHooks):
+    @staticmethod
+    def cntlrCmdLineOptions(
+        parser: OptionParser,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        parser.add_option(
+            "--saveLoadableOIM",
+            action="store",
+            dest="saveLoadableOIM",
+            help=_("Save Loadable OIM file (JSON, CSV or XLSX)"),
+        )
+        parser.add_option(
+            "--saveTestcaseOIM",
+            action="store",
+            dest="saveTestcaseOimFileSuffix",
+            help=_("Save Testcase Variation OIM file (argument file suffix and type, such as -savedOim.csv"),
+        )
 
+    @staticmethod
+    def cntlrCmdLineUtilityRun(
+        cntlr: Cntlr,
+        options: RuntimeOptions,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        saveTestcaseOimFileSuffix = cast(Optional[str], getattr(options, "saveTestcaseOimFileSuffix", None))
+        pluginData = SaveLoadableOIMPluginData(PLUGIN_NAME, saveTestcaseOimFileSuffix)
+        cntlr.setPluginData(pluginData)
 
-def saveLoadableOIMCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
-    # extend XBRL-loaded run processing for this option
-    oimFile = getattr(options, "saveLoadableOIM", None)
-    if oimFile:
-        if modelXbrl is None or modelXbrl.modelDocument.type not in (
-            ModelDocument.Type.INSTANCE,
-            ModelDocument.Type.INLINEXBRL,
-            ModelDocument.Type.INLINEXBRLDOCUMENTSET,
-        ):
-            cntlr.addToLog("No XBRL instance has been loaded.")
-            return
-        try:
-            responseZipStream = kwargs.get("responseZipStream")
-            if responseZipStream is not None:
-                _zip = zipfile.ZipFile(responseZipStream, "a", zipfile.ZIP_DEFLATED, True)
-            else:
-                _zip = None
-            saveLoadableOIM(modelXbrl, oimFile, _zip)
-            if responseZipStream is not None and _zip is not None:
-                _zip.close()
-                responseZipStream.seek(0)
-        except Exception as ex:
-            cntlr.addToLog(f"Exception saving OIM {ex}")
+    @staticmethod
+    def cntlrWinMainMenuTools(
+        cntlr: CntlrWinMain,
+        menu: Menu,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        menu.add_command(label="Save Loadable OIM", underline=0, command=lambda: saveLoadableOIMMenuCommand(cntlr))
 
+    @staticmethod
+    def cntlrCmdLineXbrlRun(
+        cntlr: CntlrCmdLine,
+        options: RuntimeOptions,
+        modelXbrl: ModelXbrl,
+        entrypoint: dict[str, str] | None = None,
+        sourceZipStream: BinaryIO | None = None,
+        responseZipStream: BinaryIO | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        # extend XBRL-loaded run processing for this option
+        oimFile = cast(Optional[str], getattr(options, "saveLoadableOIM", None))
+        if oimFile:
+            if (
+                modelXbrl is None
+                or modelXbrl.modelDocument is None
+                or modelXbrl.modelDocument.type
+                not in (
+                    ModelDocument.Type.INSTANCE,
+                    ModelDocument.Type.INLINEXBRL,
+                    ModelDocument.Type.INLINEXBRLDOCUMENTSET,
+                )
+            ):
+                cntlr.addToLog("No XBRL instance has been loaded.")
+                return
+            try:
+                if responseZipStream is not None:
+                    with zipfile.ZipFile(responseZipStream, "a", zipfile.ZIP_DEFLATED, True) as _zip:
+                        saveLoadableOIM(modelXbrl, oimFile, _zip)
+                    responseZipStream.seek(0)
+                else:
+                    saveLoadableOIM(modelXbrl, oimFile)
+            except Exception as ex:
+                cntlr.addToLog(f"Exception saving OIM {ex}")
 
-oimErrorPattern = re.compile("oime|oimce|xbrlje|xbrlce")
+    @staticmethod
+    def testcaseVariationValidated(
+        testcaseDTS: ModelXbrl,
+        testInstanceDTS: ModelXbrl,
+        extraErrors: list[str],
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        pluginData = testcaseDTS.modelManager.cntlr.getPluginData(PLUGIN_NAME)
+        oimFileSuffix = (
+            pluginData.saveTestcaseOimFileSuffix if isinstance(pluginData, SaveLoadableOIMPluginData) else None
+        )
+        if (
+            oimFileSuffix
+            and testInstanceDTS is not None
+            and testInstanceDTS.modelDocument is not None
+            and testInstanceDTS.modelDocument.type
+            in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)
+            and not any(oimErrorPattern.match(error) for error in testInstanceDTS.errors if error is not None)
+        ):  # no OIM errors
+            try:
+                saveLoadableOIM(testInstanceDTS, testInstanceDTS.modelDocument.uri + oimFileSuffix)
+            except Exception as ex:
+                testcaseDTS.modelManager.cntlr.addToLog(f"Exception saving OIM {ex}")
 
-
-def saveLoadableOIMAfterTestcaseValidated(testcaseDTS, testInstanceDTS, extraErrors, *args, **kwargs):
-    oimFileSuffix = getattr(testcaseDTS.modelManager, "saveTestcaseOimFileSuffix", None)
-    if (
-        oimFileSuffix
-        and testInstanceDTS is not None
-        and testInstanceDTS.modelDocument.type
-        in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)
-        and not any(oimErrorPattern.match(error) for error in testInstanceDTS.errors)
-    ):  # no OIM errors
-        try:
-            saveLoadableOIM(testInstanceDTS, testInstanceDTS.modelDocument.uri + oimFileSuffix)
-        except Exception as ex:
-            testcaseDTS.modelManager.cntlr.addToLog(f"Exception saving OIM {ex}")
+    @staticmethod
+    def saveLoadableOimSave(
+        modelXbrl: ModelXbrl,
+        oimFile: str,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        return saveLoadableOIM(modelXbrl, oimFile, *args, **kwargs)
 
 
 __pluginInfo__ = {
-    "name": "Save Loadable OIM",
-    "version": "1.2",
+    "name": PLUGIN_NAME,
+    "version": "1.3",
     "description": "This plug-in saves XBRL in OIM JSON, CSV or XLSX that can be re-loaded per se.",
     "license": "Apache-2",
     "author": authorLabel,
     "copyright": copyrightLabel,
     # classes of mount points (required)
-    "CntlrWinMain.Menu.Tools": saveLoadableOIMMenuEntender,
-    "CntlrCmdLine.Options": saveLoadableOIMCommandLineOptionExtender,
-    "CntlrCmdLine.Utility.Run": saveLoadableOIMCaptureOptions,
-    "CntlrCmdLine.Xbrl.Run": saveLoadableOIMCommandLineXbrlRun,
-    "TestcaseVariation.Validated": saveLoadableOIMAfterTestcaseValidated,
-    "SaveLoadableOim.Save": saveLoadableOIM,
+    "CntlrWinMain.Menu.Tools": SaveLoadableOIMPlugin.cntlrWinMainMenuTools,
+    "CntlrCmdLine.Options": SaveLoadableOIMPlugin.cntlrCmdLineOptions,
+    "CntlrCmdLine.Utility.Run": SaveLoadableOIMPlugin.cntlrCmdLineUtilityRun,
+    "CntlrCmdLine.Xbrl.Run": SaveLoadableOIMPlugin.cntlrCmdLineXbrlRun,
+    "TestcaseVariation.Validated": SaveLoadableOIMPlugin.testcaseVariationValidated,
+    "SaveLoadableOim.Save": SaveLoadableOIMPlugin.saveLoadableOimSave,
 }

@@ -1,11 +1,12 @@
 """
 See COPYRIGHT.md for copyright information.
 """
+
 from __future__ import annotations
 
 from abc import ABC
 from enum import Enum
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, BinaryIO
 
 from arelle.RuntimeOptions import RuntimeOptions
 
@@ -19,11 +20,11 @@ if TYPE_CHECKING:
     from arelle.CntlrWinMain import CntlrWinMain
     from arelle.DisclosureSystem import DisclosureSystem
     from arelle.FileSource import FileSource
+    from arelle.formula.XPathContext import XPathContext
     from arelle.ModelDocument import LoadingException, ModelDocument
     from arelle.ModelManager import ModelManager
     from arelle.ModelXbrl import ModelXbrl
     from arelle.ValidateXbrl import ValidateXbrl
-    from arelle.formula.XPathContext import XPathContext
     from arelle.webserver.bottle import Bottle
 
 
@@ -71,7 +72,7 @@ class PluginHooks(ABC):
         cntlr: Cntlr,
         options: RuntimeOptions,
         *args: Any,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         """
         Plugin hook: `CntlrCmdLine.Utility.Run`
@@ -87,6 +88,35 @@ class PluginHooks(ABC):
 
         :param cntlr: The [Cntlr](#arelle.Cntlr.Cntlr) being initialized.
         :param options: Parsed options object.
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: None
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def cntlrCmdLineXbrlRun(
+        cntlr: CntlrCmdLine,
+        options: RuntimeOptions,
+        modelXbrl: ModelXbrl,
+        entrypoint: dict[str, str] | None = None,
+        sourceZipStream: BinaryIO | None = None,
+        responseZipStream: BinaryIO | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Plugin hook: `CntlrCmdLine.Xbrl.Run`
+
+        This hook is triggered after loading and validation if requested.
+        It's useful for generating reports or exporting the XBRL model to other formats.
+
+        :param cntlr: The [Cntlr](#arelle.Cntlr.Cntlr) being initialized.
+        :param options: Parsed options object.
+        :param modelXbrl: The loaded [ModelXbrl](#arelle.ModelXbrl.ModelXbrl).
+        :param entrypoint: The entrypoint that was parsed to load the model.
+        :param sourceZipStream: The source zip stream if the model was loaded from a zip that was POSTed to the webserver.
+        :param responseZipStream: The response zip stream if loaded from the webserver and the user requested a zip response.
         :param args: Argument capture to ensure new parameters don't break plugin hook.
         :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
         :return: None
@@ -683,6 +713,51 @@ class PluginHooks(ABC):
 
         :param val: The [ValidateXBRL](#arelle.ValidateXbrl.ValidateXbrl) instance.
         :param rptPkgIxdsOptions: the dict to set IXDS options on.
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: None
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def testcaseVariationValidated(
+        testcaseDTS: ModelXbrl,
+        testInstanceDTS: ModelXbrl,
+        extraErrors: list[str],
+        inputDTSes: dict[str, ModelXbrl],
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Plugin hook: `TestcaseVariation.Validated`
+
+        Testcase validation hook which can be used to log additional test case errors or perform post validation operations.
+
+        :param testcaseDTS: The [ModelXbrl](#arelle.ModelXbrl.ModelXbrl) of the testcase file.
+        :param testInstanceDTS: The [ModelXbrl](#arelle.ModelXbrl.ModelXbrl) of the instance being tested.
+        :param extraErrors: A list that the plugin may append to to log additional errors.
+        :param inputDTSes: The dict of testcase input DTSes.
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: None
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def saveLoadableOimSave(
+        modelXbrl: ModelXbrl,
+        oimFile: str,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Plugin hook: `SaveLoadableOim.Save`
+
+        Hook that can be called by other plugins to save the provided model to disk using an OIM file format.
+        The OIM format is controlled by the requested file extension (json or csv.)
+
+        :param modelXbrl: The [ModelXbrl](#arelle.ModelXbrl.ModelXbrl) to save.
+        :param oimFile: The file path to save the model to. The extension controls which OIM format to use.
         :param args: Argument capture to ensure new parameters don't break plugin hook.
         :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
         :return: None
