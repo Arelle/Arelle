@@ -3,7 +3,7 @@ certifi==2024.8.30
 filelock==3.16.1
 lxml==5.3.0
 OpenPyXL==3.1.5
-pyparsing==3.1.4
+pyparsing==3.2.0
 regex==2024.9.11
 isodate==0.7.2
 aniso8601==9.0.1
@@ -16,7 +16,7 @@ pycountry==24.6.1
 NumPy==2.0.2 ; python_version <= "3.9"
 NumPy==2.1.2 ; python_version > "3.9"
 Matplotlib==3.9.2
-holidays==0.58
+holidays==0.59
 pytz==2024.2
 Tornado==6.4.1
 # security plugin
@@ -29,6 +29,6 @@ pyodbc==5.2.0
 RDFLib==7.1.1
 # other
 graphviz==0.20.3
-Pillow==10.4.0
+Pillow==11.0.0
 pywin32==308 ; sys_platform == "win32"
 tinycss2==1.4.0
