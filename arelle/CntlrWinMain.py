@@ -860,7 +860,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 action = _("loaded")
                 profileStat = "load"
                 if (reportPackage := filesource.reportPackage) and "_IXDS#?#" not in filesource.url:
-                    for report in reportPackage.reports:
+                    for report in reportPackage.reports or []:
                         if len(report.fullPathFiles) > 1:
                             self.addToLog(_("Loading error. Inline document set encountered. Enable 'Inline XBRL Document Set' plug-in and use the Open Inline Doc Set dialog from the file menu to open this filing: {0}").format(filesource.url))
                             continue
@@ -1472,6 +1472,8 @@ class CntlrWinMain (Cntlr.Cntlr):
 
     # worker threads addToLog
     def addToLog(self, message, messageCode="", messageArgs=None, file="", refs=[], level=logging.INFO):
+        if isinstance(level, str):
+            level = logging.getLevelNamesMapping().get(level, logging.INFO)
         if level < logging.INFO and not self.showDebugMessages.get():
             return # skip DEBUG and INFO-RESULT messages
         if messageCode and messageCode not in message: # prepend message code
