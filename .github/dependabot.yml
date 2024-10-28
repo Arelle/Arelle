@@ -27,7 +27,9 @@ updates:
     ignore:
       - dependency-name: "cx_Freeze"
   - package-ecosystem: nuget
-    directory: "/"
+    directories:
+      - /tests/integration_tests/ui_tests/ArelleGUITest
+      - /tests/integration_tests/ui_tests/ArelleGUITest/ArelleGUITest
     schedule:
       interval: weekly
     groups:

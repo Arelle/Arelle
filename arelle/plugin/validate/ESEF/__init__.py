@@ -131,14 +131,16 @@ class ESEFPlugin(PluginHooks):
                     if documentType in {ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE}:
                         return None  # allow zipped test case to load normally
 
-                if disclosureSystemYear >= 2023 and not modelXbrl.fileSource.isZip:
+                isZipFormat = modelXbrl.fileSource.isZip
+                hasZipFileExtension = modelXbrl.fileSource.type.lower() == ".zip"
+                if disclosureSystemYear >= 2023 and not (isZipFormat and hasZipFileExtension):
                     modelXbrl.error("ESEF.2.6.1.disallowedReportPackageFileExtension",
                                     _("A report package MUST conform to the .ZIP File Format Specification and MUST have a .zip extension."),
                                     fileSourceType=modelXbrl.fileSource.type,
                                     modelObject=modelXbrl)
                     return LoadingException("ESEF Report Package must be .ZIP File Format")
                 if modelXbrl.fileSource.isArchive:
-                    if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
+                    if not hasZipFileExtension or not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
                         modelXbrl.error("ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage",
                             _("Single reporting package with issuer's XBRL extension taxonomy files and Inline XBRL instance document must be compliant with the latest recommended version of the Taxonomy Packages specification (1.0)"),
                             modelObject=modelXbrl)

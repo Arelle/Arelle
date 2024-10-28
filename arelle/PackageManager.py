@@ -1,40 +1,34 @@
-'''
-Separated on Jul 28, 2013 from DialogOpenArchive.py
-
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
-from typing import TYPE_CHECKING
-import os, io, time, json, logging
+
+import json
+import logging
+import os
+import time
 from collections import defaultdict
 from fnmatch import fnmatch
-from lxml import etree
+from typing import TYPE_CHECKING
 from urllib.parse import urljoin
+
+from lxml import etree
+
+from arelle import Locale
 from arelle.packages import PackageValidation
 from arelle.packages.PackageType import PackageType
 from arelle.typing import TypeGetText
-openFileSource = None
-from arelle import Locale
 from arelle.UrlUtil import isAbsolute, isHttpUrl
 from arelle.XmlValidate import lxmlResolvingParser
-ArchiveFileIOError = None
-try:
-    from collections import OrderedDict
-except ImportError:
-    OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order
 
 if TYPE_CHECKING:
+    from arelle.Cntlr import Cntlr
     from arelle.FileSource import FileSource
 
 TP_XSD = "http://www.xbrl.org/2016/taxonomy-package.xsd"
 CAT_XSD = "http://www.xbrl.org/2016/taxonomy-package-catalog.xsd"
 
-if TYPE_CHECKING:
-    from arelle.Cntlr import Cntlr
-
 _: TypeGetText
-
-EMPTYDICT = {}
 
 TAXONOMY_PACKAGE_TYPE = PackageType("Taxonomy", "tpe")
 
@@ -44,6 +38,9 @@ TAXONOMY_PACKAGE_ABORTING_VALIDATIONS = (
     PackageValidation.validatePackageNotEncrypted,
     PackageValidation.validateTopLevelFiles,
     PackageValidation.validateTopLevelDirectories,
+    PackageValidation.validateDuplicateEntries,
+    PackageValidation.validateConflictingEntries,
+    PackageValidation.validateEntries,
 )
 
 TAXONOMY_PACKAGE_NON_ABORTING_VALIDATIONS = (
@@ -54,12 +51,8 @@ def baseForElement(element):
     base = ""
     baseElt = element
     while baseElt is not None:
-        baseAttr = baseElt.get("{http://www.w3.org/XML/1998/namespace}base")
-        if baseAttr:
-            if baseAttr.startswith("/"):
-                base = baseAttr
-            else:
-                base = baseAttr + base
+        if baseAttr := baseElt.get("{http://www.w3.org/XML/1998/namespace}base"):
+            base = baseAttr if baseAttr.startswith("/") else baseAttr + base
         baseElt = baseElt.getparent()
     return base
 
@@ -94,10 +87,31 @@ def _parseFile(cntlr, parser, filepath, file, schemaUrl):
     return tree
 
 
-def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
-    global ArchiveFileIOError
-    if ArchiveFileIOError is None:
-        from arelle.FileSource import ArchiveFileIOError
+def parsePackage(
+    cntlr: Cntlr,
+    filesource: FileSource,
+    metadataFile: str,
+    fileBase: str,
+    errors: list[str] | None = None,
+) -> dict[str, str | dict[str, str]]:
+    if errors is None:
+        errors = []
+    parser = lxmlResolvingParser(cntlr)
+    catalogFile = metadataFile.replace('taxonomyPackage.xml','catalog.xml')
+    remappings = _parseCatalog(cntlr, filesource, parser, catalogFile, fileBase, errors)
+    pkg = _parsePackageMetadata(cntlr, filesource, parser, metadataFile, remappings, errors)
+    return pkg
+
+
+def _parsePackageMetadata(
+    cntlr: Cntlr,
+    filesource: FileSource,
+    parser: etree.XMLParser,
+    metadataFile: str,
+    remappings: dict[str, str],
+    errors: list[str],
+) -> dict[str, str | dict[str, str]]:
+    from arelle.FileSource import ArchiveFileIOError
 
     unNamedCounter = 1
 
@@ -107,15 +121,14 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                    "http://xbrl.org/PR/2015-12-09/taxonomy-package",
                    "http://xbrl.org/2016/taxonomy-package",
                    "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package")
-    catalogNSes = ("urn:oasis:names:tc:entity:xmlns:xml:catalog",)
 
-    pkg = {}
+    pkg = {"remappings": remappings}
 
     currentLang = Locale.getLanguageCode()
-    _file = filesource.file(metadataFile)[0] # URL in zip, plain file in file system or web
     parser = lxmlResolvingParser(cntlr)
     try:
-        tree = _parseFile(cntlr, parser, metadataFile, _file, TP_XSD)
+        metadataFileContent = filesource.file(metadataFile)[0] # URL in zip, plain file in file system or web
+        tree = _parseFile(cntlr, parser, metadataFile, metadataFileContent, TP_XSD)
     except (etree.XMLSyntaxError, etree.DocumentInvalid) as err:
         cntlr.addToLog(_("Taxonomy package file syntax error %(error)s"),
                        messageArgs={"error": str(err)},
@@ -124,10 +137,12 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                        level=logging.ERROR)
         errors.append("tpe:invalidMetaDataFile")
         return pkg
+    except ArchiveFileIOError:
+        return pkg
 
     root = tree.getroot()
     ns = root.tag.partition("}")[0][1:]
-    nsPrefix = "{{{}}}".format(ns)
+    nsPrefix = f"{{{ns}}}"
 
     if ns in  txmyPkgNSes:  # package file
         for eltName in ("identifier", "version", "license", "publisher", "publisherURL", "publisherCountry", "publicationDate"):
@@ -148,9 +163,10 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                 if l > closestLen:
                     closestLen = l
                     closest = s
-                elif closestLen <= 0 and eltLang.startswith("en"):
+                elif closestLen <= 0 and isinstance(eltLang, str) and eltLang.startswith("en"):
                     closest = s   # pick english if nothing better
             if not closest and eltName == "name":  # assign default name when none in taxonomy package
+                assert isinstance(filesource.baseurl, str)
                 closest = os.path.splitext(os.path.basename(filesource.baseurl))[0]
             pkg[eltName] = closest
         for eltName in ("supersededTaxonomyPackages", "versioningReports"):
@@ -158,7 +174,9 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
         for m in root.iterchildren(tag=nsPrefix + "supersededTaxonomyPackages"):
             pkg['supersededTaxonomyPackages'] = [
                 r.text.strip()
-                for r in m.iterchildren(tag=nsPrefix + "taxonomyPackageRef")]
+                for r in m.iterchildren(tag=nsPrefix + "taxonomyPackageRef")
+                if isinstance(r.text, str)
+            ]
         for m in root.iterchildren(tag=nsPrefix + "versioningReports"):
             pkg['versioningReports'] = [
                 r.get("href")
@@ -196,60 +214,6 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
         pkg["description"] = "oasis catalog"
         pkg["version"] = "(none)"
 
-    remappings = {}
-    rewriteTree = tree
-    catalogFile = metadataFile
-    if ns in ("http://xbrl.org/PWD/2015-01-14/taxonomy-package",
-              "http://xbrl.org/PR/2015-12-09/taxonomy-package",
-              "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package",
-              "http://xbrl.org/2016/taxonomy-package",
-              "http://xbrl.org/REC/2016-04-19/taxonomy-package"):
-        catalogFile = metadataFile.replace('taxonomyPackage.xml','catalog.xml')
-        try:
-            _file = filesource.file(catalogFile)[0]
-            rewriteTree = _parseFile(cntlr, parser, catalogFile, _file, CAT_XSD)
-        except (etree.XMLSyntaxError, etree.DocumentInvalid) as err:
-            cntlr.addToLog(_("Catalog file syntax error %(error)s"),
-                           messageArgs={"error": str(err)},
-                           messageCode="tpe:invalidCatalogFile",
-                           file=os.path.basename(metadataFile),
-                           level=logging.ERROR)
-            errors.append("tpe:invalidCatalogFile")
-        except ArchiveFileIOError:
-            pass
-    for tag, prefixAttr, replaceAttr in (
-         (nsPrefix + "remapping", "prefix", "replaceWith"), # taxonomy package
-         ("{urn:oasis:names:tc:entity:xmlns:xml:catalog}rewriteSystem", "systemIdStartString", "rewritePrefix"),
-         ("{urn:oasis:names:tc:entity:xmlns:xml:catalog}rewriteURI", "uriStartString", "rewritePrefix")): # oasis catalog
-        for m in rewriteTree.iter(tag=tag):
-            prefixValue = m.get(prefixAttr)
-            replaceValue = m.get(replaceAttr)
-            if prefixValue and replaceValue is not None:
-                if prefixValue not in remappings:
-                    base = baseForElement(m)
-                    if base:
-                        replaceValue = os.path.join(base, replaceValue)
-                    if replaceValue: # neither None nor ''
-                        if not isAbsolute(replaceValue):
-                            if not os.path.isabs(replaceValue):
-                                replaceValue = fileBase + replaceValue
-                            if not isHttpUrl(replaceValue):
-                                replaceValue = replaceValue.replace("/", os.sep)
-                    _normedValue = cntlr.webCache.normalizeUrl(replaceValue)
-                    if replaceValue.endswith(os.sep) and not _normedValue.endswith(os.sep):
-                        _normedValue += os.sep
-                    remappings[prefixValue] = _normedValue
-                else:
-                    cntlr.addToLog(_("Package catalog duplicate rewrite start string %(rewriteStartString)s"),
-                                   messageArgs={"rewriteStartString": prefixValue},
-                                   messageCode="tpe:multipleRewriteURIsForStartString",
-                                   file=os.path.basename(catalogFile),
-                                   level=logging.ERROR)
-                    errors.append("tpe:multipleRewriteURIsForStartString")
-
-
-    pkg["remappings"] = remappings
-
     entryPoints = defaultdict(list)
     pkg["entryPoints"] = entryPoints
 
@@ -265,28 +229,23 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
             if l > closestLen:
                 closestLen = l
                 name = s
-            elif closestLen <= 0 and nameLang.startswith("en"):
+            elif closestLen <= 0 and isinstance(nameLang, str) and nameLang.startswith("en"):
                 name = s   # pick english if nothing better
 
         if not name:
             name = _("<unnamed {0}>").format(unNamedCounter)
             unNamedCounter += 1
 
-        epDocCount = 0
         for epDoc in entryPointSpec.iterchildren(nsPrefix + "entryPointDocument"):
             epUrl = epDoc.get('href')
             base = epDoc.get('{http://www.w3.org/XML/1998/namespace}base') # cope with xml:base
-            if base:
-                resolvedUrl = urljoin(base, epUrl)
-            else:
-                resolvedUrl = epUrl
-
-            epDocCount += 1
+            resolvedUrl = urljoin(base, epUrl) if base else epUrl
 
             #perform prefix remappings
             remappedUrl = resolvedUrl
             longestPrefix = 0
             for mapFrom, mapTo in remappings.items():
+                assert isinstance(remappedUrl, str)
                 if remappedUrl.startswith(mapFrom):
                     prefixLength = len(mapFrom)
                     if prefixLength > longestPrefix:
@@ -309,13 +268,70 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                 if l > closestLen:
                     closestLen = l
                     closest = s
-                elif closestLen <= 0 and eltLang.startswith("en"):
+                elif closestLen <= 0 and isinstance(eltLang, str) and eltLang.startswith("en"):
                     closest = s   # pick english if nothing better
             if not closest and name:  # assign default name when none in taxonomy package
                 closest = name
             entryPoints[name].append( (remappedUrl, resolvedUrl, closest) )
 
     return pkg
+
+
+def _parseCatalog(
+    cntlr: Cntlr,
+    filesource: FileSource,
+    parser: etree.XMLParser,
+    catalogFile: str,
+    fileBase: str,
+    errors: list[str],
+) -> dict[str, str]:
+    from arelle.FileSource import ArchiveFileIOError
+    remappings = {}
+    rewriteTree = None
+    try:
+        _file = filesource.file(catalogFile)[0]
+        rewriteTree = _parseFile(cntlr, parser, catalogFile, _file, CAT_XSD)
+    except (etree.XMLSyntaxError, etree.DocumentInvalid) as err:
+        cntlr.addToLog(_("Catalog file syntax error %(error)s"),
+                        messageArgs={"error": str(err)},
+                        messageCode="tpe:invalidCatalogFile",
+                        file=os.path.basename(catalogFile),
+                        level=logging.ERROR)
+        errors.append("tpe:invalidCatalogFile")
+    except ArchiveFileIOError:
+        pass
+    if rewriteTree is not None:
+        for tag, prefixAttr, replaceAttr in (
+            ("{urn:oasis:names:tc:entity:xmlns:xml:catalog}rewriteSystem", "systemIdStartString", "rewritePrefix"),
+            ("{urn:oasis:names:tc:entity:xmlns:xml:catalog}rewriteURI", "uriStartString", "rewritePrefix")): # oasis catalog
+            for m in rewriteTree.iter(tag=tag):
+                prefixValue = m.get(prefixAttr)
+                replaceValue = m.get(replaceAttr)
+                if prefixValue and replaceValue is not None:
+                    if prefixValue not in remappings:
+                        base = baseForElement(m)
+                        if base:
+                            replaceValue = os.path.join(base, replaceValue)
+                        if replaceValue and not isAbsolute(replaceValue):
+                            # neither None nor ''
+                            if not os.path.isabs(replaceValue):
+                                replaceValue = fileBase + replaceValue
+                            if not isHttpUrl(replaceValue):
+                                replaceValue = replaceValue.replace("/", os.sep)
+                        _normedValue = cntlr.webCache.normalizeUrl(replaceValue)
+                        if replaceValue.endswith(os.sep) and not _normedValue.endswith(os.sep):
+                            _normedValue += os.sep
+                        remappings[prefixValue] = _normedValue
+                    else:
+                        cntlr.addToLog(_("Package catalog duplicate rewrite start string %(rewriteStartString)s"),
+                                    messageArgs={"rewriteStartString": prefixValue},
+                                    messageCode="tpe:multipleRewriteURIsForStartString",
+                                    file=os.path.basename(catalogFile),
+                                    level=logging.ERROR)
+                        errors.append("tpe:multipleRewriteURIsForStartString")
+
+    return remappings
+
 
 # taxonomy package manager
 # plugin control is static to correspond to statically loaded modules
@@ -330,7 +346,7 @@ def init(cntlr: Cntlr, loadPackagesConfig: bool = True) -> None:
     if loadPackagesConfig:
         try:
             packagesJsonFile = cntlr.userAppDir + os.sep + "taxonomyPackages.json"
-            with io.open(packagesJsonFile, 'rt', encoding='utf-8') as f:
+            with open(packagesJsonFile, encoding='utf-8') as f:
                 packagesConfig = json.load(f)
             packagesConfigChanged = False
         except Exception:
@@ -351,8 +367,8 @@ def reset() -> None:  # force reloading modules and plugin infos
         packagesMappings.clear() # dict by class of list of ordered callable function objects
 
 def orderedPackagesConfig():
-    return OrderedDict(
-        (('packages', [OrderedDict(sorted(_packageInfo.items(),
+    return dict(
+        (('packages', [dict(sorted(_packageInfo.items(),
                                           key=lambda k: {'name': '01',
                                                          'status': '02',
                                                          'version': '03',
@@ -369,12 +385,12 @@ def orderedPackagesConfig():
                                                          'remappings': '14',
                                                          }.get(k[0],k[0])))
                        for _packageInfo in packagesConfig['packages']]),
-         ('remappings',OrderedDict(sorted(packagesConfig['remappings'].items())))))
+         ('remappings',dict(sorted(packagesConfig['remappings'].items())))))
 
 def save(cntlr: Cntlr) -> None:
     global packagesConfigChanged
     if packagesConfigChanged and cntlr.hasFileSystem:
-        with io.open(packagesJsonFile, 'wt', encoding='utf-8') as f:
+        with open(packagesJsonFile, "w", encoding='utf-8') as f:
             jsonStr = str(json.dumps(orderedPackagesConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
             f.write(jsonStr)
         packagesConfigChanged = False
@@ -425,7 +441,7 @@ def validateTaxonomyPackage(cntlr, filesource, errors=[]) -> bool:
                     messageCode=validation.codes,
                     messageArgs=validation.args,
                     file=filesource.urlBasename,
-                    level=logging.ERROR,
+                    level=validation.level.name,
                 )
                 errors.append(validation.codes)
                 return False
@@ -436,7 +452,7 @@ def validateTaxonomyPackage(cntlr, filesource, errors=[]) -> bool:
                     messageCode=validation.codes,
                     messageArgs=validation.args,
                     file=filesource.urlBasename,
-                    level=logging.ERROR,
+                    level=validation.level.name,
                 )
                 errors.append(validation.codes)
 
@@ -459,13 +475,9 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
     #TODO several directories, eg User Application Data
     packageFilename = _cntlr.webCache.getfilename(URL, reload=reload, normalize=True)
     if packageFilename:
-        from arelle.FileSource import TAXONOMY_PACKAGE_FILE_NAMES
+        from arelle.FileSource import TAXONOMY_PACKAGE_FILE_NAMES, archiveFilenameParts, openFileSource
         filesource = None
         try:
-            global openFileSource
-            if openFileSource is None:
-                from arelle.FileSource import openFileSource
-            from arelle.FileSource import archiveFilenameParts
             parts = archiveFilenameParts(packageFilename)
             if parts is not None:
                 sourceFileSource = openFileSource(parts[0], _cntlr)
@@ -484,9 +496,8 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                 packageFiles = discoverPackageFiles(filesource)
                 if not packageFiles:
                     # look for pre-PWD packages
-                    _dir = filesource.dir
-                    _metaInf = '{}/META-INF/'.format(
-                                os.path.splitext(os.path.basename(packageFilename))[0])
+                    _dir = filesource.dir or []
+                    _metaInf = f'{os.path.splitext(os.path.basename(packageFilename))[0]}/META-INF/'
                     if packageManifestName:
                         # pre-pwd
                         packageFiles = [fileName
@@ -499,7 +510,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                         # root-level META-INF taxonomy packages
                         packageFiles = ['META-INF/taxonomyPackage.xml']
                 if len(packageFiles) < 1:
-                    raise IOError(_("Taxonomy package contained no metadata file: {0}.")
+                    raise OSError(_("Taxonomy package contained no metadata file: {0}.")
                                   .format(', '.join(packageFiles)))
                 # if current package files found, remove any nonconforming package files
                 if any(pf.startswith('_metaInf') for pf in packageFiles) and any(not pf.startswith(_metaInf) for pf in packageFiles):
@@ -508,10 +519,12 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                     packageFiles = [pf for pf in packageFiles if pf.startswith('META-INF/')]
 
                 for packageFile in packageFiles:
+                    assert isinstance(filesource.url, str)
                     packageFileUrl = filesource.url + os.sep + packageFile
                     packageFilePrefix = os.sep.join(os.path.split(packageFile)[:-1])
                     if packageFilePrefix:
                         packageFilePrefix += os.sep
+                    assert isinstance(filesource.baseurl, str)
                     packageFilePrefix = filesource.baseurl + os.sep +  packageFilePrefix
                     packages.append([packageFileUrl, packageFilePrefix, packageFile])
             else:
@@ -520,6 +533,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                                file=os.path.basename(packageFilename),
                                level=logging.ERROR)
                 errors.append("tpe:invalidArchiveFormat")
+                assert isinstance(filesource.url, str)
                 if (os.path.basename(filesource.url) in TAXONOMY_PACKAGE_FILE_NAMES or # individual manifest file
                       (os.path.basename(filesource.url) == "taxonomyPackage.xml" and
                        os.path.basename(os.path.dirname(filesource.url)) == "META-INF")):
@@ -529,7 +543,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                         packageFilePrefix += os.sep
                     packages.append([packageFileUrl, packageFilePrefix, ""])
                 else:
-                    raise IOError(_("File must be a taxonomy package (zip file), catalog file, or manifest (): {0}.")
+                    raise OSError(_("File must be a taxonomy package (zip file), catalog file, or manifest (): {0}.")
                                   .format(packageFilename, ', '.join(TAXONOMY_PACKAGE_FILE_NAMES)))
             remappings = {}
             packageNames = []
@@ -572,7 +586,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                        }
             filesource.close()
             return package
-        except (EnvironmentError, etree.XMLSyntaxError):
+        except (OSError, etree.XMLSyntaxError):
             pass
         if filesource:
             filesource.close()
@@ -612,12 +626,12 @@ def rebuildRemappings(cntlr):
 def isMappedUrl(url):
     return (packagesConfig is not None and url is not None and
             any(url.startswith(mapFrom) and not url.startswith(mapTo) # prevent recursion in mapping for url hosted Packages
-                for mapFrom, mapTo in packagesConfig.get('remappings', EMPTYDICT).items()))
+                for mapFrom, mapTo in packagesConfig.get('remappings', {}).items()))
 
 def mappedUrl(url):
     if packagesConfig is not None and url is not None:
         longestPrefix = 0
-        for mapFrom, mapTo in packagesConfig.get('remappings', EMPTYDICT).items():
+        for mapFrom, mapTo in packagesConfig.get('remappings', {}).items():
             if url.startswith(mapFrom):
                 if url.startswith(mapTo):
                     return url # recursive mapping, this is already mapped
