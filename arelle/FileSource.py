@@ -192,7 +192,10 @@ class FileSource:
                 if basefile:
                     with openFileStream(self.cntlr, basefile, 'rb') as fileStream:
                         self.isZip = zipfile.is_zipfile(fileStream)
-            except Exception:
+            except Exception as err:
+                # Log the error, but don't record a validation error.
+                # Validation is deferred to the validation classes. Filesource is unaware of the specific errors that should be raised.
+                self.logError(err)
                 pass
 
 
