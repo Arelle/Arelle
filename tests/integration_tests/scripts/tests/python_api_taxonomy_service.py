@@ -57,7 +57,7 @@ with Session() as session:
     with open(arelle_log_file, 'w') as f:
         json.dump(log_messages, f, ensure_ascii=False, indent=4)
 
-print(f"Validating structured logs have errors for missing labels...")
+print("Validating structured logs have errors for missing labels...")
 message_code_groups = itertools.groupby(log_messages, key=lambda m: m['messageCode'])
 expected_code_counts = {
     'info': 1,

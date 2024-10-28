@@ -34,7 +34,7 @@ report_zip_url = get_s3_uri(
 print(f"Downloading report: {report_zip_path}")
 urllib.request.urlretrieve(report_zip_url, report_zip_path)
 
-print(f"Downloading packages...")
+print("Downloading packages...")
 package_assets = {
     package for year in [2017, 2019, 2020, 2021, 2022] for package in ESEF_PACKAGES[year]
 }
@@ -63,7 +63,7 @@ with Session() as session:
     log_xml = session.get_logs('xml')
 # include end
 
-print(f"Checking log XML for errors...")
+print("Checking log XML for errors...")
 errors += validate_log_xml(log_xml, expected_results={
     'error': {
         regex.compile(r'^\[ESEF.2.2.1.precisionAttributeUsed] .*'): 1

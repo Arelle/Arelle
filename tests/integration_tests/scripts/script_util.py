@@ -47,7 +47,7 @@ def parse_args(
     parser.add_argument("--arelle", action="store", required=arelle,
                         help="CLI command to run Arelle.")
     parser.add_argument("--download-cache", action="store_true",
-                        help=f"Whether or not to download and apply cache.")
+                        help="Whether or not to download and apply cache.")
     parser.add_argument("--offline", action="store_true",
                         help="True if Arelle should run in offline mode.")
     parser.add_argument("--working-directory", action="store", default=".test",
