@@ -67,9 +67,6 @@ from openpyxl.styles import Alignment, Color, PatternFill, fills
 from openpyxl.worksheet.dimensions import ColumnDimension
 
 from arelle import ModelDocument, XbrlConst
-from arelle.Cntlr import Cntlr
-from arelle.CntlrCmdLine import CntlrCmdLine
-from arelle.CntlrWinMain import CntlrWinMain
 from arelle.ModelInstanceObject import ModelContext, ModelFact
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import (
@@ -87,8 +84,6 @@ from arelle.ModelValue import (
     qname,
     tzinfoStr,
 )
-from arelle.ModelXbrl import ModelXbrl
-from arelle.RuntimeOptions import RuntimeOptions
 from arelle.typing import TypeGetText
 from arelle.UrlUtil import relativeUri
 from arelle.utils.PluginData import PluginData
@@ -98,6 +93,12 @@ from arelle.Version import authorLabel, copyrightLabel
 
 if TYPE_CHECKING:
     from tkinter import Menu
+
+    from arelle.Cntlr import Cntlr
+    from arelle.CntlrCmdLine import CntlrCmdLine
+    from arelle.CntlrWinMain import CntlrWinMain
+    from arelle.ModelXbrl import ModelXbrl
+    from arelle.RuntimeOptions import RuntimeOptions
 
 _: TypeGetText
 
