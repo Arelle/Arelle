@@ -43,6 +43,8 @@ If the loaded report refers to a taxonomy on the local file system, the OIM inst
 directory to maintain the validity of the relative file system path to the taxonomy.
 """
 
+from __future__ import annotations
+
 import csv
 import io
 import json
@@ -50,12 +52,13 @@ import os
 import threading
 import zipfile
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal
 from math import isinf, isnan
 from numbers import Number
 from optparse import OptionParser
 from tkinter import Menu
-from typing import Any, BinaryIO, Callable, Optional, cast
+from typing import Any, BinaryIO, Callable, Iterable, Optional, cast
 
 import regex as re
 from openpyxl import Workbook
@@ -67,7 +70,7 @@ from arelle import ModelDocument, XbrlConst
 from arelle.Cntlr import Cntlr
 from arelle.CntlrCmdLine import CntlrCmdLine
 from arelle.CntlrWinMain import CntlrWinMain
-from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelInstanceObject import ModelContext, ModelFact
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import (
     DateTime,
@@ -144,7 +147,7 @@ def saveLoadableOIM(
         return
 
     namespacePrefixes = {nsOim: "xbrl"}
-    prefixNamespaces = {}
+    prefixNamespaces: dict[str, str] = {}
     if extensionPrefixes:
         for extensionPrefix, extensionNamespace in extensionPrefixes.items():
             namespacePrefixes[extensionNamespace] = extensionPrefix
@@ -152,13 +155,13 @@ def saveLoadableOIM(
     linkTypeAliases = {}
     groupAliases = {}
 
-    def compileQname(qname):
-        if qname.namespaceURI not in namespacePrefixes:
+    def compileQname(qname: QName) -> None:
+        if qname.namespaceURI is not None and qname.namespaceURI not in namespacePrefixes:
             namespacePrefixes[qname.namespaceURI] = qname.prefix or ""
 
     aspectsDefined = {qnOimConceptAspect, qnOimEntityAspect, qnOimPeriodAspect}
 
-    def oimValue(obj, decimals=None):
+    def oimValue(obj: Any) -> Any:
         if isinstance(obj, list):
             # set-valued enumeration fact
             return " ".join([oimValue(o) for o in obj])
@@ -203,12 +206,13 @@ def saveLoadableOIM(
             return str(obj)
         return obj
 
-    def oimPeriodValue(cntx):
+    def oimPeriodValue(cntx: ModelContext) -> dict[str, str]:
         if cntx.isStartEndPeriod:
             s = cntx.startDatetime
             e = cntx.endDatetime
         else:  # instant
             s = e = cntx.instantDatetime
+        assert isinstance(s, datetime) and isinstance(e, datetime)
         return {
             str(qnOimPeriodAspect): (
                 f"{s.year:04}-{s.month:02}-{s.day:02}T{s.hour:02}:{s.minute:02}:{s.second:02}{tzinfoStr(s)}/"
@@ -309,7 +313,11 @@ def saveLoadableOIM(
     dtsReferences = sorted(dtsReferences)  # turn into list
     footnoteFacts = set()
 
-    def factFootnotes(fact, oimFact=None, csvLinks=None):
+    def factFootnotes(
+        fact: ModelFact,
+        oimFact: dict[str, Any] | None = None,
+        csvLinks: dict[str, Any] | None = None,
+    ):
         footnotes = []
         oimLinks = {}
         if isCSVorXL and csvLinks is not None:
@@ -357,21 +365,22 @@ def saveLoadableOIM(
 
         return footnotes
 
-    def factAspects(fact):
+    def factAspects(fact: ModelFact) -> dict[str, Any]:
         oimFact = {}
         aspects = {}
         if isCSVorXL:
             oimFact["id"] = fact.id or f"f{fact.objectIndex}"
         concept = fact.concept
-        aspects[str(qnOimConceptAspect)] = oimValue(concept.qname)
-        if concept is not None and concept.type.isOimTextFactType and fact.xmlLang:
-            aspects[str(qnOimLangAspect)] = fact.xmlLang
+        if concept is not None:
+            aspects[str(qnOimConceptAspect)] = oimValue(concept.qname)
+            if concept.type is not None and concept.type.isOimTextFactType and fact.xmlLang:
+                aspects[str(qnOimLangAspect)] = fact.xmlLang
         if fact.isItem:
             if fact.isNil:
                 _value = None
             else:
                 _inferredDecimals = inferredDecimals(fact)
-                _value = oimValue(fact.xValue, _inferredDecimals)
+                _value = oimValue(fact.xValue)
             oimFact["value"] = _value
             if fact.concept is not None and fact.concept.isNumeric:
                 _numValue = fact.xValue
@@ -439,7 +448,7 @@ def saveLoadableOIM(
             for extObjQName, extObj in extensionReportObjects.items():
                 oimReport[extObjQName] = extObj
 
-        def saveJsonFacts(facts, oimFacts):
+        def saveJsonFacts(facts: list[ModelFact], oimFacts: dict[str, dict[str, Any]]) -> None:
             for fact in facts:
                 oimFact = factAspects(fact)
                 # add in fact level extension objects
@@ -486,13 +495,13 @@ def saveLoadableOIM(
         csvTableTemplate["rowIdColumn"] = "id"
         csvTableTemplate["dimensions"] = csvTableDimensions = {}
         csvTableTemplate["columns"] = csvFactColumns = {}
+        csvLinks = {}
         if footnotesRelationshipSet.modelRelationships:
-            csvLinks = {}
             oimReport["links"] = csvLinks
         aspectQnCol = {}
         aspectsHeader = []
 
-        def addAspectQnCol(aspectQn):
+        def addAspectQnCol(aspectQn: QName | str) -> None:
             colQName = str(aspectQn).replace("xbrl:", "")
             colNCName = colQName.replace(":", "_")
             if colNCName not in aspectQnCol:
@@ -527,10 +536,10 @@ def saveLoadableOIM(
                 addAspectQnCol(aspectQn)
         addAspectQnCol("value")
 
-        def aspectCols(fact):
+        def aspectCols(fact: ModelFact) -> list[Any]:
             cols: list[Any] = [None] * len(aspectsHeader)
 
-            def setColValues(aspects):
+            def setColValues(aspects: dict[str, Any]) -> None:
                 for aspectQn, aspectValue in aspects.items():
                     colQName = str(aspectQn).replace("xbrl:", "")
                     colNCName = colQName.replace(":", "_")
@@ -561,17 +570,17 @@ def saveLoadableOIM(
                 _baseURL = oimFile
             _csvInfo = {}  # open file, writer
 
-            def _open(filesuffix, tabname, csvTable=None):
-                _filename = _baseURL + filesuffix
+            def _open(filesuffix: str | None, tabname: str, csvTable: dict[str, Any] | None = None) -> None:
+                _filename = _baseURL if filesuffix is None else _baseURL + filesuffix
                 if csvTable is not None:
                     csvTable["url"] = os.path.basename(_filename)  # located in same directory with metadata
                 _csvInfo["file"] = open(_filename, csvOpenMode, newline=csvOpenNewline, encoding="utf-8-sig")
                 _csvInfo["writer"] = csv.writer(_csvInfo["file"], dialect="excel")
 
-            def _writerow(row, header=False):
+            def _writerow(row: Iterable[str], header: bool = False) -> None:
                 _csvInfo["writer"].writerow(row)
 
-            def _close():
+            def _close() -> None:
                 _csvInfo["file"].close()
                 _csvInfo.clear()
         elif isXL:
@@ -594,12 +603,12 @@ def saveLoadableOIM(
                 workbook.remove(workbook.worksheets[0])
             _xlInfo = {}  # open file, writer
 
-            def _open(filesuffix, tabname, csvTable=None):
+            def _open(filesuffix: str | None, tabname: str, csvTable: dict[str, Any] | None = None) -> None:
                 if csvTable is not None:
                     csvTable["url"] = tabname + "!"
                 _xlInfo["ws"] = workbook.create_sheet(title=tabname)
 
-            def _writerow(rowvalues, header=False):
+            def _writerow(rowvalues: Iterable[str], header: bool = False) -> None:
                 row = []
                 _ws = _xlInfo["ws"]
                 for i, v in enumerate(rowvalues):
@@ -624,14 +633,14 @@ def saveLoadableOIM(
                     row.append(cell)
                 _ws.append(row)
 
-            def _close():
+            def _close() -> None:
                 _xlInfo.clear()
 
         # save facts
         _open("-facts.csv", "facts", csvTable)
         _writerow(aspectsHeader, header=True)
 
-        def saveCSVfacts(facts):
+        def saveCSVfacts(facts: list[ModelFact]) -> None:
             for fact in facts:
                 _writerow(aspectCols(fact))
                 saveCSVfacts(fact.modelTupleFacts)

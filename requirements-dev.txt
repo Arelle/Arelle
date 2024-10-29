@@ -6,6 +6,7 @@ mypy==1.13.0
 boto3-stubs==1.35.49
 lxml-stubs==0.5.1
 types-PyMySQL==1.1.0.20240524
+types-openpyxl==3.1.5.20241025
 types-python-dateutil==2.9.0.20241003
 types-pytz==2024.2.0.20241003
 types-regex==2024.9.11.20240912
