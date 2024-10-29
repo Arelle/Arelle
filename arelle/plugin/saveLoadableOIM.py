@@ -58,8 +58,7 @@ from math import isinf, isnan
 from numbers import Number
 from optparse import OptionParser
 from pathlib import Path
-from tkinter import Menu
-from typing import Any, BinaryIO, Callable, Iterable, Optional, cast
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Iterable, Optional, cast
 
 import regex as re
 from openpyxl import Workbook
@@ -96,6 +95,9 @@ from arelle.utils.PluginData import PluginData
 from arelle.utils.PluginHooks import PluginHooks
 from arelle.ValidateXbrlCalcs import inferredDecimals
 from arelle.Version import authorLabel, copyrightLabel
+
+if TYPE_CHECKING:
+    from tkinter import Menu
 
 _: TypeGetText
 
