@@ -57,6 +57,7 @@ from decimal import Decimal
 from math import isinf, isnan
 from numbers import Number
 from optparse import OptionParser
+from pathlib import Path
 from tkinter import Menu
 from typing import Any, BinaryIO, Callable, Iterable, Optional, cast
 
@@ -720,6 +721,25 @@ def saveLoadableOIMMenuCommand(cntlr: CntlrWinMain) -> None:
     thread.start()
 
 
+def saveOimFiles(
+    cntlr: Cntlr,
+    modelXbrl: ModelXbrl,
+    oimFiles: list[str],
+    responseZipStream: BinaryIO | None = None,
+) -> None:
+    try:
+        if responseZipStream is None:
+            for oimFile in oimFiles:
+                saveLoadableOIM(modelXbrl, oimFile, None)
+        else:
+            with zipfile.ZipFile(responseZipStream, "a", zipfile.ZIP_DEFLATED, True) as _zip:
+                for oimFile in oimFiles:
+                    saveLoadableOIM(modelXbrl, oimFile, _zip)
+            responseZipStream.seek(0)
+    except Exception as ex:
+        cntlr.addToLog(f"Exception saving OIM {ex}")
+
+
 @dataclass
 class SaveLoadableOIMPluginData(PluginData):
     saveTestcaseOimFileSuffix: str | None
@@ -737,6 +757,12 @@ class SaveLoadableOIMPlugin(PluginHooks):
             action="store",
             dest="saveLoadableOIM",
             help=_("Save Loadable OIM file (JSON, CSV or XLSX)"),
+        )
+        parser.add_option(
+            "--saveLoadableOIMDirectory",
+            action="store",
+            dest="saveLoadableOIMDirectory",
+            help=_("Directory to export all supported OIM formats (JSON and CSV)"),
         )
         parser.add_option(
             "--saveTestcaseOIM",
@@ -778,28 +804,34 @@ class SaveLoadableOIMPlugin(PluginHooks):
     ) -> None:
         # extend XBRL-loaded run processing for this option
         oimFile = cast(Optional[str], getattr(options, "saveLoadableOIM", None))
+        allOimDirectory = cast(Optional[str], getattr(options, "saveLoadableOIMDirectory", None))
+        if (oimFile or allOimDirectory) and (
+            modelXbrl is None
+            or modelXbrl.modelDocument is None
+            or modelXbrl.modelDocument.type
+            not in {
+                ModelDocument.Type.INSTANCE,
+                ModelDocument.Type.INLINEXBRL,
+                ModelDocument.Type.INLINEXBRLDOCUMENTSET,
+            }
+        ):
+            cntlr.addToLog("No XBRL instance has been loaded.")
+            return
         if oimFile:
-            if (
-                modelXbrl is None
-                or modelXbrl.modelDocument is None
-                or modelXbrl.modelDocument.type
-                not in (
-                    ModelDocument.Type.INSTANCE,
-                    ModelDocument.Type.INLINEXBRL,
-                    ModelDocument.Type.INLINEXBRLDOCUMENTSET,
-                )
-            ):
-                cntlr.addToLog("No XBRL instance has been loaded.")
-                return
+            saveOimFiles(cntlr, modelXbrl, [oimFile], responseZipStream)
+        if allOimDirectory:
+            oimDir = Path(allOimDirectory)
             try:
-                if responseZipStream is not None:
-                    with zipfile.ZipFile(responseZipStream, "a", zipfile.ZIP_DEFLATED, True) as _zip:
-                        saveLoadableOIM(modelXbrl, oimFile, _zip)
-                    responseZipStream.seek(0)
-                else:
-                    saveLoadableOIM(modelXbrl, oimFile)
-            except Exception as ex:
-                cntlr.addToLog(f"Exception saving OIM {ex}")
+                oimDir.mkdir(parents=True, exist_ok=True)
+            except OSError as err:
+                cntlr.addToLog(
+                    _("Unable to save OIM files into requested directory: {}, {}").format(allOimDirectory, err.strerror)
+                )
+                return
+            assert modelXbrl.modelDocument is not None
+            basefile = Path(modelXbrl.modelDocument.basename)
+            oimFiles = [str(oimDir.joinpath(basefile.with_suffix(ext))) for ext in (".csv", ".json")]
+            saveOimFiles(cntlr, modelXbrl, oimFiles, responseZipStream)
 
     @staticmethod
     def testcaseVariationValidated(
