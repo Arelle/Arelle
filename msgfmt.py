@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
-# Written by Martin v. Löwis <loewis@informatik.hu-berlin.de>
+# Written by Martin v. Lï¿½wis <loewis@informatik.hu-berlin.de>
 
 """Generate binary message catalog from textual translation description.
 
@@ -23,9 +23,9 @@ Options:
     -V
     --version
         Display version information and exit.
-        
+
 Example (for russian in arelle, run from this directory)
-    python3.5 msgfmt.py -o arelle/locale/ru/LC_MESSAGES/arelle.mo arelle/locale/ru/LC_MESSAGES/ru.po 
+    python3.5 msgfmt.py -o arelle/locale/ru/LC_MESSAGES/arelle.mo arelle/locale/ru/LC_MESSAGES/ru.po
 """
 
 import sys
@@ -121,7 +121,7 @@ def make(filename, outfile):
 
     msgid = None
     msgstr = None
-    
+
     # Parse the catalog
     lno = 0
     for l in lines:
@@ -229,4 +229,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

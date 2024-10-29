@@ -83,13 +83,13 @@ print(f"Checking for viewer: {viewer_path}")
 if not viewer_path.exists():
     errors.append(f'Viewer not generated at "{viewer_path}"')
 
-print(f"Checking for filtered logs...")
+print("Checking for filtered logs...")
 expected_filtered = 5
 actual_filtered = len(log_filter.filtered_records)
 if actual_filtered != expected_filtered:
     errors.append(f'Expected {expected_filtered} filtered log records, found {actual_filtered}.')
 
-print(f"Checking log XML for errors...")
+print("Checking log XML for errors...")
 assert log_xml == log_handler.getXml(clearLogBuffer=False, includeDeclaration=False)
 errors += validate_log_xml(log_xml)
 

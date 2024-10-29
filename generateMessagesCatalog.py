@@ -8,12 +8,12 @@ def entityEncode(arg):  # be sure it's a string, vs int, etc, and encode &, <, "
 
 if __name__ == "__main__":
     startedAt = time.time()
-    
+
     idMsg = []
     numArelleSrcFiles = 0
 
     arelleSrcPath = (os.path.dirname(__file__) or os.curdir) + os.sep + "arelle"
-    for arelleSrcDir in (arelleSrcPath, 
+    for arelleSrcDir in (arelleSrcPath,
                          arelleSrcPath + os.sep + "plugin",
                          arelleSrcPath + os.sep + "plugin" + os.sep + "validate" + os.sep + "EFM",
                          # arelleSrcPath + os.sep + "plugin" + os.sep + "validate" + os.sep + "ESEF",
@@ -67,7 +67,7 @@ if __name__ == "__main__":
                                                for elt in ast.walk(msgCodeArg)):
                                             msgCodes = ("(dynamic)",)
                                         else:
-                                            msgCodes = [elt.s 
+                                            msgCodes = [elt.s
                                                         for elt in ast.walk(msgCodeArg)
                                                         if isinstance(elt, ast.Str)]
                                     msgArg = item.args[1 + iArgOffset]
@@ -90,16 +90,16 @@ if __name__ == "__main__":
                                                    for elt in ast.walk(msgCodeArg)):
                                                 pass # dynamic
                                             else:
-                                                msgCodes = [elt.s 
+                                                msgCodes = [elt.s
                                                             for elt in ast.walk(msgCodeArg)
                                                             if isinstance(elt, ast.Str)]
                                         else:
                                             keywords.append(keyword.arg)
                                     for msgCode in msgCodes:
-                                        idMsg.append((msgCode, msg, level, keywords, refFilename, item.lineno))                                        
+                                        idMsg.append((msgCode, msg, level, keywords, refFilename, item.lineno))
                         except (AttributeError, IndexError):
                             pass
-                    
+
 
     lines = []
     for id,msg,level,args,module,line in idMsg:
@@ -110,7 +110,7 @@ if __name__ == "__main__":
             else:
                 argAttr = ""
             lines.append("<message code=\"{0}\"\n         level=\"{3}\"\n         module=\"{4}\" line=\"{5}\"{2}>\n{1}\n</message>"
-                      .format(id, 
+                      .format(id,
                               entityEncode(msg),
                               argAttr,
                               level,
@@ -129,13 +129,13 @@ if __name__ == "__main__":
     variablePrefix="%("
     variableSuffix=")s"
     variablePrefixEscape="" >
-<!-- 
-This file contains Arelle messages text.   Each message has a code 
-that corresponds to the message code in the log file, level (severity), 
+<!--
+This file contains Arelle messages text.   Each message has a code
+that corresponds to the message code in the log file, level (severity),
 args (available through log file), and message replacement text.
 
-(Messages with dynamically composed error codes or text content 
-(such as ValidateXbrlDTS.py line 158 or lxml parser messages) 
+(Messages with dynamically composed error codes or text content
+(such as ValidateXbrlDTS.py line 158 or lxml parser messages)
 are reported as "(dynamic)".)
 
 -->
@@ -143,7 +143,7 @@ are reported as "(dynamic)".)
 ''')
         f.write("\n\n".join(sorted(lines)))
         f.write("\n\n</messages>")
-        
+
     with io.open(arelleSrcPath + os.sep + "doc" + os.sep + "messagesCatalog.xsd", 'wt', encoding='utf-8') as f:
         f.write(
 '''<?xml version="1.0" encoding="UTF-8"?>
@@ -173,5 +173,5 @@ are reported as "(dynamic)".)
   </xs:element>
 </xs:schema>
 ''')
-    
+
     print("Arelle messages catalog {0:.2f} secs, {1} formula files, {2} messages".format( time.time() - startedAt, numArelleSrcFiles, len(idMsg) ))

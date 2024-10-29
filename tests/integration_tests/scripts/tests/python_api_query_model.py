@@ -34,7 +34,7 @@ report_zip_url = get_s3_uri(
 print(f"Downloading report: {report_zip_path}")
 urllib.request.urlretrieve(report_zip_url, report_zip_path)
 
-print(f"Downloading packages...")
+print("Downloading packages...")
 package_assets = {
     package for year in [2017, 2019, 2020, 2021, 2022] for package in ESEF_PACKAGES[year]
 }
