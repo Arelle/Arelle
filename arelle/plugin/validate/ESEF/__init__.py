@@ -132,9 +132,9 @@ class ESEFPlugin(PluginHooks):
                         return None  # allow zipped test case to load normally
 
                 isZipFormat = modelXbrl.fileSource.isZip
-                hasZipFileExtension = modelXbrl.fileSource.type.lower() == ".zip"
+                hasZipFileExtension = modelXbrl.fileSource.type.lower() == ".zip" or (modelXbrl.fileSource.type.lower() == ".xbri" and  disclosureSystemYear >= 2024)
                 if disclosureSystemYear >= 2023 and not (isZipFormat and hasZipFileExtension):
-                    modelXbrl.error("ESEF.2.6.1.disallowedReportPackageFileExtension",
+                    modelXbrl.error("ESEF.2.6.3.disallowedReportPackageFileExtension",
                                     _("A report package MUST conform to the .ZIP File Format Specification and MUST have a .zip extension."),
                                     fileSourceType=modelXbrl.fileSource.type,
                                     modelObject=modelXbrl)
