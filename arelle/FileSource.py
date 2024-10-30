@@ -745,8 +745,7 @@ def openFileStream(
     if PackageManager.isMappedUrl(filepath):  # type: ignore[no-untyped-call]
         filepath = PackageManager.mappedUrl(filepath)  # type: ignore[no-untyped-call]
     elif (
-            isHttpUrl(filepath)
-            and cntlr
+            cntlr
             and hasattr(cntlr, "modelManager")
         ): # may be called early in initialization for PluginManager
         filepath = cntlr.modelManager.disclosureSystem.mappedUrl(filepath)  # type: ignore[no-untyped-call]
