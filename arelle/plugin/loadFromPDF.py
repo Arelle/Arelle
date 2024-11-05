@@ -14,9 +14,14 @@ The Load From PDF plugin is designed for PDF/A reports with structural tagged PD
   b) load reports intp Arelle from PDF/A that contain structural tagged PDF content
 
 An unstructured PDF file can be converted to a PDF/A structurally tagged file (with accessiblity
-tags that allow giving an ID to each structural item):
+tags that allow giving an ID to each structural item).
+
+At this time, if a structurally tagged element with text does not have an ID
 
    by tools such as Acrobat using accessibility preparation
+      Acrobat-DC seems to loose viewing glyphs on tables when autotagging
+      Online Adobe seems to merge vertically adjacent table cells: https://acrobatservices.adobe.com/dc-accessibility-playground/main.html#
+      Online PDFIX seems most successful with table cells: https://pdfix.io/add-tags-to-pdf/
    by libraries such as Python autotaggers for tables such as
       https://github.com/pdfix/pdfix-autotag-deepdoctection
 
@@ -41,8 +46,8 @@ An xBRL-JSON template file is provided for each tagged PDF/A with inline XBRL.
 
 - **Stand alone convert pdf/a + template json into xBRL-JSON*:
   python loadFromPDF.py {pdfFilePath}
-  argument --debug will list out, by pdf ID, all the structural nodes available for pdfIdRef'ing
-                    and all the form fields by their field ID for pdfIdRef'ing
+  argument --showInfo will list out, by pdf ID, all the structural nodes available for pdfIdRef'ing
+                      and all the form fields by their field ID for pdfIdRef'ing
 
 
 
@@ -63,58 +68,172 @@ An xBRL-JSON template file is provided for each tagged PDF/A with inline XBRL.
 * **Load PDF Report**: <<FEATURE NOT READY>>
   1. Using the normal `File` menu `Open File...` dialog, select the PDF/A file, or
   2. Using this module as a main program, save the value-enhanced inline source.
+  
+
 """
-from pikepdf import Pdf, Dictionary, Array, Stream, Operator, parse_content_stream, unparse_content_stream
+from pikepdf import Pdf, Dictionary, Array, Stream, Operator, parse_content_stream, unparse_content_stream, _core
 from collections import defaultdict
+from decimal import Decimal
 import sys, os, json
 
 try:
     from arelle.Version import authorLabel, copyrightLabel
+    from arelle import CntlrWinMain
+    from arelle import FunctionIxt
 except ImportError:
+    module_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    sys.path.insert(0,module_path)
+    from arelle import CntlrWinMain
+    from arelle import FunctionIxt
     authorLabel = 'Workiva, Inc.'
     copyrightLabel = '(c) Copyright 2011-present Workiva, Inc., All rights reserved.'
 
+def decodePdfchar(s):
+    if len(s) == 2:
+        return chr(ord(s[0]) + (256 * ord(s[1])))
+    return s
 
-def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, debug, saveJson):
+def bytesToNum(b):
+    num = 0
+    mult = 1
+    for d in b[::-1]:
+        num += d * mult
+        mult *= 256
+    return num
+
+def numToBytes(n):
+    b = []
+    while n:
+        b.append(n % 256)
+        n = n // 256
+    while len(b) % 2: # must be even number of bytes for UTF-16
+        b.append(0)
+    return bytes(bytearray(b[::-1]))
+        
+def fontChar(font, c):
+    if c in font["bfchars"]:
+        return font["bfchars"][c]
+    for start, end, op in font["bfranges"]:
+        if c >= start and c <= end:
+            diff = bytesToNum(c) - bytesToNum(start)
+            if isinstance(op, list):
+                if diff < len(op):
+                    return op[diff]
+                return "?"
+            else:
+                return numToBytes(bytesToNum(op) + diff).decode("UTF-16BE")
+                    
+
+def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=False, addMissingIDs=True, saveJson=False):
+
+    if showInfo:
+        print(f"loadFromPDF file: {os.path.basename(filepath)}")
 
     pdf = Pdf.open(filepath)
-
+    
+    if showInfo:
+        metadata = pdf.open_metadata()
+        print("Metadata:")
+        for k, v in metadata.items():
+            print(f"  {k}: {v}")
+            
     markedContents = defaultdict(list)
 
     # load marked content (structured paragraph and section strings
     for p, page in enumerate(pdf.pages):
+        fonts = {}
+        fontRanges = {} # [start, end, toStart or [to values list]
+        for name, font in page.get("/Resources",{}).get("/Font", {}).items():
+            if "/ToUnicode" in font:
+                fm = {}
+                fr = []
+                cr = []
+                fonts[name] = {"bfchars": fm, "bfranges": fr, "csranges": cr}
+                codespacerange = []
+                beginCount = 0
+                fbcharNum = 0
+                for i in parse_content_stream(font["/ToUnicode"]):
+                    if i.operator in (Operator("begincodespacerange"), Operator("beginbfrange"), Operator("beginbfchar")):
+                        beginCount = i.operands[0]
+                    elif i.operator == Operator("endcodespacerange"):
+                        cr.append([c.__bytes__() for c in i.operands])
+                    elif i.operator == Operator("endbfrange"):
+                        for l in range(0, len(i.operands),3):
+                            startChar = i.operands[l].__bytes__()
+                            endChar = i.operands[l+1].__bytes__()
+                            if isinstance(i.operands[l+2], _core._ObjectList):
+                                fr.append( [startChar, endChar, 
+                                            [l.__bytes__() for l in i.operands[l+2]]] )
+                            else:
+                                fr.append( [startChar, endChar, i.operands[l+2].__bytes__()] )
+                    elif i.operator == Operator("endbfchar"):
+                        #print(f"{name} fontInstr opr {str(i.operator)} ornd {[o.__bytes__() for o in i.operands]}")
+                        c = None
+                        for l in i.operands:
+                            if c is None:
+                                c = l.__bytes__()
+                            else:
+                                fm[c] = l.__bytes__().decode("UTF-16BE")
+                                c = None
+
+        ##or name, font in fonts.items():
+        #    print(f"font {name} bytes {font}")
         mcid = None
         txt = []
-        instructions = parse_content_stream(page, "BDC Tj TJ EMC ")
+        fontName = fontSize = None
+        font = None
+        instructions = parse_content_stream(page, "BDC Tf Tj TJ EMC ")
         for i in instructions:
             if i.operator == Operator("BDC") and i.operands[0] == "/P" and "/MCID" in i.operands[1]:
                 mcid = i.operands[1]["/MCID"] # start of marked content
             elif i.operator == Operator("EMC") and mcid is not None:
-                #print(f"pg {p} mcid {mcid} tj {''.join(txt)}")
+                #print(f"pg {p} mcid {mcid} font {fontName} tj {''.join(txt)}")
                 markedContents[p,mcid] = ''.join(txt)
                 mcid = None # end of this marked content
                 txt = []
+            elif i.operator == Operator("Tf"):
+                fontName = str(i.operands[0])
+                fontSize = i.operands[1]
+                if fontName in fonts:
+                    font = fonts[fontName]
+                else:
+                    font = None
             elif i.operator == Operator("Tj"):
                 for s in i.operands:
-                    txt.append(str(s))
+                    t = s.__bytes__()
+                    if font:
+                        for l in range(0, len(str(s)), 2):
+                            c = t[l:l+2]
+                            txt.append(fontChar(font, c))
+                    else:
+                        txt.append(t)
             elif i.operator == Operator("TJ"):
                 for a in i.operands:
                     for s in a:
-                        if isinstance(s, int):
-                            txt.append(" ") # not performing micro-spacing
+                        if isinstance(s, (int, Decimal)):
+                            pass # txt.append(" ") # not performing micro-spacing
                         else:
-                            txt.append(str(s))
+                            if font:
+                                t = s.__bytes__()
+                                for l in range(0, len(str(s)), 2):
+                                    c = t[l:l+2]
+                                    txt.append(fontChar(font, c))
 
     # load text blocks from structTree fields with IDs
     textBlocks = {}
 
-    def loadTextBlocks(obj, pdfId="", key="", indent="", page=None):
+    def loadTextBlocks(obj, pdfId="", key="", indent="", page=None, depth=0, trail=[]):
+        if depth > 100:
+            print(f"excessive recursion depth={depth} trail={trail}")
+            return
         if isinstance(obj, (Array, list, tuple)):
             for v in obj:
-                loadTextBlocks(v, pdfId, key, indent + "  ")
+                loadTextBlocks(v, pdfId, key, indent + "  ", page, depth+1, trail+[key])
         elif isinstance(obj, (Stream, Dictionary, dict)):
             if "/ID" in obj:
                 pdfId = str(obj["/ID"])
+            elif addMissingIDs:
+                pdfId = f"_#{len(textBlocks)}"
             if "/Pg" in obj:
                 page = None
                 c = obj["/Pg"]["/Contents"]
@@ -124,7 +243,7 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, debug, sa
                         break
             for k, v in obj.items():
                 if k not in ("/IDTree", "/P", "/Parent", "/Pg", "/Ff", "/Mk", "/Q", "/Rect", "/Font", "/Type", "/ColorSpace", "/MediaBox", "/Resources", "/Matrix", "/BBox", "/Border", "/DA", "/Length"):
-                    loadTextBlocks(v, pdfId, k, indent + "  ", page)
+                    loadTextBlocks(v, pdfId, k, indent + "  ", page, depth+1, trail+[k])
         elif key == "/K":
             if pdfId:
                 if (page, obj) in markedContents:
@@ -134,7 +253,8 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, debug, sa
                     else:
                         textBlocks[pdfId] = markedContent
 
-    loadTextBlocks(pdf.Root["/StructTreeRoot"])
+    if "/StructTreeRoot" in pdf.Root:
+        loadTextBlocks(pdf.Root["/StructTreeRoot"])
 
     # load form fields by IDs
     formFields = {}
@@ -152,11 +272,11 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, debug, sa
         elif key == "/V":
             if pdfId:
                 formFields[str(pdfId)] = str(obj)
-
-    loadFormFields(pdf.Root["/AcroForm"]["/Fields"])
+    if "/AcroForm" in pdf.Root:
+        loadFormFields(pdf.Root["/AcroForm"]["/Fields"])
 
     # at this point we have textBlocks and formFields by id
-    if debug:
+    if showInfo:
         print(f"text blocks:\n{os.linesep.join(k + ': ' + v for k,v in textBlocks.items())}")
         print(f"form fields:\n{os.linesep.join(k + ': ' + v for k,v in formFields.items())}")
 
@@ -257,7 +377,8 @@ if __name__ == "__main__":
     def _logMessage(severity, code, message, **kwargs):
         print("[{}] {}".format(code, message % kwargs))
 
-    debug = False
+    showInfo = False
+    addMissingIDs = False
     pdfFile = None
 
     for arg in sys.argv[1:]:
@@ -276,10 +397,13 @@ if __name__ == "__main__":
                   "limitations under the License.")
         elif arg in ("-h", "-?", "--help"):
             print("command line arguments: \n"
-                  "  --debug: specifies a pyparsing debug trace \n"
+                  "  --showInfo: show structural model and form fields available for mapping \n"
+                  "  --addMissingIDs: add id to structural elements with text and no ID"
                   "  {file}: .pdf file to process and save as inline XBRL named {file}.xhtml")
-        elif arg == "--debug":
-            debug = True # shows StructTree
+        elif arg == "--showInfo":
+            showInfo = True # shows StructTree
+        elif arg == "--addMissingIDs":
+            addMissingIDs = True
         else:
             if not arg.endswith(".pdf"):
                 print("file {} must be a .pdf file".format(arg))
@@ -290,4 +414,4 @@ if __name__ == "__main__":
 
     if pdfFile:
         # load pdf and save json with values from pdf
-        loadFromPDF(_cntlr, _logMessage, _logMessage, None, pdfFile, None, debug, True)
+        loadFromPDF(_cntlr, _logMessage, _logMessage, None, pdfFile, None, showInfo, addMissingIDs, True)
